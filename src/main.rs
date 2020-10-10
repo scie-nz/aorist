@@ -3,7 +3,7 @@ use std::fs;
 use lib::datasets::{Dataset, get_dataset};
 
 fn main() -> Result<(), String> {
-    let dataset: Box<dyn Dataset> = get_dataset().unwrap();
+    let dataset = get_dataset();
     println!("{}", dataset.to_yaml());
     Ok(())
 }

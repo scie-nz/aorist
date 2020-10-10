@@ -3,34 +3,40 @@ use std::fs;
 /* This trait will implement all the abstract operations
  * we might want to undertake on a regular dataset.
  */
-pub trait Dataset {
-    fn to_yaml(&self) -> String;
-}
-
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
-pub struct StaticCSVDataset {
-    pub x: f64,
-    pub y: f64,
-    pub name: String,
-}
-
-impl Dataset for StaticCSVDataset {
-    fn to_yaml(&self) -> String {
-        serde_yaml::to_string(self).unwrap()
-    }
+pub struct GCSLocation {
+    pub uri: String,
 }
 
 #[derive(Serialize, Deserialize)]
 #[serde(tag = "type", content = "properties")]
-pub enum DatasetEnum {
-    StaticCSVDataset { x: f64, y: f64, name: String },
+pub enum Location {
+    GCSLocation { uri: String },
 }
 
-pub fn get_dataset() -> Option<Box<dyn Dataset>> {
-    let s = fs::read_to_string("basic.yaml").unwrap();
-    let dataset: DatasetEnum = serde_yaml::from_str(&s).unwrap();
-    match dataset {
-        DatasetEnum::StaticCSVDataset{ x, y, name } => Some(Box::new(StaticCSVDataset{ x, y, name })),
-        _ => None
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct StaticCSVDataset {
+    pub name: String,
+    pub location: GCSLocation,
+}
+
+
+#[derive(Serialize, Deserialize)]
+#[serde(tag = "type", content = "properties")]
+pub enum Dataset {
+    StaticCSVDataset { name: String, location: Location },
+}
+impl Dataset {
+    pub fn to_yaml(&self) -> String {
+        match self {
+            Dataset::StaticCSVDataset{..} => serde_yaml::to_string(self).unwrap(),
+            _ => "Error converting to yaml.".to_string(),
+        }
     }
+}
+
+pub fn get_dataset() -> Dataset {
+    let s = fs::read_to_string("basic.yaml").unwrap();
+    let dataset: Dataset = serde_yaml::from_str(&s).unwrap();
+    dataset
 }
