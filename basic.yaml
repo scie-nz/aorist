@@ -20,3 +20,29 @@ spec:
     attributes:
     - name: granule_id
       type: KeyStringIdentifier
+    - name: product_id
+      type: NullableStringIdentifier
+    - name: datatake_identifier
+      type: NullableStringIdentifier
+    - name: mgrs_tile
+      type: NullableStringIdentifier
+    - name: sensing_time
+      type: NullablePOSIXTimestamp
+    - name: total_size
+      type: NullableInt64
+    - name: cloud_cover
+      type: NullableString
+    - name: geometric_quality_flag
+      type: NullableString
+    - name: generation_time
+      type: NullablePOSIXTimestamp
+    - name: north_lat
+      type: FloatLatitude
+    - name: south_lat
+      type: FloatLatitude
+    - name: west_lon
+      type: FloatLongitude
+    - name: east_lon
+      type: FloatLongitude
+    - name: base_url
+      type: URI

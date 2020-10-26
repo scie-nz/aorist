@@ -5,33 +5,66 @@ use serde::{Serialize, Deserialize};
 use std::fs;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct KeyStringIdentifier{name: String}
+
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct NullableStringIdentifier{name: String}
+
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct NullablePOSIXTimestamp{name: String}
+
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct NullableInt64{name: String}
+
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct NullableString{name: String}
+
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct FloatLatitude{name: String}
+
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct FloatLongitude{name: String}
+
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct URI{name: String}
+
+
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "type")]
 pub enum Attribute {
-    KeyStringIdentifier {name: String},
-    NullableStringIdentifier {name: String},
-    NullablePOSIXTimeStamp {name: String},
-    NullableInt64 {name: String},
-    NullableString {name: String},
-    FloatLatitude {name: String},
-    FloatLongitude {name: String},
-    URI {name: String},
+    KeyStringIdentifier(KeyStringIdentifier),
+    NullableStringIdentifier(NullableStringIdentifier),
+    NullablePOSIXTimestamp(NullablePOSIXTimestamp),
+    NullableInt64(NullableInt64),
+    NullableString(NullableString),
+    FloatLatitude(FloatLatitude),
+    FloatLongitude(FloatLongitude),
+    URI(URI),
+}
+
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct KeyedStruct {
+    name: String, attributes: Vec<Attribute>
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "type")]
 pub enum DatumTemplate {
-    KeyedStruct{name: String, attributes: Vec<Attribute>},
+    KeyedStruct(KeyedStruct),
+}
+
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct DataSet {
+    name: String,
+    location: Location,
+    accessPolicies: Vec<AccessPolicy>,
+    datumTemplates: Vec<DatumTemplate>,
 }
 
 #[derive(Serialize, Deserialize)]
 #[serde(tag = "type", content = "spec")]
 pub enum Object {
-    DataSet {
-        name: String,
-        location: Location,
-        accessPolicies: Vec<AccessPolicy>,
-        datumTemplates: Vec<DatumTemplate>,
-    },
+    DataSet(DataSet),
 }
 impl Object {
     pub fn to_yaml(&self) -> String {
