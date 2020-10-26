@@ -1,5 +1,12 @@
 pub mod access_policies;
+pub mod assets;
 pub mod attributes;
+pub mod compressions;
+pub mod encoding;
 pub mod datasets;
+pub mod headers;
+pub mod layouts;
 pub mod locations;
+pub mod schema;
+pub mod storage;
 pub mod templates;

@@ -1,85 +1,17 @@
 #![allow(non_snake_case)]
 
-use crate::locations::RemoteWebsiteLocation;
 use crate::access_policies::AccessPolicy;
 use serde::{Serialize, Deserialize};
 use std::fs;
 use crate::templates::DatumTemplate;
-
-
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
-pub struct GzipCompression {}
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
-#[serde(tag = "type")]
-pub enum DataCompression {
-    GzipCompression(GzipCompression),
-}
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
-pub struct UpperSnakeCaseCSVHeader {}
-
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
-#[serde(tag = "type")]
-pub enum FileHeader {
-    UpperSnakeCaseCSVHeader(UpperSnakeCaseCSVHeader),
-}
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
-pub struct SingleFileLayout {}
-
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
-#[serde(tag = "type")]
-pub enum StorageLayout {
-    SingleFileLayout(SingleFileLayout),
-}
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
-pub struct CSVEncoding {
-    compression: DataCompression,
-    header: FileHeader,
-}
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
-#[serde(tag = "type", content="spec")]
-pub enum Encoding {
-    CSVEncoding(CSVEncoding),
-}
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
-pub struct RemoteWebsiteStorage {
-    location: RemoteWebsiteLocation,
-    layout: StorageLayout,
-}
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
-#[serde(tag = "type")]
-pub enum Storage {
-    RemoteWebsiteStorage(RemoteWebsiteStorage),
-}
-
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
-pub struct TabularSchema {
-    datumTemplateName: String,
-    attributes: Vec<String>,
-}
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
-#[serde(tag = "type", content="spec")]
-pub enum DataSchema {
-    TabularSchema(TabularSchema),
-}
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
-pub struct StaticDataTable {
-    storage: Storage,
-    encoding: Encoding,
-    schema: DataSchema,
-}
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
-#[serde(tag = "type", content="spec")]
-pub enum Table {
-    StaticDataTable(StaticDataTable),
-}
-
+use crate::assets::Asset;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct DataSet {
     name: String,
     accessPolicies: Vec<AccessPolicy>,
     datumTemplates: Vec<DatumTemplate>,
-    tables: Vec<Table>,
+    assets: Vec<Asset>,
 }
 
 #[derive(Serialize, Deserialize)]

@@ -42,7 +42,7 @@ spec:
       type: FloatLongitude
     - name: base_url
       type: URI
-  tables:
+  assets:
   - name: sentinel-2-metadata-table
     type: StaticDataTable
     spec:
