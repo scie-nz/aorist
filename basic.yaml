@@ -1,9 +1,41 @@
 ---
 type: User
 spec:
+  unixname: bogdan
   name: Bogdan State
   email: bogdan@scie.nz
   phone: 555-1234
+---
+type: User
+spec:
+  unixname: alice
+  name: Alice
+  email: alice@scie.nz
+  phone: 555-1235
+---
+type: UserGroup
+spec:
+  name: finance-users
+  members:
+    - alice
+  labels:
+    department: finance
+---
+type: UserGroup
+spec:
+  name: datascience-users
+  members:
+    - bogdan
+  labels:
+    department: datascience
+---
+type: UserGroup
+spec:
+  name: project-crowding-detection
+  members:
+    - bogdan
+  labels:
+    project: crowding-detection
 ---
 type: DataSet
 spec:

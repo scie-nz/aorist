@@ -9,5 +9,8 @@ fn main() -> Result<(), String> {
     for user in setup.get_users() {
         println!("{}", user.to_yaml());
     }
+    for group in setup.get_groups() {
+        println!("{}", group.to_yaml());
+    }
     Ok(())
 }
