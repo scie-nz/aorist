@@ -5,8 +5,8 @@ spec:
     approveSelector:
       department: datascience
       project: crowding-detection
-  datumTemplates:
-  - name: GranuleDatum
+  datumTemplates: 
+  - &granule name: GranuleDatum
     type: KeyedStruct
     attributes:
     - name: granule_id
@@ -52,6 +52,22 @@ spec:
         type: CSVEncoding
         spec:
           compression: GzipCompression
-          header: UpperSnakeCaseCSVHeader
+           header: UpperSnakeCaseCSVHeader
       schema:
         type: TabularSchema
+        datumTemplate: *granule
+        attributes:
+        - granule_id
+        - product_id
+        - datatake_identifier
+        - mgrs_tile
+        - sensing_time
+        - total_size
+        - cloud_cover
+        - geometric_quality_flag
+        - generation_time
+        - north_lat
+        - south_lat
+        - west_lon
+        - east_lon
+        - base_url

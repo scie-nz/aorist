@@ -6,6 +6,9 @@ use crate::access_policies::AccessPolicy;
 use serde::{Serialize, Deserialize};
 use std::fs;
 
+pub trait TAttribute {
+    fn get_name(&self) -> &String;
+}
 pub trait TPrestoAttribute: TAttribute {
     fn get_presto_type(&self) -> String;
     fn get_presto_schema(&self, max_attribute_length: usize) -> String {
@@ -14,10 +17,6 @@ pub trait TPrestoAttribute: TAttribute {
         let spaces = (0..num_middle_spaces).map(|_| " ").collect::<String>();
         format!("{}{}{}", self.get_name(), spaces, self.get_presto_type())
     }
-}
-
-pub trait TAttribute {
-    fn get_name(&self) -> &String;
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, PrestoVarchar)]
