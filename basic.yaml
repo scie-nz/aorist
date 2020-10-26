@@ -1,4 +1,10 @@
 ---
+type: User
+spec:
+  name: Bogdan State
+  email: bogdan@scie.nz
+  phone: 555-1234
+---
 type: DataSet
 spec:
   name: sentinel-2-metadata-dataset
@@ -80,3 +86,4 @@ spec:
           - west_lon
           - east_lon
           - base_url
+---
