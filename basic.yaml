@@ -46,3 +46,22 @@ spec:
       type: FloatLongitude
     - name: base_url
       type: URI
+  tables:
+  - name: sentinel-2-metadata-table
+    type: StaticDataTable
+    spec:
+      storage:
+        type: RemoteWebsiteStorage
+        location:
+          type: GCSLocation
+          spec:
+            uri: https://storage.googleapis.com/gcp-public-data-sentinel-2/index.csv.gz
+        layout:
+          type: SingleFileLayout
+      encoding:
+        type: CSVEncoding
+        spec:
+          compression:
+            type: GzipCompression
+          header:
+            type: UpperSnakeCaseCSVHeader

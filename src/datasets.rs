@@ -149,11 +149,76 @@ impl DatumTemplate {
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct GCSLocation {}
+
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[serde(tag = "type", content="spec")]
+pub enum RemoteWebsiteLocation {
+    GCSLocation(GCSLocation),
+}
+
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct GzipCompression {}
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[serde(tag = "type")]
+pub enum DataCompression {
+    GzipCompression(GzipCompression),
+}
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct UpperSnakeCaseCSVHeader {}
+
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[serde(tag = "type")]
+pub enum FileHeader {
+    UpperSnakeCaseCSVHeader(UpperSnakeCaseCSVHeader),
+}
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct SingleFileLayout {}
+
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[serde(tag = "type")]
+pub enum StorageLayout {
+    SingleFileLayout(SingleFileLayout),
+}
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct CSVEncoding {
+    compression: DataCompression,
+    header: FileHeader,
+}
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[serde(tag = "type", content="spec")]
+pub enum Encoding {
+    CSVEncoding(CSVEncoding),
+}
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct RemoteWebsiteStorage {
+    location: RemoteWebsiteLocation,
+    layout: StorageLayout,
+}
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[serde(tag = "type")]
+pub enum Storage {
+    RemoteWebsiteStorage(RemoteWebsiteStorage),
+}
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct StaticDataTable {
+    storage: Storage,
+    encoding: Encoding,
+}
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[serde(tag = "type", content="spec")]
+pub enum Table {
+    StaticDataTable(StaticDataTable),
+}
+
+
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct DataSet {
     name: String,
     location: Location,
     accessPolicies: Vec<AccessPolicy>,
     datumTemplates: Vec<DatumTemplate>,
+    tables: Vec<Table>,
 }
 
 #[derive(Serialize, Deserialize)]
