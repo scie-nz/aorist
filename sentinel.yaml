@@ -1,43 +1,57 @@
-
-- name: sentinel-2-metadata-dataset
-  type: datasets::StaticCSVDataset
-  parameters:
-    location:
-      type: locations::GCSLocation
-      parameters:
-        uri: https://storage.googleapis.com/gcp-public-data-sentinel-2/index.csv.gz
-    encoding:
-      compression: compressions::GzipCompression
-      header: headers::UpperSnakeCaseCSVHeader
-    schema:
-      type: schemas::TabularSchema
-      parameters:
-        attributes:
-        - name: granule_id
-          type: attributes::KeyStringIdentifier
-        - name: product_id
-          type: attributes::NullableStringIdentifier
-        - name: datatake_identifier
-          type: attributes::NullableStringIdentifier
-        - name: mgrs_tile
-          type: attributes::NullableStringIdentifier
-        - name: sensing_time
-          type: attributes::NullablePOSIXTimestamp
-        - name: total_size
-          type: attributes::NullableInt64
-        - name: cloud_cover
-          type: attributes::NullableString
-        - name: geometric_quality_flag
-          type: attributes::NullableString
-        - name: generation_time
-          type: attributes::NullablePOSIXTimestamp
-        - name: north_lat
-          type: attributes::FloatLatitude
-        - name: south_lat
-          type: attributes::FloatLatitude
-        - name: west_lon
-          type: attributes::FloatLongitude
-        - name: east_lon
-          type: attributes::FloatLongitude
-        - name: base_url
-          type: attributes::URI
+apiVersion: v0
+kind: DataSet
+spec:
+  accessPolicies:
+    approveSelector:
+      department: datascience
+      project: crowding-detection
+  datumTemplates:
+  - name: GranuleDatum
+    type: KeyedStruct
+    attributes:
+    - name: granule_id
+      type: KeyStringIdentifier
+    - name: product_id
+      type: NullableStringIdentifier
+    - name: datatake_identifier
+      type: NullableStringIdentifier
+    - name: mgrs_tile
+      type: NullableStringIdentifier
+    - name: sensing_time
+      type: NullablePOSIXTimestamp
+    - name: total_size
+      type: NullableInt64
+    - name: cloud_cover
+      type: NullableString
+    - name: geometric_quality_flag
+      type: NullableString
+    - name: generation_time
+      type: NullablePOSIXTimestamp
+    - name: north_lat
+      type: FloatLatitude
+    - name: south_lat
+      type: FloatLatitude
+    - name: west_lon
+      type: FloatLongitude
+    - name: east_lon
+      type: FloatLongitude
+    - name: base_url
+      type: URI
+  tables:
+  - name: sentinel-2-metadata-table
+    type: StaticDataTable
+    spec:
+      storage:
+        location:
+          type: GCSLocation
+          spec:
+            uri: https://storage.googleapis.com/gcp-public-data-sentinel-2/index.csv.gz
+        layout:
+          type: SingleFileLayout
+      encoding:
+        type: CSVEncoding
+        spec:
+          compression: GzipCompression
+          header: UpperSnakeCaseCSVHeader
+      schema:
+        type: TabularSchema
