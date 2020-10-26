@@ -4,31 +4,8 @@ use crate::locations::Location;
 use crate::access_policies::AccessPolicy;
 use serde::{Serialize, Deserialize};
 use std::fs;
-use crate::attributes::{Attribute, TAttribute, TPrestoAttribute};
+use crate::templates::DatumTemplate;
 
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
-pub struct KeyedStruct {
-    name: String, attributes: Vec<Attribute>
-}
-impl KeyedStruct {
-    fn get_presto_schema(&self) -> String {
-        let max_attribute_length = self.attributes.iter().map(|x| x.get_name().len()).max().unwrap();
-        self.attributes.iter().map(|x| x.get_presto_schema(max_attribute_length)).collect::<Vec<String>>().join(",\n")
-    }
-}
-
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
-#[serde(tag = "type")]
-pub enum DatumTemplate {
-    KeyedStruct(KeyedStruct),
-}
-impl DatumTemplate {
-    fn get_presto_schema(&self) -> String {
-        match self {
-            DatumTemplate::KeyedStruct(x) => x.get_presto_schema(),
-        }
-    }
-}
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct GCSLocation {
