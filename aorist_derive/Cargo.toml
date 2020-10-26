@@ -1,0 +1,15 @@
+[package]
+name = "aorist_derive"
+version = "0.1.0"
+authors = ["Bogdan State <bogdanstate@gmail.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[lib]
+name = "aorist_derive"
+path = "src/lib.rs"
+proc-macro = true
+
+[dependencies]
+quote = "1.0.7"
+syn = "1.0.48"
