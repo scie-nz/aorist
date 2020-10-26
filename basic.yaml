@@ -2,10 +2,6 @@
 type: DataSet
 spec:
   name: sentinel-2-metadata-dataset
-  location:
-    type: GCSLocation
-    spec:
-      uri: https://storage.googleapis.com/gcp-public-data-sentinel-2/index.csv.gz
   accessPolicies:
   - type: ApproveAccessSelector
     spec:

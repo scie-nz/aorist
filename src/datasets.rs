@@ -1,22 +1,11 @@
 #![allow(non_snake_case)]
 
-use crate::locations::Location;
+use crate::locations::RemoteWebsiteLocation;
 use crate::access_policies::AccessPolicy;
 use serde::{Serialize, Deserialize};
 use std::fs;
 use crate::templates::DatumTemplate;
 
-
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
-pub struct GCSLocation {
-    uri: String,
-}
-
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
-#[serde(tag = "type", content="spec")]
-pub enum RemoteWebsiteLocation {
-    GCSLocation(GCSLocation),
-}
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct GzipCompression {}
@@ -88,7 +77,6 @@ pub enum Table {
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct DataSet {
     name: String,
-    location: Location,
     accessPolicies: Vec<AccessPolicy>,
     datumTemplates: Vec<DatumTemplate>,
     tables: Vec<Table>,
