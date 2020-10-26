@@ -14,3 +14,9 @@ spec:
           - datascience
         project:
           - crowding-detection
+  datumTemplates:
+  - name: granule-datum
+    type: KeyedStruct
+    attributes:
+    - name: granule_id
+      type: KeyStringIdentifier
