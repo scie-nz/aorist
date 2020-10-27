@@ -24,11 +24,11 @@ impl DataSet {
     pub fn get_mapped_datum_templates(&self) -> HashMap<String, DatumTemplate> {
         self.datumTemplates.iter().map(|x| (x.get_name().clone(), x.clone())).collect()
     }
-    pub fn get_presto_schemas(&self) -> String {
+    pub fn get_presto_schemas(&self, indent: usize) -> String {
         let mappedTemplates = self.get_mapped_datum_templates();
         let mut schemas: String = "".to_string();
         for asset in &self.assets {
-            let schema = asset.get_presto_schema(&mappedTemplates);
+            let schema = asset.get_presto_schema(&mappedTemplates, indent);
             schemas += "\n\n";
             schemas += &schema;
         }

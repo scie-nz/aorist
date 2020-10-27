@@ -8,11 +8,11 @@ pub trait TAttribute {
 }
 pub trait TPrestoAttribute: TAttribute {
     fn get_presto_type(&self) -> String;
-    fn get_presto_schema(&self, max_attribute_length: usize) -> String {
+    fn get_presto_schema(&self, indent: usize, max_attribute_length: usize) -> String {
         let name = self.get_name();
         let num_middle_spaces = (max_attribute_length - name.len()) + 1;
         let spaces = (0..num_middle_spaces).map(|_| " ").collect::<String>();
-        format!("{}{}{}", self.get_name(), spaces, self.get_presto_type())
+        format!("{:indent$}{}{}{}", "", self.get_name(), spaces, self.get_presto_type(), indent=indent)
     }
 }
 

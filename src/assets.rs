@@ -8,14 +8,24 @@ use std::collections::HashMap;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 pub struct StaticDataTable {
+    name: String,
     storage: Storage,
     encoding: Encoding,
     schema: DataSchema,
 }
 impl StaticDataTable {
-    pub fn get_presto_schema(&self, templates: &HashMap<String, DatumTemplate>) -> String {
-        let columnSchema = self.schema.get_presto_schema(templates);
-        columnSchema
+    pub fn get_presto_schema(&self, templates: &HashMap<String, DatumTemplate>, indent: usize) -> String {
+        let columnSchema = self.schema.get_presto_schema(templates, indent);
+        format!("\
+            CREATE TABLE IF NOT EXISTS {table} (\n\
+                {column_schema}\n\
+            );",
+            table=self.get_name(),
+            column_schema=columnSchema,
+        )
+    }
+    pub fn get_name(&self) -> &String {
+        &self.name
     }
 }
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
@@ -24,9 +34,9 @@ pub enum Asset {
     StaticDataTable(StaticDataTable),
 }
 impl Asset {
-    pub fn get_presto_schema(&self, templates: &HashMap<String, DatumTemplate>) -> String {
+    pub fn get_presto_schema(&self, templates: &HashMap<String, DatumTemplate>, indent: usize) -> String {
         match self {
-            Asset::StaticDataTable(x) => x.get_presto_schema(templates),
+            Asset::StaticDataTable(x) => x.get_presto_schema(templates, indent),
         }
     }
 }
