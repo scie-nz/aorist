@@ -1,5 +1,5 @@
 #![allow(non_snake_case)]
-use serde::{Serialize, Deserialize};
+use serde::Serialize;
 use std::collections::HashMap;
 pub trait RangerEntity
 where <Self as RangerEntity>::TRangerCreatePayload: Serialize {

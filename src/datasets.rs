@@ -62,14 +62,25 @@ impl DataSetup {
         hostname: String,
         port: usize
     ) -> String {
-        self.users
-            .iter()
-            .map(
-                |x| x.get_range_create_curl(
-                    username.clone(), password.clone(), hostname.clone(), port
+        format!(
+            "{}\n\n{}",
+            self.groups
+                .iter()
+                .map(
+                    |x| x.get_range_create_curl(
+                        username.clone(), password.clone(), hostname.clone(), port
+                    )
                 )
-            )
-            .collect::<Vec<String>>().join("\n")
+                .collect::<Vec<String>>().join("\n"),
+            self.users
+                .iter()
+                .map(
+                    |x| x.get_range_create_curl(
+                        username.clone(), password.clone(), hostname.clone(), port
+                    )
+                )
+                .collect::<Vec<String>>().join("\n")
+        )
     }
 }
 pub fn get_data_setup() -> DataSetup {
