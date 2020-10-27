@@ -3,6 +3,7 @@ use serde::{Serialize, Deserialize};
 use crate::storage::Storage;
 use crate::schema::DataSchema;
 use crate::templates::DatumTemplate;
+use indoc::indoc;
 use std::collections::HashMap;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
@@ -12,8 +13,8 @@ pub struct StaticDataTable {
     schema: DataSchema,
 }
 impl StaticDataTable {
-    pub fn get_presto_schemas(&self, templates: &HashMap<String, DatumTemplate>, indent: usize) -> String {
-        let columnSchema = self.schema.get_presto_schema(templates, indent);
+    pub fn get_presto_schemas(&self, templates: &HashMap<String, DatumTemplate>, _indent: usize) -> String {
+        let columnSchema = self.schema.get_presto_schema(templates);
         let mut schemas: Vec<String> = Vec::new();
         for storage in &self.storage {
             if storage.is_hive_storage() {
@@ -22,20 +23,22 @@ impl StaticDataTable {
                 let tags_str = match tags.len() {
                     0 => "".to_string(),
                     _ => format!(
-                        " WITH (\n{}\n)",
+                        " WITH (\n    {}\n)",
                         tags.iter()
-                            .map(|(k, v)| format!("{:indent$}{}='{}'", "", k, v, indent=indent))
+                            .map(|(k, v)| format!("{}='{}'", k, v))
                             .collect::<Vec<String>>()
-                            .join("\n,")
+                            .join(",\n    ")
                     ).to_string()
                 };
                 schemas.push(
-                    format!("\
-                        CREATE TABLE IF NOT EXISTS {table} (\n\
-                            {column_schema}\n\
-                        ){tags_str};",
+                    format!(
+                        indoc!{
+                            "CREATE TABLE IF NOT EXISTS {table} (
+                                {column_schema}
+                            ){tags_str};"
+                        },
                         table=self.get_name(),
-                        column_schema=columnSchema,
+                        column_schema=columnSchema.replace("\n","\n    "),
                         tags_str=tags_str,
                     )
                 );

@@ -9,10 +9,10 @@ pub struct TabularSchema {
     attributes: Vec<String>,
 }
 impl TabularSchema {
-    pub fn get_presto_schema(&self, templates: &HashMap<String, DatumTemplate>, indent: usize) -> String {
+    pub fn get_presto_schema(&self, templates: &HashMap<String, DatumTemplate>) -> String {
         assert!(templates.contains_key(&self.datumTemplateName));
         let template = templates.get(&self.datumTemplateName).unwrap();
-        let columnSchema = template.get_presto_schema(&self.attributes, indent);
+        let columnSchema = template.get_presto_schema(&self.attributes);
         format!("{}", columnSchema)
     }
 }
@@ -22,9 +22,9 @@ pub enum DataSchema {
     TabularSchema(TabularSchema),
 }
 impl DataSchema {
-    pub fn get_presto_schema(&self, templates: &HashMap<String, DatumTemplate>, indent: usize) -> String {
+    pub fn get_presto_schema(&self, templates: &HashMap<String, DatumTemplate>) -> String {
         match self {
-            DataSchema::TabularSchema(x) => x.get_presto_schema(templates, indent),
+            DataSchema::TabularSchema(x) => x.get_presto_schema(templates),
         }
     }
 }

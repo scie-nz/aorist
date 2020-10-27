@@ -74,12 +74,20 @@ spec:
       type: NullablePOSIXTimestamp
     - name: north_lat
       type: FloatLatitude
+      comment: |
+        Northern latitude of the tile's bounding box.
     - name: south_lat
       type: FloatLatitude
+      comment: |
+        Southern latitude of the tile's bounding box.
     - name: west_lon
       type: FloatLongitude
+      comment: |
+        Western longitude of the tile's bounding box.
     - name: east_lon
       type: FloatLongitude
+      comment: |
+        Eastern longitude of the tile's bounding box.
     - name: base_url
       type: URI
   assets:
