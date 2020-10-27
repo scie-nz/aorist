@@ -1,8 +1,46 @@
+use indoc::indoc;
 use serde::{Serialize, Deserialize};
+use std::collections::HashMap;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 pub struct GCSLocation {
-    uri: String,
+    bucket: String,
+    blob: String,
+}
+
+impl GCSLocation {
+    pub fn get_prefect_preamble(&self) -> HashMap<String, String> {
+        let mut preamble = HashMap::new();
+        preamble.insert(
+            "download_blob_to_file".to_string(),
+            indoc! {"
+            @task
+            def download_blob_to_file(bucket_name, blob_name, file_name):
+                client = storage.Client()
+                bucket = client.bucket(bucket_name)
+                blob = bucket.blob(blob_name)
+                blob.download_to_filename(file_name)
+            "}.to_string()
+        );
+        preamble
+    }
+    pub fn get_prefect_download_task(&self, task_name: String, file_name: String) -> String {
+        format!(
+            indoc! {
+                "
+                    {task_name} = download_blob_to_file(
+			            '{bucket}',
+                        '{blob},
+                        '{file_name}'
+                    )
+                "
+            },
+            task_name=task_name,
+            bucket=&self.bucket,
+            blob=&self.blob,
+            file_name=file_name
+        )
+    }
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]

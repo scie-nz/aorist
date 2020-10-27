@@ -91,7 +91,8 @@ spec:
           location:
             type: GCSLocation
             spec:
-              uri: https://storage.googleapis.com/gcp-public-data-sentinel-2/index.csv.gz
+              bucket: gcp-public-data-sentinel2
+              blob: index.csv.gz
           layout:
             type: SingleFileLayout
         encoding:
