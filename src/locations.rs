@@ -55,9 +55,28 @@ pub struct HiveAlluxioLocation {
     port: usize,
     path: String,
 }
-
+impl HiveAlluxioLocation {
+    pub fn populate_table_creation_tags(&self, tags: &mut HashMap<String, String>) -> Result<(), String> {
+        tags.insert(
+            "external_location".to_string(), 
+            format!("alluxio://{server}:{port}/{path}",
+                    server=self.server,
+                    port=self.port,
+                    path=self.path).to_string()
+        );
+        Ok(())
+    }
+}
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 #[serde(tag = "type", content="spec")]
 pub enum HiveLocation {
     HiveAlluxioLocation(HiveAlluxioLocation),
+}
+
+impl HiveLocation {
+    pub fn populate_table_creation_tags(&self, tags: &mut HashMap<String, String>) -> Result<(), String> {
+        match self {
+            HiveLocation::HiveAlluxioLocation(x) => x.populate_table_creation_tags(tags)
+        }
+    }
 }

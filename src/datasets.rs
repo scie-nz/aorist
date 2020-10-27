@@ -28,7 +28,7 @@ impl DataSet {
         let mappedTemplates = self.get_mapped_datum_templates();
         let mut schemas: String = "".to_string();
         for asset in &self.assets {
-            let schema = asset.get_presto_schema(&mappedTemplates, indent);
+            let schema = asset.get_presto_schemas(&mappedTemplates, indent);
             schemas += "\n\n";
             schemas += &schema;
         }
