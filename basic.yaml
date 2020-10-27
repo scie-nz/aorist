@@ -2,14 +2,16 @@
 type: User
 spec:
   unixname: bogdan
-  name: Bogdan State
+  firstName: Bogdan
+  lastName: State
   email: bogdan@scie.nz
   phone: 555-1234
 ---
 type: User
 spec:
   unixname: alice
-  name: Alice
+  firstName: Alice
+  lastName: Johnson
   email: alice@scie.nz
   phone: 555-1235
 ---

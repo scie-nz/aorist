@@ -5,7 +5,9 @@ use serde::{Serialize, Deserialize};
 use std::fs;
 use crate::templates::DatumTemplate;
 use crate::assets::Asset;
-use std::collections::HashMap;
+use crate::ranger::RangerEntity;
+use crate::user::User;
+use crate::user_group::UserGroup;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct DataSet {
@@ -20,30 +22,6 @@ impl DataSet {
     }
     pub fn get_presto_schemas(&self) -> Option<String> {
         Some(self.datumTemplates[0].get_presto_schema())
-    }
-}
-
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
-pub struct User {
-    name: String,
-    email: String,
-    phone: String,
-    unixname: String,
-}
-impl User {
-    pub fn to_yaml(&self) -> String {
-        serde_yaml::to_string(self).unwrap()
-    }
-}
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
-pub struct UserGroup {
-    name: String,
-    members: Vec<String>,
-    labels: HashMap<String, String>,
-}
-impl UserGroup {
-    pub fn to_yaml(&self) -> String {
-        serde_yaml::to_string(self).unwrap()
     }
 }
 #[derive(Serialize, Deserialize)]
@@ -76,6 +54,22 @@ impl DataSetup {
     }
     pub fn get_groups(&self) -> &Vec<UserGroup> {
         &self.groups
+    }
+    pub fn get_curl_calls(
+        &self,
+        username: String,
+        password: String,
+        hostname: String,
+        port: usize
+    ) -> String {
+        self.users
+            .iter()
+            .map(
+                |x| x.get_range_create_curl(
+                    username.clone(), password.clone(), hostname.clone(), port
+                )
+            )
+            .collect::<Vec<String>>().join("\n")
     }
 }
 pub fn get_data_setup() -> DataSetup {

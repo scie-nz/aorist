@@ -12,5 +12,11 @@ fn main() -> Result<(), String> {
     for group in setup.get_groups() {
         println!("{}", group.to_yaml());
     }
+    println!("{}", setup.get_curl_calls(
+        "admin".to_string(),
+        "eagerLamprey".to_string(),
+        "localhost".to_string(),
+        1000
+    ));
     Ok(())
 }
