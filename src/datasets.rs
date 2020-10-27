@@ -3,6 +3,7 @@
 use crate::access_policies::AccessPolicy;
 use serde::{Serialize, Deserialize};
 use std::fs;
+use std::collections::HashMap;
 use crate::templates::DatumTemplate;
 use crate::assets::Asset;
 use crate::ranger::RangerEntity;
@@ -20,8 +21,18 @@ impl DataSet {
     pub fn to_yaml(&self) -> String {
         serde_yaml::to_string(self).unwrap()
     }
-    pub fn get_presto_schemas(&self) -> Option<String> {
-        Some(self.datumTemplates[0].get_presto_schema())
+    pub fn get_mapped_datum_templates(&self) -> HashMap<String, DatumTemplate> {
+        self.datumTemplates.iter().map(|x| (x.get_name().clone(), x.clone())).collect()
+    }
+    pub fn get_presto_schemas(&self) -> String {
+        let mappedTemplates = self.get_mapped_datum_templates();
+        let mut schemas: String = "".to_string();
+        for asset in &self.assets {
+            let schema = asset.get_presto_schema(&mappedTemplates);
+            schemas += "\n\n";
+            schemas += &schema;
+        }
+        schemas
     }
 }
 #[derive(Serialize, Deserialize)]

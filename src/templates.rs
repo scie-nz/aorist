@@ -2,27 +2,50 @@
 
 use serde::{Serialize, Deserialize};
 use crate::attributes::{Attribute, TAttribute, TPrestoAttribute};
+use std::collections::HashMap;
 
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 pub struct KeyedStruct {
-    name: String, attributes: Vec<Attribute>
+    name: String,
+    attributes: Vec<Attribute>,
 }
 impl KeyedStruct {
-    pub fn get_presto_schema(&self) -> String {
-        let max_attribute_length = self.attributes.iter().map(|x| x.get_name().len()).max().unwrap();
-        self.attributes.iter().map(|x| x.get_presto_schema(max_attribute_length)).collect::<Vec<String>>().join(",\n")
+    fn get_mapped_attributes(&self) -> HashMap<String, Attribute> {
+        self.attributes.iter().map(|x| (x.get_name().clone(), x.clone())).collect()
+    }
+    pub fn get_presto_schema(&self, attributeNames: &Vec<String>) -> Result<String, String> {
+        let mapped_attributes = self.get_mapped_attributes();
+        let mut schemas: Vec<String> = Vec::new();
+        let max_attribute_length = attributeNames.iter().map(|x| x.len()).max().unwrap();
+        for attr in attributeNames {
+            if mapped_attributes.contains_key(attr) {
+                schemas.push(mapped_attributes[attr].get_presto_schema(max_attribute_length))
+            } else {
+                let err: String = format!("Cannot find attribute {} in datumTemplate attributes.", attr);
+                return Err(err);
+            }
+        }
+        Ok(schemas.join(",\n"))
+    }
+    pub fn get_name(&self) -> &String {
+        &self.name
     }
 }
 
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 #[serde(tag = "type")]
 pub enum DatumTemplate {
     KeyedStruct(KeyedStruct),
 }
 impl DatumTemplate {
-    pub fn get_presto_schema(&self) -> String {
+    pub fn get_presto_schema(&self, attributeNames: &Vec<String>) -> String {
         match self {
-            DatumTemplate::KeyedStruct(x) => x.get_presto_schema(),
+            DatumTemplate::KeyedStruct(x) => x.get_presto_schema(attributeNames).unwrap(),
+        }
+    }
+    pub fn get_name(&self) -> &String {
+        match self {
+            DatumTemplate::KeyedStruct(x) => x.get_name(),
         }
     }
 }

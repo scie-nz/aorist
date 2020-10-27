@@ -16,7 +16,7 @@ pub trait TPrestoAttribute: TAttribute {
     }
 }
 
-#[derive(Debug, PartialEq, Serialize, Deserialize, PrestoVarchar)]
+#[derive(Debug, PartialEq, Serialize, Deserialize, PrestoVarchar, Clone)]
 pub struct KeyStringIdentifier{name: String}
 impl TAttribute for KeyStringIdentifier{
     fn get_name(&self) -> &String {
@@ -24,7 +24,7 @@ impl TAttribute for KeyStringIdentifier{
     }
 }
 
-#[derive(Debug, PartialEq, Serialize, Deserialize, PrestoVarchar)]
+#[derive(Debug, PartialEq, Serialize, Deserialize, PrestoVarchar, Clone)]
 pub struct NullableStringIdentifier{name: String}
 impl TAttribute for NullableStringIdentifier {
     fn get_name(&self) -> &String {
@@ -32,7 +32,7 @@ impl TAttribute for NullableStringIdentifier {
     }
 }
 
-#[derive(Debug, PartialEq, Serialize, Deserialize, PrestoBigint)]
+#[derive(Debug, PartialEq, Serialize, Deserialize, PrestoBigint, Clone)]
 pub struct NullablePOSIXTimestamp{name: String}
 impl TAttribute for NullablePOSIXTimestamp {
     fn get_name(&self) -> &String {
@@ -40,7 +40,7 @@ impl TAttribute for NullablePOSIXTimestamp {
     }
 }
 
-#[derive(Debug, PartialEq, Serialize, Deserialize, PrestoBigint)]
+#[derive(Debug, PartialEq, Serialize, Deserialize, PrestoBigint, Clone)]
 pub struct NullableInt64{name: String}
 impl TAttribute for NullableInt64 {
     fn get_name(&self) -> &String {
@@ -48,7 +48,7 @@ impl TAttribute for NullableInt64 {
     }
 }
 
-#[derive(Debug, PartialEq, Serialize, Deserialize, PrestoVarchar)]
+#[derive(Debug, PartialEq, Serialize, Deserialize, PrestoVarchar, Clone)]
 pub struct NullableString{name: String}
 impl TAttribute for NullableString {
     fn get_name(&self) -> &String {
@@ -56,7 +56,7 @@ impl TAttribute for NullableString {
     }
 }
 
-#[derive(Debug, PartialEq, Serialize, Deserialize, PrestoReal)]
+#[derive(Debug, PartialEq, Serialize, Deserialize, PrestoReal, Clone)]
 pub struct FloatLatitude{name: String}
 impl TAttribute for FloatLatitude {
     fn get_name(&self) -> &String {
@@ -64,7 +64,7 @@ impl TAttribute for FloatLatitude {
     }
 }
 
-#[derive(Debug, PartialEq, Serialize, Deserialize, PrestoReal)]
+#[derive(Debug, PartialEq, Serialize, Deserialize, PrestoReal, Clone)]
 pub struct FloatLongitude{name: String}
 impl TAttribute for FloatLongitude {
     fn get_name(&self) -> &String {
@@ -72,14 +72,14 @@ impl TAttribute for FloatLongitude {
     }
 }
 
-#[derive(Debug, PartialEq, Serialize, Deserialize, PrestoVarchar)]
+#[derive(Debug, PartialEq, Serialize, Deserialize, PrestoVarchar, Clone)]
 pub struct URI{name: String}
 impl TAttribute for URI {
     fn get_name(&self) -> &String {
         &self.name
     }
 }
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 #[serde(tag = "type")]
 pub enum Attribute {
     KeyStringIdentifier(KeyStringIdentifier),
