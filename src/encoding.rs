@@ -10,7 +10,11 @@ pub struct CSVEncoding {
     header: FileHeader,
 }
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
+pub struct ORCEncoding {
+}
+#[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 #[serde(tag = "type", content="spec")]
 pub enum Encoding {
     CSVEncoding(CSVEncoding),
+    ORCEncoding(ORCEncoding),
 }

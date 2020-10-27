@@ -87,21 +87,34 @@ spec:
       spec:
         name: sentinel-2-metadata-table
         storage:
-          type: RemoteWebsiteStorage
-          location:
-            type: GCSLocation
-            spec:
-              bucket: gcp-public-data-sentinel2
-              blob: index.csv.gz
-          layout:
-            type: SingleFileLayout
-        encoding:
-          type: CSVEncoding
-          spec:
-            compression:
-              type: GzipCompression
-            header:
-              type: UpperSnakeCaseCSVHeader
+          - type: RemoteWebsiteStorage
+            location:
+              type: GCSLocation
+              spec:
+                bucket: gcp-public-data-sentinel2
+                blob: index.csv.gz
+            layout:
+              type: SingleFileLayout
+            encoding:
+              type: CSVEncoding
+              spec:
+                compression:
+                  type: GzipCompression
+                header:
+                  type: UpperSnakeCaseCSVHeader
+          - type: HiveTableStorage
+            location:
+              type: HiveAlluxioLocation
+              spec:
+                server: alluxio-server
+                port: 19998
+                path: 'sentinel2/metadata'
+            layout:
+              type: StaticHiveTableLayout
+              spec: {}
+            encoding:
+              type: ORCEncoding
+              spec: {}
         schema:
           type: TabularSchema
           spec:

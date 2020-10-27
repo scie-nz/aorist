@@ -49,4 +49,15 @@ pub enum RemoteWebsiteLocation {
     GCSLocation(GCSLocation),
 }
 
+#[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
+pub struct HiveAlluxioLocation {
+    server: String,
+    port: usize,
+    path: String,
+}
 
+#[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
+#[serde(tag = "type", content="spec")]
+pub enum HiveLocation {
+    HiveAlluxioLocation(HiveAlluxioLocation),
+}

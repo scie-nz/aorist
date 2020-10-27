@@ -10,3 +10,12 @@ pub struct SingleFileLayout {}
 pub enum StorageLayout {
     SingleFileLayout(SingleFileLayout),
 }
+
+#[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
+pub struct StaticHiveTableLayout {}
+
+#[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
+#[serde(tag = "type")]
+pub enum HiveStorageLayout {
+    StaticHiveTableLayout(StaticHiveTableLayout),
+}

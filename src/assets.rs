@@ -1,7 +1,6 @@
 #![allow(non_snake_case)]
 use serde::{Serialize, Deserialize};
 use crate::storage::Storage;
-use crate::encoding::Encoding;
 use crate::schema::DataSchema;
 use crate::templates::DatumTemplate;
 use std::collections::HashMap;
@@ -9,8 +8,7 @@ use std::collections::HashMap;
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 pub struct StaticDataTable {
     name: String,
-    storage: Storage,
-    encoding: Encoding,
+    storage: Vec<Storage>,
     schema: DataSchema,
 }
 impl StaticDataTable {
