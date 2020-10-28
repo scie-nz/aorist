@@ -5,6 +5,7 @@ pub mod compressions;
 pub mod encoding;
 pub mod datasets;
 pub mod headers;
+pub mod hive;
 pub mod layouts;
 pub mod locations;
 pub mod ranger;

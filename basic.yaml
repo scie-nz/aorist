@@ -116,6 +116,7 @@ spec:
               spec:
                 server: alluxio-server
                 port: 19998
+                rest_api_port: 39999
                 path: 'sentinel2/metadata'
             layout:
               type: StaticHiveTableLayout

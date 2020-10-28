@@ -2,8 +2,9 @@
 
 use serde::{Serialize, Deserialize};
 use crate::locations::{RemoteWebsiteLocation, HiveLocation};
-use crate::layouts::{StorageLayout, HiveStorageLayout};
 use crate::encoding::Encoding;
+use crate::layouts::{StorageLayout, HiveStorageLayout};
+use crate::hive::THiveTableCreationTagMutator;
 use std::collections::HashMap;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
@@ -18,11 +19,12 @@ pub struct HiveTableStorage {
     layout: HiveStorageLayout,
     encoding: Encoding,
 }
-impl HiveTableStorage {
-    pub fn populate_table_creation_tags(
+impl THiveTableCreationTagMutator for HiveTableStorage {
+    fn populate_table_creation_tags(
         &self,
         tags: &mut HashMap<String, String>,
     ) -> Result<(), String> {
+        self.encoding.populate_table_creation_tags(tags)?;
         self.location.populate_table_creation_tags(tags)
     }
 }

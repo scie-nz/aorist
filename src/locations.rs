@@ -1,6 +1,30 @@
-use indoc::indoc;
+use indoc::{formatdoc, indoc};
 use serde::{Serialize, Deserialize};
 use std::collections::HashMap;
+use crate::hive::THiveTableCreationTagMutator;
+
+pub trait TLocationWithPythonAPIClient {
+    fn get_python_imports(&self, preamble: &mut HashMap<String, String>);
+    fn get_python_client(&self, client_name: &String) -> String;
+    fn get_python_create_storage(&self, client_name: &String) -> String;
+
+    fn get_prefect_create_storage_task(
+        &self,
+        task_name: &String,
+        client_name: &String,
+        preamble: &mut HashMap<String, String>
+    ) -> String {
+        self.get_python_imports(preamble);
+        formatdoc!(
+            "@task
+             def {task_name}:
+                {python_create_storage}
+            ",
+            task_name=task_name,
+            python_create_storage=self.get_python_create_storage(client_name)
+        ).to_string()
+    }
+}
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 pub struct GCSLocation {
@@ -42,6 +66,37 @@ impl GCSLocation {
         )
     }
 }
+impl TLocationWithPythonAPIClient for GCSLocation {
+    fn get_python_imports(&self, preamble: &mut HashMap<String, String>) {
+        let import_str = indoc!("
+            from google.cloud import storage
+        ").to_string();
+        preamble.insert("gcs_storage_python_imports".to_string(),
+                        import_str);
+    }
+    fn get_python_client(&self, client_name: &String) -> String {
+        formatdoc!(
+            "
+                {client_name} = storage.Client()
+            ",
+            client_name=&client_name
+        ).to_string()
+    }
+    fn get_python_create_storage(&self, client_name: &String) -> String {
+        formatdoc!(
+            "
+                {client}
+                try:
+                    bucket = {client_name}.get_bucket({bucket_name})
+                except:
+                    {client_name}.create_bucket({bucket_name})
+            ",
+            bucket_name=self.bucket,
+            client=self.get_python_client(client_name),
+            client_name=client_name
+        ).to_string()
+    }
+}
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 #[serde(tag = "type", content="spec")]
@@ -53,12 +108,49 @@ pub enum RemoteWebsiteLocation {
 pub struct HiveAlluxioLocation {
     server: String,
     port: usize,
+    rest_api_port: usize,
     path: String,
 }
-impl HiveAlluxioLocation {
-    pub fn populate_table_creation_tags(&self, tags: &mut HashMap<String, String>) -> Result<(), String> {
+impl TLocationWithPythonAPIClient for HiveAlluxioLocation {
+    fn get_python_imports(&self, preamble: &mut HashMap<String, String>) {
+        let import_str = indoc!("
+            import alluxio
+        ").to_string();
+        preamble.insert("hive_alluxio_storage_python_imports".to_string(),
+                        import_str);
+    }
+    pub fn get_python_client(&self, client_name: &String) -> String {
+        formatdoc!(
+            "
+                {client_name} = alluxio.Client('{server}', {port})
+            ",
+            client_name=client_name,
+            server=self.server,
+            port=self.rest_api_port
+        ).to_string()
+    }
+    pub fn get_python_create_storage(&self, client_name: &String) -> String {
+        formatdoc!(
+            "
+                {client}
+                if not {client_name}.exists({path}):
+                    opt = alluxio.option.CreateDirectory(
+                        recursive=True,
+                        write_type=wire.WRITE_TYPE_CACHE_THROUGH
+                    )
+                    {client_name}.create_directory({path}, opt)
+            ",
+            client=self.get_python_client(client_name),
+            client_name=client_name,
+            path=self.path,
+        ).to_string()
+    }
+}
+
+impl THiveTableCreationTagMutator for HiveAlluxioLocation {
+    fn populate_table_creation_tags(&self, tags: &mut HashMap<String, String>) -> Result<(), String> {
         tags.insert(
-            "external_location".to_string(), 
+            "external_location".to_string(),
             format!("alluxio://{server}:{port}/{path}",
                     server=self.server,
                     port=self.port,
@@ -73,8 +165,8 @@ pub enum HiveLocation {
     HiveAlluxioLocation(HiveAlluxioLocation),
 }
 
-impl HiveLocation {
-    pub fn populate_table_creation_tags(&self, tags: &mut HashMap<String, String>) -> Result<(), String> {
+impl THiveTableCreationTagMutator for HiveLocation {
+    fn populate_table_creation_tags(&self, tags: &mut HashMap<String, String>) -> Result<(), String> {
         match self {
             HiveLocation::HiveAlluxioLocation(x) => x.populate_table_creation_tags(tags)
         }
