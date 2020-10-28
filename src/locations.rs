@@ -119,7 +119,7 @@ impl TLocationWithPythonAPIClient for HiveAlluxioLocation {
         preamble.insert("hive_alluxio_storage_python_imports".to_string(),
                         import_str);
     }
-    pub fn get_python_client(&self, client_name: &String) -> String {
+    fn get_python_client(&self, client_name: &String) -> String {
         formatdoc!(
             "
                 {client_name} = alluxio.Client('{server}', {port})
@@ -129,7 +129,7 @@ impl TLocationWithPythonAPIClient for HiveAlluxioLocation {
             port=self.rest_api_port
         ).to_string()
     }
-    pub fn get_python_create_storage(&self, client_name: &String) -> String {
+    fn get_python_create_storage(&self, client_name: &String) -> String {
         formatdoc!(
             "
                 {client}
