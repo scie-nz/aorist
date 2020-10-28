@@ -669,6 +669,257 @@ data:
     macros:
       sleep-4s:
         command: echo "Sleeping for 4s" && sleep 4
+  ranger-admin-install.properties.template: |
+    #------------------------- DB CONFIG - BEGIN ----------------------------------
+    # Uncomment the below if the DBA steps need to be run separately
+    #setup_mode=SeparateDBA
+
+    PYTHON_COMMAND_INVOKER=python3
+
+    #DB_FLAVOR=MYSQL|ORACLE|POSTGRES|MSSQL|SQLA
+    DB_FLAVOR=MYSQL
+    #
+
+    #
+    # Location of DB client library (please check the location of the jar file)
+    #
+    #SQL_CONNECTOR_JAR=/usr/share/java/ojdbc6.jar
+    #SQL_CONNECTOR_JAR=/usr/share/java/mysql-connector-java.jar
+    #SQL_CONNECTOR_JAR=/usr/share/java/postgresql.jar
+    #SQL_CONNECTOR_JAR=/usr/share/java/sqljdbc4.jar
+    #SQL_CONNECTOR_JAR=/opt/sqlanywhere17/java/sajdbc4.jar
+    SQL_CONNECTOR_JAR=/mysql-connector-java-8.0.19/mysql-connector-java-8.0.19.jar
+
+
+    #
+    # DB password for the DB admin user-id
+    # **************************************************************************
+    # ** If the password is left empty or not-defined here,
+    # ** it will try with blank password during installation process
+    # **************************************************************************
+    #
+    db_root_user=$MYSQL_USER
+    db_root_password=$MYSQL_PASSWORD
+    db_host=$MYSQL_HOST:$MYSQL_PORT
+    #SSL config
+    db_ssl_enabled=false
+    db_ssl_required=false
+    db_ssl_verifyServerCertificate=false
+    #db_ssl_auth_type=1-way|2-way, where 1-way represents standard one way ssl authentication and 2-way represents mutual ssl authentication
+    db_ssl_auth_type=2-way
+    javax_net_ssl_keyStore=
+    javax_net_ssl_keyStorePassword=
+    javax_net_ssl_trustStore=
+    javax_net_ssl_trustStorePassword=
+    #
+    # DB UserId used for the Ranger schema
+    #
+    db_name=$RANGER_DB
+    #TODO: create a proper DB user. Also, secrets.
+    db_user=$MYSQL_USER
+    db_password=$MYSQL_PASSWORD
+
+    # change password. Password for below mentioned users can be changed only once using this property.
+    #PLEASE NOTE :: Password should be minimum 8 characters with min one alphabet and one numeric.
+    rangerAdmin_password=$RANGER_PASSWORD
+    rangerTagsync_password=$RANGER_PASSWORD
+    rangerUsersync_password=$RANGER_PASSWORD
+    keyadmin_password=$RANGER_PASSWORD
+
+
+    #Source for Audit Store. Currently solr and elasticsearch are supported.
+    # * audit_store is solr
+    audit_store=
+
+    # * audit_solr_url Elasticsearch Host(s). E.g. 127.0.0.1
+    audit_elasticsearch_urls=
+    audit_elasticsearch_port=
+    audit_elasticsearch_protocol=
+    audit_elasticsearch_user=
+    audit_elasticsearch_password=
+    audit_elasticsearch_index=
+    audit_elasticsearch_bootstrap_enabled=true
+
+
+    # * audit_solr_url URL to Solr. E.g. http://<solr_host>:6083/solr/ranger_audits
+    audit_solr_urls=
+    audit_solr_user=
+    audit_solr_password=
+    audit_solr_zookeepers=
+
+    audit_solr_collection_name=ranger_audits
+    #solr Properties for cloud mode
+    audit_solr_config_name=ranger_audits
+    audit_solr_no_shards=1
+    audit_solr_no_replica=1
+    audit_solr_max_shards_per_node=1
+    audit_solr_acl_user_list_sasl=solr,infra-solr
+    audit_solr_bootstrap_enabled=true
+
+    #------------------------- DB CONFIG - END ----------------------------------
+
+    #
+    # ------- PolicyManager CONFIG ----------------
+    #
+
+    policymgr_external_url=http://localhost:6080
+    policymgr_http_enabled=true
+    policymgr_https_keystore_file=
+    policymgr_https_keystore_keyalias=rangeradmin
+    policymgr_https_keystore_password=
+
+    #Add Supported Components list below separated by semi-colon, default value is empty string to support all components
+    #Example :  policymgr_supportedcomponents=hive,hbase,hdfs
+    policymgr_supportedcomponents=
+
+    #
+    # ------- PolicyManager CONFIG - END ---------------
+    #
+
+
+    #
+    # ------- UNIX User CONFIG ----------------
+    #
+    unix_user=ranger
+    unix_user_pwd=ranger
+    unix_group=ranger
+
+    #
+    # ------- UNIX User CONFIG  - END ----------------
+    #
+    #
+
+    #
+    # UNIX authentication service for Policy Manager
+    #
+    # PolicyManager can authenticate using UNIX username/password
+    # The UNIX server specified here as authServiceHostName needs to be installed with ranger-unix-ugsync package.
+    # Once the service is installed on authServiceHostName, the UNIX username/password from the host <authServiceHostName> can be used to login into policy manager
+    #
+    # ** The installation of ranger-unix-ugsync package can be installed after the policymanager installation is finished.
+    #
+    #LDAP|ACTIVE_DIRECTORY|UNIX|NONE
+    authentication_method=NONE
+    remoteLoginEnabled=true
+    authServiceHostName=localhost
+    authServicePort=5151
+    ranger_unixauth_keystore=keystore.jks
+    ranger_unixauth_keystore_password=password
+    ranger_unixauth_truststore=cacerts
+    ranger_unixauth_truststore_password=changeit
+
+    ####LDAP settings - Required only if have selected LDAP authentication ####
+    #
+    # Sample Settings
+    #
+    #xa_ldap_url=ldap://127.0.0.1:389
+    #xa_ldap_userDNpattern=uid={0},ou=users,dc=xasecure,dc=net
+    #xa_ldap_groupSearchBase=ou=groups,dc=xasecure,dc=net
+    #xa_ldap_groupSearchFilter=(member=uid={0},ou=users,dc=xasecure,dc=net)
+    #xa_ldap_groupRoleAttribute=cn
+    #xa_ldap_base_dn=dc=xasecure,dc=net
+    #xa_ldap_bind_dn=cn=admin,ou=users,dc=xasecure,dc=net
+    #xa_ldap_bind_password=
+    #xa_ldap_referral=follow|ignore
+    #xa_ldap_userSearchFilter=(uid={0})
+
+    xa_ldap_url=
+    xa_ldap_userDNpattern=
+    xa_ldap_groupSearchBase=
+    xa_ldap_groupSearchFilter=
+    xa_ldap_groupRoleAttribute=
+    xa_ldap_base_dn=
+    xa_ldap_bind_dn=
+    xa_ldap_bind_password=
+    xa_ldap_referral=
+    xa_ldap_userSearchFilter=
+    ####ACTIVE_DIRECTORY settings - Required only if have selected AD authentication ####
+    #
+    # Sample Settings
+    #
+    #xa_ldap_ad_domain=xasecure.net
+    #xa_ldap_ad_url=ldap://127.0.0.1:389
+    #xa_ldap_ad_base_dn=dc=xasecure,dc=net
+    #xa_ldap_ad_bind_dn=cn=administrator,ou=users,dc=xasecure,dc=net
+    #xa_ldap_ad_bind_password=
+    #xa_ldap_ad_referral=follow|ignore
+    #xa_ldap_ad_userSearchFilter=(sAMAccountName={0})
+
+    xa_ldap_ad_domain=
+    xa_ldap_ad_url=
+    xa_ldap_ad_base_dn=
+    xa_ldap_ad_bind_dn=
+    xa_ldap_ad_bind_password=
+    xa_ldap_ad_referral=
+    xa_ldap_ad_userSearchFilter=
+
+    #------------ Kerberos Config -----------------
+    spnego_principal=
+    spnego_keytab=
+    token_valid=30
+    cookie_domain=
+    cookie_path=/
+    admin_principal=
+    admin_keytab=
+    lookup_principal=
+    lookup_keytab=
+    hadoop_conf=/etc/hadoop/conf
+    #
+    #-------- SSO CONFIG - Start ------------------
+    #
+    sso_enabled=false
+    sso_providerurl=https://127.0.0.1:8443/gateway/knoxsso/api/v1/websso
+    sso_publickey=
+
+    #
+    #-------- SSO CONFIG - END ------------------
+
+    # Custom log directory path
+    RANGER_ADMIN_LOG_DIR=$PWD
+
+    # PID file path
+    RANGER_PID_DIR_PATH=/var/run/ranger
+
+    # #################  DO NOT MODIFY ANY VARIABLES BELOW #########################
+    #
+    # --- These deployment variables are not to be modified unless you understand the full impact of the changes
+    #
+    ################################################################################
+    XAPOLICYMGR_DIR=$PWD
+    app_home=$PWD/ews/webapp
+    TMPFILE=$PWD/.fi_tmp
+    LOGFILE=$PWD/logfile
+    LOGFILES="$LOGFILE"
+
+    JAVA_BIN='java'
+    JAVA_VERSION_REQUIRED='1.8'
+    JAVA_ORACLE='Java(TM) SE Runtime Environment'
+
+    ranger_admin_max_heap_size=1g
+    #retry DB and Java patches after the given time in seconds.
+    PATCH_RETRY_INTERVAL=120
+    STALE_PATCH_ENTRY_HOLD_TIME=10
+
+    #mysql_create_user_file=${PWD}/db/mysql/create_dev_user.sql
+    mysql_core_file=db/mysql/optimized/current/ranger_core_db_mysql.sql
+    mysql_audit_file=db/mysql/xa_audit_db.sql
+    #mysql_asset_file=${PWD}/db/mysql/reset_asset.sql
+
+    #oracle_create_user_file=${PWD}/db/oracle/create_dev_user_oracle.sql
+    oracle_core_file=db/oracle/optimized/current/ranger_core_db_oracle.sql
+    oracle_audit_file=db/oracle/xa_audit_db_oracle.sql
+    #oracle_asset_file=${PWD}/db/oracle/reset_asset_oracle.sql
+    #
+    postgres_core_file=db/postgres/optimized/current/ranger_core_db_postgres.sql
+    postgres_audit_file=db/postgres/xa_audit_db_postgres.sql
+    #
+    sqlserver_core_file=db/sqlserver/optimized/current/ranger_core_db_sqlserver.sql
+    sqlserver_audit_file=db/sqlserver/xa_audit_db_sqlserver.sql
+    #
+    sqlanywhere_core_file=db/sqlanywhere/optimized/current/ranger_core_db_sqlanywhere.sql
+    sqlanywhere_audit_file=db/sqlanywhere/xa_audit_db_sqlanywhere.sql
+    cred_keystore_filename=$app_home/WEB-INF/classes/conf/.jceks/rangeradmin.jceks
+
 ---
 # Alluxio server deployment. This is like the virtualized File Allocation Table
 # that keeps track of where stuff is mounted as far as distributed storage is
@@ -971,3 +1222,264 @@ spec:
 status:
   loadBalancer: {}
 ---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert
+    kompose.version: 1.21.0 (992df58d8)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: ranger-admin
+  name: ranger-admin
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: ranger-admin
+  strategy: {}
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert
+        kompose.version: 1.21.0 (992df58d8)
+      creationTimestamp: null
+      labels:
+        io.kompose.service: ranger-admin
+    spec:
+      containers:
+      - name: ranger-admin
+        image: scienz/aorist-test-ranger-admin:latest
+        env:
+          - name: MYSQL_HOST
+            value: mysql
+          - name: MYSQL_USER
+            value: root
+          - name: MYSQL_PASSWORD
+            value: "eagerLamprey"
+          - name: MYSQL_PORT
+            value: "3306"
+          - name: RANGER_DB
+            value: ranger
+          - name: RANGER_PASSWORD
+            value: G0powerRangers
+        imagePullPolicy: "Always"
+        ports:
+        - containerPort: 6080
+        resources: {}
+        volumeMounts:
+          - mountPath: /conf/ranger-admin-install.properties.template
+            name: properties-vol
+            subPath: ranger-admin-install.properties.template
+            readOnly: false
+      volumes:
+        - name: properties-vol
+          configMap:
+            defaultMode: 420
+            name: properties
+      restartPolicy: Always
+      serviceAccountName: ""
+status: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    kompose.cmd: kompose convert
+    kompose.version: 1.21.0 (992df58d8)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: ranger-admin
+  name: ranger-admin
+spec:
+  type: NodePort
+  ports:
+  - name: "6080"
+    port: 6080
+    targetPort: 6080
+    nodePort: 30800
+  selector:
+    io.kompose.service: ranger-admin
+status:
+  loadBalancer: {}
+---
+# Presto Coordinator deployment. Features a Presto server (set up as a
+# coordinator), and an Alluxio worker. Note that Alluxio workers always need to
+# be tightly coupled with the Presto server.
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  annotations:
+    kompose.cmd: kompose convert
+    kompose.version: 1.21.0 (992df58d8)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: presto-worker
+  name: presto-worker
+spec:
+  serviceName: "presto-worker"
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: presto-worker
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert
+        kompose.version: 1.21.0 (992df58d8)
+      creationTimestamp: null
+      labels:
+        io.kompose.service: presto-worker
+        alluxio: worker
+    spec:
+      volumes:
+        - name: alluxio-site
+          configMap:
+            name: properties
+        - name: pre-install
+          emptyDir: {}
+        - name: mem
+          emptyDir:
+            medium: "Memory"
+            sizeLimit: 1Gi
+      terminationGracePeriodSeconds: 10
+      initContainers:
+      - name: copy-ro-scripts
+        image: busybox
+        command:
+          - sh
+          - -c
+          - |
+            cp /conf/* /opt/alluxio/conf/ &&
+            mkdir /opt/alluxio/conf/catalog &&
+            cp /conf/hive.properties /opt/alluxio/conf/catalog &&
+            cp /conf/core-site.xml /opt/alluxio/conf/catalog &&
+            echo 'connector.name=tpch' > /opt/alluxio/conf/catalog/tpch.properties
+        volumeMounts:
+          - name: alluxio-site
+            mountPath: /conf
+          - name: pre-install
+            mountPath: /opt/alluxio/conf
+      containers:
+        #- # command: ["bin/launcher", "run", "--verbose"]
+        # - command: [ "/bin/bash", "-c", "--" ]
+        #  args: [ "while true; do sleep 30; done;" ]
+      - env:
+        - name: ALLUXIO_MASTER_ADDRESS
+          value: alluxio-server
+        - name: ALLUXIO_MASTER_HOSTNAME
+          value: localhost
+        - name: HIVE_METASTORE_HOST
+          value: metastore
+        - name: HIVE_METASTORE_PORT
+          value: "9083"
+        - name: ALLUXIO_WORKER_HOSTNAME
+          value: $HOSTNAME.presto-worker.default.svc.cluster.local
+        - name: ALLUXIO_WORKER_CONTAINER_HOSTNAME
+          value: $HOSTNAME.presto-worker.default.svc.cluster.local
+        - name: POD_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+        image: scienz/aorist-test-presto:latest
+        imagePullPolicy: "Always"
+        name: presto-worker
+        ports:
+        - containerPort: 8080
+        resources:
+          requests:
+            cpu: "2000m"
+            memory: "6Gi"
+        volumeMounts:
+          - name: pre-install
+            mountPath: /presto-server-344/etc
+          - mountPath: /dev/shm
+            name: mem
+      - args:
+        - worker-only
+        - --no-format
+        env:
+        - name: ALLUXIO_MASTER_ADDRESS
+          value: alluxio-server
+        - name: ALLUXIO_MASTER_HOSTNAME
+          value: alluxio-server
+        - name: ALLUXIO_WORKER_HOSTNAME
+          value: $HOSTNAME.presto-worker.default.svc.cluster.local
+        - name: ALLUXIO_WORKER_CONTAINER_HOSTNAME
+          value: $HOSTNAME.presto-worker.default.svc.cluster.local
+        - name: ALLUXIO_WORKER_JAVA_OPTS
+          value: " -Dalluxio.worker.hostname=$(ALLUXIO_WORKER_HOSTNAME) "
+        - name: POD_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+        image: scienz/aorist-test-alluxio:latest
+        imagePullPolicy: "Always"
+        name: alluxio-worker
+        ports:
+        - containerPort: 29998
+        - containerPort: 29999
+        resources: {}
+        volumeMounts:
+          - name: pre-install
+            mountPath: /opt/alluxio/conf
+          - mountPath: /dev/shm
+            name: mem
+      - args:
+        - job-worker
+        - --no-format
+        env:
+        - name: ALLUXIO_MASTER_ADDRESS
+          value: alluxio-server
+        - name: ALLUXIO_MASTER_HOSTNAME
+          value: alluxio-server
+        - name: ALLUXIO_WORKER_HOSTNAME
+          value: $HOSTNAME.presto-worker.default.svc.cluster.local
+        - name: ALLUXIO_WORKER_CONTAINER_HOSTNAME
+          value: $HOSTNAME.presto-worker.default.svc.cluster.local
+        - name: ALLUXIO_WORKER_JAVA_OPTS
+          value: " -Dalluxio.worker.hostname=$(ALLUXIO_WORKER_HOSTNAME) "
+        - name: POD_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+        image: scienz/aorist-test-alluxio:latest
+        imagePullPolicy: "Always"
+        name: alluxio-job-worker
+        ports:
+        - containerPort: 30000
+        - containerPort: 30001
+        - containerPort: 30002
+        - containerPort: 30003
+        resources: {}
+        volumeMounts:
+          - name: pre-install
+            mountPath: /opt/alluxio/conf
+          - mountPath: /dev/shm
+            name: mem
+      restartPolicy: Always
+      serviceAccountName: ""
+---
+# Presto coordinator service, exposes port 30876 on any of the GKE machines as
+# the Presto port.
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    kompose.cmd: kompose convert
+    kompose.version: 1.21.0 (992df58d8)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: presto-coordinator
+  name: presto-coordinator-headless
+spec:
+  type: ClusterIP
+  clusterIP: None
+  ports:
+  - name: "8080"
+    port: 8080
+    targetPort: 8080
+  selector:
+    io.kompose.service: presto-coordinator
+status:
+  loadBalancer: {}
