@@ -8,4 +8,5 @@ RUN apt-get update && apt-get -y install maven
 RUN apt-get update && apt-get -y install python3
 RUN apt-get update && apt-get -y install python3-pip
 RUN pip3 install requests
+RUN ln -s /usr/bin/python3 /usr/bin/python
 RUN mvn -DskipTests=false clean package

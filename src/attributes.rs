@@ -4,7 +4,7 @@ use aorist_derive::{PrestoBigint, PrestoReal, PrestoVarchar};
 use serde::{Serialize, Deserialize};
 use indoc::formatdoc;
 
-macro_rules! attribute {
+macro_rules! define_attribute {
     ($element:ident, $presto_type:ident) => {
         #[derive(Debug, PartialEq, Serialize, Deserialize, Clone, $presto_type)]
         pub struct $element{
@@ -17,6 +17,42 @@ macro_rules! attribute {
             }
             fn get_comment(&self) -> &Option<String> {
                 &self.comment
+            }
+        }
+    }
+}
+macro_rules! register_attribute {
+    ( $name:ident, $($element: ident),+ ) => {
+        #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
+        #[serde(tag = "type")]
+        pub enum $name {
+            $(
+                $element($element),
+            )+
+        }
+        impl TAttribute for $name {
+            fn get_name(&self) -> &String {
+                match self {
+                    $(
+                        $name::$element(x) => x.get_name(),
+                    )+
+                }
+            }
+            fn get_comment(&self) -> &Option<String> {
+                match self {
+                    $(
+                        $name::$element(x) => x.get_comment(),
+                    )+
+                }
+            }
+        }
+        impl TPrestoAttribute for Attribute {
+            fn get_presto_type(&self) -> String {
+                match self {
+                    $(
+                        $name::$element(x) => x.get_presto_type(),
+                    )+
+                }
             }
         }
     }
@@ -51,65 +87,23 @@ pub trait TPrestoAttribute: TAttribute {
     }
 }
 
-attribute!(KeyStringIdentifier, PrestoVarchar);
-attribute!(NullableStringIdentifier, PrestoVarchar);
-attribute!(NullablePOSIXTimestamp, PrestoBigint);
-attribute!(NullableInt64, PrestoBigint);
-attribute!(NullableString, PrestoVarchar);
-attribute!(FloatLatitude, PrestoReal);
-attribute!(FloatLongitude, PrestoReal);
-attribute!(URI, PrestoVarchar);
-
-#[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
-#[serde(tag = "type")]
-pub enum Attribute {
-    KeyStringIdentifier(KeyStringIdentifier),
-    NullableStringIdentifier(NullableStringIdentifier),
-    NullablePOSIXTimestamp(NullablePOSIXTimestamp),
-    NullableInt64(NullableInt64),
-    NullableString(NullableString),
-    FloatLatitude(FloatLatitude),
-    FloatLongitude(FloatLongitude),
-    URI(URI),
-}
-impl TAttribute for Attribute {
-    fn get_name(&self) -> &String {
-        match self {
-            Attribute::KeyStringIdentifier(x) => x.get_name(),
-            Attribute::NullableStringIdentifier(x) => x.get_name(),
-            Attribute::NullablePOSIXTimestamp(x) => x.get_name(),
-            Attribute::NullableInt64(x) => x.get_name(),
-            Attribute::FloatLatitude(x) => x.get_name(),
-            Attribute::FloatLongitude(x) => x.get_name(),
-            Attribute::URI(x) => x.get_name(),
-            Attribute::NullableString(x) => x.get_name(),
-        }
-    }
-    fn get_comment(&self) -> &Option<String> {
-        match self {
-            Attribute::KeyStringIdentifier(x) => x.get_comment(),
-            Attribute::NullableStringIdentifier(x) => x.get_comment(),
-            Attribute::NullablePOSIXTimestamp(x) => x.get_comment(),
-            Attribute::NullableInt64(x) => x.get_comment(),
-            Attribute::FloatLatitude(x) => x.get_comment(),
-            Attribute::FloatLongitude(x) => x.get_comment(),
-            Attribute::URI(x) => x.get_comment(),
-            Attribute::NullableString(x) => x.get_comment(),
-        }
-    }
-}
-impl TPrestoAttribute for Attribute {
-    fn get_presto_type(&self) -> String {
-        match self {
-            Attribute::KeyStringIdentifier(x) => x.get_presto_type(),
-            Attribute::NullableStringIdentifier(x) => x.get_presto_type(),
-            Attribute::NullablePOSIXTimestamp(x) => x.get_presto_type(),
-            Attribute::NullableInt64(x) => x.get_presto_type(),
-            Attribute::FloatLatitude(x) => x.get_presto_type(),
-            Attribute::FloatLongitude(x) => x.get_presto_type(),
-            Attribute::URI(x) => x.get_presto_type(),
-            Attribute::NullableString(x) => x.get_presto_type(),
-        }
-    }
-}
+define_attribute!(KeyStringIdentifier, PrestoVarchar);
+define_attribute!(NullableStringIdentifier, PrestoVarchar);
+define_attribute!(NullablePOSIXTimestamp, PrestoBigint);
+define_attribute!(NullableInt64, PrestoBigint);
+define_attribute!(NullableString, PrestoVarchar);
+define_attribute!(FloatLatitude, PrestoReal);
+define_attribute!(FloatLongitude, PrestoReal);
+define_attribute!(URI, PrestoVarchar);
+register_attribute!(
+    Attribute,
+    KeyStringIdentifier,
+    NullableStringIdentifier,
+    NullablePOSIXTimestamp,
+    NullableInt64,
+    NullableString,
+    FloatLatitude,
+    FloatLongitude,
+    URI
+);
 
