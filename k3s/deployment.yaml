@@ -1483,3 +1483,652 @@ spec:
     io.kompose.service: presto-coordinator
 status:
   loadBalancer: {}
+---
+kind: PersistentVolume
+apiVersion: v1
+metadata:
+  name: postgres-pv-volume
+  labels:
+    type: local
+    app: postgres
+spec:
+  capacity:
+    storage: 5Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/mnt/data"
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: postgres-pv-claim
+  labels:
+    app: postgres
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:10.4
+          imagePullPolicy: "IfNotPresent"
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_DB
+              value: hasura
+            - name: POSTGRES_USER
+              value: root
+            - name: POSTGRES_PASSWORD
+              value: eagerLamprey
+            - name: PGDATA
+              value: /var/lib/postgresql/data/d
+          volumeMounts:
+            - mountPath: /var/lib/postgresql/data
+              name: postgredb
+      volumes:
+        - name: postgredb
+          persistentVolumeClaim:
+            claimName: postgres-pv-claim
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  labels:
+    app: postgres
+spec:
+  type: NodePort
+  ports:
+   - port: 5432
+  selector:
+   app: postgres
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    service: hasura
+  name: hasura
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      service: hasura
+  strategy: {}
+  template:
+    metadata:
+      labels:
+        service: hasura
+    spec:
+      containers:
+        - args:
+            - graphql-engine
+            - serve
+          env:
+            - name: HASURA_GRAPHQL_DATABASE_URL
+              value: postgres://root:eagerLamprey@postgres:5432/hasura
+            - name: HASURA_GRAPHQL_ENABLE_CONSOLE
+              value: "true"
+            - name: HASURA_GRAPHQL_QUERY_PLAN_CACHE_SIZE
+              value: "100"
+            - name: HASURA_GRAPHQL_SERVER_PORT
+              value: "3000"
+          image: hasura/graphql-engine:v1.3.2
+          imagePullPolicy: "IfNotPresent"
+          name: hasura
+          ports:
+            - containerPort: 3000
+            - containerPort: 8080
+              protocol: TCP
+          resources: {}
+      restartPolicy: Always
+      serviceAccountName: "prefect"
+      volumes: null
+status: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: hasura-node-ip
+  namespace: default
+  labels:
+    app: hasura
+spec:
+  type: NodePort
+  ports:
+    - name: hasura
+      port: 8080
+      targetPort: hasura
+      nodePort: 30801
+  selector:
+    app: hasura
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    service: hasura
+  name: hasura
+spec:
+  ports:
+  - name: "3000"
+    port: 3000
+    targetPort: 3000
+  selector:
+    service: hasura
+status:
+  loadBalancer: {}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: prefect
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: prefect-role
+  labels:
+    app.kubernetes.io/component: agent
+rules:
+  - apiGroups:
+      - batch
+      - extensions
+    resources:
+      - jobs
+    verbs:
+      - "*"
+  - apiGroups:
+      - ""
+    resources:
+      - pods
+    verbs:
+      - "*"
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: RoleBinding
+metadata:
+  name: prefect-role-binding
+  labels:
+    app.kubernetes.io/component: agent
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: prefect-role
+subjects:
+  - kind: ServiceAccount
+    name: prefect
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    service: graphql
+  name: graphql
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      service: graphql
+  strategy: {}
+  template:
+    metadata:
+      labels:
+        service: graphql
+    spec:
+      containers:
+        - args:
+            - bash
+            - -c
+            - "prefect-server database upgrade -y && python src/prefect_server/services/graphql/server.py"
+          env:
+            - name: PREFECT_SERVER__DATABASE__CONNECTION_URL
+              value: postgresql://root:eagerLamprey@postgres:5432/hasura
+            - name: PREFECT_SERVER__HASURA__ADMIN_SECRET
+              value: hasura-secret-admin-secret
+            - name: PREFECT_SERVER__HASURA__HOST
+              value: hasura
+            - name: PREFECT_SERVER__SERVICES__HOST
+              value: 0.0.0.0
+          image: prefecthq/server:latest
+          imagePullPolicy: "Always"
+          name: graphql
+          ports:
+            - containerPort: 4201
+          resources: {}
+      restartPolicy: Always
+      serviceAccountName: "prefect"
+      volumes: null
+status: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    service: graphql
+  name: graphql
+spec:
+  type: ClusterIP
+  clusterIP: None
+  ports:
+  - name: "4200"
+    port: 4200
+    targetPort: 4200
+  - name: "4201"
+    port: 4201
+    targetPort: 4201
+  selector:
+    service: graphql
+status:
+  loadBalancer: {}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    service: apollo
+  name: apollo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      service: apollo
+  strategy: {}
+  template:
+    metadata:
+      labels:
+        service: apollo
+    spec:
+      containers:
+        - args:
+            - npm
+            - run
+            - serve
+          env:
+            - name: HASURA_API_URL
+              value: http://hasura:3000/v1alpha1/graphql
+            - name: PREFECT_API_HEALTH_URL
+              value: http://graphql:4201/health
+            - name: PREFECT_API_URL
+              value: 'http://graphql:4201/graphql/'
+            - name: POD_NAMESPACE
+              value: default
+            - name: APOLLO_API_BIND_ADDRESS
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+          image: prefecthq/apollo:latest
+          imagePullPolicy: "IfNotPresent"
+          name: apollo
+          ports:
+            - name: graphql
+              containerPort: 4200
+              protocol: TCP
+              # livenessProbe:
+              #   tcpSocket:
+              #     port: 4200
+              #   initialDelaySeconds: 5
+              #   periodSeconds: 10
+              #   timeoutSeconds: 1
+              #   successThreshold: 1
+              #   failureThreshold: 3
+              # readinessProbe:
+              #   tcpSocket:
+              #     port: 4200
+              #   initialDelaySeconds: 5
+              #   periodSeconds: 10
+              #   timeoutSeconds: 1
+              #   successThreshold: 1
+              #   failureThreshold: 3
+          resources:
+            limits:
+              cpu: 100m
+              memory: 128Mi
+            requests:
+              cpu: 100m
+              memory: 128Mi
+      restartPolicy: Always
+      serviceAccountName: "prefect"
+      volumes: null
+status: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    service: apollo
+  name: apollo
+spec:
+  type: ClusterIP
+  clusterIP: None
+  ports:
+    - port: 4200
+      targetPort: graphql
+      protocol: TCP
+      name: graphql
+  selector:
+    service: apollo
+status:
+  loadBalancer: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    service: apollo
+  name: apollo-node
+spec:
+  type: NodePort
+  ports:
+  - name: "4200"
+    port: 4200
+    targetPort: 4200
+    nodePort: 30802
+  - name: "4201"
+    port: 4201
+    targetPort: 4201
+    nodePort: 30803
+  selector:
+    service: apollo
+status:
+  loadBalancer: {}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    service: ui
+  name: ui
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      service: ui
+  strategy: {}
+  template:
+    metadata:
+      labels:
+        service: ui
+    spec:
+      initContainers:
+        - name: init-apollo
+          image: "busybox:1.28"
+          command:
+            - sh
+            - "-c"
+            - "until nslookup apollo.$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace).svc.cluster.local; do echo waiting for apollo; sleep 2; done"
+      containers:
+        - name: ui
+          ## TODO: pin this at 0.10.5 or later when available
+          image: prefecthq/ui:core-0.13.12
+          imagePullPolicy: "IfNotPresent"
+          args:
+            - /intercept.sh
+          env:
+            - name: PREFECT_SERVER__APOLLO_URL
+              value: "http://localhost:30802/graphql"
+          ports:
+            - containerPort: 8080
+          resources:
+            limits:
+              cpu: 20m
+              memory: 128Mi
+            requests:
+              cpu: 10m
+              memory: 32Mi
+      restartPolicy: Always
+      serviceAccountName: "prefect"
+status: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    service: ui
+  name: ui
+spec:
+  type: NodePort
+  ports:
+  - name: "8080"
+    port: 8080
+    targetPort: 8080
+    nodePort: 30804
+  selector:
+    service: ui
+status:
+  loadBalancer: {}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prefect-agent
+  labels:
+    app.kubernetes.io/component: agent
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: agent
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: agent
+    spec:
+      serviceAccountName: prefect
+      initContainers:
+        - name: init-apollo
+          image: "busybox:1.28"
+          command:
+            - sh
+            - "-c"
+            - "until nslookup apollo.default.svc.cluster.local; do echo waiting for apollo; sleep 2; done"
+          # TODO: create default tenant prefect server create-tenant --name $POD_NAME --slug $POD_NAME
+      containers:
+        - name: agent
+          image: "prefecthq/prefect:latest"
+          imagePullPolicy: IfNotPresent
+          command:
+            - /bin/bash
+            - "-c"
+          args:
+            - "prefect agent start --name 'Local Agent'"
+          env:
+            - name: PREFECT__BACKEND
+              value: server
+            - name: NAMESPACE
+              value: default
+            - name: PREFECT__SERVER__HOST
+              value: http://apollo
+            - name: PREFECT__SERVER__PORT
+              value: '4200'
+            - name: IMAGE_PULL_SECRETS
+              value: ''
+            - name: PREFECT__CLOUD__AGENT__LABELS
+              value: "[]"
+            - name: JOB_MEM_REQUEST
+              value: 128Mi
+            - name: JOB_MEM_LIMIT
+              value: 1Gi
+            - name: JOB_CPU_REQUEST
+              value: 50m
+            - name: JOB_CPU_LIMIT
+              value: 500m
+            - name: PREFECT__CLOUD__AGENT__AUTH_TOKEN
+              value: ""
+            - name: PREFECT__LOGGING__LEVEL
+              value: DEBUG
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: PREFECT__CLOUD__AGENT__AGENT_ADDRESS
+              value: http://$POD_IP:8080
+              # livenessProbe:
+              #   exec:
+              #     command:
+              #       - python
+              #       - -c
+              #       - from prefect.agent.kubernetes.agent import check_heartbeat; check_heartbeat()
+              #   initialDelaySeconds: 40
+              #   periodSeconds: 40
+              #   timeoutSeconds: 1
+              #   successThreshold: 1
+              #   failureThreshold: 2
+          resources:
+            limits:
+              cpu: 100m
+              memory: 128Mi
+            requests:
+              cpu: 50m
+              memory: 64Mi
+        - name: kube-agent
+          image: "prefecthq/prefect:latest"
+          imagePullPolicy: IfNotPresent
+          command:
+            - /bin/bash
+            - "-c"
+          args:
+            - "prefect agent start kubernetes --name 'Kube Agent'"
+          env:
+            - name: PREFECT__BACKEND
+              value: server
+            - name: NAMESPACE
+              value: default
+            - name: PREFECT__SERVER__HOST
+              value: http://apollo
+            - name: PREFECT__SERVER__PORT
+              value: '4200'
+            - name: IMAGE_PULL_SECRETS
+              value: ''
+            - name: PREFECT__CLOUD__AGENT__LABELS
+              value: "[]"
+            - name: JOB_MEM_REQUEST
+              value: 128Mi
+            - name: JOB_MEM_LIMIT
+              value: 1Gi
+            - name: JOB_CPU_REQUEST
+              value: 50m
+            - name: JOB_CPU_LIMIT
+              value: 500m
+            - name: PREFECT__CLOUD__AGENT__AUTH_TOKEN
+              value: ""
+            - name: PREFECT__LOGGING__LEVEL
+              value: DEBUG
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: PREFECT__CLOUD__AGENT__AGENT_ADDRESS
+              value: http://$POD_IP:8080
+              # livenessProbe:
+              #   exec:
+              #     command:
+              #       - python
+              #       - -c
+              #       - from prefect.agent.kubernetes.agent import check_heartbeat; check_heartbeat()
+              #   initialDelaySeconds: 40
+              #   periodSeconds: 40
+              #   timeoutSeconds: 1
+              #   successThreshold: 1
+              #   failureThreshold: 2
+          resources:
+            limits:
+              cpu: 100m
+              memory: 128Mi
+            requests:
+              cpu: 50m
+              memory: 64Mi
+        - name: resource-manager
+          image: "prefecthq/prefect:latest"
+          imagePullPolicy: IfNotPresent
+          command:
+            - /bin/bash
+            - -c
+          args:
+            - python -c 'from prefect.agent.kubernetes import ResourceManager; ResourceManager().start()'
+          env:
+            - name: PREFECT__BACKEND
+              value: server
+            - name: NAMESPACE
+              value: default
+            - name: PREFECT__CLOUD__API
+              value: "http://apollo.default.svc.cluster.local:4200"
+            - name: PREFECT__CLOUD__AGENT__RESOURCE_MANAGER__LOOP_INTERVAL
+              value: "60"
+            - name: PREFECT__CLOUD__AGENT__AUTH_TOKEN
+              value: ""
+          resources:
+            limits:
+              cpu: 100m
+              memory: 128Mi
+            requests:
+              cpu: 50m
+              memory: 64Mi
+      volumes: []
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    service: scheduler
+  name: scheduler
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      service: scheduler
+  strategy: {}
+  template:
+    metadata:
+      labels:
+        service: scheduler
+    spec:
+      containers:
+        - command: [ "/bin/bash", "-c", "--" ]
+          args:
+          - "python src/prefect_server/services/towel/"
+          env:
+            - name: PREFECT_SERVER__DATABASE__CONNECTION_URL
+              value: postgresql://root:eagerLamprey@postgres:5432/hasura
+            - name: PREFECT_SERVER__HASURA__ADMIN_SECRET
+              value: hasura-secret-admin-secret
+            - name: PREFECT_SERVER__HASURA__HOST
+              value: hasura
+            - name: PREFECT_SERVER__SERVICES__HOST
+              value: 0.0.0.0
+          image: "prefecthq/server:latest"
+          imagePullPolicy: "IfNotPresent"
+          name: scheduler
+          resources: {}
+      restartPolicy: Always
+      serviceAccountName: "prefect"
+      volumes: null
+status: {}
