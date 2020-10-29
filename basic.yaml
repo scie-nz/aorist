@@ -7,6 +7,11 @@ spec:
   email: bogdan@scie.nz
   phone: 555-1234
 ---
+type: RoleBinding
+spec:
+  user: bogdan
+  role: GlobalPermissionsAdmin
+---
 type: User
 spec:
   unixname: alice

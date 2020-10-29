@@ -919,7 +919,82 @@ data:
     sqlanywhere_core_file=db/sqlanywhere/optimized/current/ranger_core_db_sqlanywhere.sql
     sqlanywhere_audit_file=db/sqlanywhere/xa_audit_db_sqlanywhere.sql
     cred_keystore_filename=$app_home/WEB-INF/classes/conf/.jceks/rangeradmin.jceks
+  app.ini : |
+    APP_NAME = Gitea
+    RUN_USER = git
+    RUN_MODE = prod
 
+    [repository]
+    FORCE_PRIVATE = false
+    DISABLE_HTTP_GIT = false
+
+    [repository.upload]
+    ENABLED = true
+    ALLOWED_TYPES =
+    FILE_MAX_SIZE = 3
+    MAX_FILES = 5
+
+    [server]
+    PROTOCOL = http
+    HTTP_PORT = 3000
+    SSH_dOMAIN = gitea.local
+    DOMAIN = gitea.local
+    ROOT_URL = https://gitea.local/
+    DISABLE_SSH = false
+    LANDING_PAGE = home
+    SSH_PORT = 22
+    REDIRECT_OTHER_PORT = false
+
+    [service]
+    ENABLE_CAPTCHA = true
+    ACTIVE_CODE_LIVE_MINUTES = 180
+    RESET_PASSWD_CODE_LIVE_MINUTES = 180
+    REGISTER_EMAIL_CONFIRM = false
+    DISABLE_REGISTRATION = false
+    REQUIRE_SIGNIN_VIEW = false
+    ENABLE_NOTIFY_MAIL = false
+    ENABLE_REVERSE_PROXY_AUTHENTICATION = false
+    ENABLE_REVERSE_PROXY_AUTO_REGISTRATION = false
+
+    [database]
+    DB_TYPE = postgres
+    HOST = postgres-gitea
+    PORT = 5432
+    NAME = gitea
+    USER = root
+    PASSWD = eagerLamprey
+    SSL_MODE = disable
+
+    [admin]
+    DISABLE_REGULAR_ORG_CREATION = false
+
+    [security]
+    INSTALL_LOCK = true
+    SECRET_KEY = "Z2l0ZWE="
+
+    [ui]
+    EXPLORE_PAGING_NUM = 20
+    ISSUE_PAGING_NUM = 10
+    FEED_MAX_COMMIT_NUM = 5
+
+    [cache]
+    ADAPTER = memory
+    INTERVAL = 60
+    HOST =
+
+    [webhook]
+    QUEUE_LENGTH = 1000
+    DELIVER_TIMEOUT = 5
+    SKIP_TLS_VERIFY = true
+    PAGING_NUM = 10
+
+    [log]
+    MODE = console
+    LEVEL = Trace
+
+    [other]
+    SHOW_FOOTER_BRANDING = false
+    SHOW_FOOTER_VERSION = true
 ---
 # Alluxio server deployment. This is like the virtualized File Allocation Table
 # that keeps track of where stuff is mounted as far as distributed storage is
@@ -2132,3 +2207,187 @@ spec:
       serviceAccountName: "prefect"
       volumes: null
 status: {}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gitea
+  namespace: default
+  labels:
+    app: gitea
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gitea
+  template:
+    metadata:
+      labels:
+        app: gitea
+    spec:
+      initContainers:
+      - name: init-disk
+        image: busybox:latest
+        imagePullPolicy: IfNotPresent
+        command:
+          - sh
+          - -c
+          - |
+            /bin/chown 1000:1000 /data &&
+            cp /conf/app.ini /data/gitea/conf &&
+            /bin/chown 1000:1000 /data/gitea/conf/app.ini
+        volumeMounts:
+        - name: git-data
+          mountPath: "/data"
+        - name: gitea-config
+          mountPath: /conf
+        - name: pre-install
+          mountPath: /data/gitea/conf
+      containers:
+      - name: gitea
+        image: gitea/gitea:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 80
+        - containerPort: 3000
+        - containerPort: 22
+        volumeMounts:
+        - mountPath: /data
+          name: git-data
+        - mountPath: /data/gitea/conf
+          name: pre-install
+          readOnly: false
+      volumes:
+      - name: git-data
+        persistentVolumeClaim:
+          claimName: git-data-pvc
+      - name: gitea-config
+        configMap:
+          name: properties
+      - name: pre-install
+        emptyDir: {}
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: git-data-vol
+  labels:
+    type: local
+spec:
+  capacity:
+    storage: 1G
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/mnt/git-data"
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: git-data-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1G
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gitea
+  namespace: default
+  labels:
+    app: gitea
+spec:
+  type: NodePort
+  ports:
+    - name: gitea
+      port: 3000
+      targetPort: 3000
+      nodePort: 30807
+    - name: "80"
+      port: 80
+      targetPort: 80
+      nodePort: 30808
+  selector:
+    app: gitea
+---
+kind: PersistentVolume
+apiVersion: v1
+metadata:
+  name: postgres-gitea-pv-volume
+  labels:
+    type: local
+    app: postgres-gitea
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/mnt/data/pv-postgres-gitea"
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: postgres-gitea-pv-claim
+  labels:
+    app: postgres-gitea
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-gitea
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres-gitea
+  template:
+    metadata:
+      labels:
+        app: postgres-gitea
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:10.4
+          imagePullPolicy: "IfNotPresent"
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_DB
+              value: gitea
+            - name: POSTGRES_USER
+              value: root
+            - name: POSTGRES_PASSWORD
+              value: eagerLamprey
+            - name: PGDATA
+              value: /var/lib/postgresql/data/d
+          volumeMounts:
+            - mountPath: /var/lib/postgresql/data
+              name: postgredb
+      volumes:
+        - name: postgredb
+          persistentVolumeClaim:
+            claimName: postgres-gitea-pv-claim
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-gitea
+  labels:
+    app: postgres-gitea
+spec:
+  type: NodePort
+  ports:
+   - port: 5432
+  selector:
+   app: postgres-gitea
+---
