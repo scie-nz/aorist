@@ -9,8 +9,10 @@ spec:
 ---
 type: RoleBinding
 spec:
-  user: bogdan
-  role: GlobalPermissionsAdmin
+  user_name: bogdan
+  role:
+    type: GlobalPermissionsAdmin
+    spec: {}
 ---
 type: User
 spec:

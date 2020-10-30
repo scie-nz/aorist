@@ -1,0 +1,1168 @@
+---
+# Source: prefect-ui/templates/agent/serviceaccount.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: prefect-helm-prefect-ui-agent
+  namespace: default
+  labels:
+
+    helm.sh/chart: prefect-ui-0.0.4
+    app.kubernetes.io/name: prefect-ui
+    app.kubernetes.io/instance: prefect-helm
+    app.kubernetes.io/version: "latest"
+    app.kubernetes.io/part-of: prefect-ui
+    app.kubernetes.io/managed-by: Helm
+---
+# Source: prefect-ui/templates/serviceaccount.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: prefect-helm-prefect-ui
+  namespace: default
+  labels:
+
+    helm.sh/chart: prefect-ui-0.0.4
+    app.kubernetes.io/name: prefect-ui
+    app.kubernetes.io/instance: prefect-helm
+    app.kubernetes.io/version: "latest"
+    app.kubernetes.io/part-of: prefect-ui
+    app.kubernetes.io/managed-by: Helm
+---
+# Source: prefect-ui/templates/hasura/secrets.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: prefect-helm-prefect-ui-hasura
+  namespace: default
+  labels:
+    app.kubernetes.io/component: hasura
+    helm.sh/chart: prefect-ui-0.0.4
+    app.kubernetes.io/name: prefect-ui
+    app.kubernetes.io/instance: prefect-helm
+    app.kubernetes.io/version: "latest"
+    app.kubernetes.io/part-of: prefect-ui
+    app.kubernetes.io/managed-by: Helm
+data:
+  ADMIN_SECRET: "aGFzdXJhLXNlY3JldC1hZG1pbi1zZWNyZXQ="
+---
+# Source: prefect-ui/templates/postgres/secrets.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: prefect-ui-postgres
+  namespace: default
+  labels:
+    app.kubernetes.io/component: postgres
+    helm.sh/chart: prefect-ui-0.0.4
+    app.kubernetes.io/name: prefect-ui
+    app.kubernetes.io/instance: prefect-helm
+    app.kubernetes.io/version: "latest"
+    app.kubernetes.io/part-of: prefect-ui
+    app.kubernetes.io/managed-by: Helm
+data:
+  POSTGRES_USER: "cHJlZmVjdA=="
+  POSTGRES_PASSWORD: "dGVzdC1wYXNzd29yZA=="
+  POSTGRES_DB: "cHJlZmVjdF9zZXJ2ZXI="
+  DATABASE_URL: "cG9zdGdyZXNxbDovL3ByZWZlY3Q6dGVzdC1wYXNzd29yZEBwcmVmZWN0LXVpLXBvc3RncmVzOjU0MzIvcHJlZmVjdF9zZXJ2ZXI="
+---
+# Source: prefect-ui/templates/postgres/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prefect-ui-postgres
+  namespace: default
+  labels:
+    app.kubernetes.io/component: postgres
+    helm.sh/chart: prefect-ui-0.0.4
+    app.kubernetes.io/name: prefect-ui
+    app.kubernetes.io/instance: prefect-helm
+    app.kubernetes.io/version: "latest"
+    app.kubernetes.io/part-of: prefect-ui
+    app.kubernetes.io/managed-by: Helm
+#    app.kubernetes.io/component: postgres
+#    app.kubernetes.io/name: prefect-ui
+#    app.kubernetes.io/part-of: prefect-ui
+#    app.kubernetes.io/managed-by: Helm
+data:
+  postgres_setup_database.sh: |
+    #!/usr/bin/env bash
+    set -e
+  
+    for POSTGRESQL_SCHEMA in $(echo ${POSTGRESQL_SCHEMAS:-public} | tr ";" "\n")
+    do
+      # verify user permission and extensions are on the database
+      psql -v ON_ERROR_STOP=1 --username postgres <<-EOSQL
+      GRANT ALL PRIVILEGES ON DATABASE ${POSTGRESQL_DATABASE} TO ${POSTGRESQL_USER};
+      \c ${POSTGRESQL_DATABASE};
+      CREATE SCHEMA IF NOT EXISTS "${POSTGRESQL_SCHEMA}";
+      GRANT ALL PRIVILEGES ON SCHEMA "${POSTGRESQL_SCHEMA}" TO ${POSTGRESQL_USER};
+      ALTER DEFAULT PRIVILEGES IN SCHEMA "${POSTGRESQL_SCHEMA}" GRANT ALL PRIVILEGES ON TABLES TO ${POSTGRESQL_USER};
+      ALTER DEFAULT PRIVILEGES IN SCHEMA "${POSTGRESQL_SCHEMA}" GRANT ALL PRIVILEGES ON SEQUENCES TO ${POSTGRESQL_USER};
+      ALTER DEFAULT PRIVILEGES IN SCHEMA "${POSTGRESQL_SCHEMA}" GRANT ALL PRIVILEGES ON FUNCTIONS TO ${POSTGRESQL_USER};
+      CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+      CREATE EXTENSION IF NOT EXISTS "tablefunc";
+      CREATE EXTENSION IF NOT EXISTS "pgcrypto";
+      CREATE EXTENSION IF NOT EXISTS "pg_trgm";
+    EOSQL
+    done
+---
+# Source: prefect-ui/templates/website/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prefect-helm-prefect-ui-website
+  namespace: default
+  labels:
+    app.kubernetes.io/component: website
+    helm.sh/chart: prefect-ui-0.0.4
+    app.kubernetes.io/name: prefect-ui
+    app.kubernetes.io/instance: prefect-helm
+    app.kubernetes.io/version: "latest"
+    app.kubernetes.io/part-of: prefect-ui
+    app.kubernetes.io/managed-by: Helm
+data:
+  backend.toml: |-
+    # https://github.com/PrefectHQ/prefect/blob/master/src/prefect/config.toml
+    backend = "server"
+
+    [server]
+    host = "http://api.prefect.local"
+    port = "80"
+    endpoint = "${server.host}"
+
+        [server.ui]
+        host = "http://prefect.local"
+        port = "80"
+        endpoint = "${server.ui.host}"
+  website_entrypoint.sh: |-
+    #!/usr/bin/env bash
+  
+    # locate javascript files
+    for filename in "${APP_ROOT_SRC:-/var/www}/js/"*.js*; do
+      echo "inspecting ${filename}"
+      # replace hard-coded values with HTTP Schema
+      if [ -z "${VUE_APP_GRAPHQL_HTTP}" ]; then
+        VUE_APP_GRAPHQL_HTTP="http://localhost:4200/graphql"
+      fi
+      sed -i -e "s|http://localhost:4200/graphql|${VUE_APP_GRAPHQL_HTTP}|g" ${filename}
+    done
+  
+    exec nginx -g "daemon off;" -c /etc/nginx/conf.d/default.conf
+  website_nginx.conf: |
+    pid /run/nginx.pid;
+    error_log /var/log/nginx/error.log;
+  
+    events {
+        worker_connections 1024;
+    }
+  
+    http {
+        include /etc/nginx/mime.types;
+        default_type application/octet-stream;
+        sendfile on;
+        tcp_nopush on;
+        gzip  on;
+        gzip_types text/plain text/css application/json application/javascript application/x-javascript text/javascript text/xml application/xml application/rss+xml application/atom+xml application/rdf+xml;
+        gzip_min_length 1000;
+        gzip_static on;
+  
+        #client_body_temp_path /var/cache/nginx/client_temp 1 2;
+        #fastcgi_temp_path /var/cache/nginx/fastcgi_temp 1 2;
+        #proxy_temp_path /var/cache/nginx/proxy_temp 1 2;
+        #scgi_temp_path /var/cache/nginx/scgi_temp 1 2;
+        #uwsgi_temp_path /var/cache/nginx/uwsgi_temp 1 2;
+  
+        absolute_redirect off;
+        port_in_redirect off;
+  
+        server {
+            listen 8080;
+            server_name localhost;
+  
+            access_log /var/log/nginx/access.log;
+  
+            # https://router.vuejs.org/guide/essentials/history-mode.html#example-server-configurations
+            location / {
+              root   /var/www;
+              index  index.html;
+              try_files $uri $uri/ /index.html;
+            }
+            #location /api {
+            #  proxy_pass http://127.0.0.1:10000;
+            #}
+            location = /50x.html {
+              root   /usr/share/nginx/html;
+            }
+        }
+    }
+---
+# Source: prefect-ui/templates/agent/role.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: prefect-helm-prefect-ui-agent
+  namespace: default
+  labels:
+    app.kubernetes.io/component: agent
+    helm.sh/chart: prefect-ui-0.0.4
+    app.kubernetes.io/name: prefect-ui
+    app.kubernetes.io/instance: prefect-helm
+    app.kubernetes.io/version: "latest"
+    app.kubernetes.io/part-of: prefect-ui
+    app.kubernetes.io/managed-by: Helm
+rules:
+- apiGroups:
+  - batch
+  - extensions
+  resources:
+  - jobs
+  verbs:
+  - '*'
+- apiGroups:
+  - ''
+  resources:
+  - pods
+  verbs:
+  - '*'
+---
+# Source: prefect-ui/templates/agent/rolebinding.yaml
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: RoleBinding
+metadata:
+  name: prefect-helm-prefect-ui-agent
+  namespace: default
+  labels:
+    app.kubernetes.io/component: agent
+    helm.sh/chart: prefect-ui-0.0.4
+    app.kubernetes.io/name: prefect-ui
+    app.kubernetes.io/instance: prefect-helm
+    app.kubernetes.io/version: "latest"
+    app.kubernetes.io/part-of: prefect-ui
+    app.kubernetes.io/managed-by: Helm
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: prefect-helm-prefect-ui-agent
+subjects:
+- kind: ServiceAccount
+  name: prefect-helm-prefect-ui-agent
+---
+# Source: prefect-ui/templates/apollo/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: prefect-helm-prefect-ui-apollo
+  namespace: default
+  labels:
+    app.kubernetes.io/component: apollo
+    helm.sh/chart: prefect-ui-0.0.4
+    app.kubernetes.io/name: prefect-ui
+    app.kubernetes.io/instance: prefect-helm
+    app.kubernetes.io/version: "latest"
+    app.kubernetes.io/part-of: prefect-ui
+    app.kubernetes.io/managed-by: Helm
+spec:
+  type: ClusterIP
+  ports:
+    - port: 4200
+      targetPort: graphql
+      protocol: TCP
+      name: graphql
+  selector:
+    app.kubernetes.io/component: apollo
+    app.kubernetes.io/name: prefect-ui
+    app.kubernetes.io/instance: prefect-helm
+---
+# Source: prefect-ui/templates/graphql/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: prefect-helm-prefect-ui-graphql
+  namespace: default
+  labels:
+    app.kubernetes.io/component: graphql
+    helm.sh/chart: prefect-ui-0.0.4
+    app.kubernetes.io/name: prefect-ui
+    app.kubernetes.io/instance: prefect-helm
+    app.kubernetes.io/version: "latest"
+    app.kubernetes.io/part-of: prefect-ui
+    app.kubernetes.io/managed-by: Helm
+spec:
+  type: ClusterIP
+  ports:
+    - port: 4201
+      targetPort: graphql
+      protocol: TCP
+      name: graphql
+  selector:
+    app.kubernetes.io/component: graphql
+    app.kubernetes.io/name: prefect-ui
+    app.kubernetes.io/instance: prefect-helm
+---
+# Source: prefect-ui/templates/hasura/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: prefect-helm-prefect-ui-hasura
+  namespace: default
+  labels:
+    app.kubernetes.io/component: hasura
+    helm.sh/chart: prefect-ui-0.0.4
+    app.kubernetes.io/name: prefect-ui
+    app.kubernetes.io/instance: prefect-helm
+    app.kubernetes.io/version: "latest"
+    app.kubernetes.io/part-of: prefect-ui
+    app.kubernetes.io/managed-by: Helm
+spec:
+  type: ClusterIP
+  ports:
+    - port: 3000
+      targetPort: graphql
+      protocol: TCP
+      name: graphql
+  selector:
+    app.kubernetes.io/component: hasura
+    app.kubernetes.io/name: prefect-ui
+    app.kubernetes.io/instance: prefect-helm
+---
+# Source: prefect-ui/templates/postgres/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: prefect-ui-postgres
+  namespace: default
+  labels:
+    app.kubernetes.io/component: postgres
+    helm.sh/chart: prefect-ui-0.0.4
+    app.kubernetes.io/name: prefect-ui
+    app.kubernetes.io/instance: prefect-helm
+    app.kubernetes.io/version: "latest"
+    app.kubernetes.io/part-of: prefect-ui
+    app.kubernetes.io/managed-by: Helm
+spec:
+  type: ClusterIP
+  ports:
+    - port: 5432
+      targetPort: postgres
+      protocol: TCP
+      name: postgres
+  selector:
+    app.kubernetes.io/component: postgres
+    app.kubernetes.io/name: prefect-ui
+    app.kubernetes.io/instance: prefect-helm
+---
+# Source: prefect-ui/templates/website/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: prefect-helm-prefect-ui-website
+  namespace: default
+  labels:
+    app.kubernetes.io/component: website
+    helm.sh/chart: prefect-ui-0.0.4
+    app.kubernetes.io/name: prefect-ui
+    app.kubernetes.io/instance: prefect-helm
+    app.kubernetes.io/version: "latest"
+    app.kubernetes.io/part-of: prefect-ui
+    app.kubernetes.io/managed-by: Helm
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8080
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    app.kubernetes.io/component: website
+    app.kubernetes.io/name: prefect-ui
+    app.kubernetes.io/instance: prefect-helm
+---
+# Source: prefect-ui/templates/agent/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prefect-helm-prefect-ui-agent
+  namespace: default
+  labels:
+    app.kubernetes.io/component: agent
+    helm.sh/chart: prefect-ui-0.0.4
+    app.kubernetes.io/name: prefect-ui
+    app.kubernetes.io/instance: prefect-helm
+    app.kubernetes.io/version: "latest"
+    app.kubernetes.io/part-of: prefect-ui
+    app.kubernetes.io/managed-by: Helm
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: agent
+      app.kubernetes.io/name: prefect-ui
+      app.kubernetes.io/instance: prefect-helm
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: agent
+        app.kubernetes.io/name: prefect-ui
+        app.kubernetes.io/instance: prefect-helm
+    spec:
+      imagePullSecrets:
+      serviceAccountName: prefect-helm-prefect-ui-agent
+      securityContext:
+        {}
+      initContainers:
+        - name: init-apollo
+          image: "busybox:1.28"
+          command:
+          - sh
+          - '-c'
+          - 'until nslookup prefect-helm-prefect-ui-apollo.$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace).svc.cluster.local; do echo waiting for prefect-helm-prefect-ui-apollo; sleep 2; done'
+      containers:
+        - name: agent
+          securityContext:
+            {}
+          image: "prefecthq/prefect:latest"
+          imagePullPolicy: Always
+          command:
+          - /bin/bash
+          - '-c'
+          args:
+          - "prefect agent start kubernetes"
+          env:
+            - name: PREFECT__CLOUD__AGENT__AUTH_TOKEN
+              value: ""
+            - name: PREFECT__CLOUD__API
+              value: 'http://prefect-helm-prefect-ui-apollo:4200'
+            - name: NAMESPACE
+              value: default
+            - name: IMAGE_PULL_SECRETS
+              value: ''
+            - name: PREFECT__CLOUD__AGENT__LABELS
+              value: "[]"
+            - name: JOB_MEM_REQUEST
+              value: 128Mi
+            - name: JOB_MEM_LIMIT
+              value: 1Gi
+            - name: JOB_CPU_REQUEST
+              value: 100m
+            - name: JOB_CPU_LIMIT
+              value: 1000m
+          livenessProbe:
+            exec:
+              command:
+              - python
+              - -c
+              - from prefect.agent.kubernetes.agent import check_heartbeat; check_heartbeat()
+            initialDelaySeconds: 40
+            periodSeconds: 40
+            timeoutSeconds: 1
+            successThreshold: 1
+            failureThreshold: 2
+          resources:
+            limits:
+              cpu: 100m
+              memory: 128Mi
+            requests:
+              cpu: 50m
+              memory: 64Mi
+        - name: resource-manager
+          securityContext:
+            {}
+          image: "prefecthq/prefect:latest"
+          imagePullPolicy: Always
+          command:
+            - /bin/bash
+            - -c
+          args:
+            - python -c 'from prefect.agent.kubernetes import ResourceManager; ResourceManager().start()'
+          env:
+            - name: PREFECT__CLOUD__AGENT__AUTH_TOKEN
+              value: ""
+            - name: PREFECT__CLOUD__API
+              value: 'http://prefect-helm-prefect-ui-apollo:4200'
+            - name: PREFECT__CLOUD__AGENT__RESOURCE_MANAGER__LOOP_INTERVAL
+              value: '60'
+            - name: NAMESPACE
+              value: default
+          resources:
+            limits:
+              cpu: 100m
+              memory: 128Mi
+            requests:
+              cpu: 50m
+              memory: 64Mi
+      volumes: []
+---
+# Source: prefect-ui/templates/apollo/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prefect-helm-prefect-ui-apollo
+  namespace: default
+  labels:
+    app.kubernetes.io/component: apollo
+    helm.sh/chart: prefect-ui-0.0.4
+    app.kubernetes.io/name: prefect-ui
+    app.kubernetes.io/instance: prefect-helm
+    app.kubernetes.io/version: "latest"
+    app.kubernetes.io/part-of: prefect-ui
+    app.kubernetes.io/managed-by: Helm
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: apollo
+      app.kubernetes.io/name: prefect-ui
+      app.kubernetes.io/instance: prefect-helm
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: apollo
+        app.kubernetes.io/name: prefect-ui
+        app.kubernetes.io/instance: prefect-helm
+    spec:
+      imagePullSecrets:
+      serviceAccountName: prefect-helm-prefect-ui
+      securityContext:
+        {}
+      initContainers:
+        - name: init-graphql
+          image: "busybox:1.28"
+          command:
+          - sh
+          - '-c'
+          - 'until nslookup prefect-helm-prefect-ui-graphql.$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace).svc.cluster.local; do echo waiting for prefect-helm-prefect-ui-graphql; sleep 2; done'
+      containers:
+        - name: apollo
+          securityContext:
+            {}
+          image: "prefecthq/apollo:latest"
+          imagePullPolicy: Always
+          command:
+          - npm
+          - run
+          - serve
+          env:
+            - name: POD_NAMESPACE
+              valueFrom: { fieldRef: { fieldPath: metadata.namespace } }
+            - name: HASURA_API_URL
+              # ${HASURA_API_URL:-http://hasura:3000/v1alpha1/graphql}
+              value: 'http://prefect-helm-prefect-ui-hasura:3000/v1alpha1/graphql'
+            - name: PREFECT_API_URL
+              value: 'http://prefect-helm-prefect-ui-graphql:4201/graphql/'
+            - name: PREFECT_API_HEALTH_URL
+              value: 'http://prefect-helm-prefect-ui-graphql:4201/health'
+          ports:
+            - name: graphql
+              containerPort: 4200
+              protocol: TCP
+          livenessProbe:
+            tcpSocket:
+              port: 4200
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 1
+            successThreshold: 1
+            failureThreshold: 3
+          readinessProbe:
+            tcpSocket:
+              port: 4200
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 1
+            successThreshold: 1
+            failureThreshold: 3
+          resources:
+            limits:
+              cpu: 100m
+              memory: 128Mi
+            requests:
+              cpu: 100m
+              memory: 128Mi
+      volumes: []
+---
+# Source: prefect-ui/templates/graphql/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prefect-helm-prefect-ui-graphql
+  namespace: default
+  labels:
+    app.kubernetes.io/component: graphql
+    helm.sh/chart: prefect-ui-0.0.4
+    app.kubernetes.io/name: prefect-ui
+    app.kubernetes.io/instance: prefect-helm
+    app.kubernetes.io/version: "latest"
+    app.kubernetes.io/part-of: prefect-ui
+    app.kubernetes.io/managed-by: Helm
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: graphql
+      app.kubernetes.io/name: prefect-ui
+      app.kubernetes.io/instance: prefect-helm
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: graphql
+        app.kubernetes.io/name: prefect-ui
+        app.kubernetes.io/instance: prefect-helm
+    spec:
+      imagePullSecrets:
+      serviceAccountName: prefect-helm-prefect-ui
+      securityContext:
+        {}
+      initContainers:
+        - name: init-hasura
+          image: "busybox:1.28"
+          command:
+          - sh
+          - '-c'
+          - 'until nslookup prefect-helm-prefect-ui-hasura.$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace).svc.cluster.local; do echo waiting for prefect-helm-prefect-ui-hasura; sleep 2; done'
+      containers:
+        - name: graphql
+          securityContext:
+            {}
+          image: "prefecthq/server:latest"
+          imagePullPolicy: Always
+          command:
+          - bash
+          - '-c'
+          - "${PREFECT_SERVER_DB_CMD} && python src/prefect_server/services/graphql/server.py"
+          env:
+            - name: POD_NAMESPACE
+              valueFrom: { fieldRef: { fieldPath: metadata.namespace } }
+            - name: PREFECT_SERVER_DB_CMD
+              value: "prefect-server database upgrade -y"
+            - name: PREFECT_SERVER__DATABASE__CONNECTION_URL
+              valueFrom: { secretKeyRef: { name: prefect-ui-postgres, key: DATABASE_URL } }
+            - name: PREFECT_SERVER__HASURA__ADMIN_SECRET
+              valueFrom: { secretKeyRef: { name: prefect-helm-prefect-ui-hasura, key: ADMIN_SECRET } }
+            - name: PREFECT_SERVER__HASURA__HOST
+              value: 'prefect-helm-prefect-ui-hasura'
+          ports:
+            - name: graphql
+              containerPort: 4201
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: "/health"
+              port: 4201
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 1
+            successThreshold: 1
+            failureThreshold: 3
+          readinessProbe:
+            tcpSocket:
+              port: 4201
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 1
+            successThreshold: 1
+            failureThreshold: 3
+          resources:
+            limits:
+              cpu: 200m
+              memory: 1Gi
+            requests:
+              cpu: 100m
+              memory: 256Mi
+      volumes: []
+---
+# Source: prefect-ui/templates/hasura/deployment.yaml
+# ref: https://github.com/hasura/graphql-engine/tree/master/install-manifests/kubernetes
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prefect-helm-prefect-ui-hasura
+  namespace: default
+  labels:
+    app.kubernetes.io/component: hasura
+    helm.sh/chart: prefect-ui-0.0.4
+    app.kubernetes.io/name: prefect-ui
+    app.kubernetes.io/instance: prefect-helm
+    app.kubernetes.io/version: "latest"
+    app.kubernetes.io/part-of: prefect-ui
+    app.kubernetes.io/managed-by: Helm
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: hasura
+      app.kubernetes.io/name: prefect-ui
+      app.kubernetes.io/instance: prefect-helm
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: hasura
+        app.kubernetes.io/name: prefect-ui
+        app.kubernetes.io/instance: prefect-helm
+    spec:
+      imagePullSecrets:
+      serviceAccountName: prefect-helm-prefect-ui
+      securityContext:
+        {}
+      initContainers:
+        - name: init-postgres
+          image: "busybox:1.28"
+          command:
+          - sh
+          - '-c'
+          - 'until nslookup prefect-ui-postgres.$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace).svc.cluster.local; do echo waiting for prefect-ui-postgres; sleep 2; done'
+      containers:
+        - name: hasura
+          securityContext:
+            {}
+          image: "hasura/graphql-engine:v1.1.0"
+          imagePullPolicy: IfNotPresent
+          command:
+          - graphql-engine
+          - serve
+          env:
+            - name: HASURA_GRAPHQL_DATABASE_URL
+              valueFrom: { secretKeyRef: { name: prefect-ui-postgres, key: DATABASE_URL } }
+            - name: HASURA_GRAPHQL_ENABLE_CONSOLE
+              value: "true"
+            - name: HASURA_GRAPHQL_SERVER_PORT
+              value: "3000"
+            - name: HASURA_GRAPHQL_QUERY_PLAN_CACHE_SIZE
+              value: "100"
+          ports:
+            - name: graphql
+              containerPort: 3000
+              protocol: TCP
+          livenessProbe:
+            tcpSocket:
+              port: 3000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 1
+            successThreshold: 1
+            failureThreshold: 3
+          readinessProbe:
+            tcpSocket:
+              port: 3000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 1
+            successThreshold: 1
+            failureThreshold: 3
+          resources:
+            limits:
+              cpu: 200m
+              memory: 1Gi
+            requests:
+              cpu: 100m
+              memory: 256Mi
+      volumes: []
+---
+# Source: prefect-ui/templates/scheduler/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prefect-helm-prefect-ui-scheduler
+  namespace: default
+  labels:
+    app.kubernetes.io/component: scheduler
+    helm.sh/chart: prefect-ui-0.0.4
+    app.kubernetes.io/name: prefect-ui
+    app.kubernetes.io/instance: prefect-helm
+    app.kubernetes.io/version: "latest"
+    app.kubernetes.io/part-of: prefect-ui
+    app.kubernetes.io/managed-by: Helm
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: scheduler
+      app.kubernetes.io/name: prefect-ui
+      app.kubernetes.io/instance: prefect-helm
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: scheduler
+        app.kubernetes.io/name: prefect-ui
+        app.kubernetes.io/instance: prefect-helm
+    spec:
+      imagePullSecrets:
+      serviceAccountName: prefect-helm-prefect-ui
+      securityContext:
+        {}
+      initContainers:
+        - name: init-graphql
+          image: "busybox:1.28"
+          command:
+          - sh
+          - '-c'
+          - 'until nslookup prefect-helm-prefect-ui-graphql.$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace).svc.cluster.local; do echo waiting for prefect-helm-prefect-ui-graphql; sleep 2; done'
+      containers:
+        - name: scheduler
+          securityContext:
+            {}
+          image: "prefecthq/server:latest"
+          imagePullPolicy: Always
+          command:
+          - "python"
+          - "src/prefect_server/services/scheduler/scheduler.py"
+          env:
+            - name: PREFECT_SERVER__HASURA__ADMIN_SECRET
+              valueFrom: { secretKeyRef: { name: prefect-helm-prefect-ui-hasura, key: ADMIN_SECRET } }
+            - name: PREFECT_SERVER__HASURA__HOST
+              value: 'prefect-helm-prefect-ui-hasura'
+#          ports:
+#            - name: http
+#              containerPort: 
+#              protocol: TCP
+#          livenessProbe:
+#            httpGet:
+#              path: /
+#              port: http
+#          readinessProbe:
+#            httpGet:
+#              path: /
+#              port: http
+          resources:
+            limits:
+              cpu: 100m
+              memory: 128Mi
+            requests:
+              cpu: 50m
+              memory: 64Mi
+      volumes: []
+---
+# Source: prefect-ui/templates/website/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prefect-helm-prefect-ui-website
+  namespace: default
+  labels:
+    app.kubernetes.io/component: website
+    helm.sh/chart: prefect-ui-0.0.4
+    app.kubernetes.io/name: prefect-ui
+    app.kubernetes.io/instance: prefect-helm
+    app.kubernetes.io/version: "latest"
+    app.kubernetes.io/part-of: prefect-ui
+    app.kubernetes.io/managed-by: Helm
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: website
+      app.kubernetes.io/name: prefect-ui
+      app.kubernetes.io/instance: prefect-helm
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: website
+        app.kubernetes.io/name: prefect-ui
+        app.kubernetes.io/instance: prefect-helm
+    spec:
+      imagePullSecrets:
+      serviceAccountName: prefect-helm-prefect-ui
+      securityContext:
+        {}
+      initContainers:
+        - name: init-apollo
+          image: "busybox:1.28"
+          command:
+          - sh
+          - '-c'
+          - 'until nslookup prefect-helm-prefect-ui-apollo.$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace).svc.cluster.local; do echo waiting for prefect-helm-prefect-ui-apollo; sleep 2; done'
+      containers:
+        - name: nginx
+          securityContext:
+            {}
+          image: "prefecthq/ui:latest"
+          imagePullPolicy: Always
+          command:
+          - /docker-entrypoint.sh
+#          - nginx
+#          - '-g'
+#          - daemon off;
+#          - '-c'
+#          - /etc/nginx/conf.d/default.conf
+          env:
+            - name: VUE_APP_GRAPHQL_HTTP
+              # TODO: hack, since this is just serving files via nginx, it doesn't read this environment at run-time
+              #  so we need the docker-entrypoint.sh to do string substitution for us:
+              #  https://github.com/PrefectHQ/prefect/blob/master/server/src/prefect_server/cli/services.py#L73
+              value: 'http://api.prefect.local/graphql'
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          livenessProbe:
+            tcpSocket:
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 1
+            successThreshold: 1
+            failureThreshold: 3
+          readinessProbe:
+            tcpSocket:
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 1
+            successThreshold: 1
+            failureThreshold: 3
+          volumeMounts:
+            - name: configmap-files
+              mountPath: /etc/nginx/conf.d/default.conf
+              subPath: website_nginx.conf
+            - name: configmap-files
+              mountPath: /docker-entrypoint.sh
+              subPath: website_entrypoint.sh
+            - name: configmap-files
+              mountPath: /var/www/backend.toml
+              subPath: backend.toml
+          resources:
+            limits:
+              cpu: 20m
+              memory: 128Mi
+            requests:
+              cpu: 10m
+              memory: 32Mi
+      volumes:
+        - name: configmap-files
+          configMap:
+            name: prefect-helm-prefect-ui-website
+            defaultMode: 0777
+---
+# Source: prefect-ui/templates/apollo/autoscaler.yaml
+apiVersion: autoscaling/v1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: prefect-helm-prefect-ui-apollo
+  namespace: default
+  labels:
+    app.kubernetes.io/component: apollo
+    helm.sh/chart: prefect-ui-0.0.4
+    app.kubernetes.io/name: prefect-ui
+    app.kubernetes.io/instance: prefect-helm
+    app.kubernetes.io/version: "latest"
+    app.kubernetes.io/part-of: prefect-ui
+    app.kubernetes.io/managed-by: Helm
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1beta1
+    kind: Deployment
+    name: prefect-helm-prefect-ui-apollo
+  maxReplicas: 4
+  minReplicas: 1
+  targetCPUUtilizationPercentage: 65
+---
+# Source: prefect-ui/templates/graphql/autoscaler.yaml
+apiVersion: autoscaling/v1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: prefect-helm-prefect-ui-graphql
+  namespace: default
+  labels:
+    app.kubernetes.io/component: graphql
+    helm.sh/chart: prefect-ui-0.0.4
+    app.kubernetes.io/name: prefect-ui
+    app.kubernetes.io/instance: prefect-helm
+    app.kubernetes.io/version: "latest"
+    app.kubernetes.io/part-of: prefect-ui
+    app.kubernetes.io/managed-by: Helm
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1beta1
+    kind: Deployment
+    name: prefect-helm-prefect-ui-graphql
+  maxReplicas: 4
+  minReplicas: 1
+  targetCPUUtilizationPercentage: 65
+---
+# Source: prefect-ui/templates/hasura/autoscaler.yaml
+apiVersion: autoscaling/v1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: prefect-helm-prefect-ui-hasura
+  namespace: default
+  labels:
+    app.kubernetes.io/component: hasura
+    helm.sh/chart: prefect-ui-0.0.4
+    app.kubernetes.io/name: prefect-ui
+    app.kubernetes.io/instance: prefect-helm
+    app.kubernetes.io/version: "latest"
+    app.kubernetes.io/part-of: prefect-ui
+    app.kubernetes.io/managed-by: Helm
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1beta1
+    kind: Deployment
+    name: prefect-helm-prefect-ui-hasura
+  maxReplicas: 4
+  minReplicas: 1
+  targetCPUUtilizationPercentage: 65
+---
+# Source: prefect-ui/templates/website/autoscaler.yaml
+apiVersion: autoscaling/v1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: prefect-helm-prefect-ui-website
+  namespace: default
+  labels:
+    app.kubernetes.io/component: website
+    helm.sh/chart: prefect-ui-0.0.4
+    app.kubernetes.io/name: prefect-ui
+    app.kubernetes.io/instance: prefect-helm
+    app.kubernetes.io/version: "latest"
+    app.kubernetes.io/part-of: prefect-ui
+    app.kubernetes.io/managed-by: Helm
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1beta1
+    kind: Deployment
+    name: prefect-helm-prefect-ui-website
+  maxReplicas: 4
+  minReplicas: 1
+  targetCPUUtilizationPercentage: 65
+---
+# Source: prefect-ui/templates/postgres/statefulset.yaml
+# ref: https://kubernetes.io/docs/tasks/run-application/run-replicated-stateful-application/
+# ref: https://hub.docker.com/r/centos/postgresql-10-centos7
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: prefect-ui-postgres
+  namespace: default
+  labels:
+    app.kubernetes.io/component: postgres
+    helm.sh/chart: prefect-ui-0.0.4
+    app.kubernetes.io/name: prefect-ui
+    app.kubernetes.io/instance: prefect-helm
+    app.kubernetes.io/version: "latest"
+    app.kubernetes.io/part-of: prefect-ui
+    app.kubernetes.io/managed-by: Helm
+spec:
+  serviceName: prefect-ui-postgres
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: postgres
+      app.kubernetes.io/name: prefect-ui
+      app.kubernetes.io/instance: prefect-helm
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: postgres
+        app.kubernetes.io/name: prefect-ui
+        app.kubernetes.io/instance: prefect-helm
+    spec:
+      imagePullSecrets:
+      serviceAccountName: prefect-helm-prefect-ui
+      securityContext:
+        {}
+      containers:
+        - name: postgres
+          securityContext:
+            {}
+          image: "centos/postgresql-12-centos7:latest"
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: POSTGRESQL_USER
+              valueFrom: { secretKeyRef: { name: prefect-ui-postgres, key: POSTGRES_USER } }
+            - name: POSTGRESQL_PASSWORD
+              valueFrom: { secretKeyRef: { name: prefect-ui-postgres, key: POSTGRES_PASSWORD } }
+            - name: POSTGRESQL_DATABASE
+              valueFrom: { secretKeyRef: { name: prefect-ui-postgres, key: POSTGRES_DB } }
+            - name: POSTGRESQL_MIGRATION_IGNORE_ERRORS
+              value: "no"
+            - name: POSTGRESQL_MAX_CONNECTIONS
+              value: "150"
+            - name: POSTGRESQL_MAX_PREPARED_TRANSACTIONS
+              value: "0"
+            - name: POSTGRESQL_SHARED_BUFFERS
+              value: 32MB
+            - name: POSTGRESQL_EFFECTIVE_CACHE_SIZE
+              value: 128MB
+          ports:
+            - name: postgres
+              containerPort: 5432
+              protocol: TCP
+          livenessProbe:
+            tcpSocket:
+              port: 5432
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 1
+            successThreshold: 1
+            failureThreshold: 3
+          readinessProbe:
+            tcpSocket:
+              port: 5432
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 1
+            successThreshold: 1
+            failureThreshold: 3
+          volumeMounts:
+            - name: configmap-files
+              mountPath: /opt/app-root/src/postgresql-start/postgres_setup_database.sh
+              subPath: postgres_setup_database.sh
+            - name: postgresdb
+              mountPath: /var/lib/pgsql/data
+              subPath: pgdata
+          resources:
+            limits:
+              cpu: 1000m
+              memory: 4Gi
+            requests:
+              cpu: 500m
+              memory: 1Gi
+      volumes:
+        - name: configmap-files
+          configMap:
+            name: prefect-ui-postgres
+  volumeClaimTemplates:
+  - metadata:
+      name: postgresdb
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+#      storageClassName: gp2
+      resources:
+        requests:
+          storage: 1Gi
+---
+# Source: prefect-ui/templates/ingress/ingress.yaml
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: prefect-helm-prefect-ui-ingress
+  namespace: default
+  labels:
+    app.kubernetes.io/component: ingress
+    helm.sh/chart: prefect-ui-0.0.4
+    app.kubernetes.io/name: prefect-ui
+    app.kubernetes.io/instance: prefect-helm
+    app.kubernetes.io/version: "latest"
+    app.kubernetes.io/part-of: prefect-ui
+    app.kubernetes.io/managed-by: Helm
+spec:
+  rules:
+
+    - host: prefect.local
+      http:
+        paths:
+          - path: /
+            backend:
+              serviceName: prefect-helm-prefect-ui-website
+              servicePort: 8080
+
+
+    - host: api.prefect.local
+      http:
+        paths:
+          - path: /
+            backend:
+              serviceName: prefect-helm-prefect-ui-apollo
+              servicePort: 4200

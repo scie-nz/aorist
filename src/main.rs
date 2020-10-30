@@ -12,6 +12,11 @@ fn main() -> Result<(), String> {
     for group in setup.get_groups() {
         println!("{}", group.to_yaml());
     }
+    for role_binding in setup.get_role_bindings() {
+        println!("{}", role_binding.to_yaml());
+    }
+    perms = setup.get_user_permissions();
+
     println!("{}", setup.get_curl_calls(
         "admin".to_string(),
         "eagerLamprey".to_string(),

@@ -2245,7 +2245,7 @@ spec:
           mountPath: /data/gitea/conf
       containers:
       - name: gitea
-        image: gitea/gitea:latest
+        image: scienz/aorist-test-gitea:latest
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 80

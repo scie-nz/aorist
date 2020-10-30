@@ -3,7 +3,7 @@ use serde::{Serialize, Deserialize};
 use std::collections::HashMap;
 use crate::ranger::RangerEntity;
 
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Serialize, Deserialize, Clone, Hash, Eq)]
 pub struct User {
     firstName: String,
     lastName: String,
@@ -14,6 +14,9 @@ pub struct User {
 impl User {
     pub fn to_yaml(&self) -> String {
         serde_yaml::to_string(self).unwrap()
+    }
+    pub fn get_unixname(&self) -> &String {
+        &self.unixname
     }
 }
 
@@ -60,3 +63,4 @@ impl RangerEntity for User {
         }
     }
 }
+

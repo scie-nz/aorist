@@ -3,10 +3,12 @@
 use crate::access_policies::AccessPolicy;
 use serde::{Serialize, Deserialize};
 use std::fs;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use crate::templates::DatumTemplate;
 use crate::assets::Asset;
 use crate::ranger::RangerEntity;
+use crate::role::TRole;
+use crate::role_binding::RoleBinding;
 use crate::user::User;
 use crate::user_group::UserGroup;
 
@@ -41,6 +43,7 @@ pub enum Object {
     DataSet(DataSet),
     User(User),
     UserGroup(UserGroup),
+    RoleBinding(RoleBinding),
 }
 impl Object {
     pub fn to_yaml(&self) -> String {
@@ -48,6 +51,7 @@ impl Object {
             Object::DataSet{..} => self.to_yaml(),
             Object::User{..} => self.to_yaml(),
             Object::UserGroup{..} => self.to_yaml(),
+            Object::RoleBinding{..} => self.to_yaml(),
         }
     }
 }
@@ -55,6 +59,7 @@ pub struct DataSetup {
     users: Vec<User>,
     groups: Vec<UserGroup>,
     datasets: Vec<DataSet>,
+    role_bindings: Vec<RoleBinding>,
 }
 impl DataSetup {
     pub fn get_users(&self) -> &Vec<User> {
@@ -65,6 +70,29 @@ impl DataSetup {
     }
     pub fn get_groups(&self) -> &Vec<UserGroup> {
         &self.groups
+    }
+    pub fn get_role_bindings(&self) -> &Vec<RoleBinding> {
+        &self.role_bindings
+    }
+    pub fn get_user_unixname_map(&self) -> HashMap<String, User>  {
+        self.get_users().iter().map(|x| (x.get_unixname().clone(), x.clone())).collect()
+    }
+    pub fn get_user_permissions(&self) -> Result<HashMap<User, HashSet<String>>, String> {
+        let umap = self.get_user_unixname_map();
+        let mut map: HashMap<User, HashSet<String>> = HashMap::new();
+        for binding in self.get_role_bindings() {
+            let name = binding.get_user_name();
+            if !umap.contains_key(name) {
+                return Err(format!("Cannot find user with name {}.", name));
+            }
+            let user = umap.get(name).unwrap().clone();
+            for perm in binding.get_role().get_permissions() {
+                map.entry(user.clone()).or_insert_with(HashSet::new).insert(perm.clone());
+            }
+        }
+        Ok(map)
+    }
+    pub fn get_gitea_user_update_calls(&self) {
     }
     pub fn get_curl_calls(
         &self,
@@ -101,12 +129,18 @@ pub fn get_data_setup() -> DataSetup {
         .filter(|x| x.len() > 0)
         .map(|x| serde_yaml::from_str(x).unwrap())
         .collect();
-    let mut dataSetup = DataSetup{ users: Vec::new(), datasets: Vec::new(), groups: Vec::new() };
+    let mut dataSetup = DataSetup{
+        users: Vec::new(),
+        datasets: Vec::new(),
+        groups: Vec::new(),
+        role_bindings: Vec::new(),
+    };
     for object in objects {
         match object {
             Object::User(u) => dataSetup.users.push(u),
             Object::DataSet(d) => dataSetup.datasets.push(d),
             Object::UserGroup(g) => dataSetup.groups.push(g),
+            Object::RoleBinding(r) => dataSetup.role_bindings.push(r),
         }
     }
     dataSetup

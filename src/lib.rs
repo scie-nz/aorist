@@ -9,8 +9,11 @@ pub mod hive;
 pub mod layouts;
 pub mod locations;
 pub mod ranger;
+pub mod role;
+pub mod role_binding;
 pub mod schema;
 pub mod storage;
 pub mod templates;
 pub mod user;
 pub mod user_group;
+
