@@ -5,7 +5,7 @@ pub trait TRole {
     fn get_permissions(&self) -> Vec<String>;
 }
 
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Serialize, Deserialize, Clone, Eq, Hash)]
 pub struct GlobalPermissionsAdmin {}
 impl TRole for GlobalPermissionsAdmin {
     fn get_permissions(&self) -> Vec<String> {
@@ -16,7 +16,7 @@ impl TRole for GlobalPermissionsAdmin {
     }
 }
 
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Serialize, Deserialize, Clone, Eq, Hash)]
 #[serde(tag = "type", content="spec")]
 pub enum Role {
     GlobalPermissionsAdmin(GlobalPermissionsAdmin)

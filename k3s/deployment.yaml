@@ -2246,7 +2246,7 @@ spec:
       containers:
       - name: gitea
         image: scienz/aorist-test-gitea:latest
-        imagePullPolicy: IfNotPresent
+        imagePullPolicy: Always
         ports:
         - containerPort: 80
         - containerPort: 3000
@@ -2257,6 +2257,18 @@ spec:
         - mountPath: /data/gitea/conf
           name: pre-install
           readOnly: false
+        - name: aorist-master-key
+          mountPath: /home/git/.ssh
+        - name: admin-token
+          mountPath: /admin-token
+      - name: gitea-agent
+        image: scienz/aorist-test-gitea-agent:latest
+        imagePullPolicy: Always
+        volumeMounts:
+        - name: aorist-master-key
+          mountPath: /aorist-master-key
+        - name: admin-token
+          mountPath: /admin-token
       volumes:
       - name: git-data
         persistentVolumeClaim:
@@ -2265,6 +2277,12 @@ spec:
         configMap:
           name: properties
       - name: pre-install
+        emptyDir: {}
+      - name: aorist-master-key
+        secret:
+          secretName: aorist-master-key
+          defaultMode: 0600
+      - name: admin-token
         emptyDir: {}
 ---
 apiVersion: v1
