@@ -57,6 +57,9 @@ aorist_derive = {path = "./aorist_derive"}
 gitea = {path = "./gitea"}
 indoc = "1.0.3"
 async-trait = "0.1.41"
+futures = "0.3"
+tokio = { version = "0.2", features = ["macros"] }
+reqwest = { version = "0.10", features = ["json"] }
 
 [[bin]]
 name = "main"

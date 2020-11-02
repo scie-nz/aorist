@@ -174,8 +174,9 @@ pub struct Version {
 /// [reqwest::Client](https://docs.rs/reqwest/0.10.6/reqwest/struct.Client.html)
 /// and operates asyncronously.
 pub struct Client {
-    cli: reqwest::Client,
-    base_url: String,
+    pub cli: reqwest::Client,
+    pub base_url: String,
+    pub token: String,
 }
 
 impl Client {
@@ -202,6 +203,7 @@ impl Client {
         Ok(Self {
             cli: cli,
             base_url: base_url,
+            token: token,
         })
     }
 
@@ -453,7 +455,7 @@ impl Client {
     pub async fn list_all_users(&self) -> Result<Vec<GiteaUser>> {
         Ok(self
             .cli
-            .get(&format!("{}/admin/users", self.base_url))
+            .get(&format!("{}/api/v1/admin/users", self.base_url))
             .send()
             .await?
             .error_for_status()?
@@ -462,12 +464,17 @@ impl Client {
     }
 
     pub async fn check_exists_username(&self, username: String) -> Result<bool> {
-        let users: Vec<GiteaUser> = self.list_all_users().await?;
-        for user in users {
-            if user.login == username {
-                return Ok(true);
-            }
-        }
-        Ok(false)
+        Ok(self.get_user(username).await.is_ok())
+    }
+
+    pub async fn get_user(&self, login: String) -> Result<GiteaUser> {
+        Ok(self
+            .cli
+            .get(&format!("{}/api/v1/users/{}", self.base_url, login))
+            .send()
+            .await?
+            .error_for_status()?
+            .json()
+            .await?)
     }
 }
