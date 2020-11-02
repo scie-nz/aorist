@@ -65,6 +65,9 @@ impl DataSetup {
     pub fn get_users(&self) -> &Vec<User> {
         &self.users
     }
+    pub fn get_mutable_users(&mut self) -> &mut Vec<User> {
+        &mut self.users
+    }
     pub fn get_datasets(&self) -> &Vec<DataSet> {
         &self.datasets
     }

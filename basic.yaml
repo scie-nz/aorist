@@ -22,6 +22,14 @@ spec:
   email: alice@scie.nz
   phone: 555-1235
 ---
+type: User
+spec:
+  unixname: bob
+  firstName: Bob
+  lastName: Johnson
+  email: bob@scie.nz
+  phone: 555-1235
+---
 type: UserGroup
 spec:
   name: finance-users

@@ -14,12 +14,7 @@ pub trait TGiteaEntity {
     fn get_create_payload(&self) -> Result<Self::TCreatePayload, String>;
     async fn create(&self, client: &Client) -> Result<Self::TResultPayload, Error>;
     async fn exists(&self, client: &Client) -> Result<bool, Error>;
-    async fn enforce(&self, client: &Client) -> Result<(), Error> {
-        while !self.exists(client).await? {
-            self.create(client).await?;
-        }
-        Ok(())
-    }
+    async fn enforce(&mut self, client: &Client) -> Result<(), Error>;
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone, Hash, Eq)]
@@ -30,6 +25,7 @@ pub struct User {
     phone: String,
     unixname: String,
     roles: Option<Vec<Role>>,
+    gitea_user: Option<GiteaUser>,
 }
 impl User {
     pub fn to_yaml(&self) -> String {
@@ -59,6 +55,19 @@ impl User {
             }
         }
         Ok(perms)
+    }
+    pub fn set_gitea_user(&mut self, user: GiteaUser) -> Result<(), String> {
+        if let Some(_) = self.gitea_user {
+            return Err("Tried to set gitea user more than once.".to_string());
+        }
+        self.gitea_user = Some(user);
+        Ok(())
+    }
+    pub fn get_gitea_user(&self) -> Result<GiteaUser, String> {
+        match &self.gitea_user {
+            Some(x) => Ok(x.clone()),
+            None => Err("Tried to get gitea_user for user but set_gitea_user was never called".to_string())
+        }
     }
 }
 
@@ -131,5 +140,12 @@ impl TGiteaEntity for User {
     async fn exists(&self, client: &Client) -> Result<bool, Error> {
         println!("Checking gitea user {}", self.unixname);
         Ok(client.check_exists_username(self.unixname.clone()).await?)
+    }
+    async fn enforce(&mut self, client: &Client) -> Result<(), Error> {
+        while !self.exists(client).await? {
+            let gitea_user = self.create(client).await?;
+            self.set_gitea_user(gitea_user);
+        }
+        Ok(())
     }
 }

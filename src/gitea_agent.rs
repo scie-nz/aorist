@@ -33,8 +33,8 @@ async fn main() -> Result<(), Error> {
     println!("user {} = {}", "bogdan", client.check_exists_username("bogdan".to_string()).await?);
     println!("user {} = {}", "gitadmin", client.check_exists_username("gitadmin".to_string()).await?);
     */
-    let setup = get_data_setup();
-    for user in setup.get_users() {
+    let mut setup = get_data_setup();
+    for user in setup.get_mutable_users() {
         user.enforce(&client).await.unwrap();
     }
     Ok(())

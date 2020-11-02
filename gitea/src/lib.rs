@@ -127,7 +127,7 @@ pub struct Repo {
 
 /// A user.
 /// https://try.gitea.io/api/swagger#model-GiteaUser
-#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize, Eq, Hash)]
 pub struct GiteaUser {
     pub avatar_url: String,
     pub created: String,
