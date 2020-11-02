@@ -203,6 +203,7 @@ spec:
     - ReadWriteOnce
   hostPath:
     path: "/mnt/data"
+  storageClassName: local-path
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -1327,7 +1328,7 @@ spec:
         image: scienz/aorist-test-ranger-admin:latest
         env:
           - name: MYSQL_HOST
-            value: mysql
+            value: mysql-ranger
           - name: MYSQL_USER
             value: root
           - name: MYSQL_PASSWORD
@@ -1573,6 +1574,7 @@ spec:
     - ReadWriteOnce
   hostPath:
     path: "/mnt/data"
+  storageClassName: local-path
 ---
 kind: PersistentVolumeClaim
 apiVersion: v1
@@ -2298,6 +2300,7 @@ spec:
     - ReadWriteOnce
   hostPath:
     path: "/mnt/git-data"
+  storageClassName: local-path
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -2345,6 +2348,7 @@ spec:
     - ReadWriteOnce
   hostPath:
     path: "/mnt/data/pv-postgres-gitea"
+  storageClassName: local-path
 ---
 kind: PersistentVolumeClaim
 apiVersion: v1
@@ -2409,3 +2413,73 @@ spec:
   selector:
    app: postgres-gitea
 ---
+apiVersion: apps/v1 # for versions before 1.9.0 use apps/v1beta2
+kind: Deployment
+metadata:
+  name: mysql2
+spec:
+  selector:
+    matchLabels:
+      app: mysql2
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: mysql2
+    spec:
+      containers:
+      - image: mysql:5.6
+        name: mysql
+        env:
+          # Use secret in real usage
+        - name: MYSQL_ROOT_PASSWORD
+          value: eagerLamprey
+        ports:
+        - containerPort: 3306
+          name: mysql
+        volumeMounts:
+        - name: mysql-persistent-storage
+          mountPath: /var/lib/mysql
+      volumes:
+      - name: mysql-persistent-storage
+        persistentVolumeClaim:
+          claimName: mysql-pvc-ranger
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: mysql-pv-volume-ranger
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-path
+  hostPath:
+    path: "/mnt/data-ranger"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql2
+spec:
+  ports:
+  - port: 3306
+    targetPort: 3306
+  selector:
+    app: mysql2
+  clusterIP: None
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: mysql-pvc-ranger
+  labels:
+    app: mysql-pvc-ranger
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
