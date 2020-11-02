@@ -7,7 +7,7 @@ use std::collections::{HashMap, HashSet};
 use crate::templates::DatumTemplate;
 use crate::assets::Asset;
 use crate::ranger::RangerEntity;
-use crate::role::TRole;
+use crate::role::{Role, TRole};
 use crate::role_binding::RoleBinding;
 use crate::user::User;
 use crate::user_group::UserGroup;
@@ -142,6 +142,22 @@ pub fn get_data_setup() -> DataSetup {
             Object::UserGroup(g) => dataSetup.groups.push(g),
             Object::RoleBinding(r) => dataSetup.role_bindings.push(r),
         }
+    }
+    let mut role_map: HashMap<String, Vec<Role>> = HashMap::new();
+    for binding in &dataSetup.role_bindings {
+        role_map.entry(binding.get_user_name().clone()).or_insert_with(Vec::new).push(binding.get_role().clone());
+    }
+    let mut user_map: HashMap<String, &mut User> = HashMap::new();
+    for user in dataSetup.users.iter_mut() {
+        let username = user.get_unixname();
+        if role_map.contains_key(username) {
+            user_map.insert(username.clone(), user);
+        } else {
+            user.set_roles(Vec::new());
+        }
+    }
+    for (user_name, roles) in role_map.into_iter() {
+        user_map.get_mut(&user_name).unwrap().set_roles(roles);
     }
     dataSetup
 }

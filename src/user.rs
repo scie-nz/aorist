@@ -16,7 +16,7 @@ pub trait TGiteaEntity {
     async fn exists(&self, client: &Client) -> Result<bool, Error>;
     async fn enforce(&self, client: &Client) -> Result<(), Error> {
         while !self.exists(client).await? {
-            self.enforce(client).await?
+            self.create(client).await?;
         }
         Ok(())
     }

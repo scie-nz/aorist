@@ -443,7 +443,7 @@ impl Client {
     pub async fn create_user(&self, cr: CreateGiteaUser) -> Result<GiteaUser> {
         Ok(self
             .cli
-            .post(&format!("{}/admin/users", self.base_url))
+            .post(&format!("{}/api/v1/admin/users", self.base_url))
             .json(&cr)
             .send()
             .await?

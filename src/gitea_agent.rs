@@ -6,6 +6,8 @@ use reqwest::header;
 use serde::{Deserialize, Serialize};
 use std::result::Result as StdResult;
 use thiserror::Error;
+use lib::user::TGiteaEntity;
+
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
@@ -18,7 +20,7 @@ async fn main() -> Result<(), Error> {
         APP_USER_AGENT
     ).unwrap();
 
-
+    /*
     let whoami = client.whoami().await?;
     println!("{}", whoami.login);
     let res = client.cli.get(&format!("{}/api/v1/admin/users?&page=1&limit=100", client.base_url)).send().await?.error_for_status()?;
@@ -30,6 +32,10 @@ async fn main() -> Result<(), Error> {
 
     println!("user {} = {}", "bogdan", client.check_exists_username("bogdan".to_string()).await?);
     println!("user {} = {}", "gitadmin", client.check_exists_username("gitadmin".to_string()).await?);
+    */
     let setup = get_data_setup();
+    for user in setup.get_users() {
+        user.enforce(&client).await.unwrap();
+    }
     Ok(())
 }
