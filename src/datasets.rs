@@ -47,6 +47,15 @@ impl DataSet {
         schemas
     }
 }
+
+#[derive(Serialize, Deserialize)]
+pub struct DataSetup {
+    users: Vec<String>,
+    groups: Vec<String>,
+    datasets: Vec<String>,
+    role_bindings: Vec<String>,
+}
+
 #[derive(Serialize, Deserialize)]
 #[serde(tag = "type", content = "spec")]
 pub enum Object {
@@ -54,6 +63,7 @@ pub enum Object {
     User(User),
     UserGroup(UserGroup),
     RoleBinding(RoleBinding),
+    DataSetup(DataSetup),
 }
 impl Object {
     pub fn to_yaml(&self) -> String {
@@ -62,11 +72,13 @@ impl Object {
             Object::User{..} => self.to_yaml(),
             Object::UserGroup{..} => self.to_yaml(),
             Object::RoleBinding{..} => self.to_yaml(),
+            Object::DataSetup{..} => serde_yaml::to_string(self).unwrap(),
         }
     }
 }
-#[derive(IncompleteGetters, IncompleteSetters, IncompleteMutGetters)]
-pub struct DataSetup {
+
+#[derive(Serialize, Deserialize, IncompleteGetters, IncompleteSetters, IncompleteMutGetters)]
+pub struct ParsedDataSetup {
     #[getset(get_incomplete = "pub with_prefix", set_incomplete = "pub", get_mut_incomplete = "pub with_prefix")]
     users: Option<Vec<User>>,
     #[getset(get_incomplete = "pub with_prefix", set_incomplete = "pub", get_mut_incomplete = "pub with_prefix")]
@@ -76,7 +88,7 @@ pub struct DataSetup {
     #[getset(get_incomplete = "pub with_prefix", set_incomplete = "pub", get_mut_incomplete = "pub with_prefix")]
     role_bindings: Option<Vec<RoleBinding>>,
 }
-impl DataSetup {
+impl ParsedDataSetup {
     pub fn get_user_unixname_map(&self) -> HashMap<String, User>  {
         let users: &Vec<User> = self.get_users().unwrap();
         users.iter().map(|x| (x.get_unixname().clone(), x.clone())).collect()
@@ -97,14 +109,65 @@ impl DataSetup {
         Ok(map)
     }
 }
-pub fn get_data_setup() -> DataSetup {
+
+impl DataSetup {
+    fn parse(self, objects: Vec<Object>) -> ParsedDataSetup {
+
+        let mut dataSetup = ParsedDataSetup{
+            users: None,
+            datasets: None,
+            groups: None,
+            role_bindings: None,
+        };
+
+        let mut users: Vec<User> = Vec::new();
+        let mut groups: Vec<UserGroup> = Vec::new();
+        let mut datasets: Vec<DataSet> = Vec::new();
+        let mut role_bindings: Vec<RoleBinding> = Vec::new();
+
+        for object in objects {
+            match object {
+                Object::User(u) => users.push(u),
+                Object::DataSet(d) => datasets.push(d),
+                Object::UserGroup(g) => groups.push(g),
+                Object::RoleBinding(r) => role_bindings.push(r),
+                _ => {}
+            }
+        }
+        dataSetup.set_users(users).unwrap();
+        dataSetup.set_groups(groups).unwrap();
+        dataSetup.set_datasets(datasets).unwrap();
+        dataSetup.set_role_bindings(role_bindings).unwrap();
+
+        let mut role_map: HashMap<String, Vec<Role>> = HashMap::new();
+        for binding in dataSetup.get_role_bindings().unwrap() {
+            role_map.entry(binding.get_user_name().clone()).or_insert_with(Vec::new).push(binding.get_role().clone());
+        }
+        let mut user_map: HashMap<String, &mut User> = HashMap::new();
+
+        for user in dataSetup.get_users_mut().unwrap().iter_mut() {
+            let username = user.get_unixname();
+            if role_map.contains_key(username) {
+                user_map.insert(username.clone(), user);
+            } else {
+                user.set_roles(Vec::new()).unwrap();
+            }
+        }
+        for (user_name, roles) in role_map.into_iter() {
+            user_map.get_mut(&user_name).unwrap().set_roles(roles).unwrap();
+        }
+        dataSetup
+    }
+}
+
+pub fn get_data_setup() -> ParsedDataSetup {
     let s = fs::read_to_string("basic.yaml").unwrap();
     let objects: Vec<Object> = s
         .split("\n---\n")
         .filter(|x| x.len() > 0)
         .map(|x| serde_yaml::from_str(x).unwrap())
         .collect();
-    let mut dataSetup = DataSetup{
+    let mut dataSetup = ParsedDataSetup{
         users: None,
         datasets: None,
         groups: None,
@@ -122,6 +185,7 @@ pub fn get_data_setup() -> DataSetup {
             Object::DataSet(d) => datasets.push(d),
             Object::UserGroup(g) => groups.push(g),
             Object::RoleBinding(r) => role_bindings.push(r),
+            _ => {}
         }
     }
     dataSetup.set_users(users).unwrap();
