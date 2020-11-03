@@ -6,7 +6,7 @@ fn main() -> Result<(), String> {
         println!("{}", dataset.to_yaml());
         println!("{}", dataset.get_presto_schemas(4));
     }
-    for user in setup.get_users() {
+    for user in setup.get_users().unwrap() {
         println!("{}", user.to_yaml());
     }
     for group in setup.get_groups() {

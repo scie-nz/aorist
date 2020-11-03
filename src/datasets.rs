@@ -10,7 +10,7 @@ use crate::role::{Role, TRole};
 use crate::role_binding::RoleBinding;
 use crate::user::User;
 use crate::user_group::UserGroup;
-use getset::{IncompleteGetters, IncompleteSetters};
+use getset::{IncompleteGetters, IncompleteMutGetters, IncompleteSetters};
 use thiserror::Error;
 
 #[allow(dead_code)]
@@ -65,31 +65,15 @@ impl Object {
         }
     }
 }
-#[derive(IncompleteGetters, IncompleteSetters)]
-pub struct DataSetup2 {
-    #[getset(get_incomplete = "pub", set_incomplete = "pub")]
-    users: Option<Vec<User>>,
-    #[getset(get_incomplete = "pub", set_incomplete = "pub")]
-    groups: Option<Vec<UserGroup>>,
-    #[getset(get_incomplete = "pub", set_incomplete = "pub")]
-    datasets: Option<Vec<DataSet>>,
-    #[getset(get_incomplete = "pub", set_incomplete = "pub")]
-    role_bindings: Option<Vec<RoleBinding>>,
-}
-
+#[derive(IncompleteGetters, IncompleteSetters, IncompleteMutGetters)]
 pub struct DataSetup {
-    users: Vec<User>,
+    #[getset(get_incomplete = "pub with_prefix", set_incomplete = "pub", get_mut_incomplete = "pub with_prefix")]
+    users: Option<Vec<User>>,
     groups: Vec<UserGroup>,
     datasets: Vec<DataSet>,
     role_bindings: Vec<RoleBinding>,
 }
 impl DataSetup {
-    pub fn get_users(&self) -> &Vec<User> {
-        &self.users
-    }
-    pub fn get_mutable_users(&mut self) -> &mut Vec<User> {
-        &mut self.users
-    }
     pub fn get_datasets(&self) -> &Vec<DataSet> {
         &self.datasets
     }
@@ -100,7 +84,8 @@ impl DataSetup {
         &self.role_bindings
     }
     pub fn get_user_unixname_map(&self) -> HashMap<String, User>  {
-        self.get_users().iter().map(|x| (x.get_unixname().clone(), x.clone())).collect()
+        let users: &Vec<User> = self.get_users().unwrap();
+        users.iter().map(|x| (x.get_unixname().clone(), x.clone())).collect()
     }
     pub fn get_user_permissions(&self) -> Result<HashMap<User, HashSet<String>>, String> {
         let umap = self.get_user_unixname_map();
@@ -117,36 +102,6 @@ impl DataSetup {
         }
         Ok(map)
     }
-    /*
-    pub fn get_gitea_user_update_calls(&self) {
-    }
-    pub fn get_curl_calls(
-        &self,
-        username: String,
-        password: String,
-        hostname: String,
-        port: usize
-    ) -> String {
-        format!(
-            "{}\n\n{}",
-            self.groups
-                .iter()
-                .map(
-                    |x| x.get_range_create_curl(
-                        username.clone(), password.clone(), hostname.clone(), port
-                    )
-                )
-                .collect::<Vec<String>>().join("\n"),
-            self.users
-                .iter()
-                .map(
-                    |x| x.get_range_create_curl(
-                        username.clone(), password.clone(), hostname.clone(), port
-                    )
-                )
-                .collect::<Vec<String>>().join("\n")
-        )
-    }*/
 }
 pub fn get_data_setup() -> DataSetup {
     let s = fs::read_to_string("basic.yaml").unwrap();
@@ -156,25 +111,30 @@ pub fn get_data_setup() -> DataSetup {
         .map(|x| serde_yaml::from_str(x).unwrap())
         .collect();
     let mut dataSetup = DataSetup{
-        users: Vec::new(),
+        users: None,
         datasets: Vec::new(),
         groups: Vec::new(),
         role_bindings: Vec::new(),
     };
+
+    let mut users: Vec<User> = Vec::new();
     for object in objects {
         match object {
-            Object::User(u) => dataSetup.users.push(u),
+            Object::User(u) => users.push(u),
             Object::DataSet(d) => dataSetup.datasets.push(d),
             Object::UserGroup(g) => dataSetup.groups.push(g),
             Object::RoleBinding(r) => dataSetup.role_bindings.push(r),
         }
     }
+    dataSetup.set_users(users).unwrap();
+
     let mut role_map: HashMap<String, Vec<Role>> = HashMap::new();
     for binding in &dataSetup.role_bindings {
         role_map.entry(binding.get_user_name().clone()).or_insert_with(Vec::new).push(binding.get_role().clone());
     }
     let mut user_map: HashMap<String, &mut User> = HashMap::new();
-    for user in dataSetup.users.iter_mut() {
+
+    for user in dataSetup.get_users_mut().unwrap().iter_mut() {
         let username = user.get_unixname();
         if role_map.contains_key(username) {
             user_map.insert(username.clone(), user);

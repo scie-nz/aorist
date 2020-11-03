@@ -35,7 +35,7 @@ async fn main() -> Result<(), AoristError> {
     */
 
     let mut setup = get_data_setup();
-    for user in setup.get_mutable_users() {
+    for user in setup.get_users_mut().unwrap() {
         TGiteaEntity::enforce(user, &gitea_client).await.unwrap();
         TRangerEntity::enforce(user, &ranger_client).await.unwrap();
     }
