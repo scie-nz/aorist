@@ -1,3 +1,17 @@
+type: DataSetup
+spec:
+  users:
+  - bogdan
+  - alice
+  - bob
+  groups:
+  - finance-users
+  - datascience-users
+  - project-crowding-detection
+  datasets:
+  - sentinel-2-metadata-dataset
+  role_bindings:
+  - bogdan-global-permissions-admin
 ---
 type: User
 spec:
