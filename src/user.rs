@@ -7,7 +7,7 @@ use std::collections::HashSet;
 use async_trait::async_trait;
 use ranger::{CreateRangerUser, RangerClient, RangerUser};
 use crate::error::AoristError;
-
+use crate::object::TAoristObject;
 
 #[async_trait]
 pub trait TGiteaEntity {
@@ -84,6 +84,11 @@ impl User {
             Some(x) => Ok(x.clone()),
             None => Err(AoristError::OtherError("Tried to get ranger_user for user but set_ranger_user was never called".to_string()))
         }
+    }
+}
+impl TAoristObject for User {
+    fn get_name(&self) -> &String {
+        &self.unixname
     }
 }
 

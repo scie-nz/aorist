@@ -63,6 +63,11 @@ pub struct DataSetup {
     datasets: Vec<String>,
     role_bindings: Vec<String>,
 }
+impl TAoristObject for DataSetup {
+    fn get_name(&self) -> &String {
+        &self.name
+    }
+}
 
 #[derive(Serialize, Deserialize)]
 #[serde(tag = "type", content = "spec")]
