@@ -73,12 +73,10 @@ pub struct DataSetup {
     groups: Option<Vec<UserGroup>>,
     #[getset(get_incomplete = "pub with_prefix", set_incomplete = "pub", get_mut_incomplete = "pub with_prefix")]
     datasets: Option<Vec<DataSet>>,
-    role_bindings: Vec<RoleBinding>,
+    #[getset(get_incomplete = "pub with_prefix", set_incomplete = "pub", get_mut_incomplete = "pub with_prefix")]
+    role_bindings: Option<Vec<RoleBinding>>,
 }
 impl DataSetup {
-    pub fn get_role_bindings(&self) -> &Vec<RoleBinding> {
-        &self.role_bindings
-    }
     pub fn get_user_unixname_map(&self) -> HashMap<String, User>  {
         let users: &Vec<User> = self.get_users().unwrap();
         users.iter().map(|x| (x.get_unixname().clone(), x.clone())).collect()
@@ -86,7 +84,7 @@ impl DataSetup {
     pub fn get_user_permissions(&self) -> Result<HashMap<User, HashSet<String>>, String> {
         let umap = self.get_user_unixname_map();
         let mut map: HashMap<User, HashSet<String>> = HashMap::new();
-        for binding in self.get_role_bindings() {
+        for binding in self.get_role_bindings().unwrap() {
             let name = binding.get_user_name();
             if !umap.contains_key(name) {
                 return Err(format!("Cannot find user with name {}.", name));
@@ -110,26 +108,29 @@ pub fn get_data_setup() -> DataSetup {
         users: None,
         datasets: None,
         groups: None,
-        role_bindings: Vec::new(),
+        role_bindings: None,
     };
 
     let mut users: Vec<User> = Vec::new();
     let mut groups: Vec<UserGroup> = Vec::new();
     let mut datasets: Vec<DataSet> = Vec::new();
+    let mut role_bindings: Vec<RoleBinding> = Vec::new();
+
     for object in objects {
         match object {
             Object::User(u) => users.push(u),
             Object::DataSet(d) => datasets.push(d),
             Object::UserGroup(g) => groups.push(g),
-            Object::RoleBinding(r) => dataSetup.role_bindings.push(r),
+            Object::RoleBinding(r) => role_bindings.push(r),
         }
     }
     dataSetup.set_users(users).unwrap();
     dataSetup.set_groups(groups).unwrap();
     dataSetup.set_datasets(datasets).unwrap();
+    dataSetup.set_role_bindings(role_bindings).unwrap();
 
     let mut role_map: HashMap<String, Vec<Role>> = HashMap::new();
-    for binding in &dataSetup.role_bindings {
+    for binding in dataSetup.get_role_bindings().unwrap() {
         role_map.entry(binding.get_user_name().clone()).or_insert_with(Vec::new).push(binding.get_role().clone());
     }
     let mut user_map: HashMap<String, &mut User> = HashMap::new();

@@ -12,7 +12,7 @@ fn main() -> Result<(), String> {
     for group in setup.get_groups().unwrap() {
         println!("{}", group.to_yaml());
     }
-    for role_binding in setup.get_role_bindings() {
+    for role_binding in setup.get_role_bindings().unwrap() {
         println!("{}", role_binding.to_yaml());
     }
     //perms = setup.get_user_permissions();
