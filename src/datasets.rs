@@ -6,7 +6,7 @@ use std::fs;
 use std::collections::{HashMap, HashSet};
 use crate::templates::DatumTemplate;
 use crate::assets::Asset;
-use crate::ranger::RangerEntity;
+//use crate::ranger::RangerEntity;
 use crate::role::{Role, TRole};
 use crate::role_binding::RoleBinding;
 use crate::user::User;
@@ -95,6 +95,7 @@ impl DataSetup {
         }
         Ok(map)
     }
+    /*
     pub fn get_gitea_user_update_calls(&self) {
     }
     pub fn get_curl_calls(
@@ -123,7 +124,7 @@ impl DataSetup {
                 )
                 .collect::<Vec<String>>().join("\n")
         )
-    }
+    }*/
 }
 pub fn get_data_setup() -> DataSetup {
     let s = fs::read_to_string("basic.yaml").unwrap();

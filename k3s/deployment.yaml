@@ -140,7 +140,6 @@ spec:
       spec:
         accessModes:
           - ReadWriteOnce
-
         resources:
           requests:
             storage: "8Gi"
@@ -196,9 +195,10 @@ metadata:
   name: mysql-pv-volume
   labels:
     type: local
+    app: mysql
 spec:
   capacity:
-    storage: 20Gi
+    storage: 1Gi
   accessModes:
     - ReadWriteOnce
   hostPath:
@@ -214,7 +214,10 @@ spec:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 20Gi
+      storage: 1Gi
+  selector:
+    matchLabels:
+      app: mysql
 ---
 # Hive standalone metastore service, keeps track of table metadata.
 apiVersion: apps/v1
@@ -2416,17 +2419,17 @@ spec:
 apiVersion: apps/v1 # for versions before 1.9.0 use apps/v1beta2
 kind: Deployment
 metadata:
-  name: mysql2
+  name: mysql-ranger
 spec:
   selector:
     matchLabels:
-      app: mysql2
+      app: mysql-ranger
   strategy:
     type: Recreate
   template:
     metadata:
       labels:
-        app: mysql2
+        app: mysql-ranger
     spec:
       containers:
       - image: mysql:5.6
@@ -2462,13 +2465,13 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: mysql2
+  name: mysql-ranger
 spec:
   ports:
   - port: 3306
     targetPort: 3306
   selector:
-    app: mysql2
+    app: mysql-ranger
   clusterIP: None
 ---
 kind: PersistentVolumeClaim

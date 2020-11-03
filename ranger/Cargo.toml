@@ -1,0 +1,23 @@
+[package]
+name = "ranger"
+version = "0.0.1"
+authors = ["Bogdan State <bogdan@scie.nz>"]
+edition = "2018"
+homepage = "https://tulpa.dev/cadey/gitea-release/src/branch/main/gitea"
+repository = "https://tulpa.dev/cadey/gitea-release"
+keywords = ["gitea", "api", "http"]
+license = "MIT"
+readme = "README.md"
+description = "A Gitea client for Rust programs."
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+thiserror = "1"
+reqwest = { version = "0.10.8", features=["json"]}
+serde_json = "1.0"
+serde = { version = "1.0", features = ["derive"] }
+
+[dev-dependencies]
+anyhow = "1"
+tokio = { version = "0.3.2", features = ["macros"] }

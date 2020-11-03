@@ -1,5 +1,5 @@
 #![allow(non_snake_case)]
-use crate::ranger::RangerEntity;
+//use crate::ranger::RangerEntity;
 use serde::{Serialize, Deserialize};
 use std::collections::HashMap;
 
@@ -24,7 +24,7 @@ pub struct UserGroupRangerPayload {
     name: String,
     description: String,
 }
-
+/*
 impl RangerEntity for UserGroup {
     type TRangerCreatePayload = UserGroupRangerPayload;
 
@@ -48,4 +48,4 @@ impl RangerEntity for UserGroup {
             },
         }
     }
-}
+}*/

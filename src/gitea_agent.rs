@@ -1,23 +1,36 @@
 use lib::datasets::get_data_setup;
 use tokio::prelude::*;
 use gitea::Error;
-
+use ranger::RangerClient;
 use reqwest::header;
 use serde::{Deserialize, Serialize};
 use std::result::Result as StdResult;
 use thiserror::Error;
 use lib::user::TGiteaEntity;
+use lib::user::TRangerEntity;
 
+#[derive(Error, Debug)]
+pub enum AoristError {
+    #[error("error from gitea: {0:#?}")]
+    GiteaError(#[from] gitea::Error),
+    #[error("error from ranger: {0:#?}")]
+    RangerError(#[from] ranger::RangerError),
+}
 
 #[tokio::main]
-async fn main() -> Result<(), Error> {
+async fn main() -> Result<(), AoristError> {
 
     const APP_USER_AGENT: &'static str = concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION"));
 
-    let client = gitea::Client::new(
+    let gitea_client = gitea::Client::new(
         "http://localhost:30807".into(),
-        "1e8d6b15b3696f45f213fd4153a6516fc06852f8".into(),
+        "2b44b07e042ee9fe374e3eeebd2c9098468b5774".into(),
         APP_USER_AGENT
+    ).unwrap();
+
+    let ranger_client = ranger::RangerClient::new(
+        "http://localhost:30800".into(),
+        "admin".to_string(), "G0powerRangers".to_string(),
     ).unwrap();
 
     /*
@@ -33,9 +46,11 @@ async fn main() -> Result<(), Error> {
     println!("user {} = {}", "bogdan", client.check_exists_username("bogdan".to_string()).await?);
     println!("user {} = {}", "gitadmin", client.check_exists_username("gitadmin".to_string()).await?);
     */
+
     let mut setup = get_data_setup();
     for user in setup.get_mutable_users() {
-        user.enforce(&client).await.unwrap();
+        TGiteaEntity::enforce(user, &gitea_client).await.unwrap();
+        TRangerEntity::enforce(user, &ranger_client).await.unwrap();
     }
     Ok(())
 }
