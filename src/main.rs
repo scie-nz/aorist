@@ -9,7 +9,7 @@ fn main() -> Result<(), String> {
     for user in setup.get_users().unwrap() {
         println!("{}", user.to_yaml());
     }
-    for group in setup.get_groups() {
+    for group in setup.get_groups().unwrap() {
         println!("{}", group.to_yaml());
     }
     for role_binding in setup.get_role_bindings() {
