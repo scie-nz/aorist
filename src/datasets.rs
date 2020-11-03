@@ -157,11 +157,11 @@ pub fn get_data_setup() -> DataSetup {
         if role_map.contains_key(username) {
             user_map.insert(username.clone(), user);
         } else {
-            user.set_roles(Vec::new());
+            user.set_roles(Vec::new()).unwrap();
         }
     }
     for (user_name, roles) in role_map.into_iter() {
-        user_map.get_mut(&user_name).unwrap().set_roles(roles);
+        user_map.get_mut(&user_name).unwrap().set_roles(roles).unwrap();
     }
     dataSetup
 }

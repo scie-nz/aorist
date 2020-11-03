@@ -87,13 +87,6 @@ impl RangerClient {
 
     /// Creates a new Ranger user
     pub async fn create_user(&self, cr: CreateRangerUser) -> Result<RangerUser> {
-        println!("{}", self
-            .cli
-            .post(&format!("{}/service/xusers/users", self.base_url))
-            .json(&cr)
-            .basic_auth(self.username.clone(), Some(self.password.clone()))
-            .send()
-            .await?.text().await?);
         Ok(self
             .cli
             .post(&format!("{}/service/xusers/users", self.base_url))

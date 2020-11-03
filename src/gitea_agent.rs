@@ -1,21 +1,8 @@
 use lib::datasets::get_data_setup;
-use tokio::prelude::*;
-use gitea::Error;
-use ranger::RangerClient;
-use reqwest::header;
-use serde::{Deserialize, Serialize};
-use std::result::Result as StdResult;
-use thiserror::Error;
+use lib::error::AoristError;
 use lib::user::TGiteaEntity;
-use lib::user::TRangerEntity;
+use lib::ranger::TRangerEntity;
 
-#[derive(Error, Debug)]
-pub enum AoristError {
-    #[error("error from gitea: {0:#?}")]
-    GiteaError(#[from] gitea::Error),
-    #[error("error from ranger: {0:#?}")]
-    RangerError(#[from] ranger::RangerError),
-}
 
 #[tokio::main]
 async fn main() -> Result<(), AoristError> {
