@@ -1,5 +1,4 @@
 #![allow(non_snake_case)]
-
 use crate::access_policies::AccessPolicy;
 use serde::{Serialize, Deserialize};
 use std::fs;
@@ -11,8 +10,19 @@ use crate::role::{Role, TRole};
 use crate::role_binding::RoleBinding;
 use crate::user::User;
 use crate::user_group::UserGroup;
+use getset::{IncompleteGetters, IncompleteSetters};
+use thiserror::Error;
 
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[allow(dead_code)]
+#[derive(Debug, Error)]
+pub enum GetSetError {
+    #[error("Get was called, but attribute was not set: {0:#?}")]
+    GetError(String),
+    #[error("Set was called twice for the attribute: {0:#?}")]
+    SetError(String),
+}
+
+#[derive(Debug, PartialEq, Serialize, Deserialize, Default)]
 pub struct DataSet {
     name: String,
     accessPolicies: Vec<AccessPolicy>,
@@ -55,6 +65,18 @@ impl Object {
         }
     }
 }
+#[derive(IncompleteGetters, IncompleteSetters)]
+pub struct DataSetup2 {
+    #[getset(get_incomplete = "pub", set_incomplete = "pub")]
+    users: Option<Vec<User>>,
+    #[getset(get_incomplete = "pub", set_incomplete = "pub")]
+    groups: Option<Vec<UserGroup>>,
+    #[getset(get_incomplete = "pub", set_incomplete = "pub")]
+    datasets: Option<Vec<DataSet>>,
+    #[getset(get_incomplete = "pub", set_incomplete = "pub")]
+    role_bindings: Option<Vec<RoleBinding>>,
+}
+
 pub struct DataSetup {
     users: Vec<User>,
     groups: Vec<UserGroup>,
@@ -163,5 +185,6 @@ pub fn get_data_setup() -> DataSetup {
     for (user_name, roles) in role_map.into_iter() {
         user_map.get_mut(&user_name).unwrap().set_roles(roles).unwrap();
     }
+    //dataSetup.set_optional_assets(dataSetup.datasets.iter().clone().collect());
     dataSetup
 }
