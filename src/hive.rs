@@ -6,4 +6,3 @@ pub trait THiveTableCreationTagMutator {
         tags: &mut HashMap<String, String>,
     ) -> Result<(), String>;
 }
-

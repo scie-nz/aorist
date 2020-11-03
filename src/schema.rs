@@ -1,6 +1,6 @@
 #![allow(non_snake_case)]
 use crate::templates::DatumTemplate;
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
@@ -17,7 +17,7 @@ impl TabularSchema {
     }
 }
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
-#[serde(tag = "type", content="spec")]
+#[serde(tag = "type", content = "spec")]
 pub enum DataSchema {
     TabularSchema(TabularSchema),
 }

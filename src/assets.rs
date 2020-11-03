@@ -1,9 +1,9 @@
 #![allow(non_snake_case)]
-use serde::{Serialize, Deserialize};
-use crate::storage::Storage;
 use crate::schema::DataSchema;
+use crate::storage::Storage;
 use crate::templates::DatumTemplate;
 use indoc::indoc;
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
@@ -13,7 +13,11 @@ pub struct StaticDataTable {
     schema: DataSchema,
 }
 impl StaticDataTable {
-    pub fn get_presto_schemas(&self, templates: &HashMap<String, DatumTemplate>, _indent: usize) -> String {
+    pub fn get_presto_schemas(
+        &self,
+        templates: &HashMap<String, DatumTemplate>,
+        _indent: usize,
+    ) -> String {
         let columnSchema = self.schema.get_presto_schema(templates);
         let mut schemas: Vec<String> = Vec::new();
         for storage in &self.storage {
@@ -28,20 +32,19 @@ impl StaticDataTable {
                             .map(|(k, v)| format!("{}='{}'", k, v))
                             .collect::<Vec<String>>()
                             .join(",\n    ")
-                    ).to_string()
+                    )
+                    .to_string(),
                 };
-                schemas.push(
-                    format!(
-                        indoc!{
-                            "CREATE TABLE IF NOT EXISTS {table} (
+                schemas.push(format!(
+                    indoc! {
+                        "CREATE TABLE IF NOT EXISTS {table} (
                                 {column_schema}
                             ){tags_str};"
-                        },
-                        table=self.get_name(),
-                        column_schema=columnSchema.replace("\n","\n    "),
-                        tags_str=tags_str,
-                    )
-                );
+                    },
+                    table = self.get_name(),
+                    column_schema = columnSchema.replace("\n", "\n    "),
+                    tags_str = tags_str,
+                ));
             }
         }
         schemas.join("\n")
@@ -51,12 +54,16 @@ impl StaticDataTable {
     }
 }
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
-#[serde(tag = "type", content="spec")]
+#[serde(tag = "type", content = "spec")]
 pub enum Asset {
     StaticDataTable(StaticDataTable),
 }
 impl Asset {
-    pub fn get_presto_schemas(&self, templates: &HashMap<String, DatumTemplate>, indent: usize) -> String {
+    pub fn get_presto_schemas(
+        &self,
+        templates: &HashMap<String, DatumTemplate>,
+        indent: usize,
+    ) -> String {
         match self {
             Asset::StaticDataTable(x) => x.get_presto_schemas(templates, indent),
         }

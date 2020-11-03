@@ -1,13 +1,13 @@
 #![allow(non_snake_case)]
 
 use aorist_derive::{PrestoBigint, PrestoReal, PrestoVarchar};
-use serde::{Serialize, Deserialize};
 use indoc::formatdoc;
+use serde::{Deserialize, Serialize};
 
 macro_rules! define_attribute {
     ($element:ident, $presto_type:ident) => {
         #[derive(Debug, PartialEq, Serialize, Deserialize, Clone, $presto_type)]
-        pub struct $element{
+        pub struct $element {
             name: String,
             comment: Option<String>,
         }
@@ -19,7 +19,7 @@ macro_rules! define_attribute {
                 &self.comment
             }
         }
-    }
+    };
 }
 macro_rules! register_attribute {
     ( $name:ident, $($element: ident),+ ) => {
@@ -68,20 +68,16 @@ pub trait TPrestoAttribute: TAttribute {
         let name = self.get_name();
         let num_middle_spaces = (max_attribute_length - name.len()) + 1;
         let spaces = (0..num_middle_spaces).map(|_| " ").collect::<String>();
-        let first_line = format!(
-            "{}{}{}",
-            self.get_name(),
-            spaces,
-            self.get_presto_type(),
-        );
+        let first_line = format!("{}{}{}", self.get_name(), spaces, self.get_presto_type(),);
         if let Some(comment) = self.get_comment() {
-            let formatted_with_comment = formatdoc!("
+            let formatted_with_comment = formatdoc!(
+                "
                 {first_line}
                      COMMENT '{comment}'",
-                first_line=first_line,
-                comment=comment.trim().replace("'","\\'").to_string()
+                first_line = first_line,
+                comment = comment.trim().replace("'", "\\'").to_string()
             );
-            return formatted_with_comment
+            return formatted_with_comment;
         }
         first_line
     }
@@ -106,4 +102,3 @@ register_attribute!(
     FloatLongitude,
     URI
 );
-

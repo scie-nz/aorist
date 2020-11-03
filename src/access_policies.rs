@@ -1,7 +1,7 @@
 #![allow(non_snake_case)]
-use serde::{Serialize, Deserialize};
-use std::collections::{HashMap, HashSet};
 use crate::user_group::UserGroup;
+use serde::{Deserialize, Serialize};
+use std::collections::{HashMap, HashSet};
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct ApproveAccessSelector {
@@ -28,4 +28,3 @@ impl ApproveAccessSelector {
 pub enum AccessPolicy {
     ApproveAccessSelector(ApproveAccessSelector),
 }
-

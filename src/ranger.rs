@@ -1,7 +1,7 @@
 #![allow(non_snake_case)]
-use ranger::RangerClient;
-use async_trait::async_trait;
 use crate::error::AoristError;
+use async_trait::async_trait;
+use ranger::RangerClient;
 
 #[async_trait]
 pub trait TRangerEntity {
@@ -13,4 +13,3 @@ pub trait TRangerEntity {
     async fn exists(&self, client: &RangerClient) -> Result<bool, AoristError>;
     async fn enforce(&mut self, client: &RangerClient) -> Result<(), AoristError>;
 }
-

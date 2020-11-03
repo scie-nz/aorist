@@ -1,18 +1,18 @@
 #![allow(non_snake_case)]
 use crate::access_policies::AccessPolicy;
-use serde::{Serialize, Deserialize};
-use std::fs;
-use std::collections::{HashMap, HashSet};
-use crate::templates::DatumTemplate;
 use crate::assets::Asset;
+use crate::templates::DatumTemplate;
+use serde::{Deserialize, Serialize};
+use std::collections::{HashMap, HashSet};
+use std::fs;
 //use crate::ranger::RangerEntity;
+use crate::object::{AoristObject, TAoristObject};
 use crate::role::{Role, TRole};
 use crate::role_binding::RoleBinding;
 use crate::user::User;
 use crate::user_group::UserGroup;
 use getset::{IncompleteGetters, IncompleteMutGetters, IncompleteSetters};
 use thiserror::Error;
-use crate::object::{AoristObject, TAoristObject};
 
 #[allow(dead_code)]
 #[derive(Debug, Error)]
@@ -41,7 +41,10 @@ impl DataSet {
         serde_yaml::to_string(self).unwrap()
     }
     pub fn get_mapped_datum_templates(&self) -> HashMap<String, DatumTemplate> {
-        self.datumTemplates.iter().map(|x| (x.get_name().clone(), x.clone())).collect()
+        self.datumTemplates
+            .iter()
+            .map(|x| (x.get_name().clone(), x.clone()))
+            .collect()
     }
     pub fn get_presto_schemas(&self, indent: usize) -> String {
         let mappedTemplates = self.get_mapped_datum_templates();
@@ -72,19 +75,38 @@ impl TAoristObject for DataSetup {
 #[derive(Serialize, Deserialize, IncompleteGetters, IncompleteSetters, IncompleteMutGetters)]
 pub struct ParsedDataSetup {
     name: String,
-    #[getset(get_incomplete = "pub with_prefix", set_incomplete = "pub", get_mut_incomplete = "pub with_prefix")]
+    #[getset(
+        get_incomplete = "pub with_prefix",
+        set_incomplete = "pub",
+        get_mut_incomplete = "pub with_prefix"
+    )]
     users: Option<Vec<User>>,
-    #[getset(get_incomplete = "pub with_prefix", set_incomplete = "pub", get_mut_incomplete = "pub with_prefix")]
+    #[getset(
+        get_incomplete = "pub with_prefix",
+        set_incomplete = "pub",
+        get_mut_incomplete = "pub with_prefix"
+    )]
     groups: Option<Vec<UserGroup>>,
-    #[getset(get_incomplete = "pub with_prefix", set_incomplete = "pub", get_mut_incomplete = "pub with_prefix")]
+    #[getset(
+        get_incomplete = "pub with_prefix",
+        set_incomplete = "pub",
+        get_mut_incomplete = "pub with_prefix"
+    )]
     datasets: Option<Vec<DataSet>>,
-    #[getset(get_incomplete = "pub with_prefix", set_incomplete = "pub", get_mut_incomplete = "pub with_prefix")]
+    #[getset(
+        get_incomplete = "pub with_prefix",
+        set_incomplete = "pub",
+        get_mut_incomplete = "pub with_prefix"
+    )]
     role_bindings: Option<Vec<RoleBinding>>,
 }
 impl ParsedDataSetup {
-    pub fn get_user_unixname_map(&self) -> HashMap<String, User>  {
+    pub fn get_user_unixname_map(&self) -> HashMap<String, User> {
         let users: &Vec<User> = self.get_users().unwrap();
-        users.iter().map(|x| (x.get_unixname().clone(), x.clone())).collect()
+        users
+            .iter()
+            .map(|x| (x.get_unixname().clone(), x.clone()))
+            .collect()
     }
     pub fn get_user_permissions(&self) -> Result<HashMap<User, HashSet<String>>, String> {
         let umap = self.get_user_unixname_map();
@@ -96,7 +118,9 @@ impl ParsedDataSetup {
             }
             let user = umap.get(name).unwrap().clone();
             for perm in binding.get_role().get_permissions() {
-                map.entry(user.clone()).or_insert_with(HashSet::new).insert(perm.clone());
+                map.entry(user.clone())
+                    .or_insert_with(HashSet::new)
+                    .insert(perm.clone());
             }
         }
         Ok(map)
@@ -105,8 +129,7 @@ impl ParsedDataSetup {
 
 impl DataSetup {
     fn parse(self, objects: Vec<AoristObject>) -> ParsedDataSetup {
-
-        let mut dataSetup = ParsedDataSetup{
+        let mut dataSetup = ParsedDataSetup {
             name: self.name,
             users: None,
             datasets: None,
@@ -135,7 +158,10 @@ impl DataSetup {
 
         let mut role_map: HashMap<String, Vec<Role>> = HashMap::new();
         for binding in dataSetup.get_role_bindings().unwrap() {
-            role_map.entry(binding.get_user_name().clone()).or_insert_with(Vec::new).push(binding.get_role().clone());
+            role_map
+                .entry(binding.get_user_name().clone())
+                .or_insert_with(Vec::new)
+                .push(binding.get_role().clone());
         }
         let mut user_map: HashMap<String, &mut User> = HashMap::new();
 
@@ -148,7 +174,11 @@ impl DataSetup {
             }
         }
         for (user_name, roles) in role_map.into_iter() {
-            user_map.get_mut(&user_name).unwrap().set_roles(roles).unwrap();
+            user_map
+                .get_mut(&user_name)
+                .unwrap()
+                .set_roles(roles)
+                .unwrap();
         }
         dataSetup
     }
@@ -161,10 +191,14 @@ pub fn get_data_setup() -> ParsedDataSetup {
         .filter(|x| x.len() > 0)
         .map(|x| serde_yaml::from_str(x).unwrap())
         .collect();
-    let v: Vec<Option<&DataSetup>> = objects.iter().map(|x| match x {
-        AoristObject::DataSetup(x) => Some(x),
-        _ => None
-    }).filter(|x| x.is_some()).collect();
+    let v: Vec<Option<&DataSetup>> = objects
+        .iter()
+        .map(|x| match x {
+            AoristObject::DataSetup(x) => Some(x),
+            _ => None,
+        })
+        .filter(|x| x.is_some())
+        .collect();
     let dataSetup: DataSetup = v.first().unwrap().unwrap().to_owned();
     dataSetup.parse(objects)
 }

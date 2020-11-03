@@ -1,7 +1,7 @@
 #![allow(non_snake_case)]
-use serde::{Serialize, Deserialize};
-use crate::role::Role;
 use crate::object::TAoristObject;
+use crate::role::Role;
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct RoleBinding {

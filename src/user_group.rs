@@ -1,8 +1,8 @@
 #![allow(non_snake_case)]
 //use crate::ranger::RangerEntity;
-use serde::{Serialize, Deserialize};
-use std::collections::HashMap;
 use crate::object::TAoristObject;
+use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct UserGroup {

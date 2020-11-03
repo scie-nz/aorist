@@ -1,6 +1,6 @@
 #![allow(non_snake_case)]
 
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 pub struct SingleFileLayout {}

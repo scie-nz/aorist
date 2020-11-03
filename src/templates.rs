@@ -1,7 +1,7 @@
 #![allow(non_snake_case)]
 
-use serde::{Serialize, Deserialize};
 use crate::attributes::{Attribute, TAttribute, TPrestoAttribute};
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
@@ -11,7 +11,10 @@ pub struct KeyedStruct {
 }
 impl KeyedStruct {
     fn get_mapped_attributes(&self) -> HashMap<String, Attribute> {
-        self.attributes.iter().map(|x| (x.get_name().clone(), x.clone())).collect()
+        self.attributes
+            .iter()
+            .map(|x| (x.get_name().clone(), x.clone()))
+            .collect()
     }
     pub fn get_presto_schema(&self, attributeNames: &Vec<String>) -> Result<String, String> {
         let mapped_attributes = self.get_mapped_attributes();
@@ -21,7 +24,10 @@ impl KeyedStruct {
             if mapped_attributes.contains_key(attr) {
                 schemas.push(mapped_attributes[attr].get_presto_schema(max_attribute_length))
             } else {
-                let err: String = format!("Cannot find attribute {} in datumTemplate attributes.", attr);
+                let err: String = format!(
+                    "Cannot find attribute {} in datumTemplate attributes.",
+                    attr
+                );
                 return Err(err);
             }
         }

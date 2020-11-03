@@ -1,24 +1,26 @@
 use lib::datasets::get_data_setup;
 use lib::error::AoristError;
-use lib::user::TGiteaEntity;
 use lib::ranger::TRangerEntity;
-
+use lib::user::TGiteaEntity;
 
 #[tokio::main]
 async fn main() -> Result<(), AoristError> {
-
-    const APP_USER_AGENT: &'static str = concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION"));
+    const APP_USER_AGENT: &'static str =
+        concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION"));
 
     let gitea_client = gitea::Client::new(
         "http://localhost:30807".into(),
         "2b44b07e042ee9fe374e3eeebd2c9098468b5774".into(),
-        APP_USER_AGENT
-    ).unwrap();
+        APP_USER_AGENT,
+    )
+    .unwrap();
 
     let ranger_client = ranger::RangerClient::new(
         "http://localhost:30800".into(),
-        "admin".to_string(), "G0powerRangers".to_string(),
-    ).unwrap();
+        "admin".to_string(),
+        "G0powerRangers".to_string(),
+    )
+    .unwrap();
 
     /*
     let whoami = client.whoami().await?;

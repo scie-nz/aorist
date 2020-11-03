@@ -1,13 +1,13 @@
 #![allow(non_snake_case)]
-use serde::{Serialize, Deserialize};
-use gitea::{CreateGiteaUser, GiteaUser, Client};
-use crate::role::{Role, TRole};
-use crate::ranger::TRangerEntity;
-use std::collections::HashSet;
-use async_trait::async_trait;
-use ranger::{CreateRangerUser, RangerClient, RangerUser};
 use crate::error::AoristError;
 use crate::object::TAoristObject;
+use crate::ranger::TRangerEntity;
+use crate::role::{Role, TRole};
+use async_trait::async_trait;
+use gitea::{Client, CreateGiteaUser, GiteaUser};
+use ranger::{CreateRangerUser, RangerClient, RangerUser};
+use serde::{Deserialize, Serialize};
+use std::collections::HashSet;
 
 #[async_trait]
 pub trait TGiteaEntity {
@@ -39,7 +39,9 @@ impl User {
     }
     pub fn set_roles(&mut self, roles: Vec<Role>) -> Result<(), AoristError> {
         if let Some(_) = self.roles {
-            return Err(AoristError::OtherError("Tried to set roles more than once.".to_string()));
+            return Err(AoristError::OtherError(
+                "Tried to set roles more than once.".to_string(),
+            ));
         }
         self.roles = Some(roles);
         Ok(())
@@ -47,7 +49,9 @@ impl User {
     pub fn get_roles(&self) -> Result<Vec<Role>, AoristError> {
         match &self.roles {
             Some(x) => Ok(x.clone()),
-            None => Err(AoristError::OtherError("Tried to get roles for user but set_roles was never called".to_string()))
+            None => Err(AoristError::OtherError(
+                "Tried to get roles for user but set_roles was never called".to_string(),
+            )),
         }
     }
     pub fn get_permissions(&self) -> Result<HashSet<String>, AoristError> {
@@ -61,7 +65,9 @@ impl User {
     }
     pub fn set_gitea_user(&mut self, user: GiteaUser) -> Result<(), AoristError> {
         if let Some(_) = self.gitea_user {
-            return Err(AoristError::OtherError("Tried to set gitea user more than once.".to_string()));
+            return Err(AoristError::OtherError(
+                "Tried to set gitea user more than once.".to_string(),
+            ));
         }
         self.gitea_user = Some(user);
         Ok(())
@@ -69,12 +75,16 @@ impl User {
     pub fn get_gitea_user(&self) -> Result<GiteaUser, AoristError> {
         match &self.gitea_user {
             Some(x) => Ok(x.clone()),
-            None => Err(AoristError::OtherError("Tried to get gitea_user for user but set_gitea_user was never called".to_string()))
+            None => Err(AoristError::OtherError(
+                "Tried to get gitea_user for user but set_gitea_user was never called".to_string(),
+            )),
         }
     }
     pub fn set_ranger_user(&mut self, user: RangerUser) -> Result<(), AoristError> {
         if let Some(_) = self.ranger_user {
-            return Err(AoristError::OtherError("Tried to set ranger user more than once.".to_string()));
+            return Err(AoristError::OtherError(
+                "Tried to set ranger user more than once.".to_string(),
+            ));
         }
         self.ranger_user = Some(user);
         Ok(())
@@ -82,7 +92,10 @@ impl User {
     pub fn get_ranger_user(&self) -> Result<RangerUser, AoristError> {
         match &self.ranger_user {
             Some(x) => Ok(x.clone()),
-            None => Err(AoristError::OtherError("Tried to get ranger_user for user but set_ranger_user was never called".to_string()))
+            None => Err(AoristError::OtherError(
+                "Tried to get ranger_user for user but set_ranger_user was never called"
+                    .to_string(),
+            )),
         }
     }
 }
@@ -98,7 +111,7 @@ impl TRangerEntity for User {
     type TResultPayload = RangerUser;
 
     fn get_create_payload(&self) -> Result<Self::TCreatePayload, String> {
-        Ok(CreateRangerUser{
+        Ok(CreateRangerUser {
             name: self.unixname.clone(),
             firstName: self.firstName.clone(),
             lastName: self.lastName.clone(),
