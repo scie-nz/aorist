@@ -1,5 +1,6 @@
 type: DataSetup
 spec:
+  name: basic-data-setup
   users:
   - bogdan
   - alice
@@ -24,6 +25,7 @@ spec:
 type: RoleBinding
 spec:
   user_name: bogdan
+  name: bogdan-global-permissions-admin
   role:
     type: GlobalPermissionsAdmin
     spec: {}

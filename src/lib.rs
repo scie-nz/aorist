@@ -9,6 +9,7 @@ pub mod headers;
 pub mod hive;
 pub mod layouts;
 pub mod locations;
+pub mod object;
 pub mod ranger;
 pub mod role;
 pub mod role_binding;

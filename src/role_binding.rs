@@ -5,7 +5,8 @@ use crate::role::Role;
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct RoleBinding {
     user_name: String,
-    role: Role
+    role: Role,
+    name: String,
 }
 impl RoleBinding {
     pub fn get_user_name(&self) -> &String {

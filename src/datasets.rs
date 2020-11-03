@@ -12,6 +12,7 @@ use crate::user::User;
 use crate::user_group::UserGroup;
 use getset::{IncompleteGetters, IncompleteMutGetters, IncompleteSetters};
 use thiserror::Error;
+use crate::object::TAoristObject;
 
 #[allow(dead_code)]
 #[derive(Debug, Error)]
@@ -29,6 +30,12 @@ pub struct DataSet {
     datumTemplates: Vec<DatumTemplate>,
     assets: Vec<Asset>,
 }
+impl TAoristObject for DataSet {
+    fn get_name(&self) -> &String {
+        &self.name
+    }
+}
+
 impl DataSet {
     pub fn to_yaml(&self) -> String {
         serde_yaml::to_string(self).unwrap()
@@ -50,6 +57,7 @@ impl DataSet {
 
 #[derive(Serialize, Deserialize)]
 pub struct DataSetup {
+    name: String,
     users: Vec<String>,
     groups: Vec<String>,
     datasets: Vec<String>,
@@ -58,27 +66,28 @@ pub struct DataSetup {
 
 #[derive(Serialize, Deserialize)]
 #[serde(tag = "type", content = "spec")]
-pub enum Object {
+pub enum AoristObject {
     DataSet(DataSet),
     User(User),
     UserGroup(UserGroup),
     RoleBinding(RoleBinding),
     DataSetup(DataSetup),
 }
-impl Object {
+impl AoristObject {
     pub fn to_yaml(&self) -> String {
         match self {
-            Object::DataSet{..} => self.to_yaml(),
-            Object::User{..} => self.to_yaml(),
-            Object::UserGroup{..} => self.to_yaml(),
-            Object::RoleBinding{..} => self.to_yaml(),
-            Object::DataSetup{..} => serde_yaml::to_string(self).unwrap(),
+            AoristObject::DataSet{..} => self.to_yaml(),
+            AoristObject::User{..} => self.to_yaml(),
+            AoristObject::UserGroup{..} => self.to_yaml(),
+            AoristObject::RoleBinding{..} => self.to_yaml(),
+            AoristObject::DataSetup{..} => serde_yaml::to_string(self).unwrap(),
         }
     }
 }
 
 #[derive(Serialize, Deserialize, IncompleteGetters, IncompleteSetters, IncompleteMutGetters)]
 pub struct ParsedDataSetup {
+    name: String,
     #[getset(get_incomplete = "pub with_prefix", set_incomplete = "pub", get_mut_incomplete = "pub with_prefix")]
     users: Option<Vec<User>>,
     #[getset(get_incomplete = "pub with_prefix", set_incomplete = "pub", get_mut_incomplete = "pub with_prefix")]
@@ -111,9 +120,10 @@ impl ParsedDataSetup {
 }
 
 impl DataSetup {
-    fn parse(self, objects: Vec<Object>) -> ParsedDataSetup {
+    fn parse(self, objects: Vec<AoristObject>) -> ParsedDataSetup {
 
         let mut dataSetup = ParsedDataSetup{
+            name: self.name,
             users: None,
             datasets: None,
             groups: None,
@@ -127,10 +137,10 @@ impl DataSetup {
 
         for object in objects {
             match object {
-                Object::User(u) => users.push(u),
-                Object::DataSet(d) => datasets.push(d),
-                Object::UserGroup(g) => groups.push(g),
-                Object::RoleBinding(r) => role_bindings.push(r),
+                AoristObject::User(u) => users.push(u),
+                AoristObject::DataSet(d) => datasets.push(d),
+                AoristObject::UserGroup(g) => groups.push(g),
+                AoristObject::RoleBinding(r) => role_bindings.push(r),
                 _ => {}
             }
         }
@@ -162,12 +172,13 @@ impl DataSetup {
 
 pub fn get_data_setup() -> ParsedDataSetup {
     let s = fs::read_to_string("basic.yaml").unwrap();
-    let objects: Vec<Object> = s
+    let objects: Vec<AoristObject> = s
         .split("\n---\n")
         .filter(|x| x.len() > 0)
         .map(|x| serde_yaml::from_str(x).unwrap())
         .collect();
     let mut dataSetup = ParsedDataSetup{
+        name: "".to_string(),
         users: None,
         datasets: None,
         groups: None,
@@ -181,10 +192,10 @@ pub fn get_data_setup() -> ParsedDataSetup {
 
     for object in objects {
         match object {
-            Object::User(u) => users.push(u),
-            Object::DataSet(d) => datasets.push(d),
-            Object::UserGroup(g) => groups.push(g),
-            Object::RoleBinding(r) => role_bindings.push(r),
+            AoristObject::User(u) => users.push(u),
+            AoristObject::DataSet(d) => datasets.push(d),
+            AoristObject::UserGroup(g) => groups.push(g),
+            AoristObject::RoleBinding(r) => role_bindings.push(r),
             _ => {}
         }
     }
