@@ -12,7 +12,7 @@ use crate::user::User;
 use crate::user_group::UserGroup;
 use getset::{IncompleteGetters, IncompleteMutGetters, IncompleteSetters};
 use thiserror::Error;
-use crate::object::TAoristObject;
+use crate::object::{AoristObject, TAoristObject};
 
 #[allow(dead_code)]
 #[derive(Debug, Error)]
@@ -66,27 +66,6 @@ pub struct DataSetup {
 impl TAoristObject for DataSetup {
     fn get_name(&self) -> &String {
         &self.name
-    }
-}
-
-#[derive(Serialize, Deserialize)]
-#[serde(tag = "type", content = "spec")]
-pub enum AoristObject {
-    DataSet(DataSet),
-    User(User),
-    UserGroup(UserGroup),
-    RoleBinding(RoleBinding),
-    DataSetup(DataSetup),
-}
-impl AoristObject {
-    pub fn to_yaml(&self) -> String {
-        match self {
-            AoristObject::DataSet{..} => self.to_yaml(),
-            AoristObject::User{..} => self.to_yaml(),
-            AoristObject::UserGroup{..} => self.to_yaml(),
-            AoristObject::RoleBinding{..} => self.to_yaml(),
-            AoristObject::DataSetup{..} => serde_yaml::to_string(self).unwrap(),
-        }
     }
 }
 
