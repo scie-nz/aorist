@@ -71,13 +71,11 @@ pub struct DataSetup {
     users: Option<Vec<User>>,
     #[getset(get_incomplete = "pub with_prefix", set_incomplete = "pub", get_mut_incomplete = "pub with_prefix")]
     groups: Option<Vec<UserGroup>>,
-    datasets: Vec<DataSet>,
+    #[getset(get_incomplete = "pub with_prefix", set_incomplete = "pub", get_mut_incomplete = "pub with_prefix")]
+    datasets: Option<Vec<DataSet>>,
     role_bindings: Vec<RoleBinding>,
 }
 impl DataSetup {
-    pub fn get_datasets(&self) -> &Vec<DataSet> {
-        &self.datasets
-    }
     pub fn get_role_bindings(&self) -> &Vec<RoleBinding> {
         &self.role_bindings
     }
@@ -110,23 +108,25 @@ pub fn get_data_setup() -> DataSetup {
         .collect();
     let mut dataSetup = DataSetup{
         users: None,
-        datasets: Vec::new(),
+        datasets: None,
         groups: None,
         role_bindings: Vec::new(),
     };
 
     let mut users: Vec<User> = Vec::new();
     let mut groups: Vec<UserGroup> = Vec::new();
+    let mut datasets: Vec<DataSet> = Vec::new();
     for object in objects {
         match object {
             Object::User(u) => users.push(u),
-            Object::DataSet(d) => dataSetup.datasets.push(d),
+            Object::DataSet(d) => datasets.push(d),
             Object::UserGroup(g) => groups.push(g),
             Object::RoleBinding(r) => dataSetup.role_bindings.push(r),
         }
     }
     dataSetup.set_users(users).unwrap();
     dataSetup.set_groups(groups).unwrap();
+    dataSetup.set_datasets(datasets).unwrap();
 
     let mut role_map: HashMap<String, Vec<Role>> = HashMap::new();
     for binding in &dataSetup.role_bindings {

@@ -2,7 +2,7 @@ use lib::datasets::get_data_setup;
 
 fn main() -> Result<(), String> {
     let setup = get_data_setup();
-    for dataset in setup.get_datasets() {
+    for dataset in setup.get_datasets().unwrap() {
         println!("{}", dataset.to_yaml());
         println!("{}", dataset.get_presto_schemas(4));
     }
