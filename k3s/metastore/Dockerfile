@@ -1,4 +1,7 @@
+FROM scienz/aorist-test-ranger:latest
+
 FROM scienz/aorist-test-base-image:latest
+
 ENV HADOOP_VERSION=3.2.0
 ENV METASTORE_VERSION=3.0.0
 ENV HADOOP_HOME=/opt/hadoop-${HADOOP_VERSION}
@@ -23,6 +26,8 @@ ENV HADOOP_CLASSPATH=$HADOOP_CLASSPATH:$HIVE_HOME/lib/mysql-connector-java-8.0.1
 ENV METASTORE_AUX_JARS_PATH=/alluxio-2.4.0/client/alluxio-2.4.0-client.jar
 
 WORKDIR apache-hive-metastore-3.0.0-bin
+COPY --from=0 /ranger/target/ranger-2.1.0-hive-plugin.tar.gz .
+RUN tar xvf ranger-2.1.0-hive-plugin.tar.gz
 
 COPY entrypoint.sh /
 EXPOSE 9083
