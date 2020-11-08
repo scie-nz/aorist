@@ -5,7 +5,6 @@ use crate::templates::DatumTemplate;
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
 use std::fs;
-//use crate::ranger::RangerEntity;
 use crate::object::{AoristObject, TAoristObject};
 use crate::role::{Role, TRole};
 use crate::role_binding::RoleBinding;
@@ -128,6 +127,7 @@ impl ParsedDataSetup {
 }
 
 impl DataSetup {
+
     fn parse(self, objects: Vec<AoristObject>) -> ParsedDataSetup {
         let mut dataSetup = ParsedDataSetup {
             name: self.name,
@@ -137,6 +137,11 @@ impl DataSetup {
             role_bindings: None,
         };
 
+        let user_names: HashSet<String> = self.users.iter().map(|x| x.clone()).collect();
+        let dataset_names: HashSet<String> = self.datasets.iter().map(|x| x.clone()).collect();
+        let group_names: HashSet<String> = self.groups.iter().map(|x| x.clone()).collect();
+        let role_binding_names: HashSet<String> = self.role_bindings.iter().map(|x| x.clone()).collect();
+
         let mut users: Vec<User> = Vec::new();
         let mut groups: Vec<UserGroup> = Vec::new();
         let mut datasets: Vec<DataSet> = Vec::new();
@@ -144,10 +149,10 @@ impl DataSetup {
 
         for object in objects {
             match object {
-                AoristObject::User(u) => users.push(u),
-                AoristObject::DataSet(d) => datasets.push(d),
-                AoristObject::UserGroup(g) => groups.push(g),
-                AoristObject::RoleBinding(r) => role_bindings.push(r),
+                AoristObject::User(u) => if user_names.contains(u.get_name()) {users.push(u)},
+                AoristObject::DataSet(d) => if dataset_names.contains(d.get_name()) {datasets.push(d)},
+                AoristObject::UserGroup(g) => if group_names.contains(g.get_name()) {groups.push(g)},
+                AoristObject::RoleBinding(r) => if role_binding_names.contains(r.get_name()) {role_bindings.push(r)},
                 _ => {}
             }
         }
