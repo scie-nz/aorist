@@ -1,0 +1,197 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert
+    kompose.version: 1.21.0 (992df58d8)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: ranger-admin
+  name: ranger-admin
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: ranger-admin
+  strategy: {}
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert
+        kompose.version: 1.21.0 (992df58d8)
+      creationTimestamp: null
+      labels:
+        io.kompose.service: ranger-admin
+    spec:
+      initContainers:
+      - name: copy-ro-scripts
+        image: docker.io/scienz/aorist-test-plugin-presto
+        command:
+          - sh
+          - -c
+          - |
+            cp ranger-2.1.0-presto-plugin.tar.gz /presto/ &&
+            cp conf/ranger-admin-install.properties.template /presto/ &&
+            cd presto &&
+            tar -xvf ranger-2.1.0-presto-plugin.tar.gz &&
+            wget -O- https://repo1.maven.org/maven2/io/prestosql/presto-jdbc/345/presto-jdbc-345.jar > presto-jdbc-345.jar
+        volumeMounts:
+          - name: properties-vol
+            mountPath: /conf
+          - name: pre-install
+            mountPath: /presto
+      containers:
+      - name: ranger-admin
+        image: scienz/aorist-test-ranger-admin:latest
+        command:
+          - sh
+          - -c
+          - |
+            cp /conf/ranger-2.1.0-presto-plugin/lib/ranger-presto-plugin-impl/ranger-presto-plugin-2.1.0.jar ews/webapp/WEB-INF/lib/ && 
+            cp /conf/presto-jdbc-345.jar ews/webapp/WEB-INF/lib/ &&
+            /entrypoint.sh
+        env:
+          - name: MYSQL_HOST
+            value: mysql-ranger
+          - name: MYSQL_USER
+            value: root
+          - name: MYSQL_PASSWORD
+            value: "eagerLamprey"
+          - name: MYSQL_PORT
+            value: "3306"
+          - name: RANGER_DB
+            value: ranger
+          - name: RANGER_PASSWORD
+            value: G0powerRangers
+        imagePullPolicy: "Always"
+        ports:
+        - containerPort: 6080
+        resources: {}
+        volumeMounts:
+          - mountPath: /conf
+            name: pre-install
+      volumes:
+        - name: properties-vol
+          configMap:
+            defaultMode: 420
+            name: properties
+        - name: pre-install
+          emptyDir: {}
+      restartPolicy: Always
+      serviceAccountName: ""
+status: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    kompose.cmd: kompose convert
+    kompose.version: 1.21.0 (992df58d8)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: ranger-admin
+  name: ranger-admin
+spec:
+  type: NodePort
+  ports:
+  - name: "6080"
+    port: 6080
+    targetPort: 6080
+    nodePort: 30800
+  selector:
+    io.kompose.service: ranger-admin
+status:
+  loadBalancer: {}
+---
+apiVersion: apps/v1 # for versions before 1.9.0 use apps/v1beta2
+kind: Deployment
+metadata:
+  name: mysql-ranger
+spec:
+  selector:
+    matchLabels:
+      app: mysql-ranger
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: mysql-ranger
+    spec:
+      containers:
+      - image: mysql:5.6
+        name: mysql
+        env:
+          # Use secret in real usage
+        - name: MYSQL_ROOT_PASSWORD
+          value: eagerLamprey
+        ports:
+        - containerPort: 3306
+          name: mysql
+        volumeMounts:
+        - name: mysql-persistent-storage
+          mountPath: /var/lib/mysql
+      volumes:
+      - name: mysql-persistent-storage
+        persistentVolumeClaim:
+          claimName: mysql-pvc-ranger
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: mysql-pv-volume-ranger
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-path
+  hostPath:
+    path: "/mnt/data-ranger"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql-ranger
+spec:
+  ports:
+  - port: 3306
+    targetPort: 3306
+  selector:
+    app: mysql-ranger
+  clusterIP: None
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: mysql-pvc-ranger
+  labels:
+    app: mysql-pvc-ranger
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    kompose.cmd: kompose convert
+    kompose.version: 1.21.0 (992df58d8)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: ranger-admin
+  name: ranger-admin-svc
+spec:
+  type: ClusterIP
+  ports:
+  - name: "6080"
+    port: 6080
+    targetPort: 6080
+  selector:
+    io.kompose.service: ranger-admin
+status:
+  loadBalancer: {}
