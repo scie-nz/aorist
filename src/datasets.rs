@@ -39,4 +39,10 @@ impl DataSet {
         }
         schemas
     }
+    pub fn get_materialize_pipeline_name(&self) -> String {
+        format!("materialize_{}.py", self.get_name()).to_string()
+    }
+    pub fn get_materialize_pipeline(&self) -> Result<String, String> {
+        Ok("".to_string())
+    }
 }
