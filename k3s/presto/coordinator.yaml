@@ -43,7 +43,7 @@ spec:
           - -c
           - |
             cp /conf/* /presto/ &&
-            mkdir /presto/catalog &&
+            mkdir -p /presto/catalog &&
             cp /conf/hive.properties /presto/catalog &&
             cp /conf/core-site.xml /presto/catalog &&
             echo 'connector.name=tpch' > /presto/catalog/tpch.properties &&

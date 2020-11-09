@@ -1,0 +1,21 @@
+apiVersion: apps/v1 # for versions before 1.9.0 use apps/v1beta2
+kind: Deployment
+metadata:
+  name: devserver
+spec:
+  selector:
+    matchLabels:
+      app: devserver
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: devserver
+    spec:
+      containers:
+      - image: scienz/aorist-test-devserver
+        name: devserver
+        imagePullPolicy: Always
+        command: [ "/bin/bash", "-c", "--" ]
+        args: [ "while true; do sleep 30; done;" ]

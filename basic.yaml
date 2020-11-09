@@ -5,6 +5,8 @@ spec:
   - bogdan
   - alice
   - bob
+  - alex
+  - gicu
   groups:
   - finance-users
   - datascience-users
@@ -20,6 +22,22 @@ spec:
   firstName: Bogdan
   lastName: State
   email: bogdan@scie.nz
+  phone: 555-1234
+---
+type: User
+spec:
+  unixname: gicu
+  firstName: G
+  lastName: State
+  email: gicu@scie.nz
+  phone: 555-1234
+---
+type: User
+spec:
+  unixname: alex
+  firstName: A
+  lastName: B
+  email: alex@scie.nz
   phone: 555-1234
 ---
 type: RoleBinding
