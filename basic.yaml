@@ -143,8 +143,10 @@ spec:
     - type: StaticDataTable
       spec:
         name: sentinel-2-metadata-table
-        storage:
-          - type: RemoteWebsiteStorage
+        storageSetup:
+          type: RemoteImportStorageSetup
+          remote:
+            type: RemoteWebsiteStorage
             location:
               type: GCSLocation
               spec:
@@ -159,6 +161,7 @@ spec:
                   type: GzipCompression
                 header:
                   type: UpperSnakeCaseCSVHeader
+          local:
           - type: HiveTableStorage
             location:
               type: HiveAlluxioLocation

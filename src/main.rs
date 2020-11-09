@@ -4,7 +4,7 @@ fn main() -> Result<(), String> {
     let setup = get_data_setup();
     for dataset in setup.get_datasets().unwrap() {
         println!("{}", dataset.to_yaml());
-        println!("{}", dataset.get_presto_schemas(4));
+        println!("{}", dataset.get_presto_schemas());
     }
     for user in setup.get_users().unwrap() {
         println!("{}", user.to_yaml());
