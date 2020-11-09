@@ -8,6 +8,7 @@ use crate::python::TObjectWithPythonCodeGen;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use enum_dispatch::enum_dispatch;
+use crate::prefect::TObjectWithPrefectCodeGen;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 pub struct RemoteWebsiteStorage {
@@ -18,6 +19,11 @@ pub struct RemoteWebsiteStorage {
 impl TObjectWithPythonCodeGen for RemoteWebsiteStorage {
     fn get_python_imports(&self, preamble: &mut HashMap<String, String>) {
         self.location.get_python_imports(preamble);
+    }
+}
+impl TObjectWithPrefectCodeGen for RemoteWebsiteStorage {
+    fn get_prefect_preamble(&self, preamble: &mut HashMap<String, String>) {
+        self.location.get_prefect_preamble(preamble);
     }
 }
 
@@ -39,6 +45,11 @@ impl THiveTableCreationTagMutator for HiveTableStorage {
 impl TObjectWithPythonCodeGen for HiveTableStorage {
     fn get_python_imports(&self, preamble: &mut HashMap<String, String>) {
         self.location.get_python_imports(preamble);
+    }
+}
+impl TObjectWithPrefectCodeGen for HiveTableStorage {
+    fn get_prefect_preamble(&self, preamble: &mut HashMap<String, String>) {
+        self.location.get_prefect_preamble(preamble);
     }
 }
 

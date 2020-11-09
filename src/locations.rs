@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use aorist_derive::{BlankPrefectPreamble};
 use enum_dispatch::enum_dispatch;
+use crate::prefect::TObjectWithPrefectCodeGen;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 pub struct GCSLocation {
@@ -12,10 +13,6 @@ pub struct GCSLocation {
     blob: String,
 }
 
-#[enum_dispatch(RemoteWebsiteLocation, HiveLocation)]
-pub trait TObjectWithPrefectCodeGen: TObjectWithPythonCodeGen {
-    fn get_prefect_preamble(&self, preamble: &mut HashMap<String, String>);
-}
 impl TObjectWithPrefectCodeGen for GCSLocation {
     fn get_prefect_preamble(&self, preamble: &mut HashMap<String, String>) {
         preamble.insert(

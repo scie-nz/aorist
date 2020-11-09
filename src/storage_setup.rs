@@ -5,12 +5,22 @@ use indoc::indoc;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use enum_dispatch::enum_dispatch;
+use crate::prefect::TObjectWithPrefectCodeGen;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 pub struct RemoteImportStorageSetup {
     remote: Storage,
     local: Vec<Storage>,
 }
+impl TObjectWithPrefectCodeGen for RemoteImportStorageSetup {
+    fn get_prefect_preamble(&self, preamble: &mut HashMap<String, String>) {
+        self.remote.get_prefect_preamble(preamble);
+        for storage in &self.local {
+            storage.get_prefect_preamble(preamble);
+        }
+    }
+}
+
 impl RemoteImportStorageSetup {
     pub fn get_local_storage(&self) -> &Vec<Storage> {
         &self.local
