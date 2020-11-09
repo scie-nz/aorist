@@ -15,6 +15,9 @@ fn main() -> Result<(), String> {
     for role_binding in setup.get_role_bindings().unwrap() {
         println!("{}", role_binding.to_yaml());
     }
+    for (k, v) in setup.get_pipelines()? {
+        println!("{}:\n{}", k, v);
+    }
     //perms = setup.get_user_permissions();
     /*
     println!("{}", setup.get_curl_calls(

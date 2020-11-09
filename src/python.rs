@@ -26,4 +26,3 @@ pub trait TLocationWithPythonAPIClient: TObjectWithPythonCodeGen {
         .to_string()
     }
 }
-

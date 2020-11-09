@@ -2,10 +2,10 @@
 use crate::access_policies::AccessPolicy;
 use crate::assets::Asset;
 use crate::object::TAoristObject;
+use crate::python::TObjectWithPythonCodeGen;
 use crate::templates::DatumTemplate;
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
-use crate::python::TObjectWithPythonCodeGen;
+use std::collections::{BTreeSet, HashMap};
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Default)]
 pub struct DataSet {
@@ -51,7 +51,11 @@ impl DataSet {
     }
     pub fn get_materialize_pipeline(&self) -> Result<String, String> {
         let mut preamble: HashMap<String, String> = HashMap::new();
-        let _imports = self.get_python_imports(&mut preamble);
-        Ok("".to_string())
+        self.get_python_imports(&mut preamble);
+        let imports_deduped: BTreeSet<String> = preamble.values().map(|x| x.clone()).collect();
+        Ok(imports_deduped
+            .into_iter()
+            .collect::<Vec<String>>()
+            .join("\n"))
     }
 }

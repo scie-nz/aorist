@@ -1,10 +1,10 @@
 #![allow(non_snake_case)]
+use crate::python::TObjectWithPythonCodeGen;
 use crate::schema::DataSchema;
 use crate::storage_setup::StorageSetup;
 use crate::templates::DatumTemplate;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use crate::python::TObjectWithPythonCodeGen;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 pub struct StaticDataTable {

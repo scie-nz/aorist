@@ -1,9 +1,9 @@
 #![allow(non_snake_case)]
+use crate::python::TObjectWithPythonCodeGen;
 use crate::storage::Storage;
 use indoc::indoc;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use crate::python::TObjectWithPythonCodeGen;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 pub struct RemoteImportStorageSetup {

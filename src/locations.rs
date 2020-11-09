@@ -1,11 +1,9 @@
 use crate::hive::THiveTableCreationTagMutator;
+use crate::python::{TLocationWithPythonAPIClient, TObjectWithPythonCodeGen};
 use indoc::{formatdoc, indoc};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use crate::python::{
-    TObjectWithPythonCodeGen,
-    TLocationWithPythonAPIClient
-};
+use aorist_derive::{BlankPrefectPreamble};
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 pub struct GCSLocation {
@@ -13,9 +11,11 @@ pub struct GCSLocation {
     blob: String,
 }
 
-impl GCSLocation {
-    pub fn get_prefect_preamble(&self) -> HashMap<String, String> {
-        let mut preamble = HashMap::new();
+pub trait TObjectWithPrefectCodeGen: TObjectWithPythonCodeGen {
+    fn get_prefect_preamble(&self, preamble: &mut HashMap<String, String>);
+}
+impl TObjectWithPrefectCodeGen for GCSLocation {
+    fn get_prefect_preamble(&self, preamble: &mut HashMap<String, String>) {
         preamble.insert(
             "download_blob_to_file".to_string(),
             indoc! {"
@@ -28,8 +28,10 @@ impl GCSLocation {
             "}
             .to_string(),
         );
-        preamble
     }
+}
+
+impl GCSLocation {
     pub fn get_prefect_download_task(&self, task_name: String, file_name: String) -> String {
         format!(
             indoc! {
@@ -99,7 +101,7 @@ impl TObjectWithPythonCodeGen for RemoteWebsiteLocation {
     }
 }
 
-#[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
+#[derive(Debug, PartialEq, Serialize, Deserialize, Clone, BlankPrefectPreamble)]
 pub struct HiveAlluxioLocation {
     server: String,
     port: usize,

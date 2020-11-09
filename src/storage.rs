@@ -4,9 +4,9 @@ use crate::encoding::Encoding;
 use crate::hive::THiveTableCreationTagMutator;
 use crate::layouts::{HiveStorageLayout, StorageLayout};
 use crate::locations::{HiveLocation, RemoteWebsiteLocation};
+use crate::python::TObjectWithPythonCodeGen;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use crate::python::TObjectWithPythonCodeGen;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 pub struct RemoteWebsiteStorage {
