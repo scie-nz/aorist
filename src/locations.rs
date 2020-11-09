@@ -2,30 +2,10 @@ use crate::hive::THiveTableCreationTagMutator;
 use indoc::{formatdoc, indoc};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-
-pub trait TLocationWithPythonAPIClient {
-    fn get_python_imports(&self, preamble: &mut HashMap<String, String>);
-    fn get_python_client(&self, client_name: &String) -> String;
-    fn get_python_create_storage(&self, client_name: &String) -> String;
-
-    fn get_prefect_create_storage_task(
-        &self,
-        task_name: &String,
-        client_name: &String,
-        preamble: &mut HashMap<String, String>,
-    ) -> String {
-        self.get_python_imports(preamble);
-        formatdoc!(
-            "@task
-             def {task_name}:
-                {python_create_storage}
-            ",
-            task_name = task_name,
-            python_create_storage = self.get_python_create_storage(client_name)
-        )
-        .to_string()
-    }
-}
+use crate::python::{
+    TObjectWithPythonCodeGen,
+    TLocationWithPythonAPIClient
+};
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 pub struct GCSLocation {
@@ -68,7 +48,7 @@ impl GCSLocation {
         )
     }
 }
-impl TLocationWithPythonAPIClient for GCSLocation {
+impl TObjectWithPythonCodeGen for GCSLocation {
     fn get_python_imports(&self, preamble: &mut HashMap<String, String>) {
         let import_str = indoc!(
             "
@@ -78,6 +58,8 @@ impl TLocationWithPythonAPIClient for GCSLocation {
         .to_string();
         preamble.insert("gcs_storage_python_imports".to_string(), import_str);
     }
+}
+impl TLocationWithPythonAPIClient for GCSLocation {
     fn get_python_client(&self, client_name: &String) -> String {
         formatdoc!(
             "
@@ -117,7 +99,7 @@ pub struct HiveAlluxioLocation {
     rest_api_port: usize,
     path: String,
 }
-impl TLocationWithPythonAPIClient for HiveAlluxioLocation {
+impl TObjectWithPythonCodeGen for HiveAlluxioLocation {
     fn get_python_imports(&self, preamble: &mut HashMap<String, String>) {
         let import_str = indoc!(
             "
@@ -130,6 +112,8 @@ impl TLocationWithPythonAPIClient for HiveAlluxioLocation {
             import_str,
         );
     }
+}
+impl TLocationWithPythonAPIClient for HiveAlluxioLocation {
     fn get_python_client(&self, client_name: &String) -> String {
         formatdoc!(
             "

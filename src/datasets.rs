@@ -5,6 +5,7 @@ use crate::object::TAoristObject;
 use crate::templates::DatumTemplate;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use crate::python::TObjectWithPythonCodeGen;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Default)]
 pub struct DataSet {
@@ -18,7 +19,13 @@ impl TAoristObject for DataSet {
         &self.name
     }
 }
-
+impl TObjectWithPythonCodeGen for DataSet {
+    fn get_python_imports(&self, preamble: &mut HashMap<String, String>) {
+        for asset in self.assets {
+            asset.get_python_imports(preamble);
+        }
+    }
+}
 impl DataSet {
     pub fn to_yaml(&self) -> String {
         serde_yaml::to_string(self).unwrap()
@@ -43,6 +50,7 @@ impl DataSet {
         format!("materialize_{}.py", self.get_name()).to_string()
     }
     pub fn get_materialize_pipeline(&self) -> Result<String, String> {
+        let _imports = self.get_python_imports();
         Ok("".to_string())
     }
 }

@@ -3,6 +3,7 @@ use crate::storage::Storage;
 use indoc::indoc;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use crate::python::TObjectWithPythonCodeGen;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 pub struct RemoteImportStorageSetup {
@@ -45,6 +46,14 @@ impl RemoteImportStorageSetup {
         schemas.join("\n")
     }
 }
+impl TObjectWithPythonCodeGen for RemoteImportStorageSetup {
+    fn get_python_imports(&self, preamble: &mut HashMap<String, String>) {
+        self.remote.get_python_imports(preamble);
+        for storage in self.local {
+            storage.get_python_imports(preamble);
+        }
+    }
+}
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 #[serde(tag = "type", content = "spec")]
@@ -61,6 +70,13 @@ impl StorageSetup {
     pub fn get_presto_schemas(&self, name: &String, columnSchema: String) -> String {
         match self {
             StorageSetup::RemoteImportStorageSetup(x) => x.get_presto_schemas(name, columnSchema),
+        }
+    }
+}
+impl TObjectWithPythonCodeGen for StorageSetup {
+    fn get_python_imports(&self, preamble: &mut HashMap<String, String>) {
+        match self {
+            StorageSetup::RemoteImportStorageSetup(x) => x.get_python_imports(preamble),
         }
     }
 }
