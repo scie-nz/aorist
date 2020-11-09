@@ -3,6 +3,7 @@ pub mod assets;
 pub mod attributes;
 pub mod compressions;
 pub mod datasets;
+pub mod data_setup;
 pub mod encoding;
 pub mod error;
 pub mod headers;

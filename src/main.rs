@@ -1,4 +1,4 @@
-use lib::datasets::get_data_setup;
+use lib::data_setup::get_data_setup;
 
 fn main() -> Result<(), String> {
     let setup = get_data_setup();

@@ -1,5 +1,6 @@
 #![allow(non_snake_case)]
-use crate::datasets::{DataSet, DataSetup};
+use crate::datasets::DataSet;
+use crate::data_setup::DataSetup;
 use crate::role_binding::RoleBinding;
 use crate::user::User;
 use crate::user_group::UserGroup;
