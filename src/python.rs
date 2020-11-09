@@ -2,7 +2,7 @@ use indoc::formatdoc;
 use std::collections::HashMap;
 use enum_dispatch::enum_dispatch;
 use crate::locations::{RemoteWebsiteLocation, HiveLocation};
-use crate::assets::{Asset, StaticDataTable};
+use crate::assets::Asset;
 
 #[enum_dispatch(HiveLocation, RemoteWebsiteLocation, Asset, StorageSetup, Storage)]
 pub trait TObjectWithPythonCodeGen {

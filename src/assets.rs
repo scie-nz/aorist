@@ -5,6 +5,7 @@ use crate::storage_setup::StorageSetup;
 use crate::templates::DatumTemplate;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use crate::prefect::TObjectWithPrefectCodeGen;
 use enum_dispatch::enum_dispatch;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
@@ -25,6 +26,11 @@ impl StaticDataTable {
 impl TObjectWithPythonCodeGen for StaticDataTable {
     fn get_python_imports(&self, preamble: &mut HashMap<String, String>) {
         self.setup.get_python_imports(preamble);
+    }
+}
+impl TObjectWithPrefectCodeGen for StaticDataTable {
+    fn get_prefect_preamble(&self, preamble: &mut HashMap<String, String>) {
+        self.setup.get_prefect_preamble(preamble);
     }
 }
 

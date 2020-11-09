@@ -6,6 +6,7 @@ use crate::python::TObjectWithPythonCodeGen;
 use crate::templates::DatumTemplate;
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeSet, HashMap};
+use crate::prefect::TObjectWithPrefectCodeGen;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Default)]
 pub struct DataSet {
@@ -23,6 +24,13 @@ impl TObjectWithPythonCodeGen for DataSet {
     fn get_python_imports(&self, preamble: &mut HashMap<String, String>) {
         for asset in &self.assets {
             asset.get_python_imports(preamble);
+        }
+    }
+}
+impl TObjectWithPrefectCodeGen for DataSet {
+    fn get_prefect_preamble(&self, preamble: &mut HashMap<String, String>) {
+        for asset in &self.assets {
+            asset.get_prefect_preamble(preamble);
         }
     }
 }
@@ -53,9 +61,22 @@ impl DataSet {
         let mut preamble: HashMap<String, String> = HashMap::new();
         self.get_python_imports(&mut preamble);
         let imports_deduped: BTreeSet<String> = preamble.values().map(|x| x.clone()).collect();
-        Ok(imports_deduped
-            .into_iter()
-            .collect::<Vec<String>>()
-            .join("\n"))
+
+        let mut preamble: HashMap<String, String> = HashMap::new();
+        self.get_prefect_preamble(&mut preamble);
+        let prefect_preamble_deduped: BTreeSet<String> = preamble.values().map(|x| x.clone()).collect();
+
+        let code = format!(
+            "{}\n{}",
+            imports_deduped
+                .into_iter()
+                .collect::<Vec<String>>()
+                .join("\n"),
+            prefect_preamble_deduped
+                .into_iter()
+                .collect::<Vec<String>>()
+                .join("\n")
+        );
+        Ok(code)
     }
 }
