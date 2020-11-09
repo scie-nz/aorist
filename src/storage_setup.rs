@@ -49,7 +49,7 @@ impl RemoteImportStorageSetup {
 impl TObjectWithPythonCodeGen for RemoteImportStorageSetup {
     fn get_python_imports(&self, preamble: &mut HashMap<String, String>) {
         self.remote.get_python_imports(preamble);
-        for storage in self.local {
+        for storage in &self.local {
             storage.get_python_imports(preamble);
         }
     }

@@ -21,7 +21,7 @@ impl TAoristObject for DataSet {
 }
 impl TObjectWithPythonCodeGen for DataSet {
     fn get_python_imports(&self, preamble: &mut HashMap<String, String>) {
-        for asset in self.assets {
+        for asset in &self.assets {
             asset.get_python_imports(preamble);
         }
     }
@@ -50,7 +50,8 @@ impl DataSet {
         format!("materialize_{}.py", self.get_name()).to_string()
     }
     pub fn get_materialize_pipeline(&self) -> Result<String, String> {
-        let _imports = self.get_python_imports();
+        let mut preamble: HashMap<String, String> = HashMap::new();
+        let _imports = self.get_python_imports(&mut preamble);
         Ok("".to_string())
     }
 }

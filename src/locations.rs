@@ -91,6 +91,13 @@ impl TLocationWithPythonAPIClient for GCSLocation {
 pub enum RemoteWebsiteLocation {
     GCSLocation(GCSLocation),
 }
+impl TObjectWithPythonCodeGen for RemoteWebsiteLocation {
+    fn get_python_imports(&self, preamble: &mut HashMap<String, String>) {
+        match self {
+            RemoteWebsiteLocation::GCSLocation(x) => x.get_python_imports(preamble),
+        }
+    }
+}
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 pub struct HiveAlluxioLocation {
@@ -175,6 +182,13 @@ impl THiveTableCreationTagMutator for HiveLocation {
     ) -> Result<(), String> {
         match self {
             HiveLocation::HiveAlluxioLocation(x) => x.populate_table_creation_tags(tags),
+        }
+    }
+}
+impl TObjectWithPythonCodeGen for HiveLocation {
+    fn get_python_imports(&self, preamble: &mut HashMap<String, String>) {
+        match self {
+            HiveLocation::HiveAlluxioLocation(x) => x.get_python_imports(preamble),
         }
     }
 }
