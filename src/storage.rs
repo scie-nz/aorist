@@ -8,7 +8,7 @@ use crate::python::TObjectWithPythonCodeGen;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use enum_dispatch::enum_dispatch;
-use crate::prefect::{TObjectWithPrefectCodeGen, TPrefectLocation, TObjectWithPrefectDAGCodeGen};
+use crate::prefect::{TObjectWithPrefectCodeGen, TPrefectLocation, TObjectWithPrefectDAGCodeGen, TPrefectEncoding};
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 pub struct RemoteWebsiteStorage {
@@ -30,10 +30,15 @@ impl TObjectWithPrefectCodeGen for RemoteWebsiteStorage {
 impl TObjectWithPrefectDAGCodeGen for RemoteWebsiteStorage {
     fn get_prefect_dag(&self) -> Result<String, String> {
         Ok(format!(
-            "{}\n",
+            "{}\n{}",
             self.location.get_prefect_download_task(
                 "download_remote".to_string(),
-                "/tmp/remote_file".to_string(),
+                "/tmp/materialized_file".to_string(),
+            ),
+            self.encoding.get_prefect_decode_tasks(
+                "/tmp/materialized_file".to_string(),
+                "decode_file".to_string(),
+                "download_remote".to_string(),
             )
         ))
     }
