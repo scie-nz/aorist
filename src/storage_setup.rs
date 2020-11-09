@@ -5,7 +5,7 @@ use indoc::indoc;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use enum_dispatch::enum_dispatch;
-use crate::prefect::TObjectWithPrefectCodeGen;
+use crate::prefect::{TObjectWithPrefectCodeGen, TObjectWithPrefectDAGCodeGen};
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 pub struct RemoteImportStorageSetup {
@@ -18,6 +18,11 @@ impl TObjectWithPrefectCodeGen for RemoteImportStorageSetup {
         for storage in &self.local {
             storage.get_prefect_preamble(preamble);
         }
+    }
+}
+impl TObjectWithPrefectDAGCodeGen for RemoteImportStorageSetup {
+    fn get_prefect_dag(&self) -> Result<String, String> {
+        Ok("".to_string())
     }
 }
 

@@ -8,3 +8,8 @@ use crate::assets::{Asset, StaticDataTable};
 pub trait TObjectWithPrefectCodeGen: TObjectWithPythonCodeGen {
     fn get_prefect_preamble(&self, preamble: &mut HashMap<String, String>);
 }
+
+#[enum_dispatch(Asset, StorageSetup)]
+pub trait TObjectWithPrefectDAGCodeGen: TObjectWithPrefectCodeGen {
+    fn get_prefect_dag(&self) -> Result<String, String>;
+}

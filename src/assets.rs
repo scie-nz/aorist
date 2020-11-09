@@ -5,8 +5,8 @@ use crate::storage_setup::StorageSetup;
 use crate::templates::DatumTemplate;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use crate::prefect::TObjectWithPrefectCodeGen;
 use enum_dispatch::enum_dispatch;
+use crate::prefect::{TObjectWithPrefectCodeGen, TObjectWithPrefectDAGCodeGen};
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 pub struct StaticDataTable {
@@ -31,6 +31,11 @@ impl TObjectWithPythonCodeGen for StaticDataTable {
 impl TObjectWithPrefectCodeGen for StaticDataTable {
     fn get_prefect_preamble(&self, preamble: &mut HashMap<String, String>) {
         self.setup.get_prefect_preamble(preamble);
+    }
+}
+impl TObjectWithPrefectDAGCodeGen for StaticDataTable {
+    fn get_prefect_dag(&self) -> Result<String, String> {
+        self.setup.get_prefect_dag()
     }
 }
 

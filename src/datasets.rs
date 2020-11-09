@@ -6,7 +6,7 @@ use crate::python::TObjectWithPythonCodeGen;
 use crate::templates::DatumTemplate;
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeSet, HashMap};
-use crate::prefect::TObjectWithPrefectCodeGen;
+use crate::prefect::{TObjectWithPrefectCodeGen, TObjectWithPrefectDAGCodeGen};
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Default)]
 pub struct DataSet {
@@ -32,6 +32,12 @@ impl TObjectWithPrefectCodeGen for DataSet {
         for asset in &self.assets {
             asset.get_prefect_preamble(preamble);
         }
+    }
+}
+impl TObjectWithPrefectDAGCodeGen for DataSet {
+    fn get_prefect_dag(&self) -> Result<String, String> {
+        let materialized_assets: Vec<String> = self.assets.iter().map(|x| x.get_prefect_dag().unwrap()).collect();
+        Ok(materialized_assets.join("\n"))
     }
 }
 impl DataSet {
@@ -66,8 +72,9 @@ impl DataSet {
         self.get_prefect_preamble(&mut preamble);
         let prefect_preamble_deduped: BTreeSet<String> = preamble.values().map(|x| x.clone()).collect();
 
+
         let code = format!(
-            "{}\n{}",
+            "{}\n{}\nwith Flow() as flow:\n{}",
             imports_deduped
                 .into_iter()
                 .collect::<Vec<String>>()
@@ -75,7 +82,8 @@ impl DataSet {
             prefect_preamble_deduped
                 .into_iter()
                 .collect::<Vec<String>>()
-                .join("\n")
+                .join("\n"),
+            self.get_prefect_dag()?,
         );
         Ok(code)
     }

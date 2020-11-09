@@ -152,7 +152,7 @@ spec:
                 type: GCSLocation
                 spec:
                   bucket: gcp-public-data-sentinel2
-                  blob: index.csv.gz
+                  blob: index.csv.gz-backup
               layout:
                 type: SingleFileLayout
               encoding:
