@@ -13,12 +13,7 @@ impl RemoteImportStorageSetup {
     pub fn get_local_storage(&self) -> &Vec<Storage> {
         &self.local
     }
-    pub fn get_presto_schemas(
-        &self,
-        name: &String,
-        columnSchema: String,
-    ) -> String {
-
+    pub fn get_presto_schemas(&self, name: &String, columnSchema: String) -> String {
         let mut schemas: Vec<String> = Vec::new();
         for storage in self.get_local_storage() {
             if storage.is_hive_storage() {
@@ -58,18 +53,12 @@ pub enum StorageSetup {
 }
 
 impl StorageSetup {
-    pub fn get_local_storage(
-        &self,
-    ) -> &Vec<Storage> {
+    pub fn get_local_storage(&self) -> &Vec<Storage> {
         match self {
             StorageSetup::RemoteImportStorageSetup(x) => x.get_local_storage(),
         }
     }
-    pub fn get_presto_schemas(
-        &self,
-        name: &String,
-        columnSchema: String,
-    ) -> String {
+    pub fn get_presto_schemas(&self, name: &String, columnSchema: String) -> String {
         match self {
             StorageSetup::RemoteImportStorageSetup(x) => x.get_presto_schemas(name, columnSchema),
         }
