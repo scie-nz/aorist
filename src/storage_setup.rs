@@ -22,7 +22,7 @@ impl TObjectWithPrefectCodeGen for RemoteImportStorageSetup {
 }
 impl TObjectWithPrefectDAGCodeGen for RemoteImportStorageSetup {
     fn get_prefect_dag(&self) -> Result<String, String> {
-        Ok("".to_string())
+        self.remote.get_prefect_dag()
     }
 }
 

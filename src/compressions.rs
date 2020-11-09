@@ -2,17 +2,15 @@
 use indoc::indoc;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use crate::python::TObjectWithPythonCodeGen;
+use enum_dispatch::enum_dispatch;
+use aorist_derive::BlankPrefectPreamble;
+use crate::prefect::{TObjectWithPrefectCodeGen, TPrefectCompression};
 
-#[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
+#[derive(Debug, PartialEq, Serialize, Deserialize, Clone, BlankPrefectPreamble)]
 pub struct GzipCompression {}
-#[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
-#[serde(tag = "type")]
-pub enum DataCompression {
-    GzipCompression(GzipCompression),
-}
-impl GzipCompression {
-    pub fn get_prefect_preamble(&self) -> HashMap<String, String> {
-        let mut preamble = HashMap::new();
+impl TObjectWithPythonCodeGen for GzipCompression {
+    fn get_python_imports(&self, preamble: &mut HashMap<String, String>) {
         preamble.insert(
             "import_shell_task".to_string(),
             indoc! {"
@@ -20,9 +18,10 @@ impl GzipCompression {
             "}
             .to_string(),
         );
-        preamble
     }
-    pub fn get_prefect_download_task(
+}
+impl TPrefectCompression for GzipCompression {
+    fn get_prefect_decompress_task(
         &self,
         file_name: String,
         task_name: String,
@@ -41,4 +40,11 @@ impl GzipCompression {
             file_name = file_name
         )
     }
+}
+
+#[enum_dispatch]
+#[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
+#[serde(tag = "type")]
+pub enum DataCompression {
+    GzipCompression(GzipCompression),
 }

@@ -7,6 +7,8 @@ use crate::templates::DatumTemplate;
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeSet, HashMap};
 use crate::prefect::{TObjectWithPrefectCodeGen, TObjectWithPrefectDAGCodeGen};
+use indoc::formatdoc;
+use textwrap::indent;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Default)]
 pub struct DataSet {
@@ -73,8 +75,12 @@ impl DataSet {
         let prefect_preamble_deduped: BTreeSet<String> = preamble.values().map(|x| x.clone()).collect();
 
 
-        let code = format!(
-            "{}\n{}\nwith Flow() as flow:\n{}",
+        let code = formatdoc!{
+            "{}
+             {}
+             with Flow() as flow:
+             {}
+             ",
             imports_deduped
                 .into_iter()
                 .collect::<Vec<String>>()
@@ -83,8 +89,8 @@ impl DataSet {
                 .into_iter()
                 .collect::<Vec<String>>()
                 .join("\n"),
-            self.get_prefect_dag()?,
-        );
+            indent(&self.get_prefect_dag()?, "    "),
+        };
         Ok(code)
     }
 }

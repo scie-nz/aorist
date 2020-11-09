@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use aorist_derive::{BlankPrefectPreamble};
 use enum_dispatch::enum_dispatch;
-use crate::prefect::TObjectWithPrefectCodeGen;
+use crate::prefect::{TObjectWithPrefectCodeGen, TPrefectLocation};
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 pub struct GCSLocation {
@@ -29,14 +29,13 @@ impl TObjectWithPrefectCodeGen for GCSLocation {
         );
     }
 }
-
-impl GCSLocation {
-    pub fn get_prefect_download_task(&self, task_name: String, file_name: String) -> String {
+impl TPrefectLocation for GCSLocation {
+    fn get_prefect_download_task(&self, task_name: String, file_name: String) -> String {
         format!(
             indoc! {
                 "
                     {task_name} = download_blob_to_file(
-			            '{bucket}',
+                        '{bucket}',
                         '{blob},
                         '{file_name}'
                     )

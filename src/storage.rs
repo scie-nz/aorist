@@ -8,7 +8,7 @@ use crate::python::TObjectWithPythonCodeGen;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use enum_dispatch::enum_dispatch;
-use crate::prefect::TObjectWithPrefectCodeGen;
+use crate::prefect::{TObjectWithPrefectCodeGen, TPrefectLocation, TObjectWithPrefectDAGCodeGen};
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 pub struct RemoteWebsiteStorage {
@@ -19,11 +19,23 @@ pub struct RemoteWebsiteStorage {
 impl TObjectWithPythonCodeGen for RemoteWebsiteStorage {
     fn get_python_imports(&self, preamble: &mut HashMap<String, String>) {
         self.location.get_python_imports(preamble);
+        self.encoding.get_python_imports(preamble);
     }
 }
 impl TObjectWithPrefectCodeGen for RemoteWebsiteStorage {
     fn get_prefect_preamble(&self, preamble: &mut HashMap<String, String>) {
         self.location.get_prefect_preamble(preamble);
+    }
+}
+impl TObjectWithPrefectDAGCodeGen for RemoteWebsiteStorage {
+    fn get_prefect_dag(&self) -> Result<String, String> {
+        Ok(format!(
+            "{}\n",
+            self.location.get_prefect_download_task(
+                "download_remote".to_string(),
+                "/tmp/remote_file".to_string(),
+            )
+        ))
     }
 }
 
@@ -50,6 +62,11 @@ impl TObjectWithPythonCodeGen for HiveTableStorage {
 impl TObjectWithPrefectCodeGen for HiveTableStorage {
     fn get_prefect_preamble(&self, preamble: &mut HashMap<String, String>) {
         self.location.get_prefect_preamble(preamble);
+    }
+}
+impl TObjectWithPrefectDAGCodeGen for HiveTableStorage {
+    fn get_prefect_dag(&self) -> Result<String, String> {
+        Err("No Prefect DAG has been implemented".to_string())
     }
 }
 

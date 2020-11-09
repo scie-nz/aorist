@@ -3,8 +3,10 @@ use std::collections::HashMap;
 use enum_dispatch::enum_dispatch;
 use crate::locations::{RemoteWebsiteLocation, HiveLocation};
 use crate::assets::Asset;
+use crate::encoding::Encoding;
+use crate::compressions::{DataCompression};
 
-#[enum_dispatch(HiveLocation, RemoteWebsiteLocation, Asset, StorageSetup, Storage)]
+#[enum_dispatch(HiveLocation, RemoteWebsiteLocation, Asset, StorageSetup, Storage, Encoding, DataCompression)]
 pub trait TObjectWithPythonCodeGen {
     fn get_python_imports(&self, preamble: &mut HashMap<String, String>);
 }
