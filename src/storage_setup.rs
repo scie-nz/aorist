@@ -4,6 +4,7 @@ use crate::storage::Storage;
 use indoc::indoc;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use enum_dispatch::enum_dispatch;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 pub struct RemoteImportStorageSetup {
@@ -55,6 +56,7 @@ impl TObjectWithPythonCodeGen for RemoteImportStorageSetup {
     }
 }
 
+#[enum_dispatch]
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 #[serde(tag = "type", content = "spec")]
 pub enum StorageSetup {
@@ -70,13 +72,6 @@ impl StorageSetup {
     pub fn get_presto_schemas(&self, name: &String, columnSchema: String) -> String {
         match self {
             StorageSetup::RemoteImportStorageSetup(x) => x.get_presto_schemas(name, columnSchema),
-        }
-    }
-}
-impl TObjectWithPythonCodeGen for StorageSetup {
-    fn get_python_imports(&self, preamble: &mut HashMap<String, String>) {
-        match self {
-            StorageSetup::RemoteImportStorageSetup(x) => x.get_python_imports(preamble),
         }
     }
 }

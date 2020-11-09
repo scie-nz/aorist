@@ -4,6 +4,7 @@ use indoc::{formatdoc, indoc};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use aorist_derive::{BlankPrefectPreamble};
+use enum_dispatch::enum_dispatch;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 pub struct GCSLocation {
@@ -11,6 +12,7 @@ pub struct GCSLocation {
     blob: String,
 }
 
+#[enum_dispatch(RemoteWebsiteLocation, HiveLocation)]
 pub trait TObjectWithPrefectCodeGen: TObjectWithPythonCodeGen {
     fn get_prefect_preamble(&self, preamble: &mut HashMap<String, String>);
 }
@@ -88,17 +90,11 @@ impl TLocationWithPythonAPIClient for GCSLocation {
     }
 }
 
+#[enum_dispatch]
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 #[serde(tag = "type", content = "spec")]
 pub enum RemoteWebsiteLocation {
     GCSLocation(GCSLocation),
-}
-impl TObjectWithPythonCodeGen for RemoteWebsiteLocation {
-    fn get_python_imports(&self, preamble: &mut HashMap<String, String>) {
-        match self {
-            RemoteWebsiteLocation::GCSLocation(x) => x.get_python_imports(preamble),
-        }
-    }
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone, BlankPrefectPreamble)]
@@ -171,26 +167,10 @@ impl THiveTableCreationTagMutator for HiveAlluxioLocation {
         Ok(())
     }
 }
+
+#[enum_dispatch]
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 #[serde(tag = "type", content = "spec")]
 pub enum HiveLocation {
     HiveAlluxioLocation(HiveAlluxioLocation),
-}
-
-impl THiveTableCreationTagMutator for HiveLocation {
-    fn populate_table_creation_tags(
-        &self,
-        tags: &mut HashMap<String, String>,
-    ) -> Result<(), String> {
-        match self {
-            HiveLocation::HiveAlluxioLocation(x) => x.populate_table_creation_tags(tags),
-        }
-    }
-}
-impl TObjectWithPythonCodeGen for HiveLocation {
-    fn get_python_imports(&self, preamble: &mut HashMap<String, String>) {
-        match self {
-            HiveLocation::HiveAlluxioLocation(x) => x.get_python_imports(preamble),
-        }
-    }
 }

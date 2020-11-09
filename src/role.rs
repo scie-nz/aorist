@@ -1,6 +1,8 @@
 #![allow(non_snake_case)]
 use serde::{Deserialize, Serialize};
+use enum_dispatch::enum_dispatch;
 
+#[enum_dispatch(Role)]
 pub trait TRole {
     fn get_permissions(&self) -> Vec<String>;
 }
@@ -13,15 +15,9 @@ impl TRole for GlobalPermissionsAdmin {
     }
 }
 
+#[enum_dispatch]
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone, Eq, Hash)]
 #[serde(tag = "type", content = "spec")]
 pub enum Role {
     GlobalPermissionsAdmin(GlobalPermissionsAdmin),
-}
-impl TRole for Role {
-    fn get_permissions(&self) -> Vec<String> {
-        match self {
-            Role::GlobalPermissionsAdmin(x) => x.get_permissions(),
-        }
-    }
 }

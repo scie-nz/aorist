@@ -7,6 +7,7 @@ use crate::locations::{HiveLocation, RemoteWebsiteLocation};
 use crate::python::TObjectWithPythonCodeGen;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use enum_dispatch::enum_dispatch;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 pub struct RemoteWebsiteStorage {
@@ -41,6 +42,7 @@ impl TObjectWithPythonCodeGen for HiveTableStorage {
     }
 }
 
+#[enum_dispatch]
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 #[serde(tag = "type")]
 pub enum Storage {
@@ -63,14 +65,6 @@ impl Storage {
                 Err("Cannot create Hive table for remote location".to_string())
             }
             Storage::HiveTableStorage(x) => x.populate_table_creation_tags(tags),
-        }
-    }
-}
-impl TObjectWithPythonCodeGen for Storage {
-    fn get_python_imports(&self, preamble: &mut HashMap<String, String>) {
-        match self {
-            Storage::RemoteWebsiteStorage(x) => x.get_python_imports(preamble),
-            Storage::HiveTableStorage(x) => x.get_python_imports(preamble),
         }
     }
 }

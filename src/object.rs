@@ -5,7 +5,9 @@ use crate::role_binding::RoleBinding;
 use crate::user::User;
 use crate::user_group::UserGroup;
 use serde::{Deserialize, Serialize};
+use enum_dispatch::enum_dispatch;
 
+#[enum_dispatch(AoristObject)]
 pub trait TAoristObject {
     fn get_name(&self) -> &String;
 }
@@ -18,15 +20,4 @@ pub enum AoristObject {
     UserGroup(UserGroup),
     RoleBinding(RoleBinding),
     DataSetup(DataSetup),
-}
-impl AoristObject {
-    pub fn to_yaml(&self) -> String {
-        match self {
-            AoristObject::DataSet { .. } => self.to_yaml(),
-            AoristObject::User { .. } => self.to_yaml(),
-            AoristObject::UserGroup { .. } => self.to_yaml(),
-            AoristObject::RoleBinding { .. } => self.to_yaml(),
-            AoristObject::DataSetup { .. } => serde_yaml::to_string(self).unwrap(),
-        }
-    }
 }
