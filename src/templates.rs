@@ -1,6 +1,6 @@
 #![allow(non_snake_case)]
 
-use crate::attributes::{Attribute, TAttribute, TPrestoAttribute};
+use crate::attributes::{Attribute, TAttribute, TPrestoAttribute, TOrcAttribute};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
@@ -33,6 +33,22 @@ impl KeyedStruct {
         }
         Ok(schemas.join(",\n"))
     }
+    pub fn get_orc_schema(&self, attributeNames: &Vec<String>) -> Result<String, String> {
+        let mapped_attributes = self.get_mapped_attributes();
+        let mut schemas: Vec<String> = Vec::new();
+        for attr in attributeNames {
+            if mapped_attributes.contains_key(attr) {
+                schemas.push(mapped_attributes[attr].get_orc_schema())
+            } else {
+                let err: String = format!(
+                    "Cannot find attribute {} in datumTemplate attributes.",
+                    attr
+                );
+                return Err(err);
+            }
+        }
+        Ok(schemas.join(","))
+    }
     pub fn get_name(&self) -> &String {
         &self.name
     }
@@ -47,6 +63,11 @@ impl DatumTemplate {
     pub fn get_presto_schema(&self, attributeNames: &Vec<String>) -> String {
         match self {
             DatumTemplate::KeyedStruct(x) => x.get_presto_schema(attributeNames).unwrap(),
+        }
+    }
+    pub fn get_orc_schema(&self, attributeNames: &Vec<String>) -> String {
+        match self {
+            DatumTemplate::KeyedStruct(x) => x.get_orc_schema(attributeNames).unwrap(),
         }
     }
     pub fn get_name(&self) -> &String {

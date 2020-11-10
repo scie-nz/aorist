@@ -5,11 +5,13 @@ use crate::locations::{RemoteWebsiteLocation, HiveLocation};
 use crate::assets::Asset;
 use crate::encoding::Encoding;
 use crate::compressions::{DataCompression};
+use crate::headers::FileHeader;
 
-#[enum_dispatch(HiveLocation, RemoteWebsiteLocation, Asset, StorageSetup, Storage, Encoding, DataCompression)]
+#[enum_dispatch(HiveLocation, RemoteWebsiteLocation, Asset, StorageSetup, Storage, Encoding, DataCompression, FileHeader)]
 pub trait TObjectWithPythonCodeGen {
     fn get_python_imports(&self, preamble: &mut HashMap<String, String>);
 }
+#[enum_dispatch(HiveLocation)]
 pub trait TLocationWithPythonAPIClient: TObjectWithPythonCodeGen {
     fn get_python_client(&self, client_name: &String) -> String;
     fn get_python_create_storage(&self, client_name: &String) -> String;

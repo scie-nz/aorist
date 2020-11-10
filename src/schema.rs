@@ -15,6 +15,12 @@ impl TabularSchema {
         let columnSchema = template.get_presto_schema(&self.attributes);
         format!("{}", columnSchema)
     }
+    pub fn get_orc_schema(&self, templates: &HashMap<String, DatumTemplate>) -> String {
+        assert!(templates.contains_key(&self.datumTemplateName));
+        let template = templates.get(&self.datumTemplateName).unwrap();
+        let columnSchema = template.get_orc_schema(&self.attributes);
+        format!("{}", columnSchema)
+    }
 }
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 #[serde(tag = "type", content = "spec")]
@@ -25,6 +31,11 @@ impl DataSchema {
     pub fn get_presto_schema(&self, templates: &HashMap<String, DatumTemplate>) -> String {
         match self {
             DataSchema::TabularSchema(x) => x.get_presto_schema(templates),
+        }
+    }
+    pub fn get_orc_schema(&self, templates: &HashMap<String, DatumTemplate>) -> String {
+        match self {
+            DataSchema::TabularSchema(x) => x.get_orc_schema(templates),
         }
     }
 }

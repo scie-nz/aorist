@@ -1,12 +1,13 @@
 #![allow(non_snake_case)]
 
-use aorist_derive::{PrestoBigint, PrestoReal, PrestoVarchar};
+use aorist_derive::{PrestoBigint, PrestoReal, PrestoVarchar,
+                    OrcBigint, OrcFloat, OrcString};
 use indoc::formatdoc;
 use serde::{Deserialize, Serialize};
 
 macro_rules! define_attribute {
-    ($element:ident, $presto_type:ident) => {
-        #[derive(Debug, PartialEq, Serialize, Deserialize, Clone, $presto_type)]
+    ($element:ident, $presto_type:ident, $orc_type:ident) => {
+        #[derive(Debug, PartialEq, Serialize, Deserialize, Clone, $presto_type, $orc_type)]
         pub struct $element {
             name: String,
             comment: Option<String>,
@@ -55,6 +56,15 @@ macro_rules! register_attribute {
                 }
             }
         }
+        impl TOrcAttribute for Attribute {
+            fn get_orc_type(&self) -> String {
+                match self {
+                    $(
+                        $name::$element(x) => x.get_orc_type(),
+                    )+
+                }
+            }
+        }
     }
 }
 
@@ -82,15 +92,21 @@ pub trait TPrestoAttribute: TAttribute {
         first_line
     }
 }
+pub trait TOrcAttribute: TAttribute {
+    fn get_orc_type(&self) -> String;
+    fn get_orc_schema(&self) -> String {
+        format!("{}:{}", self.get_name(), self.get_orc_type()).to_string()
+    }
+}
 
-define_attribute!(KeyStringIdentifier, PrestoVarchar);
-define_attribute!(NullableStringIdentifier, PrestoVarchar);
-define_attribute!(NullablePOSIXTimestamp, PrestoBigint);
-define_attribute!(NullableInt64, PrestoBigint);
-define_attribute!(NullableString, PrestoVarchar);
-define_attribute!(FloatLatitude, PrestoReal);
-define_attribute!(FloatLongitude, PrestoReal);
-define_attribute!(URI, PrestoVarchar);
+define_attribute!(KeyStringIdentifier, PrestoVarchar, OrcString);
+define_attribute!(NullableStringIdentifier, PrestoVarchar, OrcString);
+define_attribute!(NullablePOSIXTimestamp, PrestoBigint, OrcBigint);
+define_attribute!(NullableInt64, PrestoBigint, OrcBigint);
+define_attribute!(NullableString, PrestoVarchar, OrcString);
+define_attribute!(FloatLatitude, PrestoReal, OrcFloat);
+define_attribute!(FloatLongitude, PrestoReal, OrcFloat);
+define_attribute!(URI, PrestoVarchar, OrcString);
 register_attribute!(
     Attribute,
     KeyStringIdentifier,

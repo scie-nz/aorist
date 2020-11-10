@@ -2,7 +2,7 @@ use lib::data_setup::get_data_setup;
 
 fn main() -> Result<(), String> {
     let setup = get_data_setup();
-    for dataset in setup.get_datasets().unwrap() {
+    /*for dataset in setup.get_datasets().unwrap() {
         println!("{}", dataset.to_yaml());
         println!("{}", dataset.get_presto_schemas());
     }
@@ -14,7 +14,7 @@ fn main() -> Result<(), String> {
     }
     for role_binding in setup.get_role_bindings().unwrap() {
         println!("{}", role_binding.to_yaml());
-    }
+    }*/
     for (k, v) in setup.get_pipelines()? {
         println!("{}:\n{}", k, v);
     }

@@ -45,6 +45,48 @@ pub fn derive_presto_real(input: TokenStream) -> TokenStream {
 	  gen.into()
 }
 
+#[proc_macro_derive(OrcString)]
+pub fn derive_orc_string(input: TokenStream) -> TokenStream {
+    let ast: syn::DeriveInput = syn::parse(input).unwrap();
+    let name = &ast.ident;
+	  let gen = quote! {
+        impl TOrcAttribute for #name {
+            fn get_orc_type(&self) -> String {
+				        "STRING".to_string()
+            }
+        }
+    };
+	  gen.into()
+}
+
+#[proc_macro_derive(OrcBigint)]
+pub fn derive_orc_bigint(input: TokenStream) -> TokenStream {
+    let ast: syn::DeriveInput = syn::parse(input).unwrap();
+    let name = &ast.ident;
+	  let gen = quote! {
+        impl TOrcAttribute for #name {
+            fn get_orc_type(&self) -> String {
+				        "BIGINT".to_string()
+            }
+        }
+    };
+	  gen.into()
+}
+
+#[proc_macro_derive(OrcFloat)]
+pub fn derive_orc_float(input: TokenStream) -> TokenStream {
+    let ast: syn::DeriveInput = syn::parse(input).unwrap();
+    let name = &ast.ident;
+	  let gen = quote! {
+        impl TOrcAttribute for #name {
+            fn get_orc_type(&self) -> String {
+				        "FLOAT".to_string()
+            }
+        }
+    };
+	  gen.into()
+}
+
 #[proc_macro_derive(BlankPrefectPreamble)]
 pub fn derive_blank_prefect_preamble(input: TokenStream) -> TokenStream {
     let ast: syn::DeriveInput = syn::parse(input).unwrap();

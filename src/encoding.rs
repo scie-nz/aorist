@@ -8,7 +8,10 @@ use std::collections::HashMap;
 use enum_dispatch::enum_dispatch;
 use crate::python::TObjectWithPythonCodeGen;
 use aorist_derive::{BlankPrefectPreamble, NoPythonImports};
-use crate::prefect::{TObjectWithPrefectCodeGen, TPrefectEncoding, TPrefectCompression};
+use crate::prefect::{TObjectWithPrefectCodeGen, TPrefectEncoding, TPrefectCompression, TPrefectFileHeader};
+use crate::schema::DataSchema;
+use indoc::indoc;
+use crate::templates::DatumTemplate;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 pub struct CSVEncoding {
@@ -26,12 +29,14 @@ impl THiveTableCreationTagMutator for CSVEncoding {
 }
 impl TObjectWithPythonCodeGen for CSVEncoding {
     fn get_python_imports(&self, preamble: &mut HashMap<String, String>) {
-        self.compression.get_python_imports(preamble)
+        self.compression.get_python_imports(preamble);
+        self.header.get_python_imports(preamble)
     }
 }
 impl TObjectWithPrefectCodeGen for CSVEncoding {
     fn get_prefect_preamble(&self, preamble: &mut HashMap<String, String>) {
-        self.compression.get_prefect_preamble(preamble)
+        self.compression.get_prefect_preamble(preamble);
+        self.header.get_prefect_preamble(preamble)
     }
 }
 impl TPrefectEncoding for CSVEncoding {
@@ -41,9 +46,31 @@ impl TPrefectEncoding for CSVEncoding {
         task_name: String,
         upstream_task_name: String,
     ) -> String {
-        self.compression.get_prefect_decompress_task(
-            file_name, task_name, upstream_task_name
+        format!(
+            "{}\n{}",
+            self.compression.get_prefect_decompress_task(
+                file_name.clone(),
+                format!("{}_decompress", &task_name).to_string(),
+                upstream_task_name.clone(),
+            ),
+            self.header.get_prefect_file_header_removal_tasks(
+                file_name.clone(),
+                format!("{}.no_header", &file_name).to_string(),
+                format!("{}_remove_header", &task_name).to_string(),
+                format!("{}_decompress", &task_name).to_string(),
+            )
         )
+    }
+    fn get_prefect_encode_tasks(
+        &self,
+        input_file_name: String,
+        output_file_name: String,
+        task_name: String,
+        upstream_task_name: String,
+        schema: &DataSchema,
+        templates: &HashMap<String, DatumTemplate>,
+    ) -> String {
+        "".to_string()
     }
 }
 
@@ -65,6 +92,35 @@ impl TPrefectEncoding for ORCEncoding {
         _task_name: String,
         _upstream_task_name: String,
     ) -> String { "".to_string() }
+    fn get_prefect_encode_tasks(
+        &self,
+        input_file_name: String,
+        output_file_name: String,
+        task_name: String,
+        upstream_task_name: String,
+        schema: &DataSchema,
+        templates: &HashMap<String, DatumTemplate>,
+    ) -> String {
+        let orc_schema = schema.get_orc_schema(templates);
+        let command = format!(
+            "csv-import {} {} {}",
+            orc_schema,
+            input_file_name,
+            output_file_name,
+        );
+        format!(
+            indoc! {
+                "
+                    {task_name} = ShellTask(
+                        command='{command}',
+                    )(upstream_tasks=[{upstream_task_name}])
+                "
+            },
+            task_name = task_name,
+            upstream_task_name = upstream_task_name,
+            command = command,
+        ).to_string()
+    }
 }
 
 #[enum_dispatch]

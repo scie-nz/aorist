@@ -6,7 +6,7 @@ use crate::python::TObjectWithPythonCodeGen;
 use crate::templates::DatumTemplate;
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeSet, HashMap};
-use crate::prefect::{TObjectWithPrefectCodeGen, TObjectWithPrefectDAGCodeGen};
+use crate::prefect::{TObjectWithPrefectCodeGen, TAssetWithPrefectDAGCodeGen, TObjectWithPrefectDAGCodeGen};
 use indoc::formatdoc;
 use textwrap::indent;
 
@@ -38,7 +38,8 @@ impl TObjectWithPrefectCodeGen for DataSet {
 }
 impl TObjectWithPrefectDAGCodeGen for DataSet {
     fn get_prefect_dag(&self) -> Result<String, String> {
-        let materialized_assets: Vec<String> = self.assets.iter().map(|x| x.get_prefect_dag().unwrap()).collect();
+        let mappedTemplates = self.get_mapped_datum_templates();
+        let materialized_assets: Vec<String> = self.assets.iter().map(|x| x.get_prefect_dag(&mappedTemplates).unwrap()).collect();
         Ok(materialized_assets.join("\n"))
     }
 }
@@ -74,7 +75,7 @@ impl DataSet {
         self.get_prefect_preamble(&mut preamble);
         let prefect_preamble_deduped: BTreeSet<String> = preamble.values().map(|x| x.clone()).collect();
 
-
+        let mappedTemplates = self.get_mapped_datum_templates();
         let code = formatdoc!{
             "{}
              {}

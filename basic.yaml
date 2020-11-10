@@ -124,19 +124,19 @@ spec:
     - name: north_lat
       type: FloatLatitude
       comment: |
-        Northern latitude of the tile's bounding box.
+        Northern latitude of the tile`s bounding box.
     - name: south_lat
       type: FloatLatitude
       comment: |
-        Southern latitude of the tile's bounding box.
+        Southern latitude of the tile`s bounding box.
     - name: west_lon
       type: FloatLongitude
       comment: |
-        Western longitude of the tile's bounding box.
+        Western longitude of the tile`s bounding box.
     - name: east_lon
       type: FloatLongitude
       comment: |
-        Eastern longitude of the tile's bounding box.
+        Eastern longitude of the tile`s bounding box.
     - name: base_url
       type: URI
   assets:

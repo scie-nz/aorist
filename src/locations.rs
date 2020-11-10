@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use aorist_derive::{BlankPrefectPreamble};
 use enum_dispatch::enum_dispatch;
-use crate::prefect::{TObjectWithPrefectCodeGen, TPrefectLocation};
+use crate::prefect::{TObjectWithPrefectCodeGen, TPrefectLocation, TPrefectHiveLocation};
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 pub struct GCSLocation {
@@ -36,7 +36,7 @@ impl TPrefectLocation for GCSLocation {
                 "
                     {task_name} = download_blob_to_file(
                         '{bucket}',
-                        '{blob},
+                        '{blob}',
                         '{file_name}'
                     )
                 "
@@ -93,12 +93,40 @@ pub enum RemoteWebsiteLocation {
     GCSLocation(GCSLocation),
 }
 
-#[derive(Debug, PartialEq, Serialize, Deserialize, Clone, BlankPrefectPreamble)]
+#[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 pub struct HiveAlluxioLocation {
     server: String,
     port: usize,
     rest_api_port: usize,
     path: String,
+}
+impl TObjectWithPrefectCodeGen for HiveAlluxioLocation {
+    fn get_prefect_preamble(&self, preamble: &mut HashMap<String, String>) {
+        let client_name = "alluxio_client".to_string();
+        preamble.insert(
+            "upload_file_to_alluxio".to_string(),
+            formatdoc! {"
+                @task
+                def upload_file_to_alluxio(local_path, remote_path, file_name):
+                    {client}
+                    if not {client_name}.exists(path):
+                        opt = alluxio.option.CreateDirectory(
+                            recursive=True,
+                            write_type=wire.WRITE_TYPE_CACHE_THROUGH
+                        )
+                        {client_name}.create_directory(path, opt)
+                    opt = alluxio.option.CreateFile(
+                        write_type=wire.WRITE_TYPE_CACHE_THROUGH
+                    )
+                    with {client_name}.open(remote_path, file_name, 'w', opt) as alluxio_file:
+                        with open('%s/%s' % (local_path, file_name), 'rb') as local_file:
+                            alluxio_file.write(local_file)
+                    ",
+                client = self.get_python_client(&client_name),
+                client_name = &client_name,
+            }.to_string(),
+        );
+    }
 }
 impl TObjectWithPythonCodeGen for HiveAlluxioLocation {
     fn get_python_imports(&self, preamble: &mut HashMap<String, String>) {
@@ -130,7 +158,7 @@ impl TLocationWithPythonAPIClient for HiveAlluxioLocation {
         formatdoc!(
             "
                 {client}
-                if not {client_name}.exists({path}):
+                if not {client_name}.exists(\"{path}\"):
                     opt = alluxio.option.CreateDirectory(
                         recursive=True,
                         write_type=wire.WRITE_TYPE_CACHE_THROUGH
@@ -161,6 +189,32 @@ impl THiveTableCreationTagMutator for HiveAlluxioLocation {
             .to_string(),
         );
         Ok(())
+    }
+}
+impl TPrefectHiveLocation for HiveAlluxioLocation {
+    fn get_prefect_upload_task(
+        &self,
+        file_name: String,
+        local_path: String,
+        task_name: String,
+        upstream_task_name: String
+    ) -> String {
+        formatdoc!(
+            "
+                {task_name} = upload_file_to_alluxio(
+                    '{local_path}',
+                    '{remote_path}',
+                    '{file_name}',
+                    upstream_tasks=[{upstream_task_name}]
+                )
+            ",
+            local_path = local_path,
+            remote_path = self.path,
+            task_name = task_name,
+            file_name = file_name,
+            upstream_task_name = upstream_task_name,
+        )
+        .to_string()
     }
 }
 

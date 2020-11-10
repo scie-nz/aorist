@@ -31,7 +31,7 @@ impl TPrefectCompression for GzipCompression {
             indoc! {
                 "
                     {task_name} = ShellTask(
-                        command='gunzip {file_name}',
+                        command='gunzip {file_name}.gz',
                     )(upstream_tasks=[{upstream_task_name}])
                 "
             },

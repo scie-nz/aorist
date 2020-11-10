@@ -6,7 +6,11 @@ use crate::templates::DatumTemplate;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use enum_dispatch::enum_dispatch;
-use crate::prefect::{TObjectWithPrefectCodeGen, TObjectWithPrefectDAGCodeGen};
+use crate::prefect::{
+    TObjectWithPrefectCodeGen,
+    TAssetWithPrefectDAGCodeGen,
+    TStorageSetupWithPrefectDAGCodeGen
+};
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 pub struct StaticDataTable {
@@ -33,9 +37,12 @@ impl TObjectWithPrefectCodeGen for StaticDataTable {
         self.setup.get_prefect_preamble(preamble);
     }
 }
-impl TObjectWithPrefectDAGCodeGen for StaticDataTable {
-    fn get_prefect_dag(&self) -> Result<String, String> {
-        self.setup.get_prefect_dag()
+impl TAssetWithPrefectDAGCodeGen for StaticDataTable {
+    fn get_prefect_dag(
+        &self,
+        templates: &HashMap<String, DatumTemplate>,
+    ) -> Result<String, String> {
+        self.setup.get_prefect_dag(&self.schema, templates, self.get_name())
     }
 }
 
