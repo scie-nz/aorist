@@ -1,11 +1,11 @@
 #![allow(non_snake_case)]
 
-use serde::{Deserialize, Serialize};
-use crate::python::TObjectWithPythonCodeGen;
-use enum_dispatch::enum_dispatch;
-use aorist_derive::BlankPrefectPreamble;
 use crate::prefect::{TObjectWithPrefectCodeGen, TPrefectFileHeader};
+use crate::python::TObjectWithPythonCodeGen;
+use aorist_derive::BlankPrefectPreamble;
+use enum_dispatch::enum_dispatch;
 use indoc::indoc;
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone, BlankPrefectPreamble)]

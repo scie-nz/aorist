@@ -1,31 +1,36 @@
-use std::collections::HashMap;
-use enum_dispatch::enum_dispatch;
-use crate::python::TObjectWithPythonCodeGen;
-use crate::locations::{GCSLocation, RemoteWebsiteLocation, HiveLocation};
 use crate::assets::{Asset, StaticDataTable};
 use crate::compressions::{DataCompression, GzipCompression};
 use crate::encoding::Encoding;
 use crate::headers::{FileHeader, UpperSnakeCaseCSVHeader};
+use crate::locations::{GCSLocation, HiveLocation, RemoteWebsiteLocation};
+use crate::python::TObjectWithPythonCodeGen;
 use crate::schema::DataSchema;
 use crate::templates::DatumTemplate;
+use enum_dispatch::enum_dispatch;
+use std::collections::HashMap;
 
-#[enum_dispatch(RemoteWebsiteLocation, HiveLocation, Storage, StorageSetup, Asset, DataCompression, Encoding, FileHeader)]
+#[enum_dispatch(
+    RemoteWebsiteLocation,
+    HiveLocation,
+    Storage,
+    StorageSetup,
+    Asset,
+    DataCompression,
+    Encoding,
+    FileHeader
+)]
 pub trait TObjectWithPrefectCodeGen: TObjectWithPythonCodeGen {
     fn get_prefect_preamble(&self, preamble: &mut HashMap<String, String>);
 }
 
 pub trait TObjectWithPrefectDAGCodeGen: TObjectWithPrefectCodeGen {
-    fn get_prefect_dag(
-        &self,
-    ) -> Result<String, String>;
+    fn get_prefect_dag(&self) -> Result<String, String>;
 }
 
 #[enum_dispatch(Asset)]
 pub trait TAssetWithPrefectDAGCodeGen: TObjectWithPrefectCodeGen {
-    fn get_prefect_dag(
-        &self,
-        templates: &HashMap<String, DatumTemplate>,
-    ) -> Result<String, String>;
+    fn get_prefect_dag(&self, templates: &HashMap<String, DatumTemplate>)
+        -> Result<String, String>;
 }
 
 #[enum_dispatch(StorageSetup)]
@@ -48,7 +53,7 @@ pub trait TStorageWithPrefectDAGCodeGen: TObjectWithPrefectCodeGen {
         schema: &DataSchema,
         templates: &HashMap<String, DatumTemplate>,
         task_name: String,
-        upstream_task_name: String
+        upstream_task_name: String,
     ) -> Result<String, String>;
 }
 
@@ -64,7 +69,7 @@ pub trait TPrefectHiveLocation: TObjectWithPrefectCodeGen {
         task_name: String,
         file_name: String,
         local_path: String,
-        alluxio_path: String
+        alluxio_path: String,
     ) -> String;
 }
 

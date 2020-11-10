@@ -1,11 +1,10 @@
 use crate::hive::THiveTableCreationTagMutator;
+use crate::prefect::{TObjectWithPrefectCodeGen, TPrefectHiveLocation, TPrefectLocation};
 use crate::python::{TLocationWithPythonAPIClient, TObjectWithPythonCodeGen};
+use enum_dispatch::enum_dispatch;
 use indoc::{formatdoc, indoc};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use aorist_derive::{BlankPrefectPreamble};
-use enum_dispatch::enum_dispatch;
-use crate::prefect::{TObjectWithPrefectCodeGen, TPrefectLocation, TPrefectHiveLocation};
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 pub struct GCSLocation {
@@ -124,7 +123,8 @@ impl TObjectWithPrefectCodeGen for HiveAlluxioLocation {
                     ",
                 client = self.get_python_client(&client_name),
                 client_name = &client_name,
-            }.to_string(),
+            }
+            .to_string(),
         );
     }
 }
@@ -197,7 +197,7 @@ impl TPrefectHiveLocation for HiveAlluxioLocation {
         file_name: String,
         local_path: String,
         task_name: String,
-        upstream_task_name: String
+        upstream_task_name: String,
     ) -> String {
         formatdoc!(
             "

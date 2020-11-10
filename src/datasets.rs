@@ -2,12 +2,14 @@
 use crate::access_policies::AccessPolicy;
 use crate::assets::Asset;
 use crate::object::TAoristObject;
+use crate::prefect::{
+    TAssetWithPrefectDAGCodeGen, TObjectWithPrefectCodeGen, TObjectWithPrefectDAGCodeGen,
+};
 use crate::python::TObjectWithPythonCodeGen;
 use crate::templates::DatumTemplate;
+use indoc::formatdoc;
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeSet, HashMap};
-use crate::prefect::{TObjectWithPrefectCodeGen, TAssetWithPrefectDAGCodeGen, TObjectWithPrefectDAGCodeGen};
-use indoc::formatdoc;
 use textwrap::indent;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Default)]
@@ -39,7 +41,11 @@ impl TObjectWithPrefectCodeGen for DataSet {
 impl TObjectWithPrefectDAGCodeGen for DataSet {
     fn get_prefect_dag(&self) -> Result<String, String> {
         let mappedTemplates = self.get_mapped_datum_templates();
-        let materialized_assets: Vec<String> = self.assets.iter().map(|x| x.get_prefect_dag(&mappedTemplates).unwrap()).collect();
+        let materialized_assets: Vec<String> = self
+            .assets
+            .iter()
+            .map(|x| x.get_prefect_dag(&mappedTemplates).unwrap())
+            .collect();
         Ok(materialized_assets.join("\n"))
     }
 }
@@ -73,10 +79,10 @@ impl DataSet {
 
         let mut preamble: HashMap<String, String> = HashMap::new();
         self.get_prefect_preamble(&mut preamble);
-        let prefect_preamble_deduped: BTreeSet<String> = preamble.values().map(|x| x.clone()).collect();
+        let prefect_preamble_deduped: BTreeSet<String> =
+            preamble.values().map(|x| x.clone()).collect();
 
-        let mappedTemplates = self.get_mapped_datum_templates();
-        let code = formatdoc!{
+        let code = formatdoc! {
             "{}
              {}
              with Flow() as flow:

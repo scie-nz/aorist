@@ -1,11 +1,11 @@
 #![allow(non_snake_case)]
+use crate::prefect::{TObjectWithPrefectCodeGen, TPrefectCompression};
+use crate::python::TObjectWithPythonCodeGen;
+use aorist_derive::BlankPrefectPreamble;
+use enum_dispatch::enum_dispatch;
 use indoc::indoc;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use crate::python::TObjectWithPythonCodeGen;
-use enum_dispatch::enum_dispatch;
-use aorist_derive::BlankPrefectPreamble;
-use crate::prefect::{TObjectWithPrefectCodeGen, TPrefectCompression};
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone, BlankPrefectPreamble)]
 pub struct GzipCompression {}

@@ -1,16 +1,14 @@
 #![allow(non_snake_case)]
+use crate::prefect::{
+    TAssetWithPrefectDAGCodeGen, TObjectWithPrefectCodeGen, TStorageSetupWithPrefectDAGCodeGen,
+};
 use crate::python::TObjectWithPythonCodeGen;
 use crate::schema::DataSchema;
 use crate::storage_setup::StorageSetup;
 use crate::templates::DatumTemplate;
+use enum_dispatch::enum_dispatch;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use enum_dispatch::enum_dispatch;
-use crate::prefect::{
-    TObjectWithPrefectCodeGen,
-    TAssetWithPrefectDAGCodeGen,
-    TStorageSetupWithPrefectDAGCodeGen
-};
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 pub struct StaticDataTable {
@@ -42,7 +40,8 @@ impl TAssetWithPrefectDAGCodeGen for StaticDataTable {
         &self,
         templates: &HashMap<String, DatumTemplate>,
     ) -> Result<String, String> {
-        self.setup.get_prefect_dag(&self.schema, templates, self.get_name())
+        self.setup
+            .get_prefect_dag(&self.schema, templates, self.get_name())
     }
 }
 

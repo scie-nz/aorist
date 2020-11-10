@@ -1,7 +1,6 @@
 #![allow(non_snake_case)]
 
-use aorist_derive::{PrestoBigint, PrestoReal, PrestoVarchar,
-                    OrcBigint, OrcFloat, OrcString};
+use aorist_derive::{OrcBigint, OrcFloat, OrcString, PrestoBigint, PrestoReal, PrestoVarchar};
 use indoc::formatdoc;
 use serde::{Deserialize, Serialize};
 

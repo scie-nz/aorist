@@ -1,6 +1,6 @@
 #![allow(non_snake_case)]
-use serde::{Deserialize, Serialize};
 use enum_dispatch::enum_dispatch;
+use serde::{Deserialize, Serialize};
 
 #[enum_dispatch(Role)]
 pub trait TRole {

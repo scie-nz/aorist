@@ -1,6 +1,6 @@
-use std::collections::HashMap;
-use crate::encoding::{Encoding, CSVEncoding, ORCEncoding};
+use crate::encoding::{CSVEncoding, Encoding, ORCEncoding};
 use enum_dispatch::enum_dispatch;
+use std::collections::HashMap;
 
 #[enum_dispatch(HiveLocation, Encoding)]
 pub trait THiveTableCreationTagMutator {

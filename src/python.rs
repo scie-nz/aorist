@@ -1,13 +1,22 @@
+use crate::assets::Asset;
+use crate::compressions::DataCompression;
+use crate::encoding::Encoding;
+use crate::headers::FileHeader;
+use crate::locations::{HiveLocation, RemoteWebsiteLocation};
+use enum_dispatch::enum_dispatch;
 use indoc::formatdoc;
 use std::collections::HashMap;
-use enum_dispatch::enum_dispatch;
-use crate::locations::{RemoteWebsiteLocation, HiveLocation};
-use crate::assets::Asset;
-use crate::encoding::Encoding;
-use crate::compressions::{DataCompression};
-use crate::headers::FileHeader;
 
-#[enum_dispatch(HiveLocation, RemoteWebsiteLocation, Asset, StorageSetup, Storage, Encoding, DataCompression, FileHeader)]
+#[enum_dispatch(
+    HiveLocation,
+    RemoteWebsiteLocation,
+    Asset,
+    StorageSetup,
+    Storage,
+    Encoding,
+    DataCompression,
+    FileHeader
+)]
 pub trait TObjectWithPythonCodeGen {
     fn get_python_imports(&self, preamble: &mut HashMap<String, String>);
 }

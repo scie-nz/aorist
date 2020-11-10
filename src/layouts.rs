@@ -19,4 +19,3 @@ pub struct StaticHiveTableLayout {}
 pub enum HiveStorageLayout {
     StaticHiveTableLayout(StaticHiveTableLayout),
 }
-

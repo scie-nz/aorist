@@ -4,14 +4,16 @@ use crate::encoding::Encoding;
 use crate::hive::THiveTableCreationTagMutator;
 use crate::layouts::{HiveStorageLayout, StorageLayout};
 use crate::locations::{HiveLocation, RemoteWebsiteLocation};
-use crate::python::{TObjectWithPythonCodeGen, TLocationWithPythonAPIClient};
+use crate::prefect::{
+    TObjectWithPrefectCodeGen, TPrefectEncoding, TPrefectHiveLocation, TPrefectLocation,
+    TStorageWithPrefectDAGCodeGen,
+};
+use crate::python::TObjectWithPythonCodeGen;
 use crate::schema::DataSchema;
+use crate::templates::DatumTemplate;
+use enum_dispatch::enum_dispatch;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use enum_dispatch::enum_dispatch;
-use crate::prefect::{TObjectWithPrefectCodeGen, TPrefectLocation, TStorageWithPrefectDAGCodeGen, TPrefectEncoding, TPrefectHiveLocation};
-use crate::templates::DatumTemplate;
-
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 pub struct RemoteWebsiteStorage {
@@ -47,12 +49,12 @@ impl TStorageWithPrefectDAGCodeGen for RemoteWebsiteStorage {
     }
     fn get_prefect_ingest_dag(
         &self,
-        path: String,
-        filename: String,
-        schema: &DataSchema,
-        templates: &HashMap<String, DatumTemplate>,
-        task_name: String,
-        upstream_task_name: String
+        _path: String,
+        _filename: String,
+        _schema: &DataSchema,
+        _templates: &HashMap<String, DatumTemplate>,
+        _task_name: String,
+        _upstream_task_name: String,
     ) -> Result<String, String> {
         Err("Ingest dag not implemented".to_string())
     }
@@ -84,7 +86,7 @@ impl TObjectWithPrefectCodeGen for HiveTableStorage {
     }
 }
 impl TStorageWithPrefectDAGCodeGen for HiveTableStorage {
-    fn get_prefect_dag(&self, schema: &DataSchema) -> Result<String, String> {
+    fn get_prefect_dag(&self, _schema: &DataSchema) -> Result<String, String> {
         Err("Ingest dag not implemented".to_string())
     }
     fn get_prefect_ingest_dag(
@@ -94,9 +96,8 @@ impl TStorageWithPrefectDAGCodeGen for HiveTableStorage {
         schema: &DataSchema,
         templates: &HashMap<String, DatumTemplate>,
         task_name: String,
-        upstream_task_name: String
+        upstream_task_name: String,
     ) -> Result<String, String> {
-        let client_name = "alluxio_client".to_string();
         Ok(format!(
             "{}\n{}",
             self.encoding.get_prefect_encode_tasks(

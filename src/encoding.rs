@@ -3,15 +3,17 @@
 use crate::compressions::DataCompression;
 use crate::headers::FileHeader;
 use crate::hive::THiveTableCreationTagMutator;
+use crate::prefect::{
+    TObjectWithPrefectCodeGen, TPrefectCompression, TPrefectEncoding, TPrefectFileHeader,
+};
+use crate::python::TObjectWithPythonCodeGen;
+use crate::schema::DataSchema;
+use crate::templates::DatumTemplate;
+use aorist_derive::{BlankPrefectPreamble, NoPythonImports};
+use enum_dispatch::enum_dispatch;
+use indoc::indoc;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use enum_dispatch::enum_dispatch;
-use crate::python::TObjectWithPythonCodeGen;
-use aorist_derive::{BlankPrefectPreamble, NoPythonImports};
-use crate::prefect::{TObjectWithPrefectCodeGen, TPrefectEncoding, TPrefectCompression, TPrefectFileHeader};
-use crate::schema::DataSchema;
-use indoc::indoc;
-use crate::templates::DatumTemplate;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 pub struct CSVEncoding {
@@ -63,12 +65,12 @@ impl TPrefectEncoding for CSVEncoding {
     }
     fn get_prefect_encode_tasks(
         &self,
-        input_file_name: String,
-        output_file_name: String,
-        task_name: String,
-        upstream_task_name: String,
-        schema: &DataSchema,
-        templates: &HashMap<String, DatumTemplate>,
+        _input_file_name: String,
+        _output_file_name: String,
+        _task_name: String,
+        _upstream_task_name: String,
+        _schema: &DataSchema,
+        _templates: &HashMap<String, DatumTemplate>,
     ) -> String {
         "".to_string()
     }
@@ -91,7 +93,9 @@ impl TPrefectEncoding for ORCEncoding {
         _file_name: String,
         _task_name: String,
         _upstream_task_name: String,
-    ) -> String { "".to_string() }
+    ) -> String {
+        "".to_string()
+    }
     fn get_prefect_encode_tasks(
         &self,
         input_file_name: String,
@@ -104,9 +108,7 @@ impl TPrefectEncoding for ORCEncoding {
         let orc_schema = schema.get_orc_schema(templates);
         let command = format!(
             "csv-import {} {} {}",
-            orc_schema,
-            input_file_name,
-            output_file_name,
+            orc_schema, input_file_name, output_file_name,
         );
         format!(
             indoc! {
@@ -119,7 +121,8 @@ impl TPrefectEncoding for ORCEncoding {
             task_name = task_name,
             upstream_task_name = upstream_task_name,
             command = command,
-        ).to_string()
+        )
+        .to_string()
     }
 }
 

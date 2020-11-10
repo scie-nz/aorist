@@ -1,13 +1,15 @@
 #![allow(non_snake_case)]
+use crate::prefect::{
+    TObjectWithPrefectCodeGen, TStorageSetupWithPrefectDAGCodeGen, TStorageWithPrefectDAGCodeGen,
+};
 use crate::python::TObjectWithPythonCodeGen;
+use crate::schema::DataSchema;
 use crate::storage::Storage;
+use crate::templates::DatumTemplate;
+use enum_dispatch::enum_dispatch;
 use indoc::indoc;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use enum_dispatch::enum_dispatch;
-use crate::prefect::{TObjectWithPrefectCodeGen, TStorageSetupWithPrefectDAGCodeGen, TStorageWithPrefectDAGCodeGen};
-use crate::schema::DataSchema;
-use crate::templates::DatumTemplate;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 pub struct RemoteImportStorageSetup {
@@ -29,7 +31,6 @@ impl TStorageSetupWithPrefectDAGCodeGen for RemoteImportStorageSetup {
         templates: &HashMap<String, DatumTemplate>,
         table_name: &String,
     ) -> Result<String, String> {
-
         let remote_dag = self.remote.get_prefect_dag(schema)?;
         let mut dag = format!("{}", remote_dag);
         let columnSchema = schema.get_presto_schema(templates);
@@ -72,11 +73,7 @@ impl RemoteImportStorageSetup {
         task_name: String,
         upstream_task_name: String,
     ) -> String {
-        let schema = self.get_presto_schema(
-            name,
-            columnSchema,
-            storage,
-        );
+        let schema = self.get_presto_schema(name, columnSchema, storage);
         format!(
             indoc! {
                 "
@@ -97,7 +94,7 @@ impl RemoteImportStorageSetup {
         &self,
         name: &String,
         columnSchema: &String,
-        storage: &Storage
+        storage: &Storage,
     ) -> String {
         if storage.is_hive_storage() {
             let mut tags: HashMap<String, String> = HashMap::new();
@@ -122,16 +119,15 @@ impl RemoteImportStorageSetup {
                 table = name,
                 column_schema = columnSchema.replace("\n", "\n    "),
                 tags_str = tags_str,
-            ).to_string()
+            )
+            .to_string();
         }
         "".to_string()
     }
     pub fn get_presto_schemas(&self, name: &String, columnSchema: String) -> String {
         let mut schemas: Vec<String> = Vec::new();
         for storage in self.get_local_storage() {
-            schemas.push(
-                self.get_presto_schema(name, &columnSchema, storage)
-            );
+            schemas.push(self.get_presto_schema(name, &columnSchema, storage));
         }
         schemas.join("\n")
     }
