@@ -34,7 +34,8 @@ spec:
       port: 30807
       token: 2b44b07e042ee9fe374e3eeebd2c9098468b5774
   imports:
-  - users.yaml
+  - type: LocalFileImport
+    filename: users.yaml
 ---
 type: RoleBinding
 spec:

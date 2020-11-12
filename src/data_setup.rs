@@ -10,6 +10,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
 use std::fs;
 use thiserror::Error;
+use enum_dispatch::enum_dispatch;
 
 #[allow(dead_code)]
 #[derive(Debug, Error)]
@@ -64,6 +65,30 @@ pub struct EndpointConfig {
     gitea: Option<GiteaConfig>,
 }
 
+#[serde(tag="type")]
+#[derive(Serialize, Deserialize, Clone, Getters, Debug, PartialEq)]
+pub struct LocalFileImport {
+    #[getset(get="pub")]
+    filename: String,
+}
+#[enum_dispatch(AoristImport)]
+pub trait TAoristImport {
+    fn get_objects(self) -> Vec<AoristObject>;
+}
+impl TAoristImport for LocalFileImport {
+    fn get_objects(self) -> Vec<AoristObject> {
+        let filename = self.filename();
+        let imported_objects = read_file(&filename);
+        imported_objects
+    }
+}
+#[enum_dispatch]
+#[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
+#[serde(tag = "type")]
+pub enum AoristImport {
+    LocalFileImport(LocalFileImport),
+}
+
 #[derive(Serialize, Deserialize, Clone, Getters)]
 pub struct DataSetup {
     name: String,
@@ -73,7 +98,7 @@ pub struct DataSetup {
     role_bindings: Vec<String>,
     endpoints: EndpointConfig,
     #[getset(get="pub")]
-    imports: Option<Vec<String>>,
+    imports: Option<Vec<LocalFileImport>>,
 }
 impl TAoristObject for DataSetup {
     fn get_name(&self) -> &String {
@@ -163,11 +188,9 @@ impl DataSetup {
     fn parse(self, mut objects: Vec<AoristObject>) -> ParsedDataSetup {
         
         println!("{}", self.imports.is_some());
-        if let Some(import_files) = self.imports {
-            for filename in import_files {
-                println!("{}", filename);
-                let imported_objects = read_file(&filename);
-                for object in imported_objects.into_iter() {
+        if let Some(imports) = self.imports {
+            for import in imports {
+                for object in import.get_objects().into_iter() {
                     objects.push(object);
                 }
             }
