@@ -64,7 +64,7 @@ pub struct EndpointConfig {
     gitea: Option<GiteaConfig>,
 }
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Serialize, Deserialize, Clone, Getters)]
 pub struct DataSetup {
     name: String,
     users: Vec<String>,
@@ -72,6 +72,8 @@ pub struct DataSetup {
     datasets: Vec<String>,
     role_bindings: Vec<String>,
     endpoints: EndpointConfig,
+    #[getset(get="pub")]
+    imports: Option<Vec<String>>,
 }
 impl TAoristObject for DataSetup {
     fn get_name(&self) -> &String {
@@ -147,9 +149,30 @@ impl ParsedDataSetup {
     }
 }
 
+fn read_file(filename: &str) -> Vec<AoristObject> {
+    let s = fs::read_to_string(filename).unwrap();
+    let objects: Vec<AoristObject> = s
+        .split("\n---\n")
+        .filter(|x| x.len() > 0)
+        .map(|x| serde_yaml::from_str(x).unwrap())
+        .collect();
+    objects
+}
+
 impl DataSetup {
-    fn parse(self, objects: Vec<AoristObject>) -> ParsedDataSetup {
-        println!("Endpoints.alluxio is some: {}", self.endpoints.alluxio.is_some());
+    fn parse(self, mut objects: Vec<AoristObject>) -> ParsedDataSetup {
+        
+        println!("{}", self.imports.is_some());
+        if let Some(import_files) = self.imports {
+            for filename in import_files {
+                println!("{}", filename);
+                let imported_objects = read_file(&filename);
+                for object in imported_objects.into_iter() {
+                    objects.push(object);
+                }
+            }
+        }
+
         let mut dataSetup = ParsedDataSetup {
             name: self.name,
             users: None,
@@ -229,12 +252,7 @@ impl DataSetup {
 }
 
 pub fn get_data_setup() -> ParsedDataSetup {
-    let s = fs::read_to_string("basic.yaml").unwrap();
-    let objects: Vec<AoristObject> = s
-        .split("\n---\n")
-        .filter(|x| x.len() > 0)
-        .map(|x| serde_yaml::from_str(x).unwrap())
-        .collect();
+    let objects = read_file("basic.yaml");
     let v: Vec<Option<&DataSetup>> = objects
         .iter()
         .map(|x| match x {
@@ -244,5 +262,6 @@ pub fn get_data_setup() -> ParsedDataSetup {
         .filter(|x| x.is_some())
         .collect();
     let dataSetup: DataSetup = v.first().unwrap().unwrap().to_owned();
+    
     dataSetup.parse(objects)
 }
