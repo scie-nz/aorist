@@ -1,12 +1,12 @@
 use crate::assets::Asset;
 use crate::compressions::DataCompression;
+use crate::data_setup::EndpointConfig;
 use crate::encoding::Encoding;
 use crate::headers::FileHeader;
 use crate::locations::{HiveLocation, RemoteWebsiteLocation};
 use enum_dispatch::enum_dispatch;
 use indoc::formatdoc;
 use std::collections::HashMap;
-use crate::data_setup::EndpointConfig;
 
 #[enum_dispatch(
     HiveLocation,
@@ -23,16 +23,9 @@ pub trait TObjectWithPythonCodeGen {
 }
 #[enum_dispatch(HiveLocation)]
 pub trait TLocationWithPythonAPIClient: TObjectWithPythonCodeGen {
-    fn get_python_client(
-        &self,
-        client_name: &String,
-        endpoints: &EndpointConfig,
-    ) -> String;
-    fn get_python_create_storage(
-        &self,
-        client_name: &String,
-        endpoints: &EndpointConfig,
-    ) -> String;
+    fn get_python_client(&self, client_name: &String, endpoints: &EndpointConfig) -> String;
+    fn get_python_create_storage(&self, client_name: &String, endpoints: &EndpointConfig)
+        -> String;
 
     fn get_prefect_create_storage_task(
         &self,

@@ -1,5 +1,6 @@
 #![allow(non_snake_case)]
 
+use crate::data_setup::EndpointConfig;
 use crate::encoding::Encoding;
 use crate::hive::THiveTableCreationTagMutator;
 use crate::layouts::{HiveStorageLayout, StorageLayout};
@@ -14,7 +15,6 @@ use crate::templates::DatumTemplate;
 use enum_dispatch::enum_dispatch;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use crate::data_setup::EndpointConfig;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 pub struct RemoteWebsiteStorage {
@@ -29,7 +29,11 @@ impl TObjectWithPythonCodeGen for RemoteWebsiteStorage {
     }
 }
 impl TObjectWithPrefectCodeGen for RemoteWebsiteStorage {
-    fn get_prefect_preamble(&self, preamble: &mut HashMap<String, String>, endpoints: &EndpointConfig) {
+    fn get_prefect_preamble(
+        &self,
+        preamble: &mut HashMap<String, String>,
+        endpoints: &EndpointConfig,
+    ) {
         self.location.get_prefect_preamble(preamble, endpoints);
     }
 }
@@ -74,7 +78,8 @@ impl THiveTableCreationTagMutator for HiveTableStorage {
         tags: &mut HashMap<String, String>,
         endpoints: &EndpointConfig,
     ) -> Result<(), String> {
-        self.encoding.populate_table_creation_tags(tags, endpoints)?;
+        self.encoding
+            .populate_table_creation_tags(tags, endpoints)?;
         self.location.populate_table_creation_tags(tags, endpoints)
     }
 }
@@ -84,7 +89,11 @@ impl TObjectWithPythonCodeGen for HiveTableStorage {
     }
 }
 impl TObjectWithPrefectCodeGen for HiveTableStorage {
-    fn get_prefect_preamble(&self, preamble: &mut HashMap<String, String>, endpoints: &EndpointConfig) {
+    fn get_prefect_preamble(
+        &self,
+        preamble: &mut HashMap<String, String>,
+        endpoints: &EndpointConfig,
+    ) {
         self.location.get_prefect_preamble(preamble, endpoints);
     }
 }

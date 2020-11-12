@@ -5,15 +5,15 @@ use crate::role::{Role, TRole};
 use crate::role_binding::RoleBinding;
 use crate::user::User;
 use crate::user_group::UserGroup;
-use getset::{IncompleteGetters, IncompleteMutGetters, IncompleteSetters, Getters, Setters};
+use enum_dispatch::enum_dispatch;
+use getset::{Getters, IncompleteGetters, IncompleteMutGetters, IncompleteSetters, Setters};
+use git2::{Cred, RemoteCallbacks};
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
-use std::fs;
-use thiserror::Error;
-use enum_dispatch::enum_dispatch;
-use git2::{Cred, RemoteCallbacks};
 use std::env;
+use std::fs;
 use std::path::Path;
+use thiserror::Error;
 
 #[allow(dead_code)]
 #[derive(Debug, Error)]
@@ -32,11 +32,11 @@ pub struct PrestoConfig {
 
 #[derive(Serialize, Deserialize, Clone, Getters, Setters)]
 pub struct AlluxioConfig {
-    #[getset(get="pub", set="pub")]
+    #[getset(get = "pub", set = "pub")]
     server: String,
-    #[getset(get="pub", set="pub")]
+    #[getset(get = "pub", set = "pub")]
     rpcPort: usize,
-    #[getset(get="pub", set="pub")]
+    #[getset(get = "pub", set = "pub")]
     apiPort: usize,
 }
 
@@ -58,32 +58,32 @@ pub struct GiteaConfig {
 #[serde()]
 #[derive(Serialize, Deserialize, Clone, IncompleteGetters, IncompleteSetters)]
 pub struct EndpointConfig {
-    #[getset(get_incomplete="pub", set_incomplete="pub")]
+    #[getset(get_incomplete = "pub", set_incomplete = "pub")]
     presto: Option<PrestoConfig>,
-    #[getset(get_incomplete="pub", set_incomplete="pub")]
+    #[getset(get_incomplete = "pub", set_incomplete = "pub")]
     alluxio: Option<AlluxioConfig>,
-    #[getset(get_incomplete="pub", set_incomplete="pub")]
+    #[getset(get_incomplete = "pub", set_incomplete = "pub")]
     ranger: Option<RangerConfig>,
-    #[getset(get_incomplete="pub", set_incomplete="pub")]
+    #[getset(get_incomplete = "pub", set_incomplete = "pub")]
     gitea: Option<GiteaConfig>,
 }
 
-#[serde(tag="type")]
+#[serde(tag = "type")]
 #[derive(Serialize, Deserialize, Clone, Getters, Debug, PartialEq)]
 pub struct LocalFileImport {
-    #[getset(get="pub")]
+    #[getset(get = "pub")]
     filename: String,
 }
-#[serde(tag="type")]
+#[serde(tag = "type")]
 #[derive(Serialize, Deserialize, Clone, Getters, Debug, PartialEq)]
 pub struct GitImport {
-    #[getset(get="pub")]
+    #[getset(get = "pub")]
     keyfile: String,
-    #[getset(get="pub")]
+    #[getset(get = "pub")]
     filename: String,
-    #[getset(get="pub")]
+    #[getset(get = "pub")]
     sshPath: String,
-    #[getset(get="pub")]
+    #[getset(get = "pub")]
     localPath: String,
 }
 #[enum_dispatch(AoristImport)]
@@ -98,19 +98,17 @@ impl TAoristImport for LocalFileImport {
     }
 }
 impl TAoristImport for GitImport {
-
     fn get_objects(self) -> Vec<AoristObject> {
-  
         // from: https://docs.rs/git2/0.13.12/git2/build/struct.RepoBuilder.html
         // Prepare callbacks.
         let mut callbacks = RemoteCallbacks::new();
         callbacks.credentials(|_url, username_from_url, _allowed_types| {
-          Cred::ssh_key(
-            username_from_url.unwrap(),
-            None,
-            std::path::Path::new(&format!("{}/.ssh/id_rsa", env::var("HOME").unwrap())),
-            None,
-          )
+            Cred::ssh_key(
+                username_from_url.unwrap(),
+                None,
+                std::path::Path::new(&format!("{}/.ssh/id_rsa", env::var("HOME").unwrap())),
+                None,
+            )
         });
 
         // Prepare fetch options.
@@ -122,11 +120,10 @@ impl TAoristImport for GitImport {
         builder.fetch_options(fo);
 
         // Clone the project.
-        builder.clone(
-          self.filename(),
-          Path::new(self.localPath()),
-        ).unwrap();
-        
+        builder
+            .clone(self.filename(), Path::new(self.localPath()))
+            .unwrap();
+
         let filename = format!("{}/{}", self.localPath(), self.filename());
         let imported_objects = read_file(&filename);
         imported_objects
@@ -148,7 +145,7 @@ pub struct DataSetup {
     datasets: Vec<String>,
     role_bindings: Vec<String>,
     endpoints: EndpointConfig,
-    #[getset(get="pub")]
+    #[getset(get = "pub")]
     imports: Option<Vec<LocalFileImport>>,
 }
 impl TAoristObject for DataSetup {
@@ -216,9 +213,7 @@ impl ParsedDataSetup {
         for dataset in self.get_datasets().unwrap() {
             files.insert(
                 dataset.get_materialize_pipeline_name(),
-                dataset.get_materialize_pipeline(
-                    &self.endpoints
-                )?,
+                dataset.get_materialize_pipeline(&self.endpoints)?,
             );
         }
         Ok(files)
@@ -237,7 +232,6 @@ fn read_file(filename: &str) -> Vec<AoristObject> {
 
 impl DataSetup {
     fn parse(self, mut objects: Vec<AoristObject>) -> ParsedDataSetup {
-        
         println!("{}", self.imports.is_some());
         if let Some(imports) = self.imports {
             for import in imports {
@@ -336,6 +330,6 @@ pub fn get_data_setup() -> ParsedDataSetup {
         .filter(|x| x.is_some())
         .collect();
     let dataSetup: DataSetup = v.first().unwrap().unwrap().to_owned();
-    
+
     dataSetup.parse(objects)
 }

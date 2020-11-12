@@ -1,4 +1,5 @@
 #![allow(non_snake_case)]
+use crate::data_setup::EndpointConfig;
 use crate::prefect::{TObjectWithPrefectCodeGen, TPrefectCompression};
 use crate::python::TObjectWithPythonCodeGen;
 use aorist_derive::BlankPrefectPreamble;
@@ -6,7 +7,6 @@ use enum_dispatch::enum_dispatch;
 use indoc::indoc;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use crate::data_setup::EndpointConfig;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone, BlankPrefectPreamble)]
 pub struct GzipCompression {}
@@ -14,8 +14,7 @@ impl TObjectWithPythonCodeGen for GzipCompression {
     fn get_python_imports(&self, preamble: &mut HashMap<String, String>) {
         preamble.insert(
             "import_shell_task".to_string(),
-            indoc! {"from prefect.tasks.shell import ShellTask"}
-            .to_string(),
+            indoc! {"from prefect.tasks.shell import ShellTask"}.to_string(),
         );
     }
 }

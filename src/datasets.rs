@@ -1,17 +1,15 @@
 #![allow(non_snake_case)]
 use crate::access_policies::AccessPolicy;
 use crate::assets::Asset;
+use crate::data_setup::EndpointConfig;
 use crate::object::TAoristObject;
-use crate::prefect::{
-    TPrefectAsset, TObjectWithPrefectCodeGen, TPrefectDataSet,
-};
+use crate::prefect::{TObjectWithPrefectCodeGen, TPrefectAsset, TPrefectDataSet};
 use crate::python::TObjectWithPythonCodeGen;
 use crate::templates::DatumTemplate;
 use indoc::formatdoc;
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeSet, HashMap};
 use textwrap::indent;
-use crate::data_setup::EndpointConfig;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Default)]
 pub struct DataSet {
@@ -33,7 +31,11 @@ impl TObjectWithPythonCodeGen for DataSet {
     }
 }
 impl TObjectWithPrefectCodeGen for DataSet {
-    fn get_prefect_preamble(&self, preamble: &mut HashMap<String, String>, endpoints: &EndpointConfig) {
+    fn get_prefect_preamble(
+        &self,
+        preamble: &mut HashMap<String, String>,
+        endpoints: &EndpointConfig,
+    ) {
         for asset in &self.assets {
             asset.get_prefect_preamble(preamble, endpoints);
         }

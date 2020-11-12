@@ -14,7 +14,11 @@ pub struct GCSLocation {
 }
 
 impl TObjectWithPrefectCodeGen for GCSLocation {
-    fn get_prefect_preamble(&self, preamble: &mut HashMap<String, String>, _endpoints: &EndpointConfig) {
+    fn get_prefect_preamble(
+        &self,
+        preamble: &mut HashMap<String, String>,
+        _endpoints: &EndpointConfig,
+    ) {
         preamble.insert(
             "download_blob_to_file".to_string(),
             indoc! {"
@@ -51,13 +55,16 @@ impl TPrefectLocation for GCSLocation {
 }
 impl TObjectWithPythonCodeGen for GCSLocation {
     fn get_python_imports(&self, preamble: &mut HashMap<String, String>) {
-        let import_str = indoc!(
-            "from google.cloud import storage"
-        )
-        .to_string();
+        let import_str = indoc!("from google.cloud import storage").to_string();
         preamble.insert("gcs_storage_python_imports".to_string(), import_str);
-        preamble.insert("prefect_import_task".to_string(), "from prefect import task, Flow".to_string());
-        preamble.insert("wire_import_task".to_string(), "from alluxio import wire".to_string());
+        preamble.insert(
+            "prefect_import_task".to_string(),
+            "from prefect import task, Flow".to_string(),
+        );
+        preamble.insert(
+            "wire_import_task".to_string(),
+            "from alluxio import wire".to_string(),
+        );
     }
 }
 impl TLocationWithPythonAPIClient for GCSLocation {
@@ -75,7 +82,11 @@ impl TLocationWithPythonAPIClient for GCSLocation {
         )
         .to_string()
     }
-    fn get_python_create_storage(&self, client_name: &String, endpoints: &EndpointConfig) -> String {
+    fn get_python_create_storage(
+        &self,
+        client_name: &String,
+        endpoints: &EndpointConfig,
+    ) -> String {
         formatdoc!(
             "
                 {client}
@@ -104,7 +115,11 @@ pub struct HiveAlluxioLocation {
     path: String,
 }
 impl TObjectWithPrefectCodeGen for HiveAlluxioLocation {
-    fn get_prefect_preamble(&self, preamble: &mut HashMap<String, String>, endpoints: &EndpointConfig) {
+    fn get_prefect_preamble(
+        &self,
+        preamble: &mut HashMap<String, String>,
+        endpoints: &EndpointConfig,
+    ) {
         let client_name = "alluxio_client".to_string();
         preamble.insert(
             "upload_file_to_alluxio".to_string(),
@@ -149,11 +164,7 @@ impl TObjectWithPythonCodeGen for HiveAlluxioLocation {
     }
 }
 impl TLocationWithPythonAPIClient for HiveAlluxioLocation {
-    fn get_python_client(
-        &self,
-        client_name: &String,
-        endpoints: &EndpointConfig,
-    ) -> String {
+    fn get_python_client(&self, client_name: &String, endpoints: &EndpointConfig) -> String {
         formatdoc!(
             "
                 {client_name} = alluxio.Client('{server}', {port})
@@ -164,7 +175,11 @@ impl TLocationWithPythonAPIClient for HiveAlluxioLocation {
         )
         .to_string()
     }
-    fn get_python_create_storage(&self, client_name: &String, endpoints: &EndpointConfig) -> String {
+    fn get_python_create_storage(
+        &self,
+        client_name: &String,
+        endpoints: &EndpointConfig,
+    ) -> String {
         formatdoc!(
             "
                 {client}

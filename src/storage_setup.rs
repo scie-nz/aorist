@@ -1,7 +1,6 @@
 #![allow(non_snake_case)]
-use crate::prefect::{
-    TObjectWithPrefectCodeGen, TPrefectStorageSetup, TPrefectStorage,
-};
+use crate::data_setup::EndpointConfig;
+use crate::prefect::{TObjectWithPrefectCodeGen, TPrefectStorage, TPrefectStorageSetup};
 use crate::python::TObjectWithPythonCodeGen;
 use crate::schema::DataSchema;
 use crate::storage::Storage;
@@ -10,7 +9,6 @@ use enum_dispatch::enum_dispatch;
 use indoc::indoc;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use crate::data_setup::EndpointConfig;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 pub struct RemoteImportStorageSetup {
@@ -18,7 +16,11 @@ pub struct RemoteImportStorageSetup {
     local: Vec<Storage>,
 }
 impl TObjectWithPrefectCodeGen for RemoteImportStorageSetup {
-    fn get_prefect_preamble(&self, preamble: &mut HashMap<String, String>, endpoints: &EndpointConfig) {
+    fn get_prefect_preamble(
+        &self,
+        preamble: &mut HashMap<String, String>,
+        endpoints: &EndpointConfig,
+    ) {
         self.remote.get_prefect_preamble(preamble, endpoints);
         for storage in &self.local {
             storage.get_prefect_preamble(preamble, endpoints);
@@ -105,7 +107,9 @@ impl RemoteImportStorageSetup {
     ) -> String {
         if storage.is_hive_storage() {
             let mut tags: HashMap<String, String> = HashMap::new();
-            storage.populate_table_creation_tags(&mut tags, endpoints).unwrap();
+            storage
+                .populate_table_creation_tags(&mut tags, endpoints)
+                .unwrap();
             let tags_str = match tags.len() {
                 0 => "".to_string(),
                 _ => format!(
@@ -131,7 +135,12 @@ impl RemoteImportStorageSetup {
         }
         "".to_string()
     }
-    pub fn get_presto_schemas(&self, name: &String, columnSchema: String, endpoints: &EndpointConfig) -> String {
+    pub fn get_presto_schemas(
+        &self,
+        name: &String,
+        columnSchema: String,
+        endpoints: &EndpointConfig,
+    ) -> String {
         let mut schemas: Vec<String> = Vec::new();
         for storage in self.get_local_storage() {
             schemas.push(self.get_presto_schema(name, &columnSchema, storage, endpoints));
@@ -161,9 +170,16 @@ impl StorageSetup {
             StorageSetup::RemoteImportStorageSetup(x) => x.get_local_storage(),
         }
     }
-    pub fn get_presto_schemas(&self, name: &String, columnSchema: String, endpoints: &EndpointConfig) -> String {
+    pub fn get_presto_schemas(
+        &self,
+        name: &String,
+        columnSchema: String,
+        endpoints: &EndpointConfig,
+    ) -> String {
         match self {
-            StorageSetup::RemoteImportStorageSetup(x) => x.get_presto_schemas(name, columnSchema, endpoints),
+            StorageSetup::RemoteImportStorageSetup(x) => {
+                x.get_presto_schemas(name, columnSchema, endpoints)
+            }
         }
     }
 }

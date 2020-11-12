@@ -1,5 +1,6 @@
 use crate::assets::{Asset, StaticDataTable};
 use crate::compressions::{DataCompression, GzipCompression};
+use crate::data_setup::EndpointConfig;
 use crate::encoding::Encoding;
 use crate::headers::{FileHeader, UpperSnakeCaseCSVHeader};
 use crate::locations::{GCSLocation, HiveLocation, RemoteWebsiteLocation};
@@ -8,7 +9,6 @@ use crate::schema::DataSchema;
 use crate::templates::DatumTemplate;
 use enum_dispatch::enum_dispatch;
 use std::collections::HashMap;
-use crate::data_setup::EndpointConfig;
 
 #[enum_dispatch(
     RemoteWebsiteLocation,
@@ -38,8 +38,7 @@ pub trait TPrefectAsset: TObjectWithPrefectCodeGen {
         &self,
         templates: &HashMap<String, DatumTemplate>,
         endpoints: &EndpointConfig,
-    )
-        -> Result<String, String>;
+    ) -> Result<String, String>;
 }
 
 #[enum_dispatch(StorageSetup)]
