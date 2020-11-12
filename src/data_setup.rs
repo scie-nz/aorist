@@ -11,6 +11,9 @@ use std::collections::{HashMap, HashSet};
 use std::fs;
 use thiserror::Error;
 use enum_dispatch::enum_dispatch;
+use git2::{Cred, RemoteCallbacks};
+use std::env;
+use std::path::Path;
 
 #[allow(dead_code)]
 #[derive(Debug, Error)]
@@ -71,6 +74,18 @@ pub struct LocalFileImport {
     #[getset(get="pub")]
     filename: String,
 }
+#[serde(tag="type")]
+#[derive(Serialize, Deserialize, Clone, Getters, Debug, PartialEq)]
+pub struct GitImport {
+    #[getset(get="pub")]
+    keyfile: String,
+    #[getset(get="pub")]
+    filename: String,
+    #[getset(get="pub")]
+    sshPath: String,
+    #[getset(get="pub")]
+    localPath: String,
+}
 #[enum_dispatch(AoristImport)]
 pub trait TAoristImport {
     fn get_objects(self) -> Vec<AoristObject>;
@@ -82,6 +97,42 @@ impl TAoristImport for LocalFileImport {
         imported_objects
     }
 }
+impl TAoristImport for GitImport {
+
+    fn get_objects(self) -> Vec<AoristObject> {
+  
+        // from: https://docs.rs/git2/0.13.12/git2/build/struct.RepoBuilder.html
+        // Prepare callbacks.
+        let mut callbacks = RemoteCallbacks::new();
+        callbacks.credentials(|_url, username_from_url, _allowed_types| {
+          Cred::ssh_key(
+            username_from_url.unwrap(),
+            None,
+            std::path::Path::new(&format!("{}/.ssh/id_rsa", env::var("HOME").unwrap())),
+            None,
+          )
+        });
+
+        // Prepare fetch options.
+        let mut fo = git2::FetchOptions::new();
+        fo.remote_callbacks(callbacks);
+
+        // Prepare builder.
+        let mut builder = git2::build::RepoBuilder::new();
+        builder.fetch_options(fo);
+
+        // Clone the project.
+        builder.clone(
+          self.filename(),
+          Path::new(self.localPath()),
+        ).unwrap();
+        
+        let filename = format!("{}/{}", self.localPath(), self.filename());
+        let imported_objects = read_file(&filename);
+        imported_objects
+    }
+}
+
 #[enum_dispatch]
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 #[serde(tag = "type")]
