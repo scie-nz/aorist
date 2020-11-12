@@ -1,7 +1,7 @@
 #![allow(non_snake_case)]
 use crate::access_policies::AccessPolicy;
 use crate::assets::Asset;
-use crate::data_setup::EndpointConfig;
+use crate::endpoints::EndpointConfig;
 use crate::object::TAoristObject;
 use crate::prefect::{TObjectWithPrefectCodeGen, TPrefectAsset, TPrefectDataSet};
 use crate::python::TObjectWithPythonCodeGen;

@@ -5,12 +5,13 @@ use crate::role::{Role, TRole};
 use crate::role_binding::RoleBinding;
 use crate::user::User;
 use crate::user_group::UserGroup;
-use getset::{Getters, IncompleteGetters, IncompleteMutGetters, IncompleteSetters, Setters};
+use getset::{Getters, IncompleteGetters, IncompleteMutGetters, IncompleteSetters};
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
 use thiserror::Error;
 use crate::imports::local_import::LocalFileImport;
 use crate::imports::TAoristImport;
+use crate::endpoints::EndpointConfig;
 use crate::utils::read_file;
 
 #[allow(dead_code)]
@@ -21,51 +22,6 @@ pub enum GetSetError {
     #[error("Set was called twice for the attribute: {0:#?}")]
     SetError(String),
 }
-
-#[derive(Serialize, Deserialize, Clone)]
-pub struct PrestoConfig {
-    server: String,
-    httpPort: usize,
-}
-
-#[derive(Serialize, Deserialize, Clone, Getters, Setters)]
-pub struct AlluxioConfig {
-    #[getset(get = "pub", set = "pub")]
-    server: String,
-    #[getset(get = "pub", set = "pub")]
-    rpcPort: usize,
-    #[getset(get = "pub", set = "pub")]
-    apiPort: usize,
-}
-
-#[derive(Serialize, Deserialize, Clone)]
-pub struct RangerConfig {
-    server: String,
-    port: usize,
-    user: String,
-    password: String,
-}
-
-#[derive(Serialize, Deserialize, Clone)]
-pub struct GiteaConfig {
-    server: String,
-    port: usize,
-    token: String,
-}
-
-#[serde()]
-#[derive(Serialize, Deserialize, Clone, IncompleteGetters, IncompleteSetters)]
-pub struct EndpointConfig {
-    #[getset(get_incomplete = "pub", set_incomplete = "pub")]
-    presto: Option<PrestoConfig>,
-    #[getset(get_incomplete = "pub", set_incomplete = "pub")]
-    alluxio: Option<AlluxioConfig>,
-    #[getset(get_incomplete = "pub", set_incomplete = "pub")]
-    ranger: Option<RangerConfig>,
-    #[getset(get_incomplete = "pub", set_incomplete = "pub")]
-    gitea: Option<GiteaConfig>,
-}
-
 #[derive(Serialize, Deserialize, Clone, Getters)]
 pub struct DataSetup {
     name: String,

@@ -5,6 +5,7 @@ pub mod compressions;
 pub mod data_setup;
 pub mod datasets;
 pub mod encoding;
+pub mod endpoints;
 pub mod error;
 pub mod headers;
 pub mod hive;

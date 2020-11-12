@@ -1,4 +1,4 @@
-use crate::data_setup::EndpointConfig;
+use crate::endpoints::EndpointConfig;
 use crate::hive::THiveTableCreationTagMutator;
 use crate::prefect::{TObjectWithPrefectCodeGen, TPrefectHiveLocation, TPrefectLocation};
 use crate::python::{TLocationWithPythonAPIClient, TObjectWithPythonCodeGen};

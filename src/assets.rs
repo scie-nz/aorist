@@ -1,5 +1,5 @@
 #![allow(non_snake_case)]
-use crate::data_setup::EndpointConfig;
+use crate::endpoints::EndpointConfig;
 use crate::prefect::{TObjectWithPrefectCodeGen, TPrefectAsset, TPrefectStorageSetup};
 use crate::python::TObjectWithPythonCodeGen;
 use crate::schema::DataSchema;
