@@ -2032,7 +2032,12 @@ spec:
             - "-c"
           args:
             - "prefect agent start --name 'Local Agent'"
+          volumeMounts:
+            - name: gcloud
+              mountPath: /gcloud
           env:
+            - name: GOOGLE_APPLICATION_CREDENTIALS
+              value: gcloud/social_norms.json
             - name: PREFECT__BACKEND
               value: server
             - name: NAMESPACE
@@ -2093,7 +2098,12 @@ spec:
             - "-c"
           args:
             - "prefect agent start kubernetes --name 'Kube Agent'"
+          volumeMounts:
+            - name: gcloud
+              mountPath: /gcloud
           env:
+            - name: GOOGLE_APPLICATION_CREDENTIALS
+              value: gcloud/social_norms.json
             - name: PREFECT__BACKEND
               value: server
             - name: NAMESPACE
@@ -2172,7 +2182,11 @@ spec:
             requests:
               cpu: 50m
               memory: 64Mi
-      volumes: []
+      volumes:
+      - name: gcloud
+        secret:
+          secretName: gcloud
+
 ---
 apiVersion: apps/v1
 kind: Deployment

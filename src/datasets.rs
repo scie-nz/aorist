@@ -85,9 +85,9 @@ impl DataSet {
         let code = formatdoc! {
             "{}
              {}
-             with Flow() as flow:
+             with Flow('Test Flow') as flow:
              {}
-             ",
+             flow.register(project_name='Test')",
             imports_deduped
                 .into_iter()
                 .collect::<Vec<String>>()

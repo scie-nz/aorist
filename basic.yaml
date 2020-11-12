@@ -6,7 +6,8 @@ spec:
   - alice
   - bob
   - alex
-  - gicu
+  - victor
+  - john
   groups:
   - finance-users
   - datascience-users
@@ -26,10 +27,10 @@ spec:
 ---
 type: User
 spec:
-  unixname: gicu
-  firstName: G
+  unixname: john
+  firstName: John
   lastName: State
-  email: gicu@scie.nz
+  email: john@scie.nz
   phone: 555-1234
 ---
 type: User
@@ -38,6 +39,14 @@ spec:
   firstName: A
   lastName: B
   email: alex@scie.nz
+  phone: 555-1234
+---
+type: User
+spec:
+  unixname: victor
+  firstName: A
+  lastName: B
+  email: victor@scie.nz
   phone: 555-1234
 ---
 type: RoleBinding

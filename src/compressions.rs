@@ -13,9 +13,7 @@ impl TObjectWithPythonCodeGen for GzipCompression {
     fn get_python_imports(&self, preamble: &mut HashMap<String, String>) {
         preamble.insert(
             "import_shell_task".to_string(),
-            indoc! {"
-                from prefect.tasks.shell import ShellTask
-            "}
+            indoc! {"from prefect.tasks.shell import ShellTask"}
             .to_string(),
         );
     }

@@ -17,9 +17,10 @@ impl TObjectWithPrefectCodeGen for GCSLocation {
         preamble.insert(
             "download_blob_to_file".to_string(),
             indoc! {"
+
             @task
             def download_blob_to_file(bucket_name, blob_name, file_name):
-                client = storage.Client()
+                client = storage.Client.from_service_account_json('/gcloud/social_norms.json')
                 bucket = client.bucket(bucket_name)
                 blob = bucket.blob(blob_name)
                 blob.download_to_filename(file_name)
@@ -50,12 +51,12 @@ impl TPrefectLocation for GCSLocation {
 impl TObjectWithPythonCodeGen for GCSLocation {
     fn get_python_imports(&self, preamble: &mut HashMap<String, String>) {
         let import_str = indoc!(
-            "
-            from google.cloud import storage
-        "
+            "from google.cloud import storage"
         )
         .to_string();
         preamble.insert("gcs_storage_python_imports".to_string(), import_str);
+        preamble.insert("prefect_import_task".to_string(), "from prefect import task, Flow".to_string());
+        preamble.insert("wire_import_task".to_string(), "from alluxio import wire".to_string());
     }
 }
 impl TLocationWithPythonAPIClient for GCSLocation {
@@ -105,21 +106,23 @@ impl TObjectWithPrefectCodeGen for HiveAlluxioLocation {
         preamble.insert(
             "upload_file_to_alluxio".to_string(),
             formatdoc! {"
+
                 @task
                 def upload_file_to_alluxio(local_path, remote_path, file_name):
                     {client}
-                    if not {client_name}.exists(path):
+                    if not {client_name}.exists(remote_path):
                         opt = alluxio.option.CreateDirectory(
                             recursive=True,
                             write_type=wire.WRITE_TYPE_CACHE_THROUGH
                         )
-                        {client_name}.create_directory(path, opt)
+                        {client_name}.create_directory(remote_path, opt)
                     opt = alluxio.option.CreateFile(
                         write_type=wire.WRITE_TYPE_CACHE_THROUGH
                     )
                     with {client_name}.open(remote_path, file_name, 'w', opt) as alluxio_file:
                         with open('%s/%s' % (local_path, file_name), 'rb') as local_file:
                             alluxio_file.write(local_file)
+
                     ",
                 client = self.get_python_client(&client_name),
                 client_name = &client_name,

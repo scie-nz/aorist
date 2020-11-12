@@ -9,3 +9,4 @@ RUN echo 'presto-cli --server presto-coordinator-headless:8080 --catalog hive --
 RUN chmod a+rwx /usr/bin/presto
 RUN apt-get -y install openjdk-11-jre
 RUN apt-get -y install less
+RUN pip3 install alluxio google-cloud-storage
