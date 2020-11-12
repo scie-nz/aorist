@@ -12,7 +12,6 @@ use thiserror::Error;
 use crate::imports::local_import::LocalFileImport;
 use crate::imports::TAoristImport;
 use crate::endpoints::EndpointConfig;
-use crate::utils::read_file;
 
 #[allow(dead_code)]
 #[derive(Debug, Error)]
@@ -106,7 +105,7 @@ impl ParsedDataSetup {
 }
 
 impl DataSetup {
-    fn parse(self, mut objects: Vec<AoristObject>) -> ParsedDataSetup {
+    pub fn parse(self, mut objects: Vec<AoristObject>) -> ParsedDataSetup {
         println!("{}", self.imports.is_some());
         if let Some(imports) = self.imports {
             for import in imports {
@@ -192,19 +191,4 @@ impl DataSetup {
         }
         dataSetup
     }
-}
-
-pub fn get_data_setup() -> ParsedDataSetup {
-    let objects = read_file("basic.yaml");
-    let v: Vec<Option<&DataSetup>> = objects
-        .iter()
-        .map(|x| match x {
-            AoristObject::DataSetup(x) => Some(x),
-            _ => None,
-        })
-        .filter(|x| x.is_some())
-        .collect();
-    let dataSetup: DataSetup = v.first().unwrap().unwrap().to_owned();
-
-    dataSetup.parse(objects)
 }

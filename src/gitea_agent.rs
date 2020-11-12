@@ -1,4 +1,4 @@
-use lib::data_setup::get_data_setup;
+use lib::utils::get_data_setup;
 use lib::error::AoristError;
 use lib::ranger::TRangerEntity;
 use lib::user::TGiteaEntity;

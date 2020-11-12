@@ -24,4 +24,4 @@ pub mod storage_setup;
 pub mod templates;
 pub mod user;
 pub mod user_group;
-mod utils;
+pub mod utils;
