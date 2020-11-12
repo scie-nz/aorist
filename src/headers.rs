@@ -7,6 +7,7 @@ use enum_dispatch::enum_dispatch;
 use indoc::indoc;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use crate::data_setup::EndpointConfig;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone, BlankPrefectPreamble)]
 pub struct UpperSnakeCaseCSVHeader {}

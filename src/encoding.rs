@@ -14,6 +14,7 @@ use enum_dispatch::enum_dispatch;
 use indoc::indoc;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use crate::data_setup::EndpointConfig;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 pub struct CSVEncoding {
@@ -36,9 +37,9 @@ impl TObjectWithPythonCodeGen for CSVEncoding {
     }
 }
 impl TObjectWithPrefectCodeGen for CSVEncoding {
-    fn get_prefect_preamble(&self, preamble: &mut HashMap<String, String>) {
-        self.compression.get_prefect_preamble(preamble);
-        self.header.get_prefect_preamble(preamble)
+    fn get_prefect_preamble(&self, preamble: &mut HashMap<String, String>, endpoints: &EndpointConfig) {
+        self.compression.get_prefect_preamble(preamble, endpoints);
+        self.header.get_prefect_preamble(preamble, endpoints)
     }
 }
 impl TPrefectEncoding for CSVEncoding {

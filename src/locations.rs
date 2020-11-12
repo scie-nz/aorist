@@ -1,3 +1,4 @@
+use crate::data_setup::EndpointConfig;
 use crate::hive::THiveTableCreationTagMutator;
 use crate::prefect::{TObjectWithPrefectCodeGen, TPrefectHiveLocation, TPrefectLocation};
 use crate::python::{TLocationWithPythonAPIClient, TObjectWithPythonCodeGen};
@@ -13,7 +14,7 @@ pub struct GCSLocation {
 }
 
 impl TObjectWithPrefectCodeGen for GCSLocation {
-    fn get_prefect_preamble(&self, preamble: &mut HashMap<String, String>) {
+    fn get_prefect_preamble(&self, preamble: &mut HashMap<String, String>, _endpoints: &EndpointConfig) {
         preamble.insert(
             "download_blob_to_file".to_string(),
             indoc! {"
@@ -60,7 +61,12 @@ impl TObjectWithPythonCodeGen for GCSLocation {
     }
 }
 impl TLocationWithPythonAPIClient for GCSLocation {
-    fn get_python_client(&self, client_name: &String) -> String {
+    fn get_python_client(
+        &self,
+        client_name: &String,
+        // TODO: add GCS credentials to EndpointConfig
+        _endpoints: &EndpointConfig,
+    ) -> String {
         formatdoc!(
             "
                 {client_name} = storage.Client()
@@ -69,7 +75,7 @@ impl TLocationWithPythonAPIClient for GCSLocation {
         )
         .to_string()
     }
-    fn get_python_create_storage(&self, client_name: &String) -> String {
+    fn get_python_create_storage(&self, client_name: &String, endpoints: &EndpointConfig) -> String {
         formatdoc!(
             "
                 {client}
@@ -79,7 +85,7 @@ impl TLocationWithPythonAPIClient for GCSLocation {
                     {client_name}.create_bucket({bucket_name})
             ",
             bucket_name = self.bucket,
-            client = self.get_python_client(client_name),
+            client = self.get_python_client(client_name, endpoints),
             client_name = client_name
         )
         .to_string()
@@ -101,7 +107,7 @@ pub struct HiveAlluxioLocation {
     path: String,
 }
 impl TObjectWithPrefectCodeGen for HiveAlluxioLocation {
-    fn get_prefect_preamble(&self, preamble: &mut HashMap<String, String>) {
+    fn get_prefect_preamble(&self, preamble: &mut HashMap<String, String>, endpoints: &EndpointConfig) {
         let client_name = "alluxio_client".to_string();
         preamble.insert(
             "upload_file_to_alluxio".to_string(),
@@ -124,7 +130,7 @@ impl TObjectWithPrefectCodeGen for HiveAlluxioLocation {
                             alluxio_file.write(local_file)
 
                     ",
-                client = self.get_python_client(&client_name),
+                client = self.get_python_client(&client_name, endpoints),
                 client_name = &client_name,
             }
             .to_string(),
@@ -146,18 +152,22 @@ impl TObjectWithPythonCodeGen for HiveAlluxioLocation {
     }
 }
 impl TLocationWithPythonAPIClient for HiveAlluxioLocation {
-    fn get_python_client(&self, client_name: &String) -> String {
+    fn get_python_client(
+        &self,
+        client_name: &String,
+        endpoints: &EndpointConfig,
+    ) -> String {
         formatdoc!(
             "
                 {client_name} = alluxio.Client('{server}', {port})
             ",
             client_name = client_name,
-            server = self.server,
-            port = self.rest_api_port
+            server = endpoints.alluxio().unwrap().server(),
+            port = endpoints.alluxio().unwrap().apiPort(),
         )
         .to_string()
     }
-    fn get_python_create_storage(&self, client_name: &String) -> String {
+    fn get_python_create_storage(&self, client_name: &String, endpoints: &EndpointConfig) -> String {
         formatdoc!(
             "
                 {client}
@@ -168,7 +178,7 @@ impl TLocationWithPythonAPIClient for HiveAlluxioLocation {
                     )
                     {client_name}.create_directory({path}, opt)
             ",
-            client = self.get_python_client(client_name),
+            client = self.get_python_client(client_name, endpoints),
             client_name = client_name,
             path = self.path,
         )
@@ -201,6 +211,7 @@ impl TPrefectHiveLocation for HiveAlluxioLocation {
         local_path: String,
         task_name: String,
         upstream_task_name: String,
+        _endpoints: &EndpointConfig,
     ) -> String {
         formatdoc!(
             "

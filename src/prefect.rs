@@ -8,6 +8,7 @@ use crate::schema::DataSchema;
 use crate::templates::DatumTemplate;
 use enum_dispatch::enum_dispatch;
 use std::collections::HashMap;
+use crate::data_setup::EndpointConfig;
 
 #[enum_dispatch(
     RemoteWebsiteLocation,
@@ -20,31 +21,40 @@ use std::collections::HashMap;
     FileHeader
 )]
 pub trait TObjectWithPrefectCodeGen: TObjectWithPythonCodeGen {
-    fn get_prefect_preamble(&self, preamble: &mut HashMap<String, String>);
+    fn get_prefect_preamble(
+        &self,
+        preamble: &mut HashMap<String, String>,
+        endpoints: &EndpointConfig,
+    );
 }
 
-pub trait TObjectWithPrefectDAGCodeGen: TObjectWithPrefectCodeGen {
-    fn get_prefect_dag(&self) -> Result<String, String>;
+pub trait TPrefectDataSet: TObjectWithPrefectCodeGen {
+    fn get_prefect_dag(&self, endpoints: &EndpointConfig) -> Result<String, String>;
 }
 
 #[enum_dispatch(Asset)]
-pub trait TAssetWithPrefectDAGCodeGen: TObjectWithPrefectCodeGen {
-    fn get_prefect_dag(&self, templates: &HashMap<String, DatumTemplate>)
+pub trait TPrefectAsset: TObjectWithPrefectCodeGen {
+    fn get_prefect_dag(
+        &self,
+        templates: &HashMap<String, DatumTemplate>,
+        endpoints: &EndpointConfig,
+    )
         -> Result<String, String>;
 }
 
 #[enum_dispatch(StorageSetup)]
-pub trait TStorageSetupWithPrefectDAGCodeGen: TObjectWithPrefectCodeGen {
+pub trait TPrefectStorageSetup: TObjectWithPrefectCodeGen {
     fn get_prefect_dag(
         &self,
         schema: &DataSchema,
         templates: &HashMap<String, DatumTemplate>,
         table_name: &String,
+        endpoints: &EndpointConfig,
     ) -> Result<String, String>;
 }
 
 #[enum_dispatch(Storage)]
-pub trait TStorageWithPrefectDAGCodeGen: TObjectWithPrefectCodeGen {
+pub trait TPrefectStorage: TObjectWithPrefectCodeGen {
     fn get_prefect_dag(&self, schema: &DataSchema) -> Result<String, String>;
     fn get_prefect_ingest_dag(
         &self,
@@ -54,6 +64,7 @@ pub trait TStorageWithPrefectDAGCodeGen: TObjectWithPrefectCodeGen {
         templates: &HashMap<String, DatumTemplate>,
         task_name: String,
         upstream_task_name: String,
+        endpoints: &EndpointConfig,
     ) -> Result<String, String>;
 }
 
@@ -70,6 +81,7 @@ pub trait TPrefectHiveLocation: TObjectWithPrefectCodeGen {
         file_name: String,
         local_path: String,
         alluxio_path: String,
+        endpoints: &EndpointConfig,
     ) -> String;
 }
 

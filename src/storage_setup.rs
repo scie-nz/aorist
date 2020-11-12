@@ -1,6 +1,6 @@
 #![allow(non_snake_case)]
 use crate::prefect::{
-    TObjectWithPrefectCodeGen, TStorageSetupWithPrefectDAGCodeGen, TStorageWithPrefectDAGCodeGen,
+    TObjectWithPrefectCodeGen, TPrefectStorageSetup, TPrefectStorage,
 };
 use crate::python::TObjectWithPythonCodeGen;
 use crate::schema::DataSchema;
@@ -10,6 +10,7 @@ use enum_dispatch::enum_dispatch;
 use indoc::indoc;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use crate::data_setup::EndpointConfig;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 pub struct RemoteImportStorageSetup {
@@ -17,19 +18,20 @@ pub struct RemoteImportStorageSetup {
     local: Vec<Storage>,
 }
 impl TObjectWithPrefectCodeGen for RemoteImportStorageSetup {
-    fn get_prefect_preamble(&self, preamble: &mut HashMap<String, String>) {
-        self.remote.get_prefect_preamble(preamble);
+    fn get_prefect_preamble(&self, preamble: &mut HashMap<String, String>, endpoints: &EndpointConfig) {
+        self.remote.get_prefect_preamble(preamble, endpoints);
         for storage in &self.local {
-            storage.get_prefect_preamble(preamble);
+            storage.get_prefect_preamble(preamble, endpoints);
         }
     }
 }
-impl TStorageSetupWithPrefectDAGCodeGen for RemoteImportStorageSetup {
+impl TPrefectStorageSetup for RemoteImportStorageSetup {
     fn get_prefect_dag(
         &self,
         schema: &DataSchema,
         templates: &HashMap<String, DatumTemplate>,
         table_name: &String,
+        endpoints: &EndpointConfig,
     ) -> Result<String, String> {
         let remote_dag = self.remote.get_prefect_dag(schema)?;
         let mut dag = format!("{}", remote_dag);
@@ -44,6 +46,7 @@ impl TStorageSetupWithPrefectDAGCodeGen for RemoteImportStorageSetup {
                 templates,
                 format!("upload_{}", i),
                 "decode_file_remove_header".to_string(),
+                endpoints,
             )?;
             // TODO: last argument should come from upstream pipeline
             let schema_creation = self.get_presto_schema_creation_task(
@@ -52,6 +55,7 @@ impl TStorageSetupWithPrefectDAGCodeGen for RemoteImportStorageSetup {
                 local_storage,
                 format!("create_table_{}", i),
                 format!("upload_{}_encode", i),
+                endpoints,
             );
 
             dag = format!("{}\n{}\n{}", &dag, local, schema_creation);
@@ -72,8 +76,10 @@ impl RemoteImportStorageSetup {
         storage: &Storage,
         task_name: String,
         upstream_task_name: String,
+        _endpoints: &EndpointConfig,
     ) -> String {
         let schema = self.get_presto_schema(name, columnSchema, storage);
+        // TODO: get presto port from endpoints
         format!(
             indoc! {
                 "

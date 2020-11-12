@@ -6,7 +6,7 @@ use crate::layouts::{HiveStorageLayout, StorageLayout};
 use crate::locations::{HiveLocation, RemoteWebsiteLocation};
 use crate::prefect::{
     TObjectWithPrefectCodeGen, TPrefectEncoding, TPrefectHiveLocation, TPrefectLocation,
-    TStorageWithPrefectDAGCodeGen,
+    TPrefectStorage,
 };
 use crate::python::TObjectWithPythonCodeGen;
 use crate::schema::DataSchema;
@@ -14,6 +14,7 @@ use crate::templates::DatumTemplate;
 use enum_dispatch::enum_dispatch;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use crate::data_setup::EndpointConfig;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 pub struct RemoteWebsiteStorage {
@@ -28,11 +29,11 @@ impl TObjectWithPythonCodeGen for RemoteWebsiteStorage {
     }
 }
 impl TObjectWithPrefectCodeGen for RemoteWebsiteStorage {
-    fn get_prefect_preamble(&self, preamble: &mut HashMap<String, String>) {
-        self.location.get_prefect_preamble(preamble);
+    fn get_prefect_preamble(&self, preamble: &mut HashMap<String, String>, endpoints: &EndpointConfig) {
+        self.location.get_prefect_preamble(preamble, endpoints);
     }
 }
-impl TStorageWithPrefectDAGCodeGen for RemoteWebsiteStorage {
+impl TPrefectStorage for RemoteWebsiteStorage {
     fn get_prefect_dag(&self, _schema: &DataSchema) -> Result<String, String> {
         Ok(format!(
             "{}\n{}",
@@ -55,6 +56,7 @@ impl TStorageWithPrefectDAGCodeGen for RemoteWebsiteStorage {
         _templates: &HashMap<String, DatumTemplate>,
         _task_name: String,
         _upstream_task_name: String,
+        _endpoints: &EndpointConfig,
     ) -> Result<String, String> {
         Err("Ingest dag not implemented".to_string())
     }
@@ -81,11 +83,11 @@ impl TObjectWithPythonCodeGen for HiveTableStorage {
     }
 }
 impl TObjectWithPrefectCodeGen for HiveTableStorage {
-    fn get_prefect_preamble(&self, preamble: &mut HashMap<String, String>) {
-        self.location.get_prefect_preamble(preamble);
+    fn get_prefect_preamble(&self, preamble: &mut HashMap<String, String>, endpoints: &EndpointConfig) {
+        self.location.get_prefect_preamble(preamble, endpoints);
     }
 }
-impl TStorageWithPrefectDAGCodeGen for HiveTableStorage {
+impl TPrefectStorage for HiveTableStorage {
     fn get_prefect_dag(&self, _schema: &DataSchema) -> Result<String, String> {
         Err("Ingest dag not implemented".to_string())
     }
@@ -97,6 +99,7 @@ impl TStorageWithPrefectDAGCodeGen for HiveTableStorage {
         templates: &HashMap<String, DatumTemplate>,
         task_name: String,
         upstream_task_name: String,
+        endpoints: &EndpointConfig,
     ) -> Result<String, String> {
         Ok(format!(
             "{}\n{}",
@@ -113,6 +116,7 @@ impl TStorageWithPrefectDAGCodeGen for HiveTableStorage {
                 local_path,
                 format!("{}_upload", task_name).to_string(),
                 format!("{}_encode", task_name).to_string(),
+                endpoints,
             ),
         ))
     }

@@ -1,6 +1,7 @@
 #![allow(non_snake_case)]
+use crate::data_setup::EndpointConfig;
 use crate::prefect::{
-    TAssetWithPrefectDAGCodeGen, TObjectWithPrefectCodeGen, TStorageSetupWithPrefectDAGCodeGen,
+    TPrefectAsset, TObjectWithPrefectCodeGen, TPrefectStorageSetup,
 };
 use crate::python::TObjectWithPythonCodeGen;
 use crate::schema::DataSchema;
@@ -31,17 +32,23 @@ impl TObjectWithPythonCodeGen for StaticDataTable {
     }
 }
 impl TObjectWithPrefectCodeGen for StaticDataTable {
-    fn get_prefect_preamble(&self, preamble: &mut HashMap<String, String>) {
-        self.setup.get_prefect_preamble(preamble);
+    fn get_prefect_preamble(&self, preamble: &mut HashMap<String, String>, endpoints: &EndpointConfig) {
+        self.setup.get_prefect_preamble(preamble, endpoints);
     }
 }
-impl TAssetWithPrefectDAGCodeGen for StaticDataTable {
+impl TPrefectAsset for StaticDataTable {
     fn get_prefect_dag(
         &self,
         templates: &HashMap<String, DatumTemplate>,
+        endpoints: &EndpointConfig,
     ) -> Result<String, String> {
         self.setup
-            .get_prefect_dag(&self.schema, templates, self.get_name())
+            .get_prefect_dag(
+                &self.schema,
+                templates,
+                self.get_name(),
+                endpoints,
+            )
     }
 }
 

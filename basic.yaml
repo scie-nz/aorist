@@ -16,6 +16,23 @@ spec:
   - sentinel-2-metadata-dataset
   role_bindings:
   - bogdan-global-permissions-admin
+  endpoints:
+    alluxio:
+      server: alluxio
+      rpcPort: 19999
+      apiPort: 39999
+    presto:
+      server: presto-coordinator-0
+      httpPort: 8080
+    ranger:
+      server: localhost
+      port: 30800
+      user: admin
+      password: G0powerRangers
+    gitea:
+      server: localhost
+      port: 30807
+      token: 2b44b07e042ee9fe374e3eeebd2c9098468b5774
 ---
 type: User
 spec:

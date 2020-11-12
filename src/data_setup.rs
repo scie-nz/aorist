@@ -5,7 +5,7 @@ use crate::role::{Role, TRole};
 use crate::role_binding::RoleBinding;
 use crate::user::User;
 use crate::user_group::UserGroup;
-use getset::{IncompleteGetters, IncompleteMutGetters, IncompleteSetters};
+use getset::{IncompleteGetters, IncompleteMutGetters, IncompleteSetters, Getters, Setters};
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
 use std::fs;
@@ -21,12 +21,57 @@ pub enum GetSetError {
 }
 
 #[derive(Serialize, Deserialize, Clone)]
+pub struct PrestoConfig {
+    server: String,
+    httpPort: usize,
+}
+
+#[derive(Serialize, Deserialize, Clone, Getters, Setters)]
+pub struct AlluxioConfig {
+    #[getset(get="pub", set="pub")]
+    server: String,
+    #[getset(get="pub", set="pub")]
+    rpcPort: usize,
+    #[getset(get="pub", set="pub")]
+    apiPort: usize,
+}
+
+#[derive(Serialize, Deserialize, Clone)]
+pub struct RangerConfig {
+    server: String,
+    port: usize,
+    user: String,
+    password: String,
+}
+
+#[derive(Serialize, Deserialize, Clone)]
+pub struct GiteaConfig {
+    server: String,
+    port: usize,
+    token: String,
+}
+
+#[serde()]
+#[derive(Serialize, Deserialize, Clone, IncompleteGetters, IncompleteSetters)]
+pub struct EndpointConfig {
+    #[getset(get_incomplete="pub", set_incomplete="pub")]
+    presto: Option<PrestoConfig>,
+    #[getset(get_incomplete="pub", set_incomplete="pub")]
+    alluxio: Option<AlluxioConfig>,
+    #[getset(get_incomplete="pub", set_incomplete="pub")]
+    ranger: Option<RangerConfig>,
+    #[getset(get_incomplete="pub", set_incomplete="pub")]
+    gitea: Option<GiteaConfig>,
+}
+
+#[derive(Serialize, Deserialize, Clone)]
 pub struct DataSetup {
     name: String,
     users: Vec<String>,
     groups: Vec<String>,
     datasets: Vec<String>,
     role_bindings: Vec<String>,
+    endpoints: EndpointConfig,
 }
 impl TAoristObject for DataSetup {
     fn get_name(&self) -> &String {
@@ -61,6 +106,7 @@ pub struct ParsedDataSetup {
         get_mut_incomplete = "pub with_prefix"
     )]
     role_bindings: Option<Vec<RoleBinding>>,
+    endpoints: EndpointConfig,
 }
 impl ParsedDataSetup {
     pub fn get_user_unixname_map(&self) -> HashMap<String, User> {
@@ -92,7 +138,9 @@ impl ParsedDataSetup {
         for dataset in self.get_datasets().unwrap() {
             files.insert(
                 dataset.get_materialize_pipeline_name(),
-                dataset.get_materialize_pipeline()?,
+                dataset.get_materialize_pipeline(
+                    &self.endpoints
+                )?,
             );
         }
         Ok(files)
@@ -101,12 +149,14 @@ impl ParsedDataSetup {
 
 impl DataSetup {
     fn parse(self, objects: Vec<AoristObject>) -> ParsedDataSetup {
+        println!("Endpoints.alluxio is some: {}", self.endpoints.alluxio.is_some());
         let mut dataSetup = ParsedDataSetup {
             name: self.name,
             users: None,
             datasets: None,
             groups: None,
             role_bindings: None,
+            endpoints: self.endpoints,
         };
 
         let user_names: HashSet<String> = self.users.iter().map(|x| x.clone()).collect();

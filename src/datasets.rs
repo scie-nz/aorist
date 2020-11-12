@@ -3,7 +3,7 @@ use crate::access_policies::AccessPolicy;
 use crate::assets::Asset;
 use crate::object::TAoristObject;
 use crate::prefect::{
-    TAssetWithPrefectDAGCodeGen, TObjectWithPrefectCodeGen, TObjectWithPrefectDAGCodeGen,
+    TPrefectAsset, TObjectWithPrefectCodeGen, TPrefectDataSet,
 };
 use crate::python::TObjectWithPythonCodeGen;
 use crate::templates::DatumTemplate;
@@ -11,6 +11,7 @@ use indoc::formatdoc;
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeSet, HashMap};
 use textwrap::indent;
+use crate::data_setup::EndpointConfig;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Default)]
 pub struct DataSet {
@@ -32,19 +33,19 @@ impl TObjectWithPythonCodeGen for DataSet {
     }
 }
 impl TObjectWithPrefectCodeGen for DataSet {
-    fn get_prefect_preamble(&self, preamble: &mut HashMap<String, String>) {
+    fn get_prefect_preamble(&self, preamble: &mut HashMap<String, String>, endpoints: &EndpointConfig) {
         for asset in &self.assets {
-            asset.get_prefect_preamble(preamble);
+            asset.get_prefect_preamble(preamble, endpoints);
         }
     }
 }
-impl TObjectWithPrefectDAGCodeGen for DataSet {
-    fn get_prefect_dag(&self) -> Result<String, String> {
+impl TPrefectDataSet for DataSet {
+    fn get_prefect_dag(&self, endpoints: &EndpointConfig) -> Result<String, String> {
         let mappedTemplates = self.get_mapped_datum_templates();
         let materialized_assets: Vec<String> = self
             .assets
             .iter()
-            .map(|x| x.get_prefect_dag(&mappedTemplates).unwrap())
+            .map(|x| x.get_prefect_dag(&mappedTemplates, endpoints).unwrap())
             .collect();
         Ok(materialized_assets.join("\n"))
     }
@@ -72,13 +73,13 @@ impl DataSet {
     pub fn get_materialize_pipeline_name(&self) -> String {
         format!("materialize_{}.py", self.get_name()).to_string()
     }
-    pub fn get_materialize_pipeline(&self) -> Result<String, String> {
+    pub fn get_materialize_pipeline(&self, endpoints: &EndpointConfig) -> Result<String, String> {
         let mut preamble: HashMap<String, String> = HashMap::new();
         self.get_python_imports(&mut preamble);
         let imports_deduped: BTreeSet<String> = preamble.values().map(|x| x.clone()).collect();
 
         let mut preamble: HashMap<String, String> = HashMap::new();
-        self.get_prefect_preamble(&mut preamble);
+        self.get_prefect_preamble(&mut preamble, endpoints);
         let prefect_preamble_deduped: BTreeSet<String> =
             preamble.values().map(|x| x.clone()).collect();
 
@@ -96,7 +97,7 @@ impl DataSet {
                 .into_iter()
                 .collect::<Vec<String>>()
                 .join("\n"),
-            indent(&self.get_prefect_dag()?, "    "),
+            indent(&self.get_prefect_dag(endpoints)?, "    "),
         };
         Ok(code)
     }

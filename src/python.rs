@@ -6,6 +6,7 @@ use crate::locations::{HiveLocation, RemoteWebsiteLocation};
 use enum_dispatch::enum_dispatch;
 use indoc::formatdoc;
 use std::collections::HashMap;
+use crate::data_setup::EndpointConfig;
 
 #[enum_dispatch(
     HiveLocation,
@@ -22,14 +23,23 @@ pub trait TObjectWithPythonCodeGen {
 }
 #[enum_dispatch(HiveLocation)]
 pub trait TLocationWithPythonAPIClient: TObjectWithPythonCodeGen {
-    fn get_python_client(&self, client_name: &String) -> String;
-    fn get_python_create_storage(&self, client_name: &String) -> String;
+    fn get_python_client(
+        &self,
+        client_name: &String,
+        endpoints: &EndpointConfig,
+    ) -> String;
+    fn get_python_create_storage(
+        &self,
+        client_name: &String,
+        endpoints: &EndpointConfig,
+    ) -> String;
 
     fn get_prefect_create_storage_task(
         &self,
         task_name: &String,
         client_name: &String,
         preamble: &mut HashMap<String, String>,
+        endpoints: &EndpointConfig,
     ) -> String {
         self.get_python_imports(preamble);
         formatdoc!(
@@ -38,7 +48,7 @@ pub trait TLocationWithPythonAPIClient: TObjectWithPythonCodeGen {
                 {python_create_storage}
             ",
             task_name = task_name,
-            python_create_storage = self.get_python_create_storage(client_name)
+            python_create_storage = self.get_python_create_storage(client_name, endpoints)
         )
         .to_string()
     }

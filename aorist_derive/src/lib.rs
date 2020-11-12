@@ -93,7 +93,7 @@ pub fn derive_blank_prefect_preamble(input: TokenStream) -> TokenStream {
     let name = &ast.ident;
 	  let gen = quote! {
         impl TObjectWithPrefectCodeGen for #name {
-            fn get_prefect_preamble(&self, _preamble: &mut HashMap<String, String>) {
+            fn get_prefect_preamble(&self, _preamble: &mut HashMap<String, String>, _endpoints: &EndpointConfig) {
             }
         }
     };
