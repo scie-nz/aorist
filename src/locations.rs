@@ -101,9 +101,6 @@ pub enum RemoteWebsiteLocation {
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 pub struct HiveAlluxioLocation {
-    server: String,
-    port: usize,
-    rest_api_port: usize,
     path: String,
 }
 impl TObjectWithPrefectCodeGen for HiveAlluxioLocation {
@@ -190,13 +187,14 @@ impl THiveTableCreationTagMutator for HiveAlluxioLocation {
     fn populate_table_creation_tags(
         &self,
         tags: &mut HashMap<String, String>,
+        endpoints: &EndpointConfig,
     ) -> Result<(), String> {
         tags.insert(
             "external_location".to_string(),
             format!(
                 "alluxio://{server}:{port}/{path}",
-                server = self.server,
-                port = self.port,
+                server = endpoints.alluxio().unwrap().server(),
+                port = endpoints.alluxio().unwrap().rpcPort(),
                 path = self.path
             )
             .to_string(),

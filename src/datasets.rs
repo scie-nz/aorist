@@ -60,11 +60,11 @@ impl DataSet {
             .map(|x| (x.get_name().clone(), x.clone()))
             .collect()
     }
-    pub fn get_presto_schemas(&self) -> String {
+    pub fn get_presto_schemas(&self, endpoints: &EndpointConfig) -> String {
         let mappedTemplates = self.get_mapped_datum_templates();
         let mut schemas: String = "".to_string();
         for asset in &self.assets {
-            let schema = asset.get_presto_schemas(&mappedTemplates);
+            let schema = asset.get_presto_schemas(&mappedTemplates, endpoints);
             schemas += "\n\n";
             schemas += &schema;
         }

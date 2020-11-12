@@ -18,9 +18,9 @@ pub struct StaticDataTable {
     schema: DataSchema,
 }
 impl StaticDataTable {
-    pub fn get_presto_schemas(&self, templates: &HashMap<String, DatumTemplate>) -> String {
+    pub fn get_presto_schemas(&self, templates: &HashMap<String, DatumTemplate>, endpoints: &EndpointConfig) -> String {
         let columnSchema = self.schema.get_presto_schema(templates);
-        self.setup.get_presto_schemas(self.get_name(), columnSchema)
+        self.setup.get_presto_schemas(self.get_name(), columnSchema, endpoints)
     }
     pub fn get_name(&self) -> &String {
         &self.name
@@ -59,9 +59,9 @@ pub enum Asset {
     StaticDataTable(StaticDataTable),
 }
 impl Asset {
-    pub fn get_presto_schemas(&self, templates: &HashMap<String, DatumTemplate>) -> String {
+    pub fn get_presto_schemas(&self, templates: &HashMap<String, DatumTemplate>, endpoints: &EndpointConfig) -> String {
         match self {
-            Asset::StaticDataTable(x) => x.get_presto_schemas(templates),
+            Asset::StaticDataTable(x) => x.get_presto_schemas(templates, endpoints),
         }
     }
 }

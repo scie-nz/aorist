@@ -25,6 +25,7 @@ impl THiveTableCreationTagMutator for CSVEncoding {
     fn populate_table_creation_tags(
         &self,
         tags: &mut HashMap<String, String>,
+        _endpoints: &EndpointConfig,
     ) -> Result<(), String> {
         tags.insert("format".to_string(), "CSV".to_string());
         Ok(())
@@ -83,6 +84,7 @@ impl THiveTableCreationTagMutator for ORCEncoding {
     fn populate_table_creation_tags(
         &self,
         tags: &mut HashMap<String, String>,
+        _endpoints: &EndpointConfig,
     ) -> Result<(), String> {
         tags.insert("format".to_string(), "ORC".to_string());
         Ok(())

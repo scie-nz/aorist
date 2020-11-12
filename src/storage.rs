@@ -72,9 +72,10 @@ impl THiveTableCreationTagMutator for HiveTableStorage {
     fn populate_table_creation_tags(
         &self,
         tags: &mut HashMap<String, String>,
+        endpoints: &EndpointConfig,
     ) -> Result<(), String> {
-        self.encoding.populate_table_creation_tags(tags)?;
-        self.location.populate_table_creation_tags(tags)
+        self.encoding.populate_table_creation_tags(tags, endpoints)?;
+        self.location.populate_table_creation_tags(tags, endpoints)
     }
 }
 impl TObjectWithPythonCodeGen for HiveTableStorage {
@@ -139,12 +140,13 @@ impl Storage {
     pub fn populate_table_creation_tags(
         &self,
         tags: &mut HashMap<String, String>,
+        endpoints: &EndpointConfig,
     ) -> Result<(), String> {
         match self {
             Storage::RemoteWebsiteStorage(_) => {
                 Err("Cannot create Hive table for remote location".to_string())
             }
-            Storage::HiveTableStorage(x) => x.populate_table_creation_tags(tags),
+            Storage::HiveTableStorage(x) => x.populate_table_creation_tags(tags, endpoints),
         }
     }
 }
