@@ -1,26 +1,18 @@
 #![allow(non_snake_case)]
+use crate::data_setup::parsed_data_setup::ParsedDataSetup;
 use crate::datasets::DataSet;
 use crate::object::{AoristObject, TAoristObject};
-use crate::role::{Role, TRole};
+use crate::role::Role;
 use crate::role_binding::RoleBinding;
 use crate::user::User;
 use crate::user_group::UserGroup;
-use getset::{Getters, IncompleteGetters, IncompleteMutGetters, IncompleteSetters};
+use getset::Getters;
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
-use thiserror::Error;
 use crate::imports::local_import::LocalFileImport;
 use crate::imports::TAoristImport;
 use crate::endpoints::EndpointConfig;
 
-#[allow(dead_code)]
-#[derive(Debug, Error)]
-pub enum GetSetError {
-    #[error("Get was called, but attribute was not set: {0:#?}")]
-    GetError(String),
-    #[error("Set was called twice for the attribute: {0:#?}")]
-    SetError(String),
-}
 #[derive(Serialize, Deserialize, Clone, Getters)]
 pub struct DataSetup {
     name: String,
@@ -37,73 +29,6 @@ impl TAoristObject for DataSetup {
         &self.name
     }
 }
-
-#[derive(Serialize, Deserialize, IncompleteGetters, IncompleteSetters, IncompleteMutGetters)]
-pub struct ParsedDataSetup {
-    name: String,
-    #[getset(
-        get_incomplete = "pub with_prefix",
-        set_incomplete = "pub",
-        get_mut_incomplete = "pub with_prefix"
-    )]
-    users: Option<Vec<User>>,
-    #[getset(
-        get_incomplete = "pub with_prefix",
-        set_incomplete = "pub",
-        get_mut_incomplete = "pub with_prefix"
-    )]
-    groups: Option<Vec<UserGroup>>,
-    #[getset(
-        get_incomplete = "pub with_prefix",
-        set_incomplete = "pub",
-        get_mut_incomplete = "pub with_prefix"
-    )]
-    datasets: Option<Vec<DataSet>>,
-    #[getset(
-        get_incomplete = "pub with_prefix",
-        set_incomplete = "pub",
-        get_mut_incomplete = "pub with_prefix"
-    )]
-    role_bindings: Option<Vec<RoleBinding>>,
-    endpoints: EndpointConfig,
-}
-impl ParsedDataSetup {
-    pub fn get_user_unixname_map(&self) -> HashMap<String, User> {
-        let users: &Vec<User> = self.get_users().unwrap();
-        users
-            .iter()
-            .map(|x| (x.get_unixname().clone(), x.clone()))
-            .collect()
-    }
-    pub fn get_user_permissions(&self) -> Result<HashMap<User, HashSet<String>>, String> {
-        let umap = self.get_user_unixname_map();
-        let mut map: HashMap<User, HashSet<String>> = HashMap::new();
-        for binding in self.get_role_bindings().unwrap() {
-            let name = binding.get_user_name();
-            if !umap.contains_key(name) {
-                return Err(format!("Cannot find user with name {}.", name));
-            }
-            let user = umap.get(name).unwrap().clone();
-            for perm in binding.get_role().get_permissions() {
-                map.entry(user.clone())
-                    .or_insert_with(HashSet::new)
-                    .insert(perm.clone());
-            }
-        }
-        Ok(map)
-    }
-    pub fn get_pipelines(&self) -> Result<HashMap<String, String>, String> {
-        let mut files: HashMap<String, String> = HashMap::new();
-        for dataset in self.get_datasets().unwrap() {
-            files.insert(
-                dataset.get_materialize_pipeline_name(),
-                dataset.get_materialize_pipeline(&self.endpoints)?,
-            );
-        }
-        Ok(files)
-    }
-}
-
 impl DataSetup {
     pub fn parse(self, mut objects: Vec<AoristObject>) -> ParsedDataSetup {
         println!("{}", self.imports.is_some());
@@ -115,14 +40,7 @@ impl DataSetup {
             }
         }
 
-        let mut dataSetup = ParsedDataSetup {
-            name: self.name,
-            users: None,
-            datasets: None,
-            groups: None,
-            role_bindings: None,
-            endpoints: self.endpoints,
-        };
+        let mut dataSetup = ParsedDataSetup::new(self.name, self.endpoints);
 
         let user_names: HashSet<String> = self.users.iter().map(|x| x.clone()).collect();
         let dataset_names: HashSet<String> = self.datasets.iter().map(|x| x.clone()).collect();

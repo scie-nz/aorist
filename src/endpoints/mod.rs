@@ -7,7 +7,7 @@ use crate::endpoints::alluxio::AlluxioConfig;
 use crate::endpoints::gitea::GiteaConfig;
 use crate::endpoints::presto::PrestoConfig;
 use crate::endpoints::ranger::RangerConfig;
-use crate::data_setup::GetSetError;
+use crate::utils::GetSetError;
 use getset::{IncompleteGetters, IncompleteSetters};
 use serde::{Deserialize, Serialize};
 
