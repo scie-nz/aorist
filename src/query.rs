@@ -1,6 +1,5 @@
 use sqlparser::ast::{
-    Ident, ObjectName, Query, Select, SelectItem, SetExpr, TableFactor, TableWithJoins,
-    Statement,
+    Ident, ObjectName, Query, Select, SelectItem, SetExpr, Statement, TableFactor, TableWithJoins,
 };
 
 #[derive(Debug, Clone)]
@@ -46,13 +45,13 @@ impl PrestoInsertQuery {
     }
     pub fn set_table_name(&mut self, name: String) -> Result<(), String> {
         match &mut self.statement {
-            Statement::Insert{table_name, ..} => {
+            Statement::Insert { table_name, .. } => {
                 let ObjectName(table_vec) = table_name;
                 assert!(table_vec.is_empty());
                 table_vec.push(Ident::new(name));
                 Ok(())
-            },
-            _ => Err("Inner value not an insert statement.".into())
+            }
+            _ => Err("Inner value not an insert statement.".into()),
         }
     }
 }

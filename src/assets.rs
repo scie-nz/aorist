@@ -9,7 +9,6 @@ use enum_dispatch::enum_dispatch;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 pub struct StaticDataTable {
     name: String,
