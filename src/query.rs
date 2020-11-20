@@ -1,9 +1,11 @@
 use sqlparser::ast::{
     Ident, ObjectName, Query, Select, SelectItem, SetExpr, TableFactor, TableWithJoins,
+    Statement,
 };
 
+#[derive(Debug, Clone)]
 pub struct PrestoInsertQuery {
-    query: Query,
+    statement: Statement,
 }
 impl PrestoInsertQuery {
     pub fn empty() -> Self {
@@ -35,6 +37,22 @@ impl PrestoInsertQuery {
             offset: None,
             fetch: None,
         };
-        Self { query }
+        let statement = Statement::Insert {
+            table_name: ObjectName(Vec::new()),
+            columns: Vec::new(),
+            source: Box::new(query),
+        };
+        Self { statement }
+    }
+    pub fn set_table_name(&mut self, name: String) -> Result<(), String> {
+        match &mut self.statement {
+            Statement::Insert{table_name, ..} => {
+                let ObjectName(table_vec) = table_name;
+                assert!(table_vec.is_empty());
+                table_vec.push(Ident::new(name));
+                Ok(())
+            },
+            _ => Err("Inner value not an insert statement.".into())
+        }
     }
 }

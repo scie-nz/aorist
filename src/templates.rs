@@ -1,6 +1,7 @@
 #![allow(non_snake_case)]
 
 use crate::attributes::{Attribute, TAttribute, TOrcAttribute, TPrestoAttribute};
+use crate::query::PrestoInsertQuery;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
@@ -10,6 +11,13 @@ pub struct KeyedStruct {
     attributes: Vec<Attribute>,
 }
 impl KeyedStruct {
+    pub fn get_presto_query(&self) -> PrestoInsertQuery {
+        let query = PrestoInsertQuery::empty();
+        query
+    }
+    pub fn mutate_presto_insert_query(&self, query: &mut PrestoInsertQuery) {
+        query.set_table_name(self.name.clone()).unwrap();
+    }
     fn get_mapped_attributes(&self) -> HashMap<String, Attribute> {
         self.attributes
             .iter()
