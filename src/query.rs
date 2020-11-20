@@ -1,6 +1,7 @@
 use sqlparser::ast::{
     Ident, ObjectName, Query, Select, SelectItem, SetExpr, Statement, TableFactor, TableWithJoins,
 };
+use crate::attributes::{Attribute, TAttribute};
 
 #[derive(Debug, Clone)]
 pub struct PrestoInsertQuery {
@@ -49,6 +50,19 @@ impl PrestoInsertQuery {
                 let ObjectName(table_vec) = table_name;
                 assert!(table_vec.is_empty());
                 table_vec.push(Ident::new(name));
+                Ok(())
+            }
+            _ => Err("Inner value not an insert statement.".into()),
+        }
+    }
+    pub fn set_columns(&mut self, attributes: &Vec<Attribute>) -> Result<(), String> {
+        match &mut self.statement {
+            Statement::Insert { columns, .. } => {
+                assert!(columns.is_empty());
+                for attribute in attributes.iter() {
+                    let column = Ident::new(attribute.get_name().clone());
+                    columns.push(column);
+                }
                 Ok(())
             }
             _ => Err("Inner value not an insert statement.".into()),

@@ -16,7 +16,9 @@ impl KeyedStruct {
         query
     }
     pub fn mutate_presto_insert_query(&self, query: &mut PrestoInsertQuery) {
+        // TODO: handle these with thiserror
         query.set_table_name(self.name.clone()).unwrap();
+        query.set_columns(&self.attributes).unwrap();
     }
     fn get_mapped_attributes(&self) -> HashMap<String, Attribute> {
         self.attributes
