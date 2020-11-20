@@ -8,7 +8,6 @@ use crate::templates::DatumTemplate;
 use enum_dispatch::enum_dispatch;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use sqlparser::ast::{Query, SetExpr, Select, SelectItem, TableWithJoins, ObjectName, Ident, TableFactor};
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 pub struct StaticDataTable {
@@ -54,7 +53,6 @@ impl TPrefectAsset for StaticDataTable {
             .get_prefect_dag(&self.schema, templates, self.get_name(), endpoints)
     }
 }
-
 #[enum_dispatch]
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 #[serde(tag = "type", content = "spec")]
@@ -70,41 +68,5 @@ impl Asset {
         match self {
             Asset::StaticDataTable(x) => x.get_presto_schemas(templates, endpoints),
         }
-    }
-    pub fn get_presto_query() -> Result<Query, String> {
-        let projection = vec![
-            SelectItem::Wildcard,
-        ];
-        let table = vec![
-            TableWithJoins{
-                relation: TableFactor::Table{
-                    // TODO: remove when this function is actually used
-                    name: ObjectName(vec![Ident::new("some_table")]),
-                    alias: None,
-                    args: Vec::new(),
-                    with_hints: Vec::new(),
-                },
-                joins: Vec::new(),
-            },
-        ];
-        let select = Select {
-            distinct: false,
-            top: None,
-            projection: projection,
-            from: table,
-            selection: None,
-            group_by: Vec::new(),
-            having: None,
-
-        };
-        let query = Query {
-            ctes: Vec::new(),
-            body: SetExpr::Select(Box::new(select)),
-            order_by: Vec::new(),
-            limit: None,
-            offset: None,
-            fetch: None,
-        };
-        Ok(query)
     }
 }

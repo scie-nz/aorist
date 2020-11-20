@@ -15,6 +15,7 @@ pub mod locations;
 pub mod object;
 pub mod prefect;
 pub mod python;
+pub mod query;
 pub mod ranger;
 pub mod role;
 pub mod role_binding;
