@@ -1,5 +1,5 @@
-use crate::endpoints::EndpointConfig;
 use crate::encoding::{CSVEncoding, Encoding, ORCEncoding};
+use crate::endpoints::EndpointConfig;
 use enum_dispatch::enum_dispatch;
 use std::collections::HashMap;
 

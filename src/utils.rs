@@ -1,10 +1,9 @@
 #![allow(non_snake_case)]
-use crate::object::AoristObject;
 use crate::data_setup::data_setup::DataSetup;
 use crate::data_setup::parsed_data_setup::ParsedDataSetup;
+use crate::object::AoristObject;
 use std::fs;
 use thiserror::Error;
-
 
 pub fn read_file(filename: &str) -> Vec<AoristObject> {
     let s = fs::read_to_string(filename).unwrap();

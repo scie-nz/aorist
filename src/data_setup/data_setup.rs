@@ -1,6 +1,9 @@
 #![allow(non_snake_case)]
 use crate::data_setup::parsed_data_setup::ParsedDataSetup;
 use crate::datasets::DataSet;
+use crate::endpoints::EndpointConfig;
+use crate::imports::local_import::LocalFileImport;
+use crate::imports::TAoristImport;
 use crate::object::{AoristObject, TAoristObject};
 use crate::role::Role;
 use crate::role_binding::RoleBinding;
@@ -9,9 +12,6 @@ use crate::user_group::UserGroup;
 use getset::Getters;
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
-use crate::imports::local_import::LocalFileImport;
-use crate::imports::TAoristImport;
-use crate::endpoints::EndpointConfig;
 
 #[derive(Serialize, Deserialize, Clone, Getters)]
 pub struct DataSetup {

@@ -1,13 +1,13 @@
 #![allow(non_snake_case)]
 
-pub mod local_import;
 pub mod git_import;
+pub mod local_import;
 
+use crate::imports::git_import::GitImport;
+use crate::imports::local_import::LocalFileImport;
+use crate::object::AoristObject;
 use enum_dispatch::enum_dispatch;
 use serde::{Deserialize, Serialize};
-use crate::imports::local_import::LocalFileImport;
-use crate::imports::git_import::GitImport;
-use crate::object::AoristObject;
 
 #[enum_dispatch(AoristImport)]
 pub trait TAoristImport {
@@ -21,4 +21,3 @@ pub enum AoristImport {
     LocalFileImport(LocalFileImport),
     GitImport(GitImport),
 }
-

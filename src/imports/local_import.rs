@@ -1,9 +1,9 @@
 #![allow(non_snake_case)]
+use crate::imports::TAoristImport;
 use crate::object::AoristObject;
+use crate::utils::read_file;
 use getset::Getters;
 use serde::{Deserialize, Serialize};
-use crate::imports::TAoristImport;
-use crate::utils::read_file;
 
 #[serde(tag = "type")]
 #[derive(Serialize, Deserialize, Clone, Getters, Debug, PartialEq)]

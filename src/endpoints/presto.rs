@@ -6,4 +6,3 @@ pub struct PrestoConfig {
     server: String,
     httpPort: usize,
 }
-

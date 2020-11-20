@@ -1,12 +1,12 @@
 #![allow(non_snake_case)]
+use crate::imports::TAoristImport;
 use crate::object::AoristObject;
+use crate::utils::read_file;
 use getset::Getters;
 use git2::{Cred, RemoteCallbacks, Repository};
 use serde::{Deserialize, Serialize};
 use std::env;
 use std::path::Path;
-use crate::imports::TAoristImport;
-use crate::utils::read_file;
 
 fn normal_merge(
     repo: &Repository,
@@ -44,7 +44,6 @@ fn normal_merge(
     repo.checkout_head(None)?;
     Ok(())
 }
-
 
 fn fast_forward(
     repo: &Repository,
@@ -107,15 +106,12 @@ impl GitImport {
         fo
     }
     fn clone_repo(&self, path: &Path) {
-
         // Prepare builder.
         let mut builder = git2::build::RepoBuilder::new();
         builder.fetch_options(self.get_fetch_options());
 
         // Clone the project.
-        builder
-            .clone(self.filename(), path)
-            .unwrap();
+        builder.clone(self.filename(), path).unwrap();
     }
 
     fn fetch_repo(&self, path: String, remote_branch: &str) {
@@ -134,46 +130,49 @@ impl GitImport {
         let fetch_commit = repo.reference_to_annotated_commit(&fetch_head).unwrap();
         let analysis = repo.merge_analysis(&[&fetch_commit]).unwrap();
 
-		// 2. Do the appopriate merge
-		if analysis.0.is_fast_forward() {
-			println!("Doing a fast forward");
-			// do a fast forward
-			let refname = format!("refs/heads/{}", remote_branch);
-			match repo.find_reference(&refname) {
-				Ok(mut r) => {
-					fast_forward(&repo, &mut r, &fetch_commit).unwrap();
-				}
-				Err(_) => {
-					// The branch doesn't exist so just set the reference to the
-					// commit directly. Usually this is because you are pulling
-					// into an empty repository.
-					repo.reference(
-						&refname,
-						fetch_commit.id(),
-						true,
-						&format!("Setting {} to {}", remote_branch, fetch_commit.id()),
-					).unwrap();
-					repo.set_head(&refname).unwrap();
-					repo.checkout_head(Some(
-						git2::build::CheckoutBuilder::default()
-							.allow_conflicts(true)
-							.conflict_style_merge(true)
-							.force(),
-					)).unwrap();
-				}
-			};
-		} else if analysis.0.is_normal() {
-			// do a normal merge
-			let head_commit = repo.reference_to_annotated_commit(&repo.head().unwrap()).unwrap();
-			normal_merge(&repo, &head_commit, &fetch_commit).unwrap();
-		} else {
-			println!("Nothing to do...");
-		}
+        // 2. Do the appopriate merge
+        if analysis.0.is_fast_forward() {
+            println!("Doing a fast forward");
+            // do a fast forward
+            let refname = format!("refs/heads/{}", remote_branch);
+            match repo.find_reference(&refname) {
+                Ok(mut r) => {
+                    fast_forward(&repo, &mut r, &fetch_commit).unwrap();
+                }
+                Err(_) => {
+                    // The branch doesn't exist so just set the reference to the
+                    // commit directly. Usually this is because you are pulling
+                    // into an empty repository.
+                    repo.reference(
+                        &refname,
+                        fetch_commit.id(),
+                        true,
+                        &format!("Setting {} to {}", remote_branch, fetch_commit.id()),
+                    )
+                    .unwrap();
+                    repo.set_head(&refname).unwrap();
+                    repo.checkout_head(Some(
+                        git2::build::CheckoutBuilder::default()
+                            .allow_conflicts(true)
+                            .conflict_style_merge(true)
+                            .force(),
+                    ))
+                    .unwrap();
+                }
+            };
+        } else if analysis.0.is_normal() {
+            // do a normal merge
+            let head_commit = repo
+                .reference_to_annotated_commit(&repo.head().unwrap())
+                .unwrap();
+            normal_merge(&repo, &head_commit, &fetch_commit).unwrap();
+        } else {
+            println!("Nothing to do...");
+        }
     }
 }
 impl TAoristImport for GitImport {
     fn get_objects(&self) -> Vec<AoristObject> {
-
         let path = Path::new(self.localPath());
         if !path.exists() {
             self.clone_repo(&path);
@@ -186,4 +185,3 @@ impl TAoristImport for GitImport {
         imported_objects
     }
 }
-

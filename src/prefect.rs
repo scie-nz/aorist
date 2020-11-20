@@ -1,7 +1,7 @@
 use crate::assets::{Asset, StaticDataTable};
 use crate::compressions::{DataCompression, GzipCompression};
-use crate::endpoints::EndpointConfig;
 use crate::encoding::Encoding;
+use crate::endpoints::EndpointConfig;
 use crate::headers::{FileHeader, UpperSnakeCaseCSVHeader};
 use crate::locations::{GCSLocation, HiveLocation, RemoteWebsiteLocation};
 use crate::python::TObjectWithPythonCodeGen;

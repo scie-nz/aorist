@@ -7,4 +7,3 @@ pub struct RangerConfig {
     user: String,
     password: String,
 }
-

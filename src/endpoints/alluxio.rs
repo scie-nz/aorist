@@ -11,4 +11,3 @@ pub struct AlluxioConfig {
     #[getset(get = "pub", set = "pub")]
     apiPort: usize,
 }
-

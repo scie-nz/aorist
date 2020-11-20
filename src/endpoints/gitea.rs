@@ -6,4 +6,3 @@ pub struct GiteaConfig {
     port: usize,
     token: String,
 }
-

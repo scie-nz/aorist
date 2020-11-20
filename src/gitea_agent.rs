@@ -1,7 +1,7 @@
-use lib::utils::get_data_setup;
 use lib::error::AoristError;
 use lib::ranger::TRangerEntity;
 use lib::user::TGiteaEntity;
+use lib::utils::get_data_setup;
 
 #[tokio::main]
 async fn main() -> Result<(), AoristError> {

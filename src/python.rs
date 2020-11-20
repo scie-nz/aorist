@@ -1,7 +1,7 @@
 use crate::assets::Asset;
 use crate::compressions::DataCompression;
-use crate::endpoints::EndpointConfig;
 use crate::encoding::Encoding;
+use crate::endpoints::EndpointConfig;
 use crate::headers::FileHeader;
 use crate::locations::{HiveLocation, RemoteWebsiteLocation};
 use enum_dispatch::enum_dispatch;

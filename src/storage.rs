@@ -1,7 +1,7 @@
 #![allow(non_snake_case)]
 
-use crate::endpoints::EndpointConfig;
 use crate::encoding::Encoding;
+use crate::endpoints::EndpointConfig;
 use crate::hive::THiveTableCreationTagMutator;
 use crate::layouts::{HiveStorageLayout, StorageLayout};
 use crate::locations::{HiveLocation, RemoteWebsiteLocation};

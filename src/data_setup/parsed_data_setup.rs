@@ -1,14 +1,14 @@
 #![allow(non_snake_case)]
 use crate::datasets::DataSet;
+use crate::endpoints::EndpointConfig;
 use crate::role::TRole;
 use crate::role_binding::RoleBinding;
 use crate::user::User;
 use crate::user_group::UserGroup;
+use crate::utils::GetSetError;
 use getset::{IncompleteGetters, IncompleteMutGetters, IncompleteSetters};
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
-use crate::endpoints::EndpointConfig;
-use crate::utils::GetSetError;
 
 #[derive(Serialize, Deserialize, IncompleteGetters, IncompleteSetters, IncompleteMutGetters)]
 pub struct ParsedDataSetup {
@@ -40,10 +40,7 @@ pub struct ParsedDataSetup {
     endpoints: EndpointConfig,
 }
 impl ParsedDataSetup {
-    pub fn new(
-        name: String,
-        endpoints: EndpointConfig,
-    ) -> Self {
+    pub fn new(name: String, endpoints: EndpointConfig) -> Self {
         Self {
             name: name,
             users: None,
