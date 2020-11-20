@@ -1,3 +1,4 @@
+#![feature(box_patterns)]
 pub mod access_policies;
 pub mod assets;
 pub mod attributes;

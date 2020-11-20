@@ -9,7 +9,7 @@ pub struct PrestoInsertQuery {
 }
 impl PrestoInsertQuery {
     pub fn empty() -> Self {
-        let projection = vec![SelectItem::Wildcard];
+        //let projection = vec![SelectItem::Wildcard];
         let table = vec![TableWithJoins {
             relation: TableFactor::Table {
                 // e.g.: vec![Ident::new("some_table")]
@@ -23,7 +23,7 @@ impl PrestoInsertQuery {
         let select = Select {
             distinct: false,
             top: None,
-            projection: projection,
+            projection: Vec::new(),
             from: table,
             selection: None,
             group_by: Vec::new(),
@@ -57,13 +57,27 @@ impl PrestoInsertQuery {
     }
     pub fn set_columns(&mut self, attributes: &Vec<Attribute>) -> Result<(), String> {
         match &mut self.statement {
-            Statement::Insert { columns, .. } => {
+            // we set the same columns in the statement and the source
+            Statement::Insert { columns, box source, .. } => {
                 assert!(columns.is_empty());
                 for attribute in attributes.iter() {
                     let column = Ident::new(attribute.get_name().clone());
                     columns.push(column);
                 }
-                Ok(())
+                match &mut source.body {
+                    SetExpr::Select(box select) => {
+                        // TODO: change this to column
+                        select.projection.push(SelectItem::Wildcard);
+                        Ok(())
+                    }
+                    _ => Err("source.body must be a Select".into())
+                }
+                /*match source {
+                    Query{ body, .. } => {
+                        Ok(())
+                    },
+                    _ => Err("Statement source must be a Query."),
+                }?;*/
             }
             _ => Err("Inner value not an insert statement.".into()),
         }
