@@ -1,7 +1,7 @@
 use sqlparser::ast::{
     Ident, ObjectName, Query, Select, SelectItem, SetExpr, Statement, TableFactor, TableWithJoins, Expr,
 };
-use crate::attributes::{Attribute, TAttribute};
+use crate::attributes::{Attribute, TAttribute, TSQLAttribute};
 
 #[derive(Debug, Clone)]
 pub struct SQLCreateQuery {
@@ -30,6 +30,19 @@ impl SQLCreateQuery {
                 let ObjectName(table_vec) = name;
                 assert!(table_vec.is_empty());
                 table_vec.push(Ident::new(n));
+                Ok(())
+            }
+            _ => Err("Inner value not an insert statement.".into()),
+        }
+    }
+    pub fn set_columns(&mut self, attributes: &Vec<Attribute>) -> Result<(), String> {
+        match &mut self.statement {
+            // we set the same columns in the statement and the source
+            Statement::CreateTable { columns, ..} => {
+                assert!(columns.is_empty());
+                for attribute in attributes.iter() {
+                    columns.push(attribute.get_coldef());
+                }
                 Ok(())
             }
             _ => Err("Inner value not an insert statement.".into()),
@@ -110,12 +123,6 @@ impl SQLInsertQuery {
                     }
                     _ => Err("source.body must be a Select".into())
                 }
-                /*match source {
-                    Query{ body, .. } => {
-                        Ok(())
-                    },
-                    _ => Err("Statement source must be a Query."),
-                }?;*/
             }
             _ => Err("Inner value not an insert statement.".into()),
         }

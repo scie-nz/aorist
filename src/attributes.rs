@@ -1,12 +1,13 @@
 #![allow(non_snake_case)]
 
-use aorist_derive::{OrcBigint, OrcFloat, OrcString, PrestoBigint, PrestoReal, PrestoVarchar};
+use aorist_derive::{OrcBigint, OrcFloat, OrcString, PrestoBigint, PrestoReal, PrestoVarchar, SQLVarchar, SQLBigint, SQLReal};
 use indoc::formatdoc;
 use serde::{Deserialize, Serialize};
+use sqlparser::ast::{DataType, Ident, ColumnDef};
 
 macro_rules! define_attribute {
-    ($element:ident, $presto_type:ident, $orc_type:ident) => {
-        #[derive(Debug, PartialEq, Serialize, Deserialize, Clone, $presto_type, $orc_type)]
+    ($element:ident, $presto_type:ident, $orc_type:ident, $sql_type:ident) => {
+        #[derive(Debug, PartialEq, Serialize, Deserialize, Clone, $presto_type, $orc_type, $sql_type)]
         pub struct $element {
             name: String,
             comment: Option<String>,
@@ -64,6 +65,15 @@ macro_rules! register_attribute {
                 }
             }
         }
+        impl TSQLAttribute for Attribute {
+            fn get_sql_type(&self) -> DataType {
+                match self {
+                    $(
+                        $name::$element(x) => x.get_sql_type(),
+                    )+
+                }
+            }
+        }
     }
 }
 
@@ -97,15 +107,26 @@ pub trait TOrcAttribute: TAttribute {
         format!("{}:{}", self.get_name(), self.get_orc_type()).to_string()
     }
 }
-
-define_attribute!(KeyStringIdentifier, PrestoVarchar, OrcString);
-define_attribute!(NullableStringIdentifier, PrestoVarchar, OrcString);
-define_attribute!(NullablePOSIXTimestamp, PrestoBigint, OrcBigint);
-define_attribute!(NullableInt64, PrestoBigint, OrcBigint);
-define_attribute!(NullableString, PrestoVarchar, OrcString);
-define_attribute!(FloatLatitude, PrestoReal, OrcFloat);
-define_attribute!(FloatLongitude, PrestoReal, OrcFloat);
-define_attribute!(URI, PrestoVarchar, OrcString);
+pub trait TSQLAttribute: TAttribute {
+    fn get_sql_type(&self) -> DataType;
+    fn get_coldef(&self) -> ColumnDef {
+        ColumnDef {
+            name: Ident::new(self.get_name()),
+            data_type: self.get_sql_type(),
+            collation: None,
+            // TODO: add comments here
+            options: Vec::new(),
+        }
+    }
+}
+define_attribute!(KeyStringIdentifier, PrestoVarchar, OrcString, SQLVarchar);
+define_attribute!(NullableStringIdentifier, PrestoVarchar, OrcString, SQLVarchar);
+define_attribute!(NullablePOSIXTimestamp, PrestoBigint, OrcBigint, SQLBigint);
+define_attribute!(NullableInt64, PrestoBigint, OrcBigint, SQLBigint);
+define_attribute!(NullableString, PrestoVarchar, OrcString, SQLVarchar);
+define_attribute!(FloatLatitude, PrestoReal, OrcFloat, SQLReal);
+define_attribute!(FloatLongitude, PrestoReal, OrcFloat, SQLReal);
+define_attribute!(URI, PrestoVarchar, OrcString, SQLVarchar);
 register_attribute!(
     Attribute,
     KeyStringIdentifier,

@@ -112,3 +112,45 @@ pub fn derive_no_python_imports(input: TokenStream) -> TokenStream {
     };
 	gen.into()
 }
+
+#[proc_macro_derive(SQLVarchar)]
+pub fn derive_sql_varchar(input: TokenStream) -> TokenStream {
+    let ast: syn::DeriveInput = syn::parse(input).unwrap();
+    let name = &ast.ident;
+	  let gen = quote! {
+        impl TSQLAttribute for #name {
+            fn get_sql_type(&self) -> DataType {
+                DataType::Varchar(None)
+            }
+        }
+    };
+    gen.into()
+}
+
+#[proc_macro_derive(SQLBigint)]
+pub fn derive_sql_bigint(input: TokenStream) -> TokenStream {
+    let ast: syn::DeriveInput = syn::parse(input).unwrap();
+    let name = &ast.ident;
+	  let gen = quote! {
+        impl TSQLAttribute for #name {
+            fn get_sql_type(&self) -> DataType {
+                DataType::BigInt
+            }
+        }
+    };
+    gen.into()
+}
+
+#[proc_macro_derive(SQLReal)]
+pub fn derive_sql_real(input: TokenStream) -> TokenStream {
+    let ast: syn::DeriveInput = syn::parse(input).unwrap();
+    let name = &ast.ident;
+	  let gen = quote! {
+        impl TSQLAttribute for #name {
+            fn get_sql_type(&self) -> DataType {
+                DataType::Real
+            }
+        }
+    };
+    gen.into()
+}

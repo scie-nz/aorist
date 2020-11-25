@@ -13,3 +13,4 @@ proc-macro = true
 [dependencies]
 quote = "1.0.7"
 syn = "1.0.48"
+sqlparser = {version = "0.6.1"}
