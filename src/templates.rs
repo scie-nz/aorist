@@ -1,7 +1,7 @@
 #![allow(non_snake_case)]
 
 use crate::attributes::{Attribute, TAttribute, TOrcAttribute, TPrestoAttribute};
-use crate::query::PrestoInsertQuery;
+use crate::query::SQLInsertQuery;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
@@ -11,11 +11,11 @@ pub struct KeyedStruct {
     attributes: Vec<Attribute>,
 }
 impl KeyedStruct {
-    pub fn get_presto_query(&self) -> PrestoInsertQuery {
-        let query = PrestoInsertQuery::empty();
+    pub fn get_presto_query(&self) -> SQLInsertQuery {
+        let query = SQLInsertQuery::empty();
         query
     }
-    pub fn mutate_presto_insert_query(&self, query: &mut PrestoInsertQuery) {
+    pub fn mutate_presto_insert_query(&self, query: &mut SQLInsertQuery) {
         // TODO: handle these with thiserror
         query.set_table_name(self.name.clone()).unwrap();
         query.set_columns(&self.attributes).unwrap();

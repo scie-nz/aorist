@@ -4,11 +4,11 @@ use sqlparser::ast::{
 use crate::attributes::{Attribute, TAttribute};
 
 #[derive(Debug, Clone)]
-pub struct PrestoCreateQuery {
+pub struct SQLCreateQuery {
     statement: Statement,
 }
 
-impl PrestoCreateQuery {
+impl SQLCreateQuery {
     pub fn empty() -> Self {
         let statement = Statement::CreateTable {
             external: false,
@@ -24,14 +24,25 @@ impl PrestoCreateQuery {
         };
         Self { statement }    
     }
+    pub fn set_table_name(&mut self, n: String) -> Result<(), String> {
+        match &mut self.statement {
+            Statement::CreateTable { name, .. } => {
+                let ObjectName(table_vec) = name;
+                assert!(table_vec.is_empty());
+                table_vec.push(Ident::new(n));
+                Ok(())
+            }
+            _ => Err("Inner value not an insert statement.".into()),
+        }
+    }
 }
 
 
 #[derive(Debug, Clone)]
-pub struct PrestoInsertQuery {
+pub struct SQLInsertQuery {
     statement: Statement,
 }
-impl PrestoInsertQuery {
+impl SQLInsertQuery {
     pub fn empty() -> Self {
         //let projection = vec![SelectItem::Wildcard];
         let table = vec![TableWithJoins {
