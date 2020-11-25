@@ -3,13 +3,20 @@ use sqlparser::ast::{
 };
 use crate::attributes::{Attribute, TAttribute, TSQLAttribute};
 
+pub trait SQLQuery {
+    fn empty() -> Self;
+    fn set_table_name(&mut self, n: String) -> Result<(), String>;
+    fn set_columns(&mut self, attributes: &Vec<Attribute>) -> Result<(), String>;
+}
+
 #[derive(Debug, Clone)]
 pub struct SQLCreateQuery {
     statement: Statement,
 }
 
-impl SQLCreateQuery {
-    pub fn empty() -> Self {
+
+impl SQLQuery for SQLCreateQuery {
+    fn empty() -> Self {
         let statement = Statement::CreateTable {
             external: false,
             if_not_exists: true,
@@ -24,7 +31,7 @@ impl SQLCreateQuery {
         };
         Self { statement }    
     }
-    pub fn set_table_name(&mut self, n: String) -> Result<(), String> {
+    fn set_table_name(&mut self, n: String) -> Result<(), String> {
         match &mut self.statement {
             Statement::CreateTable { name, .. } => {
                 let ObjectName(table_vec) = name;
@@ -35,7 +42,7 @@ impl SQLCreateQuery {
             _ => Err("Inner value not an insert statement.".into()),
         }
     }
-    pub fn set_columns(&mut self, attributes: &Vec<Attribute>) -> Result<(), String> {
+    fn set_columns(&mut self, attributes: &Vec<Attribute>) -> Result<(), String> {
         match &mut self.statement {
             // we set the same columns in the statement and the source
             Statement::CreateTable { columns, ..} => {
@@ -55,8 +62,8 @@ impl SQLCreateQuery {
 pub struct SQLInsertQuery {
     statement: Statement,
 }
-impl SQLInsertQuery {
-    pub fn empty() -> Self {
+impl SQLQuery for SQLInsertQuery {
+    fn empty() -> Self {
         //let projection = vec![SelectItem::Wildcard];
         let table = vec![TableWithJoins {
             relation: TableFactor::Table {
@@ -92,7 +99,7 @@ impl SQLInsertQuery {
         };
         Self { statement }
     }
-    pub fn set_table_name(&mut self, name: String) -> Result<(), String> {
+    fn set_table_name(&mut self, name: String) -> Result<(), String> {
         match &mut self.statement {
             Statement::Insert { table_name, .. } => {
                 let ObjectName(table_vec) = table_name;
@@ -103,7 +110,7 @@ impl SQLInsertQuery {
             _ => Err("Inner value not an insert statement.".into()),
         }
     }
-    pub fn set_columns(&mut self, attributes: &Vec<Attribute>) -> Result<(), String> {
+    fn set_columns(&mut self, attributes: &Vec<Attribute>) -> Result<(), String> {
         match &mut self.statement {
             // we set the same columns in the statement and the source
             Statement::Insert { columns, box source, .. } => {
