@@ -1,5 +1,5 @@
 use sqlparser::ast::{
-    Ident, ObjectName, Query, Select, SelectItem, SetExpr, Statement, TableFactor, TableWithJoins,
+    Ident, ObjectName, Query, Select, SelectItem, SetExpr, Statement, TableFactor, TableWithJoins, Expr,
 };
 use crate::attributes::{Attribute, TAttribute};
 
@@ -67,7 +67,10 @@ impl PrestoInsertQuery {
                 match &mut source.body {
                     SetExpr::Select(box select) => {
                         // TODO: change this to column
-                        select.projection.push(SelectItem::Wildcard);
+                        for attribute in attributes.iter() {
+                            let column = Ident::new(attribute.get_name().clone());
+                            select.projection.push(SelectItem::UnnamedExpr(Expr::Identifier(column)));
+                        }
                         Ok(())
                     }
                     _ => Err("source.body must be a Select".into())
