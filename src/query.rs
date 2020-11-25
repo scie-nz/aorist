@@ -1,7 +1,8 @@
-use sqlparser::ast::{
-    Ident, ObjectName, Query, Select, SelectItem, SetExpr, Statement, TableFactor, TableWithJoins, Expr,
-};
 use crate::attributes::{Attribute, TAttribute, TSQLAttribute};
+use sqlparser::ast::{
+    Expr, Ident, ObjectName, Query, Select, SelectItem, SetExpr, Statement, TableFactor,
+    TableWithJoins,
+};
 
 pub trait SQLQuery {
     fn empty() -> Self;
@@ -13,7 +14,6 @@ pub trait SQLQuery {
 pub struct SQLCreateQuery {
     statement: Statement,
 }
-
 
 impl SQLQuery for SQLCreateQuery {
     fn empty() -> Self {
@@ -29,7 +29,7 @@ impl SQLQuery for SQLCreateQuery {
             query: None,
             without_rowid: true,
         };
-        Self { statement }    
+        Self { statement }
     }
     fn set_table_name(&mut self, n: String) -> Result<(), String> {
         match &mut self.statement {
@@ -39,24 +39,23 @@ impl SQLQuery for SQLCreateQuery {
                 table_vec.push(Ident::new(n));
                 Ok(())
             }
-            _ => Err("Inner value not an insert statement.".into()),
+            _ => Err("Inner value not a create table statement statement.".into()),
         }
     }
     fn set_columns(&mut self, attributes: &Vec<Attribute>) -> Result<(), String> {
         match &mut self.statement {
             // we set the same columns in the statement and the source
-            Statement::CreateTable { columns, ..} => {
+            Statement::CreateTable { columns, .. } => {
                 assert!(columns.is_empty());
                 for attribute in attributes.iter() {
                     columns.push(attribute.get_coldef());
                 }
                 Ok(())
             }
-            _ => Err("Inner value not an insert statement.".into()),
+            _ => Err("Inner value not a create table statement.".into()),
         }
     }
 }
-
 
 #[derive(Debug, Clone)]
 pub struct SQLInsertQuery {
@@ -113,7 +112,11 @@ impl SQLQuery for SQLInsertQuery {
     fn set_columns(&mut self, attributes: &Vec<Attribute>) -> Result<(), String> {
         match &mut self.statement {
             // we set the same columns in the statement and the source
-            Statement::Insert { columns, box source, .. } => {
+            Statement::Insert {
+                columns,
+                box source,
+                ..
+            } => {
                 assert!(columns.is_empty());
                 for attribute in attributes.iter() {
                     let column = Ident::new(attribute.get_name().clone());
@@ -124,11 +127,13 @@ impl SQLQuery for SQLInsertQuery {
                         // TODO: change this to column
                         for attribute in attributes.iter() {
                             let column = Ident::new(attribute.get_name().clone());
-                            select.projection.push(SelectItem::UnnamedExpr(Expr::Identifier(column)));
+                            select
+                                .projection
+                                .push(SelectItem::UnnamedExpr(Expr::Identifier(column)));
                         }
                         Ok(())
                     }
-                    _ => Err("source.body must be a Select".into())
+                    _ => Err("source.body must be a Select".into()),
                 }
             }
             _ => Err("Inner value not an insert statement.".into()),

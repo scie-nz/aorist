@@ -1,13 +1,18 @@
 #![allow(non_snake_case)]
 
-use aorist_derive::{OrcBigint, OrcFloat, OrcString, PrestoBigint, PrestoReal, PrestoVarchar, SQLVarchar, SQLBigint, SQLReal};
+use aorist_derive::{
+    OrcBigint, OrcFloat, OrcString, PrestoBigint, PrestoReal, PrestoVarchar, SQLBigint, SQLReal,
+    SQLVarchar,
+};
 use indoc::formatdoc;
 use serde::{Deserialize, Serialize};
-use sqlparser::ast::{DataType, Ident, ColumnDef};
+use sqlparser::ast::{ColumnDef, DataType, Ident};
 
 macro_rules! define_attribute {
     ($element:ident, $presto_type:ident, $orc_type:ident, $sql_type:ident) => {
-        #[derive(Debug, PartialEq, Serialize, Deserialize, Clone, $presto_type, $orc_type, $sql_type)]
+        #[derive(
+            Debug, PartialEq, Serialize, Deserialize, Clone, $presto_type, $orc_type, $sql_type,
+        )]
         pub struct $element {
             name: String,
             comment: Option<String>,
@@ -120,7 +125,12 @@ pub trait TSQLAttribute: TAttribute {
     }
 }
 define_attribute!(KeyStringIdentifier, PrestoVarchar, OrcString, SQLVarchar);
-define_attribute!(NullableStringIdentifier, PrestoVarchar, OrcString, SQLVarchar);
+define_attribute!(
+    NullableStringIdentifier,
+    PrestoVarchar,
+    OrcString,
+    SQLVarchar
+);
 define_attribute!(NullablePOSIXTimestamp, PrestoBigint, OrcBigint, SQLBigint);
 define_attribute!(NullableInt64, PrestoBigint, OrcBigint, SQLBigint);
 define_attribute!(NullableString, PrestoVarchar, OrcString, SQLVarchar);
