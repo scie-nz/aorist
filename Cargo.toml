@@ -67,7 +67,7 @@ enum_dispatch = {version = "0.3.4"}
 textwrap = {version = "0.12.1"}
 git2 = {version = "0.13.12"}
 sqlparser = {version = "0.6.1"}
-
+rustpython-parser = {version = "0.1.2"}
 
 [[bin]]
 name = "main"
