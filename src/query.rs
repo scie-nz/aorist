@@ -4,6 +4,30 @@ use sqlparser::ast::{
 use crate::attributes::{Attribute, TAttribute};
 
 #[derive(Debug, Clone)]
+pub struct PrestoCreateQuery {
+    statement: Statement,
+}
+
+impl PrestoCreateQuery {
+    pub fn empty() -> Self {
+        let statement = Statement::CreateTable {
+            external: false,
+            if_not_exists: true,
+            name: ObjectName(Vec::new()),
+            columns: Vec::new(),
+            constraints: Vec::new(),
+            with_options: Vec::new(),
+            file_format: None,
+            location: None,
+            query: None,
+            without_rowid: true,
+        };
+        Self { statement }    
+    }
+}
+
+
+#[derive(Debug, Clone)]
 pub struct PrestoInsertQuery {
     statement: Statement,
 }
