@@ -1,5 +1,4 @@
 use lib::utils::get_data_setup;
-include!(concat!(env!("OUT_DIR"), "/hello.rs"));
 
 fn main() -> Result<(), String> {
     //let _foo = attributes::KeyAttribute1{};

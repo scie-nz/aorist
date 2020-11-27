@@ -30,7 +30,6 @@ fn main() {
         })
         .collect::<Vec<HashMap<String, Value>>>();
 
-    assert_eq!(attributes.len(), 1);
 
     let mut scope = Scope::new();
     scope.import("aorist_primitives", "define_attribute");
@@ -81,7 +80,7 @@ fn main() {
         scope.raw(&define);
         attribute_names.push(name.clone());
     }
-    let register = format!("register_attribute!(Attribute1, {});", attribute_names.join(", "));
+    let register = format!("register_attribute!(Attribute, {});", attribute_names.join(", "));
     scope.raw(&register);
     let out_dir = env::var_os("OUT_DIR").unwrap();
     let dest_path = Path::new(&out_dir).join("hello.rs");
