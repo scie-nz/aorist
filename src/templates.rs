@@ -1,8 +1,8 @@
 #![allow(non_snake_case)]
 
-use aorist_primitives::{TAttribute, TOrcAttribute, TPrestoAttribute};
 use crate::attributes::Attribute;
 use crate::query::{SQLInsertQuery, SQLQuery};
+use aorist_primitives::{TAttribute, TOrcAttribute, TPrestoAttribute};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 

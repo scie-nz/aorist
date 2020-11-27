@@ -1,11 +1,13 @@
-use aorist_primitives::{define_attribute, register_attribute,
-                        TAttribute, TOrcAttribute, TPrestoAttribute, TSQLAttribute};
 use aorist_derive::{
     OrcBigint, OrcFloat, OrcString, PrestoBigint, PrestoReal, PrestoVarchar, SQLBigint, SQLReal,
     SQLVarchar,
 };
+use aorist_primitives::{
+    define_attribute, register_attribute, TAttribute, TOrcAttribute, TPrestoAttribute,
+    TSQLAttribute,
+};
 use serde::{Deserialize, Serialize};
-use sqlparser::ast::{DataType};
+use sqlparser::ast::DataType;
 
 define_attribute!(KeyStringIdentifier, PrestoVarchar, OrcString, SQLVarchar);
 define_attribute!(

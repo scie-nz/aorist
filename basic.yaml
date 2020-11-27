@@ -85,7 +85,7 @@ spec:
     type: KeyedStruct
     attributes:
     - name: granule_id
-      type: KeyStringIdentifier
+      type: KeyStringIdentifier1
     - name: product_id
       type: NullableStringIdentifier
     - name: datatake_identifier
