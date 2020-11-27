@@ -121,3 +121,22 @@ pub trait TSQLAttribute: TAttribute {
         }
     }
 }
+
+#[derive(Debug)]
+pub struct Python {}
+#[derive(Debug)]
+pub struct R {}
+#[derive(Debug)]
+pub struct Bash {}
+
+#[derive(Debug)]
+pub enum Dialect {
+  Python(Python),
+  R(R),
+  Bash(Bash),
+}
+
+pub trait DownloadToLocalFile {
+    // TODO: change this to proper error
+    fn get_call(&self, dialect: Dialect) -> Result<String, String>;
+}

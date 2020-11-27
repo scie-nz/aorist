@@ -56,7 +56,7 @@ spec:
 ---
 type: Program
 spec:
-  language: python
+  dialect: Python
   preamble: | 
     from google.cloud import storage 
     def download_blob_to_file(bucket_name, blob_name, file_name):
@@ -68,7 +68,9 @@ spec:
   parameters:
     bucket: self.bucket
     blob: self.blob
-    file_name: self.storage_setup.get_temp_file_name()
+    file_name: >
+      "/tmp/some_file_name"
+  crate: locations
   root: GCSLocation
   use: DownloadToLocalFile
 ---

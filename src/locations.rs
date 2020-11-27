@@ -9,8 +9,9 @@ use std::collections::HashMap;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 pub struct GCSLocation {
-    bucket: String,
-    blob: String,
+    // TODO: replace these with Getters and Setters
+    pub bucket: String,
+    pub blob: String,
 }
 
 impl TObjectWithPrefectCodeGen for GCSLocation {

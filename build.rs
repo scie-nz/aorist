@@ -1,4 +1,5 @@
 use codegen::Scope;
+use indoc::formatdoc;
 use serde_yaml::{from_str, Value};
 use std::collections::HashMap;
 use std::collections::HashSet;
@@ -95,8 +96,107 @@ fn process_attributes(raw_objects: &Vec<HashMap<String, Value>>) {
     fs::write(&dest_path, scope.to_string()).unwrap();
 }
 
+fn get_match_arms(dialects: HashMap<String, HashMap<String, Value>>) -> String {
+    dialects
+        .into_iter()
+        .map(|(dialect, config)| {
+            let params: Vec<(String, String)> = config
+                .get("parameters")
+                .unwrap()
+                .as_mapping()
+                .unwrap()
+                .into_iter()
+                .map(|(k, v)| (k.as_str().unwrap().into(), v.as_str().unwrap().into()))
+                .collect();
+
+            format!(
+                "Dialect::{dialect}{{..}} => Ok(format!(\"{call}({param_names})\", {params}).to_string()),",
+                dialect = dialect,
+                call = config.get("call").unwrap().as_str().unwrap().replace("{","{{").replace("}","}}"),
+                param_names = params
+                    .iter()
+                    .map(|(k, _)| format!("{{{}}}", k).to_string())
+                    .collect::<Vec<_>>()
+                    .join(", ".into()),
+                params = params
+                    .iter()
+                    .map(|(k, v)| format!("{}={}", k, v).to_string())
+                    .collect::<Vec<_>>()
+                    .join(", ".into()),
+            )
+        })
+        .collect::<Vec<_>>()
+        .join("\n")
+}
+
 fn main() {
     let raw_objects = read_file("basic.yaml");
     process_attributes(&raw_objects);
+
+    let programs = get_raw_objects_of_type(&raw_objects, "Program".into());
+    assert_eq!(programs.len(), 1);
+    let mut scope = Scope::new();
+    let mut by_uses: HashMap<String, HashMap<String, HashMap<String, HashMap<String, Value>>>> =
+        HashMap::new();
+    let mut program_uses = HashSet::new();
+    let mut roots = HashSet::new();
+    for x in programs.into_iter() {
+        let program_use = x.get("use").unwrap().as_str().unwrap().to_string();
+        let root = x.get("root").unwrap().as_str().unwrap().to_string();
+        let root_crate = x.get("crate").unwrap().as_str().unwrap().to_string();
+        program_uses.insert(program_use.clone());
+        roots.insert((root_crate, root.clone()));
+        let dialect = x.get("dialect").unwrap().as_str().unwrap().to_string();
+        by_uses
+            .entry(root)
+            .or_insert(HashMap::new())
+            .entry(program_use)
+            .or_insert(HashMap::new())
+            .entry(dialect)
+            .or_insert(x);
+    }
+    scope.import("aorist_primitives", "Dialect");
+    for program_use in program_uses {
+        scope.import("aorist_primitives", &program_use);
+    }
+    for (root_crate, root) in roots {
+        scope.import(&format!("crate::{}", &root_crate), &root);
+    }
+    scope.raw(
+        &by_uses
+            .into_iter()
+            .map(|(root, program_uses)| {
+                program_uses
+                    .into_iter()
+                    .map(|(program_use, dialects)| {
+                        let match_arms = get_match_arms(dialects);
+
+                        formatdoc!(
+                            "
+                impl {program_use} for {struct_name} {{
+                    fn get_call(&self, dialect: Dialect) -> Result<String, String> {{
+                        match dialect {{
+                            {match_arms}
+                            _ => Err(format!(\"Dialect {{:?}} not supported\", dialect).into())
+                        }}
+                    }}
+                }}
+            ",
+                            program_use = program_use,
+                            struct_name = root,
+                            match_arms = match_arms,
+                        )
+                        .to_string()
+                    })
+                    .collect::<Vec<_>>()
+                    .join("\n".into())
+            })
+            .collect::<Vec<_>>()
+            .join("\n".into()),
+    );
+    let out_dir = env::var_os("OUT_DIR").unwrap();
+    let dest_path = Path::new(&out_dir).join("programs.rs");
+
+    fs::write(&dest_path, scope.to_string()).unwrap();
     println!("cargo:rerun-if-changed=build.rs");
 }
