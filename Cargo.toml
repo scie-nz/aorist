@@ -68,8 +68,11 @@ textwrap = {version = "0.12.1"}
 git2 = {version = "0.13.12"}
 sqlparser = {version = "0.6.1"}
 rustpython-parser = {version = "0.1.2"}
+
 [build-dependencies]
 codegen = {version = "0.1.3"}
+serde = { version = "1.0", features = ["derive"] }
+serde_yaml = "0.8"
 
 [[bin]]
 name = "main"
