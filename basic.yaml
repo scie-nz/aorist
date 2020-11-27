@@ -31,7 +31,7 @@ spec:
   name: NullableString
   orc: OrcString
   presto: PrestoVarchar
-  sql: SQLVarchar 
+  sql: SQLVarchar
 ---
 type: Attribute
 spec:
@@ -53,6 +53,24 @@ spec:
   orc: OrcString
   presto: PrestoVarchar
   sql: SQLVarchar 
+---
+type: Program
+spec:
+  language: python
+  preamble: | 
+    from google.cloud import storage 
+    def download_blob_to_file(bucket_name, blob_name, file_name):
+      client = storage.Client.from_service_account_json('/gcloud/social_norms.json')
+      bucket = client.bucket(bucket_name)
+      blob = bucket.blob(blob_name)
+      blob.download_to_filename(file_name)
+  call: download_blob_to_file
+  parameters:
+    bucket: self.bucket
+    blob: self.blob
+    file_name: self.storage_setup.get_temp_file_name()
+  root: GCSLocation
+  use: DownloadToLocalFile
 ---
 type: DataSetup
 spec:
@@ -141,7 +159,7 @@ spec:
     type: KeyedStruct
     attributes:
     - name: granule_id
-      type: KeyStringIdentifier1
+      type: KeyStringIdentifier
     - name: product_id
       type: NullableStringIdentifier
     - name: datatake_identifier

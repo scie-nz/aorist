@@ -15,6 +15,9 @@ pub trait TAoristObject {
 pub struct Attribute {}
 
 #[derive(Serialize, Deserialize)]
+pub struct Program {}
+
+#[derive(Serialize, Deserialize)]
 #[serde(tag = "type", content = "spec")]
 pub enum AoristObject {
     DataSet(DataSet),
@@ -23,4 +26,5 @@ pub enum AoristObject {
     RoleBinding(RoleBinding),
     DataSetup(DataSetup),
     Attribute(Attribute),
+    Program(Program),
 }
