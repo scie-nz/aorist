@@ -34,6 +34,7 @@ fn main() {
 
     let mut scope = Scope::new();
     scope.import("aorist_primitives", "define_attribute");
+    scope.import("aorist_primitives", "register_attribute");
     scope.import("aorist_primitives", "TAttribute");
     scope.import("aorist_primitives", "TOrcAttribute");
     scope.import("aorist_primitives", "TPrestoAttribute");
@@ -64,6 +65,7 @@ fn main() {
     for item in derive_macros {
         scope.import("aorist_derive", &item);
     }
+    let mut attribute_names: Vec<String> = Vec::new();
     for attribute in attributes {
         let name = attribute.get("name").unwrap().as_str().unwrap().to_string();
         let orc = attribute.get("orc").unwrap().as_str().unwrap().to_string();
@@ -75,9 +77,12 @@ fn main() {
             .to_string();
         let sql = attribute.get("sql").unwrap().as_str().unwrap().to_string();
 
-        let register = format!("define_attribute!({}, {}, {}, {});", name, orc, presto, sql);
-        scope.raw(&register);
+        let define = format!("define_attribute!({}, {}, {}, {});", name, orc, presto, sql);
+        scope.raw(&define);
+        attribute_names.push(name.clone());
     }
+    let register = format!("register_attribute!(Attribute1, {});", attribute_names.join(", "));
+    scope.raw(&register);
     let out_dir = env::var_os("OUT_DIR").unwrap();
     let dest_path = Path::new(&out_dir).join("hello.rs");
 

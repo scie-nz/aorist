@@ -49,7 +49,7 @@ macro_rules! register_attribute {
                 }
             }
         }
-        impl TPrestoAttribute for Attribute {
+        impl TPrestoAttribute for $name {
             fn get_presto_type(&self) -> String {
                 match self {
                     $(
@@ -58,7 +58,7 @@ macro_rules! register_attribute {
                 }
             }
         }
-        impl TOrcAttribute for Attribute {
+        impl TOrcAttribute for $name {
             fn get_orc_type(&self) -> String {
                 match self {
                     $(
@@ -67,7 +67,7 @@ macro_rules! register_attribute {
                 }
             }
         }
-        impl TSQLAttribute for Attribute {
+        impl TSQLAttribute for $name {
             fn get_sql_type(&self) -> DataType {
                 match self {
                     $(
