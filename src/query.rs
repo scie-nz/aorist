@@ -1,4 +1,5 @@
-use crate::attributes::{Attribute, TAttribute, TSQLAttribute};
+use crate::attributes::Attribute;
+use aorist_primitives::{TAttribute, TSQLAttribute};
 use sqlparser::ast::{
     Expr, Ident, ObjectName, Query, Select, SelectItem, SetExpr, Statement, TableFactor,
     TableWithJoins,

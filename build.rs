@@ -15,7 +15,7 @@ pub fn read_file(filename: &str) -> Vec<HashMap<String, Value>> {
 }
 
 fn main() {
-	let raw_objects = read_file("basic.yaml");
+	let _raw_objects = read_file("basic.yaml");
 
   let out_dir = env::var_os("OUT_DIR").unwrap();
   let dest_path = Path::new(&out_dir).join("hello.rs");    
@@ -24,6 +24,6 @@ fn main() {
     scope.new_struct("Foo")
         .derive("Debug")
         .field("one", "usize");
-    fs::write(&dest_path, scope.to_string());
+    fs::write(&dest_path, scope.to_string()).unwrap();
     println!("cargo:rerun-if-changed=build.rs");
 }

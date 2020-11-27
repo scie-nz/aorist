@@ -55,6 +55,7 @@ version = "0.4.1"
 serde = { version = "1.0", features = ["derive"] }
 serde_yaml = "0.8"
 aorist_derive = {path = "./aorist_derive"}
+aorist_primitives = {path = "./aorist_primitives"}
 gitea = {path = "./gitea"}
 ranger = {path = "./ranger"}
 getset = {path = "./getset"}

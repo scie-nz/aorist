@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 use crate::assets::{Asset, StaticDataTable};
 use crate::compressions::{DataCompression, GzipCompression};
 use crate::encoding::Encoding;
@@ -9,7 +10,7 @@ use crate::schema::DataSchema;
 use crate::templates::DatumTemplate;
 use enum_dispatch::enum_dispatch;
 use rustpython_parser::ast::{
-    ExpressionType, Located, Location, Program, Statement, StatementType, WithItem,
+    ExpressionType, Located, Program, Statement, StatementType, WithItem,
 };
 use std::collections::HashMap;
 
