@@ -1,6 +1,7 @@
 use codegen::Scope;
 use serde_yaml::{from_str, Value};
 use std::collections::HashMap;
+use std::collections::HashSet;
 use std::env;
 use std::fs;
 use std::path::Path;
@@ -29,10 +30,53 @@ fn main() {
         })
         .collect::<Vec<HashMap<String, Value>>>();
 
+    assert_eq!(attributes.len(), 1);
+
     let mut scope = Scope::new();
+    scope.import("aorist_primitives", "define_attribute");
+    scope.import("aorist_primitives", "TAttribute");
+    scope.import("aorist_primitives", "TOrcAttribute");
+    scope.import("aorist_primitives", "TPrestoAttribute");
+    scope.import("aorist_primitives", "TSQLAttribute");
+    scope.import("serde", "Serialize");
+    scope.import("serde", "Deserialize");
+    scope.import("sqlparser::ast", "DataType");
+
+    let sql_derive_macros = attributes
+        .iter()
+        .map(|x| x.get("sql").unwrap().as_str().unwrap().to_string())
+        .collect::<HashSet<_>>();
+    let orc_derive_macros = attributes
+        .iter()
+        .map(|x| x.get("orc").unwrap().as_str().unwrap().to_string())
+        .collect::<HashSet<_>>();
+    let presto_derive_macros = attributes
+        .iter()
+        .map(|x| x.get("presto").unwrap().as_str().unwrap().to_string())
+        .collect::<HashSet<_>>();
+
+    let derive_macros = sql_derive_macros
+        .into_iter()
+        .chain(orc_derive_macros.into_iter())
+        .chain(presto_derive_macros.into_iter())
+        .collect::<HashSet<_>>();
+
+    for item in derive_macros {
+        scope.import("aorist_derive", &item);
+    }
     for attribute in attributes {
-        let attribute_name = attribute.get("name").unwrap().as_str().unwrap().into();
-        scope.new_struct(attribute_name).derive("Debug");
+        let name = attribute.get("name").unwrap().as_str().unwrap().to_string();
+        let orc = attribute.get("orc").unwrap().as_str().unwrap().to_string();
+        let presto = attribute
+            .get("presto")
+            .unwrap()
+            .as_str()
+            .unwrap()
+            .to_string();
+        let sql = attribute.get("sql").unwrap().as_str().unwrap().to_string();
+
+        let register = format!("define_attribute!({}, {}, {}, {});", name, orc, presto, sql);
+        scope.raw(&register);
     }
     let out_dir = env::var_os("OUT_DIR").unwrap();
     let dest_path = Path::new(&out_dir).join("hello.rs");

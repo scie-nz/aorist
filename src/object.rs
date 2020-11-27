@@ -11,6 +11,8 @@ use serde::{Deserialize, Serialize};
 pub trait TAoristObject {
     fn get_name(&self) -> &String;
 }
+#[derive(Serialize, Deserialize)]
+pub struct Attribute {}
 
 #[derive(Serialize, Deserialize)]
 #[serde(tag = "type", content = "spec")]
@@ -20,4 +22,5 @@ pub enum AoristObject {
     UserGroup(UserGroup),
     RoleBinding(RoleBinding),
     DataSetup(DataSetup),
+    Attribute(Attribute),
 }

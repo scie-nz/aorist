@@ -1,3 +1,10 @@
+type: Attribute
+spec:
+  name: KeyStringIdentifier1
+  orc: OrcString
+  presto: PrestoVarchar
+  sql: SQLVarchar 
+---
 type: DataSetup
 spec:
   name: basic-data-setup
