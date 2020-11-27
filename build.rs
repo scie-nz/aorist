@@ -14,11 +14,13 @@ pub fn read_file(filename: &str) -> Vec<HashMap<String, Value>> {
         .collect()
 }
 
-fn main() {
-    let raw_objects = read_file("basic.yaml");
-    let attributes = raw_objects
+fn get_raw_objects_of_type(
+    raw_objects: &Vec<HashMap<String, Value>>,
+    object_type: String,
+) -> Vec<HashMap<String, Value>> {
+    raw_objects
         .into_iter()
-        .filter(|x| x.get("type").unwrap().as_str().unwrap() == "Attribute")
+        .filter(|x| x.get("type").unwrap().as_str().unwrap() == object_type)
         .map(|x| {
             x.get("spec")
                 .unwrap()
@@ -28,9 +30,11 @@ fn main() {
                 .map(|(k, v)| (k.as_str().unwrap().into(), v.clone()))
                 .collect()
         })
-        .collect::<Vec<HashMap<String, Value>>>();
+        .collect::<Vec<HashMap<String, Value>>>()
+}
 
-
+fn process_attributes(raw_objects: &Vec<HashMap<String, Value>>) {
+    let attributes = get_raw_objects_of_type(raw_objects, "Attribute".into());
     let mut scope = Scope::new();
     scope.import("aorist_primitives", "define_attribute");
     scope.import("aorist_primitives", "register_attribute");
@@ -80,11 +84,19 @@ fn main() {
         scope.raw(&define);
         attribute_names.push(name.clone());
     }
-    let register = format!("register_attribute!(Attribute, {});", attribute_names.join(", "));
+    let register = format!(
+        "register_attribute!(Attribute, {});",
+        attribute_names.join(", ")
+    );
     scope.raw(&register);
     let out_dir = env::var_os("OUT_DIR").unwrap();
-    let dest_path = Path::new(&out_dir).join("hello.rs");
+    let dest_path = Path::new(&out_dir).join("attributes.rs");
 
     fs::write(&dest_path, scope.to_string()).unwrap();
+}
+
+fn main() {
+    let raw_objects = read_file("basic.yaml");
+    process_attributes(&raw_objects);
     println!("cargo:rerun-if-changed=build.rs");
 }
