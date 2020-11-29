@@ -27,4 +27,3 @@ A constraint is a fact that can be verified about an abstract concept. A constra
 - "data access policies are enforced".
 
 Dependent constraints simply tell us what needs to hold, in order for a constraint to be true. Dependent constraints may be defined on the same concept, or on dependent concepts.
-# charmed-labs-vizy
