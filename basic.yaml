@@ -54,8 +54,85 @@ spec:
   presto: PrestoVarchar
   sql: SQLVarchar 
 ---
+type: Constraint
+spec:
+  name: IsConsistent
+  root: DataSetup
+  requires:
+    - ReplicatedDatasets
+    - InstantiatedUsers
+    - EnforcedRoleBinding
+    - EnforcedAccessPolicies
+---
+type: Constraint
+spec:
+  name: IsUseful
+  root: DataSetup
+  requires:
+    - IsConsistent
+    - ReplicatedDatasets
+    - TrainedModels
+    - ComputedMetrics
+    - GeneratedReports
+---
+type: Constraint
+spec:
+  name: IsLawful
+  root: DataSetup
+  requires:
+    - IsConsistent
+    - OldPIIDeleted
+    - PIIProtected
+    - DataAccessAudited
+---
+type: Constraint
+spec:
+  name: IsNotEvil
+  root: DataSetup
+  requires:
+    - ModelsAreExplainable
+    - ModelsAreNotRacist
+---
+type: Constraint
+spec:
+  name: IsSecure
+  root: DataSetup
+  requires:
+    - UsersAreNotPwned
+    - MinimalPermissionsEnforced
+---
+type: Constraint
+spec:
+  name: ReplicatedDataSets
+  root: DataSet
+  requires:
+    - ReplicatedAssets
+---
+type: Constraint
+spec:
+  name: ReplicatedAssets
+  root: Table
+  requires:
+    - ReplicatedSchema
+    - ReplicatedData
+---
+type: Constraint
+spec:
+  name: ReplicatedData
+  root: RemoteImportStorageSetup
+  requires:
+    - DownloadDataFromRemote
+    - UploadDataToLocal
+---
+type: Constraint
+spec:
+  name: DownloadDataFromRemote
+  root: RemoteLocation
+---
 type: Program
 spec:
+  use: DownloadDataFromRemote
+  root: GCSLocation
   dialect: Python
   preamble: | 
     from google.cloud import storage 
@@ -71,8 +148,6 @@ spec:
     file_name: >
       "/tmp/some_file_name"
   crate: locations
-  root: GCSLocation
-  use: DownloadToLocalFile
 ---
 type: DataSetup
 spec:

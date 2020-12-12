@@ -18,6 +18,9 @@ pub struct Attribute {}
 pub struct Program {}
 
 #[derive(Serialize, Deserialize)]
+pub struct Constraint {}
+
+#[derive(Serialize, Deserialize)]
 #[serde(tag = "type", content = "spec")]
 pub enum AoristObject {
     DataSet(DataSet),
@@ -27,4 +30,5 @@ pub enum AoristObject {
     DataSetup(DataSetup),
     Attribute(Attribute),
     Program(Program),
+    Constraint(Constraint),
 }
