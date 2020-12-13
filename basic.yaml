@@ -187,6 +187,8 @@ spec:
   imports:
   - type: LocalFileImport
     filename: users.yaml
+  constraints:
+    - IsConsistent
 ---
 type: RoleBinding
 spec:

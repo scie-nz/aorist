@@ -1,4 +1,5 @@
 #![allow(non_snake_case)]
+use crate::constraint::Constraint;
 use crate::data_setup::data_setup::DataSetup;
 use crate::dataset::DataSet;
 use crate::role_binding::RoleBinding;
@@ -16,9 +17,6 @@ pub struct Attribute {}
 
 #[derive(Serialize, Deserialize)]
 pub struct Program {}
-
-#[derive(Serialize, Deserialize)]
-pub struct Constraint {}
 
 #[derive(Serialize, Deserialize)]
 #[serde(tag = "type", content = "spec")]

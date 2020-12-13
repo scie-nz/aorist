@@ -23,6 +23,7 @@ pub struct DataSetup {
     endpoints: EndpointConfig,
     #[getset(get = "pub")]
     imports: Option<Vec<LocalFileImport>>,
+    constraints: Vec<String>,
 }
 impl TAoristObject for DataSetup {
     fn get_name(&self) -> &String {

@@ -1,4 +1,5 @@
 #![allow(non_snake_case)]
+use crate::constraint::Constraint;
 use crate::dataset::DataSet;
 use crate::endpoints::EndpointConfig;
 use crate::role::TRole;
@@ -38,6 +39,7 @@ pub struct ParsedDataSetup {
     )]
     role_bindings: Option<Vec<RoleBinding>>,
     endpoints: EndpointConfig,
+    constraints: Vec<Constraint>,
 }
 impl ParsedDataSetup {
     pub fn new(name: String, endpoints: EndpointConfig) -> Self {
@@ -48,6 +50,7 @@ impl ParsedDataSetup {
             groups: None,
             role_bindings: None,
             endpoints: endpoints,
+            constraints: Vec::new(),
         }
     }
     pub fn get_user_unixname_map(&self) -> HashMap<String, User> {
