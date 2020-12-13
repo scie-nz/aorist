@@ -1,9 +1,9 @@
 [package]
-name = "dataorist"
+name = "aorist"
 description = "Dataorist."
 version = "0.0.1"
 edition = "2018"
-repository = "https://github.com/scie-nz/dataorist"
+repository = "https://github.com/scie-nz/aorist"
 license = "MIT"
 keywords = ["etl"]
 build = "build.rs"
