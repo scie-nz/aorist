@@ -8,7 +8,7 @@ pub mod dataset;
 pub mod encoding;
 pub mod endpoints;
 pub mod error;
-pub mod headers;
+pub mod header;
 pub mod hive;
 pub mod imports;
 pub mod layout;

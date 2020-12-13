@@ -2,7 +2,7 @@ use crate::asset::Asset;
 use crate::compression::DataCompression;
 use crate::encoding::Encoding;
 use crate::endpoints::EndpointConfig;
-use crate::headers::FileHeader;
+use crate::header::FileHeader;
 use crate::location::{HiveLocation, RemoteLocation};
 use enum_dispatch::enum_dispatch;
 use indoc::formatdoc;

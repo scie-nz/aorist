@@ -2,7 +2,7 @@
 
 use crate::compression::DataCompression;
 use crate::endpoints::EndpointConfig;
-use crate::headers::FileHeader;
+use crate::header::FileHeader;
 use crate::hive::THiveTableCreationTagMutator;
 use crate::prefect::{
     TObjectWithPrefectCodeGen, TPrefectCompression, TPrefectEncoding, TPrefectFileHeader,
