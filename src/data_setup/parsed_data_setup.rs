@@ -39,7 +39,12 @@ pub struct ParsedDataSetup {
     )]
     role_bindings: Option<Vec<RoleBinding>>,
     endpoints: EndpointConfig,
-    constraints: Vec<Constraint>,
+    #[getset(
+        get_incomplete = "pub with_prefix",
+        set_incomplete = "pub",
+        get_mut_incomplete = "pub with_prefix"
+    )]
+    constraints: Option<Vec<Constraint>>,
 }
 impl ParsedDataSetup {
     pub fn new(name: String, endpoints: EndpointConfig) -> Self {
@@ -50,7 +55,7 @@ impl ParsedDataSetup {
             groups: None,
             role_bindings: None,
             endpoints: endpoints,
-            constraints: Vec::new(),
+            constraints: None,
         }
     }
     pub fn get_user_unixname_map(&self) -> HashMap<String, User> {

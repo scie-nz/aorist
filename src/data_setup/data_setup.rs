@@ -1,4 +1,5 @@
 #![allow(non_snake_case)]
+use crate::constraint::Constraint;
 use crate::data_setup::parsed_data_setup::ParsedDataSetup;
 use crate::dataset::DataSet;
 use crate::endpoints::EndpointConfig;
@@ -48,11 +49,13 @@ impl DataSetup {
         let group_names: HashSet<String> = self.groups.iter().map(|x| x.clone()).collect();
         let role_binding_names: HashSet<String> =
             self.role_bindings.iter().map(|x| x.clone()).collect();
+        let constraint_names: HashSet<String> = self.constraints.iter().cloned().collect();
 
         let mut users: Vec<User> = Vec::new();
         let mut groups: Vec<UserGroup> = Vec::new();
         let mut datasets: Vec<DataSet> = Vec::new();
         let mut role_bindings: Vec<RoleBinding> = Vec::new();
+        let mut constraints: Vec<Constraint> = Vec::new();
 
         for object in objects {
             match object {
@@ -75,6 +78,11 @@ impl DataSetup {
                     if role_binding_names.contains(r.get_name()) {
                         role_bindings.push(r)
                     }
+                },
+                AoristObject::Constraint(c) => {
+                    if constraint_names.contains(c.get_name()) {
+                        constraints.push(c)
+                    }
                 }
                 _ => {}
             }
@@ -83,6 +91,7 @@ impl DataSetup {
         dataSetup.set_groups(groups).unwrap();
         dataSetup.set_datasets(datasets).unwrap();
         dataSetup.set_role_bindings(role_bindings).unwrap();
+        dataSetup.set_constraints(constraints).unwrap();
 
         let mut role_map: HashMap<String, Vec<Role>> = HashMap::new();
         for binding in dataSetup.get_role_bindings().unwrap() {
@@ -107,6 +116,9 @@ impl DataSetup {
                 .unwrap()
                 .set_roles(roles)
                 .unwrap();
+        }
+        for constraint in dataSetup.get_constraints().unwrap() {
+            println!("{}", serde_yaml::to_string(constraint).unwrap());
         }
         dataSetup
     }
