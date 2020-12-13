@@ -3,7 +3,7 @@
 use crate::encoding::Encoding;
 use crate::endpoints::EndpointConfig;
 use crate::layout::FileBasedStorageLayout;
-use crate::locations::RemoteWebsiteLocation;
+use crate::location::RemoteLocation;
 use crate::prefect::{
     TObjectWithPrefectCodeGen, TPrefectEncoding, TPrefectLocation,
     TPrefectStorage,
@@ -15,18 +15,18 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
-pub struct RemoteWebsiteStorage {
-    location: RemoteWebsiteLocation,
+pub struct RemoteStorage {
+    location: RemoteLocation,
     layout: FileBasedStorageLayout,
     encoding: Encoding,
 }
-impl TObjectWithPythonCodeGen for RemoteWebsiteStorage {
+impl TObjectWithPythonCodeGen for RemoteStorage {
     fn get_python_imports(&self, preamble: &mut HashMap<String, String>) {
         self.location.get_python_imports(preamble);
         self.encoding.get_python_imports(preamble);
     }
 }
-impl TObjectWithPrefectCodeGen for RemoteWebsiteStorage {
+impl TObjectWithPrefectCodeGen for RemoteStorage {
     fn get_prefect_preamble(
         &self,
         preamble: &mut HashMap<String, String>,
@@ -35,7 +35,7 @@ impl TObjectWithPrefectCodeGen for RemoteWebsiteStorage {
         self.location.get_prefect_preamble(preamble, endpoints);
     }
 }
-impl TPrefectStorage for RemoteWebsiteStorage {
+impl TPrefectStorage for RemoteStorage {
     fn get_prefect_dag(&self, _schema: &DataSchema) -> Result<String, String> {
         Ok(format!(
             "{}\n{}",

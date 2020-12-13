@@ -3,14 +3,14 @@ use crate::compressions::DataCompression;
 use crate::encoding::Encoding;
 use crate::endpoints::EndpointConfig;
 use crate::headers::FileHeader;
-use crate::locations::{HiveLocation, RemoteWebsiteLocation};
+use crate::location::{HiveLocation, RemoteLocation};
 use enum_dispatch::enum_dispatch;
 use indoc::formatdoc;
 use std::collections::HashMap;
 
 #[enum_dispatch(
     HiveLocation,
-    RemoteWebsiteLocation,
+    RemoteLocation,
     Asset,
     StorageSetup,
     Storage,

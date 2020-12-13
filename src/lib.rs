@@ -12,7 +12,7 @@ pub mod headers;
 pub mod hive;
 pub mod imports;
 pub mod layout;
-pub mod locations;
+pub mod location;
 pub mod object;
 pub mod prefect;
 pub mod python;

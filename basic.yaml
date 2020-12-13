@@ -3,14 +3,14 @@ spec:
   name: KeyStringIdentifier
   orc: OrcString
   presto: PrestoVarchar
-  sql: SQLVarchar 
+  sql: SQLVarchar
 ---
 type: Attribute
 spec:
   name: NullableStringIdentifier
   orc: OrcString
   presto: PrestoVarchar
-  sql: SQLVarchar 
+  sql: SQLVarchar
 ---
 type: Attribute
 spec:
@@ -52,7 +52,7 @@ spec:
   name: URI
   orc: OrcString
   presto: PrestoVarchar
-  sql: SQLVarchar 
+  sql: SQLVarchar
 ---
 type: Constraint
 spec:
@@ -134,8 +134,8 @@ spec:
   use: DownloadDataFromRemote
   root: GCSLocation
   dialect: Python
-  preamble: | 
-    from google.cloud import storage 
+  preamble: |
+    from google.cloud import storage
     def download_blob_to_file(bucket_name, blob_name, file_name):
       client = storage.Client.from_service_account_json('/gcloud/social_norms.json')
       bucket = client.bucket(bucket_name)
@@ -147,7 +147,7 @@ spec:
     blob: self.blob
     file_name: >
       "/tmp/some_file_name"
-  crate: locations
+  crate: location
 ---
 type: DataSetup
 spec:
@@ -297,7 +297,7 @@ spec:
             local:
             - type: HiveTableStorage
               location:
-                type: HiveAlluxioLocation
+                type: AlluxioLocation
                 spec:
                   path: 'sentinel2/metadata'
               layout:

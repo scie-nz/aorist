@@ -7,7 +7,7 @@ use crate::prefect::{
     TPrefectStorage,
 };
 use crate::python::TObjectWithPythonCodeGen;
-use crate::storage::remote_website_storage::RemoteWebsiteStorage;
+use crate::storage::remote_website_storage::RemoteStorage;
 use crate::storage::hive_table_storage::HiveTableStorage;
 use crate::schema::DataSchema;
 use crate::templates::DatumTemplate;
@@ -19,13 +19,13 @@ use std::collections::HashMap;
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 #[serde(tag = "type")]
 pub enum Storage {
-    RemoteWebsiteStorage(RemoteWebsiteStorage),
+    RemoteStorage(RemoteStorage),
     HiveTableStorage(HiveTableStorage),
 }
 impl Storage {
     pub fn is_hive_storage(&self) -> bool {
         match self {
-            Storage::RemoteWebsiteStorage { .. } => false,
+            Storage::RemoteStorage { .. } => false,
             Storage::HiveTableStorage { .. } => true,
         }
     }
@@ -35,7 +35,7 @@ impl Storage {
         endpoints: &EndpointConfig,
     ) -> Result<(), String> {
         match self {
-            Storage::RemoteWebsiteStorage(_) => {
+            Storage::RemoteStorage(_) => {
                 Err("Cannot create Hive table for remote location".to_string())
             }
             Storage::HiveTableStorage(x) => x.populate_table_creation_tags(tags, endpoints),

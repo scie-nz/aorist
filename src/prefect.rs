@@ -4,7 +4,7 @@ use crate::compressions::{DataCompression, GzipCompression};
 use crate::encoding::Encoding;
 use crate::endpoints::EndpointConfig;
 use crate::headers::{FileHeader, UpperSnakeCaseCSVHeader};
-use crate::locations::{GCSLocation, HiveLocation, RemoteWebsiteLocation};
+use crate::location::{GCSLocation, HiveLocation, RemoteLocation};
 use crate::python::TObjectWithPythonCodeGen;
 use crate::schema::DataSchema;
 use crate::templates::DatumTemplate;
@@ -68,7 +68,7 @@ impl PrefectProgram {
 }
 
 #[enum_dispatch(
-    RemoteWebsiteLocation,
+    RemoteLocation,
     HiveLocation,
     Storage,
     StorageSetup,
@@ -124,7 +124,7 @@ pub trait TPrefectStorage: TObjectWithPrefectCodeGen {
     ) -> Result<String, String>;
 }
 
-#[enum_dispatch(RemoteWebsiteLocation)]
+#[enum_dispatch(RemoteLocation)]
 pub trait TPrefectLocation: TObjectWithPrefectCodeGen {
     fn get_prefect_download_task(&self, task_name: String, file_name: String) -> String;
 }
