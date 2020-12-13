@@ -11,7 +11,7 @@ pub mod error;
 pub mod headers;
 pub mod hive;
 pub mod imports;
-pub mod layouts;
+pub mod layout;
 pub mod locations;
 pub mod object;
 pub mod prefect;

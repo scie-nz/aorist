@@ -3,7 +3,7 @@
 use crate::encoding::Encoding;
 use crate::endpoints::EndpointConfig;
 use crate::hive::THiveTableCreationTagMutator;
-use crate::layouts::HiveStorageLayout;
+use crate::layout::HiveStorageLayout;
 use crate::locations::HiveLocation;
 use crate::prefect::{
     TObjectWithPrefectCodeGen, TPrefectEncoding, TPrefectHiveLocation,

@@ -2,7 +2,7 @@
 
 use crate::encoding::Encoding;
 use crate::endpoints::EndpointConfig;
-use crate::layouts::StorageLayout;
+use crate::layout::FileBasedStorageLayout;
 use crate::locations::RemoteWebsiteLocation;
 use crate::prefect::{
     TObjectWithPrefectCodeGen, TPrefectEncoding, TPrefectLocation,
@@ -17,7 +17,7 @@ use std::collections::HashMap;
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 pub struct RemoteWebsiteStorage {
     location: RemoteWebsiteLocation,
-    layout: StorageLayout,
+    layout: FileBasedStorageLayout,
     encoding: Encoding,
 }
 impl TObjectWithPythonCodeGen for RemoteWebsiteStorage {
