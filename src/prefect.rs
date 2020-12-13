@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 use crate::assets::{Asset, StaticDataTable};
-use crate::compressions::{DataCompression, GzipCompression};
+use crate::compression::{DataCompression, GzipCompression};
 use crate::encoding::Encoding;
 use crate::endpoints::EndpointConfig;
 use crate::headers::{FileHeader, UpperSnakeCaseCSVHeader};

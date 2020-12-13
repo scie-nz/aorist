@@ -3,7 +3,6 @@ use crate::endpoints::EndpointConfig;
 use crate::prefect::{TObjectWithPrefectCodeGen, TPrefectCompression};
 use crate::python::TObjectWithPythonCodeGen;
 use aorist_derive::BlankPrefectPreamble;
-use enum_dispatch::enum_dispatch;
 use indoc::indoc;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -38,11 +37,4 @@ impl TPrefectCompression for GzipCompression {
             file_name = file_name
         )
     }
-}
-
-#[enum_dispatch]
-#[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
-#[serde(tag = "type")]
-pub enum DataCompression {
-    GzipCompression(GzipCompression),
 }

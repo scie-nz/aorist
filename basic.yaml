@@ -279,7 +279,7 @@ spec:
           type: RemoteImportStorageSetup
           spec:
             remote:
-              type: RemoteWebsiteStorage
+              type: RemoteStorage
               location:
                 type: GCSLocation
                 spec:

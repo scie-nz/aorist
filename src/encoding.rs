@@ -1,6 +1,6 @@
 #![allow(non_snake_case)]
 
-use crate::compressions::DataCompression;
+use crate::compression::DataCompression;
 use crate::endpoints::EndpointConfig;
 use crate::headers::FileHeader;
 use crate::hive::THiveTableCreationTagMutator;

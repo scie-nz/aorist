@@ -2,7 +2,7 @@
 pub mod access_policies;
 pub mod assets;
 pub mod attributes;
-pub mod compressions;
+pub mod compression;
 pub mod data_setup;
 pub mod datasets;
 pub mod encoding;

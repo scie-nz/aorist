@@ -1,5 +1,5 @@
 use crate::assets::Asset;
-use crate::compressions::DataCompression;
+use crate::compression::DataCompression;
 use crate::encoding::Encoding;
 use crate::endpoints::EndpointConfig;
 use crate::headers::FileHeader;
