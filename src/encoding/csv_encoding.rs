@@ -78,4 +78,3 @@ impl TPrefectEncoding for CSVEncoding {
         "".to_string()
     }
 }
-

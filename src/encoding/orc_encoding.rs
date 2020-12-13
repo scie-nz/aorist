@@ -2,9 +2,7 @@
 
 use crate::endpoints::EndpointConfig;
 use crate::hive::THiveTableCreationTagMutator;
-use crate::prefect::{
-    TObjectWithPrefectCodeGen, TPrefectEncoding,
-};
+use crate::prefect::{TObjectWithPrefectCodeGen, TPrefectEncoding};
 use crate::python::TObjectWithPythonCodeGen;
 use crate::schema::DataSchema;
 use crate::templates::DatumTemplate;
@@ -12,7 +10,6 @@ use aorist_derive::{BlankPrefectPreamble, NoPythonImports};
 use indoc::indoc;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone, NoPythonImports, BlankPrefectPreamble)]
 pub struct ORCEncoding {}
@@ -64,4 +61,3 @@ impl TPrefectEncoding for ORCEncoding {
         .to_string()
     }
 }
-

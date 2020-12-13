@@ -1,5 +1,5 @@
-mod upper_snake_case_csv_header;
 mod file_header;
+mod upper_snake_case_csv_header;
 
 pub use self::file_header::FileHeader;
 // TODO: should be handled by constraints in future
