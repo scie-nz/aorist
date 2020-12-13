@@ -136,7 +136,7 @@ pub enum Dialect {
   Bash(Bash),
 }
 
-pub trait DownloadToLocalFile {
+pub trait DownloadDataFromRemote {
     // TODO: change this to proper error
     fn get_call(&self, dialect: Dialect) -> Result<String, String>;
 }
