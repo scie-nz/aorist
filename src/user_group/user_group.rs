@@ -1,5 +1,4 @@
 #![allow(non_snake_case)]
-//use crate::ranger::RangerEntity;
 use crate::object::TAoristObject;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -18,12 +17,6 @@ impl UserGroup {
     pub fn get_labels(&self) -> &HashMap<String, String> {
         &self.labels
     }
-}
-
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
-pub struct UserGroupRangerPayload {
-    name: String,
-    description: String,
 }
 impl TAoristObject for UserGroup {
     fn get_name(&self) -> &String {
