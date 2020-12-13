@@ -5,7 +5,7 @@ use crate::hive::THiveTableCreationTagMutator;
 use crate::prefect::{TObjectWithPrefectCodeGen, TPrefectEncoding};
 use crate::python::TObjectWithPythonCodeGen;
 use crate::schema::DataSchema;
-use crate::templates::DatumTemplate;
+use crate::template::DatumTemplate;
 use aorist_derive::{BlankPrefectPreamble, NoPythonImports};
 use indoc::indoc;
 use serde::{Deserialize, Serialize};

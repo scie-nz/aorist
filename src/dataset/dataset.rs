@@ -5,7 +5,7 @@ use crate::endpoints::EndpointConfig;
 use crate::object::TAoristObject;
 use crate::prefect::{TObjectWithPrefectCodeGen, TPrefectAsset, TPrefectDataSet};
 use crate::python::TObjectWithPythonCodeGen;
-use crate::templates::DatumTemplate;
+use crate::template::DatumTemplate;
 use indoc::formatdoc;
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeSet, HashMap};

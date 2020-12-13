@@ -1,7 +1,7 @@
 #![allow(non_snake_case)]
 use crate::asset::static_data_table::StaticDataTable;
 use crate::endpoints::EndpointConfig;
-use crate::templates::DatumTemplate;
+use crate::template::DatumTemplate;
 use enum_dispatch::enum_dispatch;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;

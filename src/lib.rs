@@ -23,7 +23,7 @@ pub mod role_binding;
 pub mod schema;
 pub mod storage;
 pub mod storage_setup;
-pub mod templates;
+pub mod template;
 pub mod user;
 pub mod user_group;
 pub mod utils;

@@ -7,7 +7,7 @@ use crate::python::TObjectWithPythonCodeGen;
 use crate::schema::DataSchema;
 use crate::storage::hive_table_storage::HiveTableStorage;
 use crate::storage::remote_website_storage::RemoteStorage;
-use crate::templates::DatumTemplate;
+use crate::template::DatumTemplate;
 use enum_dispatch::enum_dispatch;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;

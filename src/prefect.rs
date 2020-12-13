@@ -7,7 +7,7 @@ use crate::header::{FileHeader, UpperSnakeCaseCSVHeader};
 use crate::location::{GCSLocation, HiveLocation, RemoteLocation};
 use crate::python::TObjectWithPythonCodeGen;
 use crate::schema::DataSchema;
-use crate::templates::DatumTemplate;
+use crate::template::DatumTemplate;
 use enum_dispatch::enum_dispatch;
 use rustpython_parser::ast::{
     ExpressionType, Located, Program, Statement, StatementType, WithItem,

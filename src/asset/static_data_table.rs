@@ -4,7 +4,7 @@ use crate::prefect::{TObjectWithPrefectCodeGen, TPrefectAsset, TPrefectStorageSe
 use crate::python::TObjectWithPythonCodeGen;
 use crate::schema::DataSchema;
 use crate::storage_setup::StorageSetup;
-use crate::templates::DatumTemplate;
+use crate::template::DatumTemplate;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 

@@ -1,5 +1,5 @@
 #![allow(non_snake_case)]
-use crate::templates::DatumTemplate;
+use crate::template::DatumTemplate;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use crate::schema::tabular_schema::TabularSchema;
