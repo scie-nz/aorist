@@ -22,9 +22,3 @@ impl ApproveAccessSelector {
         return false;
     }
 }
-
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
-#[serde(tag = "type", content = "spec")]
-pub enum AccessPolicy {
-    ApproveAccessSelector(ApproveAccessSelector),
-}
