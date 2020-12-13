@@ -1,8 +1,8 @@
-use crate::location::alluxio_location::AlluxioLocation;
-use serde::{Deserialize, Serialize};
-use enum_dispatch::enum_dispatch;
-use crate::hive::THiveTableCreationTagMutator;
 use crate::endpoints::EndpointConfig;
+use crate::hive::THiveTableCreationTagMutator;
+use crate::location::alluxio_location::AlluxioLocation;
+use enum_dispatch::enum_dispatch;
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 #[enum_dispatch]

@@ -6,8 +6,7 @@ use crate::hive::THiveTableCreationTagMutator;
 use crate::layout::HiveStorageLayout;
 use crate::location::HiveLocation;
 use crate::prefect::{
-    TObjectWithPrefectCodeGen, TPrefectEncoding, TPrefectHiveLocation,
-    TPrefectStorage,
+    TObjectWithPrefectCodeGen, TPrefectEncoding, TPrefectHiveLocation, TPrefectStorage,
 };
 use crate::python::TObjectWithPythonCodeGen;
 use crate::schema::DataSchema;

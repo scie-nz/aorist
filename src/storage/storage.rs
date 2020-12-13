@@ -2,14 +2,11 @@
 
 use crate::endpoints::EndpointConfig;
 use crate::hive::THiveTableCreationTagMutator;
-use crate::prefect::{
-    TObjectWithPrefectCodeGen,
-    TPrefectStorage,
-};
+use crate::prefect::{TObjectWithPrefectCodeGen, TPrefectStorage};
 use crate::python::TObjectWithPythonCodeGen;
-use crate::storage::remote_website_storage::RemoteStorage;
-use crate::storage::hive_table_storage::HiveTableStorage;
 use crate::schema::DataSchema;
+use crate::storage::hive_table_storage::HiveTableStorage;
+use crate::storage::remote_website_storage::RemoteStorage;
 use crate::templates::DatumTemplate;
 use enum_dispatch::enum_dispatch;
 use serde::{Deserialize, Serialize};

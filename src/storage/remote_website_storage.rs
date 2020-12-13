@@ -5,8 +5,7 @@ use crate::endpoints::EndpointConfig;
 use crate::layout::FileBasedStorageLayout;
 use crate::location::RemoteLocation;
 use crate::prefect::{
-    TObjectWithPrefectCodeGen, TPrefectEncoding, TPrefectLocation,
-    TPrefectStorage,
+    TObjectWithPrefectCodeGen, TPrefectEncoding, TPrefectLocation, TPrefectStorage,
 };
 use crate::python::TObjectWithPythonCodeGen;
 use crate::schema::DataSchema;

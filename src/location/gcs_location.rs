@@ -101,4 +101,3 @@ impl TLocationWithPythonAPIClient for GCSLocation {
         .to_string()
     }
 }
-

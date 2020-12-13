@@ -4,11 +4,11 @@ use crate::prefect::{TObjectWithPrefectCodeGen, TPrefectStorageSetup};
 use crate::python::TObjectWithPythonCodeGen;
 use crate::schema::DataSchema;
 use crate::storage::Storage;
+use crate::storage_setup::remote_import_storage_setup::RemoteImportStorageSetup;
 use crate::templates::DatumTemplate;
 use enum_dispatch::enum_dispatch;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use crate::storage_setup::remote_import_storage_setup::RemoteImportStorageSetup;
 
 #[enum_dispatch]
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]

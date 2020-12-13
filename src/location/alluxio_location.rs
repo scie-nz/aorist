@@ -6,7 +6,6 @@ use indoc::{formatdoc, indoc};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 pub struct AlluxioLocation {
     path: String,
