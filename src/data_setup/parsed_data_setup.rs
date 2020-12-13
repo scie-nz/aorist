@@ -1,5 +1,5 @@
 #![allow(non_snake_case)]
-use crate::datasets::DataSet;
+use crate::dataset::DataSet;
 use crate::endpoints::EndpointConfig;
 use crate::role::TRole;
 use crate::role_binding::RoleBinding;

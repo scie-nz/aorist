@@ -4,7 +4,7 @@ pub mod asset;
 pub mod attributes;
 pub mod compression;
 pub mod data_setup;
-pub mod datasets;
+pub mod dataset;
 pub mod encoding;
 pub mod endpoints;
 pub mod error;

@@ -1,6 +1,6 @@
 #![allow(non_snake_case)]
 use crate::data_setup::parsed_data_setup::ParsedDataSetup;
-use crate::datasets::DataSet;
+use crate::dataset::DataSet;
 use crate::endpoints::EndpointConfig;
 use crate::imports::local_import::LocalFileImport;
 use crate::imports::TAoristImport;
