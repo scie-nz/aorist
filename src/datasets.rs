@@ -1,5 +1,5 @@
 #![allow(non_snake_case)]
-use crate::access_policies::AccessPolicy;
+use crate::access_policy::AccessPolicy;
 use crate::asset::Asset;
 use crate::endpoints::EndpointConfig;
 use crate::object::TAoristObject;
