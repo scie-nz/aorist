@@ -1,6 +1,6 @@
 #![feature(box_patterns)]
 pub mod access_policies;
-pub mod assets;
+pub mod asset;
 pub mod attributes;
 pub mod compression;
 pub mod data_setup;

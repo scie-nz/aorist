@@ -1,5 +1,5 @@
 #![allow(dead_code)]
-use crate::assets::{Asset, StaticDataTable};
+use crate::asset::{Asset, StaticDataTable};
 use crate::compression::{DataCompression, GzipCompression};
 use crate::encoding::Encoding;
 use crate::endpoints::EndpointConfig;

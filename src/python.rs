@@ -1,4 +1,4 @@
-use crate::assets::Asset;
+use crate::asset::Asset;
 use crate::compression::DataCompression;
 use crate::encoding::Encoding;
 use crate::endpoints::EndpointConfig;
