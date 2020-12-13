@@ -1,8 +1,8 @@
 #![allow(non_snake_case)]
+use crate::schema::tabular_schema::TabularSchema;
 use crate::template::DatumTemplate;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use crate::schema::tabular_schema::TabularSchema;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 #[serde(tag = "type", content = "spec")]

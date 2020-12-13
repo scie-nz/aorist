@@ -22,4 +22,3 @@ impl TabularSchema {
         format!("{}", columnSchema)
     }
 }
-

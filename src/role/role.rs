@@ -1,7 +1,7 @@
 #![allow(non_snake_case)]
+use crate::role::global_permissions_admin::GlobalPermissionsAdmin;
 use enum_dispatch::enum_dispatch;
 use serde::{Deserialize, Serialize};
-use crate::role::global_permissions_admin::GlobalPermissionsAdmin;
 
 #[enum_dispatch(Role)]
 pub trait TRole {

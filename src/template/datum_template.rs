@@ -1,7 +1,7 @@
 #![allow(non_snake_case)]
 
-use serde::{Deserialize, Serialize};
 use crate::template::keyed_struct::KeyedStruct;
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 #[serde(tag = "type")]
