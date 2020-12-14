@@ -1,4 +1,12 @@
-use syn;
+use syn::Path;
+
+
+pub fn extract_type_path(ty: &syn::Type) -> Option<&Path> {
+    match *ty {
+        syn::Type::Path(ref typepath) if typepath.qself.is_none() => Some(&typepath.path),
+        _ => None,
+    }
+}
 
 // https://stackoverflow.com/questions/55271857/how-can-i-get-the-t-from-an-optiont-when-using-syn/55277337
 // https://rust-syndication.github.io/rss/src/derive_builder_core/setter.rs.html#198
@@ -8,14 +16,7 @@ fn extract_inner_from_bracketed_type<'a>(
 ) -> Option<&'a syn::Type> {
     use syn::punctuated::Pair;
     use syn::token::Colon2;
-    use syn::{GenericArgument, Path, PathArguments, PathSegment};
-
-    fn extract_type_path(ty: &syn::Type) -> Option<&Path> {
-        match *ty {
-            syn::Type::Path(ref typepath) if typepath.qself.is_none() => Some(&typepath.path),
-            _ => None,
-        }
-    }
+    use syn::{GenericArgument, PathArguments, PathSegment};
 
     // TODO store (with lazy static) the vec of string
     // TODO maybe optimization, reverse the order of segments
@@ -64,5 +65,7 @@ pub fn extract_type_from_option(ty: &syn::Type) -> Option<&syn::Type> {
 }
 
 pub fn extract_type_from_vector(ty: &syn::Type) -> Option<&syn::Type> {
-    extract_inner_from_bracketed_type(ty, vec!["Vector|".to_string(), "std|vec|Vec|".into()])
+    extract_inner_from_bracketed_type(ty, vec!["Vector|".to_string(),
+    "std|vec|Vec|".into(), "Vec|".to_string()])
 }
+
