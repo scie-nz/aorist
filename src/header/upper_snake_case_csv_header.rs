@@ -7,8 +7,10 @@ use aorist_derive::BlankPrefectPreamble;
 use indoc::indoc;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use crate::concept::AoristConcept;
+use aorist_concept::Constrainable;
 
-#[derive(Debug, PartialEq, Serialize, Deserialize, Clone, BlankPrefectPreamble)]
+#[derive(Debug, PartialEq, Serialize, Deserialize, Clone, BlankPrefectPreamble, Constrainable)]
 pub struct UpperSnakeCaseCSVHeader {}
 
 impl TObjectWithPythonCodeGen for UpperSnakeCaseCSVHeader {

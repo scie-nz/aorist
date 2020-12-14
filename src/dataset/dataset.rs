@@ -20,6 +20,7 @@ pub struct DataSet {
     accessPolicies: Vec<AccessPolicy>,
     #[constrainable]
     datumTemplates: Vec<DatumTemplate>,
+    #[constrainable]
     assets: Vec<Asset>,
 }
 impl TAoristObject for DataSet {

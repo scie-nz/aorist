@@ -47,6 +47,8 @@ fn process_attributes(raw_objects: &Vec<HashMap<String, Value>>) {
     scope.import("serde", "Serialize");
     scope.import("serde", "Deserialize");
     scope.import("sqlparser::ast", "DataType");
+    scope.import("crate::concept", "AoristConcept");
+    scope.import("aorist_concept", "Constrainable");
 
     let sql_derive_macros = attributes
         .iter()

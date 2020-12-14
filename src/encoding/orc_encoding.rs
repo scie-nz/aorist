@@ -10,8 +10,10 @@ use aorist_derive::{BlankPrefectPreamble, NoPythonImports};
 use indoc::indoc;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use crate::concept::AoristConcept;
+use aorist_concept::Constrainable;
 
-#[derive(Debug, PartialEq, Serialize, Deserialize, Clone, NoPythonImports, BlankPrefectPreamble)]
+#[derive(Debug, PartialEq, Serialize, Deserialize, Clone, NoPythonImports, BlankPrefectPreamble, Constrainable)]
 pub struct ORCEncoding {}
 impl THiveTableCreationTagMutator for ORCEncoding {
     fn populate_table_creation_tags(

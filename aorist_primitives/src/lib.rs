@@ -7,7 +7,7 @@ use sqlparser::ast::{ColumnDef, DataType, Ident};
 macro_rules! define_attribute {
     ($element:ident, $presto_type:ident, $orc_type:ident, $sql_type:ident) => {
         #[derive(
-            Debug, PartialEq, Serialize, Deserialize, Clone, $presto_type, $orc_type, $sql_type,
+            Debug, PartialEq, Serialize, Deserialize, Clone, Constrainable, $presto_type, $orc_type, $sql_type,
         )]
         pub struct $element {
             name: String,
@@ -26,7 +26,7 @@ macro_rules! define_attribute {
 #[macro_export]
 macro_rules! register_attribute {
     ( $name:ident, $($element: ident),+ ) => {
-        #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
+        #[derive(Debug, PartialEq, Serialize, Deserialize, Clone, Constrainable)]
         #[serde(tag = "type")]
         pub enum $name {
             $(

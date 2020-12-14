@@ -8,10 +8,14 @@ use crate::template::DatumTemplate;
 use indoc::indoc;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use crate::concept::AoristConcept;
+use aorist_concept::Constrainable;
 
-#[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
+#[derive(Debug, PartialEq, Serialize, Deserialize, Clone, Constrainable)]
 pub struct RemoteImportStorageSetup {
+    #[constrainable]
     remote: Storage,
+    #[constrainable]
     local: Vec<Storage>,
 }
 impl TObjectWithPrefectCodeGen for RemoteImportStorageSetup {

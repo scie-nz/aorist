@@ -4,8 +4,10 @@ use crate::python::{TLocationWithPythonAPIClient, TObjectWithPythonCodeGen};
 use indoc::{formatdoc, indoc};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use crate::concept::AoristConcept;
+use aorist_concept::Constrainable;
 
-#[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
+#[derive(Debug, PartialEq, Serialize, Deserialize, Clone, Constrainable)]
 pub struct GCSLocation {
     // TODO: replace these with Getters and Setters
     pub bucket: String,

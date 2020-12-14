@@ -11,6 +11,7 @@ use std::collections::HashMap;
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone, Constrainable)]
 pub struct KeyedStruct {
     name: String,
+    #[constrainable]
     attributes: Vec<Attribute>,
 }
 impl KeyedStruct {

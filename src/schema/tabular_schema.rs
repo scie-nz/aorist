@@ -2,8 +2,10 @@
 use crate::template::DatumTemplate;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use crate::concept::AoristConcept;
+use aorist_concept::Constrainable;
 
-#[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
+#[derive(Debug, PartialEq, Serialize, Deserialize, Clone, Constrainable)]
 pub struct TabularSchema {
     datumTemplateName: String,
     attributes: Vec<String>,

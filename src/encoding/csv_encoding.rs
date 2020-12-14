@@ -12,10 +12,14 @@ use crate::schema::DataSchema;
 use crate::template::DatumTemplate;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use crate::concept::AoristConcept;
+use aorist_concept::Constrainable;
 
-#[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
+#[derive(Debug, PartialEq, Serialize, Deserialize, Clone, Constrainable)]
 pub struct CSVEncoding {
+    #[constrainable]
     compression: DataCompression,
+    #[constrainable]
     header: FileHeader,
 }
 impl THiveTableCreationTagMutator for CSVEncoding {
