@@ -4,22 +4,15 @@ use self::proc_macro::TokenStream;
 use type_macro_helpers::{extract_type_from_option, extract_type_from_vector};
 
 use quote::quote;
-use syn::{parse_macro_input, Data, DataStruct, DeriveInput, Fields, Meta};
-
+use syn::{parse_macro_input, Data, DataStruct, DeriveInput, Fields, Meta,
+Field};
+use syn::token::Comma;
+use syn::punctuated::Punctuated;
 mod keyword {
     syn::custom_keyword!(path);
 }
-#[proc_macro_derive(Constrainable, attributes(constrainable))]
-pub fn aorist_concept(input: TokenStream) -> TokenStream {
-    let input = parse_macro_input!(input as DeriveInput);
 
-    let fields = match &input.data {
-        Data::Struct(DataStruct {
-            fields: Fields::Named(fields),
-            ..
-        }) => &fields.named,
-        _ => panic!("expected a struct with named fields"),
-    };
+fn process_struct_fields(fields: &Punctuated<Field, Comma>, input: &DeriveInput) -> TokenStream {
     let field = fields
         .iter()
         .filter(|field| {
@@ -76,4 +69,17 @@ pub fn aorist_concept(input: TokenStream) -> TokenStream {
             }
         }
     })
+}
+
+#[proc_macro_derive(Constrainable, attributes(constrainable))]
+pub fn aorist_concept(input: TokenStream) -> TokenStream {
+    let input = parse_macro_input!(input as DeriveInput);
+
+    match &input.data {
+        Data::Struct(DataStruct {
+            fields: Fields::Named(fields),
+            ..
+        }) => process_struct_fields(&fields.named, &input),
+        _ => panic!("expected a struct with named fields"),
+    }
 }
