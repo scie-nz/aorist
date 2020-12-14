@@ -1,0 +1,22 @@
+[package]
+name = "aorist_concept"
+description = """
+Getset, we're ready to go!
+
+A procedural macro for generating the most basic getters and setters on fields.
+"""
+version = "0.1.1"
+authors = ["Bogdan State <bogdan@scie.nz>"]
+license = "MIT"
+edition = "2018"
+
+[lib]
+proc-macro = true
+
+[dependencies]
+quote = "1"
+syn = {version = "1", features = ["full"]}
+
+[features]
+log_syntax = []
+trace_macros = []

@@ -3,6 +3,7 @@ pub mod access_policy;
 pub mod asset;
 pub mod attributes;
 pub mod compression;
+pub mod concept;
 pub mod constraint;
 pub mod data_setup;
 pub mod dataset;

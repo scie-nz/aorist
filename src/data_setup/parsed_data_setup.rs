@@ -10,8 +10,10 @@ use crate::utils::GetSetError;
 use getset::{IncompleteGetters, IncompleteMutGetters, IncompleteSetters};
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
+use aorist_concept::Constrainable;
+use crate::concept::AoristConcept;
 
-#[derive(Serialize, Deserialize, IncompleteGetters, IncompleteSetters, IncompleteMutGetters)]
+#[derive(Serialize, Deserialize, IncompleteGetters, IncompleteSetters, IncompleteMutGetters, Constrainable)]
 pub struct ParsedDataSetup {
     name: String,
     #[getset(
@@ -38,6 +40,7 @@ pub struct ParsedDataSetup {
         get_mut_incomplete = "pub with_prefix"
     )]
     role_bindings: Option<Vec<RoleBinding>>,
+    #[constrainable]
     endpoints: EndpointConfig,
     #[getset(
         get_incomplete = "pub with_prefix",
