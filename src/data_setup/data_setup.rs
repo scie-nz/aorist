@@ -31,6 +31,66 @@ impl TAoristObject for DataSetup {
         &self.name
     }
 }
+
+pub struct ObjectConstraint {}
+pub trait AoristConcept {}
+struct PythonDialect {}
+pub trait Dialect {}
+impl Dialect for PythonDialect {}
+
+trait Program {}
+
+pub trait AbstractConstraint<T: AoristConcept> {
+    fn get_root_object(&self) -> &T;
+}
+
+pub trait AbstractConstraintRequirement<'a>
+where Self::RequiredConstraintType: AbstractConstraint<Self::RequiredConstraintRootType>,
+      Self::RequiredConstraintRootType: AoristConcept,
+      Self::ConstraintType: AbstractConstraint<Self::ConstraintRootType>,
+      Self::ConstraintRootType: AoristConcept,
+{
+    type ConstraintType;
+    type ConstraintRootType;
+    type RequiredConstraintType;
+    type RequiredConstraintRootType;
+    fn get_parent_constraint(&self) -> &'a Self::ConstraintType;
+}
+impl AoristConcept for ParsedDataSetup {}
+impl AoristConcept for DataSet {}
+
+pub struct IsConsistent<'a> {
+    root: &'a ParsedDataSetup,
+
+}
+pub struct ReplicatedDatasets<'a> {
+    root: &'a DataSet,
+}
+impl AbstractConstraint<ParsedDataSetup> for IsConsistent<'_> {
+    fn get_root_object(&self) -> &ParsedDataSetup {
+        self.root
+    }
+}
+impl AbstractConstraint<DataSet> for ReplicatedDatasets<'_> {
+    fn get_root_object(&self) -> &DataSet {
+        self.root
+    }
+}
+
+struct NeedReplicatedDatasetsForIsConsistent<'a> {
+    parent_constraint: &'a IsConsistent<'a> ,
+}
+impl<'a> AbstractConstraintRequirement<'a> for NeedReplicatedDatasetsForIsConsistent<'a> {
+    type ConstraintType = IsConsistent<'a>;
+    type ConstraintRootType = ParsedDataSetup;
+    type RequiredConstraintType = ReplicatedDatasets<'a>;
+    type RequiredConstraintRootType = DataSet;
+
+    fn get_parent_constraint(&self) -> &'a IsConsistent {
+        self.parent_constraint
+    }
+}
+
 impl DataSetup {
     pub fn parse(self, mut objects: Vec<AoristObject>) -> ParsedDataSetup {
         println!("{}", self.imports.is_some());
@@ -116,9 +176,6 @@ impl DataSetup {
                 .unwrap()
                 .set_roles(roles)
                 .unwrap();
-        }
-        for constraint in dataSetup.get_constraints().unwrap() {
-            println!("{}", serde_yaml::to_string(constraint).unwrap());
         }
         dataSetup
     }

@@ -133,6 +133,9 @@ fn main() {
     let raw_objects = read_file("basic.yaml");
     process_attributes(&raw_objects);
 
+    //let constraints = get_raw_objects_of_type(&raw_objects, "Constraint".into());
+
+
     let programs = get_raw_objects_of_type(&raw_objects, "Program".into());
     assert_eq!(programs.len(), 1);
     let mut scope = Scope::new();

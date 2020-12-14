@@ -19,6 +19,9 @@ fn main() -> Result<(), String> {
     for (_k, v) in setup.get_pipelines()? {
         println!("{}", v);
     }
+    for constraint in setup.get_constraints().unwrap() {
+        println!("{}", constraint);
+    }
     //perms = setup.get_user_permissions();
     /*
     println!("{}", setup.get_curl_calls(
