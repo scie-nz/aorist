@@ -2,8 +2,10 @@
 use crate::object::TAoristObject;
 use crate::role::Role;
 use serde::{Deserialize, Serialize};
+use aorist_concept::Constrainable;
+use crate::concept::AoristConcept;
 
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Serialize, Deserialize, Constrainable)]
 pub struct RoleBinding {
     user_name: String,
     role: Role,
