@@ -26,6 +26,7 @@ fn process_enum_variants(
         .append(true)
         .open("constrainables.txt")
         .unwrap();
+    writeln!(file, "node [shape = box, fontname = Helvetica] '{}';", enum_name).unwrap();
     for v in variant.clone() {
         writeln!(file, "'{}'->'{}';", enum_name, v).unwrap();
     }
@@ -75,9 +76,8 @@ fn process_struct_fields(fields: &Punctuated<Field, Comma>, input: &DeriveInput)
         .map(|x| (x.0, extract_type_from_vector(x.1).unwrap()));
     let types = bare_field
         .clone()
-        .map(|x| x.1)
-        .chain(option_vec_field.clone().map(|x| x.1))
-        .chain(vec_field.clone().map(|x| x.1));
+        .chain(option_vec_field.clone())
+        .chain(vec_field.clone());
     let mut file = OpenOptions::new()
         .write(true)
         .append(true)
@@ -92,7 +92,8 @@ fn process_struct_fields(fields: &Punctuated<Field, Comma>, input: &DeriveInput)
         vec_field.clone().collect::<Vec<_>>().len(),
         option_vec_field.clone().collect::<Vec<_>>().len()
     ).unwrap();*/
-    for t in types {
+    writeln!(file, "node [shape = oval, fontname = Helvetica] '{}';", struct_name).unwrap();
+    for (ident, t) in types {
         let tp = match t {
             Type::Path(x) => &x.path,
             _ => panic!("Something other than a type path found."),
@@ -103,7 +104,7 @@ fn process_struct_fields(fields: &Punctuated<Field, Comma>, input: &DeriveInput)
             .map(|x| x.ident.to_string())
             .collect::<Vec<_>>()
             .join("|");
-        writeln!(file, "'{}'->'{}';", struct_name, type_val).unwrap();
+        writeln!(file, "'{}'->'{}' [label='{}'];", struct_name, type_val, ident.as_ref().unwrap()).unwrap();
     }
     let bare_field_name = bare_field.map(|x| x.0);
     let vec_field_name = vec_field.map(|x| x.0);
