@@ -1,4 +1,5 @@
 #![allow(non_snake_case)]
+use crate::concept::AoristConcept;
 use crate::constraint::Constraint;
 use crate::dataset::DataSet;
 use crate::endpoints::EndpointConfig;
@@ -7,13 +8,19 @@ use crate::role_binding::RoleBinding;
 use crate::user::User;
 use crate::user_group::UserGroup;
 use crate::utils::GetSetError;
+use aorist_concept::Constrainable;
 use getset::{IncompleteGetters, IncompleteMutGetters, IncompleteSetters};
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
-use aorist_concept::Constrainable;
-use crate::concept::AoristConcept;
 
-#[derive(Serialize, Deserialize, IncompleteGetters, IncompleteSetters, IncompleteMutGetters, Constrainable)]
+#[derive(
+    Serialize,
+    Deserialize,
+    IncompleteGetters,
+    IncompleteSetters,
+    IncompleteMutGetters,
+    Constrainable,
+)]
 pub struct ParsedDataSetup {
     name: String,
     #[getset(

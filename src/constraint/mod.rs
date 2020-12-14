@@ -1,6 +1,6 @@
+use crate::object::TAoristObject;
 use serde::{Deserialize, Serialize};
 use std::fmt;
-use crate::object::TAoristObject;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone, Hash, Eq)]
 pub struct Constraint {

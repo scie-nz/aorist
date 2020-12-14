@@ -79,7 +79,7 @@ impl DataSetup {
                     if role_binding_names.contains(r.get_name()) {
                         role_bindings.push(r)
                     }
-                },
+                }
                 AoristObject::Constraint(c) => {
                     if constraint_names.contains(c.get_name()) {
                         constraints.push(c)

@@ -1,9 +1,9 @@
 #![allow(non_snake_case)]
+use crate::concept::AoristConcept;
 use crate::object::TAoristObject;
 use crate::role::Role;
-use serde::{Deserialize, Serialize};
 use aorist_concept::Constrainable;
-use crate::concept::AoristConcept;
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Constrainable)]
 pub struct RoleBinding {

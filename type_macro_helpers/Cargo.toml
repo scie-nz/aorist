@@ -1,5 +1,5 @@
 [package]
-name = "aorist_macro_helpers"
+name = "type_macro_helpers"
 version = "0.1.0"
 authors = ["Bogdan State <bogdan@scie.nz>"]
 edition = "2018"
