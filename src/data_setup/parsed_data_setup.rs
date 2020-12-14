@@ -28,6 +28,7 @@ pub struct ParsedDataSetup {
         set_incomplete = "pub",
         get_mut_incomplete = "pub with_prefix"
     )]
+    #[constrainable]
     users: Option<Vec<User>>,
     #[getset(
         get_incomplete = "pub with_prefix",

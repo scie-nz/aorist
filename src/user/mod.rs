@@ -1,8 +1,10 @@
 #![allow(non_snake_case)]
+use crate::concept::AoristConcept;
 use crate::error::AoristError;
 use crate::object::TAoristObject;
 use crate::ranger::TRangerEntity;
 use crate::role::{Role, TRole};
+use aorist_concept::Constrainable;
 use async_trait::async_trait;
 use gitea::{Client, CreateGiteaUser, GiteaUser};
 use ranger::{CreateRangerUser, RangerClient, RangerUser};
@@ -19,7 +21,7 @@ pub trait TGiteaEntity {
     async fn enforce(&mut self, client: &Client) -> Result<(), AoristError>;
 }
 
-#[derive(Debug, PartialEq, Serialize, Deserialize, Clone, Hash, Eq)]
+#[derive(Debug, PartialEq, Serialize, Deserialize, Clone, Hash, Eq, Constrainable)]
 pub struct User {
     firstName: String,
     lastName: String,
