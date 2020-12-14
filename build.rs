@@ -5,6 +5,7 @@ use std::collections::HashMap;
 use std::collections::HashSet;
 use std::env;
 use std::fs;
+use std::fs::OpenOptions;
 use std::path::Path;
 
 pub fn read_file(filename: &str) -> Vec<HashMap<String, Value>> {
@@ -130,6 +131,9 @@ fn get_match_arms(dialects: HashMap<String, HashMap<String, Value>>) -> String {
 }
 
 fn main() {
+
+    let _file = OpenOptions::new().truncate(true).write(true).create(true).open("constrainables.txt").unwrap();
+
     let raw_objects = read_file("basic.yaml");
     process_attributes(&raw_objects);
 
@@ -202,4 +206,5 @@ fn main() {
     fs::write(&dest_path, scope.to_string()).unwrap();
     println!("cargo:rerun-if-changed=build.rs");
     println!("cargo:rerun-if-changed=basic.yaml");
+    println!("cargo:rerun-if-changed=constrainables.txt");
 }
