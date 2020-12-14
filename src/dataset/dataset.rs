@@ -1,17 +1,19 @@
 #![allow(non_snake_case)]
 use crate::access_policy::AccessPolicy;
 use crate::asset::Asset;
+use crate::concept::AoristConcept;
 use crate::endpoints::EndpointConfig;
 use crate::object::TAoristObject;
 use crate::prefect::{TObjectWithPrefectCodeGen, TPrefectAsset, TPrefectDataSet};
 use crate::python::TObjectWithPythonCodeGen;
 use crate::template::DatumTemplate;
+use aorist_concept::Constrainable;
 use indoc::formatdoc;
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeSet, HashMap};
 use textwrap::indent;
 
-#[derive(Debug, PartialEq, Serialize, Deserialize, Default)]
+#[derive(Debug, PartialEq, Serialize, Deserialize, Default, Constrainable)]
 pub struct DataSet {
     name: String,
     accessPolicies: Vec<AccessPolicy>,
