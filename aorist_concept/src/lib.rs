@@ -4,14 +4,29 @@ use self::proc_macro::TokenStream;
 use type_macro_helpers::{extract_type_from_option, extract_type_from_vector};
 
 use quote::quote;
-use syn::{parse_macro_input, Data, DataStruct, DeriveInput, Fields, Meta,
-Field};
-use syn::token::Comma;
 use syn::punctuated::Punctuated;
+use syn::token::Comma;
+use syn::{parse_macro_input, Data, DataEnum, DataStruct, DeriveInput, Field,
+Fields, Meta, Variant};
 mod keyword {
     syn::custom_keyword!(path);
 }
 
+fn process_enum_variants(variants: &Punctuated<Variant, Comma>, input: &DeriveInput) -> TokenStream {
+    let enum_name = &input.ident;
+    let variant = variants.iter().map(|x| (&x.ident));
+    TokenStream::from(quote! {
+      impl AoristConcept for #enum_name {
+        fn traverse_constrainable_children(&self) {
+            match self {
+              #(
+                #enum_name::#variant(x) => x.traverse_constrainable_children(),
+              )*
+            }
+        }
+      }
+    })
+}
 fn process_struct_fields(fields: &Punctuated<Field, Comma>, input: &DeriveInput) -> TokenStream {
     let field = fields
         .iter()
@@ -36,12 +51,15 @@ fn process_struct_fields(fields: &Punctuated<Field, Comma>, input: &DeriveInput)
             extract_type_from_option(x.1).is_none() && extract_type_from_vector(x.1).is_none()
         })
         .map(|x| x.0);
-    let option_field = field.clone()
+    let option_field = field
+        .clone()
         .filter(|x| extract_type_from_option(x.1).is_some())
         .map(|x| (x.0, extract_type_from_option(x.1).unwrap()));
-    let vec_field = field.clone()
-        .filter(|x| extract_type_from_option(x.1).is_none() &&
-        extract_type_from_vector(x.1).is_some())
+    let vec_field = field
+        .clone()
+        .filter(|x| {
+            extract_type_from_option(x.1).is_none() && extract_type_from_vector(x.1).is_some()
+        })
         .map(|x| x.0);
     let option_vec_field = option_field
         .filter(|x| extract_type_from_vector(x.1).is_some())
@@ -80,6 +98,7 @@ pub fn aorist_concept(input: TokenStream) -> TokenStream {
             fields: Fields::Named(fields),
             ..
         }) => process_struct_fields(&fields.named, &input),
+        Data::Enum(DataEnum { variants, .. }) => process_enum_variants(variants, &input),
         _ => panic!("expected a struct with named fields"),
     }
 }

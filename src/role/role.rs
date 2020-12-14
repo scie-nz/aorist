@@ -1,6 +1,7 @@
 #![allow(non_snake_case)]
 use crate::concept::AoristConcept;
 use crate::role::global_permissions_admin::GlobalPermissionsAdmin;
+use aorist_concept::Constrainable;
 use enum_dispatch::enum_dispatch;
 use serde::{Deserialize, Serialize};
 
@@ -10,16 +11,8 @@ pub trait TRole {
 }
 
 #[enum_dispatch]
-#[derive(Debug, PartialEq, Serialize, Deserialize, Clone, Eq, Hash)]
+#[derive(Debug, PartialEq, Serialize, Deserialize, Clone, Eq, Hash, Constrainable)]
 #[serde(tag = "type", content = "spec")]
 pub enum Role {
     GlobalPermissionsAdmin(GlobalPermissionsAdmin),
-}
-
-impl AoristConcept for Role {
-    fn traverse_constrainable_children(&self) {
-        match self {
-            Role::GlobalPermissionsAdmin(x) => x.traverse_constrainable_children(),
-        }
-    }
 }
