@@ -1,12 +1,14 @@
 #![allow(non_snake_case)]
 
+use aorist_concept::Constrainable;
+use crate::concept::AoristConcept;
 use crate::attributes::Attribute;
 use crate::query::{SQLInsertQuery, SQLQuery};
 use aorist_primitives::{TAttribute, TOrcAttribute, TPrestoAttribute};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-#[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
+#[derive(Debug, PartialEq, Serialize, Deserialize, Clone, Constrainable)]
 pub struct KeyedStruct {
     name: String,
     attributes: Vec<Attribute>,

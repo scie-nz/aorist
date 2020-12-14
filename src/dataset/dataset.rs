@@ -18,6 +18,7 @@ pub struct DataSet {
     name: String,
     #[constrainable]
     accessPolicies: Vec<AccessPolicy>,
+    #[constrainable]
     datumTemplates: Vec<DatumTemplate>,
     assets: Vec<Asset>,
 }

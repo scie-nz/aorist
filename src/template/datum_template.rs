@@ -1,9 +1,11 @@
 #![allow(non_snake_case)]
 
+use aorist_concept::Constrainable;
+use crate::concept::AoristConcept;
 use crate::template::keyed_struct::KeyedStruct;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
+#[derive(Debug, PartialEq, Serialize, Deserialize, Clone, Constrainable)]
 #[serde(tag = "type")]
 pub enum DatumTemplate {
     KeyedStruct(KeyedStruct),
