@@ -1,9 +1,11 @@
 #![allow(non_snake_case)]
+use crate::concept::AoristConcept;
 use crate::object::TAoristObject;
+use aorist_concept::Constrainable;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Serialize, Deserialize, Constrainable)]
 pub struct UserGroup {
     name: String,
     members: Vec<String>,
