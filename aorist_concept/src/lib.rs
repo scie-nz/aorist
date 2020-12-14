@@ -1,7 +1,7 @@
 // Following: https://github.com/dtolnay/syn/issues/516
 extern crate proc_macro;
 use self::proc_macro::TokenStream;
-use type_macro_helpers::extract_type_from_option;
+use type_macro_helpers::{extract_type_from_option, extract_type_from_vector};
 
 use quote::quote;
 use syn::{parse_macro_input, Data, DataStruct, DeriveInput, Fields, Meta};
@@ -34,11 +34,25 @@ pub fn aorist_concept(input: TokenStream) -> TokenStream {
                 .len()
                 > 0
         })
-        .map(|field| (&field.ident, extract_type_from_option(&field.ty)));
+        .map(|field| (&field.ident, &field.ty));
 
     let struct_name = &input.ident;
-    let bare_field = field.clone().filter(|x| x.1.is_none()).map(|x| x.0);
-    let option_field = field.filter(|x| x.1.is_some()).map(|x| x.0);
+    let bare_field = field
+        .clone()
+        .filter(|x| {
+            extract_type_from_option(x.1).is_none() && extract_type_from_vector(x.1).is_none()
+        })
+        .map(|x| x.0);
+    let option_field = field.clone()
+        .filter(|x| extract_type_from_option(x.1).is_some())
+        .map(|x| (x.0, extract_type_from_option(x.1).unwrap()));
+    let vec_field = field.clone()
+        .filter(|x| extract_type_from_option(x.1).is_none() &&
+        extract_type_from_vector(x.1).is_some())
+        .map(|x| x.0);
+    let option_vec_field = option_field
+        .filter(|x| extract_type_from_vector(x.1).is_some())
+        .map(|x| x.0);
 
     TokenStream::from(quote! {
 
@@ -48,7 +62,12 @@ pub fn aorist_concept(input: TokenStream) -> TokenStream {
                     self.#bare_field.traverse_constrainable_children();
                 )*
                 #(
-                    if let Some(ref v) = self.#option_field {
+                    for x in self.#vec_field {
+                        x.traverse_constrainable_children();
+                    }
+                )*
+                #(
+                    if let Some(ref v) = self.#option_vec_field {
                         for x in v {
                             x.traverse_constrainable_children()
                         }

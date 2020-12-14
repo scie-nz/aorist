@@ -8,6 +8,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, PartialEq, Serialize, Deserialize, Constrainable)]
 pub struct RoleBinding {
     user_name: String,
+    #[constrainable]
     role: Role,
     name: String,
 }
