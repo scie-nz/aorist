@@ -202,4 +202,5 @@ fn main() {
 
     fs::write(&dest_path, scope.to_string()).unwrap();
     println!("cargo:rerun-if-changed=build.rs");
+    println!("cargo:rerun-if-changed=basic.yaml");
 }

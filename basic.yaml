@@ -133,7 +133,7 @@ type: Program
 spec:
   use: DownloadDataFromRemote
   root: GCSLocation
-  dialect: PythonDialect
+  dialect: Python
   preamble: |
     from google.cloud import storage
     def download_blob_to_file(bucket_name, blob_name, file_name):
