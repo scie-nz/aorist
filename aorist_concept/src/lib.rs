@@ -73,7 +73,7 @@ fn process_struct_fields(fields: &Punctuated<Field, Comma>, input: &DeriveInput)
                     self.#bare_field.traverse_constrainable_children();
                 )*
                 #(
-                    for x in self.#vec_field {
+                    for x in &self.#vec_field {
                         x.traverse_constrainable_children();
                     }
                 )*

@@ -16,6 +16,7 @@ use textwrap::indent;
 #[derive(Debug, PartialEq, Serialize, Deserialize, Default, Constrainable)]
 pub struct DataSet {
     name: String,
+    #[constrainable]
     accessPolicies: Vec<AccessPolicy>,
     datumTemplates: Vec<DatumTemplate>,
     assets: Vec<Asset>,

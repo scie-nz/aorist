@@ -1,9 +1,11 @@
 #![allow(non_snake_case)]
+use crate::concept::AoristConcept;
 use crate::user_group::UserGroup;
+use aorist_concept::Constrainable;
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
 
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Serialize, Deserialize, Constrainable)]
 pub struct ApproveAccessSelector {
     matchLabels: HashMap<String, Vec<String>>,
 }
