@@ -21,6 +21,14 @@ fn process_enum_variants(
 ) -> TokenStream {
     let enum_name = &input.ident;
     let variant = variants.iter().map(|x| (&x.ident));
+    let mut file = OpenOptions::new()
+        .write(true)
+        .append(true)
+        .open("constrainables.txt")
+        .unwrap();
+    for v in variant.clone() {
+        writeln!(file, "'{}'->'{}';", enum_name, v).unwrap();
+    }
     TokenStream::from(quote! {
       impl AoristConcept for #enum_name {
         fn traverse_constrainable_children(&self) {
@@ -95,7 +103,7 @@ fn process_struct_fields(fields: &Punctuated<Field, Comma>, input: &DeriveInput)
             .map(|x| x.ident.to_string())
             .collect::<Vec<_>>()
             .join("|");
-        writeln!(file, "{} -> {}", struct_name, type_val).unwrap();
+        writeln!(file, "'{}'->'{}';", struct_name, type_val).unwrap();
     }
     let bare_field_name = bare_field.map(|x| x.0);
     let vec_field_name = vec_field.map(|x| x.0);
