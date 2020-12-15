@@ -1,3 +1,4 @@
+use crate::constraint::Constraint;
 use crate::endpoints::EndpointConfig;
 use crate::hive::THiveTableCreationTagMutator;
 use crate::location::alluxio_location::AlluxioLocation;

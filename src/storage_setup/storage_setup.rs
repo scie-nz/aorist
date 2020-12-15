@@ -1,4 +1,5 @@
 #![allow(non_snake_case)]
+use crate::constraint::Constraint;
 use crate::endpoints::EndpointConfig;
 use crate::prefect::{TObjectWithPrefectCodeGen, TPrefectStorageSetup};
 use crate::python::TObjectWithPythonCodeGen;

@@ -1,6 +1,7 @@
 #![allow(non_snake_case)]
 
 use crate::concept::AoristConcept;
+use crate::constraint::Constraint;
 use crate::template::keyed_struct::KeyedStruct;
 use aorist_concept::Constrainable;
 use serde::{Deserialize, Serialize};

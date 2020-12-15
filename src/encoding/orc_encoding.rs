@@ -1,5 +1,6 @@
 #![allow(non_snake_case)]
 
+use crate::constraint::Constraint;
 use crate::endpoints::EndpointConfig;
 use crate::hive::THiveTableCreationTagMutator;
 use crate::prefect::{TObjectWithPrefectCodeGen, TPrefectEncoding};

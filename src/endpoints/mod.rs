@@ -3,6 +3,7 @@ pub mod gitea;
 pub mod presto;
 pub mod ranger;
 
+use crate::constraint::Constraint;
 use crate::concept::AoristConcept;
 use crate::endpoints::alluxio::AlluxioConfig;
 use crate::endpoints::gitea::GiteaConfig;

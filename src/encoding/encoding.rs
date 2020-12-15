@@ -1,5 +1,6 @@
 #![allow(non_snake_case)]
 
+use crate::constraint::Constraint;
 use crate::encoding::csv_encoding::CSVEncoding;
 use crate::encoding::orc_encoding::ORCEncoding;
 use enum_dispatch::enum_dispatch;

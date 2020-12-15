@@ -1,4 +1,5 @@
 #![allow(non_snake_case)]
+use crate::constraint::Constraint;
 use crate::concept::AoristConcept;
 use crate::user_group::UserGroup;
 use aorist_concept::Constrainable;

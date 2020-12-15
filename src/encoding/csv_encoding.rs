@@ -1,5 +1,6 @@
 #![allow(non_snake_case)]
 
+use crate::constraint::Constraint;
 use crate::compression::DataCompression;
 use crate::endpoints::EndpointConfig;
 use crate::header::FileHeader;

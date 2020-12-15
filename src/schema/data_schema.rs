@@ -1,4 +1,5 @@
 #![allow(non_snake_case)]
+use crate::constraint::Constraint;
 use crate::schema::tabular_schema::TabularSchema;
 use crate::template::DatumTemplate;
 use serde::{Deserialize, Serialize};

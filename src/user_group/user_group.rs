@@ -1,5 +1,6 @@
 #![allow(non_snake_case)]
 use crate::concept::AoristConcept;
+use crate::constraint::Constraint;
 use crate::object::TAoristObject;
 use aorist_concept::Constrainable;
 use serde::{Deserialize, Serialize};

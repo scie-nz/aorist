@@ -2,6 +2,7 @@
 
 use crate::attributes::Attribute;
 use crate::concept::AoristConcept;
+use crate::constraint::Constraint;
 use crate::query::{SQLInsertQuery, SQLQuery};
 use aorist_concept::Constrainable;
 use aorist_primitives::{TAttribute, TOrcAttribute, TPrestoAttribute};

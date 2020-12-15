@@ -1,4 +1,5 @@
 #![allow(non_snake_case)]
+use crate::constraint::Constraint;
 use serde::{Deserialize, Serialize};
 use crate::concept::AoristConcept;
 use aorist_concept::Constrainable;

@@ -1,4 +1,5 @@
 #![allow(non_snake_case)]
+use crate::constraint::Constraint;
 use crate::asset::static_data_table::StaticDataTable;
 use crate::endpoints::EndpointConfig;
 use crate::template::DatumTemplate;

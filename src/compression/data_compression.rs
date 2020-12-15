@@ -1,4 +1,5 @@
 #![allow(non_snake_case)]
+use crate::constraint::Constraint;
 use crate::compression::gzip_compression::GzipCompression;
 use enum_dispatch::enum_dispatch;
 use serde::{Deserialize, Serialize};

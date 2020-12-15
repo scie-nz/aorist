@@ -39,6 +39,10 @@ fn process_enum_variants(
               )*
             }
         }
+
+        fn get_constraints(&self) -> Vec<Constraint> {
+            Vec::new()
+        }
       }
     })
 }
@@ -129,6 +133,9 @@ fn process_struct_fields(fields: &Punctuated<Field, Comma>, input: &DeriveInput)
                         }
                     }
                 )*
+            }
+            fn get_constraints(&self) -> Vec<Constraint> {
+                Vec::new()
             }
         }
     })

@@ -1,3 +1,4 @@
+use crate::constraint::Constraint;
 use crate::concept::AoristConcept;
 use crate::role::role::TRole;
 use aorist_concept::Constrainable;

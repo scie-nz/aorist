@@ -1,3 +1,4 @@
+use crate::constraint::Constraint;
 use crate::header::UpperSnakeCaseCSVHeader;
 use enum_dispatch::enum_dispatch;
 use serde::{Deserialize, Serialize};

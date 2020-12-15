@@ -1,4 +1,5 @@
 #![allow(non_snake_case)]
+use crate::constraint::Constraint;
 use crate::access_policy::AccessPolicy;
 use crate::asset::Asset;
 use crate::concept::AoristConcept;
