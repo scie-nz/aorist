@@ -26,7 +26,7 @@ fn process_enum_variants(
         .append(true)
         .open("constrainables.txt")
         .unwrap();
-    writeln!(file, "node [shape = box, fontname = Helvetica] '{}';", enum_name).unwrap();
+    writeln!(file, "node [shape = box, fillcolor=gray, style=filled, fontname = Helvetica] '{}';", enum_name).unwrap();
     for v in variant.clone() {
         writeln!(file, "'{}'->'{}';", enum_name, v).unwrap();
     }
@@ -92,7 +92,7 @@ fn process_struct_fields(fields: &Punctuated<Field, Comma>, input: &DeriveInput)
         vec_field.clone().collect::<Vec<_>>().len(),
         option_vec_field.clone().collect::<Vec<_>>().len()
     ).unwrap();*/
-    writeln!(file, "node [shape = oval, fontname = Helvetica] '{}';", struct_name).unwrap();
+    writeln!(file, "node [shape = oval, fillcolor=white, style=filled, fontname = Helvetica] '{}';", struct_name).unwrap();
     for (ident, t) in types {
         let tp = match t {
             Type::Path(x) => &x.path,
