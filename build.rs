@@ -35,6 +35,13 @@ fn get_raw_objects_of_type(
         .collect::<Vec<HashMap<String, Value>>>()
 }
 
+fn process_constraints(raw_objects: &Vec<HashMap<String, Value>>) {
+    let attributes = get_raw_objects_of_type(raw_objects, "Constraint".into());
+    let mut scope = Scope::new();
+    scope.import("aorist_primitives", "define_attribute");
+    scope.import("crate::constraint", "TConstraint");
+}
+
 fn process_attributes(raw_objects: &Vec<HashMap<String, Value>>) {
     let attributes = get_raw_objects_of_type(raw_objects, "Attribute".into());
     let mut scope = Scope::new();

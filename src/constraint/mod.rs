@@ -1,6 +1,13 @@
+use aorist_primitives::define_constraint;
+use crate::concept::AoristConcept;
 use crate::object::TAoristObject;
 use serde::{Deserialize, Serialize};
 use std::fmt;
+
+pub trait TConstraint
+where Self::Root: AoristConcept {
+    type Root;
+}
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone, Hash, Eq)]
 pub struct Constraint {
@@ -18,3 +25,6 @@ impl fmt::Display for Constraint {
         write!(f, "{}", self.name)
     }
 }
+
+use crate::StorageSetup;
+define_constraint!(IsConsistent, StorageSetup);

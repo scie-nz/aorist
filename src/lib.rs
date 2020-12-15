@@ -29,3 +29,5 @@ pub mod template;
 pub mod user;
 pub mod user_group;
 pub mod utils;
+
+pub use storage_setup::StorageSetup;

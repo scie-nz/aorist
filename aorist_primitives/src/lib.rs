@@ -23,6 +23,16 @@ macro_rules! define_attribute {
         }
     };
 }
+
+#[macro_export]
+macro_rules! define_constraint {
+    ($element:ident, $root:ident) => {
+        pub struct $element {}
+        impl TConstraint for $element {
+            type Root = $root;
+        }
+    };
+}
 #[macro_export]
 macro_rules! register_attribute {
     ( $name:ident, $($element: ident),+ ) => {
