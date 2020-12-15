@@ -48,9 +48,6 @@ version = "0.7.3"
 [dependencies.ordered-float]
 version = "2.0.0"
 
-[dependencies.riker]
-version = "0.4.1"
-
 [dependencies]
 serde = { version = "1.0", features = ["derive"] }
 serde_yaml = "0.8"
@@ -70,6 +67,7 @@ textwrap = {version = "0.12.1"}
 git2 = {version = "0.13.12"}
 sqlparser = {version = "0.6.1"}
 rustpython-parser = {version = "0.1.2"}
+paste = {version = "1.0.4"}
 
 [build-dependencies]
 codegen = {version = "0.1.3"}

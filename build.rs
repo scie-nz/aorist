@@ -41,14 +41,76 @@ fn process_constraints(raw_objects: &Vec<HashMap<String, Value>>) {
     for constraint in &constraints {
         scope.import("crate", constraint.get("root").unwrap().as_str().unwrap());
     }
+    let mut dependencies: HashMap<(String, String), Vec<String>> = HashMap::new();
     for constraint in constraints {
-        let name = constraint.get("name").unwrap().as_str().unwrap().to_string();
-        let root = constraint.get("root").unwrap().as_str().unwrap().to_string();
-        let define = format!("define_constraint!({}, {});", name, root);
+        let name = constraint
+            .get("name")
+            .unwrap()
+            .as_str()
+            .unwrap()
+            .to_string();
+        let root = constraint
+            .get("root")
+            .unwrap()
+            .as_str()
+            .unwrap()
+            .to_string();
+        let required = match constraint.get("requires") {
+            None => Vec::new(),
+            Some(required) => required
+                    .clone()
+                    .as_sequence()
+                    .unwrap()
+                    .iter()
+                    .map(|x| x.as_str().unwrap().to_string())
+                    .collect::<Vec<String>>()
+        };
+        dependencies.insert((name, root), required);
+    }
+    let constraint_names: HashSet<String> = dependencies.keys().map(|x| x.0.clone()).collect();
+    for dep in dependencies.values() {
+        for elem in dep {
+            if !constraint_names.contains(elem) {
+                panic!("Cannot find definition for required constraint {}", elem);
+            }
+        }
+    }
+
+    let mut g: HashMap<(String, String), HashSet<String>> = dependencies.iter().map(|(k, v)| (k.clone(), v.clone().into_iter().collect::<HashSet<String>>())).collect();
+
+    let mut leaf_name = g.iter().filter(|(_, v)| v.len() == 0).map(|(k, _)| k).next();
+    let mut order: Vec<(String, String)> = Vec::new();
+    while let Some(val) = leaf_name {
+        let key = val.clone();
+        println!("key: {}, {}", key.0, key.1);
+        g.remove(&key);
+        for (k, x) in g.iter_mut() {
+            println!("node: {}, dependencies: {}", k.0, x.clone().into_iter().collect::<Vec<String>>().join(", "));
+            x.remove(&key.0);
+        }
+        order.push(key);
+        leaf_name = g.iter().filter(|(_, v)| v.len() == 0).map(|(k, _)| k).next();
+        if g.len() == 0 {
+            break;
+        }
+    }
+    if g.len() > 0 {
+        panic!("Cycles in constraint dependencies are not allowed!");
+    }
+    for (name, root) in &order {
+        let required = dependencies.get(&(name.clone(), root.clone())).unwrap();
+        let define = match required.len() {
+            0 => format!("define_constraint!({}, {});", name, root),
+            _ => format!("define_constraint!({}, {}, {});", name, root, required.join(", ")),
+        };
         scope.raw(&define);
     }
     let out_dir = env::var_os("OUT_DIR").unwrap();
     let dest_path = Path::new(&out_dir).join("constraints.rs");
+    scope.raw(&format!(
+        "register_constraint!(AoristConstraint, {});",
+        order.iter().map(|x| x.0.clone()).collect::<Vec<_>>().join("\n,    ")
+    ));
     fs::write(&dest_path, scope.to_string()).unwrap();
 }
 

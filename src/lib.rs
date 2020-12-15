@@ -31,7 +31,8 @@ pub mod user_group;
 pub mod utils;
 
 pub use asset::Asset;
-pub use storage_setup::{StorageSetup, RemoteImportStorageSetup};
 pub use data_setup::{DataSetup, ParsedDataSetup};
 pub use dataset::DataSet;
-pub use location::RemoteLocation;
+pub use location::{HiveLocation, RemoteLocation};
+pub use storage_setup::{RemoteImportStorageSetup, StorageSetup};
+pub use asset::StaticDataTable;

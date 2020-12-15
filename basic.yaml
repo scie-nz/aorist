@@ -59,47 +59,7 @@ spec:
   name: IsConsistent
   root: ParsedDataSetup
   requires:
-    - ReplicatedDatasets
-    - InstantiatedUsers
-    - EnforcedRoleBinding
-    - EnforcedAccessPolicies
----
-type: Constraint
-spec:
-  name: IsUseful
-  root: ParsedDataSetup
-  requires:
-    - IsConsistent
-    - ReplicatedDatasets
-    - TrainedModels
-    - ComputedMetrics
-    - GeneratedReports
----
-type: Constraint
-spec:
-  name: IsLawful
-  root: ParsedDataSetup
-  requires:
-    - IsConsistent
-    - OldPIIDeleted
-    - PIIProtected
-    - DataAccessAudited
----
-type: Constraint
-spec:
-  name: IsNotEvil
-  root: ParsedDataSetup
-  requires:
-    - ModelsAreExplainable
-    - ModelsAreNotRacist
----
-type: Constraint
-spec:
-  name: IsSecure
-  root: ParsedDataSetup
-  requires:
-    - UsersAreNotPwned
-    - MinimalPermissionsEnforced
+    - ReplicatedDataSets
 ---
 type: Constraint
 spec:
@@ -118,6 +78,11 @@ spec:
 ---
 type: Constraint
 spec:
+  name: ReplicatedSchema
+  root: StaticDataTable
+---
+type: Constraint
+spec:
   name: ReplicatedData
   root: RemoteImportStorageSetup
   requires:
@@ -128,6 +93,11 @@ type: Constraint
 spec:
   name: DownloadDataFromRemote
   root: RemoteLocation
+---
+type: Constraint
+spec:
+  name: UploadDataToLocal
+  root: HiveLocation
 ---
 type: Program
 spec:

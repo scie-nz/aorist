@@ -1,0 +1,48 @@
+
+---
+type: Constraint
+spec:
+  name: IsUseful
+  root: ParsedDataSetup
+  requires:
+    - IsConsistent
+    - ReplicatedDatasets
+    - TrainedModels
+    - ComputedMetrics
+    - GeneratedReports
+---
+type: Constraint
+spec:
+  name: IsLawful
+  root: ParsedDataSetup
+  requires:
+    - IsConsistent
+    - OldPIIDeleted
+    - PIIProtected
+    - DataAccessAudited
+---
+type: Constraint
+spec:
+  name: IsNotEvil
+  root: ParsedDataSetup
+  requires:
+    - ModelsAreExplainable
+    - ModelsAreNotRacist
+---
+type: Constraint
+spec:
+  name: IsSecure
+  root: ParsedDataSetup
+  requires:
+    - UsersAreNotPwned
+    - MinimalPermissionsEnforced
+---
+type: Constraint
+spec:
+  name: IsConsistent
+  root: ParsedDataSetup
+  requires:
+    - ReplicatedDataSets
+    - InstantiatedUsers
+    - EnforcedRoleBinding
+    - EnforcedAccessPolicies

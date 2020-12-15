@@ -1,5 +1,4 @@
 #![allow(non_snake_case)]
-
 use indoc::formatdoc;
 use sqlparser::ast::{ColumnDef, DataType, Ident};
 
@@ -27,11 +26,32 @@ macro_rules! define_attribute {
 #[macro_export]
 macro_rules! define_constraint {
     ($element:ident, $root:ident) => {
-        pub struct $element {}
+        pub struct $element {
+        }
         impl TConstraint for $element {
             type Root = $root;
         }
     };
+    ($element:ident, $root:ident, $($required:ident),+) => {
+        paste::item! {
+            pub struct $element {
+                $([<$required:snake:lower>] : Vec<$required>),+
+            }
+            impl TConstraint for $element {
+                type Root = $root;
+            }
+        }
+    };
+}
+#[macro_export]
+macro_rules! register_constraint {
+    ( $name:ident, $($element: ident),+ ) => {
+        pub enum $name {
+            $(
+                $element($element),
+            )+
+        }
+    }
 }
 #[macro_export]
 macro_rules! register_attribute {

@@ -10,4 +10,5 @@ edition = "2018"
 aorist_derive = {path = "../aorist_derive"}
 sqlparser = {version = "0.6.1"}
 indoc = "1.0.3"
+paste = "1.0.4"
 serde = { version = "1.0", features = ["derive"] }

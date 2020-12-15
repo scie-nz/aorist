@@ -1,11 +1,13 @@
-use aorist_primitives::define_constraint;
 use crate::concept::AoristConcept;
 use crate::object::TAoristObject;
+use aorist_primitives::{define_constraint, register_constraint};
 use serde::{Deserialize, Serialize};
 use std::fmt;
 
 pub trait TConstraint
-where Self::Root: AoristConcept {
+where
+    Self::Root: AoristConcept,
+{
     type Root;
 }
 
