@@ -68,6 +68,7 @@ git2 = {version = "0.13.12"}
 sqlparser = {version = "0.6.1"}
 rustpython-parser = {version = "0.1.2"}
 paste = {version = "1.0.4"}
+maplit = {version = "1.0.2"}
 
 [build-dependencies]
 codegen = {version = "0.1.3"}

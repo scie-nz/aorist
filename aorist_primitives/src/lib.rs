@@ -38,6 +38,12 @@ macro_rules! define_constraint {
         }
         impl TConstraint for $element {
             type Root = $root;
+            fn get_root_type_name() -> String {
+                stringify!($root).into()
+            }
+            fn get_required_constraint_names() -> Vec<String> {
+                Vec::new()
+            }
         }
     };
     ($element:ident, $root:ident, $($required:ident),+) => {
@@ -47,6 +53,14 @@ macro_rules! define_constraint {
             }
             impl TConstraint for $element {
                 type Root = $root;
+                fn get_root_type_name() -> String {
+                    stringify!($root).into()
+                }
+                fn get_required_constraint_names() -> Vec<String> {
+                    vec![$(
+                        stringify!($required).into()
+                    ),+]
+                }
             }
         }
     };
@@ -58,6 +72,22 @@ macro_rules! register_constraint {
             $(
                 $element($element),
             )+
+        }
+        impl $name {
+            fn get_root_type_names() -> HashMap<String, String> {
+                hashmap! {
+                    $(
+                        stringify!($element).to_string() => $element::get_root_type_name(),
+                    )+
+                }
+            }
+            fn get_required_constraint_names() -> HashMap<String, Vec<String>> {
+                hashmap! {
+                    $(
+                        stringify!($element).to_string() => $element::get_required_constraint_names(),
+                    )+
+                }
+            }
         }
     }
 }
