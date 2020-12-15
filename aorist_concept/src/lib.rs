@@ -26,7 +26,12 @@ fn process_enum_variants(
         .append(true)
         .open("constrainables.txt")
         .unwrap();
-    writeln!(file, "node [shape = box, fillcolor=gray, style=filled, fontname = Helvetica] '{}';", enum_name).unwrap();
+    writeln!(
+        file,
+        "node [shape = box, fillcolor=gray, style=filled, fontname = Helvetica] '{}';",
+        enum_name
+    )
+    .unwrap();
     for v in variant.clone() {
         writeln!(file, "'{}'->'{}';", enum_name, v).unwrap();
     }
@@ -71,9 +76,12 @@ fn process_struct_fields(fields: &Punctuated<Field, Comma>, input: &DeriveInput)
         .clone()
         .filter(|x| extract_type_from_option(x.1).is_some())
         .map(|x| (x.0, extract_type_from_option(x.1).unwrap()));
-    let vec_field = field.clone().filter(|x| {
-        extract_type_from_option(x.1).is_none() && extract_type_from_vector(x.1).is_some()
-    }).map(|x| (x.0, extract_type_from_vector(x.1).unwrap()));
+    let vec_field = field
+        .clone()
+        .filter(|x| {
+            extract_type_from_option(x.1).is_none() && extract_type_from_vector(x.1).is_some()
+        })
+        .map(|x| (x.0, extract_type_from_vector(x.1).unwrap()));
     let option_vec_field = option_field
         .clone()
         .filter(|x| extract_type_from_vector(x.1).is_some())
@@ -96,7 +104,12 @@ fn process_struct_fields(fields: &Punctuated<Field, Comma>, input: &DeriveInput)
         vec_field.clone().collect::<Vec<_>>().len(),
         option_vec_field.clone().collect::<Vec<_>>().len()
     ).unwrap();*/
-    writeln!(file, "node [shape = oval, fillcolor=white, style=filled, fontname = Helvetica] '{}';", struct_name).unwrap();
+    writeln!(
+        file,
+        "node [shape = oval, fillcolor=white, style=filled, fontname = Helvetica] '{}';",
+        struct_name
+    )
+    .unwrap();
     for (ident, t) in types {
         let tp = match t {
             Type::Path(x) => &x.path,
@@ -108,7 +121,14 @@ fn process_struct_fields(fields: &Punctuated<Field, Comma>, input: &DeriveInput)
             .map(|x| x.ident.to_string())
             .collect::<Vec<_>>()
             .join("|");
-        writeln!(file, "'{}'->'{}' [label='{}'];", struct_name, type_val, ident.as_ref().unwrap()).unwrap();
+        writeln!(
+            file,
+            "'{}'->'{}' [label='{}'];",
+            struct_name,
+            type_val,
+            ident.as_ref().unwrap()
+        )
+        .unwrap();
     }
     let bare_field_name = bare_field.map(|x| x.0);
     let vec_field_name = vec_field.map(|x| x.0);

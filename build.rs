@@ -58,12 +58,12 @@ fn process_constraints(raw_objects: &Vec<HashMap<String, Value>>) {
         let required = match constraint.get("requires") {
             None => Vec::new(),
             Some(required) => required
-                    .clone()
-                    .as_sequence()
-                    .unwrap()
-                    .iter()
-                    .map(|x| x.as_str().unwrap().to_string())
-                    .collect::<Vec<String>>()
+                .clone()
+                .as_sequence()
+                .unwrap()
+                .iter()
+                .map(|x| x.as_str().unwrap().to_string())
+                .collect::<Vec<String>>(),
         };
         dependencies.insert((name, root), required);
     }
@@ -76,20 +76,40 @@ fn process_constraints(raw_objects: &Vec<HashMap<String, Value>>) {
         }
     }
 
-    let mut g: HashMap<(String, String), HashSet<String>> = dependencies.iter().map(|(k, v)| (k.clone(), v.clone().into_iter().collect::<HashSet<String>>())).collect();
+    let mut g: HashMap<(String, String), HashSet<String>> = dependencies
+        .iter()
+        .map(|(k, v)| {
+            (
+                k.clone(),
+                v.clone().into_iter().collect::<HashSet<String>>(),
+            )
+        })
+        .collect();
 
-    let mut leaf_name = g.iter().filter(|(_, v)| v.len() == 0).map(|(k, _)| k).next();
+    let mut leaf_name = g
+        .iter()
+        .filter(|(_, v)| v.len() == 0)
+        .map(|(k, _)| k)
+        .next();
     let mut order: Vec<(String, String)> = Vec::new();
     while let Some(val) = leaf_name {
         let key = val.clone();
         println!("key: {}, {}", key.0, key.1);
         g.remove(&key);
         for (k, x) in g.iter_mut() {
-            println!("node: {}, dependencies: {}", k.0, x.clone().into_iter().collect::<Vec<String>>().join(", "));
+            println!(
+                "node: {}, dependencies: {}",
+                k.0,
+                x.clone().into_iter().collect::<Vec<String>>().join(", ")
+            );
             x.remove(&key.0);
         }
         order.push(key);
-        leaf_name = g.iter().filter(|(_, v)| v.len() == 0).map(|(k, _)| k).next();
+        leaf_name = g
+            .iter()
+            .filter(|(_, v)| v.len() == 0)
+            .map(|(k, _)| k)
+            .next();
         if g.len() == 0 {
             break;
         }
@@ -101,7 +121,12 @@ fn process_constraints(raw_objects: &Vec<HashMap<String, Value>>) {
         let required = dependencies.get(&(name.clone(), root.clone())).unwrap();
         let define = match required.len() {
             0 => format!("define_constraint!({}, {});", name, root),
-            _ => format!("define_constraint!({}, {}, {});", name, root, required.join(", ")),
+            _ => format!(
+                "define_constraint!({}, {}, {});",
+                name,
+                root,
+                required.join(", ")
+            ),
         };
         scope.raw(&define);
     }
@@ -109,7 +134,11 @@ fn process_constraints(raw_objects: &Vec<HashMap<String, Value>>) {
     let dest_path = Path::new(&out_dir).join("constraints.rs");
     scope.raw(&format!(
         "register_constraint!(AoristConstraint, {});",
-        order.iter().map(|x| x.0.clone()).collect::<Vec<_>>().join("\n,    ")
+        order
+            .iter()
+            .map(|x| x.0.clone())
+            .collect::<Vec<_>>()
+            .join("\n,    ")
     ));
     fs::write(&dest_path, scope.to_string()).unwrap();
 }

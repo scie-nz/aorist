@@ -6,7 +6,15 @@ use sqlparser::ast::{ColumnDef, DataType, Ident};
 macro_rules! define_attribute {
     ($element:ident, $presto_type:ident, $orc_type:ident, $sql_type:ident) => {
         #[derive(
-            Debug, PartialEq, Serialize, Deserialize, Clone, Constrainable, $presto_type, $orc_type, $sql_type,
+            Debug,
+            PartialEq,
+            Serialize,
+            Deserialize,
+            Clone,
+            Constrainable,
+            $presto_type,
+            $orc_type,
+            $sql_type,
         )]
         pub struct $element {
             name: String,
@@ -161,9 +169,9 @@ pub struct Bash {}
 
 #[derive(Debug)]
 pub enum Dialect {
-  Python(Python),
-  R(R),
-  Bash(Bash),
+    Python(Python),
+    R(R),
+    Bash(Bash),
 }
 
 pub trait DownloadDataFromRemote {
