@@ -11,6 +11,7 @@ use gitea::{Client, CreateGiteaUser, GiteaUser};
 use ranger::{CreateRangerUser, RangerClient, RangerUser};
 use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
+use std::rc::Rc;
 
 #[async_trait]
 pub trait TGiteaEntity {

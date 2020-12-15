@@ -5,6 +5,7 @@ use crate::user_group::UserGroup;
 use aorist_concept::Constrainable;
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
+use std::rc::Rc;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Constrainable)]
 pub struct ApproveAccessSelector {

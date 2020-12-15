@@ -5,6 +5,7 @@ use crate::role::global_permissions_admin::GlobalPermissionsAdmin;
 use aorist_concept::Constrainable;
 use enum_dispatch::enum_dispatch;
 use serde::{Deserialize, Serialize};
+use std::rc::Rc;
 
 #[enum_dispatch(Role)]
 pub trait TRole {

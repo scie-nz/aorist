@@ -12,6 +12,7 @@ use aorist_concept::Constrainable;
 use getset::{IncompleteGetters, IncompleteMutGetters, IncompleteSetters};
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
+use std::rc::Rc;
 
 #[derive(
     Serialize,

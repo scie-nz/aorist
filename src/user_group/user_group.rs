@@ -5,6 +5,7 @@ use crate::object::TAoristObject;
 use aorist_concept::Constrainable;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use std::rc::Rc;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Constrainable)]
 pub struct UserGroup {

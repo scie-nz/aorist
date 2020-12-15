@@ -13,6 +13,7 @@ use aorist_derive::{BlankPrefectPreamble, NoPythonImports};
 use indoc::indoc;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use std::rc::Rc;
 
 #[derive(
     Debug,

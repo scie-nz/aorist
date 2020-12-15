@@ -13,6 +13,7 @@ use crate::utils::GetSetError;
 use aorist_concept::Constrainable;
 use getset::{IncompleteGetters, IncompleteSetters};
 use serde::{Deserialize, Serialize};
+use std::rc::Rc;
 
 #[serde()]
 #[derive(Constrainable, Serialize, Deserialize, Clone, IncompleteGetters, IncompleteSetters)]

@@ -10,6 +10,7 @@ use aorist_derive::BlankPrefectPreamble;
 use indoc::indoc;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use std::rc::Rc;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone, BlankPrefectPreamble, Constrainable)]
 pub struct UpperSnakeCaseCSVHeader {}

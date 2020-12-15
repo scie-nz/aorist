@@ -3,6 +3,7 @@ use crate::constraint::Constraint;
 use crate::role::role::TRole;
 use aorist_concept::Constrainable;
 use serde::{Deserialize, Serialize};
+use std::rc::Rc;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone, Eq, Hash, Constrainable)]
 pub struct GlobalPermissionsAdmin {}

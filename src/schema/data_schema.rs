@@ -6,6 +6,7 @@ use crate::template::DatumTemplate;
 use aorist_concept::Constrainable;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use std::rc::Rc;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone, Constrainable)]
 #[serde(tag = "type", content = "spec")]

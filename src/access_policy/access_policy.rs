@@ -4,6 +4,7 @@ use crate::concept::AoristConcept;
 use crate::constraint::Constraint;
 use aorist_concept::Constrainable;
 use serde::{Deserialize, Serialize};
+use std::rc::Rc;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Constrainable)]
 #[serde(tag = "type", content = "spec")]

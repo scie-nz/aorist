@@ -12,6 +12,7 @@ use aorist_concept::Constrainable;
 use indoc::formatdoc;
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeSet, HashMap};
+use std::rc::Rc;
 use textwrap::indent;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Default, Constrainable)]
