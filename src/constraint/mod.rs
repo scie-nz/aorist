@@ -26,5 +26,4 @@ impl fmt::Display for Constraint {
     }
 }
 
-use crate::StorageSetup;
-define_constraint!(IsConsistent, StorageSetup);
+include!(concat!(env!("OUT_DIR"), "/constraints.rs"));

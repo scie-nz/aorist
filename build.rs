@@ -36,10 +36,20 @@ fn get_raw_objects_of_type(
 }
 
 fn process_constraints(raw_objects: &Vec<HashMap<String, Value>>) {
-    let attributes = get_raw_objects_of_type(raw_objects, "Constraint".into());
+    let constraints = get_raw_objects_of_type(raw_objects, "Constraint".into());
     let mut scope = Scope::new();
-    scope.import("aorist_primitives", "define_attribute");
-    scope.import("crate::constraint", "TConstraint");
+    for constraint in &constraints {
+        scope.import("crate", constraint.get("root").unwrap().as_str().unwrap());
+    }
+    for constraint in constraints {
+        let name = constraint.get("name").unwrap().as_str().unwrap().to_string();
+        let root = constraint.get("root").unwrap().as_str().unwrap().to_string();
+        let define = format!("define_constraint!({}, {});", name, root);
+        scope.raw(&define);
+    }
+    let out_dir = env::var_os("OUT_DIR").unwrap();
+    let dest_path = Path::new(&out_dir).join("constraints.rs");
+    fs::write(&dest_path, scope.to_string()).unwrap();
 }
 
 fn process_attributes(raw_objects: &Vec<HashMap<String, Value>>) {
@@ -151,8 +161,7 @@ fn main() {
 
     let raw_objects = read_file("basic.yaml");
     process_attributes(&raw_objects);
-
-    //let constraints = get_raw_objects_of_type(&raw_objects, "Constraint".into());
+    process_constraints(&raw_objects);
 
     let programs = get_raw_objects_of_type(&raw_objects, "Program".into());
     assert_eq!(programs.len(), 1);

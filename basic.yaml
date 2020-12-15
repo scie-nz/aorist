@@ -57,7 +57,7 @@ spec:
 type: Constraint
 spec:
   name: IsConsistent
-  root: DataSetup
+  root: ParsedDataSetup
   requires:
     - ReplicatedDatasets
     - InstantiatedUsers
@@ -67,7 +67,7 @@ spec:
 type: Constraint
 spec:
   name: IsUseful
-  root: DataSetup
+  root: ParsedDataSetup
   requires:
     - IsConsistent
     - ReplicatedDatasets
@@ -78,7 +78,7 @@ spec:
 type: Constraint
 spec:
   name: IsLawful
-  root: DataSetup
+  root: ParsedDataSetup
   requires:
     - IsConsistent
     - OldPIIDeleted
@@ -88,7 +88,7 @@ spec:
 type: Constraint
 spec:
   name: IsNotEvil
-  root: DataSetup
+  root: ParsedDataSetup
   requires:
     - ModelsAreExplainable
     - ModelsAreNotRacist
@@ -96,7 +96,7 @@ spec:
 type: Constraint
 spec:
   name: IsSecure
-  root: DataSetup
+  root: ParsedDataSetup
   requires:
     - UsersAreNotPwned
     - MinimalPermissionsEnforced
@@ -111,7 +111,7 @@ spec:
 type: Constraint
 spec:
   name: ReplicatedAssets
-  root: Table
+  root: Asset
   requires:
     - ReplicatedSchema
     - ReplicatedData

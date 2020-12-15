@@ -30,4 +30,8 @@ pub mod user;
 pub mod user_group;
 pub mod utils;
 
-pub use storage_setup::StorageSetup;
+pub use asset::Asset;
+pub use storage_setup::{StorageSetup, RemoteImportStorageSetup};
+pub use data_setup::{DataSetup, ParsedDataSetup};
+pub use dataset::DataSet;
+pub use location::RemoteLocation;
