@@ -1,7 +1,7 @@
 #![allow(non_snake_case)]
-use crate::constraint::Constraint;
 use crate::access_policy::approve_access_selector::ApproveAccessSelector;
 use crate::concept::AoristConcept;
+use crate::constraint::Constraint;
 use aorist_concept::Constrainable;
 use serde::{Deserialize, Serialize};
 

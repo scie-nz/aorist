@@ -1,5 +1,6 @@
 #![allow(non_snake_case)]
 
+use crate::concept::AoristConcept;
 use crate::constraint::Constraint;
 use crate::encoding::Encoding;
 use crate::endpoints::EndpointConfig;
@@ -12,10 +13,9 @@ use crate::prefect::{
 use crate::python::TObjectWithPythonCodeGen;
 use crate::schema::DataSchema;
 use crate::template::DatumTemplate;
+use aorist_concept::Constrainable;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use crate::concept::AoristConcept;
-use aorist_concept::Constrainable;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone, Constrainable)]
 pub struct HiveTableStorage {

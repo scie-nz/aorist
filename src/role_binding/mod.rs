@@ -1,6 +1,6 @@
 #![allow(non_snake_case)]
-use crate::constraint::Constraint;
 use crate::concept::AoristConcept;
+use crate::constraint::Constraint;
 use crate::object::TAoristObject;
 use crate::role::Role;
 use aorist_concept::Constrainable;

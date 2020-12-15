@@ -134,8 +134,12 @@ fn get_match_arms(dialects: HashMap<String, HashMap<String, Value>>) -> String {
 }
 
 fn main() {
-
-    let _file = OpenOptions::new().truncate(true).write(true).create(true).open("constrainables.txt").unwrap();
+    let _file = OpenOptions::new()
+        .truncate(true)
+        .write(true)
+        .create(true)
+        .open("constrainables.txt")
+        .unwrap();
 
     let raw_objects = read_file("basic.yaml");
     process_attributes(&raw_objects);

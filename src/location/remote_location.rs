@@ -1,9 +1,9 @@
+use crate::concept::AoristConcept;
 use crate::constraint::Constraint;
 use crate::location::gcs_location::GCSLocation;
+use aorist_concept::Constrainable;
 use enum_dispatch::enum_dispatch;
 use serde::{Deserialize, Serialize};
-use crate::concept::AoristConcept;
-use aorist_concept::Constrainable;
 
 #[enum_dispatch]
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone, Constrainable)]

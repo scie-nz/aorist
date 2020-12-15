@@ -1,5 +1,5 @@
-use crate::constraint::Constraint;
 use crate::concept::AoristConcept;
+use crate::constraint::Constraint;
 use crate::role::role::TRole;
 use aorist_concept::Constrainable;
 use serde::{Deserialize, Serialize};

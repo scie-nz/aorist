@@ -1,8 +1,8 @@
 #![allow(non_snake_case)]
-use crate::constraint::Constraint;
-use serde::{Deserialize, Serialize};
 use crate::concept::AoristConcept;
+use crate::constraint::Constraint;
 use aorist_concept::Constrainable;
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone, Constrainable)]
 pub struct StaticHiveTableLayout {}

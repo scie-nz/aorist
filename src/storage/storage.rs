@@ -1,5 +1,6 @@
 #![allow(non_snake_case)]
 
+use crate::concept::AoristConcept;
 use crate::constraint::Constraint;
 use crate::endpoints::EndpointConfig;
 use crate::hive::THiveTableCreationTagMutator;
@@ -9,11 +10,10 @@ use crate::schema::DataSchema;
 use crate::storage::hive_table_storage::HiveTableStorage;
 use crate::storage::remote_website_storage::RemoteStorage;
 use crate::template::DatumTemplate;
+use aorist_concept::Constrainable;
 use enum_dispatch::enum_dispatch;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use crate::concept::AoristConcept;
-use aorist_concept::Constrainable;
 
 #[enum_dispatch]
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone, Constrainable)]

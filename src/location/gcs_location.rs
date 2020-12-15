@@ -1,12 +1,12 @@
+use crate::concept::AoristConcept;
 use crate::constraint::Constraint;
 use crate::endpoints::EndpointConfig;
 use crate::prefect::{TObjectWithPrefectCodeGen, TPrefectLocation};
 use crate::python::{TLocationWithPythonAPIClient, TObjectWithPythonCodeGen};
+use aorist_concept::Constrainable;
 use indoc::{formatdoc, indoc};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use crate::concept::AoristConcept;
-use aorist_concept::Constrainable;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone, Constrainable)]
 pub struct GCSLocation {

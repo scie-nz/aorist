@@ -1,5 +1,6 @@
 #![allow(non_snake_case)]
 
+use crate::concept::AoristConcept;
 use crate::constraint::Constraint;
 use crate::endpoints::EndpointConfig;
 use crate::hive::THiveTableCreationTagMutator;
@@ -7,14 +8,22 @@ use crate::prefect::{TObjectWithPrefectCodeGen, TPrefectEncoding};
 use crate::python::TObjectWithPythonCodeGen;
 use crate::schema::DataSchema;
 use crate::template::DatumTemplate;
+use aorist_concept::Constrainable;
 use aorist_derive::{BlankPrefectPreamble, NoPythonImports};
 use indoc::indoc;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use crate::concept::AoristConcept;
-use aorist_concept::Constrainable;
 
-#[derive(Debug, PartialEq, Serialize, Deserialize, Clone, NoPythonImports, BlankPrefectPreamble, Constrainable)]
+#[derive(
+    Debug,
+    PartialEq,
+    Serialize,
+    Deserialize,
+    Clone,
+    NoPythonImports,
+    BlankPrefectPreamble,
+    Constrainable,
+)]
 pub struct ORCEncoding {}
 impl THiveTableCreationTagMutator for ORCEncoding {
     fn populate_table_creation_tags(
