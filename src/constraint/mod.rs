@@ -1,10 +1,10 @@
 use crate::concept::AoristConcept;
 use crate::object::TAoristObject;
 use aorist_primitives::{define_constraint, register_constraint};
-use serde::{Deserialize, Serialize};
-use std::fmt;
 use maplit::hashmap;
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use std::fmt;
 
 pub trait TConstraint
 where
