@@ -14,6 +14,7 @@ use syn::{
 mod keyword {
     syn::custom_keyword!(path);
 }
+use aorist_util::{get_raw_objects_of_type, read_file};
 
 fn process_enum_variants(
     variants: &Punctuated<Variant, Comma>,
@@ -163,6 +164,11 @@ fn process_struct_fields(fields: &Punctuated<Field, Comma>, input: &DeriveInput)
 
 #[proc_macro_derive(Constrainable, attributes(constrainable))]
 pub fn aorist_concept(input: TokenStream) -> TokenStream {
+
+    // TODO: this should be passed somehow (maybe env var?)
+    let raw_objects = read_file("basic.yaml");
+    let constraints = get_raw_objects_of_type(&raw_objects, "Constraint".into());
+
     let input = parse_macro_input!(input as DeriveInput);
     //let constraint_names = AoristConstraint::get_required_constraint_names();
     match &input.data {
