@@ -164,7 +164,7 @@ fn process_struct_fields(fields: &Punctuated<Field, Comma>, input: &DeriveInput)
 #[proc_macro_derive(Constrainable, attributes(constrainable))]
 pub fn aorist_concept(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
-
+    //let constraint_names = AoristConstraint::get_required_constraint_names();
     match &input.data {
         Data::Struct(DataStruct {
             fields: Fields::Named(fields),
