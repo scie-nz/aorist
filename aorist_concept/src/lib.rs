@@ -15,6 +15,7 @@ mod keyword {
     syn::custom_keyword!(path);
 }
 use aorist_util::{get_raw_objects_of_type, read_file};
+use std::collections::HashMap;
 
 fn process_enum_variants(
     variants: &Punctuated<Variant, Comma>,
@@ -52,7 +53,11 @@ fn process_enum_variants(
       }
     })
 }
-fn process_struct_fields(fields: &Punctuated<Field, Comma>, input: &DeriveInput) -> TokenStream {
+fn process_struct_fields(
+    fields: &Punctuated<Field, Comma>,
+    input: &DeriveInput,
+    constraints: &HashMap<String, Vec<String>>,
+) -> TokenStream {
     let field = fields
         .iter()
         .filter(|field| {
@@ -70,6 +75,10 @@ fn process_struct_fields(fields: &Punctuated<Field, Comma>, input: &DeriveInput)
         .map(|field| (&field.ident, &field.ty));
 
     let struct_name = &input.ident;
+    let constraint: Vec<String> = match constraints.get(&struct_name.to_string()) {
+        Some(v) => v.clone(),
+        None => Vec::new(),
+    };
     let bare_field = field.clone().filter(|x| {
         extract_type_from_option(x.1).is_none() && extract_type_from_vector(x.1).is_none()
     });
@@ -156,7 +165,16 @@ fn process_struct_fields(fields: &Punctuated<Field, Comma>, input: &DeriveInput)
                 )*
             }
             fn get_constraints(&self) -> Vec<Rc<Constraint>> {
-                Vec::new()
+                vec![
+                    #(
+                        Rc::new(Constraint{
+                            name: stringify!(#constraint).to_string(),
+                            root: stringify!(#struct_name).to_string(),
+                            requires: None,
+                            inner: None,
+                        }),
+                    )*
+                ]
             }
         }
     })
@@ -164,18 +182,28 @@ fn process_struct_fields(fields: &Punctuated<Field, Comma>, input: &DeriveInput)
 
 #[proc_macro_derive(Constrainable, attributes(constrainable))]
 pub fn aorist_concept(input: TokenStream) -> TokenStream {
-
     // TODO: this should be passed somehow (maybe env var?)
     let raw_objects = read_file("basic.yaml");
     let constraints = get_raw_objects_of_type(&raw_objects, "Constraint".into());
-
+    // TODO: add dependencies
+    let constraints_parsed: Vec<(String, String)> = constraints
+        .into_iter()
+        .map(|x| (
+            x.get("name").unwrap().as_str().unwrap().into(),
+            x.get("root").unwrap().as_str().unwrap().into(),
+        ))
+        .collect();
+    let mut constraints_map: HashMap<String, Vec<String>> = HashMap::new();
+    for (name, root) in constraints_parsed {
+        constraints_map.entry(root).or_insert(Vec::new()).push(name);
+    }
     let input = parse_macro_input!(input as DeriveInput);
     //let constraint_names = AoristConstraint::get_required_constraint_names();
     match &input.data {
         Data::Struct(DataStruct {
             fields: Fields::Named(fields),
             ..
-        }) => process_struct_fields(&fields.named, &input),
+        }) => process_struct_fields(&fields.named, &input, &constraints_map),
         Data::Enum(DataEnum { variants, .. }) => process_enum_variants(variants, &input),
         _ => panic!("expected a struct with named fields"),
     }

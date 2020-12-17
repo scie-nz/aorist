@@ -20,10 +20,10 @@ include!(concat!(env!("OUT_DIR"), "/constraints.rs"));
 #[derive(Serialize, Deserialize)]
 pub struct Constraint {
 	#[serde(skip)]
-    inner: Option<AoristConstraint>,
-    name: String,
-    root: String,
-    requires: Option<Vec<String>>,
+    pub inner: Option<AoristConstraint>,
+    pub name: String,
+    pub root: String,
+    pub requires: Option<Vec<String>>,
 }
 impl TAoristObject for Constraint {
     fn get_name(&self) -> &String {
