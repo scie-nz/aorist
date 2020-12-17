@@ -38,6 +38,7 @@ macro_rules! define_attribute {
 macro_rules! define_constraint {
     ($element:ident, $root:ident) => {
         pub struct $element {
+            id: Uuid,
         }
         impl TConstraint for $element {
             type Root = $root;
@@ -48,6 +49,13 @@ macro_rules! define_constraint {
                 Vec::new()
             }
         }
+		impl fmt::Debug for $element {
+			fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+				f.debug_struct(stringify!($element))
+				 .field("id", &self.id)
+				 .finish()
+			}
+		}
     };
     ($element:ident, $root:ident, $($required:ident),+) => {
         paste::item! {

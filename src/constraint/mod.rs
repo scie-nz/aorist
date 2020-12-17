@@ -2,7 +2,7 @@ use crate::concept::AoristConcept;
 use crate::object::TAoristObject;
 use aorist_primitives::{define_constraint, register_constraint};
 use maplit::hashmap;
-use serde::{Deserialize, Serialize};
+use serde::{Serialize, Deserialize};
 use std::collections::HashMap;
 use std::fmt;
 
@@ -15,8 +15,12 @@ where
     fn get_required_constraint_names() -> Vec<String>;
 }
 
-#[derive(Debug, PartialEq, Serialize, Deserialize, Clone, Hash, Eq)]
+include!(concat!(env!("OUT_DIR"), "/constraints.rs"));
+
+#[derive(Serialize, Deserialize)]
 pub struct Constraint {
+	#[serde(skip)]
+    inner: Option<AoristConstraint>,
     name: String,
     root: String,
     requires: Option<Vec<String>>,
@@ -31,5 +35,3 @@ impl fmt::Display for Constraint {
         write!(f, "{}", self.name)
     }
 }
-
-include!(concat!(env!("OUT_DIR"), "/constraints.rs"));

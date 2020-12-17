@@ -11,6 +11,7 @@ use aorist_primitives::{get_raw_objects_of_type, read_file};
 fn process_constraints(raw_objects: &Vec<HashMap<String, Value>>) {
     let constraints = get_raw_objects_of_type(raw_objects, "Constraint".into());
     let mut scope = Scope::new();
+    scope.import("uuid", "Uuid");
     for constraint in &constraints {
         scope.import("crate", constraint.get("root").unwrap().as_str().unwrap());
     }

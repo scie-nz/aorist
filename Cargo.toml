@@ -51,7 +51,6 @@ version = "2.0.0"
 [dependencies]
 serde = { version = "1.0", features = ["derive"] }
 serde_yaml = "0.8"
-aorist_constraint = {path = "./aorist_constraint"}
 aorist_concept = {path = "./aorist_concept"}
 aorist_derive = {path = "./aorist_derive"}
 aorist_primitives = {path = "./aorist_primitives"}
@@ -70,6 +69,7 @@ sqlparser = {version = "0.6.1"}
 rustpython-parser = {version = "0.1.2"}
 paste = {version = "1.0.4"}
 maplit = {version = "1.0.2"}
+uuid = {version = "0.8.1", features = ["v4", "serde"]}
 
 [build-dependencies]
 aorist_primitives = {path = "./aorist_primitives"}
