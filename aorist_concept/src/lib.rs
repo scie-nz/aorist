@@ -24,6 +24,7 @@ fn process_enum_variants(
 ) -> TokenStream {
     let enum_name = &input.ident;
     let variant = variants.iter().map(|x| (&x.ident));
+    let variant2 = variants.iter().map(|x| (&x.ident));
     let mut file = OpenOptions::new()
         .write(true)
         .append(true)
@@ -41,15 +42,19 @@ fn process_enum_variants(
     TokenStream::from(quote! {
       impl AoristConcept for #enum_name {
         fn traverse_constrainable_children(&self) {
-            match self {
-              #(
-                #enum_name::#variant(x) => x.traverse_constrainable_children(),
-              )*
-            }
+          match self {
+            #(
+              #enum_name::#variant(x) => x.traverse_constrainable_children(),
+            )*
+          }
         }
 
-        fn get_constraints(&self) -> Vec<Rc<Constraint>> {
-            Vec::new()
+        fn get_constraints(self) -> Vec<Rc<Constraint>> {
+          match self {
+            #(
+              #enum_name::#variant2(x) => x.get_constraints(),
+            )*
+          }
         }
       }
     })
@@ -165,14 +170,19 @@ fn process_struct_fields(
                     }
                 )*
             }
-            fn get_constraints(&self) -> Vec<Rc<Constraint>> {
+            fn get_constraints(self) -> Vec<Rc<Constraint>> {
+                let rc = Rc::new(self);
                 vec![
                     #(
                         Rc::new(Constraint{
                             name: stringify!(#constraint).to_string(),
                             root: stringify!(#struct_name).to_string(),
                             requires: None,
-                            inner: Some(AoristConstraint::#constraint(crate::constraint::#constraint::new())),
+                            inner: Some(
+                                AoristConstraint::#constraint(
+                                    crate::constraint::#constraint::new(rc)
+                                )
+                            ),
                         }),
                     )*
                 ]
