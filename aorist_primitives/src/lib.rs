@@ -37,6 +37,11 @@ macro_rules! define_constraint {
         pub struct $element {
             id: Uuid,
         }
+        impl $element {
+            pub fn new() -> Self {
+                Self{ id: Uuid::new_v4() }
+            }
+        }
         impl TConstraint for $element {
             type Root = $root;
             fn get_root_type_name() -> String {
@@ -57,7 +62,16 @@ macro_rules! define_constraint {
     ($element:ident, $root:ident, $($required:ident),+) => {
         paste::item! {
             pub struct $element {
+                id: Uuid,
                 $([<$required:snake:lower>] : Vec<$required>),+
+            }
+            impl $element {
+                pub fn new() -> Self {
+                    Self{
+                        id: Uuid::new_v4(),
+                        $([<$required:snake:lower>] : Vec::new()),+
+                    }
+                }
             }
             impl TConstraint for $element {
                 type Root = $root;

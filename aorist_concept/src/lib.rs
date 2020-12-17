@@ -11,6 +11,7 @@ use syn::token::Comma;
 use syn::{
     parse_macro_input, Data, DataEnum, DataStruct, DeriveInput, Field, Fields, Meta, Type, Variant,
 };
+use proc_macro2::{Ident, Span};
 mod keyword {
     syn::custom_keyword!(path);
 }
@@ -75,8 +76,8 @@ fn process_struct_fields(
         .map(|field| (&field.ident, &field.ty));
 
     let struct_name = &input.ident;
-    let constraint: Vec<String> = match constraints.get(&struct_name.to_string()) {
-        Some(v) => v.clone(),
+    let constraint: Vec<Ident> = match constraints.get(&struct_name.to_string()) {
+        Some(v) => v.into_iter().map(|x| Ident::new(x, Span::call_site())).collect(),
         None => Vec::new(),
     };
     let bare_field = field.clone().filter(|x| {
@@ -171,7 +172,7 @@ fn process_struct_fields(
                             name: stringify!(#constraint).to_string(),
                             root: stringify!(#struct_name).to_string(),
                             requires: None,
-                            inner: None,
+                            inner: Some(AoristConstraint::#constraint(crate::constraint::#constraint::new())),
                         }),
                     )*
                 ]

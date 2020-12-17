@@ -1,6 +1,6 @@
 #![allow(non_snake_case)]
 use crate::concept::AoristConcept;
-use crate::constraint::Constraint;
+use crate::constraint::{AoristConstraint, Constraint};
 use crate::dataset::DataSet;
 use crate::endpoints::EndpointConfig;
 use crate::role::TRole;
