@@ -73,8 +73,22 @@ macro_rules! define_constraint {
                 $([<$required:snake:lower>] : Vec<Rc<Constraint>>),+
             }
             impl $element {
-              pub fn new(root_uuid: Uuid,
-                         potential_child_constraints: Vec<Rc<Constraint>>) -> Self {
+                pub fn ingest_upstream_constraints(
+                    &mut self,
+                    upstream_constraints: Vec<Rc<Constraint>>
+                ) {
+                    for constraint in upstream_constraints {
+                        $(
+                            if let Some(AoristConstraint::$required(x)) =
+                            &constraint.inner
+                            {
+                                self.[<$required:snake:lower>].push(constraint.clone());
+                            }
+                        )+
+                    }
+                }
+                pub fn new(root_uuid: Uuid,
+                           potential_child_constraints: Vec<Rc<Constraint>>) -> Self {
                     $(
                         let mut [<$required:snake:lower>]: Vec<Rc<Constraint>> =
                         Vec::new();
