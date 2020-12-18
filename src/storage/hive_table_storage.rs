@@ -18,8 +18,10 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::rc::Rc;
 use uuid::Uuid;
+use derivative::Derivative;
 
-#[derive(Debug, PartialEq, Serialize, Deserialize, Clone, Constrainable)]
+#[derive(Derivative, Serialize, Deserialize, Clone, Constrainable)]
+#[derivative(PartialEq, Debug)]
 pub struct HiveTableStorage {
     #[constrainable]
     location: HiveLocation,
@@ -28,6 +30,9 @@ pub struct HiveTableStorage {
     #[constrainable]
     encoding: Encoding,
     uuid: Option<Uuid>,
+    #[serde(skip)]
+    #[derivative(PartialEq="ignore", Debug="ignore")]
+    constraints: Vec<Rc<Constraint>>,
 }
 impl THiveTableCreationTagMutator for HiveTableStorage {
     fn populate_table_creation_tags(

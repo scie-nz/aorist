@@ -15,8 +15,10 @@ use std::collections::{BTreeSet, HashMap};
 use std::rc::Rc;
 use textwrap::indent;
 use uuid::Uuid;
+use derivative::Derivative;
 
-#[derive(Debug, PartialEq, Serialize, Deserialize, Default, Constrainable)]
+#[derive(Derivative, Serialize, Deserialize, Default, Constrainable)]
+#[derivative(PartialEq, Debug)]
 pub struct DataSet {
     name: String,
     #[constrainable]
@@ -26,6 +28,9 @@ pub struct DataSet {
     #[constrainable]
     assets: Vec<Asset>,
     uuid: Option<Uuid>,
+    #[serde(skip)]
+    #[derivative(PartialEq="ignore", Debug="ignore")]
+    constraints: Vec<Rc<Constraint>>,
 }
 impl TAoristObject for DataSet {
     fn get_name(&self) -> &String {

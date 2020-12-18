@@ -10,13 +10,18 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::rc::Rc;
 use uuid::Uuid;
+use derivative::Derivative;
 
-#[derive(Debug, PartialEq, Serialize, Deserialize, Clone, Constrainable)]
+#[derive(Serialize, Deserialize, Derivative, Clone, Constrainable)]
+#[derivative(PartialEq, Debug)]
 pub struct KeyedStruct {
     name: String,
     #[constrainable]
     attributes: Vec<Attribute>,
     uuid: Option<Uuid>,
+    #[serde(skip)]
+    #[derivative(PartialEq="ignore", Debug="ignore")]
+    constraints: Vec<Rc<Constraint>>,
 }
 impl KeyedStruct {
     pub fn get_presto_query(&self) -> SQLInsertQuery {

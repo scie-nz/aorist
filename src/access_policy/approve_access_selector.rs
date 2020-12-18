@@ -7,11 +7,16 @@ use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
 use std::rc::Rc;
 use uuid::Uuid;
+use derivative::Derivative;
 
-#[derive(Debug, PartialEq, Serialize, Deserialize, Constrainable)]
+#[derive(Derivative, Serialize, Deserialize, Constrainable)]
+#[derivative(PartialEq, Debug)]
 pub struct ApproveAccessSelector {
     matchLabels: HashMap<String, Vec<String>>,
     uuid: Option<Uuid>,
+    #[serde(skip)]
+    #[derivative(PartialEq="ignore", Debug="ignore")]
+    constraints: Vec<Rc<Constraint>>,
 }
 impl ApproveAccessSelector {
     pub fn checkGroupIsAllowed(&self, group: &UserGroup) -> bool {

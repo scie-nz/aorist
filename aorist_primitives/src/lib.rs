@@ -6,8 +6,7 @@ use sqlparser::ast::{ColumnDef, DataType, Ident};
 macro_rules! define_attribute {
     ($element:ident, $presto_type:ident, $orc_type:ident, $sql_type:ident) => {
         #[derive(
-            Debug,
-            PartialEq,
+            Derivative,
             Serialize,
             Deserialize,
             Clone,
@@ -16,10 +15,14 @@ macro_rules! define_attribute {
             $orc_type,
             $sql_type,
         )]
+        #[derivative(PartialEq, Debug)]
         pub struct $element {
             name: String,
             comment: Option<String>,
             uuid: Option<Uuid>,
+            #[serde(skip)]
+            #[derivative(PartialEq="ignore", Debug="ignore")]
+            constraints: Vec<Rc<Constraint>>,
         }
         impl TAttribute for $element {
             fn get_name(&self) -> &String {

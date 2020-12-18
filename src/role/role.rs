@@ -14,7 +14,7 @@ pub trait TRole {
 }
 
 #[enum_dispatch]
-#[derive(Debug, PartialEq, Serialize, Deserialize, Clone, Eq, Hash, Constrainable)]
+#[derive(Debug, PartialEq, Serialize, Deserialize, Clone, Constrainable, Hash)]
 #[serde(tag = "type", content = "spec")]
 pub enum Role {
     GlobalPermissionsAdmin(GlobalPermissionsAdmin),

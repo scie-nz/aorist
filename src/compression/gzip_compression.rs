@@ -11,10 +11,15 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::rc::Rc;
 use uuid::Uuid;
+use derivative::Derivative;
 
-#[derive(Debug, PartialEq, Serialize, Deserialize, Clone, BlankPrefectPreamble, Constrainable)]
+#[derive(Derivative, Serialize, Deserialize, Clone, BlankPrefectPreamble, Constrainable)]
+#[derivative(PartialEq, Debug)]
 pub struct GzipCompression {
     uuid: Option<Uuid>,
+    #[serde(skip)]
+    #[derivative(PartialEq="ignore", Debug="ignore")]
+    constraints: Vec<Rc<Constraint>>,
 }
 impl TObjectWithPythonCodeGen for GzipCompression {
     fn get_python_imports(&self, preamble: &mut HashMap<String, String>) {

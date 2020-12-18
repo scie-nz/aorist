@@ -135,6 +135,7 @@ fn process_attributes(raw_objects: &Vec<HashMap<String, Value>>) {
     scope.import("crate::constraint", "Constraint");
     scope.import("aorist_concept", "Constrainable");
     scope.import("uuid", "Uuid");
+    scope.import("derivative", "Derivative");
 
     let sql_derive_macros = attributes
         .iter()

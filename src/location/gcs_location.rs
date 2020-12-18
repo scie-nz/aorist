@@ -9,13 +9,18 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::rc::Rc;
 use uuid::Uuid;
+use derivative::Derivative;
 
-#[derive(Debug, PartialEq, Serialize, Deserialize, Clone, Constrainable)]
+#[derive(Derivative, Serialize, Deserialize, Clone, Constrainable)]
+#[derivative(PartialEq, Debug)]
 pub struct GCSLocation {
     // TODO: replace these with Getters and Setters
     pub bucket: String,
     pub blob: String,
     uuid: Option<Uuid>,
+    #[serde(skip)]
+    #[derivative(PartialEq="ignore", Debug="ignore")]
+    constraints: Vec<Rc<Constraint>>,
 }
 
 impl TObjectWithPrefectCodeGen for GCSLocation {

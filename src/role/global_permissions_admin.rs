@@ -5,10 +5,15 @@ use aorist_concept::Constrainable;
 use serde::{Deserialize, Serialize};
 use std::rc::Rc;
 use uuid::Uuid;
+use derivative::Derivative;
 
-#[derive(Debug, PartialEq, Serialize, Deserialize, Clone, Eq, Hash, Constrainable)]
+#[derive(Derivative, Serialize, Deserialize, Clone, Constrainable)]
+#[derivative(PartialEq, Debug, Hash)]
 pub struct GlobalPermissionsAdmin {
     uuid: Option<Uuid>,
+    #[serde(skip)]
+    #[derivative(PartialEq="ignore", Debug="ignore", Hash="ignore")]
+    constraints: Vec<Rc<Constraint>>,
 }
 impl TRole for GlobalPermissionsAdmin {
     fn get_permissions(&self) -> Vec<String> {

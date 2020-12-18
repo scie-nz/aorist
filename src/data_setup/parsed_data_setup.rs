@@ -9,20 +9,26 @@ use crate::user::User;
 use crate::user_group::UserGroup;
 use crate::utils::GetSetError;
 use aorist_concept::Constrainable;
-use getset::{IncompleteGetters, IncompleteMutGetters, IncompleteSetters};
+use getset::{Getters, Setters, MutGetters, IncompleteGetters, IncompleteMutGetters, IncompleteSetters};
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
 use std::rc::Rc;
 use uuid::Uuid;
+use derivative::Derivative;
 
 #[derive(
     Serialize,
+    Derivative,
     Deserialize,
+    Getters,
+    Setters,
+    MutGetters,
     IncompleteGetters,
     IncompleteSetters,
     IncompleteMutGetters,
     Constrainable,
 )]
+#[derivative(PartialEq, Debug)]
 pub struct ParsedDataSetup {
     name: String,
     #[getset(
@@ -37,30 +43,33 @@ pub struct ParsedDataSetup {
         set_incomplete = "pub",
         get_mut_incomplete = "pub with_prefix"
     )]
-    #[constrainable]
+    //#[constrainable]
     groups: Option<Vec<UserGroup>>,
     #[getset(
         get_incomplete = "pub with_prefix",
         set_incomplete = "pub",
         get_mut_incomplete = "pub with_prefix"
     )]
-    #[constrainable]
+    //#[constrainable]
     datasets: Option<Vec<DataSet>>,
     #[getset(
         get_incomplete = "pub with_prefix",
         set_incomplete = "pub",
         get_mut_incomplete = "pub with_prefix"
     )]
-    #[constrainable]
+    //#[constrainable]
     role_bindings: Option<Vec<RoleBinding>>,
-    #[constrainable]
+    //#[constrainable]
+    #[derivative(PartialEq="ignore", Debug="ignore")]
     endpoints: EndpointConfig,
     #[getset(
-        get_incomplete = "pub with_prefix",
-        set_incomplete = "pub",
-        get_mut_incomplete = "pub with_prefix"
+        get = "pub with_prefix",
+        set = "pub",
+        get_mut = "pub with_prefix"
     )]
-    constraints: Option<Vec<Constraint>>,
+    #[serde(skip)]
+    #[derivative(PartialEq="ignore", Debug="ignore")]
+    constraints: Vec<Rc<Constraint>>,
     uuid: Option<Uuid>,
 }
 impl ParsedDataSetup {
@@ -72,7 +81,7 @@ impl ParsedDataSetup {
             groups: None,
             role_bindings: None,
             endpoints: endpoints,
-            constraints: None,
+            constraints: Vec::new(),
             uuid: None,
         }
     }

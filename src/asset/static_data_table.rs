@@ -12,8 +12,10 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::rc::Rc;
 use uuid::Uuid;
+use derivative::Derivative;
 
-#[derive(Debug, PartialEq, Serialize, Deserialize, Clone, Constrainable)]
+#[derive(Derivative, Serialize, Deserialize, Clone, Constrainable)]
+#[derivative(PartialEq, Debug)]
 pub struct StaticDataTable {
     name: String,
     #[constrainable]
@@ -21,6 +23,9 @@ pub struct StaticDataTable {
     #[constrainable]
     schema: DataSchema,
     uuid: Option<Uuid>,
+    #[serde(skip)]
+    #[derivative(PartialEq="ignore", Debug="ignore")]
+    constraints: Vec<Rc<Constraint>>,
 }
 impl StaticDataTable {
     pub fn get_presto_schemas(

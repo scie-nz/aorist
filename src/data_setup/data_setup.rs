@@ -13,6 +13,7 @@ use crate::user_group::UserGroup;
 use getset::Getters;
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
+use std::rc::Rc;
 
 #[derive(Serialize, Deserialize, Clone, Getters)]
 pub struct DataSetup {
@@ -56,7 +57,7 @@ impl DataSetup {
         let mut groups: Vec<UserGroup> = Vec::new();
         let mut datasets: Vec<DataSet> = Vec::new();
         let mut role_bindings: Vec<RoleBinding> = Vec::new();
-        let mut constraints: Vec<Constraint> = Vec::new();
+        let mut constraints: Vec<Rc<Constraint>> = Vec::new();
 
         for object in objects {
             match object {
@@ -82,7 +83,7 @@ impl DataSetup {
                 }
                 AoristObject::Constraint(c) => {
                     if constraint_names.contains(c.get_name()) {
-                        constraints.push(c)
+                        constraints.push(Rc::new(c))
                     }
                 }
                 _ => {}
@@ -92,7 +93,7 @@ impl DataSetup {
         dataSetup.set_groups(groups).unwrap();
         dataSetup.set_datasets(datasets).unwrap();
         dataSetup.set_role_bindings(role_bindings).unwrap();
-        dataSetup.set_constraints(constraints).unwrap();
+        dataSetup.set_constraints(constraints);
 
         let mut role_map: HashMap<String, Vec<Role>> = HashMap::new();
         for binding in dataSetup.get_role_bindings().unwrap() {

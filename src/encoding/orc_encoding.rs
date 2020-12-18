@@ -15,10 +15,10 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::rc::Rc;
 use uuid::Uuid;
+use derivative::Derivative;
 
 #[derive(
-    Debug,
-    PartialEq,
+    Derivative,
     Serialize,
     Deserialize,
     Clone,
@@ -26,8 +26,12 @@ use uuid::Uuid;
     BlankPrefectPreamble,
     Constrainable,
 )]
+#[derivative(PartialEq, Debug)]
 pub struct ORCEncoding {
     uuid: Option<Uuid>,
+    #[serde(skip)]
+    #[derivative(PartialEq="ignore", Debug="ignore")]
+    constraints: Vec<Rc<Constraint>>,
 }
 impl THiveTableCreationTagMutator for ORCEncoding {
     fn populate_table_creation_tags(

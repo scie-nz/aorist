@@ -70,6 +70,7 @@ rustpython-parser = {version = "0.1.2"}
 paste = {version = "1.0.4"}
 maplit = {version = "1.0.2"}
 uuid = {version = "0.8.1", features = ["v4", "serde"]}
+derivative = {version = "2.1.1"}
 
 [build-dependencies]
 aorist_util = {path = "./aorist_util"}
@@ -82,7 +83,3 @@ indoc = "1.0.3"
 [[bin]]
 name = "main"
 path = "src/main.rs"
-
-[[bin]]
-name = "gitea-agent"
-path = "src/gitea_agent.rs"

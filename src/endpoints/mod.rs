@@ -28,4 +28,6 @@ pub struct EndpointConfig {
     #[getset(get_incomplete = "pub", set_incomplete = "pub")]
     gitea: Option<GiteaConfig>,
     uuid: Option<Uuid>,
+    #[serde(skip)]
+    constraints: Vec<Rc<Constraint>>,
 }

@@ -26,6 +26,7 @@ fn process_enum_variants(
     let variant = variants.iter().map(|x| (&x.ident));
     let variant2 = variants.iter().map(|x| (&x.ident));
     let variant3 = variants.iter().map(|x| (&x.ident));
+    let variant4 = variants.iter().map(|x| (&x.ident));
     let mut file = OpenOptions::new()
         .write(true)
         .append(true)
@@ -42,15 +43,27 @@ fn process_enum_variants(
     }
     TokenStream::from(quote! {
       impl AoristConcept for #enum_name {
-        fn traverse_constrainable_children(&self) {
+        fn traverse_constrainable_children(
+            &self,
+            upstream_constraints: Vec<Rc<Constraint>>
+        ) {
           match self {
             #(
-              #enum_name::#variant(x) => x.traverse_constrainable_children(),
+              #enum_name::#variant(x) =>
+              x.traverse_constrainable_children(upstream_constraints),
+            )*
+          }
+        }
+        
+        fn compute_constraints(&mut self) {
+          match self {
+            #(
+              #enum_name::#variant4(ref mut x) => x.compute_constraints(),
             )*
           }
         }
 
-        fn get_constraints(&self) -> Vec<Rc<Constraint>> {
+        fn get_constraints(&self) -> &Vec<Rc<Constraint>> {
           match self {
             #(
               #enum_name::#variant2(x) => x.get_constraints(),
@@ -157,6 +170,7 @@ fn process_struct_fields(
     }
     let bare_field_name = bare_field.map(|x| x.0);
     let bare_field_name2 = bare_field_name.clone();
+    let bare_field_name3 = bare_field_name.clone();
     let vec_field_name = vec_field.map(|x| x.0);
     let vec_field_name2 = vec_field_name.clone();
     let option_vec_field_name = option_vec_field.map(|x| x.0);
@@ -165,49 +179,57 @@ fn process_struct_fields(
     TokenStream::from(quote! {
 
         impl AoristConcept for #struct_name {
-            fn traverse_constrainable_children(&self) {
+            fn traverse_constrainable_children(
+                &self,
+                upstream_constraints: Vec<Rc<Constraint>>
+            ) {
                 #(
-                    self.#bare_field_name.traverse_constrainable_children();
+                    self.#bare_field_name.traverse_constrainable_children(upstream_constraints.clone());
                 )*
                 #(
                     for x in &self.#vec_field_name {
-                        x.traverse_constrainable_children();
+                        x.traverse_constrainable_children(upstream_constraints.clone());
                     }
                 )*
                 #(
                     if let Some(ref v) = self.#option_vec_field_name {
                         for x in v {
-                            x.traverse_constrainable_children()
+                            x.traverse_constrainable_children(upstream_constraints.clone())
                         }
                     }
                 )*
             }
-            fn get_constraints(&self) -> Vec<Rc<Constraint>> {
+            fn get_constraints(&self) -> &Vec<Rc<Constraint>> {
+                &self.constraints
+            }
+            fn compute_constraints(&mut self) {
                 let mut constraints: Vec<Rc<Constraint>> = Vec::new();
                 #(
+                    self.#bare_field_name3.compute_constraints();
                     for constraint in self.#bare_field_name2.get_constraints() {
-                         constraints.push(constraint);
+                         constraints.push(constraint.clone());
                     }
                 )*
                 #(
-                    for elem in &self.#vec_field_name2 {
+                    for elem in self.#vec_field_name2.iter_mut() {
+                        elem.compute_constraints();
                         for constraint in elem.get_constraints() {
-                            constraints.push(constraint);
+                            constraints.push(constraint.clone());
                         }
                     }
                 )*
                 #(
-                    if let Some(ref v) = &self.#option_vec_field_name2 {
-                        for elem in v {
+                    if let Some(ref mut v) = self.#option_vec_field_name2 {
+                        for elem in v.iter_mut() {
+                            elem.compute_constraints();
                             for constraint in elem.get_constraints() {
-                                constraints.push(constraint);
+                                constraints.push(constraint.clone());
                             }
                         }
                     }
                 )*
-                let child_constraints = constraints.clone();
                 #(
-                    constraints.push(Rc::new(Constraint{
+                    self.constraints.push(Rc::new(Constraint{
                         name: stringify!(#constraint).to_string(),
                         root: stringify!(#struct_name).to_string(),
                         requires: None,
@@ -215,13 +237,12 @@ fn process_struct_fields(
                             AoristConstraint::#constraint(
                                 crate::constraint::#constraint::new(
                                     self.get_uuid(),
-                                    child_constraints,
+                                    constraints,
                                 )
                             )
                         ),
                     }));
                 )*
-                constraints
             }
             fn get_uuid(&self) -> Uuid {
                 if let Some(uuid) = self.uuid {
