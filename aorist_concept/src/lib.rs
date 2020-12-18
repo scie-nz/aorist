@@ -50,7 +50,7 @@ fn process_enum_variants(
           }
         }
 
-        fn get_constraints(self) -> Vec<Rc<Constraint>> {
+        fn get_constraints(&self) -> Vec<Rc<Constraint>> {
           match self {
             #(
               #enum_name::#variant2(x) => x.get_constraints(),
@@ -179,8 +179,7 @@ fn process_struct_fields(
                     }
                 )*
             }
-            fn get_constraints(self) -> Vec<Rc<Constraint>> {
-                let rc = Rc::new(self);
+            fn get_constraints(&self) -> Vec<Rc<Constraint>> {
                 vec![
                     #(
                         Rc::new(Constraint{
@@ -189,7 +188,7 @@ fn process_struct_fields(
                             requires: None,
                             inner: Some(
                                 AoristConstraint::#constraint(
-                                    crate::constraint::#constraint::new(rc)
+                                    crate::constraint::#constraint::new(self.get_uuid())
                                 )
                             ),
                         }),

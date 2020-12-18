@@ -37,11 +37,11 @@ macro_rules! define_constraint {
     ($element:ident, $root:ident) => {
         pub struct $element {
             id: Uuid,
-            root: Rc<<Self as TConstraint>::Root>,
+            root_uuid: Uuid,
         }
         impl $element {
-            pub fn new(root: Rc<<Self as TConstraint>::Root>) -> Self {
-                Self{ id: Uuid::new_v4(), root }
+            pub fn new(root_uuid: Uuid) -> Self {
+                Self{ id: Uuid::new_v4(), root_uuid }
             }
         }
         impl TConstraint for $element {
@@ -65,14 +65,14 @@ macro_rules! define_constraint {
         paste::item! {
             pub struct $element {
                 id: Uuid,
-                root: Rc<<Self as TConstraint>::Root>,
+                root_uuid: Uuid,
                 $([<$required:snake:lower>] : Vec<$required>),+
             }
             impl $element {
-              pub fn new(root: Rc<<Self as TConstraint>::Root>) -> Self {
+              pub fn new(root_uuid: Uuid) -> Self {
                     Self{
                         id: Uuid::new_v4(),
-                        root,
+                        root_uuid,
                         $([<$required:snake:lower>] : Vec::new()),+
                     }
                 }
