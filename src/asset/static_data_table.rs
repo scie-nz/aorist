@@ -11,6 +11,7 @@ use aorist_concept::Constrainable;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::rc::Rc;
+use uuid::Uuid;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone, Constrainable)]
 pub struct StaticDataTable {
@@ -19,6 +20,7 @@ pub struct StaticDataTable {
     setup: StorageSetup,
     #[constrainable]
     schema: DataSchema,
+    uuid: Option<Uuid>,
 }
 impl StaticDataTable {
     pub fn get_presto_schemas(

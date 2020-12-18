@@ -12,6 +12,7 @@ use indoc::indoc;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::rc::Rc;
+use uuid::Uuid;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone, Constrainable)]
 pub struct RemoteImportStorageSetup {
@@ -19,6 +20,7 @@ pub struct RemoteImportStorageSetup {
     remote: Storage,
     #[constrainable]
     local: Vec<Storage>,
+    uuid: Option<Uuid>,
 }
 impl TObjectWithPrefectCodeGen for RemoteImportStorageSetup {
     fn get_prefect_preamble(

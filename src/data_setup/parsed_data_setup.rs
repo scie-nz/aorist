@@ -13,6 +13,7 @@ use getset::{IncompleteGetters, IncompleteMutGetters, IncompleteSetters};
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
 use std::rc::Rc;
+use uuid::Uuid;
 
 #[derive(
     Serialize,
@@ -60,6 +61,7 @@ pub struct ParsedDataSetup {
         get_mut_incomplete = "pub with_prefix"
     )]
     constraints: Option<Vec<Constraint>>,
+    uuid: Option<Uuid>,
 }
 impl ParsedDataSetup {
     pub fn new(name: String, endpoints: EndpointConfig) -> Self {
@@ -71,6 +73,7 @@ impl ParsedDataSetup {
             role_bindings: None,
             endpoints: endpoints,
             constraints: None,
+            uuid: None,
         }
     }
     pub fn get_user_unixname_map(&self) -> HashMap<String, User> {

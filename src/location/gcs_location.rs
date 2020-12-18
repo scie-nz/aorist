@@ -8,12 +8,14 @@ use indoc::{formatdoc, indoc};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::rc::Rc;
+use uuid::Uuid;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone, Constrainable)]
 pub struct GCSLocation {
     // TODO: replace these with Getters and Setters
     pub bucket: String,
     pub blob: String,
+    uuid: Option<Uuid>,
 }
 
 impl TObjectWithPrefectCodeGen for GCSLocation {

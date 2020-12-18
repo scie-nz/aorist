@@ -12,6 +12,7 @@ use ranger::{CreateRangerUser, RangerClient, RangerUser};
 use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
 use std::rc::Rc;
+use uuid::Uuid;
 
 #[async_trait]
 pub trait TGiteaEntity {
@@ -33,6 +34,7 @@ pub struct User {
     roles: Option<Vec<Role>>,
     gitea_user: Option<GiteaUser>,
     ranger_user: Option<RangerUser>,
+    uuid: Option<Uuid>,
 }
 impl User {
     pub fn to_yaml(&self) -> String {

@@ -7,6 +7,7 @@ use aorist_concept::Constrainable;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::rc::Rc;
+use uuid::Uuid;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone, Constrainable)]
 #[serde(tag = "type", content = "spec")]

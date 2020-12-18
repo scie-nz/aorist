@@ -6,11 +6,13 @@ use aorist_concept::Constrainable;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::rc::Rc;
+use uuid::Uuid;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone, Constrainable)]
 pub struct TabularSchema {
     datumTemplateName: String,
     attributes: Vec<String>,
+    uuid: Option<Uuid>,
 }
 impl TabularSchema {
     pub fn get_presto_schema(&self, templates: &HashMap<String, DatumTemplate>) -> String {

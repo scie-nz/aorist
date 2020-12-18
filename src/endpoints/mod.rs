@@ -14,6 +14,7 @@ use aorist_concept::Constrainable;
 use getset::{IncompleteGetters, IncompleteSetters};
 use serde::{Deserialize, Serialize};
 use std::rc::Rc;
+use uuid::Uuid;
 
 #[serde()]
 #[derive(Constrainable, Serialize, Deserialize, Clone, IncompleteGetters, IncompleteSetters)]
@@ -26,4 +27,5 @@ pub struct EndpointConfig {
     ranger: Option<RangerConfig>,
     #[getset(get_incomplete = "pub", set_incomplete = "pub")]
     gitea: Option<GiteaConfig>,
+    uuid: Option<Uuid>,
 }

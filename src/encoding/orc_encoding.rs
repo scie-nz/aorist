@@ -14,6 +14,7 @@ use indoc::indoc;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::rc::Rc;
+use uuid::Uuid;
 
 #[derive(
     Debug,
@@ -25,7 +26,9 @@ use std::rc::Rc;
     BlankPrefectPreamble,
     Constrainable,
 )]
-pub struct ORCEncoding {}
+pub struct ORCEncoding {
+    uuid: Option<Uuid>,
+}
 impl THiveTableCreationTagMutator for ORCEncoding {
     fn populate_table_creation_tags(
         &self,

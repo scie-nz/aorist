@@ -9,10 +9,12 @@ use indoc::{formatdoc, indoc};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::rc::Rc;
+use uuid::Uuid;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone, Constrainable)]
 pub struct AlluxioLocation {
     path: String,
+    uuid: Option<Uuid>,
 }
 impl TObjectWithPrefectCodeGen for AlluxioLocation {
     fn get_prefect_preamble(

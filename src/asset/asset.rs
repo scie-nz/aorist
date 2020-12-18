@@ -9,6 +9,7 @@ use enum_dispatch::enum_dispatch;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::rc::Rc;
+use uuid::Uuid;
 
 #[enum_dispatch]
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone, Constrainable)]

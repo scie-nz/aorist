@@ -16,6 +16,7 @@ use aorist_concept::Constrainable;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::rc::Rc;
+use uuid::Uuid;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone, Constrainable)]
 pub struct RemoteStorage {
@@ -25,6 +26,7 @@ pub struct RemoteStorage {
     layout: FileBasedStorageLayout,
     #[constrainable]
     encoding: Encoding,
+    uuid: Option<Uuid>,
 }
 impl TObjectWithPythonCodeGen for RemoteStorage {
     fn get_python_imports(&self, preamble: &mut HashMap<String, String>) {

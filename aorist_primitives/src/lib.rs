@@ -19,6 +19,7 @@ macro_rules! define_attribute {
         pub struct $element {
             name: String,
             comment: Option<String>,
+            uuid: Option<Uuid>,
         }
         impl TAttribute for $element {
             fn get_name(&self) -> &String {

@@ -6,10 +6,12 @@ use aorist_concept::Constrainable;
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
 use std::rc::Rc;
+use uuid::Uuid;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Constrainable)]
 pub struct ApproveAccessSelector {
     matchLabels: HashMap<String, Vec<String>>,
+    uuid: Option<Uuid>,
 }
 impl ApproveAccessSelector {
     pub fn checkGroupIsAllowed(&self, group: &UserGroup) -> bool {

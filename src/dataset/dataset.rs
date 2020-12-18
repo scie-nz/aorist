@@ -14,6 +14,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::{BTreeSet, HashMap};
 use std::rc::Rc;
 use textwrap::indent;
+use uuid::Uuid;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Default, Constrainable)]
 pub struct DataSet {
@@ -24,6 +25,7 @@ pub struct DataSet {
     datumTemplates: Vec<DatumTemplate>,
     #[constrainable]
     assets: Vec<Asset>,
+    uuid: Option<Uuid>,
 }
 impl TAoristObject for DataSet {
     fn get_name(&self) -> &String {

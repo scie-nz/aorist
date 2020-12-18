@@ -9,12 +9,14 @@ use aorist_primitives::{TAttribute, TOrcAttribute, TPrestoAttribute};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::rc::Rc;
+use uuid::Uuid;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone, Constrainable)]
 pub struct KeyedStruct {
     name: String,
     #[constrainable]
     attributes: Vec<Attribute>,
+    uuid: Option<Uuid>,
 }
 impl KeyedStruct {
     pub fn get_presto_query(&self) -> SQLInsertQuery {

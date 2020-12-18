@@ -11,9 +11,12 @@ use indoc::indoc;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::rc::Rc;
+use uuid::Uuid;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone, BlankPrefectPreamble, Constrainable)]
-pub struct UpperSnakeCaseCSVHeader {}
+pub struct UpperSnakeCaseCSVHeader {
+    uuid: Option<Uuid>,
+}
 
 impl TObjectWithPythonCodeGen for UpperSnakeCaseCSVHeader {
     fn get_python_imports(&self, preamble: &mut HashMap<String, String>) {

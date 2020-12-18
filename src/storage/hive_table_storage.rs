@@ -17,6 +17,7 @@ use aorist_concept::Constrainable;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::rc::Rc;
+use uuid::Uuid;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone, Constrainable)]
 pub struct HiveTableStorage {
@@ -26,6 +27,7 @@ pub struct HiveTableStorage {
     layout: HiveStorageLayout,
     #[constrainable]
     encoding: Encoding,
+    uuid: Option<Uuid>,
 }
 impl THiveTableCreationTagMutator for HiveTableStorage {
     fn populate_table_creation_tags(

@@ -6,6 +6,7 @@ use aorist_concept::Constrainable;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::rc::Rc;
+use uuid::Uuid;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Constrainable)]
 pub struct UserGroup {
@@ -13,6 +14,7 @@ pub struct UserGroup {
     members: Vec<String>,
     labels: HashMap<String, String>,
     description: Option<String>,
+    uuid: Option<Uuid>,
 }
 impl UserGroup {
     pub fn to_yaml(&self) -> String {

@@ -6,6 +6,7 @@ use crate::role::Role;
 use aorist_concept::Constrainable;
 use serde::{Deserialize, Serialize};
 use std::rc::Rc;
+use uuid::Uuid;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Constrainable)]
 pub struct RoleBinding {
@@ -13,6 +14,7 @@ pub struct RoleBinding {
     #[constrainable]
     role: Role,
     name: String,
+    uuid: Option<Uuid>,
 }
 impl TAoristObject for RoleBinding {
     fn get_name(&self) -> &String {

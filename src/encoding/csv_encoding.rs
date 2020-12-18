@@ -16,6 +16,7 @@ use aorist_concept::Constrainable;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::rc::Rc;
+use uuid::Uuid;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone, Constrainable)]
 pub struct CSVEncoding {
@@ -23,6 +24,7 @@ pub struct CSVEncoding {
     compression: DataCompression,
     #[constrainable]
     header: FileHeader,
+    uuid: Option<Uuid>,
 }
 impl THiveTableCreationTagMutator for CSVEncoding {
     fn populate_table_creation_tags(

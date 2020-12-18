@@ -25,6 +25,7 @@ fn process_enum_variants(
     let enum_name = &input.ident;
     let variant = variants.iter().map(|x| (&x.ident));
     let variant2 = variants.iter().map(|x| (&x.ident));
+    let variant3 = variants.iter().map(|x| (&x.ident));
     let mut file = OpenOptions::new()
         .write(true)
         .append(true)
@@ -53,6 +54,14 @@ fn process_enum_variants(
           match self {
             #(
               #enum_name::#variant2(x) => x.get_constraints(),
+            )*
+          }
+        }
+        
+        fn get_uuid(&self) -> Uuid {
+          match self {
+            #(
+              #enum_name::#variant3(x) => x.get_uuid(),
             )*
           }
         }
@@ -186,6 +195,12 @@ fn process_struct_fields(
                         }),
                     )*
                 ]
+            }
+            fn get_uuid(&self) -> Uuid {
+                if let Some(uuid) = self.uuid {
+                    return uuid.clone();
+                }
+                panic!("Uuid was not set on object.");
             }
         }
     })
