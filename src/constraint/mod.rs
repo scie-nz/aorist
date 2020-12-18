@@ -25,6 +25,14 @@ pub struct Constraint {
     pub root: String,
     pub requires: Option<Vec<String>>,
 }
+impl Constraint {
+    pub fn get_downstream_constraints(&self) -> Vec<Rc<Constraint>> {
+        if let Some(c) = &self.inner {
+            return c.get_downstream_constraints();
+        }
+        panic!("Called get_downstream_constraints() on a Constraint struct with no inner");
+    }
+}
 impl TAoristObject for Constraint {
     fn get_name(&self) -> &String {
         &self.name

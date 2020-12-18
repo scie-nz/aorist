@@ -27,6 +27,7 @@ fn process_enum_variants(
     let variant2 = variants.iter().map(|x| (&x.ident));
     let variant3 = variants.iter().map(|x| (&x.ident));
     let variant4 = variants.iter().map(|x| (&x.ident));
+    let variant5 = variants.iter().map(|x| (&x.ident));
     let mut file = OpenOptions::new()
         .write(true)
         .append(true)
@@ -67,6 +68,14 @@ fn process_enum_variants(
           match self {
             #(
               #enum_name::#variant2(x) => x.get_constraints(),
+            )*
+          }
+        }
+        
+        fn get_downstream_constraints(&self) -> Vec<Rc<Constraint>> {
+          match self {
+            #(
+              #enum_name::#variant5(x) => x.get_downstream_constraints(),
             )*
           }
         }
@@ -202,18 +211,29 @@ fn process_struct_fields(
             fn get_constraints(&self) -> &Vec<Rc<Constraint>> {
                 &self.constraints
             }
+            fn get_downstream_constraints(&self) -> Vec<Rc<Constraint>> {
+                // TODO: this is where we should enforce deduplication
+                let mut downstream: Vec<Rc<Constraint>> = Vec::new();
+                for constraint in &self.constraints {
+                    downstream.push(constraint.clone());
+                    for elem in constraint.get_downstream_constraints() {
+                        downstream.push(elem.clone());
+                    }
+                }
+                downstream
+            }
             fn compute_constraints(&mut self) {
                 let mut constraints: Vec<Rc<Constraint>> = Vec::new();
                 #(
                     self.#bare_field_name3.compute_constraints();
-                    for constraint in self.#bare_field_name2.get_constraints() {
+                    for constraint in self.#bare_field_name2.get_downstream_constraints() {
                          constraints.push(constraint.clone());
                     }
                 )*
                 #(
                     for elem in self.#vec_field_name2.iter_mut() {
                         elem.compute_constraints();
-                        for constraint in elem.get_constraints() {
+                        for constraint in elem.get_downstream_constraints() {
                             constraints.push(constraint.clone());
                         }
                     }
@@ -222,7 +242,7 @@ fn process_struct_fields(
                     if let Some(ref mut v) = self.#option_vec_field_name2 {
                         for elem in v.iter_mut() {
                             elem.compute_constraints();
-                            for constraint in elem.get_constraints() {
+                            for constraint in elem.get_downstream_constraints() {
                                 constraints.push(constraint.clone());
                             }
                         }

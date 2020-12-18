@@ -47,6 +47,9 @@ macro_rules! define_constraint {
                        _potential_child_constraints: Vec<Rc<Constraint>>) -> Self {
                 Self{ id: Uuid::new_v4(), root_uuid }
             }
+            pub fn get_downstream_constraints(&self) -> Vec<Rc<Constraint>> {
+                Vec::new()
+            }
         }
         impl TConstraint for $element {
             type Root = $root;
@@ -70,7 +73,8 @@ macro_rules! define_constraint {
             pub struct $element {
                 id: Uuid,
                 root_uuid: Uuid,
-                $([<$required:snake:lower>] : Vec<Rc<Constraint>>),+
+                $([<$required:snake:lower>] : Vec<Rc<Constraint>>,)+
+                downstream_constraints: Vec<Rc<Constraint>>,
             }
             impl $element {
                 pub fn ingest_upstream_constraints(
@@ -87,15 +91,20 @@ macro_rules! define_constraint {
                         )+
                     }
                 }
+                // these are *all* downstream constraints
+                pub fn get_downstream_constraints(&self) -> Vec<Rc<Constraint>> {
+                    self.downstream_constraints.clone()
+                }
                 pub fn new(root_uuid: Uuid,
                            potential_child_constraints: Vec<Rc<Constraint>>) -> Self {
+                    // TODO: we should dedupe potential child constraints
                     $(
                         let mut [<$required:snake:lower>]: Vec<Rc<Constraint>> =
                         Vec::new();
                     )+
-                    for constraint in potential_child_constraints {
+                    for constraint in &potential_child_constraints {
                         $(
-                            if let Some(AoristConstraint::$required(x)) =
+                            if let Some(AoristConstraint::$required{..}) =
                             &constraint.inner
                             {
                                 [<$required:snake:lower>].push(constraint.clone());
@@ -105,7 +114,8 @@ macro_rules! define_constraint {
                     Self{
                         id: Uuid::new_v4(),
                         root_uuid,
-                        $([<$required:snake:lower>]),+
+                        $([<$required:snake:lower>],)+
+                        downstream_constraints: potential_child_constraints,
                     }
                 }
             }
@@ -132,6 +142,13 @@ macro_rules! register_constraint {
             )+
         }
         impl $name {
+            pub fn get_downstream_constraints(&self) -> Vec<Rc<Constraint>> {
+                match self {
+                    $(
+                        Self::$element(x) => x.get_downstream_constraints(),
+                    )+
+                }
+            }
             fn get_root_type_names() -> HashMap<String, String> {
                 hashmap! {
                     $(
