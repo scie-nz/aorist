@@ -20,10 +20,63 @@ Abstract concepts have the following hierarchy:
 
 ## Constraints
 
-A constraint is a fact that can be verified about an abstract concept. A constraint may have dependent constraints. For instance, we may have the constraint "is consistent" on `DataSetup`, that further breaks down into:
+A constraint is a fact that can be verified about an abstract concept. 
+A constraint may have dependent constraints. For instance, we may have 
+the constraint "is consistent" on `DataSetup`, that further breaks down into:
 - "datasets are replicated",
 - "users are instantiated",
 - "role bindings are created", 
 - "data access policies are enforced".
 
-Dependent constraints simply tell us what needs to hold, in order for a constraint to be true. Dependent constraints may be defined on the same concept, or on dependent concepts.
+Dependent constraints simply tell us what needs to hold, in order for a constraint 
+to be true. Dependent constraints may be defined on the same concept, on
+dependent concepts, or on higher-order concepts, but they may not create a
+cycle. So we cannot say that constraint A depends on B, B depends on C, and C
+depends on A.
+
+When dependent constraints are defined on lower-order concepts, we will consider
+the dependency to be satisfied when *ALL* constraints of the dependent kind 
+associated with the lower-order concepts directly inheriting from the
+constrained concept have been satisfied.
+
+For instance we may say that a constraint placed on the DataSetup (our
+abstraction for a Data Warehouse or Data Lake), of the kind: "no columns
+contain PII" is to be satisfied when all columns in *ALL* the tables are
+confirmed to not contain any PII.
+
+When dependent constraints are defined on higher-order concepts, we will
+consider the dependency to be satisfied when the dependent constraint placed on
+the exact higher-order ancestor has been satisfied.
+
+So for instance, a model trained on data from the data warehouse may be
+publishable on the web if we can confirm that no data in the warehouse
+whatsoever contains any PII. This is a very strict guarantee, but it is
+logically correct -- if there is no PII in the warehouse, there can be no PII
+in the model. This is why we could have a constraint at the model-level that
+depends on the DataSetup-level "no PII" constraint.
+
+## Programs
+
+Constraints are satisfiable in two stages:
+1. First, any dependent constraints must be satisfied.
+2. Then, a program associated with the constraint must run successfully.
+
+The program is where the actual data manipulation happens. Examples of programs
+are: "move this data from A to B", or "train this model", or "anonymize this
+data," etc. The programs are written as templates, with full access to the
+instantiated object hierarchy.
+
+A program is written in a "dialect" that encompases what is considered to be
+valid code. For instance, "Python3 with numpy and PyTorch" would be a dialect.
+For Python dialects, we may attach a conda `requirements.txt` file, or a Docker
+image to the dialect, etc. For R dialects we may attach a list of libraries and
+an R version, or a Docker image.
+
+## Drivers
+
+Note that multiple programs may exist that could technically satisfy a
+constraint. A **driver** decides which program to apply (given a preference
+ordering) and is responsible for instantiating it into valid code that will run
+in the specific deployment. A driver could, for instance, be responsible for
+translating the constraint graph into valid Airflow code that will run in a
+particular data deployment, etc.
