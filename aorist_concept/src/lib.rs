@@ -158,7 +158,9 @@ fn process_struct_fields(
     let bare_field_name = bare_field.map(|x| x.0);
     let bare_field_name2 = bare_field_name.clone();
     let vec_field_name = vec_field.map(|x| x.0);
+    let vec_field_name2 = vec_field_name.clone();
     let option_vec_field_name = option_vec_field.map(|x| x.0);
+    let option_vec_field_name2 = option_vec_field_name.clone();
 
     TokenStream::from(quote! {
 
@@ -185,6 +187,22 @@ fn process_struct_fields(
                 #(
                     for constraint in self.#bare_field_name2.get_constraints() {
                          child_constraints.push(constraint);
+                    }
+                )*
+                #(
+                    for elem in &self.#vec_field_name2 {
+                        for constraint in elem.get_constraints() {
+                            child_constraints.push(constraint);
+                        }
+                    }
+                )*
+                #(
+                    if let Some(ref v) = &self.#option_vec_field_name2 {
+                        for elem in v {
+                            for constraint in elem.get_constraints() {
+                                child_constraints.push(constraint);
+                            }
+                        }
                     }
                 )*
                 vec![
