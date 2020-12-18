@@ -50,6 +50,9 @@ macro_rules! define_constraint {
             pub fn get_downstream_constraints(&self) -> Vec<Rc<Constraint>> {
                 Vec::new()
             }
+            pub fn get_uuid(&self) -> Uuid {
+                self.id.clone()
+            }
         }
         impl TConstraint for $element {
             type Root = $root;
@@ -77,6 +80,9 @@ macro_rules! define_constraint {
                 downstream_constraints: Vec<Rc<Constraint>>,
             }
             impl $element {
+                pub fn get_uuid(&self) -> Uuid {
+                    self.id.clone()
+                }
                 pub fn ingest_upstream_constraints(
                     &mut self,
                     upstream_constraints: Vec<Rc<Constraint>>
@@ -111,11 +117,15 @@ macro_rules! define_constraint {
                             }
                         )+
                     }
+                    let by_uuid: HashMap<Uuid, Rc<Constraint>> =
+                    potential_child_constraints.into_iter().map(|x| (x.get_uuid(),
+                    x)).collect();
                     Self{
                         id: Uuid::new_v4(),
                         root_uuid,
                         $([<$required:snake:lower>],)+
-                        downstream_constraints: potential_child_constraints,
+                        downstream_constraints: by_uuid.into_iter().map(|(_,
+                        v)| v).collect(), 
                     }
                 }
             }
@@ -146,6 +156,13 @@ macro_rules! register_constraint {
                 match self {
                     $(
                         Self::$element(x) => x.get_downstream_constraints(),
+                    )+
+                }
+            }
+            pub fn get_uuid(&self) -> Uuid {
+                match self {
+                    $(
+                        Self::$element(x) => x.get_uuid(),
                     )+
                 }
             }

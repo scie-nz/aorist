@@ -26,6 +26,12 @@ pub struct Constraint {
     pub requires: Option<Vec<String>>,
 }
 impl Constraint {
+    fn get_uuid(&self) -> Uuid {
+        if let Some(c) = &self.inner {
+            return c.get_uuid();
+        }
+        panic!("Called get_uuid() on a Constraint struct with no inner");
+    }
     pub fn get_downstream_constraints(&self) -> Vec<Rc<Constraint>> {
         if let Some(c) = &self.inner {
             return c.get_downstream_constraints();
