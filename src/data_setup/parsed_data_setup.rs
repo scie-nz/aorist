@@ -9,12 +9,14 @@ use crate::user::User;
 use crate::user_group::UserGroup;
 use crate::utils::GetSetError;
 use aorist_concept::Constrainable;
-use getset::{Getters, Setters, MutGetters, IncompleteGetters, IncompleteMutGetters, IncompleteSetters};
+use derivative::Derivative;
+use getset::{
+    Getters, IncompleteGetters, IncompleteMutGetters, IncompleteSetters, MutGetters, Setters,
+};
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
 use std::rc::Rc;
 use uuid::Uuid;
-use derivative::Derivative;
 
 #[derive(
     Serialize,
@@ -60,15 +62,11 @@ pub struct ParsedDataSetup {
     //#[constrainable]
     role_bindings: Option<Vec<RoleBinding>>,
     //#[constrainable]
-    #[derivative(PartialEq="ignore", Debug="ignore")]
+    #[derivative(PartialEq = "ignore", Debug = "ignore")]
     endpoints: EndpointConfig,
-    #[getset(
-        get = "pub with_prefix",
-        set = "pub",
-        get_mut = "pub with_prefix"
-    )]
+    #[getset(get = "pub with_prefix", set = "pub", get_mut = "pub with_prefix")]
     #[serde(skip)]
-    #[derivative(PartialEq="ignore", Debug="ignore")]
+    #[derivative(PartialEq = "ignore", Debug = "ignore")]
     constraints: Vec<Rc<Constraint>>,
     uuid: Option<Uuid>,
 }

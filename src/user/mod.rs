@@ -5,11 +5,11 @@ use crate::error::AoristError;
 use crate::object::TAoristObject;
 use crate::role::{Role, TRole};
 use aorist_concept::Constrainable;
+use derivative::Derivative;
 use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
 use std::rc::Rc;
 use uuid::Uuid;
-use derivative::Derivative;
 
 #[derive(Derivative, Serialize, Deserialize, Constrainable)]
 #[derivative(PartialEq, Debug, Hash, Eq, Clone)]
@@ -22,7 +22,7 @@ pub struct User {
     roles: Option<Vec<Role>>,
     uuid: Option<Uuid>,
     #[serde(skip)]
-    #[derivative(PartialEq="ignore", Debug="ignore", Hash="ignore")]
+    #[derivative(PartialEq = "ignore", Debug = "ignore", Hash = "ignore")]
     constraints: Vec<Rc<Constraint>>,
 }
 impl User {

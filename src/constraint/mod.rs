@@ -2,7 +2,7 @@ use crate::concept::AoristConcept;
 use crate::object::TAoristObject;
 use aorist_primitives::{define_constraint, register_constraint};
 use maplit::hashmap;
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fmt;
 
@@ -19,7 +19,7 @@ include!(concat!(env!("OUT_DIR"), "/constraints.rs"));
 
 #[derive(Serialize, Deserialize)]
 pub struct Constraint {
-	#[serde(skip)]
+    #[serde(skip)]
     pub inner: Option<AoristConstraint>,
     pub name: String,
     pub root: String,

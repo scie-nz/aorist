@@ -3,11 +3,11 @@ use crate::concept::AoristConcept;
 use crate::constraint::Constraint;
 use crate::user_group::UserGroup;
 use aorist_concept::Constrainable;
+use derivative::Derivative;
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
 use std::rc::Rc;
 use uuid::Uuid;
-use derivative::Derivative;
 
 #[derive(Derivative, Serialize, Deserialize, Constrainable)]
 #[derivative(PartialEq, Debug)]
@@ -15,7 +15,7 @@ pub struct ApproveAccessSelector {
     matchLabels: HashMap<String, Vec<String>>,
     uuid: Option<Uuid>,
     #[serde(skip)]
-    #[derivative(PartialEq="ignore", Debug="ignore")]
+    #[derivative(PartialEq = "ignore", Debug = "ignore")]
     constraints: Vec<Rc<Constraint>>,
 }
 impl ApproveAccessSelector {

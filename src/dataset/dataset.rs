@@ -9,13 +9,13 @@ use crate::prefect::{TObjectWithPrefectCodeGen, TPrefectAsset, TPrefectDataSet};
 use crate::python::TObjectWithPythonCodeGen;
 use crate::template::DatumTemplate;
 use aorist_concept::Constrainable;
+use derivative::Derivative;
 use indoc::formatdoc;
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeSet, HashMap};
 use std::rc::Rc;
 use textwrap::indent;
 use uuid::Uuid;
-use derivative::Derivative;
 
 #[derive(Derivative, Serialize, Deserialize, Default, Constrainable)]
 #[derivative(PartialEq, Debug)]
@@ -29,7 +29,7 @@ pub struct DataSet {
     assets: Vec<Asset>,
     uuid: Option<Uuid>,
     #[serde(skip)]
-    #[derivative(PartialEq="ignore", Debug="ignore")]
+    #[derivative(PartialEq = "ignore", Debug = "ignore")]
     constraints: Vec<Rc<Constraint>>,
 }
 impl TAoristObject for DataSet {

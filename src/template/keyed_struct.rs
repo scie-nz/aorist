@@ -6,11 +6,11 @@ use crate::constraint::Constraint;
 use crate::query::{SQLInsertQuery, SQLQuery};
 use aorist_concept::Constrainable;
 use aorist_primitives::{TAttribute, TOrcAttribute, TPrestoAttribute};
+use derivative::Derivative;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::rc::Rc;
 use uuid::Uuid;
-use derivative::Derivative;
 
 #[derive(Serialize, Deserialize, Derivative, Clone, Constrainable)]
 #[derivative(PartialEq, Debug)]
@@ -20,7 +20,7 @@ pub struct KeyedStruct {
     attributes: Vec<Attribute>,
     uuid: Option<Uuid>,
     #[serde(skip)]
-    #[derivative(PartialEq="ignore", Debug="ignore")]
+    #[derivative(PartialEq = "ignore", Debug = "ignore")]
     constraints: Vec<Rc<Constraint>>,
 }
 impl KeyedStruct {

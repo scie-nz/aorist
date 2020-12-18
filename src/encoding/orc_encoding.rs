@@ -10,27 +10,21 @@ use crate::schema::DataSchema;
 use crate::template::DatumTemplate;
 use aorist_concept::Constrainable;
 use aorist_derive::{BlankPrefectPreamble, NoPythonImports};
+use derivative::Derivative;
 use indoc::indoc;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::rc::Rc;
 use uuid::Uuid;
-use derivative::Derivative;
 
 #[derive(
-    Derivative,
-    Serialize,
-    Deserialize,
-    Clone,
-    NoPythonImports,
-    BlankPrefectPreamble,
-    Constrainable,
+    Derivative, Serialize, Deserialize, Clone, NoPythonImports, BlankPrefectPreamble, Constrainable,
 )]
 #[derivative(PartialEq, Debug)]
 pub struct ORCEncoding {
     uuid: Option<Uuid>,
     #[serde(skip)]
-    #[derivative(PartialEq="ignore", Debug="ignore")]
+    #[derivative(PartialEq = "ignore", Debug = "ignore")]
     constraints: Vec<Rc<Constraint>>,
 }
 impl THiveTableCreationTagMutator for ORCEncoding {
