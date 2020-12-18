@@ -5,13 +5,13 @@ use std::fs::OpenOptions;
 use std::io::prelude::*;
 use type_macro_helpers::{extract_type_from_option, extract_type_from_vector};
 
+use proc_macro2::{Ident, Span};
 use quote::quote;
 use syn::punctuated::Punctuated;
 use syn::token::Comma;
 use syn::{
     parse_macro_input, Data, DataEnum, DataStruct, DeriveInput, Field, Fields, Meta, Type, Variant,
 };
-use proc_macro2::{Ident, Span};
 mod keyword {
     syn::custom_keyword!(path);
 }
@@ -55,7 +55,7 @@ fn process_enum_variants(
             )*
           }
         }
-        
+
         fn compute_constraints(&mut self) {
           match self {
             #(
@@ -71,7 +71,7 @@ fn process_enum_variants(
             )*
           }
         }
-        
+
         fn get_downstream_constraints(&self) -> Vec<Rc<Constraint>> {
           match self {
             #(
@@ -79,7 +79,7 @@ fn process_enum_variants(
             )*
           }
         }
-        
+
         fn get_uuid(&self) -> Uuid {
           match self {
             #(
@@ -113,7 +113,10 @@ fn process_struct_fields(
 
     let struct_name = &input.ident;
     let constraint: Vec<Ident> = match constraints.get(&struct_name.to_string()) {
-        Some(v) => v.into_iter().map(|x| Ident::new(x, Span::call_site())).collect(),
+        Some(v) => v
+            .into_iter()
+            .map(|x| Ident::new(x, Span::call_site()))
+            .collect(),
         None => Vec::new(),
     };
     let bare_field = field.clone().filter(|x| {
@@ -282,10 +285,12 @@ pub fn aorist_concept(input: TokenStream) -> TokenStream {
     // TODO: add dependencies
     let constraints_parsed: Vec<(String, String)> = constraints
         .into_iter()
-        .map(|x| (
-            x.get("name").unwrap().as_str().unwrap().into(),
-            x.get("root").unwrap().as_str().unwrap().into(),
-        ))
+        .map(|x| {
+            (
+                x.get("name").unwrap().as_str().unwrap().into(),
+                x.get("root").unwrap().as_str().unwrap().into(),
+            )
+        })
         .collect();
     let mut constraints_map: HashMap<String, Vec<String>> = HashMap::new();
     for (name, root) in constraints_parsed {

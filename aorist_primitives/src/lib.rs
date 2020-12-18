@@ -21,7 +21,7 @@ macro_rules! define_attribute {
             comment: Option<String>,
             uuid: Option<Uuid>,
             #[serde(skip)]
-            #[derivative(PartialEq="ignore", Debug="ignore")]
+            #[derivative(PartialEq = "ignore", Debug = "ignore")]
             constraints: Vec<Rc<Constraint>>,
         }
         impl TAttribute for $element {
@@ -125,7 +125,7 @@ macro_rules! define_constraint {
                         root_uuid,
                         $([<$required:snake:lower>],)+
                         downstream_constraints: by_uuid.into_iter().map(|(_,
-                        v)| v).collect(), 
+                        v)| v).collect(),
                     }
                 }
             }
