@@ -40,7 +40,8 @@ macro_rules! define_constraint {
             root_uuid: Uuid,
         }
         impl $element {
-            pub fn new(root_uuid: Uuid) -> Self {
+            pub fn new(root_uuid: Uuid,
+                       _potential_child_constraints: Vec<Rc<Constraint>>) -> Self {
                 Self{ id: Uuid::new_v4(), root_uuid }
             }
         }
@@ -66,14 +67,28 @@ macro_rules! define_constraint {
             pub struct $element {
                 id: Uuid,
                 root_uuid: Uuid,
-                $([<$required:snake:lower>] : Vec<$required>),+
+                $([<$required:snake:lower>] : Vec<Rc<Constraint>>),+
             }
             impl $element {
-              pub fn new(root_uuid: Uuid) -> Self {
+              pub fn new(root_uuid: Uuid,
+                         potential_child_constraints: Vec<Rc<Constraint>>) -> Self {
+                    $(
+                        let mut [<$required:snake:lower>]: Vec<Rc<Constraint>> =
+                        Vec::new();
+                    )+
+                    for constraint in potential_child_constraints {
+                        $(
+                            if let Some(AoristConstraint::$required(x)) =
+                            &constraint.inner
+                            {
+                                [<$required:snake:lower>].push(constraint.clone());
+                            }
+                        )+
+                    }
                     Self{
                         id: Uuid::new_v4(),
                         root_uuid,
-                        $([<$required:snake:lower>] : Vec::new()),+
+                        $([<$required:snake:lower>]),+
                     }
                 }
             }

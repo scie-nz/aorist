@@ -156,6 +156,7 @@ fn process_struct_fields(
         .unwrap();
     }
     let bare_field_name = bare_field.map(|x| x.0);
+    let bare_field_name2 = bare_field_name.clone();
     let vec_field_name = vec_field.map(|x| x.0);
     let option_vec_field_name = option_vec_field.map(|x| x.0);
 
@@ -180,6 +181,12 @@ fn process_struct_fields(
                 )*
             }
             fn get_constraints(&self) -> Vec<Rc<Constraint>> {
+                let mut child_constraints: Vec<Rc<Constraint>> = Vec::new();
+                #(
+                    for constraint in self.#bare_field_name2.get_constraints() {
+                         child_constraints.push(constraint);
+                    }
+                )*
                 vec![
                     #(
                         Rc::new(Constraint{
@@ -188,7 +195,10 @@ fn process_struct_fields(
                             requires: None,
                             inner: Some(
                                 AoristConstraint::#constraint(
-                                    crate::constraint::#constraint::new(self.get_uuid())
+                                    crate::constraint::#constraint::new(
+                                        self.get_uuid(),
+                                        child_constraints,
+                                    )
                                 )
                             ),
                         }),
