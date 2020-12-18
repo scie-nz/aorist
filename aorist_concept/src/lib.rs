@@ -183,16 +183,16 @@ fn process_struct_fields(
                 )*
             }
             fn get_constraints(&self) -> Vec<Rc<Constraint>> {
-                let mut child_constraints: Vec<Rc<Constraint>> = Vec::new();
+                let mut constraints: Vec<Rc<Constraint>> = Vec::new();
                 #(
                     for constraint in self.#bare_field_name2.get_constraints() {
-                         child_constraints.push(constraint);
+                         constraints.push(constraint);
                     }
                 )*
                 #(
                     for elem in &self.#vec_field_name2 {
                         for constraint in elem.get_constraints() {
-                            child_constraints.push(constraint);
+                            constraints.push(constraint);
                         }
                     }
                 )*
@@ -200,28 +200,28 @@ fn process_struct_fields(
                     if let Some(ref v) = &self.#option_vec_field_name2 {
                         for elem in v {
                             for constraint in elem.get_constraints() {
-                                child_constraints.push(constraint);
+                                constraints.push(constraint);
                             }
                         }
                     }
                 )*
-                vec![
-                    #(
-                        Rc::new(Constraint{
-                            name: stringify!(#constraint).to_string(),
-                            root: stringify!(#struct_name).to_string(),
-                            requires: None,
-                            inner: Some(
-                                AoristConstraint::#constraint(
-                                    crate::constraint::#constraint::new(
-                                        self.get_uuid(),
-                                        child_constraints,
-                                    )
+                let child_constraints = constraints.clone();
+                #(
+                    constraints.push(Rc::new(Constraint{
+                        name: stringify!(#constraint).to_string(),
+                        root: stringify!(#struct_name).to_string(),
+                        requires: None,
+                        inner: Some(
+                            AoristConstraint::#constraint(
+                                crate::constraint::#constraint::new(
+                                    self.get_uuid(),
+                                    child_constraints,
                                 )
-                            ),
-                        }),
-                    )*
-                ]
+                            )
+                        ),
+                    }));
+                )*
+                constraints
             }
             fn get_uuid(&self) -> Uuid {
                 if let Some(uuid) = self.uuid {
