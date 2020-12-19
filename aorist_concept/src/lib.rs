@@ -29,6 +29,7 @@ fn process_enum_variants(
     let variant4 = variants.iter().map(|x| (&x.ident));
     let variant5 = variants.iter().map(|x| (&x.ident));
     let variant6 = variants.iter().map(|x| (&x.ident));
+    let variant7 = variants.iter().map(|x| (&x.ident));
     let mut file = OpenOptions::new()
         .write(true)
         .append(true)
@@ -92,6 +93,13 @@ fn process_enum_variants(
           match self {
             #(
               #enum_name::#variant6(x) => x.get_children_uuid(),
+            )*
+          }
+        }
+        fn compute_uuids(&mut self) {
+          match self {
+            #(
+              #enum_name::#variant7(x) => x.compute_uuids(),
             )*
           }
         }
@@ -192,12 +200,15 @@ fn process_struct_fields(
     let bare_field_name2 = bare_field_name.clone();
     let bare_field_name3 = bare_field_name.clone();
     let bare_field_name4 = bare_field_name.clone();
+    let bare_field_name5 = bare_field_name.clone();
     let vec_field_name = vec_field.map(|x| x.0);
     let vec_field_name2 = vec_field_name.clone();
     let vec_field_name3 = vec_field_name.clone();
+    let vec_field_name4 = vec_field_name.clone();
     let option_vec_field_name = option_vec_field.map(|x| x.0);
     let option_vec_field_name2 = option_vec_field_name.clone();
     let option_vec_field_name3 = option_vec_field_name.clone();
+    let option_vec_field_name4 = option_vec_field_name.clone();
 
     TokenStream::from(quote! {
 
@@ -302,6 +313,24 @@ fn process_struct_fields(
                     }
                 )*
                 uuids
+            }
+            fn compute_uuids(&mut self) {
+                #(
+                    self.#bare_field_name5.compute_uuids();
+                )*
+                #(
+                    for elem in self.#vec_field_name4.iter_mut() {
+                        elem.compute_uuids();
+                    }
+                )*
+                #(
+                    if let Some(ref mut v) = self.#option_vec_field_name4 {
+                        for elem in v.iter_mut() {
+                            elem.compute_uuids();
+                        }
+                    }
+                )*
+                self.uuid = Some(self.get_uuid_from_children_uuid());
             }
         }
     })

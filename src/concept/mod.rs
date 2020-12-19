@@ -32,4 +32,5 @@ pub trait AoristConcept {
             Uuid::new_v4()
         }
     }
+    fn compute_uuids(&mut self);
 }
