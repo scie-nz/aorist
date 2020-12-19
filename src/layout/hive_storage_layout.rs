@@ -13,7 +13,7 @@ pub struct StaticHiveTableLayout {
     uuid: Option<Uuid>,
     #[serde(skip)]
     #[derivative(PartialEq = "ignore", Debug = "ignore")]
-    constraints: Vec<Rc<Constraint>>,
+    pub constraints: Vec<Rc<Constraint>>,
 }
 
 #[derive(Derivative, Serialize, Deserialize, Clone, Constrainable)]
@@ -22,7 +22,7 @@ pub struct DailyGranularity {
     uuid: Option<Uuid>,
     #[serde(skip)]
     #[derivative(PartialEq = "ignore", Debug = "ignore")]
-    constraints: Vec<Rc<Constraint>>,
+    pub constraints: Vec<Rc<Constraint>>,
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone, Constrainable)]
@@ -40,7 +40,7 @@ pub struct DynamicHiveTableLayout {
     uuid: Option<Uuid>,
     #[serde(skip)]
     #[derivative(PartialEq = "ignore", Debug = "ignore")]
-    constraints: Vec<Rc<Constraint>>,
+    pub constraints: Vec<Rc<Constraint>>,
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone, Constrainable)]

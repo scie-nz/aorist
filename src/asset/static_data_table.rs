@@ -25,7 +25,7 @@ pub struct StaticDataTable {
     uuid: Option<Uuid>,
     #[serde(skip)]
     #[derivative(PartialEq = "ignore", Debug = "ignore")]
-    constraints: Vec<Rc<Constraint>>,
+    pub constraints: Vec<Rc<Constraint>>,
 }
 impl StaticDataTable {
     pub fn get_presto_schemas(

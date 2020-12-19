@@ -13,7 +13,7 @@ pub struct GlobalPermissionsAdmin {
     uuid: Option<Uuid>,
     #[serde(skip)]
     #[derivative(PartialEq = "ignore", Debug = "ignore", Hash = "ignore")]
-    constraints: Vec<Rc<Constraint>>,
+    pub constraints: Vec<Rc<Constraint>>,
 }
 impl TRole for GlobalPermissionsAdmin {
     fn get_permissions(&self) -> Vec<String> {

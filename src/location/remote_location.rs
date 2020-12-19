@@ -1,5 +1,5 @@
 use crate::concept::AoristConcept;
-use crate::constraint::Constraint;
+use crate::constraint::{AoristConstraint, Constraint};
 use crate::location::gcs_location::GCSLocation;
 use aorist_concept::Constrainable;
 use enum_dispatch::enum_dispatch;

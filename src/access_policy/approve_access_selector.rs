@@ -16,7 +16,7 @@ pub struct ApproveAccessSelector {
     uuid: Option<Uuid>,
     #[serde(skip)]
     #[derivative(PartialEq = "ignore", Debug = "ignore")]
-    constraints: Vec<Rc<Constraint>>,
+    pub constraints: Vec<Rc<Constraint>>,
 }
 impl ApproveAccessSelector {
     pub fn checkGroupIsAllowed(&self, group: &UserGroup) -> bool {

@@ -21,8 +21,16 @@ use std::collections::HashMap;
 fn process_enum_variants(
     variants: &Punctuated<Variant, Comma>,
     input: &DeriveInput,
+    constraints: &HashMap<String, Vec<String>>,
 ) -> TokenStream {
     let enum_name = &input.ident;
+    let constraint: Vec<Ident> = match constraints.get(&enum_name.to_string()) {
+        Some(v) => v
+            .into_iter()
+            .map(|x| Ident::new(x, Span::call_site()))
+            .collect(),
+        None => Vec::new(),
+    };
     let variant = variants.iter().map(|x| (&x.ident));
     let variant2 = variants.iter().map(|x| (&x.ident));
     let variant3 = variants.iter().map(|x| (&x.ident));
@@ -59,9 +67,33 @@ fn process_enum_variants(
         }
 
         fn compute_constraints(&mut self) {
+          let uuid = self.get_uuid();
+          let downstream = self.get_downstream_constraints();
+          let enum_constraints = vec![
+            #(
+              Rc::new(Constraint{
+                  name: stringify!(#constraint).to_string(),
+                  root: stringify!(#enum_name).to_string(),
+                  requires: None,
+                  inner: Some(
+                      AoristConstraint::#constraint(
+                          crate::constraint::#constraint::new(
+                              uuid.clone(),
+                              downstream.clone(),
+                          )
+                      )
+                  ),
+              }),
+            )*
+          ];
           match self {
             #(
-              #enum_name::#variant4(ref mut x) => x.compute_constraints(),
+              #enum_name::#variant4(ref mut x) => {
+                  x.compute_constraints();
+                  for el in enum_constraints.into_iter() {
+                      x.constraints.push(el);
+                  };
+              }
             )*
           }
         }
@@ -389,7 +421,8 @@ pub fn aorist_concept(input: TokenStream) -> TokenStream {
             fields: Fields::Named(fields),
             ..
         }) => process_struct_fields(&fields.named, &input, &constraints_map),
-        Data::Enum(DataEnum { variants, .. }) => process_enum_variants(variants, &input),
+        Data::Enum(DataEnum { variants, .. }) =>
+        process_enum_variants(variants, &input, &constraints_map),
         _ => panic!("expected a struct with named fields"),
     }
 }

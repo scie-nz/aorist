@@ -29,5 +29,5 @@ pub struct EndpointConfig {
     gitea: Option<GiteaConfig>,
     uuid: Option<Uuid>,
     #[serde(skip)]
-    constraints: Vec<Rc<Constraint>>,
+    pub constraints: Vec<Rc<Constraint>>,
 }

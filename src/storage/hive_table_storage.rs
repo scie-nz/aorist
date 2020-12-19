@@ -32,7 +32,7 @@ pub struct HiveTableStorage {
     uuid: Option<Uuid>,
     #[serde(skip)]
     #[derivative(PartialEq = "ignore", Debug = "ignore")]
-    constraints: Vec<Rc<Constraint>>,
+    pub constraints: Vec<Rc<Constraint>>,
 }
 impl THiveTableCreationTagMutator for HiveTableStorage {
     fn populate_table_creation_tags(

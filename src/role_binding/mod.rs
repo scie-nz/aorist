@@ -19,7 +19,7 @@ pub struct RoleBinding {
     uuid: Option<Uuid>,
     #[serde(skip)]
     #[derivative(PartialEq = "ignore", Debug = "ignore")]
-    constraints: Vec<Rc<Constraint>>,
+    pub constraints: Vec<Rc<Constraint>>,
 }
 impl TAoristObject for RoleBinding {
     fn get_name(&self) -> &String {

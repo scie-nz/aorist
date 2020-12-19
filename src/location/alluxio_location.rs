@@ -19,7 +19,7 @@ pub struct AlluxioLocation {
     uuid: Option<Uuid>,
     #[serde(skip)]
     #[derivative(PartialEq = "ignore", Debug = "ignore")]
-    constraints: Vec<Rc<Constraint>>,
+    pub constraints: Vec<Rc<Constraint>>,
 }
 impl TObjectWithPrefectCodeGen for AlluxioLocation {
     fn get_prefect_preamble(

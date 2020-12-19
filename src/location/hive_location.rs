@@ -1,5 +1,5 @@
 use crate::concept::AoristConcept;
-use crate::constraint::Constraint;
+use crate::constraint::{AoristConstraint, Constraint};
 use crate::endpoints::EndpointConfig;
 use crate::hive::THiveTableCreationTagMutator;
 use crate::location::alluxio_location::AlluxioLocation;

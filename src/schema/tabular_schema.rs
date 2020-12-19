@@ -17,7 +17,7 @@ pub struct TabularSchema {
     uuid: Option<Uuid>,
     #[serde(skip)]
     #[derivative(PartialEq = "ignore", Debug = "ignore")]
-    constraints: Vec<Rc<Constraint>>,
+    pub constraints: Vec<Rc<Constraint>>,
 }
 impl TabularSchema {
     pub fn get_presto_schema(&self, templates: &HashMap<String, DatumTemplate>) -> String {

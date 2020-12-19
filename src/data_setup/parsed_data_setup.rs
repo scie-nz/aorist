@@ -67,7 +67,7 @@ pub struct ParsedDataSetup {
     #[getset(get = "pub with_prefix", set = "pub", get_mut = "pub with_prefix")]
     #[serde(skip)]
     #[derivative(PartialEq = "ignore", Debug = "ignore")]
-    constraints: Vec<Rc<Constraint>>,
+    pub constraints: Vec<Rc<Constraint>>,
     uuid: Option<Uuid>,
 }
 impl ParsedDataSetup {
