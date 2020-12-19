@@ -38,6 +38,7 @@ fn process_enum_variants(
     let variant5 = variants.iter().map(|x| (&x.ident));
     let variant6 = variants.iter().map(|x| (&x.ident));
     let variant7 = variants.iter().map(|x| (&x.ident));
+    let variant8 = variants.iter().map(|x| (&x.ident));
     let mut file = OpenOptions::new()
         .write(true)
         .append(true)
@@ -68,6 +69,13 @@ fn process_enum_variants(
 
         fn compute_constraints(&mut self) {
           let uuid = self.get_uuid();
+          match self {
+            #(
+              #enum_name::#variant4(ref mut x) => {
+                  x.compute_constraints();
+              }
+            )*
+          }
           let downstream = self.get_downstream_constraints();
           let enum_constraints = vec![
             #(
@@ -88,8 +96,7 @@ fn process_enum_variants(
           ];
           match self {
             #(
-              #enum_name::#variant4(ref mut x) => {
-                  x.compute_constraints();
+              #enum_name::#variant8(ref mut x) => {
                   for el in enum_constraints.into_iter() {
                       x.constraints.push(el);
                   };

@@ -23,24 +23,10 @@ fn main() -> Result<(), String> {
     /*for (_k, v) in setup.get_pipelines()? {
         println!("{}", v);
     }*/
-    for constraint in setup.get_constraints() {
-        println!(
-            "Constraint: {} on {}({})",
-            constraint.read().unwrap(),
-            "ParsedDataSetup",
-            setup.get_uuid()
-        );
-        for downstream_rw in constraint.read().unwrap().get_downstream_constraints() {
-            let downstream = downstream_rw.read().unwrap();
-            println!(
-                "Requires: {} on {}({})",
-                downstream,
-                downstream.get_root(),
-                downstream.get_root_uuid()
-            );
-        }
-    }
     //perms = setup.get_user_permissions();
+    for constraint in setup.get_constraints() {
+        constraint.read().unwrap().print_dag();
+    }
     /*
     println!("{}", setup.get_curl_calls(
         "admin".to_string(),
