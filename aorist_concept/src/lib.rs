@@ -28,6 +28,7 @@ fn process_enum_variants(
     let variant3 = variants.iter().map(|x| (&x.ident));
     let variant4 = variants.iter().map(|x| (&x.ident));
     let variant5 = variants.iter().map(|x| (&x.ident));
+    let variant6 = variants.iter().map(|x| (&x.ident));
     let mut file = OpenOptions::new()
         .write(true)
         .append(true)
@@ -84,6 +85,13 @@ fn process_enum_variants(
           match self {
             #(
               #enum_name::#variant3(x) => x.get_uuid(),
+            )*
+          }
+        }
+        fn get_children_uuid(&self) -> Vec<Uuid> {
+          match self {
+            #(
+              #enum_name::#variant6(x) => x.get_children_uuid(),
             )*
           }
         }
@@ -183,10 +191,13 @@ fn process_struct_fields(
     let bare_field_name = bare_field.map(|x| x.0);
     let bare_field_name2 = bare_field_name.clone();
     let bare_field_name3 = bare_field_name.clone();
+    let bare_field_name4 = bare_field_name.clone();
     let vec_field_name = vec_field.map(|x| x.0);
     let vec_field_name2 = vec_field_name.clone();
+    let vec_field_name3 = vec_field_name.clone();
     let option_vec_field_name = option_vec_field.map(|x| x.0);
     let option_vec_field_name2 = option_vec_field_name.clone();
+    let option_vec_field_name3 = option_vec_field_name.clone();
 
     TokenStream::from(quote! {
 
@@ -272,6 +283,25 @@ fn process_struct_fields(
                     return uuid.clone();
                 }
                 panic!("Uuid was not set on object.");
+            }
+            fn get_children_uuid(&self) -> Vec<Uuid> {
+                let mut uuids: Vec<Uuid> = Vec::new();
+                #(
+                    uuids.push(self.#bare_field_name4.get_uuid());
+                )*
+                #(
+                    for elem in &self.#vec_field_name3 {
+                        uuids.push(elem.get_uuid());
+                    }
+                )*
+                #(
+                    if let Some(ref v) = self.#option_vec_field_name3 {
+                        for elem in v {
+                            uuids.push(elem.get_uuid());
+                        }
+                    }
+                )*
+                uuids
             }
         }
     })

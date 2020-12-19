@@ -117,9 +117,8 @@ macro_rules! define_constraint {
                             }
                         )+
                     }
-                    let by_uuid: HashMap<Uuid, Rc<Constraint>> =
-                    potential_child_constraints.into_iter().map(|x| (x.get_uuid(),
-                    x)).collect();
+                    let by_uuid: HashMap<Uuid, Rc<Constraint>> = potential_child_constraints
+                        .into_iter().map(|x| (x.get_uuid(), x)).collect();
                     Self{
                         id: Uuid::new_v4(),
                         root_uuid,
