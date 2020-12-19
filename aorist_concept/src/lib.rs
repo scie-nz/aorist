@@ -201,14 +201,18 @@ fn process_struct_fields(
     let bare_field_name3 = bare_field_name.clone();
     let bare_field_name4 = bare_field_name.clone();
     let bare_field_name5 = bare_field_name.clone();
+    let bare_field_name6 = bare_field_name.clone();
+    let bare_field_name7 = bare_field_name.clone();
     let vec_field_name = vec_field.map(|x| x.0);
     let vec_field_name2 = vec_field_name.clone();
     let vec_field_name3 = vec_field_name.clone();
     let vec_field_name4 = vec_field_name.clone();
+    let vec_field_name5 = vec_field_name.clone();
     let option_vec_field_name = option_vec_field.map(|x| x.0);
     let option_vec_field_name2 = option_vec_field_name.clone();
     let option_vec_field_name3 = option_vec_field_name.clone();
     let option_vec_field_name4 = option_vec_field_name.clone();
+    let option_vec_field_name5 = option_vec_field_name.clone();
 
     TokenStream::from(quote! {
 
@@ -241,10 +245,31 @@ fn process_struct_fields(
                 let mut downstream: Vec<Rc<Constraint>> = Vec::new();
                 for constraint in &self.constraints {
                     downstream.push(constraint.clone());
-                    for elem in constraint.get_downstream_constraints() {
+                    /*for elem in constraint.get_downstream_constraints() {
                         downstream.push(elem.clone());
-                    }
+                    }*/
                 }
+                #(
+                    for constraint in self.#bare_field_name6.get_downstream_constraints() {
+                         downstream.push(constraint.clone());
+                    }
+                )*
+                #(
+                    for elem in &self.#vec_field_name5 {
+                        for constraint in elem.get_downstream_constraints() {
+                            downstream.push(constraint.clone());
+                        }
+                    }
+                )*
+                #(
+                    if let Some(ref v) = self.#option_vec_field_name5 {
+                        for elem in v {
+                            for constraint in elem.get_downstream_constraints() {
+                                downstream.push(constraint.clone());
+                            }
+                        }
+                    }
+                )*
                 downstream
             }
             fn compute_constraints(&mut self) {
@@ -288,6 +313,8 @@ fn process_struct_fields(
                         ),
                     }));
                 )*
+                println!("Computed {} constraints on {}.", self.constraints.len(),
+                stringify!(#struct_name));
             }
             fn get_uuid(&self) -> Uuid {
                 if let Some(uuid) = self.uuid {

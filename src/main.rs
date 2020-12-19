@@ -5,6 +5,7 @@ fn main() -> Result<(), String> {
     //let _foo = attributes::KeyAttribute1{};
     let mut setup = get_data_setup();
     setup.compute_uuids();
+    setup.compute_constraints();
     /*for dataset in setup.get_datasets().unwrap() {
         println!("{}", dataset.to_yaml());
         println!("{}", dataset.get_presto_schemas());
@@ -18,11 +19,16 @@ fn main() -> Result<(), String> {
     for role_binding in setup.get_role_bindings().unwrap() {
         println!("{}", role_binding.to_yaml());
     }*/
-    for (_k, v) in setup.get_pipelines()? {
+    /*for (_k, v) in setup.get_pipelines()? {
         println!("{}", v);
-    }
+    }*/
     for constraint in setup.get_constraints() {
-        println!("{}", constraint);
+        println!("Constraint: {} on {}({})", constraint, "ParsedDataSetup", setup.get_uuid());
+        for downstream in constraint.get_downstream_constraints() {
+            println!("Requires: {} on {}({})", downstream,
+            downstream.get_root(),
+            downstream.get_root_uuid());
+        }
     }
     //perms = setup.get_user_permissions();
     /*

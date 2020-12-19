@@ -45,21 +45,21 @@ pub struct ParsedDataSetup {
         set_incomplete = "pub",
         get_mut_incomplete = "pub with_prefix"
     )]
-    //#[constrainable]
+    #[constrainable]
     groups: Option<Vec<UserGroup>>,
     #[getset(
         get_incomplete = "pub with_prefix",
         set_incomplete = "pub",
         get_mut_incomplete = "pub with_prefix"
     )]
-    //#[constrainable]
+    #[constrainable]
     datasets: Option<Vec<DataSet>>,
     #[getset(
         get_incomplete = "pub with_prefix",
         set_incomplete = "pub",
         get_mut_incomplete = "pub with_prefix"
     )]
-    //#[constrainable]
+    #[constrainable]
     role_bindings: Option<Vec<RoleBinding>>,
     //#[constrainable]
     #[derivative(PartialEq = "ignore", Debug = "ignore")]

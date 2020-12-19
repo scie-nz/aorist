@@ -53,6 +53,9 @@ macro_rules! define_constraint {
             pub fn get_uuid(&self) -> Uuid {
                 self.id.clone()
             }
+            pub fn get_root_uuid(&self) -> Uuid {
+                self.root_uuid.clone()
+            }
         }
         impl TConstraint for $element {
             type Root = $root;
@@ -82,6 +85,9 @@ macro_rules! define_constraint {
             impl $element {
                 pub fn get_uuid(&self) -> Uuid {
                     self.id.clone()
+                }
+                pub fn get_root_uuid(&self) -> Uuid {
+                    self.root_uuid.clone()
                 }
                 pub fn ingest_upstream_constraints(
                     &mut self,
@@ -162,6 +168,13 @@ macro_rules! register_constraint {
                 match self {
                     $(
                         Self::$element(x) => x.get_uuid(),
+                    )+
+                }
+            }
+            pub fn get_root_uuid(&self) -> Uuid {
+                match self {
+                    $(
+                        Self::$element(x) => x.get_root_uuid(),
                     )+
                 }
             }

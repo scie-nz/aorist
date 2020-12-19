@@ -93,7 +93,7 @@ impl DataSetup {
         dataSetup.set_groups(groups).unwrap();
         dataSetup.set_datasets(datasets).unwrap();
         dataSetup.set_role_bindings(role_bindings).unwrap();
-        dataSetup.set_constraints(constraints);
+        //dataSetup.set_constraints(constraints);
 
         let mut role_map: HashMap<String, Vec<Role>> = HashMap::new();
         for binding in dataSetup.get_role_bindings().unwrap() {
