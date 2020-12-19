@@ -421,8 +421,9 @@ pub fn aorist_concept(input: TokenStream) -> TokenStream {
             fields: Fields::Named(fields),
             ..
         }) => process_struct_fields(&fields.named, &input, &constraints_map),
-        Data::Enum(DataEnum { variants, .. }) =>
-        process_enum_variants(variants, &input, &constraints_map),
+        Data::Enum(DataEnum { variants, .. }) => {
+            process_enum_variants(variants, &input, &constraints_map)
+        }
         _ => panic!("expected a struct with named fields"),
     }
 }

@@ -18,9 +18,7 @@ pub trait AoristConcept {
     fn get_uuid_from_children_uuid(&self) -> Uuid {
         let child_uuids = self.get_children_uuid();
         if child_uuids.len() > 0 {
-            let uuids = child_uuids
-                .into_iter()
-                .collect::<BTreeSet<Uuid>>();
+            let uuids = child_uuids.into_iter().collect::<BTreeSet<Uuid>>();
             let mut hasher = SipHasher::new();
             for uuid in uuids {
                 hasher.write(uuid.as_bytes());

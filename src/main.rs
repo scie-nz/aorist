@@ -23,11 +23,19 @@ fn main() -> Result<(), String> {
         println!("{}", v);
     }*/
     for constraint in setup.get_constraints() {
-        println!("Constraint: {} on {}({})", constraint, "ParsedDataSetup", setup.get_uuid());
+        println!(
+            "Constraint: {} on {}({})",
+            constraint,
+            "ParsedDataSetup",
+            setup.get_uuid()
+        );
         for downstream in constraint.get_downstream_constraints() {
-            println!("Requires: {} on {}({})", downstream,
-            downstream.get_root(),
-            downstream.get_root_uuid());
+            println!(
+                "Requires: {} on {}({})",
+                downstream,
+                downstream.get_root(),
+                downstream.get_root_uuid()
+            );
         }
     }
     //perms = setup.get_user_permissions();
