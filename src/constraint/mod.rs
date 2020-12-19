@@ -47,6 +47,12 @@ impl Constraint {
         }
         panic!("Called get_downstream_constraints() on a Constraint struct with no inner");
     }
+    pub fn ingest_upstream_constraints(&mut self, upstream_constraints: Vec<Arc<RwLock<Constraint>>>) {
+        if let Some(ref mut c) = &mut self.inner {
+            return c.ingest_upstream_constraints(upstream_constraints);
+        }
+        panic!("Called ingest_upstream_constraints() on a Constraint struct with no inner");
+    }
 }
 impl TAoristObject for Constraint {
     fn get_name(&self) -> &String {

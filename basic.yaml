@@ -83,6 +83,13 @@ spec:
 ---
 type: Constraint
 spec:
+  name: IsAudited
+  root: StaticDataTable
+  requires:
+    - IsConsistent
+---
+type: Constraint
+spec:
   name: ReplicatedData
   root: RemoteImportStorageSetup
   requires:

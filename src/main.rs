@@ -6,6 +6,7 @@ fn main() -> Result<(), String> {
     let mut setup = get_data_setup();
     setup.compute_uuids();
     setup.compute_constraints();
+    setup.traverse_constrainable_children(Vec::new());
     /*for dataset in setup.get_datasets().unwrap() {
         println!("{}", dataset.to_yaml());
         println!("{}", dataset.get_presto_schemas());

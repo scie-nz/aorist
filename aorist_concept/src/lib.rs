@@ -250,8 +250,27 @@ fn process_struct_fields(
         impl AoristConcept for #struct_name {
             fn traverse_constrainable_children(
                 &self,
-                upstream_constraints: Vec<Arc<RwLock<Constraint>>>
+                mut upstream_constraints: Vec<Arc<RwLock<Constraint>>>
             ) {
+
+
+                // ingest upstream constraints, including those rooted at the
+                // same level
+                for focal_constraint in self.get_constraints().clone() {
+                    let mut my_upstream_constraints = upstream_constraints.clone();
+                    let my_uuid = focal_constraint.read().unwrap().get_uuid();
+                    // add my own constraints to upstream_constraints
+                    for constraint in self.get_constraints().clone() {
+                        if constraint.read().unwrap().get_uuid() != my_uuid {
+                            my_upstream_constraints.push(constraint.clone());
+                        }
+                    }
+                    focal_constraint.write().unwrap().ingest_upstream_constraints(my_upstream_constraints);
+                }
+                for constraint in self.get_constraints().clone() {
+                    upstream_constraints.push(constraint.clone());
+                }
+
                 #(
                     self.#bare_field_name.traverse_constrainable_children(upstream_constraints.clone());
                 )*
@@ -274,14 +293,14 @@ fn process_struct_fields(
             fn get_downstream_constraints(&self) -> Vec<Arc<RwLock<Constraint>>> {
                 // TODO: this is where we should enforce deduplication
                 let mut downstream: Vec<Arc<RwLock<Constraint>>> = Vec::new();
-                for constraint in &self.constraints {
+                for constraint in &self.constraints.clone() {
                     downstream.push(constraint.clone());
                     /*for elem in constraint.get_downstream_constraints() {
                         downstream.push(elem.clone());
                     }*/
                 }
                 #(
-                    for constraint in self.#bare_field_name6.get_downstream_constraints() {
+                    for constraint in &self.#bare_field_name6.get_downstream_constraints() {
                          downstream.push(constraint.clone());
                     }
                 )*
@@ -329,23 +348,28 @@ fn process_struct_fields(
                         }
                     }
                 )*
-                #(
-                    self.constraints.push(Arc::new(RwLock::new(Constraint{
-                        name: stringify!(#constraint).to_string(),
-                        root: stringify!(#struct_name).to_string(),
-                        requires: None,
-                        inner: Some(
-                            AoristConstraint::#constraint(
-                                crate::constraint::#constraint::new(
-                                    self.get_uuid(),
-                                    constraints,
+                let new_constraints = vec![
+                    #(
+                        Arc::new(RwLock::new(Constraint{
+                            name: stringify!(#constraint).to_string(),
+                            root: stringify!(#struct_name).to_string(),
+                            requires: None,
+                            inner: Some(
+                                AoristConstraint::#constraint(
+                                    crate::constraint::#constraint::new(
+                                        self.get_uuid(),
+                                        constraints.clone(),
+                                    )
                                 )
-                            )
-                        ),
-                    })));
-                )*
-                println!("Computed {} constraints on {}.", self.constraints.len(),
-                stringify!(#struct_name));
+                            ),
+                        })),
+                    )*
+                ];
+                for c in new_constraints.into_iter() {
+                    self.constraints.push(c);
+                }
+                //println!("Computed {} constraints on {}.", self.constraints.len(),
+                //stringify!(#struct_name));
             }
             fn get_uuid(&self) -> Uuid {
                 if let Some(uuid) = self.uuid {

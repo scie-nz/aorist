@@ -56,6 +56,10 @@ macro_rules! define_constraint {
             pub fn get_root_uuid(&self) -> Uuid {
                 self.root_uuid.clone()
             }
+            pub fn ingest_upstream_constraints(
+                &self,
+                _upstream_constraints: Vec<Arc<RwLock<Constraint>>>
+            ) {}
         }
         impl TConstraint for $element {
             type Root = $root;
@@ -161,6 +165,17 @@ macro_rules! register_constraint {
                 match self {
                     $(
                         Self::$element(x) => x.get_downstream_constraints(),
+                    )+
+                }
+            }
+            pub fn ingest_upstream_constraints(
+                &mut self,
+                upstream_constraints: Vec<Arc<RwLock<Constraint>>>
+            ) {
+                match self {
+                    $(
+                        Self::$element(ref mut x) =>
+                        x.ingest_upstream_constraints(upstream_constraints),
                     )+
                 }
             }
