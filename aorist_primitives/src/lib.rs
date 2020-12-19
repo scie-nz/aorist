@@ -22,7 +22,7 @@ macro_rules! define_attribute {
             uuid: Option<Uuid>,
             #[serde(skip)]
             #[derivative(PartialEq = "ignore", Debug = "ignore")]
-            constraints: Vec<Rc<Constraint>>,
+            constraints: Vec<Arc<RwLock<Constraint>>>,
         }
         impl TAttribute for $element {
             fn get_name(&self) -> &String {
@@ -44,10 +44,10 @@ macro_rules! define_constraint {
         }
         impl $element {
             pub fn new(root_uuid: Uuid,
-                       _potential_child_constraints: Vec<Rc<Constraint>>) -> Self {
+                       _potential_child_constraints: Vec<Arc<RwLock<Constraint>>>) -> Self {
                 Self{ id: Uuid::new_v4(), root_uuid }
             }
-            pub fn get_downstream_constraints(&self) -> Vec<Rc<Constraint>> {
+            pub fn get_downstream_constraints(&self) -> Vec<Arc<RwLock<Constraint>>> {
                 Vec::new()
             }
             pub fn get_uuid(&self) -> Uuid {
@@ -79,8 +79,8 @@ macro_rules! define_constraint {
             pub struct $element {
                 id: Uuid,
                 root_uuid: Uuid,
-                $([<$required:snake:lower>] : Vec<Rc<Constraint>>,)+
-                downstream_constraints: Vec<Rc<Constraint>>,
+                $([<$required:snake:lower>] : Vec<Arc<RwLock<Constraint>>>,)+
+                downstream_constraints: Vec<Arc<RwLock<Constraint>>>,
             }
             impl $element {
                 pub fn get_uuid(&self) -> Uuid {
@@ -91,12 +91,12 @@ macro_rules! define_constraint {
                 }
                 pub fn ingest_upstream_constraints(
                     &mut self,
-                    upstream_constraints: Vec<Rc<Constraint>>
+                    upstream_constraints: Vec<Arc<RwLock<Constraint>>>
                 ) {
                     for constraint in upstream_constraints {
                         $(
                             if let Some(AoristConstraint::$required(x)) =
-                            &constraint.inner
+                            &constraint.read().unwrap().inner
                             {
                                 self.[<$required:snake:lower>].push(constraint.clone());
                             }
@@ -104,27 +104,27 @@ macro_rules! define_constraint {
                     }
                 }
                 // these are *all* downstream constraints
-                pub fn get_downstream_constraints(&self) -> Vec<Rc<Constraint>> {
+                pub fn get_downstream_constraints(&self) -> Vec<Arc<RwLock<Constraint>>> {
                     self.downstream_constraints.clone()
                 }
                 pub fn new(root_uuid: Uuid,
-                           potential_child_constraints: Vec<Rc<Constraint>>) -> Self {
+                           potential_child_constraints: Vec<Arc<RwLock<Constraint>>>) -> Self {
                     // TODO: we should dedupe potential child constraints
                     $(
-                        let mut [<$required:snake:lower>]: Vec<Rc<Constraint>> =
+                        let mut [<$required:snake:lower>]: Vec<Arc<RwLock<Constraint>>> =
                         Vec::new();
                     )+
                     for constraint in &potential_child_constraints {
                         $(
                             if let Some(AoristConstraint::$required{..}) =
-                            &constraint.inner
+                            &constraint.read().unwrap().inner
                             {
                                 [<$required:snake:lower>].push(constraint.clone());
                             }
                         )+
                     }
-                    let by_uuid: HashMap<Uuid, Rc<Constraint>> = potential_child_constraints
-                        .into_iter().map(|x| (x.get_uuid(), x)).collect();
+                    let by_uuid: HashMap<Uuid, Arc<RwLock<Constraint>>> = potential_child_constraints
+                        .into_iter().map(|x| (x.clone().read().unwrap().get_uuid(), x)).collect();
                     Self{
                         id: Uuid::new_v4(),
                         root_uuid,
@@ -157,7 +157,7 @@ macro_rules! register_constraint {
             )+
         }
         impl $name {
-            pub fn get_downstream_constraints(&self) -> Vec<Rc<Constraint>> {
+            pub fn get_downstream_constraints(&self) -> Vec<Arc<RwLock<Constraint>>> {
                 match self {
                     $(
                         Self::$element(x) => x.get_downstream_constraints(),

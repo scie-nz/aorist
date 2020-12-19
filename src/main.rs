@@ -25,11 +25,12 @@ fn main() -> Result<(), String> {
     for constraint in setup.get_constraints() {
         println!(
             "Constraint: {} on {}({})",
-            constraint,
+            constraint.read().unwrap(),
             "ParsedDataSetup",
             setup.get_uuid()
         );
-        for downstream in constraint.get_downstream_constraints() {
+        for downstream_rw in constraint.read().unwrap().get_downstream_constraints() {
+            let downstream = downstream_rw.read().unwrap();
             println!(
                 "Requires: {} on {}({})",
                 downstream,

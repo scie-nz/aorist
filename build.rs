@@ -12,7 +12,8 @@ fn process_constraints(raw_objects: &Vec<HashMap<String, Value>>) {
     let constraints = get_raw_objects_of_type(raw_objects, "Constraint".into());
     let mut scope = Scope::new();
     scope.import("uuid", "Uuid");
-    scope.import("std::rc", "Rc");
+    scope.import("std::sync", "Arc");
+    scope.import("std::sync", "RwLock");
     for constraint in &constraints {
         scope.import("crate", constraint.get("root").unwrap().as_str().unwrap());
     }
@@ -130,7 +131,8 @@ fn process_attributes(raw_objects: &Vec<HashMap<String, Value>>) {
     scope.import("serde", "Serialize");
     scope.import("serde", "Deserialize");
     scope.import("sqlparser::ast", "DataType");
-    scope.import("std::rc", "Rc");
+    scope.import("std::sync", "Arc");
+    scope.import("std::sync", "RwLock");
     scope.import("crate::concept", "AoristConcept");
     scope.import("crate::constraint", "Constraint");
     scope.import("aorist_concept", "Constrainable");

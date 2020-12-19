@@ -4,7 +4,7 @@ use crate::constraint::Constraint;
 use aorist_concept::Constrainable;
 use derivative::Derivative;
 use serde::{Deserialize, Serialize};
-use std::rc::Rc;
+use std::sync::{Arc, RwLock};
 use uuid::Uuid;
 
 #[derive(Derivative, Serialize, Deserialize, Clone, Constrainable)]
@@ -13,7 +13,7 @@ pub struct StaticHiveTableLayout {
     uuid: Option<Uuid>,
     #[serde(skip)]
     #[derivative(PartialEq = "ignore", Debug = "ignore")]
-    pub constraints: Vec<Rc<Constraint>>,
+    pub constraints: Vec<Arc<RwLock<Constraint>>>,
 }
 
 #[derive(Derivative, Serialize, Deserialize, Clone, Constrainable)]
@@ -22,7 +22,7 @@ pub struct DailyGranularity {
     uuid: Option<Uuid>,
     #[serde(skip)]
     #[derivative(PartialEq = "ignore", Debug = "ignore")]
-    pub constraints: Vec<Rc<Constraint>>,
+    pub constraints: Vec<Arc<RwLock<Constraint>>>,
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone, Constrainable)]
@@ -40,7 +40,7 @@ pub struct DynamicHiveTableLayout {
     uuid: Option<Uuid>,
     #[serde(skip)]
     #[derivative(PartialEq = "ignore", Debug = "ignore")]
-    pub constraints: Vec<Rc<Constraint>>,
+    pub constraints: Vec<Arc<RwLock<Constraint>>>,
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone, Constrainable)]

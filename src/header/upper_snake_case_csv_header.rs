@@ -11,7 +11,7 @@ use derivative::Derivative;
 use indoc::indoc;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use std::rc::Rc;
+use std::sync::{Arc, RwLock};
 use uuid::Uuid;
 
 #[derive(Derivative, Serialize, Deserialize, Clone, BlankPrefectPreamble, Constrainable)]
@@ -20,7 +20,7 @@ pub struct UpperSnakeCaseCSVHeader {
     uuid: Option<Uuid>,
     #[serde(skip)]
     #[derivative(PartialEq = "ignore", Debug = "ignore")]
-    pub constraints: Vec<Rc<Constraint>>,
+    pub constraints: Vec<Arc<RwLock<Constraint>>>,
 }
 
 impl TObjectWithPythonCodeGen for UpperSnakeCaseCSVHeader {

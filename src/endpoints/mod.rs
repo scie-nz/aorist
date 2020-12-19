@@ -13,7 +13,7 @@ use crate::utils::GetSetError;
 use aorist_concept::Constrainable;
 use getset::{IncompleteGetters, IncompleteSetters};
 use serde::{Deserialize, Serialize};
-use std::rc::Rc;
+use std::sync::{Arc, RwLock};
 use uuid::Uuid;
 
 #[serde()]
@@ -29,5 +29,5 @@ pub struct EndpointConfig {
     gitea: Option<GiteaConfig>,
     uuid: Option<Uuid>,
     #[serde(skip)]
-    pub constraints: Vec<Rc<Constraint>>,
+    pub constraints: Vec<Arc<RwLock<Constraint>>>,
 }

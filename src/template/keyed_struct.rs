@@ -9,7 +9,7 @@ use aorist_primitives::{TAttribute, TOrcAttribute, TPrestoAttribute};
 use derivative::Derivative;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use std::rc::Rc;
+use std::sync::{Arc, RwLock};
 use uuid::Uuid;
 
 #[derive(Serialize, Deserialize, Derivative, Clone, Constrainable)]
@@ -21,7 +21,7 @@ pub struct KeyedStruct {
     uuid: Option<Uuid>,
     #[serde(skip)]
     #[derivative(PartialEq = "ignore", Debug = "ignore")]
-    pub constraints: Vec<Rc<Constraint>>,
+    pub constraints: Vec<Arc<RwLock<Constraint>>>,
 }
 impl KeyedStruct {
     pub fn get_presto_query(&self) -> SQLInsertQuery {

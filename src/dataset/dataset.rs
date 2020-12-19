@@ -13,7 +13,7 @@ use derivative::Derivative;
 use indoc::formatdoc;
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeSet, HashMap};
-use std::rc::Rc;
+use std::sync::{Arc, RwLock};
 use textwrap::indent;
 use uuid::Uuid;
 
@@ -30,7 +30,7 @@ pub struct DataSet {
     uuid: Option<Uuid>,
     #[serde(skip)]
     #[derivative(PartialEq = "ignore", Debug = "ignore")]
-    pub constraints: Vec<Rc<Constraint>>,
+    pub constraints: Vec<Arc<RwLock<Constraint>>>,
 }
 impl TAoristObject for DataSet {
     fn get_name(&self) -> &String {

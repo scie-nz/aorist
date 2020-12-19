@@ -15,7 +15,7 @@ use getset::{
 };
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
-use std::rc::Rc;
+use std::sync::{Arc, RwLock};
 use uuid::Uuid;
 
 #[derive(
@@ -67,7 +67,7 @@ pub struct ParsedDataSetup {
     #[getset(get = "pub with_prefix", set = "pub", get_mut = "pub with_prefix")]
     #[serde(skip)]
     #[derivative(PartialEq = "ignore", Debug = "ignore")]
-    pub constraints: Vec<Rc<Constraint>>,
+    pub constraints: Vec<Arc<RwLock<Constraint>>>,
     uuid: Option<Uuid>,
 }
 impl ParsedDataSetup {

@@ -8,7 +8,7 @@ use aorist_concept::Constrainable;
 use derivative::Derivative;
 use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
-use std::rc::Rc;
+use std::sync::{Arc, RwLock};
 use uuid::Uuid;
 
 #[derive(Derivative, Serialize, Deserialize, Constrainable)]
@@ -23,7 +23,7 @@ pub struct User {
     uuid: Option<Uuid>,
     #[serde(skip)]
     #[derivative(PartialEq = "ignore", Debug = "ignore", Hash = "ignore")]
-    pub constraints: Vec<Rc<Constraint>>,
+    pub constraints: Vec<Arc<RwLock<Constraint>>>,
 }
 impl User {
     pub fn to_yaml(&self) -> String {

@@ -41,7 +41,7 @@ impl Constraint {
         }
         panic!("Called get_root_uuid() on a Constraint struct with no inner");
     }
-    pub fn get_downstream_constraints(&self) -> Vec<Rc<Constraint>> {
+    pub fn get_downstream_constraints(&self) -> Vec<Arc<RwLock<Constraint>>> {
         if let Some(c) = &self.inner {
             return c.get_downstream_constraints();
         }

@@ -4,7 +4,7 @@ use crate::concept::AoristConcept;
 use crate::constraint::Constraint;
 use aorist_concept::Constrainable;
 use serde::{Deserialize, Serialize};
-use std::rc::Rc;
+use std::sync::{Arc, RwLock};
 use uuid::Uuid;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Constrainable)]

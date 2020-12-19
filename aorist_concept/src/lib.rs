@@ -56,7 +56,7 @@ fn process_enum_variants(
       impl AoristConcept for #enum_name {
         fn traverse_constrainable_children(
             &self,
-            upstream_constraints: Vec<Rc<Constraint>>
+            upstream_constraints: Vec<Arc<RwLock<Constraint>>>
         ) {
           match self {
             #(
@@ -71,7 +71,7 @@ fn process_enum_variants(
           let downstream = self.get_downstream_constraints();
           let enum_constraints = vec![
             #(
-              Rc::new(Constraint{
+              Arc::new(RwLock::new(Constraint{
                   name: stringify!(#constraint).to_string(),
                   root: stringify!(#enum_name).to_string(),
                   requires: None,
@@ -83,7 +83,7 @@ fn process_enum_variants(
                           )
                       )
                   ),
-              }),
+              })),
             )*
           ];
           match self {
@@ -98,7 +98,7 @@ fn process_enum_variants(
           }
         }
 
-        fn get_constraints(&self) -> &Vec<Rc<Constraint>> {
+        fn get_constraints(&self) -> &Vec<Arc<RwLock<Constraint>>> {
           match self {
             #(
               #enum_name::#variant2(x) => x.get_constraints(),
@@ -106,7 +106,7 @@ fn process_enum_variants(
           }
         }
 
-        fn get_downstream_constraints(&self) -> Vec<Rc<Constraint>> {
+        fn get_downstream_constraints(&self) -> Vec<Arc<RwLock<Constraint>>> {
           match self {
             #(
               #enum_name::#variant5(x) => x.get_downstream_constraints(),
@@ -234,7 +234,6 @@ fn process_struct_fields(
     let bare_field_name4 = bare_field_name.clone();
     let bare_field_name5 = bare_field_name.clone();
     let bare_field_name6 = bare_field_name.clone();
-    let bare_field_name7 = bare_field_name.clone();
     let vec_field_name = vec_field.map(|x| x.0);
     let vec_field_name2 = vec_field_name.clone();
     let vec_field_name3 = vec_field_name.clone();
@@ -251,7 +250,7 @@ fn process_struct_fields(
         impl AoristConcept for #struct_name {
             fn traverse_constrainable_children(
                 &self,
-                upstream_constraints: Vec<Rc<Constraint>>
+                upstream_constraints: Vec<Arc<RwLock<Constraint>>>
             ) {
                 #(
                     self.#bare_field_name.traverse_constrainable_children(upstream_constraints.clone());
@@ -269,12 +268,12 @@ fn process_struct_fields(
                     }
                 )*
             }
-            fn get_constraints(&self) -> &Vec<Rc<Constraint>> {
+            fn get_constraints(&self) -> &Vec<Arc<RwLock<Constraint>>> {
                 &self.constraints
             }
-            fn get_downstream_constraints(&self) -> Vec<Rc<Constraint>> {
+            fn get_downstream_constraints(&self) -> Vec<Arc<RwLock<Constraint>>> {
                 // TODO: this is where we should enforce deduplication
-                let mut downstream: Vec<Rc<Constraint>> = Vec::new();
+                let mut downstream: Vec<Arc<RwLock<Constraint>>> = Vec::new();
                 for constraint in &self.constraints {
                     downstream.push(constraint.clone());
                     /*for elem in constraint.get_downstream_constraints() {
@@ -305,7 +304,7 @@ fn process_struct_fields(
                 downstream
             }
             fn compute_constraints(&mut self) {
-                let mut constraints: Vec<Rc<Constraint>> = Vec::new();
+                let mut constraints: Vec<Arc<RwLock<Constraint>>> = Vec::new();
                 #(
                     self.#bare_field_name3.compute_constraints();
                     for constraint in self.#bare_field_name2.get_downstream_constraints() {
@@ -331,7 +330,7 @@ fn process_struct_fields(
                     }
                 )*
                 #(
-                    self.constraints.push(Rc::new(Constraint{
+                    self.constraints.push(Arc::new(RwLock::new(Constraint{
                         name: stringify!(#constraint).to_string(),
                         root: stringify!(#struct_name).to_string(),
                         requires: None,
@@ -343,7 +342,7 @@ fn process_struct_fields(
                                 )
                             )
                         ),
-                    }));
+                    })));
                 )*
                 println!("Computed {} constraints on {}.", self.constraints.len(),
                 stringify!(#struct_name));
