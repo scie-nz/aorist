@@ -1,8 +1,10 @@
+use lib::concept::AoristConcept;
 use lib::utils::get_data_setup;
 
 fn main() -> Result<(), String> {
     //let _foo = attributes::KeyAttribute1{};
-    let setup = get_data_setup();
+    let mut setup = get_data_setup();
+    setup.compute_uuids();
     /*for dataset in setup.get_datasets().unwrap() {
         println!("{}", dataset.to_yaml());
         println!("{}", dataset.get_presto_schemas());
