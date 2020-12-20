@@ -2,7 +2,7 @@
 
 ## Concepts
 Aorist uses two types of concepts:
-- abstract concepts (e.g. a "location") 
+- abstract concepts (e.g. a "location")
 - concrete ones (e.g. "a Google Cloud Storage location", or `GCSLocation`).
 
 The relationship between abstract concepts represents the core semantic model offered by Aorist. This is not expected to change on a regular basis. Ideally this would not change at all.
@@ -16,26 +16,36 @@ Abstract concepts have the following hierarchy:
   - `User`:  someone accessing the objects
   - `Group`:  a group of users
   - `Roles`:  a way in which a user may access data.
-  - `RoleBindings`:  a connection between users and roles 
+  - `RoleBindings`:  a connection between users and roles
+
+Here is the current hierarchy of Aorist concepts:
+
+![Hierarchy of Aorist Concepts](./aorist_constrainables.svg)
 
 ## Constraints
 
-A constraint is a fact that can be verified about an abstract concept. 
-A constraint may have dependent constraints. For instance, we may have 
+A constraint is a fact that can be verified about a concept.
+A constraint may have dependent constraints. For instance, we may have
 the constraint "is consistent" on `DataSetup`, that further breaks down into:
 - "datasets are replicated",
 - "users are instantiated",
-- "role bindings are created", 
+- "role bindings are created",
 - "data access policies are enforced".
 
-Dependent constraints simply tell us what needs to hold, in order for a constraint 
+Dependent constraints simply tell us what needs to hold, in order for a constraint
 to be true. Dependent constraints may be defined on the same concept, on
 dependent concepts, or on higher-order concepts, but they may not create a
 cycle. So we cannot say that constraint A depends on B, B depends on C, and C
 depends on A.
 
+This is quite dry stuff. Here is a diagram of an example set of constraints to
+help better visualize what's going on:
+
+![Hierarchy of Aorist Concepts and Constraints](./aorist_constrainables_with_constraints.svg)
+
+
 When dependent constraints are defined on lower-order concepts, we will consider
-the dependency to be satisfied when *ALL* constraints of the dependent kind 
+the dependency to be satisfied when *ALL* constraints of the dependent kind
 associated with the lower-order concepts directly inheriting from the
 constrained concept have been satisfied.
 
