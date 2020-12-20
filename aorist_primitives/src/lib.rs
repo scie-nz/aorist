@@ -123,14 +123,13 @@ macro_rules! define_constraint {
                         let mut [<$required:snake:lower>]: Vec<Arc<RwLock<Constraint>>> =
                         Vec::new();
                     )+
-                    let mut actual_child_constraints:
-                    Vec<Arc<RwLock<Constraint>>> = Vec::new();
+                    let mut actual_child_constraints: Vec<Arc<RwLock<Constraint>>> = Vec::new();
+                    
                     for constraint in &potential_child_constraints {
                         $(
                             if let Some(AoristConstraint::$required{..}) =
                             &constraint.read().unwrap().inner
                             {
-                                [<$required:snake:lower>].push(constraint.clone());
                                 actual_child_constraints.push(constraint.clone());
                             }
                         )+
@@ -138,6 +137,14 @@ macro_rules! define_constraint {
                     let by_uuid: HashMap<Uuid, Arc<RwLock<Constraint>>> =
                     actual_child_constraints
                         .into_iter().map(|x| (x.clone().read().unwrap().get_uuid(), x)).collect();
+                    for constraint in by_uuid.values() {
+                        $(
+                            if let Some(AoristConstraint::$required{..}) =
+                            &constraint.read().unwrap().inner {
+                                [<$required:snake:lower>].push(constraint.clone());
+                            }
+                        )+
+                    }
                     Self{
                         id: Uuid::new_v4(),
                         root_uuid,
