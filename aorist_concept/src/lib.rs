@@ -424,13 +424,9 @@ fn process_struct_fields(
         }
     })
 }
-
-#[proc_macro_derive(Constrainable, attributes(constrainable))]
-pub fn aorist_concept(input: TokenStream) -> TokenStream {
-    // TODO: this should be passed somehow (maybe env var?)
-    let raw_objects = read_file("basic.yaml");
+fn get_constraints_map(filename: String) -> HashMap<String, Vec<String>> {
+    let raw_objects = read_file(&filename);
     let constraints = get_raw_objects_of_type(&raw_objects, "Constraint".into());
-    // TODO: add dependencies
     let constraints_parsed: Vec<(String, String)> = constraints
         .into_iter()
         .map(|x| {
@@ -444,6 +440,13 @@ pub fn aorist_concept(input: TokenStream) -> TokenStream {
     for (name, root) in constraints_parsed {
         constraints_map.entry(root).or_insert(Vec::new()).push(name);
     }
+    constraints_map
+}
+
+#[proc_macro_derive(Constrainable, attributes(constrainable))]
+pub fn aorist_concept(input: TokenStream) -> TokenStream {
+    // TODO: this should be passed somehow (maybe env var?)
+    let constraints_map = get_constraints_map("basic.yaml".into());
     let input = parse_macro_input!(input as DeriveInput);
     //let constraint_names = AoristConstraint::get_required_constraint_names();
     match &input.data {

@@ -8,15 +8,7 @@ use std::fs;
 use std::fs::OpenOptions;
 use std::path::Path;
 
-fn process_constraints(raw_objects: &Vec<HashMap<String, Value>>) {
-    let constraints = get_raw_objects_of_type(raw_objects, "Constraint".into());
-    let mut scope = Scope::new();
-    scope.import("uuid", "Uuid");
-    scope.import("std::sync", "Arc");
-    scope.import("std::sync", "RwLock");
-    for constraint in &constraints {
-        scope.import("crate", constraint.get("root").unwrap().as_str().unwrap());
-    }
+fn get_constraint_dependencies(constraints: &Vec<HashMap<String, Value>>) -> HashMap<(String, String), Vec<String>> {
     let mut dependencies: HashMap<(String, String), Vec<String>> = HashMap::new();
     for constraint in constraints {
         let name = constraint
@@ -51,7 +43,10 @@ fn process_constraints(raw_objects: &Vec<HashMap<String, Value>>) {
             }
         }
     }
+    dependencies
+}
 
+fn compute_topological_sort(dependencies: &HashMap<(String, String), Vec<String>>) -> Vec<(String, String)> {
     let mut g: HashMap<(String, String), HashSet<String>> = dependencies
         .iter()
         .map(|(k, v)| {
@@ -93,6 +88,20 @@ fn process_constraints(raw_objects: &Vec<HashMap<String, Value>>) {
     if g.len() > 0 {
         panic!("Cycles in constraint dependencies are not allowed!");
     }
+    order
+}
+
+fn process_constraints(raw_objects: &Vec<HashMap<String, Value>>) {
+    let constraints = get_raw_objects_of_type(raw_objects, "Constraint".into());
+    let mut scope = Scope::new();
+    scope.import("uuid", "Uuid");
+    scope.import("std::sync", "Arc");
+    scope.import("std::sync", "RwLock");
+    for constraint in &constraints {
+        scope.import("crate", constraint.get("root").unwrap().as_str().unwrap());
+    }
+    let dependencies = get_constraint_dependencies(&constraints);
+    let order = compute_topological_sort(&dependencies);
     for (name, root) in &order {
         let required = dependencies.get(&(name.clone(), root.clone())).unwrap();
         let define = match required.len() {
