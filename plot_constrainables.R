@@ -18,3 +18,20 @@ digraph boxes_and_circles {
 }", nodes, edges))
 svg <- export_svg(g)
 cat(svg)
+sink()
+
+constraints.file.name <- "constraints.txt"
+data <- readChar(constraints.file.name, file.info(file.name)$size)
+print(data)
+sink("aorist_constrainables_with_constraints.svg")
+g <- grViz(sprintf("
+digraph boxes_and_circles {
+# a 'graph' statement
+  graph [overlap = false, fontsize = 10]
+  %s
+  %s
+  %s
+}", nodes, edges, data))
+svg <- export_svg(g)
+cat(svg)
+sink()
