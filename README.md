@@ -65,6 +65,22 @@ logically correct -- if there is no PII in the warehouse, there can be no PII
 in the model. This is why we could have a constraint at the model-level that
 depends on the DataSetup-level "no PII" constraint.
 
+## Constraint DAG generation
+
+Both constraints and concept operate at a very abstract level. They are basic
+semantic building blocks of how we understand the things we care about in our
+data streams. But our YAML file will define ``instances'' of concepts, i.e.,
+Aorist **objects**. `StaticDataTable` is a concept, but we may have 200 static
+data tables, on which we would like to impose the same constraints. For
+instance, we would like all these tables to be audited, etc.[1]
+
+Looking back at the concept hierarchy mentioned above, we turn the constraint
+DAG into the prototype of an ETL pipeline by "walking" both the concept
+(black) and constraint (red) part of the DAG.
+
+[1] (NOTE: in the future we will support filters on constraints, but for now
+assume that all constraints must hold for all instances).
+
 ## Programs
 
 Constraints are satisfiable in two stages:
