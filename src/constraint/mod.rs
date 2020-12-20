@@ -54,23 +54,19 @@ impl Constraint {
         panic!("Called ingest_upstream_constraints() on a Constraint struct with no inner");
     }
     pub fn print_dag(&self) {
-        println!(
-            "Constraint: {} on {}({})",
-            self.get_name(),
-            self.get_root(),
-            self.get_root_uuid()
-        );
         for downstream_rw in self.get_downstream_constraints() {
             let downstream = downstream_rw.read().unwrap();
             println!(
-                "Requires: {} on {}({})",
+                "{}\t{}\t{}\t{}\t{}\t{}",
+                self.get_name(),
+                self.get_root(),
+                self.get_root_uuid(),
                 downstream,
                 downstream.get_root(),
                 downstream.get_root_uuid()
             );
         }
         for downstream_rw in self.get_downstream_constraints() {
-            println!("\n");
             let downstream = downstream_rw.read().unwrap();
             downstream.print_dag();
         } 

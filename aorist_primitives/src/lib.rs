@@ -84,7 +84,6 @@ macro_rules! define_constraint {
                 id: Uuid,
                 root_uuid: Uuid,
                 $([<$required:snake:lower>] : Vec<Arc<RwLock<Constraint>>>,)+
-                downstream_constraints: Vec<Arc<RwLock<Constraint>>>,
             }
             impl $element {
                 pub fn get_uuid(&self) -> Uuid {
@@ -109,7 +108,13 @@ macro_rules! define_constraint {
                 }
                 // these are *all* downstream constraints
                 pub fn get_downstream_constraints(&self) -> Vec<Arc<RwLock<Constraint>>> {
-                    self.downstream_constraints.clone()
+                    let mut downstream: Vec<Arc<RwLock<Constraint>>> = Vec::new();
+                    $(
+                        for arc in &self.[<$required:snake:lower>] {
+                            downstream.push(arc.clone());
+                        }
+                    )+
+                    downstream
                 }
                 pub fn new(root_uuid: Uuid,
                            potential_child_constraints: Vec<Arc<RwLock<Constraint>>>) -> Self {
@@ -137,8 +142,6 @@ macro_rules! define_constraint {
                         id: Uuid::new_v4(),
                         root_uuid,
                         $([<$required:snake:lower>],)+
-                        downstream_constraints: by_uuid.into_iter().map(|(_,
-                        v)| v).collect(),
                     }
                 }
             }

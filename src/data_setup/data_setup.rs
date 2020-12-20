@@ -35,7 +35,6 @@ impl TAoristObject for DataSetup {
 
 impl DataSetup {
     pub fn parse(self, mut objects: Vec<AoristObject>) -> ParsedDataSetup {
-        println!("{}", self.imports.is_some());
         if let Some(imports) = self.imports {
             for import in imports {
                 for object in import.get_objects().into_iter() {

@@ -90,6 +90,13 @@ spec:
 ---
 type: Constraint
 spec:
+  name: IsAudited
+  root: ParsedDataSetup
+  requires:
+    - IsAuditedTable
+---
+type: Constraint
+spec:
   name: ReplicatedData
   root: RemoteImportStorageSetup
   requires:
