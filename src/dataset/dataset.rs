@@ -1,7 +1,7 @@
 #![allow(non_snake_case)]
 use crate::access_policy::AccessPolicy;
 use crate::asset::Asset;
-use crate::concept::AoristConcept;
+use crate::concept::{AoristConcept, Concept};
 use crate::constraint::{AoristConstraint, Constraint};
 use crate::endpoints::EndpointConfig;
 use crate::object::TAoristObject;

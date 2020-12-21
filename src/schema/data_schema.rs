@@ -1,5 +1,5 @@
 #![allow(non_snake_case)]
-use crate::concept::AoristConcept;
+use crate::concept::{AoristConcept, Concept};
 use crate::constraint::Constraint;
 use crate::schema::tabular_schema::TabularSchema;
 use crate::template::DatumTemplate;

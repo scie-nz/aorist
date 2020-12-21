@@ -1,7 +1,7 @@
 #![allow(non_snake_case)]
 
 use crate::attributes::Attribute;
-use crate::concept::AoristConcept;
+use crate::concept::{AoristConcept, Concept};
 use crate::constraint::Constraint;
 use crate::query::{SQLInsertQuery, SQLQuery};
 use aorist_concept::Constrainable;

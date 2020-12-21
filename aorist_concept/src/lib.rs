@@ -39,6 +39,7 @@ fn process_enum_variants(
     let variant6 = variants.iter().map(|x| (&x.ident));
     let variant7 = variants.iter().map(|x| (&x.ident));
     let variant8 = variants.iter().map(|x| (&x.ident));
+    let variant9 = variants.iter().map(|x| (&x.ident));
     let mut file = OpenOptions::new()
         .write(true)
         .append(true)
@@ -55,6 +56,15 @@ fn process_enum_variants(
     }
     TokenStream::from(quote! {
       impl AoristConcept for #enum_name {
+        fn get_child_concepts<'a>(&'a self) -> Vec<Concept<'a>> {
+          vec![
+              match self {
+                #(
+                  #enum_name::#variant9(x) => Concept::#variant9(&x),
+                )*
+              }
+          ]
+        }
         fn traverse_constrainable_children(
             &self,
             upstream_constraints: Vec<Arc<RwLock<Constraint>>>
@@ -235,26 +245,52 @@ fn process_struct_fields(
         )
         .unwrap();
     }
-    let bare_field_name = bare_field.map(|x| x.0);
+    let bare_field_name = bare_field.clone().map(|x| x.0);
+    let bare_field_type = bare_field.clone().map(|x| x.1);
     let bare_field_name2 = bare_field_name.clone();
     let bare_field_name3 = bare_field_name.clone();
     let bare_field_name4 = bare_field_name.clone();
     let bare_field_name5 = bare_field_name.clone();
     let bare_field_name6 = bare_field_name.clone();
-    let vec_field_name = vec_field.map(|x| x.0);
+    let bare_field_name7 = bare_field_name.clone();
+    let vec_field_name = vec_field.clone().map(|x| x.0);
+    let vec_field_type = vec_field.clone().map(|x| x.1);
     let vec_field_name2 = vec_field_name.clone();
     let vec_field_name3 = vec_field_name.clone();
     let vec_field_name4 = vec_field_name.clone();
     let vec_field_name5 = vec_field_name.clone();
-    let option_vec_field_name = option_vec_field.map(|x| x.0);
+    let vec_field_name6 = vec_field_name.clone();
+    let option_vec_field_name = option_vec_field.clone().map(|x| x.0);
+    let option_vec_field_type = option_vec_field.clone().map(|x| x.1);
     let option_vec_field_name2 = option_vec_field_name.clone();
     let option_vec_field_name3 = option_vec_field_name.clone();
     let option_vec_field_name4 = option_vec_field_name.clone();
     let option_vec_field_name5 = option_vec_field_name.clone();
+    let option_vec_field_name6 = option_vec_field_name.clone();
 
     TokenStream::from(quote! {
 
         impl AoristConcept for #struct_name {
+            fn get_child_concepts<'a>(&'a self) -> Vec<Concept<'a>> {
+                let mut concepts = vec![
+                    #(
+                      Concept::#bare_field_type(&self.#bare_field_name7),
+                    )*
+                ];
+                #(
+                    for x in &self.#vec_field_name6 {
+                        concepts.push(Concept::#vec_field_type(&x));
+                    }
+                )*
+                #(
+                    if let Some(ref v) = self.#option_vec_field_name6 {
+                        for x in v {
+                            concepts.push(Concept::#option_vec_field_type(&x));
+                        }
+                    }
+                )*
+                concepts
+            }
             fn traverse_constrainable_children(
                 &self,
                 mut upstream_constraints: Vec<Arc<RwLock<Constraint>>>

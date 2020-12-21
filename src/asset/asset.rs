@@ -1,6 +1,6 @@
 #![allow(non_snake_case)]
 use crate::asset::static_data_table::StaticDataTable;
-use crate::concept::AoristConcept;
+use crate::concept::{AoristConcept, Concept};
 use crate::constraint::{AoristConstraint, Constraint};
 use crate::endpoints::EndpointConfig;
 use crate::template::DatumTemplate;

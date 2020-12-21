@@ -1,4 +1,4 @@
-use crate::concept::AoristConcept;
+use crate::concept::{AoristConcept, Concept};
 use crate::constraint::{AoristConstraint, Constraint};
 use crate::location::gcs_location::GCSLocation;
 use aorist_concept::Constrainable;

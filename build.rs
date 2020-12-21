@@ -6,10 +6,12 @@ use std::collections::{HashMap, HashSet};
 use std::env;
 use std::fs;
 use std::fs::OpenOptions;
-use std::path::Path;
 use std::io::Write;
+use std::path::Path;
 
-fn get_constraint_dependencies(constraints: &Vec<HashMap<String, Value>>) -> HashMap<(String, String), Vec<String>> {
+fn get_constraint_dependencies(
+    constraints: &Vec<HashMap<String, Value>>,
+) -> HashMap<(String, String), Vec<String>> {
     let mut dependencies: HashMap<(String, String), Vec<String>> = HashMap::new();
     for constraint in constraints {
         let name = constraint
@@ -47,7 +49,9 @@ fn get_constraint_dependencies(constraints: &Vec<HashMap<String, Value>>) -> Has
     dependencies
 }
 
-fn compute_topological_sort(dependencies: &HashMap<(String, String), Vec<String>>) -> Vec<(String, String)> {
+fn compute_topological_sort(
+    dependencies: &HashMap<(String, String), Vec<String>>,
+) -> Vec<(String, String)> {
     let mut g: HashMap<(String, String), HashSet<String>> = dependencies
         .iter()
         .map(|(k, v)| {
@@ -138,16 +142,12 @@ fn process_constraints(raw_objects: &Vec<HashMap<String, Value>>) {
             file,
             "node [shape = box, color=red, fontname = Helvetica, fontcolor=red] '{}';",
             name
-        ).unwrap();
+        )
+        .unwrap();
     }
     for (name, root) in &order {
         //if root != "ParsedDataSetup" {
-            writeln!(
-                file,
-                "'{}'->'{}'[color=red];",
-                name,
-                root,
-            ).unwrap();
+        writeln!(file, "'{}'->'{}'[color=red];", name, root,).unwrap();
         //}
         let required = dependencies.get(&(name.clone(), root.clone())).unwrap();
         for req in required {
@@ -171,6 +171,7 @@ fn process_attributes(raw_objects: &Vec<HashMap<String, Value>>) {
     scope.import("std::sync", "Arc");
     scope.import("std::sync", "RwLock");
     scope.import("crate::concept", "AoristConcept");
+    scope.import("crate::concept", "Concept");
     scope.import("crate::constraint", "Constraint");
     scope.import("aorist_concept", "Constrainable");
     scope.import("uuid", "Uuid");
@@ -225,6 +226,68 @@ fn process_attributes(raw_objects: &Vec<HashMap<String, Value>>) {
     fs::write(&dest_path, scope.to_string()).unwrap();
 }
 
+fn process_concepts(raw_objects: &Vec<HashMap<String, Value>>) {
+    let attributes = get_raw_objects_of_type(raw_objects, "Attribute".into());
+    let mut scope = Scope::new();
+
+    let concepts = vec![
+        ("crate::access_policy", "AccessPolicy"),
+        ("crate::access_policy", "ApproveAccessSelector"),
+        ("crate::asset", "Asset"),
+        ("crate::asset", "StaticDataTable"),
+        ("crate::attributes", "Attribute"),
+        ("crate::layout", "FileBasedStorageLayout"),
+        ("crate::layout", "SingleFileLayout"),
+        ("crate::layout", "HiveStorageLayout"),
+        ("crate::layout", "DynamicHiveTableLayout"),
+        ("crate::layout", "StaticHiveTableLayout"),
+        ("crate::layout", "Granularity"),
+        ("crate::layout", "DailyGranularity"),
+        ("crate::dataset", "DataSet"),
+        ("crate::role", "Role"),
+        ("crate::role", "GlobalPermissionsAdmin"),
+        ("crate::compression", "GzipCompression"),
+        ("crate::compression", "DataCompression"),
+        ("crate::header", "UpperSnakeCaseCSVHeader"),
+        ("crate::header", "FileHeader"),
+        ("crate::location", "AlluxioLocation"),
+        ("crate::location", "GCSLocation"),
+        ("crate::location", "HiveLocation"),
+        ("crate::location", "RemoteLocation"),
+        ("crate::encoding", "CSVEncoding"),
+        ("crate::encoding", "Encoding"),
+        ("crate::encoding", "ORCEncoding"),
+        ("crate::schema", "TabularSchema"),
+        ("crate::schema", "DataSchema"),
+        ("crate::storage_setup", "RemoteImportStorageSetup"),
+        ("crate::storage_setup", "StorageSetup"),
+        ("crate::storage", "Storage"),
+        ("crate::storage", "HiveTableStorage"),
+        ("crate::storage", "RemoteStorage"),
+        ("crate::role_binding", "RoleBinding"),
+        ("crate::template", "DatumTemplate"),
+        ("crate::template", "KeyedStruct"),
+        ("crate::user", "User"),
+        ("crate::user_group", "UserGroup"),
+    ];
+    scope.import("aorist_primitives", "register_concept");
+    for (x, y) in &concepts {
+        scope.import(x, y);
+    }
+
+    let mut concept_names: Vec<String> = concepts.iter().map(|(_, x)| x.to_string()).collect();
+    for attribute in attributes {
+        let name = attribute.get("name").unwrap().as_str().unwrap().to_string();
+        scope.import("crate::attributes", &name);
+        concept_names.push(name.clone());
+    }
+    let register = format!("register_concept!(Concept, {});", concept_names.join(", "));
+    scope.raw(&register);
+    let out_dir = env::var_os("OUT_DIR").unwrap();
+    let dest_path = Path::new(&out_dir).join("concepts.rs");
+    fs::write(&dest_path, scope.to_string()).unwrap();
+}
+
 fn get_match_arms(dialects: HashMap<String, HashMap<String, Value>>) -> String {
     dialects
         .into_iter()
@@ -268,6 +331,7 @@ fn main() {
 
     let raw_objects = read_file("basic.yaml");
     process_attributes(&raw_objects);
+    process_concepts(&raw_objects);
     process_constraints(&raw_objects);
 
     let programs = get_raw_objects_of_type(&raw_objects, "Program".into());

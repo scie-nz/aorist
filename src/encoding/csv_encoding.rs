@@ -1,7 +1,7 @@
 #![allow(non_snake_case)]
 
 use crate::compression::DataCompression;
-use crate::concept::AoristConcept;
+use crate::concept::{AoristConcept, Concept};
 use crate::constraint::Constraint;
 use crate::endpoints::EndpointConfig;
 use crate::header::FileHeader;

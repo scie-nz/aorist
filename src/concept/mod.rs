@@ -1,5 +1,3 @@
-use aorist_primitives::register_concept;
-use crate::user::User;
 use crate::constraint::Constraint;
 use siphasher::sip128::{Hasher128, SipHasher};
 use std::collections::BTreeSet;
@@ -33,9 +31,7 @@ pub trait AoristConcept {
         }
     }
     fn compute_uuids(&mut self);
-}
 
-register_concept!(
-    Concept,
-    User
-);
+    fn get_child_concepts<'a>(&'a self) -> Vec<Concept<'a>>;
+}
+include!(concat!(env!("OUT_DIR"), "/concepts.rs"));
