@@ -85,6 +85,13 @@ Here's what the Constraint DAG looks like
 [1] (NOTE: in the future we will support filters on constraints, but for now
 assume that all constraints must hold for all instances).
 
+Some things to note about this DAG:
+- it includes some superfluous dependencies, such as the one between
+`DownloadDataFromRemote` and `ReplicatedData`
+- some constraints are purely "cosmetic" -- `DataFromRemoteDownloaded` is
+  really just a wrapper around `DownloadDataFromRemote` that "elevates" it to
+  the root level, so that `UploadDataToLocal` can depend on it.
+
 ## Programs
 
 Constraints are satisfiable in two stages:
