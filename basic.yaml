@@ -102,6 +102,14 @@ spec:
   requires:
     - DownloadDataFromRemote
     - UploadDataToLocal
+    - DataFromRemoteDownloaded
+---
+type: Constraint
+spec:
+  name: DataFromRemoteDownloaded
+  root: RemoteImportStorageSetup
+  requires:
+    - DownloadDataFromRemote
 ---
 type: Constraint
 spec:
@@ -112,6 +120,8 @@ type: Constraint
 spec:
   name: UploadDataToLocal
   root: HiveLocation
+  requires:
+    - DataFromRemoteDownloaded
 ---
 type: Program
 spec:
