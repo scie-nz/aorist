@@ -57,19 +57,21 @@ impl Constraint {
         for downstream_rw in self.get_downstream_constraints() {
             let downstream = downstream_rw.read().unwrap();
             println!(
-                "{}\t{}\t{}\t{}\t{}\t{}",
+                "{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}",
                 self.get_name(),
                 self.get_root(),
                 self.get_root_uuid(),
+                self.get_uuid(),
                 downstream,
                 downstream.get_root(),
-                downstream.get_root_uuid()
+                downstream.get_root_uuid(),
+                downstream.get_uuid(),
             );
         }
         for downstream_rw in self.get_downstream_constraints() {
             let downstream = downstream_rw.read().unwrap();
             downstream.print_dag();
-        } 
+        }
     }
 }
 impl TAoristObject for Constraint {

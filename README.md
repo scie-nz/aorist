@@ -78,6 +78,10 @@ Looking back at the concept hierarchy mentioned above, we turn the constraint
 DAG into the prototype of an ETL pipeline by "walking" both the concept
 (black) and constraint (red) part of the DAG.
 
+Here's what the Constraint DAG looks like
+
+![Constraint DAG](./aorist_dag.svg)
+
 [1] (NOTE: in the future we will support filters on constraints, but for now
 assume that all constraints must hold for all instances).
 
