@@ -1,5 +1,5 @@
 #![allow(non_snake_case)]
-use crate::concept::AoristConcept;
+use crate::concept::{AoristConcept, Concept};
 use crate::constraint::{AoristConstraint, Constraint};
 use crate::dataset::DataSet;
 use crate::endpoints::EndpointConfig;
@@ -71,6 +71,12 @@ pub struct ParsedDataSetup {
     uuid: Option<Uuid>,
 }
 impl ParsedDataSetup {
+    fn populate_child_concept_map<'a>(&'a self, mut concept_map: HashMap<Uuid, Concept<'a>>) {
+        for user in self.users.as_ref().unwrap() {
+            let val = Concept::User(user);
+            concept_map.insert(user.get_uuid(), val);
+        }
+    }
     pub fn new(name: String, endpoints: EndpointConfig) -> Self {
         Self {
             name: name,

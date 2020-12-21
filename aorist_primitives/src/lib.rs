@@ -124,7 +124,7 @@ macro_rules! define_constraint {
                         Vec::new();
                     )+
                     let mut actual_child_constraints: Vec<Arc<RwLock<Constraint>>> = Vec::new();
-                    
+
                     for constraint in &potential_child_constraints {
                         $(
                             if let Some(AoristConstraint::$required{..}) =
@@ -340,4 +340,15 @@ pub enum Dialect {
 pub trait DownloadDataFromRemote {
     // TODO: change this to proper error
     fn get_call(&self, dialect: Dialect) -> Result<String, String>;
+}
+
+#[macro_export]
+macro_rules! register_concept {
+    ( $name:ident, $($element: ident),+ ) => {
+        pub enum $name<'a> {
+            $(
+                $element(&'a $element),
+            )+
+        }
+    }
 }
