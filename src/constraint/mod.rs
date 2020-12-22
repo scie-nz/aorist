@@ -15,8 +15,9 @@ where
     fn get_required_constraint_names() -> Vec<String>;
 }
 pub trait ConstraintSatisfactionBase
-where Self::RootType: AoristConcept,
-      Self::ConstraintType: TConstraint<Root=Self::RootType>
+where
+    Self::RootType: AoristConcept,
+    Self::ConstraintType: TConstraint<Root = Self::RootType>,
 {
     type ConstraintType;
     type RootType;
@@ -68,7 +69,6 @@ impl Constraint {
             return c.requires_program();
         }
         panic!("Called requires_program() on a Constraint struct with no inner");
-
     }
     pub fn print_dag(&self) {
         for downstream_rw in self.get_downstream_constraints() {

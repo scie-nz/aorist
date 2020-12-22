@@ -56,12 +56,11 @@ impl<'a> Driver<'a> {
     }
 
     fn find_satisfiable_constraint(&self) -> Option<Uuid> {
-        self
-        .unsatisfied_constraints
-        .iter()
-        .filter(|(_, v)| v.read().unwrap().unsatisfied_dependencies.len() == 0)
-        .map(|(k, _)| k.clone())
-        .next()
+        self.unsatisfied_constraints
+            .iter()
+            .filter(|(_, v)| v.read().unwrap().unsatisfied_dependencies.len() == 0)
+            .map(|(k, _)| k.clone())
+            .next()
     }
     pub fn run(&mut self) {
         let mut reverse_dependencies: HashMap<Uuid, HashSet<Uuid>> = HashMap::new();
