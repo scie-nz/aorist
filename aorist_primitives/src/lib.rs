@@ -345,10 +345,27 @@ pub trait DownloadDataFromRemote {
 #[macro_export]
 macro_rules! register_concept {
     ( $name:ident, $($element: ident),+ ) => {
+        #[derive(Clone)]
         pub enum $name<'a> {
             $(
                 $element(&'a $element),
             )+
+        }
+        impl <'a> $name<'a> {
+            pub fn get_uuid(&'a self) -> Uuid {
+                match self {
+                    $(
+                        $name::$element(x) => x.get_uuid(),
+                    )*
+                }
+            }
+            pub fn get_child_concepts<'b>(&'a self) -> Vec<$name<'b>> where 'a : 'b {
+                match self {
+                    $(
+                        $name::$element(x) => x.get_child_concepts(),
+                    )*
+                }
+            }
         }
     }
 }

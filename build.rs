@@ -259,6 +259,7 @@ fn process_concepts(raw_objects: &Vec<HashMap<String, Value>>) {
         ("crate::encoding", "ORCEncoding"),
         ("crate::schema", "TabularSchema"),
         ("crate::schema", "DataSchema"),
+        ("crate::data_setup", "ParsedDataSetup"),
         ("crate::storage_setup", "RemoteImportStorageSetup"),
         ("crate::storage_setup", "StorageSetup"),
         ("crate::storage", "Storage"),

@@ -40,6 +40,7 @@ fn process_enum_variants(
     let variant7 = variants.iter().map(|x| (&x.ident));
     let variant8 = variants.iter().map(|x| (&x.ident));
     let variant9 = variants.iter().map(|x| (&x.ident));
+    let variant10 = variants.iter().map(|x| (&x.ident));
     let mut file = OpenOptions::new()
         .write(true)
         .append(true)
@@ -56,7 +57,7 @@ fn process_enum_variants(
     }
     TokenStream::from(quote! {
       impl AoristConcept for #enum_name {
-        fn get_child_concepts<'a>(&'a self) -> Vec<Concept<'a>> {
+        fn get_child_concepts<'a, 'b>(&'a self) -> Vec<Concept<'b>> where 'a : 'b {
           vec![
               match self {
                 #(
@@ -271,7 +272,7 @@ fn process_struct_fields(
     TokenStream::from(quote! {
 
         impl AoristConcept for #struct_name {
-            fn get_child_concepts<'a>(&'a self) -> Vec<Concept<'a>> {
+            fn get_child_concepts<'a, 'b>(&'a self) -> Vec<Concept<'b>> where 'a : 'b {
                 let mut concepts = vec![
                     #(
                       Concept::#bare_field_type(&self.#bare_field_name7),

@@ -71,9 +71,13 @@ pub struct ParsedDataSetup {
     uuid: Option<Uuid>,
 }
 impl ParsedDataSetup {
-    fn populate_child_concept_map<'a>(&'a self, mut concept_map: HashMap<Uuid, Concept<'a>>) {
+    fn populate_child_concept_map<'a>(&'a self, concept_map: &'a mut HashMap<Uuid, Concept<'a>>) {
         for user in self.users.as_ref().unwrap() {
-            let val = Concept::User(user);
+            let val: Concept<'a> = Concept::User(user);
+            let uuid = user.get_uuid();
+            for grandchild in user.get_child_concepts() {
+                concept_map.insert(grandchild.get_uuid(), grandchild);
+            }
             concept_map.insert(user.get_uuid(), val);
         }
     }
