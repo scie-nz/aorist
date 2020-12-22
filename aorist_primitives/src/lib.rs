@@ -50,7 +50,7 @@ macro_rules! register_programs_for_constraint {
             }
             fn satisfy_given_preference_ordering(
                 &self,
-                c: Concept,
+                c: &Concept,
                 preferences: &Vec<Dialect>
             ) -> Result<(String, String, String), String> {
                 match c {
@@ -62,7 +62,8 @@ macro_rules! register_programs_for_constraint {
                         }
                         Err("Cannot satisfy preference ordering.".into())
                     },
-                    _ => Err("Wrong type of concept provided".into())
+                    _ => Err(format!("Wrong type of concept provided: {}",
+                    c.get_type()))
                 }
             }
         }
@@ -76,7 +77,7 @@ macro_rules! register_satisfiable_constraints {
         impl AllConstraintsSatisfiability for Constraint {
             fn satisfy_given_preference_ordering(
                 &self,
-                c: Concept,
+                c: &Concept,
                 preferences: &Vec<Dialect>
             ) -> Result<(String, String, String), String> {
                 match &self.inner {
@@ -471,6 +472,13 @@ macro_rules! register_concept {
             )+
         }
         impl <'a> $name<'a> {
+            pub fn get_type(&'a self) -> String {
+                match self {
+                    $(
+                        $name::$element(x) => stringify!($element).to_string(),
+                    )*
+                }
+            }
             pub fn get_uuid(&'a self) -> Uuid {
                 match self {
                     $(
@@ -485,14 +493,15 @@ macro_rules! register_concept {
                     )*
                 }
             }
-            pub fn populate_child_concept_map(&self, concept_map: &mut HashMap<Uuid, Concept<'a>>) {
+            pub fn populate_child_concept_map(&self, concept_map: &mut HashMap<(Uuid, String), Concept<'a>>) {
                 match self {
                     $(
                         $name::$element(ref x) => {
                             for child in x.get_child_concepts() {
                                 child.populate_child_concept_map(concept_map);
                             }
-                            concept_map.insert(x.get_uuid(), $name::$element(&x));
+                            concept_map.insert((x.get_uuid(),
+                            stringify!($element).to_string()), $name::$element(&x));
                         }
                     )*
                 }

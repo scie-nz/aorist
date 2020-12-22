@@ -1,6 +1,6 @@
 use aorist_primitives::{Dialect, Python};
 use crate::concept::Concept;
-use crate::constraint::{Constraint, SatisfiableConstraint};
+use crate::constraint::{Constraint, SatisfiableConstraint, AllConstraintsSatisfiability};
 use crate::data_setup::ParsedDataSetup;
 use std::collections::{HashMap, HashSet};
 use std::sync::{Arc, RwLock};
@@ -15,7 +15,7 @@ struct ConstraintState {
 
 pub struct Driver<'a> {
     data_setup: &'a ParsedDataSetup,
-    concepts: HashMap<Uuid, Concept<'a>>,
+    concepts: HashMap<(Uuid, String), Concept<'a>>,
     constraints: HashMap<Uuid, Arc<RwLock<Constraint>>>,
     satisfied_constraints: HashMap<Uuid, Arc<RwLock<ConstraintState>>>,
     unsatisfied_constraints: HashMap<Uuid, Arc<RwLock<ConstraintState>>>,
@@ -23,7 +23,7 @@ pub struct Driver<'a> {
 
 impl<'a> Driver<'a> {
     pub fn new(data_setup: &'a ParsedDataSetup) -> Driver<'a> {
-        let mut concept_map: HashMap<Uuid, Concept<'a>> = HashMap::new();
+        let mut concept_map: HashMap<(Uuid, String), Concept<'a>> = HashMap::new();
         let concept = Concept::ParsedDataSetup(data_setup);
         concept.populate_child_concept_map(&mut concept_map);
         let constraints = data_setup.get_constraints_map();
@@ -82,9 +82,14 @@ impl<'a> Driver<'a> {
             if constraint.requires_program() {
                 println!("{} requires program.", uuid);
                 let root_uuid = constraint.get_root_uuid();
-                let root = self.concepts.get(&root_uuid).unwrap();
+                let root = self.concepts.get(&(root_uuid,
+                constraint.root.clone())).unwrap();
                 let preferences = vec![Dialect::Python(Python{})];
-                //let out = constraint.satisfy_given_preference_ordering(root, &preferences);
+                let out = constraint.satisfy_given_preference_ordering(root,
+                &preferences).unwrap();
+                println!("Parameters: {}", out.2);
+                println!("Call: {}", out.1);
+                println!("Preamble: {}", out.0);
             }
             let read = state.read().unwrap();
             assert!(!read.satisfied);

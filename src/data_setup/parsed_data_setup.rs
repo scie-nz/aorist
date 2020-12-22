@@ -71,8 +71,8 @@ pub struct ParsedDataSetup {
     uuid: Option<Uuid>,
 }
 impl ParsedDataSetup {
-    pub fn get_concept_map<'a>(&'a self) -> HashMap<Uuid, Concept<'a>> {
-        let mut concept_map: HashMap<Uuid, Concept<'a>> = HashMap::new();
+    pub fn get_concept_map<'a>(&'a self) -> HashMap<(Uuid, String), Concept<'a>> {
+        let mut concept_map: HashMap<(Uuid, String), Concept<'a>> = HashMap::new();
         let concept = Concept::ParsedDataSetup(&self);
         concept.populate_child_concept_map(&mut concept_map);
         concept_map

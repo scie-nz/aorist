@@ -27,14 +27,14 @@ pub trait SatisfiableConstraint: TConstraint {
     fn satisfy(&self, r: &<Self as TConstraint>::Root, d: &Dialect) -> Option<(String, String, String)>;
     fn satisfy_given_preference_ordering(
         &self,
-        r: Concept, 
+        r: &Concept, 
         preferences: &Vec<Dialect>
     ) -> Result<(String, String, String), String>;
 }
 pub trait AllConstraintsSatisfiability {  
     fn satisfy_given_preference_ordering(
         &self,
-        c: Concept,
+        c: &Concept,
         preferences: &Vec<Dialect>
     ) -> Result<(String, String, String), String>;
 }
