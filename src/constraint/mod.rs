@@ -24,18 +24,22 @@ where
 }
 
 pub trait SatisfiableConstraint: TConstraint {
-    fn satisfy(&self, r: &<Self as TConstraint>::Root, d: &Dialect) -> Option<(String, String, String)>;
+    fn satisfy(
+        &self,
+        r: &<Self as TConstraint>::Root,
+        d: &Dialect,
+    ) -> Option<(String, String, String)>;
     fn satisfy_given_preference_ordering(
         &self,
-        r: &Concept, 
-        preferences: &Vec<Dialect>
+        r: &Concept,
+        preferences: &Vec<Dialect>,
     ) -> Result<(String, String, String), String>;
 }
-pub trait AllConstraintsSatisfiability {  
+pub trait AllConstraintsSatisfiability {
     fn satisfy_given_preference_ordering(
         &self,
         c: &Concept,
-        preferences: &Vec<Dialect>
+        preferences: &Vec<Dialect>,
     ) -> Result<(String, String, String), String>;
 }
 

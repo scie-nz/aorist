@@ -72,7 +72,7 @@ macro_rules! register_programs_for_constraint {
 
 #[macro_export]
 macro_rules! register_satisfiable_constraints {
-    
+
     ($($constraint:ident),+)  => {
         impl AllConstraintsSatisfiability for Constraint {
             fn satisfy_given_preference_ordering(
@@ -334,7 +334,7 @@ macro_rules! register_constraint {
                     )+
                 }
             }
-            fn get_required_constraint_names() -> HashMap<String, Vec<String>> {
+            pub fn get_required_constraint_names() -> HashMap<String, Vec<String>> {
                 hashmap! {
                     $(
                         stringify!($element).to_string() => $element::get_required_constraint_names(),

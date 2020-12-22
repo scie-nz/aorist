@@ -360,18 +360,17 @@ fn main() {
         for (constraint, dialects) in constraints {
             scope.import("crate::constraint", constraint);
             scope.import("crate::constraint", &format!("Satisfy{}", constraint));
-            
+
             for (dialect, program) in dialects {
-                
                 scope.import("aorist_primitives", dialect);
                 let mut format_strings: Vec<String> = Vec::new();
                 let mut params: Vec<String> = Vec::new();
                 for param in program.get("parameters").unwrap().as_sequence().unwrap() {
-                    let val = param.as_str().unwrap().to_string();    
+                    let val = param.as_str().unwrap().to_string();
                     format_strings.push("{}".to_string());
                     params.push(val);
                 }
-                let define = formatdoc!{
+                let define = formatdoc! {
                     "define_program!(
                         {dialect}{constraint},
                         {root}, {constraint}, 
@@ -389,7 +388,7 @@ fn main() {
                 };
                 scope.raw(&define);
             }
-            let register = formatdoc!{
+            let register = formatdoc! {
                 "register_programs_for_constraint!(
                      {constraint}, {root},
                      {programs}
@@ -403,7 +402,7 @@ fn main() {
             scope.raw(&register);
         }
     }
-    let register = formatdoc!{
+    let register = formatdoc! {
         "register_satisfiable_constraints!({constraints});",
         constraints=by_uses.values().map(
             |x| x.keys().map(|y| y.to_string())

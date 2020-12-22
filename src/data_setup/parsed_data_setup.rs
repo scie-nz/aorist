@@ -77,16 +77,17 @@ impl ParsedDataSetup {
         concept.populate_child_concept_map(&mut concept_map);
         concept_map
     }
-    pub fn get_constraints_map(&self) -> HashMap<Uuid, Arc<RwLock<Constraint>>> {
-        let mut constraints_map: HashMap<Uuid, Arc<RwLock<Constraint>>> = HashMap::new();
+    pub fn get_constraints_map(&self) -> HashMap<(Uuid, String), Arc<RwLock<Constraint>>> {
+        let mut constraints_map: HashMap<(Uuid, String), Arc<RwLock<Constraint>>> = HashMap::new();
         let mut queue: VecDeque<Arc<RwLock<Constraint>>> =
             self.get_constraints().iter().map(|x| x.clone()).collect();
         while let Some(constraint) = queue.pop_front() {
             let uuid = constraint.read().unwrap().get_uuid();
+            let root_type = constraint.read().unwrap().root.clone();
             for elem in constraint.read().unwrap().get_downstream_constraints() {
                 queue.push_back(elem.clone());
             }
-            constraints_map.insert(uuid, constraint);
+            constraints_map.insert((uuid, root_type), constraint);
         }
         constraints_map
     }
