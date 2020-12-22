@@ -1,15 +1,15 @@
 use crate::concept::Concept;
-use crate::constraint::{AllConstraintsSatisfiability, Constraint, SatisfiableConstraint, AoristConstraint, TConstraint};
+use crate::constraint::{AllConstraintsSatisfiability, Constraint, AoristConstraint};
 use crate::data_setup::ParsedDataSetup;
 use crate::object::TAoristObject;
 use aorist_primitives::{Dialect, Python};
-use std::collections::{BTreeSet, HashMap, HashSet};
+use std::collections::{HashMap, HashSet};
 use std::sync::{Arc, RwLock};
 use uuid::Uuid;
 
 struct ConstraintState {
-    uuid: Uuid,
-    root_type: String,
+    _uuid: Uuid,
+    _root_type: String,
     name: String,
     satisfied: bool,
     satisfied_dependencies: Vec<(Uuid, String)>,
@@ -22,7 +22,7 @@ impl ConstraintState {
 }
 
 pub struct Driver<'a> {
-    data_setup: &'a ParsedDataSetup,
+    _data_setup: &'a ParsedDataSetup,
     concepts: HashMap<(Uuid, String), Concept<'a>>,
     constraints: HashMap<(Uuid, String), Arc<RwLock<Constraint>>>,
     satisfied_constraints: HashMap<(Uuid, String), Arc<RwLock<ConstraintState>>>,
@@ -50,8 +50,8 @@ impl<'a> Driver<'a> {
                 (
                     k.clone(),
                     Arc::new(RwLock::new(ConstraintState {
-                        uuid: k.0.clone(),
-                        root_type: k.1.clone(),
+                        _uuid: k.0.clone(),
+                        _root_type: k.1.clone(),
                         name: x.get_name().clone(),
                         satisfied: false,
                         satisfied_dependencies: Vec::new(),
@@ -78,7 +78,7 @@ impl<'a> Driver<'a> {
                 .insert((uuid, root_type), rw);
         }
         Self {
-            data_setup,
+            _data_setup: data_setup,
             concepts: concept_map,
             constraints: constraints.clone(),
             satisfied_constraints: HashMap::new(),
@@ -97,14 +97,65 @@ impl<'a> Driver<'a> {
             .next();
         match constraint_block_name {
             Some(name) => {
-                let (dependency_names, constraints) =
+                let (_dependency_names, constraints) =
                     self.unsatisfied_constraints.remove(&name).unwrap();
-                for (k, (v, _)) in self.unsatisfied_constraints.iter_mut() {
+                for (_, (v, _)) in self.unsatisfied_constraints.iter_mut() {
                     v.remove(&name);
                 }
                 Some(constraints)
             }
             None => None,
+        }
+    }
+    fn process_constraint_block(
+        &mut self,
+        block: &mut HashMap<(Uuid, String), Arc<RwLock<ConstraintState>>>,
+        reverse_dependencies: &HashMap<(Uuid, String), HashSet<(String, Uuid, String)>>,
+    ) {
+        for (uuid, state) in block.clone() {
+            let rw = self.constraints.get(&uuid).unwrap().clone();
+            let constraint = rw.read().unwrap();
+            println!("Processing {}({}) {}.", &uuid.0, &uuid.1,  constraint.get_name());
+            if constraint.requires_program() {
+                println!("{}({}) requires program.", &uuid.0, &uuid.1);
+                let root_uuid = constraint.get_root_uuid();
+                let root = self
+                    .concepts
+                    .get(&(root_uuid, constraint.root.clone()))
+                    .unwrap();
+                let preferences = vec![Dialect::Python(Python {})];
+                let out = constraint
+                    .satisfy_given_preference_ordering(root, &preferences)
+                    .unwrap();
+                println!("Parameters: {}", out.2);
+                println!("Call: {}", out.1);
+                println!("Preamble: {}", out.0);
+            }
+            let read = state.read().unwrap();
+            assert!(!read.satisfied);
+            assert_eq!(read.unsatisfied_dependencies.len(), 0);
+            drop(read);
+
+            if let Some(v) = reverse_dependencies.get(&uuid) {
+                for (dependency_name, dependency_uuid, dependency_root_type) in v {
+                    let rw = self
+                        .unsatisfied_constraints
+                        .get(dependency_name)
+                        .unwrap().1
+                        .get(&(*dependency_uuid, dependency_root_type.clone()))
+                        .unwrap();
+                    let mut write = rw.write().unwrap();
+                    write.satisfied_dependencies.push(uuid.clone());
+                    write.unsatisfied_dependencies.remove(&uuid);
+                    drop(write);
+                }
+            }
+
+            let mut write = state.write().unwrap();
+            write.satisfied = true;
+            drop(write);
+
+            self.satisfied_constraints.insert(uuid, state.clone());
         }
     }
     pub fn run(&mut self) {
@@ -124,51 +175,7 @@ impl<'a> Driver<'a> {
         // find at least one satisfiable constraint
         while let Some(ref mut block) = satisfiable {
             println!("Block has size: {}", block.len());
-            for (uuid, state) in block.clone() {
-                let rw = self.constraints.get(&uuid).unwrap().clone();
-                let constraint = rw.read().unwrap();
-                println!("Processing {}({}) {}.", &uuid.0, &uuid.1,  constraint.get_name());
-                if constraint.requires_program() {
-                    println!("{}({}) requires program.", &uuid.0, &uuid.1);
-                    let root_uuid = constraint.get_root_uuid();
-                    let root = self
-                        .concepts
-                        .get(&(root_uuid, constraint.root.clone()))
-                        .unwrap();
-                    let preferences = vec![Dialect::Python(Python {})];
-                    let out = constraint
-                        .satisfy_given_preference_ordering(root, &preferences)
-                        .unwrap();
-                    println!("Parameters: {}", out.2);
-                    println!("Call: {}", out.1);
-                    println!("Preamble: {}", out.0);
-                }
-                let read = state.read().unwrap();
-                assert!(!read.satisfied);
-                assert_eq!(read.unsatisfied_dependencies.len(), 0);
-                drop(read);
-
-                if let Some(v) = reverse_dependencies.get(&uuid) {
-                    for (dependency_name, dependency_uuid, dependency_root_type) in v {
-                        let rw = self
-                            .unsatisfied_constraints
-                            .get(dependency_name)
-                            .unwrap().1
-                            .get(&(*dependency_uuid, dependency_root_type.clone()))
-                            .unwrap();
-                        let mut write = rw.write().unwrap();
-                        write.satisfied_dependencies.push(uuid.clone());
-                        write.unsatisfied_dependencies.remove(&uuid);
-                        drop(write);
-                    }
-                }
-
-                let mut write = state.write().unwrap();
-                write.satisfied = true;
-                drop(write);
-
-                self.satisfied_constraints.insert(uuid, state.clone());
-            }
+            self.process_constraint_block(block, &reverse_dependencies);
             satisfiable = self.find_satisfiable_constraint_block();
         }
         assert_eq!(self.unsatisfied_constraints.len(), 0);
