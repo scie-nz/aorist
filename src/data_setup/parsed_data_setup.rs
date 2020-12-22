@@ -14,7 +14,7 @@ use getset::{
     Getters, IncompleteGetters, IncompleteMutGetters, IncompleteSetters, MutGetters, Setters,
 };
 use serde::{Deserialize, Serialize};
-use std::collections::{HashMap, HashSet};
+use std::collections::{HashMap, HashSet, VecDeque};
 use std::sync::{Arc, RwLock};
 use uuid::Uuid;
 
@@ -76,6 +76,18 @@ impl ParsedDataSetup {
         let concept = Concept::ParsedDataSetup(&self);
         concept.populate_child_concept_map(&mut concept_map);
         concept_map
+    }
+    fn get_constraints_map(&self) -> HashMap<Uuid, Arc<RwLock<Constraint>>> {
+        let mut constraints_map: HashMap<Uuid, Arc<RwLock<Constraint>>> = HashMap::new();
+        let mut queue: VecDeque<Arc<RwLock<Constraint>>> = self.get_constraints().iter().map(|x| x.clone()).collect();
+        while let Some(constraint) = queue.pop_front() {
+            let uuid = constraint.read().unwrap().get_uuid();
+            for elem in constraint.read().unwrap().get_downstream_constraints() {
+                queue.push_back(elem.clone());
+            }
+            constraints_map.insert(uuid, constraint);
+        }
+        constraints_map
     }
     pub fn new(name: String, endpoints: EndpointConfig) -> Self {
         Self {
