@@ -115,6 +115,7 @@ type: Constraint
 spec:
   name: DownloadDataFromRemote
   root: RemoteLocation
+  requiresProgram: true
 ---
 type: Constraint
 spec:

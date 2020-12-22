@@ -113,13 +113,23 @@ fn process_constraints(raw_objects: &Vec<HashMap<String, Value>>) {
     }
     let dependencies = get_constraint_dependencies(&constraints);
     let order = compute_topological_sort(&dependencies);
+    let program_required = constraints.iter().map(|x| (
+        x.get("name").unwrap().as_str().unwrap().to_string(),
+        match x.get("requiresProgram") {
+            Some(Value::Bool(ref val)) => *val,
+            None => false,
+            _ => panic!("requiresProgram needs to be a bool"),
+        }
+    )).collect::<HashMap<String, bool>>();
     for (name, root) in &order {
         let required = dependencies.get(&(name.clone(), root.clone())).unwrap();
+        let requires_program = program_required.get(name).unwrap();
         let define = match required.len() {
-            0 => format!("define_constraint!({}, {});", name, root),
+            0 => format!("define_constraint!({}, {}, {});", name, requires_program, root),
             _ => format!(
-                "define_constraint!({}, {}, {});",
+                "define_constraint!({}, {}, {}, {});",
                 name,
+                requires_program,
                 root,
                 required.join(", ")
             ),

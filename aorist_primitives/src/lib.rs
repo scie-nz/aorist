@@ -37,7 +37,7 @@ macro_rules! define_attribute {
 
 #[macro_export]
 macro_rules! define_constraint {
-    ($element:ident, $root:ident) => {
+    ($element:ident, $requires_program:expr, $root:ident) => {
         pub struct $element {
             id: Uuid,
             root_uuid: Uuid,
@@ -55,6 +55,9 @@ macro_rules! define_constraint {
             }
             pub fn get_root_uuid(&self) -> Uuid {
                 self.root_uuid.clone()
+            }
+            pub fn requires_program(&self) -> bool {
+                $requires_program
             }
             pub fn ingest_upstream_constraints(
                 &self,
@@ -78,7 +81,7 @@ macro_rules! define_constraint {
 			}
 		}
     };
-    ($element:ident, $root:ident, $($required:ident),+) => {
+    ($element:ident, $requires_program:expr, $root:ident, $($required:ident),+) => {
         paste::item! {
             pub struct $element {
                 id: Uuid,
@@ -91,6 +94,9 @@ macro_rules! define_constraint {
                 }
                 pub fn get_root_uuid(&self) -> Uuid {
                     self.root_uuid.clone()
+                }
+                pub fn requires_program(&self) -> bool {
+                    $requires_program
                 }
                 pub fn ingest_upstream_constraints(
                     &mut self,
@@ -179,6 +185,13 @@ macro_rules! register_constraint {
                 match self {
                     $(
                         Self::$element(x) => x.get_downstream_constraints(),
+                    )+
+                }
+            }
+            pub fn requires_program(&self) -> bool {
+                match self {
+                    $(
+                        Self::$element(x) => x.requires_program(),
                     )+
                 }
             }

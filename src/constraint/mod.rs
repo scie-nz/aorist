@@ -56,6 +56,13 @@ impl Constraint {
         }
         panic!("Called ingest_upstream_constraints() on a Constraint struct with no inner");
     }
+    pub fn requires_program(&self) -> bool {
+        if let Some(ref c) = &self.inner {
+            return c.requires_program();
+        }
+        panic!("Called requires_program() on a Constraint struct with no inner");
+
+    }
     pub fn print_dag(&self) {
         for downstream_rw in self.get_downstream_constraints() {
             let downstream = downstream_rw.read().unwrap();

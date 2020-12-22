@@ -78,7 +78,10 @@ impl<'a> Driver<'a> {
         // find at least one satisfiable constraint
         while let Some(uuid) = satisfiable {
             let state = self.unsatisfied_constraints.remove(&uuid).unwrap();
-
+            let constraint = self.constraints.get(&uuid).unwrap().read().unwrap();
+            if constraint.requires_program() {
+                println!("{} requires program.", uuid);
+            }
             let read = state.read().unwrap();
             assert!(!read.satisfied);
             assert_eq!(read.unsatisfied_dependencies.len(), 0);
