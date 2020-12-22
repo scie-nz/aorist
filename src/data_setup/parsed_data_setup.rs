@@ -71,15 +71,11 @@ pub struct ParsedDataSetup {
     uuid: Option<Uuid>,
 }
 impl ParsedDataSetup {
-    fn populate_child_concept_map<'a>(&'a self, concept_map: &'a mut HashMap<Uuid, Concept<'a>>) {
-        for user in self.users.as_ref().unwrap() {
-            let val: Concept<'a> = Concept::User(user);
-            let uuid = user.get_uuid();
-            for grandchild in user.get_child_concepts() {
-                concept_map.insert(grandchild.get_uuid(), grandchild);
-            }
-            concept_map.insert(user.get_uuid(), val);
-        }
+    fn get_concept_map<'a>(&'a self) -> HashMap<Uuid, Concept<'a>> {
+        let mut concept_map: HashMap<Uuid, Concept<'a>> = HashMap::new();
+        let concept = Concept::ParsedDataSetup(&self);
+        concept.populate_child_concept_map(&mut concept_map);
+        concept_map
     }
     pub fn new(name: String, endpoints: EndpointConfig) -> Self {
         Self {

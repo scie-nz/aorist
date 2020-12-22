@@ -366,6 +366,18 @@ macro_rules! register_concept {
                     )*
                 }
             }
+            pub fn populate_child_concept_map(&self, concept_map: &mut HashMap<Uuid, Concept<'a>>) {
+                match self {
+                    $(
+                        $name::$element(ref x) => {
+                            for child in x.get_child_concepts() {
+                                child.populate_child_concept_map(concept_map);
+                            }
+                            concept_map.insert(x.get_uuid(), $name::$element(&x));
+                        }
+                    )*
+                }
+            }
         }
     }
 }
