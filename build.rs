@@ -125,11 +125,12 @@ fn process_constraints(raw_objects: &Vec<HashMap<String, Value>>) {
         let required = dependencies.get(&(name.clone(), root.clone())).unwrap();
         let requires_program = program_required.get(name).unwrap();
         let define = match required.len() {
-            0 => format!("define_constraint!({}, {}, {});", name, requires_program, root),
+            0 => format!("define_constraint!({}, {}, Satisfy{}, {});", name, requires_program, name, root),
             _ => format!(
-                "define_constraint!({}, {}, {}, {});",
+                "define_constraint!({}, {}, Satisfy{}, {}, {});",
                 name,
                 requires_program,
+                name,
                 root,
                 required.join(", ")
             ),

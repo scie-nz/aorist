@@ -14,6 +14,10 @@ where
     fn get_root_type_name() -> String;
     fn get_required_constraint_names() -> Vec<String>;
 }
+pub trait ConstraintSatisfactionBase {
+    type ConstraintType;
+    type RootType;
+}
 
 include!(concat!(env!("OUT_DIR"), "/constraints.rs"));
 

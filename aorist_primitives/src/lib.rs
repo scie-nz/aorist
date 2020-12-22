@@ -37,7 +37,7 @@ macro_rules! define_attribute {
 
 #[macro_export]
 macro_rules! define_constraint {
-    ($element:ident, $requires_program:expr, $root:ident) => {
+    ($element:ident, $requires_program:expr, $satisfy_type:ident, $root:ident) => {
         pub struct $element {
             id: Uuid,
             root_uuid: Uuid,
@@ -64,8 +64,10 @@ macro_rules! define_constraint {
                 _upstream_constraints: Vec<Arc<RwLock<Constraint>>>
             ) {}
         }
+        trait $satisfy_type: ConstraintSatisfactionBase<ConstraintType=$element, RootType=$root> {}
         impl TConstraint for $element {
             type Root = $root;
+
             fn get_root_type_name() -> String {
                 stringify!($root).into()
             }
@@ -81,7 +83,7 @@ macro_rules! define_constraint {
 			}
 		}
     };
-    ($element:ident, $requires_program:expr, $root:ident, $($required:ident),+) => {
+    ($element:ident, $requires_program:expr, $satisfy_type:ident, $root:ident, $($required:ident),+) => {
         paste::item! {
             pub struct $element {
                 id: Uuid,
@@ -158,6 +160,7 @@ macro_rules! define_constraint {
                     }
                 }
             }
+            trait $satisfy_type: ConstraintSatisfactionBase<ConstraintType=$element, RootType=$root> {}
             impl TConstraint for $element {
                 type Root = $root;
                 fn get_root_type_name() -> String {
