@@ -309,39 +309,6 @@ fn process_concepts(raw_objects: &Vec<HashMap<String, Value>>) {
     fs::write(&dest_path, scope.to_string()).unwrap();
 }
 
-fn get_match_arms(dialects: HashMap<String, HashMap<String, Value>>) -> String {
-    dialects
-        .into_iter()
-        .map(|(dialect, config)| {
-            let params: Vec<(String, String)> = config
-                .get("parameters")
-                .unwrap()
-                .as_mapping()
-                .unwrap()
-                .into_iter()
-                .map(|(k, v)| (k.as_str().unwrap().into(), v.as_str().unwrap().into()))
-                .collect();
-
-            format!(
-                "Dialect::{dialect}{{..}} => Ok(format!(\"{call}({param_names})\", {params}).to_string()),",
-                dialect = dialect,
-                call = config.get("call").unwrap().as_str().unwrap().replace("{","{{").replace("}","}}"),
-                param_names = params
-                    .iter()
-                    .map(|(k, _)| format!("{{{}}}", k).to_string())
-                    .collect::<Vec<_>>()
-                    .join(", ".into()),
-                params = params
-                    .iter()
-                    .map(|(k, v)| format!("{}={}", k, v).to_string())
-                    .collect::<Vec<_>>()
-                    .join(", ".into()),
-            )
-        })
-        .collect::<Vec<_>>()
-        .join("\n")
-}
-
 fn main() {
     let _file = OpenOptions::new()
         .truncate(true)
@@ -377,45 +344,46 @@ fn main() {
             .entry(dialect)
             .or_insert(x);
     }
-    scope.import("aorist_primitives", "Dialect");
-    for program_use in program_uses {
-        scope.import("aorist_primitives", &program_use);
-    }
+    scope.import("aorist_primitives", "define_program");
+    scope.import("crate::constraint", "ConstraintSatisfactionBase");
     for (root_crate, root) in roots {
         scope.import(&format!("crate::{}", &root_crate), &root);
     }
-    scope.raw(
-        &by_uses
-            .into_iter()
-            .map(|(root, program_uses)| {
-                program_uses
-                    .into_iter()
-                    .map(|(program_use, dialects)| {
-                        let match_arms = get_match_arms(dialects);
-
-                        formatdoc!(
-                            "
-                impl {program_use} for {struct_name} {{
-                    fn get_call(&self, dialect: Dialect) -> Result<String, String> {{
-                        match dialect {{
-                            {match_arms}
-                            _ => Err(format!(\"Dialect {{:?}} not supported\", dialect).into())
-                        }}
-                    }}
-                }}
-            ",
-                            program_use = program_use,
-                            struct_name = root,
-                            match_arms = match_arms,
-                        )
-                        .to_string()
-                    })
-                    .collect::<Vec<_>>()
-                    .join("\n".into())
-            })
-            .collect::<Vec<_>>()
-            .join("\n".into()),
-    );
+    for (root, constraints) in &by_uses {
+        for (constraint, dialects) in constraints {
+            scope.import("crate::constraint", constraint);
+            scope.import("crate::constraint", &format!("Satisfy{}", constraint));
+            
+            for (dialect, program) in dialects {
+                
+                scope.import("aorist_primitives", dialect);
+                let mut format_strings: Vec<String> = Vec::new();
+                let mut params: Vec<String> = Vec::new();
+                for param in program.get("parameters").unwrap().as_sequence().unwrap() {
+                    let val = param.as_str().unwrap().to_string();    
+                    format_strings.push("{}".to_string());
+                    params.push(val);
+                }
+                let define = formatdoc!{
+                    "define_program!(
+                        {dialect}{constraint},
+                        {root}, {constraint}, 
+                        Satisfy{constraint}, {dialect},
+                        \"{preamble}\", \"{call}\",
+                        |root: &{root}| {{ format!(\"{fmt_params}\", {params})  }}
+                    );",
+                    root=program.get("root").unwrap().as_str().unwrap(),
+                    constraint=program.get("use").unwrap().as_str().unwrap(),
+                    dialect=program.get("dialect").unwrap().as_str().unwrap(),
+                    preamble=program.get("preamble").unwrap().as_str().unwrap(),
+                    call=program.get("call").unwrap().as_str().unwrap(),
+                    fmt_params=format_strings.join(", "),
+                    params=params.join(", "),
+                };
+                scope.raw(&define);
+            }
+        }
+    }
     let out_dir = env::var_os("OUT_DIR").unwrap();
     let dest_path = Path::new(&out_dir).join("programs.rs");
 

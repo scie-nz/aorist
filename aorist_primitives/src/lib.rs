@@ -2,6 +2,35 @@
 use indoc::formatdoc;
 use sqlparser::ast::{ColumnDef, DataType, Ident};
 
+
+#[macro_export]
+macro_rules! define_program {
+    ($name:ident, $root:ident, $constraint:ident, $satisfy_type:ident,
+     $dialect:ident,
+     $preamble:expr, $call:expr, $tuple_call: expr) => {
+        pub struct $name {
+        }
+        impl ConstraintSatisfactionBase for $name {
+            type RootType = $root;
+            type ConstraintType = $constraint;
+        }
+        impl $satisfy_type for $name {
+            type Dialect = $dialect;
+            fn compute_parameter_tuple(
+                root: &$root
+            ) -> String {
+                $tuple_call(root)
+            }
+            fn get_preamble() -> String {
+                $preamble.to_string()
+            }
+            fn get_call() -> String {
+                $call.to_string()
+            }
+        }
+    };
+}
+
 #[macro_export]
 macro_rules! define_attribute {
     ($element:ident, $presto_type:ident, $orc_type:ident, $sql_type:ident) => {
@@ -64,7 +93,15 @@ macro_rules! define_constraint {
                 _upstream_constraints: Vec<Arc<RwLock<Constraint>>>
             ) {}
         }
-        trait $satisfy_type: ConstraintSatisfactionBase<ConstraintType=$element, RootType=$root> {}
+        pub trait $satisfy_type: ConstraintSatisfactionBase<ConstraintType=$element, RootType=$root> {
+            type Dialect;
+
+            // computes a parameter tuple as a string, e.g. to be called from
+            // Python
+            fn compute_parameter_tuple(root: &<Self as ConstraintSatisfactionBase>::RootType) -> String;
+            fn get_preamble() -> String;
+            fn get_call() -> String;
+        }
         impl TConstraint for $element {
             type Root = $root;
 

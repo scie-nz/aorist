@@ -115,6 +115,11 @@ type: Constraint
 spec:
   name: DownloadDataFromRemote
   root: RemoteLocation
+---
+type: Constraint
+spec:
+  name: DownloadDataFromRemoteGCSLocation
+  root: GCSLocation
   requiresProgram: true
 ---
 type: Constraint
@@ -126,7 +131,7 @@ spec:
 ---
 type: Program
 spec:
-  use: DownloadDataFromRemote
+  use: DownloadDataFromRemoteGCSLocation
   root: GCSLocation
   dialect: Python
   preamble: |
@@ -138,10 +143,9 @@ spec:
       blob.download_to_filename(file_name)
   call: download_blob_to_file
   parameters:
-    bucket: self.bucket
-    blob: self.blob
-    file_name: >
-      "/tmp/some_file_name"
+    - root.bucket
+    - root.blob
+    - String::from("/tmp/some_file_name")
   crate: location
 ---
 type: DataSetup

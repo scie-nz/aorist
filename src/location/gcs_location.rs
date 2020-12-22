@@ -1,5 +1,5 @@
 use crate::concept::{AoristConcept, Concept};
-use crate::constraint::Constraint;
+use crate::constraint::{AoristConstraint, Constraint};
 use crate::endpoints::EndpointConfig;
 use crate::prefect::{TObjectWithPrefectCodeGen, TPrefectLocation};
 use crate::python::{TLocationWithPythonAPIClient, TObjectWithPythonCodeGen};
