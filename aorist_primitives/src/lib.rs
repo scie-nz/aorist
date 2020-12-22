@@ -160,7 +160,12 @@ macro_rules! define_constraint {
                     }
                 }
             }
-            trait $satisfy_type: ConstraintSatisfactionBase<ConstraintType=$element, RootType=$root> {}
+            pub trait $satisfy_type: ConstraintSatisfactionBase<ConstraintType=$element, RootType=$root> {
+                fn satisfy(
+                    root: <Self as ConstraintSatisfactionBase>::RootType,
+                    constraint: <Self as ConstraintSatisfactionBase>::ConstraintType,
+                ) -> String;
+            }
             impl TConstraint for $element {
                 type Root = $root;
                 fn get_root_type_name() -> String {

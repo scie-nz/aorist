@@ -14,7 +14,10 @@ where
     fn get_root_type_name() -> String;
     fn get_required_constraint_names() -> Vec<String>;
 }
-pub trait ConstraintSatisfactionBase {
+pub trait ConstraintSatisfactionBase
+where Self::RootType: AoristConcept,
+      Self::ConstraintType: TConstraint<Root=Self::RootType>
+{
     type ConstraintType;
     type RootType;
 }
