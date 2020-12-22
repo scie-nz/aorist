@@ -71,13 +71,13 @@ pub struct ParsedDataSetup {
     uuid: Option<Uuid>,
 }
 impl ParsedDataSetup {
-    fn get_concept_map<'a>(&'a self) -> HashMap<Uuid, Concept<'a>> {
+    pub fn get_concept_map<'a>(&'a self) -> HashMap<Uuid, Concept<'a>> {
         let mut concept_map: HashMap<Uuid, Concept<'a>> = HashMap::new();
         let concept = Concept::ParsedDataSetup(&self);
         concept.populate_child_concept_map(&mut concept_map);
         concept_map
     }
-    fn get_constraints_map(&self) -> HashMap<Uuid, Arc<RwLock<Constraint>>> {
+    pub fn get_constraints_map(&self) -> HashMap<Uuid, Arc<RwLock<Constraint>>> {
         let mut constraints_map: HashMap<Uuid, Arc<RwLock<Constraint>>> = HashMap::new();
         let mut queue: VecDeque<Arc<RwLock<Constraint>>> = self.get_constraints().iter().map(|x| x.clone()).collect();
         while let Some(constraint) = queue.pop_front() {

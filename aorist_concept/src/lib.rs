@@ -40,7 +40,6 @@ fn process_enum_variants(
     let variant7 = variants.iter().map(|x| (&x.ident));
     let variant8 = variants.iter().map(|x| (&x.ident));
     let variant9 = variants.iter().map(|x| (&x.ident));
-    let variant10 = variants.iter().map(|x| (&x.ident));
     let mut file = OpenOptions::new()
         .write(true)
         .append(true)

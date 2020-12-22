@@ -1,5 +1,6 @@
 use lib::concept::AoristConcept;
 use lib::utils::get_data_setup;
+use lib::driver::Driver;
 
 fn main() -> Result<(), String> {
     //let _foo = attributes::KeyAttribute1{};
@@ -7,6 +8,8 @@ fn main() -> Result<(), String> {
     setup.compute_uuids();
     setup.compute_constraints();
     setup.traverse_constrainable_children(Vec::new());
+    let driver = Driver::new(&setup);
+
     /*for dataset in setup.get_datasets().unwrap() {
         println!("{}", dataset.to_yaml());
         println!("{}", dataset.get_presto_schemas());
@@ -24,9 +27,9 @@ fn main() -> Result<(), String> {
         println!("{}", v);
     }*/
     //perms = setup.get_user_permissions();
-    for constraint in setup.get_constraints() {
-        constraint.read().unwrap().print_dag();
-    }
+    //for constraint in setup.get_constraints() {
+    //    constraint.read().unwrap().print_dag();
+    //}
     /*
     println!("{}", setup.get_curl_calls(
         "admin".to_string(),

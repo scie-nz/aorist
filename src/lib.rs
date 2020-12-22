@@ -7,6 +7,7 @@ pub mod concept;
 pub mod constraint;
 pub mod data_setup;
 pub mod dataset;
+pub mod driver;
 pub mod encoding;
 pub mod endpoints;
 pub mod error;
