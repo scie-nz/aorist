@@ -32,6 +32,32 @@ macro_rules! define_program {
 }
 
 #[macro_export]
+macro_rules! register_programs_for_constraint {
+    ($name:ident, $constraint:ident,
+     $($dialect:ident, $element: ident),+) => {
+
+        pub trait $name: TConstraint {
+            fn satisfy(&self, r: &<Self as TConstraint>::Root, d: Dialect) -> Option<(String, String, String)>;
+        }
+        impl $name for $constraint {
+            fn satisfy(&self, r: &<Self as TConstraint>::Root, d: Dialect) -> Option<(String, String, String)> {
+                match d {
+                    $(
+                        Dialect::$dialect{..} => Some((
+                            $element::get_preamble(),
+                            $element::get_call(),
+                            $element::compute_parameter_tuple(r),
+                        )),
+                    )+
+                    _ => None,
+                }
+            }
+        }
+
+    };
+}
+
+#[macro_export]
 macro_rules! define_attribute {
     ($element:ident, $presto_type:ident, $orc_type:ident, $sql_type:ident) => {
         #[derive(
