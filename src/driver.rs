@@ -1,5 +1,5 @@
 use crate::concept::Concept;
-use crate::constraint::{AllConstraintsSatisfiability, Constraint, AoristConstraint};
+use crate::constraint::{AllConstraintsSatisfiability, AoristConstraint, Constraint};
 use crate::data_setup::ParsedDataSetup;
 use crate::object::TAoristObject;
 use aorist_primitives::{Dialect, Python};
@@ -27,8 +27,13 @@ pub struct Driver<'a> {
     constraints: HashMap<(Uuid, String), Arc<RwLock<Constraint>>>,
     satisfied_constraints: HashMap<(Uuid, String), Arc<RwLock<ConstraintState>>>,
     // map from: constraint_name => (dependent_constraint_names, constraints_by_uuid)
-    unsatisfied_constraints:
-        HashMap<String, (HashSet<String>, HashMap<(Uuid, String), Arc<RwLock<ConstraintState>>>)>,
+    unsatisfied_constraints: HashMap<
+        String,
+        (
+            HashSet<String>,
+            HashMap<(Uuid, String), Arc<RwLock<ConstraintState>>>,
+        ),
+    >,
 }
 
 impl<'a> Driver<'a> {
@@ -38,32 +43,36 @@ impl<'a> Driver<'a> {
         concept.populate_child_concept_map(&mut concept_map);
         let constraints = data_setup.get_constraints_map();
 
-        let raw_unsatisfied_constraints: HashMap<(Uuid, String), Arc<RwLock<ConstraintState>>> = constraints
-            .iter()
-            .map(|(k, rw)| {
-                let x = rw.read().unwrap();
-                let dependencies = x
-                    .get_downstream_constraints()
-                    .iter()
-                    .map(|x| (x.read().unwrap().get_uuid(), x.read().unwrap().root.clone()))
-                    .collect::<HashSet<_>>();
-                (
-                    k.clone(),
-                    Arc::new(RwLock::new(ConstraintState {
-                        _uuid: k.0.clone(),
-                        _root_type: k.1.clone(),
-                        name: x.get_name().clone(),
-                        satisfied: false,
-                        satisfied_dependencies: Vec::new(),
-                        unsatisfied_dependencies: dependencies,
-                    })),
-                )
-            })
-            .collect();
+        let raw_unsatisfied_constraints: HashMap<(Uuid, String), Arc<RwLock<ConstraintState>>> =
+            constraints
+                .iter()
+                .map(|(k, rw)| {
+                    let x = rw.read().unwrap();
+                    let dependencies = x
+                        .get_downstream_constraints()
+                        .iter()
+                        .map(|x| (x.read().unwrap().get_uuid(), x.read().unwrap().root.clone()))
+                        .collect::<HashSet<_>>();
+                    (
+                        k.clone(),
+                        Arc::new(RwLock::new(ConstraintState {
+                            _uuid: k.0.clone(),
+                            _root_type: k.1.clone(),
+                            name: x.get_name().clone(),
+                            satisfied: false,
+                            satisfied_dependencies: Vec::new(),
+                            unsatisfied_dependencies: dependencies,
+                        })),
+                    )
+                })
+                .collect();
 
         let mut unsatisfied_constraints: HashMap<
             String,
-            (HashSet<String>, HashMap<(Uuid, String), Arc<RwLock<ConstraintState>>>),
+            (
+                HashSet<String>,
+                HashMap<(Uuid, String), Arc<RwLock<ConstraintState>>>,
+            ),
         > = AoristConstraint::get_required_constraint_names()
             .into_iter()
             .map(|(k, v)| (k, (v.into_iter().collect(), HashMap::new())))
@@ -115,7 +124,12 @@ impl<'a> Driver<'a> {
         for (uuid, state) in block.clone() {
             let rw = self.constraints.get(&uuid).unwrap().clone();
             let constraint = rw.read().unwrap();
-            println!("Processing {}({}) {}.", &uuid.0, &uuid.1,  constraint.get_name());
+            println!(
+                "Processing {}({}) {}.",
+                &uuid.0,
+                &uuid.1,
+                constraint.get_name()
+            );
             if constraint.requires_program() {
                 println!("{}({}) requires program.", &uuid.0, &uuid.1);
                 let root_uuid = constraint.get_root_uuid();
@@ -141,7 +155,8 @@ impl<'a> Driver<'a> {
                     let rw = self
                         .unsatisfied_constraints
                         .get(dependency_name)
-                        .unwrap().1
+                        .unwrap()
+                        .1
                         .get(&(*dependency_uuid, dependency_root_type.clone()))
                         .unwrap();
                     let mut write = rw.write().unwrap();
@@ -159,10 +174,13 @@ impl<'a> Driver<'a> {
         }
     }
     pub fn run(&mut self) {
-        let mut reverse_dependencies: HashMap<(Uuid, String), HashSet<(String, Uuid, String)>> = HashMap::new();
+        let mut reverse_dependencies: HashMap<(Uuid, String), HashSet<(String, Uuid, String)>> =
+            HashMap::new();
         for (name, (_, constraints)) in &self.unsatisfied_constraints {
             for ((uuid, root_type), state) in constraints {
-                for (dependency_uuid, dependency_root_type) in &state.read().unwrap().unsatisfied_dependencies {
+                for (dependency_uuid, dependency_root_type) in
+                    &state.read().unwrap().unsatisfied_dependencies
+                {
                     reverse_dependencies
                         .entry((*dependency_uuid, dependency_root_type.clone()))
                         .or_insert(HashSet::new())

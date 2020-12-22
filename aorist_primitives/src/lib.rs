@@ -2,23 +2,19 @@
 use indoc::formatdoc;
 use sqlparser::ast::{ColumnDef, DataType, Ident};
 
-
 #[macro_export]
 macro_rules! define_program {
     ($name:ident, $root:ident, $constraint:ident, $satisfy_type:ident,
      $dialect:ident,
      $preamble:expr, $call:expr, $tuple_call: expr) => {
-        pub struct $name {
-        }
+        pub struct $name {}
         impl ConstraintSatisfactionBase for $name {
             type RootType = $root;
             type ConstraintType = $constraint;
         }
         impl $satisfy_type for $name {
             type Dialect = $dialect;
-            fn compute_parameter_tuple(
-                root: &$root
-            ) -> String {
+            fn compute_parameter_tuple(root: &$root) -> String {
                 $tuple_call(root)
             }
             fn get_preamble() -> String {
