@@ -347,9 +347,12 @@ fn main() {
     scope.import("aorist_primitives", "define_program");
     scope.import("aorist_primitives", "Dialect");
     scope.import("aorist_primitives", "register_programs_for_constraint");
+    scope.import("aorist_primitives", "register_satisfiable_constraints");
+    scope.import("crate::constraint", "AoristConstraint");
     scope.import("crate::constraint", "ConstraintSatisfactionBase");
     scope.import("crate::constraint", "SatisfiableConstraint");
     scope.import("crate::constraint", "TConstraint");
+    scope.import("crate::constraint", "AllConstraintsSatisfiability");
     for (root_crate, root) in roots {
         scope.import(&format!("crate::{}", &root_crate), &root);
     }
@@ -400,6 +403,13 @@ fn main() {
             scope.raw(&register);
         }
     }
+    let register = formatdoc!{
+        "register_satisfiable_constraints!({constraints});",
+        constraints=by_uses.values().map(
+            |x| x.keys().map(|y| y.to_string())
+        ).flatten().collect::<Vec<String>>().join(", "),
+    };
+    scope.raw(&register);
     let out_dir = env::var_os("OUT_DIR").unwrap();
     let dest_path = Path::new(&out_dir).join("programs.rs");
 

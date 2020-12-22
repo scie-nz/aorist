@@ -70,6 +70,29 @@ macro_rules! register_programs_for_constraint {
 }
 
 #[macro_export]
+macro_rules! register_satisfiable_constraints {
+    
+    ($($constraint:ident),+)  => {
+        impl AllConstraintsSatisfiability for Constraint {
+            fn satisfy_given_preference_ordering(
+                &self,
+                c: Concept,
+                preferences: &Vec<Dialect>
+            ) -> Result<(String, String, String), String> {
+                match &self.inner {
+                    $(
+                        Some(AoristConstraint::$constraint(x)) =>
+                        x.satisfy_given_preference_ordering(c, preferences),
+                    )+
+                    _ => Err("Constraint is not satisfiable (no program
+                    provided).".to_string())
+                }
+            }
+        }
+    }
+}
+
+#[macro_export]
 macro_rules! define_attribute {
     ($element:ident, $presto_type:ident, $orc_type:ident, $sql_type:ident) => {
         #[derive(

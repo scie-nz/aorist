@@ -1,5 +1,6 @@
+use aorist_primitives::{Dialect, Python};
 use crate::concept::Concept;
-use crate::constraint::Constraint;
+use crate::constraint::{Constraint, SatisfiableConstraint};
 use crate::data_setup::ParsedDataSetup;
 use std::collections::{HashMap, HashSet};
 use std::sync::{Arc, RwLock};
@@ -82,6 +83,8 @@ impl<'a> Driver<'a> {
                 println!("{} requires program.", uuid);
                 let root_uuid = constraint.get_root_uuid();
                 let root = self.concepts.get(&root_uuid).unwrap();
+                let preferences = vec![Dialect::Python(Python{})];
+                //let out = constraint.satisfy_given_preference_ordering(root, &preferences);
             }
             let read = state.read().unwrap();
             assert!(!read.satisfied);

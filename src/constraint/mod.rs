@@ -31,6 +31,13 @@ pub trait SatisfiableConstraint: TConstraint {
         preferences: &Vec<Dialect>
     ) -> Result<(String, String, String), String>;
 }
+pub trait AllConstraintsSatisfiability {  
+    fn satisfy_given_preference_ordering(
+        &self,
+        c: Concept,
+        preferences: &Vec<Dialect>
+    ) -> Result<(String, String, String), String>;
+}
 
 include!(concat!(env!("OUT_DIR"), "/constraints.rs"));
 
