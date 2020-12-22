@@ -388,10 +388,11 @@ fn main() {
             }
             let register = formatdoc!{
                 "register_programs_for_constraint!(
-                     {constraint},
+                     {constraint}, {root},
                      {programs}
                 );",
                 constraint=constraint,
+                root=root,
                 programs=dialects.keys().map(
                     |k| format!("{}, {}{}", k, k, constraint)
                 ).collect::<Vec<String>>().join(", "),

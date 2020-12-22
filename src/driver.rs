@@ -80,6 +80,8 @@ impl<'a> Driver<'a> {
             let constraint = self.constraints.get(&uuid).unwrap().read().unwrap();
             if constraint.requires_program() {
                 println!("{} requires program.", uuid);
+                let root_uuid = constraint.get_root_uuid();
+                let root = self.concepts.get(&root_uuid).unwrap();
             }
             let read = state.read().unwrap();
             assert!(!read.satisfied);

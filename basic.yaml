@@ -115,6 +115,8 @@ type: Constraint
 spec:
   name: DownloadDataFromRemote
   root: RemoteLocation
+  requires:
+    - DownloadDataFromRemoteGCSLocation
 ---
 type: Constraint
 spec:
@@ -392,7 +394,7 @@ spec:
                 type: GCSLocation
                 spec:
                   bucket: gcp-public-data-sentinel2
-                  blob: index.csv.gz-backup
+                  blob: index.csv.gz-backup1
               layout:
                 type: SingleFileLayout
               encoding:

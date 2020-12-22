@@ -1,4 +1,4 @@
-use crate::concept::AoristConcept;
+use crate::concept::{AoristConcept, Concept};
 use crate::object::TAoristObject;
 use aorist_primitives::{define_constraint, register_constraint, Dialect};
 use maplit::hashmap;
@@ -27,7 +27,7 @@ pub trait SatisfiableConstraint: TConstraint {
     fn satisfy(&self, r: &<Self as TConstraint>::Root, d: &Dialect) -> Option<(String, String, String)>;
     fn satisfy_given_preference_ordering(
         &self,
-        r: &<Self as TConstraint>::Root, 
+        r: Concept, 
         preferences: &Vec<Dialect>
     ) -> Result<(String, String, String), String>;
 }

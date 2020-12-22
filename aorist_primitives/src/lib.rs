@@ -33,7 +33,7 @@ macro_rules! define_program {
 
 #[macro_export]
 macro_rules! register_programs_for_constraint {
-    ($constraint:ident,
+    ($constraint:ident, $root: ident,
      $($dialect:ident, $element: ident),+) => {
         impl SatisfiableConstraint for $constraint {
             fn satisfy(&self, r: &<Self as TConstraint>::Root, d: &Dialect) -> Option<(String, String, String)> {
@@ -50,15 +50,20 @@ macro_rules! register_programs_for_constraint {
             }
             fn satisfy_given_preference_ordering(
                 &self,
-                r: &<Self as TConstraint>::Root, 
+                c: Concept,
                 preferences: &Vec<Dialect>
             ) -> Result<(String, String, String), String> {
-                for d in preferences {
-                    if let Some(t) = self.satisfy(r, &d) {
-                        return Ok(t);
-                    }
+                match c {
+                    Concept::$root(ref r) => {
+                        for d in preferences {
+                            if let Some(t) = self.satisfy(r, &d) {
+                                return Ok(t);
+                            }
+                        }
+                        Err("Cannot satisfy preference ordering.".into())
+                    },
+                    _ => Err("Wrong type of concept provided".into())
                 }
-                Err("Cannot satisfy preference ordering.".into())
             }
         }
     };
