@@ -37,10 +37,15 @@ macro_rules! register_programs_for_constraint {
      $($dialect:ident, $element: ident),+) => {
 
         pub trait $name: TConstraint {
-            fn satisfy(&self, r: &<Self as TConstraint>::Root, d: Dialect) -> Option<(String, String, String)>;
+            fn satisfy(&self, r: &<Self as TConstraint>::Root, d: &Dialect) -> Option<(String, String, String)>;
+            fn satisfy_given_preference_ordering(
+                &self,
+                r: &<Self as TConstraint>::Root, 
+                preferences: &Vec<Dialect>
+            ) -> Result<(String, String, String), String>;
         }
         impl $name for $constraint {
-            fn satisfy(&self, r: &<Self as TConstraint>::Root, d: Dialect) -> Option<(String, String, String)> {
+            fn satisfy(&self, r: &<Self as TConstraint>::Root, d: &Dialect) -> Option<(String, String, String)> {
                 match d {
                     $(
                         Dialect::$dialect{..} => Some((
@@ -52,8 +57,19 @@ macro_rules! register_programs_for_constraint {
                     _ => None,
                 }
             }
+            fn satisfy_given_preference_ordering(
+                &self,
+                r: &<Self as TConstraint>::Root, 
+                preferences: &Vec<Dialect>
+            ) -> Result<(String, String, String), String> {
+                for d in preferences {
+                    if let Some(t) = self.satisfy(r, &d) {
+                        return Ok(t);
+                    }
+                }
+                Err("Cannot satisfy preference ordering.".into())
+            }
         }
-
     };
 }
 
