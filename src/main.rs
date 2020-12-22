@@ -1,6 +1,6 @@
 use lib::concept::AoristConcept;
-use lib::utils::get_data_setup;
 use lib::driver::Driver;
+use lib::utils::get_data_setup;
 
 fn main() -> Result<(), String> {
     //let _foo = attributes::KeyAttribute1{};
@@ -8,8 +8,8 @@ fn main() -> Result<(), String> {
     setup.compute_uuids();
     setup.compute_constraints();
     setup.traverse_constrainable_children(Vec::new());
-    let driver = Driver::new(&setup);
-
+    let mut driver = Driver::new(&setup);
+    driver.run();
     /*for dataset in setup.get_datasets().unwrap() {
         println!("{}", dataset.to_yaml());
         println!("{}", dataset.get_presto_schemas());

@@ -32,6 +32,8 @@ pub trait AoristConcept {
     }
     fn compute_uuids(&mut self);
 
-    fn get_child_concepts<'a, 'b>(&'a self) -> Vec<Concept<'b>> where 'a : 'b;
+    fn get_child_concepts<'a, 'b>(&'a self) -> Vec<Concept<'b>>
+    where
+        'a: 'b;
 }
 include!(concat!(env!("OUT_DIR"), "/concepts.rs"));

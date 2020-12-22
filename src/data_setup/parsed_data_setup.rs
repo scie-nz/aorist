@@ -79,7 +79,8 @@ impl ParsedDataSetup {
     }
     pub fn get_constraints_map(&self) -> HashMap<Uuid, Arc<RwLock<Constraint>>> {
         let mut constraints_map: HashMap<Uuid, Arc<RwLock<Constraint>>> = HashMap::new();
-        let mut queue: VecDeque<Arc<RwLock<Constraint>>> = self.get_constraints().iter().map(|x| x.clone()).collect();
+        let mut queue: VecDeque<Arc<RwLock<Constraint>>> =
+            self.get_constraints().iter().map(|x| x.clone()).collect();
         while let Some(constraint) = queue.pop_front() {
             let uuid = constraint.read().unwrap().get_uuid();
             for elem in constraint.read().unwrap().get_downstream_constraints() {
