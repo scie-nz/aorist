@@ -344,10 +344,11 @@ fn main() {
             .entry(dialect)
             .or_insert(x);
     }
-    scope.import("aorist_primitives", "Dialect");
     scope.import("aorist_primitives", "define_program");
+    scope.import("aorist_primitives", "Dialect");
     scope.import("aorist_primitives", "register_programs_for_constraint");
     scope.import("crate::constraint", "ConstraintSatisfactionBase");
+    scope.import("crate::constraint", "SatisfiableConstraint");
     scope.import("crate::constraint", "TConstraint");
     for (root_crate, root) in roots {
         scope.import(&format!("crate::{}", &root_crate), &root);
@@ -387,7 +388,6 @@ fn main() {
             }
             let register = formatdoc!{
                 "register_programs_for_constraint!(
-                     {constraint}Satisfactor,
                      {constraint},
                      {programs}
                 );",

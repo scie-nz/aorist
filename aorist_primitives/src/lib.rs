@@ -33,18 +33,9 @@ macro_rules! define_program {
 
 #[macro_export]
 macro_rules! register_programs_for_constraint {
-    ($name:ident, $constraint:ident,
+    ($constraint:ident,
      $($dialect:ident, $element: ident),+) => {
-
-        pub trait $name: TConstraint {
-            fn satisfy(&self, r: &<Self as TConstraint>::Root, d: &Dialect) -> Option<(String, String, String)>;
-            fn satisfy_given_preference_ordering(
-                &self,
-                r: &<Self as TConstraint>::Root, 
-                preferences: &Vec<Dialect>
-            ) -> Result<(String, String, String), String>;
-        }
-        impl $name for $constraint {
+        impl SatisfiableConstraint for $constraint {
             fn satisfy(&self, r: &<Self as TConstraint>::Root, d: &Dialect) -> Option<(String, String, String)> {
                 match d {
                     $(

@@ -1,6 +1,6 @@
 use crate::concept::AoristConcept;
 use crate::object::TAoristObject;
-use aorist_primitives::{define_constraint, register_constraint};
+use aorist_primitives::{define_constraint, register_constraint, Dialect};
 use maplit::hashmap;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -21,6 +21,15 @@ where
 {
     type ConstraintType;
     type RootType;
+}
+
+pub trait SatisfiableConstraint: TConstraint {
+    fn satisfy(&self, r: &<Self as TConstraint>::Root, d: &Dialect) -> Option<(String, String, String)>;
+    fn satisfy_given_preference_ordering(
+        &self,
+        r: &<Self as TConstraint>::Root, 
+        preferences: &Vec<Dialect>
+    ) -> Result<(String, String, String), String>;
 }
 
 include!(concat!(env!("OUT_DIR"), "/constraints.rs"));
