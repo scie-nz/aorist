@@ -35,6 +35,8 @@ pub struct Driver<'a> {
             HashMap<(Uuid, String), Arc<RwLock<ConstraintState>>>,
         ),
     >,
+    _concept_depth: HashMap<(Uuid, String), usize>,
+    _concept_ancestors: HashMap<(Uuid, String), Vec<(Uuid, String)>>,
 }
 
 impl<'a> Driver<'a> {
@@ -42,6 +44,31 @@ impl<'a> Driver<'a> {
         let mut concept_map: HashMap<(Uuid, String), Concept<'a>> = HashMap::new();
         let concept = Concept::ParsedDataSetup((data_setup, 0));
         concept.populate_child_concept_map(&mut concept_map);
+
+        let mut depth_map: HashMap<(Uuid, String), usize> = HashMap::new();
+        let mut ancestors: HashMap<(Uuid, String), Vec<(Uuid, String)>> = HashMap::new();
+        let mut frontier: Vec<(Uuid, String)> = Vec::new();
+        let mut depth: usize = 0;
+        frontier.push((concept.get_uuid(), concept.get_type()));
+        ancestors.insert((concept.get_uuid(), concept.get_type()), Vec::new());
+        while frontier.len() > 0 {
+            let mut new_frontier: Vec<(Uuid, String)> = Vec::new();
+            for child in frontier.drain(0..) {
+                let concept = concept_map.get(&child).unwrap();
+                let mut grandchild_ancestors = ancestors.get(&child).unwrap().clone();
+                grandchild_ancestors.push(child.clone());
+                depth_map.insert(child, depth);
+                for grandchild in concept.get_child_concepts() {
+                    new_frontier.push((grandchild.get_uuid(), grandchild.get_type()));
+                    ancestors.insert((grandchild.get_uuid(), grandchild.get_type()),
+                                     grandchild_ancestors.clone());
+                }
+            }
+            depth += 1;
+            frontier = new_frontier;
+        }
+
+
         let constraints = data_setup.get_constraints_map();
 
         let raw_unsatisfied_constraints: HashMap<(Uuid, String), Arc<RwLock<ConstraintState>>> =
@@ -93,6 +120,8 @@ impl<'a> Driver<'a> {
             constraints: constraints.clone(),
             satisfied_constraints: HashMap::new(),
             unsatisfied_constraints,
+            _concept_depth: depth_map,
+            _concept_ancestors: ancestors,
         }
     }
 
