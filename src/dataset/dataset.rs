@@ -28,6 +28,7 @@ pub struct DataSet {
     #[constrainable]
     assets: Vec<Asset>,
     uuid: Option<Uuid>,
+    tag: Option<String>,
     #[serde(skip)]
     #[derivative(PartialEq = "ignore", Debug = "ignore")]
     pub constraints: Vec<Arc<RwLock<Constraint>>>,

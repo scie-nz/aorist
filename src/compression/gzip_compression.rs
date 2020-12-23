@@ -17,6 +17,7 @@ use uuid::Uuid;
 #[derivative(PartialEq, Debug)]
 pub struct GzipCompression {
     uuid: Option<Uuid>,
+    tag: Option<String>,
     #[serde(skip)]
     #[derivative(PartialEq = "ignore", Debug = "ignore")]
     pub constraints: Vec<Arc<RwLock<Constraint>>>,

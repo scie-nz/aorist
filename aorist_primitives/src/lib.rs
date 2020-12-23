@@ -107,6 +107,7 @@ macro_rules! define_attribute {
             name: String,
             comment: Option<String>,
             uuid: Option<Uuid>,
+            tag: Option<String>,
             #[serde(skip)]
             #[derivative(PartialEq = "ignore", Debug = "ignore")]
             constraints: Vec<Arc<RwLock<Constraint>>>,
@@ -479,6 +480,13 @@ macro_rules! register_concept {
                 match self {
                     $(
                         $name::$element(x) => x.get_uuid(),
+                    )*
+                }
+            }
+            pub fn get_tag(&'a self) -> Option<String> {
+                match self {
+                    $(
+                        $name::$element(x) => x.get_tag(),
                     )*
                 }
             }

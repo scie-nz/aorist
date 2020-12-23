@@ -30,6 +30,7 @@ pub struct HiveTableStorage {
     #[constrainable]
     encoding: Encoding,
     uuid: Option<Uuid>,
+    tag: Option<String>,
     #[serde(skip)]
     #[derivative(PartialEq = "ignore", Debug = "ignore")]
     pub constraints: Vec<Arc<RwLock<Constraint>>>,

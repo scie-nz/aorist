@@ -18,6 +18,7 @@ pub struct GCSLocation {
     pub bucket: String,
     pub blob: String,
     uuid: Option<Uuid>,
+    tag: Option<String>,
     #[serde(skip)]
     #[derivative(PartialEq = "ignore", Debug = "ignore")]
     pub constraints: Vec<Arc<RwLock<Constraint>>>,

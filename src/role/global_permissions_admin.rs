@@ -11,6 +11,7 @@ use uuid::Uuid;
 #[derivative(PartialEq, Debug, Hash)]
 pub struct GlobalPermissionsAdmin {
     uuid: Option<Uuid>,
+    tag: Option<String>,
     #[serde(skip)]
     #[derivative(PartialEq = "ignore", Debug = "ignore", Hash = "ignore")]
     pub constraints: Vec<Arc<RwLock<Constraint>>>,

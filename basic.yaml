@@ -152,7 +152,7 @@ spec:
 ---
 type: DataSetup
 spec:
-  name: basic-data-setup
+  name: basic_data_setup
   users:
   - bogdan
   - alice

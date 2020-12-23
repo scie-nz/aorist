@@ -19,6 +19,7 @@ pub struct KeyedStruct {
     #[constrainable]
     attributes: Vec<Attribute>,
     uuid: Option<Uuid>,
+    tag: Option<String>,
     #[serde(skip)]
     #[derivative(PartialEq = "ignore", Debug = "ignore")]
     pub constraints: Vec<Arc<RwLock<Constraint>>>,

@@ -11,6 +11,7 @@ use uuid::Uuid;
 #[derivative(PartialEq, Debug)]
 pub struct StaticHiveTableLayout {
     uuid: Option<Uuid>,
+    tag: Option<String>,
     #[serde(skip)]
     #[derivative(PartialEq = "ignore", Debug = "ignore")]
     pub constraints: Vec<Arc<RwLock<Constraint>>>,
@@ -20,6 +21,7 @@ pub struct StaticHiveTableLayout {
 #[derivative(PartialEq, Debug)]
 pub struct DailyGranularity {
     uuid: Option<Uuid>,
+    tag: Option<String>,
     #[serde(skip)]
     #[derivative(PartialEq = "ignore", Debug = "ignore")]
     pub constraints: Vec<Arc<RwLock<Constraint>>>,
@@ -38,6 +40,7 @@ pub struct DynamicHiveTableLayout {
     #[constrainable]
     granularity: Granularity,
     uuid: Option<Uuid>,
+    tag: Option<String>,
     #[serde(skip)]
     #[derivative(PartialEq = "ignore", Debug = "ignore")]
     pub constraints: Vec<Arc<RwLock<Constraint>>>,

@@ -21,6 +21,7 @@ pub struct User {
     unixname: String,
     roles: Option<Vec<Role>>,
     uuid: Option<Uuid>,
+    tag: Option<String>,
     #[serde(skip)]
     #[derivative(PartialEq = "ignore", Debug = "ignore", Hash = "ignore")]
     pub constraints: Vec<Arc<RwLock<Constraint>>>,

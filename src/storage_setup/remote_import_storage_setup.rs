@@ -23,6 +23,7 @@ pub struct RemoteImportStorageSetup {
     #[constrainable]
     local: Vec<Storage>,
     uuid: Option<Uuid>,
+    tag: Option<String>,
     #[serde(skip)]
     #[derivative(PartialEq = "ignore", Debug = "ignore")]
     pub constraints: Vec<Arc<RwLock<Constraint>>>,

@@ -3,6 +3,7 @@ use crate::constraint::{AllConstraintsSatisfiability, AoristConstraint, Constrai
 use crate::data_setup::ParsedDataSetup;
 use crate::object::TAoristObject;
 use aorist_primitives::{Dialect, Python};
+use indoc::formatdoc;
 use std::collections::{HashMap, HashSet};
 use std::sync::{Arc, RwLock};
 use uuid::Uuid;
@@ -121,29 +122,28 @@ impl<'a> Driver<'a> {
         block: &mut HashMap<(Uuid, String), Arc<RwLock<ConstraintState>>>,
         reverse_dependencies: &HashMap<(Uuid, String), HashSet<(String, Uuid, String)>>,
     ) {
+        let mut preambles: HashSet<String> = HashSet::new();
+        // (call, constraint_name, root_name) => (uuid, call parameters)
+        let mut calls: HashMap<(String, String, String), Vec<(Uuid, String)>> = HashMap::new();
+
         for (uuid, state) in block.clone() {
             let rw = self.constraints.get(&uuid).unwrap().clone();
             let constraint = rw.read().unwrap();
-            println!(
-                "Processing {}({}) {}.",
-                &uuid.0,
-                &uuid.1,
-                constraint.get_name()
-            );
             if constraint.requires_program() {
-                println!("{}({}) requires program.", &uuid.0, &uuid.1);
                 let root_uuid = constraint.get_root_uuid();
                 let root = self
                     .concepts
                     .get(&(root_uuid, constraint.root.clone()))
                     .unwrap();
                 let preferences = vec![Dialect::Python(Python {})];
-                let out = constraint
+                let (preamble, call, params) = constraint
                     .satisfy_given_preference_ordering(root, &preferences)
                     .unwrap();
-                println!("Parameters: {}", out.2);
-                println!("Call: {}", out.1);
-                println!("Preamble: {}", out.0);
+                preambles.insert(preamble);
+                calls
+                    .entry((call, constraint.get_name().clone(), uuid.1.clone()))
+                    .or_insert(Vec::new())
+                    .push((uuid.0, params));
             }
             let read = state.read().unwrap();
             assert!(!read.satisfied);
@@ -172,6 +172,35 @@ impl<'a> Driver<'a> {
 
             self.satisfied_constraints.insert(uuid, state.clone());
         }
+        print!(
+            "{}\n\n",
+            preambles.into_iter().collect::<Vec<String>>().join("\n\n")
+        );
+        if calls.len() > 0 {
+            for ((call, constraint_name, _root_name), params) in calls {
+                println!(
+                    "{}",
+                    formatdoc!(
+                        "
+                    params_{constraint} = {{
+                        {params}
+                    }}
+
+
+                    for k, v in params_{constraint}.items():
+                        tasks[k] = {call}(*v)
+                    ",
+                        constraint = constraint_name,
+                        params = params
+                            .iter()
+                            .map(|(k, v)| format!("'{k}': ({v})", k = k, v = v).to_string())
+                            .collect::<Vec<String>>()
+                            .join(",\n    "),
+                        call = call,
+                    )
+                );
+            }
+        }
     }
     pub fn run(&mut self) {
         let mut reverse_dependencies: HashMap<(Uuid, String), HashSet<(String, Uuid, String)>> =
@@ -192,7 +221,7 @@ impl<'a> Driver<'a> {
         let mut satisfiable = self.find_satisfiable_constraint_block();
         // find at least one satisfiable constraint
         while let Some(ref mut block) = satisfiable {
-            println!("Block has size: {}", block.len());
+            //println!("Block has size: {}", block.len());
             self.process_constraint_block(block, &reverse_dependencies);
             satisfiable = self.find_satisfiable_constraint_block();
         }

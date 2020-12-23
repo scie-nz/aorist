@@ -14,6 +14,7 @@ pub trait AoristConcept {
     fn traverse_constrainable_children(&self, upstream_constraints: Vec<Arc<RwLock<Constraint>>>);
     fn get_uuid(&self) -> Uuid;
     fn get_children_uuid(&self) -> Vec<Uuid>;
+    fn get_tag(&self) -> Option<String>;
 
     fn get_uuid_from_children_uuid(&self) -> Uuid {
         let child_uuids = self.get_children_uuid();

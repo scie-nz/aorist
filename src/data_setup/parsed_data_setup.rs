@@ -69,6 +69,7 @@ pub struct ParsedDataSetup {
     #[derivative(PartialEq = "ignore", Debug = "ignore")]
     pub constraints: Vec<Arc<RwLock<Constraint>>>,
     uuid: Option<Uuid>,
+    tag: Option<String>,
 }
 impl ParsedDataSetup {
     pub fn get_concept_map<'a>(&'a self) -> HashMap<(Uuid, String), Concept<'a>> {
@@ -91,7 +92,7 @@ impl ParsedDataSetup {
         }
         constraints_map
     }
-    pub fn new(name: String, endpoints: EndpointConfig) -> Self {
+    pub fn new(name: String, tag: String, endpoints: EndpointConfig) -> Self {
         Self {
             name: name,
             users: None,
@@ -101,6 +102,7 @@ impl ParsedDataSetup {
             endpoints: endpoints,
             constraints: Vec::new(),
             uuid: None,
+            tag: Some(tag),
         }
     }
     pub fn get_user_unixname_map(&self) -> HashMap<String, User> {

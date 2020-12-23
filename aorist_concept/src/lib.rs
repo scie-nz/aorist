@@ -40,6 +40,7 @@ fn process_enum_variants(
     let variant7 = variants.iter().map(|x| (&x.ident));
     let variant8 = variants.iter().map(|x| (&x.ident));
     let variant9 = variants.iter().map(|x| (&x.ident));
+    let variant10 = variants.iter().map(|x| (&x.ident));
     let mut file = OpenOptions::new()
         .write(true)
         .append(true)
@@ -64,6 +65,13 @@ fn process_enum_variants(
                 )*
               }
           ]
+        }
+        fn get_tag(&self) -> Option<String> {
+            match self {
+                #(
+                  #enum_name::#variant10(x) => x.get_tag(),
+                )*
+            }
         }
         fn traverse_constrainable_children(
             &self,
@@ -210,15 +218,6 @@ fn process_struct_fields(
         .append(true)
         .open("constrainables.txt")
         .unwrap();
-    /*writeln!(
-        file,
-        "{}: {} total, {} bare types, {} vec types, {} option_vec_types",
-        struct_name,
-        field.clone().collect::<Vec<_>>().len(),
-        bare_field.clone().collect::<Vec<_>>().len(),
-        vec_field.clone().collect::<Vec<_>>().len(),
-        option_vec_field.clone().collect::<Vec<_>>().len()
-    ).unwrap();*/
     writeln!(
         file,
         "node [shape = oval, fillcolor=white, style=filled, fontname = Helvetica] '{}';",
@@ -290,6 +289,9 @@ fn process_struct_fields(
                     }
                 )*
                 concepts
+            }
+            fn get_tag(&self) -> Option<String> {
+                self.tag.clone()
             }
             fn traverse_constrainable_children(
                 &self,

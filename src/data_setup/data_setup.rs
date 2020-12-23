@@ -43,7 +43,7 @@ impl DataSetup {
             }
         }
 
-        let mut dataSetup = ParsedDataSetup::new(self.name, self.endpoints);
+        let mut dataSetup = ParsedDataSetup::new(self.name.clone(), self.name, self.endpoints);
 
         let user_names: HashSet<String> = self.users.iter().map(|x| x.clone()).collect();
         let dataset_names: HashSet<String> = self.datasets.iter().map(|x| x.clone()).collect();
