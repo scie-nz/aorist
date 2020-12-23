@@ -287,6 +287,7 @@ spec:
               location:
                 type: GCSLocation
                 spec:
+                  tag: sentinel_location
                   bucket: gcp-public-data-sentinel2
                   blob: index.csv.gz-backup
               layout:

@@ -36,7 +36,7 @@ pub struct Driver<'a> {
         ),
     >,
     _concept_depth: HashMap<(Uuid, String, Option<String>, usize), usize>,
-    _concept_ancestors: HashMap<(Uuid, String), Vec<(Uuid, String, Option<String>, usize)>>,
+    concept_ancestors: HashMap<(Uuid, String), Vec<(Uuid, String, Option<String>, usize)>>,
 }
 
 impl<'a> Driver<'a> {
@@ -121,7 +121,7 @@ impl<'a> Driver<'a> {
             satisfied_constraints: HashMap::new(),
             unsatisfied_constraints,
             _concept_depth: depth_map,
-            _concept_ancestors: ancestors,
+            concept_ancestors: ancestors,
         }
     }
 
@@ -153,7 +153,7 @@ impl<'a> Driver<'a> {
     ) {
         let mut preambles: HashSet<String> = HashSet::new();
         // (call, constraint_name, root_name) => (uuid, call parameters)
-        let mut calls: HashMap<(String, String, String), Vec<(Uuid, String)>> = HashMap::new();
+        let mut calls: HashMap<(String, String, String), Vec<(String, String)>> = HashMap::new();
 
         for (uuid, state) in block.clone() {
             let rw = self.constraints.get(&uuid).unwrap().clone();
@@ -162,8 +162,25 @@ impl<'a> Driver<'a> {
                 let root_uuid = constraint.get_root_uuid();
                 let root = self
                     .concepts
-                    .get(&(root_uuid, constraint.root.clone()))
+                    .get(&(root_uuid.clone(), constraint.root.clone()))
                     .unwrap();
+                let ancestors = self.concept_ancestors.get(&(root_uuid, constraint.root.clone())).unwrap();
+                let key = match root.get_tag() {
+                    None => {
+                        let mut relative_path: String = "".to_string();
+                        for (_, ancestor_type, tag, ix) in ancestors.iter().rev() {
+                            if let Some(t) = tag {
+                                relative_path = format!("{}_of_{}", relative_path, t);
+                                break;
+                            }
+                            if *ix > 0 {
+                                relative_path = format!("{}_of_{}_{}", relative_path, ancestor_type, ix);
+                            }
+                        }
+                        format!("{}{}", root.get_type(), relative_path)
+                    },
+                    Some(t) => t
+                };
                 let preferences = vec![Dialect::Python(Python {})];
                 let (preamble, call, params) = constraint
                     .satisfy_given_preference_ordering(root, &preferences)
@@ -172,7 +189,7 @@ impl<'a> Driver<'a> {
                 calls
                     .entry((call, constraint.get_name().clone(), uuid.1.clone()))
                     .or_insert(Vec::new())
-                    .push((uuid.0, params));
+                    .push((key, params));
             }
             let read = state.read().unwrap();
             assert!(!read.satisfied);
