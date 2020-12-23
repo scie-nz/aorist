@@ -35,8 +35,8 @@ pub struct Driver<'a> {
             HashMap<(Uuid, String), Arc<RwLock<ConstraintState>>>,
         ),
     >,
-    _concept_depth: HashMap<(Uuid, String), usize>,
-    _concept_ancestors: HashMap<(Uuid, String), Vec<(Uuid, String)>>,
+    _concept_depth: HashMap<(Uuid, String, Option<String>, usize), usize>,
+    _concept_ancestors: HashMap<(Uuid, String), Vec<(Uuid, String, Option<String>, usize)>>,
 }
 
 impl<'a> Driver<'a> {
@@ -45,21 +45,21 @@ impl<'a> Driver<'a> {
         let concept = Concept::ParsedDataSetup((data_setup, 0));
         concept.populate_child_concept_map(&mut concept_map);
 
-        let mut depth_map: HashMap<(Uuid, String), usize> = HashMap::new();
-        let mut ancestors: HashMap<(Uuid, String), Vec<(Uuid, String)>> = HashMap::new();
-        let mut frontier: Vec<(Uuid, String)> = Vec::new();
+        let mut depth_map: HashMap<(Uuid, String, Option<String>, usize), usize> = HashMap::new();
+        let mut ancestors: HashMap<(Uuid, String), Vec<(Uuid, String, Option<String>, usize)>> = HashMap::new();
+        let mut frontier: Vec<(Uuid, String, Option<String>, usize)> = Vec::new();
         let mut depth: usize = 0;
-        frontier.push((concept.get_uuid(), concept.get_type()));
+        frontier.push((concept.get_uuid(), concept.get_type(), concept.get_tag(), concept.get_index_as_child()));
         ancestors.insert((concept.get_uuid(), concept.get_type()), Vec::new());
         while frontier.len() > 0 {
-            let mut new_frontier: Vec<(Uuid, String)> = Vec::new();
+            let mut new_frontier: Vec<(Uuid, String, Option<String>, usize)> = Vec::new();
             for child in frontier.drain(0..) {
-                let concept = concept_map.get(&child).unwrap();
-                let mut grandchild_ancestors = ancestors.get(&child).unwrap().clone();
+                let concept = concept_map.get(&(child.0.clone(), child.1.clone())).unwrap();
+                let mut grandchild_ancestors = ancestors.get(&(child.0.clone(), child.1.clone())).unwrap().clone();
                 grandchild_ancestors.push(child.clone());
                 depth_map.insert(child, depth);
                 for grandchild in concept.get_child_concepts() {
-                    new_frontier.push((grandchild.get_uuid(), grandchild.get_type()));
+                    new_frontier.push((grandchild.get_uuid(), grandchild.get_type(), grandchild.get_tag(), grandchild.get_index_as_child()));
                     ancestors.insert((grandchild.get_uuid(), grandchild.get_type()),
                                      grandchild_ancestors.clone());
                 }

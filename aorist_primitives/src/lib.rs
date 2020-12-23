@@ -490,6 +490,13 @@ macro_rules! register_concept {
                     )*
                 }
             }
+            pub fn get_index_as_child(&'a self) -> usize {
+                match self {
+                    $(
+                        $name::$element((_, idx)) => *idx,
+                    )*
+                }
+            }
             pub fn get_child_concepts<'b>(&'a self) -> Vec<$name<'b>> where 'a : 'b {
                 match self {
                     $(
