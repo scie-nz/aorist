@@ -46,28 +46,45 @@ impl<'a> Driver<'a> {
         concept.populate_child_concept_map(&mut concept_map);
 
         let mut depth_map: HashMap<(Uuid, String, Option<String>, usize), usize> = HashMap::new();
-        let mut ancestors: HashMap<(Uuid, String), Vec<(Uuid, String, Option<String>, usize)>> = HashMap::new();
+        let mut ancestors: HashMap<(Uuid, String), Vec<(Uuid, String, Option<String>, usize)>> =
+            HashMap::new();
         let mut frontier: Vec<(Uuid, String, Option<String>, usize)> = Vec::new();
         let mut depth: usize = 0;
-        frontier.push((concept.get_uuid(), concept.get_type(), concept.get_tag(), concept.get_index_as_child()));
+        frontier.push((
+            concept.get_uuid(),
+            concept.get_type(),
+            concept.get_tag(),
+            concept.get_index_as_child(),
+        ));
         ancestors.insert((concept.get_uuid(), concept.get_type()), Vec::new());
         while frontier.len() > 0 {
             let mut new_frontier: Vec<(Uuid, String, Option<String>, usize)> = Vec::new();
             for child in frontier.drain(0..) {
-                let concept = concept_map.get(&(child.0.clone(), child.1.clone())).unwrap();
-                let mut grandchild_ancestors = ancestors.get(&(child.0.clone(), child.1.clone())).unwrap().clone();
+                let concept = concept_map
+                    .get(&(child.0.clone(), child.1.clone()))
+                    .unwrap();
+                let mut grandchild_ancestors = ancestors
+                    .get(&(child.0.clone(), child.1.clone()))
+                    .unwrap()
+                    .clone();
                 grandchild_ancestors.push(child.clone());
                 depth_map.insert(child, depth);
                 for grandchild in concept.get_child_concepts() {
-                    new_frontier.push((grandchild.get_uuid(), grandchild.get_type(), grandchild.get_tag(), grandchild.get_index_as_child()));
-                    ancestors.insert((grandchild.get_uuid(), grandchild.get_type()),
-                                     grandchild_ancestors.clone());
+                    new_frontier.push((
+                        grandchild.get_uuid(),
+                        grandchild.get_type(),
+                        grandchild.get_tag(),
+                        grandchild.get_index_as_child(),
+                    ));
+                    ancestors.insert(
+                        (grandchild.get_uuid(), grandchild.get_type()),
+                        grandchild_ancestors.clone(),
+                    );
                 }
             }
             depth += 1;
             frontier = new_frontier;
         }
-
 
         let constraints = data_setup.get_constraints_map();
 
@@ -164,7 +181,10 @@ impl<'a> Driver<'a> {
                     .concepts
                     .get(&(root_uuid.clone(), constraint.root.clone()))
                     .unwrap();
-                let ancestors = self.concept_ancestors.get(&(root_uuid, constraint.root.clone())).unwrap();
+                let ancestors = self
+                    .concept_ancestors
+                    .get(&(root_uuid, constraint.root.clone()))
+                    .unwrap();
                 let key = match root.get_tag() {
                     None => {
                         let mut relative_path: String = "".to_string();
@@ -174,12 +194,13 @@ impl<'a> Driver<'a> {
                                 break;
                             }
                             if *ix > 0 {
-                                relative_path = format!("{}_of_{}_{}", relative_path, ancestor_type, ix);
+                                relative_path =
+                                    format!("{}_of_{}_{}", relative_path, ancestor_type, ix);
                             }
                         }
                         format!("{}{}", root.get_type(), relative_path)
-                    },
-                    Some(t) => t
+                    }
+                    Some(t) => t,
                 };
                 let preferences = vec![Dialect::Python(Python {})];
                 let (preamble, call, params) = constraint
