@@ -50,7 +50,7 @@ macro_rules! register_programs_for_constraint {
                 preferences: &Vec<Dialect>
             ) -> Result<(String, String, String), String> {
                 match c {
-                    Concept::$root(ref r) => {
+                    Concept::$root((ref r, _)) => {
                         for d in preferences {
                             if let Some(t) = self.satisfy(r, &d) {
                                 return Ok(t);
@@ -465,47 +465,50 @@ macro_rules! register_concept {
         #[derive(Clone)]
         pub enum $name<'a> {
             $(
-                $element(&'a $element),
+                $element((&'a $element, usize)),
             )+
         }
         impl <'a> $name<'a> {
             pub fn get_type(&'a self) -> String {
                 match self {
                     $(
-                        $name::$element(x) => stringify!($element).to_string(),
+                        $name::$element((x, _)) => stringify!($element).to_string(),
                     )*
                 }
             }
             pub fn get_uuid(&'a self) -> Uuid {
                 match self {
                     $(
-                        $name::$element(x) => x.get_uuid(),
+                        $name::$element((x, _)) => x.get_uuid(),
                     )*
                 }
             }
             pub fn get_tag(&'a self) -> Option<String> {
                 match self {
                     $(
-                        $name::$element(x) => x.get_tag(),
+                        $name::$element((x, _)) => x.get_tag(),
                     )*
                 }
             }
             pub fn get_child_concepts<'b>(&'a self) -> Vec<$name<'b>> where 'a : 'b {
                 match self {
                     $(
-                        $name::$element(x) => x.get_child_concepts(),
+                        $name::$element((x, _)) => x.get_child_concepts(),
                     )*
                 }
             }
             pub fn populate_child_concept_map(&self, concept_map: &mut HashMap<(Uuid, String), Concept<'a>>) {
                 match self {
                     $(
-                        $name::$element(ref x) => {
+                        $name::$element((ref x, idx)) => {
                             for child in x.get_child_concepts() {
                                 child.populate_child_concept_map(concept_map);
                             }
-                            concept_map.insert((x.get_uuid(),
-                            stringify!($element).to_string()), $name::$element(&x));
+                            concept_map.insert(
+                                (x.get_uuid(),
+                                 stringify!($element).to_string()),
+                                 $name::$element((&x, *idx))
+                            );
                         }
                     )*
                 }
