@@ -302,7 +302,9 @@ fn process_concepts(raw_objects: &Vec<HashMap<String, Value>>) {
         scope.import("crate::attributes", &name);
         concept_names.push(name.clone());
     }
-    let register = format!("register_concept!(Concept, {});", concept_names.join(", "));
+    let register = format!("register_concept!(Concept, {});",
+    concept_names.iter().map(|x| format!("{} => ParsedDataSetup",
+    x)).collect::<Vec<_>>().join(", "));
     scope.raw(&register);
     let out_dir = env::var_os("OUT_DIR").unwrap();
     let dest_path = Path::new(&out_dir).join("concepts.rs");

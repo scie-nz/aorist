@@ -461,7 +461,9 @@ pub trait DownloadDataFromRemote {
 
 #[macro_export]
 macro_rules! register_concept {
-    ( $name:ident, $($element: ident),+ ) => {
+    ( $name:ident, $(
+          $element: ident $(=> $ancestor: ident)*
+      ),+ ) => {
         #[derive(Clone)]
         pub enum $name<'a> {
             $(
