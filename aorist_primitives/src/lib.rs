@@ -462,8 +462,10 @@ pub trait DownloadDataFromRemote {
 #[macro_export]
 macro_rules! register_concept {
     ( $name:ident, $(
-          $element: ident $(=> $ancestor: ident)*
-      ),+ ) => {
+          $element: ident
+          $(=> $ancestor: ident)*
+          $(<= $descendant: ident, $depth: expr)*
+      ),+ ) => { paste::item! {
         #[derive(Clone)]
         pub enum $name<'a> {
             $(
@@ -471,6 +473,25 @@ macro_rules! register_concept {
             )+
         }
         impl <'a> $name<'a> {
+            $(
+                pub fn [<$element:snake:lower>](root: Self) -> &'a $element {
+                    match root {
+                        $(
+                            $name::$descendant((_, _, v)) => {
+                                 match v.get($depth).unwrap() {
+                                    $name::$element(&'a x, _, _) => x,
+                                    _ => panic!(
+                                        "Ancestor of type {} should be at position {}", 
+                                        stringify!($element),
+                                        stringify!($depth)
+                                    ),
+                                 }
+                            },
+                        )*
+                        _ => panic!("No ancestor of type {}", stringify!($element))
+                    }
+                }
+            )+
             pub fn get_type(&'a self) -> String {
                 match self {
                     $(
@@ -523,5 +544,6 @@ macro_rules! register_concept {
                 }
             }
         }
+    }
     }
 }
