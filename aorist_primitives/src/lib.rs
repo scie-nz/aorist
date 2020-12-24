@@ -472,6 +472,17 @@ macro_rules! register_concept {
                 $element((&'a $element, usize, Vec<Self>)),
             )+
         }
+        $(
+            impl <'a> TryFrom<$name<'a>> for &'a $element {
+                type Error = String;
+                fn try_from(x: $name<'a>) -> Result<Self, String> {
+                    match x {
+                        $name::$element((y, _, _)) => Ok(y),
+                        _ => Err("Cannot convert.".into()),
+                    }
+                }
+            }
+        )+
         impl <'a> $name<'a> {
             $(
                 pub fn [<$element:snake:lower>](root: Self) -> &'a $element {

@@ -291,6 +291,7 @@ fn process_concepts(raw_objects: &Vec<HashMap<String, Value>>) {
         ("crate::user_group", "UserGroup"),
     ];
     scope.import("aorist_primitives", "register_concept");
+    scope.import("std::convert", "TryFrom");
     scope.import("std::collections", "HashMap");
     for (x, y) in &concepts {
         scope.import(x, y);
