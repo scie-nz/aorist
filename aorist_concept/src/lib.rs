@@ -61,7 +61,8 @@ fn process_enum_variants(
           vec![
               match self {
                 #(
-                  #enum_name::#variant9(x) => Concept::#variant9((&x, 0)),
+                  #enum_name::#variant9(x) => Concept::#variant9((&x, 0,
+                  Vec::new())),
                 )*
               }
           ]
@@ -273,18 +274,21 @@ fn process_struct_fields(
             fn get_child_concepts<'a, 'b>(&'a self) -> Vec<Concept<'b>> where 'a : 'b {
                 let mut concepts = vec![
                     #(
-                      Concept::#bare_field_type((&self.#bare_field_name7, 0)),
+                      Concept::#bare_field_type((&self.#bare_field_name7, 0,
+                      Vec::new())),
                     )*
                 ];
                 #(
                     for (i, x) in self.#vec_field_name6.iter().enumerate() {
-                        concepts.push(Concept::#vec_field_type((&x, i + 1)));
+                        concepts.push(Concept::#vec_field_type((&x, i + 1,
+                        Vec::new())));
                     }
                 )*
                 #(
                     if let Some(ref v) = self.#option_vec_field_name6 {
                         for (i, x) in v.iter().enumerate() {
-                            concepts.push(Concept::#option_vec_field_type((&x, i + 1)));
+                            concepts.push(Concept::#option_vec_field_type((&x,
+                            i + 1, Vec::new())));
                         }
                     }
                 )*
