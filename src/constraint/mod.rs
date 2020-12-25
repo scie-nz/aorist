@@ -1,4 +1,4 @@
-use crate::concept::{AoristConcept, Concept};
+use crate::concept::{AoristConcept, Concept, ConceptAncestry};
 use crate::object::TAoristObject;
 use aorist_primitives::{define_constraint, register_constraint, Dialect};
 use maplit::hashmap;
@@ -32,11 +32,14 @@ pub trait SatisfiableConstraint: TConstraint {
     ) -> Result<(String, String, String), String>;
 }
 pub trait AllConstraintsSatisfiability {
-    fn satisfy_given_preference_ordering(
+    fn satisfy_given_preference_ordering<'a, 'b>(
         &self,
-        c: &Concept,
+        c: &'a Concept<'a>,
         preferences: &Vec<Dialect>,
-    ) -> Result<(String, String, String), String>;
+        _ancestry: Arc<ConceptAncestry<'b>>,
+    ) -> Result<(String, String, String), String>
+    where
+        'b: 'a;
 }
 
 include!(concat!(env!("OUT_DIR"), "/constraints.rs"));

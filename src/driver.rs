@@ -36,7 +36,7 @@ pub struct Driver<'a> {
         ),
     >,
     _concept_depth: HashMap<(Uuid, String, Option<String>, usize), usize>,
-    concept_ancestors: HashMap<(Uuid, String), Vec<(Uuid, String, Option<String>, usize)>>,    
+    concept_ancestors: HashMap<(Uuid, String), Vec<(Uuid, String, Option<String>, usize)>>,
     ancestry: Arc<ConceptAncestry<'a>>,
 }
 
@@ -133,7 +133,9 @@ impl<'a> Driver<'a> {
                 .insert((uuid, root_type), rw);
         }
         let concepts = Arc::new(RwLock::new(concept_map));
-        let ancestry: ConceptAncestry<'a> = ConceptAncestry{ parents: concepts.clone() };
+        let ancestry: ConceptAncestry<'a> = ConceptAncestry {
+            parents: concepts.clone(),
+        };
         Self {
             _data_setup: data_setup,
             concepts,
@@ -185,8 +187,12 @@ impl<'a> Driver<'a> {
                 let root = guard
                     .get(&(root_uuid.clone(), constraint.root.clone()))
                     .unwrap();
-                
-                let ds_uuid = self.ancestry.parsed_data_setup(root.clone()).unwrap().get_uuid();
+
+                let ds_uuid = self
+                    .ancestry
+                    .parsed_data_setup(root.clone())
+                    .unwrap()
+                    .get_uuid();
                 println!("ds_uuid: {}", ds_uuid);
 
                 let ancestors = self
@@ -212,7 +218,7 @@ impl<'a> Driver<'a> {
                 };
                 let preferences = vec![Dialect::Python(Python {})];
                 let (preamble, call, params) = constraint
-                    .satisfy_given_preference_ordering(root, &preferences)
+                    .satisfy_given_preference_ordering(root, &preferences, self.ancestry.clone())
                     .unwrap();
                 preambles.insert(preamble);
                 calls

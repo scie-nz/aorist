@@ -71,11 +71,12 @@ macro_rules! register_satisfiable_constraints {
 
     ($($constraint:ident),+)  => {
         impl AllConstraintsSatisfiability for Constraint {
-            fn satisfy_given_preference_ordering(
+            fn satisfy_given_preference_ordering<'a, 'b> (
                 &self,
-                c: &Concept,
-                preferences: &Vec<Dialect>
-            ) -> Result<(String, String, String), String> {
+                c: &'a Concept<'a>,
+                preferences: &Vec<Dialect>,
+                _ancestry: Arc<ConceptAncestry<'b>>,
+            ) -> Result<(String, String, String), String> where 'b : 'a {
                 match &self.inner {
                     $(
                         Some(AoristConstraint::$constraint(x)) =>
