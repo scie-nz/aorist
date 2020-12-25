@@ -488,7 +488,39 @@ macro_rules! register_concept {
                 }
             }
         )+
+        pub trait ConceptAncestry<'a> {
+            $(
+                fn [<$element:snake:lower>](
+                    root: &'a $name,
+                    parents: &'a HashMap<(Uuid, String), $name<'a>>
+                ) -> Result<&'a $element, String> {
+                    if root.get_type() == stringify!($element).to_string(){
+                        return(Ok(<&'a $element>::try_from(root).unwrap()));
+                    }
+                    let parent_id = root.get_parent_id();
+                    match parent_id {
+                        None => Err(
+                            format!(
+                                "Cannot find ancestor of type {}.",
+                                stringify!($name)
+                            )
+                        ),
+                        Some(id) => {
+                            let parent = parents.get(&id).unwrap();
+                            Self::[<$element:snake:lower>](parent, parents)
+                        }
+                    }
+                }
+            )+
+        }
         impl <'a> $name<'a> {
+            pub fn get_parent_id(&'a self) -> Option<(Uuid, String)> {
+                match self {
+                    $(
+                        $name::$element((_, _, id)) => id.clone(),
+                    )+
+                }
+            }
             pub fn get_type(&'a self) -> String {
                 match self {
                     $(
