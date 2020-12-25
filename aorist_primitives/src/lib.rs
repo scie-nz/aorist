@@ -14,11 +14,11 @@ macro_rules! define_program {
         }
         impl <'a> $satisfy_type<'a> for $name {
             type Dialect = $dialect;
-            fn compute_parameter_tuple<'b>(
+            fn compute_parameter_tuple(
                 c: Concept<'a>,
-                ancestry: Arc<ConceptAncestry<'b>>,
-            ) -> String where 'b : 'a {
-                $tuple_call(c)
+                ancestry: Arc<ConceptAncestry<'a>>,
+            ) -> String {
+                $tuple_call(c, ancestry)
             }
             fn get_preamble() -> String {
                 $preamble.to_string()
@@ -167,10 +167,10 @@ macro_rules! define_constraint {
 
             // computes a parameter tuple as a string, e.g. to be called from
             // Python
-            fn compute_parameter_tuple<'b>(
+            fn compute_parameter_tuple(
                 root: Concept<'a>,
-                ancestry: Arc<ConceptAncestry<'b>>,
-            ) -> String where 'b : 'a;
+                ancestry: Arc<ConceptAncestry<'a>>,
+            ) -> String;
             fn get_preamble() -> String;
             fn get_call() -> String;
         }

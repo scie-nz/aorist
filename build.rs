@@ -385,7 +385,7 @@ fn main() {
                         {root}, {constraint}, 
                         Satisfy{constraint}, {dialect},
                         \"{preamble}\", \"{call}\",
-                        |concept: Concept<'a>| {{ 
+                        |concept: Concept<'a>, ancestry: Arc<ConceptAncestry<'a>>| {{ 
                             let root: &'a {root} = <&'a crate::{root}>::try_from(concept).unwrap();
                             format!(\"{fmt_params}\", {params})  
                         }}
