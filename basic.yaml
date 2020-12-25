@@ -145,9 +145,12 @@ spec:
       blob.download_to_filename(file_name)
   call: download_blob_to_file
   parameters:
-    - root.bucket
-    - root.blob
-    - String::from("/tmp/some_file_name")
+    - call: gcs_location.bucket
+      attaches: GCSLocation 
+    - call: gcs_location.blob
+      attaches: GCSLocation
+    - call: format!("{}/tmp123", remote_import_storage_setup.tmp_dir) 
+      attaches: RemoteImportStorageSetup
   crate: location
 ---
 type: DataSetup
@@ -282,6 +285,7 @@ spec:
         setup:
           type: RemoteImportStorageSetup
           spec:
+            tmp_dir: /tmp/sentinel2
             remote:
               type: RemoteStorage
               location:
@@ -389,6 +393,7 @@ spec:
         setup:
           type: RemoteImportStorageSetup
           spec:
+            tmp_dir: /tmp/sentinel2-1
             remote:
               type: RemoteStorage
               location:

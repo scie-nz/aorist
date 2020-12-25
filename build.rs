@@ -8,6 +8,7 @@ use std::fs;
 use std::fs::OpenOptions;
 use std::io::Write;
 use std::path::Path;
+use inflector::cases::snakecase::to_snake_case;
 
 fn get_constraint_dependencies(
     constraints: &Vec<HashMap<String, Value>>,
@@ -361,7 +362,6 @@ fn main() {
     scope.import("crate::constraint", "ConstraintSatisfactionBase");
     scope.import("crate::constraint", "SatisfiableConstraint");
     scope.import("crate::constraint", "AllConstraintsSatisfiability");
-    scope.import("std::convert", "TryFrom");
     for (root_crate, root) in roots {
         scope.import(&format!("crate::{}", &root_crate), &root);
     }
@@ -374,10 +374,23 @@ fn main() {
                 scope.import("aorist_primitives", dialect);
                 let mut format_strings: Vec<String> = Vec::new();
                 let mut params: Vec<String> = Vec::new();
+                let mut object_names: HashSet<String> = HashSet::new();
                 for param in program.get("parameters").unwrap().as_sequence().unwrap() {
-                    let val = param.as_str().unwrap().to_string();
-                    format_strings.push("{}".to_string());
-                    params.push(val);
+                    let map: HashMap<String, String> = param
+                        .as_mapping().unwrap().clone().into_iter().map(
+                        |(k, v)| (
+                            k.as_str().unwrap().to_string(),
+                            v.as_str().unwrap().to_string()
+                        ) 
+                    ).collect();
+
+                    format_strings.push("'{}'".to_string());
+                    params.push(
+                        map.get("call").unwrap().clone(),
+                    );
+                    object_names.insert(
+                        map.get("attaches").unwrap().clone(),
+                    );
                 }
                 let define = formatdoc! {
                     "define_program!(
@@ -386,10 +399,16 @@ fn main() {
                         Satisfy{constraint}, {dialect},
                         \"{preamble}\", \"{call}\",
                         |concept: Concept<'a>, ancestry: Arc<ConceptAncestry<'a>>| {{ 
-                            let root: &'a {root} = <&'a crate::{root}>::try_from(concept).unwrap();
+                            {objects}
                             format!(\"{fmt_params}\", {params})  
                         }}
                     );",
+                    objects=object_names.iter().map(|x| {
+                        format!(
+                            "let {x} = ancestry.{x}(concept.clone()).unwrap();",
+                            x=to_snake_case(x),
+                        ).to_string()
+                    }).collect::<Vec<String>>().join("\n"),
                     root=program.get("root").unwrap().as_str().unwrap(),
                     constraint=program.get("use").unwrap().as_str().unwrap(),
                     dialect=program.get("dialect").unwrap().as_str().unwrap(),

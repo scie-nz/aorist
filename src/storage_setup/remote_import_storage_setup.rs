@@ -22,6 +22,7 @@ pub struct RemoteImportStorageSetup {
     remote: Storage,
     #[constrainable]
     local: Vec<Storage>,
+    pub tmp_dir: String,
     uuid: Option<Uuid>,
     tag: Option<String>,
     #[serde(skip)]
