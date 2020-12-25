@@ -489,13 +489,13 @@ macro_rules! register_concept {
             }
         )+
         pub struct ConceptAncestry<'a> {
-            pub parents: &'a HashMap<(Uuid, String), $name<'a>>,
+            pub parents: Arc<RwLock<HashMap<(Uuid, String), $name<'a>>>>,
         }
         impl <'a> ConceptAncestry<'a> {
             $(
                 pub fn [<$element:snake:lower>](
                     &'a self,
-                    root: &'a $name,
+                    root: $name<'a>,
                 ) -> Result<&'a $element, String> {
                     if root.get_type() == stringify!($element).to_string(){
                         return(Ok(<&'a $element>::try_from(root).unwrap()));
@@ -509,7 +509,8 @@ macro_rules! register_concept {
                             )
                         ),
                         Some(id) => {
-                            let parent = self.parents.get(&id).unwrap();
+                            let guard = self.parents.read().unwrap();
+                            let parent = guard.get(&id).unwrap().clone();
                             self.[<$element:snake:lower>](parent)
                         }
                     }

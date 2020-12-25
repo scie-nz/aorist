@@ -37,6 +37,7 @@ pub struct Driver<'a> {
     >,
     _concept_depth: HashMap<(Uuid, String, Option<String>, usize), usize>,
     concept_ancestors: HashMap<(Uuid, String), Vec<(Uuid, String, Option<String>, usize)>>,
+    ancestry: ConceptAncestry<'a>,
 }
 
 impl<'a> Driver<'a> {
@@ -131,14 +132,17 @@ impl<'a> Driver<'a> {
                 .1
                 .insert((uuid, root_type), rw);
         }
+        let concepts = Arc::new(RwLock::new(concept_map));
+        let ancestry = ConceptAncestry{ parents: concepts.clone() };
         Self {
             _data_setup: data_setup,
-            concepts: Arc::new(RwLock::new(concept_map)),
+            concepts,
             constraints: constraints.clone(),
             satisfied_constraints: HashMap::new(),
             unsatisfied_constraints,
             _concept_depth: depth_map,
             concept_ancestors: ancestors,
+            ancestry,
         }
     }
 
@@ -164,9 +168,9 @@ impl<'a> Driver<'a> {
         }
     }
     fn process_constraint_block(
-        &mut self,
-        block: &mut HashMap<(Uuid, String), Arc<RwLock<ConstraintState>>>,
-        reverse_dependencies: &HashMap<(Uuid, String), HashSet<(String, Uuid, String)>>,
+        &'a mut self,
+        block: &'a mut HashMap<(Uuid, String), Arc<RwLock<ConstraintState>>>,
+        reverse_dependencies: &'a HashMap<(Uuid, String), HashSet<(String, Uuid, String)>>,
     ) {
         let mut preambles: HashSet<String> = HashSet::new();
         // (call, constraint_name, root_name) => (uuid, call parameters)
@@ -181,9 +185,8 @@ impl<'a> Driver<'a> {
                 let root = guard
                     .get(&(root_uuid.clone(), constraint.root.clone()))
                     .unwrap();
-                /*println!("Parsed data setup: {}", ConceptAncestry{
-                    parents: &self.concepts.clone()
-                }.parsed_data_setup(root).unwrap().get_uuid());*/
+                println!("Parsed data setup: {}", 
+                self.ancestry.parsed_data_setup(root.clone()).unwrap().get_uuid());
                 let ancestors = self
                     .concept_ancestors
                     .get(&(root_uuid, constraint.root.clone()))
@@ -272,7 +275,7 @@ impl<'a> Driver<'a> {
             }
         }
     }
-    pub fn run(&mut self) {
+    pub fn run(&'a mut self) {
         let mut reverse_dependencies: HashMap<(Uuid, String), HashSet<(String, Uuid, String)>> =
             HashMap::new();
         for (name, (_, constraints)) in &self.unsatisfied_constraints {
@@ -288,12 +291,16 @@ impl<'a> Driver<'a> {
             }
         }
 
-        let mut satisfiable = self.find_satisfiable_constraint_block();
         // find at least one satisfiable constraint
-        while let Some(ref mut block) = satisfiable {
-            //println!("Block has size: {}", block.len());
-            self.process_constraint_block(block, &reverse_dependencies);
-            satisfiable = self.find_satisfiable_constraint_block();
+        while true {
+            let mut satisfiable = self.find_satisfiable_constraint_block().clone();
+            if let Some(ref mut block) = satisfiable {
+                //println!("Block has size: {}", block.len());
+                self.process_constraint_block(&mut block.clone(), &reverse_dependencies);
+                satisfiable = self.find_satisfiable_constraint_block();
+            } else {
+                break;
+            }
         }
         assert_eq!(self.unsatisfied_constraints.len(), 0);
     }
