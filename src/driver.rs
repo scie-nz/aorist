@@ -217,8 +217,10 @@ impl<'a> Driver<'a> {
                     Some(t) => t,
                 };
                 let preferences = vec![Dialect::Python(Python {})];
+                let ancestry = self.ancestry.clone();
+                let root_clone = root.clone();
                 let (preamble, call, params) = constraint
-                    .satisfy_given_preference_ordering(root, &preferences, self.ancestry.clone())
+                    .satisfy_given_preference_ordering(root_clone, &preferences, ancestry)
                     .unwrap();
                 preambles.insert(preamble);
                 calls

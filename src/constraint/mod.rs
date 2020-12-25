@@ -24,31 +24,27 @@ where
 }
 
 pub trait SatisfiableConstraint: TConstraint {
-    fn satisfy<'a, 'b>(
+    fn satisfy<'a>(
         &self,
-        c: &'a Concept<'a>,
+        c: Concept<'a>,
         d: &Dialect,
-        ancestry: Arc<ConceptAncestry<'b>>,
-    ) -> Option<(String, String, String)>
-    where 'b: 'a;
-    fn satisfy_given_preference_ordering<'a, 'b>(
+        ancestry: Arc<ConceptAncestry<'a>>,
+    ) -> Option<(String, String, String)>;
+
+    fn satisfy_given_preference_ordering<'a>(
         &self,
-        r: &'a Concept<'a>,
+        r: Concept<'a>,
         preferences: &Vec<Dialect>,
-        ancestry: Arc<ConceptAncestry<'b>>,
-    ) -> Result<(String, String, String), String>
-    where
-        'b: 'a;
+        ancestry: Arc<ConceptAncestry<'a>>,
+    ) -> Result<(String, String, String), String>;
 }
 pub trait AllConstraintsSatisfiability {
-    fn satisfy_given_preference_ordering<'a, 'b>(
+    fn satisfy_given_preference_ordering<'a>(
         &self,
-        c: &'a Concept<'a>,
+        c: Concept<'a>,
         preferences: &Vec<Dialect>,
-        ancestry: Arc<ConceptAncestry<'b>>,
-    ) -> Result<(String, String, String), String>
-    where
-        'b: 'a;
+        ancestry: Arc<ConceptAncestry<'a>>,
+    ) -> Result<(String, String, String), String>;
 }
 
 include!(concat!(env!("OUT_DIR"), "/constraints.rs"));

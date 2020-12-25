@@ -15,8 +15,8 @@ macro_rules! define_program {
         impl <'a> $satisfy_type<'a> for $name {
             type Dialect = $dialect;
             fn compute_parameter_tuple<'b>(
-                c: &'a Concept<'a>,
-                _ancestry: Arc<ConceptAncestry<'b>>,
+                c: Concept<'a>,
+                ancestry: Arc<ConceptAncestry<'b>>,
             ) -> String where 'b : 'a {
                 $tuple_call(c)
             }
@@ -35,34 +35,33 @@ macro_rules! register_programs_for_constraint {
     ($constraint:ident, $root: ident,
      $($dialect:ident, $element: ident),+) => {
         impl SatisfiableConstraint for $constraint {
-            fn satisfy<'a, 'b>(
+            fn satisfy<'a>(
                 &self,
-                c: &'a Concept<'a>,
+                c: Concept<'a>,
                 d: &Dialect,
-                ancestry: Arc<ConceptAncestry<'b>>,
-            ) -> Option<(String, String, String)> 
-            where 'b : 'a {
+                ancestry: Arc<ConceptAncestry<'a>>,
+            ) -> Option<(String, String, String)> {
                 match d {
                     $(
                         Dialect::$dialect{..} => Some((
                             $element::get_preamble(),
                             $element::get_call(),
-                            $element::compute_parameter_tuple(c, ancestry),
+                            $element::compute_parameter_tuple(c.clone(), ancestry),
                         )),
                     )+
                     _ => None,
                 }
             }
-            fn satisfy_given_preference_ordering<'a, 'b>(
+            fn satisfy_given_preference_ordering<'a>(
                 &self,
-                c: &'a Concept<'a>,
+                c: Concept<'a>,
                 preferences: &Vec<Dialect>,
-                ancestry: Arc<ConceptAncestry<'b>>,
-            ) -> Result<(String, String, String), String> where 'b : 'a {
+                ancestry: Arc<ConceptAncestry<'a>>,
+            ) -> Result<(String, String, String), String> {
                 match c {
                     Concept::$root{..} => {
                         for d in preferences {
-                            if let Some(t) = self.satisfy(c, &d, ancestry.clone()) {
+                            if let Some(t) = self.satisfy(c.clone(), &d, ancestry.clone()) {
                                 return Ok(t);
                             }
                         }
@@ -81,12 +80,12 @@ macro_rules! register_satisfiable_constraints {
 
     ($($constraint:ident),+)  => {
         impl AllConstraintsSatisfiability for Constraint {
-            fn satisfy_given_preference_ordering<'a, 'b> (
+            fn satisfy_given_preference_ordering<'a> (
                 &self,
-                c: &'a Concept<'a>,
+                c: Concept<'a>,
                 preferences: &Vec<Dialect>,
-                ancestry: Arc<ConceptAncestry<'b>>,
-            ) -> Result<(String, String, String), String> where 'b : 'a {
+                ancestry: Arc<ConceptAncestry<'a>>,
+            ) -> Result<(String, String, String), String> {
                 match &self.inner {
                     $(
                         Some(AoristConstraint::$constraint(x)) =>
@@ -169,7 +168,7 @@ macro_rules! define_constraint {
             // computes a parameter tuple as a string, e.g. to be called from
             // Python
             fn compute_parameter_tuple<'b>(
-                root: &'a Concept<'a>,
+                root: Concept<'a>,
                 ancestry: Arc<ConceptAncestry<'b>>,
             ) -> String where 'b : 'a;
             fn get_preamble() -> String;
