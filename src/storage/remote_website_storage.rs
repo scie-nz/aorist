@@ -1,6 +1,7 @@
 #![allow(non_snake_case)]
 
 use crate::concept::{AoristConcept, Concept};
+use crate::constraint::AoristConstraint;
 use crate::constraint::Constraint;
 use crate::encoding::Encoding;
 use crate::endpoints::EndpointConfig;
@@ -18,7 +19,6 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
 use uuid::Uuid;
-use crate::constraint::AoristConstraint;
 
 #[derive(Derivative, Serialize, Deserialize, Clone, Constrainable)]
 #[derivative(PartialEq, Debug)]

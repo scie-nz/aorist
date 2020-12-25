@@ -63,7 +63,7 @@ fn process_enum_variants(
                 #(
                   #enum_name::#variant9(x) => Concept::#variant9(
                       (
-                          &x, 
+                          &x,
                           0, Some((
                               self.get_uuid(),
                               stringify!(#enum_name).to_string()
@@ -286,7 +286,7 @@ fn process_struct_fields(
                 let mut concepts = vec![
                     #(
                       Concept::#bare_field_type((
-                          &self.#bare_field_name7, 
+                          &self.#bare_field_name7,
                           0,
                           id.clone()
                       )),

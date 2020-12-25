@@ -12,7 +12,7 @@ macro_rules! define_program {
             type RootType = $root;
             type ConstraintType = $constraint;
         }
-        impl <'a> $satisfy_type<'a> for $name {
+        impl<'a> $satisfy_type<'a> for $name {
             type Dialect = $dialect;
             fn compute_parameter_tuple(
                 c: Concept<'a>,

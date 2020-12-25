@@ -1,6 +1,7 @@
 use aorist_util::{get_raw_objects_of_type, read_file};
 use codegen::Scope;
 use indoc::formatdoc;
+use inflector::cases::snakecase::to_snake_case;
 use serde_yaml::Value;
 use std::collections::{HashMap, HashSet};
 use std::env;
@@ -8,7 +9,6 @@ use std::fs;
 use std::fs::OpenOptions;
 use std::io::Write;
 use std::path::Path;
-use inflector::cases::snakecase::to_snake_case;
 
 fn get_constraint_dependencies(
     constraints: &Vec<HashMap<String, Value>>,
@@ -377,20 +377,21 @@ fn main() {
                 let mut object_names: HashSet<String> = HashSet::new();
                 for param in program.get("parameters").unwrap().as_sequence().unwrap() {
                     let map: HashMap<String, String> = param
-                        .as_mapping().unwrap().clone().into_iter().map(
-                        |(k, v)| (
-                            k.as_str().unwrap().to_string(),
-                            v.as_str().unwrap().to_string()
-                        ) 
-                    ).collect();
+                        .as_mapping()
+                        .unwrap()
+                        .clone()
+                        .into_iter()
+                        .map(|(k, v)| {
+                            (
+                                k.as_str().unwrap().to_string(),
+                                v.as_str().unwrap().to_string(),
+                            )
+                        })
+                        .collect();
 
                     format_strings.push("'{}'".to_string());
-                    params.push(
-                        map.get("call").unwrap().clone(),
-                    );
-                    object_names.insert(
-                        map.get("attaches").unwrap().clone(),
-                    );
+                    params.push(map.get("call").unwrap().clone());
+                    object_names.insert(map.get("attaches").unwrap().clone());
                 }
                 let define = formatdoc! {
                     "define_program!(

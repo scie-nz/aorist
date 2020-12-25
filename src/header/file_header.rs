@@ -1,4 +1,5 @@
 use crate::concept::{AoristConcept, Concept};
+use crate::constraint::AoristConstraint;
 use crate::constraint::Constraint;
 use crate::header::UpperSnakeCaseCSVHeader;
 use aorist_concept::Constrainable;
@@ -6,7 +7,6 @@ use enum_dispatch::enum_dispatch;
 use serde::{Deserialize, Serialize};
 use std::sync::{Arc, RwLock};
 use uuid::Uuid;
-use crate::constraint::AoristConstraint;
 
 #[enum_dispatch]
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone, Constrainable)]
