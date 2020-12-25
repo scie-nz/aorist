@@ -307,7 +307,7 @@ fn process_concepts(raw_objects: &Vec<HashMap<String, Value>>) {
         "register_concept!(Concept, {});",
         concept_names
             .iter()
-            .map(|x| format!("{x} => ParsedDataSetup", x = x))
+            .map(|x| format!("{x}", x = x))
             .collect::<Vec<_>>()
             .join(", ")
     );

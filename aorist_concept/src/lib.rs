@@ -61,8 +61,15 @@ fn process_enum_variants(
           vec![
               match self {
                 #(
-                  #enum_name::#variant9(x) => Concept::#variant9((&x, 0,
-                  Vec::new())),
+                  #enum_name::#variant9(x) => Concept::#variant9(
+                      (
+                          &x, 
+                          0, Some((
+                              self.get_uuid(),
+                              stringify!(#enum_name).to_string()
+                          ))
+                      )
+                   ),
                 )*
               }
           ]
@@ -272,23 +279,34 @@ fn process_struct_fields(
 
         impl AoristConcept for #struct_name {
             fn get_child_concepts<'a, 'b>(&'a self) -> Vec<Concept<'b>> where 'a : 'b {
+                let id = Some((
+                    self.get_uuid(),
+                    stringify!(#struct_name).to_string()
+                ));
                 let mut concepts = vec![
                     #(
-                      Concept::#bare_field_type((&self.#bare_field_name7, 0,
-                      Vec::new())),
+                      Concept::#bare_field_type((
+                          &self.#bare_field_name7, 
+                          0,
+                          id.clone()
+                      )),
                     )*
                 ];
                 #(
                     for (i, x) in self.#vec_field_name6.iter().enumerate() {
-                        concepts.push(Concept::#vec_field_type((&x, i + 1,
-                        Vec::new())));
+                        concepts.push(
+                            Concept::#vec_field_type((&x, i + 1, id.clone()))
+                        );
                     }
                 )*
                 #(
                     if let Some(ref v) = self.#option_vec_field_name6 {
                         for (i, x) in v.iter().enumerate() {
-                            concepts.push(Concept::#option_vec_field_type((&x,
-                            i + 1, Vec::new())));
+                            concepts.push(
+                                Concept::#option_vec_field_type(
+                                    (&x, i + 1, id.clone())
+                                )
+                            );
                         }
                     }
                 )*

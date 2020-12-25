@@ -461,15 +461,11 @@ pub trait DownloadDataFromRemote {
 
 #[macro_export]
 macro_rules! register_concept {
-    ( $name:ident, $(
-          $element: ident
-          $(=> $ancestor: ident)*
-          $(<= $descendant: ident, $depth: expr)*
-      ),+ ) => { paste::item! {
+    ( $name:ident, $($element: ident ),* ) => { paste::item! {
         #[derive(Clone)]
         pub enum $name<'a> {
             $(
-                $element((&'a $element, usize, Vec<Self>)),
+                $element((&'a $element, usize, Option<(Uuid, String)>)),
             )+
         }
         $(
@@ -493,25 +489,6 @@ macro_rules! register_concept {
             }
         )+
         impl <'a> $name<'a> {
-            $(
-                pub fn [<$element:snake:lower>](root: Self) -> &'a $element {
-                    match root {
-                        $(
-                            $name::$descendant((_, _, v)) => {
-                                 match v.get($depth).unwrap() {
-                                    $name::$element(&'a x, _, _) => x,
-                                    _ => panic!(
-                                        "Ancestor of type {} should be at position {}", 
-                                        stringify!($element),
-                                        stringify!($depth)
-                                    ),
-                                 }
-                            },
-                        )*
-                        _ => panic!("No ancestor of type {}", stringify!($element))
-                    }
-                }
-            )+
             pub fn get_type(&'a self) -> String {
                 match self {
                     $(
@@ -550,14 +527,14 @@ macro_rules! register_concept {
             pub fn populate_child_concept_map(&self, concept_map: &mut HashMap<(Uuid, String), Concept<'a>>) {
                 match self {
                     $(
-                        $name::$element((ref x, idx, ancestors)) => {
+                        $name::$element((ref x, idx, parent)) => {
                             for child in x.get_child_concepts() {
                                 child.populate_child_concept_map(concept_map);
                             }
                             concept_map.insert(
                                 (x.get_uuid(),
                                  stringify!($element).to_string()),
-                                 $name::$element((&x, *idx, ancestors.clone()))
+                                 $name::$element((&x, *idx, parent.clone())),
                             );
                         }
                     )*

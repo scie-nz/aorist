@@ -42,7 +42,7 @@ pub struct Driver<'a> {
 impl<'a> Driver<'a> {
     pub fn new(data_setup: &'a ParsedDataSetup) -> Driver<'a> {
         let mut concept_map: HashMap<(Uuid, String), Concept<'a>> = HashMap::new();
-        let concept = Concept::ParsedDataSetup((data_setup, 0, Vec::new()));
+        let concept = Concept::ParsedDataSetup((data_setup, 0, None));
         concept.populate_child_concept_map(&mut concept_map);
 
         let mut depth_map: HashMap<(Uuid, String, Option<String>, usize), usize> = HashMap::new();
