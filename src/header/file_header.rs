@@ -6,6 +6,7 @@ use enum_dispatch::enum_dispatch;
 use serde::{Deserialize, Serialize};
 use std::sync::{Arc, RwLock};
 use uuid::Uuid;
+use crate::constraint::AoristConstraint;
 
 #[enum_dispatch]
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone, Constrainable)]

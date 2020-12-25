@@ -110,11 +110,12 @@ spec:
   root: RemoteImportStorageSetup
   requires:
     - DownloadDataFromRemote
+    - RemoveFileHeader
 ---
 type: Constraint
 spec:
   name: DownloadDataFromRemote
-  root: RemoteLocation
+  root: RemoteStorage
   requires:
     - DownloadDataFromRemoteGCSLocation
 ---
@@ -123,6 +124,27 @@ spec:
   name: DownloadDataFromRemoteGCSLocation
   root: GCSLocation
   requiresProgram: true
+---
+type: Constraint
+spec:
+  name: RemoveFileHeader
+  root: FileHeader
+  requires:
+    - FileIsDecompressed
+---
+type: Constraint
+spec:
+  name: FileIsDecompressed
+  root: RemoteStorage
+  requires:
+    - Decompress
+---
+type: Constraint
+spec:
+  name: Decompress
+  root: GzipCompression
+  requires:
+    - DownloadDataFromRemote
 ---
 type: Constraint
 spec:

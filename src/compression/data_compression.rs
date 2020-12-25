@@ -1,7 +1,7 @@
 #![allow(non_snake_case)]
 use crate::compression::gzip_compression::GzipCompression;
 use crate::concept::{AoristConcept, Concept};
-use crate::constraint::Constraint;
+use crate::constraint::*;
 use aorist_concept::Constrainable;
 use enum_dispatch::enum_dispatch;
 use serde::{Deserialize, Serialize};
