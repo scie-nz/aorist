@@ -494,7 +494,7 @@ macro_rules! register_concept {
         impl <'a> ConceptAncestry<'a> {
             $(
                 pub fn [<$element:snake:lower>](
-                    &'a self,
+                    &self,
                     root: $name<'a>,
                 ) -> Result<&'a $element, String> {
                     if root.get_type() == stringify!($element).to_string(){
