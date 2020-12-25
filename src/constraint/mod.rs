@@ -24,14 +24,14 @@ where
 }
 
 pub trait SatisfiableConstraint: TConstraint {
-    fn satisfy(
+    fn satisfy<'a>(
         &self,
-        r: &<Self as TConstraint>::Root,
+        c: &'a Concept<'a>,
         d: &Dialect,
     ) -> Option<(String, String, String)>;
-    fn satisfy_given_preference_ordering(
+    fn satisfy_given_preference_ordering<'a>(
         &self,
-        r: &Concept,
+        r: &'a Concept<'a>,
         preferences: &Vec<Dialect>,
     ) -> Result<(String, String, String), String>;
 }

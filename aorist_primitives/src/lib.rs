@@ -12,10 +12,10 @@ macro_rules! define_program {
             type RootType = $root;
             type ConstraintType = $constraint;
         }
-        impl $satisfy_type for $name {
+        impl <'a> $satisfy_type<'a> for $name {
             type Dialect = $dialect;
-            fn compute_parameter_tuple(root: &$root) -> String {
-                $tuple_call(root)
+            fn compute_parameter_tuple(c: &'a Concept<'a>) -> String {
+                $tuple_call(c)
             }
             fn get_preamble() -> String {
                 $preamble.to_string()
@@ -32,27 +32,27 @@ macro_rules! register_programs_for_constraint {
     ($constraint:ident, $root: ident,
      $($dialect:ident, $element: ident),+) => {
         impl SatisfiableConstraint for $constraint {
-            fn satisfy(&self, r: &<Self as TConstraint>::Root, d: &Dialect) -> Option<(String, String, String)> {
+            fn satisfy<'a>(&self, c: &'a Concept<'a>, d: &Dialect) -> Option<(String, String, String)> {
                 match d {
                     $(
                         Dialect::$dialect{..} => Some((
                             $element::get_preamble(),
                             $element::get_call(),
-                            $element::compute_parameter_tuple(r),
+                            $element::compute_parameter_tuple(c),
                         )),
                     )+
                     _ => None,
                 }
             }
-            fn satisfy_given_preference_ordering(
+            fn satisfy_given_preference_ordering<'a>(
                 &self,
-                c: &Concept,
+                c: &'a Concept<'a>,
                 preferences: &Vec<Dialect>
             ) -> Result<(String, String, String), String> {
                 match c {
-                    Concept::$root((ref r, _, _)) => {
+                    Concept::$root{..} => {
                         for d in preferences {
-                            if let Some(t) = self.satisfy(r, &d) {
+                            if let Some(t) = self.satisfy(c, &d) {
                                 return Ok(t);
                             }
                         }
@@ -152,12 +152,12 @@ macro_rules! define_constraint {
                 _upstream_constraints: Vec<Arc<RwLock<Constraint>>>
             ) {}
         }
-        pub trait $satisfy_type: ConstraintSatisfactionBase<ConstraintType=$element, RootType=$root> {
+        pub trait $satisfy_type<'a> : ConstraintSatisfactionBase<ConstraintType=$element, RootType=$root> {
             type Dialect;
 
             // computes a parameter tuple as a string, e.g. to be called from
             // Python
-            fn compute_parameter_tuple(root: &<Self as ConstraintSatisfactionBase>::RootType) -> String;
+            fn compute_parameter_tuple(root: &'a Concept<'a>) -> String;
             fn get_preamble() -> String;
             fn get_call() -> String;
         }
@@ -478,6 +478,15 @@ macro_rules! register_concept {
                 fn try_from(x: $name<'a>) -> Result<Self, String> {
                     match x {
                         $name::$element((y, _, _)) => Ok(y),
+                        _ => Err("Cannot convert.".into()),
+                    }
+                }
+            }
+            impl <'a> TryFrom<&'a $name<'a>> for &'a $element {
+                type Error = String;
+                fn try_from(x: &'a $name<'a>) -> Result<Self, String> {
+                    match x {
+                        &$name::$element((y, _, _)) => Ok(y),
                         _ => Err("Cannot convert.".into()),
                     }
                 }

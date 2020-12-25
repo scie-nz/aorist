@@ -359,8 +359,8 @@ fn main() {
     scope.import("crate::constraint", "AoristConstraint");
     scope.import("crate::constraint", "ConstraintSatisfactionBase");
     scope.import("crate::constraint", "SatisfiableConstraint");
-    scope.import("crate::constraint", "TConstraint");
     scope.import("crate::constraint", "AllConstraintsSatisfiability");
+    scope.import("std::convert", "TryFrom");
     for (root_crate, root) in roots {
         scope.import(&format!("crate::{}", &root_crate), &root);
     }
@@ -384,7 +384,10 @@ fn main() {
                         {root}, {constraint}, 
                         Satisfy{constraint}, {dialect},
                         \"{preamble}\", \"{call}\",
-                        |root: &{root}| {{ format!(\"{fmt_params}\", {params})  }}
+                        |concept: &'a Concept<'a>| {{ 
+                            let root: &'a {root} = <&'a crate::{root}>::try_from(concept).unwrap();
+                            format!(\"{fmt_params}\", {params})  
+                        }}
                     );",
                     root=program.get("root").unwrap().as_str().unwrap(),
                     constraint=program.get("use").unwrap().as_str().unwrap(),
