@@ -488,11 +488,14 @@ macro_rules! register_concept {
                 }
             }
         )+
-        pub trait ConceptAncestry<'a> {
+        pub struct ConceptAncestry<'a> {
+            pub parents: &'a HashMap<(Uuid, String), $name<'a>>,
+        }
+        impl <'a> ConceptAncestry<'a> {
             $(
-                fn [<$element:snake:lower>](
+                pub fn [<$element:snake:lower>](
+                    &'a self,
                     root: &'a $name,
-                    parents: &'a HashMap<(Uuid, String), $name<'a>>
                 ) -> Result<&'a $element, String> {
                     if root.get_type() == stringify!($element).to_string(){
                         return(Ok(<&'a $element>::try_from(root).unwrap()));
@@ -506,8 +509,8 @@ macro_rules! register_concept {
                             )
                         ),
                         Some(id) => {
-                            let parent = parents.get(&id).unwrap();
-                            Self::[<$element:snake:lower>](parent, parents)
+                            let parent = self.parents.get(&id).unwrap();
+                            self.[<$element:snake:lower>](parent)
                         }
                     }
                 }
