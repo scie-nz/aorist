@@ -14,7 +14,10 @@ macro_rules! define_program {
         }
         impl <'a> $satisfy_type<'a> for $name {
             type Dialect = $dialect;
-            fn compute_parameter_tuple(c: &'a Concept<'a>) -> String {
+            fn compute_parameter_tuple<'b>(
+                c: &'a Concept<'a>,
+                _ancestry: Arc<ConceptAncestry<'b>>,
+            ) -> String where 'b : 'a {
                 $tuple_call(c)
             }
             fn get_preamble() -> String {
@@ -36,7 +39,7 @@ macro_rules! register_programs_for_constraint {
                 &self,
                 c: &'a Concept<'a>,
                 d: &Dialect,
-                _ancestry: Arc<ConceptAncestry<'b>>,
+                ancestry: Arc<ConceptAncestry<'b>>,
             ) -> Option<(String, String, String)> 
             where 'b : 'a {
                 match d {
@@ -44,7 +47,7 @@ macro_rules! register_programs_for_constraint {
                         Dialect::$dialect{..} => Some((
                             $element::get_preamble(),
                             $element::get_call(),
-                            $element::compute_parameter_tuple(c),
+                            $element::compute_parameter_tuple(c, ancestry),
                         )),
                     )+
                     _ => None,
@@ -165,7 +168,10 @@ macro_rules! define_constraint {
 
             // computes a parameter tuple as a string, e.g. to be called from
             // Python
-            fn compute_parameter_tuple(root: &'a Concept<'a>) -> String;
+            fn compute_parameter_tuple<'b>(
+                root: &'a Concept<'a>,
+                ancestry: Arc<ConceptAncestry<'b>>,
+            ) -> String where 'b : 'a;
             fn get_preamble() -> String;
             fn get_call() -> String;
         }
