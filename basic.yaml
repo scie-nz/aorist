@@ -145,6 +145,7 @@ spec:
   root: GzipCompression
   requires:
     - DownloadDataFromRemote
+  requiresProgram: true
 ---
 type: Constraint
 spec:
@@ -160,20 +161,40 @@ spec:
   dialect: Python
   preamble: |
     from google.cloud import storage
-    def download_blob_to_file(bucket_name, blob_name, file_name):
+    def download_blob_to_file(bucket_name, blob_name, tmp_dir, file_name):
       client = storage.Client.from_service_account_json('/gcloud/social_norms.json')
       bucket = client.bucket(bucket_name)
       blob = bucket.blob(blob_name)
-      blob.download_to_filename(file_name)
+      dest = "%s/%s" % (tmp_dir, file_name)
+      blob.download_to_filename(dest)
   call: download_blob_to_file
   parameters:
     - call: gcs_location.bucket
       attaches: GCSLocation 
     - call: gcs_location.blob
       attaches: GCSLocation
-    - call: format!("{}/tmp123", remote_import_storage_setup.tmp_dir) 
+    - call: remote_import_storage_setup.tmp_dir 
       attaches: RemoteImportStorageSetup
+    - call: static_data_table.name
+      attaches: StaticDataTable
   crate: location
+---
+type: Program
+spec:
+  use: Decompress
+  root: GzipCompression
+  dialect: Bash
+  preamble: |
+      function unzip_file() {
+          gunzip $1/$2
+      }
+  call: gunzip
+  parameters:
+    - call: remote_import_storage_setup.tmp_dir 
+      attaches: RemoteImportStorageSetup
+    - call: static_data_table.name
+      attaches: StaticDataTable
+  crate: compression
 ---
 type: DataSetup
 spec:

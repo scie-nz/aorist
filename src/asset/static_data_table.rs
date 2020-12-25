@@ -17,7 +17,7 @@ use uuid::Uuid;
 #[derive(Derivative, Serialize, Deserialize, Clone, Constrainable)]
 #[derivative(PartialEq, Debug)]
 pub struct StaticDataTable {
-    name: String,
+    pub name: String,
     #[constrainable]
     setup: StorageSetup,
     #[constrainable]

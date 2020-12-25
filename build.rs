@@ -332,7 +332,6 @@ fn main() {
     process_constraints(&raw_objects);
 
     let programs = get_raw_objects_of_type(&raw_objects, "Program".into());
-    assert_eq!(programs.len(), 1);
     let mut scope = Scope::new();
     let mut by_uses: HashMap<String, HashMap<String, HashMap<String, HashMap<String, Value>>>> =
         HashMap::new();
@@ -413,7 +412,10 @@ fn main() {
                     root=program.get("root").unwrap().as_str().unwrap(),
                     constraint=program.get("use").unwrap().as_str().unwrap(),
                     dialect=program.get("dialect").unwrap().as_str().unwrap(),
-                    preamble=program.get("preamble").unwrap().as_str().unwrap(),
+                    preamble=program.get("preamble").unwrap().as_str().unwrap().to_string().replace(
+                        "\"",
+                        "\\\""
+                    ),
                     call=program.get("call").unwrap().as_str().unwrap(),
                     fmt_params=format_strings.join(", "),
                     params=params.join(", "),

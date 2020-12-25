@@ -199,6 +199,18 @@ macro_rules! define_constraint {
                 root_uuid: Uuid,
                 $([<$required:snake:lower>] : Vec<Arc<RwLock<Constraint>>>,)+
             }
+            pub trait $satisfy_type<'a> : ConstraintSatisfactionBase<ConstraintType=$element, RootType=$root> {
+                type Dialect;
+
+                // computes a parameter tuple as a string, e.g. to be called from
+                // Python
+                fn compute_parameter_tuple(
+                    root: Concept<'a>,
+                    ancestry: Arc<ConceptAncestry<'a>>,
+                ) -> String;
+                fn get_preamble() -> String;
+                fn get_call() -> String;
+            }
             impl $element {
                 pub fn get_uuid(&self) -> Uuid {
                     self.id.clone()
@@ -268,12 +280,6 @@ macro_rules! define_constraint {
                         $([<$required:snake:lower>],)+
                     }
                 }
-            }
-            pub trait $satisfy_type: ConstraintSatisfactionBase<ConstraintType=$element, RootType=$root> {
-                fn satisfy(
-                    root: &<Self as ConstraintSatisfactionBase>::RootType,
-                    constraint: &<Self as ConstraintSatisfactionBase>::ConstraintType,
-                ) -> String;
             }
             impl TConstraint for $element {
                 type Root = $root;

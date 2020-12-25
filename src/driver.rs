@@ -2,7 +2,7 @@ use crate::concept::{AoristConcept, Concept, ConceptAncestry};
 use crate::constraint::{AllConstraintsSatisfiability, AoristConstraint, Constraint};
 use crate::data_setup::ParsedDataSetup;
 use crate::object::TAoristObject;
-use aorist_primitives::{Dialect, Python};
+use aorist_primitives::{Dialect, Bash, Python};
 use indoc::formatdoc;
 use std::collections::{HashMap, HashSet};
 use std::sync::{Arc, RwLock};
@@ -188,12 +188,6 @@ impl<'a> Driver<'a> {
                     .get(&(root_uuid.clone(), constraint.root.clone()))
                     .unwrap();
 
-                let ds_uuid = self
-                    .ancestry
-                    .parsed_data_setup(root.clone())
-                    .unwrap()
-                    .get_uuid();
-                println!("ds_uuid: {}", ds_uuid);
 
                 let ancestors = self
                     .concept_ancestors
@@ -216,7 +210,10 @@ impl<'a> Driver<'a> {
                     }
                     Some(t) => t,
                 };
-                let preferences = vec![Dialect::Python(Python {})];
+                let preferences = vec![
+                    Dialect::Python(Python {}),
+                    Dialect::Bash(Bash {}),
+                ];
                 let ancestry = self.ancestry.clone();
                 let root_clone = root.clone();
                 let (preamble, call, params) = constraint
