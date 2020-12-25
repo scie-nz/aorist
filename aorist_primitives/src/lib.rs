@@ -32,7 +32,13 @@ macro_rules! register_programs_for_constraint {
     ($constraint:ident, $root: ident,
      $($dialect:ident, $element: ident),+) => {
         impl SatisfiableConstraint for $constraint {
-            fn satisfy<'a>(&self, c: &'a Concept<'a>, d: &Dialect) -> Option<(String, String, String)> {
+            fn satisfy<'a, 'b>(
+                &self,
+                c: &'a Concept<'a>,
+                d: &Dialect,
+                _ancestry: Arc<ConceptAncestry<'b>>,
+            ) -> Option<(String, String, String)> 
+            where 'b : 'a {
                 match d {
                     $(
                         Dialect::$dialect{..} => Some((
@@ -44,15 +50,16 @@ macro_rules! register_programs_for_constraint {
                     _ => None,
                 }
             }
-            fn satisfy_given_preference_ordering<'a>(
+            fn satisfy_given_preference_ordering<'a, 'b>(
                 &self,
                 c: &'a Concept<'a>,
-                preferences: &Vec<Dialect>
-            ) -> Result<(String, String, String), String> {
+                preferences: &Vec<Dialect>,
+                ancestry: Arc<ConceptAncestry<'b>>,
+            ) -> Result<(String, String, String), String> where 'b : 'a {
                 match c {
                     Concept::$root{..} => {
                         for d in preferences {
-                            if let Some(t) = self.satisfy(c, &d) {
+                            if let Some(t) = self.satisfy(c, &d, ancestry.clone()) {
                                 return Ok(t);
                             }
                         }
@@ -75,12 +82,12 @@ macro_rules! register_satisfiable_constraints {
                 &self,
                 c: &'a Concept<'a>,
                 preferences: &Vec<Dialect>,
-                _ancestry: Arc<ConceptAncestry<'b>>,
+                ancestry: Arc<ConceptAncestry<'b>>,
             ) -> Result<(String, String, String), String> where 'b : 'a {
                 match &self.inner {
                     $(
                         Some(AoristConstraint::$constraint(x)) =>
-                        x.satisfy_given_preference_ordering(c, preferences),
+                        x.satisfy_given_preference_ordering(c, preferences, ancestry),
                     )+
                     _ => Err("Constraint is not satisfiable (no program
                     provided).".to_string())

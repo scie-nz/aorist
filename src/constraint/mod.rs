@@ -24,19 +24,28 @@ where
 }
 
 pub trait SatisfiableConstraint: TConstraint {
-    fn satisfy<'a>(&self, c: &'a Concept<'a>, d: &Dialect) -> Option<(String, String, String)>;
-    fn satisfy_given_preference_ordering<'a>(
+    fn satisfy<'a, 'b>(
+        &self,
+        c: &'a Concept<'a>,
+        d: &Dialect,
+        ancestry: Arc<ConceptAncestry<'b>>,
+    ) -> Option<(String, String, String)>
+    where 'b: 'a;
+    fn satisfy_given_preference_ordering<'a, 'b>(
         &self,
         r: &'a Concept<'a>,
         preferences: &Vec<Dialect>,
-    ) -> Result<(String, String, String), String>;
+        ancestry: Arc<ConceptAncestry<'b>>,
+    ) -> Result<(String, String, String), String>
+    where
+        'b: 'a;
 }
 pub trait AllConstraintsSatisfiability {
     fn satisfy_given_preference_ordering<'a, 'b>(
         &self,
         c: &'a Concept<'a>,
         preferences: &Vec<Dialect>,
-        _ancestry: Arc<ConceptAncestry<'b>>,
+        ancestry: Arc<ConceptAncestry<'b>>,
     ) -> Result<(String, String, String), String>
     where
         'b: 'a;
