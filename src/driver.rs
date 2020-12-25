@@ -1,4 +1,4 @@
-use crate::concept::{Concept, ConceptAncestry, AoristConcept};
+use crate::concept::{AoristConcept, Concept, ConceptAncestry};
 use crate::constraint::{AllConstraintsSatisfiability, AoristConstraint, Constraint};
 use crate::data_setup::ParsedDataSetup;
 use crate::object::TAoristObject;
@@ -24,7 +24,7 @@ impl ConstraintState {
 
 pub struct Driver<'a> {
     _data_setup: &'a ParsedDataSetup,
-    pub concepts: HashMap<(Uuid, String), Concept<'a>>,
+    pub concepts: Arc<RwLock<HashMap<(Uuid, String), Concept<'a>>>>,
     constraints: HashMap<(Uuid, String), Arc<RwLock<Constraint>>>,
     satisfied_constraints: HashMap<(Uuid, String), Arc<RwLock<ConstraintState>>>,
     // map from: constraint_name => (dependent_constraint_names, constraints_by_uuid)
@@ -133,7 +133,7 @@ impl<'a> Driver<'a> {
         }
         Self {
             _data_setup: data_setup,
-            concepts: concept_map,
+            concepts: Arc::new(RwLock::new(concept_map)),
             constraints: constraints.clone(),
             satisfied_constraints: HashMap::new(),
             unsatisfied_constraints,
@@ -177,13 +177,13 @@ impl<'a> Driver<'a> {
             let constraint = rw.read().unwrap();
             if constraint.requires_program() {
                 let root_uuid = constraint.get_root_uuid();
-                let root = self
-                    .concepts
+                let guard = self.concepts.read().unwrap();
+                let root = guard
                     .get(&(root_uuid.clone(), constraint.root.clone()))
                     .unwrap();
-                println!("Parsed data setup: {}", ConceptAncestry{
+                /*println!("Parsed data setup: {}", ConceptAncestry{
                     parents: &self.concepts.clone()
-                }.parsed_data_setup(root).unwrap().get_uuid());
+                }.parsed_data_setup(root).unwrap().get_uuid());*/
                 let ancestors = self
                     .concept_ancestors
                     .get(&(root_uuid, constraint.root.clone()))
