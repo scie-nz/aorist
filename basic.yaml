@@ -188,7 +188,7 @@ spec:
       function unzip_file() {
           gunzip $1/$2
       }
-  call: gunzip
+  call: unzip_file
   parameters:
     - call: remote_import_storage_setup.tmp_dir 
       attaches: RemoteImportStorageSetup

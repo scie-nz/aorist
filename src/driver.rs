@@ -147,6 +147,124 @@ impl<'a> CodeBlock<'a> {
             })
             .collect()
     }
+    // TODO: move this to Dialect class
+    pub fn print_call(&self, constraint_name: String) {
+        match &self.dialect {
+            Some(Dialect::Python(_)) => {
+                let mut by_call: HashMap<String, Vec<Arc<RwLock<ConstraintState<'a>>>>> =
+                    HashMap::new();
+                for rw in &self.members {
+                    let maybe_call = rw.read().unwrap().get_call();
+                    if let Some(call) = maybe_call {
+                        by_call.entry(call).or_insert(Vec::new()).push(rw.clone());
+                    }
+                }
+                if by_call.len() == 1 {
+                    for (call, _) in by_call.iter() {
+                        println!(
+                            "{}",
+                            formatdoc!(
+                                "
+                            for k, v in params_{constraint}.items():
+                                tasks[k] = {call}(*v)
+                            ",
+                                constraint = constraint_name,
+                                call = call,
+                            )
+                        );
+                    }
+                } else if by_call.len() > 1 {
+                    for (call, rws) in by_call.iter() {
+                        println!(
+                            "{}",
+                            formatdoc!(
+                                "
+                            for k in [{ids}]:
+                                tasks[k] = {call}(*params_{constraint}[k])
+                            ",
+                                constraint = constraint_name,
+                                call = call,
+                                ids = rws
+                                    .iter()
+                                    .map(|x| format!("'{}'", x.read().unwrap().get_key().unwrap())
+                                        .to_string())
+                                    .collect::<Vec<String>>()
+                                    .join(
+                                        ",
+                                "
+                                    ),
+                            )
+                        );
+                    }
+                }
+            }
+            Some(Dialect::Bash(_)) => {
+                let mut by_call: HashMap<String, Vec<Arc<RwLock<ConstraintState<'a>>>>> =
+                    HashMap::new();
+                for rw in &self.members {
+                    let maybe_call = rw.read().unwrap().get_call();
+                    if let Some(call) = maybe_call {
+                        let maybe_preamble = rw.read().unwrap().get_preamble();
+                        if let Some(preamble) = maybe_preamble {
+                            by_call
+                                .entry(format!("{}\n{}", preamble, call).to_string())
+                                .or_insert(Vec::new())
+                                .push(rw.clone());
+                        } else {
+                            by_call.entry(call).or_insert(Vec::new()).push(rw.clone());
+                        }
+                    }
+                }
+                if by_call.len() == 1 {
+                    for (call, _) in by_call.iter() {
+                        println!(
+                            "{}",
+                            formatdoc!(
+                                "
+                        for k, v in params_{constraint}.items():
+                            tasks[k] = ShellTask(
+                                command=\"\"\"
+                                {call} %s
+                                \"\"\" % v.join(' '),
+                            )
+                        ",
+                                constraint = constraint_name,
+                                call = call.replace("\n", "\n        "),
+                            )
+                        );
+                    }
+                } else if by_call.len() > 1 {
+                    for (call, rws) in by_call.iter() {
+                        println!(
+                            "{}",
+                            formatdoc!(
+                                "
+                        for k, v in [{ids}]:
+                            tasks[k] = ShellTask(
+                                command=\"\"\"
+                                    {call} %s
+                                \"\"\" % params_{constraint}[k].join(' '),
+                            )
+                        ",
+                                constraint = constraint_name,
+                                call = call,
+                                ids = rws
+                                    .iter()
+                                    .map(|x| format!("'{}'", x.read().unwrap().get_key().unwrap())
+                                        .to_string())
+                                    .collect::<Vec<String>>()
+                                    .join(", ")
+                            )
+                        );
+                    }
+                }
+            }
+            None => {}
+            _ => {
+                panic!("Dialect not handled: {:?}", self.dialect.as_ref().unwrap());
+            }
+        }
+    }
 }
 
 pub struct ConstraintBlock<'a> {
@@ -200,6 +318,9 @@ impl<'a> ConstraintBlock<'a> {
                         .join(",\n    "),
                 )
             );
+        }
+        for (_i, member) in self.members.iter().enumerate() {
+            member.print_call(self.get_constraint_name());
         }
     }
 }
@@ -455,22 +576,6 @@ impl<'a> Driver<'a> {
         for (dialect, satisfied) in by_dialect.into_iter() {
             let block = CodeBlock::new(dialect, satisfied);
             blocks.push(block);
-        }
-
-        if calls.len() > 0 {
-            for ((call, constraint_name, _root_name), _params) in calls {
-                println!(
-                    "{}",
-                    formatdoc!(
-                        "
-                    for k, v in params_{constraint}.items():
-                        tasks[k] = {call}(*v)
-                    ",
-                        constraint = constraint_name,
-                        call = call,
-                    )
-                );
-            }
         }
 
         blocks
