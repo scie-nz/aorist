@@ -121,6 +121,7 @@ pub struct Driver<'a> {
     pub concepts: Arc<RwLock<HashMap<(Uuid, String), Concept<'a>>>>,
     constraints: HashMap<(Uuid, String), Arc<RwLock<Constraint>>>,
     satisfied_constraints: HashMap<(Uuid, String), Arc<RwLock<ConstraintState<'a>>>>,
+    blocks: Vec<Vec<Arc<RwLock<ConstraintState<'a>>>>>,
     // map from: constraint_name => (dependent_constraint_names, constraints_by_uuid)
     unsatisfied_constraints: HashMap<
         String,
@@ -246,6 +247,7 @@ impl<'a> Driver<'a> {
             satisfied_constraints: HashMap::new(),
             unsatisfied_constraints,
             ancestry: Arc::new(ancestry),
+            blocks: Vec::new(),
         }
     }
 
@@ -275,7 +277,6 @@ impl<'a> Driver<'a> {
         &mut self,
         constraint: RwLockReadGuard<'_, Constraint>,
         uuid: (Uuid, String),
-        preambles: &mut HashSet<String>,
         calls: &mut HashMap<(String, String, String), Vec<(String, String)>>,
         state: Arc<RwLock<ConstraintState<'a>>>,
     ) {
@@ -290,7 +291,6 @@ impl<'a> Driver<'a> {
 
         // TODO: preambles and calls are superflous
         let key = state.read().unwrap().key.as_ref().unwrap().clone();
-        preambles.insert(state.read().unwrap().get_preamble().unwrap());
         calls
             .entry((
                 state.read().unwrap().get_call().unwrap(),
@@ -304,20 +304,13 @@ impl<'a> Driver<'a> {
         &mut self,
         uuid: (Uuid, String),
         state: Arc<RwLock<ConstraintState<'a>>>,
-        preambles: &mut HashSet<String>,
         calls: &mut HashMap<(String, String, String), Vec<(String, String)>>,
         reverse_dependencies: &HashMap<(Uuid, String), HashSet<(String, Uuid, String)>>,
     ) {
         let rw = self.constraints.get(&uuid).unwrap().clone();
         let constraint = rw.read().unwrap();
         if constraint.requires_program() {
-            self.process_constraint_with_program(
-                constraint,
-                uuid.clone(),
-                preambles,
-                calls,
-                state.clone(),
-            );
+            self.process_constraint_with_program(constraint, uuid.clone(), calls, state.clone());
         }
         let read = state.read().unwrap();
         assert!(!read.satisfied);
@@ -343,8 +336,6 @@ impl<'a> Driver<'a> {
         let mut write = state.write().unwrap();
         write.satisfied = true;
         drop(write);
-
-        self.satisfied_constraints.insert(uuid, state.clone());
     }
 
     fn process_constraint_block(
@@ -352,23 +343,21 @@ impl<'a> Driver<'a> {
         block: &mut HashMap<(Uuid, String), Arc<RwLock<ConstraintState<'a>>>>,
         reverse_dependencies: &HashMap<(Uuid, String), HashSet<(String, Uuid, String)>>,
     ) {
-        let mut preambles: HashSet<String> = HashSet::new();
         // (call, constraint_name, root_name) => (uuid, call parameters)
         let mut calls: HashMap<(String, String, String), Vec<(String, String)>> = HashMap::new();
 
+        let mut satisfied: Vec<Arc<RwLock<ConstraintState<'a>>>> = Vec::new();
         for (id, state) in block.clone() {
             self.process_constraint_state(
-                id,
-                state,
-                &mut preambles,
+                id.clone(),
+                state.clone(),
                 &mut calls,
                 reverse_dependencies,
             );
+            self.satisfied_constraints.insert(id, state.clone());
+            satisfied.push(state.clone());
         }
-        print!(
-            "{}\n\n",
-            preambles.into_iter().collect::<Vec<String>>().join("\n\n")
-        );
+        self.blocks.push(satisfied);
         if calls.len() > 0 {
             for ((call, constraint_name, _root_name), params) in calls {
                 println!(
@@ -421,6 +410,18 @@ impl<'a> Driver<'a> {
                 break;
             }
         }
+        let preambles: HashSet<String> = self
+            .blocks
+            .iter()
+            .map(|x| x.iter().map(|y| y.read().unwrap().get_preamble()))
+            .flatten()
+            .filter(|x| x.is_some())
+            .map(|x| x.unwrap())
+            .collect();
+        print!(
+            "{}\n\n",
+            preambles.into_iter().collect::<Vec<String>>().join("\n\n")
+        );
         assert_eq!(self.unsatisfied_constraints.len(), 0);
     }
 }
