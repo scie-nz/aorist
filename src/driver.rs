@@ -131,6 +131,105 @@ impl<'a> ConstraintState<'a> {
     }
 }
 
+pub struct PrefectPythonTaskRender<'a> {
+    members: Vec<Arc<RwLock<ConstraintState<'a>>>>,
+}
+impl<'a> PrefectPythonTaskRender<'a> {
+    fn new(members: Vec<Arc<RwLock<ConstraintState<'a>>>>) -> Self {
+        Self { members }
+    }
+    pub fn render_dependencies(&self, constraint_name: String) -> String {
+        formatdoc!(
+            "
+        dependencies_{constraint} = {{ 
+            {dependencies} 
+        }}
+        ",
+            constraint = constraint_name,
+            dependencies = self
+                .members
+                .iter()
+                .map(|rw| {
+                    let x = rw.read().unwrap();
+                    formatdoc!(
+                        "
+               '{key}': [
+                   {deps}
+               ]",
+                        key = x.get_key().unwrap(),
+                        deps = x
+                            .get_satisfied_dependency_keys()
+                            .into_iter()
+                            .map(|y| format!("'{}'", y))
+                            .collect::<Vec<_>>()
+                            .join(",\n    "),
+                    )
+                    .to_string()
+                    .replace("\n", "\n    ")
+                })
+                .collect::<Vec<_>>()
+                .join(",\n    "),
+        )
+    }
+    fn render(&self, constraint_name: String) {
+        let mut by_call: HashMap<String, Vec<Arc<RwLock<ConstraintState<'a>>>>> = HashMap::new();
+        for rw in &self.members {
+            let maybe_call = rw.read().unwrap().get_call();
+            if let Some(call) = maybe_call {
+                by_call.entry(call).or_insert(Vec::new()).push(rw.clone());
+            }
+        }
+        if by_call.len() == 1 {
+            for (call, _) in by_call.iter() {
+                println!(
+                    "{}",
+                    formatdoc!(
+                        "
+                    {dependencies}
+                    for k, v in params_{constraint}.items():
+                        tasks[k] = {call}(*v)
+                    flow.add_node(tasks[k])
+                    for dep in dependencies_{constraint}[k]:
+                        flow.add_edge(tasks[dep], tasks[k])
+                    ",
+                        dependencies = self.render_dependencies(constraint_name.clone()),
+                        constraint = constraint_name,
+                        call = call,
+                    )
+                );
+            }
+        } else if by_call.len() > 1 {
+            for (call, rws) in by_call.iter() {
+                println!(
+                    "{}",
+                    formatdoc!(
+                        "
+                    {dependencies}
+                    for k in [{ids}]:
+                        tasks[k] = {call}(*params_{constraint}[k])
+                        flow.add_node(tasks[k])
+                        for dep in dependencies_{constraint}[k]:
+                            flow.add_edge(tasks[dep], tasks[k])
+                    ",
+                        dependencies = self.render_dependencies(constraint_name.clone()),
+                        constraint = constraint_name,
+                        call = call,
+                        ids = rws
+                            .iter()
+                            .map(|x| format!("'{}'", x.read().unwrap().get_key().unwrap())
+                                .to_string())
+                            .collect::<Vec<String>>()
+                            .join(
+                                ",
+                        "
+                            ),
+                    )
+                );
+            }
+        }
+    }
+}
+
 pub struct CodeBlock<'a> {
     dialect: Option<Dialect>,
     members: Vec<Arc<RwLock<ConstraintState<'a>>>>,
@@ -160,62 +259,7 @@ impl<'a> CodeBlock<'a> {
     pub fn print_call(&self, constraint_name: String) {
         match &self.dialect {
             Some(Dialect::Python(_)) => {
-                let mut by_call: HashMap<String, Vec<Arc<RwLock<ConstraintState<'a>>>>> =
-                    HashMap::new();
-                for rw in &self.members {
-                    let maybe_call = rw.read().unwrap().get_call();
-                    if let Some(call) = maybe_call {
-                        by_call.entry(call).or_insert(Vec::new()).push(rw.clone());
-                    }
-                }
-                if by_call.len() == 1 {
-                    for (call, _) in by_call.iter() {
-                        println!(
-                            "{}",
-                            formatdoc!(
-                                "
-                            {dependencies}
-                            for k, v in params_{constraint}.items():
-                                tasks[k] = {call}(*v)
-                            flow.add_node(tasks[k])
-                            for dep in dependencies_{constraint}[k]:
-                                flow.add_edge(tasks[dep], tasks[k])
-                            ",
-                                dependencies = self.render_dependencies(constraint_name.clone()),
-                                constraint = constraint_name,
-                                call = call,
-                            )
-                        );
-                    }
-                } else if by_call.len() > 1 {
-                    for (call, rws) in by_call.iter() {
-                        println!(
-                            "{}",
-                            formatdoc!(
-                                "
-                            {dependencies}
-                            for k in [{ids}]:
-                                tasks[k] = {call}(*params_{constraint}[k])
-                                flow.add_node(tasks[k])
-                                for dep in dependencies_{constraint}[k]:
-                                    flow.add_edge(tasks[dep], tasks[k])
-                            ",
-                                dependencies = self.render_dependencies(constraint_name.clone()),
-                                constraint = constraint_name,
-                                call = call,
-                                ids = rws
-                                    .iter()
-                                    .map(|x| format!("'{}'", x.read().unwrap().get_key().unwrap())
-                                        .to_string())
-                                    .collect::<Vec<String>>()
-                                    .join(
-                                        ",
-                                "
-                                    ),
-                            )
-                        );
-                    }
-                }
+                PrefectPythonTaskRender::new(self.members.clone()).render(constraint_name)
             }
             Some(Dialect::Bash(_)) => {
                 let mut by_call: HashMap<String, Vec<Arc<RwLock<ConstraintState<'a>>>>> =
