@@ -239,7 +239,7 @@ impl<'a> CodeBlock<'a> {
                             "{}",
                             formatdoc!(
                                 "
-                        for k, v in [{ids}]:
+                        for k in [{ids}]:
                             tasks[k] = ShellTask(
                                 command=\"\"\"
                                     {call} %s
@@ -259,7 +259,24 @@ impl<'a> CodeBlock<'a> {
                     }
                 }
             }
-            None => {}
+            None => {
+                println!(
+                    "{}",
+                    formatdoc!(
+                        "
+                for k in [{ids}]:
+                    tasks[k] = ConstantTask('{constraint}')
+                ",
+                        constraint = constraint_name,
+                        ids = self.members
+                            .iter()
+                            .map(|x| format!("'{}'", x.read().unwrap().get_key().unwrap())
+                                .to_string())
+                            .collect::<Vec<String>>()
+                            .join(", ")
+                    )
+                );
+            }
             _ => {
                 panic!("Dialect not handled: {:?}", self.dialect.as_ref().unwrap());
             }
