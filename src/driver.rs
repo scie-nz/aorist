@@ -48,6 +48,9 @@ impl<'a> ConstraintState<'a> {
     pub fn get_call(&self) -> Option<String> {
         self.call.clone()
     }
+    pub fn get_dialect(&self) -> Option<Dialect> {
+        self.dialect.clone()
+    }
     fn satisfy(&mut self, preferences: &Vec<Dialect>, ancestry: Arc<ConceptAncestry<'a>>) {
         let root_clone = self.root.clone();
         let constraint = self.constraint.read().unwrap();
@@ -117,21 +120,22 @@ impl<'a> ConstraintState<'a> {
 }
 
 pub struct CodeBlock<'a> {
+    dialect: Dialect,
     members: Vec<Arc<RwLock<ConstraintState<'a>>>>,
 }
-impl <'a> CodeBlock<'a> {
-    pub fn new(
-        members: Vec<Arc<RwLock<ConstraintState<'a>>>>,
-    ) -> Self {
-        Self { members }
+impl<'a> CodeBlock<'a> {
+    pub fn new(dialect: Dialect, members: Vec<Arc<RwLock<ConstraintState<'a>>>>) -> Self {
+        Self { dialect, members }
     }
     pub fn get_preambles(&self) -> HashSet<String> {
-        self.members.iter().map(|x| x.read().unwrap().get_preamble())
-        .filter(|x| x.is_some())
-        .map(|x| x.unwrap()).collect()
+        self.members
+            .iter()
+            .map(|x| x.read().unwrap().get_preamble())
+            .filter(|x| x.is_some())
+            .map(|x| x.unwrap())
+            .collect()
     }
 }
-
 
 pub struct Driver<'a> {
     _data_setup: &'a ParsedDataSetup,
@@ -363,7 +367,8 @@ impl<'a> Driver<'a> {
         // (call, constraint_name, root_name) => (uuid, call parameters)
         let mut calls: HashMap<(String, String, String), Vec<(String, String)>> = HashMap::new();
 
-        let mut satisfied: Vec<Arc<RwLock<ConstraintState<'a>>>> = Vec::new();
+        let mut by_dialect: HashMap<Dialect, Vec<Arc<RwLock<ConstraintState<'a>>>>> =
+            HashMap::new();
         for (id, state) in block.clone() {
             self.process_constraint_state(
                 id.clone(),
@@ -372,9 +377,14 @@ impl<'a> Driver<'a> {
                 reverse_dependencies,
             );
             self.satisfied_constraints.insert(id, state.clone());
-            satisfied.push(state.clone());
+            by_dialect
+                .entry(state.read().unwrap().get_dialect().unwrap())
+                .or_insert(Vec::new())
+                .push(state.clone());
         }
-        self.blocks.push(CodeBlock::new(satisfied));
+        for (dialect, satisfied) in by_dialect.into_iter() {
+            self.blocks.push(CodeBlock::new(dialect, satisfied));
+        }
 
         if calls.len() > 0 {
             for ((call, constraint_name, _root_name), params) in calls {
