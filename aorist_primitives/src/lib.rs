@@ -264,7 +264,13 @@ macro_rules! define_constraint {
                                 arc = arc_down.get(0).unwrap().clone();
                                 arc_down = arc.read().unwrap().get_downstream_constraints();
                             }
-                            downstream.push(arc.clone());
+                            if arc_down.len() == 0 {
+                                downstream.push(arc.clone());
+                            } else {
+                                for el in arc_down {
+                                    downstream.push(el);
+                                }
+                            }
                         }
                     )+
                     downstream
