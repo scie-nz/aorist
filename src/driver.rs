@@ -14,6 +14,7 @@ pub struct ConstraintState<'a> {
     name: String,
     satisfied: bool,
     satisfied_dependencies: Vec<(Uuid, String)>,
+    satisfied_dependency_keys: Vec<String>,
     unsatisfied_dependencies: HashSet<(Uuid, String)>,
     constraint: Arc<RwLock<Constraint>>,
     root: Concept<'a>,
@@ -25,6 +26,9 @@ pub struct ConstraintState<'a> {
     params: Option<String>,
 }
 impl<'a> ConstraintState<'a> {
+    pub fn get_satisfied_dependency_keys(&self) -> Vec<String> {
+        self.satisfied_dependency_keys.clone()
+    }
     pub fn get_name(&self) -> String {
         self.name.clone()
     }
@@ -94,6 +98,7 @@ impl<'a> ConstraintState<'a> {
             satisfied: false,
             unsatisfied_dependencies: dependencies,
             satisfied_dependencies: Vec::new(),
+            satisfied_dependency_keys: Vec::new(),
             constraint,
             root,
             ancestors: ancestors.clone(),
@@ -102,7 +107,10 @@ impl<'a> ConstraintState<'a> {
             params: None,
         }
     }
-    fn compute_task_name(&mut self, ancestors: &Vec<(Uuid, String, Option<String>, usize)>) {
+    fn compute_task_name(
+        &mut self,
+        ancestors: &Vec<(Uuid, String, Option<String>, usize)>,
+    ) -> String {
         self.key = Some(match self.root.get_tag() {
             None => {
                 let mut relative_path: String = "".to_string();
@@ -119,6 +127,7 @@ impl<'a> ConstraintState<'a> {
             }
             Some(t) => t,
         });
+        self.key.as_ref().unwrap().clone()
     }
 }
 
@@ -264,11 +273,40 @@ impl<'a> CodeBlock<'a> {
                     "{}",
                     formatdoc!(
                         "
+                dependencies_{constraint} = {{ 
+                    {dependencies} 
+                }}
                 for k in [{ids}]:
                     tasks[k] = ConstantTask('{constraint}')
+                    for dep in dependencies_{constraint}[k]:
+                        flow.add_edge(tasks[dep], tasks[k])
                 ",
                         constraint = constraint_name,
-                        ids = self.members
+                        dependencies = self
+                            .members
+                            .iter()
+                            .map(|rw| {
+                                let x = rw.read().unwrap();
+                                formatdoc!(
+                                    "
+                       '{key}': [
+                           {deps}
+                       ]",
+                                    key = x.get_key().unwrap(),
+                                    deps = x
+                                        .get_satisfied_dependency_keys()
+                                        .into_iter()
+                                        .map(|y| format!("'{}'", y))
+                                        .collect::<Vec<_>>()
+                                        .join(",\n    "),
+                                )
+                                .to_string()
+                                .replace("\n", "\n    ")
+                            })
+                            .collect::<Vec<_>>()
+                            .join(",\n    "),
+                        ids = self
+                            .members
                             .iter()
                             .map(|x| format!("'{}'", x.read().unwrap().get_key().unwrap())
                                 .to_string())
@@ -535,7 +573,7 @@ impl<'a> Driver<'a> {
     ) {
         let mut write = state.write().unwrap();
         let ancestors = write.get_ancestors();
-        write.compute_task_name(&ancestors);
+        let key = write.compute_task_name(&ancestors);
         assert!(!write.satisfied);
         assert_eq!(write.unsatisfied_dependencies.len(), 0);
         drop(write);
@@ -557,6 +595,7 @@ impl<'a> Driver<'a> {
                     .unwrap();
                 let mut write = rw.write().unwrap();
                 write.satisfied_dependencies.push(uuid.clone());
+                write.satisfied_dependency_keys.push(key.clone());
                 write.unsatisfied_dependencies.remove(&uuid);
                 drop(write);
             }
