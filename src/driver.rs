@@ -165,13 +165,6 @@ pub trait PrefectTaskRender<'a> {
                 .join(",\n    "),
         )
     }
-    fn render_single_call(&self, call_name: String, constraint_name: String);
-    fn render_multiple_calls(
-        &self,
-        call_name: String,
-        constraint_name: String,
-        rws: &Vec<Arc<RwLock<ConstraintState<'a>>>>,
-    );
 }
 trait PrefectTaskRenderWithCalls<'a>: PrefectTaskRender<'a> {
     fn extract_call_for_rendering(rw: Arc<RwLock<ConstraintState<'a>>>) -> Option<String> {
@@ -196,6 +189,13 @@ trait PrefectTaskRenderWithCalls<'a>: PrefectTaskRender<'a> {
             }
         }
     }
+    fn render_single_call(&self, call_name: String, constraint_name: String);
+    fn render_multiple_calls(
+        &self,
+        call_name: String,
+        constraint_name: String,
+        rws: &Vec<Arc<RwLock<ConstraintState<'a>>>>,
+    );
 }
 
 pub struct PrefectPythonTaskRender<'a> {
@@ -205,6 +205,8 @@ impl<'a> PrefectTaskRender<'a> for PrefectPythonTaskRender<'a> {
     fn get_constraints(&self) -> &Vec<Arc<RwLock<ConstraintState<'a>>>> {
         &self.members
     }
+}
+impl<'a> PrefectTaskRenderWithCalls<'a> for PrefectPythonTaskRender<'a> {
     fn render_single_call(&self, call_name: String, constraint_name: String) {
         println!(
             "{}",
@@ -255,7 +257,6 @@ impl<'a> PrefectTaskRender<'a> for PrefectPythonTaskRender<'a> {
         );
     }
 }
-impl<'a> PrefectTaskRenderWithCalls<'a> for PrefectPythonTaskRender<'a> {}
 impl<'a> PrefectPythonTaskRender<'a> {
     fn new(members: Vec<Arc<RwLock<ConstraintState<'a>>>>) -> Self {
         Self { members }
@@ -267,6 +268,21 @@ pub struct PrefectShellTaskRender<'a> {
 impl<'a> PrefectTaskRender<'a> for PrefectShellTaskRender<'a> {
     fn get_constraints(&self) -> &Vec<Arc<RwLock<ConstraintState<'a>>>> {
         &self.members
+    }
+}
+impl<'a> PrefectTaskRenderWithCalls<'a> for PrefectShellTaskRender<'a> {
+    fn extract_call_for_rendering(rw: Arc<RwLock<ConstraintState<'a>>>) -> Option<String> {
+        let maybe_call = rw.read().unwrap().get_call();
+        match maybe_call {
+            Some(call) => {
+                let maybe_preamble = rw.read().unwrap().get_preamble();
+                match maybe_preamble {
+                    Some(preamble) => Some(format!("{}\n{}", preamble, call).to_string()),
+                    None => Some(call),
+                }
+            }
+            None => None,
+        }
     }
     fn render_single_call(&self, call_name: String, constraint_name: String) {
         println!(
@@ -323,24 +339,45 @@ impl<'a> PrefectTaskRender<'a> for PrefectShellTaskRender<'a> {
         );
     }
 }
-impl<'a> PrefectTaskRenderWithCalls<'a> for PrefectShellTaskRender<'a> {
-    fn extract_call_for_rendering(rw: Arc<RwLock<ConstraintState<'a>>>) -> Option<String> {
-        let maybe_call = rw.read().unwrap().get_call();
-        match maybe_call {
-            Some(call) => {
-                let maybe_preamble = rw.read().unwrap().get_preamble();
-                match maybe_preamble {
-                    Some(preamble) => Some(format!("{}\n{}", preamble, call).to_string()),
-                    None => Some(call),
-                }
-            }
-            None => None,
-        }
-    }
-}
 impl<'a> PrefectShellTaskRender<'a> {
     fn new(members: Vec<Arc<RwLock<ConstraintState<'a>>>>) -> Self {
         Self { members }
+    }
+}
+pub struct PrefectConstantTaskRender<'a> {
+    members: Vec<Arc<RwLock<ConstraintState<'a>>>>,
+}
+impl<'a> PrefectConstantTaskRender<'a> {
+    fn new(members: Vec<Arc<RwLock<ConstraintState<'a>>>>) -> Self {
+        Self { members }
+    }
+    fn render(&self, constraint_name: String) {
+        println!(
+            "{}",
+            formatdoc!(
+                "
+                {dependencies}
+                for k in [{ids}]:
+                    tasks[k] = ConstantTask('{constraint}')
+                    flow.add_node(tasks[k])
+                    for dep in dependencies_{constraint}[k]:
+                        flow.add_edge(tasks[dep], tasks[k])
+                ",
+                constraint = constraint_name,
+                dependencies = self.render_dependencies(constraint_name.clone()),
+                ids = self
+                    .members
+                    .iter()
+                    .map(|x| format!("'{}'", x.read().unwrap().get_key().unwrap()).to_string())
+                    .collect::<Vec<String>>()
+                    .join(", ")
+            )
+        );
+    }
+}
+impl<'a> PrefectTaskRender<'a> for PrefectConstantTaskRender<'a> {
+    fn get_constraints(&self) -> &Vec<Arc<RwLock<ConstraintState<'a>>>> {
+        &self.members
     }
 }
 
@@ -378,30 +415,7 @@ impl<'a> CodeBlock<'a> {
             Some(Dialect::Bash(_)) => {
                 PrefectShellTaskRender::new(self.members.clone()).render(constraint_name)
             }
-            None => {
-                println!(
-                    "{}",
-                    formatdoc!(
-                        "
-                {dependencies}
-                for k in [{ids}]:
-                    tasks[k] = ConstantTask('{constraint}')
-                    flow.add_node(tasks[k])
-                    for dep in dependencies_{constraint}[k]:
-                        flow.add_edge(tasks[dep], tasks[k])
-                ",
-                        constraint = constraint_name,
-                        dependencies = self.render_dependencies(constraint_name.clone()),
-                        ids = self
-                            .members
-                            .iter()
-                            .map(|x| format!("'{}'", x.read().unwrap().get_key().unwrap())
-                                .to_string())
-                            .collect::<Vec<String>>()
-                            .join(", ")
-                    )
-                );
-            }
+            None => PrefectConstantTaskRender::new(self.members.clone()).render(constraint_name),
             _ => {
                 panic!("Dialect not handled: {:?}", self.dialect.as_ref().unwrap());
             }
