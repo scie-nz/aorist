@@ -601,29 +601,29 @@
 <path fill="none" stroke="#000000" d="M706.7838,-767.3553C648.4432,-757.4116 526.3145,-736.4992 423.1525,-718.2 415.857,-716.9059 408.2614,-715.5465 400.6654,-714.179"/>
 <polygon fill="#000000" stroke="#000000" points="401.1672,-710.7131 390.7046,-712.3814 399.924,-717.6018 401.1672,-710.7131"/>
 </g>
-<!-- DownloadDataFromRemoteGCSLocation -->
-<g id="node48" class="node">
-<title>DownloadDataFromRemoteGCSLocation</title>
-<polygon fill="#ffffff" stroke="#ff0000" points="2297.3539,-324.8 2024.9512,-324.8 2024.9512,-288.8 2297.3539,-288.8 2297.3539,-324.8"/>
-<text text-anchor="middle" x="2161.1525" y="-302.6" font-family="Helvetica,sans-Serif" font-size="14.00" fill="#ff0000">DownloadDataFromRemoteGCSLocation</text>
-</g>
-<!-- DownloadDataFromRemoteGCSLocation&#45;&gt;GCSLocation -->
-<g id="edge49" class="edge">
-<title>DownloadDataFromRemoteGCSLocation&#45;&gt;GCSLocation</title>
-<path fill="none" stroke="#ff0000" d="M2148.1201,-288.6608C2137.0464,-273.6749 2120.4031,-252.1268 2104.1525,-234.8 2094.125,-224.1084 2082.3148,-213.1348 2071.7704,-203.8298"/>
-<polygon fill="#ff0000" stroke="#ff0000" points="2073.8456,-200.9959 2064.0043,-197.0716 2069.2504,-206.2765 2073.8456,-200.9959"/>
-</g>
 <!-- ReplicatedSchema -->
-<g id="node49" class="node">
+<g id="node48" class="node">
 <title>ReplicatedSchema</title>
 <polygon fill="#ffffff" stroke="#ff0000" points="1556.1218,-953 1422.1833,-953 1422.1833,-917 1556.1218,-917 1556.1218,-953"/>
 <text text-anchor="middle" x="1489.1525" y="-930.8" font-family="Helvetica,sans-Serif" font-size="14.00" fill="#ff0000">ReplicatedSchema</text>
 </g>
 <!-- ReplicatedSchema&#45;&gt;StaticDataTable -->
-<g id="edge50" class="edge">
+<g id="edge49" class="edge">
 <title>ReplicatedSchema&#45;&gt;StaticDataTable</title>
 <path fill="none" stroke="#ff0000" d="M1489.1525,-916.9551C1489.1525,-908.8828 1489.1525,-899.1764 1489.1525,-890.1817"/>
 <polygon fill="#ff0000" stroke="#ff0000" points="1492.6526,-890.0903 1489.1525,-880.0904 1485.6526,-890.0904 1492.6526,-890.0903"/>
+</g>
+<!-- DownloadDataFromRemoteGCSLocation -->
+<g id="node49" class="node">
+<title>DownloadDataFromRemoteGCSLocation</title>
+<polygon fill="#ffffff" stroke="#ff0000" points="2297.3539,-324.8 2024.9512,-324.8 2024.9512,-288.8 2297.3539,-288.8 2297.3539,-324.8"/>
+<text text-anchor="middle" x="2161.1525" y="-302.6" font-family="Helvetica,sans-Serif" font-size="14.00" fill="#ff0000">DownloadDataFromRemoteGCSLocation</text>
+</g>
+<!-- DownloadDataFromRemoteGCSLocation&#45;&gt;GCSLocation -->
+<g id="edge50" class="edge">
+<title>DownloadDataFromRemoteGCSLocation&#45;&gt;GCSLocation</title>
+<path fill="none" stroke="#ff0000" d="M2148.1201,-288.6608C2137.0464,-273.6749 2120.4031,-252.1268 2104.1525,-234.8 2094.125,-224.1084 2082.3148,-213.1348 2071.7704,-203.8298"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="2073.8456,-200.9959 2064.0043,-197.0716 2069.2504,-206.2765 2073.8456,-200.9959"/>
 </g>
 <!-- DownloadDataFromRemote -->
 <g id="node50" class="node">

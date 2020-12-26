@@ -148,6 +148,9 @@ macro_rules! define_constraint {
             pub fn get_downstream_constraints(&self) -> Vec<Arc<RwLock<Constraint>>> {
                 Vec::new()
             }
+            pub fn get_downstream_constraints_ignore_chains(&self) -> Vec<Arc<RwLock<Constraint>>> {
+                Vec::new()
+            }
             pub fn get_uuid(&self) -> Uuid {
                 self.id.clone()
             }
@@ -245,6 +248,27 @@ macro_rules! define_constraint {
                     )+
                     downstream
                 }
+                pub fn get_downstream_constraints_ignore_chains(&self) -> Vec<Arc<RwLock<Constraint>>> {
+                    let mut downstream: Vec<Arc<RwLock<Constraint>>> = Vec::new();
+                    $(
+                        if self.[<$required:snake:lower>].len() != 1 {
+                            for arc in &self.[<$required:snake:lower>] {
+                                downstream.push(arc.clone());
+                            }
+                        } else {
+                            let mut arc: Arc<RwLock<Constraint>> =
+                            self.[<$required:snake:lower>].get(0).unwrap().clone();
+                            let mut arc_down: Vec<Arc<RwLock<Constraint>>> =
+                            arc.read().unwrap().get_downstream_constraints();
+                            while arc_down.len() == 1 {
+                                arc = arc_down.get(0).unwrap().clone();
+                                arc_down = arc.read().unwrap().get_downstream_constraints();
+                            }
+                            downstream.push(arc.clone());
+                        }
+                    )+
+                    downstream
+                }
                 pub fn new(root_uuid: Uuid,
                            potential_child_constraints: Vec<Arc<RwLock<Constraint>>>) -> Self {
                     // TODO: we should dedupe potential child constraints
@@ -308,6 +332,14 @@ macro_rules! register_constraint {
                 match self {
                     $(
                         Self::$element(x) => x.get_downstream_constraints(),
+                    )+
+                }
+            }
+            pub fn get_downstream_constraints_ignore_chains(&self) -> Vec<Arc<RwLock<Constraint>>> {
+                match self {
+                    $(
+                        Self::$element(x) =>
+                        x.get_downstream_constraints_ignore_chains(),
                     )+
                 }
             }

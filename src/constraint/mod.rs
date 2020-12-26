@@ -80,6 +80,12 @@ impl Constraint {
         }
         panic!("Called get_downstream_constraints() on a Constraint struct with no inner");
     }
+    pub fn get_downstream_constraints_ignore_chains(&self) -> Vec<Arc<RwLock<Constraint>>> {
+        if let Some(c) = &self.inner {
+            return c.get_downstream_constraints_ignore_chains();
+        }
+        panic!("Called get_downstream_constraints() on a Constraint struct with no inner");
+    }
     pub fn ingest_upstream_constraints(
         &mut self,
         upstream_constraints: Vec<Arc<RwLock<Constraint>>>,

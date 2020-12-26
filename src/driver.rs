@@ -83,7 +83,7 @@ impl<'a> ConstraintState<'a> {
             .unwrap()
             .clone();
         let dependencies = x
-            .get_downstream_constraints()
+            .get_downstream_constraints_ignore_chains()
             .iter()
             .map(|x| (x.read().unwrap().get_uuid(), x.read().unwrap().root.clone()))
             .collect::<HashSet<_>>();
