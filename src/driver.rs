@@ -8,7 +8,7 @@ use std::collections::{HashMap, HashSet};
 use std::sync::{Arc, RwLock, RwLockReadGuard};
 use uuid::Uuid;
 
-struct ConstraintState {
+struct ConstraintState<'a> {
     _uuid: Uuid,
     _root_type: String,
     dialect: Option<Dialect>,
@@ -17,8 +17,10 @@ struct ConstraintState {
     satisfied: bool,
     satisfied_dependencies: Vec<(Uuid, String)>,
     unsatisfied_dependencies: HashSet<(Uuid, String)>,
+    constraint: Arc<RwLock<Constraint>>,
+    root: Concept<'a>,
 }
-impl ConstraintState {
+impl<'a> ConstraintState<'a> {
     pub fn get_name(&self) -> String {
         self.name.clone()
     }
@@ -27,6 +29,8 @@ impl ConstraintState {
         _root_type: String,
         name: String,
         dependencies: HashSet<(Uuid, String)>,
+        constraint: Arc<RwLock<Constraint>>,
+        root: Concept<'a>,
     ) -> Self {
         Self {
             _uuid,
@@ -37,14 +41,12 @@ impl ConstraintState {
             satisfied: false,
             unsatisfied_dependencies: dependencies,
             satisfied_dependencies: Vec::new(),
+            constraint,
+            root,
         }
     }
-    fn compute_task_name<'a>(
-        &mut self,
-        root: Concept<'a>,
-        ancestors: &Vec<(Uuid, String, Option<String>, usize)>,
-    ) {
-        self.key = Some(match root.get_tag() {
+    fn compute_task_name(&mut self, ancestors: &Vec<(Uuid, String, Option<String>, usize)>) {
+        self.key = Some(match self.root.get_tag() {
             None => {
                 let mut relative_path: String = "".to_string();
                 for (_, ancestor_type, tag, ix) in ancestors.iter().rev() {
@@ -56,7 +58,7 @@ impl ConstraintState {
                         relative_path = format!("{}_of_{}_{}", relative_path, ancestor_type, ix);
                     }
                 }
-                format!("{}{}", root.get_type(), relative_path)
+                format!("{}{}", self.root.get_type(), relative_path)
             }
             Some(t) => t,
         });
@@ -67,13 +69,13 @@ pub struct Driver<'a> {
     _data_setup: &'a ParsedDataSetup,
     pub concepts: Arc<RwLock<HashMap<(Uuid, String), Concept<'a>>>>,
     constraints: HashMap<(Uuid, String), Arc<RwLock<Constraint>>>,
-    satisfied_constraints: HashMap<(Uuid, String), Arc<RwLock<ConstraintState>>>,
+    satisfied_constraints: HashMap<(Uuid, String), Arc<RwLock<ConstraintState<'a>>>>,
     // map from: constraint_name => (dependent_constraint_names, constraints_by_uuid)
     unsatisfied_constraints: HashMap<
         String,
         (
             HashSet<String>,
-            HashMap<(Uuid, String), Arc<RwLock<ConstraintState>>>,
+            HashMap<(Uuid, String), Arc<RwLock<ConstraintState<'a>>>>,
         ),
     >,
     concept_ancestors: HashMap<(Uuid, String), Vec<(Uuid, String, Option<String>, usize)>>,
@@ -128,18 +130,26 @@ impl<'a> Driver<'a> {
     }
     fn get_unsatisfied_constraints(
         constraints: &HashMap<(Uuid, String), Arc<RwLock<Constraint>>>,
+        concepts: Arc<RwLock<HashMap<(Uuid, String), Concept<'a>>>>,
     ) -> HashMap<
         String,
         (
             HashSet<String>,
-            HashMap<(Uuid, String), Arc<RwLock<ConstraintState>>>,
+            HashMap<(Uuid, String), Arc<RwLock<ConstraintState<'a>>>>,
         ),
     > {
-        let raw_unsatisfied_constraints: HashMap<(Uuid, String), Arc<RwLock<ConstraintState>>> =
+        let raw_unsatisfied_constraints: HashMap<(Uuid, String), Arc<RwLock<ConstraintState<'a>>>> =
             constraints
                 .iter()
                 .map(|(k, rw)| {
                     let x = rw.read().unwrap();
+                    let root_uuid = x.get_root_uuid();
+                    let arc = concepts.clone();
+                    let guard = arc.read().unwrap();
+                    let root = guard
+                        .get(&(root_uuid.clone(), x.root.clone()))
+                        .unwrap()
+                        .clone();
                     let dependencies = x
                         .get_downstream_constraints()
                         .iter()
@@ -152,6 +162,8 @@ impl<'a> Driver<'a> {
                             k.1.clone(),
                             x.get_name().clone(),
                             dependencies,
+                            rw.clone(),
+                            root,
                         ))),
                     )
                 })
@@ -185,8 +197,10 @@ impl<'a> Driver<'a> {
 
         let constraints = data_setup.get_constraints_map();
         let ancestors = Self::compute_all_ancestors(concept, &concept_map);
-        let unsatisfied_constraints = Self::get_unsatisfied_constraints(&constraints);
         let concepts = Arc::new(RwLock::new(concept_map));
+        let unsatisfied_constraints =
+            Self::get_unsatisfied_constraints(&constraints, concepts.clone());
+
         let ancestry: ConceptAncestry<'a> = ConceptAncestry {
             parents: concepts.clone(),
         };
@@ -203,7 +217,7 @@ impl<'a> Driver<'a> {
 
     fn find_satisfiable_constraint_block(
         &mut self,
-    ) -> Option<HashMap<(Uuid, String), Arc<RwLock<ConstraintState>>>> {
+    ) -> Option<HashMap<(Uuid, String), Arc<RwLock<ConstraintState<'a>>>>> {
         let constraint_block_name = self
             .unsatisfied_constraints
             .iter()
@@ -229,7 +243,7 @@ impl<'a> Driver<'a> {
         uuid: (Uuid, String),
         preambles: &mut HashSet<String>,
         calls: &mut HashMap<(String, String, String), Vec<(String, String)>>,
-        state: Arc<RwLock<ConstraintState>>,
+        state: Arc<RwLock<ConstraintState<'a>>>,
     ) {
         let root_uuid = constraint.get_root_uuid();
         let guard = self.concepts.read().unwrap();
@@ -250,7 +264,7 @@ impl<'a> Driver<'a> {
 
         let mut write = state.write().unwrap();
         write.dialect = Some(dialect);
-        write.compute_task_name(root.clone(), &ancestors);
+        write.compute_task_name(&ancestors);
         drop(write);
 
         // TODO: move key, preamble, call to ConstraintState
@@ -264,7 +278,7 @@ impl<'a> Driver<'a> {
     fn process_constraint_state(
         &mut self,
         uuid: (Uuid, String),
-        state: Arc<RwLock<ConstraintState>>,
+        state: Arc<RwLock<ConstraintState<'a>>>,
         preambles: &mut HashSet<String>,
         calls: &mut HashMap<(String, String, String), Vec<(String, String)>>,
         reverse_dependencies: &HashMap<(Uuid, String), HashSet<(String, Uuid, String)>>,
@@ -310,7 +324,7 @@ impl<'a> Driver<'a> {
 
     fn process_constraint_block(
         &mut self,
-        block: &mut HashMap<(Uuid, String), Arc<RwLock<ConstraintState>>>,
+        block: &mut HashMap<(Uuid, String), Arc<RwLock<ConstraintState<'a>>>>,
         reverse_dependencies: &HashMap<(Uuid, String), HashSet<(String, Uuid, String)>>,
     ) {
         let mut preambles: HashSet<String> = HashSet::new();
