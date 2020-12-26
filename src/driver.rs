@@ -135,8 +135,12 @@ impl<'a> ConstraintState<'a> {
 }
 pub trait PrefectTaskRender<'a> {
     fn get_constraints(&self) -> &Vec<Arc<RwLock<ConstraintState<'a>>>>;
-    fn render_dependencies(&self, constraint_name: String) -> String {
-        formatdoc!(
+    fn render_dependencies(&self, constraint_name: String) -> Option<String> {
+        if self.get_constraints().iter().map(|x|
+        x.read().unwrap().get_satisfied_dependency_keys()).flatten().next().is_none() {
+            return None;
+        }
+        Some(formatdoc!(
             "
         dependencies_{constraint} = {{ 
             {dependencies} 
@@ -153,8 +157,7 @@ pub trait PrefectTaskRender<'a> {
                '{key}': [
                    {deps}
                ]",
-                        key = format!("{}_{}", constraint_name,
-                        x.get_key().unwrap()),
+                        key = format!("{}_{}", constraint_name, x.get_key().unwrap()),
                         deps = x
                             .get_satisfied_dependency_keys()
                             .into_iter()
@@ -167,7 +170,7 @@ pub trait PrefectTaskRender<'a> {
                 })
                 .collect::<Vec<_>>()
                 .join(",\n    "),
-        )
+        ))
     }
 }
 trait PrefectTaskRenderWithCalls<'a>: PrefectTaskRender<'a> {
@@ -212,22 +215,36 @@ impl<'a> PrefectTaskRender<'a> for PrefectPythonTaskRender<'a> {
 }
 impl<'a> PrefectTaskRenderWithCalls<'a> for PrefectPythonTaskRender<'a> {
     fn render_single_call(&self, call_name: String, constraint_name: String) {
-        println!(
-            "{}",
-            formatdoc!(
-                "
+        match self.render_dependencies(constraint_name.clone()) {
+            Some(dependencies) => println!(
+                "{}",
+                formatdoc!(
+                    "
             {dependencies}
             for k, v in params_{constraint}.items():
                 tasks[k] = {call}(*v)
-            flow.add_node(tasks[k])
-            for dep in dependencies_{constraint}[k]:
-                flow.add_edge(tasks[dep], tasks[k])
+                flow.add_node(tasks[k])
+                for dep in dependencies_{constraint}[k]:
+                    flow.add_edge(tasks[dep], tasks[k])
             ",
-                dependencies = self.render_dependencies(constraint_name.clone()),
-                constraint = constraint_name,
-                call = call_name,
-            )
-        );
+                    dependencies = dependencies,
+                    constraint = constraint_name,
+                    call = call_name,
+                )
+            ),
+            None => println!(
+                "{}",
+                formatdoc!(
+                    "
+            for k, v in params_{constraint}.items():
+                tasks[k] = {call}(*v)
+                flow.add_node(tasks[k])
+            ",
+                    constraint = constraint_name,
+                    call = call_name,
+                )
+            ),
+        }
     }
     fn render_multiple_calls(
         &self,
@@ -235,10 +252,11 @@ impl<'a> PrefectTaskRenderWithCalls<'a> for PrefectPythonTaskRender<'a> {
         constraint_name: String,
         rws: &Vec<Arc<RwLock<ConstraintState<'a>>>>,
     ) {
-        println!(
-            "{}",
-            formatdoc!(
-                "
+        match self.render_dependencies(constraint_name.clone()) {
+            Some(dependencies) => println!(
+                "{}",
+                formatdoc!(
+                    "
                     {dependencies}
                     for k in [{ids}]:
                         tasks[k] = {call}(*params_{constraint}[k])
@@ -246,19 +264,40 @@ impl<'a> PrefectTaskRenderWithCalls<'a> for PrefectPythonTaskRender<'a> {
                         for dep in dependencies_{constraint}[k]:
                             flow.add_edge(tasks[dep], tasks[k])
                     ",
-                dependencies = self.render_dependencies(constraint_name.clone()),
-                constraint = constraint_name,
-                call = call_name,
-                ids = rws
-                    .iter()
-                    .map(|x| format!("'{}'", x.read().unwrap().get_key().unwrap()).to_string())
-                    .collect::<Vec<String>>()
-                    .join(
-                        ",
+                    dependencies = dependencies,
+                    constraint = constraint_name,
+                    call = call_name,
+                    ids = rws
+                        .iter()
+                        .map(|x| format!("'{}'", x.read().unwrap().get_key().unwrap()).to_string())
+                        .collect::<Vec<String>>()
+                        .join(
+                            ",
                         "
-                    ),
-            )
-        );
+                        ),
+                )
+            ),
+            None => println!(
+                "{}",
+                formatdoc!(
+                    "
+                    for k in [{ids}]:
+                        tasks[k] = {call}(*params_{constraint}[k])
+                        flow.add_node(tasks[k])
+                    ",
+                    constraint = constraint_name,
+                    call = call_name,
+                    ids = rws
+                        .iter()
+                        .map(|x| format!("'{}'", x.read().unwrap().get_key().unwrap()).to_string())
+                        .collect::<Vec<String>>()
+                        .join(
+                            ",
+                        "
+                        ),
+                )
+            ),
+        }
     }
 }
 impl<'a> PrefectPythonTaskRender<'a> {
@@ -289,10 +328,11 @@ impl<'a> PrefectTaskRenderWithCalls<'a> for PrefectShellTaskRender<'a> {
         }
     }
     fn render_single_call(&self, call_name: String, constraint_name: String) {
-        println!(
-            "{}",
-            formatdoc!(
-                "
+        match self.render_dependencies(constraint_name.clone()) {
+            Some(dependencies) => println!(
+                "{}",
+                formatdoc!(
+                    "
                         {dependencies}
                         for k, v in params_{constraint}.items():
                             tasks[k] = ShellTask(
@@ -304,11 +344,28 @@ impl<'a> PrefectTaskRenderWithCalls<'a> for PrefectShellTaskRender<'a> {
                             for dep in dependencies_{constraint}[k]:
                                 flow.add_edge(tasks[dep], tasks[k])
                         ",
-                dependencies = self.render_dependencies(constraint_name.clone()),
-                constraint = constraint_name,
-                call = call_name.replace("\n", "\n        "),
-            )
-        );
+                    dependencies = dependencies,
+                    constraint = constraint_name,
+                    call = call_name.replace("\n", "\n        "),
+                )
+            ),
+            None => println!(
+                "{}",
+                formatdoc!(
+                    "
+                        for k, v in params_{constraint}.items():
+                            tasks[k] = ShellTask(
+                                command=\"\"\"
+                                {call} %s
+                                \"\"\" % v.join(' '),
+                            )
+                            flow.add_node(tasks[k])
+                        ",
+                    constraint = constraint_name,
+                    call = call_name.replace("\n", "\n        "),
+                )
+            ),
+        }
     }
     fn render_multiple_calls(
         &self,
@@ -316,10 +373,11 @@ impl<'a> PrefectTaskRenderWithCalls<'a> for PrefectShellTaskRender<'a> {
         constraint_name: String,
         rws: &Vec<Arc<RwLock<ConstraintState<'a>>>>,
     ) {
-        println!(
-            "{}",
-            formatdoc!(
-                "
+        match self.render_dependencies(constraint_name.clone()) {
+            Some(dependencies) => println!(
+                "{}",
+                formatdoc!(
+                    "
                         {dependencies}
                         for k in [{ids}]:
                             tasks[k] = ShellTask(
@@ -331,16 +389,38 @@ impl<'a> PrefectTaskRenderWithCalls<'a> for PrefectShellTaskRender<'a> {
                             for dep in dependencies_{constraint}[k]:
                                 flow.add_edge(tasks[dep], tasks[k])
                         ",
-                dependencies = self.render_dependencies(constraint_name.clone()),
-                constraint = constraint_name,
-                call = call_name,
-                ids = rws
-                    .iter()
-                    .map(|x| format!("'{}'", x.read().unwrap().get_key().unwrap()).to_string())
-                    .collect::<Vec<String>>()
-                    .join(", ")
-            )
-        );
+                    dependencies = dependencies,
+                    constraint = constraint_name,
+                    call = call_name,
+                    ids = rws
+                        .iter()
+                        .map(|x| format!("'{}'", x.read().unwrap().get_key().unwrap()).to_string())
+                        .collect::<Vec<String>>()
+                        .join(", ")
+                )
+            ),
+            None => println!(
+                "{}",
+                formatdoc!(
+                    "
+                        for k in [{ids}]:
+                            tasks[k] = ShellTask(
+                                command=\"\"\"
+                                    {call} %s
+                                \"\"\" % params_{constraint}[k].join(' '),
+                            )
+                            flow.add_node(tasks[k])
+                        ",
+                    constraint = constraint_name,
+                    call = call_name,
+                    ids = rws
+                        .iter()
+                        .map(|x| format!("'{}'", x.read().unwrap().get_key().unwrap()).to_string())
+                        .collect::<Vec<String>>()
+                        .join(", ")
+                )
+            ),
+        }
     }
 }
 impl<'a> PrefectShellTaskRender<'a> {
@@ -356,10 +436,11 @@ impl<'a> PrefectConstantTaskRender<'a> {
         Self { members }
     }
     fn render(&self, constraint_name: String) {
-        println!(
-            "{}",
-            formatdoc!(
-                "
+        match self.render_dependencies(constraint_name.clone()) {
+            Some(dependencies) => println!(
+                "{}",
+                formatdoc!(
+                    "
                 {dependencies}
                 for k in [{ids}]:
                     tasks[k] = ConstantTask('{constraint}')
@@ -367,16 +448,34 @@ impl<'a> PrefectConstantTaskRender<'a> {
                     for dep in dependencies_{constraint}[k]:
                         flow.add_edge(tasks[dep], tasks[k])
                 ",
-                constraint = constraint_name,
-                dependencies = self.render_dependencies(constraint_name.clone()),
-                ids = self
-                    .members
-                    .iter()
-                    .map(|x| format!("'{}'", x.read().unwrap().get_key().unwrap()).to_string())
-                    .collect::<Vec<String>>()
-                    .join(", ")
-            )
-        );
+                    constraint = constraint_name,
+                    dependencies = dependencies,
+                    ids = self
+                        .members
+                        .iter()
+                        .map(|x| format!("'{}'", x.read().unwrap().get_key().unwrap()).to_string())
+                        .collect::<Vec<String>>()
+                        .join(", ")
+                )
+            ),
+            None => println!(
+                "{}",
+                formatdoc!(
+                    "
+                for k in [{ids}]:
+                    tasks[k] = ConstantTask('{constraint}')
+                    flow.add_node(tasks[k])
+                ",
+                    constraint = constraint_name,
+                    ids = self
+                        .members
+                        .iter()
+                        .map(|x| format!("'{}'", x.read().unwrap().get_key().unwrap()).to_string())
+                        .collect::<Vec<String>>()
+                        .join(", ")
+                )
+            ),
+        }
     }
 }
 impl<'a> PrefectTaskRender<'a> for PrefectConstantTaskRender<'a> {
@@ -473,8 +572,13 @@ impl<'a> ConstraintBlock<'a> {
                     constraint = self.get_constraint_name(),
                     params = params
                         .into_iter()
-                        .map(|(k, v)| format!("'{constraint}_{k}': ({v})",
-                        constraint=self.get_constraint_name(), k = k, v = v.unwrap()).to_string())
+                        .map(|(k, v)| format!(
+                            "'{constraint}_{k}': ({v})",
+                            constraint = self.get_constraint_name(),
+                            k = k,
+                            v = v.unwrap()
+                        )
+                        .to_string())
                         .collect::<Vec<String>>()
                         .join(",\n    "),
                 )
@@ -704,8 +808,9 @@ impl<'a> Driver<'a> {
                     .unwrap();
                 let mut write = rw.write().unwrap();
                 write.satisfied_dependencies.push(uuid.clone());
-                write.satisfied_dependency_keys.push((name.clone(),
-                key.clone()));
+                write
+                    .satisfied_dependency_keys
+                    .push((name.clone(), key.clone()));
                 write.unsatisfied_dependencies.remove(&uuid);
                 drop(write);
             }

@@ -85,8 +85,11 @@ impl ParsedDataSetup {
         while let Some(constraint) = queue.pop_front() {
             let uuid = constraint.read().unwrap().get_uuid();
             let root_type = constraint.read().unwrap().root.clone();
-            for elem in
-            constraint.read().unwrap().get_downstream_constraints_ignore_chains() {
+            for elem in constraint
+                .read()
+                .unwrap()
+                .get_downstream_constraints_ignore_chains()
+            {
                 queue.push_back(elem.clone());
             }
             constraints_map.insert((uuid, root_type), constraint);
