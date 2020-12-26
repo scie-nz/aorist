@@ -139,10 +139,33 @@ impl<'a> CodeBlock<'a> {
             .collect()
     }
     pub fn get_params(&self) -> HashMap<String, Option<String>> {
-        self.members.iter().map(|rw| {
-            let x = rw.read().unwrap();
-            (x.get_key().unwrap(), x.get_params())
-        }).collect()
+        self.members
+            .iter()
+            .map(|rw| {
+                let x = rw.read().unwrap();
+                (x.get_key().unwrap(), x.get_params())
+            })
+            .collect()
+    }
+}
+
+pub struct ConstraintBlock<'a> {
+    constraint_name: String,
+    members: Vec<CodeBlock<'a>>,
+}
+impl<'a> ConstraintBlock<'a> {
+    fn new(constraint_name: String, members: Vec<CodeBlock<'a>>) -> Self {
+        Self {
+            constraint_name,
+            members,
+        }
+    }
+    pub fn get_preambles(&self) -> HashSet<String> {
+        self.members
+            .iter()
+            .map(|x| x.get_preambles().into_iter())
+            .flatten()
+            .collect()
     }
 }
 
@@ -151,7 +174,7 @@ pub struct Driver<'a> {
     pub concepts: Arc<RwLock<HashMap<(Uuid, String), Concept<'a>>>>,
     constraints: HashMap<(Uuid, String), Arc<RwLock<Constraint>>>,
     satisfied_constraints: HashMap<(Uuid, String), Arc<RwLock<ConstraintState<'a>>>>,
-    blocks: Vec<CodeBlock<'a>>,
+    blocks: Vec<ConstraintBlock<'a>>,
     // map from: constraint_name => (dependent_constraint_names, constraints_by_uuid)
     unsatisfied_constraints: HashMap<
         String,
@@ -283,7 +306,10 @@ impl<'a> Driver<'a> {
 
     fn find_satisfiable_constraint_block(
         &mut self,
-    ) -> Option<HashMap<(Uuid, String), Arc<RwLock<ConstraintState<'a>>>>> {
+    ) -> Option<(
+        HashMap<(Uuid, String), Arc<RwLock<ConstraintState<'a>>>>,
+        String,
+    )> {
         let constraint_block_name = self
             .unsatisfied_constraints
             .iter()
@@ -297,7 +323,7 @@ impl<'a> Driver<'a> {
                 for (_, (v, _)) in self.unsatisfied_constraints.iter_mut() {
                     v.remove(&name);
                 }
-                Some(constraints)
+                Some((constraints, name))
             }
             None => None,
         }
@@ -310,7 +336,6 @@ impl<'a> Driver<'a> {
         calls: &mut HashMap<(String, String, String), Vec<(String, String)>>,
         state: Arc<RwLock<ConstraintState<'a>>>,
     ) {
-
         let preferences = vec![Dialect::Python(Python {}), Dialect::Bash(Bash {})];
 
         let mut write = state.write().unwrap();
@@ -341,13 +366,12 @@ impl<'a> Driver<'a> {
         assert!(!write.satisfied);
         assert_eq!(write.unsatisfied_dependencies.len(), 0);
         drop(write);
-        
+
         let rw = self.constraints.get(&uuid).unwrap().clone();
         let constraint = rw.read().unwrap();
         if constraint.requires_program() {
             self.process_constraint_with_program(constraint, uuid.clone(), calls, state.clone());
         }
-        
 
         if let Some(v) = reverse_dependencies.get(&uuid) {
             for (dependency_name, dependency_uuid, dependency_root_type) in v {
@@ -374,10 +398,10 @@ impl<'a> Driver<'a> {
         &mut self,
         block: &mut HashMap<(Uuid, String), Arc<RwLock<ConstraintState<'a>>>>,
         reverse_dependencies: &HashMap<(Uuid, String), HashSet<(String, Uuid, String)>>,
-    ) {
+    ) -> Vec<CodeBlock<'a>> {
         // (call, constraint_name, root_name) => (uuid, call parameters)
         let mut calls: HashMap<(String, String, String), Vec<(String, String)>> = HashMap::new();
-
+        let mut blocks: Vec<CodeBlock<'a>> = Vec::new();
         let mut by_dialect: HashMap<Option<Dialect>, Vec<Arc<RwLock<ConstraintState<'a>>>>> =
             HashMap::new();
         for (id, state) in block.clone() {
@@ -395,8 +419,7 @@ impl<'a> Driver<'a> {
         }
         for (dialect, satisfied) in by_dialect.into_iter() {
             let block = CodeBlock::new(dialect, satisfied);
-            block.get_params();
-            self.blocks.push(block);
+            blocks.push(block);
         }
 
         if calls.len() > 0 {
@@ -424,6 +447,8 @@ impl<'a> Driver<'a> {
                 );
             }
         }
+
+        blocks
     }
     pub fn run(&mut self) {
         let mut reverse_dependencies: HashMap<(Uuid, String), HashSet<(String, Uuid, String)>> =
@@ -444,9 +469,12 @@ impl<'a> Driver<'a> {
         // find at least one satisfiable constraint
         loop {
             let mut satisfiable = self.find_satisfiable_constraint_block();
-            if let Some(ref mut block) = satisfiable {
+            if let Some((ref mut block, constraint_name)) = satisfiable {
                 //println!("Block has size: {}", block.len());
-                self.process_constraint_block(&mut block.clone(), &reverse_dependencies);
+                let members =
+                    self.process_constraint_block(&mut block.clone(), &reverse_dependencies);
+                let block = ConstraintBlock::new(constraint_name, members);
+                self.blocks.push(block);
             } else {
                 break;
             }
