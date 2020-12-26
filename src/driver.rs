@@ -48,6 +48,9 @@ impl<'a> ConstraintState<'a> {
     pub fn get_call(&self) -> Option<String> {
         self.call.clone()
     }
+    pub fn get_key(&self) -> Option<String> {
+        self.key.clone()
+    }
     pub fn get_dialect(&self) -> Option<Dialect> {
         self.dialect.clone()
     }
@@ -120,11 +123,11 @@ impl<'a> ConstraintState<'a> {
 }
 
 pub struct CodeBlock<'a> {
-    dialect: Dialect,
+    dialect: Option<Dialect>,
     members: Vec<Arc<RwLock<ConstraintState<'a>>>>,
 }
 impl<'a> CodeBlock<'a> {
-    pub fn new(dialect: Dialect, members: Vec<Arc<RwLock<ConstraintState<'a>>>>) -> Self {
+    pub fn new(dialect: Option<Dialect>, members: Vec<Arc<RwLock<ConstraintState<'a>>>>) -> Self {
         Self { dialect, members }
     }
     pub fn get_preambles(&self) -> HashSet<String> {
@@ -134,6 +137,12 @@ impl<'a> CodeBlock<'a> {
             .filter(|x| x.is_some())
             .map(|x| x.unwrap())
             .collect()
+    }
+    pub fn get_params(&self) -> HashMap<String, Option<String>> {
+        self.members.iter().map(|rw| {
+            let x = rw.read().unwrap();
+            (x.get_key().unwrap(), x.get_params())
+        }).collect()
     }
 }
 
@@ -301,13 +310,11 @@ impl<'a> Driver<'a> {
         calls: &mut HashMap<(String, String, String), Vec<(String, String)>>,
         state: Arc<RwLock<ConstraintState<'a>>>,
     ) {
-        let ancestors = state.read().unwrap().get_ancestors();
 
         let preferences = vec![Dialect::Python(Python {}), Dialect::Bash(Bash {})];
 
         let mut write = state.write().unwrap();
         write.satisfy(&preferences, self.ancestry.clone());
-        write.compute_task_name(&ancestors);
         drop(write);
 
         // TODO: preambles and calls are superflous
@@ -328,15 +335,19 @@ impl<'a> Driver<'a> {
         calls: &mut HashMap<(String, String, String), Vec<(String, String)>>,
         reverse_dependencies: &HashMap<(Uuid, String), HashSet<(String, Uuid, String)>>,
     ) {
+        let mut write = state.write().unwrap();
+        let ancestors = write.get_ancestors();
+        write.compute_task_name(&ancestors);
+        assert!(!write.satisfied);
+        assert_eq!(write.unsatisfied_dependencies.len(), 0);
+        drop(write);
+        
         let rw = self.constraints.get(&uuid).unwrap().clone();
         let constraint = rw.read().unwrap();
         if constraint.requires_program() {
             self.process_constraint_with_program(constraint, uuid.clone(), calls, state.clone());
         }
-        let read = state.read().unwrap();
-        assert!(!read.satisfied);
-        assert_eq!(read.unsatisfied_dependencies.len(), 0);
-        drop(read);
+        
 
         if let Some(v) = reverse_dependencies.get(&uuid) {
             for (dependency_name, dependency_uuid, dependency_root_type) in v {
@@ -367,7 +378,7 @@ impl<'a> Driver<'a> {
         // (call, constraint_name, root_name) => (uuid, call parameters)
         let mut calls: HashMap<(String, String, String), Vec<(String, String)>> = HashMap::new();
 
-        let mut by_dialect: HashMap<Dialect, Vec<Arc<RwLock<ConstraintState<'a>>>>> =
+        let mut by_dialect: HashMap<Option<Dialect>, Vec<Arc<RwLock<ConstraintState<'a>>>>> =
             HashMap::new();
         for (id, state) in block.clone() {
             self.process_constraint_state(
@@ -378,12 +389,14 @@ impl<'a> Driver<'a> {
             );
             self.satisfied_constraints.insert(id, state.clone());
             by_dialect
-                .entry(state.read().unwrap().get_dialect().unwrap())
+                .entry(state.read().unwrap().get_dialect())
                 .or_insert(Vec::new())
                 .push(state.clone());
         }
         for (dialect, satisfied) in by_dialect.into_iter() {
-            self.blocks.push(CodeBlock::new(dialect, satisfied));
+            let block = CodeBlock::new(dialect, satisfied);
+            block.get_params();
+            self.blocks.push(block);
         }
 
         if calls.len() > 0 {
