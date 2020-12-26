@@ -135,6 +135,19 @@ impl<'a> ConstraintState<'a> {
 }
 pub trait PrefectTaskRender<'a> {
     fn get_constraints(&self) -> &Vec<Arc<RwLock<ConstraintState<'a>>>>;
+    fn render_ids(ids: Vec<Arc<RwLock<ConstraintState<'a>>>>, constraint_name: String) -> String {
+        ids.iter()
+            .map(|x| {
+                format!(
+                    "'{constraint_name}_{id}'",
+                    constraint_name = constraint_name,
+                    id = x.read().unwrap().get_key().unwrap()
+                )
+                .to_string()
+            })
+            .collect::<Vec<String>>()
+            .join(",\n    ")
+    }
     fn render_dependencies(&self, constraint_name: String) -> Option<String> {
         if self
             .get_constraints()
@@ -258,25 +271,16 @@ impl<'a> PrefectTaskRenderWithCalls<'a> for PrefectPythonTaskRender<'a> {
         constraint_name: String,
         rws: &Vec<Arc<RwLock<ConstraintState<'a>>>>,
     ) {
-        let ids = rws
-            .iter()
-            .map(|x| {
-                format!(
-                    "'{constraint_name}_{id}'",
-                    constraint_name = constraint_name,
-                    id = x.read().unwrap().get_key().unwrap()
-                )
-                .to_string()
-            })
-            .collect::<Vec<String>>()
-            .join(",\n");
+        let ids = Self::render_ids(rws.clone(), constraint_name.clone());
         match self.render_dependencies(constraint_name.clone()) {
             Some(dependencies) => println!(
                 "{}",
                 formatdoc!(
                     "
                     {dependencies}
-                    for k in [{ids}]:
+                    for k in [
+                        {ids}
+                    ]:
                         tasks[k] = {call}(*params_{constraint}[k])
                         flow.add_node(tasks[k])
                         for dep in dependencies_{constraint}[k]:
@@ -292,7 +296,9 @@ impl<'a> PrefectTaskRenderWithCalls<'a> for PrefectPythonTaskRender<'a> {
                 "{}",
                 formatdoc!(
                     "
-                    for k in [{ids}]:
+                    for k in [
+                        {ids}
+                    ]:
                         tasks[k] = {call}(*params_{constraint}[k])
                         flow.add_node(tasks[k])
                     ",
@@ -377,18 +383,7 @@ impl<'a> PrefectTaskRenderWithCalls<'a> for PrefectShellTaskRender<'a> {
         constraint_name: String,
         rws: &Vec<Arc<RwLock<ConstraintState<'a>>>>,
     ) {
-        let ids = rws
-            .iter()
-            .map(|x| {
-                format!(
-                    "'{constraint_name}_{id}'",
-                    constraint_name = constraint_name,
-                    id = x.read().unwrap().get_key().unwrap()
-                )
-                .to_string()
-            })
-            .collect::<Vec<String>>()
-            .join(",\n");
+        let ids = Self::render_ids(rws.clone(), constraint_name.clone());
         match self.render_dependencies(constraint_name.clone()) {
             Some(dependencies) => println!(
                 "{}",
@@ -444,20 +439,7 @@ impl<'a> PrefectConstantTaskRender<'a> {
         Self { members }
     }
     fn render(&self, constraint_name: String) {
-        // TODO: move to trait function
-        let ids = self
-            .get_constraints()
-            .iter()
-            .map(|x| {
-                format!(
-                    "'{constraint_name}_{id}'",
-                    constraint_name = constraint_name,
-                    id = x.read().unwrap().get_key().unwrap()
-                )
-                .to_string()
-            })
-            .collect::<Vec<String>>()
-            .join(",\n    ");
+        let ids = Self::render_ids(self.get_constraints().clone(), constraint_name.clone());
         match self.render_dependencies(constraint_name.clone()) {
             Some(dependencies) => println!(
                 "{}",
@@ -481,7 +463,9 @@ impl<'a> PrefectConstantTaskRender<'a> {
                 "{}",
                 formatdoc!(
                     "
-                for k in [{ids}]:
+                for k in [
+                    {ids}
+                ]:
                     tasks[k] = ConstantTask('{constraint}')
                     flow.add_node(tasks[k])
                 ",
