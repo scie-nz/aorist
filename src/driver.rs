@@ -174,9 +174,14 @@ impl<'a> CodeBlock<'a> {
                             "{}",
                             formatdoc!(
                                 "
+                            {dependencies}
                             for k, v in params_{constraint}.items():
                                 tasks[k] = {call}(*v)
+                            flow.add_node(tasks[k])
+                            for dep in dependencies_{constraint}[k]:
+                                flow.add_edge(tasks[dep], tasks[k])
                             ",
+                                dependencies = self.render_dependencies(constraint_name.clone()),
                                 constraint = constraint_name,
                                 call = call,
                             )
@@ -188,9 +193,14 @@ impl<'a> CodeBlock<'a> {
                             "{}",
                             formatdoc!(
                                 "
+                            {dependencies}
                             for k in [{ids}]:
                                 tasks[k] = {call}(*params_{constraint}[k])
+                                flow.add_node(tasks[k])
+                                for dep in dependencies_{constraint}[k]:
+                                    flow.add_edge(tasks[dep], tasks[k])
                             ",
+                                dependencies = self.render_dependencies(constraint_name.clone()),
                                 constraint = constraint_name,
                                 call = call,
                                 ids = rws
@@ -230,13 +240,18 @@ impl<'a> CodeBlock<'a> {
                             "{}",
                             formatdoc!(
                                 "
+                        {dependencies}
                         for k, v in params_{constraint}.items():
                             tasks[k] = ShellTask(
                                 command=\"\"\"
                                 {call} %s
                                 \"\"\" % v.join(' '),
                             )
+                            flow.add_node(tasks[k])
+                            for dep in dependencies_{constraint}[k]:
+                                flow.add_edge(tasks[dep], tasks[k])
                         ",
+                                dependencies = self.render_dependencies(constraint_name.clone()),
                                 constraint = constraint_name,
                                 call = call.replace("\n", "\n        "),
                             )
@@ -248,13 +263,18 @@ impl<'a> CodeBlock<'a> {
                             "{}",
                             formatdoc!(
                                 "
+                        {dependencies}
                         for k in [{ids}]:
                             tasks[k] = ShellTask(
                                 command=\"\"\"
                                     {call} %s
                                 \"\"\" % params_{constraint}[k].join(' '),
                             )
+                            flow.add_node(tasks[k])
+                            for dep in dependencies_{constraint}[k]:
+                                flow.add_edge(tasks[dep], tasks[k])
                         ",
+                                dependencies = self.render_dependencies(constraint_name.clone()),
                                 constraint = constraint_name,
                                 call = call,
                                 ids = rws
@@ -273,38 +293,15 @@ impl<'a> CodeBlock<'a> {
                     "{}",
                     formatdoc!(
                         "
-                dependencies_{constraint} = {{ 
-                    {dependencies} 
-                }}
+                {dependencies}
                 for k in [{ids}]:
                     tasks[k] = ConstantTask('{constraint}')
+                    flow.add_node(tasks[k])
                     for dep in dependencies_{constraint}[k]:
                         flow.add_edge(tasks[dep], tasks[k])
                 ",
                         constraint = constraint_name,
-                        dependencies = self
-                            .members
-                            .iter()
-                            .map(|rw| {
-                                let x = rw.read().unwrap();
-                                formatdoc!(
-                                    "
-                       '{key}': [
-                           {deps}
-                       ]",
-                                    key = x.get_key().unwrap(),
-                                    deps = x
-                                        .get_satisfied_dependency_keys()
-                                        .into_iter()
-                                        .map(|y| format!("'{}'", y))
-                                        .collect::<Vec<_>>()
-                                        .join(",\n    "),
-                                )
-                                .to_string()
-                                .replace("\n", "\n    ")
-                            })
-                            .collect::<Vec<_>>()
-                            .join(",\n    "),
+                        dependencies = self.render_dependencies(constraint_name.clone()),
                         ids = self
                             .members
                             .iter()
@@ -319,6 +316,39 @@ impl<'a> CodeBlock<'a> {
                 panic!("Dialect not handled: {:?}", self.dialect.as_ref().unwrap());
             }
         }
+    }
+    pub fn render_dependencies(&self, constraint_name: String) -> String {
+        formatdoc!(
+            "
+        dependencies_{constraint} = {{ 
+            {dependencies} 
+        }}
+        ",
+            constraint = constraint_name,
+            dependencies = self
+                .members
+                .iter()
+                .map(|rw| {
+                    let x = rw.read().unwrap();
+                    formatdoc!(
+                        "
+               '{key}': [
+                   {deps}
+               ]",
+                        key = x.get_key().unwrap(),
+                        deps = x
+                            .get_satisfied_dependency_keys()
+                            .into_iter()
+                            .map(|y| format!("'{}'", y))
+                            .collect::<Vec<_>>()
+                            .join(",\n    "),
+                    )
+                    .to_string()
+                    .replace("\n", "\n    ")
+                })
+                .collect::<Vec<_>>()
+                .join(",\n    "),
+        )
     }
 }
 
