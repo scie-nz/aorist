@@ -11,6 +11,7 @@ use uuid::Uuid;
 struct ConstraintState {
     _uuid: Uuid,
     _root_type: String,
+    dialect: Option<Dialect>,
     name: String,
     satisfied: bool,
     satisfied_dependencies: Vec<(Uuid, String)>,
@@ -109,6 +110,7 @@ impl<'a> Driver<'a> {
                         Arc::new(RwLock::new(ConstraintState {
                             _uuid: k.0.clone(),
                             _root_type: k.1.clone(),
+                            dialect: None,
                             name: x.get_name().clone(),
                             satisfied: false,
                             satisfied_dependencies: Vec::new(),
@@ -190,6 +192,7 @@ impl<'a> Driver<'a> {
         uuid: (Uuid, String),
         preambles: &mut HashSet<String>,
         calls: &mut HashMap<(String, String, String), Vec<(String, String)>>,
+        state: Arc<RwLock<ConstraintState>>,
     ) {
         let root_uuid = constraint.get_root_uuid();
         let guard = self.concepts.read().unwrap();
@@ -220,9 +223,10 @@ impl<'a> Driver<'a> {
         let preferences = vec![Dialect::Python(Python {}), Dialect::Bash(Bash {})];
         let ancestry = self.ancestry.clone();
         let root_clone = root.clone();
-        let (preamble, call, params) = constraint
+        let (preamble, call, params, dialect) = constraint
             .satisfy_given_preference_ordering(root_clone, &preferences, ancestry)
             .unwrap();
+        state.write().unwrap().dialect = Some(dialect);
         preambles.insert(preamble);
         calls
             .entry((call, constraint.get_name().clone(), uuid.1.clone()))
@@ -240,7 +244,13 @@ impl<'a> Driver<'a> {
         let rw = self.constraints.get(&uuid).unwrap().clone();
         let constraint = rw.read().unwrap();
         if constraint.requires_program() {
-            self.process_constraint_with_program(constraint, uuid.clone(), preambles, calls);
+            self.process_constraint_with_program(
+                constraint,
+                uuid.clone(),
+                preambles,
+                calls,
+                state.clone(),
+            );
         }
         let read = state.read().unwrap();
         assert!(!read.satisfied);

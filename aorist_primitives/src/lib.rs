@@ -57,12 +57,12 @@ macro_rules! register_programs_for_constraint {
                 c: Concept<'a>,
                 preferences: &Vec<Dialect>,
                 ancestry: Arc<ConceptAncestry<'a>>,
-            ) -> Result<(String, String, String), String> {
+            ) -> Result<(String, String, String, Dialect), String> {
                 match c {
                     Concept::$root{..} => {
                         for d in preferences {
-                            if let Some(t) = self.satisfy(c.clone(), &d, ancestry.clone()) {
-                                return Ok(t);
+                            if let Some((preamble, call, params)) = self.satisfy(c.clone(), &d, ancestry.clone()) {
+                                return Ok((preamble, call, params, d.clone()));
                             }
                         }
                         Err("Cannot satisfy preference ordering.".into())
@@ -85,7 +85,7 @@ macro_rules! register_satisfiable_constraints {
                 c: Concept<'a>,
                 preferences: &Vec<Dialect>,
                 ancestry: Arc<ConceptAncestry<'a>>,
-            ) -> Result<(String, String, String), String> {
+            ) -> Result<(String, String, String, Dialect), String> {
                 match &self.inner {
                     $(
                         Some(AoristConstraint::$constraint(x)) =>
@@ -459,14 +459,14 @@ pub trait TSQLAttribute: TAttribute {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Python {}
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct R {}
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Bash {}
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Dialect {
     Python(Python),
     R(R),
