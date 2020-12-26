@@ -130,7 +130,7 @@ impl<'a> ConstraintState<'a> {
         self.key.as_ref().unwrap().clone()
     }
 }
-pub trait PrefectTaskRender <'a> {
+pub trait PrefectTaskRender<'a> {
     fn get_constraints(&self) -> &Vec<Arc<RwLock<ConstraintState<'a>>>>;
     fn render_dependencies(&self, constraint_name: String) -> String {
         formatdoc!(
@@ -165,14 +165,70 @@ pub trait PrefectTaskRender <'a> {
                 .join(",\n    "),
         )
     }
+    fn render_single_call(&self, call_name: String, constraint_name: String);
+    fn render_multiple_calls(
+        &self,
+        call_name: String,
+        constraint_name: String,
+        rws: &Vec<Arc<RwLock<ConstraintState<'a>>>>,
+    );
 }
 
 pub struct PrefectPythonTaskRender<'a> {
     members: Vec<Arc<RwLock<ConstraintState<'a>>>>,
 }
-impl <'a> PrefectTaskRender<'a> for PrefectPythonTaskRender<'a> {
+impl<'a> PrefectTaskRender<'a> for PrefectPythonTaskRender<'a> {
     fn get_constraints(&self) -> &Vec<Arc<RwLock<ConstraintState<'a>>>> {
         &self.members
+    }
+    fn render_single_call(&self, call_name: String, constraint_name: String) {
+        println!(
+            "{}",
+            formatdoc!(
+                "
+            {dependencies}
+            for k, v in params_{constraint}.items():
+                tasks[k] = {call}(*v)
+            flow.add_node(tasks[k])
+            for dep in dependencies_{constraint}[k]:
+                flow.add_edge(tasks[dep], tasks[k])
+            ",
+                dependencies = self.render_dependencies(constraint_name.clone()),
+                constraint = constraint_name,
+                call = call_name,
+            )
+        );
+    }
+    fn render_multiple_calls(
+        &self,
+        call_name: String,
+        constraint_name: String,
+        rws: &Vec<Arc<RwLock<ConstraintState<'a>>>>,
+    ) {
+        println!(
+            "{}",
+            formatdoc!(
+                "
+                    {dependencies}
+                    for k in [{ids}]:
+                        tasks[k] = {call}(*params_{constraint}[k])
+                        flow.add_node(tasks[k])
+                        for dep in dependencies_{constraint}[k]:
+                            flow.add_edge(tasks[dep], tasks[k])
+                    ",
+                dependencies = self.render_dependencies(constraint_name.clone()),
+                constraint = constraint_name,
+                call = call_name,
+                ids = rws
+                    .iter()
+                    .map(|x| format!("'{}'", x.read().unwrap().get_key().unwrap()).to_string())
+                    .collect::<Vec<String>>()
+                    .join(
+                        ",
+                        "
+                    ),
+            )
+        );
     }
 }
 impl<'a> PrefectPythonTaskRender<'a> {
@@ -188,50 +244,16 @@ impl<'a> PrefectPythonTaskRender<'a> {
             }
         }
         if by_call.len() == 1 {
-            for (call, _) in by_call.iter() {
-                println!(
-                    "{}",
-                    formatdoc!(
-                        "
-                    {dependencies}
-                    for k, v in params_{constraint}.items():
-                        tasks[k] = {call}(*v)
-                    flow.add_node(tasks[k])
-                    for dep in dependencies_{constraint}[k]:
-                        flow.add_edge(tasks[dep], tasks[k])
-                    ",
-                        dependencies = self.render_dependencies(constraint_name.clone()),
-                        constraint = constraint_name,
-                        call = call,
-                    )
-                );
-            }
+            self.render_single_call(
+                by_call.keys().next().unwrap().clone(),
+                constraint_name.clone(),
+            )
         } else if by_call.len() > 1 {
             for (call, rws) in by_call.iter() {
-                println!(
-                    "{}",
-                    formatdoc!(
-                        "
-                    {dependencies}
-                    for k in [{ids}]:
-                        tasks[k] = {call}(*params_{constraint}[k])
-                        flow.add_node(tasks[k])
-                        for dep in dependencies_{constraint}[k]:
-                            flow.add_edge(tasks[dep], tasks[k])
-                    ",
-                        dependencies = self.render_dependencies(constraint_name.clone()),
-                        constraint = constraint_name,
-                        call = call,
-                        ids = rws
-                            .iter()
-                            .map(|x| format!("'{}'", x.read().unwrap().get_key().unwrap())
-                                .to_string())
-                            .collect::<Vec<String>>()
-                            .join(
-                                ",
-                        "
-                            ),
-                    )
+                self.render_multiple_calls(
+                    call.clone(),
+                    constraint_name.clone(),
+                    rws,
                 );
             }
         }
