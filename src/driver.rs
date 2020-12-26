@@ -126,7 +126,7 @@ impl<'a> ConstraintState<'a> {
                         relative_path = format!("{}_of_{}_{}", relative_path, ancestor_type, ix);
                     }
                 }
-                format!("{}{}", self.root.get_type(), relative_path)
+                relative_path
             }
             Some(t) => t,
         });
@@ -136,8 +136,14 @@ impl<'a> ConstraintState<'a> {
 pub trait PrefectTaskRender<'a> {
     fn get_constraints(&self) -> &Vec<Arc<RwLock<ConstraintState<'a>>>>;
     fn render_dependencies(&self, constraint_name: String) -> Option<String> {
-        if self.get_constraints().iter().map(|x|
-        x.read().unwrap().get_satisfied_dependency_keys()).flatten().next().is_none() {
+        if self
+            .get_constraints()
+            .iter()
+            .map(|x| x.read().unwrap().get_satisfied_dependency_keys())
+            .flatten()
+            .next()
+            .is_none()
+        {
             return None;
         }
         Some(formatdoc!(
@@ -252,6 +258,18 @@ impl<'a> PrefectTaskRenderWithCalls<'a> for PrefectPythonTaskRender<'a> {
         constraint_name: String,
         rws: &Vec<Arc<RwLock<ConstraintState<'a>>>>,
     ) {
+        let ids = rws
+            .iter()
+            .map(|x| {
+                format!(
+                    "'{constraint_name}_{id}'",
+                    constraint_name = constraint_name,
+                    id = x.read().unwrap().get_key().unwrap()
+                )
+                .to_string()
+            })
+            .collect::<Vec<String>>()
+            .join(",\n");
         match self.render_dependencies(constraint_name.clone()) {
             Some(dependencies) => println!(
                 "{}",
@@ -267,14 +285,7 @@ impl<'a> PrefectTaskRenderWithCalls<'a> for PrefectPythonTaskRender<'a> {
                     dependencies = dependencies,
                     constraint = constraint_name,
                     call = call_name,
-                    ids = rws
-                        .iter()
-                        .map(|x| format!("'{}'", x.read().unwrap().get_key().unwrap()).to_string())
-                        .collect::<Vec<String>>()
-                        .join(
-                            ",
-                        "
-                        ),
+                    ids = ids,
                 )
             ),
             None => println!(
@@ -287,14 +298,7 @@ impl<'a> PrefectTaskRenderWithCalls<'a> for PrefectPythonTaskRender<'a> {
                     ",
                     constraint = constraint_name,
                     call = call_name,
-                    ids = rws
-                        .iter()
-                        .map(|x| format!("'{}'", x.read().unwrap().get_key().unwrap()).to_string())
-                        .collect::<Vec<String>>()
-                        .join(
-                            ",
-                        "
-                        ),
+                    ids = ids,
                 )
             ),
         }
@@ -373,6 +377,18 @@ impl<'a> PrefectTaskRenderWithCalls<'a> for PrefectShellTaskRender<'a> {
         constraint_name: String,
         rws: &Vec<Arc<RwLock<ConstraintState<'a>>>>,
     ) {
+        let ids = rws
+            .iter()
+            .map(|x| {
+                format!(
+                    "'{constraint_name}_{id}'",
+                    constraint_name = constraint_name,
+                    id = x.read().unwrap().get_key().unwrap()
+                )
+                .to_string()
+            })
+            .collect::<Vec<String>>()
+            .join(",\n");
         match self.render_dependencies(constraint_name.clone()) {
             Some(dependencies) => println!(
                 "{}",
@@ -392,11 +408,7 @@ impl<'a> PrefectTaskRenderWithCalls<'a> for PrefectShellTaskRender<'a> {
                     dependencies = dependencies,
                     constraint = constraint_name,
                     call = call_name,
-                    ids = rws
-                        .iter()
-                        .map(|x| format!("'{}'", x.read().unwrap().get_key().unwrap()).to_string())
-                        .collect::<Vec<String>>()
-                        .join(", ")
+                    ids = ids,
                 )
             ),
             None => println!(
@@ -413,11 +425,7 @@ impl<'a> PrefectTaskRenderWithCalls<'a> for PrefectShellTaskRender<'a> {
                         ",
                     constraint = constraint_name,
                     call = call_name,
-                    ids = rws
-                        .iter()
-                        .map(|x| format!("'{}'", x.read().unwrap().get_key().unwrap()).to_string())
-                        .collect::<Vec<String>>()
-                        .join(", ")
+                    ids = ids,
                 )
             ),
         }
@@ -436,13 +444,29 @@ impl<'a> PrefectConstantTaskRender<'a> {
         Self { members }
     }
     fn render(&self, constraint_name: String) {
+        // TODO: move to trait function
+        let ids = self
+            .get_constraints()
+            .iter()
+            .map(|x| {
+                format!(
+                    "'{constraint_name}_{id}'",
+                    constraint_name = constraint_name,
+                    id = x.read().unwrap().get_key().unwrap()
+                )
+                .to_string()
+            })
+            .collect::<Vec<String>>()
+            .join(",\n    ");
         match self.render_dependencies(constraint_name.clone()) {
             Some(dependencies) => println!(
                 "{}",
                 formatdoc!(
                     "
                 {dependencies}
-                for k in [{ids}]:
+                for k in [
+                    {ids}
+                ]:
                     tasks[k] = ConstantTask('{constraint}')
                     flow.add_node(tasks[k])
                     for dep in dependencies_{constraint}[k]:
@@ -450,12 +474,7 @@ impl<'a> PrefectConstantTaskRender<'a> {
                 ",
                     constraint = constraint_name,
                     dependencies = dependencies,
-                    ids = self
-                        .members
-                        .iter()
-                        .map(|x| format!("'{}'", x.read().unwrap().get_key().unwrap()).to_string())
-                        .collect::<Vec<String>>()
-                        .join(", ")
+                    ids = ids,
                 )
             ),
             None => println!(
@@ -467,12 +486,7 @@ impl<'a> PrefectConstantTaskRender<'a> {
                     flow.add_node(tasks[k])
                 ",
                     constraint = constraint_name,
-                    ids = self
-                        .members
-                        .iter()
-                        .map(|x| format!("'{}'", x.read().unwrap().get_key().unwrap()).to_string())
-                        .collect::<Vec<String>>()
-                        .join(", ")
+                    ids = ids,
                 )
             ),
         }
@@ -623,7 +637,12 @@ impl<'a> Driver<'a> {
         ));
         ancestors.insert(
             (parsed_data_setup.get_uuid(), parsed_data_setup.get_type()),
-            Vec::new(),
+            vec![(
+                parsed_data_setup.get_uuid(),
+                parsed_data_setup.get_type(),
+                None,
+                0,
+            )],
         );
         while frontier.len() > 0 {
             let mut new_frontier: Vec<(Uuid, String, Option<String>, usize)> = Vec::new();
@@ -631,21 +650,23 @@ impl<'a> Driver<'a> {
                 let concept = concept_map
                     .get(&(child.0.clone(), child.1.clone()))
                     .unwrap();
-                let mut grandchild_ancestors = ancestors
+                let child_ancestors = ancestors
                     .get(&(child.0.clone(), child.1.clone()))
                     .unwrap()
                     .clone();
-                grandchild_ancestors.push(child.clone());
                 for grandchild in concept.get_child_concepts() {
-                    new_frontier.push((
+                    let t = (
                         grandchild.get_uuid(),
                         grandchild.get_type(),
                         grandchild.get_tag(),
                         grandchild.get_index_as_child(),
-                    ));
+                    );
+                    new_frontier.push(t.clone());
+                    let mut grandchild_ancestors = child_ancestors.clone();
+                    grandchild_ancestors.push(t);
                     ancestors.insert(
                         (grandchild.get_uuid(), grandchild.get_type()),
-                        grandchild_ancestors.clone(),
+                        grandchild_ancestors,
                     );
                 }
             }
