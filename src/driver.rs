@@ -9,8 +9,6 @@ use std::sync::{Arc, RwLock, RwLockReadGuard};
 use uuid::Uuid;
 
 struct ConstraintState<'a> {
-    _uuid: Uuid,
-    _root_type: String,
     dialect: Option<Dialect>,
     key: Option<String>,
     name: String,
@@ -19,30 +17,55 @@ struct ConstraintState<'a> {
     unsatisfied_dependencies: HashSet<(Uuid, String)>,
     constraint: Arc<RwLock<Constraint>>,
     root: Concept<'a>,
+    // these are concept ancestors
+    // TODO: change this to Vec<Concept<'a>>
+    ancestors: Vec<(Uuid, String, Option<String>, usize)>,
 }
 impl<'a> ConstraintState<'a> {
     pub fn get_name(&self) -> String {
         self.name.clone()
     }
+    pub fn get_root(&self) -> Concept<'a> {
+        self.root.clone()
+    }
+    #[allow(dead_code)]
+    pub fn get_root_uuid(&self) -> Uuid {
+        self.root.get_uuid().clone()
+    }
+    pub fn get_ancestors(&self) -> Vec<(Uuid, String, Option<String>, usize)> {
+        self.ancestors.clone()
+    }
     fn new(
-        _uuid: Uuid,
-        _root_type: String,
-        name: String,
-        dependencies: HashSet<(Uuid, String)>,
         constraint: Arc<RwLock<Constraint>>,
-        root: Concept<'a>,
+        concepts: Arc<RwLock<HashMap<(Uuid, String), Concept<'a>>>>,
+        concept_ancestors: &HashMap<(Uuid, String), Vec<(Uuid, String, Option<String>, usize)>>
     ) -> Self {
+        let arc = constraint.clone();
+        let x = arc.read().unwrap();
+        let root_uuid = x.get_root_uuid();
+        let guard = concepts.read().unwrap();
+        let root = guard
+            .get(&(root_uuid.clone(), x.root.clone()))
+            .unwrap()
+            .clone();
+        let dependencies = x
+            .get_downstream_constraints()
+            .iter()
+            .map(|x| (x.read().unwrap().get_uuid(), x.read().unwrap().root.clone()))
+            .collect::<HashSet<_>>();
+        let ancestors = concept_ancestors
+            .get(&(root_uuid, x.root.clone()))
+            .unwrap().clone();
         Self {
-            _uuid,
-            _root_type,
             dialect: None,
             key: None,
-            name,
+            name: x.get_name().clone(),
             satisfied: false,
             unsatisfied_dependencies: dependencies,
             satisfied_dependencies: Vec::new(),
             constraint,
             root,
+            ancestors: ancestors.clone(),
         }
     }
     fn compute_task_name(&mut self, ancestors: &Vec<(Uuid, String, Option<String>, usize)>) {
@@ -78,7 +101,6 @@ pub struct Driver<'a> {
             HashMap<(Uuid, String), Arc<RwLock<ConstraintState<'a>>>>,
         ),
     >,
-    concept_ancestors: HashMap<(Uuid, String), Vec<(Uuid, String, Option<String>, usize)>>,
     ancestry: Arc<ConceptAncestry<'a>>,
 }
 
@@ -131,6 +153,7 @@ impl<'a> Driver<'a> {
     fn get_unsatisfied_constraints(
         constraints: &HashMap<(Uuid, String), Arc<RwLock<Constraint>>>,
         concepts: Arc<RwLock<HashMap<(Uuid, String), Concept<'a>>>>,
+        ancestors: &HashMap<(Uuid, String), Vec<(Uuid, String, Option<String>, usize)>>
     ) -> HashMap<
         String,
         (
@@ -142,28 +165,12 @@ impl<'a> Driver<'a> {
             constraints
                 .iter()
                 .map(|(k, rw)| {
-                    let x = rw.read().unwrap();
-                    let root_uuid = x.get_root_uuid();
-                    let arc = concepts.clone();
-                    let guard = arc.read().unwrap();
-                    let root = guard
-                        .get(&(root_uuid.clone(), x.root.clone()))
-                        .unwrap()
-                        .clone();
-                    let dependencies = x
-                        .get_downstream_constraints()
-                        .iter()
-                        .map(|x| (x.read().unwrap().get_uuid(), x.read().unwrap().root.clone()))
-                        .collect::<HashSet<_>>();
                     (
                         k.clone(),
                         Arc::new(RwLock::new(ConstraintState::new(
-                            k.0.clone(),
-                            k.1.clone(),
-                            x.get_name().clone(),
-                            dependencies,
                             rw.clone(),
-                            root,
+                            concepts.clone(),
+                            ancestors,
                         ))),
                     )
                 })
@@ -198,8 +205,11 @@ impl<'a> Driver<'a> {
         let constraints = data_setup.get_constraints_map();
         let ancestors = Self::compute_all_ancestors(concept, &concept_map);
         let concepts = Arc::new(RwLock::new(concept_map));
-        let unsatisfied_constraints =
-            Self::get_unsatisfied_constraints(&constraints, concepts.clone());
+        let unsatisfied_constraints = Self::get_unsatisfied_constraints(
+            &constraints,
+            concepts.clone(),
+            &ancestors
+        );
 
         let ancestry: ConceptAncestry<'a> = ConceptAncestry {
             parents: concepts.clone(),
@@ -210,7 +220,6 @@ impl<'a> Driver<'a> {
             constraints: constraints.clone(),
             satisfied_constraints: HashMap::new(),
             unsatisfied_constraints,
-            concept_ancestors: ancestors,
             ancestry: Arc::new(ancestry),
         }
     }
@@ -245,16 +254,9 @@ impl<'a> Driver<'a> {
         calls: &mut HashMap<(String, String, String), Vec<(String, String)>>,
         state: Arc<RwLock<ConstraintState<'a>>>,
     ) {
-        let root_uuid = constraint.get_root_uuid();
-        let guard = self.concepts.read().unwrap();
-        let root = guard
-            .get(&(root_uuid.clone(), constraint.root.clone()))
-            .unwrap();
-
-        let ancestors = self
-            .concept_ancestors
-            .get(&(root_uuid, constraint.root.clone()))
-            .unwrap();
+        let root = state.read().unwrap().get_root();
+        let ancestors = state.read().unwrap().get_ancestors();
+        
         let preferences = vec![Dialect::Python(Python {}), Dialect::Bash(Bash {})];
         let ancestry = self.ancestry.clone();
         let root_clone = root.clone();
