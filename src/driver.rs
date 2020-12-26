@@ -20,11 +20,15 @@ struct ConstraintState<'a> {
     // these are concept ancestors
     // TODO: change this to Vec<Concept<'a>>
     ancestors: Vec<(Uuid, String, Option<String>, usize)>,
+    preamble: Option<String>,
+    call: Option<String>,
+    params: Option<String>,
 }
 impl<'a> ConstraintState<'a> {
     pub fn get_name(&self) -> String {
         self.name.clone()
     }
+    #[allow(dead_code)]
     pub fn get_root(&self) -> Concept<'a> {
         self.root.clone()
     }
@@ -35,10 +39,30 @@ impl<'a> ConstraintState<'a> {
     pub fn get_ancestors(&self) -> Vec<(Uuid, String, Option<String>, usize)> {
         self.ancestors.clone()
     }
+    pub fn get_preamble(&self) -> Option<String> {
+        self.preamble.clone()
+    }
+    pub fn get_params(&self) -> Option<String> {
+        self.params.clone()
+    }
+    pub fn get_call(&self) -> Option<String> {
+        self.call.clone()
+    }
+    fn satisfy(&mut self, preferences: &Vec<Dialect>, ancestry: Arc<ConceptAncestry<'a>>) {
+        let root_clone = self.root.clone();
+        let constraint = self.constraint.read().unwrap();
+        let (preamble, call, params, dialect) = constraint
+            .satisfy_given_preference_ordering(root_clone, preferences, ancestry)
+            .unwrap();
+        self.preamble = Some(preamble);
+        self.call = Some(call);
+        self.params = Some(params);
+        self.dialect = Some(dialect);
+    }
     fn new(
         constraint: Arc<RwLock<Constraint>>,
         concepts: Arc<RwLock<HashMap<(Uuid, String), Concept<'a>>>>,
-        concept_ancestors: &HashMap<(Uuid, String), Vec<(Uuid, String, Option<String>, usize)>>
+        concept_ancestors: &HashMap<(Uuid, String), Vec<(Uuid, String, Option<String>, usize)>>,
     ) -> Self {
         let arc = constraint.clone();
         let x = arc.read().unwrap();
@@ -55,7 +79,8 @@ impl<'a> ConstraintState<'a> {
             .collect::<HashSet<_>>();
         let ancestors = concept_ancestors
             .get(&(root_uuid, x.root.clone()))
-            .unwrap().clone();
+            .unwrap()
+            .clone();
         Self {
             dialect: None,
             key: None,
@@ -66,6 +91,9 @@ impl<'a> ConstraintState<'a> {
             constraint,
             root,
             ancestors: ancestors.clone(),
+            preamble: None,
+            call: None,
+            params: None,
         }
     }
     fn compute_task_name(&mut self, ancestors: &Vec<(Uuid, String, Option<String>, usize)>) {
@@ -153,7 +181,7 @@ impl<'a> Driver<'a> {
     fn get_unsatisfied_constraints(
         constraints: &HashMap<(Uuid, String), Arc<RwLock<Constraint>>>,
         concepts: Arc<RwLock<HashMap<(Uuid, String), Concept<'a>>>>,
-        ancestors: &HashMap<(Uuid, String), Vec<(Uuid, String, Option<String>, usize)>>
+        ancestors: &HashMap<(Uuid, String), Vec<(Uuid, String, Option<String>, usize)>>,
     ) -> HashMap<
         String,
         (
@@ -205,11 +233,8 @@ impl<'a> Driver<'a> {
         let constraints = data_setup.get_constraints_map();
         let ancestors = Self::compute_all_ancestors(concept, &concept_map);
         let concepts = Arc::new(RwLock::new(concept_map));
-        let unsatisfied_constraints = Self::get_unsatisfied_constraints(
-            &constraints,
-            concepts.clone(),
-            &ancestors
-        );
+        let unsatisfied_constraints =
+            Self::get_unsatisfied_constraints(&constraints, concepts.clone(), &ancestors);
 
         let ancestry: ConceptAncestry<'a> = ConceptAncestry {
             parents: concepts.clone(),
@@ -254,28 +279,26 @@ impl<'a> Driver<'a> {
         calls: &mut HashMap<(String, String, String), Vec<(String, String)>>,
         state: Arc<RwLock<ConstraintState<'a>>>,
     ) {
-        let root = state.read().unwrap().get_root();
         let ancestors = state.read().unwrap().get_ancestors();
-        
+
         let preferences = vec![Dialect::Python(Python {}), Dialect::Bash(Bash {})];
-        let ancestry = self.ancestry.clone();
-        let root_clone = root.clone();
-        let (preamble, call, params, dialect) = constraint
-            .satisfy_given_preference_ordering(root_clone, &preferences, ancestry)
-            .unwrap();
 
         let mut write = state.write().unwrap();
-        write.dialect = Some(dialect);
+        write.satisfy(&preferences, self.ancestry.clone());
         write.compute_task_name(&ancestors);
         drop(write);
 
-        // TODO: move key, preamble, call to ConstraintState
+        // TODO: preambles and calls are superflous
         let key = state.read().unwrap().key.as_ref().unwrap().clone();
-        preambles.insert(preamble);
+        preambles.insert(state.read().unwrap().get_preamble().unwrap());
         calls
-            .entry((call, constraint.get_name().clone(), uuid.1.clone()))
+            .entry((
+                state.read().unwrap().get_call().unwrap(),
+                constraint.get_name().clone(),
+                uuid.1.clone(),
+            ))
             .or_insert(Vec::new())
-            .push((key, params));
+            .push((key, state.read().unwrap().get_params().unwrap()));
     }
     fn process_constraint_state(
         &mut self,
