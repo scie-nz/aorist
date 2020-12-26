@@ -2,7 +2,7 @@ use crate::concept::{Concept, ConceptAncestry};
 use crate::constraint::{AllConstraintsSatisfiability, AoristConstraint, Constraint};
 use crate::data_setup::ParsedDataSetup;
 use crate::object::TAoristObject;
-use aorist_primitives::{Dialect, Bash, Python};
+use aorist_primitives::{Bash, Dialect, Python};
 use indoc::formatdoc;
 use std::collections::{HashMap, HashSet};
 use std::sync::{Arc, RwLock, RwLockReadGuard};
@@ -40,21 +40,23 @@ pub struct Driver<'a> {
 }
 
 impl<'a> Driver<'a> {
-    pub fn new(data_setup: &'a ParsedDataSetup) -> Driver<'a> {
-        let mut concept_map: HashMap<(Uuid, String), Concept<'a>> = HashMap::new();
-        let concept = Concept::ParsedDataSetup((data_setup, 0, None));
-        concept.populate_child_concept_map(&mut concept_map);
-
+    fn compute_all_ancestors(
+        parsed_data_setup: Concept<'a>,
+        concept_map: &HashMap<(Uuid, String), Concept<'a>>,
+    ) -> HashMap<(Uuid, String), Vec<(Uuid, String, Option<String>, usize)>> {
         let mut ancestors: HashMap<(Uuid, String), Vec<(Uuid, String, Option<String>, usize)>> =
             HashMap::new();
         let mut frontier: Vec<(Uuid, String, Option<String>, usize)> = Vec::new();
         frontier.push((
-            concept.get_uuid(),
-            concept.get_type(),
-            concept.get_tag(),
-            concept.get_index_as_child(),
+            parsed_data_setup.get_uuid(),
+            parsed_data_setup.get_type(),
+            parsed_data_setup.get_tag(),
+            parsed_data_setup.get_index_as_child(),
         ));
-        ancestors.insert((concept.get_uuid(), concept.get_type()), Vec::new());
+        ancestors.insert(
+            (parsed_data_setup.get_uuid(), parsed_data_setup.get_type()),
+            Vec::new(),
+        );
         while frontier.len() > 0 {
             let mut new_frontier: Vec<(Uuid, String, Option<String>, usize)> = Vec::new();
             for child in frontier.drain(0..) {
@@ -81,8 +83,16 @@ impl<'a> Driver<'a> {
             }
             frontier = new_frontier;
         }
+        ancestors
+    }
+
+    pub fn new(data_setup: &'a ParsedDataSetup) -> Driver<'a> {
+        let mut concept_map: HashMap<(Uuid, String), Concept<'a>> = HashMap::new();
+        let concept = Concept::ParsedDataSetup((data_setup, 0, None));
+        concept.populate_child_concept_map(&mut concept_map);
 
         let constraints = data_setup.get_constraints_map();
+        let ancestors = Self::compute_all_ancestors(concept, &concept_map);
 
         let raw_unsatisfied_constraints: HashMap<(Uuid, String), Arc<RwLock<ConstraintState>>> =
             constraints
@@ -166,7 +176,7 @@ impl<'a> Driver<'a> {
 
     fn process_constraint_with_program(
         &mut self,
-        constraint: RwLockReadGuard<'_, Constraint, >,
+        constraint: RwLockReadGuard<'_, Constraint>,
         uuid: (Uuid, String),
         preambles: &mut HashSet<String>,
         calls: &mut HashMap<(String, String, String), Vec<(String, String)>>,
@@ -176,7 +186,6 @@ impl<'a> Driver<'a> {
         let root = guard
             .get(&(root_uuid.clone(), constraint.root.clone()))
             .unwrap();
-
 
         let ancestors = self
             .concept_ancestors
@@ -191,18 +200,14 @@ impl<'a> Driver<'a> {
                         break;
                     }
                     if *ix > 0 {
-                        relative_path =
-                            format!("{}_of_{}_{}", relative_path, ancestor_type, ix);
+                        relative_path = format!("{}_of_{}_{}", relative_path, ancestor_type, ix);
                     }
                 }
                 format!("{}{}", root.get_type(), relative_path)
             }
             Some(t) => t,
         };
-        let preferences = vec![
-            Dialect::Python(Python {}),
-            Dialect::Bash(Bash {}),
-        ];
+        let preferences = vec![Dialect::Python(Python {}), Dialect::Bash(Bash {})];
         let ancestry = self.ancestry.clone();
         let root_clone = root.clone();
         let (preamble, call, params) = constraint
@@ -225,12 +230,7 @@ impl<'a> Driver<'a> {
         let rw = self.constraints.get(&uuid).unwrap().clone();
         let constraint = rw.read().unwrap();
         if constraint.requires_program() {
-            self.process_constraint_with_program(
-                constraint,
-                uuid.clone(),
-                preambles,
-                calls
-            );
+            self.process_constraint_with_program(constraint, uuid.clone(), preambles, calls);
         }
         let read = state.read().unwrap();
         assert!(!read.satisfied);
@@ -270,8 +270,13 @@ impl<'a> Driver<'a> {
         let mut calls: HashMap<(String, String, String), Vec<(String, String)>> = HashMap::new();
 
         for (id, state) in block.clone() {
-              self.process_constraint_state(id, state, &mut preambles, &mut
-              calls, reverse_dependencies);
+            self.process_constraint_state(
+                id,
+                state,
+                &mut preambles,
+                &mut calls,
+                reverse_dependencies,
+            );
         }
         print!(
             "{}\n\n",
