@@ -174,10 +174,13 @@ pub trait PrefectTaskRender<'a> {
     );
 }
 trait PrefectTaskRenderWithCalls<'a>: PrefectTaskRender<'a> {
+    fn extract_call_for_rendering(rw: Arc<RwLock<ConstraintState<'a>>>) -> Option<String> {
+        rw.read().unwrap().get_call()
+    }
     fn render(&self, constraint_name: String) {
         let mut by_call: HashMap<String, Vec<Arc<RwLock<ConstraintState<'a>>>>> = HashMap::new();
         for rw in self.get_constraints() {
-            let maybe_call = rw.read().unwrap().get_call();
+            let maybe_call = Self::extract_call_for_rendering(rw.clone());
             if let Some(call) = maybe_call {
                 by_call.entry(call).or_insert(Vec::new()).push(rw.clone());
             }
@@ -189,11 +192,7 @@ trait PrefectTaskRenderWithCalls<'a>: PrefectTaskRender<'a> {
             )
         } else if by_call.len() > 1 {
             for (call, rws) in by_call.iter() {
-                self.render_multiple_calls(
-                    call.clone(),
-                    constraint_name.clone(),
-                    rws,
-                );
+                self.render_multiple_calls(call.clone(), constraint_name.clone(), rws);
             }
         }
     }
@@ -262,6 +261,88 @@ impl<'a> PrefectPythonTaskRender<'a> {
         Self { members }
     }
 }
+pub struct PrefectShellTaskRender<'a> {
+    members: Vec<Arc<RwLock<ConstraintState<'a>>>>,
+}
+impl<'a> PrefectTaskRender<'a> for PrefectShellTaskRender<'a> {
+    fn get_constraints(&self) -> &Vec<Arc<RwLock<ConstraintState<'a>>>> {
+        &self.members
+    }
+    fn render_single_call(&self, call_name: String, constraint_name: String) {
+        println!(
+            "{}",
+            formatdoc!(
+                "
+                        {dependencies}
+                        for k, v in params_{constraint}.items():
+                            tasks[k] = ShellTask(
+                                command=\"\"\"
+                                {call} %s
+                                \"\"\" % v.join(' '),
+                            )
+                            flow.add_node(tasks[k])
+                            for dep in dependencies_{constraint}[k]:
+                                flow.add_edge(tasks[dep], tasks[k])
+                        ",
+                dependencies = self.render_dependencies(constraint_name.clone()),
+                constraint = constraint_name,
+                call = call_name.replace("\n", "\n        "),
+            )
+        );
+    }
+    fn render_multiple_calls(
+        &self,
+        call_name: String,
+        constraint_name: String,
+        rws: &Vec<Arc<RwLock<ConstraintState<'a>>>>,
+    ) {
+        println!(
+            "{}",
+            formatdoc!(
+                "
+                        {dependencies}
+                        for k in [{ids}]:
+                            tasks[k] = ShellTask(
+                                command=\"\"\"
+                                    {call} %s
+                                \"\"\" % params_{constraint}[k].join(' '),
+                            )
+                            flow.add_node(tasks[k])
+                            for dep in dependencies_{constraint}[k]:
+                                flow.add_edge(tasks[dep], tasks[k])
+                        ",
+                dependencies = self.render_dependencies(constraint_name.clone()),
+                constraint = constraint_name,
+                call = call_name,
+                ids = rws
+                    .iter()
+                    .map(|x| format!("'{}'", x.read().unwrap().get_key().unwrap()).to_string())
+                    .collect::<Vec<String>>()
+                    .join(", ")
+            )
+        );
+    }
+}
+impl<'a> PrefectTaskRenderWithCalls<'a> for PrefectShellTaskRender<'a> {
+    fn extract_call_for_rendering(rw: Arc<RwLock<ConstraintState<'a>>>) -> Option<String> {
+        let maybe_call = rw.read().unwrap().get_call();
+        match maybe_call {
+            Some(call) => {
+                let maybe_preamble = rw.read().unwrap().get_preamble();
+                match maybe_preamble {
+                    Some(preamble) => Some(format!("{}\n{}", preamble, call).to_string()),
+                    None => Some(call),
+                }
+            }
+            None => None,
+        }
+    }
+}
+impl<'a> PrefectShellTaskRender<'a> {
+    fn new(members: Vec<Arc<RwLock<ConstraintState<'a>>>>) -> Self {
+        Self { members }
+    }
+}
 
 pub struct CodeBlock<'a> {
     dialect: Option<Dialect>,
@@ -295,75 +376,7 @@ impl<'a> CodeBlock<'a> {
                 PrefectPythonTaskRender::new(self.members.clone()).render(constraint_name)
             }
             Some(Dialect::Bash(_)) => {
-                let mut by_call: HashMap<String, Vec<Arc<RwLock<ConstraintState<'a>>>>> =
-                    HashMap::new();
-                for rw in &self.members {
-                    let maybe_call = rw.read().unwrap().get_call();
-                    if let Some(call) = maybe_call {
-                        let maybe_preamble = rw.read().unwrap().get_preamble();
-                        if let Some(preamble) = maybe_preamble {
-                            by_call
-                                .entry(format!("{}\n{}", preamble, call).to_string())
-                                .or_insert(Vec::new())
-                                .push(rw.clone());
-                        } else {
-                            by_call.entry(call).or_insert(Vec::new()).push(rw.clone());
-                        }
-                    }
-                }
-                if by_call.len() == 1 {
-                    for (call, _) in by_call.iter() {
-                        println!(
-                            "{}",
-                            formatdoc!(
-                                "
-                        {dependencies}
-                        for k, v in params_{constraint}.items():
-                            tasks[k] = ShellTask(
-                                command=\"\"\"
-                                {call} %s
-                                \"\"\" % v.join(' '),
-                            )
-                            flow.add_node(tasks[k])
-                            for dep in dependencies_{constraint}[k]:
-                                flow.add_edge(tasks[dep], tasks[k])
-                        ",
-                                dependencies = self.render_dependencies(constraint_name.clone()),
-                                constraint = constraint_name,
-                                call = call.replace("\n", "\n        "),
-                            )
-                        );
-                    }
-                } else if by_call.len() > 1 {
-                    for (call, rws) in by_call.iter() {
-                        println!(
-                            "{}",
-                            formatdoc!(
-                                "
-                        {dependencies}
-                        for k in [{ids}]:
-                            tasks[k] = ShellTask(
-                                command=\"\"\"
-                                    {call} %s
-                                \"\"\" % params_{constraint}[k].join(' '),
-                            )
-                            flow.add_node(tasks[k])
-                            for dep in dependencies_{constraint}[k]:
-                                flow.add_edge(tasks[dep], tasks[k])
-                        ",
-                                dependencies = self.render_dependencies(constraint_name.clone()),
-                                constraint = constraint_name,
-                                call = call,
-                                ids = rws
-                                    .iter()
-                                    .map(|x| format!("'{}'", x.read().unwrap().get_key().unwrap())
-                                        .to_string())
-                                    .collect::<Vec<String>>()
-                                    .join(", ")
-                            )
-                        );
-                    }
-                }
+                PrefectShellTaskRender::new(self.members.clone()).render(constraint_name)
             }
             None => {
                 println!(
