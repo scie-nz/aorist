@@ -421,39 +421,6 @@ impl<'a> CodeBlock<'a> {
             }
         }
     }
-    pub fn render_dependencies(&self, constraint_name: String) -> String {
-        formatdoc!(
-            "
-        dependencies_{constraint} = {{ 
-            {dependencies} 
-        }}
-        ",
-            constraint = constraint_name,
-            dependencies = self
-                .members
-                .iter()
-                .map(|rw| {
-                    let x = rw.read().unwrap();
-                    formatdoc!(
-                        "
-               '{key}': [
-                   {deps}
-               ]",
-                        key = x.get_key().unwrap(),
-                        deps = x
-                            .get_satisfied_dependency_keys()
-                            .into_iter()
-                            .map(|y| format!("'{}'", y))
-                            .collect::<Vec<_>>()
-                            .join(",\n    "),
-                    )
-                    .to_string()
-                    .replace("\n", "\n    ")
-                })
-                .collect::<Vec<_>>()
-                .join(",\n    "),
-        )
-    }
 }
 
 pub struct ConstraintBlock<'a> {
