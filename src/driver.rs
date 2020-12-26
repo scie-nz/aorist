@@ -35,7 +35,6 @@ pub struct Driver<'a> {
             HashMap<(Uuid, String), Arc<RwLock<ConstraintState>>>,
         ),
     >,
-    _concept_depth: HashMap<(Uuid, String, Option<String>, usize), usize>,
     concept_ancestors: HashMap<(Uuid, String), Vec<(Uuid, String, Option<String>, usize)>>,
     ancestry: Arc<ConceptAncestry<'a>>,
 }
@@ -46,11 +45,9 @@ impl<'a> Driver<'a> {
         let concept = Concept::ParsedDataSetup((data_setup, 0, None));
         concept.populate_child_concept_map(&mut concept_map);
 
-        let mut depth_map: HashMap<(Uuid, String, Option<String>, usize), usize> = HashMap::new();
         let mut ancestors: HashMap<(Uuid, String), Vec<(Uuid, String, Option<String>, usize)>> =
             HashMap::new();
         let mut frontier: Vec<(Uuid, String, Option<String>, usize)> = Vec::new();
-        let mut depth: usize = 0;
         frontier.push((
             concept.get_uuid(),
             concept.get_type(),
@@ -69,7 +66,6 @@ impl<'a> Driver<'a> {
                     .unwrap()
                     .clone();
                 grandchild_ancestors.push(child.clone());
-                depth_map.insert(child, depth);
                 for grandchild in concept.get_child_concepts() {
                     new_frontier.push((
                         grandchild.get_uuid(),
@@ -83,7 +79,6 @@ impl<'a> Driver<'a> {
                     );
                 }
             }
-            depth += 1;
             frontier = new_frontier;
         }
 
@@ -142,7 +137,6 @@ impl<'a> Driver<'a> {
             constraints: constraints.clone(),
             satisfied_constraints: HashMap::new(),
             unsatisfied_constraints,
-            _concept_depth: depth_map,
             concept_ancestors: ancestors,
             ancestry: Arc::new(ancestry),
         }
