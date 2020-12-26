@@ -12,6 +12,7 @@ struct ConstraintState {
     _uuid: Uuid,
     _root_type: String,
     dialect: Option<Dialect>,
+    key: Option<String>,
     name: String,
     satisfied: bool,
     satisfied_dependencies: Vec<(Uuid, String)>,
@@ -20,6 +21,45 @@ struct ConstraintState {
 impl ConstraintState {
     pub fn get_name(&self) -> String {
         self.name.clone()
+    }
+    fn new(
+        _uuid: Uuid,
+        _root_type: String,
+        name: String,
+        dependencies: HashSet<(Uuid, String)>,
+    ) -> Self {
+        Self {
+            _uuid,
+            _root_type,
+            dialect: None,
+            key: None,
+            name,
+            satisfied: false,
+            unsatisfied_dependencies: dependencies,
+            satisfied_dependencies: Vec::new(),
+        }
+    }
+    fn compute_task_name<'a>(
+        &mut self,
+        root: Concept<'a>,
+        ancestors: &Vec<(Uuid, String, Option<String>, usize)>,
+    ) {
+        self.key = Some(match root.get_tag() {
+            None => {
+                let mut relative_path: String = "".to_string();
+                for (_, ancestor_type, tag, ix) in ancestors.iter().rev() {
+                    if let Some(t) = tag {
+                        relative_path = format!("{}_of_{}", relative_path, t);
+                        break;
+                    }
+                    if *ix > 0 {
+                        relative_path = format!("{}_of_{}_{}", relative_path, ancestor_type, ix);
+                    }
+                }
+                format!("{}{}", root.get_type(), relative_path)
+            }
+            Some(t) => t,
+        });
     }
 }
 
@@ -107,15 +147,12 @@ impl<'a> Driver<'a> {
                         .collect::<HashSet<_>>();
                     (
                         k.clone(),
-                        Arc::new(RwLock::new(ConstraintState {
-                            _uuid: k.0.clone(),
-                            _root_type: k.1.clone(),
-                            dialect: None,
-                            name: x.get_name().clone(),
-                            satisfied: false,
-                            satisfied_dependencies: Vec::new(),
-                            unsatisfied_dependencies: dependencies,
-                        })),
+                        Arc::new(RwLock::new(ConstraintState::new(
+                            k.0.clone(),
+                            k.1.clone(),
+                            x.get_name().clone(),
+                            dependencies,
+                        ))),
                     )
                 })
                 .collect();
@@ -204,29 +241,20 @@ impl<'a> Driver<'a> {
             .concept_ancestors
             .get(&(root_uuid, constraint.root.clone()))
             .unwrap();
-        let key = match root.get_tag() {
-            None => {
-                let mut relative_path: String = "".to_string();
-                for (_, ancestor_type, tag, ix) in ancestors.iter().rev() {
-                    if let Some(t) = tag {
-                        relative_path = format!("{}_of_{}", relative_path, t);
-                        break;
-                    }
-                    if *ix > 0 {
-                        relative_path = format!("{}_of_{}_{}", relative_path, ancestor_type, ix);
-                    }
-                }
-                format!("{}{}", root.get_type(), relative_path)
-            }
-            Some(t) => t,
-        };
         let preferences = vec![Dialect::Python(Python {}), Dialect::Bash(Bash {})];
         let ancestry = self.ancestry.clone();
         let root_clone = root.clone();
         let (preamble, call, params, dialect) = constraint
             .satisfy_given_preference_ordering(root_clone, &preferences, ancestry)
             .unwrap();
-        state.write().unwrap().dialect = Some(dialect);
+
+        let mut write = state.write().unwrap();
+        write.dialect = Some(dialect);
+        write.compute_task_name(root.clone(), &ancestors);
+        drop(write);
+
+        // TODO: move key, preamble, call to ConstraintState
+        let key = state.read().unwrap().key.as_ref().unwrap().clone();
         preambles.insert(preamble);
         calls
             .entry((call, constraint.get_name().clone(), uuid.1.clone()))
