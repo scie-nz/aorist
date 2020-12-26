@@ -8,7 +8,7 @@ use std::collections::{HashMap, HashSet};
 use std::sync::{Arc, RwLock, RwLockReadGuard};
 use uuid::Uuid;
 
-struct ConstraintState<'a> {
+pub struct ConstraintState<'a> {
     dialect: Option<Dialect>,
     key: Option<String>,
     name: String,
@@ -116,12 +116,29 @@ impl<'a> ConstraintState<'a> {
     }
 }
 
+pub struct CodeBlock<'a> {
+    members: Vec<Arc<RwLock<ConstraintState<'a>>>>,
+}
+impl <'a> CodeBlock<'a> {
+    pub fn new(
+        members: Vec<Arc<RwLock<ConstraintState<'a>>>>,
+    ) -> Self {
+        Self { members }
+    }
+    pub fn get_preambles(&self) -> HashSet<String> {
+        self.members.iter().map(|x| x.read().unwrap().get_preamble())
+        .filter(|x| x.is_some())
+        .map(|x| x.unwrap()).collect()
+    }
+}
+
+
 pub struct Driver<'a> {
     _data_setup: &'a ParsedDataSetup,
     pub concepts: Arc<RwLock<HashMap<(Uuid, String), Concept<'a>>>>,
     constraints: HashMap<(Uuid, String), Arc<RwLock<Constraint>>>,
     satisfied_constraints: HashMap<(Uuid, String), Arc<RwLock<ConstraintState<'a>>>>,
-    blocks: Vec<Vec<Arc<RwLock<ConstraintState<'a>>>>>,
+    blocks: Vec<CodeBlock<'a>>,
     // map from: constraint_name => (dependent_constraint_names, constraints_by_uuid)
     unsatisfied_constraints: HashMap<
         String,
@@ -357,7 +374,8 @@ impl<'a> Driver<'a> {
             self.satisfied_constraints.insert(id, state.clone());
             satisfied.push(state.clone());
         }
-        self.blocks.push(satisfied);
+        self.blocks.push(CodeBlock::new(satisfied));
+
         if calls.len() > 0 {
             for ((call, constraint_name, _root_name), params) in calls {
                 println!(
@@ -413,10 +431,8 @@ impl<'a> Driver<'a> {
         let preambles: HashSet<String> = self
             .blocks
             .iter()
-            .map(|x| x.iter().map(|y| y.read().unwrap().get_preamble()))
+            .map(|x| x.get_preambles().into_iter())
             .flatten()
-            .filter(|x| x.is_some())
-            .map(|x| x.unwrap())
             .collect();
         print!(
             "{}\n\n",
