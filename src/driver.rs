@@ -130,15 +130,9 @@ impl<'a> ConstraintState<'a> {
         self.key.as_ref().unwrap().clone()
     }
 }
-
-pub struct PrefectPythonTaskRender<'a> {
-    members: Vec<Arc<RwLock<ConstraintState<'a>>>>,
-}
-impl<'a> PrefectPythonTaskRender<'a> {
-    fn new(members: Vec<Arc<RwLock<ConstraintState<'a>>>>) -> Self {
-        Self { members }
-    }
-    pub fn render_dependencies(&self, constraint_name: String) -> String {
+pub trait PrefectTaskRender <'a> {
+    fn get_constraints(&self) -> &Vec<Arc<RwLock<ConstraintState<'a>>>>;
+    fn render_dependencies(&self, constraint_name: String) -> String {
         formatdoc!(
             "
         dependencies_{constraint} = {{ 
@@ -147,7 +141,7 @@ impl<'a> PrefectPythonTaskRender<'a> {
         ",
             constraint = constraint_name,
             dependencies = self
-                .members
+                .get_constraints()
                 .iter()
                 .map(|rw| {
                     let x = rw.read().unwrap();
@@ -170,6 +164,20 @@ impl<'a> PrefectPythonTaskRender<'a> {
                 .collect::<Vec<_>>()
                 .join(",\n    "),
         )
+    }
+}
+
+pub struct PrefectPythonTaskRender<'a> {
+    members: Vec<Arc<RwLock<ConstraintState<'a>>>>,
+}
+impl <'a> PrefectTaskRender<'a> for PrefectPythonTaskRender<'a> {
+    fn get_constraints(&self) -> &Vec<Arc<RwLock<ConstraintState<'a>>>> {
+        &self.members
+    }
+}
+impl<'a> PrefectPythonTaskRender<'a> {
+    fn new(members: Vec<Arc<RwLock<ConstraintState<'a>>>>) -> Self {
+        Self { members }
     }
     fn render(&self, constraint_name: String) {
         let mut by_call: HashMap<String, Vec<Arc<RwLock<ConstraintState<'a>>>>> = HashMap::new();
