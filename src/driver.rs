@@ -173,6 +173,31 @@ pub trait PrefectTaskRender<'a> {
         rws: &Vec<Arc<RwLock<ConstraintState<'a>>>>,
     );
 }
+trait PrefectTaskRenderWithCalls<'a>: PrefectTaskRender<'a> {
+    fn render(&self, constraint_name: String) {
+        let mut by_call: HashMap<String, Vec<Arc<RwLock<ConstraintState<'a>>>>> = HashMap::new();
+        for rw in self.get_constraints() {
+            let maybe_call = rw.read().unwrap().get_call();
+            if let Some(call) = maybe_call {
+                by_call.entry(call).or_insert(Vec::new()).push(rw.clone());
+            }
+        }
+        if by_call.len() == 1 {
+            self.render_single_call(
+                by_call.keys().next().unwrap().clone(),
+                constraint_name.clone(),
+            )
+        } else if by_call.len() > 1 {
+            for (call, rws) in by_call.iter() {
+                self.render_multiple_calls(
+                    call.clone(),
+                    constraint_name.clone(),
+                    rws,
+                );
+            }
+        }
+    }
+}
 
 pub struct PrefectPythonTaskRender<'a> {
     members: Vec<Arc<RwLock<ConstraintState<'a>>>>,
@@ -231,32 +256,10 @@ impl<'a> PrefectTaskRender<'a> for PrefectPythonTaskRender<'a> {
         );
     }
 }
+impl<'a> PrefectTaskRenderWithCalls<'a> for PrefectPythonTaskRender<'a> {}
 impl<'a> PrefectPythonTaskRender<'a> {
     fn new(members: Vec<Arc<RwLock<ConstraintState<'a>>>>) -> Self {
         Self { members }
-    }
-    fn render(&self, constraint_name: String) {
-        let mut by_call: HashMap<String, Vec<Arc<RwLock<ConstraintState<'a>>>>> = HashMap::new();
-        for rw in &self.members {
-            let maybe_call = rw.read().unwrap().get_call();
-            if let Some(call) = maybe_call {
-                by_call.entry(call).or_insert(Vec::new()).push(rw.clone());
-            }
-        }
-        if by_call.len() == 1 {
-            self.render_single_call(
-                by_call.keys().next().unwrap().clone(),
-                constraint_name.clone(),
-            )
-        } else if by_call.len() > 1 {
-            for (call, rws) in by_call.iter() {
-                self.render_multiple_calls(
-                    call.clone(),
-                    constraint_name.clone(),
-                    rws,
-                );
-            }
-        }
     }
 }
 
