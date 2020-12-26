@@ -85,15 +85,15 @@ impl<'a> Driver<'a> {
         }
         ancestors
     }
-
-    pub fn new(data_setup: &'a ParsedDataSetup) -> Driver<'a> {
-        let mut concept_map: HashMap<(Uuid, String), Concept<'a>> = HashMap::new();
-        let concept = Concept::ParsedDataSetup((data_setup, 0, None));
-        concept.populate_child_concept_map(&mut concept_map);
-
-        let constraints = data_setup.get_constraints_map();
-        let ancestors = Self::compute_all_ancestors(concept, &concept_map);
-
+    fn get_unsatisfied_constraints(
+        constraints: &HashMap<(Uuid, String), Arc<RwLock<Constraint>>>,
+    ) -> HashMap<
+        String,
+        (
+            HashSet<String>,
+            HashMap<(Uuid, String), Arc<RwLock<ConstraintState>>>,
+        ),
+    > {
         let raw_unsatisfied_constraints: HashMap<(Uuid, String), Arc<RwLock<ConstraintState>>> =
             constraints
                 .iter()
@@ -137,6 +137,16 @@ impl<'a> Driver<'a> {
                 .1
                 .insert((uuid, root_type), rw);
         }
+        unsatisfied_constraints
+    }
+    pub fn new(data_setup: &'a ParsedDataSetup) -> Driver<'a> {
+        let mut concept_map: HashMap<(Uuid, String), Concept<'a>> = HashMap::new();
+        let concept = Concept::ParsedDataSetup((data_setup, 0, None));
+        concept.populate_child_concept_map(&mut concept_map);
+
+        let constraints = data_setup.get_constraints_map();
+        let ancestors = Self::compute_all_ancestors(concept, &concept_map);
+        let unsatisfied_constraints = Self::get_unsatisfied_constraints(&constraints);
         let concepts = Arc::new(RwLock::new(concept_map));
         let ancestry: ConceptAncestry<'a> = ConceptAncestry {
             parents: concepts.clone(),
