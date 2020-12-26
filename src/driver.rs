@@ -1,11 +1,11 @@
-use crate::concept::{AoristConcept, Concept, ConceptAncestry};
+use crate::concept::{Concept, ConceptAncestry};
 use crate::constraint::{AllConstraintsSatisfiability, AoristConstraint, Constraint};
 use crate::data_setup::ParsedDataSetup;
 use crate::object::TAoristObject;
 use aorist_primitives::{Dialect, Bash, Python};
 use indoc::formatdoc;
 use std::collections::{HashMap, HashSet};
-use std::sync::{Arc, RwLock};
+use std::sync::{Arc, RwLock, RwLockReadGuard};
 use uuid::Uuid;
 
 struct ConstraintState {
@@ -169,6 +169,103 @@ impl<'a> Driver<'a> {
             None => None,
         }
     }
+
+    fn process_constraint_with_program(
+        &mut self,
+        constraint: RwLockReadGuard<'_, Constraint, >,
+        uuid: (Uuid, String),
+        preambles: &mut HashSet<String>,
+        calls: &mut HashMap<(String, String, String), Vec<(String, String)>>,
+    ) {
+        let root_uuid = constraint.get_root_uuid();
+        let guard = self.concepts.read().unwrap();
+        let root = guard
+            .get(&(root_uuid.clone(), constraint.root.clone()))
+            .unwrap();
+
+
+        let ancestors = self
+            .concept_ancestors
+            .get(&(root_uuid, constraint.root.clone()))
+            .unwrap();
+        let key = match root.get_tag() {
+            None => {
+                let mut relative_path: String = "".to_string();
+                for (_, ancestor_type, tag, ix) in ancestors.iter().rev() {
+                    if let Some(t) = tag {
+                        relative_path = format!("{}_of_{}", relative_path, t);
+                        break;
+                    }
+                    if *ix > 0 {
+                        relative_path =
+                            format!("{}_of_{}_{}", relative_path, ancestor_type, ix);
+                    }
+                }
+                format!("{}{}", root.get_type(), relative_path)
+            }
+            Some(t) => t,
+        };
+        let preferences = vec![
+            Dialect::Python(Python {}),
+            Dialect::Bash(Bash {}),
+        ];
+        let ancestry = self.ancestry.clone();
+        let root_clone = root.clone();
+        let (preamble, call, params) = constraint
+            .satisfy_given_preference_ordering(root_clone, &preferences, ancestry)
+            .unwrap();
+        preambles.insert(preamble);
+        calls
+            .entry((call, constraint.get_name().clone(), uuid.1.clone()))
+            .or_insert(Vec::new())
+            .push((key, params));
+    }
+    fn process_constraint_state(
+        &mut self,
+        uuid: (Uuid, String),
+        state: Arc<RwLock<ConstraintState>>,
+        preambles: &mut HashSet<String>,
+        calls: &mut HashMap<(String, String, String), Vec<(String, String)>>,
+        reverse_dependencies: &HashMap<(Uuid, String), HashSet<(String, Uuid, String)>>,
+    ) {
+        let rw = self.constraints.get(&uuid).unwrap().clone();
+        let constraint = rw.read().unwrap();
+        if constraint.requires_program() {
+            self.process_constraint_with_program(
+                constraint,
+                uuid.clone(),
+                preambles,
+                calls
+            );
+        }
+        let read = state.read().unwrap();
+        assert!(!read.satisfied);
+        assert_eq!(read.unsatisfied_dependencies.len(), 0);
+        drop(read);
+
+        if let Some(v) = reverse_dependencies.get(&uuid) {
+            for (dependency_name, dependency_uuid, dependency_root_type) in v {
+                let rw = self
+                    .unsatisfied_constraints
+                    .get(dependency_name)
+                    .unwrap()
+                    .1
+                    .get(&(*dependency_uuid, dependency_root_type.clone()))
+                    .unwrap();
+                let mut write = rw.write().unwrap();
+                write.satisfied_dependencies.push(uuid.clone());
+                write.unsatisfied_dependencies.remove(&uuid);
+                drop(write);
+            }
+        }
+
+        let mut write = state.write().unwrap();
+        write.satisfied = true;
+        drop(write);
+
+        self.satisfied_constraints.insert(uuid, state.clone());
+    }
+
     fn process_constraint_block(
         &mut self,
         block: &mut HashMap<(Uuid, String), Arc<RwLock<ConstraintState>>>,
@@ -178,79 +275,9 @@ impl<'a> Driver<'a> {
         // (call, constraint_name, root_name) => (uuid, call parameters)
         let mut calls: HashMap<(String, String, String), Vec<(String, String)>> = HashMap::new();
 
-        for (uuid, state) in block.clone() {
-            let rw = self.constraints.get(&uuid).unwrap().clone();
-            let constraint = rw.read().unwrap();
-            if constraint.requires_program() {
-                let root_uuid = constraint.get_root_uuid();
-                let guard = self.concepts.read().unwrap();
-                let root = guard
-                    .get(&(root_uuid.clone(), constraint.root.clone()))
-                    .unwrap();
-
-
-                let ancestors = self
-                    .concept_ancestors
-                    .get(&(root_uuid, constraint.root.clone()))
-                    .unwrap();
-                let key = match root.get_tag() {
-                    None => {
-                        let mut relative_path: String = "".to_string();
-                        for (_, ancestor_type, tag, ix) in ancestors.iter().rev() {
-                            if let Some(t) = tag {
-                                relative_path = format!("{}_of_{}", relative_path, t);
-                                break;
-                            }
-                            if *ix > 0 {
-                                relative_path =
-                                    format!("{}_of_{}_{}", relative_path, ancestor_type, ix);
-                            }
-                        }
-                        format!("{}{}", root.get_type(), relative_path)
-                    }
-                    Some(t) => t,
-                };
-                let preferences = vec![
-                    Dialect::Python(Python {}),
-                    Dialect::Bash(Bash {}),
-                ];
-                let ancestry = self.ancestry.clone();
-                let root_clone = root.clone();
-                let (preamble, call, params) = constraint
-                    .satisfy_given_preference_ordering(root_clone, &preferences, ancestry)
-                    .unwrap();
-                preambles.insert(preamble);
-                calls
-                    .entry((call, constraint.get_name().clone(), uuid.1.clone()))
-                    .or_insert(Vec::new())
-                    .push((key, params));
-            }
-            let read = state.read().unwrap();
-            assert!(!read.satisfied);
-            assert_eq!(read.unsatisfied_dependencies.len(), 0);
-            drop(read);
-
-            if let Some(v) = reverse_dependencies.get(&uuid) {
-                for (dependency_name, dependency_uuid, dependency_root_type) in v {
-                    let rw = self
-                        .unsatisfied_constraints
-                        .get(dependency_name)
-                        .unwrap()
-                        .1
-                        .get(&(*dependency_uuid, dependency_root_type.clone()))
-                        .unwrap();
-                    let mut write = rw.write().unwrap();
-                    write.satisfied_dependencies.push(uuid.clone());
-                    write.unsatisfied_dependencies.remove(&uuid);
-                    drop(write);
-                }
-            }
-
-            let mut write = state.write().unwrap();
-            write.satisfied = true;
-            drop(write);
-
-            self.satisfied_constraints.insert(uuid, state.clone());
+        for (id, state) in block.clone() {
+              self.process_constraint_state(id, state, &mut preambles, &mut
+              calls, reverse_dependencies);
         }
         print!(
             "{}\n\n",
