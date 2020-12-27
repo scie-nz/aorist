@@ -4,6 +4,7 @@ use crate::data_setup::ParsedDataSetup;
 use crate::object::TAoristObject;
 use aorist_primitives::{Bash, Dialect, Python};
 use indoc::formatdoc;
+use inflector::cases::snakecase::to_snake_case;
 use std::collections::{HashMap, HashSet};
 use std::sync::{Arc, RwLock, RwLockReadGuard};
 use uuid::Uuid;
@@ -123,7 +124,12 @@ impl<'a> ConstraintState<'a> {
                         break;
                     }
                     if *ix > 0 {
-                        relative_path = format!("{}_of_{}_{}", relative_path, ancestor_type, ix);
+                        relative_path = format!(
+                            "{}_of_{}_{}",
+                            relative_path,
+                            to_snake_case(&ancestor_type),
+                            ix
+                        );
                     }
                 }
                 relative_path
@@ -815,7 +821,7 @@ impl<'a> Driver<'a> {
                 write.satisfied_dependencies.push(uuid.clone());
                 write
                     .satisfied_dependency_keys
-                    .push((name.clone(), key.clone()));
+                    .push((to_snake_case(&name), to_snake_case(&key)));
                 write.unsatisfied_dependencies.remove(&uuid);
                 drop(write);
             }
@@ -879,7 +885,7 @@ impl<'a> Driver<'a> {
                 //println!("Block has size: {}", block.len());
                 let members =
                     self.process_constraint_block(&mut block.clone(), &reverse_dependencies);
-                let block = ConstraintBlock::new(constraint_name, members);
+                let block = ConstraintBlock::new(to_snake_case(&constraint_name), members);
                 self.blocks.push(block);
             } else {
                 break;
