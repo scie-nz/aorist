@@ -2,6 +2,7 @@
 pub mod access_policy;
 pub mod asset;
 pub mod attributes;
+pub mod code_block;
 pub mod compression;
 pub mod concept;
 pub mod constraint;

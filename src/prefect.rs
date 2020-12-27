@@ -1,12 +1,11 @@
 #![allow(dead_code)]
+use crate::constraint_state::ConstraintState;
+use indoc::formatdoc;
 use rustpython_parser::ast::{
     ExpressionType, Located, Program, Statement, StatementType, WithItem,
 };
-use indoc::formatdoc;
 use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
-use crate::constraint_state::ConstraintState;
-
 
 struct PrefectProgram {
     imports: Vec<Statement>,
@@ -409,4 +408,3 @@ impl<'a> PrefectTaskRender<'a> for PrefectConstantTaskRender<'a> {
         &self.members
     }
 }
-
