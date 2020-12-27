@@ -50,12 +50,7 @@ impl<'a> ConstraintBlock<'a> {
                     constraint = self.get_constraint_name(),
                     params = params
                         .into_iter()
-                        .map(|(k, v)| format!(
-                            "'{k}': ({v})",
-                            k = k,
-                            v = v.unwrap()
-                        )
-                        .to_string())
+                        .map(|(k, v)| format!("'{k}': ({v})", k = k, v = v.unwrap()).to_string())
                         .collect::<Vec<String>>()
                         .join(",\n    "),
                 )

@@ -2,7 +2,8 @@
 use crate::constraint_state::ConstraintState;
 use indoc::formatdoc;
 use rustpython_parser::ast::{
-    ExpressionType, Located, Program, Statement, StatementType, WithItem,
+    Expression, ExpressionType, Located, Location, Program, Statement, StatementType, StringGroup,
+    WithItem,
 };
 use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
@@ -57,6 +58,30 @@ impl PrefectProgram {
             node: with,
         });
         Program { statements }
+    }
+    fn render_task_value(expr: Expression) -> Result<String, String> {
+        match expr {
+            Located {
+                node: ExpressionType::Subscript { a, b, .. },
+                ..
+            } => match *a {
+                Located {
+                    node: ExpressionType::Identifier { name },
+                    ..
+                } => match *b {
+                    Located {
+                        node:
+                            ExpressionType::String {
+                                value: StringGroup::Constant { value },
+                            },
+                        ..
+                    } => Ok(format!("{}['{}']", name, value).to_string()),
+                    _ => Err("Unknown inner type for task value".to_string()),
+                },
+                _ => Err("Unknown outer type for task value".to_string()),
+            },
+            _ => Err("Unknown expression type for task value".to_string()),
+        }
     }
 }
 
@@ -164,6 +189,10 @@ impl<'a> PrefectTaskRender<'a> for PrefectPythonTaskRender<'a> {
         let constraint = rw.read().unwrap();
         let key = constraint.get_task_name();
         let deps = constraint.get_satisfied_dependency_keys();
+
+        let location = Location::new(0, 0);
+        let val = PrefectProgram::render_task_value(constraint.get_task_expr(location)).unwrap();
+
         if deps.len() > 0 {
             let formatted_deps = deps
                 .iter()
@@ -174,15 +203,16 @@ impl<'a> PrefectTaskRender<'a> for PrefectPythonTaskRender<'a> {
                 "{}",
                 formatdoc!(
                     "
-                tasks['{k}'] = {call}(*params_{constraint}['{k}'])
-                flow.add_node(tasks['{k}'])
+                {val} = {call}(*params_{constraint}['{k}'])
+                flow.add_node({val})
                 for dep in [{dependencies}]:
-                    flow.add_edge(dep, tasks['{k}'])
+                    flow.add_edge(dep, {val})
             ",
                     dependencies = formatted_deps,
                     k = key,
                     constraint = constraint_name,
                     call = call_name,
+                    val = val,
                 )
             )
         } else {

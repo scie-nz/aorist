@@ -66,7 +66,8 @@ enum_dispatch = {version = "0.3.4"}
 textwrap = {version = "0.12.1"}
 git2 = {version = "0.13.12"}
 sqlparser = {version = "0.6.1"}
-rustpython-parser = {version = "0.1.2"}
+rustpython-vm = { git = "https://github.com/RustPython/RustPython" }
+rustpython-parser = { git = "https://github.com/RustPython/RustPython" }
 paste = {path = "./paste"}
 maplit = {version = "1.0.2"}
 uuid = {version = "0.8.1", features = ["v4", "serde"]}

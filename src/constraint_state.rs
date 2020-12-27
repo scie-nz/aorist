@@ -3,6 +3,7 @@ use crate::constraint::{AllConstraintsSatisfiability, Constraint};
 use crate::object::TAoristObject;
 use aorist_primitives::Dialect;
 use inflector::cases::snakecase::to_snake_case;
+use rustpython_parser::ast::{Expression, ExpressionType, Located, Location, StringGroup};
 use std::collections::{HashMap, HashSet};
 use std::sync::{Arc, RwLock};
 use uuid::Uuid;
@@ -25,6 +26,29 @@ pub struct ConstraintState<'a> {
     task_name: Option<String>,
 }
 impl<'a> ConstraintState<'a> {
+    pub fn get_task_expr(&self, location: Location) -> Expression {
+        let outer = Located {
+            location,
+            node: ExpressionType::Identifier {
+                name: "tasks".to_string(),
+            },
+        };
+        let inner = Located {
+            location,
+            node: ExpressionType::String {
+                value: StringGroup::Constant {
+                    value: self.get_task_name(),
+                },
+            },
+        };
+        Located {
+            location,
+            node: ExpressionType::Subscript {
+                a: Box::new(outer),
+                b: Box::new(inner),
+            },
+        }
+    }
     pub fn set_task_name(&mut self, name: String) {
         self.task_name = Some(name)
     }
