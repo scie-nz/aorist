@@ -311,7 +311,6 @@ impl<'a> Driver<'a> {
                 )
                 .to_string();
             }
-        
         }
         new_name
     }

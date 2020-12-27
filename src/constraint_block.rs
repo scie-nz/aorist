@@ -30,6 +30,9 @@ impl<'a> ConstraintBlock<'a> {
             .collect()
     }
     pub fn print_params(&self) {
+        // TODO: needs refactoring
+        // - param keys are wrong
+        // - unnecessary for singletons
         let params = self
             .get_params()
             .into_iter()
