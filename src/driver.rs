@@ -1,78 +1,15 @@
 use crate::code_block::CodeBlock;
 use crate::concept::{Concept, ConceptAncestry};
 use crate::constraint::{AoristConstraint, Constraint};
+use crate::constraint_block::ConstraintBlock;
 use crate::constraint_state::ConstraintState;
 use crate::data_setup::ParsedDataSetup;
 use crate::object::TAoristObject;
 use aorist_primitives::{Bash, Dialect, Python};
-use indoc::formatdoc;
 use inflector::cases::snakecase::to_snake_case;
 use std::collections::{HashMap, HashSet};
 use std::sync::{Arc, RwLock, RwLockReadGuard};
 use uuid::Uuid;
-pub struct ConstraintBlock<'a> {
-    constraint_name: String,
-    members: Vec<CodeBlock<'a>>,
-}
-impl<'a> ConstraintBlock<'a> {
-    fn new(constraint_name: String, members: Vec<CodeBlock<'a>>) -> Self {
-        Self {
-            constraint_name,
-            members,
-        }
-    }
-    pub fn get_constraint_name(&self) -> String {
-        self.constraint_name.clone()
-    }
-    pub fn get_preambles(&self) -> HashSet<String> {
-        self.members
-            .iter()
-            .map(|x| x.get_preambles().into_iter())
-            .flatten()
-            .collect()
-    }
-    pub fn get_params(&self) -> HashMap<String, Option<String>> {
-        self.members
-            .iter()
-            .map(|x| x.get_params().into_iter())
-            .flatten()
-            .collect()
-    }
-    pub fn print_params(&self) {
-        let params = self
-            .get_params()
-            .into_iter()
-            .filter(|(_, v)| v.is_some())
-            .collect::<Vec<_>>();
-        if params.len() > 0 {
-            println!(
-                "{}",
-                formatdoc!(
-                    "
-            params_{constraint} = {{
-                {params}
-            }}
-                ",
-                    constraint = self.get_constraint_name(),
-                    params = params
-                        .into_iter()
-                        .map(|(k, v)| format!(
-                            "'{constraint}_{k}': ({v})",
-                            constraint = self.get_constraint_name(),
-                            k = k,
-                            v = v.unwrap()
-                        )
-                        .to_string())
-                        .collect::<Vec<String>>()
-                        .join(",\n    "),
-                )
-            );
-        }
-        for (_i, member) in self.members.iter().enumerate() {
-            member.print_call(self.get_constraint_name());
-        }
-    }
-}
 
 pub struct Driver<'a> {
     _data_setup: &'a ParsedDataSetup,

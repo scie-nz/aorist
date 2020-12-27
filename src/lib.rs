@@ -6,6 +6,7 @@ pub mod code_block;
 pub mod compression;
 pub mod concept;
 pub mod constraint;
+pub mod constraint_block;
 pub mod constraint_state;
 pub mod data_setup;
 pub mod dataset;
