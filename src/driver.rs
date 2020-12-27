@@ -275,36 +275,7 @@ impl<'a> Driver<'a> {
 
         blocks
     }
-    pub fn run(&mut self) {
-        let mut reverse_dependencies: HashMap<(Uuid, String), HashSet<(String, Uuid, String)>> =
-            HashMap::new();
-        for (name, (_, constraints)) in &self.unsatisfied_constraints {
-            for ((uuid, root_type), state) in constraints {
-                for (dependency_uuid, dependency_root_type) in
-                    &state.read().unwrap().unsatisfied_dependencies
-                {
-                    reverse_dependencies
-                        .entry((*dependency_uuid, dependency_root_type.clone()))
-                        .or_insert(HashSet::new())
-                        .insert((name.clone(), *uuid, root_type.clone()));
-                }
-            }
-        }
-
-        // find at least one satisfiable constraint
-        loop {
-            let mut satisfiable = self.find_satisfiable_constraint_block();
-            if let Some((ref mut block, constraint_name)) = satisfiable {
-                //println!("Block has size: {}", block.len());
-                let members =
-                    self.process_constraint_block(&mut block.clone(), &reverse_dependencies);
-                let block = ConstraintBlock::new(to_snake_case(&constraint_name), members);
-                self.blocks.push(block);
-            } else {
-                break;
-            }
-        }
-
+    pub fn shorten_task_names(&mut self) {
         let mut task_names: Vec<(String, Arc<RwLock<ConstraintState<'a>>>)> = Vec::new();
         // shorten task names
         for constraint in self.satisfied_constraints.values() {
@@ -353,6 +324,37 @@ impl<'a> Driver<'a> {
             let mut write = rw.write().unwrap();
             write.set_task_name(name);
         }
+    }
+    pub fn run(&mut self) {
+        let mut reverse_dependencies: HashMap<(Uuid, String), HashSet<(String, Uuid, String)>> =
+            HashMap::new();
+        for (name, (_, constraints)) in &self.unsatisfied_constraints {
+            for ((uuid, root_type), state) in constraints {
+                for (dependency_uuid, dependency_root_type) in
+                    &state.read().unwrap().unsatisfied_dependencies
+                {
+                    reverse_dependencies
+                        .entry((*dependency_uuid, dependency_root_type.clone()))
+                        .or_insert(HashSet::new())
+                        .insert((name.clone(), *uuid, root_type.clone()));
+                }
+            }
+        }
+
+        // find at least one satisfiable constraint
+        loop {
+            let mut satisfiable = self.find_satisfiable_constraint_block();
+            if let Some((ref mut block, constraint_name)) = satisfiable {
+                //println!("Block has size: {}", block.len());
+                let members =
+                    self.process_constraint_block(&mut block.clone(), &reverse_dependencies);
+                let block = ConstraintBlock::new(to_snake_case(&constraint_name), members);
+                self.blocks.push(block);
+            } else {
+                break;
+            }
+        }
+        self.shorten_task_names();
 
         let preambles: HashSet<String> = self
             .blocks
