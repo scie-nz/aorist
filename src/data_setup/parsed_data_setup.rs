@@ -133,14 +133,4 @@ impl ParsedDataSetup {
         }
         Ok(map)
     }
-    pub fn get_pipelines(&self) -> Result<HashMap<String, String>, String> {
-        let mut files: HashMap<String, String> = HashMap::new();
-        for dataset in self.get_datasets().unwrap() {
-            files.insert(
-                dataset.get_materialize_pipeline_name(),
-                dataset.get_materialize_pipeline(&self.endpoints)?,
-            );
-        }
-        Ok(files)
-    }
 }
