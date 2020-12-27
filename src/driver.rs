@@ -14,8 +14,7 @@ pub struct ConstraintState<'a> {
     key: Option<String>,
     name: String,
     satisfied: bool,
-    satisfied_dependencies: Vec<(Uuid, String)>,
-    satisfied_dependency_keys: Vec<(String, String)>,
+    satisfied_dependencies: Vec<Arc<RwLock<ConstraintState<'a>>>>,
     unsatisfied_dependencies: HashSet<(Uuid, String)>,
     constraint: Arc<RwLock<Constraint>>,
     root: Concept<'a>,
@@ -27,8 +26,9 @@ pub struct ConstraintState<'a> {
     params: Option<String>,
 }
 impl<'a> ConstraintState<'a> {
-    pub fn get_satisfied_dependency_keys(&self) -> Vec<(String, String)> {
-        self.satisfied_dependency_keys.clone()
+    pub fn get_satisfied_dependency_keys(&self) -> Vec<String> {
+        self.satisfied_dependencies.iter().map(|x|
+        x.read().unwrap().get_task_name()).collect()
     }
     pub fn get_name(&self) -> String {
         self.name.clone()
@@ -102,7 +102,6 @@ impl<'a> ConstraintState<'a> {
             satisfied: false,
             unsatisfied_dependencies: dependencies,
             satisfied_dependencies: Vec::new(),
-            satisfied_dependency_keys: Vec::new(),
             constraint,
             root,
             ancestors: ancestors.clone(),
@@ -137,6 +136,11 @@ impl<'a> ConstraintState<'a> {
             Some(t) => t,
         });
         self.key.as_ref().unwrap().clone()
+    }
+    fn get_task_name(
+        &self,
+    ) -> String {
+        format!("{}_{}", to_snake_case(&self.get_name()), self.key.as_ref().unwrap())
     }
 }
 pub trait PrefectTaskRender<'a> {
@@ -182,11 +186,11 @@ pub trait PrefectTaskRender<'a> {
                '{key}': [
                    {deps}
                ]",
-                        key = format!("{}_{}", constraint_name, x.get_key().unwrap()),
+                        key = x.get_task_name(),
                         deps = x
                             .get_satisfied_dependency_keys()
-                            .into_iter()
-                            .map(|(c, d)| format!("'{}_{}'", c, d))
+                            .iter()
+                            .map(|x| format!("'{}'", x))
                             .collect::<Vec<_>>()
                             .join(",\n    "),
                     )
@@ -794,10 +798,9 @@ impl<'a> Driver<'a> {
     ) {
         let mut write = state.write().unwrap();
         let ancestors = write.get_ancestors();
-        let key = write.compute_task_name(&ancestors);
+        write.compute_task_name(&ancestors);
         // TODO: rename this function, it's confusing (this represents
         // constraitn name, key is root name)
-        let name = write.get_name();
         assert!(!write.satisfied);
         assert_eq!(write.unsatisfied_dependencies.len(), 0);
         drop(write);
@@ -818,10 +821,7 @@ impl<'a> Driver<'a> {
                     .get(&(*dependency_uuid, dependency_root_type.clone()))
                     .unwrap();
                 let mut write = rw.write().unwrap();
-                write.satisfied_dependencies.push(uuid.clone());
-                write
-                    .satisfied_dependency_keys
-                    .push((to_snake_case(&name), to_snake_case(&key)));
+                write.satisfied_dependencies.push(state.clone());
                 write.unsatisfied_dependencies.remove(&uuid);
                 drop(write);
             }
