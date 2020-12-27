@@ -27,7 +27,7 @@ impl<'a> CodeBlock<'a> {
             .iter()
             .map(|rw| {
                 let x = rw.read().unwrap();
-                (x.get_key().unwrap(), x.get_params())
+                (x.get_task_name(), x.get_params())
             })
             .collect()
     }

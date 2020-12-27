@@ -51,8 +51,7 @@ impl<'a> ConstraintBlock<'a> {
                     params = params
                         .into_iter()
                         .map(|(k, v)| format!(
-                            "'{constraint}_{k}': ({v})",
-                            constraint = self.get_constraint_name(),
+                            "'{k}': ({v})",
                             k = k,
                             v = v.unwrap()
                         )
