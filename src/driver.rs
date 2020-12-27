@@ -275,6 +275,46 @@ impl<'a> Driver<'a> {
 
         blocks
     }
+    fn get_shorter_task_name(task_name: String) -> String {
+        let splits = task_name
+            .split("__")
+            .map(|x| x.to_string())
+            .collect::<Vec<String>>();
+        let mut new_name = task_name.to_string();
+        if splits.len() > 2 {
+            new_name = format!(
+                "{}__{}",
+                splits[0].to_string(),
+                splits[2..]
+                    .iter()
+                    .map(|x| x.clone())
+                    .collect::<Vec<String>>()
+                    .join("__")
+            )
+            .to_string();
+        } else if splits.len() == 2 {
+            new_name = splits[0].to_string();
+        } else {
+            let splits_inner = splits[0]
+                .split("_")
+                .map(|x| x.to_string())
+                .collect::<Vec<String>>();
+            if splits_inner.len() > 2 {
+                new_name = format!(
+                    "{}_{}",
+                    splits_inner[0].to_string(),
+                    splits_inner[2..]
+                        .iter()
+                        .map(|x| x.clone())
+                        .collect::<Vec<String>>()
+                        .join("_")
+                )
+                .to_string();
+            }
+        
+        }
+        new_name
+    }
     pub fn shorten_task_names(&mut self) {
         let mut task_names: Vec<(String, Arc<RwLock<ConstraintState<'a>>>)> = Vec::new();
         // shorten task names
@@ -286,22 +326,8 @@ impl<'a> Driver<'a> {
             let mut proposed_names: Vec<String> = Vec::new();
             let mut changes_made = false;
             for (task_name, _) in &task_names {
-                let splits = task_name
-                    .split("__")
-                    .map(|x| x.to_string())
-                    .collect::<Vec<String>>();
-                let mut new_name = task_name.to_string();
-                if splits.len() > 2 {
-                    new_name = format!(
-                        "{}__{}",
-                        splits[0].to_string(),
-                        splits[2..]
-                            .iter()
-                            .map(|x| x.clone())
-                            .collect::<Vec<String>>()
-                            .join("__")
-                    )
-                    .to_string();
+                let new_name = Self::get_shorter_task_name(task_name.clone());
+                if new_name != task_name.clone() {
                     changes_made = true;
                 }
                 proposed_names.push(new_name.to_string());

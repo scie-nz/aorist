@@ -62,15 +62,10 @@ impl PrefectProgram {
 
 pub trait PrefectTaskRender<'a> {
     fn get_constraints(&self) -> &Vec<Arc<RwLock<ConstraintState<'a>>>>;
-    fn render_ids(ids: Vec<Arc<RwLock<ConstraintState<'a>>>>, constraint_name: String) -> String {
+    fn render_ids(ids: Vec<Arc<RwLock<ConstraintState<'a>>>>) -> String {
         ids.iter()
             .map(|x| {
-                format!(
-                    "'{constraint_name}_{id}'",
-                    constraint_name = constraint_name,
-                    id = x.read().unwrap().get_key().unwrap()
-                )
-                .to_string()
+                format!("'{}'", x.read().unwrap().get_task_name()).to_string()
             })
             .collect::<Vec<String>>()
             .join(",\n    ")
@@ -198,7 +193,7 @@ impl<'a> PrefectTaskRenderWithCalls<'a> for PrefectPythonTaskRender<'a> {
         constraint_name: String,
         rws: &Vec<Arc<RwLock<ConstraintState<'a>>>>,
     ) {
-        let ids = Self::render_ids(rws.clone(), constraint_name.clone());
+        let ids = Self::render_ids(rws.clone());
         match self.render_dependencies(constraint_name.clone()) {
             Some(dependencies) => println!(
                 "{}",
@@ -310,7 +305,7 @@ impl<'a> PrefectTaskRenderWithCalls<'a> for PrefectShellTaskRender<'a> {
         constraint_name: String,
         rws: &Vec<Arc<RwLock<ConstraintState<'a>>>>,
     ) {
-        let ids = Self::render_ids(rws.clone(), constraint_name.clone());
+        let ids = Self::render_ids(rws.clone());
         match self.render_dependencies(constraint_name.clone()) {
             Some(dependencies) => println!(
                 "{}",
@@ -366,7 +361,7 @@ impl<'a> PrefectConstantTaskRender<'a> {
         Self { members }
     }
     pub fn render(&self, constraint_name: String) {
-        let ids = Self::render_ids(self.get_constraints().clone(), constraint_name.clone());
+        let ids = Self::render_ids(self.get_constraints().clone());
         match self.render_dependencies(constraint_name.clone()) {
             Some(dependencies) => println!(
                 "{}",
