@@ -5,6 +5,7 @@ pub mod attributes;
 pub mod compression;
 pub mod concept;
 pub mod constraint;
+pub mod constraint_state;
 pub mod data_setup;
 pub mod dataset;
 pub mod driver;
