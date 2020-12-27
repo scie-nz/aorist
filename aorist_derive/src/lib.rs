@@ -87,32 +87,6 @@ pub fn derive_orc_float(input: TokenStream) -> TokenStream {
     gen.into()
 }
 
-#[proc_macro_derive(BlankPrefectPreamble)]
-pub fn derive_blank_prefect_preamble(input: TokenStream) -> TokenStream {
-    let ast: syn::DeriveInput = syn::parse(input).unwrap();
-    let name = &ast.ident;
-    let gen = quote! {
-        impl TObjectWithPrefectCodeGen for #name {
-            fn get_prefect_preamble(&self, _preamble: &mut HashMap<String, String>, _endpoints: &EndpointConfig) {
-            }
-        }
-    };
-    gen.into()
-}
-
-#[proc_macro_derive(NoPythonImports)]
-pub fn derive_no_python_imports(input: TokenStream) -> TokenStream {
-    let ast: syn::DeriveInput = syn::parse(input).unwrap();
-    let name = &ast.ident;
-    let gen = quote! {
-        impl TObjectWithPythonCodeGen for #name {
-            fn get_python_imports(&self, _preamble: &mut HashMap<String, String>) {
-            }
-        }
-    };
-    gen.into()
-}
-
 #[proc_macro_derive(SQLVarchar)]
 pub fn derive_sql_varchar(input: TokenStream) -> TokenStream {
     let ast: syn::DeriveInput = syn::parse(input).unwrap();
