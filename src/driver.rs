@@ -24,11 +24,20 @@ pub struct ConstraintState<'a> {
     preamble: Option<String>,
     call: Option<String>,
     params: Option<String>,
+    task_name: Option<String>,
 }
 impl<'a> ConstraintState<'a> {
+    pub fn set_task_name(&mut self, name: String) {
+        self.task_name = Some(name)
+    }
+    pub fn get_task_name(&self) -> String {
+        self.task_name.as_ref().unwrap().clone()
+    }
     pub fn get_satisfied_dependency_keys(&self) -> Vec<String> {
-        self.satisfied_dependencies.iter().map(|x|
-        x.read().unwrap().get_task_name()).collect()
+        self.satisfied_dependencies
+            .iter()
+            .map(|x| x.read().unwrap().get_task_name())
+            .collect()
     }
     pub fn get_name(&self) -> String {
         self.name.clone()
@@ -108,6 +117,7 @@ impl<'a> ConstraintState<'a> {
             preamble: None,
             call: None,
             params: None,
+            task_name: None,
         }
     }
     fn compute_task_name(
@@ -119,12 +129,12 @@ impl<'a> ConstraintState<'a> {
                 let mut relative_path: String = "".to_string();
                 for (_, ancestor_type, tag, ix) in ancestors.iter().rev() {
                     if let Some(t) = tag {
-                        relative_path = format!("{}_of_{}", relative_path, t);
+                        relative_path = format!("{}__{}", relative_path, t);
                         break;
                     }
                     if *ix > 0 {
                         relative_path = format!(
-                            "{}_of_{}_{}",
+                            "{}__{}_{}",
                             relative_path,
                             to_snake_case(&ancestor_type),
                             ix
@@ -137,10 +147,12 @@ impl<'a> ConstraintState<'a> {
         });
         self.key.as_ref().unwrap().clone()
     }
-    fn get_task_name(
-        &self,
-    ) -> String {
-        format!("{}_{}", to_snake_case(&self.get_name()), self.key.as_ref().unwrap())
+    fn get_fully_qualified_task_name(&self) -> String {
+        format!(
+            "{}__{}",
+            to_snake_case(&self.get_name()),
+            self.key.as_ref().unwrap()
+        )
     }
 }
 pub trait PrefectTaskRender<'a> {
@@ -891,6 +903,56 @@ impl<'a> Driver<'a> {
                 break;
             }
         }
+
+        let mut task_names: Vec<(String, Arc<RwLock<ConstraintState<'a>>>)> = Vec::new();
+        // shorten task names
+        for constraint in self.satisfied_constraints.values() {
+            let fqn = constraint.read().unwrap().get_fully_qualified_task_name();
+            task_names.push((fqn, constraint.clone()));
+        }
+        loop {
+            let mut proposed_names: Vec<String> = Vec::new();
+            let mut changes_made = false;
+            for (task_name, _) in &task_names {
+                let splits = task_name
+                    .split("__")
+                    .map(|x| x.to_string())
+                    .collect::<Vec<String>>();
+                let mut new_name = task_name.to_string();
+                if splits.len() > 2 {
+                    new_name = format!(
+                        "{}__{}",
+                        splits[0].to_string(),
+                        splits[2..]
+                            .iter()
+                            .map(|x| x.clone())
+                            .collect::<Vec<String>>()
+                            .join("__")
+                    )
+                    .to_string();
+                    changes_made = true;
+                }
+                proposed_names.push(new_name.to_string());
+            }
+            if !changes_made
+                || proposed_names
+                    .iter()
+                    .cloned()
+                    .collect::<HashSet<String>>()
+                    .len()
+                    < proposed_names.len()
+            {
+                break;
+            }
+            for (i, new_name) in proposed_names.into_iter().enumerate() {
+                task_names[i].0 = new_name;
+            }
+        }
+        for (name, rw) in task_names {
+            let mut write = rw.write().unwrap();
+            write.set_task_name(name);
+        }
+
         let preambles: HashSet<String> = self
             .blocks
             .iter()
