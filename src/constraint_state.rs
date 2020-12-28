@@ -29,6 +29,14 @@ pub struct ConstraintState<'a> {
 }
 
 impl<'a> ConstraintState<'a> {
+    pub fn get_dep_ident(&self, location: Location) -> Expression {
+        Located {
+            location,
+            node: ExpressionType::Identifier {
+                name: "dep".to_string(),
+            },
+        }
+    }
     pub fn get_task_val(&self, location: Location) -> Expression {
         let outer = Located {
             location,
@@ -52,7 +60,43 @@ impl<'a> ConstraintState<'a> {
             },
         }
     }
-    pub fn get_flow_addition_statement(&self, location: Location) -> Statement {
+    fn get_flow_add_edge_statement(&self, location: Location, dep: Expression) -> Statement {
+        let add_edge_fn = Located {
+            location,
+            node: ExpressionType::Attribute {
+                value: Box::new(Located {
+                    location,
+                    node: ExpressionType::Identifier {
+                        name: "flow".to_string(),
+                    },
+                }),
+                name: "add_edge".to_string(),
+            },
+        };
+        let add_edge = Located {
+            location,
+            node: ExpressionType::Call {
+                function: Box::new(add_edge_fn),
+                args: vec![self.get_task_val(location), dep],
+                keywords: Vec::new(),
+            },
+        };
+        Located {
+            location,
+            node: StatementType::Expression {
+                expression: add_edge,
+            },
+        }
+    }
+    pub fn get_flow_addition_statements(&self, location: Location) -> Vec<Statement> {
+        let deps = self
+            .satisfied_dependencies
+            .iter()
+            .map(|rw| {
+                let x = rw.read().unwrap();
+                x.get_task_val(location)
+            })
+            .collect::<Vec<Expression>>();
         let function = Located {
             location,
             node: ExpressionType::Attribute {
@@ -73,23 +117,40 @@ impl<'a> ConstraintState<'a> {
                 keywords: Vec::new(),
             },
         };
-        Located {
+        let mut statements = vec![Located {
             location,
             node: StatementType::Expression {
                 expression: add_expr,
             },
+        }];
+
+        if deps.len() == 1 {
+            let dep = deps.into_iter().next().unwrap();
+            let add_stmt = self.get_flow_add_edge_statement(location, dep);
+            statements.push(add_stmt);
+        } else if deps.len() > 1 {
+            let dep_list = Located {
+                location,
+                node: ExpressionType::List { elements: deps },
+            };
+            let add_stmt_suite =
+                vec![self.get_flow_add_edge_statement(location, self.get_dep_ident(location))];
+            let for_stmt = Located {
+                location,
+                node: StatementType::For {
+                    is_async: false,
+                    target: Box::new(self.get_dep_ident(location)),
+                    iter: Box::new(dep_list),
+                    body: add_stmt_suite,
+                    orelse: None,
+                },
+            };
+            statements.push(for_stmt);
         }
+        statements
     }
     pub fn get_task_statement(&self, location: Location) -> Statement {
         let val = self.get_task_val(location);
-        let _deps = self
-            .satisfied_dependencies
-            .iter()
-            .map(|rw| {
-                let x = rw.read().unwrap();
-                x.get_task_val(location)
-            })
-            .collect::<Vec<Expression>>();
         let function = Located {
             location,
             node: ExpressionType::Identifier {

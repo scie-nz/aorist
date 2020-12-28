@@ -3,7 +3,7 @@ use crate::constraint_state::ConstraintState;
 use indoc::formatdoc;
 use rustpython_parser::ast::{
     Expression, ExpressionType, Located, Location, Program, Statement, StatementType, StringGroup,
-    WithItem,
+    Suite, WithItem,
 };
 use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
@@ -71,6 +71,15 @@ impl PrefectProgram {
             ExpressionType::Attribute { value, name } => {
                 Ok(format!("{}.{}", Self::render_expr(&value)?, name).to_string())
             }
+            ExpressionType::List { elements } => Ok(format!(
+                "[{}]",
+                elements
+                    .iter()
+                    .map(|x| Self::render_expr(x).unwrap())
+                    .collect::<Vec<String>>()
+                    .join(", ")
+            )
+            .to_string()),
             ExpressionType::Call { function, args, .. } => {
                 let mut formatted_args: Vec<String> = Vec::new();
                 for arg in args {
@@ -86,6 +95,13 @@ impl PrefectProgram {
             _ => Err(format!("Unknown argument: {}", Expression::name(&expr))),
         }
     }
+    fn render_suite(suite: Suite) -> Result<String, String> {
+        let mut rendered: Vec<String> = Vec::new();
+        for stmt in suite {
+            rendered.push(Self::render_statement(stmt)?);
+        }
+        Ok(rendered.join("\n"))
+    }
     fn render_statement(statement: Statement) -> Result<String, String> {
         match statement.node {
             StatementType::Assign { targets, value, .. } => {
@@ -97,6 +113,33 @@ impl PrefectProgram {
                 Ok(format!("{val} = {call}", val = val, call = call).to_string())
             }
             StatementType::Expression { expression } => Self::render_expr(&expression),
+            StatementType::For {
+                is_async,
+                target,
+                iter,
+                body,
+                orelse,
+            } => {
+                if is_async {
+                    return Err("Cannot render async for statements".to_string());
+                }
+                if orelse.is_some() {
+                    return Err("Cannot render for statements with orelse".to_string());
+                }
+                let body_fmt = body
+                    .into_iter()
+                    .map(|x| Self::render_statement(x).unwrap())
+                    .map(|x| format!("    {}", x).to_string())
+                    .collect::<Vec<String>>()
+                    .join("\n");
+                Ok(format!(
+                    "for {target} in {iter}:\n{body_fmt}",
+                    target = Self::render_expr(&target)?,
+                    iter = Self::render_expr(&iter)?,
+                    body_fmt = body_fmt
+                )
+                .to_string())
+            }
             _ => Err("Unknown statement type.".to_string()),
         }
     }
@@ -203,47 +246,21 @@ impl<'a> PrefectTaskRender<'a> for PrefectPythonTaskRender<'a> {
         assert_eq!(self.get_constraints().len(), 1);
         let rw = self.get_constraints().get(0).unwrap();
         let constraint = rw.read().unwrap();
-        let deps = constraint.get_satisfied_dependency_keys();
-
         let location = Location::new(0, 0);
-        let val = PrefectProgram::render_expr(&constraint.get_task_val(location)).unwrap();
         let assign =
             PrefectProgram::render_statement(constraint.get_task_statement(location)).unwrap();
-        let addition = constraint.get_flow_addition_statement(location);
-        if deps.len() > 0 {
-            let formatted_deps = deps
-                .iter()
-                .map(|x| format!("tasks['{}']", x))
-                .collect::<Vec<_>>()
-                .join(", ");
-            println!(
-                "{}",
-                formatdoc!(
-                    "
-                {assign}
-                {addition}
-                for dep in [{dependencies}]:
-                    flow.add_edge(dep, {val})
-            ",
-                    assign = assign,
-                    dependencies = formatted_deps,
-                    val = val,
-                    addition = PrefectProgram::render_statement(addition).unwrap(),
-                )
+        let addition = constraint.get_flow_addition_statements(location);
+        println!(
+            "{}",
+            formatdoc!(
+                "
+            {assign}
+            {addition}
+        ",
+                assign = assign,
+                addition = PrefectProgram::render_suite(addition).unwrap(),
             )
-        } else {
-            println!(
-                "{}",
-                formatdoc!(
-                    "
-                {assign}
-                {addition}
-            ",
-                    assign = assign,
-                    addition = PrefectProgram::render_statement(addition).unwrap(),
-                )
-            )
-        }
+        )
     }
 }
 impl<'a> PrefectTaskRenderWithCalls<'a> for PrefectPythonTaskRender<'a> {
