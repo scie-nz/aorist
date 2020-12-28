@@ -75,12 +75,64 @@ impl PrefectProgram {
                                 value: StringGroup::Constant { value },
                             },
                         ..
-                    } => Ok(format!("{}['{}']", name, value).to_string()),
+                    } => Ok(format!("{}['{}']", name.clone(), value.clone()).to_string()),
                     _ => Err("Unknown inner type for task value".to_string()),
                 },
                 _ => Err("Unknown outer type for task value".to_string()),
             },
             _ => Err("Unknown expression type for task value".to_string()),
+        }
+    }
+    fn render_arg(expr: &Expression) -> Result<String, String> {
+        if let Located {
+            node:
+                ExpressionType::String {
+                    value: StringGroup::Constant { value },
+                },
+            ..
+        } = expr
+        {
+            return Ok(format!("'{}'", value).to_string());
+        }
+        Err("Only String identifiers supported as arguments".to_string())
+    }
+    fn render_task_creation_call(expr: Expression) -> Result<String, String> {
+        if let Located {
+            node: ExpressionType::Call { function, args, .. },
+            ..
+        } = expr
+        {
+            if let Located {
+                node: ExpressionType::Identifier { name, .. },
+                ..
+            } = *function
+            {
+                let mut formatted_args: Vec<String> = Vec::new();
+                for arg in args {
+                    formatted_args.push(Self::render_arg(&arg)?);
+                }
+                return Ok(format!(
+                    "{call}({args})",
+                    call = name,
+                    args = formatted_args.join(", ")
+                )
+                .to_string());
+            }
+            return Err("Expected identifier as function name in call".to_string());
+        }
+        Err("Expected call expression on right side of task creation statement".to_string())
+    }
+    fn render_task_assign(statement: StatementType) -> Result<String, String> {
+        match statement {
+            StatementType::Assign { targets, value, .. } => {
+                if targets.len() != 1 {
+                    return Err("More than one target in task assignment".to_string());
+                }
+                let val = Self::render_task_value(targets.into_iter().next().unwrap())?;
+                let call = Self::render_task_creation_call(value)?;
+                Ok(format!("{val} = {call}", val = val, call = call).to_string())
+            }
+            _ => Err("Unknown statement type for task assignment".to_string()),
         }
     }
 }
@@ -191,8 +243,9 @@ impl<'a> PrefectTaskRender<'a> for PrefectPythonTaskRender<'a> {
         let deps = constraint.get_satisfied_dependency_keys();
 
         let location = Location::new(0, 0);
-        let val = PrefectProgram::render_task_value(constraint.get_task_expr(location)).unwrap();
-
+        let val = PrefectProgram::render_task_value(constraint.get_task_val(location)).unwrap();
+        let assign =
+            PrefectProgram::render_task_assign(constraint.get_task_statement(location)).unwrap();
         if deps.len() > 0 {
             let formatted_deps = deps
                 .iter()
@@ -203,15 +256,13 @@ impl<'a> PrefectTaskRender<'a> for PrefectPythonTaskRender<'a> {
                 "{}",
                 formatdoc!(
                     "
-                {val} = {call}(*params_{constraint}['{k}'])
+                {assign}
                 flow.add_node({val})
                 for dep in [{dependencies}]:
                     flow.add_edge(dep, {val})
             ",
+                    assign = assign,
                     dependencies = formatted_deps,
-                    k = key,
-                    constraint = constraint_name,
-                    call = call_name,
                     val = val,
                 )
             )

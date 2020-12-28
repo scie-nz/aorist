@@ -3,7 +3,9 @@ use crate::constraint::{AllConstraintsSatisfiability, Constraint};
 use crate::object::TAoristObject;
 use aorist_primitives::Dialect;
 use inflector::cases::snakecase::to_snake_case;
-use rustpython_parser::ast::{Expression, ExpressionType, Located, Location, StringGroup};
+use rustpython_parser::ast::{
+    Expression, ExpressionType, Located, Location, StatementType, StringGroup,
+};
 use std::collections::{HashMap, HashSet};
 use std::sync::{Arc, RwLock};
 use uuid::Uuid;
@@ -26,7 +28,7 @@ pub struct ConstraintState<'a> {
     task_name: Option<String>,
 }
 impl<'a> ConstraintState<'a> {
-    pub fn get_task_expr(&self, location: Location) -> Expression {
+    pub fn get_task_val(&self, location: Location) -> Expression {
         let outer = Located {
             location,
             node: ExpressionType::Identifier {
@@ -48,6 +50,54 @@ impl<'a> ConstraintState<'a> {
                 b: Box::new(inner),
             },
         }
+    }
+    pub fn get_task_statement(&self, location: Location) -> StatementType {
+        let val = self.get_task_val(location);
+        let _deps = self
+            .satisfied_dependencies
+            .iter()
+            .map(|rw| {
+                let x = rw.read().unwrap();
+                x.get_task_val(location)
+            })
+            .collect::<Vec<Expression>>();
+        let function = Located {
+            location,
+            node: ExpressionType::Identifier {
+                name: self.get_call().unwrap(),
+            },
+        };
+        // TODO: this is super-hacky, params should be a string enum
+        let params = self.params.as_ref().unwrap().clone().replace("\"", "");
+        let splits = params.split(", ").collect::<Vec<_>>();
+        let args = splits
+            .iter()
+            .map(|x| {
+                Located {
+                    location,
+                    // TODO: this is where other kinds of arguments can live
+                    node: ExpressionType::String {
+                        value: StringGroup::Constant {
+                            value: x.to_string(),
+                        },
+                    },
+                }
+            })
+            .collect::<Vec<_>>();
+        let task_expr = Located {
+            location,
+            node: ExpressionType::Call {
+                function: Box::new(function),
+                args: args,
+                keywords: Vec::new(),
+                // TODO: add keywords
+            },
+        };
+        let assign = StatementType::Assign {
+            targets: vec![val],
+            value: task_expr,
+        };
+        assign
     }
     pub fn set_task_name(&mut self, name: String) {
         self.task_name = Some(name)
