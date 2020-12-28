@@ -122,8 +122,8 @@ impl PrefectProgram {
         }
         Err("Expected call expression on right side of task creation statement".to_string())
     }
-    fn render_task_assign(statement: StatementType) -> Result<String, String> {
-        match statement {
+    fn render_task_assign(statement: Statement) -> Result<String, String> {
+        match statement.node {
             StatementType::Assign { targets, value, .. } => {
                 if targets.len() != 1 {
                     return Err("More than one target in task assignment".to_string());
@@ -245,7 +245,8 @@ impl<'a> PrefectTaskRender<'a> for PrefectPythonTaskRender<'a> {
         let location = Location::new(0, 0);
         let val = PrefectProgram::render_task_value(constraint.get_task_val(location)).unwrap();
         let assign =
-            PrefectProgram::render_task_assign(constraint.get_task_statement(location)).unwrap();
+            PrefectProgram::render_task_assign(constraint.get_task_statement(location))
+                .unwrap();
         if deps.len() > 0 {
             let formatted_deps = deps
                 .iter()

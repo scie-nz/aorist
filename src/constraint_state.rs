@@ -4,7 +4,7 @@ use crate::object::TAoristObject;
 use aorist_primitives::Dialect;
 use inflector::cases::snakecase::to_snake_case;
 use rustpython_parser::ast::{
-    Expression, ExpressionType, Located, Location, StatementType, StringGroup,
+    Expression, ExpressionType, Located, Location, Statement, StatementType, StringGroup,
 };
 use std::collections::{HashMap, HashSet};
 use std::sync::{Arc, RwLock};
@@ -51,7 +51,7 @@ impl<'a> ConstraintState<'a> {
             },
         }
     }
-    pub fn get_task_statement(&self, location: Location) -> StatementType {
+    pub fn get_task_statement(&self, location: Location) -> Statement {
         let val = self.get_task_val(location);
         let _deps = self
             .satisfied_dependencies
@@ -97,7 +97,10 @@ impl<'a> ConstraintState<'a> {
             targets: vec![val],
             value: task_expr,
         };
-        assign
+        Located {
+            location,
+            node: assign,
+        }
     }
     pub fn set_task_name(&mut self, name: String) {
         self.task_name = Some(name)
