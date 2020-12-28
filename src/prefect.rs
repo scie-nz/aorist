@@ -2,7 +2,7 @@
 use crate::constraint_state::ConstraintState;
 use indoc::formatdoc;
 use rustpython_parser::ast::{
-    Expression, ExpressionType, Located, Location, Program, Statement, StatementType, StringGroup,
+    Expression, ExpressionType, Located, Program, Statement, StatementType, StringGroup,
     Suite, WithItem,
 };
 use std::collections::HashMap;
@@ -245,22 +245,10 @@ impl<'a> PrefectTaskRender<'a> for PrefectPythonTaskRender<'a> {
     fn render_singleton(&self, _constraint_name: String) {
         assert_eq!(self.get_constraints().len(), 1);
         let rw = self.get_constraints().get(0).unwrap();
-        let constraint = rw.read().unwrap();
-        let location = Location::new(0, 0);
-        let assign =
-            PrefectProgram::render_statement(constraint.get_task_statement(location)).unwrap();
-        let addition = constraint.get_flow_addition_statements(location);
         println!(
             "{}",
-            formatdoc!(
-                "
-            {assign}
-            {addition}
-        ",
-                assign = assign,
-                addition = PrefectProgram::render_suite(addition).unwrap(),
-            )
-        )
+            PrefectProgram::render_suite(rw.read().unwrap().get_prefect_singleton()).unwrap()
+        );
     }
 }
 impl<'a> PrefectTaskRenderWithCalls<'a> for PrefectPythonTaskRender<'a> {

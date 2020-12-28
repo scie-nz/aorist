@@ -4,7 +4,8 @@ use crate::object::TAoristObject;
 use aorist_primitives::Dialect;
 use inflector::cases::snakecase::to_snake_case;
 use rustpython_parser::ast::{
-    Expression, ExpressionType, Located, Location, Statement, StatementType, StringGroup,
+    Expression, ExpressionType, Located, Location, Statement, StatementType,
+    StringGroup, Suite,
 };
 use std::collections::{HashMap, HashSet};
 use std::sync::{Arc, RwLock};
@@ -29,6 +30,16 @@ pub struct ConstraintState<'a> {
 }
 
 impl<'a> ConstraintState<'a> {
+    pub fn get_prefect_singleton(&self) -> Suite {
+        let location = Location::new(0, 0);
+        let mut stmts = vec![
+            self.get_task_statement(location),
+        ];
+        for stmt in self.get_flow_addition_statements(location) {
+            stmts.push(stmt);
+        }
+        stmts
+    }
     pub fn get_dep_ident(&self, location: Location) -> Expression {
         Located {
             location,

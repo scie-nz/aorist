@@ -21,7 +21,6 @@ params_download_data_from_remote_gcs_location = {
     
 tasks['download_location'] = download_blob_to_file('gcp-public-data-sentinel2', 'index.csv.gz-backup', '/tmp/sentinel2', 'sentinel-2-metadata-table')
 flow.add_node(tasks['download_location'])
-
 tasks['download_remote'] = ConstantTask('download_data_from_remote')
 flow.add_node(tasks['download_remote'])
 for dep in [tasks['download_location']]:
