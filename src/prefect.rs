@@ -2,8 +2,8 @@
 use crate::constraint_state::ConstraintState;
 use indoc::formatdoc;
 use rustpython_parser::ast::{
-    Expression, ExpressionType, Located, Program, Statement, StatementType, StringGroup,
-    Suite, WithItem,
+    Expression, ExpressionType, Located, Program, Statement, StatementType, StringGroup, Suite,
+    WithItem,
 };
 use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
@@ -247,17 +247,20 @@ impl<'a> PrefectTaskRender<'a> for PrefectPythonTaskRender<'a> {
         let rw = self.get_constraints().get(0).unwrap();
         println!(
             "{}",
-            PrefectProgram::render_suite(rw.read().unwrap().get_prefect_singleton()).unwrap()
+            PrefectProgram::render_suite(rw.read().unwrap().get_prefect_singleton().unwrap())
+                .unwrap()
         );
     }
 }
 impl<'a> PrefectTaskRenderWithCalls<'a> for PrefectPythonTaskRender<'a> {
     fn render_single_call(&self, call_name: String, constraint_name: String) {
+        self.render_singleton(constraint_name.clone());
         match self.render_dependencies(constraint_name.clone()) {
             Some(dependencies) => println!(
                 "{}",
                 formatdoc!(
                     "
+            ### COMPARE
             {dependencies}
             for k, v in params_{constraint}.items():
                 tasks[k] = {call}(*v)

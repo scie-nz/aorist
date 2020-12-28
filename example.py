@@ -1,8 +1,3 @@
-function unzip_file() {
-    gunzip $1/$2
-}
-
-
 from google.cloud import storage
 def download_blob_to_file(bucket_name, blob_name, tmp_dir, file_name):
   client = storage.Client.from_service_account_json('/gcloud/social_norms.json')
@@ -10,6 +5,11 @@ def download_blob_to_file(bucket_name, blob_name, tmp_dir, file_name):
   blob = bucket.blob(blob_name)
   dest = "%s/%s" % (tmp_dir, file_name)
   blob.download_to_filename(dest)
+
+
+function unzip_file() {
+    gunzip $1/$2
+}
 
 
 tasks['replicated_schema'] = ConstantTask('replicated_schema')

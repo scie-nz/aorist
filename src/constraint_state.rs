@@ -4,8 +4,7 @@ use crate::object::TAoristObject;
 use aorist_primitives::Dialect;
 use inflector::cases::snakecase::to_snake_case;
 use rustpython_parser::ast::{
-    Expression, ExpressionType, Located, Location, Statement, StatementType,
-    StringGroup, Suite,
+    Expression, ExpressionType, Located, Location, Statement, StatementType, StringGroup, Suite,
 };
 use std::collections::{HashMap, HashSet};
 use std::sync::{Arc, RwLock};
@@ -30,15 +29,13 @@ pub struct ConstraintState<'a> {
 }
 
 impl<'a> ConstraintState<'a> {
-    pub fn get_prefect_singleton(&self) -> Suite {
+    pub fn get_prefect_singleton(&self) -> Result<Suite, String> {
         let location = Location::new(0, 0);
-        let mut stmts = vec![
-            self.get_task_statement(location),
-        ];
+        let mut stmts = vec![self.get_task_statement(location)?];
         for stmt in self.get_flow_addition_statements(location) {
             stmts.push(stmt);
         }
-        stmts
+        Ok(stmts)
     }
     pub fn get_dep_ident(&self, location: Location) -> Expression {
         Located {
@@ -160,14 +157,7 @@ impl<'a> ConstraintState<'a> {
         }
         statements
     }
-    pub fn get_task_statement(&self, location: Location) -> Statement {
-        let val = self.get_task_val(location);
-        let function = Located {
-            location,
-            node: ExpressionType::Identifier {
-                name: self.get_call().unwrap(),
-            },
-        };
+    fn get_args_as_literals(&self, location: Location) -> Vec<Expression> {
         // TODO: this is super-hacky, params should be a string enum
         let params = self
             .params
@@ -191,23 +181,40 @@ impl<'a> ConstraintState<'a> {
                 }
             })
             .collect::<Vec<_>>();
-        let task_expr = Located {
-            location,
-            node: ExpressionType::Call {
-                function: Box::new(function),
-                args: args,
-                keywords: Vec::new(),
-                // TODO: add keywords
+        args
+    }
+    fn get_task_creation_expr(&self, location: Location) -> Result<Expression, String> {
+        match self.dialect {
+            Some(Dialect::Python(_)) => {
+                let function = Located {
+                    location,
+                    node: ExpressionType::Identifier {
+                        name: self.get_call().unwrap(),
+                    },
+                };
+                Ok(Located {
+                    location,
+                    node: ExpressionType::Call {
+                        function: Box::new(function),
+                        args: self.get_args_as_literals(location),
+                        keywords: Vec::new(),
+                        // TODO: add keywords
+                    },
+                })
             },
-        };
+            _ => Err("Dialect not supported".to_string()),
+        }
+    }
+    pub fn get_task_statement(&self, location: Location) -> Result<Statement, String> {
+        let val = self.get_task_val(location);
         let assign = StatementType::Assign {
             targets: vec![val],
-            value: task_expr,
+            value: self.get_task_creation_expr(location)?,
         };
-        Located {
+        Ok(Located {
             location,
             node: assign,
-        }
+        })
     }
     pub fn set_task_name(&mut self, name: String) {
         self.task_name = Some(name)
