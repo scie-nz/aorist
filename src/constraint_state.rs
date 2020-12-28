@@ -97,7 +97,13 @@ impl<'a> ConstraintState<'a> {
             },
         };
         // TODO: this is super-hacky, params should be a string enum
-        let params = self.params.as_ref().unwrap().clone().replace("\"", "");
+        let params = self
+            .params
+            .as_ref()
+            .unwrap()
+            .clone()
+            .replace("\"", "")
+            .replace("'", "");
         let splits = params.split(", ").collect::<Vec<_>>();
         let args = splits
             .iter()

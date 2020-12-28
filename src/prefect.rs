@@ -59,39 +59,18 @@ impl PrefectProgram {
         });
         Program { statements }
     }
-    fn render_task_value(expr: Expression) -> Result<String, String> {
-        match expr {
-            Located {
-                node: ExpressionType::Subscript { a, b, .. },
-                ..
-            } => match *a {
-                Located {
-                    node: ExpressionType::Identifier { name },
-                    ..
-                } => match *b {
-                    Located {
-                        node:
-                            ExpressionType::String {
-                                value: StringGroup::Constant { value },
-                            },
-                        ..
-                    } => Ok(format!("{}['{}']", name.clone(), value.clone()).to_string()),
-                    _ => Err("Unknown inner type for task value".to_string()),
-                },
-                _ => Err("Unknown outer type for task value".to_string()),
-            },
-            _ => Err("Unknown expression type for task value".to_string()),
-        }
-    }
     fn render_expr(expr: &Expression) -> Result<String, String> {
         match &expr.node {
             ExpressionType::String {
                 value: StringGroup::Constant { value },
             } => Ok(format!("'{}'", value).to_string()),
             ExpressionType::Subscript { a, b, .. } => {
-                Ok(format!("{}['{}']", Self::render_expr(a)?, Self::render_expr(b)?).to_string())
+                Ok(format!("{}[{}]", Self::render_expr(a)?, Self::render_expr(b)?).to_string())
             }
             ExpressionType::Identifier { name } => Ok(name.to_string()),
+            ExpressionType::Attribute { value, name } => {
+                Ok(format!("{}.{}", Self::render_expr(&value)?, name).to_string())
+            }
             ExpressionType::Call { function, args, .. } => {
                 let mut formatted_args: Vec<String> = Vec::new();
                 for arg in args {
@@ -104,34 +83,8 @@ impl PrefectProgram {
                 )
                 .to_string())
             }
-            _ => Err("Unknown arguments".to_string()),
+            _ => Err(format!("Unknown argument: {}", Expression::name(&expr))),
         }
-    }
-    fn render_function_call(expr: Expression) -> Result<String, String> {
-        if let Located {
-            node: ExpressionType::Call { function, args, .. },
-            ..
-        } = expr
-        {
-            if let Located {
-                node: ExpressionType::Identifier { name, .. },
-                ..
-            } = *function
-            {
-                let mut formatted_args: Vec<String> = Vec::new();
-                for arg in args {
-                    formatted_args.push(Self::render_expr(&arg)?);
-                }
-                return Ok(format!(
-                    "{call}({args})",
-                    call = name,
-                    args = formatted_args.join(", ")
-                )
-                .to_string());
-            }
-            return Err("Expected identifier as function name in call".to_string());
-        }
-        Err("Expected call expression on right side of task creation statement".to_string())
     }
     fn render_statement(statement: Statement) -> Result<String, String> {
         match statement.node {
@@ -139,8 +92,8 @@ impl PrefectProgram {
                 if targets.len() != 1 {
                     return Err("More than one target in task assignment".to_string());
                 }
-                let val = Self::render_task_value(targets.into_iter().next().unwrap())?;
-                let call = Self::render_function_call(value)?;
+                let val = Self::render_expr(targets.iter().next().unwrap())?;
+                let call = Self::render_expr(&value)?;
                 Ok(format!("{val} = {call}", val = val, call = call).to_string())
             }
             StatementType::Expression { expression } => Self::render_expr(&expression),
@@ -246,16 +199,14 @@ impl<'a> PrefectTaskRender<'a> for PrefectPythonTaskRender<'a> {
     fn get_constraints(&self) -> &Vec<Arc<RwLock<ConstraintState<'a>>>> {
         &self.members
     }
-    fn render_singleton(&self, constraint_name: String) {
+    fn render_singleton(&self, _constraint_name: String) {
         assert_eq!(self.get_constraints().len(), 1);
         let rw = self.get_constraints().get(0).unwrap();
-        let call_name = Self::extract_call_for_rendering(rw.clone()).unwrap();
         let constraint = rw.read().unwrap();
-        let key = constraint.get_task_name();
         let deps = constraint.get_satisfied_dependency_keys();
 
         let location = Location::new(0, 0);
-        let val = PrefectProgram::render_task_value(constraint.get_task_val(location)).unwrap();
+        let val = PrefectProgram::render_expr(&constraint.get_task_val(location)).unwrap();
         let assign =
             PrefectProgram::render_statement(constraint.get_task_statement(location)).unwrap();
         let addition = constraint.get_flow_addition_statement(location);
@@ -285,12 +236,11 @@ impl<'a> PrefectTaskRender<'a> for PrefectPythonTaskRender<'a> {
                 "{}",
                 formatdoc!(
                     "
-                tasks['{k}'] = {call}(*params_{constraint}['{k}'])
-                flow.add_node(tasks['{k}'])
+                {assign}
+                {addition}
             ",
-                    k = key,
-                    call = call_name,
-                    constraint = constraint_name,
+                    assign = assign,
+                    addition = PrefectProgram::render_statement(addition).unwrap(),
                 )
             )
         }

@@ -1,8 +1,3 @@
-function unzip_file() {
-    gunzip $1/$2
-}
-
-
 from google.cloud import storage
 def download_blob_to_file(bucket_name, blob_name, tmp_dir, file_name):
   client = storage.Client.from_service_account_json('/gcloud/social_norms.json')
@@ -12,12 +7,20 @@ def download_blob_to_file(bucket_name, blob_name, tmp_dir, file_name):
   blob.download_to_filename(dest)
 
 
+function unzip_file() {
+    gunzip $1/$2
+}
+
+
 params_download_data_from_remote_gcs_location = {
     'download_location': ('gcp-public-data-sentinel2', 'index.csv.gz-backup', '/tmp/sentinel2', 'sentinel-2-metadata-table')
 }
     
-tasks['download_location'] = download_blob_to_file(*params_download_data_from_remote_gcs_location['download_location'])
+tasks['download_location'] = download_blob_to_file('gcp-public-data-sentinel2', 'index.csv.gz-backup', '/tmp/sentinel2', 'sentinel-2-metadata-table')
 flow.add_node(tasks['download_location'])
+
+tasks['replicated_schema'] = ConstantTask('replicated_schema')
+flow.add_node(tasks['replicated_schema'])
 
 tasks['download_remote'] = ConstantTask('download_data_from_remote')
 flow.add_node(tasks['download_remote'])
@@ -41,9 +44,6 @@ unzip_file %s
 flow.add_node(tasks['decompress'])
 for dep in [tasks['download_location']]:
     flow.add_edge(dep, tasks['decompress'])
-
-tasks['replicated_schema'] = ConstantTask('replicated_schema')
-flow.add_node(tasks['replicated_schema'])
 
 tasks['remove_header'] = ConstantTask('remove_file_header')
 flow.add_node(tasks['remove_header'])
