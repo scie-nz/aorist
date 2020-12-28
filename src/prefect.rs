@@ -83,20 +83,31 @@ impl PrefectProgram {
             _ => Err("Unknown expression type for task value".to_string()),
         }
     }
-    fn render_arg(expr: &Expression) -> Result<String, String> {
-        if let Located {
-            node:
-                ExpressionType::String {
-                    value: StringGroup::Constant { value },
-                },
-            ..
-        } = expr
-        {
-            return Ok(format!("'{}'", value).to_string());
+    fn render_expr(expr: &Expression) -> Result<String, String> {
+        match &expr.node {
+            ExpressionType::String {
+                value: StringGroup::Constant { value },
+            } => Ok(format!("'{}'", value).to_string()),
+            ExpressionType::Subscript { a, b, .. } => {
+                Ok(format!("{}['{}']", Self::render_expr(a)?, Self::render_expr(b)?).to_string())
+            }
+            ExpressionType::Identifier { name } => Ok(name.to_string()),
+            ExpressionType::Call { function, args, .. } => {
+                let mut formatted_args: Vec<String> = Vec::new();
+                for arg in args {
+                    formatted_args.push(Self::render_expr(&arg)?);
+                }
+                Ok(format!(
+                    "{}({})",
+                    call = Self::render_expr(function)?,
+                    args = formatted_args.join(", ")
+                )
+                .to_string())
+            }
+            _ => Err("Unknown arguments".to_string()),
         }
-        Err("Only String identifiers supported as arguments".to_string())
     }
-    fn render_task_creation_call(expr: Expression) -> Result<String, String> {
+    fn render_function_call(expr: Expression) -> Result<String, String> {
         if let Located {
             node: ExpressionType::Call { function, args, .. },
             ..
@@ -109,7 +120,7 @@ impl PrefectProgram {
             {
                 let mut formatted_args: Vec<String> = Vec::new();
                 for arg in args {
-                    formatted_args.push(Self::render_arg(&arg)?);
+                    formatted_args.push(Self::render_expr(&arg)?);
                 }
                 return Ok(format!(
                     "{call}({args})",
@@ -122,17 +133,18 @@ impl PrefectProgram {
         }
         Err("Expected call expression on right side of task creation statement".to_string())
     }
-    fn render_task_assign(statement: Statement) -> Result<String, String> {
+    fn render_statement(statement: Statement) -> Result<String, String> {
         match statement.node {
             StatementType::Assign { targets, value, .. } => {
                 if targets.len() != 1 {
                     return Err("More than one target in task assignment".to_string());
                 }
                 let val = Self::render_task_value(targets.into_iter().next().unwrap())?;
-                let call = Self::render_task_creation_call(value)?;
+                let call = Self::render_function_call(value)?;
                 Ok(format!("{val} = {call}", val = val, call = call).to_string())
             }
-            _ => Err("Unknown statement type for task assignment".to_string()),
+            StatementType::Expression { expression } => Self::render_expr(&expression),
+            _ => Err("Unknown statement type.".to_string()),
         }
     }
 }
@@ -245,8 +257,8 @@ impl<'a> PrefectTaskRender<'a> for PrefectPythonTaskRender<'a> {
         let location = Location::new(0, 0);
         let val = PrefectProgram::render_task_value(constraint.get_task_val(location)).unwrap();
         let assign =
-            PrefectProgram::render_task_assign(constraint.get_task_statement(location))
-                .unwrap();
+            PrefectProgram::render_statement(constraint.get_task_statement(location)).unwrap();
+        let addition = constraint.get_flow_addition_statement(location);
         if deps.len() > 0 {
             let formatted_deps = deps
                 .iter()
@@ -258,13 +270,14 @@ impl<'a> PrefectTaskRender<'a> for PrefectPythonTaskRender<'a> {
                 formatdoc!(
                     "
                 {assign}
-                flow.add_node({val})
+                {addition}
                 for dep in [{dependencies}]:
                     flow.add_edge(dep, {val})
             ",
                     assign = assign,
                     dependencies = formatted_deps,
                     val = val,
+                    addition = PrefectProgram::render_statement(addition).unwrap(),
                 )
             )
         } else {

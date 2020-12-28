@@ -27,6 +27,7 @@ pub struct ConstraintState<'a> {
     params: Option<String>,
     task_name: Option<String>,
 }
+
 impl<'a> ConstraintState<'a> {
     pub fn get_task_val(&self, location: Location) -> Expression {
         let outer = Located {
@@ -48,6 +49,34 @@ impl<'a> ConstraintState<'a> {
             node: ExpressionType::Subscript {
                 a: Box::new(outer),
                 b: Box::new(inner),
+            },
+        }
+    }
+    pub fn get_flow_addition_statement(&self, location: Location) -> Statement {
+        let function = Located {
+            location,
+            node: ExpressionType::Attribute {
+                value: Box::new(Located {
+                    location,
+                    node: ExpressionType::Identifier {
+                        name: "flow".to_string(),
+                    },
+                }),
+                name: "add_node".to_string(),
+            },
+        };
+        let add_expr = Located {
+            location,
+            node: ExpressionType::Call {
+                function: Box::new(function),
+                args: vec![self.get_task_val(location)],
+                keywords: Vec::new(),
+            },
+        };
+        Located {
+            location,
+            node: StatementType::Expression {
+                expression: add_expr,
             },
         }
     }
