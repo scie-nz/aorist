@@ -1,6 +1,5 @@
 use crate::code_block::CodeBlock;
 use crate::constraint::ParameterTuple;
-use indoc::formatdoc;
 use std::collections::{HashMap, HashSet};
 pub struct ConstraintBlock<'a> {
     constraint_name: String,
@@ -34,44 +33,6 @@ impl<'a> ConstraintBlock<'a> {
         // TODO: rename print_call
         for (_i, member) in self.members.iter().enumerate() {
             member.print_call(self.get_constraint_name());
-        }
-    }
-    pub fn print_params(&self) {
-        // TODO: needs refactoring
-        // - param keys are wrong
-        // - unnecessary for singletons
-        let params = self
-            .get_params()
-            .into_iter()
-            .filter(|(_, v)| v.is_some())
-            .map(|(k, v)| (k, v.unwrap().args))
-            .collect::<Vec<(String, Vec<String>)>>();
-        if params.len() > 0 {
-            println!(
-                "{}",
-                formatdoc!(
-                    "
-            params_{constraint} = {{
-                {params}
-            }}
-                ",
-                    constraint = self.get_constraint_name(),
-                    params = params
-                        .into_iter()
-                        .map(|(k, v)| format!(
-                            "'{k}': ({v})",
-                            k = k,
-                            v = v
-                                .iter()
-                                .map(|x| format!("'{}'", x).to_string())
-                                .collect::<Vec<_>>()
-                                .join(", ")
-                        )
-                        .to_string())
-                        .collect::<Vec<String>>()
-                        .join(",\n    "),
-                )
-            );
         }
     }
 }

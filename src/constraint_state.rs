@@ -166,31 +166,11 @@ impl<'a> ConstraintState<'a> {
         }
         statements
     }
-    fn get_args_as_literals(&self, location: Location) -> Vec<Expression> {
-        let args = self
-            .get_params()
-            .unwrap()
-            .args
-            .iter()
-            .map(|x| {
-                Located {
-                    location,
-                    // TODO: this is where other kinds of arguments can live
-                    node: ExpressionType::String {
-                        value: StringGroup::Constant {
-                            value: x.to_string(),
-                        },
-                    },
-                }
-            })
-            .collect::<Vec<_>>();
-        args
-    }
     fn get_args_tuple(&self, location: Location) -> Expression {
         Located {
             location,
             node: ExpressionType::Tuple {
-                elements: self.get_args_as_literals(location),
+                elements: self.params.as_ref().unwrap().get_args_literals(location),
             },
         }
     }
@@ -199,7 +179,7 @@ impl<'a> ConstraintState<'a> {
         let call_format = format!(
             "{} {}",
             call,
-            self.get_args_as_literals(location)
+            self.params.as_ref().unwrap().get_args_literals(location)
                 .iter()
                 .map(|_| "%s".to_string())
                 .collect::<Vec<String>>()
@@ -221,7 +201,7 @@ impl<'a> ConstraintState<'a> {
                     location,
                     node: ExpressionType::Call {
                         function: Box::new(function),
-                        args: self.get_args_as_literals(location),
+                        args: self.params.as_ref().unwrap().get_args_literals(location),
                         keywords: Vec::new(),
                         // TODO: add keywords
                     },

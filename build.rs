@@ -426,11 +426,11 @@ fn main() {
                         \"{preamble}\", \"{call}\",
                         |concept: Concept<'a>, ancestry: Arc<ConceptAncestry<'a>>| {{ 
                             {objects}
-                            ParameterTuple {{
-                                args: vec![
+                            ParameterTuple::new(
+                                vec![
                                     {params}
                                 ]
-                            }}
+                            )
                         }}
                     );",
                     objects=object_names.iter().map(|x| {

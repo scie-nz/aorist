@@ -5,10 +5,35 @@ use maplit::hashmap;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fmt;
+use rustpython_parser::ast::{Expression, ExpressionType, Location,
+StringGroup, Located};
 
 #[derive(Clone)]
 pub struct ParameterTuple {
-    pub args: Vec<String>,
+    args: Vec<String>,
+}
+impl ParameterTuple {
+    pub fn new(args: Vec<String>) -> Self {
+        Self{ args }
+    }
+    pub fn get_args_literals(&self, location: Location) -> Vec<Expression> {
+        let args = self
+            .args
+            .iter()
+            .map(|x| {
+                Located {
+                    location,
+                    // TODO: this is where other kinds of arguments can live
+                    node: ExpressionType::String {
+                        value: StringGroup::Constant {
+                            value: x.to_string(),
+                        },
+                    },
+                }
+            })
+            .collect::<Vec<_>>();
+        args
+    }
 }
 
 pub trait TConstraint
