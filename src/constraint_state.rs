@@ -47,6 +47,14 @@ impl<'a> ConstraintState<'a> {
         }
     }
     pub fn get_task_val(&self, location: Location) -> Expression {
+        Located {
+            location,
+            node: ExpressionType::Identifier {
+                name: self.get_task_name(),
+            },
+        }
+    }
+    pub fn _get_task_val_dict(&self, location: Location) -> Expression {
         let outer = Located {
             location,
             node: ExpressionType::Identifier {

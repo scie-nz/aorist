@@ -29,6 +29,12 @@ impl<'a> ConstraintBlock<'a> {
             .flatten()
             .collect()
     }
+    pub fn render(&self) {
+        // TODO: rename print_call
+        for (_i, member) in self.members.iter().enumerate() {
+            member.print_call(self.get_constraint_name());
+        }
+    }
     pub fn print_params(&self) {
         // TODO: needs refactoring
         // - param keys are wrong
@@ -55,9 +61,6 @@ impl<'a> ConstraintBlock<'a> {
                         .join(",\n    "),
                 )
             );
-        }
-        for (_i, member) in self.members.iter().enumerate() {
-            member.print_call(self.get_constraint_name());
         }
     }
 }

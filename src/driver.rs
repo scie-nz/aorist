@@ -381,18 +381,19 @@ impl<'a> Driver<'a> {
         }
         self.shorten_task_names();
 
-        let preambles: HashSet<String> = self
+        let _preambles: HashSet<String> = self
             .blocks
             .iter()
             .map(|x| x.get_preambles().into_iter())
             .flatten()
             .collect();
-        print!(
+        /*print!(
             "{}\n\n",
             preambles.into_iter().collect::<Vec<String>>().join("\n\n")
-        );
+        );*/
         for super_block in &self.blocks {
-            super_block.print_params();
+            super_block.render();
+            println!("");
         }
 
         assert_eq!(self.unsatisfied_constraints.len(), 0);
