@@ -1,6 +1,3 @@
-replicated_schema = ConstantTask('ReplicatedSchema')
-flow.add_node(replicated_schema)
-
 download_location = download_blob_to_file(
     'gcp-public-data-sentinel2',
     'index.csv.gz-backup',
@@ -12,10 +9,12 @@ download_remote = ConstantTask('DownloadDataFromRemote')
 flow.add_node(download_remote)
 flow.add_edge(download_remote, download_location)
 
-decompress = ShellTask(command='unzip_file %s %s' %
-                       ('/tmp/sentinel2', 'sentinel-2-metadata-table'))
+decompress = ShellTask(command='gunzip {tmp_dir}/{file_name} %s' % (''))
 flow.add_node(decompress)
 flow.add_edge(decompress, download_location)
+
+replicated_schema = ConstantTask('ReplicatedSchema')
+flow.add_node(replicated_schema)
 
 
 remove_header = ConstantTask('RemoveFileHeader')

@@ -184,16 +184,14 @@ spec:
   use: Decompress
   root: GzipCompression
   dialect: Bash
-  preamble: |
-      function unzip_file() {
-          gunzip $1/$2
-      }
-  call: unzip_file
-  parameters:
+  call: gunzip {tmp_dir}/{file_name}
+  kwargs:
     - call: remote_import_storage_setup.tmp_dir 
       attaches: RemoteImportStorageSetup
+      name: tmp_dir
     - call: static_data_table.name
       attaches: StaticDataTable
+      name: file_name
   crate: compression
 ---
 type: DataSetup

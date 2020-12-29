@@ -374,23 +374,25 @@ fn main() {
                 let mut format_strings: Vec<String> = Vec::new();
                 let mut params: Vec<String> = Vec::new();
                 let mut object_names: HashSet<String> = HashSet::new();
-                for param in program.get("parameters").unwrap().as_sequence().unwrap() {
-                    let map: HashMap<String, String> = param
-                        .as_mapping()
-                        .unwrap()
-                        .clone()
-                        .into_iter()
-                        .map(|(k, v)| {
-                            (
-                                k.as_str().unwrap().to_string(),
-                                v.as_str().unwrap().to_string(),
-                            )
-                        })
-                        .collect();
+                if let Some(params_v) = program.get("parameters") {
+                    for param in params_v.as_sequence().unwrap() {
+                        let map: HashMap<String, String> = param
+                            .as_mapping()
+                            .unwrap()
+                            .clone()
+                            .into_iter()
+                            .map(|(k, v)| {
+                                (
+                                    k.as_str().unwrap().to_string(),
+                                    v.as_str().unwrap().to_string(),
+                                )
+                            })
+                            .collect();
 
-                    format_strings.push("'{}'".to_string());
-                    params.push(map.get("call").unwrap().clone());
-                    object_names.insert(map.get("attaches").unwrap().clone());
+                        format_strings.push("'{}'".to_string());
+                        params.push(map.get("call").unwrap().clone());
+                        object_names.insert(map.get("attaches").unwrap().clone());
+                    }
                 }
                 let define = formatdoc! {
                     "define_program!(
@@ -412,10 +414,14 @@ fn main() {
                     root=program.get("root").unwrap().as_str().unwrap(),
                     constraint=program.get("use").unwrap().as_str().unwrap(),
                     dialect=program.get("dialect").unwrap().as_str().unwrap(),
-                    preamble=program.get("preamble").unwrap().as_str().unwrap().to_string().replace(
+                    preamble=match program.get("preamble") {
+                    Some(p) =>
+                    p.as_str().unwrap().to_string().replace(
                         "\"",
                         "\\\""
                     ),
+                    None => "".to_string(),
+                    },
                     call=program.get("call").unwrap().as_str().unwrap(),
                     fmt_params=format_strings.join(", "),
                     params=params.join(", "),

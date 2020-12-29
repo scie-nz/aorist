@@ -279,8 +279,7 @@ impl<'a> ConstraintState<'a> {
                             location,
                             node: ExpressionType::String {
                                 value: StringGroup::Constant {
-                                    value:
-                                    self.constraint.read().unwrap().get_name().clone(),
+                                    value: self.constraint.read().unwrap().get_name().clone(),
                                 },
                             },
                         }],
