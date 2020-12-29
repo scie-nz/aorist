@@ -16,7 +16,7 @@ pub struct StaticDataTable {
     #[constrainable]
     setup: StorageSetup,
     #[constrainable]
-    schema: DataSchema,
+    pub schema: DataSchema,
     uuid: Option<Uuid>,
     tag: Option<String>,
     #[serde(skip)]

@@ -362,9 +362,7 @@ fn main() {
     scope.import("crate::constraint", "AllConstraintsSatisfiability");
     scope.import("crate::constraint", "ParameterTuple");
     scope.import("std::collections", "HashMap");
-    for root in roots {
-        scope.import("crate", &root);
-    }
+    scope.import("crate", "*");
     for (root, constraints) in &by_uses {
         for (constraint, dialects) in constraints {
             scope.import("crate::constraint", constraint);

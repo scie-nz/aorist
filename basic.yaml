@@ -150,10 +150,18 @@ spec:
 ---
 type: Constraint
 spec:
+  name: ConvertCSVToOrc
+  root: StaticDataTable
+  requires:
+      - DataFromRemoteDownloaded
+  requiresProgram: true
+---
+type: Constraint
+spec:
   name: UploadDataToLocal
   root: HiveLocation
   requires:
-    - DataFromRemoteDownloaded
+      - ConvertCSVToOrc
 ---
 type: Program
 spec:
@@ -391,3 +399,18 @@ spec:
             - east_lon
             - base_url
 ---
+type: Program
+spec:
+  use: ConvertCSVToOrc
+  root: StaticDataTable
+  dialect: Bash
+  call: >
+    csv-import {tmp_dir}/{table_name}.no_header
+    {tmp_dir}/{table_name}.no_header
+  kwargs:
+    - call: remote_import_storage_setup.tmp_dir 
+      attaches: RemoteImportStorageSetup
+      name: tmp_dir
+    - call: static_data_table.name
+      attaches: StaticDataTable
+      name: table_name

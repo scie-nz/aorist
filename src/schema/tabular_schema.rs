@@ -13,7 +13,7 @@ use uuid::Uuid;
 #[derivative(PartialEq, Debug)]
 pub struct TabularSchema {
     datumTemplateName: String,
-    attributes: Vec<String>,
+    pub attributes: Vec<String>,
     uuid: Option<Uuid>,
     tag: Option<String>,
     #[serde(skip)]
