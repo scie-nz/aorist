@@ -19,7 +19,7 @@ pub struct DataSet {
     #[constrainable]
     accessPolicies: Vec<AccessPolicy>,
     #[constrainable]
-    datumTemplates: Vec<DatumTemplate>,
+    pub datumTemplates: Vec<DatumTemplate>,
     #[constrainable]
     assets: Vec<Asset>,
     uuid: Option<Uuid>,

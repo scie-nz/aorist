@@ -40,5 +40,6 @@ pub use dataset::DataSet;
 pub use header::FileHeader;
 pub use location::{GCSLocation, HiveLocation, RemoteLocation};
 pub use schema::{DataSchema, TabularSchema};
+pub use template::{DatumTemplate, KeyedStruct};
 pub use storage::RemoteStorage;
 pub use storage_setup::{RemoteImportStorageSetup, StorageSetup};

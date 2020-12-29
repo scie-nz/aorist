@@ -15,9 +15,9 @@ use uuid::Uuid;
 #[derive(Serialize, Deserialize, Derivative, Clone, Constrainable)]
 #[derivative(PartialEq, Debug)]
 pub struct KeyedStruct {
-    name: String,
+    pub name: String,
     #[constrainable]
-    attributes: Vec<Attribute>,
+    pub attributes: Vec<Attribute>,
     uuid: Option<Uuid>,
     tag: Option<String>,
     #[serde(skip)]

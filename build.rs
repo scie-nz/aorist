@@ -12,9 +12,15 @@ use std::path::Path;
 use serde::{Serialize, Deserialize};
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
-struct Argument {
+struct AncestorArgument {
     call: String,
     attaches: String,
+}
+
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+struct MultipleAncestorsArgument {
+    call: String,
+    attaches: Vec<String>,
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
@@ -37,7 +43,8 @@ enum BuildObject {
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "type", content = "spec")]
 enum Arg {
-    Argument(Argument),
+    AncestorArgument(AncestorArgument),
+    MultipleAncestorsArgument(MultipleAncestorsArgument),
 }
 
 fn get_constraint_dependencies(
@@ -415,25 +422,37 @@ fn main() {
                 let mut object_names: HashSet<String> = HashSet::new();
                 if let Some(ref params_v) = program.args {
                     for p in params_v {
-                        let Arg::Argument(param) = p;
-                        format_strings.push("'{}'".to_string());
-                        params.push(param.call.clone());
-                        object_names.insert(param.attaches.clone());
-                        
+                        if let Arg::AncestorArgument(param) = p {
+                            format_strings.push("'{}'".to_string());
+                            params.push(param.call.clone());
+                            object_names.insert(param.attaches.clone());
+                        } else if let Arg::MultipleAncestorsArgument(param) = p {
+                            format_strings.push("'{}'".to_string());
+                            params.push(param.call.clone());
+                            for obj in &param.attaches {
+                                object_names.insert(obj.clone());
+                            }
+                        }
                     }
                 }
-                let mut kwargs: HashMap<String, (String, String)> = HashMap::new();
+                let mut kwargs: HashMap<String, String> = HashMap::new();
                 if let Some(ref kwargs_v) = program.kwargs {
                     for (name, p) in kwargs_v.iter() {
-                        let Arg::Argument(param) = p;
-                        kwargs.insert(
-                            name.clone(),
-                            (
-                                param.attaches.clone(),
+                        if let Arg::AncestorArgument(param) = p {
+                            kwargs.insert(
+                                name.clone(),
                                 param.call.clone(),
-                            ),
-                        );
-                        object_names.insert(param.attaches.clone());
+                            );
+                            object_names.insert(param.attaches.clone());
+                        } else if let Arg::MultipleAncestorsArgument(param) = p {
+                            kwargs.insert(
+                                name.clone(),
+                                param.call.clone(),
+                            );
+                            for obj in &param.attaches {
+                                object_names.insert(obj.clone());
+                            }
+                        }
                     }
                 }
                     
@@ -483,7 +502,7 @@ fn main() {
                                  \"{k}\".to_string(),
                                  {call}.clone(),
                              );",
-                             k=k, call=v.1,
+                             k=k, call=v,
                         ).to_string()
                     }).collect::<Vec<String>>().join("\n"),
                 };

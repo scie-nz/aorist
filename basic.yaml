@@ -178,19 +178,19 @@ spec:
       blob.download_to_filename(dest)
   call: download_blob_to_file
   args:
-    - type: Argument
+    - type: AncestorArgument
       spec:
         call: gcs_location.bucket
         attaches: GCSLocation 
-    - type: Argument
+    - type: AncestorArgument
       spec: 
         call: gcs_location.blob
         attaches: GCSLocation
-    - type: Argument
+    - type: AncestorArgument
       spec:
         call: remote_import_storage_setup.tmp_dir 
         attaches: RemoteImportStorageSetup
-    - type: Argument
+    - type: AncestorArgument
       spec:
         call: static_data_table.name
         attaches: StaticDataTable
@@ -203,13 +203,13 @@ spec:
   call: gunzip {tmp_dir}/{file_name}
   kwargs:
     tmp_dir: 
-      type: Argument
+      type: AncestorArgument
       spec:
         call: remote_import_storage_setup.tmp_dir 
         attaches: RemoteImportStorageSetup
         name: tmp_dir
     file_name: 
-      type: Argument
+      type: AncestorArgument
       spec:
         call: static_data_table.name
         attaches: StaticDataTable
@@ -225,13 +225,13 @@ spec:
     rm {tmp_dir}/{file_name}
   kwargs:
     tmp_dir: 
-      type: Argument
+      type: AncestorArgument
       spec:
         call: remote_import_storage_setup.tmp_dir 
         attaches: RemoteImportStorageSetup
         name: tmp_dir
     file_name: 
-      type: Argument
+      type: AncestorArgument
       spec:
         call: static_data_table.name
         attaches: StaticDataTable
@@ -429,12 +429,43 @@ spec:
     {tmp_dir}/{table_name}.no_header
   kwargs:
     tmp_dir: 
-      type: Argument
+      type: AncestorArgument
       spec:
         call: remote_import_storage_setup.tmp_dir 
         attaches: RemoteImportStorageSetup
     table_name:
-      type: Argument
+      type: AncestorArgument
       spec: 
         call: static_data_table.name
         attaches: StaticDataTable
+    schema:
+      type: MultipleAncestorsArgument
+      spec:
+        call: >
+          { 
+            let DataSchema::TabularSchema(ref t) = static_data_table.schema;
+            let attributes = t.attributes.clone();
+            let template = data_set
+                .datumTemplates
+                .iter()
+                .filter(|x| { 
+                    let DatumTemplate::KeyedStruct(k) = x;
+                    k.name == t.datumTemplateName
+                })
+                .map(|x| {let DatumTemplate::KeyedStruct(k) = x; k})
+                .next().unwrap(); 
+            let attr_map = template.attributes.iter()
+                .map(|x| (x.get_name().clone(), x.get_orc_type()))
+                .collect::<HashMap<String, String>>();
+            let attr_types = attributes.iter().map(
+                |x| format!(
+                    "{}:{}",
+                    x,
+                    attr_map.get(x).unwrap().clone()
+                ).to_string()
+            ).collect::<Vec<String>>();
+            attr_types.join(",")
+          }
+        attaches:
+          - StaticDataTable
+          - DataSet
