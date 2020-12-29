@@ -1,6 +1,6 @@
 use crate::code_block::CodeBlock;
 use crate::concept::{Concept, ConceptAncestry};
-use crate::constraint::{AoristConstraint, Constraint};
+use crate::constraint::{AoristConstraint, Constraint, ParameterTuple};
 use crate::constraint_block::ConstraintBlock;
 use crate::constraint_state::ConstraintState;
 use crate::data_setup::ParsedDataSetup;
@@ -182,7 +182,7 @@ impl<'a> Driver<'a> {
         &mut self,
         constraint: RwLockReadGuard<'_, Constraint>,
         uuid: (Uuid, String),
-        calls: &mut HashMap<(String, String, String), Vec<(String, Vec<String>)>>,
+        calls: &mut HashMap<(String, String, String), Vec<(String, ParameterTuple)>>,
         state: Arc<RwLock<ConstraintState<'a>>>,
     ) {
         let preferences = vec![Dialect::Python(Python {}), Dialect::Bash(Bash {})];
@@ -206,7 +206,7 @@ impl<'a> Driver<'a> {
         &mut self,
         uuid: (Uuid, String),
         state: Arc<RwLock<ConstraintState<'a>>>,
-        calls: &mut HashMap<(String, String, String), Vec<(String, Vec<String>)>>,
+        calls: &mut HashMap<(String, String, String), Vec<(String, ParameterTuple)>>,
         reverse_dependencies: &HashMap<(Uuid, String), HashSet<(String, Uuid, String)>>,
     ) {
         let mut write = state.write().unwrap();
@@ -251,7 +251,7 @@ impl<'a> Driver<'a> {
         reverse_dependencies: &HashMap<(Uuid, String), HashSet<(String, Uuid, String)>>,
     ) -> Vec<CodeBlock<'a>> {
         // (call, constraint_name, root_name) => (uuid, call parameters)
-        let mut calls: HashMap<(String, String, String), Vec<(String, Vec<String>)>> =
+        let mut calls: HashMap<(String, String, String), Vec<(String, ParameterTuple)>> =
             HashMap::new();
         let mut blocks: Vec<CodeBlock<'a>> = Vec::new();
         let mut by_dialect: HashMap<Option<Dialect>, Vec<Arc<RwLock<ConstraintState<'a>>>>> =

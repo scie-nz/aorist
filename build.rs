@@ -361,6 +361,7 @@ fn main() {
     scope.import("crate::constraint", "ConstraintSatisfactionBase");
     scope.import("crate::constraint", "SatisfiableConstraint");
     scope.import("crate::constraint", "AllConstraintsSatisfiability");
+    scope.import("crate::constraint", "ParameterTuple");
     for (root_crate, root) in roots {
         scope.import(&format!("crate::{}", &root_crate), &root);
     }
@@ -425,9 +426,11 @@ fn main() {
                         \"{preamble}\", \"{call}\",
                         |concept: Concept<'a>, ancestry: Arc<ConceptAncestry<'a>>| {{ 
                             {objects}
-                            vec![
-                                {params}
-                            ]
+                            ParameterTuple {{
+                                args: vec![
+                                    {params}
+                                ]
+                            }}
                         }}
                     );",
                     objects=object_names.iter().map(|x| {

@@ -17,7 +17,7 @@ macro_rules! define_program {
             fn compute_parameter_tuple(
                 c: Concept<'a>,
                 ancestry: Arc<ConceptAncestry<'a>>,
-            ) -> Vec<String> {
+            ) -> ParameterTuple {
                 $tuple_call(c, ancestry)
             }
             fn get_preamble() -> String {
@@ -40,7 +40,7 @@ macro_rules! register_programs_for_constraint {
                 c: Concept<'a>,
                 d: &Dialect,
                 ancestry: Arc<ConceptAncestry<'a>>,
-            ) -> Option<(String, String, Vec<String>)> {
+            ) -> Option<(String, String, ParameterTuple)> {
                 match d {
                     $(
                         Dialect::$dialect{..} => Some((
@@ -57,7 +57,7 @@ macro_rules! register_programs_for_constraint {
                 c: Concept<'a>,
                 preferences: &Vec<Dialect>,
                 ancestry: Arc<ConceptAncestry<'a>>,
-            ) -> Result<(String, String, Vec<String>, Dialect), String> {
+            ) -> Result<(String, String, ParameterTuple, Dialect), String> {
                 match c {
                     Concept::$root{..} => {
                         for d in preferences {
@@ -85,7 +85,7 @@ macro_rules! register_satisfiable_constraints {
                 c: Concept<'a>,
                 preferences: &Vec<Dialect>,
                 ancestry: Arc<ConceptAncestry<'a>>,
-            ) -> Result<(String, String, Vec<String>, Dialect), String> {
+            ) -> Result<(String, String, ParameterTuple, Dialect), String> {
                 match &self.inner {
                     $(
                         Some(AoristConstraint::$constraint(x)) =>
@@ -173,7 +173,7 @@ macro_rules! define_constraint {
             fn compute_parameter_tuple(
                 root: Concept<'a>,
                 ancestry: Arc<ConceptAncestry<'a>>,
-            ) -> Vec<String>;
+            ) -> ParameterTuple;
             fn get_preamble() -> String;
             fn get_call() -> String;
         }
@@ -210,7 +210,7 @@ macro_rules! define_constraint {
                 fn compute_parameter_tuple(
                     root: Concept<'a>,
                     ancestry: Arc<ConceptAncestry<'a>>,
-                ) -> Vec<String>;
+                ) -> ParameterTuple;
                 fn get_preamble() -> String;
                 fn get_call() -> String;
             }

@@ -1,3 +1,4 @@
+use crate::constraint::ParameterTuple;
 use crate::constraint_state::ConstraintState;
 use crate::prefect::{
     PrefectConstantTaskRender, PrefectPythonTaskRender, PrefectShellTaskRender,
@@ -22,7 +23,7 @@ impl<'a> CodeBlock<'a> {
             .map(|x| x.unwrap())
             .collect()
     }
-    pub fn get_params(&self) -> HashMap<String, Option<Vec<String>>> {
+    pub fn get_params(&self) -> HashMap<String, Option<ParameterTuple>> {
         self.members
             .iter()
             .map(|rw| {

@@ -1,4 +1,5 @@
 use crate::code_block::CodeBlock;
+use crate::constraint::ParameterTuple;
 use indoc::formatdoc;
 use std::collections::{HashMap, HashSet};
 pub struct ConstraintBlock<'a> {
@@ -22,7 +23,7 @@ impl<'a> ConstraintBlock<'a> {
             .flatten()
             .collect()
     }
-    pub fn get_params(&self) -> HashMap<String, Option<Vec<String>>> {
+    pub fn get_params(&self) -> HashMap<String, Option<ParameterTuple>> {
         self.members
             .iter()
             .map(|x| x.get_params().into_iter())
@@ -43,7 +44,7 @@ impl<'a> ConstraintBlock<'a> {
             .get_params()
             .into_iter()
             .filter(|(_, v)| v.is_some())
-            .map(|(k, v)| (k, v.unwrap()))
+            .map(|(k, v)| (k, v.unwrap().args))
             .collect::<Vec<(String, Vec<String>)>>();
         if params.len() > 0 {
             println!(

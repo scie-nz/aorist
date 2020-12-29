@@ -1,5 +1,5 @@
 use crate::concept::{Concept, ConceptAncestry};
-use crate::constraint::{AllConstraintsSatisfiability, Constraint};
+use crate::constraint::{AllConstraintsSatisfiability, Constraint, ParameterTuple};
 use crate::object::TAoristObject;
 use aorist_primitives::Dialect;
 use inflector::cases::snakecase::to_snake_case;
@@ -25,7 +25,7 @@ pub struct ConstraintState<'a> {
     ancestors: Vec<(Uuid, String, Option<String>, usize)>,
     preamble: Option<String>,
     call: Option<String>,
-    params: Option<Vec<String>>,
+    params: Option<ParameterTuple>,
     task_name: Option<String>,
 }
 
@@ -170,6 +170,7 @@ impl<'a> ConstraintState<'a> {
         let args = self
             .get_params()
             .unwrap()
+            .args
             .iter()
             .map(|x| {
                 Located {
@@ -326,7 +327,7 @@ impl<'a> ConstraintState<'a> {
     pub fn get_preamble(&self) -> Option<String> {
         self.preamble.clone()
     }
-    pub fn get_params(&self) -> Option<Vec<String>> {
+    pub fn get_params(&self) -> Option<ParameterTuple> {
         self.params.clone()
     }
     pub fn get_call(&self) -> Option<String> {

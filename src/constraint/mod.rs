@@ -6,6 +6,11 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fmt;
 
+#[derive(Clone)]
+pub struct ParameterTuple {
+    pub args: Vec<String>,
+}
+
 pub trait TConstraint
 where
     Self::Root: AoristConcept,
@@ -29,14 +34,14 @@ pub trait SatisfiableConstraint: TConstraint {
         c: Concept<'a>,
         d: &Dialect,
         ancestry: Arc<ConceptAncestry<'a>>,
-    ) -> Option<(String, String, Vec<String>)>;
+    ) -> Option<(String, String, ParameterTuple)>;
 
     fn satisfy_given_preference_ordering<'a>(
         &self,
         r: Concept<'a>,
         preferences: &Vec<Dialect>,
         ancestry: Arc<ConceptAncestry<'a>>,
-    ) -> Result<(String, String, Vec<String>, Dialect), String>;
+    ) -> Result<(String, String, ParameterTuple, Dialect), String>;
 }
 // TODO: duplicate function, should be unified in trait
 pub trait AllConstraintsSatisfiability {
@@ -45,7 +50,7 @@ pub trait AllConstraintsSatisfiability {
         c: Concept<'a>,
         preferences: &Vec<Dialect>,
         ancestry: Arc<ConceptAncestry<'a>>,
-    ) -> Result<(String, String, Vec<String>, Dialect), String>;
+    ) -> Result<(String, String, ParameterTuple, Dialect), String>;
 }
 
 include!(concat!(env!("OUT_DIR"), "/constraints.rs"));
