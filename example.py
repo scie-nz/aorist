@@ -3,6 +3,8 @@ flow.add_node(download_location)
 download_remote = ConstantTask('DownloadDataFromRemote')
 flow.add_node(download_remote)
 flow.add_edge(download_remote, download_location)
+replicated_schema = ConstantTask('ReplicatedSchema')
+flow.add_node(replicated_schema)
 decompress = ShellTask(command='gunzip {tmp_dir}/{file_name} ' % ())
 flow.add_node(decompress)
 flow.add_edge(decompress, download_location)
@@ -16,16 +18,14 @@ replicated_data = ConstantTask('ReplicatedData')
 flow.add_node(replicated_data)
 for dep in [download_location, download_remote, remove_header]:
     flow.add_edge(replicated_data, dep)
-replicated_schema = ConstantTask('ReplicatedSchema')
-flow.add_node(replicated_schema)
 
 
 is_consistent = ConstantTask('IsConsistent')
 flow.add_node(is_consistent)
-for dep in [replicated_data, replicated_schema]:
+for dep in [replicated_schema, replicated_data]:
     flow.add_edge(is_consistent, dep)
 
 is_audited = ConstantTask('IsAudited')
 flow.add_node(is_audited)
-for dep in [replicated_data, replicated_schema]:
+for dep in [replicated_schema, replicated_data]:
     flow.add_edge(is_audited, dep)

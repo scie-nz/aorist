@@ -2,11 +2,10 @@ use crate::concept::{AoristConcept, Concept, ConceptAncestry};
 use crate::object::TAoristObject;
 use aorist_primitives::{define_constraint, register_constraint, Dialect};
 use maplit::hashmap;
+use rustpython_parser::ast::{Expression, ExpressionType, Located, Location, StringGroup};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fmt;
-use rustpython_parser::ast::{Expression, ExpressionType, Location,
-StringGroup, Located};
 
 #[derive(Clone)]
 pub struct ParameterTuple {
@@ -14,9 +13,9 @@ pub struct ParameterTuple {
 }
 impl ParameterTuple {
     pub fn new(args: Vec<String>) -> Self {
-        Self{ args }
+        Self { args }
     }
-    pub fn get_args_literals(&self, location: Location) -> Vec<Expression> {
+    fn get_args_literals(&self, location: Location) -> Vec<Expression> {
         let args = self
             .args
             .iter()
@@ -33,6 +32,32 @@ impl ParameterTuple {
             })
             .collect::<Vec<_>>();
         args
+    }
+    pub fn get_args_tuple(&self, location: Location) -> Expression {
+        Located {
+            location,
+            node: ExpressionType::Tuple {
+                elements: self.get_args_literals(location),
+            },
+        }
+    }
+    pub fn populate_call(&self, function: Expression, location: Location) -> Expression {
+        Located {
+            location,
+            node: ExpressionType::Call {
+                function: Box::new(function),
+                args: self.get_args_literals(location),
+                keywords: Vec::new(),
+                // TODO: add keywords
+            },
+        }
+    }
+    pub fn get_args_format_string(&self) -> String {
+        self.args
+            .iter()
+            .map(|_| "%s".to_string())
+            .collect::<Vec<String>>()
+            .join(" ")
     }
 }
 

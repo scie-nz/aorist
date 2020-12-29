@@ -166,26 +166,10 @@ impl<'a> ConstraintState<'a> {
         }
         statements
     }
-    fn get_args_tuple(&self, location: Location) -> Expression {
-        Located {
-            location,
-            node: ExpressionType::Tuple {
-                elements: self.params.as_ref().unwrap().get_args_literals(location),
-            },
-        }
-    }
-    fn get_call_as_format_string(&self, location: Location) -> Box<StringGroup> {
+    fn get_call_as_format_string(&self) -> Box<StringGroup> {
         let call = self.get_call().unwrap();
-        let call_format = format!(
-            "{} {}",
-            call,
-            self.params.as_ref().unwrap().get_args_literals(location)
-                .iter()
-                .map(|_| "%s".to_string())
-                .collect::<Vec<String>>()
-                .join(" ")
-        )
-        .to_string();
+        let call_format = format!("{} {}", call,
+        self.params.as_ref().unwrap().get_args_format_string()).to_string();
         Box::new(StringGroup::Constant { value: call_format })
     }
     fn get_task_creation_expr(&self, location: Location) -> Result<Expression, String> {
@@ -197,19 +181,15 @@ impl<'a> ConstraintState<'a> {
                         name: self.get_call().unwrap(),
                     },
                 };
-                Ok(Located {
-                    location,
-                    node: ExpressionType::Call {
-                        function: Box::new(function),
-                        args: self.params.as_ref().unwrap().get_args_literals(location),
-                        keywords: Vec::new(),
-                        // TODO: add keywords
-                    },
-                })
+                Ok(self
+                    .params
+                    .as_ref()
+                    .unwrap()
+                    .populate_call(function, location))
             }
             Some(Dialect::Bash(_)) => {
-                let args = self.get_args_tuple(location);
-                let spec_str = self.get_call_as_format_string(location);
+                let args = self.params.as_ref().unwrap().get_args_tuple(location);
+                let spec_str = self.get_call_as_format_string();
                 let formatted_str = Located {
                     location,
                     node: ExpressionType::String {
