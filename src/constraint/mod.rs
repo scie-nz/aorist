@@ -2,7 +2,7 @@ use crate::concept::{AoristConcept, Concept, ConceptAncestry};
 use crate::object::TAoristObject;
 use aorist_primitives::{define_constraint, register_constraint, Dialect};
 use maplit::hashmap;
-use rustpython_parser::ast::{Expression, ExpressionType, Located, Location, StringGroup};
+use rustpython_parser::ast::{Expression, ExpressionType, Keyword, Located, Location, StringGroup};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fmt;
@@ -10,10 +10,11 @@ use std::fmt;
 #[derive(Clone)]
 pub struct ParameterTuple {
     args: Vec<String>,
+    kwargs: HashMap<String, String>,
 }
 impl ParameterTuple {
-    pub fn new(args: Vec<String>) -> Self {
-        Self { args }
+    pub fn new(args: Vec<String>, kwargs: HashMap<String, String>) -> Self {
+        Self { args, kwargs }
     }
     fn get_args_literals(&self, location: Location) -> Vec<Expression> {
         let args = self
@@ -41,13 +42,29 @@ impl ParameterTuple {
             },
         }
     }
+    pub fn get_keyword_vector(&self, location: Location) -> Vec<Keyword> {
+        self.kwargs
+            .iter()
+            .map(|(k, v)| Keyword {
+                name: Some(k.clone()),
+                value: Located {
+                    location,
+                    node: ExpressionType::String {
+                        value: StringGroup::Constant {
+                            value: v.to_string(),
+                        },
+                    },
+                },
+            })
+            .collect::<Vec<Keyword>>()
+    }
     pub fn populate_call(&self, function: Expression, location: Location) -> Expression {
         Located {
             location,
             node: ExpressionType::Call {
                 function: Box::new(function),
                 args: self.get_args_literals(location),
-                keywords: Vec::new(),
+                keywords: self.get_keyword_vector(location),
                 // TODO: add keywords
             },
         }
@@ -58,6 +75,33 @@ impl ParameterTuple {
             .map(|_| "%s".to_string())
             .collect::<Vec<String>>()
             .join(" ")
+    }
+    fn get_call_as_format_string(&self, call: String) -> Box<StringGroup> {
+        let call_format = format!("{} {}", call, self.get_args_format_string()).to_string();
+        Box::new(StringGroup::Constant { value: call_format })
+    }
+    pub fn get_shell_task_command(&self, location: Location, call: String) -> Expression {
+        if self.args.len() > 0 {
+            let args = self.get_args_tuple(location);
+            let spec_str = self.get_call_as_format_string(call);
+            return Located {
+                location,
+                node: ExpressionType::String {
+                    value: StringGroup::FormattedValue {
+                        value: Box::new(args),
+                        conversion: None,
+                        spec: Some(spec_str),
+                    },
+                },
+            };
+        } else {
+            return Located {
+                location,
+                node: ExpressionType::String {
+                    value: StringGroup::Constant { value: call },
+                },
+            };
+        }
     }
 }
 

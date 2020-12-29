@@ -362,6 +362,7 @@ fn main() {
     scope.import("crate::constraint", "SatisfiableConstraint");
     scope.import("crate::constraint", "AllConstraintsSatisfiability");
     scope.import("crate::constraint", "ParameterTuple");
+    scope.import("std::collections", "HashMap");
     for (root_crate, root) in roots {
         scope.import(&format!("crate::{}", &root_crate), &root);
     }
@@ -395,7 +396,7 @@ fn main() {
                         object_names.insert(map.get("attaches").unwrap().clone());
                     }
                 }
-                let mut kwargs: HashMap<String, String> = HashMap::new();
+                let mut kwargs: HashMap<String, (String, String)> = HashMap::new();
                 if let Some(kwargs_v) = program.get("kwargs") {
                     for param in kwargs_v.as_sequence().unwrap() {
                         let map: HashMap<String, String> = param
@@ -412,7 +413,10 @@ fn main() {
                             .collect();
                         kwargs.insert(
                             map.get("name").unwrap().clone(),
-                            map.get("call").unwrap().clone(),
+                            (
+                                map.get("attaches").unwrap().clone(),
+                                map.get("call").unwrap().clone(),
+                            ),
                         );
                         object_names.insert(map.get("attaches").unwrap().clone());
                     }
@@ -426,11 +430,10 @@ fn main() {
                         \"{preamble}\", \"{call}\",
                         |concept: Concept<'a>, ancestry: Arc<ConceptAncestry<'a>>| {{ 
                             {objects}
-                            ParameterTuple::new(
-                                vec![
-                                    {params}
-                                ]
-                            )
+                            let args = vec![{params}];
+                            let {mut_kw}kwargs: HashMap<String, String> = HashMap::new();
+                            {kwargs}
+                            ParameterTuple::new(args, kwargs)
                         }}
                     );",
                     objects=object_names.iter().map(|x| {
@@ -450,10 +453,23 @@ fn main() {
                     ),
                     None => "".to_string(),
                     },
+                    mut_kw=match kwargs.len() {
+                        0 => "",
+                        _ => "mut ",
+                    },
                     call=program.get("call").unwrap().as_str().unwrap(),
                     params=params.iter().map(
                         |x| format!("{x}.clone()", x=x).to_string()
                     ).collect::<Vec<String>>().join(", "),
+                    kwargs=kwargs.iter().map(|(k, v)| {
+                        formatdoc!(
+                            "kwargs.insert(
+                                 \"{k}\".to_string(),
+                                 {call}.clone(),
+                             );",
+                             k=k, call=v.1,
+                        ).to_string()
+                    }).collect::<Vec<String>>().join("\n"),
                 };
                 scope.raw(&define);
             }

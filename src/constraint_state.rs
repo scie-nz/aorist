@@ -166,12 +166,6 @@ impl<'a> ConstraintState<'a> {
         }
         statements
     }
-    fn get_call_as_format_string(&self) -> Box<StringGroup> {
-        let call = self.get_call().unwrap();
-        let call_format = format!("{} {}", call,
-        self.params.as_ref().unwrap().get_args_format_string()).to_string();
-        Box::new(StringGroup::Constant { value: call_format })
-    }
     fn get_task_creation_expr(&self, location: Location) -> Result<Expression, String> {
         match self.dialect {
             Some(Dialect::Python(_)) => {
@@ -188,18 +182,12 @@ impl<'a> ConstraintState<'a> {
                     .populate_call(function, location))
             }
             Some(Dialect::Bash(_)) => {
-                let args = self.params.as_ref().unwrap().get_args_tuple(location);
-                let spec_str = self.get_call_as_format_string();
-                let formatted_str = Located {
-                    location,
-                    node: ExpressionType::String {
-                        value: StringGroup::FormattedValue {
-                            value: Box::new(args),
-                            conversion: None,
-                            spec: Some(spec_str),
-                        },
-                    },
-                };
+                let formatted_str = self
+                    .params
+                    .as_ref()
+                    .unwrap()
+                    .get_shell_task_command(location, self.get_call().unwrap().clone());
+
                 let function = Located {
                     location,
                     node: ExpressionType::Identifier {
