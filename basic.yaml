@@ -151,7 +151,7 @@ spec:
 type: Constraint
 spec:
   name: ConvertCSVToOrc
-  root: StaticDataTable
+  root: RemoteImportStorageSetup
   requires:
       - DataFromRemoteDownloaded
   requiresProgram: true
@@ -177,15 +177,23 @@ spec:
       dest = "%s/%s" % (tmp_dir, file_name)
       blob.download_to_filename(dest)
   call: download_blob_to_file
-  parameters:
-    - call: gcs_location.bucket
-      attaches: GCSLocation 
-    - call: gcs_location.blob
-      attaches: GCSLocation
-    - call: remote_import_storage_setup.tmp_dir 
-      attaches: RemoteImportStorageSetup
-    - call: static_data_table.name
-      attaches: StaticDataTable
+  args:
+    - type: Argument
+      spec:
+        call: gcs_location.bucket
+        attaches: GCSLocation 
+    - type: Argument
+      spec: 
+        call: gcs_location.blob
+        attaches: GCSLocation
+    - type: Argument
+      spec:
+        call: remote_import_storage_setup.tmp_dir 
+        attaches: RemoteImportStorageSetup
+    - type: Argument
+      spec:
+        call: static_data_table.name
+        attaches: StaticDataTable
 ---
 type: Program
 spec:
@@ -194,12 +202,18 @@ spec:
   dialect: Bash
   call: gunzip {tmp_dir}/{file_name}
   kwargs:
-    - call: remote_import_storage_setup.tmp_dir 
-      attaches: RemoteImportStorageSetup
-      name: tmp_dir
-    - call: static_data_table.name
-      attaches: StaticDataTable
-      name: file_name
+    tmp_dir: 
+      type: Argument
+      spec:
+        call: remote_import_storage_setup.tmp_dir 
+        attaches: RemoteImportStorageSetup
+        name: tmp_dir
+    file_name: 
+      type: Argument
+      spec:
+        call: static_data_table.name
+        attaches: StaticDataTable
+        name: file_name
 ---
 type: Program
 spec:
@@ -210,12 +224,18 @@ spec:
     tail -n +2 {tmp_dir}/{file_name} > {tmp_dir}/{file_name}.no_header &&
     rm {tmp_dir}/{file_name}
   kwargs:
-    - call: remote_import_storage_setup.tmp_dir 
-      attaches: RemoteImportStorageSetup
-      name: tmp_dir
-    - call: static_data_table.name
-      attaches: StaticDataTable
-      name: file_name
+    tmp_dir: 
+      type: Argument
+      spec:
+        call: remote_import_storage_setup.tmp_dir 
+        attaches: RemoteImportStorageSetup
+        name: tmp_dir
+    file_name: 
+      type: Argument
+      spec:
+        call: static_data_table.name
+        attaches: StaticDataTable
+        name: file_name
 ---
 type: DataSetup
 spec:
@@ -402,15 +422,19 @@ spec:
 type: Program
 spec:
   use: ConvertCSVToOrc
-  root: StaticDataTable
+  root: RemoteImportStorageSetup
   dialect: Bash
   call: >
     csv-import {tmp_dir}/{table_name}.no_header
     {tmp_dir}/{table_name}.no_header
   kwargs:
-    - call: remote_import_storage_setup.tmp_dir 
-      attaches: RemoteImportStorageSetup
-      name: tmp_dir
-    - call: static_data_table.name
-      attaches: StaticDataTable
-      name: table_name
+    tmp_dir: 
+      type: Argument
+      spec:
+        call: remote_import_storage_setup.tmp_dir 
+        attaches: RemoteImportStorageSetup
+    table_name:
+      type: Argument
+      spec: 
+        call: static_data_table.name
+        attaches: StaticDataTable

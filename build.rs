@@ -2,13 +2,43 @@ use aorist_util::{get_raw_objects_of_type, read_file};
 use codegen::Scope;
 use indoc::formatdoc;
 use inflector::cases::snakecase::to_snake_case;
-use serde_yaml::Value;
+use serde_yaml::{from_str, Value};
 use std::collections::{HashMap, HashSet};
 use std::env;
 use std::fs;
 use std::fs::OpenOptions;
 use std::io::Write;
 use std::path::Path;
+use serde::{Serialize, Deserialize};
+
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+struct Argument {
+    call: String,
+    attaches: String,
+}
+
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+struct Program {
+    r#use: String,
+    root: String,
+    dialect: String,
+    preamble: Option<String>,
+    call: String,
+    args: Option<Vec<Arg>>,
+    kwargs: Option<HashMap<String, Arg>>,
+}
+
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[serde(tag = "type", content = "spec")]
+enum BuildObject {
+    Program(Program),
+}
+
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[serde(tag = "type", content = "spec")]
+enum Arg {
+    Argument(Argument),
+}
 
 fn get_constraint_dependencies(
     constraints: &Vec<HashMap<String, Value>>,
@@ -330,25 +360,35 @@ fn main() {
     process_attributes(&raw_objects);
     process_concepts(&raw_objects);
     process_constraints(&raw_objects);
+    
+    let s = fs::read_to_string("basic.yaml").unwrap();
+    let programs = s.split("\n---\n")
+        .filter(|x| x.len() > 0)
+        .map(|x| {
+            let p: Result<BuildObject, _> = from_str(x);
+            p 
+        })
+        .filter(|x| {x.is_ok()})
+        .map(|x| match x.unwrap() { 
+            BuildObject::Program(p) => p
+        })
+        .collect::<Vec<Program>>();
 
-    let programs = get_raw_objects_of_type(&raw_objects, "Program".into());
     let mut scope = Scope::new();
-    let mut by_uses: HashMap<String, HashMap<String, HashMap<String, HashMap<String, Value>>>> =
+    let mut by_uses: HashMap<String, HashMap<String, HashMap<String, Program>>> =
         HashMap::new();
     let mut program_uses = HashSet::new();
     let mut roots = HashSet::new();
+    
     for x in programs.into_iter() {
-        let program_use = x.get("use").unwrap().as_str().unwrap().to_string();
-        let root = x.get("root").unwrap().as_str().unwrap().to_string();
-        roots.insert(root.clone());
-        program_uses.insert(program_use.clone());
-        let dialect = x.get("dialect").unwrap().as_str().unwrap().to_string();
+        roots.insert(x.root.clone());
+        program_uses.insert(x.r#use.clone());
         by_uses
-            .entry(root)
+            .entry(x.root.clone())
             .or_insert(HashMap::new())
-            .entry(program_use)
+            .entry(x.r#use.clone())
             .or_insert(HashMap::new())
-            .entry(dialect)
+            .entry(x.dialect.clone())
             .or_insert(x);
     }
     scope.import("aorist_primitives", "define_program");
@@ -373,51 +413,37 @@ fn main() {
                 let mut format_strings: Vec<String> = Vec::new();
                 let mut params: Vec<String> = Vec::new();
                 let mut object_names: HashSet<String> = HashSet::new();
-                if let Some(params_v) = program.get("parameters") {
-                    for param in params_v.as_sequence().unwrap() {
-                        let map: HashMap<String, String> = param
-                            .as_mapping()
-                            .unwrap()
-                            .clone()
-                            .into_iter()
-                            .map(|(k, v)| {
-                                (
-                                    k.as_str().unwrap().to_string(),
-                                    v.as_str().unwrap().to_string(),
-                                )
-                            })
-                            .collect();
-
+                if let Some(ref params_v) = program.args {
+                    for p in params_v {
+                        let Arg::Argument(param) = p;
                         format_strings.push("'{}'".to_string());
-                        params.push(map.get("call").unwrap().clone());
-                        object_names.insert(map.get("attaches").unwrap().clone());
+                        params.push(param.call.clone());
+                        object_names.insert(param.attaches.clone());
+                        
                     }
                 }
                 let mut kwargs: HashMap<String, (String, String)> = HashMap::new();
-                if let Some(kwargs_v) = program.get("kwargs") {
-                    for param in kwargs_v.as_sequence().unwrap() {
-                        let map: HashMap<String, String> = param
-                            .as_mapping()
-                            .unwrap()
-                            .clone()
-                            .into_iter()
-                            .map(|(k, v)| {
-                                (
-                                    k.as_str().unwrap().to_string(),
-                                    v.as_str().unwrap().to_string(),
-                                )
-                            })
-                            .collect();
+                if let Some(ref kwargs_v) = program.kwargs {
+                    for (name, p) in kwargs_v.iter() {
+                        let Arg::Argument(param) = p;
                         kwargs.insert(
-                            map.get("name").unwrap().clone(),
+                            name.clone(),
                             (
-                                map.get("attaches").unwrap().clone(),
-                                map.get("call").unwrap().clone(),
+                                param.attaches.clone(),
+                                param.call.clone(),
                             ),
                         );
-                        object_names.insert(map.get("attaches").unwrap().clone());
+                        object_names.insert(param.attaches.clone());
                     }
                 }
+                    
+                let preamble = match &program.preamble {
+                    Some(p) => p.replace(
+                        "\"",
+                        "\\\""
+                    ),
+                    None => "".to_string(),
+                };
 
                 let define = formatdoc! {
                     "define_program!(
@@ -439,22 +465,15 @@ fn main() {
                             x=to_snake_case(x),
                         ).to_string()
                     }).collect::<Vec<String>>().join("\n"),
-                    root=program.get("root").unwrap().as_str().unwrap(),
-                    constraint=program.get("use").unwrap().as_str().unwrap(),
-                    dialect=program.get("dialect").unwrap().as_str().unwrap(),
-                    preamble=match program.get("preamble") {
-                    Some(p) =>
-                    p.as_str().unwrap().to_string().replace(
-                        "\"",
-                        "\\\""
-                    ),
-                    None => "".to_string(),
-                    },
+                    root=program.root,
+                    constraint=program.r#use,
+                    dialect=program.dialect,
+                    preamble=preamble,
                     mut_kw=match kwargs.len() {
                         0 => "",
                         _ => "mut ",
                     },
-                    call=program.get("call").unwrap().as_str().unwrap(),
+                    call=program.call,
                     params=params.iter().map(
                         |x| format!("{x}.clone()", x=x).to_string()
                     ).collect::<Vec<String>>().join(", "),
