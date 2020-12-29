@@ -256,6 +256,30 @@ impl<'a> ConstraintState<'a> {
                     },
                 })
             }
+            None => {
+                let function = Located {
+                    location,
+                    node: ExpressionType::Identifier {
+                        name: "ConstantTask".to_string(),
+                    },
+                };
+                Ok(Located {
+                    location,
+                    node: ExpressionType::Call {
+                        function: Box::new(function),
+                        args: vec![Located {
+                            location,
+                            node: ExpressionType::String {
+                                value: StringGroup::Constant {
+                                    value:
+                                    self.constraint.read().unwrap().get_name().clone(),
+                                },
+                            },
+                        }],
+                        keywords: Vec::new(),
+                    },
+                })
+            }
             _ => Err("Dialect not supported".to_string()),
         }
     }
