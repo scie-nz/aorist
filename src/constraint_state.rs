@@ -4,7 +4,8 @@ use crate::object::TAoristObject;
 use aorist_primitives::Dialect;
 use inflector::cases::snakecase::to_snake_case;
 use rustpython_parser::ast::{
-    Expression, ExpressionType, Located, Location, Statement, StatementType, StringGroup, Suite,
+    Expression, ExpressionType, Keyword, Located, Location, Statement, StatementType, StringGroup,
+    Suite,
 };
 use std::collections::{HashMap, HashSet};
 use std::sync::{Arc, RwLock};
@@ -183,6 +184,28 @@ impl<'a> ConstraintState<'a> {
             .collect::<Vec<_>>();
         args
     }
+    fn get_args_tuple(&self, location: Location) -> Expression {
+        Located {
+            location,
+            node: ExpressionType::Tuple {
+                elements: self.get_args_as_literals(location),
+            },
+        }
+    }
+    fn get_call_as_format_string(&self, location: Location) -> Box<StringGroup> {
+        let call = self.get_call().unwrap();
+        let call_format = format!(
+            "{} {}",
+            call,
+            self.get_args_as_literals(location)
+                .iter()
+                .map(|_| "%s".to_string())
+                .collect::<Vec<String>>()
+                .join(" ")
+        )
+        .to_string();
+        Box::new(StringGroup::Constant { value: call_format })
+    }
     fn get_task_creation_expr(&self, location: Location) -> Result<Expression, String> {
         match self.dialect {
             Some(Dialect::Python(_)) => {
@@ -201,7 +224,38 @@ impl<'a> ConstraintState<'a> {
                         // TODO: add keywords
                     },
                 })
-            },
+            }
+            Some(Dialect::Bash(_)) => {
+                let args = self.get_args_tuple(location);
+                let spec_str = self.get_call_as_format_string(location);
+                let formatted_str = Located {
+                    location,
+                    node: ExpressionType::String {
+                        value: StringGroup::FormattedValue {
+                            value: Box::new(args),
+                            conversion: None,
+                            spec: Some(spec_str),
+                        },
+                    },
+                };
+                let function = Located {
+                    location,
+                    node: ExpressionType::Identifier {
+                        name: "ShellTask".to_string(),
+                    },
+                };
+                Ok(Located {
+                    location,
+                    node: ExpressionType::Call {
+                        function: Box::new(function),
+                        args: Vec::new(),
+                        keywords: vec![Keyword {
+                            name: Some("command".to_string()),
+                            value: formatted_str,
+                        }],
+                    },
+                })
+            }
             _ => Err("Dialect not supported".to_string()),
         }
     }

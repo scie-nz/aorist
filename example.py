@@ -12,15 +12,15 @@ function unzip_file() {
 }
 
 
-tasks['replicated_schema'] = ConstantTask('replicated_schema')
-flow.add_node(tasks['replicated_schema'])
-
 params_download_data_from_remote_gcs_location = {
     'download_location': ('gcp-public-data-sentinel2', 'index.csv.gz-backup', '/tmp/sentinel2', 'sentinel-2-metadata-table')
 }
     
 tasks['download_location'] = download_blob_to_file('gcp-public-data-sentinel2', 'index.csv.gz-backup', '/tmp/sentinel2', 'sentinel-2-metadata-table')
 flow.add_node(tasks['download_location'])
+tasks['replicated_schema'] = ConstantTask('replicated_schema')
+flow.add_node(tasks['replicated_schema'])
+
 tasks['download_remote'] = ConstantTask('download_data_from_remote')
 flow.add_node(tasks['download_remote'])
 for dep in [tasks['download_location']]:
@@ -30,20 +30,9 @@ params_decompress = {
     'decompress': ('/tmp/sentinel2', 'sentinel-2-metadata-table')
 }
     
+tasks['decompress'] = ShellTask(command='unzip_file %s %s' % ('/tmp/sentinel2', 'sentinel-2-metadata-table'))
 flow.add_node(tasks['decompress'])
-tasks['decompress'] = ShellTask(
-    command="""
-    function unzip_file() {
-    gunzip $1/$2
-}
-
-unzip_file %s
-    """ % params_decompress['decompress'].join(' '),
-)
-flow.add_node(tasks['decompress'])
-for dep in [tasks['download_location']]:
-    flow.add_edge(dep, tasks['decompress'])
-
+flow.add_edge(tasks['decompress'], tasks['download_location'])
 tasks['remove_header'] = ConstantTask('remove_file_header')
 flow.add_node(tasks['remove_header'])
 for dep in [tasks['decompress']]:

@@ -2,8 +2,8 @@
 use crate::constraint_state::ConstraintState;
 use indoc::formatdoc;
 use rustpython_parser::ast::{
-    Expression, ExpressionType, Located, Program, Statement, StatementType, StringGroup, Suite,
-    WithItem,
+    Expression, ExpressionType, Keyword, Located, Program, Statement, StatementType, StringGroup,
+    Suite, WithItem,
 };
 use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
@@ -59,11 +59,31 @@ impl PrefectProgram {
         });
         Program { statements }
     }
+    fn render_string_group(string_group: &StringGroup) -> Result<String, String> {
+        match string_group {
+            StringGroup::Constant { value } => Ok(format!("'{}'", value).to_string()),
+            StringGroup::FormattedValue {
+                value,
+                conversion,
+                spec,
+            } => match conversion {
+                Some(_) => Err("Don't know how to apply conversion to string group".to_string()),
+                None => match spec {
+                    Some(s) => Ok(format!(
+                        "{} % {}",
+                        Self::render_string_group(s)?,
+                        Self::render_expr(value)?,
+                    )
+                    .to_string()),
+                    None => Err("Don't know what to do when spec missing.".to_string()),
+                },
+            },
+            _ => Err("Don't know what to do with this string group".to_string()),
+        }
+    }
     fn render_expr(expr: &Expression) -> Result<String, String> {
         match &expr.node {
-            ExpressionType::String {
-                value: StringGroup::Constant { value },
-            } => Ok(format!("'{}'", value).to_string()),
+            ExpressionType::String { value } => Self::render_string_group(value),
             ExpressionType::Subscript { a, b, .. } => {
                 Ok(format!("{}[{}]", Self::render_expr(a)?, Self::render_expr(b)?).to_string())
             }
@@ -80,19 +100,43 @@ impl PrefectProgram {
                     .join(", ")
             )
             .to_string()),
-            ExpressionType::Call { function, args, .. } => {
+            ExpressionType::Tuple { elements } => Ok(format!(
+                "({})",
+                elements
+                    .iter()
+                    .map(|x| Self::render_expr(x).unwrap())
+                    .collect::<Vec<String>>()
+                    .join(", ")
+            )
+            .to_string()),
+            ExpressionType::Call {
+                function,
+                args,
+                keywords,
+            } => {
                 let mut formatted_args: Vec<String> = Vec::new();
                 for arg in args {
                     formatted_args.push(Self::render_expr(&arg)?);
                 }
+                for keyword in keywords {
+                    formatted_args.push(Self::render_keyword(&keyword)?);
+                }
                 Ok(format!(
                     "{}({})",
                     call = Self::render_expr(function)?,
-                    args = formatted_args.join(", ")
+                    args = formatted_args.join(", "),
                 )
                 .to_string())
             }
             _ => Err(format!("Unknown argument: {}", Expression::name(&expr))),
+        }
+    }
+    fn render_keyword(keyword: &Keyword) -> Result<String, String> {
+        match keyword.name {
+            Some(ref name) => {
+                Ok(format!("{}={}", name, Self::render_expr(&keyword.value)?).to_string())
+            }
+            None => Err("Don't know what to do with nameless-keywords".to_string()),
         }
     }
     fn render_suite(suite: Suite) -> Result<String, String> {
@@ -344,57 +388,14 @@ impl<'a> PrefectTaskRender<'a> for PrefectShellTaskRender<'a> {
     fn get_constraints(&self) -> &Vec<Arc<RwLock<ConstraintState<'a>>>> {
         &self.members
     }
-    fn render_singleton(&self, constraint_name: String) {
+    fn render_singleton(&self, _constraint_name: String) {
         assert_eq!(self.get_constraints().len(), 1);
         let rw = self.get_constraints().get(0).unwrap();
-        let call_name = Self::extract_call_for_rendering(rw.clone()).unwrap();
-        let constraint = rw.read().unwrap();
-        let key = constraint.get_task_name();
-        let deps = constraint.get_satisfied_dependency_keys();
-        if deps.len() > 0 {
-            let formatted_deps = deps
-                .iter()
-                .map(|x| format!("tasks['{}']", x))
-                .collect::<Vec<_>>()
-                .join(", ");
-            println!(
-                "{}",
-                formatdoc!(
-                    "
-                flow.add_node(tasks['{k}'])
-                tasks['{k}'] = ShellTask(
-                    command=\"\"\"
-                    {call} %s
-                    \"\"\" % params_{constraint}['{k}'].join(' '),
-                )
-                flow.add_node(tasks['{k}'])
-                for dep in [{dependencies}]:
-                    flow.add_edge(dep, tasks['{k}'])
-            ",
-                    dependencies = formatted_deps,
-                    k = key,
-                    constraint = constraint_name,
-                    call = call_name,
-                )
-            )
-        } else {
-            println!(
-                "{}",
-                formatdoc!(
-                    "
-                tasks['{k}'] = ShellTask(
-                    command=\"\"\"
-                    {call} %s
-                    \"\"\" % params_{constraint}['{k}'].join(' '),
-                )
-                flow.add_node(tasks['{k}'])
-            ",
-                    k = key,
-                    call = call_name,
-                    constraint = constraint_name,
-                )
-            )
-        }
+        println!(
+            "{}",
+            PrefectProgram::render_suite(rw.read().unwrap().get_prefect_singleton().unwrap())
+                .unwrap()
+        );
     }
 }
 impl<'a> PrefectTaskRenderWithCalls<'a> for PrefectShellTaskRender<'a> {
