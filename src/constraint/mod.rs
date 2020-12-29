@@ -81,27 +81,45 @@ impl ParameterTuple {
         Box::new(StringGroup::Constant { value: call_format })
     }
     pub fn get_shell_task_command(&self, location: Location, call: String) -> Expression {
-        if self.args.len() > 0 {
-            let args = self.get_args_tuple(location);
-            let spec_str = self.get_call_as_format_string(call);
-            return Located {
-                location,
-                node: ExpressionType::String {
-                    value: StringGroup::FormattedValue {
-                        value: Box::new(args),
-                        conversion: None,
-                        spec: Some(spec_str),
-                    },
-                },
-            };
-        } else {
-            return Located {
+        let left = match self.args.len() {
+            0 => Located {
                 location,
                 node: ExpressionType::String {
                     value: StringGroup::Constant { value: call },
                 },
+            },
+            _ => {
+                let args = self.get_args_tuple(location);
+                let spec_str = self.get_call_as_format_string(call);
+                Located {
+                    location,
+                    node: ExpressionType::String {
+                        value: StringGroup::FormattedValue {
+                            value: Box::new(args),
+                            conversion: None,
+                            spec: Some(spec_str),
+                        },
+                    },
+                }
+            }
+        };
+        if self.kwargs.len() > 0 {
+            return Located {
+                location,
+                node: ExpressionType::Call {
+                    function: Box::new(Located {
+                        location,
+                        node: ExpressionType::Attribute {
+                            value: Box::new(left),
+                            name: "format".to_string(),
+                        },
+                    }),
+                    args: Vec::new(),
+                    keywords: self.get_keyword_vector(location),
+                },
             };
         }
+        return left;
     }
 }
 
