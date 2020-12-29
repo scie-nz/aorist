@@ -94,7 +94,7 @@ impl<'a> ConstraintState<'a> {
             location,
             node: ExpressionType::Call {
                 function: Box::new(add_edge_fn),
-                args: vec![self.get_task_val(location), dep],
+                args: vec![dep, self.get_task_val(location)],
                 keywords: Vec::new(),
             },
         };

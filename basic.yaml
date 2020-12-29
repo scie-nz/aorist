@@ -131,6 +131,7 @@ spec:
   root: FileHeader
   requires:
     - FileIsDecompressed
+  requiresProgram: true
 ---
 type: Constraint
 spec:
@@ -177,7 +178,6 @@ spec:
       attaches: RemoteImportStorageSetup
     - call: static_data_table.name
       attaches: StaticDataTable
-  crate: location
 ---
 type: Program
 spec:
@@ -192,7 +192,22 @@ spec:
     - call: static_data_table.name
       attaches: StaticDataTable
       name: file_name
-  crate: compression
+---
+type: Program
+spec:
+  use: RemoveFileHeader
+  root: FileHeader
+  dialect: Bash
+  call: |
+    tail -n +2 {tmp_dir}/{file_name} > {tmp_dir}/{file_name}.no_header &&
+    rm {tmp_dir}/{file_name}
+  kwargs:
+    - call: remote_import_storage_setup.tmp_dir 
+      attaches: RemoteImportStorageSetup
+      name: tmp_dir
+    - call: static_data_table.name
+      attaches: StaticDataTable
+      name: file_name
 ---
 type: DataSetup
 spec:

@@ -340,9 +340,8 @@ fn main() {
     for x in programs.into_iter() {
         let program_use = x.get("use").unwrap().as_str().unwrap().to_string();
         let root = x.get("root").unwrap().as_str().unwrap().to_string();
-        let root_crate = x.get("crate").unwrap().as_str().unwrap().to_string();
+        roots.insert(root.clone());
         program_uses.insert(program_use.clone());
-        roots.insert((root_crate, root.clone()));
         let dialect = x.get("dialect").unwrap().as_str().unwrap().to_string();
         by_uses
             .entry(root)
@@ -363,8 +362,8 @@ fn main() {
     scope.import("crate::constraint", "AllConstraintsSatisfiability");
     scope.import("crate::constraint", "ParameterTuple");
     scope.import("std::collections", "HashMap");
-    for (root_crate, root) in roots {
-        scope.import(&format!("crate::{}", &root_crate), &root);
+    for root in roots {
+        scope.import("crate", &root);
     }
     for (root, constraints) in &by_uses {
         for (constraint, dialects) in constraints {

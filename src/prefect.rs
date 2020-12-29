@@ -61,7 +61,10 @@ impl PrefectProgram {
     }
     fn render_string_group(string_group: &StringGroup) -> Result<String, String> {
         match string_group {
-            StringGroup::Constant { value } => Ok(format!("'{}'", value).to_string()),
+            StringGroup::Constant { value } => match value.find('\n') {
+                None => Ok(format!("'{}'", value).to_string()),
+                Some(_) => Ok(format!("\"\"\"\n{}\"\"\"", value).to_string()),
+            },
             StringGroup::FormattedValue {
                 value,
                 conversion,

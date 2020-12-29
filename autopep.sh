@@ -1,2 +1,2 @@
 #!/bin/bash
-autopep8 --in-place --experimental --aggressive --aggressive --aggressive --hang-closing example.py
+autopep8 --in-place --aggressive --aggressive example.py
