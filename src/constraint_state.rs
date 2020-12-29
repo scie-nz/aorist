@@ -25,7 +25,7 @@ pub struct ConstraintState<'a> {
     ancestors: Vec<(Uuid, String, Option<String>, usize)>,
     preamble: Option<String>,
     call: Option<String>,
-    params: Option<String>,
+    params: Option<Vec<String>>,
     task_name: Option<String>,
 }
 
@@ -167,16 +167,9 @@ impl<'a> ConstraintState<'a> {
         statements
     }
     fn get_args_as_literals(&self, location: Location) -> Vec<Expression> {
-        // TODO: this is super-hacky, params should be a string enum
-        let params = self
-            .params
-            .as_ref()
+        let args = self
+            .get_params()
             .unwrap()
-            .clone()
-            .replace("\"", "")
-            .replace("'", "");
-        let splits = params.split(", ").collect::<Vec<_>>();
-        let args = splits
             .iter()
             .map(|x| {
                 Located {
@@ -333,7 +326,7 @@ impl<'a> ConstraintState<'a> {
     pub fn get_preamble(&self) -> Option<String> {
         self.preamble.clone()
     }
-    pub fn get_params(&self) -> Option<String> {
+    pub fn get_params(&self) -> Option<Vec<String>> {
         self.params.clone()
     }
     pub fn get_call(&self) -> Option<String> {

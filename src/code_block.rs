@@ -22,7 +22,7 @@ impl<'a> CodeBlock<'a> {
             .map(|x| x.unwrap())
             .collect()
     }
-    pub fn get_params(&self) -> HashMap<String, Option<String>> {
+    pub fn get_params(&self) -> HashMap<String, Option<Vec<String>>> {
         self.members
             .iter()
             .map(|rw| {

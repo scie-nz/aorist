@@ -194,7 +194,7 @@ pub trait PrefectTaskRender<'a> {
     fn render_singleton(&self) {
         assert_eq!(self.get_constraints().len(), 1);
         let rw = self.get_constraints().get(0).unwrap();
-        println!(
+        print!(
             "{}",
             PrefectProgram::render_suite(rw.read().unwrap().get_prefect_singleton().unwrap())
                 .unwrap()

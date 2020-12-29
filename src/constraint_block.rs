@@ -22,7 +22,7 @@ impl<'a> ConstraintBlock<'a> {
             .flatten()
             .collect()
     }
-    pub fn get_params(&self) -> HashMap<String, Option<String>> {
+    pub fn get_params(&self) -> HashMap<String, Option<Vec<String>>> {
         self.members
             .iter()
             .map(|x| x.get_params().into_iter())
@@ -43,7 +43,8 @@ impl<'a> ConstraintBlock<'a> {
             .get_params()
             .into_iter()
             .filter(|(_, v)| v.is_some())
-            .collect::<Vec<_>>();
+            .map(|(k, v)| (k, v.unwrap()))
+            .collect::<Vec<(String, Vec<String>)>>();
         if params.len() > 0 {
             println!(
                 "{}",
@@ -56,7 +57,16 @@ impl<'a> ConstraintBlock<'a> {
                     constraint = self.get_constraint_name(),
                     params = params
                         .into_iter()
-                        .map(|(k, v)| format!("'{k}': ({v})", k = k, v = v.unwrap()).to_string())
+                        .map(|(k, v)| format!(
+                            "'{k}': ({v})",
+                            k = k,
+                            v = v
+                                .iter()
+                                .map(|x| format!("'{}'", x).to_string())
+                                .collect::<Vec<_>>()
+                                .join(", ")
+                        )
+                        .to_string())
                         .collect::<Vec<String>>()
                         .join(",\n    "),
                 )

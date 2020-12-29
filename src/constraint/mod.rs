@@ -29,14 +29,14 @@ pub trait SatisfiableConstraint: TConstraint {
         c: Concept<'a>,
         d: &Dialect,
         ancestry: Arc<ConceptAncestry<'a>>,
-    ) -> Option<(String, String, String)>;
+    ) -> Option<(String, String, Vec<String>)>;
 
     fn satisfy_given_preference_ordering<'a>(
         &self,
         r: Concept<'a>,
         preferences: &Vec<Dialect>,
         ancestry: Arc<ConceptAncestry<'a>>,
-    ) -> Result<(String, String, String, Dialect), String>;
+    ) -> Result<(String, String, Vec<String>, Dialect), String>;
 }
 // TODO: duplicate function, should be unified in trait
 pub trait AllConstraintsSatisfiability {
@@ -45,7 +45,7 @@ pub trait AllConstraintsSatisfiability {
         c: Concept<'a>,
         preferences: &Vec<Dialect>,
         ancestry: Arc<ConceptAncestry<'a>>,
-    ) -> Result<(String, String, String, Dialect), String>;
+    ) -> Result<(String, String, Vec<String>, Dialect), String>;
 }
 
 include!(concat!(env!("OUT_DIR"), "/constraints.rs"));

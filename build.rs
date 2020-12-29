@@ -394,6 +394,29 @@ fn main() {
                         object_names.insert(map.get("attaches").unwrap().clone());
                     }
                 }
+                let mut kwargs: HashMap<String, String> = HashMap::new();
+                if let Some(kwargs_v) = program.get("kwargs") {
+                    for param in kwargs_v.as_sequence().unwrap() {
+                        let map: HashMap<String, String> = param
+                            .as_mapping()
+                            .unwrap()
+                            .clone()
+                            .into_iter()
+                            .map(|(k, v)| {
+                                (
+                                    k.as_str().unwrap().to_string(),
+                                    v.as_str().unwrap().to_string(),
+                                )
+                            })
+                            .collect();
+                        kwargs.insert(
+                            map.get("name").unwrap().clone(),
+                            map.get("call").unwrap().clone(),
+                        );
+                        object_names.insert(map.get("attaches").unwrap().clone());
+                    }
+                }
+
                 let define = formatdoc! {
                     "define_program!(
                         {dialect}{constraint},
@@ -402,7 +425,9 @@ fn main() {
                         \"{preamble}\", \"{call}\",
                         |concept: Concept<'a>, ancestry: Arc<ConceptAncestry<'a>>| {{ 
                             {objects}
-                            format!(\"{fmt_params}\", {params})  
+                            vec![
+                                {params}
+                            ]
                         }}
                     );",
                     objects=object_names.iter().map(|x| {
@@ -423,8 +448,9 @@ fn main() {
                     None => "".to_string(),
                     },
                     call=program.get("call").unwrap().as_str().unwrap(),
-                    fmt_params=format_strings.join(", "),
-                    params=params.join(", "),
+                    params=params.iter().map(
+                        |x| format!("{x}.clone()", x=x).to_string()
+                    ).collect::<Vec<String>>().join(", "),
                 };
                 scope.raw(&define);
             }
