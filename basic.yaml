@@ -261,7 +261,7 @@ spec:
   - project-crowding-detection
   datasets:
   - sentinel-2-metadata-dataset
-  - sentinel-2-metadata-dataset1
+  - snap-dataset
   role_bindings:
   - bogdan-global-permissions-admin
   endpoints:
@@ -540,3 +540,70 @@ spec:
         attaches:
           - StaticDataTable
           - DataSet
+---
+type: DataSet
+spec:
+  name: snap-dataset
+  accessPolicies:
+  - type: ApproveAccessSelector
+    spec:
+      matchLabels:
+        department:
+          - datascience
+  datumTemplates:
+  - name: edge
+    # TODO: define IdentifierTuple
+    type: IdentifierTuple
+    attributes:
+    - name: from_id
+      # TODO: define NumericIdentifier
+      type: NumericIdentifier
+    - name: to_id
+      type: NumericIdentifier
+  assets:
+    - type: StaticDataTable
+      spec:
+        name: WikiTalk
+        setup:
+          type: RemoteImportStorageSetup
+          spec:
+            tmp_dir: /tmp/wikitalk
+            remote:
+              type: RemoteStorage
+              location:
+                # TODO: define WebLocation
+                type: WebLocation
+                spec:
+                  address: https://snap.stanford.edu/data/wiki-Talk.txt.gz
+              layout:
+                type: SingleFileLayout
+              encoding:
+                # TODO: define TSVEncoding
+                type: TSVEncoding
+                spec:
+                  compression:
+                    type: GzipCompression
+                  header:
+                    # TODO: add num_lines attribute to UpperSnakeCaseCSVHeader
+                    type: UpperSnakeCaseCSVHeader
+                    spec:
+                      num_lines: 4
+            local:
+            - type: HiveTableStorage
+              location:
+                type: AlluxioLocation
+                spec:
+                  path: 'snap/wikitalk'
+              layout:
+                type: StaticHiveTableLayout
+                spec: {}
+              encoding:
+                type: ORCEncoding
+                spec: {}
+        schema:
+          type: TabularSchema
+          spec:
+            datumTemplateName: edge
+            attributes:
+            - from_id
+            - to_id
