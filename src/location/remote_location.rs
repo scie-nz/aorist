@@ -1,6 +1,7 @@
 use crate::concept::{AoristConcept, Concept};
 use crate::constraint::*;
 use crate::location::gcs_location::GCSLocation;
+use crate::location::web_location::WebLocation;
 use aorist_concept::Constrainable;
 use enum_dispatch::enum_dispatch;
 use serde::{Deserialize, Serialize};
@@ -13,4 +14,6 @@ use uuid::Uuid;
 pub enum RemoteLocation {
     #[constrainable]
     GCSLocation(GCSLocation),
+    #[constrainable]
+    WebLocation(WebLocation),
 }

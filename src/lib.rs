@@ -39,7 +39,7 @@ pub use data_setup::{DataSetup, ParsedDataSetup};
 pub use dataset::DataSet;
 pub use encoding::Encoding;
 pub use header::FileHeader;
-pub use location::{GCSLocation, HiveLocation, RemoteLocation};
+pub use location::{GCSLocation, HiveLocation, RemoteLocation, WebLocation};
 pub use schema::{DataSchema, TabularSchema};
 pub use storage::{HiveTableStorage, RemoteStorage};
 pub use storage_setup::{RemoteImportStorageSetup, StorageSetup};
