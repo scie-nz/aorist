@@ -41,6 +41,37 @@ impl PrefectSingleton {
             flow_addition,
         }
     }
+    // swaps parameters for starred and double-starred sets of args and kwargs
+    pub fn swap_params(
+        &mut self,
+        starred: Expression,
+        double_starred: Keyword,
+    ) -> Result<(Vec<Expression>, Vec<Keyword>), String> {
+        if let Located {
+            node: StatementType::Assign { ref mut value, .. },
+            ..
+        } = self.task_creation
+        {
+            if let Located {
+                node:
+                    ExpressionType::Call {
+                        ref mut args,
+                        ref mut keywords,
+                        ..
+                    },
+                ..
+            } = value
+            {
+                let mut vec_starred = vec![starred];
+                std::mem::swap(args, &mut vec_starred);
+                let mut vec_double_starred = vec![double_starred];
+                std::mem::swap(keywords, &mut vec_double_starred);
+                return Ok((vec_starred, vec_double_starred));
+            }
+            return Err("Right-hand side of task creation not call.".to_string());
+        }
+        Err("Task creation statement is not assignment.".to_string())
+    }
     pub fn as_suite(self) -> Suite {
         let mut stmts = vec![self.task_creation];
         for stmt in self.flow_addition {
