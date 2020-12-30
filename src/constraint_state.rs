@@ -180,7 +180,7 @@ impl<'a> ConstraintState<'a> {
                     .as_ref()
                     .unwrap()
                     .populate_call(function, location))
-            },
+            }
             Some(Dialect::Presto(_)) => {
                 let query = self
                     .params
@@ -194,8 +194,8 @@ impl<'a> ConstraintState<'a> {
                     node: ExpressionType::String {
                         value: StringGroup::Constant {
                             value: raw_command.to_string(),
-                        }
-                    }
+                        },
+                    },
                 };
                 let function = Located {
                     location,

@@ -42,19 +42,39 @@ impl ParameterTuple {
             },
         }
     }
+    fn prettify_string_value(&self, v: String, location: Location) -> Expression {
+        let value;
+        if v.len() <= 60 {
+            value = StringGroup::Constant { value: v };
+        } else {
+            let mut splits = v
+                .split(",")
+                .map(|x| x.to_string())
+                .collect::<Vec<String>>()
+                .into_iter();
+            let mut acc: String = splits.next().unwrap();
+            let mut values: Vec<StringGroup> = Vec::new();
+            for split in splits {
+                if acc.len() + split.len() + 1 >= 60 {
+                    values.push(StringGroup::Constant { value: acc.clone() });
+                    acc = "".to_string();
+                }
+                acc += ",";
+                acc += &split;
+            }
+            value = StringGroup::Joined { values };
+        }
+        Located {
+            location,
+            node: ExpressionType::String { value },
+        }
+    }
     pub fn get_keyword_vector(&self, location: Location) -> Vec<Keyword> {
         self.kwargs
             .iter()
             .map(|(k, v)| Keyword {
                 name: Some(k.clone()),
-                value: Located {
-                    location,
-                    node: ExpressionType::String {
-                        value: StringGroup::Constant {
-                            value: v.to_string(),
-                        },
-                    },
-                },
+                value: self.prettify_string_value(v.to_string(), location),
             })
             .collect::<Vec<Keyword>>()
     }

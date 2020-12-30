@@ -81,7 +81,14 @@ impl PrefectProgram {
                     None => Err("Don't know what to do when spec missing.".to_string()),
                 },
             },
-            _ => Err("Don't know what to do with this string group".to_string()),
+            StringGroup::Joined { values } => Ok(format!(
+                "({})",
+                values
+                    .iter()
+                    .map(|x| Self::render_string_group(x).unwrap())
+                    .collect::<Vec<String>>()
+                    .join("\n")
+            )),
         }
     }
     fn render_expr(expr: &Expression) -> Result<String, String> {
@@ -222,8 +229,8 @@ pub trait PrefectTaskRender<'a> {
         }
         Some(formatdoc!(
             "
-        dependencies_{constraint} = {{ 
-            {dependencies} 
+        dependencies_{constraint} = {{
+            {dependencies}
         }}
         ",
             constraint = constraint_name,

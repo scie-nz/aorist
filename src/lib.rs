@@ -41,6 +41,6 @@ pub use encoding::Encoding;
 pub use header::FileHeader;
 pub use location::{GCSLocation, HiveLocation, RemoteLocation};
 pub use schema::{DataSchema, TabularSchema};
-pub use template::{DatumTemplate, KeyedStruct};
 pub use storage::{HiveTableStorage, RemoteStorage};
 pub use storage_setup::{RemoteImportStorageSetup, StorageSetup};
+pub use template::{DatumTemplate, KeyedStruct};

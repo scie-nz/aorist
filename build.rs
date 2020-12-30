@@ -2,6 +2,7 @@ use aorist_util::{get_raw_objects_of_type, read_file};
 use codegen::Scope;
 use indoc::formatdoc;
 use inflector::cases::snakecase::to_snake_case;
+use serde::{Deserialize, Serialize};
 use serde_yaml::{from_str, Value};
 use std::collections::{HashMap, HashSet};
 use std::env;
@@ -9,7 +10,6 @@ use std::fs;
 use std::fs::OpenOptions;
 use std::io::Write;
 use std::path::Path;
-use serde::{Serialize, Deserialize};
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 struct AncestorArgument {
@@ -367,26 +367,26 @@ fn main() {
     process_attributes(&raw_objects);
     process_concepts(&raw_objects);
     process_constraints(&raw_objects);
-    
+
     let s = fs::read_to_string("basic.yaml").unwrap();
-    let programs = s.split("\n---\n")
+    let programs = s
+        .split("\n---\n")
         .filter(|x| x.len() > 0)
         .map(|x| {
             let p: Result<BuildObject, _> = from_str(x);
-            p 
+            p
         })
-        .filter(|x| {x.is_ok()})
-        .map(|x| match x.unwrap() { 
-            BuildObject::Program(p) => p
+        .filter(|x| x.is_ok())
+        .map(|x| match x.unwrap() {
+            BuildObject::Program(p) => p,
         })
         .collect::<Vec<Program>>();
 
     let mut scope = Scope::new();
-    let mut by_uses: HashMap<String, HashMap<String, HashMap<String, Program>>> =
-        HashMap::new();
+    let mut by_uses: HashMap<String, HashMap<String, HashMap<String, Program>>> = HashMap::new();
     let mut program_uses = HashSet::new();
     let mut roots = HashSet::new();
-    
+
     for x in programs.into_iter() {
         roots.insert(x.root.clone());
         program_uses.insert(x.r#use.clone());
@@ -439,28 +439,19 @@ fn main() {
                 if let Some(ref kwargs_v) = program.kwargs {
                     for (name, p) in kwargs_v.iter() {
                         if let Arg::AncestorArgument(param) = p {
-                            kwargs.insert(
-                                name.clone(),
-                                param.call.clone(),
-                            );
+                            kwargs.insert(name.clone(), param.call.clone());
                             object_names.insert(param.attaches.clone());
                         } else if let Arg::MultipleAncestorsArgument(param) = p {
-                            kwargs.insert(
-                                name.clone(),
-                                param.call.clone(),
-                            );
+                            kwargs.insert(name.clone(), param.call.clone());
                             for obj in &param.attaches {
                                 object_names.insert(obj.clone());
                             }
                         }
                     }
                 }
-                    
+
                 let preamble = match &program.preamble {
-                    Some(p) => p.replace(
-                        "\"",
-                        "\\\""
-                    ),
+                    Some(p) => p.replace("\"", "\\\""),
                     None => "".to_string(),
                 };
 
