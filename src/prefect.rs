@@ -301,11 +301,12 @@ pub trait PrefectTaskRender<'a> {
             .collect::<HashMap<String, _>>();
         singletons
     }
-    fn render(&self, location: Location) {
-        let singletons = self.get_singletons(location);
-        let params_map = self.args_from_singletons(singletons, location);
+    fn combine_params(
+        &self,
+        params_map: HashMap<String, (Vec<Expression>, Vec<Keyword>, PrefectSingleton)>,
+        location: Location,
+    ) -> (Statement, Vec<PrefectSingleton>) {
         let mut params: Vec<(Option<Expression>, Expression)> = Vec::new();
-
         let mut processed_singletons: Vec<PrefectSingleton> = Vec::new();
         for (task_name, (args_v, kwargs_v, singleton)) in params_map.into_iter() {
             let kws: Vec<(Option<Expression>, Expression)> = kwargs_v
@@ -365,11 +366,18 @@ pub trait PrefectTaskRender<'a> {
                 expression: params_dict,
             },
         };
+        (params_stmt, processed_singletons)
+    }
+    fn render(&self, location: Location) {
+        let singletons = self.get_singletons(location);
+        let params_map = self.args_from_singletons(singletons, location);
+        let (params_stmt, singletons) = self.combine_params(params_map, location);
+
         print!(
             "{}\n",
             PrefectProgram::render_suite(vec![params_stmt]).unwrap()
         );
-        for singleton in processed_singletons {
+        for singleton in singletons {
             print!(
                 "{}\n",
                 PrefectProgram::render_suite(singleton.as_suite()).unwrap()
