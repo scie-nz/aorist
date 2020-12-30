@@ -252,7 +252,7 @@ pub trait PrefectTaskRender<'a> {
         }
         args_map
     }
-    fn render(&self, location: Location) {
+    fn get_singletons(&self, location: Location) -> HashMap<String, PrefectSingleton> {
         let num_constraints = self.get_constraints().len();
         for rw in self.get_constraints() {
             let mut write = rw.write().unwrap();
@@ -299,9 +299,15 @@ pub trait PrefectTaskRender<'a> {
                 )
             })
             .collect::<HashMap<String, _>>();
+        singletons
+    }
+    fn render(&self, location: Location) {
+        let singletons = self.get_singletons(location);
         let params_map = self.args_from_singletons(singletons, location);
         let mut params: Vec<(Option<Expression>, Expression)> = Vec::new();
-        for (task_name, (args_v, kwargs_v, singleton)) in params_map {
+
+        let mut processed_singletons: Vec<PrefectSingleton> = Vec::new();
+        for (task_name, (args_v, kwargs_v, singleton)) in params_map.into_iter() {
             let kws: Vec<(Option<Expression>, Expression)> = kwargs_v
                 .into_iter()
                 .map(|x| {
@@ -347,10 +353,7 @@ pub trait PrefectTaskRender<'a> {
             } else {
                 params.push((Some(task_name_ident), arg_list));
             }
-            print!(
-                "{}\n",
-                PrefectProgram::render_suite(singleton.as_suite()).unwrap()
-            );
+            processed_singletons.push(singleton);
         }
         let params_dict = Located {
             location,
@@ -366,7 +369,12 @@ pub trait PrefectTaskRender<'a> {
             "{}\n",
             PrefectProgram::render_suite(vec![params_stmt]).unwrap()
         );
-        print!("\n");
+        for singleton in processed_singletons {
+            print!(
+                "{}\n",
+                PrefectProgram::render_suite(singleton.as_suite()).unwrap()
+            );
+        }
     }
     fn render_singleton(&self, location: Location) {
         assert_eq!(self.get_constraints().len(), 1);
