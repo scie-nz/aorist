@@ -27,11 +27,11 @@ pub struct ConstraintState<'a> {
     call: Option<String>,
     params: Option<ParameterTuple>,
     task_name: Option<String>,
+    task_val_fn: Option<Box<dyn Fn(Location, String) -> Expression>>,
 }
 
 impl<'a> ConstraintState<'a> {
-    pub fn get_prefect_singleton(&self) -> Result<Suite, String> {
-        let location = Location::new(0, 0);
+    pub fn get_prefect_singleton(&self, location: Location) -> Result<Suite, String> {
         let mut stmts = vec![self.get_task_statement(location)?];
         for stmt in self.get_flow_addition_statements(location) {
             stmts.push(stmt);
@@ -47,12 +47,10 @@ impl<'a> ConstraintState<'a> {
         }
     }
     pub fn get_task_val(&self, location: Location) -> Expression {
-        Located {
-            location,
-            node: ExpressionType::Identifier {
-                name: self.get_task_name(),
-            },
-        }
+        (self.task_val_fn.as_ref().unwrap())(location, self.get_task_name())
+    }
+    pub fn set_task_val_fn(&mut self, fun: Box<dyn Fn(Location, String) -> Expression>) {
+        self.task_val_fn = Some(fun);
     }
     pub fn _get_task_val_dict(&self, location: Location) -> Expression {
         let outer = Located {
@@ -368,6 +366,7 @@ impl<'a> ConstraintState<'a> {
             call: None,
             params: None,
             task_name: None,
+            task_val_fn: None,
         }
     }
     pub fn compute_task_name(

@@ -7,6 +7,7 @@ use crate::data_setup::ParsedDataSetup;
 use crate::object::TAoristObject;
 use aorist_primitives::{Bash, Dialect, Presto, Python};
 use inflector::cases::snakecase::to_snake_case;
+use rustpython_parser::ast::Location;
 use std::collections::{HashMap, HashSet};
 use std::sync::{Arc, RwLock, RwLockReadGuard};
 use uuid::Uuid;
@@ -402,8 +403,9 @@ impl<'a> Driver<'a> {
             "{}\n\n",
             preambles.into_iter().collect::<Vec<String>>().join("\n\n")
         );*/
+        let location = Location::new(0, 0);
         for super_block in &self.blocks {
-            super_block.render();
+            super_block.render(location);
             println!("");
         }
 

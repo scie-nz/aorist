@@ -2,8 +2,8 @@
 use crate::constraint_state::ConstraintState;
 use indoc::formatdoc;
 use rustpython_parser::ast::{
-    Expression, ExpressionType, Keyword, Located, Program, Statement, StatementType, StringGroup,
-    Suite, WithItem,
+    Expression, ExpressionType, Keyword, Located, Location, Program, Statement, StatementType,
+    StringGroup, Suite, WithItem,
 };
 use std::sync::{Arc, RwLock};
 
@@ -200,23 +200,34 @@ impl PrefectProgram {
 
 pub trait PrefectTaskRender<'a> {
     fn get_constraints(&self) -> &Vec<Arc<RwLock<ConstraintState<'a>>>>;
-    fn render(&self) {
+    fn render(&self, location: Location) {
         for rw in self.get_constraints() {
-            print!(
-                "{}\n",
-                PrefectProgram::render_suite(rw.read().unwrap().get_prefect_singleton().unwrap())
-                    .unwrap()
-            );
+            let mut write = rw.write().unwrap();
+            let fun = Box::new(|location, name| Located {
+                location,
+                node: ExpressionType::Identifier { name },
+            });
+            write.set_task_val_fn(fun);
+        }
+        let singletons = self
+            .get_constraints()
+            .iter()
+            .map(|rw| rw.read().unwrap().get_prefect_singleton(location).unwrap())
+            .collect::<Vec<_>>();
+        for suite in singletons {
+            print!("{}\n", PrefectProgram::render_suite(suite).unwrap());
         }
         print!("\n");
     }
-    fn render_singleton(&self) {
+    fn render_singleton(&self, location: Location) {
         assert_eq!(self.get_constraints().len(), 1);
         let rw = self.get_constraints().get(0).unwrap();
         print!(
             "{}",
-            PrefectProgram::render_suite(rw.read().unwrap().get_prefect_singleton().unwrap())
-                .unwrap()
+            PrefectProgram::render_suite(
+                rw.read().unwrap().get_prefect_singleton(location).unwrap()
+            )
+            .unwrap()
         );
     }
     fn render_ids(ids: Vec<Arc<RwLock<ConstraintState<'a>>>>) -> String {

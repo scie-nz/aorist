@@ -1,6 +1,8 @@
 use crate::code_block::CodeBlock;
 use crate::constraint::ParameterTuple;
+use rustpython_parser::ast::Location;
 use std::collections::{HashMap, HashSet};
+
 pub struct ConstraintBlock<'a> {
     constraint_name: String,
     members: Vec<CodeBlock<'a>>,
@@ -29,10 +31,10 @@ impl<'a> ConstraintBlock<'a> {
             .flatten()
             .collect()
     }
-    pub fn render(&self) {
+    pub fn render(&self, location: Location) {
         // TODO: rename print_call
         for (_i, member) in self.members.iter().enumerate() {
-            member.print_call();
+            member.print_call(location);
         }
     }
 }

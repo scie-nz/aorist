@@ -1,12 +1,13 @@
 use crate::constraint::ParameterTuple;
 use crate::constraint_state::ConstraintState;
 use crate::prefect::{
-    PrefectConstantTaskRender, PrefectPythonTaskRender, PrefectShellTaskRender,
-    PrefectTaskRender,
+    PrefectConstantTaskRender, PrefectPythonTaskRender, PrefectShellTaskRender, PrefectTaskRender,
 };
 use aorist_primitives::Dialect;
+use rustpython_parser::ast::Location;
 use std::collections::{HashMap, HashSet};
 use std::sync::{Arc, RwLock};
+
 pub struct CodeBlock<'a> {
     dialect: Option<Dialect>,
     members: Vec<Arc<RwLock<ConstraintState<'a>>>>,
@@ -33,18 +34,18 @@ impl<'a> CodeBlock<'a> {
             .collect()
     }
     // TODO: move this to Dialect class
-    pub fn print_call(&self) {
+    pub fn print_call(&self, location: Location) {
         match &self.dialect {
             Some(Dialect::Python(_)) => {
-                PrefectPythonTaskRender::new(self.members.clone()).render()
+                PrefectPythonTaskRender::new(self.members.clone()).render(location)
             }
             Some(Dialect::Bash(_)) => {
-                PrefectShellTaskRender::new(self.members.clone()).render()
+                PrefectShellTaskRender::new(self.members.clone()).render(location)
             }
             Some(Dialect::Presto(_)) => {
-                PrefectShellTaskRender::new(self.members.clone()).render()
+                PrefectShellTaskRender::new(self.members.clone()).render(location)
             }
-            None => PrefectConstantTaskRender::new(self.members.clone()).render(),
+            None => PrefectConstantTaskRender::new(self.members.clone()).render(location),
             _ => {
                 panic!("Dialect not handled: {:?}", self.dialect.as_ref().unwrap());
             }
