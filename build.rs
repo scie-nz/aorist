@@ -312,6 +312,7 @@ fn process_concepts(raw_objects: &Vec<HashMap<String, Value>>) {
         ("crate::location", "HiveLocation"),
         ("crate::location", "RemoteLocation"),
         ("crate::encoding", "CSVEncoding"),
+        ("crate::encoding", "TSVEncoding"),
         ("crate::encoding", "Encoding"),
         ("crate::encoding", "ORCEncoding"),
         ("crate::schema", "TabularSchema"),
