@@ -5,6 +5,7 @@ use rustpython_parser::ast::{
     Expression, ExpressionType, Keyword, Located, Location, Program, Statement, StatementType,
     StringGroup, Suite, WithItem,
 };
+use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
 
 struct PrefectProgram {
@@ -100,6 +101,24 @@ impl PrefectProgram {
             ExpressionType::Attribute { value, name } => {
                 Ok(format!("{}.{}", Self::render_expr(&value)?, name).to_string())
             }
+            ExpressionType::Starred { value } => {
+                Ok(format!("*{}", Self::render_expr(&value)?).to_string())
+            }
+            ExpressionType::Dict { elements } => Ok(format!(
+                "{{{}}}",
+                elements
+                    .into_iter()
+                    .map(|(k, v)| {
+                        let key = match k {
+                            None => "**".to_string(),
+                            Some(expr) => Self::render_expr(expr).unwrap(),
+                        };
+                        let val = Self::render_expr(v).unwrap();
+                        format!("{}: {}", key, val).to_string()
+                    })
+                    .collect::<Vec<String>>()
+                    .join(",\n")
+            )),
             ExpressionType::List { elements } => Ok(format!(
                 "[{}]",
                 elements
@@ -145,7 +164,7 @@ impl PrefectProgram {
             Some(ref name) => {
                 Ok(format!("{}={}", name, Self::render_expr(&keyword.value)?).to_string())
             }
-            None => Err("Don't know what to do with nameless-keywords".to_string()),
+            None => Ok(format!("**{}", Self::render_expr(&keyword.value)?).to_string()),
         }
     }
     fn render_suite(suite: Suite) -> Result<String, String> {
@@ -239,14 +258,101 @@ pub trait PrefectTaskRender<'a> {
         let singletons = self
             .get_constraints()
             .iter()
-            .map(|rw| rw.read().unwrap().get_prefect_singleton(location).unwrap())
-            .collect::<Vec<_>>();
-        for singleton in singletons.into_iter() {
+            .map(|rw| {
+                let x = rw.read().unwrap();
+                (
+                    x.get_task_name(),
+                    x.get_prefect_singleton(location).unwrap(),
+                )
+            })
+            .collect::<HashMap<String, _>>();
+        let mut params: Vec<(Option<Expression>, Expression)> = Vec::new();
+        for (task_name, mut singleton) in singletons.into_iter() {
+            let args = Located {
+                location,
+                node: ExpressionType::Starred {
+                    value: Box::new(Located {
+                        location,
+                        node: ExpressionType::Identifier {
+                            name: "args".to_string(),
+                        },
+                    }),
+                },
+            };
+            let kwargs = Keyword {
+                name: None,
+                value: Located {
+                    location,
+                    node: ExpressionType::Identifier {
+                        name: "kwargs".to_string(),
+                    },
+                },
+            };
+            let (args_v, kwargs_v) = singleton.swap_params(args, kwargs).unwrap();
+            let kws: Vec<(Option<Expression>, Expression)> = kwargs_v
+                .into_iter()
+                .map(|x| {
+                    (
+                        Some(Located {
+                            location,
+                            node: ExpressionType::String {
+                                value: StringGroup::Constant {
+                                    value: x.name.unwrap(),
+                                },
+                            },
+                        }),
+                        x.value,
+                    )
+                })
+                .collect();
+            let task_name_ident = Located {
+                location,
+                node: ExpressionType::String {
+                    value: StringGroup::Constant { value: task_name },
+                },
+            };
+            let num_kws = kws.len();
+            let num_args = args_v.len();
+            let kw_dict = Located {
+                location,
+                node: ExpressionType::Dict { elements: kws },
+            };
+            let arg_list = Located {
+                location,
+                node: ExpressionType::List { elements: args_v },
+            };
+            if num_kws > 0 && num_args > 0 {
+                let tuple = Located {
+                    location,
+                    node: ExpressionType::Tuple {
+                        elements: vec![arg_list, kw_dict],
+                    },
+                };
+                params.push((Some(task_name_ident), tuple));
+            } else if num_kws > 0 {
+                params.push((Some(task_name_ident), kw_dict));
+            } else {
+                params.push((Some(task_name_ident), arg_list));
+            }
             print!(
                 "{}\n",
                 PrefectProgram::render_suite(singleton.as_suite()).unwrap()
             );
         }
+        let params_dict = Located {
+            location,
+            node: ExpressionType::Dict { elements: params },
+        };
+        let params_stmt = Located {
+            location,
+            node: StatementType::Expression {
+                expression: params_dict,
+            },
+        };
+        print!(
+            "{}\n",
+            PrefectProgram::render_suite(vec![params_stmt]).unwrap()
+        );
         print!("\n");
     }
     fn render_singleton(&self, location: Location) {
