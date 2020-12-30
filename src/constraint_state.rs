@@ -30,13 +30,32 @@ pub struct ConstraintState<'a> {
     task_val_fn: Option<Box<dyn Fn(Location, String) -> Expression>>,
 }
 
-impl<'a> ConstraintState<'a> {
-    pub fn get_prefect_singleton(&self, location: Location) -> Result<Suite, String> {
-        let mut stmts = vec![self.get_task_statement(location)?];
-        for stmt in self.get_flow_addition_statements(location) {
+pub struct PrefectSingleton {
+    task_creation: Statement,
+    flow_addition: Suite,
+}
+impl PrefectSingleton {
+    pub fn new(task_creation: Statement, flow_addition: Suite) -> Self {
+        Self {
+            task_creation,
+            flow_addition,
+        }
+    }
+    pub fn as_suite(self) -> Suite {
+        let mut stmts = vec![self.task_creation];
+        for stmt in self.flow_addition {
             stmts.push(stmt);
         }
-        Ok(stmts)
+        stmts
+    }
+}
+
+impl<'a> ConstraintState<'a> {
+    pub fn get_prefect_singleton(&self, location: Location) -> Result<PrefectSingleton, String> {
+        Ok(PrefectSingleton {
+            task_creation: self.get_task_statement(location)?,
+            flow_addition: self.get_flow_addition_statements(location),
+        })
     }
     pub fn get_dep_ident(&self, location: Location) -> Expression {
         Located {

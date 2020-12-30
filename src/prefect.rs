@@ -222,9 +222,7 @@ pub trait PrefectTaskRender<'a> {
                     let inner = Located {
                         location,
                         node: ExpressionType::String {
-                            value: StringGroup::Constant {
-                                value: name,
-                            },
+                            value: StringGroup::Constant { value: name },
                         },
                     };
                     Located {
@@ -243,8 +241,11 @@ pub trait PrefectTaskRender<'a> {
             .iter()
             .map(|rw| rw.read().unwrap().get_prefect_singleton(location).unwrap())
             .collect::<Vec<_>>();
-        for suite in singletons {
-            print!("{}\n", PrefectProgram::render_suite(suite).unwrap());
+        for singleton in singletons.into_iter() {
+            print!(
+                "{}\n",
+                PrefectProgram::render_suite(singleton.as_suite()).unwrap()
+            );
         }
         print!("\n");
     }
@@ -254,7 +255,11 @@ pub trait PrefectTaskRender<'a> {
         print!(
             "{}",
             PrefectProgram::render_suite(
-                rw.read().unwrap().get_prefect_singleton(location).unwrap()
+                rw.read()
+                    .unwrap()
+                    .get_prefect_singleton(location)
+                    .unwrap()
+                    .as_suite()
             )
             .unwrap()
         );
