@@ -1,11 +1,33 @@
-replicated_schema = ConstantTask('ReplicatedSchema')
-flow.add_node(replicated_schema)
 download_location = download_blob_to_file('gcp-public-data-sentinel2', 'index.csv.gz-backup', '/tmp/sentinel2', 'sentinel-2-metadata-table')
 flow.add_node(download_location)
+hive_created = ShellTask(command="""
+CREATE TABLE IF NOT EXISTS {table_name} (
+    {schema}
+) WITH (format='{data_format}');
+""".format(data_format='ORC', schema="""
+generation_time BIGINT,
+west_lon REAL COMMENT 'Western longitude of the tile`s bounding box.',
+geometric_quality_flag VARCHAR,
+base_url VARCHAR,
+east_lon REAL COMMENT 'Eastern longitude of the tile`s bounding box.',
+granule_id VARCHAR,
+product_id VARCHAR,
+datatake_identifier VARCHAR,
+sensing_time BIGINT,
+total_size BIGINT,
+cloud_cover VARCHAR,
+mgrs_tile VARCHAR,
+north_lat REAL COMMENT 'Northern latitude of the tile`s bounding box.',
+south_lat REAL COMMENT 'Southern latitude of the tile`s bounding box.'
+""", table_name='sentinel-2-metadata-table'))
+flow.add_node(hive_created)
+replicated_schema = ConstantTask('ReplicatedSchema')
+flow.add_node(replicated_schema)
+flow.add_edge(hive_created, replicated_schema)
 download_remote = ConstantTask('DownloadDataFromRemote')
 flow.add_node(download_remote)
 flow.add_edge(download_location, download_remote)
-decompress = ShellTask(command='gunzip {tmp_dir}/{file_name}'.format(tmp_dir='/tmp/sentinel2', file_name='sentinel-2-metadata-table'))
+decompress = ShellTask(command='gunzip {tmp_dir}/{file_name}'.format(file_name='sentinel-2-metadata-table', tmp_dir='/tmp/sentinel2'))
 flow.add_node(decompress)
 flow.add_edge(download_location, decompress)
 

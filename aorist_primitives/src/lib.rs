@@ -91,8 +91,7 @@ macro_rules! register_satisfiable_constraints {
                         Some(AoristConstraint::$constraint(x)) =>
                         x.satisfy_given_preference_ordering(c, preferences, ancestry),
                     )+
-                    _ => Err("Constraint is not satisfiable (no program
-                    provided).".to_string())
+                    _ => Err("Constraint is not satisfiable (no program provided).".to_string())
                 }
             }
         }

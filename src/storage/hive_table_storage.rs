@@ -1,7 +1,7 @@
 #![allow(non_snake_case)]
 
 use crate::concept::{AoristConcept, Concept};
-use crate::constraint::Constraint;
+use crate::constraint::*;
 use crate::encoding::Encoding;
 use crate::layout::HiveStorageLayout;
 use crate::location::HiveLocation;
@@ -19,7 +19,7 @@ pub struct HiveTableStorage {
     #[constrainable]
     layout: HiveStorageLayout,
     #[constrainable]
-    encoding: Encoding,
+    pub encoding: Encoding,
     uuid: Option<Uuid>,
     tag: Option<String>,
     #[serde(skip)]

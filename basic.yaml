@@ -80,6 +80,14 @@ type: Constraint
 spec:
   name: ReplicatedSchema
   root: StaticDataTable
+  requires:
+      - HiveSchemasCreated
+---
+type: Constraint
+spec:
+  name: HiveSchemasCreated
+  root: HiveTableStorage
+  requiresProgram: true
 ---
 type: Constraint
 spec:
@@ -181,14 +189,14 @@ spec:
     - type: AncestorArgument
       spec:
         call: gcs_location.bucket
-        attaches: GCSLocation 
+        attaches: GCSLocation
     - type: AncestorArgument
-      spec: 
+      spec:
         call: gcs_location.blob
         attaches: GCSLocation
     - type: AncestorArgument
       spec:
-        call: remote_import_storage_setup.tmp_dir 
+        call: remote_import_storage_setup.tmp_dir
         attaches: RemoteImportStorageSetup
     - type: AncestorArgument
       spec:
@@ -202,13 +210,13 @@ spec:
   dialect: Bash
   call: gunzip {tmp_dir}/{file_name}
   kwargs:
-    tmp_dir: 
+    tmp_dir:
       type: AncestorArgument
       spec:
-        call: remote_import_storage_setup.tmp_dir 
+        call: remote_import_storage_setup.tmp_dir
         attaches: RemoteImportStorageSetup
         name: tmp_dir
-    file_name: 
+    file_name:
       type: AncestorArgument
       spec:
         call: static_data_table.name
@@ -224,13 +232,13 @@ spec:
     tail -n +2 {tmp_dir}/{file_name} > {tmp_dir}/{file_name}.no_header &&
     rm {tmp_dir}/{file_name}
   kwargs:
-    tmp_dir: 
+    tmp_dir:
       type: AncestorArgument
       spec:
-        call: remote_import_storage_setup.tmp_dir 
+        call: remote_import_storage_setup.tmp_dir
         attaches: RemoteImportStorageSetup
         name: tmp_dir
-    file_name: 
+    file_name:
       type: AncestorArgument
       spec:
         call: static_data_table.name
@@ -428,32 +436,32 @@ spec:
     csv-import {tmp_dir}/{table_name}.no_header
     {tmp_dir}/{table_name}.no_header
   kwargs:
-    tmp_dir: 
+    tmp_dir:
       type: AncestorArgument
       spec:
-        call: remote_import_storage_setup.tmp_dir 
+        call: remote_import_storage_setup.tmp_dir
         attaches: RemoteImportStorageSetup
     table_name:
       type: AncestorArgument
-      spec: 
+      spec:
         call: static_data_table.name
         attaches: StaticDataTable
     schema:
       type: MultipleAncestorsArgument
       spec:
         call: >
-          { 
+          {
             let DataSchema::TabularSchema(ref t) = static_data_table.schema;
             let attributes = t.attributes.clone();
             let template = data_set
                 .datumTemplates
                 .iter()
-                .filter(|x| { 
+                .filter(|x| {
                     let DatumTemplate::KeyedStruct(k) = x;
                     k.name == t.datumTemplateName
                 })
                 .map(|x| {let DatumTemplate::KeyedStruct(k) = x; k})
-                .next().unwrap(); 
+                .next().unwrap();
             let attr_map = template.attributes.iter()
                 .map(|x| (x.get_name().clone(), x.get_orc_type()))
                 .collect::<HashMap<String, String>>();
@@ -465,6 +473,69 @@ spec:
                 ).to_string()
             ).collect::<Vec<String>>();
             attr_types.join(",")
+          }
+        attaches:
+          - StaticDataTable
+          - DataSet
+---
+type: Program
+spec:
+  use: HiveSchemasCreated
+  root: HiveTableStorage
+  dialect: Bash
+  call: >
+    CREATE TABLE IF NOT EXISTS {table_name} (
+        {schema}
+    ) WITH (format='{data_format}');
+  kwargs:
+    table_name:
+      type: AncestorArgument
+      spec:
+        call: static_data_table.name
+        attaches: StaticDataTable
+    data_format:
+      type: AncestorArgument
+      spec:
+        call: >
+          match &hive_table_storage.encoding {
+            Encoding::ORCEncoding(_) => "ORC".to_string(),
+            _ => panic!("Format not supported for hive table")
+          }
+        attaches: HiveTableStorage
+    schema:
+      type: MultipleAncestorsArgument
+      spec:
+        call: >
+          {
+            use crate::attributes::TAttribute;
+            let DataSchema::TabularSchema(ref t) = static_data_table.schema;
+            let template = data_set
+                .datumTemplates
+                .iter()
+                .filter(|x| {
+                    let DatumTemplate::KeyedStruct(k) = x;
+                    k.name == t.datumTemplateName
+                })
+                .map(|x| {let DatumTemplate::KeyedStruct(k) = x; k})
+                .next().unwrap();
+            let attr_map = template.attributes.iter()
+                .map(|x|
+                    (x.get_name().clone(), (x.get_presto_type(), x.get_comment().clone())))
+                .collect::<HashMap<String, (String, Option<String>)>>();
+            let attr_types = attr_map.iter().map(|x| {
+                let (name, (presto_type, comment)) = x;
+                let comment_str = match comment {
+                    Some(c) => format!(" COMMENT '{}'", c.replace("\n", "")),
+                    None => "".to_string(),
+                };
+                format!(
+                    "{} {}{}",
+                    name,
+                    presto_type,
+                    comment_str,
+                ).to_string()
+            }).collect::<Vec<String>>();
+            format!("{}\n", attr_types.join(",\n"))
           }
         attaches:
           - StaticDataTable
