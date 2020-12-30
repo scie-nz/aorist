@@ -326,6 +326,7 @@ fn process_concepts(raw_objects: &Vec<HashMap<String, Value>>) {
         ("crate::storage", "RemoteStorage"),
         ("crate::role_binding", "RoleBinding"),
         ("crate::template", "DatumTemplate"),
+        ("crate::template", "IdentifierTuple"),
         ("crate::template", "KeyedStruct"),
         ("crate::user", "User"),
         ("crate::user_group", "UserGroup"),
