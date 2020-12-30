@@ -7,6 +7,13 @@ spec:
 ---
 type: Attribute
 spec:
+  name: NumericIdentifier
+  orc: OrcBigint
+  presto: PrestoBigint
+  sql: SQLBigint
+---
+type: Attribute
+spec:
   name: NullableStringIdentifier
   orc: OrcString
   presto: PrestoVarchar
