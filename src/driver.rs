@@ -318,7 +318,6 @@ impl<'a> Driver<'a> {
                 .to_string();
             }
         }
-        println!("New name: {}", &new_name);
         new_name
     }
     pub fn shorten_task_names(&mut self) {
@@ -330,7 +329,6 @@ impl<'a> Driver<'a> {
         }
         loop {
             let mut changes_made = false;
-            let mut unique_proposals = true;
 
             let mut proposed_names: Vec<String> = task_names.iter().map(|x| x.0.clone()).collect();
             let mut new_task_names: HashSet<String> = proposed_names.clone().into_iter().collect();
@@ -348,7 +346,7 @@ impl<'a> Driver<'a> {
                 {
                     changes_made = true;
                     new_task_names.insert(new_name.clone());
-                    proposed_names.insert(i, new_name);
+                    proposed_names[i] = new_name;
                 }
             }
             if !changes_made {
