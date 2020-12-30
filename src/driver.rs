@@ -284,6 +284,7 @@ impl<'a> Driver<'a> {
         let splits = task_name
             .split("__")
             .map(|x| x.to_string())
+            .filter(|x| x.len() > 0)
             .collect::<Vec<String>>();
         let mut new_name = task_name.to_string();
         if splits.len() > 2 {
@@ -317,6 +318,7 @@ impl<'a> Driver<'a> {
                 .to_string();
             }
         }
+        println!("New name: {}", &new_name);
         new_name
     }
     pub fn shorten_task_names(&mut self) {
@@ -327,32 +329,38 @@ impl<'a> Driver<'a> {
             task_names.push((fqn, constraint.clone()));
         }
         loop {
-            let mut proposed_names: Vec<String> = Vec::new();
             let mut changes_made = false;
-            for (task_name, _) in &task_names {
+            let mut unique_proposals = true;
+
+            let mut proposed_names: Vec<String> = task_names.iter().map(|x| x.0.clone()).collect();
+            let mut new_task_names: HashSet<String> = proposed_names.clone().into_iter().collect();
+            for i in 0..task_names.len() {
+                let task_name = proposed_names.get(i).unwrap().clone();
                 let new_name = Self::get_shorter_task_name(task_name.clone());
-                if new_name != task_name.clone() {
+                if new_name != task_name
+                    && !new_task_names.contains(&new_name)
+                    && proposed_names
+                        .iter()
+                        .filter(|x| x.contains(&new_name))
+                        .collect::<Vec<_>>()
+                        .len()
+                        == 0
+                {
                     changes_made = true;
+                    new_task_names.insert(new_name.clone());
+                    proposed_names.insert(i, new_name);
                 }
-                proposed_names.push(new_name.to_string());
             }
-            if !changes_made
-                || proposed_names
-                    .iter()
-                    .cloned()
-                    .collect::<HashSet<String>>()
-                    .len()
-                    < proposed_names.len()
-            {
+            if !changes_made {
                 break;
             }
-            for (i, new_name) in proposed_names.into_iter().enumerate() {
-                task_names[i].0 = new_name;
+            for i in 0..task_names.len() {
+                task_names[i].0 = proposed_names[i].clone();
             }
         }
         for (name, rw) in task_names {
             let mut write = rw.write().unwrap();
-            write.set_task_name(name);
+            write.set_task_name(name.replace("____", "__"));
         }
     }
     pub fn run(&mut self) {
