@@ -2,7 +2,7 @@ use crate::constraint::ParameterTuple;
 use crate::constraint_state::ConstraintState;
 use crate::prefect::{
     PrefectConstantTaskRender, PrefectPythonTaskRender, PrefectShellTaskRender,
-    PrefectTaskRenderWithCalls,
+    PrefectTaskRender,
 };
 use aorist_primitives::Dialect;
 use std::collections::{HashMap, HashSet};
@@ -33,18 +33,18 @@ impl<'a> CodeBlock<'a> {
             .collect()
     }
     // TODO: move this to Dialect class
-    pub fn print_call(&self, constraint_name: String) {
+    pub fn print_call(&self) {
         match &self.dialect {
             Some(Dialect::Python(_)) => {
-                PrefectPythonTaskRender::new(self.members.clone()).render(constraint_name)
+                PrefectPythonTaskRender::new(self.members.clone()).render()
             }
             Some(Dialect::Bash(_)) => {
-                PrefectShellTaskRender::new(self.members.clone()).render(constraint_name)
+                PrefectShellTaskRender::new(self.members.clone()).render()
             }
             Some(Dialect::Presto(_)) => {
-                PrefectShellTaskRender::new(self.members.clone()).render(constraint_name)
+                PrefectShellTaskRender::new(self.members.clone()).render()
             }
-            None => PrefectConstantTaskRender::new(self.members.clone()).render(constraint_name),
+            None => PrefectConstantTaskRender::new(self.members.clone()).render(),
             _ => {
                 panic!("Dialect not handled: {:?}", self.dialect.as_ref().unwrap());
             }

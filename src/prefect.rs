@@ -200,6 +200,16 @@ impl PrefectProgram {
 
 pub trait PrefectTaskRender<'a> {
     fn get_constraints(&self) -> &Vec<Arc<RwLock<ConstraintState<'a>>>>;
+    fn render(&self) {
+        for rw in self.get_constraints() {
+            print!(
+                "{}\n",
+                PrefectProgram::render_suite(rw.read().unwrap().get_prefect_singleton().unwrap())
+                    .unwrap()
+            );
+        }
+        print!("\n");
+    }
     fn render_singleton(&self) {
         assert_eq!(self.get_constraints().len(), 1);
         let rw = self.get_constraints().get(0).unwrap();
@@ -262,16 +272,6 @@ pub trait PrefectTaskRender<'a> {
 pub trait PrefectTaskRenderWithCalls<'a>: PrefectTaskRender<'a> {
     fn extract_call_for_rendering(rw: Arc<RwLock<ConstraintState<'a>>>) -> Option<String> {
         rw.read().unwrap().get_call()
-    }
-    fn render(&self, constraint_name: String) {
-        for rw in self.get_constraints() {
-            print!(
-                "{}\n",
-                PrefectProgram::render_suite(rw.read().unwrap().get_prefect_singleton().unwrap())
-                    .unwrap()
-            );
-        }
-        print!("\n");
     }
     fn render_single_call(&self, call_name: String, constraint_name: String);
     fn render_multiple_calls(
@@ -496,16 +496,6 @@ pub struct PrefectConstantTaskRender<'a> {
 impl<'a> PrefectConstantTaskRender<'a> {
     pub fn new(members: Vec<Arc<RwLock<ConstraintState<'a>>>>) -> Self {
         Self { members }
-    }
-    pub fn render(&self, constraint_name: String) {
-        for rw in self.get_constraints() {
-            print!(
-                "{}\n",
-                PrefectProgram::render_suite(rw.read().unwrap().get_prefect_singleton().unwrap())
-                    .unwrap()
-            );
-        }
-        print!("\n");
     }
 }
 impl<'a> PrefectTaskRender<'a> for PrefectConstantTaskRender<'a> {

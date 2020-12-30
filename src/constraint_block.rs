@@ -32,7 +32,7 @@ impl<'a> ConstraintBlock<'a> {
     pub fn render(&self) {
         // TODO: rename print_call
         for (_i, member) in self.members.iter().enumerate() {
-            member.print_call(self.get_constraint_name());
+            member.print_call();
         }
     }
 }
