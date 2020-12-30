@@ -4,3 +4,4 @@
 getset/
 .pipeline
 *.swp
+example.py

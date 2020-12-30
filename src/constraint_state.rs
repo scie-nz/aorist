@@ -52,29 +52,6 @@ impl<'a> ConstraintState<'a> {
     pub fn set_task_val_fn(&mut self, fun: Box<dyn Fn(Location, String) -> Expression>) {
         self.task_val_fn = Some(fun);
     }
-    pub fn _get_task_val_dict(&self, location: Location) -> Expression {
-        let outer = Located {
-            location,
-            node: ExpressionType::Identifier {
-                name: "tasks".to_string(),
-            },
-        };
-        let inner = Located {
-            location,
-            node: ExpressionType::String {
-                value: StringGroup::Constant {
-                    value: self.get_task_name(),
-                },
-            },
-        };
-        Located {
-            location,
-            node: ExpressionType::Subscript {
-                a: Box::new(outer),
-                b: Box::new(inner),
-            },
-        }
-    }
     fn get_flow_add_edge_statement(&self, location: Location, dep: Expression) -> Statement {
         let add_edge_fn = Located {
             location,

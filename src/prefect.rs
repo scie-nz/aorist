@@ -201,13 +201,42 @@ impl PrefectProgram {
 pub trait PrefectTaskRender<'a> {
     fn get_constraints(&self) -> &Vec<Arc<RwLock<ConstraintState<'a>>>>;
     fn render(&self, location: Location) {
+        let num_constraints = self.get_constraints().len();
         for rw in self.get_constraints() {
             let mut write = rw.write().unwrap();
-            let fun = Box::new(|location, name| Located {
-                location,
-                node: ExpressionType::Identifier { name },
-            });
-            write.set_task_val_fn(fun);
+            // TODO: magic number
+            if num_constraints <= 2 {
+                let fun = Box::new(|location, name| Located {
+                    location,
+                    node: ExpressionType::Identifier { name },
+                });
+                write.set_task_val_fn(fun);
+            } else {
+                let fun = Box::new(|location, name| {
+                    let outer = Located {
+                        location,
+                        node: ExpressionType::Identifier {
+                            name: "tasks".to_string(),
+                        },
+                    };
+                    let inner = Located {
+                        location,
+                        node: ExpressionType::String {
+                            value: StringGroup::Constant {
+                                value: name,
+                            },
+                        },
+                    };
+                    Located {
+                        location,
+                        node: ExpressionType::Subscript {
+                            a: Box::new(outer),
+                            b: Box::new(inner),
+                        },
+                    }
+                });
+                write.set_task_val_fn(fun);
+            }
         }
         let singletons = self
             .get_constraints()
