@@ -5,7 +5,6 @@ use rustpython_parser::ast::{
     Expression, ExpressionType, Keyword, Located, Program, Statement, StatementType, StringGroup,
     Suite, WithItem,
 };
-use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
 
 struct PrefectProgram {
@@ -265,28 +264,14 @@ pub trait PrefectTaskRenderWithCalls<'a>: PrefectTaskRender<'a> {
         rw.read().unwrap().get_call()
     }
     fn render(&self, constraint_name: String) {
-        if self.get_constraints().len() == 1 {
-            self.render_singleton();
-        } else {
-            let mut by_call: HashMap<String, Vec<Arc<RwLock<ConstraintState<'a>>>>> =
-                HashMap::new();
-            for rw in self.get_constraints() {
-                let maybe_call = Self::extract_call_for_rendering(rw.clone());
-                if let Some(call) = maybe_call {
-                    by_call.entry(call).or_insert(Vec::new()).push(rw.clone());
-                }
-            }
-            if by_call.len() == 1 {
-                self.render_single_call(
-                    by_call.keys().next().unwrap().clone(),
-                    constraint_name.clone(),
-                )
-            } else if by_call.len() > 1 {
-                for (call, rws) in by_call.iter() {
-                    self.render_multiple_calls(call.clone(), constraint_name.clone(), rws);
-                }
-            }
+        for rw in self.get_constraints() {
+            print!(
+                "{}\n",
+                PrefectProgram::render_suite(rw.read().unwrap().get_prefect_singleton().unwrap())
+                    .unwrap()
+            );
         }
+        print!("\n");
     }
     fn render_single_call(&self, call_name: String, constraint_name: String);
     fn render_multiple_calls(
@@ -513,45 +498,14 @@ impl<'a> PrefectConstantTaskRender<'a> {
         Self { members }
     }
     pub fn render(&self, constraint_name: String) {
-        if self.get_constraints().len() == 1 {
-            self.render_singleton();
-        } else {
-            let ids = Self::render_ids(self.get_constraints().clone());
-            match self.render_dependencies(constraint_name.clone()) {
-                Some(dependencies) => println!(
-                    "{}",
-                    formatdoc!(
-                        "
-                    {dependencies}
-                    for k in [
-                        {ids}
-                    ]:
-                        tasks[k] = ConstantTask('{constraint}')
-                        flow.add_node(tasks[k])
-                        for dep in dependencies_{constraint}[k]:
-                            flow.add_edge(tasks[dep], tasks[k])
-                    ",
-                        constraint = constraint_name,
-                        dependencies = dependencies,
-                        ids = ids,
-                    )
-                ),
-                None => println!(
-                    "{}",
-                    formatdoc!(
-                        "
-                    for k in [
-                        {ids}
-                    ]:
-                        tasks[k] = ConstantTask('{constraint}')
-                        flow.add_node(tasks[k])
-                    ",
-                        constraint = constraint_name,
-                        ids = ids,
-                    )
-                ),
-            }
+        for rw in self.get_constraints() {
+            print!(
+                "{}\n",
+                PrefectProgram::render_suite(rw.read().unwrap().get_prefect_singleton().unwrap())
+                    .unwrap()
+            );
         }
+        print!("\n");
     }
 }
 impl<'a> PrefectTaskRender<'a> for PrefectConstantTaskRender<'a> {

@@ -385,6 +385,7 @@ spec:
   assets:
     - type: StaticDataTable
       spec:
+        tag: sentinel
         name: sentinel-2-metadata-table
         setup:
           type: RemoteImportStorageSetup
@@ -465,16 +466,18 @@ spec:
           {
             let DataSchema::TabularSchema(ref t) = static_data_table.schema;
             let attributes = t.attributes.clone();
-            let template = data_set
+            let attr_v = data_set
                 .datumTemplates
                 .iter()
                 .filter(|x| {
-                    let DatumTemplate::KeyedStruct(k) = x;
-                    k.name == t.datumTemplateName
+                    x.get_name().clone() == t.datumTemplateName
                 })
-                .map(|x| {let DatumTemplate::KeyedStruct(k) = x; k})
+                .map(|x| match x {
+                    DatumTemplate::KeyedStruct(k) => k.attributes.clone(),
+                    DatumTemplate::IdentifierTuple(t) => t.attributes.clone(),
+                })
                 .next().unwrap();
-            let attr_map = template.attributes.iter()
+            let attr_map = attr_v.iter()
                 .map(|x| (x.get_name().clone(), x.get_orc_type()))
                 .collect::<HashMap<String, String>>();
             let attr_types = attributes.iter().map(
@@ -521,16 +524,18 @@ spec:
           {
             use crate::attributes::TAttribute;
             let DataSchema::TabularSchema(ref t) = static_data_table.schema;
-            let template = data_set
+            let attr_v = data_set
                 .datumTemplates
                 .iter()
                 .filter(|x| {
-                    let DatumTemplate::KeyedStruct(k) = x;
-                    k.name == t.datumTemplateName
+                    x.get_name().clone() == t.datumTemplateName
                 })
-                .map(|x| {let DatumTemplate::KeyedStruct(k) = x; k})
+                .map(|x| match x {
+                    DatumTemplate::KeyedStruct(k) => k.attributes.clone(),
+                    DatumTemplate::IdentifierTuple(t) => t.attributes.clone(),
+                })
                 .next().unwrap();
-            let attr_map = template.attributes.iter()
+            let attr_map = attr_v.iter()
                 .map(|x|
                     (x.get_name().clone(), (x.get_presto_type(), x.get_comment().clone())))
                 .collect::<HashMap<String, (String, Option<String>)>>();
@@ -552,3 +557,67 @@ spec:
         attaches:
           - StaticDataTable
           - DataSet
+---
+type: DataSet
+spec:
+  tag: snap
+  name: snap-dataset
+  accessPolicies:
+  - type: ApproveAccessSelector
+    spec:
+      matchLabels:
+        department:
+          - datascience
+  datumTemplates:
+  - name: edge
+    type: IdentifierTuple
+    attributes:
+    - name: from_id
+      type: NumericIdentifier
+    - name: to_id
+      type: NumericIdentifier
+  assets:
+    - type: StaticDataTable
+      spec:
+        tag: wikitalk
+        name: WikiTalk
+        setup:
+          type: RemoteImportStorageSetup
+          spec:
+            tmp_dir: /tmp/wikitalk
+            remote:
+              type: RemoteStorage
+              location:
+                type: WebLocation
+                spec:
+                  address: https://snap.stanford.edu/data/wiki-Talk.txt.gz
+              layout:
+                type: SingleFileLayout
+              encoding:
+                type: TSVEncoding
+                spec:
+                  compression:
+                    type: GzipCompression
+                  header:
+                    type: UpperSnakeCaseCSVHeader
+                    spec:
+                      num_lines: 4
+            local:
+            - type: HiveTableStorage
+              location:
+                type: AlluxioLocation
+                spec:
+                  path: 'snap/wikitalk'
+              layout:
+                type: StaticHiveTableLayout
+                spec: {}
+              encoding:
+                type: ORCEncoding
+                spec: {}
+        schema:
+          type: TabularSchema
+          spec:
+            datumTemplateName: edge
+            attributes:
+            - from_id
+            - to_id
