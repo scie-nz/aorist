@@ -1,6 +1,6 @@
 mod datum_template;
-mod keyed_struct;
 mod identifier_tuple;
+mod keyed_struct;
 
 pub use self::datum_template::DatumTemplate;
 pub use self::identifier_tuple::IdentifierTuple;

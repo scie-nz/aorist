@@ -14,3 +14,14 @@ use uuid::Uuid;
 pub enum FileHeader {
     UpperSnakeCaseCSVHeader(UpperSnakeCaseCSVHeader),
 }
+
+impl FileHeader {
+    #[allow(dead_code)]
+    pub fn get_num_lines(&self) -> usize {
+        let FileHeader::UpperSnakeCaseCSVHeader(x) = self;
+        match x.num_lines {
+            None => 1,
+            Some(n) => n,
+        }
+    }
+}

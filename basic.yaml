@@ -236,9 +236,14 @@ spec:
   root: FileHeader
   dialect: Bash
   call: |
-    tail -n +2 {tmp_dir}/{file_name} > {tmp_dir}/{file_name}.no_header &&
+    tail -n +{n} {tmp_dir}/{file_name} > {tmp_dir}/{file_name}.no_header &&
     rm {tmp_dir}/{file_name}
   kwargs:
+    n:
+      type: AncestorArgument
+      spec:
+        attaches: FileHeader
+        call: format!("{}", file_header.get_num_lines() + 1)
     tmp_dir:
       type: AncestorArgument
       spec:
