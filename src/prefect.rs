@@ -1,5 +1,5 @@
 #![allow(dead_code)]
-use crate::constraint_state::ConstraintState;
+use crate::constraint_state::{ConstraintState, PrefectSingleton};
 use indoc::formatdoc;
 use rustpython_parser::ast::{
     Expression, ExpressionType, Keyword, Located, Location, Program, Statement, StatementType,
@@ -219,6 +219,39 @@ impl PrefectProgram {
 
 pub trait PrefectTaskRender<'a> {
     fn get_constraints(&self) -> &Vec<Arc<RwLock<ConstraintState<'a>>>>;
+    fn args_from_singletons(
+        &self,
+        input: HashMap<String, PrefectSingleton>,
+        location: Location,
+    ) -> HashMap<String, (Vec<Expression>, Vec<Keyword>, PrefectSingleton)> {
+        let mut args_map: HashMap<String, (Vec<Expression>, Vec<Keyword>, PrefectSingleton)> =
+            HashMap::new();
+        for (task_name, mut singleton) in input.into_iter() {
+            let args = Located {
+                location,
+                node: ExpressionType::Starred {
+                    value: Box::new(Located {
+                        location,
+                        node: ExpressionType::Identifier {
+                            name: "args".to_string(),
+                        },
+                    }),
+                },
+            };
+            let kwargs = Keyword {
+                name: None,
+                value: Located {
+                    location,
+                    node: ExpressionType::Identifier {
+                        name: "kwargs".to_string(),
+                    },
+                },
+            };
+            let (args_v, kwargs_v) = singleton.swap_params(args, kwargs).unwrap();
+            args_map.insert(task_name, (args_v, kwargs_v, singleton));
+        }
+        args_map
+    }
     fn render(&self, location: Location) {
         let num_constraints = self.get_constraints().len();
         for rw in self.get_constraints() {
@@ -266,29 +299,9 @@ pub trait PrefectTaskRender<'a> {
                 )
             })
             .collect::<HashMap<String, _>>();
+        let params_map = self.args_from_singletons(singletons, location);
         let mut params: Vec<(Option<Expression>, Expression)> = Vec::new();
-        for (task_name, mut singleton) in singletons.into_iter() {
-            let args = Located {
-                location,
-                node: ExpressionType::Starred {
-                    value: Box::new(Located {
-                        location,
-                        node: ExpressionType::Identifier {
-                            name: "args".to_string(),
-                        },
-                    }),
-                },
-            };
-            let kwargs = Keyword {
-                name: None,
-                value: Located {
-                    location,
-                    node: ExpressionType::Identifier {
-                        name: "kwargs".to_string(),
-                    },
-                },
-            };
-            let (args_v, kwargs_v) = singleton.swap_params(args, kwargs).unwrap();
+        for (task_name, (args_v, kwargs_v, singleton)) in params_map {
             let kws: Vec<(Option<Expression>, Expression)> = kwargs_v
                 .into_iter()
                 .map(|x| {
