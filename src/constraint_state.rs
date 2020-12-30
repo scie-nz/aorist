@@ -180,6 +180,40 @@ impl<'a> ConstraintState<'a> {
                     .as_ref()
                     .unwrap()
                     .populate_call(function, location))
+            },
+            Some(Dialect::Presto(_)) => {
+                let query = self
+                    .params
+                    .as_ref()
+                    .unwrap()
+                    .get_presto_query(self.get_call().unwrap().clone())
+                    .replace("'", "\\'");
+                let raw_command = format!("presto -e '{}'", query);
+                let formatted_str = Located {
+                    location,
+                    node: ExpressionType::String {
+                        value: StringGroup::Constant {
+                            value: raw_command.to_string(),
+                        }
+                    }
+                };
+                let function = Located {
+                    location,
+                    node: ExpressionType::Identifier {
+                        name: "ShellTask".to_string(),
+                    },
+                };
+                Ok(Located {
+                    location,
+                    node: ExpressionType::Call {
+                        function: Box::new(function),
+                        args: Vec::new(),
+                        keywords: vec![Keyword {
+                            name: Some("command".to_string()),
+                            value: formatted_str,
+                        }],
+                    },
+                })
             }
             Some(Dialect::Bash(_)) => {
                 let formatted_str = self

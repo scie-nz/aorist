@@ -5,7 +5,7 @@ use crate::constraint_block::ConstraintBlock;
 use crate::constraint_state::ConstraintState;
 use crate::data_setup::ParsedDataSetup;
 use crate::object::TAoristObject;
-use aorist_primitives::{Bash, Dialect, Python};
+use aorist_primitives::{Bash, Dialect, Python, Presto};
 use inflector::cases::snakecase::to_snake_case;
 use std::collections::{HashMap, HashSet};
 use std::sync::{Arc, RwLock, RwLockReadGuard};
@@ -185,7 +185,7 @@ impl<'a> Driver<'a> {
         calls: &mut HashMap<(String, String, String), Vec<(String, ParameterTuple)>>,
         state: Arc<RwLock<ConstraintState<'a>>>,
     ) {
-        let preferences = vec![Dialect::Python(Python {}), Dialect::Bash(Bash {})];
+        let preferences = vec![Dialect::Python(Python {}), Dialect::Presto(Presto {}), Dialect::Bash(Bash {})];
 
         let mut write = state.write().unwrap();
         write.satisfy(&preferences, self.ancestry.clone());

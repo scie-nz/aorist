@@ -482,10 +482,10 @@ type: Program
 spec:
   use: HiveSchemasCreated
   root: HiveTableStorage
-  dialect: Bash
-  call: >
+  dialect: Presto
+  call: |
     CREATE TABLE IF NOT EXISTS {table_name} (
-        {schema}
+    {schema}
     ) WITH (format='{data_format}');
   kwargs:
     table_name:
@@ -529,13 +529,13 @@ spec:
                     None => "".to_string(),
                 };
                 format!(
-                    "{} {}{}",
+                    "    {} {}{}",
                     name,
                     presto_type,
                     comment_str,
                 ).to_string()
             }).collect::<Vec<String>>();
-            format!("{}\n", attr_types.join(",\n"))
+            format!("{}", attr_types.join(",\n"))
           }
         attaches:
           - StaticDataTable

@@ -41,6 +41,9 @@ impl<'a> CodeBlock<'a> {
             Some(Dialect::Bash(_)) => {
                 PrefectShellTaskRender::new(self.members.clone()).render(constraint_name)
             }
+            Some(Dialect::Presto(_)) => {
+                PrefectShellTaskRender::new(self.members.clone()).render(constraint_name)
+            }
             None => PrefectConstantTaskRender::new(self.members.clone()).render(constraint_name),
             _ => {
                 panic!("Dialect not handled: {:?}", self.dialect.as_ref().unwrap());

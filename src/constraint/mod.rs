@@ -80,6 +80,16 @@ impl ParameterTuple {
         let call_format = format!("{} {}", call, self.get_args_format_string()).to_string();
         Box::new(StringGroup::Constant { value: call_format })
     }
+    pub fn get_presto_query(&self, mut call: String) -> String {
+        if self.args.len() > 0 {
+            panic!("Do not expect self.args to be > 0 for presto queries.");
+        }
+        for (k, v) in &self.kwargs {
+            let fmt: String = format!("{{{}}}", k).to_string();
+            call = call.replace(&fmt, v);
+        }
+        call
+    }
     pub fn get_shell_task_command(&self, location: Location, call: String) -> Expression {
         let left = match self.args.len() {
             0 => Located {

@@ -505,12 +505,15 @@ pub struct Python {}
 pub struct R {}
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Bash {}
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct Presto {}
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Dialect {
     Python(Python),
     R(R),
     Bash(Bash),
+    Presto(Presto),
 }
 
 pub trait DownloadDataFromRemote {
