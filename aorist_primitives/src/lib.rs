@@ -17,6 +17,7 @@ macro_rules! define_program {
             fn compute_parameter_tuple(
                 c: Concept<'a>,
                 ancestry: Arc<ConceptAncestry<'a>>,
+                literals: Arc<RwLock<HashMap<String, Rc<StringLiteral>>>>,
             ) -> ParameterTuple {
                 $tuple_call(c, ancestry)
             }
@@ -46,7 +47,8 @@ macro_rules! register_programs_for_constraint {
                         Dialect::$dialect{..} => Some((
                             $element::get_preamble(),
                             $element::get_call(),
-                            $element::compute_parameter_tuple(c.clone(), ancestry),
+                            $element::compute_parameter_tuple(c.clone(),
+                            ancestry, self.literals.clone()),
                         )),
                     )+
                     _ => None,
@@ -138,12 +140,13 @@ macro_rules! define_constraint {
         pub struct $element {
             id: Uuid,
             root_uuid: Uuid,
-            literals: HashMap<String, Rc<StringLiteral>>,
+            pub literals: Arc<RwLock<HashMap<String, Rc<StringLiteral>>>>,
         }
         impl $element {
             pub fn new(root_uuid: Uuid,
                        _potential_child_constraints: Vec<Arc<RwLock<Constraint>>>) -> Self {
-                Self{ id: Uuid::new_v4(), root_uuid, literals: HashMap::new() }
+                Self{ id: Uuid::new_v4(), root_uuid, literals:
+                Arc::new(RwLock::new(HashMap::new())) }
             }
             pub fn get_downstream_constraints(&self) -> Vec<Arc<RwLock<Constraint>>> {
                 Vec::new()
@@ -173,6 +176,7 @@ macro_rules! define_constraint {
             fn compute_parameter_tuple(
                 root: Concept<'a>,
                 ancestry: Arc<ConceptAncestry<'a>>,
+                literals: Arc<RwLock<HashMap<String, Rc<StringLiteral>>>>,
             ) -> ParameterTuple;
             fn get_preamble() -> String;
             fn get_call() -> String;
@@ -201,6 +205,7 @@ macro_rules! define_constraint {
                 id: Uuid,
                 root_uuid: Uuid,
                 $([<$required:snake:lower>] : Vec<Arc<RwLock<Constraint>>>,)+
+                pub literals: Arc<RwLock<HashMap<String, Rc<StringLiteral>>>>,
             }
             pub trait $satisfy_type<'a> : ConstraintSatisfactionBase<ConstraintType=$element, RootType=$root> {
                 type Dialect;
@@ -210,6 +215,7 @@ macro_rules! define_constraint {
                 fn compute_parameter_tuple(
                     root: Concept<'a>,
                     ancestry: Arc<ConceptAncestry<'a>>,
+                    literals: Arc<RwLock<HashMap<String, Rc<StringLiteral>>>>,
                 ) -> ParameterTuple;
                 fn get_preamble() -> String;
                 fn get_call() -> String;
@@ -311,6 +317,7 @@ macro_rules! define_constraint {
                         id: Uuid::new_v4(),
                         root_uuid,
                         $([<$required:snake:lower>],)+
+                        literals: Arc::new(RwLock::new(HashMap::new()))
                     }
                 }
             }
