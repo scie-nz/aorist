@@ -5,7 +5,7 @@ use rustpython_parser::ast::{
     Expression, ExpressionType, Keyword, Located, Location, Program, Statement, StatementType,
     StringGroup, Suite, WithItem,
 };
-use std::collections::HashMap;
+use std::collections::{BTreeMap, HashMap, HashSet};
 use std::sync::{Arc, RwLock};
 
 struct PrefectProgram {
@@ -219,13 +219,45 @@ impl PrefectProgram {
 
 pub trait PrefectTaskRender<'a> {
     fn get_constraints(&self) -> &Vec<Arc<RwLock<ConstraintState<'a>>>>;
+    fn keywords_to_map(&self, keywords: Vec<Keyword>) -> HashMap<String, Expression> {
+        assert!(keywords
+            .iter()
+            .filter(|x| x.name.is_none())
+            .next()
+            .is_none());
+        keywords
+            .into_iter()
+            .map(|x| (x.name.unwrap(), x.value))
+            .collect()
+    }
+    fn map_to_keywords(&self, map: HashMap<String, Expression>) -> Vec<Keyword> {
+        map.into_iter()
+            .map(|(k, v)| Keyword {
+                name: Some(k),
+                value: v,
+            })
+            .collect()
+    }
     fn args_from_singletons(
         &self,
         input: HashMap<String, PrefectSingleton>,
         location: Location,
-    ) -> HashMap<String, (Vec<Expression>, Vec<Keyword>, PrefectSingleton)> {
-        let mut args_map: HashMap<String, (Vec<Expression>, Vec<Keyword>, PrefectSingleton)> =
-            HashMap::new();
+    ) -> HashMap<
+        String,
+        (
+            Vec<Expression>,
+            HashMap<String, Expression>,
+            PrefectSingleton,
+        ),
+    > {
+        let mut args_map: HashMap<
+            String,
+            (
+                Vec<Expression>,
+                HashMap<String, Expression>,
+                PrefectSingleton,
+            ),
+        > = HashMap::new();
         for (task_name, mut singleton) in input.into_iter() {
             let args = Located {
                 location,
@@ -247,8 +279,11 @@ pub trait PrefectTaskRender<'a> {
                     },
                 },
             };
-            let (args_v, kwargs_v) = singleton.swap_params(args, kwargs).unwrap();
-            args_map.insert(task_name, (args_v, kwargs_v, singleton));
+            let (args_v, kwargs_v) = singleton.swap_params(vec![args], vec![kwargs]).unwrap();
+            args_map.insert(
+                task_name,
+                (args_v, self.keywords_to_map(kwargs_v), singleton),
+            );
         }
         args_map
     }
@@ -301,30 +336,199 @@ pub trait PrefectTaskRender<'a> {
             .collect::<HashMap<String, _>>();
         singletons
     }
+    fn extract_hashable_value_if_string_constant(&self, expr: &Expression) -> Option<String> {
+        match expr.node {
+            ExpressionType::String { ref value } => match value {
+                StringGroup::Constant { ref value } => Some(value.clone()),
+                _ => None,
+            },
+            _ => None,
+        }
+    }
+    fn is_format_string_call(&self, expr: &Expression) -> bool {
+        if let ExpressionType::Subscript { box ref b, .. } = &expr.node {
+            if let ExpressionType::Identifier { ref name } = &b.node {
+                return name.clone() == "format".to_string();
+            }
+        }
+        return false;
+    }
+    fn extract_parameters_if_format_call(
+        &self,
+        expr: &Expression,
+    ) -> Option<BTreeMap<String, String>> {
+        match expr.node {
+            ExpressionType::Call {
+                box ref function,
+                ref args,
+                ref keywords,
+            } => {
+                if self.is_format_string_call(&function) {
+                    assert!(args.len() == 0);
+                    return Some(
+                        keywords
+                            .iter()
+                            .map(|x| {
+                                if let ExpressionType::String {
+                                    value: StringGroup::Constant { value },
+                                } = &x.value.node
+                                {
+                                    let key = x.name.as_ref().unwrap().clone();
+                                    return (key, value.clone());
+                                } else {
+                                    panic!(".format() call with non-string args encountered.");
+                                }
+                            })
+                            .collect(),
+                    );
+                } else {
+                    return None;
+                }
+            }
+            _ => None,
+        }
+    }
+    fn ident(&self, name: String, location: Location) -> Expression {
+        Located {
+            location,
+            node: ExpressionType::Identifier { name },
+        }
+    }
+    fn literal(&self, value: String, location: Location) -> Expression {
+        Located {
+            location,
+            node: ExpressionType::String {
+                value: StringGroup::Constant { value },
+            },
+        }
+    }
+    fn compute_joint_args(
+        &self,
+        num_args: usize,
+        args_names_values: &HashMap<usize, HashMap<String, Vec<String>>>,
+        location: Location,
+    ) -> Vec<Expression> {
+        let mut joint_args: Vec<Result<Expression, String>> = Vec::new();
+        for i in 0..num_args {
+            joint_args.push(Err(format!("No solution found for arg. #{}", i).to_string()));
+        }
+        for (pos, v) in args_names_values.iter().filter(|(_, v)| v.len() == 1) {
+            let param_unique_val = v.keys().next().unwrap();
+            let arg = Ok(self.literal(param_unique_val.clone(), location));
+            let prev = std::mem::replace(&mut joint_args[*pos], arg);
+            assert!(!prev.is_ok());
+        }
+        joint_args.into_iter().map(|x| x.unwrap()).collect()
+    }
     fn combine_params(
         &self,
-        params_map: HashMap<String, (Vec<Expression>, Vec<Keyword>, PrefectSingleton)>,
+        params_map: HashMap<
+            String,
+            (
+                Vec<Expression>,
+                HashMap<String, Expression>,
+                PrefectSingleton,
+            ),
+        >,
         location: Location,
-    ) -> (Statement, Vec<PrefectSingleton>) {
+    ) -> (Suite, Vec<PrefectSingleton>) {
+        let call_names: HashSet<String> = params_map
+            .values()
+            .map(|(_, _, x)| x.get_call_name().unwrap())
+            .collect();
+        assert_eq!(call_names.len(), 1);
+
+        let param_names = params_map
+            .values()
+            .map(|(_, m, _)| m.keys().map(|x| x.clone()).collect::<HashSet<String>>());
+        let mut param_name_hist: HashMap<String, usize> = HashMap::new();
+        for name in param_names.flatten() {
+            *param_name_hist.entry(name).or_insert(0) += 1;
+        }
+        let common_param_names: HashSet<String> = param_name_hist
+            .into_iter()
+            .filter(|(_, v)| *v == params_map.len())
+            .map(|(k, _)| k)
+            .collect();
+        // param_name => param_value => task_name
+        let mut common_param_names_values: HashMap<String, HashMap<String, Vec<String>>> =
+            HashMap::new();
+        for (task_name, (_, kw, _)) in &params_map {
+            for (param_name, expr) in kw.iter() {
+                if let Some(val) = self.extract_hashable_value_if_string_constant(&expr) {
+                    common_param_names_values
+                        .entry(param_name.clone())
+                        .or_insert(HashMap::new())
+                        .entry(val)
+                        .or_insert(Vec::new())
+                        .push(task_name.clone());
+                } else if let Some(params) = self.extract_parameters_if_format_call(&expr) {
+                    // TODO: should double-check parameters don't occur twice
+                    // w/ different values.
+                    for (param_name, val) in params {
+                        common_param_names_values
+                            .entry(param_name.clone())
+                            .or_insert(HashMap::new())
+                            .entry(val)
+                            .or_insert(Vec::new())
+                            .push(task_name.clone());
+                    }
+                }
+            }
+        }
+        let mut suite: Suite = Vec::new();
+        for (param_name, v) in common_param_names_values
+            .iter()
+            .filter(|(_, v)| v.len() == 1)
+        {
+            let param_unique_val = v.keys().next().unwrap();
+            let assign_stmt = Located {
+                location,
+                node: StatementType::Assign {
+                    targets: vec![self.ident(param_name.clone(), location)],
+                    value: self.literal(param_unique_val.clone(), location),
+                },
+            };
+            suite.push(assign_stmt);
+        }
+        // arg_pos => arg_value => task_names
+        let mut args_names_values: HashMap<usize, HashMap<String, Vec<String>>> = HashMap::new();
+
+        let args_sizes: HashSet<usize> = params_map.values().map(|(x, _, _)| x.len()).collect();
+        assert_eq!(args_sizes.len(), 1);
+        let num_args = args_sizes.into_iter().next().unwrap();
+
+        for (task_name, (args, _, _)) in &params_map {
+            for (i, expr) in args.iter().enumerate() {
+                if let Some(val) = self.extract_hashable_value_if_string_constant(&expr) {
+                    args_names_values
+                        .entry(i)
+                        .or_insert(HashMap::new())
+                        .entry(val)
+                        .or_insert(Vec::new())
+                        .push(task_name.clone());
+                }
+            }
+        }
         let mut params: Vec<(Option<Expression>, Expression)> = Vec::new();
         let mut processed_singletons: Vec<PrefectSingleton> = Vec::new();
-        for (task_name, (args_v, kwargs_v, singleton)) in params_map.into_iter() {
-            let kws: Vec<(Option<Expression>, Expression)> = kwargs_v
-                .into_iter()
-                .map(|x| {
-                    (
-                        Some(Located {
-                            location,
-                            node: ExpressionType::String {
-                                value: StringGroup::Constant {
-                                    value: x.name.unwrap(),
-                                },
-                            },
-                        }),
-                        x.value,
-                    )
-                })
-                .collect();
+
+        for (task_name, (args_v, kwargs_v, mut singleton)) in params_map.into_iter() {
+            let kws = self.map_to_keywords(kwargs_v);
+            /*let kws: Vec<(Option<Expression>, Expression)> = kwargs_v
+            .into_iter()
+            .map(|(k, v)| {
+                (
+                    Some(Located {
+                        location,
+                        node: ExpressionType::String {
+                            value: StringGroup::Constant { value: k },
+                        },
+                    }),
+                    v,
+                )
+            })
+            .collect();*/
             let task_name_ident = Located {
                 location,
                 node: ExpressionType::String {
@@ -332,11 +536,11 @@ pub trait PrefectTaskRender<'a> {
                 },
             };
             let num_kws = kws.len();
-            let num_args = args_v.len();
+            /*
             let kw_dict = Located {
                 location,
                 node: ExpressionType::Dict { elements: kws },
-            };
+            };*/
             let arg_list = Located {
                 location,
                 node: ExpressionType::List { elements: args_v },
@@ -345,15 +549,17 @@ pub trait PrefectTaskRender<'a> {
                 let tuple = Located {
                     location,
                     node: ExpressionType::Tuple {
-                        elements: vec![arg_list, kw_dict],
+                        elements: vec![arg_list], //, kw_dict],
                     },
                 };
                 params.push((Some(task_name_ident), tuple));
             } else if num_kws > 0 {
-                params.push((Some(task_name_ident), kw_dict));
+                //params.push((Some(task_name_ident), kw_dict));
             } else {
                 params.push((Some(task_name_ident), arg_list));
             }
+            let joint_args = self.compute_joint_args(num_args, &args_names_values, location);
+            let (_args_v, _kwargs_v) = singleton.swap_params(joint_args, kws).unwrap();
             processed_singletons.push(singleton);
         }
         let params_dict = Located {
@@ -366,17 +572,15 @@ pub trait PrefectTaskRender<'a> {
                 expression: params_dict,
             },
         };
-        (params_stmt, processed_singletons)
+        suite.push(params_stmt);
+        (suite, processed_singletons)
     }
     fn render(&self, location: Location) {
         let singletons = self.get_singletons(location);
         let params_map = self.args_from_singletons(singletons, location);
-        let (params_stmt, singletons) = self.combine_params(params_map, location);
+        let (params_suite, singletons) = self.combine_params(params_map, location);
 
-        print!(
-            "{}\n",
-            PrefectProgram::render_suite(vec![params_stmt]).unwrap()
-        );
+        print!("{}\n", PrefectProgram::render_suite(params_suite).unwrap());
         for singleton in singletons {
             print!(
                 "{}\n",

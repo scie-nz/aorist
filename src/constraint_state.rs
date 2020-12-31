@@ -41,11 +41,35 @@ impl PrefectSingleton {
             flow_addition,
         }
     }
+    pub fn get_call_name(&self) -> Result<String, String> {
+        if let Located {
+            node: StatementType::Assign { ref value, .. },
+            ..
+        } = self.task_creation
+        {
+            if let Located {
+                node: ExpressionType::Call { box function, .. },
+                ..
+            } = value
+            {
+                if let Located {
+                    node: ExpressionType::Identifier { name },
+                    ..
+                } = function
+                {
+                    return Ok(name.clone());
+                }
+                return Err("Call on RHS of task creation not made against identifier".to_string());
+            }
+            return Err("Right-hand side of task creation not call.".to_string());
+        }
+        Err("Task creation statement is not assignment.".to_string())
+    }
     // swaps parameters for starred and double-starred sets of args and kwargs
     pub fn swap_params(
         &mut self,
-        starred: Expression,
-        double_starred: Keyword,
+        mut starred: Vec<Expression>,
+        mut double_starred: Vec<Keyword>,
     ) -> Result<(Vec<Expression>, Vec<Keyword>), String> {
         if let Located {
             node: StatementType::Assign { ref mut value, .. },
@@ -62,11 +86,9 @@ impl PrefectSingleton {
                 ..
             } = value
             {
-                let mut vec_starred = vec![starred];
-                std::mem::swap(args, &mut vec_starred);
-                let mut vec_double_starred = vec![double_starred];
-                std::mem::swap(keywords, &mut vec_double_starred);
-                return Ok((vec_starred, vec_double_starred));
+                std::mem::swap(args, &mut starred);
+                std::mem::swap(keywords, &mut double_starred);
+                return Ok((starred, double_starred));
             }
             return Err("Right-hand side of task creation not call.".to_string());
         }
@@ -207,7 +229,7 @@ impl<'a> ConstraintState<'a> {
                     .populate_call(function, location))
             }
             Some(Dialect::Presto(_)) => {
-                let query = self
+                /*let query = self
                     .params
                     .as_ref()
                     .unwrap()
@@ -221,7 +243,13 @@ impl<'a> ConstraintState<'a> {
                             value: raw_command.to_string(),
                         },
                     },
-                };
+                };*/
+                let raw_command = format!("presto -e '{}'", self.get_call().unwrap().clone());
+                let formatted_str = self
+                    .params
+                    .as_ref()
+                    .unwrap()
+                    .get_shell_task_command(location, raw_command);
                 let function = Located {
                     location,
                     node: ExpressionType::Identifier {
