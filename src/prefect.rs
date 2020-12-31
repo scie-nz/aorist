@@ -5,7 +5,7 @@ use rustpython_parser::ast::{
     Expression, ExpressionType, Keyword, Located, Location, Program, Statement, StatementType,
     StringGroup, Suite, WithItem,
 };
-use std::collections::{HashMap, HashSet};
+use std::collections::{BTreeMap, HashMap, HashSet};
 use std::sync::{Arc, RwLock};
 
 struct PrefectProgram {
@@ -345,6 +345,49 @@ pub trait PrefectTaskRender<'a> {
             _ => None,
         }
     }
+    fn is_format_string_call(&self, expr: &Expression) -> bool {
+        if let ExpressionType::Subscript { box ref b, .. } = &expr.node {
+            if let ExpressionType::Identifier { ref name } = &b.node {
+                return name.clone() == "format".to_string();
+            }
+        }
+        return false;
+    }
+    fn extract_parameters_if_format_call(
+        &self,
+        expr: &Expression,
+    ) -> Option<BTreeMap<String, String>> {
+        match expr.node {
+            ExpressionType::Call {
+                box ref function,
+                ref args,
+                ref keywords,
+            } => {
+                if self.is_format_string_call(&function) {
+                    assert!(args.len() == 0);
+                    return Some(
+                        keywords
+                            .iter()
+                            .map(|x| {
+                                if let ExpressionType::String {
+                                    value: StringGroup::Constant { value },
+                                } = &x.value.node
+                                {
+                                    let key = x.name.as_ref().unwrap().clone();
+                                    return (key, value.clone());
+                                } else {
+                                    panic!(".format() call with non-string args encountered.");
+                                }
+                            })
+                            .collect(),
+                    );
+                } else {
+                    return None;
+                }
+            }
+            _ => None,
+        }
+    }
     fn ident(&self, name: String, location: Location) -> Expression {
         Located {
             location,
@@ -419,6 +462,17 @@ pub trait PrefectTaskRender<'a> {
                         .entry(val)
                         .or_insert(Vec::new())
                         .push(task_name.clone());
+                } else if let Some(params) = self.extract_parameters_if_format_call(&expr) {
+                    // TODO: should double-check parameters don't occur twice
+                    // w/ different values.
+                    for (param_name, val) in params {
+                        common_param_names_values
+                            .entry(param_name.clone())
+                            .or_insert(HashMap::new())
+                            .entry(val)
+                            .or_insert(Vec::new())
+                            .push(task_name.clone());
+                    }
                 }
             }
         }
@@ -462,19 +516,19 @@ pub trait PrefectTaskRender<'a> {
         for (task_name, (args_v, kwargs_v, mut singleton)) in params_map.into_iter() {
             let kws = self.map_to_keywords(kwargs_v);
             /*let kws: Vec<(Option<Expression>, Expression)> = kwargs_v
-                .into_iter()
-                .map(|(k, v)| {
-                    (
-                        Some(Located {
-                            location,
-                            node: ExpressionType::String {
-                                value: StringGroup::Constant { value: k },
-                            },
-                        }),
-                        v,
-                    )
-                })
-                .collect();*/
+            .into_iter()
+            .map(|(k, v)| {
+                (
+                    Some(Located {
+                        location,
+                        node: ExpressionType::String {
+                            value: StringGroup::Constant { value: k },
+                        },
+                    }),
+                    v,
+                )
+            })
+            .collect();*/
             let task_name_ident = Located {
                 location,
                 node: ExpressionType::String {
@@ -495,7 +549,7 @@ pub trait PrefectTaskRender<'a> {
                 let tuple = Located {
                     location,
                     node: ExpressionType::Tuple {
-                        elements: vec![arg_list],//, kw_dict],
+                        elements: vec![arg_list], //, kw_dict],
                     },
                 };
                 params.push((Some(task_name_ident), tuple));
@@ -505,9 +559,7 @@ pub trait PrefectTaskRender<'a> {
                 params.push((Some(task_name_ident), arg_list));
             }
             let joint_args = self.compute_joint_args(num_args, &args_names_values, location);
-            let (_args_v, _kwargs_v) = singleton
-                .swap_params(joint_args, kws)
-                .unwrap();
+            let (_args_v, _kwargs_v) = singleton.swap_params(joint_args, kws).unwrap();
             processed_singletons.push(singleton);
         }
         let params_dict = Located {

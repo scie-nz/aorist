@@ -229,7 +229,7 @@ impl<'a> ConstraintState<'a> {
                     .populate_call(function, location))
             }
             Some(Dialect::Presto(_)) => {
-                let query = self
+                /*let query = self
                     .params
                     .as_ref()
                     .unwrap()
@@ -243,7 +243,13 @@ impl<'a> ConstraintState<'a> {
                             value: raw_command.to_string(),
                         },
                     },
-                };
+                };*/
+                let raw_command = format!("presto -e '{}'", self.get_call().unwrap().clone());
+                let formatted_str = self
+                    .params
+                    .as_ref()
+                    .unwrap()
+                    .get_shell_task_command(location, raw_command);
                 let function = Located {
                     location,
                     node: ExpressionType::Identifier {
