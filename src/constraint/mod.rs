@@ -8,29 +8,97 @@ use std::collections::HashMap;
 use std::fmt;
 
 #[derive(Clone)]
+enum ArgType {
+    StringLiteral(String),
+    SimpleIdentifier(String),
+    Subscript(Box<ArgType>, Box<ArgType>),
+    Formatted(Box<ArgType>, HashMap<String, Box<ArgType>>),
+}
+
+impl ArgType {
+    pub fn expression(&self, location: Location) -> Expression {
+        match &self {
+            ArgType::StringLiteral(ref v) => {
+                let value;
+                if v.len() <= 60 {
+                    value = StringGroup::Constant { value: v.clone() };
+                } else {
+                    let mut splits = v
+                        .split(",")
+                        .map(|x| x.to_string())
+                        .collect::<Vec<String>>()
+                        .into_iter();
+                    let mut acc: String = splits.next().unwrap();
+                    let mut values: Vec<StringGroup> = Vec::new();
+                    for split in splits {
+                        if acc.len() + split.len() + 1 >= 60 {
+                            values.push(StringGroup::Constant { value: acc.clone() });
+                            acc = "".to_string();
+                        }
+                        acc += ",";
+                        acc += &split;
+                    }
+                    value = StringGroup::Joined { values };
+                }
+                Located {
+                    location,
+                    node: ExpressionType::String { value },
+                }
+            }
+            ArgType::SimpleIdentifier(ref name) => Located {
+                location,
+                node: ExpressionType::Identifier { name: name.clone() },
+            },
+            ArgType::Formatted(box ref fmt, ref keywords) => Located {
+                location,
+                node: ExpressionType::Call {
+                    function: Box::new(Located {
+                        location,
+                        node: ExpressionType::Attribute {
+                            value: Box::new(fmt.expression(location)),
+                            name: "format".to_string(),
+                        },
+                    }),
+                    args: Vec::new(),
+                    keywords: keywords
+                        .into_iter()
+                        .map(|(k, v)| Keyword {
+                            name: Some(k.clone()),
+                            value: v.expression(location),
+                        })
+                        .collect(),
+                },
+            },
+            ArgType::Subscript(box ref a, box ref b) => Located {
+                location,
+                node: ExpressionType::Subscript {
+                    a: Box::new(a.expression(location)),
+                    b: Box::new(b.expression(location)),
+                },
+            },
+        }
+    }
+}
+#[derive(Clone)]
 pub struct ParameterTuple {
-    args: Vec<String>,
-    kwargs: HashMap<String, String>,
+    args: Vec<ArgType>,
+    kwargs: HashMap<String, ArgType>,
 }
 impl ParameterTuple {
     pub fn new(args: Vec<String>, kwargs: HashMap<String, String>) -> Self {
-        Self { args, kwargs }
+        Self {
+            args: args.into_iter().map(|x| ArgType::StringLiteral(x)).collect(),
+            kwargs: kwargs
+                .into_iter()
+                .map(|(k, v)| (k, ArgType::StringLiteral(v)))
+                .collect(),
+        }
     }
     fn get_args_literals(&self, location: Location) -> Vec<Expression> {
         let args = self
             .args
             .iter()
-            .map(|x| {
-                Located {
-                    location,
-                    // TODO: this is where other kinds of arguments can live
-                    node: ExpressionType::String {
-                        value: StringGroup::Constant {
-                            value: x.to_string(),
-                        },
-                    },
-                }
-            })
+            .map(|x| x.expression(location))
             .collect::<Vec<_>>();
         args
     }
@@ -42,39 +110,12 @@ impl ParameterTuple {
             },
         }
     }
-    fn prettify_string_value(&self, v: String, location: Location) -> Expression {
-        let value;
-        if v.len() <= 60 {
-            value = StringGroup::Constant { value: v };
-        } else {
-            let mut splits = v
-                .split(",")
-                .map(|x| x.to_string())
-                .collect::<Vec<String>>()
-                .into_iter();
-            let mut acc: String = splits.next().unwrap();
-            let mut values: Vec<StringGroup> = Vec::new();
-            for split in splits {
-                if acc.len() + split.len() + 1 >= 60 {
-                    values.push(StringGroup::Constant { value: acc.clone() });
-                    acc = "".to_string();
-                }
-                acc += ",";
-                acc += &split;
-            }
-            value = StringGroup::Joined { values };
-        }
-        Located {
-            location,
-            node: ExpressionType::String { value },
-        }
-    }
     pub fn get_keyword_vector(&self, location: Location) -> Vec<Keyword> {
         self.kwargs
             .iter()
             .map(|(k, v)| Keyword {
                 name: Some(k.clone()),
-                value: self.prettify_string_value(v.to_string(), location),
+                value: v.expression(location),
             })
             .collect::<Vec<Keyword>>()
     }
@@ -104,9 +145,11 @@ impl ParameterTuple {
         if self.args.len() > 0 {
             panic!("Do not expect self.args to be > 0 for presto queries.");
         }
-        for (k, v) in &self.kwargs {
+        for (k, arg) in &self.kwargs {
             let fmt: String = format!("{{{}}}", k).to_string();
-            call = call.replace(&fmt, v);
+            if let ArgType::StringLiteral(ref v) = arg {
+                call = call.replace(&fmt, v);
+            }
         }
         call
     }
