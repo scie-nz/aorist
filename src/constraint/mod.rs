@@ -6,10 +6,11 @@ use rustpython_parser::ast::{Expression, ExpressionType, Keyword, Located, Locat
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fmt;
+use std::rc::Rc;
 
 #[derive(Clone)]
 enum ArgType {
-    StringLiteral(String),
+    StringLiteral(Rc<String>),
     SimpleIdentifier(String),
     Subscript(Box<ArgType>, Box<ArgType>),
     Formatted(Box<ArgType>, HashMap<String, Box<ArgType>>),
@@ -18,10 +19,12 @@ enum ArgType {
 impl ArgType {
     pub fn expression(&self, location: Location) -> Expression {
         match &self {
-            ArgType::StringLiteral(ref v) => {
+            ArgType::StringLiteral(v) => {
                 let value;
                 if v.len() <= 60 {
-                    value = StringGroup::Constant { value: v.clone() };
+                    value = StringGroup::Constant {
+                        value: v.to_string(),
+                    };
                 } else {
                     let mut splits = v
                         .split(",")
@@ -86,11 +89,25 @@ pub struct ParameterTuple {
 }
 impl ParameterTuple {
     pub fn new(args: Vec<String>, kwargs: HashMap<String, String>) -> Self {
+        // TODO: should be moved into parameter tuple
+        let mut literals: HashMap<String, Rc<String>> = HashMap::new();
         Self {
-            args: args.into_iter().map(|x| ArgType::StringLiteral(x)).collect(),
+            args: args
+                .into_iter()
+                .map(|x| {
+                    ArgType::StringLiteral(literals.entry(x.clone()).or_insert(Rc::new(x)).clone())
+                })
+                .collect(),
             kwargs: kwargs
                 .into_iter()
-                .map(|(k, v)| (k, ArgType::StringLiteral(v)))
+                .map(|(k, v)| {
+                    (
+                        k,
+                        ArgType::StringLiteral(
+                            literals.entry(v.clone()).or_insert(Rc::new(v)).clone(),
+                        ),
+                    )
+                })
                 .collect(),
         }
     }
@@ -147,8 +164,8 @@ impl ParameterTuple {
         }
         for (k, arg) in &self.kwargs {
             let fmt: String = format!("{{{}}}", k).to_string();
-            if let ArgType::StringLiteral(ref v) = arg {
-                call = call.replace(&fmt, v);
+            if let ArgType::StringLiteral(v) = arg {
+                call = call.replace(&fmt, &v.clone());
             }
         }
         call
