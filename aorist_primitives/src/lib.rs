@@ -19,7 +19,7 @@ macro_rules! define_program {
                 ancestry: Arc<ConceptAncestry<'a>>,
                 literals: Arc<RwLock<HashMap<String, Rc<StringLiteral>>>>,
             ) -> ParameterTuple {
-                $tuple_call(c, ancestry)
+                $tuple_call(c, ancestry, literals)
             }
             fn get_preamble() -> String {
                 $preamble.to_string()

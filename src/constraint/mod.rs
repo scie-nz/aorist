@@ -103,15 +103,19 @@ pub struct ParameterTuple {
     kwargs: HashMap<String, ArgType>,
 }
 impl ParameterTuple {
-    pub fn new(args: Vec<String>, kwargs: HashMap<String, String>) -> Self {
+    pub fn new(
+        args: Vec<String>,
+        kwargs: HashMap<String, String>,
+        literals: Arc<RwLock<HashMap<String, Rc<StringLiteral>>>>,
+    ) -> Self {
         // TODO: should be moved into parameter tuple
-        let mut literals: HashMap<String, Rc<StringLiteral>> = HashMap::new();
+        let mut write = literals.write().unwrap();
         Self {
             args: args
                 .into_iter()
                 .map(|x| {
                     ArgType::StringLiteral(
-                        literals
+                        write
                             .entry(x.clone())
                             .or_insert(Rc::new(StringLiteral::new(x)))
                             .clone(),
@@ -124,7 +128,7 @@ impl ParameterTuple {
                     (
                         k,
                         ArgType::StringLiteral(
-                            literals
+                            write
                                 .entry(v.clone())
                                 .or_insert(Rc::new(StringLiteral::new(v)))
                                 .clone(),
