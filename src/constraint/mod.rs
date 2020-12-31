@@ -8,9 +8,24 @@ use std::collections::HashMap;
 use std::fmt;
 use std::rc::Rc;
 
+pub struct StringLiteral {
+    value: String,
+}
+impl StringLiteral {
+    pub fn new(value: String) -> Self {
+        Self { value }
+    }
+    pub fn value(&self) -> String {
+        self.value.clone()
+    }
+    pub fn len(&self) -> usize {
+        self.value.len()
+    }
+}
+
 #[derive(Clone)]
 enum ArgType {
-    StringLiteral(Rc<String>),
+    StringLiteral(Rc<StringLiteral>),
     SimpleIdentifier(String),
     Subscript(Box<ArgType>, Box<ArgType>),
     Formatted(Box<ArgType>, HashMap<String, Box<ArgType>>),
@@ -23,10 +38,10 @@ impl ArgType {
                 let value;
                 if v.len() <= 60 {
                     value = StringGroup::Constant {
-                        value: v.to_string(),
+                        value: v.value(),
                     };
                 } else {
-                    let mut splits = v
+                    let mut splits = v.value()
                         .split(",")
                         .map(|x| x.to_string())
                         .collect::<Vec<String>>()
@@ -90,12 +105,17 @@ pub struct ParameterTuple {
 impl ParameterTuple {
     pub fn new(args: Vec<String>, kwargs: HashMap<String, String>) -> Self {
         // TODO: should be moved into parameter tuple
-        let mut literals: HashMap<String, Rc<String>> = HashMap::new();
+        let mut literals: HashMap<String, Rc<StringLiteral>> = HashMap::new();
         Self {
             args: args
                 .into_iter()
                 .map(|x| {
-                    ArgType::StringLiteral(literals.entry(x.clone()).or_insert(Rc::new(x)).clone())
+                    ArgType::StringLiteral(
+                        literals
+                            .entry(x.clone())
+                            .or_insert(Rc::new(StringLiteral::new(x)))
+                            .clone(),
+                    )
                 })
                 .collect(),
             kwargs: kwargs
@@ -104,7 +124,10 @@ impl ParameterTuple {
                     (
                         k,
                         ArgType::StringLiteral(
-                            literals.entry(v.clone()).or_insert(Rc::new(v)).clone(),
+                            literals
+                                .entry(v.clone())
+                                .or_insert(Rc::new(StringLiteral::new(v)))
+                                .clone(),
                         ),
                     )
                 })
@@ -165,7 +188,7 @@ impl ParameterTuple {
         for (k, arg) in &self.kwargs {
             let fmt: String = format!("{{{}}}", k).to_string();
             if let ArgType::StringLiteral(v) = arg {
-                call = call.replace(&fmt, &v.clone());
+                call = call.replace(&fmt, &v.value());
             }
         }
         call

@@ -138,11 +138,12 @@ macro_rules! define_constraint {
         pub struct $element {
             id: Uuid,
             root_uuid: Uuid,
+            literals: HashMap<String, Rc<StringLiteral>>,
         }
         impl $element {
             pub fn new(root_uuid: Uuid,
                        _potential_child_constraints: Vec<Arc<RwLock<Constraint>>>) -> Self {
-                Self{ id: Uuid::new_v4(), root_uuid }
+                Self{ id: Uuid::new_v4(), root_uuid, literals: HashMap::new() }
             }
             pub fn get_downstream_constraints(&self) -> Vec<Arc<RwLock<Constraint>>> {
                 Vec::new()
