@@ -36,7 +36,7 @@ macro_rules! register_programs_for_constraint {
      $($dialect:ident, $element: ident),+) => {
         impl SatisfiableConstraint for $constraint {
             fn satisfy<'a>(
-                &self,
+                &mut self,
                 c: Concept<'a>,
                 d: &Dialect,
                 ancestry: Arc<ConceptAncestry<'a>>,
@@ -53,7 +53,7 @@ macro_rules! register_programs_for_constraint {
                 }
             }
             fn satisfy_given_preference_ordering<'a>(
-                &self,
+                &mut self,
                 c: Concept<'a>,
                 preferences: &Vec<Dialect>,
                 ancestry: Arc<ConceptAncestry<'a>>,
@@ -81,14 +81,14 @@ macro_rules! register_satisfiable_constraints {
     ($($constraint:ident),+)  => {
         impl AllConstraintsSatisfiability for Constraint {
             fn satisfy_given_preference_ordering<'a> (
-                &self,
+                &mut self,
                 c: Concept<'a>,
                 preferences: &Vec<Dialect>,
                 ancestry: Arc<ConceptAncestry<'a>>,
             ) -> Result<(String, String, ParameterTuple, Dialect), String> {
-                match &self.inner {
+                match &mut self.inner {
                     $(
-                        Some(AoristConstraint::$constraint(x)) =>
+                        Some(AoristConstraint::$constraint(ref mut x)) =>
                         x.satisfy_given_preference_ordering(c, preferences, ancestry),
                     )+
                     _ => Err("Constraint is not satisfiable (no program provided).".to_string())

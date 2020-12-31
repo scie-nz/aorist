@@ -255,14 +255,14 @@ where
 
 pub trait SatisfiableConstraint: TConstraint {
     fn satisfy<'a>(
-        &self,
+        &mut self,
         c: Concept<'a>,
         d: &Dialect,
         ancestry: Arc<ConceptAncestry<'a>>,
     ) -> Option<(String, String, ParameterTuple)>;
 
     fn satisfy_given_preference_ordering<'a>(
-        &self,
+        &mut self,
         r: Concept<'a>,
         preferences: &Vec<Dialect>,
         ancestry: Arc<ConceptAncestry<'a>>,
@@ -271,7 +271,7 @@ pub trait SatisfiableConstraint: TConstraint {
 // TODO: duplicate function, should be unified in trait
 pub trait AllConstraintsSatisfiability {
     fn satisfy_given_preference_ordering<'a>(
-        &self,
+        &mut self,
         c: Concept<'a>,
         preferences: &Vec<Dialect>,
         ancestry: Arc<ConceptAncestry<'a>>,
