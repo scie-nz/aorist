@@ -1,6 +1,6 @@
 use crate::code_block::CodeBlock;
 use crate::concept::{Concept, ConceptAncestry};
-use crate::constraint::{AoristConstraint, ArgType, Constraint, LiteralsMap, ParameterTuple};
+use crate::constraint::{AoristConstraint, Constraint, LiteralsMap, ParameterTuple};
 use crate::constraint_block::ConstraintBlock;
 use crate::constraint_state::ConstraintState;
 use crate::data_setup::ParsedDataSetup;
@@ -403,64 +403,6 @@ impl<'a> Driver<'a> {
                 );
 
                 // TODO: this can be moved to ConstraintBlock
-                let read = literals.read().unwrap();
-                let all_uuids = read
-                    .values()
-                    .map(|x| {
-                        x.read()
-                            .unwrap()
-                            .get_object_uuids()
-                            .iter()
-                            .map(|(x, _)| x.clone())
-                            .collect::<Vec<_>>()
-                            .into_iter()
-                    })
-                    .flatten()
-                    .collect::<HashSet<Uuid>>();
-                let most_frequent_names: HashMap<String, Option<String>> = read
-                    .iter()
-                    .map(|(k, x)| {
-                        let read = x.read().unwrap();
-                        let all_tags = read
-                            .get_object_uuids()
-                            .iter()
-                            .map(|(_, v)| (v.clone().into_iter()))
-                            .flatten();
-                        let mut hist: HashMap<String, usize> = HashMap::new();
-                        for tag in all_tags {
-                            if let Some(t) = tag {
-                                *hist.entry(t).or_insert(0) += 1;
-                            }
-                        }
-                        if hist.len() > 0 {
-                            return (
-                                k.clone(),
-                                Some(hist.into_iter().max_by_key(|(_, v)| *v).unwrap().0),
-                            );
-                        }
-                        (k.clone(), None)
-                    })
-                    .collect();
-
-                println!("Constraint: {}", constraint_name);
-                for (k, v) in read.iter() {
-                    let mut write = v.write().unwrap();
-                    println!("{} => {}", k, write.get_object_uuids().len());
-                    if all_uuids.len() > 1 && write.get_object_uuids().len() > all_uuids.len() / 2 {
-                        let val = write.value();
-                        let possible_name = most_frequent_names.get(&val).unwrap();
-                        if let Some(ref name) = possible_name {
-                            let proposed_name =
-                                format!("{}_{}", to_snake_case(&constraint_name), name).to_string();
-                            if proposed_name.len() < name.len() || write.is_multiline() {
-                                let referenced_by = ArgType::SimpleIdentifier(proposed_name);
-                                write.set_referenced_by(Box::new(referenced_by));
-                                println!("Set indirection for {}", k);
-                            }
-                        }
-                    }
-                }
-                drop(read);
                 let block =
                     ConstraintBlock::new(to_snake_case(&constraint_name), members, literals);
                 self.blocks.push(block);
