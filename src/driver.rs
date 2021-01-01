@@ -1,6 +1,7 @@
 use crate::code_block::CodeBlock;
 use crate::concept::{Concept, ConceptAncestry};
-use crate::constraint::{AoristConstraint, Constraint, ParameterTuple, StringLiteral};
+use crate::constraint::{AoristConstraint, ArgType, Constraint, ParameterTuple,
+LiteralsMap};
 use crate::constraint_block::ConstraintBlock;
 use crate::constraint_state::ConstraintState;
 use crate::data_setup::ParsedDataSetup;
@@ -185,7 +186,7 @@ impl<'a> Driver<'a> {
         uuid: (Uuid, String),
         calls: &mut HashMap<(String, String, String), Vec<(String, ParameterTuple)>>,
         state: Arc<RwLock<ConstraintState<'a>>>,
-        literals: Arc<RwLock<HashMap<String, Arc<RwLock<StringLiteral>>>>>,
+        literals: LiteralsMap,
     ) {
         let name = constraint.get_name().clone();
         drop(constraint);
@@ -216,7 +217,7 @@ impl<'a> Driver<'a> {
         state: Arc<RwLock<ConstraintState<'a>>>,
         calls: &mut HashMap<(String, String, String), Vec<(String, ParameterTuple)>>,
         reverse_dependencies: &HashMap<(Uuid, String), HashSet<(String, Uuid, String)>>,
-        literals: Arc<RwLock<HashMap<String, Arc<RwLock<StringLiteral>>>>>,
+        literals: LiteralsMap,
     ) {
         let mut write = state.write().unwrap();
         let ancestors = write.get_ancestors();
@@ -264,7 +265,7 @@ impl<'a> Driver<'a> {
         &mut self,
         block: &mut HashMap<(Uuid, String), Arc<RwLock<ConstraintState<'a>>>>,
         reverse_dependencies: &HashMap<(Uuid, String), HashSet<(String, Uuid, String)>>,
-        literals: Arc<RwLock<HashMap<String, Arc<RwLock<StringLiteral>>>>>,
+        literals: LiteralsMap,
     ) -> Vec<CodeBlock<'a>> {
         // (call, constraint_name, root_name) => (uuid, call parameters)
         let mut calls: HashMap<(String, String, String), Vec<(String, ParameterTuple)>> =
@@ -410,21 +411,59 @@ impl<'a> Driver<'a> {
                             .unwrap()
                             .get_object_uuids()
                             .iter()
-                            .map(|x| x.clone())
+                            .map(|(x, _)| x.clone())
                             .collect::<Vec<_>>()
                             .into_iter()
                     })
                     .flatten()
                     .collect::<HashSet<Uuid>>();
+                let most_frequent_names: HashMap<String, Option<String>> = read
+                    .iter()
+                    .map(|(k, x)| {
+                        let read = x.read().unwrap();
+                        let all_tags = read
+                            .get_object_uuids()
+                            .iter()
+                            .map(|(_, v)| (v.clone().into_iter()))
+                            .flatten();
+                        let mut hist: HashMap<String, usize> = HashMap::new();
+                        for tag in all_tags {
+                            if let Some(t) = tag {
+                                *hist.entry(t).or_insert(0) += 1;
+                            }
+                        }
+                        if hist.len() > 0 {
+                            return (
+                                k.clone(),
+                                Some(hist.into_iter().max_by_key(|(_, v)| *v).unwrap().0),
+                            );
+                        }
+                        (k.clone(), None)
+                    })
+                    .collect();
+
                 println!("Constraint: {}", constraint_name);
                 for (k, v) in read.iter() {
-                    let write = v.write().unwrap();
+                    let mut write = v.write().unwrap();
                     println!("{} => {}", k, write.get_object_uuids().len());
                     if all_uuids.len() > 1 && write.get_object_uuids().len() > all_uuids.len() / 2 {
-                        println!("Should set indirection for {}", k);
+                        let val = write.value();
+                        let possible_name = most_frequent_names.get(&val).unwrap();
+                        if let Some(ref name) = possible_name {
+                            let proposed_name =
+                                format!("{}_{}", to_snake_case(&constraint_name), name).to_string();
+                            if proposed_name.len() < name.len() || write.is_multiline() {
+                                let referenced_by = ArgType::SimpleIdentifier(proposed_name);
+                                write.set_referenced_by(Box::new(referenced_by));
+                                println!("Set indirection for {}", k);
+                            }
+                        }
                     }
                 }
-                let block = ConstraintBlock::new(to_snake_case(&constraint_name), members);
+                let block = ConstraintBlock::new(
+                    to_snake_case(&constraint_name),
+                    members
+                );
                 self.blocks.push(block);
             } else {
                 break;
@@ -443,6 +482,7 @@ impl<'a> Driver<'a> {
             preambles.into_iter().collect::<Vec<String>>().join("\n\n")
         );*/
         let location = Location::new(0, 0);
+        let _literals: LiteralsMap = Arc::new(RwLock::new(HashMap::new()));
         for super_block in &self.blocks {
             super_block.render(location);
             println!("");

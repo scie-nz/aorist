@@ -18,7 +18,7 @@ macro_rules! define_program {
                 uuid: Uuid,
                 c: Concept<'a>,
                 ancestry: Arc<ConceptAncestry<'a>>,
-                literals: Arc<RwLock<HashMap<String, Arc<RwLock<StringLiteral>>>>>,
+                literals: LiteralsMap,
             ) -> ParameterTuple {
                 $tuple_call(uuid, c, ancestry, literals)
             }
@@ -42,7 +42,7 @@ macro_rules! register_programs_for_constraint {
                 c: Concept<'a>,
                 d: &Dialect,
                 ancestry: Arc<ConceptAncestry<'a>>,
-                literals: Arc<RwLock<HashMap<String, Arc<RwLock<StringLiteral>>>>>,
+                literals: LiteralsMap,
             ) -> Option<(String, String, ParameterTuple)> {
                 match d {
                     $(
@@ -65,7 +65,7 @@ macro_rules! register_programs_for_constraint {
                 c: Concept<'a>,
                 preferences: &Vec<Dialect>,
                 ancestry: Arc<ConceptAncestry<'a>>,
-                literals: Arc<RwLock<HashMap<String, Arc<RwLock<StringLiteral>>>>>,
+                literals: LiteralsMap,
             ) -> Result<(String, String, ParameterTuple, Dialect), String> {
                 match c {
                     Concept::$root{..} => {
@@ -101,7 +101,7 @@ macro_rules! register_satisfiable_constraints {
                 c: Concept<'a>,
                 preferences: &Vec<Dialect>,
                 ancestry: Arc<ConceptAncestry<'a>>,
-                literals: Arc<RwLock<HashMap<String, Arc<RwLock<StringLiteral>>>>>,
+                literals: LiteralsMap,
             ) -> Result<(String, String, ParameterTuple, Dialect), String> {
                 match &mut self.inner {
                     $(

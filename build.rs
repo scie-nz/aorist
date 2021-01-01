@@ -407,6 +407,7 @@ fn main() {
     scope.import("aorist_primitives", "register_satisfiable_constraints");
     scope.import("crate::concept", "ConceptAncestry");
     scope.import("crate::constraint", "StringLiteral");
+    scope.import("crate::constraint", "LiteralsMap");
     scope.import("crate::constraint", "AoristConstraint");
     scope.import("crate::constraint", "ConstraintSatisfactionBase");
     scope.import("crate::constraint", "SatisfiableConstraint");

@@ -9,14 +9,14 @@ use std::fmt;
 
 pub struct StringLiteral {
     value: String,
-    object_uuids: HashSet<Uuid>,
+    object_uuids: HashMap<Uuid, HashSet<Option<String>>>,
     referenced_by: Option<Box<ArgType>>,
 }
 impl StringLiteral {
     pub fn new(value: String) -> Self {
         Self {
             value,
-            object_uuids: HashSet::new(),
+            object_uuids: HashMap::new(),
             referenced_by: None,
         }
     }
@@ -26,21 +26,27 @@ impl StringLiteral {
     pub fn len(&self) -> usize {
         self.value.len()
     }
-    pub fn register_object(&mut self, uuid: Uuid) {
-        self.object_uuids.insert(uuid);
+    pub fn register_object(&mut self, uuid: Uuid, tag: Option<String>) {
+        self.object_uuids
+            .entry(uuid)
+            .or_insert(HashSet::new())
+            .insert(tag);
     }
     pub fn set_referenced_by(&mut self, obj: Box<ArgType>) {
         self.referenced_by = Some(obj);
     }
-    pub fn get_object_uuids(&self) -> &HashSet<Uuid> {
+    pub fn get_object_uuids(&self) -> &HashMap<Uuid, HashSet<Option<String>>> {
         &self.object_uuids
+    }
+    pub fn is_multiline(&self) -> bool {
+        self.value.contains('\n')
     }
     pub fn expression(&self, location: Location) -> Expression {
         if let Some(ref val) = self.referenced_by {
             return val.expression(location);
         }
         let value;
-        if self.value.len() <= 60 || self.value.contains('\n') {
+        if self.value.len() <= 60 || self.is_multiline() {
             value = StringGroup::Constant {
                 value: self.value.clone(),
             };
@@ -72,7 +78,7 @@ impl StringLiteral {
         }
     }
 }
-
+pub type LiteralsMap = Arc<RwLock<HashMap<String, Arc<RwLock<StringLiteral>>>>>;
 #[derive(Clone)]
 pub enum ArgType {
     StringLiteral(Arc<RwLock<StringLiteral>>),
@@ -81,9 +87,9 @@ pub enum ArgType {
     Formatted(Box<ArgType>, HashMap<String, Box<ArgType>>),
 }
 impl ArgType {
-    pub fn register_object(&mut self, uuid: Uuid) {
+    pub fn register_object(&mut self, uuid: Uuid, tag: Option<String>) {
         if let ArgType::StringLiteral(ref mut s) = self {
-            s.write().unwrap().register_object(uuid);
+            s.write().unwrap().register_object(uuid, tag);
         } else {
             panic!(".register_object called on non-StringLiteral ArgType.");
         }
@@ -139,7 +145,7 @@ impl ParameterTuple {
         object_uuid: Uuid,
         args_v: Vec<String>,
         kwargs_v: HashMap<String, String>,
-        literals: Arc<RwLock<HashMap<String, Arc<RwLock<StringLiteral>>>>>,
+        literals: LiteralsMap,
     ) -> Self {
         // TODO: should be moved into parameter tuple
         let mut write = literals.write().unwrap();
@@ -169,10 +175,10 @@ impl ParameterTuple {
             })
             .collect::<HashMap<_, _>>();
         for arg in args.iter_mut() {
-            arg.register_object(object_uuid.clone());
+            arg.register_object(object_uuid.clone(), None);
         }
-        for arg in kwargs.values_mut() {
-            arg.register_object(object_uuid.clone());
+        for (k, arg) in kwargs.iter_mut() {
+            arg.register_object(object_uuid.clone(), Some(k.clone()));
         }
         Self {
             object_uuid,
@@ -305,7 +311,7 @@ pub trait SatisfiableConstraint: TConstraint {
         c: Concept<'a>,
         d: &Dialect,
         ancestry: Arc<ConceptAncestry<'a>>,
-        literals: Arc<RwLock<HashMap<String, Arc<RwLock<StringLiteral>>>>>,
+        literals: LiteralsMap,
     ) -> Option<(String, String, ParameterTuple)>;
 
     fn satisfy_given_preference_ordering<'a>(
@@ -313,7 +319,7 @@ pub trait SatisfiableConstraint: TConstraint {
         r: Concept<'a>,
         preferences: &Vec<Dialect>,
         ancestry: Arc<ConceptAncestry<'a>>,
-        literals: Arc<RwLock<HashMap<String, Arc<RwLock<StringLiteral>>>>>,
+        literals: LiteralsMap,
     ) -> Result<(String, String, ParameterTuple, Dialect), String>;
 }
 // TODO: duplicate function, should be unified in trait
@@ -323,7 +329,7 @@ pub trait AllConstraintsSatisfiability {
         c: Concept<'a>,
         preferences: &Vec<Dialect>,
         ancestry: Arc<ConceptAncestry<'a>>,
-        literals: Arc<RwLock<HashMap<String, Arc<RwLock<StringLiteral>>>>>,
+        literals: LiteralsMap,
     ) -> Result<(String, String, ParameterTuple, Dialect), String>;
 }
 
