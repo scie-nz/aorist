@@ -1,7 +1,6 @@
 use crate::code_block::CodeBlock;
 use crate::concept::{Concept, ConceptAncestry};
-use crate::constraint::{AoristConstraint, ArgType, Constraint, ParameterTuple,
-LiteralsMap};
+use crate::constraint::{AoristConstraint, ArgType, Constraint, LiteralsMap, ParameterTuple};
 use crate::constraint_block::ConstraintBlock;
 use crate::constraint_state::ConstraintState;
 use crate::data_setup::ParsedDataSetup;
@@ -403,6 +402,7 @@ impl<'a> Driver<'a> {
                     literals.clone(),
                 );
 
+                // TODO: this can be moved to ConstraintBlock
                 let read = literals.read().unwrap();
                 let all_uuids = read
                     .values()
@@ -460,10 +460,9 @@ impl<'a> Driver<'a> {
                         }
                     }
                 }
-                let block = ConstraintBlock::new(
-                    to_snake_case(&constraint_name),
-                    members
-                );
+                drop(read);
+                let block =
+                    ConstraintBlock::new(to_snake_case(&constraint_name), members, literals);
                 self.blocks.push(block);
             } else {
                 break;
@@ -482,7 +481,6 @@ impl<'a> Driver<'a> {
             preambles.into_iter().collect::<Vec<String>>().join("\n\n")
         );*/
         let location = Location::new(0, 0);
-        let _literals: LiteralsMap = Arc::new(RwLock::new(HashMap::new()));
         for super_block in &self.blocks {
             super_block.render(location);
             println!("");

@@ -1,17 +1,23 @@
 use crate::code_block::CodeBlock;
-use crate::constraint::ParameterTuple;
+use crate::constraint::{LiteralsMap, ParameterTuple};
 use rustpython_parser::ast::Location;
 use std::collections::{HashMap, HashSet};
 
 pub struct ConstraintBlock<'a> {
     constraint_name: String,
     members: Vec<CodeBlock<'a>>,
+    literals: LiteralsMap,
 }
 impl<'a> ConstraintBlock<'a> {
-    pub fn new(constraint_name: String, members: Vec<CodeBlock<'a>>) -> Self {
+    pub fn new(
+        constraint_name: String,
+        members: Vec<CodeBlock<'a>>,
+        literals: LiteralsMap,
+    ) -> Self {
         Self {
             constraint_name,
             members,
+            literals,
         }
     }
     pub fn get_constraint_name(&self) -> String {
