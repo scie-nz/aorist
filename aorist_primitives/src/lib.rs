@@ -18,8 +18,7 @@ macro_rules! define_program {
                 uuid: Uuid,
                 c: Concept<'a>,
                 ancestry: Arc<ConceptAncestry<'a>>,
-                literals: Arc<RwLock<HashMap<String,
-                Arc<RwLock<StringLiteral>>>>>,
+                literals: Arc<RwLock<HashMap<String, Arc<RwLock<StringLiteral>>>>>,
             ) -> ParameterTuple {
                 $tuple_call(uuid, c, ancestry, literals)
             }
