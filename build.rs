@@ -467,15 +467,17 @@ fn main() {
                         Satisfy{constraint}, {dialect},
                         \"{preamble}\", \"{call}\",
                         |
+                            uuid: Uuid,
                             concept: Concept<'a>, 
                             ancestry: Arc<ConceptAncestry<'a>>,
-                            literals: Arc<RwLock<HashMap<String, Rc<StringLiteral>>>>,
+                            literals: Arc<RwLock<HashMap<String,
+                            Arc<RwLock<StringLiteral>>>>>,
                         | {{ 
                             {objects}
                             let args = vec![{params}];
                             let {mut_kw}kwargs: HashMap<String, String> = HashMap::new();
                             {kwargs}
-                            ParameterTuple::new(args, kwargs, literals)
+                            ParameterTuple::new(uuid, args, kwargs, literals)
                         }}
                     );",
                     objects=object_names.iter().map(|x| {

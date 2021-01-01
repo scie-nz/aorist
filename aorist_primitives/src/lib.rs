@@ -15,11 +15,13 @@ macro_rules! define_program {
         impl<'a> $satisfy_type<'a> for $name {
             type Dialect = $dialect;
             fn compute_parameter_tuple(
+                uuid: Uuid,
                 c: Concept<'a>,
                 ancestry: Arc<ConceptAncestry<'a>>,
-                literals: Arc<RwLock<HashMap<String, Rc<StringLiteral>>>>,
+                literals: Arc<RwLock<HashMap<String,
+                Arc<RwLock<StringLiteral>>>>>,
             ) -> ParameterTuple {
-                $tuple_call(c, ancestry, literals)
+                $tuple_call(uuid, c, ancestry, literals)
             }
             fn get_preamble() -> String {
                 $preamble.to_string()
@@ -47,8 +49,12 @@ macro_rules! register_programs_for_constraint {
                         Dialect::$dialect{..} => Some((
                             $element::get_preamble(),
                             $element::get_call(),
-                            $element::compute_parameter_tuple(c.clone(),
-                            ancestry, self.literals.clone()),
+                            $element::compute_parameter_tuple(
+                                self.get_uuid().clone(),
+                                c.clone(),
+                                ancestry,
+                                self.literals.clone()
+                            ),
                         )),
                     )+
                     _ => None,
@@ -140,7 +146,8 @@ macro_rules! define_constraint {
         pub struct $element {
             id: Uuid,
             root_uuid: Uuid,
-            pub literals: Arc<RwLock<HashMap<String, Rc<StringLiteral>>>>,
+            pub literals: Arc<RwLock<HashMap<String,
+            Arc<RwLock<StringLiteral>>>>>,
         }
         impl $element {
             pub fn new(root_uuid: Uuid,
@@ -174,9 +181,11 @@ macro_rules! define_constraint {
             // computes a parameter tuple as a string, e.g. to be called from
             // Python
             fn compute_parameter_tuple(
+                uuid: Uuid,
                 root: Concept<'a>,
                 ancestry: Arc<ConceptAncestry<'a>>,
-                literals: Arc<RwLock<HashMap<String, Rc<StringLiteral>>>>,
+                literals: Arc<RwLock<HashMap<String,
+                Arc<RwLock<StringLiteral>>>>>,
             ) -> ParameterTuple;
             fn get_preamble() -> String;
             fn get_call() -> String;
@@ -205,7 +214,8 @@ macro_rules! define_constraint {
                 id: Uuid,
                 root_uuid: Uuid,
                 $([<$required:snake:lower>] : Vec<Arc<RwLock<Constraint>>>,)+
-                pub literals: Arc<RwLock<HashMap<String, Rc<StringLiteral>>>>,
+                pub literals: Arc<RwLock<HashMap<String,
+                Arc<RwLock<StringLiteral>>>>>,
             }
             pub trait $satisfy_type<'a> : ConstraintSatisfactionBase<ConstraintType=$element, RootType=$root> {
                 type Dialect;
@@ -213,9 +223,11 @@ macro_rules! define_constraint {
                 // computes a parameter tuple as a string, e.g. to be called from
                 // Python
                 fn compute_parameter_tuple(
+                    uuid: Uuid,
                     root: Concept<'a>,
                     ancestry: Arc<ConceptAncestry<'a>>,
-                    literals: Arc<RwLock<HashMap<String, Rc<StringLiteral>>>>,
+                    literals: Arc<RwLock<HashMap<String,
+                    Arc<RwLock<StringLiteral>>>>>,
                 ) -> ParameterTuple;
                 fn get_preamble() -> String;
                 fn get_call() -> String;

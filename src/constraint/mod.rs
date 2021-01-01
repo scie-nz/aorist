@@ -4,16 +4,20 @@ use aorist_primitives::{define_constraint, register_constraint, Dialect};
 use maplit::hashmap;
 use rustpython_parser::ast::{Expression, ExpressionType, Keyword, Located, Location, StringGroup};
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::fmt;
 use std::rc::Rc;
 
 pub struct StringLiteral {
     value: String,
+    object_uuids: HashSet<Uuid>,
 }
 impl StringLiteral {
     pub fn new(value: String) -> Self {
-        Self { value }
+        Self {
+            value,
+            object_uuids: HashSet::new(),
+        }
     }
     pub fn value(&self) -> String {
         self.value.clone()
@@ -21,27 +25,40 @@ impl StringLiteral {
     pub fn len(&self) -> usize {
         self.value.len()
     }
+    pub fn register_object(&mut self, uuid: Uuid) {
+        self.object_uuids.insert(uuid);
+    }
 }
 
 #[derive(Clone)]
 enum ArgType {
-    StringLiteral(Rc<StringLiteral>),
+    StringLiteral(Arc<RwLock<StringLiteral>>),
     SimpleIdentifier(String),
     Subscript(Box<ArgType>, Box<ArgType>),
     Formatted(Box<ArgType>, HashMap<String, Box<ArgType>>),
 }
+impl ArgType {
+    pub fn register_object(&mut self, uuid: Uuid) {
+        if let ArgType::StringLiteral(ref mut s) = self {
+            s.write().unwrap().register_object(uuid);
+        } else {
+            panic!(".register_object called on non-StringLiteral ArgType.");
+        }
+    }
+}
+
 
 impl ArgType {
     pub fn expression(&self, location: Location) -> Expression {
         match &self {
             ArgType::StringLiteral(v) => {
                 let value;
-                if v.len() <= 60 {
-                    value = StringGroup::Constant {
-                        value: v.value(),
-                    };
+                if v.read().unwrap().len() <= 60 {
+                    value = StringGroup::Constant { value: v.read().unwrap().value() };
                 } else {
-                    let mut splits = v.value()
+                    let mut splits = v
+                        .read().unwrap()
+                        .value()
                         .split(",")
                         .map(|x| x.to_string())
                         .collect::<Vec<String>>()
@@ -99,44 +116,48 @@ impl ArgType {
 }
 #[derive(Clone)]
 pub struct ParameterTuple {
+    object_uuid: Uuid,
     args: Vec<ArgType>,
     kwargs: HashMap<String, ArgType>,
 }
 impl ParameterTuple {
     pub fn new(
-        args: Vec<String>,
-        kwargs: HashMap<String, String>,
-        literals: Arc<RwLock<HashMap<String, Rc<StringLiteral>>>>,
+        object_uuid: Uuid,
+        args_v: Vec<String>,
+        kwargs_v: HashMap<String, String>,
+        literals: Arc<RwLock<HashMap<String, Arc<RwLock<StringLiteral>>>>>,
     ) -> Self {
         // TODO: should be moved into parameter tuple
         let mut write = literals.write().unwrap();
-        Self {
-            args: args
-                .into_iter()
-                .map(|x| {
+        let mut args = args_v
+            .into_iter()
+            .map(|x| {
+                ArgType::StringLiteral(
+                write
+                    .entry(x.clone())
+                    .or_insert(Arc::new(RwLock::new(StringLiteral::new(x))))
+                    .clone(),
+                )
+            })
+            .collect::<Vec<_>>();
+        let kwargs = kwargs_v
+            .into_iter()
+            .map(|(k, v)| {
+                (
+                    k,
                     ArgType::StringLiteral(
-                        write
-                            .entry(x.clone())
-                            .or_insert(Rc::new(StringLiteral::new(x)))
-                            .clone(),
-                    )
-                })
-                .collect(),
-            kwargs: kwargs
-                .into_iter()
-                .map(|(k, v)| {
-                    (
-                        k,
-                        ArgType::StringLiteral(
-                            write
-                                .entry(v.clone())
-                                .or_insert(Rc::new(StringLiteral::new(v)))
-                                .clone(),
-                        ),
-                    )
-                })
-                .collect(),
+                    write
+                        .entry(v.clone())
+                        .or_insert(Arc::new(RwLock::new(StringLiteral::new(v))))
+                        .clone(),
+                    ),
+                )
+            })
+            .collect::<HashMap<_, _>>();
+        for arg in args.iter_mut() {
+            arg.register_object(object_uuid.clone());
         }
+        Self { object_uuid, args, kwargs }
     }
     fn get_args_literals(&self, location: Location) -> Vec<Expression> {
         let args = self
@@ -192,7 +213,7 @@ impl ParameterTuple {
         for (k, arg) in &self.kwargs {
             let fmt: String = format!("{{{}}}", k).to_string();
             if let ArgType::StringLiteral(v) = arg {
-                call = call.replace(&fmt, &v.value());
+                call = call.replace(&fmt, &v.read().unwrap().value());
             }
         }
         call
