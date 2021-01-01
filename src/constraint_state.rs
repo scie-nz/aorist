@@ -244,6 +244,7 @@ impl<'a> ConstraintState<'a> {
                         },
                     },
                 };*/
+                // TODO: unify this with call in register_literals
                 let raw_command = format!("presto -e '{}'", self.get_call().unwrap().clone());
                 let formatted_str = self
                     .params
@@ -348,6 +349,9 @@ impl<'a> ConstraintState<'a> {
     #[allow(dead_code)]
     pub fn get_root(&self) -> Concept<'a> {
         self.root.clone()
+    }
+    pub fn get_constraint_uuid(&self) -> Uuid {
+        self.constraint.read().unwrap().get_uuid().clone()
     }
     #[allow(dead_code)]
     pub fn get_root_uuid(&self) -> Uuid {

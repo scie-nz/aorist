@@ -1,5 +1,6 @@
 #![allow(dead_code)]
-use crate::constraint::LiteralsMap;
+use aorist_primitives::Dialect;
+use crate::constraint::{LiteralsMap, StringLiteral};
 use crate::constraint_state::{ConstraintState, PrefectSingleton};
 use indoc::formatdoc;
 use rustpython_parser::ast::{
@@ -220,8 +221,11 @@ impl PrefectProgram {
 
 pub trait PrefectTaskRender<'a> {
     fn get_constraints(&self) -> &Vec<Arc<RwLock<ConstraintState<'a>>>>;
-    fn register_literals(&'a self, _literals: LiteralsMap, _constraint_state:
-    Arc<RwLock<ConstraintState<'a>>>) {
+    fn register_literals(
+        &'a self,
+        _literals: LiteralsMap,
+        _constraint_state: Arc<RwLock<ConstraintState<'a>>>,
+    ) {
     }
     fn keywords_to_map(&self, keywords: Vec<Keyword>) -> HashMap<String, Expression> {
         assert!(keywords
@@ -764,10 +768,35 @@ impl<'a> PrefectPythonTaskRender<'a> {
 }
 pub struct PrefectShellTaskRender<'a> {
     members: Vec<Arc<RwLock<ConstraintState<'a>>>>,
+    dialect: Dialect,
 }
 impl<'a> PrefectTaskRender<'a> for PrefectShellTaskRender<'a> {
     fn get_constraints(&self) -> &Vec<Arc<RwLock<ConstraintState<'a>>>> {
         &self.members
+    }
+    fn register_literals(&'a self, literals: LiteralsMap, state: Arc<RwLock<ConstraintState<'a>>>) {
+        // TODO: this is super hacky, but it should do the job for now
+        let read = state.read().unwrap();
+        let call = match &self.dialect {
+            Dialect::Presto(_) => {
+                format!("presto -e '{}'", read.get_call().unwrap().clone()).to_string()
+            }
+            Dialect::Bash(_) => read.get_call().unwrap().clone(),
+            _ => panic!(
+                "Unknown dialect encountered for
+            PrefectShellTaskRender."
+            ),
+        };
+        let uuid = read.get_constraint_uuid();
+
+        let mut write = literals.write().unwrap();
+        let arc = write
+            .entry(call.clone())
+            .or_insert(Arc::new(RwLock::new(StringLiteral::new(call))));
+        let mut arc_write = arc.write().unwrap();
+        arc_write.register_object(uuid, Some("command".to_string()));
+        drop(arc_write);
+        drop(write);
     }
 }
 impl<'a> PrefectTaskRenderWithCalls<'a> for PrefectShellTaskRender<'a> {
@@ -874,8 +903,8 @@ impl<'a> PrefectTaskRenderWithCalls<'a> for PrefectShellTaskRender<'a> {
     }
 }
 impl<'a> PrefectShellTaskRender<'a> {
-    pub fn new(members: Vec<Arc<RwLock<ConstraintState<'a>>>>) -> Self {
-        Self { members }
+    pub fn new(members: Vec<Arc<RwLock<ConstraintState<'a>>>>, dialect: Dialect) -> Self {
+        Self { members, dialect }
     }
 }
 pub struct PrefectConstantTaskRender<'a> {
@@ -905,8 +934,11 @@ impl<'a> PrefectRender<'a> {
             PrefectRender::Constant(x) => x.render(location),
         }
     }
-    pub fn register_literals(&'a self, literals: LiteralsMap, constraint_state:
-    Arc<RwLock<ConstraintState<'a>>>) {
+    pub fn register_literals(
+        &'a self,
+        literals: LiteralsMap,
+        constraint_state: Arc<RwLock<ConstraintState<'a>>>,
+    ) {
         //task_render.register_literals(literals.clone(), members.clone());
         match &self {
             PrefectRender::Python(x) => x.register_literals(literals, constraint_state),
