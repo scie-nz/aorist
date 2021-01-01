@@ -186,6 +186,8 @@ impl<'a> Driver<'a> {
         calls: &mut HashMap<(String, String, String), Vec<(String, ParameterTuple)>>,
         state: Arc<RwLock<ConstraintState<'a>>>,
     ) {
+        let name = constraint.get_name().clone();
+        drop(constraint);
         let preferences = vec![
             Dialect::Python(Python {}),
             Dialect::Presto(Presto {}),
@@ -201,7 +203,7 @@ impl<'a> Driver<'a> {
         calls
             .entry((
                 state.read().unwrap().get_call().unwrap(),
-                constraint.get_name().clone(),
+                name,
                 uuid.1.clone(),
             ))
             .or_insert(Vec::new())
