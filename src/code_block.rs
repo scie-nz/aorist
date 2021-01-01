@@ -25,14 +25,14 @@ impl<'a> CodeBlock<'a> {
             Some(Dialect::Python(_)) => {
                 PrefectRender::Python(PrefectPythonTaskRender::new(members.clone()))
             }
-            Some(Dialect::Bash(_)) => {
-                PrefectRender::Shell(PrefectShellTaskRender::new(members.clone(),
-                dialect.as_ref().unwrap().clone()))
-            }
-            Some(Dialect::Presto(_)) => {
-                PrefectRender::Shell(PrefectShellTaskRender::new(members.clone(),
-                dialect.as_ref().unwrap().clone()))
-            }
+            Some(Dialect::Bash(_)) => PrefectRender::Shell(PrefectShellTaskRender::new(
+                members.clone(),
+                dialect.as_ref().unwrap().clone(),
+            )),
+            Some(Dialect::Presto(_)) => PrefectRender::Shell(PrefectShellTaskRender::new(
+                members.clone(),
+                dialect.as_ref().unwrap().clone(),
+            )),
             None => PrefectRender::Constant(PrefectConstantTaskRender::new(members.clone())),
             _ => {
                 panic!("Dialect not handled: {:?}", dialect.as_ref().unwrap());
@@ -61,7 +61,7 @@ impl<'a> CodeBlock<'a> {
             })
             .collect()
     }
-    pub fn render(&'a self, location: Location) {
-        self.task_render.render(location);
+    pub fn render(&'a self, location: Location, literals: LiteralsMap) {
+        self.task_render.render(location, literals);
     }
 }

@@ -1,7 +1,7 @@
 #![allow(dead_code)]
-use aorist_primitives::Dialect;
 use crate::constraint::{LiteralsMap, StringLiteral};
 use crate::constraint_state::{ConstraintState, PrefectSingleton};
+use aorist_primitives::Dialect;
 use indoc::formatdoc;
 use rustpython_parser::ast::{
     Expression, ExpressionType, Keyword, Located, Location, Program, Statement, StatementType,
@@ -295,7 +295,11 @@ pub trait PrefectTaskRender<'a> {
         }
         args_map
     }
-    fn get_singletons(&self, location: Location) -> HashMap<String, PrefectSingleton> {
+    fn get_singletons(
+        &self,
+        location: Location,
+        literals: LiteralsMap,
+    ) -> HashMap<String, PrefectSingleton> {
         let num_constraints = self.get_constraints().len();
         for rw in self.get_constraints() {
             let mut write = rw.write().unwrap();
@@ -338,7 +342,7 @@ pub trait PrefectTaskRender<'a> {
                 let x = rw.read().unwrap();
                 (
                     x.get_task_name(),
-                    x.get_prefect_singleton(location).unwrap(),
+                    x.get_prefect_singleton(location, literals.clone()).unwrap(),
                 )
             })
             .collect::<HashMap<String, _>>();
@@ -583,8 +587,8 @@ pub trait PrefectTaskRender<'a> {
         suite.push(params_stmt);
         (suite, processed_singletons)
     }
-    fn render(&self, location: Location) {
-        let singletons = self.get_singletons(location);
+    fn render(&self, location: Location, literals: LiteralsMap) {
+        let singletons = self.get_singletons(location, literals);
         let params_map = self.args_from_singletons(singletons, location);
         let (params_suite, singletons) = self.combine_params(params_map, location);
 
@@ -595,21 +599,6 @@ pub trait PrefectTaskRender<'a> {
                 PrefectProgram::render_suite(singleton.as_suite()).unwrap()
             );
         }
-    }
-    fn render_singleton(&self, location: Location) {
-        assert_eq!(self.get_constraints().len(), 1);
-        let rw = self.get_constraints().get(0).unwrap();
-        print!(
-            "{}",
-            PrefectProgram::render_suite(
-                rw.read()
-                    .unwrap()
-                    .get_prefect_singleton(location)
-                    .unwrap()
-                    .as_suite()
-            )
-            .unwrap()
-        );
     }
     fn render_ids(ids: Vec<Arc<RwLock<ConstraintState<'a>>>>) -> String {
         ids.iter()
@@ -782,10 +771,7 @@ impl<'a> PrefectTaskRender<'a> for PrefectShellTaskRender<'a> {
                 format!("presto -e '{}'", read.get_call().unwrap().clone()).to_string()
             }
             Dialect::Bash(_) => read.get_call().unwrap().clone(),
-            _ => panic!(
-                "Unknown dialect encountered for
-            PrefectShellTaskRender."
-            ),
+            _ => panic!("Unknown dialect encountered for PrefectShellTaskRender."),
         };
         let uuid = read.get_constraint_uuid();
 
@@ -927,11 +913,11 @@ pub enum PrefectRender<'a> {
     Constant(PrefectConstantTaskRender<'a>),
 }
 impl<'a> PrefectRender<'a> {
-    pub fn render(&'a self, location: Location) {
+    pub fn render(&'a self, location: Location, literals: LiteralsMap) {
         match &self {
-            PrefectRender::Python(x) => x.render(location),
-            PrefectRender::Shell(x) => x.render(location),
-            PrefectRender::Constant(x) => x.render(location),
+            PrefectRender::Python(x) => x.render(location, literals),
+            PrefectRender::Shell(x) => x.render(location, literals),
+            PrefectRender::Constant(x) => x.render(location, literals),
         }
     }
     pub fn register_literals(

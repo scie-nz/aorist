@@ -1,5 +1,7 @@
 use crate::concept::{Concept, ConceptAncestry};
-use crate::constraint::{AllConstraintsSatisfiability, Constraint, ParameterTuple, StringLiteral};
+use crate::constraint::{
+    AllConstraintsSatisfiability, Constraint, LiteralsMap, ParameterTuple, StringLiteral,
+};
 use crate::object::TAoristObject;
 use aorist_primitives::Dialect;
 use inflector::cases::snakecase::to_snake_case;
@@ -104,9 +106,13 @@ impl PrefectSingleton {
 }
 
 impl<'a> ConstraintState<'a> {
-    pub fn get_prefect_singleton(&self, location: Location) -> Result<PrefectSingleton, String> {
+    pub fn get_prefect_singleton(
+        &self,
+        location: Location,
+        literals: LiteralsMap,
+    ) -> Result<PrefectSingleton, String> {
         Ok(PrefectSingleton {
-            task_creation: self.get_task_statement(location)?,
+            task_creation: self.get_task_statement(location, literals)?,
             flow_addition: self.get_flow_addition_statements(location),
         })
     }
@@ -213,7 +219,11 @@ impl<'a> ConstraintState<'a> {
         }
         statements
     }
-    fn get_task_creation_expr(&self, location: Location) -> Result<Expression, String> {
+    fn get_task_creation_expr(
+        &self,
+        location: Location,
+        literals: LiteralsMap,
+    ) -> Result<Expression, String> {
         match self.dialect {
             Some(Dialect::Python(_)) => {
                 let function = Located {
@@ -246,11 +256,19 @@ impl<'a> ConstraintState<'a> {
                 };*/
                 // TODO: unify this with call in register_literals
                 let raw_command = format!("presto -e '{}'", self.get_call().unwrap().clone());
+                let command = literals
+                    .read()
+                    .unwrap()
+                    .get(&raw_command)
+                    .unwrap()
+                    .read()
+                    .unwrap()
+                    .expression(location);
                 let formatted_str = self
                     .params
                     .as_ref()
                     .unwrap()
-                    .get_shell_task_command(location, raw_command);
+                    .get_shell_task_command(location, command);
                 let function = Located {
                     location,
                     node: ExpressionType::Identifier {
@@ -270,11 +288,19 @@ impl<'a> ConstraintState<'a> {
                 })
             }
             Some(Dialect::Bash(_)) => {
+                let command = literals
+                    .read()
+                    .unwrap()
+                    .get(&self.get_call().unwrap())
+                    .unwrap()
+                    .read()
+                    .unwrap()
+                    .expression(location);
                 let formatted_str = self
                     .params
                     .as_ref()
                     .unwrap()
-                    .get_shell_task_command(location, self.get_call().unwrap().clone());
+                    .get_shell_task_command(location, command);
 
                 let function = Located {
                     location,
@@ -320,11 +346,15 @@ impl<'a> ConstraintState<'a> {
             _ => Err("Dialect not supported".to_string()),
         }
     }
-    pub fn get_task_statement(&self, location: Location) -> Result<Statement, String> {
+    pub fn get_task_statement(
+        &self,
+        location: Location,
+        literals: LiteralsMap,
+    ) -> Result<Statement, String> {
         let val = self.get_task_val(location);
         let assign = StatementType::Assign {
             targets: vec![val],
-            value: self.get_task_creation_expr(location)?,
+            value: self.get_task_creation_expr(location, literals)?,
         };
         Ok(Located {
             location,

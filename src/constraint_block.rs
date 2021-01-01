@@ -106,7 +106,7 @@ impl<'a> ConstraintBlock<'a> {
         self.compute_indirections();
         // TODO: rename print_call
         for (_i, member) in self.members.iter().enumerate() {
-            member.render(location);
+            member.render(location, self.literals.clone());
         }
     }
 }

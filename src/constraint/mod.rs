@@ -245,29 +245,8 @@ impl ParameterTuple {
         }
         call
     }
-    pub fn get_shell_task_command(&self, location: Location, call: String) -> Expression {
-        let left = match self.args.len() {
-            0 => Located {
-                location,
-                node: ExpressionType::String {
-                    value: StringGroup::Constant { value: call },
-                },
-            },
-            _ => {
-                let args = self.get_args_tuple(location);
-                let spec_str = self.get_call_as_format_string(call);
-                Located {
-                    location,
-                    node: ExpressionType::String {
-                        value: StringGroup::FormattedValue {
-                            value: Box::new(args),
-                            conversion: None,
-                            spec: Some(spec_str),
-                        },
-                    },
-                }
-            }
-        };
+    pub fn get_shell_task_command(&self, location: Location, left: Expression) -> Expression {
+        // TODO: convert this to using a Literal
         if self.kwargs.len() > 0 {
             return Located {
                 location,
@@ -279,6 +258,7 @@ impl ParameterTuple {
                             name: "format".to_string(),
                         },
                     }),
+                    // TODO: args are not currently handled
                     args: Vec::new(),
                     keywords: self.get_keyword_vector(location),
                 },
