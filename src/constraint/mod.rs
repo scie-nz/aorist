@@ -37,7 +37,7 @@ impl StringLiteral {
             return val.expression(location);
         }
         let value;
-        if self.value.len() <= 60 {
+        if self.value.len() <= 60 || self.value.contains('\n') {
             value = StringGroup::Constant {
                 value: self.value.clone(),
             };
@@ -57,6 +57,9 @@ impl StringLiteral {
                 }
                 acc += ",";
                 acc += &split;
+            }
+            if acc.len() > 0 {
+                values.push(StringGroup::Constant { value: acc.clone() });
             }
             value = StringGroup::Joined { values };
         }
