@@ -1,7 +1,7 @@
 use crate::constraint::ParameterTuple;
 use crate::constraint_state::ConstraintState;
 use crate::prefect::{
-    PrefectConstantTaskRender, PrefectPythonTaskRender, PrefectShellTaskRender, PrefectTaskRender,
+    PrefectConstantTaskRender, PrefectPythonTaskRender, PrefectRender, PrefectShellTaskRender,
 };
 use aorist_primitives::Dialect;
 use rustpython_parser::ast::Location;
@@ -9,12 +9,32 @@ use std::collections::{HashMap, HashSet};
 use std::sync::{Arc, RwLock};
 
 pub struct CodeBlock<'a> {
-    dialect: Option<Dialect>,
+    _dialect: Option<Dialect>,
     members: Vec<Arc<RwLock<ConstraintState<'a>>>>,
+    task_render: PrefectRender<'a>,
 }
 impl<'a> CodeBlock<'a> {
     pub fn new(dialect: Option<Dialect>, members: Vec<Arc<RwLock<ConstraintState<'a>>>>) -> Self {
-        Self { dialect, members }
+        let task_render = match dialect {
+            Some(Dialect::Python(_)) => {
+                PrefectRender::Python(PrefectPythonTaskRender::new(members.clone()))
+            }
+            Some(Dialect::Bash(_)) => {
+                PrefectRender::Shell(PrefectShellTaskRender::new(members.clone()))
+            }
+            Some(Dialect::Presto(_)) => {
+                PrefectRender::Shell(PrefectShellTaskRender::new(members.clone()))
+            }
+            None => PrefectRender::Constant(PrefectConstantTaskRender::new(members.clone())),
+            _ => {
+                panic!("Dialect not handled: {:?}", dialect.as_ref().unwrap());
+            }
+        };
+        Self {
+            _dialect: dialect,
+            members,
+            task_render,
+        }
     }
     pub fn get_preambles(&self) -> HashSet<String> {
         self.members
@@ -33,22 +53,7 @@ impl<'a> CodeBlock<'a> {
             })
             .collect()
     }
-    // TODO: move this to Dialect class
-    pub fn print_call(&self, location: Location) {
-        match &self.dialect {
-            Some(Dialect::Python(_)) => {
-                PrefectPythonTaskRender::new(self.members.clone()).render(location)
-            }
-            Some(Dialect::Bash(_)) => {
-                PrefectShellTaskRender::new(self.members.clone()).render(location)
-            }
-            Some(Dialect::Presto(_)) => {
-                PrefectShellTaskRender::new(self.members.clone()).render(location)
-            }
-            None => PrefectConstantTaskRender::new(self.members.clone()).render(location),
-            _ => {
-                panic!("Dialect not handled: {:?}", self.dialect.as_ref().unwrap());
-            }
-        }
+    pub fn render(&'a self, location: Location) {
+        self.task_render.render(location);
     }
 }

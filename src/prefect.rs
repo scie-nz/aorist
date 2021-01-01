@@ -887,3 +887,18 @@ impl<'a> PrefectTaskRender<'a> for PrefectConstantTaskRender<'a> {
         &self.members
     }
 }
+
+pub enum PrefectRender<'a> {
+    Python(PrefectPythonTaskRender<'a>),
+    Shell(PrefectShellTaskRender<'a>),
+    Constant(PrefectConstantTaskRender<'a>),
+}
+impl<'a> PrefectRender<'a> {
+    pub fn render(&'a self, location: Location) {
+        match &self {
+            PrefectRender::Python(x) => x.render(location),
+            PrefectRender::Shell(x) => x.render(location),
+            PrefectRender::Constant(x) => x.render(location),
+        }
+    }
+}

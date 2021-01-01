@@ -374,7 +374,7 @@ impl<'a> Driver<'a> {
             write.set_task_name(name.replace("____", "__"));
         }
     }
-    pub fn run(&mut self) {
+    pub fn run(&'a mut self) {
         let mut reverse_dependencies: HashMap<(Uuid, String), HashSet<(String, Uuid, String)>> =
             HashMap::new();
         for (name, (_, constraints)) in &self.unsatisfied_constraints {
@@ -423,7 +423,7 @@ impl<'a> Driver<'a> {
             preambles.into_iter().collect::<Vec<String>>().join("\n\n")
         );*/
         let location = Location::new(0, 0);
-        for super_block in &self.blocks {
+        for super_block in self.blocks.iter_mut() {
             super_block.render(location);
             println!("");
         }

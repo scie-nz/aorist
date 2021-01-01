@@ -1,8 +1,8 @@
 use crate::code_block::CodeBlock;
 use crate::constraint::{ArgType, LiteralsMap, ParameterTuple};
+use inflector::cases::snakecase::to_snake_case;
 use rustpython_parser::ast::Location;
 use std::collections::{HashMap, HashSet};
-use inflector::cases::snakecase::to_snake_case;
 use uuid::Uuid;
 
 pub struct ConstraintBlock<'a> {
@@ -99,11 +99,14 @@ impl<'a> ConstraintBlock<'a> {
         }
         drop(read);
     }
-    pub fn render(&self, location: Location) {
+    pub fn render(&'a mut self, location: Location) {
+        /*for member in &self.members {
+            member.register_literals(self.literals.clone());
+        }*/
         self.compute_indirections();
         // TODO: rename print_call
         for (_i, member) in self.members.iter().enumerate() {
-            member.print_call(location);
+            member.render(location);
         }
     }
 }
