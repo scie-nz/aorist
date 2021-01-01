@@ -100,9 +100,9 @@ impl<'a> ConstraintBlock<'a> {
         drop(read);
     }
     pub fn render(&'a mut self, location: Location) {
-        /*for member in &self.members {
+        for member in &self.members {
             member.register_literals(self.literals.clone());
-        }*/
+        }
         self.compute_indirections();
         // TODO: rename print_call
         for (_i, member) in self.members.iter().enumerate() {

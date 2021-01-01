@@ -1,4 +1,5 @@
 #![allow(dead_code)]
+use crate::constraint::LiteralsMap;
 use crate::constraint_state::{ConstraintState, PrefectSingleton};
 use indoc::formatdoc;
 use rustpython_parser::ast::{
@@ -219,6 +220,9 @@ impl PrefectProgram {
 
 pub trait PrefectTaskRender<'a> {
     fn get_constraints(&self) -> &Vec<Arc<RwLock<ConstraintState<'a>>>>;
+    fn register_literals(&'a self, _literals: LiteralsMap, _constraint_state:
+    Arc<RwLock<ConstraintState<'a>>>) {
+    }
     fn keywords_to_map(&self, keywords: Vec<Keyword>) -> HashMap<String, Expression> {
         assert!(keywords
             .iter()
@@ -899,6 +903,15 @@ impl<'a> PrefectRender<'a> {
             PrefectRender::Python(x) => x.render(location),
             PrefectRender::Shell(x) => x.render(location),
             PrefectRender::Constant(x) => x.render(location),
+        }
+    }
+    pub fn register_literals(&'a self, literals: LiteralsMap, constraint_state:
+    Arc<RwLock<ConstraintState<'a>>>) {
+        //task_render.register_literals(literals.clone(), members.clone());
+        match &self {
+            PrefectRender::Python(x) => x.register_literals(literals, constraint_state),
+            PrefectRender::Shell(x) => x.register_literals(literals, constraint_state),
+            PrefectRender::Constant(x) => x.register_literals(literals, constraint_state),
         }
     }
 }

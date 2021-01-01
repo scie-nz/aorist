@@ -1,4 +1,4 @@
-use crate::constraint::ParameterTuple;
+use crate::constraint::{ParameterTuple, LiteralsMap};
 use crate::constraint_state::ConstraintState;
 use crate::prefect::{
     PrefectConstantTaskRender, PrefectPythonTaskRender, PrefectRender, PrefectShellTaskRender,
@@ -14,6 +14,14 @@ pub struct CodeBlock<'a> {
     task_render: PrefectRender<'a>,
 }
 impl<'a> CodeBlock<'a> {
+    pub fn register_literals(
+        &'a self,
+        literals: LiteralsMap,
+    ) {
+        for member in &self.members {
+            self.task_render.register_literals(literals.clone(), member.clone());
+        }
+    }
     pub fn new(dialect: Option<Dialect>, members: Vec<Arc<RwLock<ConstraintState<'a>>>>) -> Self {
         let task_render = match dialect {
             Some(Dialect::Python(_)) => {
