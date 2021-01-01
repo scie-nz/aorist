@@ -457,11 +457,6 @@ pub trait PrefectTaskRender<'a> {
         for name in param_names.flatten() {
             *param_name_hist.entry(name).or_insert(0) += 1;
         }
-        let common_param_names: HashSet<String> = param_name_hist
-            .into_iter()
-            .filter(|(_, v)| *v == params_map.len())
-            .map(|(k, _)| k)
-            .collect();
         // param_name => param_value => task_name
         let mut common_param_names_values: HashMap<String, HashMap<String, Vec<String>>> =
             HashMap::new();
