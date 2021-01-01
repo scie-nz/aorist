@@ -32,6 +32,9 @@ impl StringLiteral {
     pub fn set_referenced_by(&mut self, obj: Box<ArgType>) {
         self.referenced_by = Some(obj);
     }
+    pub fn get_object_uuids(&self) -> &HashSet<Uuid> {
+        &self.object_uuids
+    }
     pub fn expression(&self, location: Location) -> Expression {
         if let Some(ref val) = self.referenced_by {
             return val.expression(location);
@@ -151,7 +154,7 @@ impl ParameterTuple {
                 )
             })
             .collect::<Vec<_>>();
-        let kwargs = kwargs_v
+        let mut kwargs = kwargs_v
             .into_iter()
             .map(|(k, v)| {
                 (
@@ -166,6 +169,9 @@ impl ParameterTuple {
             })
             .collect::<HashMap<_, _>>();
         for arg in args.iter_mut() {
+            arg.register_object(object_uuid.clone());
+        }
+        for arg in kwargs.values_mut() {
             arg.register_object(object_uuid.clone());
         }
         Self {

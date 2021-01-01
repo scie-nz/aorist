@@ -401,6 +401,29 @@ impl<'a> Driver<'a> {
                     &reverse_dependencies,
                     literals.clone(),
                 );
+
+                let read = literals.read().unwrap();
+                let all_uuids = read
+                    .values()
+                    .map(|x| {
+                        x.read()
+                            .unwrap()
+                            .get_object_uuids()
+                            .iter()
+                            .map(|x| x.clone())
+                            .collect::<Vec<_>>()
+                            .into_iter()
+                    })
+                    .flatten()
+                    .collect::<HashSet<Uuid>>();
+                println!("Constraint: {}", constraint_name);
+                for (k, v) in read.iter() {
+                    let write = v.write().unwrap();
+                    println!("{} => {}", k, write.get_object_uuids().len());
+                    if all_uuids.len() > 1 && write.get_object_uuids().len() > all_uuids.len() / 2 {
+                        println!("Should set indirection for {}", k);
+                    }
+                }
                 let block = ConstraintBlock::new(to_snake_case(&constraint_name), members);
                 self.blocks.push(block);
             } else {
