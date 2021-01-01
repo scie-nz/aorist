@@ -541,7 +541,7 @@ spec:
             let attr_map = attr_v.iter()
                 .map(|x|
                     (x.get_name().clone(), (x.get_presto_type(), x.get_comment().clone())))
-                .collect::<HashMap<String, (String, Option<String>)>>();
+                .collect::<Vec<_>>();
             let attr_types = attr_map.iter().map(|x| {
                 let (name, (presto_type, comment)) = x;
                 let comment_str = match comment {
