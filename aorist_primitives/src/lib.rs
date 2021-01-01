@@ -43,6 +43,7 @@ macro_rules! register_programs_for_constraint {
                 c: Concept<'a>,
                 d: &Dialect,
                 ancestry: Arc<ConceptAncestry<'a>>,
+                literals: Arc<RwLock<HashMap<String, Arc<RwLock<StringLiteral>>>>>,
             ) -> Option<(String, String, ParameterTuple)> {
                 match d {
                     $(
@@ -53,7 +54,7 @@ macro_rules! register_programs_for_constraint {
                                 self.get_uuid().clone(),
                                 c.clone(),
                                 ancestry,
-                                self.literals.clone()
+                                literals,
                             ),
                         )),
                     )+
@@ -65,11 +66,19 @@ macro_rules! register_programs_for_constraint {
                 c: Concept<'a>,
                 preferences: &Vec<Dialect>,
                 ancestry: Arc<ConceptAncestry<'a>>,
+                literals: Arc<RwLock<HashMap<String, Arc<RwLock<StringLiteral>>>>>,
             ) -> Result<(String, String, ParameterTuple, Dialect), String> {
                 match c {
                     Concept::$root{..} => {
                         for d in preferences {
-                            if let Some((preamble, call, params)) = self.satisfy(c.clone(), &d, ancestry.clone()) {
+                            if let Some(
+                                (preamble, call, params)
+                            ) = self.satisfy(
+                                c.clone(),
+                                &d,
+                                ancestry.clone(),
+                                literals.clone(),
+                            ) {
                                 return Ok((preamble, call, params, d.clone()));
                             }
                         }
@@ -93,11 +102,15 @@ macro_rules! register_satisfiable_constraints {
                 c: Concept<'a>,
                 preferences: &Vec<Dialect>,
                 ancestry: Arc<ConceptAncestry<'a>>,
+                literals: Arc<RwLock<HashMap<String, Arc<RwLock<StringLiteral>>>>>,
             ) -> Result<(String, String, ParameterTuple, Dialect), String> {
                 match &mut self.inner {
                     $(
                         Some(AoristConstraint::$constraint(ref mut x)) =>
-                        x.satisfy_given_preference_ordering(c, preferences, ancestry),
+                        x.satisfy_given_preference_ordering(
+                            c, preferences,
+                            ancestry, literals
+                        ),
                     )+
                     _ => Err("Constraint is not satisfiable (no program provided).".to_string())
                 }
@@ -146,14 +159,11 @@ macro_rules! define_constraint {
         pub struct $element {
             id: Uuid,
             root_uuid: Uuid,
-            pub literals: Arc<RwLock<HashMap<String,
-            Arc<RwLock<StringLiteral>>>>>,
         }
         impl $element {
             pub fn new(root_uuid: Uuid,
                        _potential_child_constraints: Vec<Arc<RwLock<Constraint>>>) -> Self {
-                Self{ id: Uuid::new_v4(), root_uuid, literals:
-                Arc::new(RwLock::new(HashMap::new())) }
+                Self{ id: Uuid::new_v4(), root_uuid}
             }
             pub fn get_downstream_constraints(&self) -> Vec<Arc<RwLock<Constraint>>> {
                 Vec::new()
@@ -214,8 +224,6 @@ macro_rules! define_constraint {
                 id: Uuid,
                 root_uuid: Uuid,
                 $([<$required:snake:lower>] : Vec<Arc<RwLock<Constraint>>>,)+
-                pub literals: Arc<RwLock<HashMap<String,
-                Arc<RwLock<StringLiteral>>>>>,
             }
             pub trait $satisfy_type<'a> : ConstraintSatisfactionBase<ConstraintType=$element, RootType=$root> {
                 type Dialect;
@@ -329,7 +337,6 @@ macro_rules! define_constraint {
                         id: Uuid::new_v4(),
                         root_uuid,
                         $([<$required:snake:lower>],)+
-                        literals: Arc::new(RwLock::new(HashMap::new()))
                     }
                 }
             }

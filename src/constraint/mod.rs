@@ -296,6 +296,7 @@ pub trait SatisfiableConstraint: TConstraint {
         c: Concept<'a>,
         d: &Dialect,
         ancestry: Arc<ConceptAncestry<'a>>,
+        literals: Arc<RwLock<HashMap<String, Arc<RwLock<StringLiteral>>>>>,
     ) -> Option<(String, String, ParameterTuple)>;
 
     fn satisfy_given_preference_ordering<'a>(
@@ -303,6 +304,7 @@ pub trait SatisfiableConstraint: TConstraint {
         r: Concept<'a>,
         preferences: &Vec<Dialect>,
         ancestry: Arc<ConceptAncestry<'a>>,
+        literals: Arc<RwLock<HashMap<String, Arc<RwLock<StringLiteral>>>>>,
     ) -> Result<(String, String, ParameterTuple, Dialect), String>;
 }
 // TODO: duplicate function, should be unified in trait
@@ -312,6 +314,7 @@ pub trait AllConstraintsSatisfiability {
         c: Concept<'a>,
         preferences: &Vec<Dialect>,
         ancestry: Arc<ConceptAncestry<'a>>,
+        literals: Arc<RwLock<HashMap<String, Arc<RwLock<StringLiteral>>>>>,
     ) -> Result<(String, String, ParameterTuple, Dialect), String>;
 }
 

@@ -1,6 +1,7 @@
 use crate::code_block::CodeBlock;
 use crate::concept::{Concept, ConceptAncestry};
-use crate::constraint::{AoristConstraint, Constraint, ParameterTuple};
+use crate::constraint::{AoristConstraint, Constraint, ParameterTuple,
+StringLiteral};
 use crate::constraint_block::ConstraintBlock;
 use crate::constraint_state::ConstraintState;
 use crate::data_setup::ParsedDataSetup;
@@ -185,6 +186,8 @@ impl<'a> Driver<'a> {
         uuid: (Uuid, String),
         calls: &mut HashMap<(String, String, String), Vec<(String, ParameterTuple)>>,
         state: Arc<RwLock<ConstraintState<'a>>>,
+        literals: Arc<RwLock<HashMap<String,
+        Arc<RwLock<StringLiteral>>>>>,
     ) {
         let name = constraint.get_name().clone();
         drop(constraint);
@@ -195,7 +198,7 @@ impl<'a> Driver<'a> {
         ];
 
         let mut write = state.write().unwrap();
-        write.satisfy(&preferences, self.ancestry.clone());
+        write.satisfy(&preferences, self.ancestry.clone(), literals);
         drop(write);
 
         // TODO: preambles and calls are superflous
@@ -215,6 +218,8 @@ impl<'a> Driver<'a> {
         state: Arc<RwLock<ConstraintState<'a>>>,
         calls: &mut HashMap<(String, String, String), Vec<(String, ParameterTuple)>>,
         reverse_dependencies: &HashMap<(Uuid, String), HashSet<(String, Uuid, String)>>,
+        literals: Arc<RwLock<HashMap<String,
+        Arc<RwLock<StringLiteral>>>>>,
     ) {
         let mut write = state.write().unwrap();
         let ancestors = write.get_ancestors();
@@ -228,7 +233,8 @@ impl<'a> Driver<'a> {
         let rw = self.constraints.get(&uuid).unwrap().clone();
         let constraint = rw.read().unwrap();
         if constraint.requires_program() {
-            self.process_constraint_with_program(constraint, uuid.clone(), calls, state.clone());
+            self.process_constraint_with_program(constraint, uuid.clone(),
+            calls, state.clone(), literals);
         }
 
         if let Some(v) = reverse_dependencies.get(&uuid) {
@@ -256,6 +262,8 @@ impl<'a> Driver<'a> {
         &mut self,
         block: &mut HashMap<(Uuid, String), Arc<RwLock<ConstraintState<'a>>>>,
         reverse_dependencies: &HashMap<(Uuid, String), HashSet<(String, Uuid, String)>>,
+        literals: Arc<RwLock<HashMap<String,
+        Arc<RwLock<StringLiteral>>>>>,
     ) -> Vec<CodeBlock<'a>> {
         // (call, constraint_name, root_name) => (uuid, call parameters)
         let mut calls: HashMap<(String, String, String), Vec<(String, ParameterTuple)>> =
@@ -269,6 +277,7 @@ impl<'a> Driver<'a> {
                 state.clone(),
                 &mut calls,
                 reverse_dependencies,
+                literals.clone(),
             );
             self.satisfied_constraints.insert(id, state.clone());
             by_dialect
@@ -385,8 +394,10 @@ impl<'a> Driver<'a> {
             let mut satisfiable = self.find_satisfiable_constraint_block();
             if let Some((ref mut block, constraint_name)) = satisfiable {
                 //println!("Block has size: {}", block.len());
+                let literals = Arc::new(RwLock::new(HashMap::new()));
                 let members =
-                    self.process_constraint_block(&mut block.clone(), &reverse_dependencies);
+                    self.process_constraint_block(&mut block.clone(),
+                    &reverse_dependencies, literals);
                 let block = ConstraintBlock::new(to_snake_case(&constraint_name), members);
                 self.blocks.push(block);
             } else {

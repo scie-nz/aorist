@@ -1,5 +1,6 @@
 use crate::concept::{Concept, ConceptAncestry};
-use crate::constraint::{AllConstraintsSatisfiability, Constraint, ParameterTuple};
+use crate::constraint::{AllConstraintsSatisfiability, Constraint,
+ParameterTuple, StringLiteral};
 use crate::object::TAoristObject;
 use aorist_primitives::Dialect;
 use inflector::cases::snakecase::to_snake_case;
@@ -374,11 +375,18 @@ impl<'a> ConstraintState<'a> {
     pub fn get_dialect(&self) -> Option<Dialect> {
         self.dialect.clone()
     }
-    pub fn satisfy(&mut self, preferences: &Vec<Dialect>, ancestry: Arc<ConceptAncestry<'a>>) {
+    pub fn satisfy(
+        &mut self,
+        preferences: &Vec<Dialect>,
+        ancestry: Arc<ConceptAncestry<'a>>,
+        literals: Arc<RwLock<HashMap<String,
+        Arc<RwLock<StringLiteral>>>>>,
+    ) {
         let root_clone = self.root.clone();
         let mut constraint = self.constraint.write().unwrap();
         let (preamble, call, params, dialect) = constraint
-            .satisfy_given_preference_ordering(root_clone, preferences, ancestry)
+            .satisfy_given_preference_ordering(root_clone, preferences,
+            ancestry, literals)
             .unwrap();
         drop(constraint);
         self.preamble = Some(preamble);
