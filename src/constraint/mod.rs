@@ -6,17 +6,18 @@ use rustpython_parser::ast::{Expression, ExpressionType, Keyword, Located, Locat
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
 use std::fmt;
-use std::rc::Rc;
 
 pub struct StringLiteral {
     value: String,
     object_uuids: HashSet<Uuid>,
+    referenced_by: Option<Box<ArgType>>,
 }
 impl StringLiteral {
     pub fn new(value: String) -> Self {
         Self {
             value,
             object_uuids: HashSet::new(),
+            referenced_by: None,
         }
     }
     pub fn value(&self) -> String {
@@ -28,10 +29,46 @@ impl StringLiteral {
     pub fn register_object(&mut self, uuid: Uuid) {
         self.object_uuids.insert(uuid);
     }
+    pub fn set_referenced_by(&mut self, obj: Box<ArgType>) {
+        self.referenced_by = Some(obj);
+    }
+    pub fn expression(&self, location: Location) -> Expression {
+        if let Some(ref val) = self.referenced_by {
+            return val.expression(location);
+        }
+        let value;
+        if self.value.len() <= 60 {
+            value = StringGroup::Constant {
+                value: self.value.clone(),
+            };
+        } else {
+            let mut splits = self
+                .value
+                .split(",")
+                .map(|x| x.to_string())
+                .collect::<Vec<String>>()
+                .into_iter();
+            let mut acc: String = splits.next().unwrap();
+            let mut values: Vec<StringGroup> = Vec::new();
+            for split in splits {
+                if acc.len() + split.len() + 1 >= 60 {
+                    values.push(StringGroup::Constant { value: acc.clone() });
+                    acc = "".to_string();
+                }
+                acc += ",";
+                acc += &split;
+            }
+            value = StringGroup::Joined { values };
+        }
+        Located {
+            location,
+            node: ExpressionType::String { value },
+        }
+    }
 }
 
 #[derive(Clone)]
-enum ArgType {
+pub enum ArgType {
     StringLiteral(Arc<RwLock<StringLiteral>>),
     SimpleIdentifier(String),
     Subscript(Box<ArgType>, Box<ArgType>),
@@ -47,39 +84,10 @@ impl ArgType {
     }
 }
 
-
 impl ArgType {
     pub fn expression(&self, location: Location) -> Expression {
         match &self {
-            ArgType::StringLiteral(v) => {
-                let value;
-                if v.read().unwrap().len() <= 60 {
-                    value = StringGroup::Constant { value: v.read().unwrap().value() };
-                } else {
-                    let mut splits = v
-                        .read().unwrap()
-                        .value()
-                        .split(",")
-                        .map(|x| x.to_string())
-                        .collect::<Vec<String>>()
-                        .into_iter();
-                    let mut acc: String = splits.next().unwrap();
-                    let mut values: Vec<StringGroup> = Vec::new();
-                    for split in splits {
-                        if acc.len() + split.len() + 1 >= 60 {
-                            values.push(StringGroup::Constant { value: acc.clone() });
-                            acc = "".to_string();
-                        }
-                        acc += ",";
-                        acc += &split;
-                    }
-                    value = StringGroup::Joined { values };
-                }
-                Located {
-                    location,
-                    node: ExpressionType::String { value },
-                }
-            }
+            ArgType::StringLiteral(v) => v.read().unwrap().expression(location),
             ArgType::SimpleIdentifier(ref name) => Located {
                 location,
                 node: ExpressionType::Identifier { name: name.clone() },
@@ -133,10 +141,10 @@ impl ParameterTuple {
             .into_iter()
             .map(|x| {
                 ArgType::StringLiteral(
-                write
-                    .entry(x.clone())
-                    .or_insert(Arc::new(RwLock::new(StringLiteral::new(x))))
-                    .clone(),
+                    write
+                        .entry(x.clone())
+                        .or_insert(Arc::new(RwLock::new(StringLiteral::new(x))))
+                        .clone(),
                 )
             })
             .collect::<Vec<_>>();
@@ -146,10 +154,10 @@ impl ParameterTuple {
                 (
                     k,
                     ArgType::StringLiteral(
-                    write
-                        .entry(v.clone())
-                        .or_insert(Arc::new(RwLock::new(StringLiteral::new(v))))
-                        .clone(),
+                        write
+                            .entry(v.clone())
+                            .or_insert(Arc::new(RwLock::new(StringLiteral::new(v))))
+                            .clone(),
                     ),
                 )
             })
@@ -157,7 +165,11 @@ impl ParameterTuple {
         for arg in args.iter_mut() {
             arg.register_object(object_uuid.clone());
         }
-        Self { object_uuid, args, kwargs }
+        Self {
+            object_uuid,
+            args,
+            kwargs,
+        }
     }
     fn get_args_literals(&self, location: Location) -> Vec<Expression> {
         let args = self
