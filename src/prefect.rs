@@ -675,8 +675,27 @@ pub enum PrefectRender<'a> {
 impl<'a> PrefectRender<'a> {
     pub fn render(&'a self, location: Location, literals: LiteralsMap) {
         let singletons = self.get_singletons(literals);
-        //let singletons_hash =
-        //singletons.clone().into_iter().collect::<HashSet<_>>();
+        let singletons_deconstructed = singletons
+            .clone()
+            .into_iter()
+            .map(|(k, v)| (k, v.deconstruct()))
+            .filter(|x| x.1.is_some())
+            .map(|x| (x.0, x.1.unwrap()))
+            .collect::<Vec<_>>();
+        let singletons_hash = singletons_deconstructed
+            .iter()
+            .map(|(_, (collector, _, creation, addition))| {
+                (collector.clone(), creation.clone(), addition.clone())
+            })
+            .collect::<HashSet<_>>();
+        println!(
+            "{} {}",
+            singletons_hash.len(),
+            singletons_deconstructed.len()
+        );
+        if singletons_hash.len() == 1 && singletons_deconstructed.len() > 1 {
+            println!("Opportunity to merge below: ");
+        }
         for singleton in singletons.into_iter() {
             print!(
                 "{}\n",

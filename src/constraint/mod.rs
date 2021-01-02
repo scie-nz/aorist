@@ -11,7 +11,7 @@ use std::collections::{BTreeSet, HashMap};
 use std::fmt;
 use std::hash::{Hash, Hasher};
 
-#[derive(Hash, PartialEq)]
+#[derive(Hash, PartialEq, Eq)]
 pub struct StringLiteral {
     value: String,
     // TODO: replace with LinkedHashMap<Uuid, BTreeSet>
@@ -115,50 +115,36 @@ impl ArgType {
             Self::Call(..) => "Call",
             Self::Attribute(..) => "Attribute",
             Self::List(..) => "List",
-        }.to_string()
+        }
+        .to_string()
     }
 }
 impl PartialEq for ArgType {
     fn eq(&self, other: &Self) -> bool {
         match (&self, other) {
-            (
-                ArgType::StringLiteral(v1),
-                ArgType::StringLiteral(v2),
-            ) => v1.read().unwrap().eq(&v2.read().unwrap()),
-            (
-                ArgType::SimpleIdentifier(v1),
-                ArgType::SimpleIdentifier(v2),
-            ) => v1.eq(v2),
-            (
-                ArgType::Formatted(fmt1, kw1),
-                ArgType::Formatted(fmt2, kw2),
-            ) => fmt1.eq(fmt2) && kw1.eq(kw2),
-            (
-                ArgType::Subscript(a1, b1),
-                ArgType::Subscript(a2, b2),
-            ) => a1.eq(a2) && b1.eq(b2),
-            (
-                ArgType::Call(f1, args1, kw1),
-                ArgType::Call(f2, args2, kw2),
-            ) => f1.eq(f2) && args1.eq(args2) && kw1.eq(kw2),
-            (
-                ArgType::Attribute(a1, b1),
-                ArgType::Attribute(a2, b2),
-            ) => a1.eq(a2) && b1.eq(b2),
-            (
-                ArgType::List(v1),
-                ArgType::List(v2),
-            ) => v1.eq(v2),
+            (ArgType::StringLiteral(v1), ArgType::StringLiteral(v2)) => {
+                v1.read().unwrap().eq(&v2.read().unwrap())
+            }
+            (ArgType::SimpleIdentifier(v1), ArgType::SimpleIdentifier(v2)) => v1.eq(v2),
+            (ArgType::Formatted(fmt1, kw1), ArgType::Formatted(fmt2, kw2)) => {
+                fmt1.eq(fmt2) && kw1.eq(kw2)
+            }
+            (ArgType::Subscript(a1, b1), ArgType::Subscript(a2, b2)) => a1.eq(a2) && b1.eq(b2),
+            (ArgType::Call(f1, args1, kw1), ArgType::Call(f2, args2, kw2)) => {
+                f1.eq(f2) && args1.eq(args2) && kw1.eq(kw2)
+            }
+            (ArgType::Attribute(a1, b1), ArgType::Attribute(a2, b2)) => a1.eq(a2) && b1.eq(b2),
+            (ArgType::List(v1), ArgType::List(v2)) => v1.eq(v2),
             _ => {
                 if self.name() == other.name() {
-                    panic!(format!("PartialEq not implemented for {}",
-                    self.name()))
+                    panic!(format!("PartialEq not implemented for {}", self.name()))
                 }
                 false
             }
         }
     }
 }
+impl Eq for ArgType {}
 impl Hash for ArgType {
     fn hash<H: Hasher>(&self, state: &mut H) {
         match &self {
@@ -268,7 +254,7 @@ impl ArgType {
     }
 }
 
-#[derive(Clone, Hash, PartialEq)]
+#[derive(Clone, Hash, PartialEq, Eq)]
 pub enum AoristStatement {
     Assign(ArgType, ArgType),
     Expression(ArgType),

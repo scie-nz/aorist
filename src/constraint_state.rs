@@ -32,13 +32,33 @@ pub struct ConstraintState<'a> {
     //task_val_fn: Option<Box<dyn Fn(Location, String) -> Expression>>,
 }
 
-#[derive(Clone, Hash)]
+#[derive(Clone, Hash, PartialEq, Eq)]
 pub struct PrefectSingleton {
     task_val: ArgType,
     task_creation: ArgType,
     flow_addition: Vec<AoristStatement>,
 }
 impl PrefectSingleton {
+    pub fn get_task_val(&self) -> ArgType {
+        self.task_val.clone()
+    }
+    pub fn get_task_creation(&self) -> ArgType {
+        self.task_creation.clone()
+    }
+    pub fn get_flow_addition(&self) -> Vec<AoristStatement> {
+        self.flow_addition.clone()
+    }
+    pub fn deconstruct(&self) -> Option<(ArgType, ArgType, ArgType, Vec<AoristStatement>)> {
+        if let ArgType::Subscript(box ref a, box ref b) = self.task_val {
+            return Some((
+                a.clone(),
+                b.clone(),
+                self.get_task_creation().clone(),
+                self.get_flow_addition().clone(),
+            ));
+        }
+        None
+    }
     pub fn new(
         task_val: ArgType,
         task_creation: ArgType,
