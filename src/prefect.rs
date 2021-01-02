@@ -360,15 +360,6 @@ pub trait PrefectTaskRender<'a> {
         }
         joint_args.into_iter().map(|x| x.unwrap()).collect()
     }
-    fn render(&self, location: Location, literals: LiteralsMap) {
-        let singletons = self.get_singletons(literals);
-        for singleton in singletons.into_iter() {
-            print!(
-                "{}\n",
-                PrefectProgram::render_suite(singleton.1.as_suite(location)).unwrap()
-            );
-        }
-    }
     fn render_ids(ids: Vec<Arc<RwLock<ConstraintState<'a>>>>) -> String {
         ids.iter()
             .map(|x| format!("'{}'", x.read().unwrap().get_task_name()).to_string())
@@ -683,10 +674,19 @@ pub enum PrefectRender<'a> {
 }
 impl<'a> PrefectRender<'a> {
     pub fn render(&'a self, location: Location, literals: LiteralsMap) {
+        let singletons = self.get_singletons(literals);
+        for singleton in singletons.into_iter() {
+            print!(
+                "{}\n",
+                PrefectProgram::render_suite(singleton.1.as_suite(location)).unwrap()
+            );
+        }
+    }
+    pub fn get_singletons(&self, literals: LiteralsMap) -> HashMap<String, PrefectSingleton> {
         match &self {
-            PrefectRender::Python(x) => x.render(location, literals),
-            PrefectRender::Shell(x) => x.render(location, literals),
-            PrefectRender::Constant(x) => x.render(location, literals),
+            PrefectRender::Python(x) => x.get_singletons(literals),
+            PrefectRender::Shell(x) => x.get_singletons(literals),
+            PrefectRender::Constant(x) => x.get_singletons(literals),
         }
     }
     pub fn register_literals(

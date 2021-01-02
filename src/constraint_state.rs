@@ -33,18 +33,25 @@ pub struct ConstraintState<'a> {
 }
 
 pub struct PrefectSingleton {
-    task_creation: AoristStatement,
+    task_val: ArgType,
+    task_creation: ArgType,
     flow_addition: Vec<AoristStatement>,
 }
 impl PrefectSingleton {
-    pub fn new(task_creation: AoristStatement, flow_addition: Vec<AoristStatement>) -> Self {
+    pub fn new(
+        task_val: ArgType,
+        task_creation: ArgType,
+        flow_addition: Vec<AoristStatement>,
+    ) -> Self {
         Self {
+            task_val,
             task_creation,
             flow_addition,
         }
     }
     pub fn as_suite(self, location: Location) -> Suite {
-        let mut stmts = vec![self.task_creation];
+        let task_creation = AoristStatement::Assign(self.task_val, self.task_creation);
+        let mut stmts = vec![task_creation];
         for stmt in self.flow_addition {
             stmts.push(stmt);
         }
@@ -57,10 +64,11 @@ impl PrefectSingleton {
 
 impl<'a> ConstraintState<'a> {
     pub fn get_prefect_singleton(&self, literals: LiteralsMap) -> Result<PrefectSingleton, String> {
-        Ok(PrefectSingleton {
-            task_creation: self.get_task_statement(literals)?,
-            flow_addition: self.get_flow_addition_statements(),
-        })
+        Ok(PrefectSingleton::new(
+            self.get_task_val(),
+            self.get_task_creation_expr(literals)?,
+            self.get_flow_addition_statements(),
+        ))
     }
     pub fn get_dep_ident(&self, location: Location) -> Expression {
         Located {
@@ -203,12 +211,6 @@ impl<'a> ConstraintState<'a> {
             )),
             _ => Err("Dialect not supported".to_string()),
         }
-    }
-    pub fn get_task_statement(&self, literals: LiteralsMap) -> Result<AoristStatement, String> {
-        Ok(AoristStatement::Assign(
-            self.get_task_val(),
-            self.get_task_creation_expr(literals)?,
-        ))
     }
     pub fn set_task_name(&mut self, name: String) {
         self.task_name = Some(name)
