@@ -171,22 +171,13 @@ impl<'a> ConstraintState<'a> {
         let function = ArgType::Attribute(
             Box::new(ArgType::SimpleIdentifier("flow".to_string())),
             "add_node".to_string(),
-        )
-        .expression(location);
-        let add_expr = Located {
-            location,
-            node: ExpressionType::Call {
-                function: Box::new(function),
-                args: vec![self.get_task_val().expression(location)],
-                keywords: Vec::new(),
-            },
-        };
-        let mut statements = vec![Located {
-            location,
-            node: StatementType::Expression {
-                expression: add_expr,
-            },
-        }];
+        );
+        let add_expr = ArgType::Call(
+            Box::new(function),
+            vec![self.get_task_val()],
+            HashMap::new(),
+        );
+        let mut statements = vec![AoristStatement::Expression(add_expr).statement(location)];
 
         if deps.len() == 1 {
             let dep = deps.into_iter().next().unwrap();
