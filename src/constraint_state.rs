@@ -168,15 +168,7 @@ impl<'a> ConstraintState<'a> {
             let add_stmt = self.get_flow_add_edge_statement(location, dep);
             statements.push(add_stmt);
         } else if deps.len() > 1 {
-            let dep_list = Located {
-                location,
-                node: ExpressionType::List {
-                    elements: deps
-                        .into_iter()
-                        .map(|x| x.expression(location))
-                        .collect::<Vec<_>>(),
-                },
-            };
+            let dep_list = ArgType::List(deps);
             let target = ArgType::SimpleIdentifier("dep".to_string());
             let add_stmt_suite = vec![self.get_flow_add_edge_statement(location, target.clone())];
             let for_stmt = Located {
@@ -184,7 +176,7 @@ impl<'a> ConstraintState<'a> {
                 node: StatementType::For {
                     is_async: false,
                     target: Box::new(target.clone().expression(location)),
-                    iter: Box::new(dep_list),
+                    iter: Box::new(dep_list.expression(location)),
                     body: add_stmt_suite,
                     orelse: None,
                 },

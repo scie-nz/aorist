@@ -89,6 +89,7 @@ pub enum ArgType {
     Formatted(Box<ArgType>, HashMap<String, ArgType>),
     Call(Box<ArgType>, Vec<ArgType>, HashMap<String, ArgType>),
     Attribute(Box<ArgType>, String),
+    List(Vec<ArgType>),
 }
 impl ArgType {
     pub fn register_object(&mut self, uuid: Uuid, tag: Option<String>) {
@@ -157,6 +158,15 @@ impl ArgType {
                 node: ExpressionType::Attribute {
                     value: Box::new(value.expression(location)),
                     name: name.clone(),
+                },
+            },
+            ArgType::List(ref elems) => Located {
+                location,
+                node: ExpressionType::List {
+                    elements: elems
+                        .iter()
+                        .map(|x| x.expression(location))
+                        .collect::<Vec<_>>(),
                 },
             },
         }
