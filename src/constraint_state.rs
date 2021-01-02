@@ -132,35 +132,16 @@ impl<'a> ConstraintState<'a> {
         self.task_val.as_ref().unwrap().clone()
     }
     fn get_flow_add_edge_statement(&self, location: Location, dep: ArgType) -> Statement {
-        let add_edge_fn = Located {
-            location,
-            node: ExpressionType::Attribute {
-                value: Box::new(Located {
-                    location,
-                    node: ExpressionType::Identifier {
-                        name: "flow".to_string(),
-                    },
-                }),
-                name: "add_edge".to_string(),
-            },
-        };
-        let add_edge = Located {
-            location,
-            node: ExpressionType::Call {
-                function: Box::new(add_edge_fn),
-                args: vec![
-                    dep.expression(location),
-                    self.get_task_val().expression(location),
-                ],
-                keywords: Vec::new(),
-            },
-        };
-        Located {
-            location,
-            node: StatementType::Expression {
-                expression: add_edge,
-            },
-        }
+        let function = ArgType::Attribute(
+            Box::new(ArgType::SimpleIdentifier("flow".to_string())),
+            "add_edge".to_string(),
+        );
+        let add_expr = ArgType::Call(
+            Box::new(function),
+            vec![self.get_task_val(), dep],
+            HashMap::new(),
+        );
+        AoristStatement::Expression(add_expr).statement(location)
     }
     pub fn get_flow_addition_statements(&self, location: Location) -> Vec<Statement> {
         let deps = self
