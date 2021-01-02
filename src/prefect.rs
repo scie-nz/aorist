@@ -1,5 +1,5 @@
 #![allow(dead_code)]
-use crate::constraint::{LiteralsMap, StringLiteral, ArgType};
+use crate::constraint::{ArgType, LiteralsMap, StringLiteral};
 use crate::constraint_state::{ConstraintState, PrefectSingleton};
 use aorist_primitives::Dialect;
 use indoc::formatdoc;
@@ -306,18 +306,14 @@ pub trait PrefectTaskRender<'a> {
             let name = write.get_task_name();
             // TODO: magic number
             if num_constraints <= 2 {
-                write.set_task_val(
-                    ArgType::SimpleIdentifier(name)
-                );
+                write.set_task_val(ArgType::SimpleIdentifier(name));
             } else {
-                write.set_task_val(
-                    ArgType::Subscript(
-                        Box::new(ArgType::SimpleIdentifier("tasks".to_string())),
-                        Box::new(ArgType::StringLiteral(
-                            Arc::new(RwLock::new(StringLiteral::new(name)))
-                        )),
-                    )
-                );
+                write.set_task_val(ArgType::Subscript(
+                    Box::new(ArgType::SimpleIdentifier("tasks".to_string())),
+                    Box::new(ArgType::StringLiteral(Arc::new(RwLock::new(
+                        StringLiteral::new(name),
+                    )))),
+                ));
             }
         }
         let singletons = self

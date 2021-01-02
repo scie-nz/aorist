@@ -2,7 +2,8 @@ use crate::concept::{AoristConcept, Concept, ConceptAncestry};
 use crate::object::TAoristObject;
 use aorist_primitives::{define_constraint, register_constraint, Dialect};
 use maplit::hashmap;
-use rustpython_parser::ast::{Expression, ExpressionType, Keyword, Located, Location, StringGroup};
+use rustpython_parser::ast::{Expression, ExpressionType, Keyword, Located,
+Location, StringGroup, Statement, StatementType};
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
 use std::fmt;
@@ -152,6 +153,35 @@ impl ArgType {
         }
     }
 }
+
+#[derive(Clone)]
+pub enum AoristStatement {
+    Assign(ArgType, ArgType),
+    Expression(ArgType),
+}
+impl AoristStatement {
+    pub fn statement(&self, location: Location) -> Statement {
+        match &self {
+            Self::Assign(target, call) => {
+                let assign = StatementType::Assign {
+                    targets: vec![target.expression(location)],
+                    value: call.expression(location),
+                };
+                Located {
+                    location,
+                    node: assign,
+                }
+            }
+            Self::Expression(expr) => Located {
+                location,
+                node: StatementType::Expression {
+                    expression: expr.expression(location),
+                }
+            },
+        }
+    }
+}
+
 #[derive(Clone)]
 pub struct ParameterTuple {
     object_uuid: Uuid,

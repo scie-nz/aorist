@@ -1,6 +1,7 @@
 use crate::concept::{Concept, ConceptAncestry};
 use crate::constraint::{
     AllConstraintsSatisfiability, ArgType, Constraint, LiteralsMap, ParameterTuple, StringLiteral,
+    AoristStatement,
 };
 use crate::object::TAoristObject;
 use aorist_primitives::Dialect;
@@ -304,15 +305,12 @@ impl<'a> ConstraintState<'a> {
         location: Location,
         literals: LiteralsMap,
     ) -> Result<Statement, String> {
-        let val = self.get_task_val().expression(location);
-        let assign = StatementType::Assign {
-            targets: vec![val],
-            value: self.get_task_creation_expr(literals)?.expression(location),
-        };
-        Ok(Located {
-            location,
-            node: assign,
-        })
+        Ok(
+            AoristStatement::Assign(
+                self.get_task_val(),
+                self.get_task_creation_expr(literals)?
+            ).statement(location)
+        )
     }
     pub fn set_task_name(&mut self, name: String) {
         self.task_name = Some(name)
