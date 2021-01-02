@@ -1,5 +1,5 @@
 #![allow(dead_code)]
-use crate::constraint::{LiteralsMap, StringLiteral};
+use crate::constraint::{LiteralsMap, StringLiteral, ArgType};
 use crate::constraint_state::{ConstraintState, PrefectSingleton};
 use aorist_primitives::Dialect;
 use indoc::formatdoc;
@@ -303,36 +303,21 @@ pub trait PrefectTaskRender<'a> {
         let num_constraints = self.get_constraints().len();
         for rw in self.get_constraints() {
             let mut write = rw.write().unwrap();
+            let name = write.get_task_name();
             // TODO: magic number
             if num_constraints <= 2 {
-                let fun = Box::new(|location, name| Located {
-                    location,
-                    node: ExpressionType::Identifier { name },
-                });
-                write.set_task_val_fn(fun);
+                write.set_task_val(
+                    ArgType::SimpleIdentifier(name)
+                );
             } else {
-                let fun = Box::new(|location, name| {
-                    let outer = Located {
-                        location,
-                        node: ExpressionType::Identifier {
-                            name: "tasks".to_string(),
-                        },
-                    };
-                    let inner = Located {
-                        location,
-                        node: ExpressionType::String {
-                            value: StringGroup::Constant { value: name },
-                        },
-                    };
-                    Located {
-                        location,
-                        node: ExpressionType::Subscript {
-                            a: Box::new(outer),
-                            b: Box::new(inner),
-                        },
-                    }
-                });
-                write.set_task_val_fn(fun);
+                write.set_task_val(
+                    ArgType::Subscript(
+                        Box::new(ArgType::SimpleIdentifier("tasks".to_string())),
+                        Box::new(ArgType::StringLiteral(
+                            Arc::new(RwLock::new(StringLiteral::new(name)))
+                        )),
+                    )
+                );
             }
         }
         let singletons = self

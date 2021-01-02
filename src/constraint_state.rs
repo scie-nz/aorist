@@ -28,7 +28,8 @@ pub struct ConstraintState<'a> {
     call: Option<String>,
     params: Option<ParameterTuple>,
     task_name: Option<String>,
-    task_val_fn: Option<Box<dyn Fn(Location, String) -> Expression>>,
+    task_val: Option<ArgType>,
+    //task_val_fn: Option<Box<dyn Fn(Location, String) -> Expression>>,
 }
 
 pub struct PrefectSingleton {
@@ -123,11 +124,11 @@ impl<'a> ConstraintState<'a> {
             },
         }
     }
-    pub fn get_task_val(&self, location: Location) -> Expression {
-        (self.task_val_fn.as_ref().unwrap())(location, self.get_task_name())
+    pub fn set_task_val(&mut self, val: ArgType) {
+        self.task_val = Some(val);
     }
-    pub fn set_task_val_fn(&mut self, fun: Box<dyn Fn(Location, String) -> Expression>) {
-        self.task_val_fn = Some(fun);
+    pub fn get_task_val(&self) -> ArgType {
+        self.task_val.as_ref().unwrap().clone()
     }
     fn get_flow_add_edge_statement(&self, location: Location, dep: Expression) -> Statement {
         let add_edge_fn = Located {
@@ -146,7 +147,7 @@ impl<'a> ConstraintState<'a> {
             location,
             node: ExpressionType::Call {
                 function: Box::new(add_edge_fn),
-                args: vec![dep, self.get_task_val(location)],
+                args: vec![dep, self.get_task_val().expression(location)],
                 keywords: Vec::new(),
             },
         };
@@ -163,7 +164,7 @@ impl<'a> ConstraintState<'a> {
             .iter()
             .map(|rw| {
                 let x = rw.read().unwrap();
-                x.get_task_val(location)
+                x.get_task_val().expression(location)
             })
             .collect::<Vec<Expression>>();
         let function = Located {
@@ -182,7 +183,7 @@ impl<'a> ConstraintState<'a> {
             location,
             node: ExpressionType::Call {
                 function: Box::new(function),
-                args: vec![self.get_task_val(location)],
+                args: vec![self.get_task_val().expression(location)],
                 keywords: Vec::new(),
             },
         };
@@ -218,11 +219,7 @@ impl<'a> ConstraintState<'a> {
         }
         statements
     }
-    fn get_task_creation_expr(
-        &self,
-        location: Location,
-        literals: LiteralsMap,
-    ) -> Result<Expression, String> {
+    fn get_task_creation_expr(&self, literals: LiteralsMap) -> Result<ArgType, String> {
         match self.dialect {
             Some(Dialect::Python(_)) => Ok(ArgType::Call(
                 Box::new(ArgType::SimpleIdentifier(self.get_call().unwrap())),
@@ -234,8 +231,7 @@ impl<'a> ConstraintState<'a> {
                     Some(ref p) => p.get_kwargs(),
                     None => HashMap::new(),
                 },
-            )
-            .expression(location)),
+            )),
             Some(Dialect::Presto(_)) => {
                 /*let query = self
                     .params
@@ -268,8 +264,7 @@ impl<'a> ConstraintState<'a> {
                     Box::new(ArgType::SimpleIdentifier("ShellTask".to_string())),
                     Vec::new(),
                     keywords,
-                )
-                .expression(location))
+                ))
             }
             Some(Dialect::Bash(_)) => {
                 let format_string = literals
@@ -292,8 +287,7 @@ impl<'a> ConstraintState<'a> {
                     Box::new(ArgType::SimpleIdentifier("ShellTask".to_string())),
                     Vec::new(),
                     keywords,
-                )
-                .expression(location))
+                ))
             }
             None => Ok(ArgType::Call(
                 Box::new(ArgType::SimpleIdentifier("ConstantTask".to_string())),
@@ -301,8 +295,7 @@ impl<'a> ConstraintState<'a> {
                     StringLiteral::new(self.constraint.read().unwrap().get_name().clone()),
                 )))],
                 HashMap::new(),
-            )
-            .expression(location)),
+            )),
             _ => Err("Dialect not supported".to_string()),
         }
     }
@@ -311,10 +304,10 @@ impl<'a> ConstraintState<'a> {
         location: Location,
         literals: LiteralsMap,
     ) -> Result<Statement, String> {
-        let val = self.get_task_val(location);
+        let val = self.get_task_val().expression(location);
         let assign = StatementType::Assign {
             targets: vec![val],
-            value: self.get_task_creation_expr(location, literals)?,
+            value: self.get_task_creation_expr(literals)?.expression(location),
         };
         Ok(Located {
             location,
@@ -421,7 +414,7 @@ impl<'a> ConstraintState<'a> {
             call: None,
             params: None,
             task_name: None,
-            task_val_fn: None,
+            task_val: None,
         }
     }
     pub fn compute_task_name(
