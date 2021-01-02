@@ -6,9 +6,7 @@ use crate::constraint::{
 use crate::object::TAoristObject;
 use aorist_primitives::Dialect;
 use inflector::cases::snakecase::to_snake_case;
-use rustpython_parser::ast::{
-    Expression, ExpressionType, Keyword, Located, Location, Statement, StatementType, Suite,
-};
+use rustpython_parser::ast::{Expression, ExpressionType, Located, Location, Statement, Suite};
 use std::collections::{HashMap, HashSet};
 use std::sync::{Arc, RwLock};
 use uuid::Uuid;
@@ -43,59 +41,6 @@ impl PrefectSingleton {
             task_creation,
             flow_addition,
         }
-    }
-    pub fn get_call_name(&self) -> Result<String, String> {
-        if let Located {
-            node: StatementType::Assign { ref value, .. },
-            ..
-        } = self.task_creation
-        {
-            if let Located {
-                node: ExpressionType::Call { box function, .. },
-                ..
-            } = value
-            {
-                if let Located {
-                    node: ExpressionType::Identifier { name },
-                    ..
-                } = function
-                {
-                    return Ok(name.clone());
-                }
-                return Err("Call on RHS of task creation not made against identifier".to_string());
-            }
-            return Err("Right-hand side of task creation not call.".to_string());
-        }
-        Err("Task creation statement is not assignment.".to_string())
-    }
-    // swaps parameters for starred and double-starred sets of args and kwargs
-    pub fn swap_params(
-        &mut self,
-        mut starred: Vec<Expression>,
-        mut double_starred: Vec<Keyword>,
-    ) -> Result<(Vec<Expression>, Vec<Keyword>), String> {
-        if let Located {
-            node: StatementType::Assign { ref mut value, .. },
-            ..
-        } = self.task_creation
-        {
-            if let Located {
-                node:
-                    ExpressionType::Call {
-                        ref mut args,
-                        ref mut keywords,
-                        ..
-                    },
-                ..
-            } = value
-            {
-                std::mem::swap(args, &mut starred);
-                std::mem::swap(keywords, &mut double_starred);
-                return Ok((starred, double_starred));
-            }
-            return Err("Right-hand side of task creation not call.".to_string());
-        }
-        Err("Task creation statement is not assignment.".to_string())
     }
     pub fn as_suite(self) -> Suite {
         let mut stmts = vec![self.task_creation];
@@ -263,10 +208,7 @@ impl<'a> ConstraintState<'a> {
             _ => Err("Dialect not supported".to_string()),
         }
     }
-    pub fn get_task_statement(
-        &self,
-        literals: LiteralsMap,
-    ) -> Result<AoristStatement, String> {
+    pub fn get_task_statement(&self, literals: LiteralsMap) -> Result<AoristStatement, String> {
         Ok(AoristStatement::Assign(
             self.get_task_val(),
             self.get_task_creation_expr(literals)?,
