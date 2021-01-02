@@ -1,8 +1,9 @@
 #![allow(dead_code)]
-use crate::constraint::{ArgType, LiteralsMap, StringLiteral};
+use crate::constraint::{ArgType, LiteralsMap, StringLiteral, AoristStatement};
 use crate::constraint_state::{ConstraintState, PrefectSingleton};
 use aorist_primitives::Dialect;
 use indoc::formatdoc;
+use linked_hash_map::LinkedHashMap;
 use rustpython_parser::ast::{
     Expression, ExpressionType, Keyword, Located, Location, Program, Statement, StatementType,
     StringGroup, Suite, WithItem,
@@ -683,7 +684,7 @@ impl<'a> PrefectRender<'a> {
             .map(|x| (x.0, x.1.unwrap()))
             .collect::<Vec<_>>();
         let mut singletons_hash: HashMap<_, Vec<_>> = HashMap::new();
-        for (task_name, (collector, _, creation, _, edge_addition)) in &singletons_deconstructed {
+        for (_, (collector, task_name, creation, _, edge_addition)) in &singletons_deconstructed {
             let key = (collector.clone(), creation.clone(), edge_addition.clone());
             // TODO: assert that task_name is the same as the 2nd value in the
             // tuple (when unpacked)
@@ -698,14 +699,29 @@ impl<'a> PrefectRender<'a> {
             singletons_deconstructed.len()
         );
         if singletons_deconstructed.len() > 1 {
-            for (k, v) in singletons_hash {
+            for ((collector, creation, edge_addition), v) in singletons_hash {
+                // TODO: magic number
                 if v.len() >= 3 {
+                    let ident = ArgType::SimpleIdentifier("t".to_string());
+                    let new_collector = ArgType::Subscript(Box::new(collector), Box::new(ident));
+                    let function = ArgType::Attribute(
+                        Box::new(ArgType::SimpleIdentifier("flow".to_string())),
+                        "add_node".to_string(),
+                    );
+                    let add_expr = ArgType::Call(
+                        Box::new(function),
+                        vec![new_collector.clone()],
+                        LinkedHashMap::new(),
+                    );
+                    let new_singleton = PrefectSingleton::new(
+                        new_collector,
+                        creation,
+                        AoristStatement::Expression(add_expr),
+                        edge_addition,
+                    );
                     println!(
-                        "Opportunity to merge for: {}",
-                        v.iter()
-                            .map(|x| x.to_string())
-                            .collect::<Vec<String>>()
-                            .join(", ")
+                        "Joint singleton: \n {} \n",
+                        PrefectProgram::render_suite(new_singleton.as_suite(location)).unwrap()
                     );
                 }
             }
