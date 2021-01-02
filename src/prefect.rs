@@ -246,10 +246,7 @@ pub trait PrefectTaskRender<'a> {
             })
             .collect()
     }
-    fn get_singletons(
-        &self,
-        literals: LiteralsMap,
-    ) -> HashMap<String, PrefectSingleton> {
+    fn get_singletons(&self, literals: LiteralsMap) -> HashMap<String, PrefectSingleton> {
         let num_constraints = self.get_constraints().len();
         for rw in self.get_constraints() {
             let mut write = rw.write().unwrap();

@@ -482,7 +482,7 @@ spec:
                 .next().unwrap();
             let attr_map = attr_v.iter()
                 .map(|x| (x.get_name().clone(), x.get_orc_type()))
-                .collect::<HashMap<String, String>>();
+                .collect::<LinkedHashMap<String, String>>();
             let attr_types = attributes.iter().map(
                 |x| format!(
                     "{}:{}",

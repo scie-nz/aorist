@@ -6,6 +6,7 @@ use crate::constraint::{
 use crate::object::TAoristObject;
 use aorist_primitives::Dialect;
 use inflector::cases::snakecase::to_snake_case;
+use linked_hash_map::LinkedHashMap;
 use rustpython_parser::ast::{Expression, ExpressionType, Located, Location, Suite};
 use std::collections::{HashMap, HashSet};
 use std::sync::{Arc, RwLock};
@@ -55,10 +56,7 @@ impl PrefectSingleton {
 }
 
 impl<'a> ConstraintState<'a> {
-    pub fn get_prefect_singleton(
-        &self,
-        literals: LiteralsMap,
-    ) -> Result<PrefectSingleton, String> {
+    pub fn get_prefect_singleton(&self, literals: LiteralsMap) -> Result<PrefectSingleton, String> {
         Ok(PrefectSingleton {
             task_creation: self.get_task_statement(literals)?,
             flow_addition: self.get_flow_addition_statements(),
@@ -86,7 +84,7 @@ impl<'a> ConstraintState<'a> {
         let add_expr = ArgType::Call(
             Box::new(function),
             vec![self.get_task_val(), dep],
-            HashMap::new(),
+            LinkedHashMap::new(),
         );
         AoristStatement::Expression(add_expr)
     }
@@ -106,7 +104,7 @@ impl<'a> ConstraintState<'a> {
         let add_expr = ArgType::Call(
             Box::new(function),
             vec![self.get_task_val()],
-            HashMap::new(),
+            LinkedHashMap::new(),
         );
         let mut statements = vec![AoristStatement::Expression(add_expr)];
 
@@ -136,7 +134,7 @@ impl<'a> ConstraintState<'a> {
                 },
                 match self.params {
                     Some(ref p) => p.get_kwargs(),
-                    None => HashMap::new(),
+                    None => LinkedHashMap::new(),
                 },
             )),
             Some(Dialect::Presto(_)) => {
@@ -165,7 +163,7 @@ impl<'a> ConstraintState<'a> {
                     ),
                     None => ArgType::StringLiteral(format_string),
                 };
-                let mut keywords: HashMap<String, ArgType> = HashMap::new();
+                let mut keywords: LinkedHashMap<String, ArgType> = LinkedHashMap::new();
                 keywords.insert("command".to_string(), command);
                 Ok(ArgType::Call(
                     Box::new(ArgType::SimpleIdentifier("ShellTask".to_string())),
@@ -187,7 +185,7 @@ impl<'a> ConstraintState<'a> {
                     ),
                     None => ArgType::StringLiteral(format_string),
                 };
-                let mut keywords: HashMap<String, ArgType> = HashMap::new();
+                let mut keywords: LinkedHashMap<String, ArgType> = LinkedHashMap::new();
                 keywords.insert("command".to_string(), command);
 
                 Ok(ArgType::Call(
@@ -201,7 +199,7 @@ impl<'a> ConstraintState<'a> {
                 vec![ArgType::StringLiteral(Arc::new(RwLock::new(
                     StringLiteral::new(self.constraint.read().unwrap().get_name().clone()),
                 )))],
-                HashMap::new(),
+                LinkedHashMap::new(),
             )),
             _ => Err("Dialect not supported".to_string()),
         }

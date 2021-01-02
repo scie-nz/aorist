@@ -1,24 +1,29 @@
 use crate::concept::{AoristConcept, Concept, ConceptAncestry};
 use crate::object::TAoristObject;
 use aorist_primitives::{define_constraint, register_constraint, Dialect};
+use linked_hash_map::LinkedHashMap;
 use maplit::hashmap;
 use rustpython_parser::ast::{
     Expression, ExpressionType, Keyword, Located, Location, Statement, StatementType, StringGroup,
 };
 use serde::{Deserialize, Serialize};
-use std::collections::{HashMap, HashSet};
+use std::collections::{BTreeSet, HashMap};
 use std::fmt;
+use std::hash::{Hash, Hasher};
 
+#[derive(Hash)]
 pub struct StringLiteral {
     value: String,
-    object_uuids: HashMap<Uuid, HashSet<Option<String>>>,
+    // TODO: replace with LinkedHashMap<Uuid, BTreeSet>
+    object_uuids: LinkedHashMap<Uuid, BTreeSet<Option<String>>>,
     referenced_by: Option<Box<ArgType>>,
 }
+
 impl StringLiteral {
     pub fn new(value: String) -> Self {
         Self {
             value,
-            object_uuids: HashMap::new(),
+            object_uuids: LinkedHashMap::new(),
             referenced_by: None,
         }
     }
@@ -31,13 +36,13 @@ impl StringLiteral {
     pub fn register_object(&mut self, uuid: Uuid, tag: Option<String>) {
         self.object_uuids
             .entry(uuid)
-            .or_insert(HashSet::new())
+            .or_insert(BTreeSet::new())
             .insert(tag);
     }
     pub fn set_referenced_by(&mut self, obj: Box<ArgType>) {
         self.referenced_by = Some(obj);
     }
-    pub fn get_object_uuids(&self) -> &HashMap<Uuid, HashSet<Option<String>>> {
+    pub fn get_object_uuids(&self) -> &LinkedHashMap<Uuid, BTreeSet<Option<String>>> {
         &self.object_uuids
     }
     pub fn is_multiline(&self) -> bool {
@@ -81,13 +86,15 @@ impl StringLiteral {
     }
 }
 pub type LiteralsMap = Arc<RwLock<HashMap<String, Arc<RwLock<StringLiteral>>>>>;
+
+// TODO: replace HashMaps with LinkedHashMaps
 #[derive(Clone)]
 pub enum ArgType {
     StringLiteral(Arc<RwLock<StringLiteral>>),
     SimpleIdentifier(String),
     Subscript(Box<ArgType>, Box<ArgType>),
-    Formatted(Box<ArgType>, HashMap<String, ArgType>),
-    Call(Box<ArgType>, Vec<ArgType>, HashMap<String, ArgType>),
+    Formatted(Box<ArgType>, LinkedHashMap<String, ArgType>),
+    Call(Box<ArgType>, Vec<ArgType>, LinkedHashMap<String, ArgType>),
     Attribute(Box<ArgType>, String),
     List(Vec<ArgType>),
 }
@@ -97,6 +104,42 @@ impl ArgType {
             s.write().unwrap().register_object(uuid, tag);
         } else {
             panic!(".register_object called on non-StringLiteral ArgType.");
+        }
+    }
+}
+impl Hash for ArgType {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        match &self {
+            ArgType::StringLiteral(v) => v.read().unwrap().hash(state),
+            ArgType::SimpleIdentifier(ref name) => name.hash(state),
+            ArgType::Formatted(box ref fmt, ref keywords) => {
+                fmt.hash(state);
+                for keyword in keywords {
+                    keyword.hash(state);
+                }
+            }
+            ArgType::Subscript(box ref a, box ref b) => {
+                a.hash(state);
+                b.hash(state);
+            }
+            ArgType::Call(box ref function, ref args, ref keywords) => {
+                function.hash(state);
+                for arg in args.iter() {
+                    arg.hash(state);
+                }
+                for kwarg in keywords.iter() {
+                    kwarg.hash(state);
+                }
+            }
+            ArgType::Attribute(box ref value, ref name) => {
+                value.hash(state);
+                name.hash(state);
+            }
+            ArgType::List(ref elems) => {
+                for elem in elems.iter() {
+                    elem.hash(state)
+                }
+            }
         }
     }
 }
@@ -219,13 +262,13 @@ impl AoristStatement {
 pub struct ParameterTuple {
     object_uuid: Uuid,
     args: Vec<ArgType>,
-    kwargs: HashMap<String, ArgType>,
+    kwargs: LinkedHashMap<String, ArgType>,
 }
 impl ParameterTuple {
     pub fn new(
         object_uuid: Uuid,
         args_v: Vec<String>,
-        kwargs_v: HashMap<String, String>,
+        kwargs_v: LinkedHashMap<String, String>,
         literals: LiteralsMap,
     ) -> Self {
         // TODO: should be moved into parameter tuple
@@ -254,7 +297,7 @@ impl ParameterTuple {
                     ),
                 )
             })
-            .collect::<HashMap<_, _>>();
+            .collect::<LinkedHashMap<_, _>>();
         for arg in args.iter_mut() {
             arg.register_object(object_uuid.clone(), None);
         }
@@ -270,7 +313,7 @@ impl ParameterTuple {
     pub fn get_args(&self) -> Vec<ArgType> {
         self.args.clone()
     }
-    pub fn get_kwargs(&self) -> HashMap<String, ArgType> {
+    pub fn get_kwargs(&self) -> LinkedHashMap<String, ArgType> {
         self.kwargs.clone()
     }
     fn get_args_literals(&self, location: Location) -> Vec<Expression> {

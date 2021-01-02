@@ -406,14 +406,13 @@ fn main() {
     scope.import("aorist_primitives", "register_programs_for_constraint");
     scope.import("aorist_primitives", "register_satisfiable_constraints");
     scope.import("crate::concept", "ConceptAncestry");
-    scope.import("crate::constraint", "StringLiteral");
     scope.import("crate::constraint", "LiteralsMap");
     scope.import("crate::constraint", "AoristConstraint");
     scope.import("crate::constraint", "ConstraintSatisfactionBase");
     scope.import("crate::constraint", "SatisfiableConstraint");
     scope.import("crate::constraint", "AllConstraintsSatisfiability");
     scope.import("crate::constraint", "ParameterTuple");
-    scope.import("std::collections", "HashMap");
+    scope.import("linked_hash_map", "LinkedHashMap");
     scope.import("crate", "*");
     for (root, constraints) in &by_uses {
         for (constraint, dialects) in constraints {
@@ -470,12 +469,12 @@ fn main() {
                             uuid: Uuid,
                             concept: Concept<'a>, 
                             ancestry: Arc<ConceptAncestry<'a>>,
-                            literals: Arc<RwLock<HashMap<String,
-                            Arc<RwLock<StringLiteral>>>>>,
+                            literals: LiteralsMap, 
                         | {{ 
                             {objects}
                             let args = vec![{params}];
-                            let {mut_kw}kwargs: HashMap<String, String> = HashMap::new();
+                            let {mut_kw}kwargs: LinkedHashMap<String, String> =
+                            LinkedHashMap::new();
                             {kwargs}
                             ParameterTuple::new(uuid, args, kwargs, literals)
                         }}
