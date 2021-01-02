@@ -675,7 +675,7 @@ pub enum PrefectRender<'a> {
 }
 impl<'a> PrefectRender<'a> {
     pub fn render(&'a self, location: Location, literals: LiteralsMap) {
-        let singletons = self.get_singletons(literals);
+        let mut singletons = self.get_singletons(literals);
         let singletons_deconstructed = singletons
             .clone()
             .into_iter()
@@ -684,14 +684,14 @@ impl<'a> PrefectRender<'a> {
             .map(|x| (x.0, x.1.unwrap()))
             .collect::<Vec<_>>();
         let mut singletons_hash: HashMap<_, Vec<_>> = HashMap::new();
-        for (_, (collector, task_name, creation, _, edge_addition)) in &singletons_deconstructed {
+        for (task_key, (collector, task_name, creation, _, edge_addition)) in &singletons_deconstructed {
             let key = (collector.clone(), creation.clone(), edge_addition.clone());
             // TODO: assert that task_name is the same as the 2nd value in the
             // tuple (when unpacked)
             singletons_hash
                 .entry(key)
                 .or_insert(Vec::new())
-                .push(task_name.clone());
+                .push((task_name.clone(), task_key.clone()));
         }
         if singletons_deconstructed.len() > 1 {
             for ((collector, creation, edge_addition), v) in singletons_hash {
@@ -716,8 +716,12 @@ impl<'a> PrefectRender<'a> {
                         edge_addition,
                     );
                     let statements = new_singleton.get_statements();
-                    let iter = ArgType::List(v.iter().map(|x| x.clone()).collect::<Vec<_>>());
+                    let iter = ArgType::List(v.iter().map(|x| x.0.clone()).collect::<Vec<_>>());
                     let for_loop = AoristStatement::For(ident, iter, statements);
+                    
+                    for elem in v.iter().map(|x| x.1.clone()) {
+                        singletons.remove(&elem);
+                    }
                     println!(
                         "{}\n",
                         PrefectProgram::render_suite(vec![for_loop.statement(location)]).unwrap()
