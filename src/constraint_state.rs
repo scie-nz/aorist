@@ -113,8 +113,12 @@ impl<'a> ConstraintState<'a> {
         literals: LiteralsMap,
     ) -> Result<PrefectSingleton, String> {
         Ok(PrefectSingleton {
-            task_creation: self.get_task_statement(location, literals)?,
-            flow_addition: self.get_flow_addition_statements(location),
+            task_creation: self.get_task_statement(literals)?.statement(location),
+            flow_addition: self
+                .get_flow_addition_statements()
+                .into_iter()
+                .map(|x| x.statement(location))
+                .collect::<Vec<_>>(),
         })
     }
     pub fn get_dep_ident(&self, location: Location) -> Expression {
@@ -143,7 +147,7 @@ impl<'a> ConstraintState<'a> {
         );
         AoristStatement::Expression(add_expr)
     }
-    pub fn get_flow_addition_statements(&self, location: Location) -> Vec<Statement> {
+    pub fn get_flow_addition_statements(&self) -> Vec<AoristStatement> {
         let deps = self
             .satisfied_dependencies
             .iter()
@@ -161,11 +165,11 @@ impl<'a> ConstraintState<'a> {
             vec![self.get_task_val()],
             HashMap::new(),
         );
-        let mut statements = vec![AoristStatement::Expression(add_expr).statement(location)];
+        let mut statements = vec![AoristStatement::Expression(add_expr)];
 
         if deps.len() == 1 {
             let dep = deps.into_iter().next().unwrap();
-            let add_stmt = self.get_flow_add_edge_statement(dep).statement(location);
+            let add_stmt = self.get_flow_add_edge_statement(dep);
             statements.push(add_stmt);
         } else if deps.len() > 1 {
             let dep_list = ArgType::List(deps);
@@ -175,7 +179,7 @@ impl<'a> ConstraintState<'a> {
                 dep_list,
                 vec![self.get_flow_add_edge_statement(target.clone())],
             );
-            statements.push(for_stmt.statement(location));
+            statements.push(for_stmt);
         }
         statements
     }
@@ -261,13 +265,12 @@ impl<'a> ConstraintState<'a> {
     }
     pub fn get_task_statement(
         &self,
-        location: Location,
         literals: LiteralsMap,
-    ) -> Result<Statement, String> {
-        Ok(
-            AoristStatement::Assign(self.get_task_val(), self.get_task_creation_expr(literals)?)
-                .statement(location),
-        )
+    ) -> Result<AoristStatement, String> {
+        Ok(AoristStatement::Assign(
+            self.get_task_val(),
+            self.get_task_creation_expr(literals)?,
+        ))
     }
     pub fn set_task_name(&mut self, name: String) {
         self.task_name = Some(name)
