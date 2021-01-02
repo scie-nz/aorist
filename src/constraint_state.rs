@@ -131,7 +131,7 @@ impl<'a> ConstraintState<'a> {
     pub fn get_task_val(&self) -> ArgType {
         self.task_val.as_ref().unwrap().clone()
     }
-    fn get_flow_add_edge_statement(&self, location: Location, dep: Expression) -> Statement {
+    fn get_flow_add_edge_statement(&self, location: Location, dep: ArgType) -> Statement {
         let add_edge_fn = Located {
             location,
             node: ExpressionType::Attribute {
@@ -148,7 +148,10 @@ impl<'a> ConstraintState<'a> {
             location,
             node: ExpressionType::Call {
                 function: Box::new(add_edge_fn),
-                args: vec![dep, self.get_task_val().expression(location)],
+                args: vec![
+                    dep.expression(location),
+                    self.get_task_val().expression(location),
+                ],
                 keywords: Vec::new(),
             },
         };
@@ -165,9 +168,9 @@ impl<'a> ConstraintState<'a> {
             .iter()
             .map(|rw| {
                 let x = rw.read().unwrap();
-                x.get_task_val().expression(location)
+                x.get_task_val()
             })
-            .collect::<Vec<Expression>>();
+            .collect::<Vec<_>>();
         let function = ArgType::Attribute(
             Box::new(ArgType::SimpleIdentifier("flow".to_string())),
             "add_node".to_string(),
@@ -186,15 +189,20 @@ impl<'a> ConstraintState<'a> {
         } else if deps.len() > 1 {
             let dep_list = Located {
                 location,
-                node: ExpressionType::List { elements: deps },
+                node: ExpressionType::List {
+                    elements: deps
+                        .into_iter()
+                        .map(|x| x.expression(location))
+                        .collect::<Vec<_>>(),
+                },
             };
-            let add_stmt_suite =
-                vec![self.get_flow_add_edge_statement(location, self.get_dep_ident(location))];
+            let target = ArgType::SimpleIdentifier("dep".to_string());
+            let add_stmt_suite = vec![self.get_flow_add_edge_statement(location, target.clone())];
             let for_stmt = Located {
                 location,
                 node: StatementType::For {
                     is_async: false,
-                    target: Box::new(self.get_dep_ident(location)),
+                    target: Box::new(target.clone().expression(location)),
                     iter: Box::new(dep_list),
                     body: add_stmt_suite,
                     orelse: None,
