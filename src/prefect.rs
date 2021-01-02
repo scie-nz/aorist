@@ -1,5 +1,5 @@
 #![allow(dead_code)]
-use crate::constraint::{ArgType, LiteralsMap, StringLiteral, AoristStatement};
+use crate::constraint::{AoristStatement, ArgType, LiteralsMap, StringLiteral};
 use crate::constraint_state::{ConstraintState, PrefectSingleton};
 use aorist_primitives::Dialect;
 use indoc::formatdoc;
@@ -691,19 +691,15 @@ impl<'a> PrefectRender<'a> {
             singletons_hash
                 .entry(key)
                 .or_insert(Vec::new())
-                .push(task_name);
+                .push(task_name.clone());
         }
-        println!(
-            "{} {}",
-            singletons_hash.len(),
-            singletons_deconstructed.len()
-        );
         if singletons_deconstructed.len() > 1 {
             for ((collector, creation, edge_addition), v) in singletons_hash {
                 // TODO: magic number
                 if v.len() >= 3 {
                     let ident = ArgType::SimpleIdentifier("t".to_string());
-                    let new_collector = ArgType::Subscript(Box::new(collector), Box::new(ident));
+                    let new_collector =
+                        ArgType::Subscript(Box::new(collector), Box::new(ident.clone()));
                     let function = ArgType::Attribute(
                         Box::new(ArgType::SimpleIdentifier("flow".to_string())),
                         "add_node".to_string(),
@@ -719,9 +715,12 @@ impl<'a> PrefectRender<'a> {
                         AoristStatement::Expression(add_expr),
                         edge_addition,
                     );
+                    let statements = new_singleton.get_statements();
+                    let iter = ArgType::List(v.iter().map(|x| x.clone()).collect::<Vec<_>>());
+                    let for_loop = AoristStatement::For(ident, iter, statements);
                     println!(
-                        "Joint singleton: \n {} \n",
-                        PrefectProgram::render_suite(new_singleton.as_suite(location)).unwrap()
+                        "{}\n",
+                        PrefectProgram::render_suite(vec![for_loop.statement(location)]).unwrap()
                     );
                 }
             }

@@ -85,7 +85,7 @@ impl PrefectSingleton {
             flow_edge_addition,
         }
     }
-    pub fn as_suite(self, location: Location) -> Suite {
+    pub fn get_statements(self) -> Vec<AoristStatement> {
         let task_creation = AoristStatement::Assign(self.task_val, self.task_creation);
         let mut stmts = vec![task_creation];
         stmts.push(self.flow_node_addition);
@@ -93,6 +93,9 @@ impl PrefectSingleton {
             stmts.push(stmt);
         }
         stmts
+    }
+    pub fn as_suite(self, location: Location) -> Suite {
+        self.get_statements()
             .into_iter()
             .map(|x| x.statement(location))
             .collect::<Vec<_>>()
