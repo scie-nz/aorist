@@ -132,7 +132,6 @@ impl<'a> ConstraintBlock<'a> {
                             )))),
                         );
                         write.set_referenced_by(Box::new(referenced_by));
-                        println!("Set indirection for {}", k);
                     }
                 }
             }

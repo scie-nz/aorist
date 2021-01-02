@@ -1,13 +1,12 @@
 use crate::concept::{Concept, ConceptAncestry};
 use crate::constraint::{
-    AllConstraintsSatisfiability, Constraint, LiteralsMap, ParameterTuple, StringLiteral,
+    AllConstraintsSatisfiability, ArgType, Constraint, LiteralsMap, ParameterTuple, StringLiteral,
 };
 use crate::object::TAoristObject;
 use aorist_primitives::Dialect;
 use inflector::cases::snakecase::to_snake_case;
 use rustpython_parser::ast::{
-    Expression, ExpressionType, Keyword, Located, Location, Statement, StatementType, StringGroup,
-    Suite,
+    Expression, ExpressionType, Keyword, Located, Location, Statement, StatementType, Suite,
 };
 use std::collections::{HashMap, HashSet};
 use std::sync::{Arc, RwLock};
@@ -225,19 +224,18 @@ impl<'a> ConstraintState<'a> {
         literals: LiteralsMap,
     ) -> Result<Expression, String> {
         match self.dialect {
-            Some(Dialect::Python(_)) => {
-                let function = Located {
-                    location,
-                    node: ExpressionType::Identifier {
-                        name: self.get_call().unwrap(),
-                    },
-                };
-                Ok(self
-                    .params
-                    .as_ref()
-                    .unwrap()
-                    .populate_call(function, location))
-            }
+            Some(Dialect::Python(_)) => Ok(ArgType::Call(
+                Box::new(ArgType::SimpleIdentifier(self.get_call().unwrap())),
+                match self.params {
+                    Some(ref p) => p.get_args(),
+                    None => Vec::new(),
+                },
+                match self.params {
+                    Some(ref p) => p.get_kwargs(),
+                    None => HashMap::new(),
+                },
+            )
+            .expression(location)),
             Some(Dialect::Presto(_)) => {
                 /*let query = self
                     .params
@@ -256,93 +254,55 @@ impl<'a> ConstraintState<'a> {
                 };*/
                 // TODO: unify this with call in register_literals
                 let raw_command = format!("presto -e '{}'", self.get_call().unwrap().clone());
-                let command = literals
-                    .read()
-                    .unwrap()
-                    .get(&raw_command)
-                    .unwrap()
-                    .read()
-                    .unwrap()
-                    .expression(location);
-                let formatted_str = self
-                    .params
-                    .as_ref()
-                    .unwrap()
-                    .get_shell_task_command(location, command);
-                let function = Located {
-                    location,
-                    node: ExpressionType::Identifier {
-                        name: "ShellTask".to_string(),
-                    },
+                let format_string = literals.read().unwrap().get(&raw_command).unwrap().clone();
+                let command = match self.params {
+                    Some(ref p) => ArgType::Formatted(
+                        Box::new(ArgType::StringLiteral(format_string)),
+                        p.get_kwargs(),
+                    ),
+                    None => ArgType::StringLiteral(format_string),
                 };
-                Ok(Located {
-                    location,
-                    node: ExpressionType::Call {
-                        function: Box::new(function),
-                        args: Vec::new(),
-                        keywords: vec![Keyword {
-                            name: Some("command".to_string()),
-                            value: formatted_str,
-                        }],
-                    },
-                })
+                let mut keywords: HashMap<String, ArgType> = HashMap::new();
+                keywords.insert("command".to_string(), command);
+                Ok(ArgType::Call(
+                    Box::new(ArgType::SimpleIdentifier("ShellTask".to_string())),
+                    Vec::new(),
+                    keywords,
+                )
+                .expression(location))
             }
             Some(Dialect::Bash(_)) => {
-                let command = literals
+                let format_string = literals
                     .read()
                     .unwrap()
                     .get(&self.get_call().unwrap())
                     .unwrap()
-                    .read()
-                    .unwrap()
-                    .expression(location);
-                let formatted_str = self
-                    .params
-                    .as_ref()
-                    .unwrap()
-                    .get_shell_task_command(location, command);
+                    .clone();
+                let command = match self.params {
+                    Some(ref p) => ArgType::Formatted(
+                        Box::new(ArgType::StringLiteral(format_string)),
+                        p.get_kwargs(),
+                    ),
+                    None => ArgType::StringLiteral(format_string),
+                };
+                let mut keywords: HashMap<String, ArgType> = HashMap::new();
+                keywords.insert("command".to_string(), command);
 
-                let function = Located {
-                    location,
-                    node: ExpressionType::Identifier {
-                        name: "ShellTask".to_string(),
-                    },
-                };
-                Ok(Located {
-                    location,
-                    node: ExpressionType::Call {
-                        function: Box::new(function),
-                        args: Vec::new(),
-                        keywords: vec![Keyword {
-                            name: Some("command".to_string()),
-                            value: formatted_str,
-                        }],
-                    },
-                })
+                Ok(ArgType::Call(
+                    Box::new(ArgType::SimpleIdentifier("ShellTask".to_string())),
+                    Vec::new(),
+                    keywords,
+                )
+                .expression(location))
             }
-            None => {
-                let function = Located {
-                    location,
-                    node: ExpressionType::Identifier {
-                        name: "ConstantTask".to_string(),
-                    },
-                };
-                Ok(Located {
-                    location,
-                    node: ExpressionType::Call {
-                        function: Box::new(function),
-                        args: vec![Located {
-                            location,
-                            node: ExpressionType::String {
-                                value: StringGroup::Constant {
-                                    value: self.constraint.read().unwrap().get_name().clone(),
-                                },
-                            },
-                        }],
-                        keywords: Vec::new(),
-                    },
-                })
-            }
+            None => Ok(ArgType::Call(
+                Box::new(ArgType::SimpleIdentifier("ConstantTask".to_string())),
+                vec![ArgType::StringLiteral(Arc::new(RwLock::new(
+                    StringLiteral::new(self.constraint.read().unwrap().get_name().clone()),
+                )))],
+                HashMap::new(),
+            )
+            .expression(location)),
             _ => Err("Dialect not supported".to_string()),
         }
     }

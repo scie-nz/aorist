@@ -84,7 +84,8 @@ pub enum ArgType {
     StringLiteral(Arc<RwLock<StringLiteral>>),
     SimpleIdentifier(String),
     Subscript(Box<ArgType>, Box<ArgType>),
-    Formatted(Box<ArgType>, HashMap<String, Box<ArgType>>),
+    Formatted(Box<ArgType>, HashMap<String, ArgType>),
+    Call(Box<ArgType>, Vec<ArgType>, HashMap<String, ArgType>),
 }
 impl ArgType {
     pub fn register_object(&mut self, uuid: Uuid, tag: Option<String>) {
@@ -129,6 +130,23 @@ impl ArgType {
                 node: ExpressionType::Subscript {
                     a: Box::new(a.expression(location)),
                     b: Box::new(b.expression(location)),
+                },
+            },
+            ArgType::Call(box ref function, ref args, ref keywords) => Located {
+                location,
+                node: ExpressionType::Call {
+                    function: Box::new(function.expression(location)),
+                    args: args
+                        .iter()
+                        .map(|x| x.expression(location))
+                        .collect::<Vec<_>>(),
+                    keywords: keywords
+                        .iter()
+                        .map(|(k, v)| Keyword {
+                            name: Some(k.clone()),
+                            value: v.expression(location),
+                        })
+                        .collect::<Vec<_>>(),
                 },
             },
         }
@@ -186,6 +204,12 @@ impl ParameterTuple {
             kwargs,
         }
     }
+    pub fn get_args(&self) -> Vec<ArgType> {
+        self.args.clone()
+    }
+    pub fn get_kwargs(&self) -> HashMap<String, ArgType> {
+        self.kwargs.clone()
+    }
     fn get_args_literals(&self, location: Location) -> Vec<Expression> {
         let args = self
             .args
@@ -210,17 +234,6 @@ impl ParameterTuple {
                 value: v.expression(location),
             })
             .collect::<Vec<Keyword>>()
-    }
-    pub fn populate_call(&self, function: Expression, location: Location) -> Expression {
-        Located {
-            location,
-            node: ExpressionType::Call {
-                function: Box::new(function),
-                args: self.get_args_literals(location),
-                keywords: self.get_keyword_vector(location),
-                // TODO: add keywords
-            },
-        }
     }
     pub fn get_args_format_string(&self) -> String {
         self.args
