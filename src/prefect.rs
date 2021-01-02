@@ -682,19 +682,33 @@ impl<'a> PrefectRender<'a> {
             .filter(|x| x.1.is_some())
             .map(|x| (x.0, x.1.unwrap()))
             .collect::<Vec<_>>();
-        let singletons_hash = singletons_deconstructed
-            .iter()
-            .map(|(_, (collector, _, creation, addition))| {
-                (collector.clone(), creation.clone(), addition.clone())
-            })
-            .collect::<HashSet<_>>();
+        let mut singletons_hash: HashMap<_, Vec<_>> = HashMap::new();
+        for (task_name, (collector, _, creation, _, edge_addition)) in &singletons_deconstructed {
+            let key = (collector.clone(), creation.clone(), edge_addition.clone());
+            // TODO: assert that task_name is the same as the 2nd value in the
+            // tuple (when unpacked)
+            singletons_hash
+                .entry(key)
+                .or_insert(Vec::new())
+                .push(task_name);
+        }
         println!(
             "{} {}",
             singletons_hash.len(),
             singletons_deconstructed.len()
         );
-        if singletons_hash.len() == 1 && singletons_deconstructed.len() > 1 {
-            println!("Opportunity to merge below: ");
+        if singletons_deconstructed.len() > 1 {
+            for (k, v) in singletons_hash {
+                if v.len() >= 3 {
+                    println!(
+                        "Opportunity to merge for: {}",
+                        v.iter()
+                            .map(|x| x.to_string())
+                            .collect::<Vec<String>>()
+                            .join(", ")
+                    );
+                }
+            }
         }
         for singleton in singletons.into_iter() {
             print!(

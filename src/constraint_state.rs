@@ -36,7 +36,8 @@ pub struct ConstraintState<'a> {
 pub struct PrefectSingleton {
     task_val: ArgType,
     task_creation: ArgType,
-    flow_addition: Vec<AoristStatement>,
+    flow_node_addition: AoristStatement,
+    flow_edge_addition: Vec<AoristStatement>,
 }
 impl PrefectSingleton {
     pub fn get_task_val(&self) -> ArgType {
@@ -45,16 +46,28 @@ impl PrefectSingleton {
     pub fn get_task_creation(&self) -> ArgType {
         self.task_creation.clone()
     }
-    pub fn get_flow_addition(&self) -> Vec<AoristStatement> {
-        self.flow_addition.clone()
+    pub fn get_flow_node_addition(&self) -> AoristStatement {
+        self.flow_node_addition.clone()
     }
-    pub fn deconstruct(&self) -> Option<(ArgType, ArgType, ArgType, Vec<AoristStatement>)> {
+    pub fn get_flow_edge_addition(&self) -> Vec<AoristStatement> {
+        self.flow_edge_addition.clone()
+    }
+    pub fn deconstruct(
+        &self,
+    ) -> Option<(
+        ArgType,
+        ArgType,
+        ArgType,
+        AoristStatement,
+        Vec<AoristStatement>,
+    )> {
         if let ArgType::Subscript(box ref a, box ref b) = self.task_val {
             return Some((
                 a.clone(),
                 b.clone(),
                 self.get_task_creation().clone(),
-                self.get_flow_addition().clone(),
+                self.get_flow_node_addition().clone(),
+                self.get_flow_edge_addition().clone(),
             ));
         }
         None
@@ -62,18 +75,21 @@ impl PrefectSingleton {
     pub fn new(
         task_val: ArgType,
         task_creation: ArgType,
-        flow_addition: Vec<AoristStatement>,
+        flow_node_addition: AoristStatement,
+        flow_edge_addition: Vec<AoristStatement>,
     ) -> Self {
         Self {
             task_val,
             task_creation,
-            flow_addition,
+            flow_node_addition,
+            flow_edge_addition,
         }
     }
     pub fn as_suite(self, location: Location) -> Suite {
         let task_creation = AoristStatement::Assign(self.task_val, self.task_creation);
         let mut stmts = vec![task_creation];
-        for stmt in self.flow_addition {
+        stmts.push(self.flow_node_addition);
+        for stmt in self.flow_edge_addition {
             stmts.push(stmt);
         }
         stmts
@@ -85,10 +101,12 @@ impl PrefectSingleton {
 
 impl<'a> ConstraintState<'a> {
     pub fn get_prefect_singleton(&self, literals: LiteralsMap) -> Result<PrefectSingleton, String> {
+        let (flow_node_addition, flow_edge_addition) = self.get_flow_addition_statements();
         Ok(PrefectSingleton::new(
             self.get_task_val(),
             self.get_task_creation_expr(literals)?,
-            self.get_flow_addition_statements(),
+            flow_node_addition,
+            flow_edge_addition,
         ))
     }
     pub fn get_dep_ident(&self, location: Location) -> Expression {
@@ -117,7 +135,7 @@ impl<'a> ConstraintState<'a> {
         );
         AoristStatement::Expression(add_expr)
     }
-    pub fn get_flow_addition_statements(&self) -> Vec<AoristStatement> {
+    pub fn get_flow_addition_statements(&self) -> (AoristStatement, Vec<AoristStatement>) {
         let deps = self
             .satisfied_dependencies
             .iter()
@@ -135,7 +153,8 @@ impl<'a> ConstraintState<'a> {
             vec![self.get_task_val()],
             LinkedHashMap::new(),
         );
-        let mut statements = vec![AoristStatement::Expression(add_expr)];
+        let node_stmt = AoristStatement::Expression(add_expr);
+        let mut statements: Vec<AoristStatement> = Vec::new();
 
         if deps.len() == 1 {
             let dep = deps.into_iter().next().unwrap();
@@ -151,7 +170,7 @@ impl<'a> ConstraintState<'a> {
             );
             statements.push(for_stmt);
         }
-        statements
+        (node_stmt, statements)
     }
     fn get_task_creation_expr(&self, literals: LiteralsMap) -> Result<ArgType, String> {
         match self.dialect {
