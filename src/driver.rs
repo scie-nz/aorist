@@ -403,9 +403,17 @@ impl<'a> Driver<'a> {
                 );
 
                 // TODO: this can be moved to ConstraintBlock
-                let block =
-                    ConstraintBlock::new(to_snake_case(&constraint_name), members, literals);
-                self.blocks.push(block);
+                let constraint_block = ConstraintBlock::new(
+                    to_snake_case(&constraint_name),
+                    members,
+                    literals,
+                    block
+                        .clone()
+                        .into_iter()
+                        .map(|((k, _), v)| (k, v))
+                        .collect::<HashMap<_, _>>(),
+                );
+                self.blocks.push(constraint_block);
             } else {
                 break;
             }

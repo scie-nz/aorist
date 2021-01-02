@@ -1,25 +1,30 @@
 use crate::code_block::CodeBlock;
-use crate::constraint::{ArgType, LiteralsMap, ParameterTuple};
+use crate::constraint::{ArgType, LiteralsMap, ParameterTuple, StringLiteral};
+use crate::constraint_state::ConstraintState;
 use inflector::cases::snakecase::to_snake_case;
 use rustpython_parser::ast::Location;
 use std::collections::{HashMap, HashSet};
+use std::sync::{Arc, RwLock};
 use uuid::Uuid;
 
 pub struct ConstraintBlock<'a> {
     constraint_name: String,
     members: Vec<CodeBlock<'a>>,
     literals: LiteralsMap,
+    constraint_states: HashMap<Uuid, Arc<RwLock<ConstraintState<'a>>>>,
 }
 impl<'a> ConstraintBlock<'a> {
     pub fn new(
         constraint_name: String,
         members: Vec<CodeBlock<'a>>,
         literals: LiteralsMap,
+        constraint_states: HashMap<Uuid, Arc<RwLock<ConstraintState<'a>>>>,
     ) -> Self {
         Self {
             constraint_name,
             members,
             literals,
+            constraint_states,
         }
     }
     pub fn get_constraint_name(&self) -> String {
@@ -83,14 +88,49 @@ impl<'a> ConstraintBlock<'a> {
         for (k, v) in read.iter() {
             let mut write = v.write().unwrap();
             println!("{} => {}", k, write.get_object_uuids().len());
-            if all_uuids.len() > 1 && write.get_object_uuids().len() > all_uuids.len() / 2 {
-                let val = write.value();
-                let possible_name = most_frequent_names.get(&val).unwrap();
-                if let Some(ref name) = possible_name {
-                    let proposed_name =
-                        format!("{}_{}", to_snake_case(&self.constraint_name), name).to_string();
-                    if proposed_name.len() < name.len() || write.is_multiline() {
-                        let referenced_by = ArgType::SimpleIdentifier(proposed_name);
+            if all_uuids.len() > 1 {
+                let num_objects_covered = write.get_object_uuids().len();
+                let num_objects_total = all_uuids.len();
+                if num_objects_covered > num_objects_total / 2 {
+                    let val = write.value();
+                    let possible_name = most_frequent_names.get(&val).unwrap();
+                    if let Some(ref name) = possible_name {
+                        let proposed_name =
+                            format!("{}_{}", to_snake_case(&self.constraint_name), name)
+                                .to_string();
+                        if proposed_name.len() < name.len() || write.is_multiline() {
+                            let referenced_by = ArgType::SimpleIdentifier(proposed_name);
+                            write.set_referenced_by(Box::new(referenced_by));
+                        }
+                    }
+                } else if num_objects_covered == 1 {
+                    let uuid = write.get_object_uuids().iter().next().unwrap().clone();
+                    let state_rw = self.constraint_states.get(uuid.0).unwrap();
+                    let state_read = state_rw.read().unwrap();
+                    let task_name: String = state_read.get_task_name();
+                    let task_name = task_name.replace(
+                        &format!("{}__", to_snake_case(&self.constraint_name)).to_string(),
+                        "",
+                    );
+                    let val = write.value();
+                    let param_key = most_frequent_names.get(&val).unwrap();
+                    if let Some(key) = param_key {
+                        // TODO: need to deal with args
+                        let dict_name = ArgType::Subscript(
+                            Box::new(ArgType::SimpleIdentifier(
+                                format!("params_{}", to_snake_case(&self.constraint_name))
+                                    .to_string(),
+                            )),
+                            Box::new(ArgType::StringLiteral(Arc::new(RwLock::new(
+                                StringLiteral::new(task_name),
+                            )))),
+                        );
+                        let referenced_by = ArgType::Subscript(
+                            Box::new(dict_name),
+                            Box::new(ArgType::StringLiteral(Arc::new(RwLock::new(
+                                StringLiteral::new(key.clone()),
+                            )))),
+                        );
                         write.set_referenced_by(Box::new(referenced_by));
                         println!("Set indirection for {}", k);
                     }
@@ -104,7 +144,6 @@ impl<'a> ConstraintBlock<'a> {
             member.register_literals(self.literals.clone());
         }
         self.compute_indirections();
-        // TODO: rename print_call
         for (_i, member) in self.members.iter().enumerate() {
             member.render(location, self.literals.clone());
         }
