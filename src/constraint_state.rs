@@ -131,7 +131,7 @@ impl<'a> ConstraintState<'a> {
     pub fn get_task_val(&self) -> ArgType {
         self.task_val.as_ref().unwrap().clone()
     }
-    fn get_flow_add_edge_statement(&self, location: Location, dep: ArgType) -> Statement {
+    fn get_flow_add_edge_statement(&self, dep: ArgType) -> AoristStatement {
         let function = ArgType::Attribute(
             Box::new(ArgType::SimpleIdentifier("flow".to_string())),
             "add_edge".to_string(),
@@ -141,7 +141,7 @@ impl<'a> ConstraintState<'a> {
             vec![self.get_task_val(), dep],
             HashMap::new(),
         );
-        AoristStatement::Expression(add_expr).statement(location)
+        AoristStatement::Expression(add_expr)
     }
     pub fn get_flow_addition_statements(&self, location: Location) -> Vec<Statement> {
         let deps = self
@@ -165,23 +165,17 @@ impl<'a> ConstraintState<'a> {
 
         if deps.len() == 1 {
             let dep = deps.into_iter().next().unwrap();
-            let add_stmt = self.get_flow_add_edge_statement(location, dep);
+            let add_stmt = self.get_flow_add_edge_statement(dep).statement(location);
             statements.push(add_stmt);
         } else if deps.len() > 1 {
             let dep_list = ArgType::List(deps);
             let target = ArgType::SimpleIdentifier("dep".to_string());
-            let add_stmt_suite = vec![self.get_flow_add_edge_statement(location, target.clone())];
-            let for_stmt = Located {
-                location,
-                node: StatementType::For {
-                    is_async: false,
-                    target: Box::new(target.clone().expression(location)),
-                    iter: Box::new(dep_list.expression(location)),
-                    body: add_stmt_suite,
-                    orelse: None,
-                },
-            };
-            statements.push(for_stmt);
+            let for_stmt = AoristStatement::For(
+                target.clone(),
+                dep_list,
+                vec![self.get_flow_add_edge_statement(target.clone())],
+            );
+            statements.push(for_stmt.statement(location));
         }
         statements
     }

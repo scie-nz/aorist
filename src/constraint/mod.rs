@@ -177,6 +177,7 @@ impl ArgType {
 pub enum AoristStatement {
     Assign(ArgType, ArgType),
     Expression(ArgType),
+    For(ArgType, ArgType, Vec<AoristStatement>),
 }
 impl AoristStatement {
     pub fn statement(&self, location: Location) -> Statement {
@@ -195,6 +196,19 @@ impl AoristStatement {
                 location,
                 node: StatementType::Expression {
                     expression: expr.expression(location),
+                },
+            },
+            Self::For(ref target, ref iter, ref body) => Located {
+                location,
+                node: StatementType::For {
+                    is_async: false,
+                    target: Box::new(target.expression(location)),
+                    iter: Box::new(iter.expression(location)),
+                    body: body
+                        .iter()
+                        .map(|x| x.statement(location))
+                        .collect::<Vec<_>>(),
+                    orelse: None,
                 },
             },
         }
