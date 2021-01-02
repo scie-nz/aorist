@@ -6,7 +6,7 @@ use crate::constraint::{
 use crate::object::TAoristObject;
 use aorist_primitives::Dialect;
 use inflector::cases::snakecase::to_snake_case;
-use rustpython_parser::ast::{Expression, ExpressionType, Located, Location, Statement, Suite};
+use rustpython_parser::ast::{Expression, ExpressionType, Located, Location, Suite};
 use std::collections::{HashMap, HashSet};
 use std::sync::{Arc, RwLock};
 use uuid::Uuid;
@@ -32,38 +32,36 @@ pub struct ConstraintState<'a> {
 }
 
 pub struct PrefectSingleton {
-    task_creation: Statement,
-    flow_addition: Suite,
+    task_creation: AoristStatement,
+    flow_addition: Vec<AoristStatement>,
 }
 impl PrefectSingleton {
-    pub fn new(task_creation: Statement, flow_addition: Suite) -> Self {
+    pub fn new(task_creation: AoristStatement, flow_addition: Vec<AoristStatement>) -> Self {
         Self {
             task_creation,
             flow_addition,
         }
     }
-    pub fn as_suite(self) -> Suite {
+    pub fn as_suite(self, location: Location) -> Suite {
         let mut stmts = vec![self.task_creation];
         for stmt in self.flow_addition {
             stmts.push(stmt);
         }
         stmts
+            .into_iter()
+            .map(|x| x.statement(location))
+            .collect::<Vec<_>>()
     }
 }
 
 impl<'a> ConstraintState<'a> {
     pub fn get_prefect_singleton(
         &self,
-        location: Location,
         literals: LiteralsMap,
     ) -> Result<PrefectSingleton, String> {
         Ok(PrefectSingleton {
-            task_creation: self.get_task_statement(literals)?.statement(location),
-            flow_addition: self
-                .get_flow_addition_statements()
-                .into_iter()
-                .map(|x| x.statement(location))
-                .collect::<Vec<_>>(),
+            task_creation: self.get_task_statement(literals)?,
+            flow_addition: self.get_flow_addition_statements(),
         })
     }
     pub fn get_dep_ident(&self, location: Location) -> Expression {

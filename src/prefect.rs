@@ -248,7 +248,6 @@ pub trait PrefectTaskRender<'a> {
     }
     fn get_singletons(
         &self,
-        location: Location,
         literals: LiteralsMap,
     ) -> HashMap<String, PrefectSingleton> {
         let num_constraints = self.get_constraints().len();
@@ -274,7 +273,7 @@ pub trait PrefectTaskRender<'a> {
                 let x = rw.read().unwrap();
                 (
                     x.get_task_name(),
-                    x.get_prefect_singleton(location, literals.clone()).unwrap(),
+                    x.get_prefect_singleton(literals.clone()).unwrap(),
                 )
             })
             .collect::<HashMap<String, _>>();
@@ -365,15 +364,11 @@ pub trait PrefectTaskRender<'a> {
         joint_args.into_iter().map(|x| x.unwrap()).collect()
     }
     fn render(&self, location: Location, literals: LiteralsMap) {
-        let singletons = self.get_singletons(location, literals);
-        //let params_map = self.args_from_singletons(singletons, location);
-        //let (params_suite, singletons) = self.combine_params(params_map, location);
-
-        //print!("{}\n", PrefectProgram::render_suite(params_suite).unwrap());
+        let singletons = self.get_singletons(literals);
         for singleton in singletons.into_iter() {
             print!(
                 "{}\n",
-                PrefectProgram::render_suite(singleton.1.as_suite()).unwrap()
+                PrefectProgram::render_suite(singleton.1.as_suite(location)).unwrap()
             );
         }
     }
