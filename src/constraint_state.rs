@@ -32,6 +32,7 @@ pub struct ConstraintState<'a> {
     //task_val_fn: Option<Box<dyn Fn(Location, String) -> Expression>>,
 }
 
+#[derive(Clone, Hash)]
 pub struct PrefectSingleton {
     task_val: ArgType,
     task_creation: ArgType,

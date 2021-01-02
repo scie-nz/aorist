@@ -7,7 +7,7 @@ use rustpython_parser::ast::{
     Expression, ExpressionType, Keyword, Located, Location, Program, Statement, StatementType,
     StringGroup, Suite, WithItem,
 };
-use std::collections::{BTreeMap, HashMap};
+use std::collections::{BTreeMap, HashMap, HashSet};
 use std::sync::{Arc, RwLock};
 
 struct PrefectProgram {
@@ -675,6 +675,8 @@ pub enum PrefectRender<'a> {
 impl<'a> PrefectRender<'a> {
     pub fn render(&'a self, location: Location, literals: LiteralsMap) {
         let singletons = self.get_singletons(literals);
+        //let singletons_hash =
+        //singletons.clone().into_iter().collect::<HashSet<_>>();
         for singleton in singletons.into_iter() {
             print!(
                 "{}\n",
