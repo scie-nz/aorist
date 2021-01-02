@@ -2,8 +2,9 @@ use crate::concept::{AoristConcept, Concept, ConceptAncestry};
 use crate::object::TAoristObject;
 use aorist_primitives::{define_constraint, register_constraint, Dialect};
 use maplit::hashmap;
-use rustpython_parser::ast::{Expression, ExpressionType, Keyword, Located,
-Location, StringGroup, Statement, StatementType};
+use rustpython_parser::ast::{
+    Expression, ExpressionType, Keyword, Located, Location, Statement, StatementType, StringGroup,
+};
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
 use std::fmt;
@@ -87,6 +88,7 @@ pub enum ArgType {
     Subscript(Box<ArgType>, Box<ArgType>),
     Formatted(Box<ArgType>, HashMap<String, ArgType>),
     Call(Box<ArgType>, Vec<ArgType>, HashMap<String, ArgType>),
+    Attribute(Box<ArgType>, String),
 }
 impl ArgType {
     pub fn register_object(&mut self, uuid: Uuid, tag: Option<String>) {
@@ -150,6 +152,13 @@ impl ArgType {
                         .collect::<Vec<_>>(),
                 },
             },
+            ArgType::Attribute(box ref value, ref name) => Located {
+                location,
+                node: ExpressionType::Attribute {
+                    value: Box::new(value.expression(location)),
+                    name: name.clone(),
+                },
+            },
         }
     }
 }
@@ -176,7 +185,7 @@ impl AoristStatement {
                 location,
                 node: StatementType::Expression {
                     expression: expr.expression(location),
-                }
+                },
             },
         }
     }

@@ -84,10 +84,8 @@ impl<'a> ConstraintBlock<'a> {
             })
             .collect();
 
-        println!("Constraint: {}", &self.constraint_name);
-        for (k, v) in read.iter() {
+        for (_k, v) in read.iter() {
             let mut write = v.write().unwrap();
-            println!("{} => {}", k, write.get_object_uuids().len());
             if all_uuids.len() > 1 {
                 let num_objects_covered = write.get_object_uuids().len();
                 let num_objects_total = all_uuids.len();

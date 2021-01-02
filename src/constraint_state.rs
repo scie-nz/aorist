@@ -1,7 +1,7 @@
 use crate::concept::{Concept, ConceptAncestry};
 use crate::constraint::{
-    AllConstraintsSatisfiability, ArgType, Constraint, LiteralsMap, ParameterTuple, StringLiteral,
-    AoristStatement,
+    AllConstraintsSatisfiability, AoristStatement, ArgType, Constraint, LiteralsMap,
+    ParameterTuple, StringLiteral,
 };
 use crate::object::TAoristObject;
 use aorist_primitives::Dialect;
@@ -168,18 +168,11 @@ impl<'a> ConstraintState<'a> {
                 x.get_task_val().expression(location)
             })
             .collect::<Vec<Expression>>();
-        let function = Located {
-            location,
-            node: ExpressionType::Attribute {
-                value: Box::new(Located {
-                    location,
-                    node: ExpressionType::Identifier {
-                        name: "flow".to_string(),
-                    },
-                }),
-                name: "add_node".to_string(),
-            },
-        };
+        let function = ArgType::Attribute(
+            Box::new(ArgType::SimpleIdentifier("flow".to_string())),
+            "add_node".to_string(),
+        )
+        .expression(location);
         let add_expr = Located {
             location,
             node: ExpressionType::Call {
@@ -306,10 +299,8 @@ impl<'a> ConstraintState<'a> {
         literals: LiteralsMap,
     ) -> Result<Statement, String> {
         Ok(
-            AoristStatement::Assign(
-                self.get_task_val(),
-                self.get_task_creation_expr(literals)?
-            ).statement(location)
+            AoristStatement::Assign(self.get_task_val(), self.get_task_creation_expr(literals)?)
+                .statement(location),
         )
     }
     pub fn set_task_name(&mut self, name: String) {
