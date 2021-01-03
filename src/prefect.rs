@@ -1,6 +1,5 @@
 #![allow(dead_code)]
-use crate::constraint::{AoristStatement, ArgType, List, LiteralsMap,
-StringLiteral, Tuple};
+use crate::constraint::{AoristStatement, ArgType, List, LiteralsMap, StringLiteral, Tuple};
 use crate::constraint_state::{ConstraintState, PrefectSingleton};
 use aorist_primitives::Dialect;
 use indoc::formatdoc;
@@ -205,7 +204,10 @@ impl PrefectProgram {
                 let body_fmt = body
                     .into_iter()
                     .map(|x| Self::render_statement(x).unwrap())
-                    .map(|x| format!("    {}", x).to_string())
+                    .map(|x| {
+                        let multiline = x.replace("\n", "\n    ");
+                        format!("    {}", multiline).to_string()
+                    })
                     .collect::<Vec<String>>()
                     .join("\n");
                 Ok(format!(
@@ -705,9 +707,10 @@ impl<'a> PrefectRender<'a> {
                 if v.len() >= 3 {
                     let ident = ArgType::SimpleIdentifier("t".to_string());
                     let dep_list = ArgType::SimpleIdentifier("dep_list".to_string());
-                    let tpl =
-                    ArgType::Tuple(Arc::new(RwLock::new(Tuple::new(vec![ident.clone(),
-                    dep_list.clone()]))));
+                    let tpl = ArgType::Tuple(Arc::new(RwLock::new(Tuple::new(vec![
+                        ident.clone(),
+                        dep_list.clone(),
+                    ]))));
                     let new_collector =
                         ArgType::Subscript(Box::new(collector), Box::new(ident.clone()));
                     let function = ArgType::Attribute(
@@ -729,7 +732,7 @@ impl<'a> PrefectRender<'a> {
                     let mut list = List::new(v.iter().map(|x| x.0.clone()).collect::<Vec<_>>());
                     list.set_referenced_by(params.clone());
                     let iter = ArgType::List(Arc::new(RwLock::new(list)));
-                    let for_loop = AoristStatement::For(tpl, iter, statements);
+                    let for_loop = AoristStatement::For(tpl, iter, statements.clone());
 
                     for elem in v.iter().map(|x| x.1.clone()) {
                         singletons.remove(&elem);
