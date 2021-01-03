@@ -37,11 +37,42 @@ pub struct PrefectSingleton {
     task_val: ArgType,
     task_creation: ArgType,
     flow_node_addition: AoristStatement,
-    flow_edge_addition: Vec<AoristStatement>,
+    dep_list: Vec<ArgType>,
 }
 impl PrefectSingleton {
     pub fn get_task_val(&self) -> ArgType {
         self.task_val.clone()
+    }
+    fn get_flow_add_edge_statement(&self, dep: ArgType) -> AoristStatement {
+        let function = ArgType::Attribute(
+            Box::new(ArgType::SimpleIdentifier("flow".to_string())),
+            "add_edge".to_string(),
+        );
+        let add_expr = ArgType::Call(
+            Box::new(function),
+            vec![self.get_task_val(), dep],
+            LinkedHashMap::new(),
+        );
+        AoristStatement::Expression(add_expr)
+    }
+    pub fn get_edge_addition_statements(&self) -> Vec<AoristStatement> {
+        let mut statements: Vec<AoristStatement> = Vec::new();
+
+        if self.dep_list.len() == 1 {
+            let dep = self.dep_list.clone().into_iter().next().unwrap();
+            let add_stmt = self.get_flow_add_edge_statement(dep);
+            statements.push(add_stmt);
+        } else if self.dep_list.len() > 1 {
+            let dep_list = ArgType::List(Arc::new(RwLock::new(List::new(self.dep_list.clone()))));
+            let target = ArgType::SimpleIdentifier("dep".to_string());
+            let for_stmt = AoristStatement::For(
+                target.clone(),
+                dep_list.clone(),
+                vec![self.get_flow_add_edge_statement(target.clone())],
+            );
+            statements.push(for_stmt);
+        }
+        statements
     }
     pub fn get_task_creation(&self) -> ArgType {
         self.task_creation.clone()
@@ -49,25 +80,16 @@ impl PrefectSingleton {
     pub fn get_flow_node_addition(&self) -> AoristStatement {
         self.flow_node_addition.clone()
     }
-    pub fn get_flow_edge_addition(&self) -> Vec<AoristStatement> {
-        self.flow_edge_addition.clone()
-    }
     pub fn deconstruct(
         &self,
-    ) -> Option<(
-        ArgType,
-        ArgType,
-        ArgType,
-        AoristStatement,
-        Vec<AoristStatement>,
-    )> {
+    ) -> Option<(ArgType, ArgType, ArgType, AoristStatement, Vec<ArgType>)> {
         if let ArgType::Subscript(box ref a, box ref b) = self.task_val {
             return Some((
                 a.clone(),
                 b.clone(),
                 self.get_task_creation().clone(),
                 self.get_flow_node_addition().clone(),
-                self.get_flow_edge_addition().clone(),
+                self.dep_list.clone(),
             ));
         }
         None
@@ -76,20 +98,21 @@ impl PrefectSingleton {
         task_val: ArgType,
         task_creation: ArgType,
         flow_node_addition: AoristStatement,
-        flow_edge_addition: Vec<AoristStatement>,
+        dep_list: Vec<ArgType>,
     ) -> Self {
         Self {
             task_val,
             task_creation,
             flow_node_addition,
-            flow_edge_addition,
+            dep_list,
         }
     }
-    pub fn get_statements(self) -> Vec<AoristStatement> {
-        let task_creation = AoristStatement::Assign(self.task_val, self.task_creation);
+    pub fn get_statements(&self) -> Vec<AoristStatement> {
+        let task_creation =
+            AoristStatement::Assign(self.task_val.clone(), self.task_creation.clone());
         let mut stmts = vec![task_creation];
-        stmts.push(self.flow_node_addition);
-        for stmt in self.flow_edge_addition {
+        stmts.push(self.flow_node_addition.clone());
+        for stmt in self.get_edge_addition_statements() {
             stmts.push(stmt);
         }
         stmts
@@ -104,12 +127,12 @@ impl PrefectSingleton {
 
 impl<'a> ConstraintState<'a> {
     pub fn get_prefect_singleton(&self, literals: LiteralsMap) -> Result<PrefectSingleton, String> {
-        let (flow_node_addition, flow_edge_addition) = self.get_flow_addition_statements();
+        let (flow_node_addition, dep_list) = self.get_flow_addition_statements();
         Ok(PrefectSingleton::new(
             self.get_task_val(),
             self.get_task_creation_expr(literals)?,
             flow_node_addition,
-            flow_edge_addition,
+            dep_list,
         ))
     }
     pub fn get_dep_ident(&self, location: Location) -> Expression {
@@ -126,19 +149,7 @@ impl<'a> ConstraintState<'a> {
     pub fn get_task_val(&self) -> ArgType {
         self.task_val.as_ref().unwrap().clone()
     }
-    fn get_flow_add_edge_statement(&self, dep: ArgType) -> AoristStatement {
-        let function = ArgType::Attribute(
-            Box::new(ArgType::SimpleIdentifier("flow".to_string())),
-            "add_edge".to_string(),
-        );
-        let add_expr = ArgType::Call(
-            Box::new(function),
-            vec![self.get_task_val(), dep],
-            LinkedHashMap::new(),
-        );
-        AoristStatement::Expression(add_expr)
-    }
-    pub fn get_flow_addition_statements(&self) -> (AoristStatement, Vec<AoristStatement>) {
+    pub fn get_flow_addition_statements(&self) -> (AoristStatement, Vec<ArgType>) {
         let deps = self
             .satisfied_dependencies
             .iter()
@@ -146,7 +157,7 @@ impl<'a> ConstraintState<'a> {
                 let x = rw.read().unwrap();
                 x.get_task_val()
             })
-            .collect::<Vec<_>>();
+            .collect::<Vec<ArgType>>();
         let function = ArgType::Attribute(
             Box::new(ArgType::SimpleIdentifier("flow".to_string())),
             "add_node".to_string(),
@@ -157,23 +168,7 @@ impl<'a> ConstraintState<'a> {
             LinkedHashMap::new(),
         );
         let node_stmt = AoristStatement::Expression(add_expr);
-        let mut statements: Vec<AoristStatement> = Vec::new();
-
-        if deps.len() == 1 {
-            let dep = deps.into_iter().next().unwrap();
-            let add_stmt = self.get_flow_add_edge_statement(dep);
-            statements.push(add_stmt);
-        } else if deps.len() > 1 {
-            let dep_list = ArgType::List(Arc::new(RwLock::new(List::new(deps))));
-            let target = ArgType::SimpleIdentifier("dep".to_string());
-            let for_stmt = AoristStatement::For(
-                target.clone(),
-                dep_list,
-                vec![self.get_flow_add_edge_statement(target.clone())],
-            );
-            statements.push(for_stmt);
-        }
-        (node_stmt, statements)
+        (node_stmt, deps)
     }
     fn get_task_creation_expr(&self, literals: LiteralsMap) -> Result<ArgType, String> {
         match self.dialect {

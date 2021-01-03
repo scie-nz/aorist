@@ -155,9 +155,7 @@ impl PartialEq for ArgType {
                 f1.eq(f2) && args1.eq(args2) && kw1.eq(kw2)
             }
             (ArgType::Attribute(a1, b1), ArgType::Attribute(a2, b2)) => a1.eq(a2) && b1.eq(b2),
-            (ArgType::List(v1), ArgType::List(v2)) => {
-                v1.read().unwrap().eq(&v2.read().unwrap())
-            }
+            (ArgType::List(v1), ArgType::List(v2)) => v1.read().unwrap().eq(&v2.read().unwrap()),
             _ => {
                 if self.name() == other.name() {
                     panic!(format!("PartialEq not implemented for {}", self.name()))
