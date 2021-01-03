@@ -118,6 +118,46 @@ impl List {
         }
     }
 }
+#[derive(Hash, PartialEq, Eq)]
+pub struct Dict {
+    elems: LinkedHashMap<String, ArgType>,
+    referenced_by: Option<ArgType>,
+}
+impl Dict {
+    pub fn new(elems: LinkedHashMap<String, ArgType>) -> Self {
+        Self {
+            elems,
+            referenced_by: None,
+        }
+    }
+    pub fn set_referenced_by(&mut self, obj: ArgType) {
+        self.referenced_by = Some(obj);
+    }
+    pub fn expression(&self, location: Location) -> Expression {
+        if let Some(ref val) = self.referenced_by {
+            return val.expression(location);
+        }
+        Located {
+            location,
+            node: ExpressionType::Dict {
+                elements: self
+                    .elems
+                    .iter()
+                    .map(|(k, v)| (
+                        Some(Located{ location,
+                            node: ExpressionType::String {
+                                value: StringGroup::Constant {
+                                    value: k.clone()
+                                }
+                            }
+                        }),
+                        v.expression(location),
+                    ))
+                    .collect::<Vec<_>>(),
+            },
+        }
+    }
+}
 // TODO: replace HashMaps with LinkedHashMaps
 #[derive(Clone)]
 pub enum ArgType {
