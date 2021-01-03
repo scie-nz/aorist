@@ -1,5 +1,5 @@
 use crate::code_block::CodeBlock;
-use crate::constraint::{ArgType, LiteralsMap, ParameterTuple, StringLiteral};
+use crate::constraint::{ArgType, LiteralsMap, ParameterTuple, StringLiteral, Subscript};
 use crate::constraint_state::ConstraintState;
 use inflector::cases::snakecase::to_snake_case;
 use rustpython_parser::ast::Location;
@@ -114,21 +114,21 @@ impl<'a> ConstraintBlock<'a> {
                     let param_key = most_frequent_names.get(&val).unwrap();
                     if let Some(key) = param_key {
                         // TODO: need to deal with args
-                        let dict_name = ArgType::Subscript(
-                            Box::new(ArgType::SimpleIdentifier(
+                        let dict_name = ArgType::Subscript(Subscript::new_wrapped(
+                            ArgType::SimpleIdentifier(
                                 format!("params_{}", to_snake_case(&self.constraint_name))
                                     .to_string(),
-                            )),
-                            Box::new(ArgType::StringLiteral(Arc::new(RwLock::new(
-                                StringLiteral::new(task_name),
+                            ),
+                            ArgType::StringLiteral(Arc::new(RwLock::new(StringLiteral::new(
+                                task_name,
                             )))),
-                        );
-                        let referenced_by = ArgType::Subscript(
-                            Box::new(dict_name),
-                            Box::new(ArgType::StringLiteral(Arc::new(RwLock::new(
-                                StringLiteral::new(key.clone()),
+                        ));
+                        let referenced_by = ArgType::Subscript(Subscript::new_wrapped(
+                            dict_name,
+                            ArgType::StringLiteral(Arc::new(RwLock::new(StringLiteral::new(
+                                key.clone(),
                             )))),
-                        );
+                        ));
                         write.set_referenced_by(Box::new(referenced_by));
                     }
                 }

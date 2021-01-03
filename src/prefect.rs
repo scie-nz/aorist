@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 use crate::constraint::{
-    AoristStatement, ArgType, Attribute, Call, List, LiteralsMap, StringLiteral, Tuple,
+    AoristStatement, ArgType, Attribute, Call, List, LiteralsMap, StringLiteral, Subscript, Tuple,
 };
 use crate::constraint_state::{ConstraintState, PrefectSingleton};
 use aorist_primitives::Dialect;
@@ -261,12 +261,10 @@ pub trait PrefectTaskRender<'a> {
             if num_constraints <= 2 {
                 write.set_task_val(ArgType::SimpleIdentifier(name));
             } else {
-                write.set_task_val(ArgType::Subscript(
-                    Box::new(ArgType::SimpleIdentifier("tasks".to_string())),
-                    Box::new(ArgType::StringLiteral(Arc::new(RwLock::new(
-                        StringLiteral::new(name),
-                    )))),
-                ));
+                write.set_task_val(ArgType::Subscript(Subscript::new_wrapped(
+                    ArgType::SimpleIdentifier("tasks".to_string()),
+                    ArgType::StringLiteral(Arc::new(RwLock::new(StringLiteral::new(name)))),
+                )));
             }
         }
         let singletons = self
@@ -714,7 +712,7 @@ impl<'a> PrefectRender<'a> {
                         dep_list.clone(),
                     ]))));
                     let new_collector =
-                        ArgType::Subscript(Box::new(collector), Box::new(ident.clone()));
+                        ArgType::Subscript(Subscript::new_wrapped(collector, ident.clone()));
                     let function = ArgType::Attribute(Attribute::new_wrapped(
                         ArgType::SimpleIdentifier("flow".to_string()),
                         "add_node".to_string(),

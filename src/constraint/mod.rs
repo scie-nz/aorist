@@ -206,13 +206,25 @@ define_ast_node!(
     fmt: ArgType,
     keywords: LinkedHashMap<String, ArgType>,
 );
+define_ast_node!(
+    Subscript,
+    |location: Location, subscript: &Subscript| Located {
+        location,
+        node: ExpressionType::Subscript {
+            a: Box::new(subscript.a().expression(location)),
+            b: Box::new(subscript.b().expression(location)),
+        },
+    },
+    a: ArgType,
+    b: ArgType,
+);
 
 // TODO: replace HashMaps with LinkedHashMaps
 #[derive(Clone)]
 pub enum ArgType {
     StringLiteral(Arc<RwLock<StringLiteral>>),
     SimpleIdentifier(String),
-    Subscript(Box<ArgType>, Box<ArgType>),
+    Subscript(Arc<RwLock<Subscript>>),
     Formatted(Arc<RwLock<Formatted>>),
     Call(Arc<RwLock<Call>>),
     Attribute(Arc<RwLock<Attribute>>),
@@ -250,7 +262,9 @@ impl PartialEq for ArgType {
                 v1.read().unwrap().eq(&v2.read().unwrap())
             }
             (ArgType::SimpleIdentifier(v1), ArgType::SimpleIdentifier(v2)) => v1.eq(v2),
-            (ArgType::Subscript(a1, b1), ArgType::Subscript(a2, b2)) => a1.eq(a2) && b1.eq(b2),
+            (ArgType::Subscript(v1), ArgType::Subscript(v2)) => {
+                v1.read().unwrap().eq(&v2.read().unwrap())
+            }
             (ArgType::Formatted(v1), ArgType::Formatted(v2)) => {
                 v1.read().unwrap().eq(&v2.read().unwrap())
             }
@@ -276,12 +290,9 @@ impl Hash for ArgType {
         match &self {
             ArgType::StringLiteral(v) => v.read().unwrap().hash(state),
             ArgType::SimpleIdentifier(ref name) => name.hash(state),
-            ArgType::Subscript(box ref a, box ref b) => {
-                a.hash(state);
-                b.hash(state);
-            }
-            ArgType::Formatted(ref attr) => attr.read().unwrap().hash(state),
-            ArgType::Call(ref attr) => attr.read().unwrap().hash(state),
+            ArgType::Subscript(ref x) => x.read().unwrap().hash(state),
+            ArgType::Formatted(ref x) => x.read().unwrap().hash(state),
+            ArgType::Call(ref x) => x.read().unwrap().hash(state),
             ArgType::Attribute(ref attr) => attr.read().unwrap().hash(state),
             ArgType::List(ref list) => list.read().unwrap().hash(state),
             ArgType::Dict(ref dict) => dict.read().unwrap().hash(state),
@@ -298,15 +309,9 @@ impl ArgType {
                 location,
                 node: ExpressionType::Identifier { name: name.clone() },
             },
-            ArgType::Subscript(box ref a, box ref b) => Located {
-                location,
-                node: ExpressionType::Subscript {
-                    a: Box::new(a.expression(location)),
-                    b: Box::new(b.expression(location)),
-                },
-            },
-            ArgType::Formatted(ref attr) => attr.read().unwrap().expression(location),
-            ArgType::Call(ref attr) => attr.read().unwrap().expression(location),
+            ArgType::Subscript(ref x) => x.read().unwrap().expression(location),
+            ArgType::Formatted(ref x) => x.read().unwrap().expression(location),
+            ArgType::Call(ref x) => x.read().unwrap().expression(location),
             ArgType::Attribute(ref attr) => attr.read().unwrap().expression(location),
             ArgType::List(ref list) => list.read().unwrap().expression(location),
             ArgType::Dict(ref dict) => dict.read().unwrap().expression(location),

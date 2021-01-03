@@ -1,7 +1,7 @@
 use crate::concept::{Concept, ConceptAncestry};
 use crate::constraint::{
-    AllConstraintsSatisfiability, AoristStatement, ArgType, Attribute, Call, Constraint, List,
-    LiteralsMap, ParameterTuple, StringLiteral, Formatted,
+    AllConstraintsSatisfiability, AoristStatement, ArgType, Attribute, Call, Constraint, Formatted,
+    List, LiteralsMap, ParameterTuple, StringLiteral,
 };
 use crate::object::TAoristObject;
 use aorist_primitives::Dialect;
@@ -83,10 +83,11 @@ impl PrefectSingleton {
     pub fn deconstruct(
         &self,
     ) -> Option<(ArgType, ArgType, ArgType, AoristStatement, Option<ArgType>)> {
-        if let ArgType::Subscript(box ref a, box ref b) = self.task_val {
+        if let ArgType::Subscript(ref subscript) = self.task_val {
+            let guard = subscript.read().unwrap();
             return Some((
-                a.clone(),
-                b.clone(),
+                guard.a().clone(),
+                guard.b().clone(),
                 self.get_task_creation().clone(),
                 self.get_flow_node_addition().clone(),
                 self.dep_list.clone(),
