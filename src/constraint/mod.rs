@@ -154,6 +154,30 @@ define_ast_node!(
     name: String,
 );
 
+define_ast_node!(
+    Call,
+    |location: Location, call: &Call| Located {
+        location,
+        node: ExpressionType::Call {
+            function: Box::new(call.function().expression(location)),
+            args: call.args()
+                .iter()
+                .map(|x| x.expression(location))
+                .collect::<Vec<_>>(),
+            keywords: call.keywords()
+                .iter()
+                .map(|(k, v)| Keyword {
+                    name: Some(k.clone()),
+                    value: v.expression(location),
+                })
+                .collect::<Vec<_>>(),
+        },
+    },
+    function: ArgType,
+    args: Vec<ArgType>,
+    keywords: LinkedHashMap<String, ArgType>,
+);
+
 // TODO: replace HashMaps with LinkedHashMaps
 #[derive(Clone)]
 pub enum ArgType {
@@ -161,7 +185,7 @@ pub enum ArgType {
     SimpleIdentifier(String),
     Subscript(Box<ArgType>, Box<ArgType>),
     Formatted(Box<ArgType>, LinkedHashMap<String, ArgType>),
-    Call(Box<ArgType>, Vec<ArgType>, LinkedHashMap<String, ArgType>),
+    Call(Arc<RwLock<Call>>),
     Attribute(Arc<RwLock<Attribute>>),
     List(Arc<RwLock<List>>),
     Dict(Arc<RwLock<Dict>>),
@@ -201,9 +225,7 @@ impl PartialEq for ArgType {
                 fmt1.eq(fmt2) && kw1.eq(kw2)
             }
             (ArgType::Subscript(a1, b1), ArgType::Subscript(a2, b2)) => a1.eq(a2) && b1.eq(b2),
-            (ArgType::Call(f1, args1, kw1), ArgType::Call(f2, args2, kw2)) => {
-                f1.eq(f2) && args1.eq(args2) && kw1.eq(kw2)
-            }
+            (ArgType::Call(v1), ArgType::Call(v2)) => v1.read().unwrap().eq(&v2.read().unwrap()),
             (ArgType::Attribute(v1), ArgType::Attribute(v2)) => {
                 v1.read().unwrap().eq(&v2.read().unwrap())
             }
@@ -235,15 +257,7 @@ impl Hash for ArgType {
                 a.hash(state);
                 b.hash(state);
             }
-            ArgType::Call(box ref function, ref args, ref keywords) => {
-                function.hash(state);
-                for arg in args.iter() {
-                    arg.hash(state);
-                }
-                for kwarg in keywords.iter() {
-                    kwarg.hash(state);
-                }
-            }
+            ArgType::Call(ref attr) => attr.read().unwrap().hash(state),
             ArgType::Attribute(ref attr) => attr.read().unwrap().hash(state),
             ArgType::List(ref list) => list.read().unwrap().hash(state),
             ArgType::Dict(ref dict) => dict.read().unwrap().hash(state),
@@ -287,23 +301,7 @@ impl ArgType {
                     b: Box::new(b.expression(location)),
                 },
             },
-            ArgType::Call(box ref function, ref args, ref keywords) => Located {
-                location,
-                node: ExpressionType::Call {
-                    function: Box::new(function.expression(location)),
-                    args: args
-                        .iter()
-                        .map(|x| x.expression(location))
-                        .collect::<Vec<_>>(),
-                    keywords: keywords
-                        .iter()
-                        .map(|(k, v)| Keyword {
-                            name: Some(k.clone()),
-                            value: v.expression(location),
-                        })
-                        .collect::<Vec<_>>(),
-                },
-            },
+            ArgType::Call(ref attr) => attr.read().unwrap().expression(location),
             ArgType::Attribute(ref attr) => attr.read().unwrap().expression(location),
             ArgType::List(ref list) => list.read().unwrap().expression(location),
             ArgType::Dict(ref dict) => dict.read().unwrap().expression(location),

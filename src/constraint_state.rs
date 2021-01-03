@@ -1,7 +1,7 @@
 use crate::concept::{Concept, ConceptAncestry};
 use crate::constraint::{
-    AllConstraintsSatisfiability, AoristStatement, ArgType, Constraint, List, LiteralsMap,
-    ParameterTuple, StringLiteral, Attribute,
+    AllConstraintsSatisfiability, AoristStatement, ArgType, Attribute, Constraint, List,
+    LiteralsMap, ParameterTuple, StringLiteral, Call,
 };
 use crate::object::TAoristObject;
 use aorist_primitives::Dialect;
@@ -48,11 +48,11 @@ impl PrefectSingleton {
             ArgType::SimpleIdentifier("flow".to_string()),
             "add_edge".to_string(),
         ));
-        let add_expr = ArgType::Call(
-            Box::new(function),
+        let add_expr = ArgType::Call(Call::new_wrapped(
+            function,
             vec![self.get_task_val(), dep],
             LinkedHashMap::new(),
-        );
+        ));
         AoristStatement::Expression(add_expr)
     }
     pub fn get_edge_addition_statements(&self) -> Vec<AoristStatement> {
@@ -170,18 +170,18 @@ impl<'a> ConstraintState<'a> {
             ArgType::SimpleIdentifier("flow".to_string()),
             "add_node".to_string(),
         ));
-        let add_expr = ArgType::Call(
-            Box::new(function),
+        let add_expr = ArgType::Call(Call::new_wrapped(
+            function,
             vec![self.get_task_val()],
             LinkedHashMap::new(),
-        );
+        ));
         let node_stmt = AoristStatement::Expression(add_expr);
         (node_stmt, deps)
     }
     fn get_task_creation_expr(&self, literals: LiteralsMap) -> Result<ArgType, String> {
         match self.dialect {
-            Some(Dialect::Python(_)) => Ok(ArgType::Call(
-                Box::new(ArgType::SimpleIdentifier(self.get_call().unwrap())),
+            Some(Dialect::Python(_)) => Ok(ArgType::Call(Call::new_wrapped(
+                ArgType::SimpleIdentifier(self.get_call().unwrap()),
                 match self.params {
                     Some(ref p) => p.get_args(),
                     None => Vec::new(),
@@ -190,23 +190,8 @@ impl<'a> ConstraintState<'a> {
                     Some(ref p) => p.get_kwargs(),
                     None => LinkedHashMap::new(),
                 },
-            )),
+            ))),
             Some(Dialect::Presto(_)) => {
-                /*let query = self
-                    .params
-                    .as_ref()
-                    .unwrap()
-                    .get_presto_query(self.get_call().unwrap().clone())
-                    .replace("'", "\\'");
-                let raw_command = format!("presto -e '{}'", query);
-                let formatted_str = Located {
-                    location,
-                    node: ExpressionType::String {
-                        value: StringGroup::Constant {
-                            value: raw_command.to_string(),
-                        },
-                    },
-                };*/
                 // TODO: unify this with call in register_literals
                 let raw_command = format!("presto -e '{}'", self.get_call().unwrap().clone());
                 let format_string = literals.read().unwrap().get(&raw_command).unwrap().clone();
@@ -219,11 +204,11 @@ impl<'a> ConstraintState<'a> {
                 };
                 let mut keywords: LinkedHashMap<String, ArgType> = LinkedHashMap::new();
                 keywords.insert("command".to_string(), command);
-                Ok(ArgType::Call(
-                    Box::new(ArgType::SimpleIdentifier("ShellTask".to_string())),
+                Ok(ArgType::Call(Call::new_wrapped(
+                    ArgType::SimpleIdentifier("ShellTask".to_string()),
                     Vec::new(),
                     keywords,
-                ))
+                )))
             }
             Some(Dialect::Bash(_)) => {
                 let format_string = literals
@@ -242,19 +227,20 @@ impl<'a> ConstraintState<'a> {
                 let mut keywords: LinkedHashMap<String, ArgType> = LinkedHashMap::new();
                 keywords.insert("command".to_string(), command);
 
-                Ok(ArgType::Call(
-                    Box::new(ArgType::SimpleIdentifier("ShellTask".to_string())),
+                Ok(ArgType::Call(Call::new_wrapped(
+                    ArgType::SimpleIdentifier("ShellTask".to_string()),
                     Vec::new(),
                     keywords,
-                ))
+                )))
             }
             None => Ok(ArgType::Call(
-                Box::new(ArgType::SimpleIdentifier("ConstantTask".to_string())),
+                Call::new_wrapped(
+                ArgType::SimpleIdentifier("ConstantTask".to_string()),
                 vec![ArgType::StringLiteral(Arc::new(RwLock::new(
                     StringLiteral::new(self.constraint.read().unwrap().get_name().clone()),
                 )))],
                 LinkedHashMap::new(),
-            )),
+            ))),
             _ => Err("Dialect not supported".to_string()),
         }
     }

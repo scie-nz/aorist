@@ -1,6 +1,7 @@
 #![allow(dead_code)]
 use crate::constraint::{
-    AoristStatement, ArgType, Attribute, List, LiteralsMap, StringLiteral, Tuple,
+    AoristStatement, ArgType, Attribute, List, LiteralsMap, StringLiteral,
+    Tuple, Call,
 };
 use crate::constraint_state::{ConstraintState, PrefectSingleton};
 use aorist_primitives::Dialect;
@@ -720,10 +721,11 @@ impl<'a> PrefectRender<'a> {
                         "add_node".to_string(),
                     ));
                     let add_expr = ArgType::Call(
-                        Box::new(function),
+                        Call::new_wrapped(
+                        function,
                         vec![new_collector.clone()],
                         LinkedHashMap::new(),
-                    );
+                    ));
                     let new_singleton = PrefectSingleton::new(
                         new_collector,
                         creation,
