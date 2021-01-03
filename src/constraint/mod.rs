@@ -160,11 +160,13 @@ define_ast_node!(
         location,
         node: ExpressionType::Call {
             function: Box::new(call.function().expression(location)),
-            args: call.args()
+            args: call
+                .args()
                 .iter()
                 .map(|x| x.expression(location))
                 .collect::<Vec<_>>(),
-            keywords: call.keywords()
+            keywords: call
+                .keywords()
                 .iter()
                 .map(|(k, v)| Keyword {
                     name: Some(k.clone()),
@@ -178,13 +180,40 @@ define_ast_node!(
     keywords: LinkedHashMap<String, ArgType>,
 );
 
+define_ast_node!(
+    Formatted,
+    |location: Location, formatted: &Formatted| Located {
+        location,
+        node: ExpressionType::Call {
+            function: Box::new(Located {
+                location,
+                node: ExpressionType::Attribute {
+                    value: Box::new(formatted.fmt().expression(location)),
+                    name: "format".to_string(),
+                },
+            }),
+            args: Vec::new(),
+            keywords: formatted
+                .keywords()
+                .iter()
+                .map(|(k, v)| Keyword {
+                    name: Some(k.clone()),
+                    value: v.expression(location),
+                })
+                .collect(),
+        },
+    },
+    fmt: ArgType,
+    keywords: LinkedHashMap<String, ArgType>,
+);
+
 // TODO: replace HashMaps with LinkedHashMaps
 #[derive(Clone)]
 pub enum ArgType {
     StringLiteral(Arc<RwLock<StringLiteral>>),
     SimpleIdentifier(String),
     Subscript(Box<ArgType>, Box<ArgType>),
-    Formatted(Box<ArgType>, LinkedHashMap<String, ArgType>),
+    Formatted(Arc<RwLock<Formatted>>),
     Call(Arc<RwLock<Call>>),
     Attribute(Arc<RwLock<Attribute>>),
     List(Arc<RwLock<List>>),
@@ -221,10 +250,10 @@ impl PartialEq for ArgType {
                 v1.read().unwrap().eq(&v2.read().unwrap())
             }
             (ArgType::SimpleIdentifier(v1), ArgType::SimpleIdentifier(v2)) => v1.eq(v2),
-            (ArgType::Formatted(fmt1, kw1), ArgType::Formatted(fmt2, kw2)) => {
-                fmt1.eq(fmt2) && kw1.eq(kw2)
-            }
             (ArgType::Subscript(a1, b1), ArgType::Subscript(a2, b2)) => a1.eq(a2) && b1.eq(b2),
+            (ArgType::Formatted(v1), ArgType::Formatted(v2)) => {
+                v1.read().unwrap().eq(&v2.read().unwrap())
+            }
             (ArgType::Call(v1), ArgType::Call(v2)) => v1.read().unwrap().eq(&v2.read().unwrap()),
             (ArgType::Attribute(v1), ArgType::Attribute(v2)) => {
                 v1.read().unwrap().eq(&v2.read().unwrap())
@@ -247,16 +276,11 @@ impl Hash for ArgType {
         match &self {
             ArgType::StringLiteral(v) => v.read().unwrap().hash(state),
             ArgType::SimpleIdentifier(ref name) => name.hash(state),
-            ArgType::Formatted(box ref fmt, ref keywords) => {
-                fmt.hash(state);
-                for keyword in keywords {
-                    keyword.hash(state);
-                }
-            }
             ArgType::Subscript(box ref a, box ref b) => {
                 a.hash(state);
                 b.hash(state);
             }
+            ArgType::Formatted(ref attr) => attr.read().unwrap().hash(state),
             ArgType::Call(ref attr) => attr.read().unwrap().hash(state),
             ArgType::Attribute(ref attr) => attr.read().unwrap().hash(state),
             ArgType::List(ref list) => list.read().unwrap().hash(state),
@@ -274,26 +298,6 @@ impl ArgType {
                 location,
                 node: ExpressionType::Identifier { name: name.clone() },
             },
-            ArgType::Formatted(box ref fmt, ref keywords) => Located {
-                location,
-                node: ExpressionType::Call {
-                    function: Box::new(Located {
-                        location,
-                        node: ExpressionType::Attribute {
-                            value: Box::new(fmt.expression(location)),
-                            name: "format".to_string(),
-                        },
-                    }),
-                    args: Vec::new(),
-                    keywords: keywords
-                        .into_iter()
-                        .map(|(k, v)| Keyword {
-                            name: Some(k.clone()),
-                            value: v.expression(location),
-                        })
-                        .collect(),
-                },
-            },
             ArgType::Subscript(box ref a, box ref b) => Located {
                 location,
                 node: ExpressionType::Subscript {
@@ -301,6 +305,7 @@ impl ArgType {
                     b: Box::new(b.expression(location)),
                 },
             },
+            ArgType::Formatted(ref attr) => attr.read().unwrap().expression(location),
             ArgType::Call(ref attr) => attr.read().unwrap().expression(location),
             ArgType::Attribute(ref attr) => attr.read().unwrap().expression(location),
             ArgType::List(ref list) => list.read().unwrap().expression(location),

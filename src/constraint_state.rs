@@ -1,7 +1,7 @@
 use crate::concept::{Concept, ConceptAncestry};
 use crate::constraint::{
-    AllConstraintsSatisfiability, AoristStatement, ArgType, Attribute, Constraint, List,
-    LiteralsMap, ParameterTuple, StringLiteral, Call,
+    AllConstraintsSatisfiability, AoristStatement, ArgType, Attribute, Call, Constraint, List,
+    LiteralsMap, ParameterTuple, StringLiteral, Formatted,
 };
 use crate::object::TAoristObject;
 use aorist_primitives::Dialect;
@@ -196,10 +196,10 @@ impl<'a> ConstraintState<'a> {
                 let raw_command = format!("presto -e '{}'", self.get_call().unwrap().clone());
                 let format_string = literals.read().unwrap().get(&raw_command).unwrap().clone();
                 let command = match self.params {
-                    Some(ref p) => ArgType::Formatted(
-                        Box::new(ArgType::StringLiteral(format_string)),
+                    Some(ref p) => ArgType::Formatted(Formatted::new_wrapped(
+                        ArgType::StringLiteral(format_string),
                         p.get_kwargs(),
-                    ),
+                    )),
                     None => ArgType::StringLiteral(format_string),
                 };
                 let mut keywords: LinkedHashMap<String, ArgType> = LinkedHashMap::new();
@@ -218,10 +218,10 @@ impl<'a> ConstraintState<'a> {
                     .unwrap()
                     .clone();
                 let command = match self.params {
-                    Some(ref p) => ArgType::Formatted(
-                        Box::new(ArgType::StringLiteral(format_string)),
+                    Some(ref p) => ArgType::Formatted(Formatted::new_wrapped(
+                        ArgType::StringLiteral(format_string),
                         p.get_kwargs(),
-                    ),
+                    )),
                     None => ArgType::StringLiteral(format_string),
                 };
                 let mut keywords: LinkedHashMap<String, ArgType> = LinkedHashMap::new();
@@ -233,8 +233,7 @@ impl<'a> ConstraintState<'a> {
                     keywords,
                 )))
             }
-            None => Ok(ArgType::Call(
-                Call::new_wrapped(
+            None => Ok(ArgType::Call(Call::new_wrapped(
                 ArgType::SimpleIdentifier("ConstantTask".to_string()),
                 vec![ArgType::StringLiteral(Arc::new(RwLock::new(
                     StringLiteral::new(self.constraint.read().unwrap().get_name().clone()),
