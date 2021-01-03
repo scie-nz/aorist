@@ -158,6 +158,37 @@ impl Dict {
         }
     }
 }
+
+#[derive(Hash, PartialEq, Eq)]
+pub struct Tuple {
+    elems: Vec<ArgType>,
+    referenced_by: Option<ArgType>,
+}
+impl Tuple {
+    pub fn new(elems: Vec<ArgType>) -> Self {
+        Self {
+            elems, referenced_by: None,
+        }
+    }
+    pub fn set_referenced_by(&mut self, obj: ArgType) {
+        self.referenced_by = Some(obj);
+    }
+    pub fn expression(&self, location: Location) -> Expression {
+        if let Some(ref val) = self.referenced_by {
+            return val.expression(location);
+        }
+        Located {
+            location,
+            node: ExpressionType::Tuple {
+                elements: self
+                    .elems
+                    .iter()
+                    .map(|x| x.expression(location))
+                    .collect::<Vec<_>>(),
+            },
+        }
+    }
+}
 // TODO: replace HashMaps with LinkedHashMaps
 #[derive(Clone)]
 pub enum ArgType {
@@ -169,6 +200,7 @@ pub enum ArgType {
     Attribute(Box<ArgType>, String),
     List(Arc<RwLock<List>>),
     Dict(Arc<RwLock<Dict>>),
+    Tuple(Arc<RwLock<Tuple>>),
 }
 impl ArgType {
     pub fn register_object(&mut self, uuid: Uuid, tag: Option<String>) {
@@ -188,6 +220,7 @@ impl ArgType {
             Self::Attribute(..) => "Attribute",
             Self::List(..) => "List",
             Self::Dict(..) => "Dict",
+            Self::Tuple(..) => "Tuple",
         }
         .to_string()
     }
@@ -209,6 +242,7 @@ impl PartialEq for ArgType {
             (ArgType::Attribute(a1, b1), ArgType::Attribute(a2, b2)) => a1.eq(a2) && b1.eq(b2),
             (ArgType::List(v1), ArgType::List(v2)) => v1.read().unwrap().eq(&v2.read().unwrap()),
             (ArgType::Dict(v1), ArgType::Dict(v2)) => v1.read().unwrap().eq(&v2.read().unwrap()),
+            (ArgType::Tuple(v1), ArgType::Tuple(v2)) => v1.read().unwrap().eq(&v2.read().unwrap()),
             _ => {
                 if self.name() == other.name() {
                     panic!(format!("PartialEq not implemented for {}", self.name()))
@@ -249,6 +283,7 @@ impl Hash for ArgType {
             }
             ArgType::List(ref list) => list.read().unwrap().hash(state),
             ArgType::Dict(ref dict) => dict.read().unwrap().hash(state),
+            ArgType::Tuple(ref tuple) => tuple.read().unwrap().hash(state),
         }
     }
 }
@@ -314,6 +349,7 @@ impl ArgType {
             },
             ArgType::List(ref list) => list.read().unwrap().expression(location),
             ArgType::Dict(ref dict) => dict.read().unwrap().expression(location),
+            ArgType::Tuple(ref tuple) => tuple.read().unwrap().expression(location),
         }
     }
 }
