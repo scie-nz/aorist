@@ -1,7 +1,6 @@
 use crate::concept::{AoristConcept, Concept, ConceptAncestry};
 use crate::object::TAoristObject;
-use aorist_primitives::{define_constraint, register_constraint, Dialect,
-define_ast_node};
+use aorist_primitives::{define_ast_node, define_constraint, register_constraint, Dialect};
 use linked_hash_map::LinkedHashMap;
 use maplit::hashmap;
 use rustpython_parser::ast::{
@@ -88,91 +87,58 @@ impl StringLiteral {
 }
 pub type LiteralsMap = Arc<RwLock<HashMap<String, Arc<RwLock<StringLiteral>>>>>;
 
-#[derive(Hash, PartialEq, Eq)]
-pub struct List {
-    elems: Vec<ArgType>,
-    referenced_by: Option<ArgType>,
-}
-impl List {
-    pub fn new(elems: Vec<ArgType>) -> Self {
-        Self {
-            elems,
-            referenced_by: None,
-        }
-    }
-    pub fn set_referenced_by(&mut self, obj: ArgType) {
-        self.referenced_by = Some(obj);
-    }
-    pub fn expression(&self, location: Location) -> Expression {
-        if let Some(ref val) = self.referenced_by {
-            return val.expression(location);
-        }
-        Located {
-            location,
-            node: ExpressionType::List {
-                elements: self
-                    .elems
-                    .iter()
-                    .map(|x| x.expression(location))
-                    .collect::<Vec<_>>(),
-            },
-        }
-    }
-}
-#[derive(Hash, PartialEq, Eq)]
-pub struct Dict {
-    elems: LinkedHashMap<String, ArgType>,
-    referenced_by: Option<ArgType>,
-}
-impl Dict {
-    pub fn new(elems: LinkedHashMap<String, ArgType>) -> Self {
-        Self {
-            elems,
-            referenced_by: None,
-        }
-    }
-    pub fn set_referenced_by(&mut self, obj: ArgType) {
-        self.referenced_by = Some(obj);
-    }
-    pub fn expression(&self, location: Location) -> Expression {
-        if let Some(ref val) = self.referenced_by {
-            return val.expression(location);
-        }
-        Located {
-            location,
-            node: ExpressionType::Dict {
-                elements: self
-                    .elems
-                    .iter()
-                    .map(|(k, v)| {
-                        (
-                            Some(Located {
-                                location,
-                                node: ExpressionType::String {
-                                    value: StringGroup::Constant { value: k.clone() },
-                                },
-                            }),
-                            v.expression(location),
-                        )
-                    })
-                    .collect::<Vec<_>>(),
-            },
-        }
-    }
-}
 define_ast_node!(
-        Tuple, 
-        |location: Location, tuple: &Tuple| Located {
-            location,
-            node: ExpressionType::Tuple {
-                elements: tuple
-                    .elems()
-                    .iter()
-                    .map(|x| x.expression(location))
-                    .collect::<Vec<_>>(),
-            },
+    List,
+    |location: Location, list: &List| Located {
+        location,
+        node: ExpressionType::List {
+            elements: list
+                .elems()
+                .iter()
+                .map(|x| x.expression(location))
+                .collect::<Vec<_>>(),
         },
-        elems, Vec<ArgType>,
+    },
+    elems: Vec<ArgType>,
+);
+
+define_ast_node!(
+    Dict,
+    |location: Location, dict: &Dict| Located {
+        location,
+        node: ExpressionType::Dict {
+            elements: dict
+                .elems()
+                .iter()
+                .map(|(k, v)| {
+                    (
+                        Some(Located {
+                            location,
+                            node: ExpressionType::String {
+                                value: StringGroup::Constant { value: k.clone() },
+                            },
+                        }),
+                        v.expression(location),
+                    )
+                })
+                .collect::<Vec<_>>(),
+        },
+    },
+    elems: LinkedHashMap<String, ArgType>,
+);
+define_ast_node!(
+    Tuple,
+    |location: Location, tuple: &Tuple| Located {
+        location,
+        node: ExpressionType::Tuple {
+            elements: tuple
+                .elems()
+                .iter()
+                .map(|x| x.expression(location))
+                .collect::<Vec<_>>(),
+        },
+    },
+    elems: Vec<ArgType>,
 );
 
 // TODO: replace HashMaps with LinkedHashMaps

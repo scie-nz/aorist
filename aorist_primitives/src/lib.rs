@@ -4,7 +4,7 @@ use sqlparser::ast::{ColumnDef, DataType, Ident};
 
 #[macro_export]
 macro_rules! define_ast_node {
-    ($name:ident, $expression:expr, $($field: ident, $field_type: ty,)+) => {
+    ($name:ident, $expression:expr, $($field: ident : $field_type: ty,)+) => {
         #[derive(Hash, PartialEq, Eq)]
         pub struct $name {
             $(
