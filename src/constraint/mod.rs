@@ -87,6 +87,27 @@ impl StringLiteral {
 }
 pub type LiteralsMap = Arc<RwLock<HashMap<String, Arc<RwLock<StringLiteral>>>>>;
 
+#[derive(Hash, PartialEq, Eq)]
+pub struct List {
+    elems: Vec<ArgType>,
+}
+impl List {
+    pub fn new(elems: Vec<ArgType>) -> Self {
+        Self { elems }
+    }
+    pub fn expression(&self, location: Location) -> Expression {
+        Located {
+            location,
+            node: ExpressionType::List {
+                elements: self
+                    .elems
+                    .iter()
+                    .map(|x| x.expression(location))
+                    .collect::<Vec<_>>(),
+            },
+        }
+    }
+}
 // TODO: replace HashMaps with LinkedHashMaps
 #[derive(Clone)]
 pub enum ArgType {
@@ -96,7 +117,7 @@ pub enum ArgType {
     Formatted(Box<ArgType>, LinkedHashMap<String, ArgType>),
     Call(Box<ArgType>, Vec<ArgType>, LinkedHashMap<String, ArgType>),
     Attribute(Box<ArgType>, String),
-    List(Vec<ArgType>),
+    List(Arc<RwLock<List>>),
 }
 impl ArgType {
     pub fn register_object(&mut self, uuid: Uuid, tag: Option<String>) {
@@ -134,7 +155,9 @@ impl PartialEq for ArgType {
                 f1.eq(f2) && args1.eq(args2) && kw1.eq(kw2)
             }
             (ArgType::Attribute(a1, b1), ArgType::Attribute(a2, b2)) => a1.eq(a2) && b1.eq(b2),
-            (ArgType::List(v1), ArgType::List(v2)) => v1.eq(v2),
+            (ArgType::List(v1), ArgType::List(v2)) => {
+                v1.read().unwrap().eq(&v2.read().unwrap())
+            }
             _ => {
                 if self.name() == other.name() {
                     panic!(format!("PartialEq not implemented for {}", self.name()))
@@ -173,11 +196,7 @@ impl Hash for ArgType {
                 value.hash(state);
                 name.hash(state);
             }
-            ArgType::List(ref elems) => {
-                for elem in elems.iter() {
-                    elem.hash(state)
-                }
-            }
+            ArgType::List(ref list) => list.read().unwrap().hash(state),
         }
     }
 }
@@ -241,15 +260,7 @@ impl ArgType {
                     name: name.clone(),
                 },
             },
-            ArgType::List(ref elems) => Located {
-                location,
-                node: ExpressionType::List {
-                    elements: elems
-                        .iter()
-                        .map(|x| x.expression(location))
-                        .collect::<Vec<_>>(),
-                },
-            },
+            ArgType::List(ref list) => list.read().unwrap().expression(location),
         }
     }
 }

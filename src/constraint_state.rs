@@ -1,6 +1,6 @@
 use crate::concept::{Concept, ConceptAncestry};
 use crate::constraint::{
-    AllConstraintsSatisfiability, AoristStatement, ArgType, Constraint, LiteralsMap,
+    AllConstraintsSatisfiability, AoristStatement, ArgType, Constraint, List, LiteralsMap,
     ParameterTuple, StringLiteral,
 };
 use crate::object::TAoristObject;
@@ -164,7 +164,7 @@ impl<'a> ConstraintState<'a> {
             let add_stmt = self.get_flow_add_edge_statement(dep);
             statements.push(add_stmt);
         } else if deps.len() > 1 {
-            let dep_list = ArgType::List(deps);
+            let dep_list = ArgType::List(Arc::new(RwLock::new(List::new(deps))));
             let target = ArgType::SimpleIdentifier("dep".to_string());
             let for_stmt = AoristStatement::For(
                 target.clone(),

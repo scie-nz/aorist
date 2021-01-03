@@ -1,5 +1,5 @@
 #![allow(dead_code)]
-use crate::constraint::{AoristStatement, ArgType, LiteralsMap, StringLiteral};
+use crate::constraint::{AoristStatement, ArgType, List, LiteralsMap, StringLiteral};
 use crate::constraint_state::{ConstraintState, PrefectSingleton};
 use aorist_primitives::Dialect;
 use indoc::formatdoc;
@@ -684,7 +684,9 @@ impl<'a> PrefectRender<'a> {
             .map(|x| (x.0, x.1.unwrap()))
             .collect::<Vec<_>>();
         let mut singletons_hash: HashMap<_, Vec<_>> = HashMap::new();
-        for (task_key, (collector, task_name, creation, _, edge_addition)) in &singletons_deconstructed {
+        for (task_key, (collector, task_name, creation, _, edge_addition)) in
+            &singletons_deconstructed
+        {
             let key = (collector.clone(), creation.clone(), edge_addition.clone());
             // TODO: assert that task_name is the same as the 2nd value in the
             // tuple (when unpacked)
@@ -716,9 +718,11 @@ impl<'a> PrefectRender<'a> {
                         edge_addition,
                     );
                     let statements = new_singleton.get_statements();
-                    let iter = ArgType::List(v.iter().map(|x| x.0.clone()).collect::<Vec<_>>());
+                    let iter = ArgType::List(Arc::new(RwLock::new(List::new(
+                        v.iter().map(|x| x.0.clone()).collect::<Vec<_>>(),
+                    ))));
                     let for_loop = AoristStatement::For(ident, iter, statements);
-                    
+
                     for elem in v.iter().map(|x| x.1.clone()) {
                         singletons.remove(&elem);
                     }
