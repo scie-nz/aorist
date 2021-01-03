@@ -1,5 +1,7 @@
 #![allow(dead_code)]
-use crate::constraint::{AoristStatement, ArgType, List, LiteralsMap, StringLiteral, Tuple};
+use crate::constraint::{
+    AoristStatement, ArgType, Attribute, List, LiteralsMap, StringLiteral, Tuple,
+};
 use crate::constraint_state::{ConstraintState, PrefectSingleton};
 use aorist_primitives::Dialect;
 use indoc::formatdoc;
@@ -713,10 +715,10 @@ impl<'a> PrefectRender<'a> {
                     ]))));
                     let new_collector =
                         ArgType::Subscript(Box::new(collector), Box::new(ident.clone()));
-                    let function = ArgType::Attribute(
-                        Box::new(ArgType::SimpleIdentifier("flow".to_string())),
+                    let function = ArgType::Attribute(Attribute::new_wrapped(
+                        ArgType::SimpleIdentifier("flow".to_string()),
                         "add_node".to_string(),
-                    );
+                    ));
                     let add_expr = ArgType::Call(
                         Box::new(function),
                         vec![new_collector.clone()],

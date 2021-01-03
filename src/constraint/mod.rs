@@ -141,6 +141,19 @@ define_ast_node!(
     elems: Vec<ArgType>,
 );
 
+define_ast_node!(
+    Attribute,
+    |location: Location, attr: &Attribute| Located {
+        location,
+        node: ExpressionType::Attribute {
+            value: Box::new(attr.value().expression(location)),
+            name: attr.name().clone(),
+        },
+    },
+    value: ArgType,
+    name: String,
+);
+
 // TODO: replace HashMaps with LinkedHashMaps
 #[derive(Clone)]
 pub enum ArgType {
@@ -149,7 +162,7 @@ pub enum ArgType {
     Subscript(Box<ArgType>, Box<ArgType>),
     Formatted(Box<ArgType>, LinkedHashMap<String, ArgType>),
     Call(Box<ArgType>, Vec<ArgType>, LinkedHashMap<String, ArgType>),
-    Attribute(Box<ArgType>, String),
+    Attribute(Arc<RwLock<Attribute>>),
     List(Arc<RwLock<List>>),
     Dict(Arc<RwLock<Dict>>),
     Tuple(Arc<RwLock<Tuple>>),
@@ -191,7 +204,9 @@ impl PartialEq for ArgType {
             (ArgType::Call(f1, args1, kw1), ArgType::Call(f2, args2, kw2)) => {
                 f1.eq(f2) && args1.eq(args2) && kw1.eq(kw2)
             }
-            (ArgType::Attribute(a1, b1), ArgType::Attribute(a2, b2)) => a1.eq(a2) && b1.eq(b2),
+            (ArgType::Attribute(v1), ArgType::Attribute(v2)) => {
+                v1.read().unwrap().eq(&v2.read().unwrap())
+            }
             (ArgType::List(v1), ArgType::List(v2)) => v1.read().unwrap().eq(&v2.read().unwrap()),
             (ArgType::Dict(v1), ArgType::Dict(v2)) => v1.read().unwrap().eq(&v2.read().unwrap()),
             (ArgType::Tuple(v1), ArgType::Tuple(v2)) => v1.read().unwrap().eq(&v2.read().unwrap()),
@@ -229,10 +244,7 @@ impl Hash for ArgType {
                     kwarg.hash(state);
                 }
             }
-            ArgType::Attribute(box ref value, ref name) => {
-                value.hash(state);
-                name.hash(state);
-            }
+            ArgType::Attribute(ref attr) => attr.read().unwrap().hash(state),
             ArgType::List(ref list) => list.read().unwrap().hash(state),
             ArgType::Dict(ref dict) => dict.read().unwrap().hash(state),
             ArgType::Tuple(ref tuple) => tuple.read().unwrap().hash(state),
@@ -292,13 +304,7 @@ impl ArgType {
                         .collect::<Vec<_>>(),
                 },
             },
-            ArgType::Attribute(box ref value, ref name) => Located {
-                location,
-                node: ExpressionType::Attribute {
-                    value: Box::new(value.expression(location)),
-                    name: name.clone(),
-                },
-            },
+            ArgType::Attribute(ref attr) => attr.read().unwrap().expression(location),
             ArgType::List(ref list) => list.read().unwrap().expression(location),
             ArgType::Dict(ref dict) => dict.read().unwrap().expression(location),
             ArgType::Tuple(ref tuple) => tuple.read().unwrap().expression(location),

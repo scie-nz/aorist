@@ -1,7 +1,7 @@
 use crate::concept::{Concept, ConceptAncestry};
 use crate::constraint::{
     AllConstraintsSatisfiability, AoristStatement, ArgType, Constraint, List, LiteralsMap,
-    ParameterTuple, StringLiteral,
+    ParameterTuple, StringLiteral, Attribute,
 };
 use crate::object::TAoristObject;
 use aorist_primitives::Dialect;
@@ -44,10 +44,10 @@ impl PrefectSingleton {
         self.task_val.clone()
     }
     fn get_flow_add_edge_statement(&self, dep: ArgType) -> AoristStatement {
-        let function = ArgType::Attribute(
-            Box::new(ArgType::SimpleIdentifier("flow".to_string())),
+        let function = ArgType::Attribute(Attribute::new_wrapped(
+            ArgType::SimpleIdentifier("flow".to_string()),
             "add_edge".to_string(),
-        );
+        ));
         let add_expr = ArgType::Call(
             Box::new(function),
             vec![self.get_task_val(), dep],
@@ -166,10 +166,10 @@ impl<'a> ConstraintState<'a> {
                 x.get_task_val()
             })
             .collect::<Vec<ArgType>>();
-        let function = ArgType::Attribute(
-            Box::new(ArgType::SimpleIdentifier("flow".to_string())),
+        let function = ArgType::Attribute(Attribute::new_wrapped(
+            ArgType::SimpleIdentifier("flow".to_string()),
             "add_node".to_string(),
-        );
+        ));
         let add_expr = ArgType::Call(
             Box::new(function),
             vec![self.get_task_val()],

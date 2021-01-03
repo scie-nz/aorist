@@ -13,6 +13,11 @@ macro_rules! define_ast_node {
             referenced_by: Option<ArgType>,
         }
         impl $name {
+            pub fn new_wrapped($(
+                $field: $field_type,
+            )+) -> Arc<RwLock<Self>> {
+                Arc::new(RwLock::new(Self::new($($field, )+)))
+            }
             pub fn new($(
                 $field: $field_type,
             )+) -> Self {
@@ -23,7 +28,7 @@ macro_rules! define_ast_node {
             }
             $(
                 pub fn $field(&self) -> $field_type {
-                    self.$field.clone() 
+                    self.$field.clone()
                 }
             )+
             pub fn set_referenced_by(&mut self, obj: ArgType) {
@@ -36,7 +41,7 @@ macro_rules! define_ast_node {
                 $expression(location, self)
             }
         }
-    };        
+    };
 }
 #[macro_export]
 macro_rules! define_program {
