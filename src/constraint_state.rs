@@ -37,7 +37,7 @@ pub struct PrefectSingleton {
     task_val: ArgType,
     task_creation: ArgType,
     flow_node_addition: AoristStatement,
-    dep_list: Vec<ArgType>,
+    dep_list: Option<ArgType>,
 }
 impl PrefectSingleton {
     pub fn get_task_val(&self) -> ArgType {
@@ -56,23 +56,23 @@ impl PrefectSingleton {
         AoristStatement::Expression(add_expr)
     }
     pub fn get_edge_addition_statements(&self) -> Vec<AoristStatement> {
-        let mut statements: Vec<AoristStatement> = Vec::new();
-
-        if self.dep_list.len() == 1 {
-            let dep = self.dep_list.clone().into_iter().next().unwrap();
-            let add_stmt = self.get_flow_add_edge_statement(dep);
-            statements.push(add_stmt);
-        } else if self.dep_list.len() > 1 {
-            let dep_list = ArgType::List(Arc::new(RwLock::new(List::new(self.dep_list.clone()))));
-            let target = ArgType::SimpleIdentifier("dep".to_string());
-            let for_stmt = AoristStatement::For(
-                target.clone(),
-                dep_list.clone(),
-                vec![self.get_flow_add_edge_statement(target.clone())],
-            );
-            statements.push(for_stmt);
+        match self.dep_list {
+            None => Vec::new(),
+            Some(ArgType::List(_)) => {
+                let target = ArgType::SimpleIdentifier("dep".to_string());
+                let for_stmt = AoristStatement::For(
+                    target.clone(),
+                    self.dep_list.as_ref().unwrap().clone(),
+                    vec![self.get_flow_add_edge_statement(target.clone())],
+                );
+                vec![for_stmt]
+            }
+            _ => {
+                let dep = self.dep_list.clone();
+                let add_stmt = self.get_flow_add_edge_statement(dep.unwrap());
+                vec![add_stmt]
+            }
         }
-        statements
     }
     pub fn get_task_creation(&self) -> ArgType {
         self.task_creation.clone()
@@ -82,7 +82,7 @@ impl PrefectSingleton {
     }
     pub fn deconstruct(
         &self,
-    ) -> Option<(ArgType, ArgType, ArgType, AoristStatement, Vec<ArgType>)> {
+    ) -> Option<(ArgType, ArgType, ArgType, AoristStatement, Option<ArgType>)> {
         if let ArgType::Subscript(box ref a, box ref b) = self.task_val {
             return Some((
                 a.clone(),
@@ -98,7 +98,7 @@ impl PrefectSingleton {
         task_val: ArgType,
         task_creation: ArgType,
         flow_node_addition: AoristStatement,
-        dep_list: Vec<ArgType>,
+        dep_list: Option<ArgType>,
     ) -> Self {
         Self {
             task_val,
@@ -128,11 +128,19 @@ impl PrefectSingleton {
 impl<'a> ConstraintState<'a> {
     pub fn get_prefect_singleton(&self, literals: LiteralsMap) -> Result<PrefectSingleton, String> {
         let (flow_node_addition, dep_list) = self.get_flow_addition_statements();
+        let dep;
+        if dep_list.len() == 1 {
+            dep = Some(dep_list.clone().into_iter().next().unwrap());
+        } else if dep_list.len() > 1 {
+            dep = Some(ArgType::List(Arc::new(RwLock::new(List::new(dep_list)))));
+        } else {
+            dep = None;
+        }
         Ok(PrefectSingleton::new(
             self.get_task_val(),
             self.get_task_creation_expr(literals)?,
             flow_node_addition,
-            dep_list,
+            dep,
         ))
     }
     pub fn get_dep_ident(&self, location: Location) -> Expression {
