@@ -168,6 +168,7 @@ pub enum ArgType {
     Call(Box<ArgType>, Vec<ArgType>, LinkedHashMap<String, ArgType>),
     Attribute(Box<ArgType>, String),
     List(Arc<RwLock<List>>),
+    Dict(Arc<RwLock<Dict>>),
 }
 impl ArgType {
     pub fn register_object(&mut self, uuid: Uuid, tag: Option<String>) {
@@ -186,6 +187,7 @@ impl ArgType {
             Self::Call(..) => "Call",
             Self::Attribute(..) => "Attribute",
             Self::List(..) => "List",
+            Self::Dict(..) => "Dict",
         }
         .to_string()
     }
@@ -206,6 +208,7 @@ impl PartialEq for ArgType {
             }
             (ArgType::Attribute(a1, b1), ArgType::Attribute(a2, b2)) => a1.eq(a2) && b1.eq(b2),
             (ArgType::List(v1), ArgType::List(v2)) => v1.read().unwrap().eq(&v2.read().unwrap()),
+            (ArgType::Dict(v1), ArgType::Dict(v2)) => v1.read().unwrap().eq(&v2.read().unwrap()),
             _ => {
                 if self.name() == other.name() {
                     panic!(format!("PartialEq not implemented for {}", self.name()))
@@ -245,6 +248,7 @@ impl Hash for ArgType {
                 name.hash(state);
             }
             ArgType::List(ref list) => list.read().unwrap().hash(state),
+            ArgType::Dict(ref dict) => dict.read().unwrap().hash(state),
         }
     }
 }
@@ -309,6 +313,7 @@ impl ArgType {
                 },
             },
             ArgType::List(ref list) => list.read().unwrap().expression(location),
+            ArgType::Dict(ref dict) => dict.read().unwrap().expression(location),
         }
     }
 }
