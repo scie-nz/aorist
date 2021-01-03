@@ -21,8 +21,11 @@ impl<'a> CodeBlock<'a> {
                 .register_literals(literals.clone(), member.clone());
         }
     }
-    pub fn new(dialect: Option<Dialect>, members:
-    Vec<Arc<RwLock<ConstraintState<'a>>>>, constraint_name: String) -> Self {
+    pub fn new(
+        dialect: Option<Dialect>,
+        members: Vec<Arc<RwLock<ConstraintState<'a>>>>,
+        constraint_name: String,
+    ) -> Self {
         let task_render = match dialect {
             Some(Dialect::Python(_)) => {
                 PrefectRender::Python(PrefectPythonTaskRender::new(members.clone()))
@@ -65,6 +68,7 @@ impl<'a> CodeBlock<'a> {
             .collect()
     }
     pub fn render(&'a self, location: Location, literals: LiteralsMap) {
-        self.task_render.render(location, literals, self.constraint_name.clone());
+        self.task_render
+            .render(location, literals, self.constraint_name.clone());
     }
 }

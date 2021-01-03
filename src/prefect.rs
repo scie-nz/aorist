@@ -1,5 +1,6 @@
 #![allow(dead_code)]
-use crate::constraint::{AoristStatement, ArgType, List, LiteralsMap, StringLiteral};
+use crate::constraint::{AoristStatement, ArgType, List, LiteralsMap,
+StringLiteral, Tuple};
 use crate::constraint_state::{ConstraintState, PrefectSingleton};
 use aorist_primitives::Dialect;
 use indoc::formatdoc;
@@ -674,8 +675,7 @@ pub enum PrefectRender<'a> {
     Constant(PrefectConstantTaskRender<'a>),
 }
 impl<'a> PrefectRender<'a> {
-    pub fn render(&'a self, location: Location, literals: LiteralsMap,
-    constraint_name: String) {
+    pub fn render(&'a self, location: Location, literals: LiteralsMap, constraint_name: String) {
         let mut singletons = self.get_singletons(literals);
         let singletons_deconstructed = singletons
             .clone()
@@ -698,12 +698,16 @@ impl<'a> PrefectRender<'a> {
             ));
         }
         if singletons_deconstructed.len() > 1 {
-            let params = ArgType::SimpleIdentifier(format!("params_{}",
-            constraint_name).to_string());
+            let params =
+                ArgType::SimpleIdentifier(format!("params_{}", constraint_name).to_string());
             for ((collector, creation, edge_addition), v) in singletons_hash {
                 // TODO: magic number
                 if v.len() >= 3 {
                     let ident = ArgType::SimpleIdentifier("t".to_string());
+                    let dep_list = ArgType::SimpleIdentifier("dep_list".to_string());
+                    let tpl =
+                    ArgType::Tuple(Arc::new(RwLock::new(Tuple::new(vec![ident.clone(),
+                    dep_list.clone()]))));
                     let new_collector =
                         ArgType::Subscript(Box::new(collector), Box::new(ident.clone()));
                     let function = ArgType::Attribute(
@@ -725,7 +729,7 @@ impl<'a> PrefectRender<'a> {
                     let mut list = List::new(v.iter().map(|x| x.0.clone()).collect::<Vec<_>>());
                     list.set_referenced_by(params.clone());
                     let iter = ArgType::List(Arc::new(RwLock::new(list)));
-                    let for_loop = AoristStatement::For(ident, iter, statements);
+                    let for_loop = AoristStatement::For(tpl, iter, statements);
 
                     for elem in v.iter().map(|x| x.1.clone()) {
                         singletons.remove(&elem);

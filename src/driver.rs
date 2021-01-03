@@ -288,8 +288,7 @@ impl<'a> Driver<'a> {
                 .push(state.clone());
         }
         for (dialect, satisfied) in by_dialect.into_iter() {
-            let block = CodeBlock::new(dialect, satisfied,
-            constraint_name.clone());
+            let block = CodeBlock::new(dialect, satisfied, constraint_name.clone());
             blocks.push(block);
         }
 

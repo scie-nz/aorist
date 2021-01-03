@@ -143,16 +143,17 @@ impl Dict {
                 elements: self
                     .elems
                     .iter()
-                    .map(|(k, v)| (
-                        Some(Located{ location,
-                            node: ExpressionType::String {
-                                value: StringGroup::Constant {
-                                    value: k.clone()
-                                }
-                            }
-                        }),
-                        v.expression(location),
-                    ))
+                    .map(|(k, v)| {
+                        (
+                            Some(Located {
+                                location,
+                                node: ExpressionType::String {
+                                    value: StringGroup::Constant { value: k.clone() },
+                                },
+                            }),
+                            v.expression(location),
+                        )
+                    })
                     .collect::<Vec<_>>(),
             },
         }
@@ -167,7 +168,8 @@ pub struct Tuple {
 impl Tuple {
     pub fn new(elems: Vec<ArgType>) -> Self {
         Self {
-            elems, referenced_by: None,
+            elems,
+            referenced_by: None,
         }
     }
     pub fn set_referenced_by(&mut self, obj: ArgType) {
