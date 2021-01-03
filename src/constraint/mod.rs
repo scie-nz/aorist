@@ -90,12 +90,22 @@ pub type LiteralsMap = Arc<RwLock<HashMap<String, Arc<RwLock<StringLiteral>>>>>;
 #[derive(Hash, PartialEq, Eq)]
 pub struct List {
     elems: Vec<ArgType>,
+    referenced_by: Option<ArgType>,
 }
 impl List {
     pub fn new(elems: Vec<ArgType>) -> Self {
-        Self { elems }
+        Self {
+            elems,
+            referenced_by: None,
+        }
+    }
+    pub fn set_referenced_by(&mut self, obj: ArgType) {
+        self.referenced_by = Some(obj);
     }
     pub fn expression(&self, location: Location) -> Expression {
+        if let Some(ref val) = self.referenced_by {
+            return val.expression(location);
+        }
         Located {
             location,
             node: ExpressionType::List {

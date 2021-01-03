@@ -12,6 +12,7 @@ pub struct CodeBlock<'a> {
     _dialect: Option<Dialect>,
     members: Vec<Arc<RwLock<ConstraintState<'a>>>>,
     task_render: PrefectRender<'a>,
+    constraint_name: String,
 }
 impl<'a> CodeBlock<'a> {
     pub fn register_literals(&'a self, literals: LiteralsMap) {
@@ -20,7 +21,8 @@ impl<'a> CodeBlock<'a> {
                 .register_literals(literals.clone(), member.clone());
         }
     }
-    pub fn new(dialect: Option<Dialect>, members: Vec<Arc<RwLock<ConstraintState<'a>>>>) -> Self {
+    pub fn new(dialect: Option<Dialect>, members:
+    Vec<Arc<RwLock<ConstraintState<'a>>>>, constraint_name: String) -> Self {
         let task_render = match dialect {
             Some(Dialect::Python(_)) => {
                 PrefectRender::Python(PrefectPythonTaskRender::new(members.clone()))
@@ -42,6 +44,7 @@ impl<'a> CodeBlock<'a> {
             _dialect: dialect,
             members,
             task_render,
+            constraint_name,
         }
     }
     pub fn get_preambles(&self) -> HashSet<String> {
@@ -62,6 +65,6 @@ impl<'a> CodeBlock<'a> {
             .collect()
     }
     pub fn render(&'a self, location: Location, literals: LiteralsMap) {
-        self.task_render.render(location, literals);
+        self.task_render.render(location, literals, self.constraint_name.clone());
     }
 }

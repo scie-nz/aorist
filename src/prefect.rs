@@ -674,7 +674,8 @@ pub enum PrefectRender<'a> {
     Constant(PrefectConstantTaskRender<'a>),
 }
 impl<'a> PrefectRender<'a> {
-    pub fn render(&'a self, location: Location, literals: LiteralsMap) {
+    pub fn render(&'a self, location: Location, literals: LiteralsMap,
+    constraint_name: String) {
         let mut singletons = self.get_singletons(literals);
         let singletons_deconstructed = singletons
             .clone()
@@ -690,12 +691,15 @@ impl<'a> PrefectRender<'a> {
             let key = (collector.clone(), creation.clone(), edge_addition.clone());
             // TODO: assert that task_name is the same as the 2nd value in the
             // tuple (when unpacked)
-            singletons_hash
-                .entry(key)
-                .or_insert(Vec::new())
-                .push((task_name.clone(), task_key.clone()));
+            singletons_hash.entry(key).or_insert(Vec::new()).push((
+                task_name.clone(),
+                task_key.clone(),
+                edge_addition.clone(),
+            ));
         }
         if singletons_deconstructed.len() > 1 {
+            let params = ArgType::SimpleIdentifier(format!("params_{}",
+            constraint_name).to_string());
             for ((collector, creation, edge_addition), v) in singletons_hash {
                 // TODO: magic number
                 if v.len() >= 3 {
@@ -718,9 +722,9 @@ impl<'a> PrefectRender<'a> {
                         edge_addition,
                     );
                     let statements = new_singleton.get_statements();
-                    let iter = ArgType::List(Arc::new(RwLock::new(List::new(
-                        v.iter().map(|x| x.0.clone()).collect::<Vec<_>>(),
-                    ))));
+                    let mut list = List::new(v.iter().map(|x| x.0.clone()).collect::<Vec<_>>());
+                    list.set_referenced_by(params.clone());
+                    let iter = ArgType::List(Arc::new(RwLock::new(list)));
                     let for_loop = AoristStatement::For(ident, iter, statements);
 
                     for elem in v.iter().map(|x| x.1.clone()) {

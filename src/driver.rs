@@ -265,6 +265,7 @@ impl<'a> Driver<'a> {
         block: &mut HashMap<(Uuid, String), Arc<RwLock<ConstraintState<'a>>>>,
         reverse_dependencies: &HashMap<(Uuid, String), HashSet<(String, Uuid, String)>>,
         literals: LiteralsMap,
+        constraint_name: String,
     ) -> Vec<CodeBlock<'a>> {
         // (call, constraint_name, root_name) => (uuid, call parameters)
         let mut calls: HashMap<(String, String, String), Vec<(String, ParameterTuple)>> =
@@ -287,7 +288,8 @@ impl<'a> Driver<'a> {
                 .push(state.clone());
         }
         for (dialect, satisfied) in by_dialect.into_iter() {
-            let block = CodeBlock::new(dialect, satisfied);
+            let block = CodeBlock::new(dialect, satisfied,
+            constraint_name.clone());
             blocks.push(block);
         }
 
@@ -396,15 +398,17 @@ impl<'a> Driver<'a> {
             if let Some((ref mut block, constraint_name)) = satisfiable {
                 //println!("Block has size: {}", block.len());
                 let literals = Arc::new(RwLock::new(HashMap::new()));
+                let snake_case_name = to_snake_case(&constraint_name);
                 let members = self.process_constraint_block(
                     &mut block.clone(),
                     &reverse_dependencies,
                     literals.clone(),
+                    snake_case_name.clone(),
                 );
 
                 // TODO: this can be moved to ConstraintBlock
                 let constraint_block = ConstraintBlock::new(
-                    to_snake_case(&constraint_name),
+                    snake_case_name,
                     members,
                     literals,
                     block
