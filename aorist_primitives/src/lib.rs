@@ -3,6 +3,42 @@ use indoc::formatdoc;
 use sqlparser::ast::{ColumnDef, DataType, Ident};
 
 #[macro_export]
+macro_rules! define_ast_node {
+    ($name:ident, $expression:expr, $($field: ident, $field_type: ty,)+) => {
+        #[derive(Hash, PartialEq, Eq)]
+        pub struct $name {
+            $(
+                $field: $field_type,
+            )+
+            referenced_by: Option<ArgType>,
+        }
+        impl $name {
+            pub fn new($(
+                $field: $field_type,
+            )+) -> Self {
+                Self {
+                    $($field,)+
+                    referenced_by: None,
+                }
+            }
+            $(
+                pub fn $field(&self) -> $field_type {
+                    self.$field.clone() 
+                }
+            )+
+            pub fn set_referenced_by(&mut self, obj: ArgType) {
+                self.referenced_by = Some(obj);
+            }
+            pub fn expression(&self, location: Location) -> Expression {
+                if let Some(ref val) = self.referenced_by {
+                    return val.expression(location);
+                }
+                $expression(location, self)
+            }
+        }
+    };        
+}
+#[macro_export]
 macro_rules! define_program {
     ($name:ident, $root:ident, $constraint:ident, $satisfy_type:ident,
      $dialect:ident,

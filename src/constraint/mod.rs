@@ -1,6 +1,7 @@
 use crate::concept::{AoristConcept, Concept, ConceptAncestry};
 use crate::object::TAoristObject;
-use aorist_primitives::{define_constraint, register_constraint, Dialect};
+use aorist_primitives::{define_constraint, register_constraint, Dialect,
+define_ast_node};
 use linked_hash_map::LinkedHashMap;
 use maplit::hashmap;
 use rustpython_parser::ast::{
@@ -159,38 +160,21 @@ impl Dict {
         }
     }
 }
-
-#[derive(Hash, PartialEq, Eq)]
-pub struct Tuple {
-    elems: Vec<ArgType>,
-    referenced_by: Option<ArgType>,
-}
-impl Tuple {
-    pub fn new(elems: Vec<ArgType>) -> Self {
-        Self {
-            elems,
-            referenced_by: None,
-        }
-    }
-    pub fn set_referenced_by(&mut self, obj: ArgType) {
-        self.referenced_by = Some(obj);
-    }
-    pub fn expression(&self, location: Location) -> Expression {
-        if let Some(ref val) = self.referenced_by {
-            return val.expression(location);
-        }
-        Located {
+define_ast_node!(
+        Tuple, 
+        |location: Location, tuple: &Tuple| Located {
             location,
             node: ExpressionType::Tuple {
-                elements: self
-                    .elems
+                elements: tuple
+                    .elems()
                     .iter()
                     .map(|x| x.expression(location))
                     .collect::<Vec<_>>(),
             },
-        }
-    }
-}
+        },
+        elems, Vec<ArgType>,
+);
+
 // TODO: replace HashMaps with LinkedHashMaps
 #[derive(Clone)]
 pub enum ArgType {
