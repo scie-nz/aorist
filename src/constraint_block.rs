@@ -1,5 +1,7 @@
 use crate::code_block::CodeBlock;
-use crate::constraint::{ArgType, LiteralsMap, ParameterTuple, StringLiteral, Subscript};
+use crate::constraint::{
+    ArgType, LiteralsMap, ParameterTuple, SimpleIdentifier, StringLiteral, Subscript,
+};
 use crate::constraint_state::ConstraintState;
 use inflector::cases::snakecase::to_snake_case;
 use rustpython_parser::ast::Location;
@@ -97,7 +99,9 @@ impl<'a> ConstraintBlock<'a> {
                             format!("{}_{}", to_snake_case(&self.constraint_name), name)
                                 .to_string();
                         if proposed_name.len() < name.len() || write.is_multiline() {
-                            let referenced_by = ArgType::SimpleIdentifier(proposed_name);
+                            let referenced_by = ArgType::SimpleIdentifier(
+                                SimpleIdentifier::new_wrapped(proposed_name),
+                            );
                             write.set_referenced_by(Box::new(referenced_by));
                         }
                     }
@@ -115,10 +119,10 @@ impl<'a> ConstraintBlock<'a> {
                     if let Some(key) = param_key {
                         // TODO: need to deal with args
                         let dict_name = ArgType::Subscript(Subscript::new_wrapped(
-                            ArgType::SimpleIdentifier(
+                            ArgType::SimpleIdentifier(SimpleIdentifier::new_wrapped(
                                 format!("params_{}", to_snake_case(&self.constraint_name))
                                     .to_string(),
-                            ),
+                            )),
                             ArgType::StringLiteral(Arc::new(RwLock::new(StringLiteral::new(
                                 task_name,
                             )))),

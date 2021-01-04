@@ -218,12 +218,22 @@ define_ast_node!(
     a: ArgType,
     b: ArgType,
 );
+define_ast_node!(
+    SimpleIdentifier,
+    |location: Location, ident: &SimpleIdentifier| Located {
+        location,
+        node: ExpressionType::Identifier {
+            name: ident.name().clone()
+        },
+    },
+    name: String,
+);
 
 // TODO: replace HashMaps with LinkedHashMaps
 #[derive(Clone)]
 pub enum ArgType {
     StringLiteral(Arc<RwLock<StringLiteral>>),
-    SimpleIdentifier(String),
+    SimpleIdentifier(Arc<RwLock<SimpleIdentifier>>),
     Subscript(Arc<RwLock<Subscript>>),
     Formatted(Arc<RwLock<Formatted>>),
     Call(Arc<RwLock<Call>>),
@@ -261,7 +271,9 @@ impl PartialEq for ArgType {
             (ArgType::StringLiteral(v1), ArgType::StringLiteral(v2)) => {
                 v1.read().unwrap().eq(&v2.read().unwrap())
             }
-            (ArgType::SimpleIdentifier(v1), ArgType::SimpleIdentifier(v2)) => v1.eq(v2),
+            (ArgType::SimpleIdentifier(v1), ArgType::SimpleIdentifier(v2)) => {
+                v1.read().unwrap().eq(&v2.read().unwrap())
+            }
             (ArgType::Subscript(v1), ArgType::Subscript(v2)) => {
                 v1.read().unwrap().eq(&v2.read().unwrap())
             }
@@ -289,7 +301,7 @@ impl Hash for ArgType {
     fn hash<H: Hasher>(&self, state: &mut H) {
         match &self {
             ArgType::StringLiteral(v) => v.read().unwrap().hash(state),
-            ArgType::SimpleIdentifier(ref name) => name.hash(state),
+            ArgType::SimpleIdentifier(ref x) => x.read().unwrap().hash(state),
             ArgType::Subscript(ref x) => x.read().unwrap().hash(state),
             ArgType::Formatted(ref x) => x.read().unwrap().hash(state),
             ArgType::Call(ref x) => x.read().unwrap().hash(state),
@@ -305,10 +317,7 @@ impl ArgType {
     pub fn expression(&self, location: Location) -> Expression {
         match &self {
             ArgType::StringLiteral(v) => v.read().unwrap().expression(location),
-            ArgType::SimpleIdentifier(ref name) => Located {
-                location,
-                node: ExpressionType::Identifier { name: name.clone() },
-            },
+            ArgType::SimpleIdentifier(ref x) => x.read().unwrap().expression(location),
             ArgType::Subscript(ref x) => x.read().unwrap().expression(location),
             ArgType::Formatted(ref x) => x.read().unwrap().expression(location),
             ArgType::Call(ref x) => x.read().unwrap().expression(location),

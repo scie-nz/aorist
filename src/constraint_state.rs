@@ -1,7 +1,7 @@
 use crate::concept::{Concept, ConceptAncestry};
 use crate::constraint::{
     AllConstraintsSatisfiability, AoristStatement, ArgType, Attribute, Call, Constraint, Formatted,
-    List, LiteralsMap, ParameterTuple, StringLiteral,
+    List, LiteralsMap, ParameterTuple, SimpleIdentifier, StringLiteral,
 };
 use crate::object::TAoristObject;
 use aorist_primitives::Dialect;
@@ -45,7 +45,7 @@ impl PrefectSingleton {
     }
     fn get_flow_add_edge_statement(&self, dep: ArgType) -> AoristStatement {
         let function = ArgType::Attribute(Attribute::new_wrapped(
-            ArgType::SimpleIdentifier("flow".to_string()),
+            ArgType::SimpleIdentifier(SimpleIdentifier::new_wrapped("flow".to_string())),
             "add_edge".to_string(),
         ));
         let add_expr = ArgType::Call(Call::new_wrapped(
@@ -59,7 +59,8 @@ impl PrefectSingleton {
         match self.dep_list {
             None => Vec::new(),
             Some(ArgType::List(_)) => {
-                let target = ArgType::SimpleIdentifier("dep".to_string());
+                let target =
+                    ArgType::SimpleIdentifier(SimpleIdentifier::new_wrapped("dep".to_string()));
                 let for_stmt = AoristStatement::For(
                     target.clone(),
                     self.dep_list.as_ref().unwrap().clone(),
@@ -168,7 +169,7 @@ impl<'a> ConstraintState<'a> {
             })
             .collect::<Vec<ArgType>>();
         let function = ArgType::Attribute(Attribute::new_wrapped(
-            ArgType::SimpleIdentifier("flow".to_string()),
+            ArgType::SimpleIdentifier(SimpleIdentifier::new_wrapped("flow".to_string())),
             "add_node".to_string(),
         ));
         let add_expr = ArgType::Call(Call::new_wrapped(
@@ -182,7 +183,7 @@ impl<'a> ConstraintState<'a> {
     fn get_task_creation_expr(&self, literals: LiteralsMap) -> Result<ArgType, String> {
         match self.dialect {
             Some(Dialect::Python(_)) => Ok(ArgType::Call(Call::new_wrapped(
-                ArgType::SimpleIdentifier(self.get_call().unwrap()),
+                ArgType::SimpleIdentifier(SimpleIdentifier::new_wrapped(self.get_call().unwrap())),
                 match self.params {
                     Some(ref p) => p.get_args(),
                     None => Vec::new(),
@@ -206,7 +207,9 @@ impl<'a> ConstraintState<'a> {
                 let mut keywords: LinkedHashMap<String, ArgType> = LinkedHashMap::new();
                 keywords.insert("command".to_string(), command);
                 Ok(ArgType::Call(Call::new_wrapped(
-                    ArgType::SimpleIdentifier("ShellTask".to_string()),
+                    ArgType::SimpleIdentifier(SimpleIdentifier::new_wrapped(
+                        "ShellTask".to_string(),
+                    )),
                     Vec::new(),
                     keywords,
                 )))
@@ -229,13 +232,17 @@ impl<'a> ConstraintState<'a> {
                 keywords.insert("command".to_string(), command);
 
                 Ok(ArgType::Call(Call::new_wrapped(
-                    ArgType::SimpleIdentifier("ShellTask".to_string()),
+                    ArgType::SimpleIdentifier(SimpleIdentifier::new_wrapped(
+                        "ShellTask".to_string(),
+                    )),
                     Vec::new(),
                     keywords,
                 )))
             }
             None => Ok(ArgType::Call(Call::new_wrapped(
-                ArgType::SimpleIdentifier("ConstantTask".to_string()),
+                ArgType::SimpleIdentifier(SimpleIdentifier::new_wrapped(
+                    "ConstantTask".to_string(),
+                )),
                 vec![ArgType::StringLiteral(Arc::new(RwLock::new(
                     StringLiteral::new(self.constraint.read().unwrap().get_name().clone()),
                 )))],

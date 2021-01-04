@@ -1,6 +1,7 @@
 #![allow(dead_code)]
 use crate::constraint::{
-    AoristStatement, ArgType, Attribute, Call, List, LiteralsMap, StringLiteral, Subscript, Tuple,
+    AoristStatement, ArgType, Attribute, Call, List, LiteralsMap, SimpleIdentifier, StringLiteral,
+    Subscript, Tuple,
 };
 use crate::constraint_state::{ConstraintState, PrefectSingleton};
 use aorist_primitives::Dialect;
@@ -259,10 +260,12 @@ pub trait PrefectTaskRender<'a> {
             let name = write.get_task_name();
             // TODO: magic number
             if num_constraints <= 2 {
-                write.set_task_val(ArgType::SimpleIdentifier(name));
+                write.set_task_val(ArgType::SimpleIdentifier(SimpleIdentifier::new_wrapped(
+                    name,
+                )));
             } else {
                 write.set_task_val(ArgType::Subscript(Subscript::new_wrapped(
-                    ArgType::SimpleIdentifier("tasks".to_string()),
+                    ArgType::SimpleIdentifier(SimpleIdentifier::new_wrapped("tasks".to_string())),
                     ArgType::StringLiteral(Arc::new(RwLock::new(StringLiteral::new(name)))),
                 )));
             }
@@ -700,13 +703,17 @@ impl<'a> PrefectRender<'a> {
             ));
         }
         if singletons_deconstructed.len() > 1 {
-            let params =
-                ArgType::SimpleIdentifier(format!("params_{}", constraint_name).to_string());
+            let params = ArgType::SimpleIdentifier(SimpleIdentifier::new_wrapped(
+                format!("params_{}", constraint_name).to_string(),
+            ));
             for ((collector, creation, edge_addition), v) in singletons_hash {
                 // TODO: magic number
                 if v.len() >= 3 {
-                    let ident = ArgType::SimpleIdentifier("t".to_string());
-                    let dep_list = ArgType::SimpleIdentifier("dep_list".to_string());
+                    let ident =
+                        ArgType::SimpleIdentifier(SimpleIdentifier::new_wrapped("t".to_string()));
+                    let dep_list = ArgType::SimpleIdentifier(SimpleIdentifier::new_wrapped(
+                        "dep_list".to_string(),
+                    ));
                     let tpl = ArgType::Tuple(Arc::new(RwLock::new(Tuple::new(vec![
                         ident.clone(),
                         dep_list.clone(),
@@ -714,7 +721,9 @@ impl<'a> PrefectRender<'a> {
                     let new_collector =
                         ArgType::Subscript(Subscript::new_wrapped(collector, ident.clone()));
                     let function = ArgType::Attribute(Attribute::new_wrapped(
-                        ArgType::SimpleIdentifier("flow".to_string()),
+                        ArgType::SimpleIdentifier(SimpleIdentifier::new_wrapped(
+                            "flow".to_string(),
+                        )),
                         "add_node".to_string(),
                     ));
                     let add_expr = ArgType::Call(Call::new_wrapped(
