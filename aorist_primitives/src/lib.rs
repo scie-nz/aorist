@@ -3,6 +3,19 @@ use indoc::formatdoc;
 use sqlparser::ast::{ColumnDef, DataType, Ident};
 
 #[macro_export]
+macro_rules! register_ast_nodes {
+    ($name:ident, $($variant: ident,)+) => {
+
+        #[derive(Clone)]
+        pub enum $name {
+            $(
+                $variant(Arc<RwLock<$variant>>),
+            )+
+        }
+    }
+}
+
+#[macro_export]
 macro_rules! define_ast_node {
     ($name:ident, $expression:expr, $($field: ident : $field_type: ty,)+) => {
         #[derive(Hash, PartialEq, Eq)]

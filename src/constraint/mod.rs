@@ -1,6 +1,7 @@
 use crate::concept::{AoristConcept, Concept, ConceptAncestry};
 use crate::object::TAoristObject;
-use aorist_primitives::{define_ast_node, define_constraint, register_constraint, Dialect};
+use aorist_primitives::{define_ast_node, define_constraint,
+register_constraint, Dialect, register_ast_nodes};
 use linked_hash_map::LinkedHashMap;
 use maplit::hashmap;
 use rustpython_parser::ast::{
@@ -229,19 +230,18 @@ define_ast_node!(
     name: String,
 );
 
-// TODO: replace HashMaps with LinkedHashMaps
-#[derive(Clone)]
-pub enum ArgType {
-    StringLiteral(Arc<RwLock<StringLiteral>>),
-    SimpleIdentifier(Arc<RwLock<SimpleIdentifier>>),
-    Subscript(Arc<RwLock<Subscript>>),
-    Formatted(Arc<RwLock<Formatted>>),
-    Call(Arc<RwLock<Call>>),
-    Attribute(Arc<RwLock<Attribute>>),
-    List(Arc<RwLock<List>>),
-    Dict(Arc<RwLock<Dict>>),
-    Tuple(Arc<RwLock<Tuple>>),
-}
+register_ast_nodes!(
+    ArgType,
+    StringLiteral,
+    SimpleIdentifier,
+    Subscript,
+    Formatted,
+    Call,
+    Attribute,
+    List,
+    Dict,
+    Tuple,
+);
 impl ArgType {
     pub fn register_object(&mut self, uuid: Uuid, tag: Option<String>) {
         if let ArgType::StringLiteral(ref mut s) = self {
