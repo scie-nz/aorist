@@ -12,6 +12,24 @@ macro_rules! register_ast_nodes {
                 $variant(Arc<RwLock<$variant>>),
             )+
         }
+        impl $name {
+            pub fn register_object(&mut self, uuid: Uuid, tag: Option<String>) {
+                match &self {
+                    $(
+                        Self::$variant(x) => x.write().unwrap().register_object(uuid,
+                        tag),
+                    )+
+                }
+            }
+            pub fn name(&self) -> String {
+                match &self {
+                    $(
+                        Self::$variant(..) => stringify!($variant),
+                    )+
+                }
+                .to_string()
+            }
+        }
     }
 }
 
@@ -30,6 +48,12 @@ macro_rules! define_ast_node {
                 $field: $field_type,
             )+) -> Arc<RwLock<Self>> {
                 Arc::new(RwLock::new(Self::new($($field, )+)))
+            }
+            pub fn register_object(&self, _uuid: Uuid, _tag: Option<String>) {
+                panic!(format!(
+                    "Register object mistakenly called for object of type {}",
+                    stringify!(name),
+                ));
             }
             pub fn new($(
                 $field: $field_type,

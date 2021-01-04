@@ -242,29 +242,6 @@ register_ast_nodes!(
     Dict,
     Tuple,
 );
-impl ArgType {
-    pub fn register_object(&mut self, uuid: Uuid, tag: Option<String>) {
-        if let ArgType::StringLiteral(ref mut s) = self {
-            s.write().unwrap().register_object(uuid, tag);
-        } else {
-            panic!(".register_object called on non-StringLiteral ArgType.");
-        }
-    }
-    pub fn name(&self) -> String {
-        match &self {
-            Self::StringLiteral(..) => "StringLiteral",
-            Self::SimpleIdentifier(..) => "SimpleIdentifier",
-            Self::Subscript(..) => "Subscript",
-            Self::Formatted(..) => "Formatted",
-            Self::Call(..) => "Call",
-            Self::Attribute(..) => "Attribute",
-            Self::List(..) => "List",
-            Self::Dict(..) => "Dict",
-            Self::Tuple(..) => "Tuple",
-        }
-        .to_string()
-    }
-}
 impl PartialEq for ArgType {
     fn eq(&self, other: &Self) -> bool {
         match (&self, other) {
