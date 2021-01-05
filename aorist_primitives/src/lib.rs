@@ -21,6 +21,14 @@ macro_rules! register_ast_nodes {
                     )+
                 }
             }
+            pub fn set_referenced_by(&mut self, obj: ArgType) {
+                match &self {
+                    $(
+                        Self::$variant(x) =>
+                        x.write().unwrap().set_referenced_by(obj),
+                    )+
+                }
+            }
             pub fn name(&self) -> String {
                 match &self {
                     $(

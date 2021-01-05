@@ -1,7 +1,8 @@
 use crate::concept::{AoristConcept, Concept, ConceptAncestry};
 use crate::object::TAoristObject;
-use aorist_primitives::{define_ast_node, define_constraint,
-register_constraint, Dialect, register_ast_nodes};
+use aorist_primitives::{
+    define_ast_node, define_constraint, register_ast_nodes, register_constraint, Dialect,
+};
 use linked_hash_map::LinkedHashMap;
 use maplit::hashmap;
 use rustpython_parser::ast::{
@@ -17,7 +18,7 @@ pub struct StringLiteral {
     value: String,
     // TODO: replace with LinkedHashMap<Uuid, BTreeSet>
     object_uuids: LinkedHashMap<Uuid, BTreeSet<Option<String>>>,
-    referenced_by: Option<Box<ArgType>>,
+    referenced_by: Option<ArgType>,
 }
 
 impl StringLiteral {
@@ -40,7 +41,7 @@ impl StringLiteral {
             .or_insert(BTreeSet::new())
             .insert(tag);
     }
-    pub fn set_referenced_by(&mut self, obj: Box<ArgType>) {
+    pub fn set_referenced_by(&mut self, obj: ArgType) {
         self.referenced_by = Some(obj);
     }
     pub fn get_object_uuids(&self) -> &LinkedHashMap<Uuid, BTreeSet<Option<String>>> {

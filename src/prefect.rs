@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 use crate::constraint::{
-    AoristStatement, ArgType, Attribute, Call, List, LiteralsMap, SimpleIdentifier, StringLiteral,
-    Subscript, Tuple,
+    AoristStatement, ArgType, Attribute, Call, Dict, List, LiteralsMap, SimpleIdentifier,
+    StringLiteral, Subscript, Tuple,
 };
 use crate::constraint_state::{ConstraintState, PrefectSingleton};
 use aorist_primitives::Dialect;
@@ -703,7 +703,7 @@ impl<'a> PrefectRender<'a> {
             ));
         }
         if singletons_deconstructed.len() > 1 {
-            let params = ArgType::SimpleIdentifier(SimpleIdentifier::new_wrapped(
+            let params_constraint = ArgType::SimpleIdentifier(SimpleIdentifier::new_wrapped(
                 format!("params_{}", constraint_name).to_string(),
             ));
             for ((collector, creation, edge_addition), v) in singletons_hash {
@@ -711,12 +711,12 @@ impl<'a> PrefectRender<'a> {
                 if v.len() >= 3 {
                     let ident =
                         ArgType::SimpleIdentifier(SimpleIdentifier::new_wrapped("t".to_string()));
-                    let dep_list = ArgType::SimpleIdentifier(SimpleIdentifier::new_wrapped(
-                        "dep_list".to_string(),
+                    let params = ArgType::SimpleIdentifier(SimpleIdentifier::new_wrapped(
+                        "params".to_string(),
                     ));
                     let tpl = ArgType::Tuple(Arc::new(RwLock::new(Tuple::new(vec![
                         ident.clone(),
-                        dep_list.clone(),
+                        params.clone(),
                     ]))));
                     let new_collector =
                         ArgType::Subscript(Subscript::new_wrapped(collector, ident.clone()));
@@ -738,10 +738,29 @@ impl<'a> PrefectRender<'a> {
                         edge_addition,
                     );
                     let statements = new_singleton.get_statements();
-                    let mut list = List::new(v.iter().map(|x| x.0.clone()).collect::<Vec<_>>());
-                    list.set_referenced_by(params.clone());
-                    let iter = ArgType::List(Arc::new(RwLock::new(list)));
-                    let for_loop = AoristStatement::For(tpl, iter, statements.clone());
+                    let mut dict = ArgType::Dict(Dict::new_wrapped(
+                        v.iter()
+                            .map(|x| (x.1.clone(), match x.2.clone()
+                                {
+                                    Some(y) => y.clone(),
+                                    None =>
+                                    ArgType::List(List::new_wrapped(Vec::new())),
+                                }
+                            ))
+                            .collect::<LinkedHashMap<_, _>>(),
+                    ));
+                    let items_call = ArgType::Call(Call::new_wrapped(
+                        ArgType::Attribute(Attribute::new_wrapped(
+                            dict.clone(),
+                            "items".to_string(),
+                        )),
+                        Vec::new(),
+                        LinkedHashMap::new(),
+                    ));
+
+
+                    dict.set_referenced_by(params_constraint.clone());
+                    let for_loop = AoristStatement::For(tpl, items_call, statements.clone());
 
                     for elem in v.iter().map(|x| x.1.clone()) {
                         singletons.remove(&elem);

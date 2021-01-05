@@ -102,7 +102,7 @@ impl<'a> ConstraintBlock<'a> {
                             let referenced_by = ArgType::SimpleIdentifier(
                                 SimpleIdentifier::new_wrapped(proposed_name),
                             );
-                            write.set_referenced_by(Box::new(referenced_by));
+                            write.set_referenced_by(referenced_by);
                         }
                     }
                 } else if num_objects_covered == 1 {
@@ -133,7 +133,7 @@ impl<'a> ConstraintBlock<'a> {
                                 key.clone(),
                             )))),
                         ));
-                        write.set_referenced_by(Box::new(referenced_by));
+                        write.set_referenced_by(referenced_by);
                     }
                 }
             }
