@@ -27,18 +27,24 @@ impl<'a> CodeBlock<'a> {
         constraint_name: String,
     ) -> Self {
         let task_render = match dialect {
-            Some(Dialect::Python(_)) => {
-                PrefectRender::Python(PrefectPythonTaskRender::new(members.clone()))
-            }
+            Some(Dialect::Python(_)) => PrefectRender::Python(PrefectPythonTaskRender::new(
+                members.clone(),
+                constraint_name.clone(),
+            )),
             Some(Dialect::Bash(_)) => PrefectRender::Shell(PrefectShellTaskRender::new(
                 members.clone(),
                 dialect.as_ref().unwrap().clone(),
+                constraint_name.clone(),
             )),
             Some(Dialect::Presto(_)) => PrefectRender::Shell(PrefectShellTaskRender::new(
                 members.clone(),
                 dialect.as_ref().unwrap().clone(),
+                constraint_name.clone(),
             )),
-            None => PrefectRender::Constant(PrefectConstantTaskRender::new(members.clone())),
+            None => PrefectRender::Constant(PrefectConstantTaskRender::new(
+                members.clone(),
+                constraint_name.clone(),
+            )),
             _ => {
                 panic!("Dialect not handled: {:?}", dialect.as_ref().unwrap());
             }

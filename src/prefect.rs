@@ -228,6 +228,7 @@ impl PrefectProgram {
 
 pub trait PrefectTaskRender<'a> {
     fn get_constraints(&self) -> &Vec<Arc<RwLock<ConstraintState<'a>>>>;
+    fn get_constraint_name(&self) -> String;
     fn register_literals(
         &'a self,
         _literals: LiteralsMap,
@@ -265,8 +266,12 @@ pub trait PrefectTaskRender<'a> {
                 )));
             } else {
                 write.set_task_val(ArgType::Subscript(Subscript::new_wrapped(
-                    ArgType::SimpleIdentifier(SimpleIdentifier::new_wrapped("tasks".to_string())),
-                    ArgType::StringLiteral(Arc::new(RwLock::new(StringLiteral::new(name)))),
+                    ArgType::SimpleIdentifier(SimpleIdentifier::new_wrapped(
+                        format!("tasks_{}", self.get_constraint_name()).to_string(),
+                    )),
+                    ArgType::StringLiteral(Arc::new(RwLock::new(StringLiteral::new(
+                        name.replace(&format!("{}__", self.get_constraint_name()).to_string(), ""),
+                    )))),
                 )));
             }
         }
@@ -432,10 +437,14 @@ pub trait PrefectTaskRenderWithCalls<'a>: PrefectTaskRender<'a> {
 
 pub struct PrefectPythonTaskRender<'a> {
     members: Vec<Arc<RwLock<ConstraintState<'a>>>>,
+    constraint_name: String,
 }
 impl<'a> PrefectTaskRender<'a> for PrefectPythonTaskRender<'a> {
     fn get_constraints(&self) -> &Vec<Arc<RwLock<ConstraintState<'a>>>> {
         &self.members
+    }
+    fn get_constraint_name(&self) -> String {
+        self.constraint_name.clone()
     }
 }
 impl<'a> PrefectTaskRenderWithCalls<'a> for PrefectPythonTaskRender<'a> {
@@ -518,17 +527,24 @@ impl<'a> PrefectTaskRenderWithCalls<'a> for PrefectPythonTaskRender<'a> {
     }
 }
 impl<'a> PrefectPythonTaskRender<'a> {
-    pub fn new(members: Vec<Arc<RwLock<ConstraintState<'a>>>>) -> Self {
-        Self { members }
+    pub fn new(members: Vec<Arc<RwLock<ConstraintState<'a>>>>, constraint_name: String) -> Self {
+        Self {
+            members,
+            constraint_name,
+        }
     }
 }
 pub struct PrefectShellTaskRender<'a> {
     members: Vec<Arc<RwLock<ConstraintState<'a>>>>,
     dialect: Dialect,
+    constraint_name: String,
 }
 impl<'a> PrefectTaskRender<'a> for PrefectShellTaskRender<'a> {
     fn get_constraints(&self) -> &Vec<Arc<RwLock<ConstraintState<'a>>>> {
         &self.members
+    }
+    fn get_constraint_name(&self) -> String {
+        self.constraint_name.clone()
     }
     fn register_literals(&'a self, literals: LiteralsMap, state: Arc<RwLock<ConstraintState<'a>>>) {
         // TODO: this is super hacky, but it should do the job for now
@@ -656,21 +672,36 @@ impl<'a> PrefectTaskRenderWithCalls<'a> for PrefectShellTaskRender<'a> {
     }
 }
 impl<'a> PrefectShellTaskRender<'a> {
-    pub fn new(members: Vec<Arc<RwLock<ConstraintState<'a>>>>, dialect: Dialect) -> Self {
-        Self { members, dialect }
+    pub fn new(
+        members: Vec<Arc<RwLock<ConstraintState<'a>>>>,
+        dialect: Dialect,
+        constraint_name: String,
+    ) -> Self {
+        Self {
+            members,
+            dialect,
+            constraint_name,
+        }
     }
 }
 pub struct PrefectConstantTaskRender<'a> {
     members: Vec<Arc<RwLock<ConstraintState<'a>>>>,
+    constraint_name: String,
 }
 impl<'a> PrefectConstantTaskRender<'a> {
-    pub fn new(members: Vec<Arc<RwLock<ConstraintState<'a>>>>) -> Self {
-        Self { members }
+    pub fn new(members: Vec<Arc<RwLock<ConstraintState<'a>>>>, constraint_name: String) -> Self {
+        Self {
+            members,
+            constraint_name,
+        }
     }
 }
 impl<'a> PrefectTaskRender<'a> for PrefectConstantTaskRender<'a> {
     fn get_constraints(&self) -> &Vec<Arc<RwLock<ConstraintState<'a>>>> {
         &self.members
+    }
+    fn get_constraint_name(&self) -> String {
+        self.constraint_name.clone()
     }
 }
 
@@ -747,19 +778,18 @@ impl<'a> PrefectRender<'a> {
                                 (
                                     x.1.clone(),
                                     match x.2.clone() {
-                                        Some(y) => {
-                                            match y {
-                                                ArgType::List{..} => y.clone(),
-                                                ArgType::SimpleIdentifier{..}
-                                                | ArgType::Subscript{..} =>
-                                                ArgType::List(List::new_wrapped(vec![y.clone()])),
-                                                _ => panic!(format!(
-                                                    "{}. instead I found: {}",
-                                                    "Only SimpleIdentifiers or
-                                                    Lists are valid dep_lists",
-                                                 y.name()
-                                                 ))
+                                        Some(y) => match y {
+                                            ArgType::List { .. } => y.clone(),
+                                            ArgType::SimpleIdentifier { .. }
+                                            | ArgType::Subscript { .. } => {
+                                                ArgType::List(List::new_wrapped(vec![y.clone()]))
                                             }
+                                            _ => panic!(formatdoc!(
+                                                "{}. instead I found: {}",
+                                                "Only SimpleIdentifiers or
+                                                    Lists are valid dep_lists",
+                                                y.name()
+                                            )),
                                         },
                                         None => ArgType::List(List::new_wrapped(Vec::new())),
                                     },
