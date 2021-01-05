@@ -21,6 +21,14 @@ macro_rules! register_ast_nodes {
                     )+
                 }
             }
+            pub fn remove_owner(&mut self) {
+                match &self {
+                    $(
+                        Self::$variant(x) =>
+                        x.write().unwrap().remove_owner(),
+                    )+
+                }
+            }
             pub fn set_owner(&mut self, obj: ArgType) {
                 match &self {
                     $(
@@ -29,6 +37,26 @@ macro_rules! register_ast_nodes {
                     )+
                 }
             }
+            pub fn get_owner(&self) -> Option<ArgType> {
+                match &self {
+                    $(
+                        Self::$variant(x) => {
+                        let read = x.read().unwrap();
+                        read.get_owner()
+                        }
+                    )+
+                }
+            }
+            pub fn get_ultimate_owner(&self) -> Option<ArgType> {
+                match &self {
+                    $(
+                        Self::$variant(x) => {
+                        let read = x.read().unwrap();
+                        read.get_ultimate_owner()
+                        }
+                    )+
+                }
+                }
             pub fn name(&self) -> String {
                 match &self {
                     $(
@@ -44,7 +72,7 @@ macro_rules! register_ast_nodes {
 #[macro_export]
 macro_rules! define_ast_node {
     ($name:ident, $expression:expr, $($field: ident : $field_type: ty,)+) => {
-        #[derive(Hash, PartialEq, Eq)]
+        #[derive(Hash, PartialEq, Eq, Clone)]
         pub struct $name {
             $(
                 $field: $field_type,
@@ -77,7 +105,25 @@ macro_rules! define_ast_node {
                 }
             )+
             pub fn set_owner(&mut self, obj: ArgType) {
+                assert_eq!(obj.name(), "SimpleIdentifier");
                 self.owner = Some(obj);
+            }
+            pub fn remove_owner(&mut self) {
+                self.owner = None;
+            }
+            
+            pub fn get_owner(&self) -> Option<ArgType> {
+                self.owner.clone()
+            }
+            pub fn get_ultimate_owner(&self) -> Option<ArgType> {
+                if self.get_owner().is_none() {
+                    return None;
+                }
+                let mut owner = self.get_owner().unwrap();
+                while let Some(x) = owner.get_owner() {
+                    owner = x;
+                }
+                Some(owner.clone())
             }
             pub fn expression(&self, location: Location) -> Expression {
                 if let Some(ref val) = self.owner {

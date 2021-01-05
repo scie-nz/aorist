@@ -50,6 +50,22 @@ impl StringLiteral {
     pub fn is_multiline(&self) -> bool {
         self.value.contains('\n')
     }
+    pub fn get_owner(&self) -> Option<ArgType> {
+        self.owner.clone()
+    }
+    pub fn get_ultimate_owner(&self) -> Option<ArgType> {
+        if self.get_owner().is_none() {
+            return None;
+        }
+        let mut owner = self.get_owner().unwrap();
+        while let Some(x) = owner.get_owner() {
+            owner = x;
+        }
+        Some(owner.clone())
+    }
+    pub fn remove_owner(&mut self) {
+        self.owner = None;
+    }
     pub fn expression(&self, location: Location) -> Expression {
         if let Some(ref val) = self.owner {
             return val.expression(location);

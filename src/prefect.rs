@@ -693,7 +693,7 @@ impl<'a> PrefectRender<'a> {
         for (task_key, (collector, task_name, creation, _, edge_addition)) in
             &singletons_deconstructed
         {
-            let key = (collector.clone(), creation.clone(), edge_addition.clone());
+            let key = (collector.clone(), creation.clone());
             // TODO: assert that task_name is the same as the 2nd value in the
             // tuple (when unpacked)
             singletons_hash.entry(key).or_insert(Vec::new()).push((
@@ -706,7 +706,7 @@ impl<'a> PrefectRender<'a> {
             let params_constraint = ArgType::SimpleIdentifier(SimpleIdentifier::new_wrapped(
                 format!("params_{}", constraint_name).to_string(),
             ));
-            for ((collector, creation, edge_addition), v) in singletons_hash {
+            for ((collector, creation), v) in singletons_hash {
                 // TODO: magic number
                 if v.len() >= 3 {
                     let ident =
@@ -731,11 +731,14 @@ impl<'a> PrefectRender<'a> {
                         vec![new_collector.clone()],
                         LinkedHashMap::new(),
                     ));
+                    // HACK
+                    let mut future_list = ArgType::List(List::new_wrapped(vec![]));
+                    future_list.set_owner(params.clone());
                     let new_singleton = PrefectSingleton::new(
                         new_collector,
                         creation,
                         AoristStatement::Expression(add_expr),
-                        edge_addition,
+                        Some(future_list),
                     );
                     let statements = new_singleton.get_statements();
                     let mut dict = ArgType::Dict(Dict::new_wrapped(
@@ -744,13 +747,27 @@ impl<'a> PrefectRender<'a> {
                                 (
                                     x.1.clone(),
                                     match x.2.clone() {
-                                        Some(y) => y.clone(),
+                                        Some(y) => {
+                                            match y {
+                                                ArgType::List{..} => y.clone(),
+                                                ArgType::SimpleIdentifier{..}
+                                                | ArgType::Subscript{..} =>
+                                                ArgType::List(List::new_wrapped(vec![y.clone()])),
+                                                _ => panic!(format!(
+                                                    "{}. instead I found: {}",
+                                                    "Only SimpleIdentifiers or
+                                                    Lists are valid dep_lists",
+                                                 y.name()
+                                                 ))
+                                            }
+                                        },
                                         None => ArgType::List(List::new_wrapped(Vec::new())),
                                     },
                                 )
                             })
                             .collect::<LinkedHashMap<_, _>>(),
                     ));
+                    dict.set_owner(params_constraint.clone());
                     let items_call = ArgType::Call(Call::new_wrapped(
                         ArgType::Attribute(Attribute::new_wrapped(
                             dict.clone(),
@@ -760,15 +777,30 @@ impl<'a> PrefectRender<'a> {
                         LinkedHashMap::new(),
                     ));
 
-                    dict.set_owner(params_constraint.clone());
                     let for_loop = AoristStatement::For(tpl, items_call, statements.clone());
 
                     for elem in v.iter().map(|x| x.1.clone()) {
                         singletons.remove(&elem);
                     }
+
+                    let dict_name = dict.get_ultimate_owner().unwrap();
+                    // HACK ALERT
+                    let assign;
+                    if let ArgType::Dict(x) = dict.clone() {
+                        let mut dict_raw =
+                            ArgType::Dict(Arc::new(RwLock::new(x.read().unwrap().clone())));
+                        dict_raw.remove_owner();
+                        assign = AoristStatement::Assign(dict_name, dict_raw);
+                    } else {
+                        panic!("dict should be a Dict");
+                    }
                     println!(
                         "{}\n",
-                        PrefectProgram::render_suite(vec![for_loop.statement(location)]).unwrap()
+                        PrefectProgram::render_suite(vec![
+                            assign.statement(location),
+                            for_loop.statement(location)
+                        ])
+                        .unwrap()
                     );
                 }
             }
