@@ -99,10 +99,10 @@ impl<'a> ConstraintBlock<'a> {
                             format!("{}_{}", to_snake_case(&self.constraint_name), name)
                                 .to_string();
                         if proposed_name.len() < name.len() || write.is_multiline() {
-                            let referenced_by = ArgType::SimpleIdentifier(
-                                SimpleIdentifier::new_wrapped(proposed_name),
-                            );
-                            write.set_referenced_by(referenced_by);
+                            let owner = ArgType::SimpleIdentifier(SimpleIdentifier::new_wrapped(
+                                proposed_name,
+                            ));
+                            write.set_owner(owner);
                         }
                     }
                 } else if num_objects_covered == 1 {
@@ -127,13 +127,13 @@ impl<'a> ConstraintBlock<'a> {
                                 task_name,
                             )))),
                         ));
-                        let referenced_by = ArgType::Subscript(Subscript::new_wrapped(
+                        let owner = ArgType::Subscript(Subscript::new_wrapped(
                             dict_name,
                             ArgType::StringLiteral(Arc::new(RwLock::new(StringLiteral::new(
                                 key.clone(),
                             )))),
                         ));
-                        write.set_referenced_by(referenced_by);
+                        write.set_owner(owner);
                     }
                 }
             }

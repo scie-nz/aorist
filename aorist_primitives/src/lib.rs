@@ -21,11 +21,11 @@ macro_rules! register_ast_nodes {
                     )+
                 }
             }
-            pub fn set_referenced_by(&mut self, obj: ArgType) {
+            pub fn set_owner(&mut self, obj: ArgType) {
                 match &self {
                     $(
                         Self::$variant(x) =>
-                        x.write().unwrap().set_referenced_by(obj),
+                        x.write().unwrap().set_owner(obj),
                     )+
                 }
             }
@@ -49,7 +49,7 @@ macro_rules! define_ast_node {
             $(
                 $field: $field_type,
             )+
-            referenced_by: Option<ArgType>,
+            owner: Option<ArgType>,
         }
         impl $name {
             pub fn new_wrapped($(
@@ -68,7 +68,7 @@ macro_rules! define_ast_node {
             )+) -> Self {
                 Self {
                     $($field,)+
-                    referenced_by: None,
+                    owner: None,
                 }
             }
             $(
@@ -76,11 +76,11 @@ macro_rules! define_ast_node {
                     self.$field.clone()
                 }
             )+
-            pub fn set_referenced_by(&mut self, obj: ArgType) {
-                self.referenced_by = Some(obj);
+            pub fn set_owner(&mut self, obj: ArgType) {
+                self.owner = Some(obj);
             }
             pub fn expression(&self, location: Location) -> Expression {
-                if let Some(ref val) = self.referenced_by {
+                if let Some(ref val) = self.owner {
                     return val.expression(location);
                 }
                 $expression(location, self)

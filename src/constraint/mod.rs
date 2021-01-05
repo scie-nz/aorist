@@ -18,7 +18,7 @@ pub struct StringLiteral {
     value: String,
     // TODO: replace with LinkedHashMap<Uuid, BTreeSet>
     object_uuids: LinkedHashMap<Uuid, BTreeSet<Option<String>>>,
-    referenced_by: Option<ArgType>,
+    owner: Option<ArgType>,
 }
 
 impl StringLiteral {
@@ -26,7 +26,7 @@ impl StringLiteral {
         Self {
             value,
             object_uuids: LinkedHashMap::new(),
-            referenced_by: None,
+            owner: None,
         }
     }
     pub fn value(&self) -> String {
@@ -41,8 +41,8 @@ impl StringLiteral {
             .or_insert(BTreeSet::new())
             .insert(tag);
     }
-    pub fn set_referenced_by(&mut self, obj: ArgType) {
-        self.referenced_by = Some(obj);
+    pub fn set_owner(&mut self, obj: ArgType) {
+        self.owner = Some(obj);
     }
     pub fn get_object_uuids(&self) -> &LinkedHashMap<Uuid, BTreeSet<Option<String>>> {
         &self.object_uuids
@@ -51,7 +51,7 @@ impl StringLiteral {
         self.value.contains('\n')
     }
     pub fn expression(&self, location: Location) -> Expression {
-        if let Some(ref val) = self.referenced_by {
+        if let Some(ref val) = self.owner {
             return val.expression(location);
         }
         let value;

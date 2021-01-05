@@ -740,13 +740,15 @@ impl<'a> PrefectRender<'a> {
                     let statements = new_singleton.get_statements();
                     let mut dict = ArgType::Dict(Dict::new_wrapped(
                         v.iter()
-                            .map(|x| (x.1.clone(), match x.2.clone()
-                                {
-                                    Some(y) => y.clone(),
-                                    None =>
-                                    ArgType::List(List::new_wrapped(Vec::new())),
-                                }
-                            ))
+                            .map(|x| {
+                                (
+                                    x.1.clone(),
+                                    match x.2.clone() {
+                                        Some(y) => y.clone(),
+                                        None => ArgType::List(List::new_wrapped(Vec::new())),
+                                    },
+                                )
+                            })
                             .collect::<LinkedHashMap<_, _>>(),
                     ));
                     let items_call = ArgType::Call(Call::new_wrapped(
@@ -758,8 +760,7 @@ impl<'a> PrefectRender<'a> {
                         LinkedHashMap::new(),
                     ));
 
-
-                    dict.set_referenced_by(params_constraint.clone());
+                    dict.set_owner(params_constraint.clone());
                     let for_loop = AoristStatement::For(tpl, items_call, statements.clone());
 
                     for elem in v.iter().map(|x| x.1.clone()) {
