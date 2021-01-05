@@ -11,7 +11,7 @@ use rustpython_parser::ast::{
     Expression, ExpressionType, Keyword, Located, Location, Program, Statement, StatementType,
     StringGroup, Suite, WithItem,
 };
-use std::collections::{BTreeMap, HashMap};
+use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
 
 struct PrefectProgram {
@@ -297,144 +297,13 @@ pub trait PrefectTaskRender<'a> {
             _ => None,
         }
     }
-    fn is_format_string_call(&self, expr: &Expression) -> bool {
-        if let ExpressionType::Subscript { box ref b, .. } = &expr.node {
-            if let ExpressionType::Identifier { ref name } = &b.node {
-                return name.clone() == "format".to_string();
-            }
-        }
-        return false;
-    }
-    fn extract_parameters_if_format_call(
-        &self,
-        expr: &Expression,
-    ) -> Option<BTreeMap<String, String>> {
-        match expr.node {
-            ExpressionType::Call {
-                box ref function,
-                ref args,
-                ref keywords,
-            } => {
-                if self.is_format_string_call(&function) {
-                    assert!(args.len() == 0);
-                    return Some(
-                        keywords
-                            .iter()
-                            .map(|x| {
-                                if let ExpressionType::String {
-                                    value: StringGroup::Constant { value },
-                                } = &x.value.node
-                                {
-                                    let key = x.name.as_ref().unwrap().clone();
-                                    return (key, value.clone());
-                                } else {
-                                    panic!(".format() call with non-string args encountered.");
-                                }
-                            })
-                            .collect(),
-                    );
-                } else {
-                    return None;
-                }
-            }
-            _ => None,
-        }
-    }
-    fn ident(&self, name: String, location: Location) -> Expression {
-        Located {
-            location,
-            node: ExpressionType::Identifier { name },
-        }
-    }
-    fn literal(&self, value: String, location: Location) -> Expression {
-        Located {
-            location,
-            node: ExpressionType::String {
-                value: StringGroup::Constant { value },
-            },
-        }
-    }
-    fn compute_joint_args(
-        &self,
-        num_args: usize,
-        args_names_values: &HashMap<usize, HashMap<String, Vec<String>>>,
-        location: Location,
-    ) -> Vec<Expression> {
-        let mut joint_args: Vec<Result<Expression, String>> = Vec::new();
-        for i in 0..num_args {
-            joint_args.push(Err(format!("No solution found for arg. #{}", i).to_string()));
-        }
-        for (pos, v) in args_names_values.iter().filter(|(_, v)| v.len() == 1) {
-            let param_unique_val = v.keys().next().unwrap();
-            let arg = Ok(self.literal(param_unique_val.clone(), location));
-            let prev = std::mem::replace(&mut joint_args[*pos], arg);
-            assert!(!prev.is_ok());
-        }
-        joint_args.into_iter().map(|x| x.unwrap()).collect()
-    }
     fn render_ids(ids: Vec<Arc<RwLock<ConstraintState<'a>>>>) -> String {
         ids.iter()
             .map(|x| format!("'{}'", x.read().unwrap().get_task_name()).to_string())
             .collect::<Vec<String>>()
             .join(",\n    ")
     }
-    fn render_dependencies(&self, constraint_name: String) -> Option<String> {
-        if self
-            .get_constraints()
-            .iter()
-            .map(|x| x.read().unwrap().get_satisfied_dependency_keys())
-            .flatten()
-            .next()
-            .is_none()
-        {
-            return None;
-        }
-        Some(formatdoc!(
-            "
-        dependencies_{constraint} = {{
-            {dependencies}
-        }}
-        ",
-            constraint = constraint_name,
-            dependencies = self
-                .get_constraints()
-                .iter()
-                .map(|rw| {
-                    let x = rw.read().unwrap();
-                    formatdoc!(
-                        "
-               '{key}': [
-                   {deps}
-               ]",
-                        key = x.get_task_name(),
-                        deps = x
-                            .get_satisfied_dependency_keys()
-                            .iter()
-                            .map(|x| format!("'{}'", x))
-                            .collect::<Vec<_>>()
-                            .join(",\n    "),
-                    )
-                    .to_string()
-                    .replace("\n", "\n    ")
-                })
-                .collect::<Vec<_>>()
-                .join(",\n    "),
-        ))
-    }
 }
-pub trait PrefectTaskRenderWithCalls<'a>: PrefectTaskRender<'a> {
-    fn extract_call_for_rendering(rw: Arc<RwLock<ConstraintState<'a>>>) -> Option<String> {
-        rw.read().unwrap().get_call()
-    }
-    fn render_single_call(&self, call_name: String, constraint_name: String);
-    fn render_multiple_calls(
-        &self,
-        call_name: String,
-        constraint_name: String,
-        rws: &Vec<Arc<RwLock<ConstraintState<'a>>>>,
-    );
-}
-
 pub struct PrefectPythonTaskRender<'a> {
     members: Vec<Arc<RwLock<ConstraintState<'a>>>>,
     constraint_name: String,
@@ -445,85 +314,6 @@ impl<'a> PrefectTaskRender<'a> for PrefectPythonTaskRender<'a> {
     }
     fn get_constraint_name(&self) -> String {
         self.constraint_name.clone()
-    }
-}
-impl<'a> PrefectTaskRenderWithCalls<'a> for PrefectPythonTaskRender<'a> {
-    fn render_single_call(&self, call_name: String, constraint_name: String) {
-        match self.render_dependencies(constraint_name.clone()) {
-            Some(dependencies) => println!(
-                "{}",
-                formatdoc!(
-                    "
-            ### COMPARE
-            {dependencies}
-            for k, v in params_{constraint}.items():
-                tasks[k] = {call}(*v)
-                flow.add_node(tasks[k])
-                for dep in dependencies_{constraint}[k]:
-                    flow.add_edge(tasks[dep], tasks[k])
-            ",
-                    dependencies = dependencies,
-                    constraint = constraint_name,
-                    call = call_name,
-                )
-            ),
-            None => println!(
-                "{}",
-                formatdoc!(
-                    "
-            for k, v in params_{constraint}.items():
-                tasks[k] = {call}(*v)
-                flow.add_node(tasks[k])
-            ",
-                    constraint = constraint_name,
-                    call = call_name,
-                )
-            ),
-        }
-    }
-    fn render_multiple_calls(
-        &self,
-        call_name: String,
-        constraint_name: String,
-        rws: &Vec<Arc<RwLock<ConstraintState<'a>>>>,
-    ) {
-        let ids = Self::render_ids(rws.clone());
-        match self.render_dependencies(constraint_name.clone()) {
-            Some(dependencies) => println!(
-                "{}",
-                formatdoc!(
-                    "
-                    {dependencies}
-                    for k in [
-                        {ids}
-                    ]:
-                        tasks[k] = {call}(*params_{constraint}[k])
-                        flow.add_node(tasks[k])
-                        for dep in dependencies_{constraint}[k]:
-                            flow.add_edge(tasks[dep], tasks[k])
-                    ",
-                    dependencies = dependencies,
-                    constraint = constraint_name,
-                    call = call_name,
-                    ids = ids,
-                )
-            ),
-            None => println!(
-                "{}",
-                formatdoc!(
-                    "
-                    for k in [
-                        {ids}
-                    ]:
-                        tasks[k] = {call}(*params_{constraint}[k])
-                        flow.add_node(tasks[k])
-                    ",
-                    constraint = constraint_name,
-                    call = call_name,
-                    ids = ids,
-                )
-            ),
-        }
     }
 }
 impl<'a> PrefectPythonTaskRender<'a> {
@@ -566,109 +356,6 @@ impl<'a> PrefectTaskRender<'a> for PrefectShellTaskRender<'a> {
         arc_write.register_object(uuid, Some("command".to_string()));
         drop(arc_write);
         drop(write);
-    }
-}
-impl<'a> PrefectTaskRenderWithCalls<'a> for PrefectShellTaskRender<'a> {
-    fn extract_call_for_rendering(rw: Arc<RwLock<ConstraintState<'a>>>) -> Option<String> {
-        let maybe_call = rw.read().unwrap().get_call();
-        match maybe_call {
-            Some(call) => {
-                let maybe_preamble = rw.read().unwrap().get_preamble();
-                match maybe_preamble {
-                    Some(preamble) => Some(format!("{}\n{}", preamble, call).to_string()),
-                    None => Some(call),
-                }
-            }
-            None => None,
-        }
-    }
-    fn render_single_call(&self, call_name: String, constraint_name: String) {
-        match self.render_dependencies(constraint_name.clone()) {
-            Some(dependencies) => println!(
-                "{}",
-                formatdoc!(
-                    "
-                        {dependencies}
-                        for k, v in params_{constraint}.items():
-                            tasks[k] = ShellTask(
-                                command=\"\"\"
-                                {call} %s
-                                \"\"\" % v.join(' '),
-                            )
-                            flow.add_node(tasks[k])
-                            for dep in dependencies_{constraint}[k]:
-                                flow.add_edge(tasks[dep], tasks[k])
-                        ",
-                    dependencies = dependencies,
-                    constraint = constraint_name,
-                    call = call_name.replace("\n", "\n        "),
-                )
-            ),
-            None => println!(
-                "{}",
-                formatdoc!(
-                    "
-                        for k, v in params_{constraint}.items():
-                            tasks[k] = ShellTask(
-                                command=\"\"\"
-                                {call} %s
-                                \"\"\" % v.join(' '),
-                            )
-                            flow.add_node(tasks[k])
-                        ",
-                    constraint = constraint_name,
-                    call = call_name.replace("\n", "\n        "),
-                )
-            ),
-        }
-    }
-    fn render_multiple_calls(
-        &self,
-        call_name: String,
-        constraint_name: String,
-        rws: &Vec<Arc<RwLock<ConstraintState<'a>>>>,
-    ) {
-        let ids = Self::render_ids(rws.clone());
-        match self.render_dependencies(constraint_name.clone()) {
-            Some(dependencies) => println!(
-                "{}",
-                formatdoc!(
-                    "
-                        {dependencies}
-                        for k in [{ids}]:
-                            tasks[k] = ShellTask(
-                                command=\"\"\"
-                                    {call} %s
-                                \"\"\" % params_{constraint}[k].join(' '),
-                            )
-                            flow.add_node(tasks[k])
-                            for dep in dependencies_{constraint}[k]:
-                                flow.add_edge(tasks[dep], tasks[k])
-                        ",
-                    dependencies = dependencies,
-                    constraint = constraint_name,
-                    call = call_name,
-                    ids = ids,
-                )
-            ),
-            None => println!(
-                "{}",
-                formatdoc!(
-                    "
-                        for k in [{ids}]:
-                            tasks[k] = ShellTask(
-                                command=\"\"\"
-                                    {call} %s
-                                \"\"\" % params_{constraint}[k].join(' '),
-                            )
-                            flow.add_node(tasks[k])
-                        ",
-                    constraint = constraint_name,
-                    call = call_name,
-                    ids = ids,
-                )
-            ),
-        }
     }
 }
 impl<'a> PrefectShellTaskRender<'a> {
