@@ -12,6 +12,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::{BTreeSet, HashMap};
 use std::fmt;
 use std::hash::{Hash, Hasher};
+use std::sync::{Arc, RwLock};
 
 #[derive(Hash, PartialEq, Eq)]
 pub struct StringLiteral {
@@ -28,6 +29,9 @@ impl StringLiteral {
             object_uuids: LinkedHashMap::new(),
             owner: None,
         }
+    }
+    pub fn new_wrapped(value: String) -> Arc<RwLock<Self>> {
+        Arc::new(RwLock::new(Self::new(value)))
     }
     pub fn value(&self) -> String {
         self.value.clone()
@@ -378,7 +382,6 @@ impl ParameterTuple {
         kwargs_v: LinkedHashMap<String, String>,
         literals: LiteralsMap,
     ) -> Self {
-        // TODO: should be moved into parameter tuple
         let mut write = literals.write().unwrap();
         let mut args = args_v
             .into_iter()

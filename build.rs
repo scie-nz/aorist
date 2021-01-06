@@ -144,8 +144,6 @@ fn process_constraints(raw_objects: &Vec<HashMap<String, Value>>) {
     let constraints = get_raw_objects_of_type(raw_objects, "Constraint".into());
     let mut scope = Scope::new();
     scope.import("uuid", "Uuid");
-    scope.import("std::sync", "Arc");
-    scope.import("std::sync", "RwLock");
     for constraint in &constraints {
         scope.import("crate", constraint.get("root").unwrap().as_str().unwrap());
     }

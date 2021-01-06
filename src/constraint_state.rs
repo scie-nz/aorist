@@ -180,21 +180,42 @@ impl<'a> ConstraintState<'a> {
         let node_stmt = AoristStatement::Expression(add_expr);
         (node_stmt, deps)
     }
-    fn get_task_creation_expr(&self, literals: LiteralsMap) -> Result<ArgType, String> {
+    fn get_task_call(&self) -> Result<ArgType, String> {
         match self.dialect {
-            Some(Dialect::Python(_)) => Ok(ArgType::Call(Call::new_wrapped(
-                ArgType::SimpleIdentifier(SimpleIdentifier::new_wrapped(self.get_call().unwrap())),
-                match self.params {
-                    Some(ref p) => p.get_args(),
-                    None => Vec::new(),
-                },
-                match self.params {
-                    Some(ref p) => p.get_kwargs(),
-                    None => LinkedHashMap::new(),
-                },
+            Some(Dialect::Python(_)) => Ok(ArgType::SimpleIdentifier(
+                SimpleIdentifier::new_wrapped(self.get_call().unwrap()),
+            )),
+            Some(Dialect::Bash(_)) | Some(Dialect::Presto(_)) => Ok(ArgType::SimpleIdentifier(
+                SimpleIdentifier::new_wrapped("ShellTask".to_string()),
+            )),
+            None => Ok(ArgType::SimpleIdentifier(SimpleIdentifier::new_wrapped(
+                "ConstantTask".to_string(),
             ))),
+            _ => Err("Dialect not supported".to_string()),
+        }
+    }
+    fn get_args_vec(&self) -> Result<Vec<ArgType>, String> {
+        match (&self.params, &self.dialect) {
+            (Some(ref p), Some(Dialect::Python(_))) => Ok(p.get_args()),
+            (None, Some(Dialect::Python(_))) => Ok(Vec::new()),
+            (_, Some(Dialect::Presto(_))) => Ok(Vec::new()),
+            (_, Some(Dialect::Bash(_))) => Ok(Vec::new()),
+            (_, None) => Ok(vec![ArgType::StringLiteral(StringLiteral::new_wrapped(
+                self.constraint.read().unwrap().get_name().clone(),
+            ))]),
+            _ => Err("Dialect not supported".to_string()),
+        }
+    }
+    fn get_kwargs_map(
+        &self,
+        literals: LiteralsMap,
+    ) -> Result<LinkedHashMap<String, ArgType>, String> {
+        match &self.dialect {
+            Some(Dialect::Python(_)) => match self.params {
+                Some(ref p) => Ok(p.get_kwargs()),
+                None => Ok(LinkedHashMap::new()),
+            },
             Some(Dialect::Presto(_)) => {
-                // TODO: unify this with call in register_literals
                 let raw_command = format!("presto -e '{}'", self.get_call().unwrap().clone());
                 let format_string = literals.read().unwrap().get(&raw_command).unwrap().clone();
                 let command = match self.params {
@@ -206,13 +227,7 @@ impl<'a> ConstraintState<'a> {
                 };
                 let mut keywords: LinkedHashMap<String, ArgType> = LinkedHashMap::new();
                 keywords.insert("command".to_string(), command);
-                Ok(ArgType::Call(Call::new_wrapped(
-                    ArgType::SimpleIdentifier(SimpleIdentifier::new_wrapped(
-                        "ShellTask".to_string(),
-                    )),
-                    Vec::new(),
-                    keywords,
-                )))
+                Ok(keywords)
             }
             Some(Dialect::Bash(_)) => {
                 let format_string = literals
@@ -230,26 +245,18 @@ impl<'a> ConstraintState<'a> {
                 };
                 let mut keywords: LinkedHashMap<String, ArgType> = LinkedHashMap::new();
                 keywords.insert("command".to_string(), command);
-
-                Ok(ArgType::Call(Call::new_wrapped(
-                    ArgType::SimpleIdentifier(SimpleIdentifier::new_wrapped(
-                        "ShellTask".to_string(),
-                    )),
-                    Vec::new(),
-                    keywords,
-                )))
+                Ok(keywords)
             }
-            None => Ok(ArgType::Call(Call::new_wrapped(
-                ArgType::SimpleIdentifier(SimpleIdentifier::new_wrapped(
-                    "ConstantTask".to_string(),
-                )),
-                vec![ArgType::StringLiteral(Arc::new(RwLock::new(
-                    StringLiteral::new(self.constraint.read().unwrap().get_name().clone()),
-                )))],
-                LinkedHashMap::new(),
-            ))),
+            None => Ok(LinkedHashMap::new()),
             _ => Err("Dialect not supported".to_string()),
         }
+    }
+    fn get_task_creation_expr(&self, literals: LiteralsMap) -> Result<ArgType, String> {
+        Ok(ArgType::Call(Call::new_wrapped(
+            self.get_task_call()?,
+            self.get_args_vec()?,
+            self.get_kwargs_map(literals)?,
+        )))
     }
     pub fn set_task_name(&mut self, name: String) {
         self.task_name = Some(name)
