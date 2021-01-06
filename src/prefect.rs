@@ -416,7 +416,7 @@ impl<'a> PrefectRender<'a> {
                 collector.clone(),
                 call.clone(),
                 args.clone(),
-                kwargs.clone(),
+                kwargs.keys().map(|x| x.clone()).collect::<Vec<String>>(),
             );
             // TODO: assert that task_name is the same as the 2nd value in the
             // tuple (when unpacked)
@@ -428,13 +428,14 @@ impl<'a> PrefectRender<'a> {
                     &"".to_string(),
                 ),
                 edge_addition.clone(),
+                kwargs.values().map(|x| x.clone()).collect::<Vec<ArgType>>(),
             ));
         }
         if singletons_deconstructed.len() > 1 {
             let params_constraint = ArgType::SimpleIdentifier(SimpleIdentifier::new_wrapped(
                 format!("params_{}", constraint_name).to_string(),
             ));
-            for ((collector, call, args, kwargs), v) in singletons_hash {
+            for ((collector, call, args, kwarg_keys), v) in singletons_hash {
                 // TODO: magic number
                 if v.len() >= 3 {
                     let ident =
@@ -459,6 +460,20 @@ impl<'a> PrefectRender<'a> {
                         vec![new_collector.clone()],
                         LinkedHashMap::new(),
                     ));
+                    let kwargs = kwarg_keys
+                        .iter()
+                        .map(|x| {
+                            (
+                                x.clone(),
+                                ArgType::Subscript(Subscript::new_wrapped(
+                                    params.clone(),
+                                    ArgType::StringLiteral(StringLiteral::new_wrapped(
+                                        x.to_string(),
+                                    )),
+                                )),
+                            )
+                        })
+                        .collect::<LinkedHashMap<_, _>>();
                     // HACK
                     let mut future_list = ArgType::List(List::new_wrapped(vec![]));
                     future_list.set_owner(ArgType::Subscript(Subscript::new_wrapped(
@@ -474,36 +489,44 @@ impl<'a> PrefectRender<'a> {
                         Some(future_list),
                     );
                     let statements = new_singleton.get_statements();
-                    let mut dict = ArgType::Dict(Dict::new_wrapped(
-                        v.iter()
-                            .map(|x| {
-                                (
-                                    x.1.clone(),
-                                    match x.2.clone() {
-                                        Some(y) => match y {
-                                            ArgType::List { .. } => y.clone(),
-                                            ArgType::SimpleIdentifier { .. }
-                                            | ArgType::Subscript { .. } => {
-                                                ArgType::List(List::new_wrapped(vec![y.clone()]))
-                                            }
-                                            _ => panic!(formatdoc!(
-                                                "{}. instead I found: {}",
-                                                "Only SimpleIdentifiers or
+                    let mut param_map = v
+                        .iter()
+                        .map(|x| {
+                            (
+                                x.1.clone(),
+                                match x.2.clone() {
+                                    Some(y) => match y {
+                                        ArgType::List { .. } => y.clone(),
+                                        ArgType::SimpleIdentifier { .. }
+                                        | ArgType::Subscript { .. } => {
+                                            ArgType::List(List::new_wrapped(vec![y.clone()]))
+                                        }
+                                        _ => panic!(formatdoc!(
+                                            "{}. instead I found: {}",
+                                            "Only SimpleIdentifiers or
                                                     Lists are valid dep_lists",
-                                                y.name()
-                                            )),
-                                        },
-                                        None => ArgType::List(List::new_wrapped(Vec::new())),
+                                            y.name()
+                                        )),
                                     },
-                                )
-                            })
-                            .map(|(k, v)| {
-                                let mut d: LinkedHashMap<String, ArgType> = LinkedHashMap::new();
-                                d.insert("dep_list".to_string(), v);
-                                (k, ArgType::Dict(Dict::new_wrapped(d)))
-                            })
-                            .collect::<LinkedHashMap<_, _>>(),
-                    ));
+                                    None => ArgType::List(List::new_wrapped(Vec::new())),
+                                },
+                                x.3.clone(),
+                            )
+                        })
+                        .map(|(k, dep_list, kwargs_values)| {
+                            let mut local_params_map: LinkedHashMap<String, ArgType> =
+                            LinkedHashMap::new();
+                            local_params_map.insert("dep_list".to_string(),
+                            dep_list);
+                            for (i, kw) in kwarg_keys.iter().enumerate() {
+                                local_params_map.insert(kw.to_string(),
+                                kwargs_values.get(i).unwrap().clone());
+                            }
+                            (k,
+                            ArgType::Dict(Dict::new_wrapped(local_params_map)))
+                        })
+                        .collect::<LinkedHashMap<_, _>>();
+                    let mut dict = ArgType::Dict(Dict::new_wrapped(param_map));
                     dict.set_owner(params_constraint.clone());
                     let items_call = ArgType::Call(Call::new_wrapped(
                         ArgType::Attribute(Attribute::new_wrapped(
@@ -517,7 +540,7 @@ impl<'a> PrefectRender<'a> {
                     let for_loop = AoristStatement::For(tpl, items_call, statements.clone());
 
                     for elem in v.iter().map(|x| x.1.clone()) {
-                        singletons.remove(&elem);
+                        singletons.remove(&format!("{}__{}", constraint_name, elem).to_string());
                     }
 
                     let dict_name = dict.get_ultimate_owner().unwrap();
