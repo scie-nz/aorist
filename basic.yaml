@@ -115,16 +115,14 @@ spec:
   name: ReplicatedData
   root: RemoteImportStorageSetup
   requires:
-    - DownloadDataFromRemote
     - UploadDataToLocal
-    - DataFromRemoteDownloaded
+    - FileReadyForUpload
 ---
 type: Constraint
 spec:
-  name: DataFromRemoteDownloaded
+  name: FileReadyForUpload
   root: RemoteImportStorageSetup
   requires:
-    - DownloadDataFromRemote
     - RemoveFileHeader
 ---
 type: Constraint
@@ -168,7 +166,7 @@ spec:
   name: ConvertCSVToOrc
   root: RemoteImportStorageSetup
   requires:
-      - DataFromRemoteDownloaded
+      - FileReadyForUpload
   requiresProgram: true
 ---
 type: Constraint

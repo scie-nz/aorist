@@ -265,13 +265,14 @@ pub trait PrefectTaskRender<'a> {
                     name,
                 )));
             } else {
+                let shorter_name =
+                    name.replace(&format!("{}__", self.get_constraint_name()).to_string(), "");
+
                 write.set_task_val(ArgType::Subscript(Subscript::new_wrapped(
                     ArgType::SimpleIdentifier(SimpleIdentifier::new_wrapped(
                         format!("tasks_{}", self.get_constraint_name()).to_string(),
                     )),
-                    ArgType::StringLiteral(Arc::new(RwLock::new(StringLiteral::new(
-                        name.replace(&format!("{}__", self.get_constraint_name()).to_string(), ""),
-                    )))),
+                    ArgType::StringLiteral(Arc::new(RwLock::new(StringLiteral::new(shorter_name)))),
                 )));
             }
         }
@@ -419,9 +420,13 @@ impl<'a> PrefectRender<'a> {
             );
             // TODO: assert that task_name is the same as the 2nd value in the
             // tuple (when unpacked)
+            // TODO: the replacement below is a huge hack
             singletons_hash.entry(key).or_insert(Vec::new()).push((
                 task_name.clone(),
-                task_key.clone(),
+                task_key.clone().replace(
+                    &format!("{}__", constraint_name).to_string(),
+                    &"".to_string(),
+                ),
                 edge_addition.clone(),
             ));
         }
@@ -456,7 +461,10 @@ impl<'a> PrefectRender<'a> {
                     ));
                     // HACK
                     let mut future_list = ArgType::List(List::new_wrapped(vec![]));
-                    future_list.set_owner(params.clone());
+                    future_list.set_owner(ArgType::Subscript(Subscript::new_wrapped(
+                        params.clone(),
+                        ArgType::StringLiteral(StringLiteral::new_wrapped("dep_list".to_string())),
+                    )));
                     let new_singleton = PrefectSingleton::new(
                         new_collector,
                         call,
@@ -488,6 +496,11 @@ impl<'a> PrefectRender<'a> {
                                         None => ArgType::List(List::new_wrapped(Vec::new())),
                                     },
                                 )
+                            })
+                            .map(|(k, v)| {
+                                let mut d: LinkedHashMap<String, ArgType> = LinkedHashMap::new();
+                                d.insert("dep_list".to_string(), v);
+                                (k, ArgType::Dict(Dict::new_wrapped(d)))
                             })
                             .collect::<LinkedHashMap<_, _>>(),
                     ));

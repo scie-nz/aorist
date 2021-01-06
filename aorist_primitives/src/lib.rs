@@ -105,7 +105,8 @@ macro_rules! define_ast_node {
                 }
             )+
             pub fn set_owner(&mut self, obj: ArgType) {
-                assert_eq!(obj.name(), "SimpleIdentifier");
+                assert!(obj.name() == "SimpleIdentifier" || obj.name() ==
+                "Subscript");
                 self.owner = Some(obj);
             }
             pub fn remove_owner(&mut self) {
