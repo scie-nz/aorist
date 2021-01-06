@@ -408,10 +408,15 @@ impl<'a> PrefectRender<'a> {
             .map(|x| (x.0, x.1.unwrap()))
             .collect::<Vec<_>>();
         let mut singletons_hash: HashMap<_, Vec<_>> = HashMap::new();
-        for (task_key, (collector, task_name, creation, _, edge_addition)) in
+        for (task_key, (collector, task_name, call, args, kwargs, _, edge_addition)) in
             &singletons_deconstructed
         {
-            let key = (collector.clone(), creation.clone());
+            let key = (
+                collector.clone(),
+                call.clone(),
+                args.clone(),
+                kwargs.clone(),
+            );
             // TODO: assert that task_name is the same as the 2nd value in the
             // tuple (when unpacked)
             singletons_hash.entry(key).or_insert(Vec::new()).push((
@@ -424,7 +429,7 @@ impl<'a> PrefectRender<'a> {
             let params_constraint = ArgType::SimpleIdentifier(SimpleIdentifier::new_wrapped(
                 format!("params_{}", constraint_name).to_string(),
             ));
-            for ((collector, creation), v) in singletons_hash {
+            for ((collector, call, args, kwargs), v) in singletons_hash {
                 // TODO: magic number
                 if v.len() >= 3 {
                     let ident =
@@ -454,7 +459,9 @@ impl<'a> PrefectRender<'a> {
                     future_list.set_owner(params.clone());
                     let new_singleton = PrefectSingleton::new(
                         new_collector,
-                        creation,
+                        call,
+                        args,
+                        kwargs,
                         AoristStatement::Expression(add_expr),
                         Some(future_list),
                     );

@@ -35,7 +35,9 @@ pub struct ConstraintState<'a> {
 #[derive(Clone, Hash, PartialEq, Eq)]
 pub struct PrefectSingleton {
     task_val: ArgType,
-    task_creation: ArgType,
+    task_call: ArgType,
+    args: Vec<ArgType>,
+    kwargs: LinkedHashMap<String, ArgType>,
     flow_node_addition: AoristStatement,
     dep_list: Option<ArgType>,
 }
@@ -75,21 +77,28 @@ impl PrefectSingleton {
             }
         }
     }
-    pub fn get_task_creation(&self) -> ArgType {
-        self.task_creation.clone()
-    }
     pub fn get_flow_node_addition(&self) -> AoristStatement {
         self.flow_node_addition.clone()
     }
     pub fn deconstruct(
         &self,
-    ) -> Option<(ArgType, ArgType, ArgType, AoristStatement, Option<ArgType>)> {
+    ) -> Option<(
+        ArgType,
+        ArgType,
+        ArgType,
+        Vec<ArgType>,
+        LinkedHashMap<String, ArgType>,
+        AoristStatement,
+        Option<ArgType>,
+    )> {
         if let ArgType::Subscript(ref subscript) = self.task_val {
             let guard = subscript.read().unwrap();
             return Some((
                 guard.a().clone(),
                 guard.b().clone(),
-                self.get_task_creation().clone(),
+                self.task_call.clone(),
+                self.args.clone(),
+                self.kwargs.clone(),
                 self.get_flow_node_addition().clone(),
                 self.dep_list.clone(),
             ));
@@ -98,20 +107,28 @@ impl PrefectSingleton {
     }
     pub fn new(
         task_val: ArgType,
-        task_creation: ArgType,
+        task_call: ArgType,
+        args: Vec<ArgType>,
+        kwargs: LinkedHashMap<String, ArgType>,
         flow_node_addition: AoristStatement,
         dep_list: Option<ArgType>,
     ) -> Self {
         Self {
             task_val,
-            task_creation,
+            task_call,
+            args,
+            kwargs,
             flow_node_addition,
             dep_list,
         }
     }
     pub fn get_statements(&self) -> Vec<AoristStatement> {
-        let task_creation =
-            AoristStatement::Assign(self.task_val.clone(), self.task_creation.clone());
+        let creation_expr = ArgType::Call(Call::new_wrapped(
+            self.task_call.clone(),
+            self.args.clone(),
+            self.kwargs.clone(),
+        ));
+        let task_creation = AoristStatement::Assign(self.task_val.clone(), creation_expr);
         let mut stmts = vec![task_creation];
         stmts.push(self.flow_node_addition.clone());
         for stmt in self.get_edge_addition_statements() {
@@ -140,7 +157,9 @@ impl<'a> ConstraintState<'a> {
         }
         Ok(PrefectSingleton::new(
             self.get_task_val(),
-            self.get_task_creation_expr(literals)?,
+            self.get_task_call()?,
+            self.get_args_vec()?,
+            self.get_kwargs_map(literals)?,
             flow_node_addition,
             dep,
         ))
@@ -250,13 +269,6 @@ impl<'a> ConstraintState<'a> {
             None => Ok(LinkedHashMap::new()),
             _ => Err("Dialect not supported".to_string()),
         }
-    }
-    fn get_task_creation_expr(&self, literals: LiteralsMap) -> Result<ArgType, String> {
-        Ok(ArgType::Call(Call::new_wrapped(
-            self.get_task_call()?,
-            self.get_args_vec()?,
-            self.get_kwargs_map(literals)?,
-        )))
     }
     pub fn set_task_name(&mut self, name: String) {
         self.task_name = Some(name)
