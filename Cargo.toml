@@ -75,6 +75,7 @@ derivative = {version = "2.1.1"}
 siphasher = {version = "0.3"}
 Inflector = {version = "0.11.4"}
 linked-hash-map = "0.5.3"
+serde_closure = "0.3.2"
 
 [build-dependencies]
 aorist_util = {path = "./aorist_util"}

@@ -515,15 +515,51 @@ impl<'a> PrefectRender<'a> {
                         })
                         .map(|(k, dep_list, kwargs_values)| {
                             let mut local_params_map: LinkedHashMap<String, ArgType> =
-                            LinkedHashMap::new();
-                            local_params_map.insert("dep_list".to_string(),
-                            dep_list);
+                                LinkedHashMap::new();
+                            local_params_map.insert("dep_list".to_string(), dep_list);
                             for (i, kw) in kwarg_keys.iter().enumerate() {
-                                local_params_map.insert(kw.to_string(),
-                                kwargs_values.get(i).unwrap().clone());
+                                let val = kwargs_values.get(i).unwrap().clone();
+                                local_params_map.insert(kw.to_string(), val.clone());
+                                // check if any formatted values are subscripts
+                                // from the params map
+                                // TODO: move this to function
+                                if let ArgType::Formatted(x) = val.clone() {
+                                    for (kw_name, kw_val) in
+                                    x.read().unwrap().keywords().iter() {
+                                        if let Some(ArgType::Subscript(s)) =
+                                            kw_val.get_owner()
+                                        {
+                                            let read = s.read().unwrap();
+                                            let param_dict_a =
+                                                ArgType::Subscript(Subscript::new_wrapped(
+                                                    params_constraint.clone(),
+                                                    ArgType::StringLiteral(
+                                                        StringLiteral::new_wrapped(k.clone()),
+                                                    ),
+                                                ));
+                                            if read.a() == param_dict_a {
+                                                if let ArgType::StringLiteral(l) = read.b() {
+                                                    let mut
+                                                    kw_val_remove_indirection =
+                                                    kw_val.clone();
+                                                    if let Some(owner) =
+                                                    read.get_owner()
+                                                    {
+                                                        kw_val_remove_indirection.set_owner(owner);
+                                                        local_params_map.insert(
+                                                            l.read().unwrap().value(),
+                                                            kw_val_remove_indirection,
+                                                        );
+                                                    } else {
+                                                        kw_val_remove_indirection.remove_owner();
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
                             }
-                            (k,
-                            ArgType::Dict(Dict::new_wrapped(local_params_map)))
+                            (k, ArgType::Dict(Dict::new_wrapped(local_params_map)))
                         })
                         .collect::<LinkedHashMap<_, _>>();
                     let mut dict = ArgType::Dict(Dict::new_wrapped(param_map));
