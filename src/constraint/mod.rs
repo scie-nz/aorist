@@ -121,6 +121,7 @@ define_ast_node!(
                 .collect::<Vec<_>>(),
         },
     },
+    |list: &List| list.elems().clone(),
     elems: Vec<ArgType>,
 );
 
@@ -146,6 +147,7 @@ define_ast_node!(
                 .collect::<Vec<_>>(),
         },
     },
+    |dict: &Dict| dict.elems().values().cloned().collect::<Vec<ArgType>>(),
     elems: LinkedHashMap<String, ArgType>,
 );
 define_ast_node!(
@@ -160,6 +162,7 @@ define_ast_node!(
                 .collect::<Vec<_>>(),
         },
     },
+    |tuple: &Tuple| tuple.elems().iter().cloned().collect::<Vec<ArgType>>(),
     elems: Vec<ArgType>,
 );
 
@@ -172,6 +175,7 @@ define_ast_node!(
             name: attr.name().clone(),
         },
     },
+    |attribute: &Attribute| vec![attribute.value().clone()],
     value: ArgType,
     name: String,
 );
@@ -196,6 +200,16 @@ define_ast_node!(
                 })
                 .collect::<Vec<_>>(),
         },
+    },
+    |call: &Call| {
+        let mut v = vec![call.function().clone()];
+        for arg in call.args() {
+            v.push(arg.clone());
+        }
+        for kw in call.keywords().values() {
+            v.push(kw.clone());
+        }
+        v
     },
     function: ArgType,
     args: Vec<ArgType>,
@@ -225,6 +239,13 @@ define_ast_node!(
                 .collect(),
         },
     },
+    |formatted: &Formatted| {
+        let mut v = vec![formatted.fmt().clone()];
+        for kw in formatted.keywords().values() {
+            v.push(kw.clone());
+        }
+        v
+    },
     fmt: ArgType,
     keywords: LinkedHashMap<String, ArgType>,
 );
@@ -237,6 +258,7 @@ define_ast_node!(
             b: Box::new(subscript.b().expression(location)),
         },
     },
+    |subscript: &Subscript| vec![subscript.a().clone(), subscript.b().clone()],
     a: ArgType,
     b: ArgType,
 );
@@ -248,6 +270,7 @@ define_ast_node!(
             name: ident.name().clone()
         },
     },
+    |_| Vec::new(),
     name: String,
 );
 

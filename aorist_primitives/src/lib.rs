@@ -71,7 +71,7 @@ macro_rules! register_ast_nodes {
 
 #[macro_export]
 macro_rules! define_ast_node {
-    ($name:ident, $expression:expr, $($field: ident : $field_type: ty,)+) => {
+    ($name:ident, $expression:expr, $descendants:expr, $($field: ident : $field_type: ty,)+) => {
         #[derive(Hash, PartialEq, Eq, Clone)]
         pub struct $name {
             $(
@@ -131,6 +131,9 @@ macro_rules! define_ast_node {
                     return val.expression(location);
                 }
                 $expression(location, self)
+            }
+            pub fn get_direct_descendants(&self) -> Vec<ArgType> {
+                $descendants(self)
             }
         }
     };

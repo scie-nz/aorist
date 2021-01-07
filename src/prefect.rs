@@ -524,11 +524,8 @@ impl<'a> PrefectRender<'a> {
                                 // from the params map
                                 // TODO: move this to function
                                 if let ArgType::Formatted(x) = val.clone() {
-                                    for (kw_name, kw_val) in
-                                    x.read().unwrap().keywords().iter() {
-                                        if let Some(ArgType::Subscript(s)) =
-                                            kw_val.get_owner()
-                                        {
+                                    for kw_val in x.read().unwrap().keywords().values() {
+                                        if let Some(ArgType::Subscript(s)) = kw_val.get_owner() {
                                             let read = s.read().unwrap();
                                             let param_dict_a =
                                                 ArgType::Subscript(Subscript::new_wrapped(
@@ -539,12 +536,9 @@ impl<'a> PrefectRender<'a> {
                                                 ));
                                             if read.a() == param_dict_a {
                                                 if let ArgType::StringLiteral(l) = read.b() {
-                                                    let mut
-                                                    kw_val_remove_indirection =
-                                                    kw_val.clone();
-                                                    if let Some(owner) =
-                                                    read.get_owner()
-                                                    {
+                                                    let mut kw_val_remove_indirection =
+                                                        kw_val.clone();
+                                                    if let Some(owner) = read.get_owner() {
                                                         kw_val_remove_indirection.set_owner(owner);
                                                         local_params_map.insert(
                                                             l.read().unwrap().value(),
