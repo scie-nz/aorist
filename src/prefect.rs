@@ -11,7 +11,7 @@ use rustpython_parser::ast::{
     Expression, ExpressionType, Keyword, Located, Location, Program, Statement, StatementType,
     StringGroup, Suite, WithItem,
 };
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::sync::{Arc, RwLock};
 
 struct PrefectProgram {
@@ -558,6 +558,33 @@ impl<'a> PrefectRender<'a> {
                         .collect::<LinkedHashMap<_, _>>();
                     let mut dict = ArgType::Dict(Dict::new_wrapped(param_map));
                     dict.set_owner(params_constraint.clone());
+
+                    let dict_descendants = dict.get_descendants();
+                    let mut values_to_assign: HashMap<ArgType, ArgType> = HashMap::new();
+                    for desc in dict_descendants {
+                        if let ArgType::StringLiteral(ref literal) = desc {
+                            let maybe_owner = desc.get_owner();
+                            if let Some(owner) = maybe_owner {
+                                if let ArgType::SimpleIdentifier { .. } = owner {
+                                    // this does not have an owner so it
+                                    // will render correctly
+                                    let desc_deep_clone = ArgType::StringLiteral(
+                                        StringLiteral::new_wrapped(literal.read().unwrap().value()),
+                                    );
+                                    if let Some(val) = values_to_assign.get(&owner) {
+                                        assert!(*val == desc_deep_clone);
+                                    } else {
+                                        values_to_assign.insert(owner, desc_deep_clone);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    let mut assign_statements = values_to_assign
+                        .into_iter()
+                        .map(|(k, v)| AoristStatement::Assign(k, v))
+                        .collect::<Vec<_>>();
+
                     let items_call = ArgType::Call(Call::new_wrapped(
                         ArgType::Attribute(Attribute::new_wrapped(
                             dict.clone(),
@@ -584,12 +611,17 @@ impl<'a> PrefectRender<'a> {
                     } else {
                         panic!("dict should be a Dict");
                     }
+                    assign_statements.push(assign);
+                    assign_statements.push(for_loop);
+
                     println!(
                         "{}\n",
-                        PrefectProgram::render_suite(vec![
-                            assign.statement(location),
-                            for_loop.statement(location)
-                        ])
+                        PrefectProgram::render_suite(
+                            assign_statements
+                                .into_iter()
+                                .map(|x| x.statement(location))
+                                .collect::<Vec<_>>()
+                        )
                         .unwrap()
                     );
                 }
