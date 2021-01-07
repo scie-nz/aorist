@@ -47,6 +47,28 @@ macro_rules! register_ast_nodes {
                     )+
                 }
             }
+            pub fn get_descendants(&self) -> Vec<ArgType> {
+                let mut queue = VecDeque::new();
+                queue.push_back(self.clone());
+                let mut current = queue.pop_front();
+                let mut v: Vec<ArgType> = Vec::new();
+                while let Some(elem) = current {
+                    let direct_descendants = match &elem {
+                        $(
+                            Self::$variant(x) => {
+                            let read = x.read().unwrap();
+                            read.get_direct_descendants()
+                            }
+                        )+
+                    };
+                    for desc in direct_descendants.into_iter() {
+                        queue.push_back(desc);
+                    }
+                    v.push(elem);
+                    current = queue.pop_front();
+                }
+                v
+            }
             pub fn get_ultimate_owner(&self) -> Option<ArgType> {
                 match &self {
                     $(
@@ -56,7 +78,7 @@ macro_rules! register_ast_nodes {
                         }
                     )+
                 }
-                }
+            }
             pub fn name(&self) -> String {
                 match &self {
                     $(

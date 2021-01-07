@@ -9,7 +9,7 @@ use rustpython_parser::ast::{
     Expression, ExpressionType, Keyword, Located, Location, Statement, StatementType, StringGroup,
 };
 use serde::{Deserialize, Serialize};
-use std::collections::{BTreeSet, HashMap};
+use std::collections::{BTreeSet, HashMap, VecDeque};
 use std::fmt;
 use std::hash::{Hash, Hasher};
 use std::sync::{Arc, RwLock};
@@ -105,6 +105,9 @@ impl StringLiteral {
             location,
             node: ExpressionType::String { value },
         }
+    }
+    pub fn get_direct_descendants(&self) -> Vec<ArgType> {
+        Vec::new()
     }
 }
 pub type LiteralsMap = Arc<RwLock<HashMap<String, Arc<RwLock<StringLiteral>>>>>;
