@@ -426,6 +426,72 @@ impl<'a> PrefectRender<'a> {
             .map(|(k, v)| AoristStatement::Assign(k, v))
             .collect::<Vec<_>>()
     }
+    fn build_for_loop_param_map(
+        &self,
+        v: &Vec<(ArgType, String, Option<ArgType>, Vec<ArgType>)>,
+        kwarg_keys: &Vec<String>,
+        params_constraint: ArgType,
+    ) -> LinkedHashMap<String, ArgType> {
+        v.iter()
+            .map(|x| {
+                (
+                    x.1.clone(),
+                    match x.2.clone() {
+                        Some(y) => match y {
+                            ArgType::List { .. } => y.clone(),
+                            ArgType::SimpleIdentifier { .. } | ArgType::Subscript { .. } => {
+                                ArgType::List(List::new_wrapped(vec![y.clone()]))
+                            }
+                            _ => panic!(formatdoc!(
+                                "{}. instead I found: {}",
+                                "Only SimpleIdentifiers or Lists are valid dep_lists",
+                                y.name()
+                            )),
+                        },
+                        None => ArgType::List(List::new_wrapped(Vec::new())),
+                    },
+                    x.3.clone(),
+                )
+            })
+            .map(|(k, dep_list, kwargs_values)| {
+                let mut local_params_map: LinkedHashMap<String, ArgType> = LinkedHashMap::new();
+                local_params_map.insert("dep_list".to_string(), dep_list);
+                for (i, kw) in kwarg_keys.iter().enumerate() {
+                    let val = kwargs_values.get(i).unwrap().clone();
+                    local_params_map.insert(kw.to_string(), val.clone());
+                    // check if any formatted values are subscripts
+                    // from the params map
+                    // TODO: move this to function
+                    if let ArgType::Formatted(x) = val.clone() {
+                        for kw_val in x.read().unwrap().keywords().values() {
+                            if let Some(ArgType::Subscript(s)) = kw_val.get_owner() {
+                                let read = s.read().unwrap();
+                                let param_dict_a = ArgType::Subscript(Subscript::new_wrapped(
+                                    params_constraint.clone(),
+                                    ArgType::StringLiteral(StringLiteral::new_wrapped(k.clone())),
+                                ));
+                                if read.a() == param_dict_a {
+                                    if let ArgType::StringLiteral(l) = read.b() {
+                                        let mut kw_val_remove_indirection = kw_val.clone();
+                                        if let Some(owner) = read.get_owner() {
+                                            kw_val_remove_indirection.set_owner(owner);
+                                            local_params_map.insert(
+                                                l.read().unwrap().value(),
+                                                kw_val_remove_indirection,
+                                            );
+                                        } else {
+                                            kw_val_remove_indirection.remove_owner();
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                (k, ArgType::Dict(Dict::new_wrapped(local_params_map)))
+            })
+            .collect::<LinkedHashMap<_, _>>()
+    }
     pub fn render(&'a self, location: Location, literals: LiteralsMap, constraint_name: String) {
         let mut singletons = self.get_singletons(literals);
         let singletons_deconstructed = singletons
@@ -501,6 +567,8 @@ impl<'a> PrefectRender<'a> {
                             )
                         })
                         .collect::<LinkedHashMap<_, _>>();
+                    let param_map = self.build_for_loop_param_map(&v,
+                    &kwarg_keys, params_constraint.clone());
                     // HACK
                     let mut future_list = ArgType::List(List::new_wrapped(vec![]));
                     future_list.set_owner(ArgType::Subscript(Subscript::new_wrapped(
@@ -516,73 +584,6 @@ impl<'a> PrefectRender<'a> {
                         Some(future_list),
                     );
                     let statements = new_singleton.get_statements();
-                    let param_map = v
-                        .iter()
-                        .map(|x| {
-                            (
-                                x.1.clone(),
-                                match x.2.clone() {
-                                    Some(y) => match y {
-                                        ArgType::List { .. } => y.clone(),
-                                        ArgType::SimpleIdentifier { .. }
-                                        | ArgType::Subscript { .. } => {
-                                            ArgType::List(List::new_wrapped(vec![y.clone()]))
-                                        }
-                                        _ => panic!(formatdoc!(
-                                            "{}. instead I found: {}",
-                                            "Only SimpleIdentifiers or
-                                                    Lists are valid dep_lists",
-                                            y.name()
-                                        )),
-                                    },
-                                    None => ArgType::List(List::new_wrapped(Vec::new())),
-                                },
-                                x.3.clone(),
-                            )
-                        })
-                        .map(|(k, dep_list, kwargs_values)| {
-                            let mut local_params_map: LinkedHashMap<String, ArgType> =
-                                LinkedHashMap::new();
-                            local_params_map.insert("dep_list".to_string(), dep_list);
-                            for (i, kw) in kwarg_keys.iter().enumerate() {
-                                let val = kwargs_values.get(i).unwrap().clone();
-                                local_params_map.insert(kw.to_string(), val.clone());
-                                // check if any formatted values are subscripts
-                                // from the params map
-                                // TODO: move this to function
-                                if let ArgType::Formatted(x) = val.clone() {
-                                    for kw_val in x.read().unwrap().keywords().values() {
-                                        if let Some(ArgType::Subscript(s)) = kw_val.get_owner() {
-                                            let read = s.read().unwrap();
-                                            let param_dict_a =
-                                                ArgType::Subscript(Subscript::new_wrapped(
-                                                    params_constraint.clone(),
-                                                    ArgType::StringLiteral(
-                                                        StringLiteral::new_wrapped(k.clone()),
-                                                    ),
-                                                ));
-                                            if read.a() == param_dict_a {
-                                                if let ArgType::StringLiteral(l) = read.b() {
-                                                    let mut kw_val_remove_indirection =
-                                                        kw_val.clone();
-                                                    if let Some(owner) = read.get_owner() {
-                                                        kw_val_remove_indirection.set_owner(owner);
-                                                        local_params_map.insert(
-                                                            l.read().unwrap().value(),
-                                                            kw_val_remove_indirection,
-                                                        );
-                                                    } else {
-                                                        kw_val_remove_indirection.remove_owner();
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                            (k, ArgType::Dict(Dict::new_wrapped(local_params_map)))
-                        })
-                        .collect::<LinkedHashMap<_, _>>();
                     let mut dict = ArgType::Dict(Dict::new_wrapped(param_map));
                     dict.set_owner(params_constraint.clone());
 
