@@ -11,7 +11,7 @@ use rustpython_parser::ast::{
     Expression, ExpressionType, Keyword, Located, Location, Program, Statement, StatementType,
     StringGroup, Suite, WithItem,
 };
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
 
 struct PrefectProgram {
@@ -399,6 +399,33 @@ pub enum PrefectRender<'a> {
     Constant(PrefectConstantTaskRender<'a>),
 }
 impl<'a> PrefectRender<'a> {
+    fn get_assign_statements(&self, dict: &ArgType) -> Vec<AoristStatement> {
+        let dict_descendants = dict.get_descendants();
+        let mut values_to_assign: HashMap<ArgType, ArgType> = HashMap::new();
+        for desc in dict_descendants {
+            if let ArgType::StringLiteral(ref literal) = desc {
+                let maybe_owner = desc.get_owner();
+                if let Some(owner) = maybe_owner {
+                    if let ArgType::SimpleIdentifier { .. } = owner {
+                        // this does not have an owner so it
+                        // will render correctly
+                        let desc_deep_clone = ArgType::StringLiteral(StringLiteral::new_wrapped(
+                            literal.read().unwrap().value(),
+                        ));
+                        if let Some(val) = values_to_assign.get(&owner) {
+                            assert!(*val == desc_deep_clone);
+                        } else {
+                            values_to_assign.insert(owner, desc_deep_clone);
+                        }
+                    }
+                }
+            }
+        }
+        values_to_assign
+            .into_iter()
+            .map(|(k, v)| AoristStatement::Assign(k, v))
+            .collect::<Vec<_>>()
+    }
     pub fn render(&'a self, location: Location, literals: LiteralsMap, constraint_name: String) {
         let mut singletons = self.get_singletons(literals);
         let singletons_deconstructed = singletons
@@ -489,7 +516,7 @@ impl<'a> PrefectRender<'a> {
                         Some(future_list),
                     );
                     let statements = new_singleton.get_statements();
-                    let mut param_map = v
+                    let param_map = v
                         .iter()
                         .map(|x| {
                             (
@@ -559,32 +586,7 @@ impl<'a> PrefectRender<'a> {
                     let mut dict = ArgType::Dict(Dict::new_wrapped(param_map));
                     dict.set_owner(params_constraint.clone());
 
-                    let dict_descendants = dict.get_descendants();
-                    let mut values_to_assign: HashMap<ArgType, ArgType> = HashMap::new();
-                    for desc in dict_descendants {
-                        if let ArgType::StringLiteral(ref literal) = desc {
-                            let maybe_owner = desc.get_owner();
-                            if let Some(owner) = maybe_owner {
-                                if let ArgType::SimpleIdentifier { .. } = owner {
-                                    // this does not have an owner so it
-                                    // will render correctly
-                                    let desc_deep_clone = ArgType::StringLiteral(
-                                        StringLiteral::new_wrapped(literal.read().unwrap().value()),
-                                    );
-                                    if let Some(val) = values_to_assign.get(&owner) {
-                                        assert!(*val == desc_deep_clone);
-                                    } else {
-                                        values_to_assign.insert(owner, desc_deep_clone);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    let mut assign_statements = values_to_assign
-                        .into_iter()
-                        .map(|(k, v)| AoristStatement::Assign(k, v))
-                        .collect::<Vec<_>>();
-
+                    let mut assign_statements = self.get_assign_statements(&dict);
                     let items_call = ArgType::Call(Call::new_wrapped(
                         ArgType::Attribute(Attribute::new_wrapped(
                             dict.clone(),
