@@ -426,6 +426,52 @@ impl<'a> PrefectRender<'a> {
             .map(|(k, v)| AoristStatement::Assign(k, v))
             .collect::<Vec<_>>()
     }
+    fn build_for_loop(
+        &self,
+        collector: &ArgType,
+        call: &ArgType,
+        args: &Vec<ArgType>,
+        kwarg_keys: Vec<String>,
+        params_constraint: &ArgType,
+        v: &Vec<(
+            ArgType,
+            std::string::String,
+            std::option::Option<ArgType>,
+            Vec<ArgType>,
+        )>,
+    ) -> Vec<AoristStatement> {
+        let params = ArgType::SimpleIdentifier(SimpleIdentifier::new_wrapped("params".to_string()));
+
+        let param_map = self.build_for_loop_param_map(v, &kwarg_keys, params_constraint.clone());
+        let mut dict = ArgType::Dict(Dict::new_wrapped(param_map));
+        dict.set_owner(params_constraint.clone());
+        let mut assign_statements = self.get_assign_statements(&dict);
+
+        let (new_singleton, ident) =
+            self.get_for_loop_singleton(&collector, &call, &args, &kwarg_keys, &params);
+        let tpl = ArgType::Tuple(Tuple::new_wrapped(vec![ident.clone(), params.clone()]));
+
+        let statements = new_singleton.get_statements();
+        let items_call = ArgType::Call(Call::new_wrapped(
+            ArgType::Attribute(Attribute::new_wrapped(dict.clone(), "items".to_string())),
+            Vec::new(),
+            LinkedHashMap::new(),
+        ));
+        let for_loop = AoristStatement::For(tpl, items_call, statements.clone());
+        let dict_name = dict.get_ultimate_owner().unwrap();
+        // HACK ALERT
+        let assign;
+        if let ArgType::Dict(x) = dict.clone() {
+            let mut dict_raw = ArgType::Dict(Arc::new(RwLock::new(x.read().unwrap().clone())));
+            dict_raw.remove_owner();
+            assign = AoristStatement::Assign(dict_name, dict_raw);
+        } else {
+            panic!("dict should be a Dict");
+        }
+        assign_statements.push(assign);
+        assign_statements.push(for_loop);
+        assign_statements
+    }
     fn get_for_loop_singleton(
         &self,
         collector: &ArgType,
@@ -581,49 +627,17 @@ impl<'a> PrefectRender<'a> {
             for ((collector, call, args, kwarg_keys), v) in singletons_hash {
                 // TODO: magic number
                 if v.len() >= 3 {
-                    let params = ArgType::SimpleIdentifier(SimpleIdentifier::new_wrapped(
-                        "params".to_string(),
-                    ));
-
-                    let param_map =
-                        self.build_for_loop_param_map(&v, &kwarg_keys, params_constraint.clone());
-                    let mut dict = ArgType::Dict(Dict::new_wrapped(param_map));
-                    dict.set_owner(params_constraint.clone());
-                    let mut assign_statements = self.get_assign_statements(&dict);
-
-                    let (new_singleton, ident) =
-                        self.get_for_loop_singleton(&collector, &call, &args, &kwarg_keys, &params);
-                    let tpl =
-                        ArgType::Tuple(Tuple::new_wrapped(vec![ident.clone(), params.clone()]));
-
-                    let statements = new_singleton.get_statements();
-                    let items_call = ArgType::Call(Call::new_wrapped(
-                        ArgType::Attribute(Attribute::new_wrapped(
-                            dict.clone(),
-                            "items".to_string(),
-                        )),
-                        Vec::new(),
-                        LinkedHashMap::new(),
-                    ));
-                    let for_loop = AoristStatement::For(tpl, items_call, statements.clone());
-
+                    let assign_statements = self.build_for_loop(
+                        &collector,
+                        &call,
+                        &args,
+                        kwarg_keys,
+                        &params_constraint,
+                        &v,
+                    );
                     for elem in v.iter().map(|x| x.1.clone()) {
                         singletons.remove(&format!("{}__{}", constraint_name, elem).to_string());
                     }
-
-                    let dict_name = dict.get_ultimate_owner().unwrap();
-                    // HACK ALERT
-                    let assign;
-                    if let ArgType::Dict(x) = dict.clone() {
-                        let mut dict_raw =
-                            ArgType::Dict(Arc::new(RwLock::new(x.read().unwrap().clone())));
-                        dict_raw.remove_owner();
-                        assign = AoristStatement::Assign(dict_name, dict_raw);
-                    } else {
-                        panic!("dict should be a Dict");
-                    }
-                    assign_statements.push(assign);
-                    assign_statements.push(for_loop);
 
                     println!(
                         "{}\n",
