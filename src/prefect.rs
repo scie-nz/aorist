@@ -426,6 +426,56 @@ impl<'a> PrefectRender<'a> {
             .map(|(k, v)| AoristStatement::Assign(k, v))
             .collect::<Vec<_>>()
     }
+    fn get_for_loop_singleton(
+        &self,
+        collector: &ArgType,
+        call: &ArgType,
+        args: &Vec<ArgType>,
+        kwarg_keys: &Vec<String>,
+        params: &ArgType,
+    ) -> (PrefectSingleton, ArgType) {
+        let ident = ArgType::SimpleIdentifier(SimpleIdentifier::new_wrapped("t".to_string()));
+        let new_collector =
+            ArgType::Subscript(Subscript::new_wrapped(collector.clone(), ident.clone()));
+        let function = ArgType::Attribute(Attribute::new_wrapped(
+            ArgType::SimpleIdentifier(SimpleIdentifier::new_wrapped("flow".to_string())),
+            "add_node".to_string(),
+        ));
+        let add_expr = ArgType::Call(Call::new_wrapped(
+            function,
+            vec![new_collector.clone()],
+            LinkedHashMap::new(),
+        ));
+        // HACK
+        let kwargs = kwarg_keys
+            .iter()
+            .map(|x| {
+                (
+                    x.clone(),
+                    ArgType::Subscript(Subscript::new_wrapped(
+                        params.clone(),
+                        ArgType::StringLiteral(StringLiteral::new_wrapped(x.to_string())),
+                    )),
+                )
+            })
+            .collect::<LinkedHashMap<_, _>>();
+        let mut future_list = ArgType::List(List::new_wrapped(vec![]));
+        future_list.set_owner(ArgType::Subscript(Subscript::new_wrapped(
+            params.clone(),
+            ArgType::StringLiteral(StringLiteral::new_wrapped("dep_list".to_string())),
+        )));
+        (
+            PrefectSingleton::new(
+                new_collector.clone(),
+                call.clone(),
+                args.clone(),
+                kwargs,
+                AoristStatement::Expression(add_expr),
+                Some(future_list),
+            ),
+            ident,
+        )
+    }
     fn build_for_loop_param_map(
         &self,
         v: &Vec<(ArgType, String, Option<ArgType>, Vec<ArgType>)>,
@@ -531,63 +581,22 @@ impl<'a> PrefectRender<'a> {
             for ((collector, call, args, kwarg_keys), v) in singletons_hash {
                 // TODO: magic number
                 if v.len() >= 3 {
-                    let ident =
-                        ArgType::SimpleIdentifier(SimpleIdentifier::new_wrapped("t".to_string()));
                     let params = ArgType::SimpleIdentifier(SimpleIdentifier::new_wrapped(
                         "params".to_string(),
                     ));
-                    let tpl = ArgType::Tuple(Arc::new(RwLock::new(Tuple::new(vec![
-                        ident.clone(),
-                        params.clone(),
-                    ]))));
-                    let new_collector =
-                        ArgType::Subscript(Subscript::new_wrapped(collector, ident.clone()));
-                    let function = ArgType::Attribute(Attribute::new_wrapped(
-                        ArgType::SimpleIdentifier(SimpleIdentifier::new_wrapped(
-                            "flow".to_string(),
-                        )),
-                        "add_node".to_string(),
-                    ));
-                    let add_expr = ArgType::Call(Call::new_wrapped(
-                        function,
-                        vec![new_collector.clone()],
-                        LinkedHashMap::new(),
-                    ));
-                    let kwargs = kwarg_keys
-                        .iter()
-                        .map(|x| {
-                            (
-                                x.clone(),
-                                ArgType::Subscript(Subscript::new_wrapped(
-                                    params.clone(),
-                                    ArgType::StringLiteral(StringLiteral::new_wrapped(
-                                        x.to_string(),
-                                    )),
-                                )),
-                            )
-                        })
-                        .collect::<LinkedHashMap<_, _>>();
-                    let param_map = self.build_for_loop_param_map(&v,
-                    &kwarg_keys, params_constraint.clone());
-                    // HACK
-                    let mut future_list = ArgType::List(List::new_wrapped(vec![]));
-                    future_list.set_owner(ArgType::Subscript(Subscript::new_wrapped(
-                        params.clone(),
-                        ArgType::StringLiteral(StringLiteral::new_wrapped("dep_list".to_string())),
-                    )));
-                    let new_singleton = PrefectSingleton::new(
-                        new_collector,
-                        call,
-                        args,
-                        kwargs,
-                        AoristStatement::Expression(add_expr),
-                        Some(future_list),
-                    );
-                    let statements = new_singleton.get_statements();
+
+                    let param_map =
+                        self.build_for_loop_param_map(&v, &kwarg_keys, params_constraint.clone());
                     let mut dict = ArgType::Dict(Dict::new_wrapped(param_map));
                     dict.set_owner(params_constraint.clone());
-
                     let mut assign_statements = self.get_assign_statements(&dict);
+
+                    let (new_singleton, ident) =
+                        self.get_for_loop_singleton(&collector, &call, &args, &kwarg_keys, &params);
+                    let tpl =
+                        ArgType::Tuple(Tuple::new_wrapped(vec![ident.clone(), params.clone()]));
+
+                    let statements = new_singleton.get_statements();
                     let items_call = ArgType::Call(Call::new_wrapped(
                         ArgType::Attribute(Attribute::new_wrapped(
                             dict.clone(),
@@ -596,7 +605,6 @@ impl<'a> PrefectRender<'a> {
                         Vec::new(),
                         LinkedHashMap::new(),
                     ));
-
                     let for_loop = AoristStatement::For(tpl, items_call, statements.clone());
 
                     for elem in v.iter().map(|x| x.1.clone()) {
