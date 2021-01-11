@@ -573,12 +573,13 @@ impl<'a> PrefectRender<'a> {
                 kwargs.values().map(|x| x.clone()).collect::<Vec<ArgType>>(),
             ));
         }
-        let mut for_loop_singletons: Vec<PrefectSingleton> = Vec::new();
         if singletons_deconstructed.len() > 1 {
             let params_constraint = ArgType::SimpleIdentifier(SimpleIdentifier::new_wrapped(
                 format!("params_{}", constraint_name).to_string(),
             ));
-            for ((collector, call, args, kwarg_keys, preamble, dialect), v) in singletons_hash {
+            for ((collector, call, args, kwarg_keys, preamble, dialect), v) in
+                singletons_hash.into_iter()
+            {
                 // TODO: magic number
                 if v.len() >= 3 {
                     let new_singleton = self.build_for_loop_singleton(
@@ -591,17 +592,21 @@ impl<'a> PrefectRender<'a> {
                         preamble,
                         dialect,
                     );
+                    let mut elem_names: Vec<String> = Vec::new();
                     for elem in v.iter().map(|x| x.1.clone()) {
                         singletons.remove(&format!("{}__{}", constraint_name, elem).to_string());
+                        elem_names.push(elem);
                     }
-                    for_loop_singletons.push(new_singleton);
+                    singletons.insert(
+                        format!("{}__{}", constraint_name, elem_names.join(",")),
+                        new_singleton,
+                    );
                 }
             }
         }
         // TODO: this is very hacky, should dedup by parsing the preambles
-        let python_preambles: LinkedHashSet<String> = for_loop_singletons
-            .iter()
-            .chain(singletons.values())
+        let python_preambles: LinkedHashSet<String> = singletons
+            .values()
             .map(|x| {
                 if let Some(Dialect::Python(_)) = x.get_dialect() {
                     x.get_preamble()
@@ -613,23 +618,13 @@ impl<'a> PrefectRender<'a> {
             .map(|x| x.unwrap())
             .collect();
 
-        for new_singleton in for_loop_singletons {
+        for (_, singleton) in singletons.into_iter() {
             println!(
                 "{}\n",
                 PrefectProgram::render_suite(
-                    new_singleton
-                        .get_assign_statements()
-                        .into_iter()
-                        .map(|x| x.statement(location))
-                        .collect::<Vec<_>>()
+                    singleton.as_suite(location),
                 )
                 .unwrap()
-            );
-        }
-        for singleton in singletons.into_iter() {
-            print!(
-                "{}\n",
-                PrefectProgram::render_suite(singleton.1.as_suite(location)).unwrap()
             );
         }
     }
