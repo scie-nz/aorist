@@ -1,5 +1,5 @@
 use crate::constraint::{LiteralsMap, ParameterTuple};
-use crate::constraint_state::ConstraintState;
+use crate::constraint_state::{ConstraintState, PrefectSingleton};
 use crate::prefect::{
     PrefectConstantTaskRender, PrefectProgram, PrefectPythonTaskRender, PrefectRender,
     PrefectShellTaskRender,
@@ -75,7 +75,7 @@ impl<'a> CodeBlock<'a> {
             })
             .collect()
     }
-    pub fn render(&'a self, location: Location, literals: LiteralsMap) {
+    pub fn get_singletons(&'a self, literals: LiteralsMap) -> HashMap<String, PrefectSingleton> {
         let singletons = self
             .task_render
             .get_compressed_singletons(literals, self.constraint_name.clone());
@@ -92,8 +92,10 @@ impl<'a> CodeBlock<'a> {
             .filter(|x| x.is_some())
             .map(|x| x.unwrap())
             .collect();
-
-        for singleton in singletons.values() {
+        singletons
+    }
+    pub fn render(&'a self, location: Location, literals: LiteralsMap) {
+        for singleton in self.get_singletons(literals).values() {
             println!(
                 "{}\n",
                 PrefectProgram::render_suite(singleton.as_suite(location),).unwrap()
