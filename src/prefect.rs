@@ -487,6 +487,7 @@ impl<'a> PrefectRender<'a> {
         dialect: Option<Dialect>,
     ) -> (PrefectSingleton, ArgType) {
         let ident = ArgType::SimpleIdentifier(SimpleIdentifier::new_wrapped("t".to_string()));
+        
         let new_collector =
             ArgType::Subscript(Subscript::new_wrapped(collector.clone(), ident.clone()));
         let function = ArgType::Attribute(Attribute::new_wrapped(
@@ -498,34 +499,17 @@ impl<'a> PrefectRender<'a> {
             vec![new_collector.clone()],
             LinkedHashMap::new(),
         ));
-        // HACK
-        let kwargs = kwarg_keys
-            .iter()
-            .map(|x| {
-                (
-                    x.clone(),
-                    ArgType::Subscript(Subscript::new_wrapped(
-                        params.clone(),
-                        ArgType::StringLiteral(StringLiteral::new_wrapped(x.to_string())),
-                    )),
-                )
-            })
-            .collect::<LinkedHashMap<_, _>>();
-        let mut future_list = ArgType::List(List::new_wrapped(vec![]));
-        future_list.set_owner(ArgType::Subscript(Subscript::new_wrapped(
-            params.clone(),
-            ArgType::StringLiteral(StringLiteral::new_wrapped("dep_list".to_string())),
-        )));
+
         (
-            PrefectSingleton::new(
+            PrefectSingleton::new_referencing_dict(
                 new_collector.clone(),
                 call.clone(),
                 args.clone(),
-                kwargs,
+                kwarg_keys,
                 AoristStatement::Expression(add_expr),
-                Some(future_list),
                 preamble,
                 dialect,
+                params.clone(),
             ),
             ident,
         )

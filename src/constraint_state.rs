@@ -2,6 +2,7 @@ use crate::concept::{Concept, ConceptAncestry};
 use crate::constraint::{
     AllConstraintsSatisfiability, AoristStatement, ArgType, Attribute, Call, Constraint, Formatted,
     List, LiteralsMap, ParameterTuple, SimpleIdentifier, StringLiteral,
+    Subscript,
 };
 use crate::object::TAoristObject;
 use aorist_primitives::Dialect;
@@ -137,6 +138,45 @@ impl PrefectSingleton {
             preamble,
             dialect,
         }
+    }
+    pub fn new_referencing_dict(
+        task_val: ArgType,
+        task_call: ArgType,
+        args: Vec<ArgType>,
+        kwarg_keys: &Vec<String>,
+        flow_node_addition: AoristStatement,
+        preamble: Option<String>,
+        dialect: Option<Dialect>,
+        params: ArgType,
+    ) -> Self {
+        // HACK
+        let kwargs = kwarg_keys
+            .iter()
+            .map(|x| {
+                (
+                    x.clone(),
+                    ArgType::Subscript(Subscript::new_wrapped(
+                        params.clone(),
+                        ArgType::StringLiteral(StringLiteral::new_wrapped(x.to_string())),
+                    )),
+                )
+            })
+            .collect::<LinkedHashMap<_, _>>();
+        let mut future_list = ArgType::List(List::new_wrapped(vec![]));
+        future_list.set_owner(ArgType::Subscript(Subscript::new_wrapped(
+            params.clone(),
+            ArgType::StringLiteral(StringLiteral::new_wrapped("dep_list".to_string())),
+        )));
+        Self::new(
+            task_val,
+            task_call,
+            args,
+            kwargs,
+            flow_node_addition,
+            Some(future_list),
+            preamble,
+            dialect,
+        )
     }
     pub fn get_statements(&self) -> Vec<AoristStatement> {
         let creation_expr = ArgType::Call(Call::new_wrapped(
