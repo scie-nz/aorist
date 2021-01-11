@@ -7,6 +7,7 @@ use crate::constraint_state::{ConstraintState, PrefectSingleton};
 use aorist_primitives::Dialect;
 use indoc::formatdoc;
 use linked_hash_map::LinkedHashMap;
+use linked_hash_set::LinkedHashSet;
 use rustpython_parser::ast::{
     Expression, ExpressionType, Keyword, Located, Location, Program, Statement, StatementType,
     StringGroup, Suite, WithItem,
@@ -440,18 +441,18 @@ impl<'a> PrefectRender<'a> {
             Vec<ArgType>,
         )>,
         preamble: Option<String>,
-    ) -> Vec<AoristStatement> {
+        dialect: Option<Dialect>,
+    ) -> (Vec<AoristStatement>, PrefectSingleton) {
         let params = ArgType::SimpleIdentifier(SimpleIdentifier::new_wrapped("params".to_string()));
 
-        let param_map = self.build_for_loop_param_map(v, &kwarg_keys,
-        params_constraint.clone());
+        let param_map = self.build_for_loop_param_map(v, &kwarg_keys, params_constraint.clone());
         let mut dict = ArgType::Dict(Dict::new_wrapped(param_map));
         dict.set_owner(params_constraint.clone());
         let mut assign_statements = self.get_assign_statements(&dict);
 
         let (new_singleton, ident) =
             self.get_for_loop_singleton(&collector, &call, &args, &kwarg_keys,
-            &params, preamble);
+            &params, preamble, dialect);
         let tpl = ArgType::Tuple(Tuple::new_wrapped(vec![ident.clone(), params.clone()]));
 
         let statements = new_singleton.get_statements();
@@ -473,7 +474,7 @@ impl<'a> PrefectRender<'a> {
         }
         assign_statements.push(assign);
         assign_statements.push(for_loop);
-        assign_statements
+        (assign_statements, new_singleton)
     }
     fn get_for_loop_singleton(
         &self,
@@ -483,6 +484,7 @@ impl<'a> PrefectRender<'a> {
         kwarg_keys: &Vec<String>,
         params: &ArgType,
         preamble: Option<String>,
+        dialect: Option<Dialect>,
     ) -> (PrefectSingleton, ArgType) {
         let ident = ArgType::SimpleIdentifier(SimpleIdentifier::new_wrapped("t".to_string()));
         let new_collector =
@@ -523,6 +525,7 @@ impl<'a> PrefectRender<'a> {
                 AoristStatement::Expression(add_expr),
                 Some(future_list),
                 preamble,
+                dialect,
             ),
             ident,
         )
@@ -604,7 +607,7 @@ impl<'a> PrefectRender<'a> {
             .collect::<Vec<_>>();
         let mut singletons_hash: HashMap<_, Vec<_>> = HashMap::new();
         for (task_key, (collector, task_name, call, args, kwargs, _,
-        edge_addition, preamble)) in
+        edge_addition, preamble, dialect)) in
             &singletons_deconstructed
         {
             // TODO: move this to PrefectSingleton -- this is the
@@ -615,6 +618,7 @@ impl<'a> PrefectRender<'a> {
                 args.clone(),
                 kwargs.keys().map(|x| x.clone()).collect::<Vec<String>>(),
                 preamble.clone(),
+                dialect.clone(),
             );
             // TODO: assert that task_name is the same as the 2nd value in the
             // tuple (when unpacked)
@@ -629,14 +633,15 @@ impl<'a> PrefectRender<'a> {
                 kwargs.values().map(|x| x.clone()).collect::<Vec<ArgType>>(),
             ));
         }
+        let mut for_loop_singletons: Vec<PrefectSingleton> = Vec::new();
         if singletons_deconstructed.len() > 1 {
             let params_constraint = ArgType::SimpleIdentifier(SimpleIdentifier::new_wrapped(
                 format!("params_{}", constraint_name).to_string(),
             ));
-            for ((collector, call, args, kwarg_keys, preamble), v) in singletons_hash {
+            for ((collector, call, args, kwarg_keys, preamble, dialect), v) in singletons_hash {
                 // TODO: magic number
                 if v.len() >= 3 {
-                    let assign_statements = self.build_for_loop(
+                    let (assign_statements, new_singleton) = self.build_for_loop(
                         &collector,
                         &call,
                         &args,
@@ -644,10 +649,12 @@ impl<'a> PrefectRender<'a> {
                         &params_constraint,
                         &v,
                         preamble,
+                        dialect,
                     );
                     for elem in v.iter().map(|x| x.1.clone()) {
                         singletons.remove(&format!("{}__{}", constraint_name, elem).to_string());
                     }
+                    for_loop_singletons.push(new_singleton);
 
                     println!(
                         "{}\n",
@@ -662,6 +669,21 @@ impl<'a> PrefectRender<'a> {
                 }
             }
         }
+        // TODO: this is very hacky, should dedup by parsing the preambles
+        let python_preambles: LinkedHashSet<String> = for_loop_singletons
+            .iter()
+            .chain(singletons.values())
+            .map(|x| {
+                if let Some(Dialect::Python(_)) = x.get_dialect() {
+                    x.get_preamble()
+                } else {
+                    None
+                }
+            })
+            .filter(|x| x.is_some())
+            .map(|x| x.unwrap())
+            .collect();
+
         for singleton in singletons.into_iter() {
             print!(
                 "{}\n",

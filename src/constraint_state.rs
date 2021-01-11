@@ -41,8 +41,15 @@ pub struct PrefectSingleton {
     flow_node_addition: AoristStatement,
     dep_list: Option<ArgType>,
     preamble: Option<String>,
+    dialect: Option<Dialect>,
 }
 impl PrefectSingleton {
+    pub fn get_preamble(&self) -> Option<String> {
+        self.preamble.clone()
+    }
+    pub fn get_dialect(&self) -> Option<Dialect> {
+        self.dialect.clone()
+    }
     pub fn get_task_val(&self) -> ArgType {
         self.task_val.clone()
     }
@@ -92,6 +99,7 @@ impl PrefectSingleton {
         AoristStatement,
         Option<ArgType>,
         Option<String>,
+        Option<Dialect>,
     )> {
         if let ArgType::Subscript(ref subscript) = self.task_val {
             let guard = subscript.read().unwrap();
@@ -104,6 +112,7 @@ impl PrefectSingleton {
                 self.get_flow_node_addition().clone(),
                 self.dep_list.clone(),
                 self.preamble.clone(),
+                self.dialect.clone(),
             ));
         }
         None
@@ -116,6 +125,7 @@ impl PrefectSingleton {
         flow_node_addition: AoristStatement,
         dep_list: Option<ArgType>,
         preamble: Option<String>,
+        dialect: Option<Dialect>,
     ) -> Self {
         Self {
             task_val,
@@ -125,6 +135,7 @@ impl PrefectSingleton {
             flow_node_addition,
             dep_list,
             preamble,
+            dialect,
         }
     }
     pub fn get_statements(&self) -> Vec<AoristStatement> {
@@ -167,7 +178,8 @@ impl<'a> ConstraintState<'a> {
             self.get_kwargs_map(literals)?,
             flow_node_addition,
             dep,
-            self.preamble.clone(),
+            self.get_preamble(),
+            self.get_dialect(),
         ))
     }
     pub fn get_dep_ident(&self, location: Location) -> Expression {
@@ -311,6 +323,9 @@ impl<'a> ConstraintState<'a> {
     pub fn get_preamble(&self) -> Option<String> {
         self.preamble.clone()
     }
+    pub fn get_dialect(&self) -> Option<Dialect> {
+        self.dialect.clone()
+    }
     pub fn get_params(&self) -> Option<ParameterTuple> {
         self.params.clone()
     }
@@ -319,9 +334,6 @@ impl<'a> ConstraintState<'a> {
     }
     pub fn get_key(&self) -> Option<String> {
         self.key.clone()
-    }
-    pub fn get_dialect(&self) -> Option<Dialect> {
-        self.dialect.clone()
     }
     pub fn satisfy(
         &mut self,
