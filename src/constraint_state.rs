@@ -1,8 +1,7 @@
 use crate::concept::{Concept, ConceptAncestry};
 use crate::constraint::{
     AllConstraintsSatisfiability, AoristStatement, ArgType, Attribute, Call, Constraint, Formatted,
-    List, LiteralsMap, ParameterTuple, SimpleIdentifier, StringLiteral,
-    Subscript,
+    List, LiteralsMap, ParameterTuple, SimpleIdentifier, StringLiteral, Subscript,
 };
 use crate::object::TAoristObject;
 use aorist_primitives::Dialect;
@@ -56,6 +55,37 @@ impl PrefectSingleton {
     }
     pub fn get_task_val(&self) -> ArgType {
         self.task_val.clone()
+    }
+    pub fn get_assign_statements(&self) -> Vec<AoristStatement> {
+        if let Some(dict) = &self.referenced_dict {
+            let dict_descendants = dict.get_descendants();
+            let mut values_to_assign: HashMap<ArgType, ArgType> = HashMap::new();
+            for desc in dict_descendants {
+                if let ArgType::StringLiteral(ref literal) = desc {
+                    let maybe_owner = desc.get_owner();
+                    if let Some(owner) = maybe_owner {
+                        if let ArgType::SimpleIdentifier { .. } = owner {
+                            // this does not have an owner so it
+                            // will render correctly
+                            let desc_deep_clone = ArgType::StringLiteral(
+                                StringLiteral::new_wrapped(literal.read().unwrap().value()),
+                            );
+                            if let Some(val) = values_to_assign.get(&owner) {
+                                assert!(*val == desc_deep_clone);
+                            } else {
+                                values_to_assign.insert(owner, desc_deep_clone);
+                            }
+                        }
+                    }
+                }
+            }
+            return values_to_assign
+                .into_iter()
+                .map(|(k, v)| AoristStatement::Assign(k, v))
+                .collect::<Vec<_>>();
+        }
+        // TODO: assignment statements for any other args go here
+        return vec![];
     }
     fn get_flow_add_edge_statement(&self, dep: ArgType) -> AoristStatement {
         let function = ArgType::Attribute(Attribute::new_wrapped(

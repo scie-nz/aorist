@@ -400,33 +400,6 @@ pub enum PrefectRender<'a> {
     Constant(PrefectConstantTaskRender<'a>),
 }
 impl<'a> PrefectRender<'a> {
-    fn get_assign_statements(&self, dict: &ArgType) -> Vec<AoristStatement> {
-        let dict_descendants = dict.get_descendants();
-        let mut values_to_assign: HashMap<ArgType, ArgType> = HashMap::new();
-        for desc in dict_descendants {
-            if let ArgType::StringLiteral(ref literal) = desc {
-                let maybe_owner = desc.get_owner();
-                if let Some(owner) = maybe_owner {
-                    if let ArgType::SimpleIdentifier { .. } = owner {
-                        // this does not have an owner so it
-                        // will render correctly
-                        let desc_deep_clone = ArgType::StringLiteral(StringLiteral::new_wrapped(
-                            literal.read().unwrap().value(),
-                        ));
-                        if let Some(val) = values_to_assign.get(&owner) {
-                            assert!(*val == desc_deep_clone);
-                        } else {
-                            values_to_assign.insert(owner, desc_deep_clone);
-                        }
-                    }
-                }
-            }
-        }
-        values_to_assign
-            .into_iter()
-            .map(|(k, v)| AoristStatement::Assign(k, v))
-            .collect::<Vec<_>>()
-    }
     fn build_for_loop(
         &self,
         collector: &ArgType,
@@ -448,11 +421,17 @@ impl<'a> PrefectRender<'a> {
         let param_map = self.build_for_loop_param_map(v, &kwarg_keys, params_constraint.clone());
         let mut dict = ArgType::Dict(Dict::new_wrapped(param_map));
         dict.set_owner(params_constraint.clone());
-        let mut assign_statements = self.get_assign_statements(&dict);
 
-        let (new_singleton, ident) =
-            self.get_for_loop_singleton(&collector, &call, &args, &kwarg_keys,
-            &params, preamble, dialect);
+        let (new_singleton, ident) = self.get_for_loop_singleton(
+            &collector,
+            &call,
+            &args,
+            &kwarg_keys,
+            preamble,
+            dialect,
+            dict.clone(),
+        );
+        let mut assign_statements = new_singleton.get_assign_statements();
         let tpl = ArgType::Tuple(Tuple::new_wrapped(vec![ident.clone(), params.clone()]));
 
         let statements = new_singleton.get_statements();
@@ -482,12 +461,12 @@ impl<'a> PrefectRender<'a> {
         call: &ArgType,
         args: &Vec<ArgType>,
         kwarg_keys: &Vec<String>,
-        params: &ArgType,
         preamble: Option<String>,
         dialect: Option<Dialect>,
+        dict: ArgType,
     ) -> (PrefectSingleton, ArgType) {
         let ident = ArgType::SimpleIdentifier(SimpleIdentifier::new_wrapped("t".to_string()));
-        
+
         let new_collector =
             ArgType::Subscript(Subscript::new_wrapped(collector.clone(), ident.clone()));
         let function = ArgType::Attribute(Attribute::new_wrapped(
@@ -509,7 +488,7 @@ impl<'a> PrefectRender<'a> {
                 AoristStatement::Expression(add_expr),
                 preamble,
                 dialect,
-                params.clone(),
+                dict,
             ),
             ident,
         )
@@ -590,9 +569,10 @@ impl<'a> PrefectRender<'a> {
             .map(|x| (x.0, x.1.unwrap()))
             .collect::<Vec<_>>();
         let mut singletons_hash: HashMap<_, Vec<_>> = HashMap::new();
-        for (task_key, (collector, task_name, call, args, kwargs, _,
-        edge_addition, preamble, dialect)) in
-            &singletons_deconstructed
+        for (
+            task_key,
+            (collector, task_name, call, args, kwargs, _, edge_addition, preamble, dialect),
+        ) in &singletons_deconstructed
         {
             // TODO: move this to PrefectSingleton -- this is the
             // "argument-free" bit of code in the Singleton
