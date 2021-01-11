@@ -131,11 +131,18 @@ spec:
   root: RemoteStorage
   requires:
     - DownloadDataFromRemoteGCSLocation
+    - DownloadDataFromRemoteWebLocation
 ---
 type: Constraint
 spec:
   name: DownloadDataFromRemoteGCSLocation
   root: GCSLocation
+  requiresProgram: true
+---
+type: Constraint
+spec:
+  name: DownloadDataFromRemoteWebLocation
+  root: WebLocation
   requiresProgram: true
 ---
 type: Constraint
@@ -207,6 +214,32 @@ spec:
       spec:
         call: static_data_table.name
         attaches: StaticDataTable
+---
+type: Program
+spec:
+  use: DownloadDataFromRemoteWebLocation
+  root: WebLocation
+  dialect: Bash
+  call: curl {address} -O {tmp_dir}/{file_name}
+  kwargs:
+    address:
+      type: AncestorArgument
+      spec:
+        call: web_location.address
+        attaches: WebLocation
+        name: address
+    tmp_dir:
+      type: AncestorArgument
+      spec:
+        call: remote_import_storage_setup.tmp_dir
+        attaches: RemoteImportStorageSetup
+        name: tmp_dir
+    file_name:
+      type: AncestorArgument
+      spec:
+        call: static_data_table.name
+        attaches: StaticDataTable
+        name: file_name
 ---
 type: Program
 spec:
