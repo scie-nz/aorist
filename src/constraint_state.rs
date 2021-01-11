@@ -250,7 +250,7 @@ impl PrefectSingleton {
         }
         stmts
     }
-    pub fn as_suite(self, location: Location) -> Suite {
+    pub fn as_suite(&self, location: Location) -> Suite {
         self.get_assign_statements()
             .into_iter()
             .map(|x| x.statement(location))

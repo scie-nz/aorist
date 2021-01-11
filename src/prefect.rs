@@ -535,7 +535,11 @@ impl<'a> PrefectRender<'a> {
             })
             .collect::<LinkedHashMap<_, _>>()
     }
-    pub fn render(&'a self, location: Location, literals: LiteralsMap, constraint_name: String) {
+    pub fn get_compressed_singletons(
+        &'a self,
+        literals: LiteralsMap,
+        constraint_name: String,
+    ) -> HashMap<String, PrefectSingleton> {
         let mut singletons = self.get_singletons(literals);
         let singletons_deconstructed = singletons
             .clone()
@@ -604,6 +608,10 @@ impl<'a> PrefectRender<'a> {
                 }
             }
         }
+        singletons
+    }
+    pub fn render(&'a self, location: Location, literals: LiteralsMap, constraint_name: String) {
+        let singletons = self.get_compressed_singletons(literals, constraint_name);
         // TODO: this is very hacky, should dedup by parsing the preambles
         let python_preambles: LinkedHashSet<String> = singletons
             .values()
@@ -618,13 +626,10 @@ impl<'a> PrefectRender<'a> {
             .map(|x| x.unwrap())
             .collect();
 
-        for (_, singleton) in singletons.into_iter() {
+        for singleton in singletons.values() {
             println!(
                 "{}\n",
-                PrefectProgram::render_suite(
-                    singleton.as_suite(location),
-                )
-                .unwrap()
+                PrefectProgram::render_suite(singleton.as_suite(location),).unwrap()
             );
         }
     }
