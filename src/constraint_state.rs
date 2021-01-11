@@ -30,7 +30,6 @@ pub struct ConstraintState<'a> {
     params: Option<ParameterTuple>,
     task_name: Option<String>,
     task_val: Option<ArgType>,
-    //task_val_fn: Option<Box<dyn Fn(Location, String) -> Expression>>,
 }
 
 #[derive(Clone, Hash, PartialEq, Eq)]
@@ -43,6 +42,10 @@ pub struct PrefectSingleton {
     dep_list: Option<ArgType>,
     preamble: Option<String>,
     dialect: Option<Dialect>,
+    /// parameter / dep_list dictionary, from where the Singleton's dep_list
+    /// and keyword arg values are drawn (this is only used for for_loop
+    /// compression).
+    referenced_dict: Option<ArgType>,
 }
 impl PrefectSingleton {
     pub fn get_preamble(&self) -> Option<String> {
@@ -127,6 +130,7 @@ impl PrefectSingleton {
         dep_list: Option<ArgType>,
         preamble: Option<String>,
         dialect: Option<Dialect>,
+        referenced_dict: Option<ArgType>,
     ) -> Self {
         Self {
             task_val,
@@ -137,6 +141,7 @@ impl PrefectSingleton {
             dep_list,
             preamble,
             dialect,
+            referenced_dict,
         }
     }
     pub fn new_referencing_dict(
@@ -176,6 +181,7 @@ impl PrefectSingleton {
             Some(future_list),
             preamble,
             dialect,
+            Some(params),
         )
     }
     pub fn get_statements(&self) -> Vec<AoristStatement> {
@@ -220,6 +226,7 @@ impl<'a> ConstraintState<'a> {
             dep,
             self.get_preamble(),
             self.get_dialect(),
+            None,
         ))
     }
     pub fn get_dep_ident(&self, location: Location) -> Expression {
