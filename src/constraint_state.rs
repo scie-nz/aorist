@@ -43,8 +43,9 @@ pub struct PrefectSingleton {
     dialect: Option<Dialect>,
     /// parameter / dep_list dictionary, from where the Singleton's dep_list
     /// and keyword arg values are drawn (this is only used for for_loop
-    /// compression).
-    referenced_dict: Option<ArgType>,
+    /// compression). First value is the alias in the for loop, second is the 
+    /// actual dict.
+    referenced_dict: Option<(ArgType, ArgType)>,
 }
 impl PrefectSingleton {
     pub fn get_preamble(&self) -> Option<String> {
@@ -57,7 +58,7 @@ impl PrefectSingleton {
         self.task_val.clone()
     }
     pub fn get_assign_statements(&self) -> Vec<AoristStatement> {
-        if let Some(dict) = &self.referenced_dict {
+        if let Some((_, dict)) = &self.referenced_dict {
             let dict_descendants = dict.get_descendants();
             let mut values_to_assign: HashMap<ArgType, ArgType> = HashMap::new();
             for desc in dict_descendants {
@@ -160,7 +161,7 @@ impl PrefectSingleton {
         dep_list: Option<ArgType>,
         preamble: Option<String>,
         dialect: Option<Dialect>,
-        referenced_dict: Option<ArgType>,
+        referenced_dict: Option<(ArgType, ArgType)>,
     ) -> Self {
         Self {
             task_val,
@@ -182,7 +183,7 @@ impl PrefectSingleton {
         flow_node_addition: AoristStatement,
         preamble: Option<String>,
         dialect: Option<Dialect>,
-        params: ArgType,
+        params: (ArgType, ArgType),
     ) -> Self {
         // HACK
         let kwargs = kwarg_keys
@@ -191,7 +192,7 @@ impl PrefectSingleton {
                 (
                     x.clone(),
                     ArgType::Subscript(Subscript::new_wrapped(
-                        params.clone(),
+                        params.1.clone(),
                         ArgType::StringLiteral(StringLiteral::new_wrapped(x.to_string())),
                     )),
                 )
@@ -199,7 +200,7 @@ impl PrefectSingleton {
             .collect::<LinkedHashMap<_, _>>();
         let mut future_list = ArgType::List(List::new_wrapped(vec![]));
         future_list.set_owner(ArgType::Subscript(Subscript::new_wrapped(
-            params.clone(),
+            params.1.clone(),
             ArgType::StringLiteral(StringLiteral::new_wrapped("dep_list".to_string())),
         )));
         Self::new(

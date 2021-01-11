@@ -429,7 +429,7 @@ impl<'a> PrefectRender<'a> {
             &kwarg_keys,
             preamble,
             dialect,
-            dict.clone(),
+            (params.clone(), dict.clone()),
         );
         let mut assign_statements = new_singleton.get_assign_statements();
         let tpl = ArgType::Tuple(Tuple::new_wrapped(vec![ident.clone(), params.clone()]));
@@ -463,7 +463,7 @@ impl<'a> PrefectRender<'a> {
         kwarg_keys: &Vec<String>,
         preamble: Option<String>,
         dialect: Option<Dialect>,
-        dict: ArgType,
+        dict: (ArgType, ArgType),
     ) -> (PrefectSingleton, ArgType) {
         let ident = ArgType::SimpleIdentifier(SimpleIdentifier::new_wrapped("t".to_string()));
 
