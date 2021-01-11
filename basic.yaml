@@ -534,8 +534,7 @@ spec:
   dialect: Presto
   call: |
     CREATE TABLE IF NOT EXISTS {table_name} (
-    {schema}
-    ) WITH (format='{data_format}');
+    {schema} ) WITH (format='{data_format}');
   kwargs:
     table_name:
       type: AncestorArgument
@@ -586,7 +585,7 @@ spec:
                     comment_str,
                 ).to_string()
             }).collect::<Vec<String>>();
-            format!("{}", attr_types.join(",\n"))
+            format!("{}\n", attr_types.join(",\n"))
           }
         attaches:
           - StaticDataTable
