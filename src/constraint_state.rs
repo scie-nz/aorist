@@ -43,7 +43,7 @@ pub struct PrefectSingleton {
     dialect: Option<Dialect>,
     /// parameter / dep_list dictionary, from where the Singleton's dep_list
     /// and keyword arg values are drawn (this is only used for for_loop
-    /// compression). First value is the alias in the for loop, second is the 
+    /// compression). First value is the alias in the for loop, second is the
     /// actual dict.
     referenced_dict: Option<(ArgType, ArgType)>,
 }
@@ -58,7 +58,7 @@ impl PrefectSingleton {
         self.task_val.clone()
     }
     pub fn get_assign_statements(&self) -> Vec<AoristStatement> {
-        if let Some((_, dict)) = &self.referenced_dict {
+        if let Some((tpl, dict)) = &self.referenced_dict {
             let dict_descendants = dict.get_descendants();
             let mut values_to_assign: HashMap<ArgType, ArgType> = HashMap::new();
             for desc in dict_descendants {
@@ -80,13 +80,34 @@ impl PrefectSingleton {
                     }
                 }
             }
-            return values_to_assign
+            let mut assign_statements = values_to_assign
                 .into_iter()
                 .map(|(k, v)| AoristStatement::Assign(k, v))
                 .collect::<Vec<_>>();
+
+            let statements = self.get_statements();
+            let items_call = ArgType::Call(Call::new_wrapped(
+                ArgType::Attribute(Attribute::new_wrapped(dict.clone(), "items".to_string())),
+                Vec::new(),
+                LinkedHashMap::new(),
+            ));
+            let for_loop = AoristStatement::For(tpl.clone(), items_call, statements.clone());
+            let dict_name = dict.get_ultimate_owner().unwrap();
+            // HACK ALERT
+            let assign;
+            if let ArgType::Dict(x) = dict.clone() {
+                let mut dict_raw = ArgType::Dict(Arc::new(RwLock::new(x.read().unwrap().clone())));
+                dict_raw.remove_owner();
+                assign = AoristStatement::Assign(dict_name, dict_raw);
+            } else {
+                panic!("dict should be a Dict");
+            }
+            assign_statements.push(assign);
+            assign_statements.push(for_loop);
+            return assign_statements;
         }
         // TODO: assignment statements for any other args go here
-        return vec![];
+        self.get_statements()
     }
     fn get_flow_add_edge_statement(&self, dep: ArgType) -> AoristStatement {
         let function = ArgType::Attribute(Attribute::new_wrapped(

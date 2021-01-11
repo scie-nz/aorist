@@ -421,54 +421,34 @@ impl<'a> PrefectRender<'a> {
         let param_map = self.build_for_loop_param_map(v, &kwarg_keys, params_constraint.clone());
         let mut dict = ArgType::Dict(Dict::new_wrapped(param_map));
         dict.set_owner(params_constraint.clone());
+        
+        let ident = ArgType::SimpleIdentifier(SimpleIdentifier::new_wrapped("t".to_string()));
+        let tpl = ArgType::Tuple(Tuple::new_wrapped(vec![ident.clone(), params.clone()]));
+        let new_collector =
+            ArgType::Subscript(Subscript::new_wrapped(collector.clone(), ident.clone()));
 
-        let (new_singleton, ident) = self.get_for_loop_singleton(
-            &collector,
+        let new_singleton = self.get_for_loop_singleton(
+            &new_collector,
             &call,
             &args,
             &kwarg_keys,
             preamble,
             dialect,
-            (params.clone(), dict.clone()),
+            (tpl.clone(), dict.clone()),
         );
-        let mut assign_statements = new_singleton.get_assign_statements();
-        let tpl = ArgType::Tuple(Tuple::new_wrapped(vec![ident.clone(), params.clone()]));
-
-        let statements = new_singleton.get_statements();
-        let items_call = ArgType::Call(Call::new_wrapped(
-            ArgType::Attribute(Attribute::new_wrapped(dict.clone(), "items".to_string())),
-            Vec::new(),
-            LinkedHashMap::new(),
-        ));
-        let for_loop = AoristStatement::For(tpl, items_call, statements.clone());
-        let dict_name = dict.get_ultimate_owner().unwrap();
-        // HACK ALERT
-        let assign;
-        if let ArgType::Dict(x) = dict.clone() {
-            let mut dict_raw = ArgType::Dict(Arc::new(RwLock::new(x.read().unwrap().clone())));
-            dict_raw.remove_owner();
-            assign = AoristStatement::Assign(dict_name, dict_raw);
-        } else {
-            panic!("dict should be a Dict");
-        }
-        assign_statements.push(assign);
-        assign_statements.push(for_loop);
-        (assign_statements, new_singleton)
+        (new_singleton.get_assign_statements(), new_singleton)
     }
     fn get_for_loop_singleton(
         &self,
-        collector: &ArgType,
+        new_collector: &ArgType,
         call: &ArgType,
         args: &Vec<ArgType>,
         kwarg_keys: &Vec<String>,
         preamble: Option<String>,
         dialect: Option<Dialect>,
         dict: (ArgType, ArgType),
-    ) -> (PrefectSingleton, ArgType) {
-        let ident = ArgType::SimpleIdentifier(SimpleIdentifier::new_wrapped("t".to_string()));
+    ) -> PrefectSingleton {
 
-        let new_collector =
-            ArgType::Subscript(Subscript::new_wrapped(collector.clone(), ident.clone()));
         let function = ArgType::Attribute(Attribute::new_wrapped(
             ArgType::SimpleIdentifier(SimpleIdentifier::new_wrapped("flow".to_string())),
             "add_node".to_string(),
@@ -479,7 +459,6 @@ impl<'a> PrefectRender<'a> {
             LinkedHashMap::new(),
         ));
 
-        (
             PrefectSingleton::new_referencing_dict(
                 new_collector.clone(),
                 call.clone(),
@@ -489,9 +468,7 @@ impl<'a> PrefectRender<'a> {
                 preamble,
                 dialect,
                 dict,
-            ),
-            ident,
-        )
+            )
     }
     fn build_for_loop_param_map(
         &self,
