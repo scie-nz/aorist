@@ -423,12 +423,6 @@ impl<'a> Driver<'a> {
         }
         self.shorten_task_names();
 
-        let _preambles: HashSet<String> = self
-            .blocks
-            .iter()
-            .map(|x| x.get_preambles().into_iter())
-            .flatten()
-            .collect();
         /*print!(
             "{}\n\n",
             preambles.into_iter().collect::<Vec<String>>().join("\n\n")

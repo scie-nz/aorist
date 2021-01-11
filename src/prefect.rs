@@ -8,8 +8,8 @@ use aorist_primitives::Dialect;
 use indoc::formatdoc;
 use linked_hash_map::LinkedHashMap;
 use rustpython_parser::ast::{
-    Expression, ExpressionType, Keyword, Located, Program, Statement, StatementType,
-    StringGroup, Suite, WithItem,
+    Expression, ExpressionType, Keyword, Located, Program, Statement, StatementType, StringGroup,
+    Suite, WithItem,
 };
 use std::collections::HashMap;
 use std::sync::{Arc, RwLock};

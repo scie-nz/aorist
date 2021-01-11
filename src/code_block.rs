@@ -1,13 +1,11 @@
 use crate::constraint::{LiteralsMap, ParameterTuple};
 use crate::constraint_state::{ConstraintState, PrefectSingleton};
 use crate::prefect::{
-    PrefectConstantTaskRender, PrefectProgram, PrefectPythonTaskRender, PrefectRender,
+    PrefectConstantTaskRender, PrefectPythonTaskRender, PrefectRender,
     PrefectShellTaskRender,
 };
 use aorist_primitives::Dialect;
-use linked_hash_set::LinkedHashSet;
-use rustpython_parser::ast::Location;
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
 
 pub struct CodeBlock<'a> {
@@ -58,14 +56,6 @@ impl<'a> CodeBlock<'a> {
             constraint_name,
         }
     }
-    pub fn get_preambles(&self) -> HashSet<String> {
-        self.members
-            .iter()
-            .map(|x| x.read().unwrap().get_preamble())
-            .filter(|x| x.is_some())
-            .map(|x| x.unwrap())
-            .collect()
-    }
     pub fn get_params(&self) -> HashMap<String, Option<ParameterTuple>> {
         self.members
             .iter()
@@ -79,27 +69,6 @@ impl<'a> CodeBlock<'a> {
         let singletons = self
             .task_render
             .get_compressed_singletons(literals, self.constraint_name.clone());
-        // TODO: this is very hacky, should dedup by parsing the preambles
-        let python_preambles: LinkedHashSet<String> = singletons
-            .values()
-            .map(|x| {
-                if let Some(Dialect::Python(_)) = x.get_dialect() {
-                    x.get_preamble()
-                } else {
-                    None
-                }
-            })
-            .filter(|x| x.is_some())
-            .map(|x| x.unwrap())
-            .collect();
         singletons
-    }
-    pub fn render(&'a self, location: Location, literals: LiteralsMap) {
-        for singleton in self.get_singletons(literals).values() {
-            println!(
-                "{}\n",
-                PrefectProgram::render_suite(singleton.as_suite(location),).unwrap()
-            );
-        }
     }
 }
