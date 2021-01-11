@@ -1,8 +1,7 @@
 use crate::constraint::{LiteralsMap, ParameterTuple};
 use crate::constraint_state::{ConstraintState, PrefectSingleton};
 use crate::prefect::{
-    PrefectConstantTaskRender, PrefectPythonTaskRender, PrefectRender,
-    PrefectShellTaskRender,
+    PrefectConstantTaskRender, PrefectPythonTaskRender, PrefectRender, PrefectShellTaskRender,
 };
 use aorist_primitives::Dialect;
 use std::collections::HashMap;

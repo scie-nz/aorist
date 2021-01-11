@@ -5,8 +5,10 @@ use crate::constraint_block::ConstraintBlock;
 use crate::constraint_state::ConstraintState;
 use crate::data_setup::ParsedDataSetup;
 use crate::object::TAoristObject;
+use crate::prefect::PrefectProgram;
 use aorist_primitives::{Bash, Dialect, Presto, Python};
 use inflector::cases::snakecase::to_snake_case;
+use linked_hash_set::LinkedHashSet;
 use rustpython_parser::ast::Location;
 use std::collections::{HashMap, HashSet};
 use std::sync::{Arc, RwLock, RwLockReadGuard};
@@ -423,13 +425,37 @@ impl<'a> Driver<'a> {
         }
         self.shorten_task_names();
 
-        /*print!(
-            "{}\n\n",
-            preambles.into_iter().collect::<Vec<String>>().join("\n\n")
-        );*/
         let location = Location::new(0, 0);
-        for super_block in self.blocks.iter_mut() {
-            super_block.render(location);
+        let singleton_blocks = self
+            .blocks
+            .iter_mut()
+            .map(|x| x.get_singletons())
+            .collect::<Vec<_>>();
+        let python_preambles: LinkedHashSet<String> = singleton_blocks
+            .iter()
+            .map(|x| {
+                x.iter().map(|y| {
+                    if let Some(Dialect::Python(_)) = y.get_dialect() {
+                        y.get_preamble()
+                    } else {
+                        None
+                    }
+                })
+            })
+            .flatten()
+            .filter(|x| x.is_some())
+            .map(|x| x.unwrap())
+            .collect();
+        for preamble in python_preambles {
+            println!("{}\n", preamble);
+        }
+        for block in singleton_blocks {
+            for singleton in block {
+                println!(
+                    "{}\n",
+                    PrefectProgram::render_suite(singleton.as_suite(location),).unwrap()
+                );
+            }
             println!("");
         }
 

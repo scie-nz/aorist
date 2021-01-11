@@ -1,13 +1,9 @@
-use aorist_primitives::Dialect;
 use crate::code_block::CodeBlock;
 use crate::constraint::{
     ArgType, LiteralsMap, ParameterTuple, SimpleIdentifier, StringLiteral, Subscript,
 };
 use crate::constraint_state::{ConstraintState, PrefectSingleton};
-use crate::prefect::PrefectProgram;
 use inflector::cases::snakecase::to_snake_case;
-use linked_hash_set::LinkedHashSet;
-use rustpython_parser::ast::Location;
 use std::collections::{HashMap, HashSet};
 use std::sync::{Arc, RwLock};
 use uuid::Uuid;
@@ -136,36 +132,19 @@ impl<'a> ConstraintBlock<'a> {
         }
         drop(read);
     }
-    pub fn render(&'a mut self, location: Location) {
+    pub fn get_singletons(&'a self) -> Vec<PrefectSingleton> {
         for member in &self.members {
             member.register_literals(self.literals.clone());
         }
         self.compute_indirections();
-        let singletons: Vec<PrefectSingleton> = self
-            .members
-            .iter()
-            .map(|x| x.get_singletons(self.literals.clone()).into_iter().map(|(_, v)| v))
-            .flatten()
-            .collect();
-
-        // TODO: this is very hacky, should dedup by parsing the preambles
-        let python_preambles: LinkedHashSet<String> = singletons
+        self.members
             .iter()
             .map(|x| {
-                if let Some(Dialect::Python(_)) = x.get_dialect() {
-                    x.get_preamble()
-                } else {
-                    None
-                }
+                x.get_singletons(self.literals.clone())
+                    .into_iter()
+                    .map(|(_, v)| v)
             })
-            .filter(|x| x.is_some())
-            .map(|x| x.unwrap())
-            .collect();
-        for singleton in singletons {
-            println!(
-                "{}\n",
-                PrefectProgram::render_suite(singleton.as_suite(location),).unwrap()
-            );
-        }
+            .flatten()
+            .collect()
     }
 }
