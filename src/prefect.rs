@@ -7,15 +7,14 @@ use crate::constraint_state::{ConstraintState, PrefectSingleton};
 use aorist_primitives::Dialect;
 use indoc::formatdoc;
 use linked_hash_map::LinkedHashMap;
-use linked_hash_set::LinkedHashSet;
 use rustpython_parser::ast::{
-    Expression, ExpressionType, Keyword, Located, Location, Program, Statement, StatementType,
+    Expression, ExpressionType, Keyword, Located, Program, Statement, StatementType,
     StringGroup, Suite, WithItem,
 };
 use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
 
-struct PrefectProgram {
+pub struct PrefectProgram {
     imports: Vec<Statement>,
     preamble: Vec<Statement>,
     flow: Vec<Statement>,
@@ -174,7 +173,7 @@ impl PrefectProgram {
             None => Ok(format!("**{}", Self::render_expr(&keyword.value)?).to_string()),
         }
     }
-    fn render_suite(suite: Suite) -> Result<String, String> {
+    pub fn render_suite(suite: Suite) -> Result<String, String> {
         let mut rendered: Vec<String> = Vec::new();
         for stmt in suite {
             rendered.push(Self::render_statement(stmt)?);
@@ -609,29 +608,6 @@ impl<'a> PrefectRender<'a> {
             }
         }
         singletons
-    }
-    pub fn render(&'a self, location: Location, literals: LiteralsMap, constraint_name: String) {
-        let singletons = self.get_compressed_singletons(literals, constraint_name);
-        // TODO: this is very hacky, should dedup by parsing the preambles
-        let python_preambles: LinkedHashSet<String> = singletons
-            .values()
-            .map(|x| {
-                if let Some(Dialect::Python(_)) = x.get_dialect() {
-                    x.get_preamble()
-                } else {
-                    None
-                }
-            })
-            .filter(|x| x.is_some())
-            .map(|x| x.unwrap())
-            .collect();
-
-        for singleton in singletons.values() {
-            println!(
-                "{}\n",
-                PrefectProgram::render_suite(singleton.as_suite(location),).unwrap()
-            );
-        }
     }
     pub fn get_singletons(&self, literals: LiteralsMap) -> HashMap<String, PrefectSingleton> {
         match &self {

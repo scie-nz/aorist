@@ -1,9 +1,11 @@
 use crate::constraint::{LiteralsMap, ParameterTuple};
 use crate::constraint_state::ConstraintState;
 use crate::prefect::{
-    PrefectConstantTaskRender, PrefectPythonTaskRender, PrefectRender, PrefectShellTaskRender,
+    PrefectConstantTaskRender, PrefectProgram, PrefectPythonTaskRender, PrefectRender,
+    PrefectShellTaskRender,
 };
 use aorist_primitives::Dialect;
+use linked_hash_set::LinkedHashSet;
 use rustpython_parser::ast::Location;
 use std::collections::{HashMap, HashSet};
 use std::sync::{Arc, RwLock};
@@ -74,7 +76,28 @@ impl<'a> CodeBlock<'a> {
             .collect()
     }
     pub fn render(&'a self, location: Location, literals: LiteralsMap) {
-        self.task_render
-            .render(location, literals, self.constraint_name.clone());
+        let singletons = self
+            .task_render
+            .get_compressed_singletons(literals, self.constraint_name.clone());
+        // TODO: this is very hacky, should dedup by parsing the preambles
+        let python_preambles: LinkedHashSet<String> = singletons
+            .values()
+            .map(|x| {
+                if let Some(Dialect::Python(_)) = x.get_dialect() {
+                    x.get_preamble()
+                } else {
+                    None
+                }
+            })
+            .filter(|x| x.is_some())
+            .map(|x| x.unwrap())
+            .collect();
+
+        for singleton in singletons.values() {
+            println!(
+                "{}\n",
+                PrefectProgram::render_suite(singleton.as_suite(location),).unwrap()
+            );
+        }
     }
 }
