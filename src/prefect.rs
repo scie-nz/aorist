@@ -439,16 +439,19 @@ impl<'a> PrefectRender<'a> {
             std::option::Option<ArgType>,
             Vec<ArgType>,
         )>,
+        preamble: Option<String>,
     ) -> Vec<AoristStatement> {
         let params = ArgType::SimpleIdentifier(SimpleIdentifier::new_wrapped("params".to_string()));
 
-        let param_map = self.build_for_loop_param_map(v, &kwarg_keys, params_constraint.clone());
+        let param_map = self.build_for_loop_param_map(v, &kwarg_keys,
+        params_constraint.clone());
         let mut dict = ArgType::Dict(Dict::new_wrapped(param_map));
         dict.set_owner(params_constraint.clone());
         let mut assign_statements = self.get_assign_statements(&dict);
 
         let (new_singleton, ident) =
-            self.get_for_loop_singleton(&collector, &call, &args, &kwarg_keys, &params);
+            self.get_for_loop_singleton(&collector, &call, &args, &kwarg_keys,
+            &params, preamble);
         let tpl = ArgType::Tuple(Tuple::new_wrapped(vec![ident.clone(), params.clone()]));
 
         let statements = new_singleton.get_statements();
@@ -479,6 +482,7 @@ impl<'a> PrefectRender<'a> {
         args: &Vec<ArgType>,
         kwarg_keys: &Vec<String>,
         params: &ArgType,
+        preamble: Option<String>,
     ) -> (PrefectSingleton, ArgType) {
         let ident = ArgType::SimpleIdentifier(SimpleIdentifier::new_wrapped("t".to_string()));
         let new_collector =
@@ -518,6 +522,7 @@ impl<'a> PrefectRender<'a> {
                 kwargs,
                 AoristStatement::Expression(add_expr),
                 Some(future_list),
+                preamble,
             ),
             ident,
         )
@@ -598,14 +603,18 @@ impl<'a> PrefectRender<'a> {
             .map(|x| (x.0, x.1.unwrap()))
             .collect::<Vec<_>>();
         let mut singletons_hash: HashMap<_, Vec<_>> = HashMap::new();
-        for (task_key, (collector, task_name, call, args, kwargs, _, edge_addition)) in
+        for (task_key, (collector, task_name, call, args, kwargs, _,
+        edge_addition, preamble)) in
             &singletons_deconstructed
         {
+            // TODO: move this to PrefectSingleton -- this is the
+            // "argument-free" bit of code in the Singleton
             let key = (
                 collector.clone(),
                 call.clone(),
                 args.clone(),
                 kwargs.keys().map(|x| x.clone()).collect::<Vec<String>>(),
+                preamble.clone(),
             );
             // TODO: assert that task_name is the same as the 2nd value in the
             // tuple (when unpacked)
@@ -624,7 +633,7 @@ impl<'a> PrefectRender<'a> {
             let params_constraint = ArgType::SimpleIdentifier(SimpleIdentifier::new_wrapped(
                 format!("params_{}", constraint_name).to_string(),
             ));
-            for ((collector, call, args, kwarg_keys), v) in singletons_hash {
+            for ((collector, call, args, kwarg_keys, preamble), v) in singletons_hash {
                 // TODO: magic number
                 if v.len() >= 3 {
                     let assign_statements = self.build_for_loop(
@@ -634,6 +643,7 @@ impl<'a> PrefectRender<'a> {
                         kwarg_keys,
                         &params_constraint,
                         &v,
+                        preamble,
                     );
                     for elem in v.iter().map(|x| x.1.clone()) {
                         singletons.remove(&format!("{}__{}", constraint_name, elem).to_string());

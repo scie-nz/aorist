@@ -40,6 +40,7 @@ pub struct PrefectSingleton {
     kwargs: LinkedHashMap<String, ArgType>,
     flow_node_addition: AoristStatement,
     dep_list: Option<ArgType>,
+    preamble: Option<String>,
 }
 impl PrefectSingleton {
     pub fn get_task_val(&self) -> ArgType {
@@ -90,6 +91,7 @@ impl PrefectSingleton {
         LinkedHashMap<String, ArgType>,
         AoristStatement,
         Option<ArgType>,
+        Option<String>,
     )> {
         if let ArgType::Subscript(ref subscript) = self.task_val {
             let guard = subscript.read().unwrap();
@@ -101,6 +103,7 @@ impl PrefectSingleton {
                 self.kwargs.clone(),
                 self.get_flow_node_addition().clone(),
                 self.dep_list.clone(),
+                self.preamble.clone(),
             ));
         }
         None
@@ -112,6 +115,7 @@ impl PrefectSingleton {
         kwargs: LinkedHashMap<String, ArgType>,
         flow_node_addition: AoristStatement,
         dep_list: Option<ArgType>,
+        preamble: Option<String>,
     ) -> Self {
         Self {
             task_val,
@@ -120,6 +124,7 @@ impl PrefectSingleton {
             kwargs,
             flow_node_addition,
             dep_list,
+            preamble,
         }
     }
     pub fn get_statements(&self) -> Vec<AoristStatement> {
@@ -162,6 +167,7 @@ impl<'a> ConstraintState<'a> {
             self.get_kwargs_map(literals)?,
             flow_node_addition,
             dep,
+            self.preamble.clone(),
         ))
     }
     pub fn get_dep_ident(&self, location: Location) -> Expression {
