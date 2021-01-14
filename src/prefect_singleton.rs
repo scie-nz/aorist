@@ -1,11 +1,9 @@
 use crate::constraint::{
-    AoristStatement, ArgType, Attribute, Call, SimpleIdentifier, StringLiteral,
+    AoristStatement, ArgType, Attribute, Call, SimpleIdentifier,
 };
 use crate::etl_singleton::{ETLSingleton, TDeconstructedSingleton};
 use aorist_primitives::Dialect;
 use linked_hash_map::LinkedHashMap;
-use std::collections::HashMap;
-use std::sync::{Arc, RwLock};
 
 #[derive(Clone, Hash, PartialEq, Eq)]
 pub struct PrefectSingleton {
@@ -26,63 +24,28 @@ impl ETLSingleton for PrefectSingleton {
     fn get_preamble(&self) -> Option<String> {
         self.preamble.clone()
     }
+    fn get_referenced_dict(&self) -> &Option<(ArgType, ArgType)> {
+        &self.referenced_dict
+    }
     fn get_dialect(&self) -> Option<Dialect> {
         self.dialect.clone()
     }
     fn get_task_val(&self) -> ArgType {
         self.task_val.clone()
     }
-    fn get_assign_statements(&self) -> Vec<AoristStatement> {
-        if let Some((tpl, dict)) = &self.referenced_dict {
-            let dict_descendants = dict.get_descendants();
-            let mut values_to_assign: HashMap<ArgType, ArgType> = HashMap::new();
-            for desc in dict_descendants {
-                if let ArgType::StringLiteral(ref literal) = desc {
-                    let maybe_owner = desc.get_owner();
-                    if let Some(owner) = maybe_owner {
-                        if let ArgType::SimpleIdentifier { .. } = owner {
-                            // this does not have an owner so it
-                            // will render correctly
-                            let desc_deep_clone = ArgType::StringLiteral(
-                                StringLiteral::new_wrapped(literal.read().unwrap().value()),
-                            );
-                            if let Some(val) = values_to_assign.get(&owner) {
-                                assert!(*val == desc_deep_clone);
-                            } else {
-                                values_to_assign.insert(owner, desc_deep_clone);
-                            }
-                        }
-                    }
-                }
-            }
-            let mut assign_statements = values_to_assign
-                .into_iter()
-                .map(|(k, v)| AoristStatement::Assign(k, v))
-                .collect::<Vec<_>>();
-
-            let statements = self.get_statements();
-            let items_call = ArgType::Call(Call::new_wrapped(
-                ArgType::Attribute(Attribute::new_wrapped(dict.clone(), "items".to_string())),
-                Vec::new(),
-                LinkedHashMap::new(),
-            ));
-            let for_loop = AoristStatement::For(tpl.clone(), items_call, statements.clone());
-            let dict_name = dict.get_ultimate_owner().unwrap();
-            // HACK ALERT
-            let assign;
-            if let ArgType::Dict(x) = dict.clone() {
-                let mut dict_raw = ArgType::Dict(Arc::new(RwLock::new(x.read().unwrap().clone())));
-                dict_raw.remove_owner();
-                assign = AoristStatement::Assign(dict_name, dict_raw);
-            } else {
-                panic!("dict should be a Dict");
-            }
-            assign_statements.push(assign);
-            assign_statements.push(for_loop);
-            return assign_statements;
+    fn get_statements(&self) -> Vec<AoristStatement> {
+        let creation_expr = ArgType::Call(Call::new_wrapped(
+            self.task_call.clone(),
+            self.args.clone(),
+            self.kwargs.clone(),
+        ));
+        let task_creation = AoristStatement::Assign(self.task_val.clone(), creation_expr);
+        let mut stmts = vec![task_creation];
+        stmts.push(self.get_flow_node_addition());
+        for stmt in self.get_edge_addition_statements() {
+            stmts.push(stmt);
         }
-        // TODO: assignment statements for any other args go here
-        self.get_statements()
+        stmts
     }
     fn deconstruct(&self) -> Option<TDeconstructedSingleton> {
         if let ArgType::Subscript(ref subscript) = self.task_val {
@@ -166,19 +129,5 @@ impl PrefectSingleton {
             LinkedHashMap::new(),
         ));
         AoristStatement::Expression(add_expr)
-    }
-    fn get_statements(&self) -> Vec<AoristStatement> {
-        let creation_expr = ArgType::Call(Call::new_wrapped(
-            self.task_call.clone(),
-            self.args.clone(),
-            self.kwargs.clone(),
-        ));
-        let task_creation = AoristStatement::Assign(self.task_val.clone(), creation_expr);
-        let mut stmts = vec![task_creation];
-        stmts.push(self.get_flow_node_addition());
-        for stmt in self.get_edge_addition_statements() {
-            stmts.push(stmt);
-        }
-        stmts
     }
 }
