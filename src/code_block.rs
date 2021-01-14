@@ -1,5 +1,6 @@
 use crate::constraint::{LiteralsMap, ParameterTuple};
-use crate::constraint_state::{ConstraintState, PrefectSingleton};
+use crate::constraint_state::ConstraintState;
+use crate::prefect_singleton::PrefectSingleton;
 use crate::prefect::{
     PrefectConstantTaskRender, PrefectPythonTaskRender, PrefectRender, PrefectShellTaskRender,
 };

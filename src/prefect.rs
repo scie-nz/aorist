@@ -3,7 +3,8 @@ use crate::constraint::{
     AoristStatement, ArgType, Attribute, Call, Dict, List, LiteralsMap, SimpleIdentifier,
     StringLiteral, Subscript, Tuple,
 };
-use crate::constraint_state::{ConstraintState, PrefectSingleton};
+use crate::constraint_state::ConstraintState;
+use crate::prefect_singleton::PrefectSingleton;
 use aorist_primitives::Dialect;
 use indoc::formatdoc;
 use linked_hash_map::LinkedHashMap;

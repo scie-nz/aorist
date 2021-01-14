@@ -2,7 +2,8 @@ use crate::code_block::CodeBlock;
 use crate::constraint::{
     ArgType, LiteralsMap, ParameterTuple, SimpleIdentifier, StringLiteral, Subscript,
 };
-use crate::constraint_state::{ConstraintState, PrefectSingleton};
+use crate::constraint_state::ConstraintState;
+use crate::prefect_singleton::PrefectSingleton;
 use inflector::cases::snakecase::to_snake_case;
 use std::collections::{HashMap, HashSet};
 use std::sync::{Arc, RwLock};
