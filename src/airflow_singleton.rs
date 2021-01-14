@@ -1,11 +1,10 @@
 use crate::constraint::{
-    AoristStatement, ArgType, Attribute, Call, 
-    List, StringLiteral, Subscript,
+    AoristStatement, ArgType, Attribute, Call, List, StringLiteral, Subscript,
 };
 use aorist_primitives::Dialect;
 use linked_hash_map::LinkedHashMap;
 use rustpython_parser::ast::{Location, Suite};
-use std::collections::{HashMap};
+use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
 
 #[derive(Clone, Hash, PartialEq, Eq)]

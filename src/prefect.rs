@@ -1,7 +1,6 @@
 #![allow(dead_code)]
 use crate::constraint::{
-    AoristStatement, ArgType, Attribute, Call, Dict, List, LiteralsMap, SimpleIdentifier,
-    StringLiteral, Subscript, Tuple,
+    ArgType, Dict, List, LiteralsMap, SimpleIdentifier, StringLiteral, Subscript, Tuple,
 };
 use crate::constraint_state::ConstraintState;
 use crate::prefect_singleton::PrefectSingleton;
@@ -448,22 +447,11 @@ impl<'a> PrefectRender<'a> {
         dialect: Option<Dialect>,
         dict: (ArgType, ArgType),
     ) -> PrefectSingleton {
-        let function = ArgType::Attribute(Attribute::new_wrapped(
-            ArgType::SimpleIdentifier(SimpleIdentifier::new_wrapped("flow".to_string())),
-            "add_node".to_string(),
-        ));
-        let add_expr = ArgType::Call(Call::new_wrapped(
-            function,
-            vec![new_collector.clone()],
-            LinkedHashMap::new(),
-        ));
-
         PrefectSingleton::new_referencing_dict(
             new_collector.clone(),
             call.clone(),
             args.clone(),
             kwarg_keys,
-            AoristStatement::Expression(add_expr),
             preamble,
             dialect,
             dict,
@@ -549,10 +537,8 @@ impl<'a> PrefectRender<'a> {
             .map(|x| (x.0, x.1.unwrap()))
             .collect::<Vec<_>>();
         let mut singletons_hash: HashMap<_, Vec<_>> = HashMap::new();
-        for (
-            task_key,
-            (collector, task_name, call, args, kwargs, _, edge_addition, preamble, dialect),
-        ) in &singletons_deconstructed
+        for (task_key, (collector, task_name, call, args, kwargs, dep_list, preamble, dialect)) in
+            &singletons_deconstructed
         {
             // TODO: move this to PrefectSingleton -- this is the
             // "argument-free" bit of code in the Singleton
@@ -573,7 +559,7 @@ impl<'a> PrefectRender<'a> {
                     &format!("{}__", constraint_name).to_string(),
                     &"".to_string(),
                 ),
-                edge_addition.clone(),
+                dep_list.clone(),
                 kwargs.values().map(|x| x.clone()).collect::<Vec<ArgType>>(),
             ));
         }

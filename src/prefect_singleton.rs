@@ -1,11 +1,10 @@
 use crate::constraint::{
-    AoristStatement, ArgType, Attribute, Call, 
-    List, SimpleIdentifier, StringLiteral, Subscript,
+    AoristStatement, ArgType, Attribute, Call, List, SimpleIdentifier, StringLiteral, Subscript,
 };
 use aorist_primitives::Dialect;
 use linked_hash_map::LinkedHashMap;
 use rustpython_parser::ast::{Location, Suite};
-use std::collections::{HashMap};
+use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
 
 #[derive(Clone, Hash, PartialEq, Eq)]
@@ -14,7 +13,6 @@ pub struct PrefectSingleton {
     task_call: ArgType,
     args: Vec<ArgType>,
     kwargs: LinkedHashMap<String, ArgType>,
-    flow_node_addition: AoristStatement,
     dep_list: Option<ArgType>,
     preamble: Option<String>,
     dialect: Option<Dialect>,
@@ -119,7 +117,16 @@ impl PrefectSingleton {
         }
     }
     pub fn get_flow_node_addition(&self) -> AoristStatement {
-        self.flow_node_addition.clone()
+        let function = ArgType::Attribute(Attribute::new_wrapped(
+            ArgType::SimpleIdentifier(SimpleIdentifier::new_wrapped("flow".to_string())),
+            "add_node".to_string(),
+        ));
+        let add_expr = ArgType::Call(Call::new_wrapped(
+            function,
+            vec![self.get_task_val()],
+            LinkedHashMap::new(),
+        ));
+        AoristStatement::Expression(add_expr)
     }
     pub fn deconstruct(
         &self,
@@ -129,7 +136,6 @@ impl PrefectSingleton {
         ArgType,
         Vec<ArgType>,
         LinkedHashMap<String, ArgType>,
-        AoristStatement,
         Option<ArgType>,
         Option<String>,
         Option<Dialect>,
@@ -142,7 +148,6 @@ impl PrefectSingleton {
                 self.task_call.clone(),
                 self.args.clone(),
                 self.kwargs.clone(),
-                self.get_flow_node_addition().clone(),
                 self.dep_list.clone(),
                 self.preamble.clone(),
                 self.dialect.clone(),
@@ -155,7 +160,6 @@ impl PrefectSingleton {
         task_call: ArgType,
         args: Vec<ArgType>,
         kwargs: LinkedHashMap<String, ArgType>,
-        flow_node_addition: AoristStatement,
         dep_list: Option<ArgType>,
         preamble: Option<String>,
         dialect: Option<Dialect>,
@@ -166,7 +170,6 @@ impl PrefectSingleton {
             task_call,
             args,
             kwargs,
-            flow_node_addition,
             dep_list,
             preamble,
             dialect,
@@ -178,7 +181,6 @@ impl PrefectSingleton {
         task_call: ArgType,
         args: Vec<ArgType>,
         kwarg_keys: &Vec<String>,
-        flow_node_addition: AoristStatement,
         preamble: Option<String>,
         dialect: Option<Dialect>,
         params: (ArgType, ArgType),
@@ -206,7 +208,6 @@ impl PrefectSingleton {
             task_call,
             args,
             kwargs,
-            flow_node_addition,
             Some(future_list),
             preamble,
             dialect,
@@ -221,7 +222,7 @@ impl PrefectSingleton {
         ));
         let task_creation = AoristStatement::Assign(self.task_val.clone(), creation_expr);
         let mut stmts = vec![task_creation];
-        stmts.push(self.flow_node_addition.clone());
+        stmts.push(self.get_flow_node_addition());
         for stmt in self.get_edge_addition_statements() {
             stmts.push(stmt);
         }

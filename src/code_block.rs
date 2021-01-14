@@ -1,9 +1,9 @@
 use crate::constraint::{LiteralsMap, ParameterTuple};
 use crate::constraint_state::ConstraintState;
-use crate::prefect_singleton::PrefectSingleton;
 use crate::prefect::{
     PrefectConstantTaskRender, PrefectPythonTaskRender, PrefectRender, PrefectShellTaskRender,
 };
+use crate::prefect_singleton::PrefectSingleton;
 use aorist_primitives::Dialect;
 use std::collections::HashMap;
 use std::sync::{Arc, RwLock};

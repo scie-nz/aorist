@@ -1,7 +1,7 @@
 use crate::concept::{Concept, ConceptAncestry};
 use crate::constraint::{
-    AllConstraintsSatisfiability, AoristStatement, ArgType, Attribute, Call, Constraint, Formatted,
-    List, LiteralsMap, ParameterTuple, SimpleIdentifier, StringLiteral,
+    AllConstraintsSatisfiability, ArgType, Constraint, Formatted, List, LiteralsMap,
+    ParameterTuple, SimpleIdentifier, StringLiteral,
 };
 use crate::object::TAoristObject;
 use crate::prefect_singleton::PrefectSingleton;
@@ -34,22 +34,12 @@ pub struct ConstraintState<'a> {
 
 impl<'a> ConstraintState<'a> {
     pub fn get_prefect_singleton(&self, literals: LiteralsMap) -> Result<PrefectSingleton, String> {
-        let (flow_node_addition, dep_list) = self.get_flow_addition_statements();
-        let dep;
-        if dep_list.len() == 1 {
-            dep = Some(dep_list.clone().into_iter().next().unwrap());
-        } else if dep_list.len() > 1 {
-            dep = Some(ArgType::List(Arc::new(RwLock::new(List::new(dep_list)))));
-        } else {
-            dep = None;
-        }
         Ok(PrefectSingleton::new(
             self.get_task_val(),
             self.get_task_call()?,
             self.get_args_vec()?,
             self.get_kwargs_map(literals)?,
-            flow_node_addition,
-            dep,
+            self.get_dep_list(),
             self.get_preamble(),
             self.get_dialect(),
             None,
@@ -69,8 +59,8 @@ impl<'a> ConstraintState<'a> {
     pub fn get_task_val(&self) -> ArgType {
         self.task_val.as_ref().unwrap().clone()
     }
-    pub fn get_flow_addition_statements(&self) -> (AoristStatement, Vec<ArgType>) {
-        let deps = self
+    pub fn get_dep_list(&self) -> Option<ArgType> {
+        let dep_list = self
             .satisfied_dependencies
             .iter()
             .map(|rw| {
@@ -78,17 +68,13 @@ impl<'a> ConstraintState<'a> {
                 x.get_task_val()
             })
             .collect::<Vec<ArgType>>();
-        let function = ArgType::Attribute(Attribute::new_wrapped(
-            ArgType::SimpleIdentifier(SimpleIdentifier::new_wrapped("flow".to_string())),
-            "add_node".to_string(),
-        ));
-        let add_expr = ArgType::Call(Call::new_wrapped(
-            function,
-            vec![self.get_task_val()],
-            LinkedHashMap::new(),
-        ));
-        let node_stmt = AoristStatement::Expression(add_expr);
-        (node_stmt, deps)
+        if dep_list.len() == 1 {
+            return Some(dep_list.clone().into_iter().next().unwrap());
+        } else if dep_list.len() > 1 {
+            return Some(ArgType::List(Arc::new(RwLock::new(List::new(dep_list)))));
+        } else {
+            return None;
+        }
     }
     fn get_task_call(&self) -> Result<ArgType, String> {
         match self.dialect {
