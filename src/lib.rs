@@ -1,6 +1,7 @@
 #![feature(box_patterns)]
 pub mod access_policy;
 pub mod asset;
+pub mod airflow_singleton;
 pub mod attributes;
 pub mod code_block;
 pub mod compression;
