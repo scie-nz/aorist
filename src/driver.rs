@@ -4,6 +4,7 @@ use crate::constraint::{AoristConstraint, Constraint, LiteralsMap, ParameterTupl
 use crate::constraint_block::ConstraintBlock;
 use crate::constraint_state::ConstraintState;
 use crate::data_setup::ParsedDataSetup;
+use crate::etl_singleton::ETLSingleton;
 use crate::object::TAoristObject;
 use crate::prefect::PrefectProgram;
 use aorist_primitives::{Bash, Dialect, Presto, Python};

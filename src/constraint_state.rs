@@ -3,6 +3,7 @@ use crate::constraint::{
     AllConstraintsSatisfiability, ArgType, Constraint, Formatted, List, LiteralsMap,
     ParameterTuple, SimpleIdentifier, StringLiteral,
 };
+use crate::etl_singleton::ETLSingleton;
 use crate::object::TAoristObject;
 use crate::prefect_singleton::PrefectSingleton;
 use aorist_primitives::Dialect;

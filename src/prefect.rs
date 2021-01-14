@@ -3,6 +3,7 @@ use crate::constraint::{
     ArgType, Dict, List, LiteralsMap, SimpleIdentifier, StringLiteral, Subscript, Tuple,
 };
 use crate::constraint_state::ConstraintState;
+use crate::etl_singleton::ETLSingleton;
 use crate::prefect_singleton::PrefectSingleton;
 use aorist_primitives::Dialect;
 use indoc::formatdoc;

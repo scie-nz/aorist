@@ -1,9 +1,9 @@
 use crate::constraint::{
-    AoristStatement, ArgType, Attribute, Call, List, SimpleIdentifier, StringLiteral, Subscript,
+    AoristStatement, ArgType, Attribute, Call, SimpleIdentifier, StringLiteral,
 };
+use crate::etl_singleton::{ETLSingleton, TDeconstructedSingleton};
 use aorist_primitives::Dialect;
 use linked_hash_map::LinkedHashMap;
-use rustpython_parser::ast::{Location, Suite};
 use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
 
@@ -22,17 +22,17 @@ pub struct PrefectSingleton {
     /// actual dict.
     referenced_dict: Option<(ArgType, ArgType)>,
 }
-impl PrefectSingleton {
-    pub fn get_preamble(&self) -> Option<String> {
+impl ETLSingleton for PrefectSingleton {
+    fn get_preamble(&self) -> Option<String> {
         self.preamble.clone()
     }
-    pub fn get_dialect(&self) -> Option<Dialect> {
+    fn get_dialect(&self) -> Option<Dialect> {
         self.dialect.clone()
     }
-    pub fn get_task_val(&self) -> ArgType {
+    fn get_task_val(&self) -> ArgType {
         self.task_val.clone()
     }
-    pub fn get_assign_statements(&self) -> Vec<AoristStatement> {
+    fn get_assign_statements(&self) -> Vec<AoristStatement> {
         if let Some((tpl, dict)) = &self.referenced_dict {
             let dict_descendants = dict.get_descendants();
             let mut values_to_assign: HashMap<ArgType, ArgType> = HashMap::new();
@@ -84,6 +84,45 @@ impl PrefectSingleton {
         // TODO: assignment statements for any other args go here
         self.get_statements()
     }
+    fn deconstruct(&self) -> Option<TDeconstructedSingleton> {
+        if let ArgType::Subscript(ref subscript) = self.task_val {
+            let guard = subscript.read().unwrap();
+            return Some((
+                guard.a().clone(),
+                guard.b().clone(),
+                self.task_call.clone(),
+                self.args.clone(),
+                self.kwargs.clone(),
+                self.dep_list.clone(),
+                self.preamble.clone(),
+                self.dialect.clone(),
+            ));
+        }
+        None
+    }
+    fn new(
+        task_val: ArgType,
+        task_call: ArgType,
+        args: Vec<ArgType>,
+        kwargs: LinkedHashMap<String, ArgType>,
+        dep_list: Option<ArgType>,
+        preamble: Option<String>,
+        dialect: Option<Dialect>,
+        referenced_dict: Option<(ArgType, ArgType)>,
+    ) -> Self {
+        Self {
+            task_val,
+            task_call,
+            args,
+            kwargs,
+            dep_list,
+            preamble,
+            dialect,
+            referenced_dict,
+        }
+    }
+}
+impl PrefectSingleton {
     fn get_flow_add_edge_statement(&self, dep: ArgType) -> AoristStatement {
         let function = ArgType::Attribute(Attribute::new_wrapped(
             ArgType::SimpleIdentifier(SimpleIdentifier::new_wrapped("flow".to_string())),
@@ -128,93 +167,7 @@ impl PrefectSingleton {
         ));
         AoristStatement::Expression(add_expr)
     }
-    pub fn deconstruct(
-        &self,
-    ) -> Option<(
-        ArgType,
-        ArgType,
-        ArgType,
-        Vec<ArgType>,
-        LinkedHashMap<String, ArgType>,
-        Option<ArgType>,
-        Option<String>,
-        Option<Dialect>,
-    )> {
-        if let ArgType::Subscript(ref subscript) = self.task_val {
-            let guard = subscript.read().unwrap();
-            return Some((
-                guard.a().clone(),
-                guard.b().clone(),
-                self.task_call.clone(),
-                self.args.clone(),
-                self.kwargs.clone(),
-                self.dep_list.clone(),
-                self.preamble.clone(),
-                self.dialect.clone(),
-            ));
-        }
-        None
-    }
-    pub fn new(
-        task_val: ArgType,
-        task_call: ArgType,
-        args: Vec<ArgType>,
-        kwargs: LinkedHashMap<String, ArgType>,
-        dep_list: Option<ArgType>,
-        preamble: Option<String>,
-        dialect: Option<Dialect>,
-        referenced_dict: Option<(ArgType, ArgType)>,
-    ) -> Self {
-        Self {
-            task_val,
-            task_call,
-            args,
-            kwargs,
-            dep_list,
-            preamble,
-            dialect,
-            referenced_dict,
-        }
-    }
-    pub fn new_referencing_dict(
-        task_val: ArgType,
-        task_call: ArgType,
-        args: Vec<ArgType>,
-        kwarg_keys: &Vec<String>,
-        preamble: Option<String>,
-        dialect: Option<Dialect>,
-        params: (ArgType, ArgType),
-    ) -> Self {
-        // HACK
-        let kwargs = kwarg_keys
-            .iter()
-            .map(|x| {
-                (
-                    x.clone(),
-                    ArgType::Subscript(Subscript::new_wrapped(
-                        params.1.clone(),
-                        ArgType::StringLiteral(StringLiteral::new_wrapped(x.to_string())),
-                    )),
-                )
-            })
-            .collect::<LinkedHashMap<_, _>>();
-        let mut future_list = ArgType::List(List::new_wrapped(vec![]));
-        future_list.set_owner(ArgType::Subscript(Subscript::new_wrapped(
-            params.1.clone(),
-            ArgType::StringLiteral(StringLiteral::new_wrapped("dep_list".to_string())),
-        )));
-        Self::new(
-            task_val,
-            task_call,
-            args,
-            kwargs,
-            Some(future_list),
-            preamble,
-            dialect,
-            Some(params),
-        )
-    }
-    pub fn get_statements(&self) -> Vec<AoristStatement> {
+    fn get_statements(&self) -> Vec<AoristStatement> {
         let creation_expr = ArgType::Call(Call::new_wrapped(
             self.task_call.clone(),
             self.args.clone(),
@@ -227,11 +180,5 @@ impl PrefectSingleton {
             stmts.push(stmt);
         }
         stmts
-    }
-    pub fn as_suite(&self, location: Location) -> Suite {
-        self.get_assign_statements()
-            .into_iter()
-            .map(|x| x.statement(location))
-            .collect::<Vec<_>>()
     }
 }
