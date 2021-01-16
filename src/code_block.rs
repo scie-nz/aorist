@@ -2,7 +2,7 @@ use crate::constraint::{
     ArgType, LiteralsMap, ParameterTuple, SimpleIdentifier, StringLiteral, Subscript,
 };
 use crate::constraint_state::ConstraintState;
-use crate::etl_task::{ForLoopETLTask, StandaloneETLTask, ETLTask};
+use crate::etl_task::{ETLTask, ForLoopETLTask, StandaloneETLTask};
 use crate::prefect::{
     PrefectConstantTaskRender, PrefectPythonTaskRender, PrefectRender, PrefectShellTaskRender,
 };
@@ -111,7 +111,7 @@ impl<'a> CodeBlock<'a> {
                     x.get_task_val(),
                     x.get_call(),
                     x.get_params(),
-                    x.get_dep_list(),
+                    x.get_dependencies(),
                     x.get_preamble(),
                     x.get_dialect(),
                 )
@@ -119,29 +119,44 @@ impl<'a> CodeBlock<'a> {
             .collect::<Vec<_>>();
 
         let mut compressible: LinkedHashMap<_, Vec<_>> = LinkedHashMap::new();
-        let mut uncompressed: Vec<_> = Vec::new();
+        let mut etl_tasks: Vec<ETLTask> = Vec::new();
 
         for task in tasks.into_iter() {
             if task.is_compressible() {
                 let key = task.get_compression_key().unwrap();
                 compressible.entry(key).or_insert(Vec::new()).push(task);
             } else {
-                uncompressed.push(task);
+                etl_tasks.push(ETLTask::StandaloneETLTask(task));
             }
         }
+        let mut num_compression_tasks = 0;
         for (compression_key, tasks) in compressible.into_iter() {
             // TODO: this is a magic number
             if tasks.len() > 2 {
+                let params_constraint = ArgType::SimpleIdentifier(SimpleIdentifier::new_wrapped(
+                    match num_compression_tasks {
+                        0 => format!("params_{}", self.get_constraint_name()).to_string(),
+                        _ => format!(
+                            "params_{}_{}",
+                            self.get_constraint_name(),
+                            num_compression_tasks + 1
+                        )
+                        .to_string(),
+                    },
+                ));
                 let compressed_task = ForLoopETLTask::new(
+                    params_constraint,
                     compression_key,
                     tasks
                         .into_iter()
                         .map(|x| x.get_uncompressible_part().unwrap())
                         .collect(),
                 );
+                etl_tasks.push(ETLTask::ForLoopETLTask(compressed_task));
+                num_compression_tasks += 1;
             } else {
                 for task in tasks.into_iter() {
-                    uncompressed.push(task);
+                    etl_tasks.push(ETLTask::StandaloneETLTask(task));
                 }
             }
         }

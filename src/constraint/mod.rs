@@ -402,6 +402,17 @@ pub struct ParameterTuple {
 }
 pub type ParameterTupleDedupKey = (usize, Vec<String>);
 impl ParameterTuple {
+    pub fn populate_python_dict(&self, dict: &mut LinkedHashMap<String, ArgType>) {
+        if self.args.len() > 0 {
+            dict.insert(
+                "args".to_string(),
+                ArgType::List(List::new_wrapped(self.args.clone())),
+            );
+        }
+        for (key, val) in &self.kwargs {
+            dict.insert(key.clone(), val.clone());
+        }
+    }
     pub fn get_dedup_key(&self) -> ParameterTupleDedupKey {
         (self.args.len(), self.kwargs.keys().cloned().collect())
     }

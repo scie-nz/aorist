@@ -60,6 +60,15 @@ impl<'a> ConstraintState<'a> {
     pub fn get_task_val(&self) -> ArgType {
         self.task_val.as_ref().unwrap().clone()
     }
+    pub fn get_dependencies(&self) -> Vec<ArgType> {
+        self.satisfied_dependencies
+            .iter()
+            .map(|rw| {
+                let x = rw.read().unwrap();
+                x.get_task_val()
+            })
+            .collect::<Vec<ArgType>>()
+    }
     pub fn get_dep_list(&self) -> Option<ArgType> {
         let dep_list = self
             .satisfied_dependencies
