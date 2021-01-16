@@ -77,7 +77,7 @@ impl<'a> ConstraintState<'a> {
             return None;
         }
     }
-    fn get_task_call(&self) -> Result<ArgType, String> {
+    pub fn get_task_call(&self) -> Result<ArgType, String> {
         match self.dialect {
             Some(Dialect::Python(_)) => Ok(ArgType::SimpleIdentifier(
                 SimpleIdentifier::new_wrapped(self.get_call().unwrap()),
@@ -91,7 +91,7 @@ impl<'a> ConstraintState<'a> {
             _ => Err("Dialect not supported".to_string()),
         }
     }
-    fn get_args_vec(&self) -> Result<Vec<ArgType>, String> {
+    pub fn get_args_vec(&self) -> Result<Vec<ArgType>, String> {
         match (&self.params, &self.dialect) {
             (Some(ref p), Some(Dialect::Python(_))) => Ok(p.get_args()),
             (None, Some(Dialect::Python(_))) => Ok(Vec::new()),
@@ -103,7 +103,7 @@ impl<'a> ConstraintState<'a> {
             _ => Err("Dialect not supported".to_string()),
         }
     }
-    fn get_kwargs_map(
+    pub fn get_kwargs_map(
         &self,
         literals: LiteralsMap,
     ) -> Result<LinkedHashMap<String, ArgType>, String> {

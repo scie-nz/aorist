@@ -16,6 +16,7 @@ pub mod encoding;
 pub mod endpoints;
 pub mod error;
 pub mod etl_singleton;
+pub mod etl_task;
 pub mod header;
 pub mod imports;
 pub mod layout;

@@ -1,6 +1,4 @@
-use crate::constraint::{
-    AoristStatement, ArgType, Call,
-};
+use crate::constraint::{AoristStatement, ArgType, Call};
 use crate::etl_singleton::{ETLSingleton, TDeconstructedSingleton};
 use aorist_primitives::Dialect;
 use linked_hash_map::LinkedHashMap;
@@ -39,7 +37,10 @@ impl ETLSingleton for AirflowSingleton {
             self.args.clone(),
             self.kwargs.clone(),
         ));
-        vec![AoristStatement::Assign(self.task_val.clone(), creation_expr)]
+        vec![AoristStatement::Assign(
+            self.task_val.clone(),
+            creation_expr,
+        )]
     }
     fn deconstruct(&self) -> Option<TDeconstructedSingleton> {
         if let ArgType::Subscript(ref subscript) = self.task_val {

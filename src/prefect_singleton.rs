@@ -1,6 +1,4 @@
-use crate::constraint::{
-    AoristStatement, ArgType, Attribute, Call, SimpleIdentifier,
-};
+use crate::constraint::{AoristStatement, ArgType, Attribute, Call, SimpleIdentifier};
 use crate::etl_singleton::{ETLSingleton, TDeconstructedSingleton};
 use aorist_primitives::Dialect;
 use linked_hash_map::LinkedHashMap;

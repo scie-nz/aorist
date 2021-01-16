@@ -1,11 +1,11 @@
 use crate::constraint::{
-    AoristStatement, ArgType, List, StringLiteral, Subscript, Call, Attribute,
+    AoristStatement, ArgType, Attribute, Call, List, StringLiteral, Subscript,
 };
 use aorist_primitives::Dialect;
 use linked_hash_map::LinkedHashMap;
 use rustpython_parser::ast::{Location, Suite};
-use std::sync::{Arc, RwLock};
 use std::collections::HashMap;
+use std::sync::{Arc, RwLock};
 
 pub type TDeconstructedSingleton = (
     ArgType,

@@ -395,13 +395,16 @@ impl AoristStatement {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq, Eq, Hash)]
 pub struct ParameterTuple {
-    object_uuid: Uuid,
     args: Vec<ArgType>,
     kwargs: LinkedHashMap<String, ArgType>,
 }
+pub type ParameterTupleDedupKey = (usize, Vec<String>);
 impl ParameterTuple {
+    pub fn get_dedup_key(&self) -> ParameterTupleDedupKey {
+        (self.args.len(), self.kwargs.keys().cloned().collect())
+    }
     pub fn new(
         object_uuid: Uuid,
         args_v: Vec<String>,
@@ -440,11 +443,7 @@ impl ParameterTuple {
         for (k, arg) in kwargs.iter_mut() {
             arg.register_object(object_uuid.clone(), Some(k.clone()));
         }
-        Self {
-            object_uuid,
-            args,
-            kwargs,
-        }
+        Self { args, kwargs }
     }
     pub fn get_args(&self) -> Vec<ArgType> {
         self.args.clone()
