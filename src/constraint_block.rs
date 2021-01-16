@@ -128,7 +128,7 @@ impl<'a> ConstraintBlock<'a> {
                                 key.clone(),
                             )))),
                         ));
-                        write.set_owner(owner);
+                        //write.set_owner(owner);
                     }
                 }
             }

@@ -441,7 +441,8 @@ impl<'a> Driver<'a> {
             println!("{}\n", preamble);
         }
         let statements = statements_and_preambles.into_iter().map(|x| x.0).flatten();
-        PrefectProgram::render_suite(statements.map(|x| x.statement(location)).collect()).unwrap();
+        println!("{}", PrefectProgram::render_suite(statements.map(|x|
+        x.statement(location)).collect()).unwrap());
 
         /*
         let singleton_blocks = self
