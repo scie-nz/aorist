@@ -427,6 +427,23 @@ impl<'a> Driver<'a> {
         self.shorten_task_names();
 
         let location = Location::new(0, 0);
+        let statements_and_preambles = self
+            .blocks
+            .iter()
+            .map(|x| x.get_statements())
+            .collect::<Vec<_>>();
+        let preambles = statements_and_preambles
+            .iter()
+            .map(|x| x.1.clone().into_iter())
+            .flatten()
+            .collect::<LinkedHashSet<String>>();
+        for preamble in preambles {
+            println!("{}\n", preamble);
+        }
+        let statements = statements_and_preambles.into_iter().map(|x| x.0).flatten();
+        PrefectProgram::render_suite(statements.map(|x| x.statement(location)).collect()).unwrap();
+
+        /*
         let singleton_blocks = self
             .blocks
             .iter_mut()
@@ -450,6 +467,7 @@ impl<'a> Driver<'a> {
         for preamble in python_preambles {
             println!("{}\n", preamble);
         }
+        
         for block in singleton_blocks {
             for singleton in block {
                 println!(
@@ -459,7 +477,7 @@ impl<'a> Driver<'a> {
             }
             println!("");
         }
-
+        */
         assert_eq!(self.unsatisfied_constraints.len(), 0);
     }
 }
