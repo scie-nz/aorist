@@ -156,6 +156,38 @@ impl StandaloneETLTask {
             dialect,
         }
     }
+    pub fn get_statements(&self) -> (Vec<AoristStatement>, Option<String>) {
+        let task_call = PrefectSingleton::compute_task_call(self.get_dialect(), self.call.clone());
+        let args;
+        let kwargs;
+        if let Some(ref p) = self.params {
+            args = p.get_args();
+            kwargs = p.get_kwargs();
+        } else {
+            args = Vec::new();
+            kwargs = LinkedHashMap::new();
+        }
+        let singleton = PrefectSingleton::new(
+            self.get_task_val(),
+            task_call,
+            args,
+            kwargs,
+            match self.dependencies.len() {
+                0 => None,
+                _ => Some(ArgType::List(List::new_wrapped(self.dependencies.clone()))),
+            },
+            self.get_preamble(),
+            self.get_dialect(),
+            None,
+        );
+        (
+            singleton.get_statements(),
+            match self.dialect {
+                Some(Dialect::Python(_)) => self.preamble.clone(),
+                _ => None,
+            },
+        )
+    }
 }
 
 #[derive(Clone, Hash, PartialEq, Eq)]
@@ -176,7 +208,7 @@ impl ForLoopETLTask {
             values,
         }
     }
-    pub fn get_statements(&self) -> Vec<AoristStatement> {
+    pub fn get_statements(&self) -> (Vec<AoristStatement>, Option<String>) {
         let any_dependencies = self
             .values
             .iter()
@@ -217,6 +249,7 @@ impl ForLoopETLTask {
                     )
                 })
                 .collect::<LinkedHashMap<_, _>>();
+
             args = (0..num_args)
                 .map(|x| {
                     ArgType::Subscript(Subscript::new_wrapped(
@@ -236,24 +269,13 @@ impl ForLoopETLTask {
         }
         let dependencies = match any_dependencies {
             true => Some(ArgType::Subscript(Subscript::new_wrapped(
-            params.clone(),
-            ArgType::StringLiteral(StringLiteral::new_wrapped("dependencies".to_string())),
-        ))),
-        false => None,
+                params.clone(),
+                ArgType::StringLiteral(StringLiteral::new_wrapped("dependencies".to_string())),
+            ))),
+            false => None,
         };
         // TODO: move this to PrefectSingleton
-        let task_call = match dialect {
-            Some(Dialect::Python(_)) => Ok(ArgType::SimpleIdentifier(
-                SimpleIdentifier::new_wrapped(call.unwrap()),
-            )),
-            Some(Dialect::Bash(_)) | Some(Dialect::Presto(_)) => Ok(ArgType::SimpleIdentifier(
-                SimpleIdentifier::new_wrapped("ShellTask".to_string()),
-            )),
-            None => Ok(ArgType::SimpleIdentifier(SimpleIdentifier::new_wrapped(
-                "ConstantTask".to_string(),
-            ))),
-            _ => Err("Dialect not supported".to_string()),
-        }.unwrap();
+        let task_call = PrefectSingleton::compute_task_call(dialect.clone(), call);
 
         let singleton = PrefectSingleton::new(
             new_collector.clone(),
@@ -261,8 +283,8 @@ impl ForLoopETLTask {
             args,
             kwargs,
             dependencies,
-            preamble,
-            dialect,
+            preamble.clone(),
+            dialect.clone(),
             None,
         );
         let statements = singleton.get_statements();
@@ -272,11 +294,25 @@ impl ForLoopETLTask {
             LinkedHashMap::new(),
         ));
         let for_loop = AoristStatement::For(tpl.clone(), items_call, statements.clone());
-        vec![dict_assign, for_loop]
+        (
+            vec![dict_assign, for_loop],
+            match dialect {
+                Some(Dialect::Python(_)) => preamble.clone(),
+                _ => None,
+            },
+        )
     }
 }
 
 pub enum ETLTask {
     StandaloneETLTask(StandaloneETLTask),
     ForLoopETLTask(ForLoopETLTask),
+}
+impl ETLTask {
+    pub fn get_statements(&self) -> (Vec<AoristStatement>, Option<String>) {
+        match &self {
+            ETLTask::StandaloneETLTask(x) => x.get_statements(),
+            ETLTask::ForLoopETLTask(x) => x.get_statements(),
+        }
+    }
 }

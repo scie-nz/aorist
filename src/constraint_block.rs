@@ -1,10 +1,12 @@
 use crate::code_block::CodeBlock;
 use crate::constraint::{
-    ArgType, LiteralsMap, ParameterTuple, SimpleIdentifier, StringLiteral, Subscript,
+    AoristStatement, ArgType, LiteralsMap, ParameterTuple, SimpleIdentifier, StringLiteral,
+    Subscript,
 };
 use crate::constraint_state::ConstraintState;
 use crate::prefect_singleton::PrefectSingleton;
 use inflector::cases::snakecase::to_snake_case;
+use linked_hash_set::LinkedHashSet;
 use std::collections::{HashMap, HashSet};
 use std::sync::{Arc, RwLock};
 use uuid::Uuid;
@@ -132,6 +134,30 @@ impl<'a> ConstraintBlock<'a> {
             }
         }
         drop(read);
+    }
+    pub fn get_statements(&'a self) -> (Vec<AoristStatement>, LinkedHashSet<String>) {
+        for member in &self.members {
+            member.register_literals(self.literals.clone());
+        }
+        self.compute_indirections();
+        let preambles_and_statements = self
+            .members
+            .iter()
+            .map(|x| x.get_statements(self.literals.clone()))
+            .collect::<Vec<_>>();
+        let preambles = preambles_and_statements
+            .iter()
+            .map(|x| x.1.clone().into_iter())
+            .flatten()
+            .collect::<LinkedHashSet<String>>();
+        (
+            preambles_and_statements
+                .into_iter()
+                .map(|x| x.0)
+                .flatten()
+                .collect::<Vec<_>>(),
+            preambles,
+        )
     }
     pub fn get_singletons(&'a self) -> Vec<PrefectSingleton> {
         for member in &self.members {

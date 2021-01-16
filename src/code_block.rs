@@ -1,5 +1,6 @@
 use crate::constraint::{
-    ArgType, LiteralsMap, ParameterTuple, SimpleIdentifier, StringLiteral, Subscript,
+    AoristStatement, ArgType, LiteralsMap, ParameterTuple, SimpleIdentifier, StringLiteral,
+    Subscript,
 };
 use crate::constraint_state::ConstraintState;
 use crate::etl_task::{ETLTask, ForLoopETLTask, StandaloneETLTask};
@@ -9,6 +10,7 @@ use crate::prefect::{
 use crate::prefect_singleton::PrefectSingleton;
 use aorist_primitives::Dialect;
 use linked_hash_map::LinkedHashMap;
+use linked_hash_set::LinkedHashSet;
 use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
 
@@ -100,7 +102,10 @@ impl<'a> CodeBlock<'a> {
             }
         }
     }
-    pub fn get_singletons(&'a self, literals: LiteralsMap) -> HashMap<String, PrefectSingleton> {
+    pub fn get_statements(
+        &'a self,
+        literals: LiteralsMap,
+    ) -> (Vec<AoristStatement>, LinkedHashSet<String>) {
         self.set_task_vals();
         let tasks = self
             .get_constraints()
@@ -160,7 +165,27 @@ impl<'a> CodeBlock<'a> {
                 }
             }
         }
-
+        let preambles_and_statements = etl_tasks
+            .into_iter()
+            .map(|x| x.get_statements())
+            .collect::<Vec<_>>();
+        let preambles = preambles_and_statements
+            .iter()
+            .map(|x| x.1.clone())
+            .filter(|x| x.is_some())
+            .map(|x| x.unwrap())
+            .collect::<LinkedHashSet<String>>();
+        (
+            preambles_and_statements
+                .iter()
+                .map(|x| x.0.clone())
+                .flatten()
+                .collect::<Vec<_>>(),
+            preambles,
+        )
+    }
+    pub fn get_singletons(&'a self, literals: LiteralsMap) -> HashMap<String, PrefectSingleton> {
+        self.set_task_vals();
         let singletons = self
             .task_render
             .get_compressed_singletons(literals, self.constraint_name.clone());

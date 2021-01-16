@@ -96,6 +96,21 @@ impl PrefectSingleton {
         ));
         AoristStatement::Expression(add_expr)
     }
+    pub fn compute_task_call(dialect: Option<Dialect>, call: Option<String>) -> ArgType {
+        match dialect {
+            Some(Dialect::Python(_)) => Ok(ArgType::SimpleIdentifier(
+                SimpleIdentifier::new_wrapped(call.unwrap()),
+            )),
+            Some(Dialect::Bash(_)) | Some(Dialect::Presto(_)) => Ok(ArgType::SimpleIdentifier(
+                SimpleIdentifier::new_wrapped("ShellTask".to_string()),
+            )),
+            None => Ok(ArgType::SimpleIdentifier(SimpleIdentifier::new_wrapped(
+                "ConstantTask".to_string(),
+            ))),
+            _ => Err("Dialect not supported".to_string()),
+        }
+        .unwrap()
+    }
     pub fn get_edge_addition_statements(&self) -> Vec<AoristStatement> {
         match self.dep_list {
             None => Vec::new(),
