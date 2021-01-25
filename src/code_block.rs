@@ -1,12 +1,9 @@
 use crate::constraint::{
-    AoristStatement, ArgType, LiteralsMap, ParameterTuple, SimpleIdentifier, StringLiteral,
+    AoristStatement, ArgType, ParameterTuple, SimpleIdentifier, StringLiteral,
     Subscript,
 };
 use crate::constraint_state::ConstraintState;
 use crate::etl_task::{ETLTask, ForLoopETLTask, StandaloneETLTask};
-use crate::prefect::{
-    PrefectConstantTaskRender, PrefectPythonTaskRender, PrefectRender, PrefectShellTaskRender,
-};
 use aorist_primitives::Dialect;
 use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
@@ -17,16 +14,9 @@ use crate::prefect_singleton::PrefectSingleton;
 pub struct CodeBlock<'a> {
     _dialect: Option<Dialect>,
     members: Vec<Arc<RwLock<ConstraintState<'a>>>>,
-    task_render: PrefectRender<'a>,
     constraint_name: String,
 }
 impl<'a> CodeBlock<'a> {
-    pub fn register_literals(&'a self, literals: LiteralsMap) {
-        for member in &self.members {
-            self.task_render
-                .register_literals(literals.clone(), member.clone());
-        }
-    }
     fn get_constraints(&'a self) -> &Vec<Arc<RwLock<ConstraintState<'a>>>> {
         &self.members
     }
@@ -35,33 +25,9 @@ impl<'a> CodeBlock<'a> {
         members: Vec<Arc<RwLock<ConstraintState<'a>>>>,
         constraint_name: String,
     ) -> Self {
-        let task_render = match dialect {
-            Some(Dialect::Python(_)) => PrefectRender::Python(PrefectPythonTaskRender::new(
-                members.clone(),
-                constraint_name.clone(),
-            )),
-            Some(Dialect::Bash(_)) => PrefectRender::Shell(PrefectShellTaskRender::new(
-                members.clone(),
-                dialect.as_ref().unwrap().clone(),
-                constraint_name.clone(),
-            )),
-            Some(Dialect::Presto(_)) => PrefectRender::Shell(PrefectShellTaskRender::new(
-                members.clone(),
-                dialect.as_ref().unwrap().clone(),
-                constraint_name.clone(),
-            )),
-            None => PrefectRender::Constant(PrefectConstantTaskRender::new(
-                members.clone(),
-                constraint_name.clone(),
-            )),
-            _ => {
-                panic!("Dialect not handled: {:?}", dialect.as_ref().unwrap());
-            }
-        };
         Self {
             _dialect: dialect,
             members,
-            task_render,
             constraint_name,
         }
     }

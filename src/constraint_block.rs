@@ -98,9 +98,6 @@ impl<'a> ConstraintBlock<'a> {
         drop(read);
     }
     pub fn get_statements(&'a self) -> (Vec<AoristStatement>, LinkedHashSet<String>) {
-        for member in &self.members {
-            member.register_literals(self.literals.clone());
-        }
         self.compute_indirections();
         let preambles_and_statements = self
             .members
