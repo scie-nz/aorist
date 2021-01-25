@@ -3,7 +3,6 @@ use crate::constraint::{
     SimpleIdentifier, StringLiteral, Subscript, Tuple,
 };
 use crate::etl_singleton::ETLSingleton;
-use crate::prefect_singleton::PrefectSingleton;
 use aorist_primitives::Dialect;
 use linked_hash_map::LinkedHashMap;
 use std::marker::PhantomData;
@@ -283,9 +282,9 @@ where T: ETLSingleton {
             false => None,
         };
         // TODO: move this to PrefectSingleton
-        let task_call = PrefectSingleton::compute_task_call(dialect.clone(), call);
+        let task_call = T::compute_task_call(dialect.clone(), call);
 
-        let singleton = PrefectSingleton::new(
+        let singleton = T::new(
             new_collector.clone(),
             task_call,
             args,
