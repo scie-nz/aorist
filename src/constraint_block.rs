@@ -1,34 +1,28 @@
 use crate::code_block::CodeBlock;
 use crate::constraint::{
-    AoristStatement, ArgType, LiteralsMap, ParameterTuple, SimpleIdentifier, StringLiteral,
-    Subscript,
+    AoristStatement, ArgType, LiteralsMap, ParameterTuple, SimpleIdentifier,
 };
-use crate::constraint_state::ConstraintState;
 use crate::prefect_singleton::PrefectSingleton;
 use inflector::cases::snakecase::to_snake_case;
 use linked_hash_set::LinkedHashSet;
 use std::collections::{HashMap, HashSet};
-use std::sync::{Arc, RwLock};
 use uuid::Uuid;
 
 pub struct ConstraintBlock<'a> {
     constraint_name: String,
     members: Vec<CodeBlock<'a>>,
     literals: LiteralsMap,
-    constraint_states: HashMap<Uuid, Arc<RwLock<ConstraintState<'a>>>>,
 }
 impl<'a> ConstraintBlock<'a> {
     pub fn new(
         constraint_name: String,
         members: Vec<CodeBlock<'a>>,
         literals: LiteralsMap,
-        constraint_states: HashMap<Uuid, Arc<RwLock<ConstraintState<'a>>>>,
     ) -> Self {
         Self {
             constraint_name,
             members,
             literals,
-            constraint_states,
         }
     }
     pub fn get_constraint_name(&self) -> String {
@@ -101,35 +95,6 @@ impl<'a> ConstraintBlock<'a> {
                         }
                     }
                 } else if num_objects_covered == 1 {
-                    let uuid = write.get_object_uuids().iter().next().unwrap().clone();
-                    let state_rw = self.constraint_states.get(uuid.0).unwrap();
-                    let state_read = state_rw.read().unwrap();
-                    let task_name: String = state_read.get_task_name();
-                    let task_name = task_name.replace(
-                        &format!("{}__", to_snake_case(&self.constraint_name)).to_string(),
-                        "",
-                    );
-                    let val = write.value();
-                    let param_key = most_frequent_names.get(&val).unwrap();
-                    if let Some(key) = param_key {
-                        // TODO: need to deal with args
-                        let dict_name = ArgType::Subscript(Subscript::new_wrapped(
-                            ArgType::SimpleIdentifier(SimpleIdentifier::new_wrapped(
-                                format!("params_{}", to_snake_case(&self.constraint_name))
-                                    .to_string(),
-                            )),
-                            ArgType::StringLiteral(Arc::new(RwLock::new(StringLiteral::new(
-                                task_name,
-                            )))),
-                        ));
-                        let owner = ArgType::Subscript(Subscript::new_wrapped(
-                            dict_name,
-                            ArgType::StringLiteral(Arc::new(RwLock::new(StringLiteral::new(
-                                key.clone(),
-                            )))),
-                        ));
-                        //write.set_owner(owner);
-                    }
                 }
             }
         }
@@ -143,7 +108,7 @@ impl<'a> ConstraintBlock<'a> {
         let preambles_and_statements = self
             .members
             .iter()
-            .map(|x| x.get_statements(self.literals.clone()))
+            .map(|x| x.get_statements())
             .collect::<Vec<_>>();
         let preambles = preambles_and_statements
             .iter()

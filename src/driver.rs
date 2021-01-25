@@ -4,7 +4,6 @@ use crate::constraint::{AoristConstraint, Constraint, LiteralsMap, ParameterTupl
 use crate::constraint_block::ConstraintBlock;
 use crate::constraint_state::ConstraintState;
 use crate::data_setup::ParsedDataSetup;
-use crate::etl_singleton::ETLSingleton;
 use crate::object::TAoristObject;
 use crate::prefect::PrefectProgram;
 use aorist_primitives::{Bash, Dialect, Presto, Python};
@@ -413,11 +412,6 @@ impl<'a> Driver<'a> {
                     snake_case_name,
                     members,
                     literals,
-                    block
-                        .clone()
-                        .into_iter()
-                        .map(|((k, _), v)| (k, v))
-                        .collect::<HashMap<_, _>>(),
                 );
                 self.blocks.push(constraint_block);
             } else {
@@ -468,7 +462,7 @@ impl<'a> Driver<'a> {
         for preamble in python_preambles {
             println!("{}\n", preamble);
         }
-        
+
         for block in singleton_blocks {
             for singleton in block {
                 println!(

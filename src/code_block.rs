@@ -104,7 +104,6 @@ impl<'a> CodeBlock<'a> {
     }
     pub fn get_statements(
         &'a self,
-        literals: LiteralsMap,
     ) -> (Vec<AoristStatement>, LinkedHashSet<String>) {
         self.set_task_vals();
         let tasks = self

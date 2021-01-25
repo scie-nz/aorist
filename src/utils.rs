@@ -6,6 +6,7 @@ use std::fs;
 use thiserror::Error;
 
 pub fn read_file(filename: &str) -> Vec<AoristObject> {
+    println!("Reading {}", filename);
     let s = fs::read_to_string(filename).unwrap();
     let objects: Vec<AoristObject> = s
         .split("\n---\n")
