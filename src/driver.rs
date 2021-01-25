@@ -408,11 +408,7 @@ impl<'a> Driver<'a> {
                 );
 
                 // TODO: this can be moved to ConstraintBlock
-                let constraint_block = ConstraintBlock::new(
-                    snake_case_name,
-                    members,
-                    literals,
-                );
+                let constraint_block = ConstraintBlock::new(snake_case_name, members, literals);
                 self.blocks.push(constraint_block);
             } else {
                 break;
@@ -435,8 +431,11 @@ impl<'a> Driver<'a> {
             println!("{}\n", preamble);
         }
         let statements = statements_and_preambles.into_iter().map(|x| x.0).flatten();
-        println!("{}", PrefectProgram::render_suite(statements.map(|x|
-        x.statement(location)).collect()).unwrap());
+        println!(
+            "{}",
+            PrefectProgram::render_suite(statements.map(|x| x.statement(location)).collect())
+                .unwrap()
+        );
 
         assert_eq!(self.unsatisfied_constraints.len(), 0);
     }

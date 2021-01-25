@@ -101,9 +101,7 @@ impl<'a> CodeBlock<'a> {
             }
         }
     }
-    pub fn get_statements(
-        &'a self,
-    ) -> (Vec<AoristStatement>, LinkedHashSet<String>) {
+    pub fn get_statements(&'a self) -> (Vec<AoristStatement>, LinkedHashSet<String>) {
         self.set_task_vals();
         let tasks = self
             .get_constraints()

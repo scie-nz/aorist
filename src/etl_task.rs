@@ -178,7 +178,6 @@ impl StandaloneETLTask {
             },
             self.get_preamble(),
             self.get_dialect(),
-            None,
         );
         (
             singleton.get_statements(),
@@ -285,7 +284,6 @@ impl ForLoopETLTask {
             dependencies,
             preamble.clone(),
             dialect.clone(),
-            None,
         );
         let statements = singleton.get_statements();
         let items_call = ArgType::Call(Call::new_wrapped(
