@@ -1,4 +1,6 @@
-use crate::constraint::{AoristStatement, ArgType, Attribute, Call, SimpleIdentifier};
+use crate::constraint::{
+    AoristStatement, ArgType, Attribute, Call, Formatted, SimpleIdentifier, StringLiteral,
+};
 use crate::etl_singleton::ETLSingleton;
 use aorist_primitives::Dialect;
 use linked_hash_map::LinkedHashMap;
@@ -7,6 +9,7 @@ use linked_hash_map::LinkedHashMap;
 pub struct PrefectSingleton {
     task_val: ArgType,
     task_call: ArgType,
+    command: Option<String>,
     args: Vec<ArgType>,
     kwargs: LinkedHashMap<String, ArgType>,
     dep_list: Option<ArgType>,
@@ -46,16 +49,53 @@ impl ETLSingleton for PrefectSingleton {
         preamble: Option<String>,
         dialect: Option<Dialect>,
     ) -> Self {
-        let task_call = Self::compute_task_call(dialect.clone(), call);
+        let task_call = Self::compute_task_call(dialect.clone(), call.clone());
         Self {
             task_val,
             task_call,
+            command: call,
             args,
             kwargs,
             dep_list,
             preamble,
             dialect,
         }
+    }
+    fn compute_task_args(&self) -> Vec<ArgType> {
+        if let Some(Dialect::Python(_)) = self.dialect {
+            return self.args.clone();
+        }
+        Vec::new()
+    }
+    fn compute_task_kwargs(&self) -> LinkedHashMap<String, ArgType> {
+        if self.dialect.is_none() {
+            return self.kwargs.clone();
+        }
+        if let Some(Dialect::Python(_)) = self.dialect {
+            return self.kwargs.clone();
+        }
+        let mut kwargs = LinkedHashMap::new();
+        let call_param_name = match self.dialect {
+            Some(Dialect::Bash(_)) | Some(Dialect::Presto(_)) => "command".to_string(),
+            _ => panic!("Dialect not supported"),
+        };
+        let call_param_value = match self.dialect {
+            Some(Dialect::Bash(_)) => ArgType::Formatted(Formatted::new_wrapped(
+                ArgType::StringLiteral(StringLiteral::new_wrapped(
+                    self.command.as_ref().unwrap().clone(),
+                )),
+                self.kwargs.clone(),
+            )),
+            Some(Dialect::Presto(_)) => ArgType::Formatted(Formatted::new_wrapped(
+                ArgType::StringLiteral(StringLiteral::new_wrapped(
+                    format!("presto -e '{}'", self.command.as_ref().unwrap()).to_string(),
+                )),
+                self.kwargs.clone(),
+            )),
+            _ => panic!("Dialect not supported"),
+        };
+        kwargs.insert(call_param_name, call_param_value);
+        kwargs
     }
     fn compute_task_call(dialect: Option<Dialect>, call: Option<String>) -> ArgType {
         match dialect {

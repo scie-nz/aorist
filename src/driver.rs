@@ -4,6 +4,7 @@ use crate::constraint::{AoristConstraint, Constraint, LiteralsMap, ParameterTupl
 use crate::constraint_block::ConstraintBlock;
 use crate::constraint_state::ConstraintState;
 use crate::data_setup::ParsedDataSetup;
+use crate::etl_singleton::ETLSingleton;
 use crate::object::TAoristObject;
 use crate::prefect::PrefectProgram;
 use aorist_primitives::{Bash, Dialect, Presto, Python};
@@ -11,13 +12,14 @@ use inflector::cases::snakecase::to_snake_case;
 use linked_hash_set::LinkedHashSet;
 use rustpython_parser::ast::Location;
 use std::collections::{HashMap, HashSet};
+use std::marker::PhantomData;
 use std::sync::{Arc, RwLock, RwLockReadGuard};
 use uuid::Uuid;
-use crate::etl_singleton::ETLSingleton;
-use std::marker::PhantomData;
 
 pub struct Driver<'a, T>
-where T: ETLSingleton {
+where
+    T: ETLSingleton,
+{
     _data_setup: &'a ParsedDataSetup,
     pub concepts: Arc<RwLock<HashMap<(Uuid, String), Concept<'a>>>>,
     constraints: HashMap<(Uuid, String), Arc<RwLock<Constraint>>>,
@@ -36,7 +38,9 @@ where T: ETLSingleton {
 }
 
 impl<'a, T> Driver<'a, T>
-where T: ETLSingleton {
+where
+    T: ETLSingleton,
+{
     fn compute_all_ancestors(
         parsed_data_setup: Concept<'a>,
         concept_map: &HashMap<(Uuid, String), Concept<'a>>,

@@ -1,7 +1,7 @@
+use lib::airflow_singleton::AirflowSingleton;
 use lib::concept::AoristConcept;
 use lib::driver::Driver;
 use lib::utils::get_data_setup;
-use lib::airflow_singleton::AirflowSingleton;
 
 fn main() -> Result<(), String> {
     //let _foo = attributes::KeyAttribute1{};

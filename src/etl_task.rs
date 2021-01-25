@@ -9,7 +9,9 @@ use std::marker::PhantomData;
 
 #[derive(Clone, Hash, PartialEq, Eq)]
 pub struct StandaloneETLTask<T>
-where T: ETLSingleton {
+where
+    T: ETLSingleton,
+{
     /// where the task creation call should be stored.
     task_val: ArgType,
     /// function called to create task (has different meaning depending on
@@ -82,7 +84,9 @@ impl ETLTaskUncompressiblePart {
 }
 
 impl<T> StandaloneETLTask<T>
-where T: ETLSingleton {
+where
+    T: ETLSingleton,
+{
     /// only return true for compressible tasks, i.e. those that have a
     /// dict task val (in the future more stuff could be added here)
     pub fn is_compressible(&self) -> bool {
@@ -194,14 +198,18 @@ where T: ETLSingleton {
 
 #[derive(Clone, Hash, PartialEq, Eq)]
 pub struct ForLoopETLTask<T>
-where T: ETLSingleton {
+where
+    T: ETLSingleton,
+{
     params_dict_name: ArgType,
     key: ETLTaskCompressionKey,
     values: Vec<ETLTaskUncompressiblePart>,
     singleton_type: PhantomData<T>,
 }
-impl <T> ForLoopETLTask<T>
-where T: ETLSingleton {
+impl<T> ForLoopETLTask<T>
+where
+    T: ETLSingleton,
+{
     pub fn new(
         params_dict_name: ArgType,
         key: ETLTaskCompressionKey,
@@ -308,12 +316,16 @@ where T: ETLSingleton {
 }
 
 pub enum ETLTask<T>
-where T: ETLSingleton {
+where
+    T: ETLSingleton,
+{
     StandaloneETLTask(StandaloneETLTask<T>),
     ForLoopETLTask(ForLoopETLTask<T>),
 }
-impl <T> ETLTask<T>
-where T: ETLSingleton {
+impl<T> ETLTask<T>
+where
+    T: ETLSingleton,
+{
     pub fn get_statements(&self) -> (Vec<AoristStatement>, Option<String>) {
         match &self {
             ETLTask::StandaloneETLTask(x) => x.get_statements(),

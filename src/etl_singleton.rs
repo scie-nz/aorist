@@ -1,6 +1,4 @@
-use crate::constraint::{
-    AoristStatement, ArgType,
-};
+use crate::constraint::{AoristStatement, ArgType};
 use aorist_primitives::Dialect;
 use linked_hash_map::LinkedHashMap;
 
@@ -19,4 +17,6 @@ pub trait ETLSingleton {
     ) -> Self;
     fn get_statements(&self) -> Vec<AoristStatement>;
     fn compute_task_call(dialect: Option<Dialect>, call: Option<String>) -> ArgType;
+    fn compute_task_args(&self) -> Vec<ArgType>;
+    fn compute_task_kwargs(&self) -> LinkedHashMap<String, ArgType>;
 }

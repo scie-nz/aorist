@@ -1,26 +1,29 @@
 use crate::constraint::{
-    AoristStatement, ArgType, ParameterTuple, SimpleIdentifier, StringLiteral,
-    Subscript,
+    AoristStatement, ArgType, ParameterTuple, SimpleIdentifier, StringLiteral, Subscript,
 };
 use crate::constraint_state::ConstraintState;
+use crate::etl_singleton::ETLSingleton;
 use crate::etl_task::{ETLTask, ForLoopETLTask, StandaloneETLTask};
 use aorist_primitives::Dialect;
 use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
 use std::collections::HashMap;
-use std::sync::{Arc, RwLock};
 use std::marker::PhantomData;
-use crate::etl_singleton::ETLSingleton;
+use std::sync::{Arc, RwLock};
 
 pub struct CodeBlock<'a, T>
-where T: ETLSingleton {
+where
+    T: ETLSingleton,
+{
     _dialect: Option<Dialect>,
     members: Vec<Arc<RwLock<ConstraintState<'a>>>>,
     constraint_name: String,
     singleton_type: PhantomData<T>,
 }
 impl<'a, T> CodeBlock<'a, T>
-where T: ETLSingleton {
+where
+    T: ETLSingleton,
+{
     fn get_constraints(&'a self) -> &Vec<Arc<RwLock<ConstraintState<'a>>>> {
         &self.members
     }
