@@ -8,7 +8,6 @@ use linked_hash_map::LinkedHashMap;
 #[derive(Clone, Hash, PartialEq, Eq)]
 pub struct PrefectSingleton {
     task_val: ArgType,
-    task_call: ArgType,
     command: Option<String>,
     args: Vec<ArgType>,
     kwargs: LinkedHashMap<String, ArgType>,
@@ -28,11 +27,11 @@ impl ETLSingleton for PrefectSingleton {
     }
     fn get_statements(&self) -> Vec<AoristStatement> {
         let creation_expr = ArgType::Call(Call::new_wrapped(
-            self.task_call.clone(),
-            self.args.clone(),
-            self.kwargs.clone(),
+            self.compute_task_call(),
+            self.compute_task_args(),
+            self.compute_task_kwargs(),
         ));
-        let task_creation = AoristStatement::Assign(self.task_val.clone(), creation_expr);
+        let task_creation = AoristStatement::Assign(self.get_task_val(), creation_expr);
         let mut stmts = vec![task_creation];
         stmts.push(self.get_flow_node_addition());
         for stmt in self.get_edge_addition_statements() {
@@ -49,10 +48,8 @@ impl ETLSingleton for PrefectSingleton {
         preamble: Option<String>,
         dialect: Option<Dialect>,
     ) -> Self {
-        let task_call = Self::compute_task_call(dialect.clone(), call.clone());
         Self {
             task_val,
-            task_call,
             command: call,
             args,
             kwargs,
@@ -97,10 +94,10 @@ impl ETLSingleton for PrefectSingleton {
         kwargs.insert(call_param_name, call_param_value);
         kwargs
     }
-    fn compute_task_call(dialect: Option<Dialect>, call: Option<String>) -> ArgType {
-        match dialect {
+    fn compute_task_call(&self) -> ArgType {
+        match self.dialect {
             Some(Dialect::Python(_)) => Ok(ArgType::SimpleIdentifier(
-                SimpleIdentifier::new_wrapped(call.unwrap()),
+                SimpleIdentifier::new_wrapped(self.command.as_ref().unwrap().clone()),
             )),
             Some(Dialect::Bash(_)) | Some(Dialect::Presto(_)) => Ok(ArgType::SimpleIdentifier(
                 SimpleIdentifier::new_wrapped("ShellTask".to_string()),

@@ -15,8 +15,8 @@ pub trait ETLSingleton {
         preamble: Option<String>,
         dialect: Option<Dialect>,
     ) -> Self;
-    fn get_statements(&self) -> Vec<AoristStatement>;
-    fn compute_task_call(dialect: Option<Dialect>, call: Option<String>) -> ArgType;
+    fn compute_task_call(&self) -> ArgType;
     fn compute_task_args(&self) -> Vec<ArgType>;
     fn compute_task_kwargs(&self) -> LinkedHashMap<String, ArgType>;
+    fn get_statements(&self) -> Vec<AoristStatement>;
 }
