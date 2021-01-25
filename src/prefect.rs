@@ -1,13 +1,7 @@
 #![allow(dead_code)]
-use crate::constraint::{
-    ArgType, Dict, List, LiteralsMap, SimpleIdentifier, StringLiteral, Subscript, Tuple,
-};
+use crate::constraint::{LiteralsMap, StringLiteral};
 use crate::constraint_state::ConstraintState;
-use crate::etl_singleton::ETLSingleton;
-use crate::prefect_singleton::PrefectSingleton;
 use aorist_primitives::Dialect;
-use indoc::formatdoc;
-use linked_hash_map::LinkedHashMap;
 use rustpython_parser::ast::{
     Expression, ExpressionType, Keyword, Located, Program, Statement, StatementType, StringGroup,
     Suite, WithItem,
@@ -365,130 +359,6 @@ pub enum PrefectRender<'a> {
     Constant(PrefectConstantTaskRender<'a>),
 }
 impl<'a> PrefectRender<'a> {
-    fn build_for_loop_singleton(
-        &self,
-        collector: &ArgType,
-        call: &ArgType,
-        args: &Vec<ArgType>,
-        kwarg_keys: Vec<String>,
-        params_constraint: &ArgType,
-        v: &Vec<(
-            ArgType,
-            std::string::String,
-            std::option::Option<ArgType>,
-            Vec<ArgType>,
-        )>,
-        preamble: Option<String>,
-        dialect: Option<Dialect>,
-    ) -> PrefectSingleton {
-        let params = ArgType::SimpleIdentifier(SimpleIdentifier::new_wrapped("params".to_string()));
-
-        let param_map =
-            self.build_for_loop_singleton_param_map(v, &kwarg_keys, params_constraint.clone());
-        let mut dict = ArgType::Dict(Dict::new_wrapped(param_map));
-        dict.set_owner(params_constraint.clone());
-
-        let ident = ArgType::SimpleIdentifier(SimpleIdentifier::new_wrapped("t".to_string()));
-        let tpl = ArgType::Tuple(Tuple::new_wrapped(vec![ident.clone(), params.clone()]));
-        let new_collector =
-            ArgType::Subscript(Subscript::new_wrapped(collector.clone(), ident.clone()));
-
-        self.get_for_loop_singleton(
-            &new_collector,
-            &call,
-            &args,
-            &kwarg_keys,
-            preamble,
-            dialect,
-            (tpl.clone(), dict.clone()),
-        )
-    }
-    fn get_for_loop_singleton(
-        &self,
-        new_collector: &ArgType,
-        call: &ArgType,
-        args: &Vec<ArgType>,
-        kwarg_keys: &Vec<String>,
-        preamble: Option<String>,
-        dialect: Option<Dialect>,
-        dict: (ArgType, ArgType),
-    ) -> PrefectSingleton {
-        PrefectSingleton::new_referencing_dict(
-            new_collector.clone(),
-            call.clone(),
-            args.clone(),
-            kwarg_keys,
-            preamble,
-            dialect,
-            dict,
-        )
-    }
-    fn build_for_loop_singleton_param_map(
-        &self,
-        v: &Vec<(ArgType, String, Option<ArgType>, Vec<ArgType>)>,
-        kwarg_keys: &Vec<String>,
-        params_constraint: ArgType,
-    ) -> LinkedHashMap<String, ArgType> {
-        v.iter()
-            .map(|x| {
-                (
-                    x.1.clone(),
-                    match x.2.clone() {
-                        Some(y) => match y {
-                            ArgType::List { .. } => y.clone(),
-                            ArgType::SimpleIdentifier { .. } | ArgType::Subscript { .. } => {
-                                ArgType::List(List::new_wrapped(vec![y.clone()]))
-                            }
-                            _ => panic!(formatdoc!(
-                                "{}. instead I found: {}",
-                                "Only SimpleIdentifiers or Lists are valid dep_lists",
-                                y.name()
-                            )),
-                        },
-                        None => ArgType::List(List::new_wrapped(Vec::new())),
-                    },
-                    x.3.clone(),
-                )
-            })
-            .map(|(k, dep_list, kwargs_values)| {
-                let mut local_params_map: LinkedHashMap<String, ArgType> = LinkedHashMap::new();
-                local_params_map.insert("dep_list".to_string(), dep_list);
-                for (i, kw) in kwarg_keys.iter().enumerate() {
-                    let val = kwargs_values.get(i).unwrap().clone();
-                    local_params_map.insert(kw.to_string(), val.clone());
-                    // check if any formatted values are subscripts
-                    // from the params map
-                    // TODO: move this to function
-                    if let ArgType::Formatted(x) = val.clone() {
-                        for kw_val in x.read().unwrap().keywords().values() {
-                            if let Some(ArgType::Subscript(s)) = kw_val.get_owner() {
-                                let read = s.read().unwrap();
-                                let param_dict_a = ArgType::Subscript(Subscript::new_wrapped(
-                                    params_constraint.clone(),
-                                    ArgType::StringLiteral(StringLiteral::new_wrapped(k.clone())),
-                                ));
-                                if read.a() == param_dict_a {
-                                    if let ArgType::StringLiteral(l) = read.b() {
-                                        let mut kw_val_remove_indirection = kw_val.clone();
-                                        if let Some(owner) = read.get_owner() {
-                                            kw_val_remove_indirection.set_owner(owner);
-                                            local_params_map.insert(
-                                                l.read().unwrap().value(),
-                                                kw_val_remove_indirection,
-                                            );
-                                        } else {
-                                            kw_val_remove_indirection.remove_owner();
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-                (k, ArgType::Dict(Dict::new_wrapped(local_params_map)))
-            })
-            .collect::<LinkedHashMap<_, _>>()
-    }
     pub fn register_literals(
         &'a self,
         literals: LiteralsMap,

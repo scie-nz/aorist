@@ -3,9 +3,7 @@ use crate::constraint::{
     AllConstraintsSatisfiability, ArgType, Constraint, Formatted, List, LiteralsMap,
     ParameterTuple, SimpleIdentifier, StringLiteral,
 };
-use crate::etl_singleton::ETLSingleton;
 use crate::object::TAoristObject;
-use crate::prefect_singleton::PrefectSingleton;
 use aorist_primitives::Dialect;
 use inflector::cases::snakecase::to_snake_case;
 use linked_hash_map::LinkedHashMap;
@@ -34,18 +32,6 @@ pub struct ConstraintState<'a> {
 }
 
 impl<'a> ConstraintState<'a> {
-    pub fn get_prefect_singleton(&self, literals: LiteralsMap) -> Result<PrefectSingleton, String> {
-        Ok(PrefectSingleton::new(
-            self.get_task_val(),
-            self.get_task_call()?,
-            self.get_args_vec()?,
-            self.get_kwargs_map(literals)?,
-            self.get_dep_list(),
-            self.get_preamble(),
-            self.get_dialect(),
-            None,
-        ))
-    }
     pub fn get_dep_ident(&self, location: Location) -> Expression {
         Located {
             location,
