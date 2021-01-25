@@ -1,5 +1,5 @@
 use crate::constraint::{
-    AoristStatement, ArgType, Call, Dict, Formatted, SimpleIdentifier, StringLiteral, List,
+    AoristStatement, ArgType, Call, Dict, Formatted, List, SimpleIdentifier, StringLiteral,
 };
 use crate::etl_singleton::ETLSingleton;
 use aorist_primitives::Dialect;
@@ -79,12 +79,25 @@ impl ETLSingleton for AirflowSingleton {
                     )),
                     self.kwargs.clone(),
                 )),
-                Some(Dialect::Presto(_)) => ArgType::Formatted(Formatted::new_wrapped(
-                    ArgType::StringLiteral(StringLiteral::new_wrapped(
-                        format!("presto -e '{}'", self.command.as_ref().unwrap()).to_string(),
-                    )),
-                    self.kwargs.clone(),
-                )),
+                Some(Dialect::Presto(_)) => {
+                    let mut fmt_args = LinkedHashMap::new();
+                    fmt_args.insert(
+                        "query".to_string(),
+                        ArgType::Formatted(Formatted::new_wrapped(
+                            ArgType::StringLiteral(StringLiteral::new_wrapped(
+                                self.command.as_ref().unwrap().clone(),
+                            )),
+                            self.kwargs.clone(),
+                        )),
+                    );
+
+                    ArgType::Formatted(Formatted::new_wrapped(
+                        ArgType::StringLiteral(StringLiteral::new_wrapped(
+                            "presto -e \"{query}\"".to_string(),
+                        )),
+                        fmt_args,
+                    ))
+                }
                 _ => panic!("Dialect not supported"),
             };
             kwargs.insert(call_param_name, call_param_value);
