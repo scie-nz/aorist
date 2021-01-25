@@ -161,7 +161,6 @@ where T: ETLSingleton {
         }
     }
     pub fn get_statements(&self) -> (Vec<AoristStatement>, Option<String>) {
-        let task_call = T::compute_task_call(self.get_dialect(), self.call.clone());
         let args;
         let kwargs;
         if let Some(ref p) = self.params {
@@ -173,7 +172,7 @@ where T: ETLSingleton {
         }
         let singleton = T::new(
             self.get_task_val(),
-            task_call,
+            self.call.clone(),
             args,
             kwargs,
             match self.dependencies.len() {
@@ -281,12 +280,10 @@ where T: ETLSingleton {
             ))),
             false => None,
         };
-        // TODO: move this to PrefectSingleton
-        let task_call = T::compute_task_call(dialect.clone(), call);
 
         let singleton = T::new(
             new_collector.clone(),
-            task_call,
+            call,
             args,
             kwargs,
             dependencies,

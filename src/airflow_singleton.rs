@@ -36,13 +36,14 @@ impl ETLSingleton for AirflowSingleton {
     }
     fn new(
         task_val: ArgType,
-        task_call: ArgType,
+        call: Option<String>,
         args: Vec<ArgType>,
         kwargs: LinkedHashMap<String, ArgType>,
         dep_list: Option<ArgType>,
         preamble: Option<String>,
         dialect: Option<Dialect>,
     ) -> Self {
+        let task_call = Self::compute_task_call(dialect.clone(), call);
         Self {
             task_val,
             task_call,

@@ -10,7 +10,7 @@ pub trait ETLSingleton {
     fn get_task_val(&self) -> ArgType;
     fn new(
         task_val: ArgType,
-        task_call: ArgType,
+        call: Option<String>,
         args: Vec<ArgType>,
         kwargs: LinkedHashMap<String, ArgType>,
         dep_list: Option<ArgType>,
