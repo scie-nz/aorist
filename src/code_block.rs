@@ -7,7 +7,6 @@ use crate::etl_task::{ETLTask, ForLoopETLTask, StandaloneETLTask};
 use crate::prefect::{
     PrefectConstantTaskRender, PrefectPythonTaskRender, PrefectRender, PrefectShellTaskRender,
 };
-use crate::prefect_singleton::PrefectSingleton;
 use aorist_primitives::Dialect;
 use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
@@ -182,12 +181,5 @@ impl<'a> CodeBlock<'a> {
                 .collect::<Vec<_>>(),
             preambles,
         )
-    }
-    pub fn get_singletons(&'a self, literals: LiteralsMap) -> HashMap<String, PrefectSingleton> {
-        self.set_task_vals();
-        let singletons = self
-            .task_render
-            .get_compressed_singletons(literals, self.constraint_name.clone());
-        singletons
     }
 }

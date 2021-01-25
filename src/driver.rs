@@ -438,41 +438,6 @@ impl<'a> Driver<'a> {
         println!("{}", PrefectProgram::render_suite(statements.map(|x|
         x.statement(location)).collect()).unwrap());
 
-        /*
-        let singleton_blocks = self
-            .blocks
-            .iter_mut()
-            .map(|x| x.get_singletons())
-            .collect::<Vec<_>>();
-        let python_preambles: LinkedHashSet<String> = singleton_blocks
-            .iter()
-            .map(|x| {
-                x.iter().map(|y| {
-                    if let Some(Dialect::Python(_)) = y.get_dialect() {
-                        y.get_preamble()
-                    } else {
-                        None
-                    }
-                })
-            })
-            .flatten()
-            .filter(|x| x.is_some())
-            .map(|x| x.unwrap())
-            .collect();
-        for preamble in python_preambles {
-            println!("{}\n", preamble);
-        }
-
-        for block in singleton_blocks {
-            for singleton in block {
-                println!(
-                    "{}\n",
-                    PrefectProgram::render_suite(singleton.as_suite(location),).unwrap()
-                );
-            }
-            println!("");
-        }
-        */
         assert_eq!(self.unsatisfied_constraints.len(), 0);
     }
 }

@@ -2,7 +2,6 @@ use crate::code_block::CodeBlock;
 use crate::constraint::{
     AoristStatement, ArgType, LiteralsMap, ParameterTuple, SimpleIdentifier,
 };
-use crate::prefect_singleton::PrefectSingleton;
 use inflector::cases::snakecase::to_snake_case;
 use linked_hash_set::LinkedHashSet;
 use std::collections::{HashMap, HashSet};
@@ -123,20 +122,5 @@ impl<'a> ConstraintBlock<'a> {
                 .collect::<Vec<_>>(),
             preambles,
         )
-    }
-    pub fn get_singletons(&'a self) -> Vec<PrefectSingleton> {
-        for member in &self.members {
-            member.register_literals(self.literals.clone());
-        }
-        self.compute_indirections();
-        self.members
-            .iter()
-            .map(|x| {
-                x.get_singletons(self.literals.clone())
-                    .into_iter()
-                    .map(|(_, v)| v)
-            })
-            .flatten()
-            .collect()
     }
 }

@@ -255,41 +255,6 @@ pub trait PrefectTaskRender<'a> {
             })
             .collect()
     }
-    fn get_singletons(&self, literals: LiteralsMap) -> HashMap<String, PrefectSingleton> {
-        let num_constraints = self.get_constraints().len();
-        for rw in self.get_constraints() {
-            let mut write = rw.write().unwrap();
-            let name = write.get_task_name();
-            // TODO: magic number
-            if num_constraints <= 2 {
-                write.set_task_val(ArgType::SimpleIdentifier(SimpleIdentifier::new_wrapped(
-                    name,
-                )));
-            } else {
-                let shorter_name =
-                    name.replace(&format!("{}__", self.get_constraint_name()).to_string(), "");
-
-                write.set_task_val(ArgType::Subscript(Subscript::new_wrapped(
-                    ArgType::SimpleIdentifier(SimpleIdentifier::new_wrapped(
-                        format!("tasks_{}", self.get_constraint_name()).to_string(),
-                    )),
-                    ArgType::StringLiteral(Arc::new(RwLock::new(StringLiteral::new(shorter_name)))),
-                )));
-            }
-        }
-        let singletons = self
-            .get_constraints()
-            .iter()
-            .map(|rw| {
-                let x = rw.read().unwrap();
-                (
-                    x.get_task_name(),
-                    x.get_prefect_singleton(literals.clone()).unwrap(),
-                )
-            })
-            .collect::<HashMap<String, _>>();
-        singletons
-    }
     fn extract_hashable_value_if_string_constant(&self, expr: &Expression) -> Option<String> {
         match expr.node {
             ExpressionType::String { ref value } => match value {
@@ -523,86 +488,6 @@ impl<'a> PrefectRender<'a> {
                 (k, ArgType::Dict(Dict::new_wrapped(local_params_map)))
             })
             .collect::<LinkedHashMap<_, _>>()
-    }
-    pub fn get_compressed_singletons(
-        &'a self,
-        literals: LiteralsMap,
-        constraint_name: String,
-    ) -> HashMap<String, PrefectSingleton> {
-        let mut singletons = self.get_singletons(literals);
-        let singletons_deconstructed = singletons
-            .clone()
-            .into_iter()
-            .map(|(k, v)| (k, v.deconstruct()))
-            .filter(|x| x.1.is_some())
-            .map(|x| (x.0, x.1.unwrap()))
-            .collect::<Vec<_>>();
-        let mut singletons_hash: HashMap<_, Vec<_>> = HashMap::new();
-        for (task_key, (collector, task_name, call, args, kwargs, dep_list, preamble, dialect)) in
-            &singletons_deconstructed
-        {
-            // TODO: move this to PrefectSingleton -- this is the
-            // "argument-free" bit of code in the Singleton
-            let key = (
-                collector.clone(),
-                call.clone(),
-                args.clone(),
-                kwargs.keys().map(|x| x.clone()).collect::<Vec<String>>(),
-                preamble.clone(),
-                dialect.clone(),
-            );
-            // TODO: assert that task_name is the same as the 2nd value in the
-            // tuple (when unpacked)
-            // TODO: the replacement below is a huge hack
-            singletons_hash.entry(key).or_insert(Vec::new()).push((
-                task_name.clone(),
-                task_key.clone().replace(
-                    &format!("{}__", constraint_name).to_string(),
-                    &"".to_string(),
-                ),
-                dep_list.clone(),
-                kwargs.values().map(|x| x.clone()).collect::<Vec<ArgType>>(),
-            ));
-        }
-        if singletons_deconstructed.len() > 1 {
-            let params_constraint = ArgType::SimpleIdentifier(SimpleIdentifier::new_wrapped(
-                format!("params_{}", constraint_name).to_string(),
-            ));
-            for ((collector, call, args, kwarg_keys, preamble, dialect), v) in
-                singletons_hash.into_iter()
-            {
-                // TODO: magic number
-                if v.len() >= 3 {
-                    let new_singleton = self.build_for_loop_singleton(
-                        &collector,
-                        &call,
-                        &args,
-                        kwarg_keys,
-                        &params_constraint,
-                        &v,
-                        preamble,
-                        dialect,
-                    );
-                    let mut elem_names: Vec<String> = Vec::new();
-                    for elem in v.iter().map(|x| x.1.clone()) {
-                        singletons.remove(&format!("{}__{}", constraint_name, elem).to_string());
-                        elem_names.push(elem);
-                    }
-                    singletons.insert(
-                        format!("{}__{}", constraint_name, elem_names.join(",")),
-                        new_singleton,
-                    );
-                }
-            }
-        }
-        singletons
-    }
-    pub fn get_singletons(&self, literals: LiteralsMap) -> HashMap<String, PrefectSingleton> {
-        match &self {
-            PrefectRender::Python(x) => x.get_singletons(literals),
-            PrefectRender::Shell(x) => x.get_singletons(literals),
-            PrefectRender::Constant(x) => x.get_singletons(literals),
-        }
     }
     pub fn register_literals(
         &'a self,
