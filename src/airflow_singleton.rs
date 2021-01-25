@@ -1,4 +1,4 @@
-use crate::constraint::{AoristStatement, ArgType, Call};
+use crate::constraint::{AoristStatement, ArgType, Call, SimpleIdentifier};
 use crate::etl_singleton::ETLSingleton;
 use aorist_primitives::Dialect;
 use linked_hash_map::LinkedHashMap;
@@ -52,5 +52,23 @@ impl ETLSingleton for AirflowSingleton {
             preamble,
             dialect,
         }
+    }
+    fn compute_task_call(dialect: Option<Dialect>, call: Option<String>) -> ArgType {
+        match dialect {
+            Some(Dialect::Python(_)) => Ok(ArgType::SimpleIdentifier(
+                SimpleIdentifier::new_wrapped(call.unwrap()),
+            )),
+            Some(Dialect::Bash(_)) => Ok(ArgType::SimpleIdentifier(
+                SimpleIdentifier::new_wrapped("BashOperator".to_string()),
+            )),
+            Some(Dialect::Presto(_)) => Ok(ArgType::SimpleIdentifier(
+                SimpleIdentifier::new_wrapped("BashOperator".to_string()),
+            )),
+            None => Ok(ArgType::SimpleIdentifier(SimpleIdentifier::new_wrapped(
+                "DummyOperator".to_string(),
+            ))),
+            _ => Err("Dialect not supported".to_string()),
+        }
+        .unwrap()
     }
 }

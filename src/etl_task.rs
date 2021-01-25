@@ -6,9 +6,11 @@ use crate::etl_singleton::ETLSingleton;
 use crate::prefect_singleton::PrefectSingleton;
 use aorist_primitives::Dialect;
 use linked_hash_map::LinkedHashMap;
+use std::marker::PhantomData;
 
 #[derive(Clone, Hash, PartialEq, Eq)]
-pub struct StandaloneETLTask {
+pub struct StandaloneETLTask<T>
+where T: ETLSingleton {
     /// where the task creation call should be stored.
     task_val: ArgType,
     /// function called to create task (has different meaning depending on
@@ -24,6 +26,7 @@ pub struct StandaloneETLTask {
     /// Dialect (e.g. Bash, Python, R, Presto, etc.), to be interpreted
     /// by render.
     dialect: Option<Dialect>,
+    singleton_type: PhantomData<T>,
 }
 /// tuple of:
 /// - name of dict / list in which task_val is stored (must be dict or list)
@@ -79,7 +82,8 @@ impl ETLTaskUncompressiblePart {
     }
 }
 
-impl StandaloneETLTask {
+impl<T> StandaloneETLTask<T>
+where T: ETLSingleton {
     /// only return true for compressible tasks, i.e. those that have a
     /// dict task val (in the future more stuff could be added here)
     pub fn is_compressible(&self) -> bool {
@@ -154,10 +158,11 @@ impl StandaloneETLTask {
             dependencies,
             preamble,
             dialect,
+            singleton_type: PhantomData,
         }
     }
     pub fn get_statements(&self) -> (Vec<AoristStatement>, Option<String>) {
-        let task_call = PrefectSingleton::compute_task_call(self.get_dialect(), self.call.clone());
+        let task_call = T::compute_task_call(self.get_dialect(), self.call.clone());
         let args;
         let kwargs;
         if let Some(ref p) = self.params {
@@ -167,7 +172,7 @@ impl StandaloneETLTask {
             args = Vec::new();
             kwargs = LinkedHashMap::new();
         }
-        let singleton = PrefectSingleton::new(
+        let singleton = T::new(
             self.get_task_val(),
             task_call,
             args,
@@ -303,7 +308,7 @@ impl ForLoopETLTask {
 }
 
 pub enum ETLTask {
-    StandaloneETLTask(StandaloneETLTask),
+    StandaloneETLTask(StandaloneETLTask<PrefectSingleton>),
     ForLoopETLTask(ForLoopETLTask),
 }
 impl ETLTask {

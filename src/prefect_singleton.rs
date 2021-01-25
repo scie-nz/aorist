@@ -56,21 +56,7 @@ impl ETLSingleton for PrefectSingleton {
             dialect,
         }
     }
-}
-impl PrefectSingleton {
-    fn get_flow_add_edge_statement(&self, dep: ArgType) -> AoristStatement {
-        let function = ArgType::Attribute(Attribute::new_wrapped(
-            ArgType::SimpleIdentifier(SimpleIdentifier::new_wrapped("flow".to_string())),
-            "add_edge".to_string(),
-        ));
-        let add_expr = ArgType::Call(Call::new_wrapped(
-            function,
-            vec![self.get_task_val(), dep],
-            LinkedHashMap::new(),
-        ));
-        AoristStatement::Expression(add_expr)
-    }
-    pub fn compute_task_call(dialect: Option<Dialect>, call: Option<String>) -> ArgType {
+    fn compute_task_call(dialect: Option<Dialect>, call: Option<String>) -> ArgType {
         match dialect {
             Some(Dialect::Python(_)) => Ok(ArgType::SimpleIdentifier(
                 SimpleIdentifier::new_wrapped(call.unwrap()),
@@ -84,6 +70,20 @@ impl PrefectSingleton {
             _ => Err("Dialect not supported".to_string()),
         }
         .unwrap()
+    }
+}
+impl PrefectSingleton {
+    fn get_flow_add_edge_statement(&self, dep: ArgType) -> AoristStatement {
+        let function = ArgType::Attribute(Attribute::new_wrapped(
+            ArgType::SimpleIdentifier(SimpleIdentifier::new_wrapped("flow".to_string())),
+            "add_edge".to_string(),
+        ));
+        let add_expr = ArgType::Call(Call::new_wrapped(
+            function,
+            vec![self.get_task_val(), dep],
+            LinkedHashMap::new(),
+        ));
+        AoristStatement::Expression(add_expr)
     }
     pub fn get_edge_addition_statements(&self) -> Vec<AoristStatement> {
         match self.dep_list {
