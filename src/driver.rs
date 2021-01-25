@@ -13,13 +13,16 @@ use rustpython_parser::ast::Location;
 use std::collections::{HashMap, HashSet};
 use std::sync::{Arc, RwLock, RwLockReadGuard};
 use uuid::Uuid;
+use crate::etl_singleton::ETLSingleton;
+use std::marker::PhantomData;
 
-pub struct Driver<'a> {
+pub struct Driver<'a, T>
+where T: ETLSingleton {
     _data_setup: &'a ParsedDataSetup,
     pub concepts: Arc<RwLock<HashMap<(Uuid, String), Concept<'a>>>>,
     constraints: HashMap<(Uuid, String), Arc<RwLock<Constraint>>>,
     satisfied_constraints: HashMap<(Uuid, String), Arc<RwLock<ConstraintState<'a>>>>,
-    blocks: Vec<ConstraintBlock<'a>>,
+    blocks: Vec<ConstraintBlock<'a, T>>,
     // map from: constraint_name => (dependent_constraint_names, constraints_by_uuid)
     unsatisfied_constraints: HashMap<
         String,
@@ -29,9 +32,11 @@ pub struct Driver<'a> {
         ),
     >,
     ancestry: Arc<ConceptAncestry<'a>>,
+    singleton_type: PhantomData<T>,
 }
 
-impl<'a> Driver<'a> {
+impl<'a, T> Driver<'a, T>
+where T: ETLSingleton {
     fn compute_all_ancestors(
         parsed_data_setup: Concept<'a>,
         concept_map: &HashMap<(Uuid, String), Concept<'a>>,
@@ -131,7 +136,7 @@ impl<'a> Driver<'a> {
         }
         unsatisfied_constraints
     }
-    pub fn new(data_setup: &'a ParsedDataSetup) -> Driver<'a> {
+    pub fn new(data_setup: &'a ParsedDataSetup) -> Driver<'a, T> {
         let mut concept_map: HashMap<(Uuid, String), Concept<'a>> = HashMap::new();
         let concept = Concept::ParsedDataSetup((data_setup, 0, None));
         concept.populate_child_concept_map(&mut concept_map);
@@ -153,6 +158,7 @@ impl<'a> Driver<'a> {
             unsatisfied_constraints,
             ancestry: Arc::new(ancestry),
             blocks: Vec::new(),
+            singleton_type: PhantomData,
         }
     }
 
@@ -268,11 +274,11 @@ impl<'a> Driver<'a> {
         reverse_dependencies: &HashMap<(Uuid, String), HashSet<(String, Uuid, String)>>,
         literals: LiteralsMap,
         constraint_name: String,
-    ) -> Vec<CodeBlock<'a>> {
+    ) -> Vec<CodeBlock<'a, T>> {
         // (call, constraint_name, root_name) => (uuid, call parameters)
         let mut calls: HashMap<(String, String, String), Vec<(String, ParameterTuple)>> =
             HashMap::new();
-        let mut blocks: Vec<CodeBlock<'a>> = Vec::new();
+        let mut blocks: Vec<CodeBlock<'a, T>> = Vec::new();
         let mut by_dialect: HashMap<Option<Dialect>, Vec<Arc<RwLock<ConstraintState<'a>>>>> =
             HashMap::new();
         for (id, state) in block.clone() {

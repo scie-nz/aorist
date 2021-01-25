@@ -4,22 +4,28 @@ use inflector::cases::snakecase::to_snake_case;
 use linked_hash_set::LinkedHashSet;
 use std::collections::{HashMap, HashSet};
 use uuid::Uuid;
+use std::marker::PhantomData;
+use crate::etl_singleton::ETLSingleton;
 
-pub struct ConstraintBlock<'a> {
+pub struct ConstraintBlock<'a, T>
+where T: ETLSingleton {
     constraint_name: String,
-    members: Vec<CodeBlock<'a>>,
+    members: Vec<CodeBlock<'a, T>>,
     literals: LiteralsMap,
+    singleton_type: PhantomData<T>,
 }
-impl<'a> ConstraintBlock<'a> {
+impl<'a, T> ConstraintBlock<'a, T>
+where T: ETLSingleton {
     pub fn new(
         constraint_name: String,
-        members: Vec<CodeBlock<'a>>,
+        members: Vec<CodeBlock<'a, T>>,
         literals: LiteralsMap,
     ) -> Self {
         Self {
             constraint_name,
             members,
             literals,
+            singleton_type: PhantomData,
         }
     }
     pub fn get_constraint_name(&self) -> String {

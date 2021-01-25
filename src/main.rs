@@ -1,6 +1,7 @@
 use lib::concept::AoristConcept;
 use lib::driver::Driver;
 use lib::utils::get_data_setup;
+use lib::prefect_singleton::PrefectSingleton;
 
 fn main() -> Result<(), String> {
     //let _foo = attributes::KeyAttribute1{};
@@ -8,7 +9,7 @@ fn main() -> Result<(), String> {
     setup.compute_uuids();
     setup.compute_constraints();
     setup.traverse_constrainable_children(Vec::new());
-    let mut driver = Driver::new(&setup);
+    let mut driver: Driver<PrefectSingleton> = Driver::new(&setup);
     driver.run();
     /*for dataset in setup.get_datasets().unwrap() {
         println!("{}", dataset.to_yaml());

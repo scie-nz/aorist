@@ -9,14 +9,18 @@ use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
 use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
-use crate::prefect_singleton::PrefectSingleton;
+use std::marker::PhantomData;
+use crate::etl_singleton::ETLSingleton;
 
-pub struct CodeBlock<'a> {
+pub struct CodeBlock<'a, T>
+where T: ETLSingleton {
     _dialect: Option<Dialect>,
     members: Vec<Arc<RwLock<ConstraintState<'a>>>>,
     constraint_name: String,
+    singleton_type: PhantomData<T>,
 }
-impl<'a> CodeBlock<'a> {
+impl<'a, T> CodeBlock<'a, T>
+where T: ETLSingleton {
     fn get_constraints(&'a self) -> &Vec<Arc<RwLock<ConstraintState<'a>>>> {
         &self.members
     }
@@ -29,6 +33,7 @@ impl<'a> CodeBlock<'a> {
             _dialect: dialect,
             members,
             constraint_name,
+            singleton_type: PhantomData,
         }
     }
     pub fn get_params(&self) -> HashMap<String, Option<ParameterTuple>> {
@@ -87,7 +92,7 @@ impl<'a> CodeBlock<'a> {
             .collect::<Vec<_>>();
 
         let mut compressible: LinkedHashMap<_, Vec<_>> = LinkedHashMap::new();
-        let mut etl_tasks: Vec<ETLTask<PrefectSingleton>> = Vec::new();
+        let mut etl_tasks: Vec<ETLTask<T>> = Vec::new();
 
         for task in tasks.into_iter() {
             if task.is_compressible() {
