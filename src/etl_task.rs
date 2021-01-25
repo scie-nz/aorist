@@ -195,12 +195,15 @@ where T: ETLSingleton {
 }
 
 #[derive(Clone, Hash, PartialEq, Eq)]
-pub struct ForLoopETLTask {
+pub struct ForLoopETLTask<T>
+where T: ETLSingleton {
     params_dict_name: ArgType,
     key: ETLTaskCompressionKey,
     values: Vec<ETLTaskUncompressiblePart>,
+    singleton_type: PhantomData<T>,
 }
-impl ForLoopETLTask {
+impl <T> ForLoopETLTask<T>
+where T: ETLSingleton {
     pub fn new(
         params_dict_name: ArgType,
         key: ETLTaskCompressionKey,
@@ -210,6 +213,7 @@ impl ForLoopETLTask {
             params_dict_name,
             key,
             values,
+            singleton_type: PhantomData,
         }
     }
     pub fn get_statements(&self) -> (Vec<AoristStatement>, Option<String>) {
@@ -307,11 +311,13 @@ impl ForLoopETLTask {
     }
 }
 
-pub enum ETLTask {
-    StandaloneETLTask(StandaloneETLTask<PrefectSingleton>),
-    ForLoopETLTask(ForLoopETLTask),
+pub enum ETLTask<T>
+where T: ETLSingleton {
+    StandaloneETLTask(StandaloneETLTask<T>),
+    ForLoopETLTask(ForLoopETLTask<T>),
 }
-impl ETLTask {
+impl <T> ETLTask<T>
+where T: ETLSingleton {
     pub fn get_statements(&self) -> (Vec<AoristStatement>, Option<String>) {
         match &self {
             ETLTask::StandaloneETLTask(x) => x.get_statements(),

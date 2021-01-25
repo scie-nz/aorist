@@ -12,6 +12,7 @@ use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
 use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
+use crate::prefect_singleton::PrefectSingleton;
 
 pub struct CodeBlock<'a> {
     _dialect: Option<Dialect>,
@@ -120,7 +121,7 @@ impl<'a> CodeBlock<'a> {
             .collect::<Vec<_>>();
 
         let mut compressible: LinkedHashMap<_, Vec<_>> = LinkedHashMap::new();
-        let mut etl_tasks: Vec<ETLTask> = Vec::new();
+        let mut etl_tasks: Vec<ETLTask<PrefectSingleton>> = Vec::new();
 
         for task in tasks.into_iter() {
             if task.is_compressible() {
