@@ -1,5 +1,5 @@
 use crate::constraint::{
-    AoristStatement, ArgType, Call, Dict, Formatted, List, SimpleIdentifier, StringLiteral,
+    AoristStatement, ArgType, Call, Dict, Formatted, Import, List, SimpleIdentifier, StringLiteral,
 };
 use crate::etl_singleton::ETLSingleton;
 use aorist_primitives::Dialect;
@@ -17,6 +17,24 @@ pub struct AirflowSingleton {
     dialect: Option<Dialect>,
 }
 impl ETLSingleton for AirflowSingleton {
+    fn get_imports(&self) -> Vec<Import> {
+        match self.dialect {
+            Some(Dialect::Python(_)) => vec![Import::FromImport(
+                "airflow.operators.python_operator".to_string(),
+                "PythonOperator".to_string(),
+            )],
+            Some(Dialect::Bash(_)) | Some(Dialect::Presto(_)) | Some(Dialect::R(_)) => {
+                vec![Import::FromImport(
+                    "airflow.operators.bash_operator".to_string(),
+                    "BashOperator".to_string(),
+                )]
+            }
+            None => vec![Import::FromImport(
+                "airflow.operators.dummy_operator".to_string(),
+                "DummyOperator".to_string(),
+            )],
+        }
+    }
     fn get_preamble(&self) -> Vec<String> {
         let mut preambles = match self.dialect {
             Some(Dialect::Python(_)) => match self.preamble {

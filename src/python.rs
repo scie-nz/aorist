@@ -1,7 +1,6 @@
 #![allow(dead_code)]
 use rustpython_parser::ast::{
-    Expression, ExpressionType, ImportSymbol, Keyword, Statement, StatementType,
-    StringGroup, Suite,
+    Expression, ExpressionType, ImportSymbol, Keyword, Statement, StatementType, StringGroup, Suite,
 };
 
 pub struct PythonProgram {}

@@ -1,5 +1,5 @@
 use crate::constraint::{
-    AoristStatement, ArgType, Attribute, Call, Formatted, SimpleIdentifier, StringLiteral,
+    AoristStatement, ArgType, Attribute, Call, Formatted, Import, SimpleIdentifier, StringLiteral,
 };
 use crate::etl_singleton::ETLSingleton;
 use aorist_primitives::Dialect;
@@ -17,6 +17,24 @@ pub struct PrefectSingleton {
     dialect: Option<Dialect>,
 }
 impl ETLSingleton for PrefectSingleton {
+    fn get_imports(&self) -> Vec<Import> {
+        match self.dialect {
+            Some(Dialect::Python(_)) => vec![Import::FromImport(
+                "prefect".to_string(),
+                "task".to_string(),
+            )],
+            Some(Dialect::Bash(_)) | Some(Dialect::Presto(_)) | Some(Dialect::R(_)) => {
+                vec![Import::FromImport(
+                    "prefect.tasks.shell".to_string(),
+                    "ShellTask".to_string(),
+                )]
+            }
+            None => vec![Import::FromImport(
+                "prefect.tasks.core".to_string(),
+                "Constant".to_string(),
+            )],
+        }
+    }
     fn get_preamble(&self) -> Vec<String> {
         let mut preambles = match self.dialect {
             Some(Dialect::Python(_)) => match self.preamble {
