@@ -3,8 +3,8 @@ use crate::constraint::{LiteralsMap, StringLiteral};
 use crate::constraint_state::ConstraintState;
 use aorist_primitives::Dialect;
 use rustpython_parser::ast::{
-    Expression, ExpressionType, Keyword, Located, Program, Statement, StatementType, StringGroup,
-    Suite, WithItem,
+    Expression, ExpressionType, ImportSymbol, Keyword, Located, Program, Statement, StatementType,
+    StringGroup, Suite, WithItem,
 };
 use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
@@ -175,6 +175,27 @@ impl PrefectProgram {
         }
         Ok(rendered.join("\n"))
     }
+    fn render_import_symbol(sym: ImportSymbol) -> Result<String, String> {
+        match sym.alias {
+            Some(alias) => Ok(format!("{} as {}", sym.symbol, alias).to_string()),
+            None => Ok(sym.symbol.clone()),
+        }
+    }
+    fn render_import_symbols(symbols: Vec<ImportSymbol>) -> Result<String, String> {
+        assert!(symbols.len() > 0);
+        if symbols.len() == 1 {
+            return Self::render_import_symbol(symbols.into_iter().next().unwrap());
+        }
+        Ok(format!(
+            "({})",
+            symbols
+                .into_iter()
+                .map(|x| Self::render_import_symbol(x).unwrap())
+                .collect::<Vec<String>>()
+                .join(", ")
+        )
+        .to_string())
+    }
     fn render_statement(statement: Statement) -> Result<String, String> {
         match statement.node {
             StatementType::Assign { targets, value, .. } => {
@@ -185,6 +206,18 @@ impl PrefectProgram {
                 let call = Self::render_expr(&value)?;
                 Ok(format!("{val} = {call}", val = val, call = call).to_string())
             }
+            StatementType::Import { names } => {
+                Ok(format!("import {}", Self::render_import_symbols(names)?).to_string())
+            }
+            StatementType::ImportFrom { module, names, .. } => Ok(format!(
+                "from {} import {}",
+                match module {
+                    Some(m) => m,
+                    None => ".".to_string(),
+                },
+                Self::render_import_symbols(names)?
+            )
+            .to_string()),
             StatementType::Expression { expression } => Self::render_expr(&expression),
             StatementType::For {
                 is_async,

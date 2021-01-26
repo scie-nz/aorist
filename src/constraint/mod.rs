@@ -6,7 +6,8 @@ use aorist_primitives::{
 use linked_hash_map::LinkedHashMap;
 use maplit::hashmap;
 use rustpython_parser::ast::{
-    Expression, ExpressionType, Keyword, Located, Location, Statement, StatementType, StringGroup,
+    Expression, ExpressionType, ImportSymbol, Keyword, Located, Location, Statement, StatementType,
+    StringGroup,
 };
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeSet, HashMap, VecDeque};
@@ -358,6 +359,8 @@ pub enum AoristStatement {
     Assign(ArgType, ArgType),
     Expression(ArgType),
     For(ArgType, ArgType, Vec<AoristStatement>),
+    ModuleImport(String),
+    FromImport(String, String),
 }
 impl AoristStatement {
     pub fn statement(&self, location: Location) -> Statement {
@@ -389,6 +392,26 @@ impl AoristStatement {
                         .map(|x| x.statement(location))
                         .collect::<Vec<_>>(),
                     orelse: None,
+                },
+            },
+            Self::ModuleImport(ref module) => Located {
+                location,
+                node: StatementType::Import {
+                    names: vec![ImportSymbol {
+                        symbol: module.clone(),
+                        alias: None,
+                    }],
+                },
+            },
+            Self::FromImport(ref module, ref name) => Located {
+                location,
+                node: StatementType::ImportFrom {
+                    level: 0,
+                    module: Some(module.clone()),
+                    names: vec![ImportSymbol {
+                        symbol: name.clone(),
+                        alias: None,
+                    }],
                 },
             },
         }
