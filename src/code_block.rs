@@ -143,9 +143,8 @@ where
             .collect::<Vec<_>>();
         let preambles = preambles_and_statements
             .iter()
-            .map(|x| x.1.clone())
-            .filter(|x| x.is_some())
-            .map(|x| x.unwrap())
+            .map(|x| x.1.clone().into_iter())
+            .flatten()
             .collect::<LinkedHashSet<String>>();
         (
             preambles_and_statements

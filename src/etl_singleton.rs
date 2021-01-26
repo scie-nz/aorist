@@ -3,7 +3,7 @@ use aorist_primitives::Dialect;
 use linked_hash_map::LinkedHashMap;
 
 pub trait ETLSingleton {
-    fn get_preamble(&self) -> Option<String>;
+    fn get_preamble(&self) -> Vec<String>;
     fn get_dialect(&self) -> Option<Dialect>;
     fn get_task_val(&self) -> ArgType;
     fn new(

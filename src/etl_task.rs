@@ -10,7 +10,7 @@ use std::marker::PhantomData;
 #[derive(Clone, Hash, PartialEq, Eq)]
 pub struct StandaloneETLTask<T>
 where
-    T: ETLSingleton
+    T: ETLSingleton,
 {
     /// where the task creation call should be stored.
     task_val: ArgType,
@@ -53,7 +53,9 @@ pub type ETLTaskCompressionKey = (
 );
 #[derive(Clone, Hash, PartialEq, Eq)]
 pub struct ETLTaskUncompressiblePart<T>
-where T: ETLSingleton {
+where
+    T: ETLSingleton,
+{
     // unique task_id
     task_id: String,
     // dict value
@@ -66,9 +68,22 @@ where T: ETLSingleton {
 }
 
 impl<T> ETLTaskUncompressiblePart<T>
-where T: ETLSingleton {
-    pub fn new(task_id: String, dict: String, params: Option<ParameterTuple>, deps: Vec<ArgType>) -> Self {
-        Self { task_id, dict, params, deps, singleton_type: PhantomData }
+where
+    T: ETLSingleton,
+{
+    pub fn new(
+        task_id: String,
+        dict: String,
+        params: Option<ParameterTuple>,
+        deps: Vec<ArgType>,
+    ) -> Self {
+        Self {
+            task_id,
+            dict,
+            params,
+            deps,
+            singleton_type: PhantomData,
+        }
     }
 
     pub fn as_python_dict(&self, dependencies_as_list: bool) -> ArgType {
@@ -85,9 +100,10 @@ where T: ETLSingleton {
         }
         // TODO: get_type should return an enum
         if T::get_type() == "airflow".to_string() {
-            local_params_map.insert("task_id".to_string(), ArgType::StringLiteral(
-                StringLiteral::new_wrapped(self.task_id.clone())
-            ));
+            local_params_map.insert(
+                "task_id".to_string(),
+                ArgType::StringLiteral(StringLiteral::new_wrapped(self.task_id.clone())),
+            );
         }
         if let Some(ref p) = self.params {
             p.populate_python_dict(&mut local_params_map);
@@ -180,7 +196,7 @@ where
             singleton_type: PhantomData,
         }
     }
-    pub fn get_statements(&self) -> (Vec<AoristStatement>, Option<String>) {
+    pub fn get_statements(&self) -> (Vec<AoristStatement>, Vec<String>) {
         let args;
         let kwargs;
         if let Some(ref p) = self.params {
@@ -203,13 +219,7 @@ where
             self.get_preamble(),
             self.get_dialect(),
         );
-        (
-            singleton.get_statements(),
-            match self.dialect {
-                Some(Dialect::Python(_)) => self.preamble.clone(),
-                _ => None,
-            },
-        )
+        (singleton.get_statements(), singleton.get_preamble())
     }
 }
 
@@ -239,7 +249,7 @@ where
             singleton_type: PhantomData,
         }
     }
-    pub fn get_statements(&self) -> (Vec<AoristStatement>, Option<String>) {
+    pub fn get_statements(&self) -> (Vec<AoristStatement>, Vec<String>) {
         let any_dependencies = self
             .values
             .iter()
@@ -327,13 +337,7 @@ where
             LinkedHashMap::new(),
         ));
         let for_loop = AoristStatement::For(tpl.clone(), items_call, statements.clone());
-        (
-            vec![dict_assign, for_loop],
-            match dialect {
-                Some(Dialect::Python(_)) => preamble.clone(),
-                _ => None,
-            },
-        )
+        (vec![dict_assign, for_loop], singleton.get_preamble())
     }
 }
 
@@ -348,7 +352,7 @@ impl<T> ETLTask<T>
 where
     T: ETLSingleton,
 {
-    pub fn get_statements(&self) -> (Vec<AoristStatement>, Option<String>) {
+    pub fn get_statements(&self) -> (Vec<AoristStatement>, Vec<String>) {
         match &self {
             ETLTask::StandaloneETLTask(x) => x.get_statements(),
             ETLTask::ForLoopETLTask(x) => x.get_statements(),

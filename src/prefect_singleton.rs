@@ -17,8 +17,23 @@ pub struct PrefectSingleton {
     dialect: Option<Dialect>,
 }
 impl ETLSingleton for PrefectSingleton {
-    fn get_preamble(&self) -> Option<String> {
-        self.preamble.clone()
+    fn get_preamble(&self) -> Vec<String> {
+        let mut preambles = match self.dialect {
+            Some(Dialect::Python(_)) => match self.preamble {
+                Some(ref p) => vec![p.clone()],
+                None => Vec::new(),
+            },
+            _ => Vec::new(),
+        };
+        let (import, operator) = match self.dialect {
+            Some(Dialect::Python(_)) => ("prefect", "task"),
+            Some(Dialect::Bash(_)) | Some(Dialect::Presto(_)) | Some(Dialect::R(_)) => {
+                ("prefect.tasks.shell", "ShellTask")
+            }
+            None => ("prefect.tasks.core", "Constant"),
+        };
+        preambles.push(format!("from {} import {}", import, operator).to_string());
+        preambles
     }
     fn get_dialect(&self) -> Option<Dialect> {
         self.dialect.clone()
@@ -106,7 +121,7 @@ impl ETLSingleton for PrefectSingleton {
                 SimpleIdentifier::new_wrapped("ShellTask".to_string()),
             )),
             None => Ok(ArgType::SimpleIdentifier(SimpleIdentifier::new_wrapped(
-                "ConstantTask".to_string(),
+                "Constant".to_string(),
             ))),
             _ => Err("Dialect not supported".to_string()),
         }
