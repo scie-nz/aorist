@@ -1,6 +1,6 @@
 use crate::code_block::CodeBlock;
 use crate::concept::{Concept, ConceptAncestry};
-use crate::constraint::{AoristConstraint, Constraint, LiteralsMap, ParameterTuple};
+use crate::constraint::{AoristConstraint, Constraint, LiteralsMap, ParameterTuple, AoristStatement, Import};
 use crate::constraint_block::ConstraintBlock;
 use crate::constraint_state::ConstraintState;
 use crate::data_setup::ParsedDataSetup;
@@ -11,7 +11,7 @@ use aorist_primitives::{Bash, Dialect, Presto, Python};
 use inflector::cases::snakecase::to_snake_case;
 use linked_hash_set::LinkedHashSet;
 use rustpython_parser::ast::Location;
-use std::collections::{HashMap, HashSet};
+use std::collections::{HashMap, HashSet, BTreeSet};
 use std::marker::PhantomData;
 use std::sync::{Arc, RwLock, RwLockReadGuard};
 use uuid::Uuid;
@@ -434,16 +434,25 @@ where
             .collect::<Vec<_>>();
         let preambles = statements_and_preambles
             .iter()
-            .map(|x| x.1.clone().into_iter())
+            .map(|x| x.clone().1.into_iter())
             .flatten()
             .collect::<LinkedHashSet<String>>();
+        let imports = statements_and_preambles
+            .iter()
+            .map(|x| x.2.clone().into_iter())
+            .flatten()
+            .collect::<BTreeSet<Import>>();
+        let statements: Vec<AoristStatement> = imports
+            .into_iter()
+            .map(|x| AoristStatement::Import(x))
+            .chain(statements_and_preambles.into_iter().map(|x| x.0).flatten())
+            .collect();
         for preamble in preambles {
             println!("{}\n", preamble);
         }
-        let statements = statements_and_preambles.into_iter().map(|x| x.0).flatten();
         println!(
             "{}",
-            PythonProgram::render_suite(statements.map(|x| x.statement(location)).collect())
+            PythonProgram::render_suite(statements.into_iter().map(|x| x.statement(location)).collect())
                 .unwrap()
         );
 

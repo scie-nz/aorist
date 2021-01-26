@@ -1,9 +1,9 @@
 use crate::code_block::CodeBlock;
-use crate::constraint::{AoristStatement, ArgType, LiteralsMap, ParameterTuple, SimpleIdentifier};
+use crate::constraint::{AoristStatement, ArgType, LiteralsMap, ParameterTuple, SimpleIdentifier, Import};
 use crate::etl_singleton::ETLSingleton;
 use inflector::cases::snakecase::to_snake_case;
 use linked_hash_set::LinkedHashSet;
-use std::collections::{HashMap, HashSet};
+use std::collections::{HashMap, HashSet, BTreeSet};
 use std::marker::PhantomData;
 use uuid::Uuid;
 
@@ -107,7 +107,13 @@ where
         }
         drop(read);
     }
-    pub fn get_statements(&'a self) -> (Vec<AoristStatement>, LinkedHashSet<String>) {
+    pub fn get_statements(
+        &'a self,
+    ) -> (
+        Vec<AoristStatement>,
+        LinkedHashSet<String>,
+        BTreeSet<Import>,
+    ) {
         self.compute_indirections();
         let preambles_and_statements = self
             .members
@@ -119,6 +125,11 @@ where
             .map(|x| x.1.clone().into_iter())
             .flatten()
             .collect::<LinkedHashSet<String>>();
+        let imports = preambles_and_statements
+            .iter()
+            .map(|x| x.2.clone().into_iter())
+            .flatten()
+            .collect::<BTreeSet<Import>>();
         (
             preambles_and_statements
                 .into_iter()
@@ -126,6 +137,7 @@ where
                 .flatten()
                 .collect::<Vec<_>>(),
             preambles,
+            imports,
         )
     }
 }

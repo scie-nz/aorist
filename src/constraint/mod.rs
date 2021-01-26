@@ -354,7 +354,7 @@ impl ArgType {
     }
 }
 
-#[derive(Clone, Hash, PartialEq, Eq)]
+#[derive(Clone, Hash, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Import {
     ModuleImport(String),
     FromImport(String, String),

@@ -1,5 +1,5 @@
 use crate::constraint::{
-    AoristStatement, ArgType, ParameterTuple, SimpleIdentifier, StringLiteral, Subscript,
+    AoristStatement, ArgType, Import, ParameterTuple, SimpleIdentifier, StringLiteral, Subscript,
 };
 use crate::constraint_state::ConstraintState;
 use crate::etl_singleton::ETLSingleton;
@@ -7,7 +7,7 @@ use crate::etl_task::{ETLTask, ForLoopETLTask, StandaloneETLTask};
 use aorist_primitives::Dialect;
 use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
-use std::collections::HashMap;
+use std::collections::{BTreeSet, HashMap};
 use std::marker::PhantomData;
 use std::sync::{Arc, RwLock};
 
@@ -76,7 +76,13 @@ where
             }
         }
     }
-    pub fn get_statements(&'a self) -> (Vec<AoristStatement>, LinkedHashSet<String>) {
+    pub fn get_statements(
+        &'a self,
+    ) -> (
+        Vec<AoristStatement>,
+        LinkedHashSet<String>,
+        BTreeSet<Import>,
+    ) {
         self.set_task_vals();
         let tasks = self
             .get_constraints()
@@ -146,6 +152,11 @@ where
             .map(|x| x.1.clone().into_iter())
             .flatten()
             .collect::<LinkedHashSet<String>>();
+        let imports = preambles_and_statements
+            .iter()
+            .map(|x| x.2.clone().into_iter())
+            .flatten()
+            .collect::<BTreeSet<Import>>();
         (
             preambles_and_statements
                 .iter()
@@ -153,6 +164,7 @@ where
                 .flatten()
                 .collect::<Vec<_>>(),
             preambles,
+            imports,
         )
     }
 }

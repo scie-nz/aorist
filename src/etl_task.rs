@@ -1,6 +1,6 @@
 use crate::constraint::{
-    AoristStatement, ArgType, Attribute, Call, Dict, List, ParameterTuple, ParameterTupleDedupKey,
-    SimpleIdentifier, StringLiteral, Subscript, Tuple,
+    AoristStatement, ArgType, Attribute, Call, Dict, Import, List, ParameterTuple,
+    ParameterTupleDedupKey, SimpleIdentifier, StringLiteral, Subscript, Tuple,
 };
 use crate::etl_singleton::ETLSingleton;
 use aorist_primitives::Dialect;
@@ -196,7 +196,7 @@ where
             singleton_type: PhantomData,
         }
     }
-    pub fn get_statements(&self) -> (Vec<AoristStatement>, Vec<String>) {
+    pub fn get_statements(&self) -> (Vec<AoristStatement>, Vec<String>, Vec<Import>) {
         let args;
         let kwargs;
         if let Some(ref p) = self.params {
@@ -219,7 +219,11 @@ where
             self.get_preamble(),
             self.get_dialect(),
         );
-        (singleton.get_statements(), singleton.get_preamble())
+        (
+            singleton.get_statements(),
+            singleton.get_preamble(),
+            singleton.get_imports(),
+        )
     }
 }
 
@@ -249,7 +253,7 @@ where
             singleton_type: PhantomData,
         }
     }
-    pub fn get_statements(&self) -> (Vec<AoristStatement>, Vec<String>) {
+    pub fn get_statements(&self) -> (Vec<AoristStatement>, Vec<String>, Vec<Import>) {
         let any_dependencies = self
             .values
             .iter()
@@ -337,7 +341,11 @@ where
             LinkedHashMap::new(),
         ));
         let for_loop = AoristStatement::For(tpl.clone(), items_call, statements.clone());
-        (vec![dict_assign, for_loop], singleton.get_preamble())
+        (
+            vec![dict_assign, for_loop],
+            singleton.get_preamble(),
+            singleton.get_imports(),
+        )
     }
 }
 
@@ -352,7 +360,7 @@ impl<T> ETLTask<T>
 where
     T: ETLSingleton,
 {
-    pub fn get_statements(&self) -> (Vec<AoristStatement>, Vec<String>) {
+    pub fn get_statements(&self) -> (Vec<AoristStatement>, Vec<String>, Vec<Import>) {
         match &self {
             ETLTask::StandaloneETLTask(x) => x.get_statements(),
             ETLTask::ForLoopETLTask(x) => x.get_statements(),
