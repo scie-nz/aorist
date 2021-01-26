@@ -355,12 +355,43 @@ impl ArgType {
 }
 
 #[derive(Clone, Hash, PartialEq, Eq)]
+pub enum Import {
+    ModuleImport(String),
+    FromImport(String, String),
+}
+impl Import {
+    pub fn statement(&self, location: Location) -> Statement {
+        match &self {
+            Self::ModuleImport(ref module) => Located {
+                location,
+                node: StatementType::Import {
+                    names: vec![ImportSymbol {
+                        symbol: module.clone(),
+                        alias: None,
+                    }],
+                },
+            },
+            Self::FromImport(ref module, ref name) => Located {
+                location,
+                node: StatementType::ImportFrom {
+                    level: 0,
+                    module: Some(module.clone()),
+                    names: vec![ImportSymbol {
+                        symbol: name.clone(),
+                        alias: None,
+                    }],
+                },
+            },
+        }
+    }
+}
+
+#[derive(Clone, Hash, PartialEq, Eq)]
 pub enum AoristStatement {
     Assign(ArgType, ArgType),
     Expression(ArgType),
     For(ArgType, ArgType, Vec<AoristStatement>),
-    ModuleImport(String),
-    FromImport(String, String),
+    Import(Import),
 }
 impl AoristStatement {
     pub fn statement(&self, location: Location) -> Statement {
@@ -394,26 +425,7 @@ impl AoristStatement {
                     orelse: None,
                 },
             },
-            Self::ModuleImport(ref module) => Located {
-                location,
-                node: StatementType::Import {
-                    names: vec![ImportSymbol {
-                        symbol: module.clone(),
-                        alias: None,
-                    }],
-                },
-            },
-            Self::FromImport(ref module, ref name) => Located {
-                location,
-                node: StatementType::ImportFrom {
-                    level: 0,
-                    module: Some(module.clone()),
-                    names: vec![ImportSymbol {
-                        symbol: name.clone(),
-                        alias: None,
-                    }],
-                },
-            },
+            Self::Import(import) => import.statement(location),
         }
     }
 }
