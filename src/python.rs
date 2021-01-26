@@ -1,6 +1,7 @@
 #![allow(dead_code)]
 use rustpython_parser::ast::{
     Expression, ExpressionType, ImportSymbol, Keyword, Statement, StatementType, StringGroup, Suite,
+    Varargs, Parameters, Parameter,
 };
 
 pub struct PythonProgram {}
@@ -141,6 +142,30 @@ impl PythonProgram {
         )
         .to_string())
     }
+    fn render_parameter(parameter: Parameter) -> Result<String, String> {
+        if parameter.annotation.is_some() {
+            return Err("Don't know what to do with annotated parameters yet".to_string());
+        }
+        Ok(parameter.arg.clone())
+    }
+    fn render_parameters(parameters: Parameters) -> Result<String, String> {
+        if parameters.posonlyargs_count != parameters.args.len() {
+            return Err("Incorrect number of arguments".to_string());
+        }
+        if parameters.vararg != Varargs::None || parameters.kwarg != Varargs::None {
+            return Err("Don't know what to do with varargs yet".to_string());
+        }
+        if parameters.defaults.len() > 0 || parameters.kw_defaults.len() > 0 {
+            return Err("Don't know what to do with defaults yet".to_string());
+        }
+        Ok(parameters
+            .args
+            .into_iter()
+            .chain(parameters.kwonlyargs.into_iter())
+            .map(|x| Self::render_parameter(x).unwrap())
+            .collect::<Vec<String>>()
+            .join(", "))
+    }
     fn render_statement(statement: Statement) -> Result<String, String> {
         match statement.node {
             StatementType::Assign { targets, value, .. } => {
@@ -193,6 +218,34 @@ impl PythonProgram {
                     body_fmt = body_fmt
                 )
                 .to_string())
+            }
+            StatementType::FunctionDef {
+                is_async,
+                name,
+                args,
+                body,
+                decorator_list,
+                returns,
+            } => {
+                if is_async {
+                    return Err("Cannot render async functions".to_string());
+                }
+                if decorator_list.len() > 0 {
+                    return Err("Cannot render decorated functions".to_string());
+                }
+                if returns.is_some() {
+                    return Err("Cannot render functions with return annotations".to_string());
+                }
+                Ok(format!(
+                    "def {name}({args}):\n{body}",
+                    name = name,
+                    args = Self::render_parameters(*args)?,
+                    body = body
+                        .into_iter()
+                        .map(|x| format!("    {}", Self::render_statement(x).unwrap()).to_string())
+                        .collect::<Vec<_>>()
+                        .join("\n"),
+                ))
             }
             _ => Err("Unknown statement type.".to_string()),
         }

@@ -1,9 +1,11 @@
 use crate::code_block::CodeBlock;
-use crate::constraint::{AoristStatement, ArgType, LiteralsMap, ParameterTuple, SimpleIdentifier, Import};
+use crate::constraint::{
+    AoristStatement, ArgType, Import, LiteralsMap, ParameterTuple, SimpleIdentifier,
+};
 use crate::etl_singleton::ETLSingleton;
 use inflector::cases::snakecase::to_snake_case;
 use linked_hash_set::LinkedHashSet;
-use std::collections::{HashMap, HashSet, BTreeSet};
+use std::collections::{BTreeSet, HashMap, HashSet};
 use std::marker::PhantomData;
 use uuid::Uuid;
 

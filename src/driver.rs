@@ -1,6 +1,8 @@
 use crate::code_block::CodeBlock;
 use crate::concept::{Concept, ConceptAncestry};
-use crate::constraint::{AoristConstraint, Constraint, LiteralsMap, ParameterTuple, AoristStatement, Import};
+use crate::constraint::{
+    AoristConstraint, AoristStatement, Constraint, Import, LiteralsMap, ParameterTuple,
+};
 use crate::constraint_block::ConstraintBlock;
 use crate::constraint_state::ConstraintState;
 use crate::data_setup::ParsedDataSetup;
@@ -11,7 +13,7 @@ use aorist_primitives::{Bash, Dialect, Presto, Python};
 use inflector::cases::snakecase::to_snake_case;
 use linked_hash_set::LinkedHashSet;
 use rustpython_parser::ast::Location;
-use std::collections::{HashMap, HashSet, BTreeSet};
+use std::collections::{BTreeSet, HashMap, HashSet};
 use std::marker::PhantomData;
 use std::sync::{Arc, RwLock, RwLockReadGuard};
 use uuid::Uuid;
@@ -452,8 +454,13 @@ where
         }
         println!(
             "{}",
-            PythonProgram::render_suite(statements.into_iter().map(|x| x.statement(location)).collect())
-                .unwrap()
+            PythonProgram::render_suite(
+                statements
+                    .into_iter()
+                    .map(|x| x.statement(location))
+                    .collect()
+            )
+            .unwrap()
         );
 
         assert_eq!(self.unsatisfied_constraints.len(), 0);

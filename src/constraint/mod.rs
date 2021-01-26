@@ -9,6 +9,7 @@ use rustpython_parser::ast::{
     Expression, ExpressionType, ImportSymbol, Keyword, Located, Location, Statement, StatementType,
     StringGroup,
 };
+use rustpython_parser::parser;
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeSet, HashMap, VecDeque};
 use std::fmt;
@@ -351,6 +352,18 @@ impl ArgType {
             ArgType::Dict(ref dict) => dict.read().unwrap().expression(location),
             ArgType::Tuple(ref tuple) => tuple.read().unwrap().expression(location),
         }
+    }
+}
+
+#[derive(Clone, Hash, PartialEq, Eq, PartialOrd, Ord)]
+pub struct Preamble {
+    body: String,
+}
+impl Preamble {
+    pub fn statement(&self) -> Statement {
+        let program = parser::parse_program(&self.body).unwrap();
+        assert_eq!(program.statements.len(), 1);
+        program.statements.into_iter().next().unwrap()
     }
 }
 
