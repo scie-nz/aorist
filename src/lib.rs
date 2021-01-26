@@ -24,6 +24,7 @@ pub mod location;
 pub mod object;
 pub mod prefect;
 pub mod prefect_singleton;
+pub mod python;
 pub mod query;
 pub mod ranger;
 pub mod role;

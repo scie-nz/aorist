@@ -6,7 +6,7 @@ use crate::constraint_state::ConstraintState;
 use crate::data_setup::ParsedDataSetup;
 use crate::etl_singleton::ETLSingleton;
 use crate::object::TAoristObject;
-use crate::prefect::PrefectProgram;
+use crate::python::PythonProgram;
 use aorist_primitives::{Bash, Dialect, Presto, Python};
 use inflector::cases::snakecase::to_snake_case;
 use linked_hash_set::LinkedHashSet;
@@ -443,7 +443,7 @@ where
         let statements = statements_and_preambles.into_iter().map(|x| x.0).flatten();
         println!(
             "{}",
-            PrefectProgram::render_suite(statements.map(|x| x.statement(location)).collect())
+            PythonProgram::render_suite(statements.map(|x| x.statement(location)).collect())
                 .unwrap()
         );
 
