@@ -7,6 +7,7 @@ use linked_hash_map::LinkedHashMap;
 
 #[derive(Clone, Hash, PartialEq, Eq)]
 pub struct AirflowSingleton {
+    task_id: ArgType,
     task_val: ArgType,
     command: Option<String>,
     args: Vec<ArgType>,
@@ -37,6 +38,7 @@ impl ETLSingleton for AirflowSingleton {
         )]
     }
     fn new(
+        task_id: ArgType,
         task_val: ArgType,
         call: Option<String>,
         args: Vec<ArgType>,
@@ -46,6 +48,7 @@ impl ETLSingleton for AirflowSingleton {
         dialect: Option<Dialect>,
     ) -> Self {
         Self {
+            task_id,
             task_val,
             command: call,
             args,
@@ -57,6 +60,9 @@ impl ETLSingleton for AirflowSingleton {
     }
     fn compute_task_args(&self) -> Vec<ArgType> {
         Vec::new()
+    }
+    fn get_type() -> String {
+        "airflow".to_string()
     }
     fn compute_task_kwargs(&self) -> LinkedHashMap<String, ArgType> {
         let mut kwargs;
@@ -113,6 +119,10 @@ impl ETLSingleton for AirflowSingleton {
         kwargs.insert(
             "dag".to_string(),
             ArgType::SimpleIdentifier(SimpleIdentifier::new_wrapped("dag".to_string())),
+        );
+        kwargs.insert(
+            "task_id".to_string(),
+            self.task_id.clone(),
         );
         if let Some(ref dependencies) = self.dep_list {
             if let ArgType::List(_) = dependencies {

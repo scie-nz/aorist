@@ -7,6 +7,8 @@ pub trait ETLSingleton {
     fn get_dialect(&self) -> Option<Dialect>;
     fn get_task_val(&self) -> ArgType;
     fn new(
+        task_id: ArgType,
+        // TODO: change this to optional dict
         task_val: ArgType,
         call: Option<String>,
         args: Vec<ArgType>,
@@ -19,4 +21,5 @@ pub trait ETLSingleton {
     fn compute_task_args(&self) -> Vec<ArgType>;
     fn compute_task_kwargs(&self) -> LinkedHashMap<String, ArgType>;
     fn get_statements(&self) -> Vec<AoristStatement>;
+    fn get_type() -> String;
 }

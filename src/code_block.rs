@@ -84,6 +84,7 @@ where
             .map(|rw| {
                 let x = rw.read().unwrap();
                 StandaloneETLTask::new(
+                    x.get_task_name(),
                     x.get_task_val(),
                     x.get_call(),
                     x.get_params(),

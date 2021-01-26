@@ -10,10 +10,12 @@ use std::marker::PhantomData;
 #[derive(Clone, Hash, PartialEq, Eq)]
 pub struct StandaloneETLTask<T>
 where
-    T: ETLSingleton,
+    T: ETLSingleton
 {
     /// where the task creation call should be stored.
     task_val: ArgType,
+    /// unique task identifier
+    task_id: String,
     /// function called to create task (has different meaning depending on
     /// the render we use.
     call: Option<String>,
@@ -50,18 +52,23 @@ pub type ETLTaskCompressionKey = (
     Option<Dialect>,
 );
 #[derive(Clone, Hash, PartialEq, Eq)]
-pub struct ETLTaskUncompressiblePart {
+pub struct ETLTaskUncompressiblePart<T>
+where T: ETLSingleton {
+    // unique task_id
+    task_id: String,
     // dict value
     pub dict: String,
     // params
     params: Option<ParameterTuple>,
     // dep list
     pub deps: Vec<ArgType>,
+    singleton_type: PhantomData<T>,
 }
 
-impl ETLTaskUncompressiblePart {
-    pub fn new(dict: String, params: Option<ParameterTuple>, deps: Vec<ArgType>) -> Self {
-        Self { dict, params, deps }
+impl<T> ETLTaskUncompressiblePart<T>
+where T: ETLSingleton {
+    pub fn new(task_id: String, dict: String, params: Option<ParameterTuple>, deps: Vec<ArgType>) -> Self {
+        Self { task_id, dict, params, deps, singleton_type: PhantomData }
     }
 
     pub fn as_python_dict(&self, dependencies_as_list: bool) -> ArgType {
@@ -75,6 +82,12 @@ impl ETLTaskUncompressiblePart {
                 }
             };
             local_params_map.insert("dependencies".to_string(), dependencies);
+        }
+        // TODO: get_type should return an enum
+        if T::get_type() == "airflow".to_string() {
+            local_params_map.insert("task_id".to_string(), ArgType::StringLiteral(
+                StringLiteral::new_wrapped(self.task_id.clone())
+            ));
         }
         if let Some(ref p) = self.params {
             p.populate_python_dict(&mut local_params_map);
@@ -130,8 +143,9 @@ where
             self.dialect.clone(),
         ))
     }
-    pub fn get_uncompressible_part(&self) -> Result<ETLTaskUncompressiblePart, String> {
+    pub fn get_uncompressible_part(&self) -> Result<ETLTaskUncompressiblePart<T>, String> {
         Ok(ETLTaskUncompressiblePart::new(
+            self.task_id.clone(),
             self.get_right_of_task_val()?,
             self.params.clone(),
             self.dependencies.clone(),
@@ -147,6 +161,7 @@ where
         self.task_val.clone()
     }
     pub fn new(
+        task_id: String,
         task_val: ArgType,
         call: Option<String>,
         params: Option<ParameterTuple>,
@@ -155,6 +170,7 @@ where
         dialect: Option<Dialect>,
     ) -> Self {
         Self {
+            task_id,
             task_val,
             call,
             params,
@@ -175,6 +191,7 @@ where
             kwargs = LinkedHashMap::new();
         }
         let singleton = T::new(
+            ArgType::StringLiteral(StringLiteral::new_wrapped(self.task_id.clone())),
             self.get_task_val(),
             self.call.clone(),
             args,
@@ -203,7 +220,7 @@ where
 {
     params_dict_name: ArgType,
     key: ETLTaskCompressionKey,
-    values: Vec<ETLTaskUncompressiblePart>,
+    values: Vec<ETLTaskUncompressiblePart<T>>,
     singleton_type: PhantomData<T>,
 }
 impl<T> ForLoopETLTask<T>
@@ -213,7 +230,7 @@ where
     pub fn new(
         params_dict_name: ArgType,
         key: ETLTaskCompressionKey,
-        values: Vec<ETLTaskUncompressiblePart>,
+        values: Vec<ETLTaskUncompressiblePart<T>>,
     ) -> Self {
         Self {
             params_dict_name,
@@ -288,8 +305,13 @@ where
             ))),
             false => None,
         };
+        let task_id = ArgType::Subscript(Subscript::new_wrapped(
+            params.clone(),
+            ArgType::StringLiteral(StringLiteral::new_wrapped("task_id".to_string())),
+        ));
 
         let singleton = T::new(
+            task_id,
             new_collector.clone(),
             call,
             args,

@@ -7,6 +7,7 @@ use linked_hash_map::LinkedHashMap;
 
 #[derive(Clone, Hash, PartialEq, Eq)]
 pub struct PrefectSingleton {
+    task_id: ArgType,
     task_val: ArgType,
     command: Option<String>,
     args: Vec<ArgType>,
@@ -40,6 +41,7 @@ impl ETLSingleton for PrefectSingleton {
         stmts
     }
     fn new(
+        task_id: ArgType,
         task_val: ArgType,
         call: Option<String>,
         args: Vec<ArgType>,
@@ -49,6 +51,7 @@ impl ETLSingleton for PrefectSingleton {
         dialect: Option<Dialect>,
     ) -> Self {
         Self {
+            task_id,
             task_val,
             command: call,
             args,
@@ -108,6 +111,9 @@ impl ETLSingleton for PrefectSingleton {
             _ => Err("Dialect not supported".to_string()),
         }
         .unwrap()
+    }
+    fn get_type() -> String {
+        "prefect".to_string()
     }
 }
 impl PrefectSingleton {
