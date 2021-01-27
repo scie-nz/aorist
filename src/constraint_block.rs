@@ -1,6 +1,6 @@
 use crate::code_block::CodeBlock;
 use crate::constraint::{
-    AoristStatement, ArgType, Import, LiteralsMap, ParameterTuple, SimpleIdentifier,
+    AoristStatement, ArgType, Import, LiteralsMap, ParameterTuple, SimpleIdentifier, StringLiteral,
 };
 use crate::etl_singleton::ETLSingleton;
 use inflector::cases::snakecase::to_snake_case;
@@ -44,7 +44,7 @@ where
             .flatten()
             .collect()
     }
-    pub fn compute_indirections(&self) {
+    pub fn compute_indirections(&self) -> Vec<AoristStatement> {
         let read = self.literals.read().unwrap();
         let all_uuids = read
             .values()
@@ -84,6 +84,7 @@ where
             })
             .collect();
 
+        let mut assignments: Vec<AoristStatement> = Vec::new();
         for (_k, v) in read.iter() {
             let mut write = v.write().unwrap();
             if all_uuids.len() > 1 {
@@ -100,7 +101,13 @@ where
                             let owner = ArgType::SimpleIdentifier(SimpleIdentifier::new_wrapped(
                                 proposed_name,
                             ));
-                            write.set_owner(owner);
+                            write.set_owner(owner.clone());
+                            assignments.push(AoristStatement::Assign(
+                                owner.clone(),
+                                ArgType::StringLiteral(StringLiteral::new_wrapped(
+                                    write.value().clone(),
+                                )),
+                            ));
                         }
                     }
                 } else if num_objects_covered == 1 {
@@ -108,6 +115,7 @@ where
             }
         }
         drop(read);
+        assignments
     }
     pub fn get_statements(
         &'a self,
@@ -116,7 +124,8 @@ where
         LinkedHashSet<String>,
         BTreeSet<Import>,
     ) {
-        self.compute_indirections();
+        let indirection_assignments = self.compute_indirections();
+
         let preambles_and_statements = self
             .members
             .iter()
@@ -133,10 +142,9 @@ where
             .flatten()
             .collect::<BTreeSet<Import>>();
         (
-            preambles_and_statements
+            indirection_assignments
                 .into_iter()
-                .map(|x| x.0)
-                .flatten()
+                .chain(preambles_and_statements.into_iter().map(|x| x.0).flatten())
                 .collect::<Vec<_>>(),
             preambles,
             imports,

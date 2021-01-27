@@ -1,6 +1,6 @@
 use crate::constraint::{
     AoristStatement, ArgType, BigIntLiteral, BooleanLiteral, Call, Dict, Formatted, Import, List,
-    SimpleIdentifier, StringLiteral, PythonNone,
+    PythonNone, SimpleIdentifier, StringLiteral,
 };
 use crate::etl_singleton::ETLSingleton;
 use aorist_primitives::Dialect;
@@ -39,9 +39,7 @@ impl ETLSingleton for AirflowSingleton {
         }
     }
     fn get_flow_imports() -> Vec<Import> {
-        vec![
-            Import::FromImport("airflow".to_string(), "DAG".to_string()),
-        ]
+        vec![Import::FromImport("airflow".to_string(), "DAG".to_string())]
     }
     /// Takes a set of statements and mutates them so as make a valid ETL flow
     fn build_flow(mut statements: Vec<Statement>, location: Location) -> Vec<Statement> {
@@ -108,9 +106,9 @@ impl ETLSingleton for AirflowSingleton {
         );
         let dag_call = ArgType::Call(Call::new_wrapped(
             ArgType::SimpleIdentifier(SimpleIdentifier::new_wrapped("DAG".to_string())),
-            vec![ArgType::StringLiteral(
-                StringLiteral::new_wrapped("flow".to_string()),
-            )],
+            vec![ArgType::StringLiteral(StringLiteral::new_wrapped(
+                "flow".to_string(),
+            ))],
             kwargs,
         ));
         let dag_call_assign = AoristStatement::Assign(dag, dag_call);
