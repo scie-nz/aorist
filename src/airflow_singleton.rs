@@ -36,21 +36,13 @@ impl ETLSingleton for AirflowSingleton {
         }
     }
     fn get_preamble(&self) -> Vec<String> {
-        let mut preambles = match self.dialect {
+        let preambles = match self.dialect {
             Some(Dialect::Python(_)) => match self.preamble {
                 Some(ref p) => vec![p.clone()],
                 None => Vec::new(),
             },
             _ => Vec::new(),
         };
-        let (import, operator) = match self.dialect {
-            Some(Dialect::Python(_)) => ("airflow.operators.python_operator", "PythonOperator"),
-            Some(Dialect::Bash(_)) | Some(Dialect::Presto(_)) | Some(Dialect::R(_)) => {
-                ("airflow.operators.bash_operator", "BashOperator")
-            }
-            None => ("airflow.operators.dummy_operator", "DummyOperator"),
-        };
-        preambles.push(format!("from {} import {}", import, operator).to_string());
         preambles
     }
     fn get_dialect(&self) -> Option<Dialect> {

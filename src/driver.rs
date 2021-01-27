@@ -1,7 +1,7 @@
 use crate::code_block::CodeBlock;
 use crate::concept::{Concept, ConceptAncestry};
 use crate::constraint::{
-    AoristConstraint, AoristStatement, Constraint, Import, LiteralsMap, ParameterTuple,
+    AoristConstraint, AoristStatement, Constraint, Import, LiteralsMap, ParameterTuple, Preamble,
 };
 use crate::constraint_block::ConstraintBlock;
 use crate::constraint_state::ConstraintState;
@@ -12,8 +12,8 @@ use crate::python::PythonProgram;
 use aorist_primitives::{Bash, Dialect, Presto, Python};
 use inflector::cases::snakecase::to_snake_case;
 use linked_hash_set::LinkedHashSet;
-use rustpython_parser::ast::Location;
-use std::collections::{BTreeSet, HashMap, HashSet};
+use rustpython_parser::ast::{Located, Location, StatementType};
+use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
 use std::marker::PhantomData;
 use std::sync::{Arc, RwLock, RwLockReadGuard};
 use uuid::Uuid;
@@ -439,25 +439,61 @@ where
             .map(|x| x.clone().1.into_iter())
             .flatten()
             .collect::<LinkedHashSet<String>>();
+
+        let processed_preambles = preambles
+            .into_iter()
+            .map(|x| Preamble::new(x))
+            .collect::<Vec<_>>();
+
+        let preamble_module_imports = processed_preambles
+            .iter()
+            .map(|x| x.imports.clone().into_iter())
+            .flatten()
+            .collect::<BTreeSet<_>>();
+
+        let mut from_imports: BTreeMap<Option<String>, BTreeSet<_>> = BTreeMap::new();
+        let preamble_from_imports = processed_preambles
+            .iter()
+            .map(|x| x.from_imports.clone().into_iter())
+            .flatten();
+        for (module, names) in preamble_from_imports {
+            for name in names {
+                from_imports
+                    .entry(module.clone())
+                    .or_insert(BTreeSet::new())
+                    .insert(name);
+            }
+        }
+        let preamble_imports = preamble_module_imports
+            .into_iter()
+            .map(|x| Located {
+                location,
+                node: StatementType::Import { names: vec![x.0] },
+            })
+            .chain(from_imports.into_iter().map(|(module, names)| Located {
+                location,
+                node: StatementType::ImportFrom {
+                    level: 0,
+                    module,
+                    names: names.into_iter().map(|x| x.0).collect(),
+                },
+            }))
+            .collect::<Vec<_>>();
+
         let imports = statements_and_preambles
             .iter()
             .map(|x| x.2.clone().into_iter())
             .flatten()
             .collect::<BTreeSet<Import>>();
-        let statements: Vec<AoristStatement> = imports
-            .into_iter()
-            .map(|x| AoristStatement::Import(x))
-            .chain(statements_and_preambles.into_iter().map(|x| x.0).flatten())
-            .collect();
-        for preamble in preambles {
-            println!("{}\n", preamble);
-        }
+        let statements: Vec<AoristStatement> = statements_and_preambles.into_iter().map(|x| x.0).flatten().collect();
         println!(
             "{}",
             PythonProgram::render_suite(
-                statements
+                preamble_imports
                     .into_iter()
-                    .map(|x| x.statement(location))
+                    .chain(imports.into_iter().map(|x| AoristStatement::Import(x).statement(location)))
+                    .chain(processed_preambles.into_iter().map(|x| x.statement()))
+                    .chain(statements.into_iter().map(|x| x.statement(location)))
                     .collect()
             )
             .unwrap()

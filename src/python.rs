@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 use rustpython_parser::ast::{
-    Expression, ExpressionType, ImportSymbol, Keyword, Statement, StatementType, StringGroup, Suite,
-    Varargs, Parameters, Parameter,
+    BooleanOperator, Expression, ExpressionType, ImportSymbol, Keyword, Operator, Parameter,
+    Parameters, Statement, StatementType, StringGroup, Suite, Varargs,
 };
 
 pub struct PythonProgram {}
@@ -103,6 +103,49 @@ impl PythonProgram {
                 )
                 .to_string())
             }
+            ExpressionType::BoolOp { op, values } => match values.len() {
+                2 => {
+                    let mut it = values.into_iter();
+                    let a = it.next().unwrap();
+                    let b = it.next().unwrap();
+                    let op_fmt = match op {
+                        BooleanOperator::And => "and",
+                        BooleanOperator::Or => "or",
+                    };
+                    Ok(format!(
+                        "{} {} {}",
+                        Self::render_expr(&a)?,
+                        op_fmt,
+                        Self::render_expr(&b)?
+                    )
+                    .to_string())
+                }
+                _ => Err(format!("Incorrect number of arguments to boolean operator").to_string()),
+            },
+            ExpressionType::Binop { a, op, b } => {
+                let op_fmt = match op {
+                    Operator::Add => "+",
+                    Operator::Sub => "-",
+                    Operator::Mult => "*",
+                    Operator::MatMult => "@",
+                    Operator::Div => "/",
+                    Operator::Mod => "%",
+                    Operator::Pow => "**",
+                    Operator::LShift => "<<",
+                    Operator::RShift => ">>",
+                    Operator::BitOr => "|",
+                    Operator::BitXor => "^",
+                    Operator::BitAnd => "&",
+                    Operator::FloorDiv => "//",
+                };
+                Ok(format!(
+                    "{} {} {}",
+                    Self::render_expr(&*a)?,
+                    op_fmt,
+                    Self::render_expr(&*b)?
+                )
+                .to_string())
+            }
             _ => Err(format!("Unknown argument: {}", Expression::name(&expr))),
         }
     }
@@ -149,9 +192,14 @@ impl PythonProgram {
         Ok(parameter.arg.clone())
     }
     fn render_parameters(parameters: Parameters) -> Result<String, String> {
-        if parameters.posonlyargs_count != parameters.args.len() {
-            return Err("Incorrect number of arguments".to_string());
-        }
+        /*if parameters.posonlyargs_count != parameters.args.len() {
+            return Err(format!(
+                "Incorrect number of arguments {} {}",
+                parameters.posonlyargs_count,
+                parameters.args.len()
+            )
+            .to_string());
+        }*/
         if parameters.vararg != Varargs::None || parameters.kwarg != Varargs::None {
             return Err("Don't know what to do with varargs yet".to_string());
         }

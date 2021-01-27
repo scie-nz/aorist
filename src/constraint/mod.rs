@@ -11,7 +11,8 @@ use rustpython_parser::ast::{
 };
 use rustpython_parser::parser;
 use serde::{Deserialize, Serialize};
-use std::collections::{BTreeSet, HashMap, VecDeque};
+use std::cmp::Ordering;
+use std::collections::{BTreeMap, BTreeSet, HashMap, VecDeque};
 use std::fmt;
 use std::hash::{Hash, Hasher};
 use std::sync::{Arc, RwLock};
@@ -355,15 +356,74 @@ impl ArgType {
     }
 }
 
-#[derive(Clone, Hash, PartialEq, Eq, PartialOrd, Ord)]
+pub struct AoristImportSymbol(pub ImportSymbol);
+impl Clone for AoristImportSymbol {
+    fn clone(&self) -> Self {
+        Self(ImportSymbol {
+            symbol: self.0.symbol.clone(),
+            alias: self.0.alias.clone(),
+        })
+    }
+}
+impl PartialEq for AoristImportSymbol {
+    fn eq(&self, other: &Self) -> bool {
+        self.0.symbol == other.0.symbol && self.0.alias == other.0.alias
+    }
+}
+impl Eq for AoristImportSymbol {}
+impl PartialOrd for AoristImportSymbol {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        let cmp = self.0.symbol.partial_cmp(&other.0.symbol);
+        match cmp {
+            Some(Ordering::Equal) => self.0.alias.partial_cmp(&other.0.alias),
+            _ => cmp,
+        }
+    }
+}
+impl Ord for AoristImportSymbol {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.partial_cmp(other).unwrap()
+    }
+}
+
 pub struct Preamble {
-    body: String,
+    pub imports: Vec<AoristImportSymbol>,
+    pub from_imports: BTreeMap<Option<String>, Vec<AoristImportSymbol>>,
+    statement: Statement,
 }
 impl Preamble {
-    pub fn statement(&self) -> Statement {
-        let program = parser::parse_program(&self.body).unwrap();
-        assert_eq!(program.statements.len(), 1);
-        program.statements.into_iter().next().unwrap()
+    pub fn new(body: String) -> Preamble {
+        let program = parser::parse_program(&body).unwrap();
+
+        let mut imports = Vec::new();
+        let mut from_imports = BTreeMap::new();
+        let mut others = Vec::new();
+
+        for statement in program.statements {
+            if let StatementType::Import { names } = statement.node {
+                for name in names {
+                    imports.push(AoristImportSymbol(name));
+                }
+            } else if let StatementType::ImportFrom { module, names, .. } = statement.node {
+                for name in names {
+                    from_imports
+                        .entry(module.clone())
+                        .or_insert(Vec::new())
+                        .push(AoristImportSymbol(name));
+                }
+            } else {
+                others.push(statement);
+            }
+        }
+        assert_eq!(others.len(), 1);
+        Self {
+            imports,
+            from_imports,
+            statement: others.into_iter().next().unwrap(),
+        }
+    }
+    pub fn statement(self) -> Statement {
+        self.statement
     }
 }
 
