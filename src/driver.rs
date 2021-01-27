@@ -484,6 +484,7 @@ where
             .iter()
             .map(|x| x.2.clone().into_iter())
             .flatten()
+            .chain(T::get_flow_imports().into_iter())
             .collect::<BTreeSet<Import>>();
         let statements: Vec<AoristStatement> = statements_and_preambles
             .into_iter()

@@ -38,6 +38,11 @@ impl ETLSingleton for AirflowSingleton {
             )],
         }
     }
+    fn get_flow_imports() -> Vec<Import> {
+        vec![
+            Import::FromImport("airflow".to_string(), "DAG".to_string()),
+        ]
+    }
     /// Takes a set of statements and mutates them so as make a valid ETL flow
     fn build_flow(mut statements: Vec<Statement>, location: Location) -> Vec<Statement> {
         let default_args =

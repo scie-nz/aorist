@@ -36,6 +36,9 @@ impl ETLSingleton for PrefectSingleton {
             )],
         }
     }
+    fn get_flow_imports() -> Vec<Import> {
+        Vec::new()
+    }
     fn build_flow(statements: Vec<Statement>, _location: Location) -> Vec<Statement> {
         statements
     }
