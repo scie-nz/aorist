@@ -5,9 +5,10 @@ use aorist_primitives::{
 };
 use linked_hash_map::LinkedHashMap;
 use maplit::hashmap;
+use num_bigint::BigInt;
 use rustpython_parser::ast::{
-    Expression, ExpressionType, ImportSymbol, Keyword, Located, Location, Statement, StatementType,
-    StringGroup, Number,
+    Expression, ExpressionType, ImportSymbol, Keyword, Located, Location, Number, Statement,
+    StatementType, StringGroup,
 };
 use rustpython_parser::parser;
 use serde::{Deserialize, Serialize};
@@ -16,7 +17,6 @@ use std::collections::{BTreeMap, BTreeSet, HashMap, VecDeque};
 use std::fmt;
 use std::hash::{Hash, Hasher};
 use std::sync::{Arc, RwLock};
-use num_bigint::BigInt;
 
 #[derive(Hash, PartialEq, Eq)]
 pub struct StringLiteral {
@@ -297,11 +297,21 @@ define_ast_node!(
     |location: Location, ident: &BigIntLiteral| Located {
         location,
         node: ExpressionType::Number {
-            value: Number::Integer { value: ident.val.clone() }
+            value: Number::Integer {
+                value: ident.val.clone()
+            }
         }
     },
     |_| Vec::new(),
     val: BigInt,
+);
+define_ast_node!(
+    PythonNone,
+    |location: Location, _ident: &PythonNone| Located {
+        location,
+        node: ExpressionType::None,
+    },
+    |_| Vec::new(),
 );
 
 register_ast_nodes!(
@@ -317,6 +327,7 @@ register_ast_nodes!(
     Tuple,
     BooleanLiteral,
     BigIntLiteral,
+    PythonNone,
 );
 impl PartialEq for ArgType {
     fn eq(&self, other: &Self) -> bool {
@@ -343,6 +354,7 @@ impl PartialEq for ArgType {
             (ArgType::BooleanLiteral(v1), ArgType::BooleanLiteral(v2)) => {
                 v1.read().unwrap().eq(&v2.read().unwrap())
             }
+            (ArgType::PythonNone(_), ArgType::PythonNone(_)) => true,
             (ArgType::BigIntLiteral(v1), ArgType::BigIntLiteral(v2)) => {
                 v1.read().unwrap().eq(&v2.read().unwrap())
             }
@@ -370,6 +382,7 @@ impl Hash for ArgType {
             ArgType::Tuple(ref tuple) => tuple.read().unwrap().hash(state),
             ArgType::BooleanLiteral(ref l) => l.read().unwrap().hash(state),
             ArgType::BigIntLiteral(ref l) => l.read().unwrap().hash(state),
+            ArgType::PythonNone(ref l) => l.read().unwrap().hash(state),
         }
     }
 }
@@ -386,8 +399,9 @@ impl ArgType {
             ArgType::List(ref list) => list.read().unwrap().expression(location),
             ArgType::Dict(ref dict) => dict.read().unwrap().expression(location),
             ArgType::Tuple(ref tuple) => tuple.read().unwrap().expression(location),
-            ArgType::BooleanLiteral(ref tuple) => tuple.read().unwrap().expression(location),
-            ArgType::BigIntLiteral(ref tuple) => tuple.read().unwrap().expression(location),
+            ArgType::BooleanLiteral(ref l) => l.read().unwrap().expression(location),
+            ArgType::BigIntLiteral(ref l) => l.read().unwrap().expression(location),
+            ArgType::PythonNone(ref l) => l.read().unwrap().expression(location),
         }
     }
 }

@@ -501,10 +501,16 @@ where
                             .map(|x| AoristStatement::Import(x).statement(location))
                     )
                     .chain(processed_preambles.into_iter().map(|x| x.statement()))
-                    .chain(T::build_flow(
-                        statements.into_iter().map(|x| x.statement(location)).collect(),
-                        location
-                    ).into_iter())
+                    .chain(
+                        T::build_flow(
+                            statements
+                                .into_iter()
+                                .map(|x| x.statement(location))
+                                .collect(),
+                            location
+                        )
+                        .into_iter()
+                    )
                     .collect()
             )
             .unwrap()

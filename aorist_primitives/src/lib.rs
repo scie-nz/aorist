@@ -93,19 +93,19 @@ macro_rules! register_ast_nodes {
 
 #[macro_export]
 macro_rules! define_ast_node {
-    ($name:ident, $expression:expr, $descendants:expr, $($field: ident : $field_type: ty,)+) => {
+    ($name:ident, $expression:expr, $descendants:expr, $($field: ident : $field_type: ty,)*) => {
         #[derive(Hash, PartialEq, Eq, Clone)]
         pub struct $name {
             $(
                 $field: $field_type,
-            )+
+            )*
             owner: Option<ArgType>,
         }
         impl $name {
             pub fn new_wrapped($(
                 $field: $field_type,
-            )+) -> Arc<RwLock<Self>> {
-                Arc::new(RwLock::new(Self::new($($field, )+)))
+            )*) -> Arc<RwLock<Self>> {
+                Arc::new(RwLock::new(Self::new($($field, )*)))
             }
             pub fn register_object(&self, _uuid: Uuid, _tag: Option<String>) {
                 panic!(format!(
@@ -115,9 +115,9 @@ macro_rules! define_ast_node {
             }
             pub fn new($(
                 $field: $field_type,
-            )+) -> Self {
+            )*) -> Self {
                 Self {
-                    $($field,)+
+                    $($field,)*
                     owner: None,
                 }
             }
@@ -125,7 +125,7 @@ macro_rules! define_ast_node {
                 pub fn $field(&self) -> $field_type {
                     self.$field.clone()
                 }
-            )+
+            )*
             pub fn set_owner(&mut self, obj: ArgType) {
                 assert!(obj.name() == "SimpleIdentifier" || obj.name() ==
                 "Subscript");
@@ -134,7 +134,7 @@ macro_rules! define_ast_node {
             pub fn remove_owner(&mut self) {
                 self.owner = None;
             }
-            
+
             pub fn get_owner(&self) -> Option<ArgType> {
                 self.owner.clone()
             }
