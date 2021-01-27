@@ -485,15 +485,26 @@ where
             .map(|x| x.2.clone().into_iter())
             .flatten()
             .collect::<BTreeSet<Import>>();
-        let statements: Vec<AoristStatement> = statements_and_preambles.into_iter().map(|x| x.0).flatten().collect();
+        let statements: Vec<AoristStatement> = statements_and_preambles
+            .into_iter()
+            .map(|x| x.0)
+            .flatten()
+            .collect();
         println!(
             "{}",
             PythonProgram::render_suite(
                 preamble_imports
                     .into_iter()
-                    .chain(imports.into_iter().map(|x| AoristStatement::Import(x).statement(location)))
+                    .chain(
+                        imports
+                            .into_iter()
+                            .map(|x| AoristStatement::Import(x).statement(location))
+                    )
                     .chain(processed_preambles.into_iter().map(|x| x.statement()))
-                    .chain(statements.into_iter().map(|x| x.statement(location)))
+                    .chain(T::build_flow(
+                        statements.into_iter().map(|x| x.statement(location)).collect(),
+                        location
+                    ).into_iter())
                     .collect()
             )
             .unwrap()

@@ -1,6 +1,7 @@
 use crate::constraint::{AoristStatement, ArgType, Import};
 use aorist_primitives::Dialect;
 use linked_hash_map::LinkedHashMap;
+use rustpython_parser::ast::{Location, Statement};
 
 pub trait ETLSingleton {
     fn get_preamble(&self) -> Vec<String>;
@@ -23,4 +24,5 @@ pub trait ETLSingleton {
     fn get_statements(&self) -> Vec<AoristStatement>;
     fn get_type() -> String;
     fn get_imports(&self) -> Vec<Import>;
+    fn build_flow(statements: Vec<Statement>, _location: Location) -> Vec<Statement>;
 }

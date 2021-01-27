@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 use rustpython_parser::ast::{
     BooleanOperator, Expression, ExpressionType, ImportSymbol, Keyword, Operator, Parameter,
-    Parameters, Statement, StatementType, StringGroup, Suite, Varargs,
+    Parameters, Statement, StatementType, StringGroup, Suite, Varargs, Number,
 };
 
 pub struct PythonProgram {}
@@ -103,6 +103,13 @@ impl PythonProgram {
                 )
                 .to_string())
             }
+            ExpressionType::True => Ok(format!("True").to_string()),
+            ExpressionType::False => Ok(format!("False").to_string()),
+            ExpressionType::Number { value } => match value {
+                Number::Integer { value } => Ok(value.to_string()),
+                Number::Float { value } => Ok(format!("{:.}", value).to_string()),
+                Number::Complex { real, imag } => Ok(format!("{:.}+{:.}j", real, imag).to_string()),
+            },
             ExpressionType::BoolOp { op, values } => match values.len() {
                 2 => {
                     let mut it = values.into_iter();

@@ -1,9 +1,12 @@
 use crate::constraint::{
     AoristStatement, ArgType, Call, Dict, Formatted, Import, List, SimpleIdentifier, StringLiteral,
+    BigIntLiteral, BooleanLiteral,
 };
 use crate::etl_singleton::ETLSingleton;
 use aorist_primitives::Dialect;
 use linked_hash_map::LinkedHashMap;
+use rustpython_parser::ast::{Location, Statement};
+use num_bigint::{BigInt, Sign};
 
 #[derive(Clone, Hash, PartialEq, Eq)]
 pub struct AirflowSingleton {
@@ -34,6 +37,49 @@ impl ETLSingleton for AirflowSingleton {
                 "DummyOperator".to_string(),
             )],
         }
+    }
+    /// Takes a set of statements and mutates them so as make a valid ETL flow
+    fn build_flow(mut statements: Vec<Statement>, location: Location) -> Vec<Statement> {
+        let default_args =
+            ArgType::SimpleIdentifier(SimpleIdentifier::new_wrapped("default_args".to_string()));
+        let mut default_args_map: LinkedHashMap<String, ArgType> = LinkedHashMap::new();
+        default_args_map.insert(
+            "owner".to_string(),
+            ArgType::StringLiteral(StringLiteral::new_wrapped("airflow".to_string())),
+        );
+        default_args_map.insert(
+            "depends_on_past".to_string(),
+            ArgType::BooleanLiteral(BooleanLiteral::new_wrapped(false)),
+        );
+        default_args_map.insert(
+            "email".to_string(),
+            ArgType::List(List::new_wrapped(vec![ArgType::StringLiteral(StringLiteral::new_wrapped("airflow@example.com".to_string()))])),
+        );
+        default_args_map.insert(
+            "email_on_failure".to_string(),
+            ArgType::BooleanLiteral(BooleanLiteral::new_wrapped(false)),
+        );
+        default_args_map.insert(
+            "email_on_retry".to_string(),
+            ArgType::BooleanLiteral(BooleanLiteral::new_wrapped(false)),
+        );
+        default_args_map.insert(
+            "retries".to_string(),
+            ArgType::BigIntLiteral(BigIntLiteral::new_wrapped(
+                BigInt::new(Sign::Plus, vec![1]),
+            )),
+        );
+        default_args_map.insert(
+            "retry_delay".to_string(),
+            ArgType::BigIntLiteral(BigIntLiteral::new_wrapped(
+                BigInt::new(Sign::Plus, vec![300]),
+            )),
+        );
+
+        let default_args_dict = ArgType::Dict(Dict::new_wrapped(default_args_map));
+        let default_args_assign = AoristStatement::Assign(default_args, default_args_dict);
+        statements.insert(0, default_args_assign.statement(location));
+        statements
     }
     fn get_preamble(&self) -> Vec<String> {
         let preambles = match self.dialect {

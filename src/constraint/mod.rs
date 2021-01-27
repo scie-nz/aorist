@@ -7,7 +7,7 @@ use linked_hash_map::LinkedHashMap;
 use maplit::hashmap;
 use rustpython_parser::ast::{
     Expression, ExpressionType, ImportSymbol, Keyword, Located, Location, Statement, StatementType,
-    StringGroup,
+    StringGroup, Number,
 };
 use rustpython_parser::parser;
 use serde::{Deserialize, Serialize};
@@ -16,6 +16,7 @@ use std::collections::{BTreeMap, BTreeSet, HashMap, VecDeque};
 use std::fmt;
 use std::hash::{Hash, Hasher};
 use std::sync::{Arc, RwLock};
+use num_bigint::BigInt;
 
 #[derive(Hash, PartialEq, Eq)]
 pub struct StringLiteral {
@@ -279,6 +280,29 @@ define_ast_node!(
     |_| Vec::new(),
     name: String,
 );
+define_ast_node!(
+    BooleanLiteral,
+    |location: Location, x: &BooleanLiteral| Located {
+        location,
+        node: match x.val {
+            true => ExpressionType::True,
+            false => ExpressionType::False,
+        }
+    },
+    |_| Vec::new(),
+    val: bool,
+);
+define_ast_node!(
+    BigIntLiteral,
+    |location: Location, ident: &BigIntLiteral| Located {
+        location,
+        node: ExpressionType::Number {
+            value: Number::Integer { value: ident.val.clone() }
+        }
+    },
+    |_| Vec::new(),
+    val: BigInt,
+);
 
 register_ast_nodes!(
     ArgType,
@@ -291,6 +315,8 @@ register_ast_nodes!(
     List,
     Dict,
     Tuple,
+    BooleanLiteral,
+    BigIntLiteral,
 );
 impl PartialEq for ArgType {
     fn eq(&self, other: &Self) -> bool {
@@ -314,6 +340,12 @@ impl PartialEq for ArgType {
             (ArgType::List(v1), ArgType::List(v2)) => v1.read().unwrap().eq(&v2.read().unwrap()),
             (ArgType::Dict(v1), ArgType::Dict(v2)) => v1.read().unwrap().eq(&v2.read().unwrap()),
             (ArgType::Tuple(v1), ArgType::Tuple(v2)) => v1.read().unwrap().eq(&v2.read().unwrap()),
+            (ArgType::BooleanLiteral(v1), ArgType::BooleanLiteral(v2)) => {
+                v1.read().unwrap().eq(&v2.read().unwrap())
+            }
+            (ArgType::BigIntLiteral(v1), ArgType::BigIntLiteral(v2)) => {
+                v1.read().unwrap().eq(&v2.read().unwrap())
+            }
             _ => {
                 if self.name() == other.name() {
                     panic!(format!("PartialEq not implemented for {}", self.name()))
@@ -336,6 +368,8 @@ impl Hash for ArgType {
             ArgType::List(ref list) => list.read().unwrap().hash(state),
             ArgType::Dict(ref dict) => dict.read().unwrap().hash(state),
             ArgType::Tuple(ref tuple) => tuple.read().unwrap().hash(state),
+            ArgType::BooleanLiteral(ref l) => l.read().unwrap().hash(state),
+            ArgType::BigIntLiteral(ref l) => l.read().unwrap().hash(state),
         }
     }
 }
@@ -352,6 +386,8 @@ impl ArgType {
             ArgType::List(ref list) => list.read().unwrap().expression(location),
             ArgType::Dict(ref dict) => dict.read().unwrap().expression(location),
             ArgType::Tuple(ref tuple) => tuple.read().unwrap().expression(location),
+            ArgType::BooleanLiteral(ref tuple) => tuple.read().unwrap().expression(location),
+            ArgType::BigIntLiteral(ref tuple) => tuple.read().unwrap().expression(location),
         }
     }
 }

@@ -4,6 +4,7 @@ use crate::constraint::{
 use crate::etl_singleton::ETLSingleton;
 use aorist_primitives::Dialect;
 use linked_hash_map::LinkedHashMap;
+use rustpython_parser::ast::{Location, Statement};
 
 #[derive(Clone, Hash, PartialEq, Eq)]
 pub struct PrefectSingleton {
@@ -34,6 +35,9 @@ impl ETLSingleton for PrefectSingleton {
                 "Constant".to_string(),
             )],
         }
+    }
+    fn build_flow(statements: Vec<Statement>, _location: Location) -> Vec<Statement> {
+        statements
     }
     fn get_preamble(&self) -> Vec<String> {
         let preambles = match self.dialect {
