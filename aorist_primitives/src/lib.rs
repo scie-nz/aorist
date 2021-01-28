@@ -434,31 +434,25 @@ macro_rules! define_constraint {
                 pub fn get_downstream_constraints_ignore_chains(&self) -> Vec<Arc<RwLock<Constraint>>> {
                     let mut downstream: Vec<Arc<RwLock<Constraint>>> = Vec::new();
                     $(
-                        if self.[<$required:snake:lower>].len() != 1 ||
-                        self.[<$required:snake:lower>].get(0).unwrap().read().unwrap().requires_program() {
-                            for arc in &self.[<$required:snake:lower>] {
-                                downstream.push(arc.clone());
-                            }
-                        } else {
-                            let mut arc: Arc<RwLock<Constraint>> =
-                            self.[<$required:snake:lower>].get(0).unwrap().clone();
-                            let mut arc_down: Vec<Arc<RwLock<Constraint>>> =
-                            arc.read().unwrap().get_downstream_constraints();
-                            while arc_down.len() == 1 &&
-                            !arc.read().unwrap().requires_program() {
-                                arc = arc_down.get(0).unwrap().clone();
-                                arc_down = arc.read().unwrap().get_downstream_constraints();
-                            }
-                            if arc_down.len() == 0 ||
-                            arc.read().unwrap().requires_program() {
-                                downstream.push(arc.clone());
-                            } else {
-                                for el in arc_down {
-                                    downstream.push(el);
-                                }
-                            }
+                        for arc in &self.[<$required:snake:lower>] {
+                            downstream.push(arc.clone());
                         }
                     )+
+                    loop {
+                        if downstream.len() != 1 {
+                            break;
+                        }
+
+                        let child = downstream.pop().unwrap();
+                        if child.read().unwrap().requires_program() {
+                            downstream.push(child);
+                            break;
+                        }
+
+                        for elem in child.read().unwrap().get_downstream_constraints_ignore_chains() {
+                            downstream.push(elem.clone());
+                        }
+                    }
                     downstream
                 }
                 pub fn new(root_uuid: Uuid,

@@ -88,7 +88,7 @@ impl ParsedDataSetup {
             for elem in constraint
                 .read()
                 .unwrap()
-                .get_downstream_constraints()
+                .get_downstream_constraints_ignore_chains()
             {
                 queue.push_back(elem.clone());
             }

@@ -7,8 +7,9 @@ use crate::object::TAoristObject;
 use aorist_primitives::Dialect;
 use inflector::cases::snakecase::to_snake_case;
 use linked_hash_map::LinkedHashMap;
+use linked_hash_set::LinkedHashSet;
 use rustpython_parser::ast::{Expression, ExpressionType, Located, Location};
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
 use uuid::Uuid;
 
@@ -18,7 +19,7 @@ pub struct ConstraintState<'a> {
     name: String,
     pub satisfied: bool,
     pub satisfied_dependencies: Vec<Arc<RwLock<ConstraintState<'a>>>>,
-    pub unsatisfied_dependencies: HashSet<(Uuid, String)>,
+    pub unsatisfied_dependencies: LinkedHashSet<(Uuid, String)>,
     constraint: Arc<RwLock<Constraint>>,
     root: Concept<'a>,
     // these are concept ancestors
@@ -221,10 +222,10 @@ impl<'a> ConstraintState<'a> {
             .unwrap()
             .clone();
         let dependencies = x
-            .get_downstream_constraints()
+            .get_downstream_constraints_ignore_chains()
             .iter()
             .map(|x| (x.read().unwrap().get_uuid(), x.read().unwrap().root.clone()))
-            .collect::<HashSet<_>>();
+            .collect::<LinkedHashSet<_>>();
         let ancestors = concept_ancestors
             .get(&(root_uuid, x.root.clone()))
             .unwrap()
