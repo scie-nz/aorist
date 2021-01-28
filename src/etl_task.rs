@@ -336,7 +336,10 @@ where
         );
         let statements = singleton.get_statements();
         let items_call = ArgType::Call(Call::new_wrapped(
-            ArgType::Attribute(Attribute::new_wrapped(dict.clone(), "items".to_string())),
+            ArgType::Attribute(Attribute::new_wrapped(
+                self.params_dict_name.clone(),
+                "items".to_string(),
+            )),
             Vec::new(),
             LinkedHashMap::new(),
         ));

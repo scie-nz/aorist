@@ -24,7 +24,7 @@ impl<'a, T> CodeBlock<'a, T>
 where
     T: ETLSingleton,
 {
-    fn get_constraints(&'a self) -> &Vec<Arc<RwLock<ConstraintState<'a>>>> {
+    pub fn get_constraints(&'a self) -> &Vec<Arc<RwLock<ConstraintState<'a>>>> {
         &self.members
     }
     pub fn new(

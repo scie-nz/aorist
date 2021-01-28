@@ -1,6 +1,6 @@
 use crate::constraint::{
-    AoristStatement, ArgType, BigIntLiteral, BooleanLiteral, Call, Dict, Formatted, Import, List,
-    PythonNone, SimpleIdentifier, StringLiteral,
+    AoristStatement, ArgType, Attribute, BigIntLiteral, BooleanLiteral, Call, Dict, Formatted,
+    Import, List, PythonNone, SimpleIdentifier, StringLiteral,
 };
 use crate::etl_singleton::ETLSingleton;
 use aorist_primitives::Dialect;
@@ -39,7 +39,10 @@ impl ETLSingleton for AirflowSingleton {
         }
     }
     fn get_flow_imports() -> Vec<Import> {
-        vec![Import::FromImport("airflow".to_string(), "DAG".to_string())]
+        vec![
+            Import::FromImport("airflow".to_string(), "DAG".to_string()),
+            Import::FromImport("datetime".to_string(), "datetime".to_string()),
+        ]
     }
     /// Takes a set of statements and mutates them so as make a valid ETL flow
     fn build_flow(mut statements: Vec<Statement>, location: Location) -> Vec<Statement> {
@@ -99,6 +102,27 @@ impl ETLSingleton for AirflowSingleton {
             ArgType::PythonNone(PythonNone::new_wrapped()),
         );
         kwargs.insert(
+            "start_date".to_string(),
+            ArgType::Call(Call::new_wrapped(
+                ArgType::SimpleIdentifier(SimpleIdentifier::new_wrapped("datetime".to_string())),
+                vec![
+                    ArgType::BigIntLiteral(BigIntLiteral::new_wrapped(BigInt::new(
+                        Sign::Plus,
+                        vec![2021],
+                    ))),
+                    ArgType::BigIntLiteral(BigIntLiteral::new_wrapped(BigInt::new(
+                        Sign::Plus,
+                        vec![01],
+                    ))),
+                    ArgType::BigIntLiteral(BigIntLiteral::new_wrapped(BigInt::new(
+                        Sign::Plus,
+                        vec![01],
+                    ))),
+                ],
+                LinkedHashMap::new(),
+            )),
+        );
+        kwargs.insert(
             "tags".to_string(),
             ArgType::List(List::new_wrapped(vec![ArgType::StringLiteral(
                 StringLiteral::new_wrapped("aorist".to_string()),
@@ -138,10 +162,23 @@ impl ETLSingleton for AirflowSingleton {
             self.compute_task_args(),
             self.compute_task_kwargs(),
         ));
-        vec![AoristStatement::Assign(
+        let mut statements = vec![AoristStatement::Assign(
             self.task_val.clone(),
             creation_expr,
-        )]
+        )];
+        if let Some(ref dependencies) = self.dep_list {
+            statements.push(AoristStatement::Expression(ArgType::Call(
+                Call::new_wrapped(
+                    ArgType::Attribute(Attribute::new_wrapped(
+                        self.get_task_val(),
+                        "set_upstream".to_string(),
+                    )),
+                    vec![dependencies.clone()],
+                    LinkedHashMap::new(),
+                ),
+            )));
+        }
+        statements
     }
     fn new(
         task_id: ArgType,
@@ -227,16 +264,6 @@ impl ETLSingleton for AirflowSingleton {
             ArgType::SimpleIdentifier(SimpleIdentifier::new_wrapped("dag".to_string())),
         );
         kwargs.insert("task_id".to_string(), self.task_id.clone());
-        if let Some(ref dependencies) = self.dep_list {
-            if let ArgType::List(_) = dependencies {
-                kwargs.insert("dep_list".to_string(), dependencies.clone());
-            } else {
-                kwargs.insert(
-                    "dep_list".to_string(),
-                    ArgType::List(List::new_wrapped(vec![dependencies.clone()])),
-                );
-            }
-        }
         kwargs
     }
     fn compute_task_call(&self) -> ArgType {

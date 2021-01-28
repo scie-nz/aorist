@@ -1,12 +1,15 @@
 use crate::code_block::CodeBlock;
 use crate::constraint::{
-    AoristStatement, ArgType, Import, LiteralsMap, ParameterTuple, SimpleIdentifier, StringLiteral,
+    AoristStatement, ArgType, Dict, Import, LiteralsMap, ParameterTuple, SimpleIdentifier,
+    StringLiteral,
 };
 use crate::etl_singleton::ETLSingleton;
 use inflector::cases::snakecase::to_snake_case;
+use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
 use std::collections::{BTreeSet, HashMap, HashSet};
 use std::marker::PhantomData;
+use std::sync::{Arc, RwLock};
 use uuid::Uuid;
 
 pub struct ConstraintBlock<'a, T>
@@ -117,6 +120,29 @@ where
         drop(read);
         assignments
     }
+    pub fn get_task_val_assignments(&'a self) -> Vec<AoristStatement> {
+        let mut to_initialize: LinkedHashSet<SimpleIdentifier> = LinkedHashSet::new();
+        for block in &self.members {
+            for constraint in block.get_constraints() {
+                let read = constraint.read().unwrap();
+                if let ArgType::Subscript(sub) = read.get_task_val() {
+                    let read2 = sub.read().unwrap();
+                    if let ArgType::SimpleIdentifier(ident) = read2.a() {
+                        to_initialize.insert(ident.read().unwrap().clone());
+                    }
+                }
+            }
+        }
+        to_initialize
+            .into_iter()
+            .map(|x| {
+                AoristStatement::Assign(
+                    ArgType::SimpleIdentifier(Arc::new(RwLock::new(x))),
+                    ArgType::Dict(Dict::new_wrapped(LinkedHashMap::new())),
+                )
+            })
+            .collect()
+    }
     pub fn get_statements(
         &'a self,
     ) -> (
@@ -144,6 +170,7 @@ where
         (
             indirection_assignments
                 .into_iter()
+                .chain(self.get_task_val_assignments().into_iter())
                 .chain(preambles_and_statements.into_iter().map(|x| x.0).flatten())
                 .collect::<Vec<_>>(),
             preambles,
