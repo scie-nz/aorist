@@ -33,6 +33,9 @@ pub struct ConstraintState<'a> {
 }
 
 impl<'a> ConstraintState<'a> {
+    pub fn requires_program(&self) -> bool {
+        self.constraint.read().unwrap().requires_program()
+    }
     pub fn get_dep_ident(&self, location: Location) -> Expression {
         Located {
             location,

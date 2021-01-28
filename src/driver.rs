@@ -107,7 +107,7 @@ where
             HashMap<(Uuid, String), Arc<RwLock<ConstraintState<'a>>>>,
         ),
     > {
-        let raw_unsatisfied_constraints: HashMap<(Uuid, String), Arc<RwLock<ConstraintState<'a>>>> =
+        let mut raw_unsatisfied_constraints: HashMap<(Uuid, String), Arc<RwLock<ConstraintState<'a>>>> =
             constraints
                 .iter()
                 .map(|(k, rw)| {
@@ -122,6 +122,7 @@ where
                 })
                 .collect();
 
+        /* Remove redundant dependencies */
         // constraint key => constraint key dependency on it
         let mut changes_made = true;
         while changes_made {
@@ -161,13 +162,40 @@ where
                                     changes_made = true;
                                 }
                                 let dep_constraint = raw_unsatisfied_constraints.get(&dep).unwrap();
-                                //println!("Changes made: {} -> {} ({})", write.get_name(), elem.read().unwrap().get_name(), dep_constraint.read().unwrap().get_name());
                             }
                         }
                         visits.insert(dep.clone(), key.clone());
                         queue.push_back((dep, dep_constraint));
                     }
                 }
+            }
+        }
+        /* Remove dangling dummy tasks */
+        let mut changes_made = true;
+        while changes_made {
+            changes_made = false;
+            let dangling = raw_unsatisfied_constraints
+                .iter()
+                .filter(|(k, v)| v.read().unwrap().unsatisfied_dependencies.len() == 0 && !v.read().unwrap().requires_program())
+                .map(|(k, _)| k.clone()).collect::<Vec<_>>();
+            let mut reverse_dependencies: LinkedHashMap<(Uuid, String), Vec<(Uuid, String)>> =
+                LinkedHashMap::new();
+            for (k, v) in raw_unsatisfied_constraints.iter() {
+                for dep in v.read().unwrap().unsatisfied_dependencies.iter() {
+                    reverse_dependencies
+                        .entry(dep.clone())
+                        .or_insert(Vec::new())
+                        .push(k.clone());
+                }
+            }
+            for k in dangling {
+                assert!(raw_unsatisfied_constraints.remove(&k).is_some());
+                for rev in reverse_dependencies.get(&k).unwrap() {
+                    assert!(
+                        raw_unsatisfied_constraints.get(rev).unwrap().write().unwrap().unsatisfied_dependencies.remove(&k)
+                    );
+                }
+                changes_made = true;
             }
         }
 
