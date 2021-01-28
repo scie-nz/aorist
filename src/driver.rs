@@ -107,20 +107,22 @@ where
             HashMap<(Uuid, String), Arc<RwLock<ConstraintState<'a>>>>,
         ),
     > {
-        let mut raw_unsatisfied_constraints: HashMap<(Uuid, String), Arc<RwLock<ConstraintState<'a>>>> =
-            constraints
-                .iter()
-                .map(|(k, rw)| {
-                    (
-                        k.clone(),
-                        Arc::new(RwLock::new(ConstraintState::new(
-                            rw.clone(),
-                            concepts.clone(),
-                            ancestors,
-                        ))),
-                    )
-                })
-                .collect();
+        let mut raw_unsatisfied_constraints: HashMap<
+            (Uuid, String),
+            Arc<RwLock<ConstraintState<'a>>>,
+        > = constraints
+            .iter()
+            .map(|(k, rw)| {
+                (
+                    k.clone(),
+                    Arc::new(RwLock::new(ConstraintState::new(
+                        rw.clone(),
+                        concepts.clone(),
+                        ancestors,
+                    ))),
+                )
+            })
+            .collect();
 
         /* Remove redundant dependencies */
         // constraint key => constraint key dependency on it
@@ -140,7 +142,7 @@ where
 
             let tips = raw_unsatisfied_constraints
                 .iter()
-                .filter(|(k, v)| !reverse_dependencies.contains_key(k));
+                .filter(|(k, _v)| !reverse_dependencies.contains_key(k));
             for tip in tips {
                 let mut visits: HashMap<(Uuid, String), (Uuid, String)> = HashMap::new();
                 let mut queue: VecDeque<((Uuid, String), Arc<RwLock<_>>)> = VecDeque::new();
@@ -155,13 +157,13 @@ where
                             // this is the key of the constraint through which we have already visited
                             let prev = visits.remove(&dep).unwrap();
                             if prev != key {
-                                let prev_constraint = raw_unsatisfied_constraints.get(&prev).unwrap();
+                                let prev_constraint =
+                                    raw_unsatisfied_constraints.get(&prev).unwrap();
                                 let mut write = prev_constraint.write().unwrap();
                                 if write.get_name() != elem.read().unwrap().get_name() {
                                     assert!(write.unsatisfied_dependencies.remove(&dep));
                                     changes_made = true;
                                 }
-                                let dep_constraint = raw_unsatisfied_constraints.get(&dep).unwrap();
                             }
                         }
                         visits.insert(dep.clone(), key.clone());
@@ -176,8 +178,12 @@ where
             changes_made = false;
             let dangling = raw_unsatisfied_constraints
                 .iter()
-                .filter(|(k, v)| v.read().unwrap().unsatisfied_dependencies.len() == 0 && !v.read().unwrap().requires_program())
-                .map(|(k, _)| k.clone()).collect::<Vec<_>>();
+                .filter(|(_k, v)| {
+                    v.read().unwrap().unsatisfied_dependencies.len() == 0
+                        && !v.read().unwrap().requires_program()
+                })
+                .map(|(k, _)| k.clone())
+                .collect::<Vec<_>>();
             let mut reverse_dependencies: LinkedHashMap<(Uuid, String), Vec<(Uuid, String)>> =
                 LinkedHashMap::new();
             for (k, v) in raw_unsatisfied_constraints.iter() {
@@ -191,11 +197,48 @@ where
             for k in dangling {
                 assert!(raw_unsatisfied_constraints.remove(&k).is_some());
                 for rev in reverse_dependencies.get(&k).unwrap() {
-                    assert!(
-                        raw_unsatisfied_constraints.get(rev).unwrap().write().unwrap().unsatisfied_dependencies.remove(&k)
-                    );
+                    assert!(raw_unsatisfied_constraints
+                        .get(rev)
+                        .unwrap()
+                        .write()
+                        .unwrap()
+                        .unsatisfied_dependencies
+                        .remove(&k));
                 }
                 changes_made = true;
+            }
+        }
+        /* Remove superfluous dummy tasks */
+        loop {
+            let superfluous = raw_unsatisfied_constraints.iter().filter(|(_k, v)| {
+                v.read().unwrap().unsatisfied_dependencies.len() == 1
+                    && !v.read().unwrap().requires_program()
+            }).map(|(k, _)| k.clone()).collect::<Vec<_>>();
+            if let Some(elem) = superfluous.into_iter().next() {
+                let mut reverse_dependencies: LinkedHashMap<(Uuid, String), Vec<(Uuid, String)>> =
+                    LinkedHashMap::new();
+                for (k, v) in raw_unsatisfied_constraints.iter() {
+                    for dep in v.read().unwrap().unsatisfied_dependencies.iter() {
+                        reverse_dependencies
+                            .entry(dep.clone())
+                            .or_insert(Vec::new())
+                            .push(k.clone());
+                    }
+                }
+                let arc = raw_unsatisfied_constraints.remove(&elem).unwrap();
+                let dep = arc.read().unwrap().unsatisfied_dependencies.iter().next().unwrap().clone();
+
+                for rev in reverse_dependencies.get(&elem).unwrap() {
+                    let mut write = raw_unsatisfied_constraints
+                        .get(rev)
+                        .unwrap()
+                        .write()
+                        .unwrap();
+                    assert!(write.unsatisfied_dependencies.remove(&elem));
+                    write.unsatisfied_dependencies.insert(dep.clone());
+                }
+            } else {
+                break;
             }
         }
 
