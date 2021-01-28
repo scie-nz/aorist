@@ -11,9 +11,10 @@ use crate::object::TAoristObject;
 use crate::python::PythonProgram;
 use aorist_primitives::{Bash, Dialect, Presto, Python};
 use inflector::cases::snakecase::to_snake_case;
+use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
 use rustpython_parser::ast::{Located, Location, StatementType};
-use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
+use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet, VecDeque};
 use std::marker::PhantomData;
 use std::sync::{Arc, RwLock, RwLockReadGuard};
 use uuid::Uuid;
@@ -120,6 +121,56 @@ where
                     )
                 })
                 .collect();
+
+        // constraint key => constraint key dependency on it
+        let mut changes_made = true;
+        while changes_made {
+            changes_made = false;
+            let mut reverse_dependencies: LinkedHashMap<(Uuid, String), Vec<(Uuid, String)>> =
+                LinkedHashMap::new();
+            for (k, v) in raw_unsatisfied_constraints.iter() {
+                for dep in v.read().unwrap().unsatisfied_dependencies.iter() {
+                    reverse_dependencies
+                        .entry(dep.clone())
+                        .or_insert(Vec::new())
+                        .push(k.clone());
+                }
+            }
+
+            let tips = raw_unsatisfied_constraints
+                .iter()
+                .filter(|(k, v)| !reverse_dependencies.contains_key(k));
+            for tip in tips {
+                let mut visits: HashMap<(Uuid, String), (Uuid, String)> = HashMap::new();
+                let mut queue: VecDeque<((Uuid, String), Arc<RwLock<_>>)> = VecDeque::new();
+                queue.push_back((tip.0.clone(), tip.1.clone()));
+                while queue.len() > 0 {
+                    let (key, elem) = queue.pop_front().unwrap();
+                    let new_deps = elem.read().unwrap().unsatisfied_dependencies.clone();
+                    for dep in new_deps {
+                        let dep_constraint = raw_unsatisfied_constraints.get(&dep).unwrap().clone();
+                        // we have already visited this dependency
+                        if visits.contains_key(&dep) {
+                            // this is the key of the constraint through which we have already visited
+                            let prev = visits.remove(&dep).unwrap();
+                            if prev != key {
+                                let prev_constraint = raw_unsatisfied_constraints.get(&prev).unwrap();
+                                let mut write = prev_constraint.write().unwrap();
+                                if write.get_name() != elem.read().unwrap().get_name() {
+                                    assert!(write.unsatisfied_dependencies.remove(&dep));
+                                    changes_made = true;
+                                }
+                                let dep_constraint = raw_unsatisfied_constraints.get(&dep).unwrap();
+                                //println!("Changes made: {} -> {} ({})", write.get_name(), elem.read().unwrap().get_name(), dep_constraint.read().unwrap().get_name());
+                            }
+                        }
+                        visits.insert(dep.clone(), key.clone());
+                        queue.push_back((dep, dep_constraint));
+                    }
+                }
+            }
+        }
+
         let mut unsatisfied_constraints: HashMap<
             String,
             (
@@ -139,6 +190,7 @@ where
                 .1
                 .insert((uuid, root_type), rw);
         }
+
         unsatisfied_constraints
     }
     pub fn new(data_setup: &'a ParsedDataSetup) -> Driver<'a, T> {
@@ -263,7 +315,7 @@ where
                     .unwrap();
                 let mut write = rw.write().unwrap();
                 write.satisfied_dependencies.push(state.clone());
-                write.unsatisfied_dependencies.remove(&uuid);
+                assert!(write.unsatisfied_dependencies.remove(&uuid));
                 drop(write);
             }
         }
