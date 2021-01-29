@@ -20,6 +20,7 @@ trace_macros = []
 [lib]
 name = "lib"
 path = "src/lib.rs"
+crate-type = ["cdylib"]
 
 [dependencies.thiserror]
 version = "^1.0"
@@ -78,6 +79,7 @@ linked-hash-map = "0.5.3"
 serde_closure = "0.3.2"
 linked_hash_set = "0.1.4"
 num-bigint = "0.3.1"
+cpython = {version = "0.5.2", features = ["extension-module"]}
 
 [build-dependencies]
 aorist_util = {path = "./aorist_util"}
@@ -88,6 +90,3 @@ serde_yaml = "0.8"
 indoc = "1.0.3"
 Inflector = {version = "0.11.4"}
 
-[[bin]]
-name = "main"
-path = "src/main.rs"

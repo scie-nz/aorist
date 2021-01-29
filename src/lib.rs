@@ -1,4 +1,7 @@
-#![feature(box_patterns)]
+extern crate cpython;
+
+use cpython::{PyResult, Python, py_module_initializer, py_fn};
+
 pub mod access_policy;
 pub mod airflow_singleton;
 pub mod asset;
@@ -24,7 +27,6 @@ pub mod location;
 pub mod object;
 pub mod prefect_singleton;
 pub mod python;
-pub mod query;
 pub mod ranger;
 pub mod role;
 pub mod role_binding;
@@ -48,3 +50,8 @@ pub use schema::{DataSchema, TabularSchema};
 pub use storage::{HiveTableStorage, RemoteStorage};
 pub use storage_setup::{RemoteImportStorageSetup, StorageSetup};
 pub use template::{DatumTemplate, IdentifierTuple, KeyedStruct};
+
+py_module_initializer!(mylib, |py, m| {
+    m.add(py, "__doc__", "Aorist Python wrapper")?;
+    Ok(())
+});

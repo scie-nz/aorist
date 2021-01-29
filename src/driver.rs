@@ -530,10 +530,10 @@ where
         // find at least one satisfiable constraint
         loop {
             let mut satisfiable = self.find_satisfiable_constraint_block();
-            if let Some((ref mut block, constraint_name)) = satisfiable {
+            if let Some((ref mut block, ref constraint_name)) = satisfiable {
                 //println!("Block has size: {}", block.len());
                 let literals = Arc::new(RwLock::new(HashMap::new()));
-                let snake_case_name = to_snake_case(&constraint_name);
+                let snake_case_name = to_snake_case(constraint_name);
                 let members = self.process_constraint_block(
                     &mut block.clone(),
                     &reverse_dependencies,
