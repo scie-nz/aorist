@@ -210,10 +210,14 @@ where
         }
         /* Remove superfluous dummy tasks */
         loop {
-            let superfluous = raw_unsatisfied_constraints.iter().filter(|(_k, v)| {
-                v.read().unwrap().unsatisfied_dependencies.len() == 1
-                    && !v.read().unwrap().requires_program()
-            }).map(|(k, _)| k.clone()).collect::<Vec<_>>();
+            let superfluous = raw_unsatisfied_constraints
+                .iter()
+                .filter(|(_k, v)| {
+                    v.read().unwrap().unsatisfied_dependencies.len() == 1
+                        && !v.read().unwrap().requires_program()
+                })
+                .map(|(k, _)| k.clone())
+                .collect::<Vec<_>>();
             if let Some(elem) = superfluous.into_iter().next() {
                 let mut reverse_dependencies: LinkedHashMap<(Uuid, String), Vec<(Uuid, String)>> =
                     LinkedHashMap::new();
@@ -226,7 +230,14 @@ where
                     }
                 }
                 let arc = raw_unsatisfied_constraints.remove(&elem).unwrap();
-                let dep = arc.read().unwrap().unsatisfied_dependencies.iter().next().unwrap().clone();
+                let dep = arc
+                    .read()
+                    .unwrap()
+                    .unsatisfied_dependencies
+                    .iter()
+                    .next()
+                    .unwrap()
+                    .clone();
 
                 for rev in reverse_dependencies.get(&elem).unwrap() {
                     let mut write = raw_unsatisfied_constraints
@@ -511,7 +522,7 @@ where
             write.set_task_name(name.replace("____", "__"));
         }
     }
-    pub fn run(&'a mut self) {
+    pub fn run(&'a mut self) -> String {
         let mut reverse_dependencies: HashMap<(Uuid, String), HashSet<(String, Uuid, String)>> =
             HashMap::new();
         for (name, (_, constraints)) in &self.unsatisfied_constraints {
@@ -531,7 +542,6 @@ where
         loop {
             let mut satisfiable = self.find_satisfiable_constraint_block();
             if let Some((ref mut block, ref constraint_name)) = satisfiable {
-                //println!("Block has size: {}", block.len());
                 let literals = Arc::new(RwLock::new(HashMap::new()));
                 let snake_case_name = to_snake_case(constraint_name);
                 let members = self.process_constraint_block(
@@ -613,32 +623,30 @@ where
             .map(|x| x.0)
             .flatten()
             .collect();
-        println!(
-            "{}",
-            PythonProgram::render_suite(
-                preamble_imports
-                    .into_iter()
-                    .chain(
-                        imports
-                            .into_iter()
-                            .map(|x| AoristStatement::Import(x).statement(location))
-                    )
-                    .chain(processed_preambles.into_iter().map(|x| x.statement()))
-                    .chain(
-                        T::build_flow(
-                            statements
-                                .into_iter()
-                                .map(|x| x.statement(location))
-                                .collect(),
-                            location
-                        )
+        let content = PythonProgram::render_suite(
+            preamble_imports
+                .into_iter()
+                .chain(
+                    imports
                         .into_iter()
+                        .map(|x| AoristStatement::Import(x).statement(location)),
+                )
+                .chain(processed_preambles.into_iter().map(|x| x.statement()))
+                .chain(
+                    T::build_flow(
+                        statements
+                            .into_iter()
+                            .map(|x| x.statement(location))
+                            .collect(),
+                        location,
                     )
-                    .collect()
-            )
-            .unwrap()
-        );
+                    .into_iter(),
+                )
+                .collect(),
+        )
+        .unwrap();
 
         assert_eq!(self.unsatisfied_constraints.len(), 0);
+        content
     }
 }

@@ -15,8 +15,8 @@ pub fn read_file(filename: &str) -> Vec<AoristObject> {
     objects
 }
 
-pub fn get_data_setup() -> ParsedDataSetup {
-    let objects = read_file("basic.yaml");
+pub fn get_data_setup(filename: &str) -> ParsedDataSetup {
+    let objects = read_file(filename);
     let v: Vec<Option<&DataSetup>> = objects
         .iter()
         .map(|x| match x {
