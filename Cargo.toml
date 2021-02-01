@@ -68,7 +68,8 @@ textwrap = {version = "0.12.1"}
 git2 = {version = "0.13.12"}
 sqlparser = {version = "0.6.1"}
 rustpython-vm = { git = "https://github.com/RustPython/RustPython" }
-rustpython-parser = { git = "https://github.com/RustPython/RustPython" }
+rustpython-parser = { version = "0.1.2" }
+
 paste = {path = "./paste"}
 maplit = {version = "1.0.2"}
 uuid = {version = "0.8.1", features = ["v4", "serde"]}
@@ -78,7 +79,7 @@ Inflector = {version = "0.11.4"}
 linked-hash-map = "0.5.3"
 serde_closure = "0.3.2"
 linked_hash_set = "0.1.4"
-num-bigint = "0.3.1"
+num-bigint = "0.2.6"
 cpython = {version = "0.5.2", features = ["extension-module"]}
 
 [build-dependencies]
