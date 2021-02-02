@@ -21,6 +21,7 @@ from aorist import (
     HiveTableStorage,
     RemoteImportStorageSetup,
     StaticDataTable,
+    Universe,
 )
 
 # hacky import since submodule imports don't work well

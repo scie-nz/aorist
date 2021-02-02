@@ -30,7 +30,6 @@ impl SingleFileLayout {
     }
 }
 
-
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone, Constrainable, FromPyObject)]
 #[serde(tag = "type")]
 pub enum FileBasedStorageLayout {

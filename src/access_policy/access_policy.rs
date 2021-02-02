@@ -6,8 +6,9 @@ use aorist_concept::Constrainable;
 use serde::{Deserialize, Serialize};
 use std::sync::{Arc, RwLock};
 use uuid::Uuid;
+use pyo3::prelude::*;
 
-#[derive(Debug, PartialEq, Serialize, Deserialize, Constrainable)]
+#[derive(Debug, PartialEq, Serialize, Deserialize, Constrainable, FromPyObject)]
 #[serde(tag = "type", content = "spec")]
 pub enum AccessPolicy {
     ApproveAccessSelector(ApproveAccessSelector),

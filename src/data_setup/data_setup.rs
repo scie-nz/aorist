@@ -1,6 +1,6 @@
 #![allow(non_snake_case)]
 use crate::constraint::Constraint;
-use crate::data_setup::parsed_data_setup::ParsedDataSetup;
+use crate::data_setup::universe::Universe;
 use crate::dataset::DataSet;
 use crate::endpoints::EndpointConfig;
 use crate::imports::local_import::LocalFileImport;
@@ -34,7 +34,7 @@ impl TAoristObject for DataSetup {
 }
 
 impl DataSetup {
-    pub fn parse(self, mut objects: Vec<AoristObject>) -> ParsedDataSetup {
+    pub fn parse(self, mut objects: Vec<AoristObject>) -> Universe {
         if let Some(imports) = self.imports {
             for import in imports {
                 for object in import.get_objects().into_iter() {
@@ -43,7 +43,7 @@ impl DataSetup {
             }
         }
 
-        let mut dataSetup = ParsedDataSetup::new(self.name.clone(), self.name, self.endpoints);
+        let mut dataSetup = Universe::new(self.name.clone(), self.name, self.endpoints);
 
         let user_names: HashSet<String> = self.users.iter().map(|x| x.clone()).collect();
         let dataset_names: HashSet<String> = self.datasets.iter().map(|x| x.clone()).collect();

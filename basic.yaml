@@ -64,7 +64,7 @@ spec:
 type: Constraint
 spec:
   name: IsConsistent
-  root: ParsedDataSetup
+  root: Universe
   requires:
     - ReplicatedDataSets
 ---
@@ -106,7 +106,7 @@ spec:
 type: Constraint
 spec:
   name: IsAudited
-  root: ParsedDataSetup
+  root: Universe
   requires:
     - IsAuditedTable
 ---

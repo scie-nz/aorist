@@ -3,7 +3,7 @@
 type: Constraint
 spec:
   name: IsUseful
-  root: ParsedDataSetup
+  root: Universe
   requires:
     - IsConsistent
     - ReplicatedDatasets
@@ -14,7 +14,7 @@ spec:
 type: Constraint
 spec:
   name: IsLawful
-  root: ParsedDataSetup
+  root: Universe
   requires:
     - IsConsistent
     - OldPIIDeleted
@@ -24,7 +24,7 @@ spec:
 type: Constraint
 spec:
   name: IsNotEvil
-  root: ParsedDataSetup
+  root: Universe
   requires:
     - ModelsAreExplainable
     - ModelsAreNotRacist
@@ -32,7 +32,7 @@ spec:
 type: Constraint
 spec:
   name: IsSecure
-  root: ParsedDataSetup
+  root: Universe
   requires:
     - UsersAreNotPwned
     - MinimalPermissionsEnforced
@@ -40,7 +40,7 @@ spec:
 type: Constraint
 spec:
   name: IsConsistent
-  root: ParsedDataSetup
+  root: Universe
   requires:
     - ReplicatedDataSets
     - InstantiatedUsers

@@ -1,5 +1,5 @@
 pub mod data_setup;
-pub mod parsed_data_setup;
+pub mod universe;
 
 pub use data_setup::DataSetup;
-pub use parsed_data_setup::ParsedDataSetup;
+pub use universe::Universe;

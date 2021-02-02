@@ -5,7 +5,7 @@ use crate::constraint::{
 };
 use crate::constraint_block::ConstraintBlock;
 use crate::constraint_state::ConstraintState;
-use crate::data_setup::ParsedDataSetup;
+use crate::data_setup::Universe;
 use crate::etl_singleton::ETLSingleton;
 use crate::object::TAoristObject;
 use crate::python::PythonProgram;
@@ -23,7 +23,7 @@ pub struct Driver<'a, T>
 where
     T: ETLSingleton,
 {
-    _data_setup: &'a ParsedDataSetup,
+    _data_setup: &'a Universe,
     pub concepts: Arc<RwLock<HashMap<(Uuid, String), Concept<'a>>>>,
     constraints: HashMap<(Uuid, String), Arc<RwLock<Constraint>>>,
     satisfied_constraints: HashMap<(Uuid, String), Arc<RwLock<ConstraintState<'a>>>>,
@@ -45,23 +45,23 @@ where
     T: ETLSingleton,
 {
     fn compute_all_ancestors(
-        parsed_data_setup: Concept<'a>,
+        universe: Concept<'a>,
         concept_map: &HashMap<(Uuid, String), Concept<'a>>,
     ) -> HashMap<(Uuid, String), Vec<(Uuid, String, Option<String>, usize)>> {
         let mut ancestors: HashMap<(Uuid, String), Vec<(Uuid, String, Option<String>, usize)>> =
             HashMap::new();
         let mut frontier: Vec<(Uuid, String, Option<String>, usize)> = Vec::new();
         frontier.push((
-            parsed_data_setup.get_uuid(),
-            parsed_data_setup.get_type(),
-            parsed_data_setup.get_tag(),
-            parsed_data_setup.get_index_as_child(),
+            universe.get_uuid(),
+            universe.get_type(),
+            universe.get_tag(),
+            universe.get_index_as_child(),
         ));
         ancestors.insert(
-            (parsed_data_setup.get_uuid(), parsed_data_setup.get_type()),
+            (universe.get_uuid(), universe.get_type()),
             vec![(
-                parsed_data_setup.get_uuid(),
-                parsed_data_setup.get_type(),
+                universe.get_uuid(),
+                universe.get_type(),
                 None,
                 0,
             )],
@@ -275,9 +275,9 @@ where
 
         unsatisfied_constraints
     }
-    pub fn new(data_setup: &'a ParsedDataSetup) -> Driver<'a, T> {
+    pub fn new(data_setup: &'a Universe) -> Driver<'a, T> {
         let mut concept_map: HashMap<(Uuid, String), Concept<'a>> = HashMap::new();
-        let concept = Concept::ParsedDataSetup((data_setup, 0, None));
+        let concept = Concept::Universe((data_setup, 0, None));
         concept.populate_child_concept_map(&mut concept_map);
 
         let constraints = data_setup.get_constraints_map();

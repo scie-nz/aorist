@@ -1,6 +1,6 @@
 #![allow(non_snake_case)]
 use crate::data_setup::data_setup::DataSetup;
-use crate::data_setup::parsed_data_setup::ParsedDataSetup;
+use crate::data_setup::universe::Universe;
 use crate::object::AoristObject;
 use std::fs;
 use thiserror::Error;
@@ -15,7 +15,7 @@ pub fn read_file(filename: &str) -> Vec<AoristObject> {
     objects
 }
 
-pub fn get_data_setup(filename: &str) -> ParsedDataSetup {
+pub fn get_data_setup(filename: &str) -> Universe {
     let objects = read_file(filename);
     let v: Vec<Option<&DataSetup>> = objects
         .iter()

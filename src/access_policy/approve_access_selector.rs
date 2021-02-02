@@ -11,7 +11,7 @@ use std::sync::{Arc, RwLock};
 use uuid::Uuid;
 
 #[pyclass]
-#[derive(Derivative, Serialize, Deserialize, Constrainable)]
+#[derive(Derivative, Serialize, Deserialize, Constrainable, Clone)]
 #[derivative(PartialEq, Debug)]
 pub struct ApproveAccessSelector {
     matchLabels: HashMap<String, Vec<String>>,

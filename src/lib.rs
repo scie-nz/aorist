@@ -41,7 +41,7 @@ pub use asset::StaticDataTable;
 pub use attributes::attribute;
 pub use compression::*;
 pub use concept::AoristConcept;
-pub use data_setup::{DataSetup, ParsedDataSetup};
+pub use data_setup::{DataSetup, Universe};
 pub use dataset::DataSet;
 pub use driver::Driver;
 pub use encoding::Encoding;
@@ -54,6 +54,7 @@ pub use template::{DatumTemplate, IdentifierTuple, KeyedStruct, TDatumTemplate};
 pub use utils::get_data_setup;
 
 use crate::access_policy::ApproveAccessSelector;
+use crate::encoding::orc_encoding::ORCEncoding;
 use crate::encoding::{CSVEncoding, TSVEncoding};
 use crate::endpoints::{AlluxioConfig, EndpointConfig, GiteaConfig, PrestoConfig, RangerConfig};
 use crate::header::UpperSnakeCaseCSVHeader;
@@ -65,7 +66,6 @@ use crate::role::GlobalPermissionsAdmin;
 use crate::role_binding::RoleBinding;
 use crate::user::User;
 use crate::user_group::UserGroup;
-use crate::encoding::orc_encoding::ORCEncoding;
 
 use pyo3::prelude::*;
 
@@ -90,7 +90,7 @@ fn aorist(py: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<ORCEncoding>()?;
     m.add_class::<TSVEncoding>()?;
     m.add_class::<DataSet>()?;
-    m.add_class::<ParsedDataSetup>()?;
+    m.add_class::<Universe>()?;
     m.add_class::<StaticDataTable>()?;
     m.add_class::<User>()?;
     m.add_class::<UpperSnakeCaseCSVHeader>()?;

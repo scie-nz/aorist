@@ -7,9 +7,10 @@ use enum_dispatch::enum_dispatch;
 use serde::{Deserialize, Serialize};
 use std::sync::{Arc, RwLock};
 use uuid::Uuid;
+use pyo3::prelude::*;
 
 #[enum_dispatch]
-#[derive(Debug, PartialEq, Serialize, Deserialize, Clone, Constrainable)]
+#[derive(Debug, PartialEq, Serialize, Deserialize, Clone, Constrainable, FromPyObject)]
 #[serde(tag = "type", content = "spec")]
 pub enum Asset {
     #[constrainable]

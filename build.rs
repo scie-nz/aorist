@@ -201,7 +201,7 @@ fn process_constraints(raw_objects: &Vec<HashMap<String, Value>>) {
         .unwrap();
     }
     for (name, root) in &order {
-        //if root != "ParsedDataSetup" {
+        //if root != "Universe" {
         writeln!(file, "'{}'->'{}'[color=red];", name, root,).unwrap();
         //}
         let required = dependencies.get(&(name.clone(), root.clone())).unwrap();
@@ -317,7 +317,7 @@ fn process_concepts(raw_objects: &Vec<HashMap<String, Value>>) {
         ("crate::encoding", "ORCEncoding"),
         ("crate::schema", "TabularSchema"),
         ("crate::schema", "DataSchema"),
-        ("crate::data_setup", "ParsedDataSetup"),
+        ("crate::data_setup", "Universe"),
         ("crate::storage_setup", "RemoteImportStorageSetup"),
         ("crate::storage_setup", "StorageSetup"),
         ("crate::storage", "Storage"),

@@ -25,7 +25,7 @@ pub struct UpperSnakeCaseCSVHeader {
 #[pymethods]
 impl UpperSnakeCaseCSVHeader {
     #[new]
-    #[args(num_lines="None")]
+    #[args(num_lines = "None")]
     fn new(num_lines: Option<usize>) -> Self {
         Self {
             num_lines,

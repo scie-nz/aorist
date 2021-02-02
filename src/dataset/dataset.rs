@@ -35,11 +35,35 @@ impl TAoristObject for DataSet {
         &self.name
     }
 }
+pub trait TDataSet {
+    fn get_mapped_datum_templates(&self) -> HashMap<String, DatumTemplate>;
+}
+#[pymethods]
 impl DataSet {
+    #[new]
+    #[args(accessPolicies = "Vec::new()")]
+    fn new(
+        name: String,
+        accessPolicies: Vec<AccessPolicy>,
+        datumTemplates: Vec<DatumTemplate>,
+        assets: Vec<Asset>,
+    ) -> Self {
+        Self {
+            name,
+            accessPolicies,
+            datumTemplates,
+            assets,
+            uuid: None,
+            tag: None,
+            constraints: Vec::new(),
+        }
+    }
     pub fn to_yaml(&self) -> String {
         serde_yaml::to_string(self).unwrap()
     }
-    pub fn get_mapped_datum_templates(&self) -> HashMap<String, DatumTemplate> {
+}
+impl TDataSet for DataSet {
+    fn get_mapped_datum_templates(&self) -> HashMap<String, DatumTemplate> {
         self.datumTemplates
             .iter()
             .map(|x| (x.get_name().clone(), x.clone()))

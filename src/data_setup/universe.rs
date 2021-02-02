@@ -33,7 +33,7 @@ use uuid::Uuid;
     Constrainable,
 )]
 #[derivative(PartialEq, Debug)]
-pub struct ParsedDataSetup {
+pub struct Universe {
     name: String,
     #[getset(
         get_incomplete = "pub with_prefix",
@@ -73,10 +73,10 @@ pub struct ParsedDataSetup {
     uuid: Option<Uuid>,
     tag: Option<String>,
 }
-impl ParsedDataSetup {
+impl Universe {
     pub fn get_concept_map<'a>(&'a self) -> HashMap<(Uuid, String), Concept<'a>> {
         let mut concept_map: HashMap<(Uuid, String), Concept<'a>> = HashMap::new();
-        let concept = Concept::ParsedDataSetup((&self, 0, None));
+        let concept = Concept::Universe((&self, 0, None));
         concept.populate_child_concept_map(&mut concept_map);
         concept_map
     }
