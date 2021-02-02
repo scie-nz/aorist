@@ -4,16 +4,16 @@ pub mod presto;
 pub mod ranger;
 
 use crate::constraint::Constraint;
-use crate::endpoints::alluxio::AlluxioConfig;
-use crate::endpoints::gitea::GiteaConfig;
-use crate::endpoints::presto::PrestoConfig;
-use crate::endpoints::ranger::RangerConfig;
+pub use crate::endpoints::alluxio::AlluxioConfig;
+pub use crate::endpoints::gitea::GiteaConfig;
+pub use crate::endpoints::presto::PrestoConfig;
+pub use crate::endpoints::ranger::RangerConfig;
 use crate::utils::GetSetError;
 use getset::{IncompleteGetters, IncompleteSetters};
+use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::sync::{Arc, RwLock};
 use uuid::Uuid;
-use pyo3::prelude::*;
 
 #[pyclass]
 #[serde()]
@@ -30,4 +30,24 @@ pub struct EndpointConfig {
     uuid: Option<Uuid>,
     #[serde(skip)]
     pub constraints: Vec<Arc<RwLock<Constraint>>>,
+}
+
+#[pymethods]
+impl EndpointConfig {
+    #[new]
+    fn new(
+        presto: Option<PrestoConfig>,
+        alluxio: Option<AlluxioConfig>,
+        ranger: Option<RangerConfig>,
+        gitea: Option<GiteaConfig>,
+    ) -> Self {
+        Self {
+            presto,
+            alluxio,
+            ranger,
+            gitea,
+            uuid: None,
+            constraints: Vec::new(),
+        }
+    }
 }

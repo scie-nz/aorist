@@ -35,7 +35,6 @@ pub mod user;
 pub mod user_group;
 pub mod utils;
 
-
 pub use airflow_singleton::AirflowSingleton;
 pub use asset::Asset;
 pub use asset::StaticDataTable;
@@ -54,15 +53,17 @@ pub use template::{DatumTemplate, IdentifierTuple, KeyedStruct};
 pub use utils::get_data_setup;
 
 use crate::access_policy::ApproveAccessSelector;
-use crate::user::User;
 use crate::encoding::{CSVEncoding, ORCEncoding, TSVEncoding};
+use crate::endpoints::{AlluxioConfig, EndpointConfig, GiteaConfig, RangerConfig, PrestoConfig};
 use crate::header::UpperSnakeCaseCSVHeader;
-use crate::layout::{SingleFileLayout, StaticHiveTableLayout, DailyGranularity, DynamicHiveTableLayout};
+use crate::layout::{
+    DailyGranularity, DynamicHiveTableLayout, SingleFileLayout, StaticHiveTableLayout,
+};
 use crate::location::AlluxioLocation;
 use crate::role::GlobalPermissionsAdmin;
 use crate::role_binding::RoleBinding;
+use crate::user::User;
 use crate::user_group::UserGroup;
-use crate::endpoints::EndpointConfig;
 
 use pyo3::prelude::*;
 
@@ -104,5 +105,9 @@ fn aorist(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<KeyedStruct>()?;
     m.add_class::<UserGroup>()?;
     m.add_class::<EndpointConfig>()?;
+    m.add_class::<AlluxioConfig>()?;
+    m.add_class::<GiteaConfig>()?;
+    m.add_class::<RangerConfig>()?;
+    m.add_class::<PrestoConfig>()?;
     Ok(())
 }
