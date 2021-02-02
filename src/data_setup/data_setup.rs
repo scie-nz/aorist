@@ -8,7 +8,7 @@ use crate::imports::TAoristImport;
 use crate::object::{AoristObject, TAoristObject};
 use crate::role::Role;
 use crate::role_binding::RoleBinding;
-use crate::user::User;
+use crate::user::{User, TUser};
 use crate::user_group::UserGroup;
 use getset::Getters;
 use serde::{Deserialize, Serialize};
@@ -105,7 +105,7 @@ impl DataSetup {
 
         for user in dataSetup.get_users_mut().unwrap().iter_mut() {
             let username = user.get_unixname();
-            if role_map.contains_key(username) {
+            if role_map.contains_key(&username) {
                 user_map.insert(username.clone(), user);
             } else {
                 user.set_roles(Vec::new()).unwrap();

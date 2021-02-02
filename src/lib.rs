@@ -54,7 +54,7 @@ pub use utils::get_data_setup;
 
 use crate::access_policy::ApproveAccessSelector;
 use crate::encoding::{CSVEncoding, ORCEncoding, TSVEncoding};
-use crate::endpoints::{AlluxioConfig, EndpointConfig, GiteaConfig, RangerConfig, PrestoConfig};
+use crate::endpoints::{AlluxioConfig, EndpointConfig, GiteaConfig, PrestoConfig, RangerConfig};
 use crate::header::UpperSnakeCaseCSVHeader;
 use crate::layout::{
     DailyGranularity, DynamicHiveTableLayout, SingleFileLayout, StaticHiveTableLayout,

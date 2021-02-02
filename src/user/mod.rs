@@ -28,14 +28,22 @@ pub struct User {
     #[derivative(PartialEq = "ignore", Debug = "ignore", Hash = "ignore")]
     pub constraints: Vec<Arc<RwLock<Constraint>>>,
 }
-impl User {
-    pub fn to_yaml(&self) -> String {
+
+pub trait TUser {
+    fn to_yaml(&self) -> String;
+    fn get_unixname(&self) -> String;
+    fn set_roles(&mut self, roles: Vec<Role>) -> Result<(), AoristError>;
+    fn get_roles(&self) -> Result<Vec<Role>, AoristError>;
+    fn get_permissions(&self) -> Result<HashSet<String>, AoristError>;
+}
+impl TUser for User {
+    fn to_yaml(&self) -> String {
         serde_yaml::to_string(self).unwrap()
     }
-    pub fn get_unixname(&self) -> &String {
-        &self.unixname
+    fn get_unixname(&self) -> String {
+        self.unixname.clone()
     }
-    pub fn set_roles(&mut self, roles: Vec<Role>) -> Result<(), AoristError> {
+    fn set_roles(&mut self, roles: Vec<Role>) -> Result<(), AoristError> {
         if let Some(_) = self.roles {
             return Err(AoristError::OtherError(
                 "Tried to set roles more than once.".to_string(),
@@ -44,7 +52,7 @@ impl User {
         self.roles = Some(roles);
         Ok(())
     }
-    pub fn get_roles(&self) -> Result<Vec<Role>, AoristError> {
+    fn get_roles(&self) -> Result<Vec<Role>, AoristError> {
         match &self.roles {
             Some(x) => Ok(x.clone()),
             None => Err(AoristError::OtherError(
@@ -52,7 +60,7 @@ impl User {
             )),
         }
     }
-    pub fn get_permissions(&self) -> Result<HashSet<String>, AoristError> {
+    fn get_permissions(&self) -> Result<HashSet<String>, AoristError> {
         let mut perms: HashSet<String> = HashSet::new();
         for role in self.get_roles()? {
             for perm in role.get_permissions() {
@@ -60,6 +68,32 @@ impl User {
             }
         }
         Ok(perms)
+    }
+}
+
+#[pymethods]
+impl User {
+    #[new]
+    #[args(phone="\"\".to_string()", roles="None")]
+    fn new(
+        firstName: String,
+        lastName: String,
+        email: String,
+        phone: String,
+        unixname: String,
+        roles: Option<Vec<Role>>,
+    ) -> Self {
+        Self {
+            firstName,
+            lastName,
+            email,
+            phone,
+            unixname,
+            roles,
+            uuid: None,
+            tag: None,
+            constraints: Vec::new(),
+        }
     }
 }
 impl TAoristObject for User {

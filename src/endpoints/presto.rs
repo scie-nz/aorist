@@ -8,3 +8,12 @@ pub struct PrestoConfig {
     server: String,
     httpPort: usize,
 }
+
+#[pymethods]
+impl PrestoConfig {
+    #[new]
+    #[args(httpPort = "8080")]
+    fn new(server: String, httpPort: usize) -> Self {
+        Self { server, httpPort }
+    }
+}

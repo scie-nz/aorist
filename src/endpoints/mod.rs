@@ -35,6 +35,7 @@ pub struct EndpointConfig {
 #[pymethods]
 impl EndpointConfig {
     #[new]
+    #[args(presto = "None", alluxio = "None", ranger = "None", gitea = "None")]
     fn new(
         presto: Option<PrestoConfig>,
         alluxio: Option<AlluxioConfig>,

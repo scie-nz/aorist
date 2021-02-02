@@ -7,6 +7,7 @@ use enum_dispatch::enum_dispatch;
 use serde::{Deserialize, Serialize};
 use std::sync::{Arc, RwLock};
 use uuid::Uuid;
+use pyo3::prelude::*;
 
 #[enum_dispatch(Role)]
 pub trait TRole {
@@ -14,7 +15,7 @@ pub trait TRole {
 }
 
 #[enum_dispatch]
-#[derive(Debug, PartialEq, Serialize, Deserialize, Clone, Constrainable, Hash)]
+#[derive(Debug, PartialEq, Serialize, Deserialize, Clone, Constrainable, Hash, FromPyObject)]
 #[serde(tag = "type", content = "spec")]
 pub enum Role {
     GlobalPermissionsAdmin(GlobalPermissionsAdmin),

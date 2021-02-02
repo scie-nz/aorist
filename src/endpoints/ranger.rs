@@ -13,10 +13,17 @@ pub struct RangerConfig {
 #[pymethods]
 impl RangerConfig {
     #[new]
-    #[args(server="\"localhost\".to_string()", port="30800", user="\"admin\".to_string()")]
+    #[args(
+        server = "\"localhost\".to_string()",
+        port = "30800",
+        user = "\"admin\".to_string()"
+    )]
     fn new(server: String, port: usize, user: String, password: String) -> Self {
         Self {
-            server, port, user, password,
+            server,
+            port,
+            user,
+            password,
         }
     }
 }

@@ -8,3 +8,16 @@ pub struct GiteaConfig {
     port: usize,
     token: String,
 }
+
+#[pymethods]
+impl GiteaConfig {
+    #[new]
+    #[args(server = "\"localhost\".to_string()", port = "30807")]
+    fn new(server: String, port: usize, token: String) -> Self {
+        Self {
+            server,
+            port,
+            token,
+        }
+    }
+}
