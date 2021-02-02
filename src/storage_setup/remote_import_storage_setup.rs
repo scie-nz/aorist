@@ -24,3 +24,18 @@ pub struct RemoteImportStorageSetup {
     #[derivative(PartialEq = "ignore", Debug = "ignore")]
     pub constraints: Vec<Arc<RwLock<Constraint>>>,
 }
+
+#[pymethods]
+impl RemoteImportStorageSetup {
+    #[new]
+    fn new(remote: Storage, local: Vec<Storage>, tmp_dir: String) -> Self {
+        Self {
+            remote,
+            local,
+            tmp_dir,
+            uuid: None,
+            tag: None,
+            constraints: Vec::new(),
+        }
+    }
+}

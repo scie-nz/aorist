@@ -25,7 +25,19 @@ pub struct StaticDataTable {
     #[derivative(PartialEq = "ignore", Debug = "ignore")]
     pub constraints: Vec<Arc<RwLock<Constraint>>>,
 }
+#[pymethods]
 impl StaticDataTable {
+    #[new]
+    fn new(name: String, setup: StorageSetup, schema: DataSchema) -> Self {
+        Self {
+            name,
+            setup,
+            schema,
+            uuid: None,
+            tag: None,
+            constraints: Vec::new(),
+        }
+    }
     pub fn get_name(&self) -> &String {
         &self.name
     }

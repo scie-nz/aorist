@@ -19,7 +19,8 @@ pub struct SingleFileLayout {
     pub constraints: Vec<Arc<RwLock<Constraint>>>,
 }
 
-#[derive(Debug, PartialEq, Serialize, Deserialize, Clone, Constrainable)]
+#[derive(Debug, PartialEq, Serialize, Deserialize, Clone, Constrainable,
+FromPyObject)]
 #[serde(tag = "type")]
 pub enum FileBasedStorageLayout {
     SingleFileLayout(SingleFileLayout),

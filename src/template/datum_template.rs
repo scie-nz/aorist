@@ -5,11 +5,12 @@ use crate::constraint::Constraint;
 use crate::template::identifier_tuple::IdentifierTuple;
 use crate::template::keyed_struct::KeyedStruct;
 use aorist_concept::Constrainable;
+use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::sync::{Arc, RwLock};
 use uuid::Uuid;
 
-#[derive(Debug, PartialEq, Serialize, Deserialize, Clone, Constrainable)]
+#[derive(Debug, PartialEq, Serialize, Deserialize, Clone, Constrainable, FromPyObject)]
 #[serde(tag = "type")]
 pub enum DatumTemplate {
     KeyedStruct(KeyedStruct),
