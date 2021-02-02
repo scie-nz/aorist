@@ -35,6 +35,7 @@ pub mod user;
 pub mod user_group;
 pub mod utils;
 
+
 pub use airflow_singleton::AirflowSingleton;
 pub use asset::Asset;
 pub use asset::StaticDataTable;
@@ -52,7 +53,16 @@ pub use storage_setup::{RemoteImportStorageSetup, StorageSetup};
 pub use template::{DatumTemplate, IdentifierTuple, KeyedStruct};
 pub use utils::get_data_setup;
 
+use crate::access_policy::ApproveAccessSelector;
 use crate::user::User;
+use crate::encoding::{CSVEncoding, ORCEncoding, TSVEncoding};
+use crate::header::UpperSnakeCaseCSVHeader;
+use crate::layout::{SingleFileLayout, StaticHiveTableLayout, DailyGranularity, DynamicHiveTableLayout};
+use crate::location::AlluxioLocation;
+use crate::role::GlobalPermissionsAdmin;
+use crate::role_binding::RoleBinding;
+use crate::user_group::UserGroup;
+
 use pyo3::prelude::*;
 
 #[pymodule]
@@ -67,6 +77,31 @@ fn aorist(_py: Python, m: &PyModule) -> PyResult<()> {
         Ok(driver.run())
     }
 
+    m.add_class::<ApproveAccessSelector>()?;
+    m.add_class::<CSVEncoding>()?;
+    m.add_class::<ORCEncoding>()?;
+    m.add_class::<TSVEncoding>()?;
+    m.add_class::<DataSet>()?;
+    m.add_class::<ParsedDataSetup>()?;
+    m.add_class::<StaticDataTable>()?;
     m.add_class::<User>()?;
+    m.add_class::<UpperSnakeCaseCSVHeader>()?;
+    m.add_class::<SingleFileLayout>()?;
+    m.add_class::<StaticHiveTableLayout>()?;
+    m.add_class::<DailyGranularity>()?;
+    m.add_class::<DynamicHiveTableLayout>()?;
+    m.add_class::<AlluxioLocation>()?;
+    m.add_class::<GCSLocation>()?;
+    m.add_class::<WebLocation>()?;
+    m.add_class::<GlobalPermissionsAdmin>()?;
+    m.add_class::<RoleBinding>()?;
+    m.add_class::<TabularSchema>()?;
+    m.add_class::<HiveTableStorage>()?;
+    m.add_class::<RemoteStorage>()?;
+    m.add_class::<RemoteImportStorageSetup>()?;
+    m.add_class::<IdentifierTuple>()?;
+    m.add_class::<KeyedStruct>()?;
+    m.add_class::<UserGroup>()?;
+
     Ok(())
 }
