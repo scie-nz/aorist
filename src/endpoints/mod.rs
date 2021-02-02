@@ -13,7 +13,9 @@ use getset::{IncompleteGetters, IncompleteSetters};
 use serde::{Deserialize, Serialize};
 use std::sync::{Arc, RwLock};
 use uuid::Uuid;
+use pyo3::prelude::*;
 
+#[pyclass]
 #[serde()]
 #[derive(Serialize, Deserialize, Clone, IncompleteGetters, IncompleteSetters)]
 pub struct EndpointConfig {

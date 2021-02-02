@@ -62,6 +62,7 @@ use crate::location::AlluxioLocation;
 use crate::role::GlobalPermissionsAdmin;
 use crate::role_binding::RoleBinding;
 use crate::user_group::UserGroup;
+use crate::endpoints::EndpointConfig;
 
 use pyo3::prelude::*;
 
@@ -102,6 +103,6 @@ fn aorist(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<IdentifierTuple>()?;
     m.add_class::<KeyedStruct>()?;
     m.add_class::<UserGroup>()?;
-
+    m.add_class::<EndpointConfig>()?;
     Ok(())
 }
