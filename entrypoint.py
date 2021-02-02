@@ -5,6 +5,7 @@ from aorist import (
     PrestoConfig,
     RangerConfig,
     GiteaConfig,
+    UserGroup,
 )
 
 """
@@ -31,3 +32,21 @@ bogdan = User(
 )
 nick = User(firstName="Nick", lastName="Parker", email="nick@scie.nz", unixname="nick")
 cip = User(firstName="Ciprian", lastName="Gerea", email="cip@scie.nz", unixname="cip")
+
+"""
+Defining user groups
+"""
+
+finance = UserGroup(
+    name="finance-users", users=[bogdan], labels={"department": "finance"}
+)
+datascience = UserGroup(
+    name="finance-users",
+    users=[bogdan, nick, cip],
+    labels={"department": "datascience"},
+)
+crowding = UserGroup(
+    name="project-crowding-detection",
+    users=[bogdan],
+    labels={"project": "crowding_detection"},
+)
