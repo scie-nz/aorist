@@ -23,8 +23,19 @@ pub struct KeyedStruct {
     #[derivative(PartialEq = "ignore", Debug = "ignore")]
     pub constraints: Vec<Arc<RwLock<Constraint>>>,
 }
+#[pymethods]
 impl KeyedStruct {
-    pub fn get_name(&self) -> &String {
-        &self.name
+    #[new]
+    fn new(name: String, attributes: Vec<Attribute>) -> Self {
+        Self {
+            name,
+            attributes,
+            uuid: None,
+            tag: None,
+            constraints: Vec::new(),
+        }
+    }
+    pub fn get_name(&self) -> String {
+        self.name.clone()
     }
 }

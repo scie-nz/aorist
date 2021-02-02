@@ -16,10 +16,10 @@ pub enum DatumTemplate {
     IdentifierTuple(IdentifierTuple),
 }
 impl DatumTemplate {
-    pub fn get_name(&self) -> &String {
+    pub fn get_name(&self) -> String {
         match self {
             DatumTemplate::KeyedStruct(x) => x.get_name(),
-            DatumTemplate::IdentifierTuple(x) => x.get_name(),
+            DatumTemplate::IdentifierTuple(x) => x.get_name().clone(),
         }
     }
 }

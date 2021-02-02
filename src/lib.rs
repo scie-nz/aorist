@@ -38,6 +38,7 @@ pub mod utils;
 pub use airflow_singleton::AirflowSingleton;
 pub use asset::Asset;
 pub use asset::StaticDataTable;
+pub use attributes::attribute;
 pub use compression::*;
 pub use concept::AoristConcept;
 pub use data_setup::{DataSetup, ParsedDataSetup};
@@ -68,7 +69,11 @@ use crate::user_group::UserGroup;
 use pyo3::prelude::*;
 
 #[pymodule]
-fn aorist(_py: Python, m: &PyModule) -> PyResult<()> {
+fn aorist(py: Python, m: &PyModule) -> PyResult<()> {
+    let submod = PyModule::new(py, "attributes")?;
+    attribute(submod)?;
+    m.add_submodule(submod)?;
+
     #[pyfn(m, "build_from_yaml")]
     fn build_from_yaml(_py: Python, filename: &str) -> PyResult<String> {
         let mut setup = get_data_setup(filename);

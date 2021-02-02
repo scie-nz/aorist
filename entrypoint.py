@@ -7,7 +7,11 @@ from aorist import (
     GiteaConfig,
     UserGroup,
     GlobalPermissionsAdmin,
+    KeyedStruct,
 )
+
+# hacky import since submodule imports don't work well
+from aorist import attributes as attr
 
 """
 Defining endpoints.
@@ -59,4 +63,32 @@ crowding = UserGroup(
     name="project-crowding-detection",
     users=[bogdan],
     labels={"project": "crowding_detection"},
+)
+
+"""
+Defining datum templates
+"""
+
+sentinel_granule_datum = KeyedStruct(
+    name="sentinel_granule_datum",
+    attributes=[
+        attr.KeyStringIdentifier("granule_id"),
+        attr.NullableStringIdentifier("product_id"),
+        attr.NullableStringIdentifier("datatake_identifier"),
+        attr.NullableStringIdentifier("mgrs_tile"),
+        attr.NullablePOSIXTimestamp("sensing_time"),
+        attr.NullableInt64("total_size"),
+        attr.NullableString("cloud_cover"),
+        attr.NullableString("geometric_quality_flag"),
+        attr.NullablePOSIXTimestamp("generation_time"),
+        attr.FloatLatitude(
+            "north_lat", "Northern latitude of the tile's bounding box."
+        ),
+        attr.FloatLatitude(
+            "south_lat", "Southern latitude of the tile's bounding box."
+        ),
+        attr.FloatLatitude("west_lon", "Western longitude of the tile's bounding box."),
+        attr.FloatLatitude("east_lon", "Eastern longitude of the tile's bounding box."),
+        attr.URI("base_url"),
+    ],
 )

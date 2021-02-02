@@ -279,6 +279,7 @@ macro_rules! register_satisfiable_constraints {
 #[macro_export]
 macro_rules! define_attribute {
     ($element:ident, $presto_type:ident, $orc_type:ident, $sql_type:ident) => {
+        #[pyclass]
         #[derive(
             Derivative,
             Serialize,
@@ -298,6 +299,14 @@ macro_rules! define_attribute {
             #[serde(skip)]
             #[derivative(PartialEq = "ignore", Debug = "ignore")]
             constraints: Vec<Arc<RwLock<Constraint>>>,
+        }
+        #[pymethods]
+        impl $element {
+            #[new]
+            #[args(comment="None")]
+            fn new(name: String, comment: Option<String>) -> Self {
+                Self { name, comment, uuid: None, tag: None, constraints: Vec::new() }
+            }
         }
         impl TAttribute for $element {
             fn get_name(&self) -> &String {
@@ -581,7 +590,7 @@ macro_rules! register_constraint {
 #[macro_export]
 macro_rules! register_attribute {
     ( $name:ident, $($element: ident),+ ) => {
-        #[derive(Debug, PartialEq, Serialize, Deserialize, Clone, Constrainable)]
+        #[derive(Debug, PartialEq, Serialize, Deserialize, Clone, Constrainable, FromPyObject)]
         #[serde(tag = "type")]
         pub enum $name {
             $(
@@ -631,6 +640,14 @@ macro_rules! register_attribute {
                 }
             }
         }
+        paste::item!(
+            pub fn [<$name:snake:lower>] (m: &PyModule) -> PyResult<()> {
+                $(
+                    m.add_class::<$element>()?;
+                )+
+                Ok(())
+            }
+        );
     }
 }
 

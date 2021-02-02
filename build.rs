@@ -231,6 +231,7 @@ fn process_attributes(raw_objects: &Vec<HashMap<String, Value>>) {
     scope.import("aorist_concept", "Constrainable");
     scope.import("uuid", "Uuid");
     scope.import("derivative", "Derivative");
+    scope.import("pyo3::prelude", "*");
 
     let sql_derive_macros = attributes
         .iter()
@@ -460,15 +461,15 @@ fn main() {
                 let define = formatdoc! {
                     "define_program!(
                         {dialect}{constraint},
-                        {root}, {constraint}, 
+                        {root}, {constraint},
                         Satisfy{constraint}, {dialect},
                         \"{preamble}\", \"{call}\",
                         |
                             uuid: Uuid,
-                            concept: Concept<'a>, 
+                            concept: Concept<'a>,
                             ancestry: Arc<ConceptAncestry<'a>>,
-                            literals: LiteralsMap, 
-                        | {{ 
+                            literals: LiteralsMap,
+                        | {{
                             {objects}
                             let args = vec![{params}];
                             let {mut_kw}kwargs: LinkedHashMap<String, String> =
