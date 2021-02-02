@@ -13,11 +13,13 @@ use derivative::Derivative;
 use getset::{
     Getters, IncompleteGetters, IncompleteMutGetters, IncompleteSetters, MutGetters, Setters,
 };
+use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet, VecDeque};
 use std::sync::{Arc, RwLock};
 use uuid::Uuid;
 
+#[pyclass]
 #[derive(
     Serialize,
     Derivative,

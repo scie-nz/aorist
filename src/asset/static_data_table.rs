@@ -5,10 +5,12 @@ use crate::schema::DataSchema;
 use crate::storage_setup::StorageSetup;
 use aorist_concept::Constrainable;
 use derivative::Derivative;
+use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::sync::{Arc, RwLock};
 use uuid::Uuid;
 
+#[pyclass]
 #[derive(Derivative, Serialize, Deserialize, Clone, Constrainable)]
 #[derivative(PartialEq, Debug)]
 pub struct StaticDataTable {

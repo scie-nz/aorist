@@ -57,7 +57,6 @@ use pyo3::prelude::*;
 
 #[pymodule]
 fn aorist(_py: Python, m: &PyModule) -> PyResult<()> {
-
     #[pyfn(m, "build_from_yaml")]
     fn build_from_yaml(_py: Python, filename: &str) -> PyResult<String> {
         let mut setup = get_data_setup(filename);
@@ -70,6 +69,4 @@ fn aorist(_py: Python, m: &PyModule) -> PyResult<()> {
 
     m.add_class::<User>()?;
     Ok(())
-
 }
-

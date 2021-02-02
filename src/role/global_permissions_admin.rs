@@ -3,10 +3,12 @@ use crate::constraint::Constraint;
 use crate::role::role::TRole;
 use aorist_concept::Constrainable;
 use derivative::Derivative;
+use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::sync::{Arc, RwLock};
 use uuid::Uuid;
 
+#[pyclass]
 #[derive(Derivative, Serialize, Deserialize, Clone, Constrainable)]
 #[derivative(PartialEq, Debug, Hash)]
 pub struct GlobalPermissionsAdmin {

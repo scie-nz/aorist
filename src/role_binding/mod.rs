@@ -5,10 +5,12 @@ use crate::object::TAoristObject;
 use crate::role::Role;
 use aorist_concept::Constrainable;
 use derivative::Derivative;
+use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::sync::{Arc, RwLock};
 use uuid::Uuid;
 
+#[pyclass]
 #[derive(Derivative, Serialize, Deserialize, Constrainable)]
 #[derivative(PartialEq, Debug)]
 pub struct RoleBinding {

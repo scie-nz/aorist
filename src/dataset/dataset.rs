@@ -7,11 +7,13 @@ use crate::object::TAoristObject;
 use crate::template::DatumTemplate;
 use aorist_concept::Constrainable;
 use derivative::Derivative;
+use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
 use uuid::Uuid;
 
+#[pyclass]
 #[derive(Derivative, Serialize, Deserialize, Default, Constrainable)]
 #[derivative(PartialEq, Debug)]
 pub struct DataSet {

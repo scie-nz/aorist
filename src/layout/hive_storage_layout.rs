@@ -3,10 +3,12 @@ use crate::concept::{AoristConcept, Concept};
 use crate::constraint::Constraint;
 use aorist_concept::Constrainable;
 use derivative::Derivative;
+use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::sync::{Arc, RwLock};
 use uuid::Uuid;
 
+#[pyclass]
 #[derive(Derivative, Serialize, Deserialize, Clone, Constrainable)]
 #[derivative(PartialEq, Debug)]
 pub struct StaticHiveTableLayout {
@@ -17,6 +19,7 @@ pub struct StaticHiveTableLayout {
     pub constraints: Vec<Arc<RwLock<Constraint>>>,
 }
 
+#[pyclass]
 #[derive(Derivative, Serialize, Deserialize, Clone, Constrainable)]
 #[derivative(PartialEq, Debug)]
 pub struct DailyGranularity {
@@ -34,6 +37,7 @@ pub enum Granularity {
     DailyGranularity(DailyGranularity),
 }
 
+#[pyclass]
 #[derive(Derivative, Serialize, Deserialize, Clone, Constrainable)]
 #[derivative(PartialEq, Debug)]
 pub struct DynamicHiveTableLayout {
