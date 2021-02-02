@@ -1,4 +1,6 @@
 #![allow(non_snake_case)]
+extern crate pyo3;
+
 use crate::concept::{AoristConcept, Concept};
 use crate::constraint::Constraint;
 use crate::error::AoristError;
@@ -10,7 +12,10 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
 use std::sync::{Arc, RwLock};
 use uuid::Uuid;
+use pyo3::prelude::*;
 
+
+#[pyclass]
 #[derive(Derivative, Serialize, Deserialize, Constrainable)]
 #[derivative(PartialEq, Debug, Hash, Eq, Clone)]
 pub struct User {

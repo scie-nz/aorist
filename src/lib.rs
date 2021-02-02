@@ -1,7 +1,4 @@
-extern crate cpython;
-
-use cpython::{py_fn, py_module_initializer, PyResult, Python};
-
+extern crate pyo3;
 pub mod access_policy;
 pub mod airflow_singleton;
 pub mod asset;
@@ -55,21 +52,24 @@ pub use storage_setup::{RemoteImportStorageSetup, StorageSetup};
 pub use template::{DatumTemplate, IdentifierTuple, KeyedStruct};
 pub use utils::get_data_setup;
 
-fn build_from_yaml(_py: Python, filename: &str) -> PyResult<String> {
-    let mut setup = get_data_setup(filename);
-    setup.compute_uuids();
-    setup.compute_constraints();
-    setup.traverse_constrainable_children(Vec::new());
-    let mut driver: Driver<AirflowSingleton> = Driver::new(&setup);
-    Ok(driver.run())
+use crate::user::User;
+use pyo3::prelude::*;
+
+#[pymodule]
+fn aorist(_py: Python, m: &PyModule) -> PyResult<()> {
+
+    #[pyfn(m, "build_from_yaml")]
+    fn build_from_yaml(_py: Python, filename: &str) -> PyResult<String> {
+        let mut setup = get_data_setup(filename);
+        setup.compute_uuids();
+        setup.compute_constraints();
+        setup.traverse_constrainable_children(Vec::new());
+        let mut driver: Driver<AirflowSingleton> = Driver::new(&setup);
+        Ok(driver.run())
+    }
+
+    m.add_class::<User>()?;
+    Ok(())
+
 }
 
-py_module_initializer!(mylib, |py, m| {
-    m.add(py, "__doc__", "Aorist Python wrapper")?;
-    m.add(
-        py,
-        "build_from_yaml",
-        py_fn!(py, build_from_yaml(filename: &str)),
-    )?;
-    Ok(())
-});

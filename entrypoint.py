@@ -1,2 +1,2 @@
-import mylib
-print(mylib.build_from_yaml('basic.yaml'))
+import aorist
+print(aorist.build_from_yaml('basic.yaml'))

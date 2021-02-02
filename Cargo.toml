@@ -80,7 +80,7 @@ linked-hash-map = "0.5.3"
 serde_closure = "0.3.2"
 linked_hash_set = "0.1.4"
 num-bigint = "0.2.6"
-cpython = {version = "0.5.2", features = ["extension-module"]}
+pyo3 = {version = "0.13.1", features = ["extension-module"]}
 
 [build-dependencies]
 aorist_util = {path = "./aorist_util"}
