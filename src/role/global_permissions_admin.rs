@@ -18,6 +18,17 @@ pub struct GlobalPermissionsAdmin {
     #[derivative(PartialEq = "ignore", Debug = "ignore", Hash = "ignore")]
     pub constraints: Vec<Arc<RwLock<Constraint>>>,
 }
+#[pymethods]
+impl GlobalPermissionsAdmin {
+    #[new]
+    pub fn new() -> Self {
+        Self {
+            uuid: None,
+            tag: None,
+            constraints: Vec::new(),
+        }
+    }
+}
 impl TRole for GlobalPermissionsAdmin {
     fn get_permissions(&self) -> Vec<String> {
         vec!["gitea/admin".to_string(), "ranger/admin".to_string()]

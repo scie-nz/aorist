@@ -6,6 +6,7 @@ from aorist import (
     RangerConfig,
     GiteaConfig,
     UserGroup,
+    GlobalPermissionsAdmin,
 )
 
 """
@@ -25,10 +26,19 @@ endpoint_config = EndpointConfig(
 )
 
 """
+Defining roles
+"""
+global_permissions_admin = GlobalPermissionsAdmin()
+
+"""
 Defining users.
 """
 bogdan = User(
-    firstName="Bogdan", lastName="State", email="bogdan@scie.nz", unixname="bogdan"
+    firstName="Bogdan",
+    lastName="State",
+    email="bogdan@scie.nz",
+    unixname="bogdan",
+    roles=[global_permissions_admin],
 )
 nick = User(firstName="Nick", lastName="Parker", email="nick@scie.nz", unixname="nick")
 cip = User(firstName="Ciprian", lastName="Gerea", email="cip@scie.nz", unixname="cip")

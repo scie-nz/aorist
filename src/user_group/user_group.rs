@@ -2,6 +2,7 @@
 use crate::concept::{AoristConcept, Concept};
 use crate::constraint::Constraint;
 use crate::object::TAoristObject;
+use crate::user::{TUser, User};
 use aorist_concept::Constrainable;
 use derivative::Derivative;
 use pyo3::prelude::*;
@@ -9,7 +10,6 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
 use uuid::Uuid;
-use crate::user::{User, TUser};
 
 #[pyclass]
 #[derive(Derivative, Serialize, Deserialize, Constrainable)]
@@ -29,7 +29,7 @@ pub struct UserGroup {
 #[pymethods]
 impl UserGroup {
     #[new]
-    #[args(labels="HashMap::new()", description="None")]
+    #[args(labels = "HashMap::new()", description = "None")]
     fn new(
         name: String,
         labels: HashMap<String, String>,

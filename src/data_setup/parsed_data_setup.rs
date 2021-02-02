@@ -5,7 +5,7 @@ use crate::dataset::DataSet;
 use crate::endpoints::EndpointConfig;
 use crate::role::TRole;
 use crate::role_binding::RoleBinding;
-use crate::user::{User, TUser};
+use crate::user::{TUser, User};
 use crate::user_group::UserGroup;
 use crate::utils::GetSetError;
 use aorist_concept::Constrainable;

@@ -8,7 +8,7 @@ use crate::imports::TAoristImport;
 use crate::object::{AoristObject, TAoristObject};
 use crate::role::Role;
 use crate::role_binding::RoleBinding;
-use crate::user::{User, TUser};
+use crate::user::{TUser, User};
 use crate::user_group::UserGroup;
 use getset::Getters;
 use serde::{Deserialize, Serialize};

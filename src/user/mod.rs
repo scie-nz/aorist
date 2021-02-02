@@ -74,7 +74,7 @@ impl TUser for User {
 #[pymethods]
 impl User {
     #[new]
-    #[args(phone="\"\".to_string()", roles="None")]
+    #[args(phone = "\"\".to_string()", roles = "None")]
     fn new(
         firstName: String,
         lastName: String,

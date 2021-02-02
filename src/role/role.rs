@@ -4,10 +4,10 @@ use crate::constraint::Constraint;
 use crate::role::global_permissions_admin::GlobalPermissionsAdmin;
 use aorist_concept::Constrainable;
 use enum_dispatch::enum_dispatch;
+use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::sync::{Arc, RwLock};
 use uuid::Uuid;
-use pyo3::prelude::*;
 
 #[enum_dispatch(Role)]
 pub trait TRole {
