@@ -4,7 +4,7 @@ use crate::asset::Asset;
 use crate::concept::{AoristConcept, Concept};
 use crate::constraint::{AoristConstraint, Constraint};
 use crate::object::TAoristObject;
-use crate::template::DatumTemplate;
+use crate::template::{DatumTemplate, TDatumTemplate};
 use aorist_concept::Constrainable;
 use derivative::Derivative;
 use pyo3::prelude::*;

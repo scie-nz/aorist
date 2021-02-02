@@ -507,8 +507,8 @@ spec:
                     x.get_name().clone() == t.datumTemplateName
                 })
                 .map(|x| match x {
-                    DatumTemplate::KeyedStruct(k) => k.attributes.clone(),
-                    DatumTemplate::IdentifierTuple(t) => t.attributes.clone(),
+                    DatumTemplate::KeyedStruct(k) => k.get_attributes(),
+                    DatumTemplate::IdentifierTuple(t) => t.get_attributes(),
                 })
                 .next().unwrap();
             let attr_map = attr_v.iter()
@@ -564,8 +564,8 @@ spec:
                     x.get_name().clone() == t.datumTemplateName
                 })
                 .map(|x| match x {
-                    DatumTemplate::KeyedStruct(k) => k.attributes.clone(),
-                    DatumTemplate::IdentifierTuple(t) => t.attributes.clone(),
+                    DatumTemplate::KeyedStruct(k) => k.get_attributes(),
+                    DatumTemplate::IdentifierTuple(t) => t.get_attributes(),
                 })
                 .next().unwrap();
             let attr_map = attr_v.iter()

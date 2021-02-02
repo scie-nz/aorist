@@ -50,7 +50,7 @@ pub use location::{GCSLocation, HiveLocation, RemoteLocation, WebLocation};
 pub use schema::{DataSchema, TabularSchema};
 pub use storage::{HiveTableStorage, RemoteStorage};
 pub use storage_setup::{RemoteImportStorageSetup, StorageSetup};
-pub use template::{DatumTemplate, IdentifierTuple, KeyedStruct};
+pub use template::{DatumTemplate, IdentifierTuple, KeyedStruct, TDatumTemplate};
 pub use utils::get_data_setup;
 
 use crate::access_policy::ApproveAccessSelector;

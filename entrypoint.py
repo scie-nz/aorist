@@ -89,9 +89,8 @@ attributes = [
     attr.FloatLatitude("east_lon", "Eastern longitude of the tile's bounding box."),
     attr.URI("base_url"),
 ]
-
 sentinel_granule_datum = KeyedStruct(
     name="sentinel_granule_datum",
     attributes=attributes,
 )
-schema = TabularSchema(sentinel_granule_datum, attributes)
+schema = TabularSchema(sentinel_granule_datum)

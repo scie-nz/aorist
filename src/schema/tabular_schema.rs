@@ -2,7 +2,7 @@
 use crate::attributes::Attribute;
 use crate::concept::{AoristConcept, Concept};
 use crate::constraint::Constraint;
-use crate::template::DatumTemplate;
+use crate::template::{DatumTemplate, TDatumTemplate};
 use aorist_concept::Constrainable;
 use aorist_primitives::TAttribute;
 use derivative::Derivative;
@@ -27,13 +27,27 @@ pub struct TabularSchema {
 #[pymethods]
 impl TabularSchema {
     #[new]
-    fn new(datumTemplate: DatumTemplate, attributes: Vec<Attribute>) -> Self {
-        Self {
-            datumTemplateName: datumTemplate.get_name(),
-            attributes: attributes.iter().map(|x| x.get_name().clone()).collect(),
-            uuid: None,
-            tag: None,
-            constraints: Vec::new(),
+    fn new(datumTemplate: DatumTemplate, attributes_opt: Option<Vec<Attribute>>) -> Self {
+        if let Some(attributes) = attributes_opt {
+            Self {
+                datumTemplateName: datumTemplate.get_name(),
+                attributes: attributes.iter().map(|x| x.get_name().clone()).collect(),
+                uuid: None,
+                tag: None,
+                constraints: Vec::new(),
+            }
+        } else {
+            Self {
+                datumTemplateName: datumTemplate.get_name(),
+                attributes: datumTemplate
+                    .get_attributes()
+                    .iter()
+                    .map(|x| x.get_name().clone())
+                    .collect(),
+                uuid: None,
+                tag: None,
+                constraints: Vec::new(),
+            }
         }
     }
 }

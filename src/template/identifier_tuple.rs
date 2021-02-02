@@ -3,6 +3,7 @@
 use crate::attributes::Attribute;
 use crate::concept::{AoristConcept, Concept};
 use crate::constraint::Constraint;
+use crate::template::datum_template::TDatumTemplate;
 use aorist_concept::Constrainable;
 use derivative::Derivative;
 use pyo3::prelude::*;
@@ -16,15 +17,18 @@ use uuid::Uuid;
 pub struct IdentifierTuple {
     pub name: String,
     #[constrainable]
-    pub attributes: Vec<Attribute>,
+    attributes: Vec<Attribute>,
     uuid: Option<Uuid>,
     tag: Option<String>,
     #[serde(skip)]
     #[derivative(PartialEq = "ignore", Debug = "ignore")]
     pub constraints: Vec<Arc<RwLock<Constraint>>>,
 }
-impl IdentifierTuple {
-    pub fn get_name(&self) -> &String {
-        &self.name
+impl TDatumTemplate for IdentifierTuple {
+    fn get_attributes(&self) -> Vec<Attribute> {
+        self.attributes.clone()
+    }
+    fn get_name(&self) -> String {
+        self.name.clone()
     }
 }
