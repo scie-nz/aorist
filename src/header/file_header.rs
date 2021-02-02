@@ -4,12 +4,13 @@ use crate::constraint::Constraint;
 use crate::header::UpperSnakeCaseCSVHeader;
 use aorist_concept::Constrainable;
 use enum_dispatch::enum_dispatch;
+use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::sync::{Arc, RwLock};
 use uuid::Uuid;
 
 #[enum_dispatch]
-#[derive(Debug, PartialEq, Serialize, Deserialize, Clone, Constrainable)]
+#[derive(Debug, PartialEq, Serialize, Deserialize, Clone, Constrainable, FromPyObject)]
 #[serde(tag = "type")]
 pub enum FileHeader {
     UpperSnakeCaseCSVHeader(UpperSnakeCaseCSVHeader),

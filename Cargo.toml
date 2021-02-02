@@ -80,7 +80,7 @@ linked-hash-map = "0.5.3"
 serde_closure = "0.3.2"
 linked_hash_set = "0.1.4"
 num-bigint = "0.2.6"
-pyo3 = {version = "0.13.1", features = ["extension-module"]}
+pyo3 = {git = "https://github.com/PyO3/pyo3", features = ["extension-module"]}
 
 [build-dependencies]
 aorist_util = {path = "./aorist_util"}

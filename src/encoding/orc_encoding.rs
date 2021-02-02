@@ -19,3 +19,14 @@ pub struct ORCEncoding {
     #[derivative(PartialEq = "ignore", Debug = "ignore")]
     pub constraints: Vec<Arc<RwLock<Constraint>>>,
 }
+#[pymethods]
+impl ORCEncoding {
+    #[new]
+    fn new(tag: Option<String>) -> Self {
+        Self {
+            tag,
+            uuid: None,
+            constraints: Vec::new(),
+        }
+    }
+}

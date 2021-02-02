@@ -54,7 +54,7 @@ pub use template::{DatumTemplate, IdentifierTuple, KeyedStruct, TDatumTemplate};
 pub use utils::get_data_setup;
 
 use crate::access_policy::ApproveAccessSelector;
-use crate::encoding::{CSVEncoding, ORCEncoding, TSVEncoding};
+use crate::encoding::{CSVEncoding, TSVEncoding};
 use crate::endpoints::{AlluxioConfig, EndpointConfig, GiteaConfig, PrestoConfig, RangerConfig};
 use crate::header::UpperSnakeCaseCSVHeader;
 use crate::layout::{
@@ -65,6 +65,7 @@ use crate::role::GlobalPermissionsAdmin;
 use crate::role_binding::RoleBinding;
 use crate::user::User;
 use crate::user_group::UserGroup;
+use crate::encoding::orc_encoding::ORCEncoding;
 
 use pyo3::prelude::*;
 
@@ -114,5 +115,6 @@ fn aorist(py: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<GiteaConfig>()?;
     m.add_class::<RangerConfig>()?;
     m.add_class::<PrestoConfig>()?;
+    m.add_class::<GzipCompression>()?;
     Ok(())
 }

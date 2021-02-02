@@ -19,3 +19,15 @@ pub struct WebLocation {
     #[derivative(PartialEq = "ignore", Debug = "ignore")]
     pub constraints: Vec<Arc<RwLock<Constraint>>>,
 }
+#[pymethods]
+impl WebLocation {
+    #[new]
+    fn new(address: String) -> Self {
+        Self {
+            address,
+            uuid: None,
+            tag: None,
+            constraints: Vec::new(),
+        }
+    }
+}

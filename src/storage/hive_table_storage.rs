@@ -28,3 +28,17 @@ pub struct HiveTableStorage {
     #[derivative(PartialEq = "ignore", Debug = "ignore")]
     pub constraints: Vec<Arc<RwLock<Constraint>>>,
 }
+#[pymethods]
+impl HiveTableStorage {
+    #[new]
+    fn new(location: HiveLocation, layout: HiveStorageLayout, encoding: Encoding) -> Self {
+        Self {
+            location,
+            layout,
+            encoding,
+            uuid: None,
+            tag: None,
+            constraints: Vec::new(),
+        }
+    }
+}

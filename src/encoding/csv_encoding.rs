@@ -25,3 +25,16 @@ pub struct CSVEncoding {
     #[derivative(PartialEq = "ignore", Debug = "ignore")]
     pub constraints: Vec<Arc<RwLock<Constraint>>>,
 }
+#[pymethods]
+impl CSVEncoding {
+    #[new]
+    fn new(compression: DataCompression, header: FileHeader) -> Self {
+        Self {
+            compression,
+            header,
+            uuid: None,
+            tag: None,
+            constraints: Vec::new(),
+        }
+    }
+}

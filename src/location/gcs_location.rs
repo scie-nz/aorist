@@ -20,3 +20,17 @@ pub struct GCSLocation {
     #[derivative(PartialEq = "ignore", Debug = "ignore")]
     pub constraints: Vec<Arc<RwLock<Constraint>>>,
 }
+
+#[pymethods]
+impl GCSLocation {
+    #[new]
+    fn new(bucket: String, blob: String) -> Self {
+        Self {
+            bucket,
+            blob,
+            uuid: None,
+            tag: None,
+            constraints: Vec::new(),
+        }
+    }
+}

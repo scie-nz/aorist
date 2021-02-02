@@ -18,3 +18,16 @@ pub struct AlluxioLocation {
     #[derivative(PartialEq = "ignore", Debug = "ignore")]
     pub constraints: Vec<Arc<RwLock<Constraint>>>,
 }
+
+#[pymethods]
+impl AlluxioLocation {
+    #[new]
+    fn new(path: String) -> Self {
+        Self {
+            path,
+            uuid: None,
+            tag: None,
+            constraints: Vec::new(),
+        }
+    }
+}

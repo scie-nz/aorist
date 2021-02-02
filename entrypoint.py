@@ -9,6 +9,18 @@ from aorist import (
     GlobalPermissionsAdmin,
     KeyedStruct,
     TabularSchema,
+    AlluxioLocation,
+    GCSLocation,
+    StaticHiveTableLayout,
+    UpperSnakeCaseCSVHeader,
+    GzipCompression,
+    ORCEncoding,
+    CSVEncoding,
+    SingleFileLayout,
+    RemoteStorage,
+    HiveTableStorage,
+    RemoteImportStorageSetup,
+    StaticDataTable,
 )
 
 # hacky import since submodule imports don't work well
@@ -45,8 +57,12 @@ bogdan = User(
     unixname="bogdan",
     roles=[global_permissions_admin],
 )
-nick = User(firstName="Nick", lastName="Parker", email="nick@scie.nz", unixname="nick")
-cip = User(firstName="Ciprian", lastName="Gerea", email="cip@scie.nz", unixname="cip")
+nick = User(
+    firstName="Nick", lastName="Parker", email="nick@scie.nz", unixname="nick"
+)
+cip = User(
+    firstName="Ciprian", lastName="Gerea", email="cip@scie.nz", unixname="cip"
+)
 
 """
 Defining user groups
@@ -67,7 +83,7 @@ crowding = UserGroup(
 )
 
 """
-Defining datum templates
+Defining dataset
 """
 attributes = [
     attr.KeyStringIdentifier("granule_id"),
@@ -85,12 +101,40 @@ attributes = [
     attr.FloatLatitude(
         "south_lat", "Southern latitude of the tile's bounding box."
     ),
-    attr.FloatLatitude("west_lon", "Western longitude of the tile's bounding box."),
-    attr.FloatLatitude("east_lon", "Eastern longitude of the tile's bounding box."),
+    attr.FloatLatitude(
+        "west_lon", "Western longitude of the tile's bounding box."
+    ),
+    attr.FloatLatitude(
+        "east_lon", "Eastern longitude of the tile's bounding box."
+    ),
     attr.URI("base_url"),
 ]
 sentinel_granule_datum = KeyedStruct(
     name="sentinel_granule_datum",
     attributes=attributes,
 )
-schema = TabularSchema(sentinel_granule_datum)
+remote = RemoteStorage(
+    location=GCSLocation(
+        bucket="gcp-public-data-sentinel2",
+        blob="index.csv.gz-backup",
+    ),
+    layout=SingleFileLayout(),
+    encoding=CSVEncoding(
+        compression=GzipCompression(),
+        header=UpperSnakeCaseCSVHeader(),
+    ),
+)
+local = HiveTableStorage(
+    location=AlluxioLocation("sentinel2/metadata"),
+    layout=StaticHiveTableLayout(),
+    encoding=ORCEncoding(),
+)
+sentinel = StaticDataTable(
+    name='sentinel',
+    schema=TabularSchema(sentinel_granule_datum),
+    setup=RemoteImportStorageSetup(
+        tmp_dir="/tmp/sentinel2",
+        remote=remote,
+        local=[local],
+    )
+)

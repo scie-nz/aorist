@@ -18,6 +18,18 @@ pub struct SingleFileLayout {
     #[derivative(PartialEq = "ignore", Debug = "ignore")]
     pub constraints: Vec<Arc<RwLock<Constraint>>>,
 }
+#[pymethods]
+impl SingleFileLayout {
+    #[new]
+    fn new() -> Self {
+        Self {
+            uuid: None,
+            tag: None,
+            constraints: Vec::new(),
+        }
+    }
+}
+
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone, Constrainable, FromPyObject)]
 #[serde(tag = "type")]

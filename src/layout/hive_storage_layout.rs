@@ -19,6 +19,18 @@ pub struct StaticHiveTableLayout {
     pub constraints: Vec<Arc<RwLock<Constraint>>>,
 }
 
+#[pymethods]
+impl StaticHiveTableLayout {
+    #[new]
+    fn new() -> Self {
+        Self {
+            uuid: None,
+            tag: None,
+            constraints: Vec::new(),
+        }
+    }
+}
+
 #[pyclass]
 #[derive(Derivative, Serialize, Deserialize, Clone, Constrainable)]
 #[derivative(PartialEq, Debug)]
@@ -29,8 +41,19 @@ pub struct DailyGranularity {
     #[derivative(PartialEq = "ignore", Debug = "ignore")]
     pub constraints: Vec<Arc<RwLock<Constraint>>>,
 }
+#[pymethods]
+impl DailyGranularity {
+    #[new]
+    fn new() -> Self {
+        Self {
+            uuid: None,
+            tag: None,
+            constraints: Vec::new(),
+        }
+    }
+}
 
-#[derive(Debug, PartialEq, Serialize, Deserialize, Clone, Constrainable)]
+#[derive(Debug, PartialEq, Serialize, Deserialize, Clone, Constrainable, FromPyObject)]
 #[serde(tag = "type")]
 pub enum Granularity {
     #[constrainable]
@@ -49,8 +72,20 @@ pub struct DynamicHiveTableLayout {
     #[derivative(PartialEq = "ignore", Debug = "ignore")]
     pub constraints: Vec<Arc<RwLock<Constraint>>>,
 }
+#[pymethods]
+impl DynamicHiveTableLayout {
+    #[new]
+    fn new(granularity: Granularity) -> Self {
+        Self {
+            granularity,
+            uuid: None,
+            tag: None,
+            constraints: Vec::new(),
+        }
+    }
+}
 
-#[derive(Debug, PartialEq, Serialize, Deserialize, Clone, Constrainable)]
+#[derive(Debug, PartialEq, Serialize, Deserialize, Clone, Constrainable, FromPyObject)]
 #[serde(tag = "type")]
 pub enum HiveStorageLayout {
     StaticHiveTableLayout(StaticHiveTableLayout),
