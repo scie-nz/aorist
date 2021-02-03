@@ -68,7 +68,9 @@ impl Universe {
         }
     }
     pub fn get_user_unixname_map(&self) -> HashMap<String, User> {
-        self.users.as_ref().unwrap()
+        self.users
+            .as_ref()
+            .unwrap()
             .iter()
             .map(|x| (x.get_unixname().clone(), x.clone()))
             .collect()

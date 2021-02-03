@@ -3,13 +3,13 @@ use crate::attributes::Attribute;
 use crate::concept::{AoristConcept, Concept};
 use crate::constraint::Constraint;
 use crate::template::{DatumTemplate, TDatumTemplate};
+use aorist_concept::{aorist_concept, Constrainable};
 use aorist_primitives::TAttribute;
 use derivative::Derivative;
 use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::sync::{Arc, RwLock};
 use uuid::Uuid;
-use aorist_concept::{aorist_concept, Constrainable};
 
 #[aorist_concept]
 pub struct TabularSchema {
