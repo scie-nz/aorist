@@ -685,7 +685,23 @@ pub fn aorist_concept2(args: TokenStream, input: TokenStream) -> TokenStream {
                     #(#variant(#variant)),*
                 }
             };
-            return proc_macro::TokenStream::from(quoted);
+            let mut final_ast: DeriveInput = syn::parse2(quoted).unwrap();
+            let (attr, mut current_derives) = final_ast
+                .attrs
+                .iter_mut()
+                .filter(|attr| attr.path.is_ident("derive"))
+                .filter_map(|attr| match attr.parse_meta() {
+                    Ok(Meta::List(meta_list)) => Some((attr, meta_list)),
+                    _ => None, // kcov-ignore
+                })
+                .next()
+                .unwrap();
+            current_derives
+                .nested
+                .extend::<Punctuated<NestedMeta, Token![,]>>(derives.into_iter().collect());
+            *attr = parse_quote!(#[#current_derives]);
+            let quoted2 = quote! { #final_ast };
+            return proc_macro::TokenStream::from(quoted2);
         }
         _ => panic!("expected a struct with named fields or an enum"),
     }

@@ -2,16 +2,13 @@ use crate::concept::{AoristConcept, Concept};
 use crate::constraint::AoristConstraint;
 use crate::constraint::Constraint;
 use crate::header::UpperSnakeCaseCSVHeader;
-use aorist_concept::Constrainable;
-use enum_dispatch::enum_dispatch;
+use aorist_concept::{aorist_concept2, Constrainable};
 use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::sync::{Arc, RwLock};
 use uuid::Uuid;
 
-#[enum_dispatch]
-#[derive(Debug, PartialEq, Serialize, Deserialize, Clone, Constrainable, FromPyObject)]
-#[serde(tag = "type")]
+#[aorist_concept2]
 pub enum FileHeader {
     UpperSnakeCaseCSVHeader(UpperSnakeCaseCSVHeader),
 }

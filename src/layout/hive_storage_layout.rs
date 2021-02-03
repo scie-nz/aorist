@@ -15,8 +15,7 @@ pub struct StaticHiveTableLayout {}
 #[aorist_concept2]
 pub struct DailyGranularity {}
 
-#[derive(Debug, PartialEq, Serialize, Deserialize, Clone, Constrainable, FromPyObject)]
-#[serde(tag = "type")]
+#[aorist_concept2]
 pub enum Granularity {
     #[constrainable]
     DailyGranularity(DailyGranularity),
@@ -28,8 +27,7 @@ pub struct DynamicHiveTableLayout {
     granularity: Granularity,
 }
 
-#[derive(Debug, PartialEq, Serialize, Deserialize, Clone, Constrainable, FromPyObject)]
-#[serde(tag = "type")]
+#[aorist_concept2]
 pub enum HiveStorageLayout {
     StaticHiveTableLayout(StaticHiveTableLayout),
     DynamicHiveTableLayout(DynamicHiveTableLayout),

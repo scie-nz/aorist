@@ -2,7 +2,7 @@
 use crate::concept::{AoristConcept, Concept};
 use crate::constraint::Constraint;
 use crate::role::global_permissions_admin::GlobalPermissionsAdmin;
-use aorist_concept::Constrainable;
+use aorist_concept::{aorist_concept2, Constrainable};
 use enum_dispatch::enum_dispatch;
 use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
@@ -15,8 +15,7 @@ pub trait TRole {
 }
 
 #[enum_dispatch]
-#[derive(Debug, PartialEq, Serialize, Deserialize, Clone, Constrainable, Hash, FromPyObject)]
-#[serde(tag = "type", content = "spec")]
+#[aorist_concept2(Hash)]
 pub enum Role {
     GlobalPermissionsAdmin(GlobalPermissionsAdmin),
 }

@@ -5,7 +5,7 @@ use crate::concept::{AoristConcept, Concept};
 use crate::constraint::Constraint;
 use crate::template::identifier_tuple::IdentifierTuple;
 use crate::template::keyed_struct::KeyedStruct;
-use aorist_concept::{Constrainable, aorist_concept2};
+use aorist_concept::{aorist_concept2, Constrainable};
 use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::sync::{Arc, RwLock};

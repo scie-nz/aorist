@@ -12,8 +12,7 @@ use uuid::Uuid;
 #[aorist_concept2]
 pub struct SingleFileLayout {}
 
-#[derive(Debug, PartialEq, Serialize, Deserialize, Clone, Constrainable, FromPyObject)]
-#[serde(tag = "type")]
+#[aorist_concept2]
 pub enum FileBasedStorageLayout {
     SingleFileLayout(SingleFileLayout),
 }
