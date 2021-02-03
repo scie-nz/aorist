@@ -303,9 +303,15 @@ macro_rules! define_attribute {
         #[pymethods]
         impl $element {
             #[new]
-            #[args(comment="None")]
+            #[args(comment = "None")]
             fn new(name: String, comment: Option<String>) -> Self {
-                Self { name, comment, uuid: None, tag: None, constraints: Vec::new() }
+                Self {
+                    name,
+                    comment,
+                    uuid: None,
+                    tag: None,
+                    constraints: Vec::new(),
+                }
             }
         }
         impl TAttribute for $element {

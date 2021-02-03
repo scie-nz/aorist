@@ -7,12 +7,12 @@ use type_macro_helpers::{extract_type_from_option, extract_type_from_vector};
 
 use proc_macro2::{Ident, Span};
 use quote::quote;
+use syn::parse::Parser;
 use syn::punctuated::Punctuated;
 use syn::token::Comma;
-use syn::parse::Parser;
 use syn::{
-    parse_macro_input, Data, DataEnum, DataStruct, DeriveInput, Field, Fields, Meta, Type, Variant, AttributeArgs,
-    Token, NestedMeta, parse_quote,
+    parse_macro_input, parse_quote, AttributeArgs, Data, DataEnum, DataStruct, DeriveInput, Field,
+    Fields, Meta, NestedMeta, Token, Type, Variant,
 };
 mod keyword {
     syn::custom_keyword!(path);
@@ -532,7 +532,7 @@ pub fn python_object(input: TokenStream) -> TokenStream {
             ..
         }) => {
             let struct_name = &input.ident;
-            return TokenStream::from(quote!{
+            return TokenStream::from(quote! {
                 #[pymethods]
                 impl #struct_name {
                     #[new]
@@ -565,8 +565,7 @@ pub fn python_object(input: TokenStream) -> TokenStream {
 }
 
 #[proc_macro_attribute]
-pub fn aorist_concept(args: TokenStream, input: TokenStream) -> TokenStream  {
-
+pub fn aorist_concept(args: TokenStream, input: TokenStream) -> TokenStream {
     let derives = parse_macro_input!(args as AttributeArgs);
 
     let mut ast = parse_macro_input!(input as DeriveInput);
@@ -574,25 +573,28 @@ pub fn aorist_concept(args: TokenStream, input: TokenStream) -> TokenStream  {
         syn::Data::Struct(ref mut struct_data) => {
             match &mut struct_data.fields {
                 syn::Fields::Named(fields) => {
-                    fields
-                        .named
-                        .push(syn::Field::parse_named.parse2(quote! {
-							uuid: Option<Uuid>
-						}).unwrap());
-                    fields.named
-                        .push(syn::Field::parse_named.parse2(quote! {
-                            tag: Option<String>
-						}).unwrap());
+                    fields.named.push(
+                        syn::Field::parse_named
+                            .parse2(quote! {
+                              uuid: Option<Uuid>
+                            })
+                            .unwrap(),
+                    );
+                    fields.named.push(
+                        syn::Field::parse_named
+                            .parse2(quote! {
+                                            tag: Option<String>
+                            })
+                            .unwrap(),
+                    );
                     fields.named
                         .push(syn::Field::parse_named.parse2(quote! {
                             #[serde(skip)]
                             #[derivative(PartialEq = "ignore", Debug = "ignore", Hash = "ignore")]
                             pub constraints: Vec<Arc<RwLock<Constraint>>>
-						}).unwrap());
+            }).unwrap());
                 }
-                _ => {
-                    ()
-                }
+                _ => (),
             }
             let quoted = quote! {
                 #[pyclass]
@@ -602,14 +604,19 @@ pub fn aorist_concept(args: TokenStream, input: TokenStream) -> TokenStream  {
             };
             let mut final_ast: DeriveInput = syn::parse2(quoted).unwrap();
 
-			let (attr, mut derivatives) = final_ast.attrs.iter_mut()
-            .filter(|attr| attr.path.is_ident("derivative"))
-            .filter_map(|attr| match attr.parse_meta() {
-                Ok(Meta::List(meta_list)) => Some((attr, meta_list)),
-                _ => None, // kcov-ignore
-            })
-            .next().unwrap();
-            derivatives.nested.extend::<Punctuated<NestedMeta, Token![,]>>(derives.clone().into_iter().collect());
+            let (attr, mut derivatives) = final_ast
+                .attrs
+                .iter_mut()
+                .filter(|attr| attr.path.is_ident("derivative"))
+                .filter_map(|attr| match attr.parse_meta() {
+                    Ok(Meta::List(meta_list)) => Some((attr, meta_list)),
+                    _ => None, // kcov-ignore
+                })
+                .next()
+                .unwrap();
+            derivatives
+                .nested
+                .extend::<Punctuated<NestedMeta, Token![,]>>(derives.clone().into_iter().collect());
             *attr = parse_quote!(#[#derivatives]);
 
             let quoted2 = quote! { #final_ast };
@@ -620,8 +627,7 @@ pub fn aorist_concept(args: TokenStream, input: TokenStream) -> TokenStream  {
 }
 
 #[proc_macro_attribute]
-pub fn aorist_concept2(args: TokenStream, input: TokenStream) -> TokenStream  {
-
+pub fn aorist_concept2(args: TokenStream, input: TokenStream) -> TokenStream {
     let derives = parse_macro_input!(args as AttributeArgs);
 
     let mut ast = parse_macro_input!(input as DeriveInput);
@@ -629,25 +635,28 @@ pub fn aorist_concept2(args: TokenStream, input: TokenStream) -> TokenStream  {
         syn::Data::Struct(ref mut struct_data) => {
             match &mut struct_data.fields {
                 syn::Fields::Named(fields) => {
-                    fields
-                        .named
-                        .push(syn::Field::parse_named.parse2(quote! {
-							uuid: Option<Uuid>
-						}).unwrap());
-                    fields.named
-                        .push(syn::Field::parse_named.parse2(quote! {
-                            tag: Option<String>
-						}).unwrap());
+                    fields.named.push(
+                        syn::Field::parse_named
+                            .parse2(quote! {
+                              uuid: Option<Uuid>
+                            })
+                            .unwrap(),
+                    );
+                    fields.named.push(
+                        syn::Field::parse_named
+                            .parse2(quote! {
+                                            tag: Option<String>
+                            })
+                            .unwrap(),
+                    );
                     fields.named
                         .push(syn::Field::parse_named.parse2(quote! {
                             #[serde(skip)]
                             #[derivative(PartialEq = "ignore", Debug = "ignore", Hash = "ignore")]
                             pub constraints: Vec<Arc<RwLock<Constraint>>>
-						}).unwrap());
+            }).unwrap());
                 }
-                _ => {
-                    ()
-                }
+                _ => (),
             }
             let quoted = quote! {
                 #[pyclass]
@@ -657,13 +666,16 @@ pub fn aorist_concept2(args: TokenStream, input: TokenStream) -> TokenStream  {
             };
             let mut final_ast: DeriveInput = syn::parse2(quoted).unwrap();
 
-			let (attr, mut derivatives) = final_ast.attrs.iter_mut()
-            .filter(|attr| attr.path.is_ident("derivative"))
-            .filter_map(|attr| match attr.parse_meta() {
-                Ok(Meta::List(meta_list)) => Some((attr, meta_list)),
-                _ => None, // kcov-ignore
-            })
-            .next().unwrap();
+            let (attr, mut derivatives) = final_ast
+                .attrs
+                .iter_mut()
+                .filter(|attr| attr.path.is_ident("derivative"))
+                .filter_map(|attr| match attr.parse_meta() {
+                    Ok(Meta::List(meta_list)) => Some((attr, meta_list)),
+                    _ => None, // kcov-ignore
+                })
+                .next()
+                .unwrap();
             let derives_list = match derives.get(0).unwrap() {
                 syn::NestedMeta::Meta(syn::Meta::List(ref x)) => x.nested.clone(),
                 _ => panic!("first element in aorist_concept args must be list"),
@@ -673,7 +685,9 @@ pub fn aorist_concept2(args: TokenStream, input: TokenStream) -> TokenStream  {
                 _ => panic!("second element in aorist_concept args must be list"),
             };
 
-            derivatives.nested.extend::<Punctuated<NestedMeta, Token![,]>>(derives_list.into_iter().collect());
+            derivatives
+                .nested
+                .extend::<Punctuated<NestedMeta, Token![,]>>(derives_list.into_iter().collect());
             *attr = parse_quote!(#[#derivatives]);
 
             let quoted2 = quote! { #final_ast };
