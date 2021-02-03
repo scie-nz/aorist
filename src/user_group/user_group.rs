@@ -3,7 +3,7 @@ use crate::concept::{AoristConcept, Concept};
 use crate::constraint::Constraint;
 use crate::object::TAoristObject;
 use crate::user::{TUser, User};
-use aorist_concept::Constrainable;
+use aorist_concept::{aorist_concept, Constrainable};
 use derivative::Derivative;
 use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
@@ -11,20 +11,13 @@ use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
 use uuid::Uuid;
 
-#[pyclass]
-#[derive(Derivative, Serialize, Deserialize, Constrainable)]
-#[derivative(PartialEq, Debug)]
+#[aorist_concept]
 pub struct UserGroup {
     name: String,
     members: Vec<String>,
     labels: HashMap<String, String>,
     description: Option<String>,
     users: Option<Vec<User>>,
-    uuid: Option<Uuid>,
-    tag: Option<String>,
-    #[serde(skip)]
-    #[derivative(PartialEq = "ignore", Debug = "ignore")]
-    pub constraints: Vec<Arc<RwLock<Constraint>>>,
 }
 #[pymethods]
 impl UserGroup {

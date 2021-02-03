@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 use std::sync::{Arc, RwLock};
 use uuid::Uuid;
 
-#[derive(Debug, PartialEq, Serialize, Deserialize, Constrainable, FromPyObject)]
+#[derive(Debug, PartialEq, Serialize, Deserialize, Constrainable, FromPyObject, Clone)]
 #[serde(tag = "type", content = "spec")]
 pub enum AccessPolicy {
     ApproveAccessSelector(ApproveAccessSelector),

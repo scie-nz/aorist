@@ -5,7 +5,7 @@ use crate::concept::{AoristConcept, Concept};
 use crate::constraint::{AoristConstraint, Constraint};
 use crate::object::TAoristObject;
 use crate::template::{DatumTemplate, TDatumTemplate};
-use aorist_concept::Constrainable;
+use aorist_concept::{aorist_concept, Constrainable};
 use derivative::Derivative;
 use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
@@ -13,9 +13,7 @@ use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
 use uuid::Uuid;
 
-#[pyclass]
-#[derive(Derivative, Serialize, Deserialize, Default, Constrainable)]
-#[derivative(PartialEq, Debug)]
+#[aorist_concept]
 pub struct DataSet {
     name: String,
     #[constrainable]
@@ -24,11 +22,6 @@ pub struct DataSet {
     pub datumTemplates: Vec<DatumTemplate>,
     #[constrainable]
     assets: Vec<Asset>,
-    uuid: Option<Uuid>,
-    tag: Option<String>,
-    #[serde(skip)]
-    #[derivative(PartialEq = "ignore", Debug = "ignore")]
-    pub constraints: Vec<Arc<RwLock<Constraint>>>,
 }
 impl TAoristObject for DataSet {
     fn get_name(&self) -> &String {

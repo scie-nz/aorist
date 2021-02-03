@@ -8,28 +8,21 @@ pub use crate::endpoints::alluxio::AlluxioConfig;
 pub use crate::endpoints::gitea::GiteaConfig;
 pub use crate::endpoints::presto::PrestoConfig;
 pub use crate::endpoints::ranger::RangerConfig;
-use crate::utils::GetSetError;
-use getset::{IncompleteGetters, IncompleteSetters};
 use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::sync::{Arc, RwLock};
 use uuid::Uuid;
+use crate::concept::Concept;
+use aorist_concept::{aorist_concept, Constrainable};
+use crate::AoristConcept;
+use derivative::Derivative;
 
-#[pyclass]
-#[serde()]
-#[derive(Serialize, Deserialize, Clone, IncompleteGetters, IncompleteSetters)]
+#[aorist_concept]
 pub struct EndpointConfig {
-    #[getset(get_incomplete = "pub", set_incomplete = "pub")]
     presto: Option<PrestoConfig>,
-    #[getset(get_incomplete = "pub", set_incomplete = "pub")]
     alluxio: Option<AlluxioConfig>,
-    #[getset(get_incomplete = "pub", set_incomplete = "pub")]
     ranger: Option<RangerConfig>,
-    #[getset(get_incomplete = "pub", set_incomplete = "pub")]
     gitea: Option<GiteaConfig>,
-    uuid: Option<Uuid>,
-    #[serde(skip)]
-    pub constraints: Vec<Arc<RwLock<Constraint>>>,
 }
 
 #[pymethods]
@@ -47,6 +40,7 @@ impl EndpointConfig {
             alluxio,
             ranger,
             gitea,
+            tag: None,
             uuid: None,
             constraints: Vec::new(),
         }

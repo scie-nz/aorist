@@ -1,16 +1,18 @@
 #![allow(non_snake_case)]
-use getset::{Getters, Setters};
 use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
+use crate::concept::Concept;
+use aorist_concept::{aorist_concept, Constrainable};
+use crate::AoristConcept;
+use crate::constraint::Constraint;
+use derivative::Derivative;
+use std::sync::{Arc, RwLock};
+use uuid::Uuid;
 
-#[pyclass]
-#[derive(Serialize, Deserialize, Clone, Getters, Setters)]
+#[aorist_concept]
 pub struct AlluxioConfig {
-    #[getset(get = "pub", set = "pub")]
     server: String,
-    #[getset(get = "pub", set = "pub")]
     rpcPort: usize,
-    #[getset(get = "pub", set = "pub")]
     apiPort: usize,
 }
 
@@ -23,6 +25,9 @@ impl AlluxioConfig {
             server,
             rpcPort,
             apiPort,
+            tag: None,
+            constraints: Vec::new(),
+            uuid: None,
         }
     }
 }
