@@ -7,7 +7,7 @@ use crate::imports::local_import::LocalFileImport;
 use crate::imports::TAoristImport;
 use crate::object::{AoristObject, TAoristObject};
 use crate::role::Role;
-use crate::role_binding::RoleBinding;
+use crate::role_binding::{RoleBinding, TRoleBinding};
 use crate::user::{TUser, User};
 use crate::user_group::UserGroup;
 use getset::Getters;
@@ -42,8 +42,6 @@ impl DataSetup {
                 }
             }
         }
-
-        let mut dataSetup = Universe::new(self.name.clone(), self.name, self.endpoints);
 
         let user_names: HashSet<String> = self.users.iter().map(|x| x.clone()).collect();
         let dataset_names: HashSet<String> = self.datasets.iter().map(|x| x.clone()).collect();
@@ -88,11 +86,19 @@ impl DataSetup {
                 _ => {}
             }
         }
-        dataSetup.users = Some(users);
-        dataSetup.groups = Some(groups);
-        dataSetup.datasets = Some(datasets);
-        dataSetup.role_bindings = Some(role_bindings);
-        //dataSetup.set_constraints(constraints);
+        
+        let mut dataSetup = Universe{
+            name: self.name.clone(),
+            tag: Some(self.name),
+            endpoints: self.endpoints,
+            users: Some(users),
+            groups: Some(groups),
+            datasets: Some(datasets),
+            role_bindings: Some(role_bindings),
+            uuid: None,
+            constraints: Vec::new(),
+        };
+
 
         let mut role_map: HashMap<String, Vec<Role>> = HashMap::new();
         let role_bindings = dataSetup.role_bindings.as_ref().unwrap();

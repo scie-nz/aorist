@@ -2,7 +2,7 @@
 use crate::concept::{AoristConcept, Concept};
 use crate::constraint::Constraint;
 use crate::user_group::{TUserGroup, UserGroup};
-use aorist_concept::{aorist_concept, Constrainable};
+use aorist_concept::{aorist_concept2, Constrainable, PythonObject};
 use derivative::Derivative;
 use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
@@ -10,12 +10,15 @@ use std::collections::{HashMap, HashSet};
 use std::sync::{Arc, RwLock};
 use uuid::Uuid;
 
-#[aorist_concept]
+#[aorist_concept2]
 pub struct ApproveAccessSelector {
     matchLabels: Vec<(String, Vec<String>)>,
 }
-impl ApproveAccessSelector {
-    pub fn checkGroupIsAllowed(&self, group: &UserGroup) -> bool {
+pub trait TApproveAccessSelector {
+    fn checkGroupIsAllowed(&self, group: &UserGroup) -> bool;
+}
+impl TApproveAccessSelector for ApproveAccessSelector {
+    fn checkGroupIsAllowed(&self, group: &UserGroup) -> bool {
         let my_labels: HashMap<String, HashSet<String>> = self
             .matchLabels
             .clone()

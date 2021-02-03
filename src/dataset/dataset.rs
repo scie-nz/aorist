@@ -5,7 +5,7 @@ use crate::concept::{AoristConcept, Concept};
 use crate::constraint::{AoristConstraint, Constraint};
 use crate::object::TAoristObject;
 use crate::template::{DatumTemplate, TDatumTemplate};
-use aorist_concept::{aorist_concept, Constrainable};
+use aorist_concept::{aorist_concept2, Constrainable, PythonObject};
 use derivative::Derivative;
 use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
@@ -13,7 +13,7 @@ use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
 use uuid::Uuid;
 
-#[aorist_concept]
+#[aorist_concept2]
 pub struct DataSet {
     name: String,
     #[constrainable]
@@ -30,30 +30,6 @@ impl TAoristObject for DataSet {
 }
 pub trait TDataSet {
     fn get_mapped_datum_templates(&self) -> HashMap<String, DatumTemplate>;
-}
-#[pymethods]
-impl DataSet {
-    #[new]
-    #[args(accessPolicies = "Vec::new()")]
-    fn new(
-        name: String,
-        accessPolicies: Vec<AccessPolicy>,
-        datumTemplates: Vec<DatumTemplate>,
-        assets: Vec<Asset>,
-    ) -> Self {
-        Self {
-            name,
-            accessPolicies,
-            datumTemplates,
-            assets,
-            uuid: None,
-            tag: None,
-            constraints: Vec::new(),
-        }
-    }
-    pub fn to_yaml(&self) -> String {
-        serde_yaml::to_string(self).unwrap()
-    }
 }
 impl TDataSet for DataSet {
     fn get_mapped_datum_templates(&self) -> HashMap<String, DatumTemplate> {

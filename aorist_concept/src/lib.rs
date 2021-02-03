@@ -605,68 +605,6 @@ pub fn python_object(input: TokenStream) -> TokenStream {
 }
 
 #[proc_macro_attribute]
-pub fn aorist_concept(args: TokenStream, input: TokenStream) -> TokenStream {
-    let derives = parse_macro_input!(args as AttributeArgs);
-
-    let mut ast = parse_macro_input!(input as DeriveInput);
-    match &mut ast.data {
-        syn::Data::Struct(ref mut struct_data) => {
-            match &mut struct_data.fields {
-                syn::Fields::Named(fields) => {
-                    fields.named.push(
-                        syn::Field::parse_named
-                            .parse2(quote! {
-                                 pub uuid: Option<Uuid>
-                            })
-                            .unwrap(),
-                    );
-                    fields.named.push(
-                        syn::Field::parse_named
-                            .parse2(quote! {
-                                 pub tag: Option<String>
-                            })
-                            .unwrap(),
-                    );
-                    fields.named
-                        .push(syn::Field::parse_named.parse2(quote! {
-                            #[serde(skip)]
-                            #[derivative(PartialEq = "ignore", Debug = "ignore", Hash = "ignore")]
-                            pub constraints: Vec<Arc<RwLock<Constraint>>>
-            }).unwrap());
-                }
-                _ => (),
-            }
-            let quoted = quote! {
-                #[pyclass]
-                #[derive(Derivative, Serialize, Deserialize, Constrainable, Clone)]
-                #[derivative(PartialEq, Debug, Eq)]
-                #ast
-            };
-            let mut final_ast: DeriveInput = syn::parse2(quoted).unwrap();
-
-            let (attr, mut derivatives) = final_ast
-                .attrs
-                .iter_mut()
-                .filter(|attr| attr.path.is_ident("derivative"))
-                .filter_map(|attr| match attr.parse_meta() {
-                    Ok(Meta::List(meta_list)) => Some((attr, meta_list)),
-                    _ => None, // kcov-ignore
-                })
-                .next()
-                .unwrap();
-            derivatives
-                .nested
-                .extend::<Punctuated<NestedMeta, Token![,]>>(derives.clone().into_iter().collect());
-            *attr = parse_quote!(#[#derivatives]);
-
-            let quoted2 = quote! { #final_ast };
-            return proc_macro::TokenStream::from(quoted2);
-        }
-        _ => panic!("expected a struct with named fields or an enum"),
-    }
-}
-
-#[proc_macro_attribute]
 pub fn aorist_concept2(args: TokenStream, input: TokenStream) -> TokenStream {
     let derives = parse_macro_input!(args as AttributeArgs);
 

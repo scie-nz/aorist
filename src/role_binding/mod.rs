@@ -3,14 +3,14 @@ use crate::concept::{AoristConcept, Concept};
 use crate::constraint::Constraint;
 use crate::object::TAoristObject;
 use crate::role::Role;
-use aorist_concept::{aorist_concept, Constrainable};
+use aorist_concept::{aorist_concept2, Constrainable, PythonObject};
 use derivative::Derivative;
 use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::sync::{Arc, RwLock};
 use uuid::Uuid;
 
-#[aorist_concept]
+#[aorist_concept2]
 pub struct RoleBinding {
     user_name: String,
     #[constrainable]
@@ -22,14 +22,19 @@ impl TAoristObject for RoleBinding {
         &self.name
     }
 }
-impl RoleBinding {
-    pub fn get_user_name(&self) -> &String {
+pub trait TRoleBinding {
+    fn get_user_name(&self) -> &String;
+    fn get_role(&self) -> &Role;
+    fn to_yaml(&self) -> String;
+}
+impl TRoleBinding for RoleBinding {
+    fn get_user_name(&self) -> &String {
         &self.user_name
     }
-    pub fn get_role(&self) -> &Role {
+    fn get_role(&self) -> &Role {
         &self.role
     }
-    pub fn to_yaml(&self) -> String {
+    fn to_yaml(&self) -> String {
         serde_yaml::to_string(self).unwrap()
     }
 }

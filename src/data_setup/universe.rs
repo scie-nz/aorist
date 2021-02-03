@@ -4,10 +4,10 @@ use crate::constraint::{AoristConstraint, Constraint};
 use crate::dataset::DataSet;
 use crate::endpoints::EndpointConfig;
 use crate::role::TRole;
-use crate::role_binding::RoleBinding;
+use crate::role_binding::{RoleBinding, TRoleBinding};
 use crate::user::{TUser, User};
 use crate::user_group::UserGroup;
-use aorist_concept::{aorist_concept, Constrainable};
+use aorist_concept::{aorist_concept2, Constrainable, PythonObject};
 use derivative::Derivative;
 use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
@@ -15,9 +15,9 @@ use std::collections::{HashMap, HashSet, VecDeque};
 use std::sync::{Arc, RwLock};
 use uuid::Uuid;
 
-#[aorist_concept]
+#[aorist_concept2]
 pub struct Universe {
-    name: String,
+    pub name: String,
     #[constrainable]
     pub users: Option<Vec<User>>,
     #[constrainable]
@@ -27,7 +27,7 @@ pub struct Universe {
     #[constrainable]
     pub role_bindings: Option<Vec<RoleBinding>>,
     #[constrainable]
-    endpoints: EndpointConfig,
+    pub endpoints: EndpointConfig,
 }
 pub trait TUniverse {
     fn get_concept_map<'a>(&'a self) -> HashMap<(Uuid, String), Concept<'a>>;
@@ -84,20 +84,5 @@ impl TUniverse for Universe {
             }
         }
         Ok(map)
-    }
-}
-impl Universe {
-    pub fn new(name: String, tag: String, endpoints: EndpointConfig) -> Self {
-        Self {
-            name: name,
-            users: None,
-            datasets: None,
-            groups: None,
-            role_bindings: None,
-            endpoints: endpoints,
-            constraints: Vec::new(),
-            uuid: None,
-            tag: Some(tag),
-        }
     }
 }
