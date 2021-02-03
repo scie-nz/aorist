@@ -4,6 +4,7 @@ use crate::constraint::{AoristConstraint, Constraint};
 use crate::storage::Storage;
 use aorist_concept::{aorist_concept2, Constrainable, PythonObject};
 use derivative::Derivative;
+use paste::paste;
 use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::sync::{Arc, RwLock};

@@ -4,7 +4,6 @@ use self::proc_macro::TokenStream;
 use std::fs::OpenOptions;
 use std::io::prelude::*;
 use type_macro_helpers::{extract_type_from_option, extract_type_from_vector};
-
 use proc_macro2::{Ident, Span};
 use quote::quote;
 use syn::parse::Parser;
@@ -587,7 +586,7 @@ pub fn python_object(input: TokenStream) -> TokenStream {
                 .map(|x| x.ty)
                 .collect::<Vec<_>>();
             let struct_name = &input.ident;
-            return TokenStream::from(quote! {
+            return TokenStream::from(quote! { paste! {
                 #[pymethods]
                 impl #struct_name {
                     #[new]
@@ -603,7 +602,7 @@ pub fn python_object(input: TokenStream) -> TokenStream {
                         }
                     }
                 }
-            });
+            }});
         }
         _ => panic!("expected a struct with named fields or an enum"),
     }

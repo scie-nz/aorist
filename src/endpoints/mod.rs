@@ -12,6 +12,7 @@ pub use crate::endpoints::ranger::RangerConfig;
 use crate::AoristConcept;
 use aorist_concept::{aorist_concept2, Constrainable, PythonObject};
 use derivative::Derivative;
+use paste::paste;
 use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::sync::{Arc, RwLock};

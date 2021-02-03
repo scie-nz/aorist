@@ -6,6 +6,7 @@ use crate::object::TAoristObject;
 use crate::role::{Role, TRole};
 use aorist_concept::{aorist_concept2, Constrainable, PythonObject};
 use derivative::Derivative;
+use paste::paste;
 use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
