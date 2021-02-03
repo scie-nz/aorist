@@ -118,9 +118,9 @@ impl Universe {
             .map(|x| (x.get_unixname().clone(), x.clone()))
             .collect()
     }
-    pub fn get_user_permissions(&self) -> Result<HashMap<User, HashSet<String>>, String> {
+    pub fn get_user_permissions(&self) -> Result<HashMap<String, HashSet<String>>, String> {
         let umap = self.get_user_unixname_map();
-        let mut map: HashMap<User, HashSet<String>> = HashMap::new();
+        let mut map: HashMap<_, HashSet<String>> = HashMap::new();
         for binding in self.get_role_bindings().unwrap() {
             let name = binding.get_user_name();
             if !umap.contains_key(name) {
@@ -128,7 +128,7 @@ impl Universe {
             }
             let user = umap.get(name).unwrap().clone();
             for perm in binding.get_role().get_permissions() {
-                map.entry(user.clone())
+                map.entry(user.get_unixname().clone())
                     .or_insert_with(HashSet::new)
                     .insert(perm.clone());
             }

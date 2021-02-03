@@ -59,12 +59,7 @@ where
         ));
         ancestors.insert(
             (universe.get_uuid(), universe.get_type()),
-            vec![(
-                universe.get_uuid(),
-                universe.get_type(),
-                None,
-                0,
-            )],
+            vec![(universe.get_uuid(), universe.get_type(), None, 0)],
         );
         while frontier.len() > 0 {
             let mut new_frontier: Vec<(Uuid, String, Option<String>, usize)> = Vec::new();

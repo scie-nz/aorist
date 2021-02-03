@@ -5,16 +5,14 @@ use crate::constraint::*;
 use crate::encoding::Encoding;
 use crate::layout::HiveStorageLayout;
 use crate::location::HiveLocation;
-use aorist_concept::Constrainable;
+use aorist_concept::{aorist_concept, Constrainable};
 use derivative::Derivative;
 use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::sync::{Arc, RwLock};
 use uuid::Uuid;
 
-#[pyclass]
-#[derive(Derivative, Serialize, Deserialize, Clone, Constrainable)]
-#[derivative(PartialEq, Debug)]
+#[aorist_concept]
 pub struct HiveTableStorage {
     #[constrainable]
     location: HiveLocation,
@@ -22,11 +20,6 @@ pub struct HiveTableStorage {
     layout: HiveStorageLayout,
     #[constrainable]
     pub encoding: Encoding,
-    uuid: Option<Uuid>,
-    tag: Option<String>,
-    #[serde(skip)]
-    #[derivative(PartialEq = "ignore", Debug = "ignore")]
-    pub constraints: Vec<Arc<RwLock<Constraint>>>,
 }
 #[pymethods]
 impl HiveTableStorage {

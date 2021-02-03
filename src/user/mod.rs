@@ -4,7 +4,7 @@ use crate::constraint::Constraint;
 use crate::error::AoristError;
 use crate::object::TAoristObject;
 use crate::role::{Role, TRole};
-use aorist_concept::{Constrainable, aorist_concept};
+use aorist_concept::{aorist_concept, Constrainable};
 use derivative::Derivative;
 use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
@@ -13,9 +13,6 @@ use std::sync::{Arc, RwLock};
 use uuid::Uuid;
 
 #[aorist_concept]
-#[pyclass]
-#[derive(Derivative, Serialize, Deserialize, Constrainable)]
-#[derivative(PartialEq, Debug, Hash, Eq, Clone)]
 pub struct User {
     firstName: String,
     lastName: String,

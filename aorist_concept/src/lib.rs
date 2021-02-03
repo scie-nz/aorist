@@ -552,6 +552,9 @@ pub fn aorist_concept(_args: TokenStream, input: TokenStream) -> TokenStream  {
             }
 
             return quote! {
+                #[pyclass]
+                #[derive(Derivative, Serialize, Deserialize, Constrainable, Clone)]
+                #[derivative(PartialEq, Debug, Eq)]
                 #ast
             }.into();
         }
