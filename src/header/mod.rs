@@ -1,6 +1,7 @@
 mod file_header;
 mod upper_snake_case_csv_header;
 
-pub use self::file_header::FileHeader;
-// TODO: should be handled by constraints in future
-pub use self::upper_snake_case_csv_header::UpperSnakeCaseCSVHeader;
+pub use file_header::{ConstrainedFileHeader, FileHeader};
+pub use upper_snake_case_csv_header::{
+    ConstrainedUpperSnakeCaseCSVHeader, UpperSnakeCaseCSVHeader,
+};

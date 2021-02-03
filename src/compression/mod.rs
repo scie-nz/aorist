@@ -1,6 +1,6 @@
 mod data_compression;
 mod gzip_compression;
 
-pub use self::data_compression::DataCompression;
+pub use data_compression::{ConstrainedDataCompression, DataCompression};
 // TODO: should be removed, handled by constraints
-pub use self::gzip_compression::GzipCompression;
+pub use gzip_compression::{ConstrainedGzipCompression, GzipCompression};

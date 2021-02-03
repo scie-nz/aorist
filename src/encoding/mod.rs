@@ -3,7 +3,7 @@ mod encoding;
 pub mod orc_encoding;
 mod tsv_encoding;
 
-pub use self::csv_encoding::CSVEncoding;
-pub use self::encoding::Encoding;
-pub use self::orc_encoding::ORCEncoding;
-pub use self::tsv_encoding::TSVEncoding;
+pub use csv_encoding::{CSVEncoding, ConstrainedCSVEncoding};
+pub use encoding::{ConstrainedEncoding, Encoding};
+pub use orc_encoding::{ConstrainedORCEncoding, ORCEncoding};
+pub use tsv_encoding::{ConstrainedTSVEncoding, TSVEncoding};

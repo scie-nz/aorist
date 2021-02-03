@@ -55,8 +55,6 @@ serde_yaml = "0.8"
 aorist_concept = {path = "./aorist_concept"}
 aorist_derive = {path = "./aorist_derive"}
 aorist_primitives = {path = "./aorist_primitives"}
-gitea = {path = "./gitea"}
-ranger = {path = "./ranger"}
 indoc = "1.0.3"
 getset = {path = "./getset"}
 async-trait = "0.1.41"

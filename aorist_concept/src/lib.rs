@@ -623,8 +623,8 @@ pub fn python_object(input: TokenStream) -> TokenStream {
                     }
                 }
 
-                struct [<Constrained #struct_name>] {
-                    #(#field_names: #types,)*
+                pub struct [<Constrained #struct_name>] {
+                    #([<_ #field_names>]: #types,)*
                     pub uuid: Option<Uuid>,
                     pub tag: Option<String>,
                     pub constraints: Vec<Arc<RwLock<Constraint>>>,

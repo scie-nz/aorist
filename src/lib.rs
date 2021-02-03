@@ -24,7 +24,6 @@ pub mod location;
 pub mod object;
 pub mod prefect_singleton;
 pub mod python;
-pub mod ranger;
 pub mod role;
 pub mod role_binding;
 pub mod schema;

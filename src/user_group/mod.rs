@@ -1,3 +1,3 @@
 mod user_group;
 
-pub use self::user_group::{TUserGroup, UserGroup};
+pub use self::user_group::{ConstrainedUserGroup, TUserGroup, UserGroup};

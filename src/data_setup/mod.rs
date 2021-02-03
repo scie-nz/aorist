@@ -2,4 +2,4 @@ pub mod data_setup;
 pub mod universe;
 
 pub use data_setup::DataSetup;
-pub use universe::{TUniverse, Universe};
+pub use universe::{ConstrainedUniverse, TUniverse, Universe};

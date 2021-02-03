@@ -1,3 +1,3 @@
 mod dataset;
 
-pub use self::dataset::DataSet;
+pub use dataset::{ConstrainedDataSet, DataSet};
