@@ -531,10 +531,15 @@ pub fn python_object(input: TokenStream) -> TokenStream {
             fields: Fields::Named(fields),
             ..
         }) => {
-            let fields_filtered = fields.named.clone().into_iter().filter(|x| {
-                let ident = x.ident.as_ref().unwrap().to_string();
-                !(ident == "tag" || ident == "uuid" || ident == "constraints")
-            }).collect::<Vec<_>>();
+            let fields_filtered = fields
+                .named
+                .clone()
+                .into_iter()
+                .filter(|x| {
+                    let ident = x.ident.as_ref().unwrap().to_string();
+                    !(ident == "tag" || ident == "uuid" || ident == "constraints")
+                })
+                .collect::<Vec<_>>();
             let fields_with_default = fields_filtered
                 .clone()
                 .into_iter()

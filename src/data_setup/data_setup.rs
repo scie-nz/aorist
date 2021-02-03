@@ -86,8 +86,8 @@ impl DataSetup {
                 _ => {}
             }
         }
-        
-        let mut dataSetup = Universe{
+
+        let mut dataSetup = Universe {
             name: self.name.clone(),
             tag: Some(self.name),
             endpoints: self.endpoints,
@@ -98,7 +98,6 @@ impl DataSetup {
             uuid: None,
             constraints: Vec::new(),
         };
-
 
         let mut role_map: HashMap<String, Vec<Role>> = HashMap::new();
         let role_bindings = dataSetup.role_bindings.as_ref().unwrap();
