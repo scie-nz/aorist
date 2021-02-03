@@ -1,11 +1,11 @@
 #![allow(non_snake_case)]
+use crate::concept::Concept;
+use crate::constraint::Constraint;
+use crate::AoristConcept;
+use aorist_concept::{aorist_concept, Constrainable};
+use derivative::Derivative;
 use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
-use crate::concept::Concept;
-use aorist_concept::{aorist_concept, Constrainable};
-use crate::AoristConcept;
-use crate::constraint::Constraint;
-use derivative::Derivative;
 use std::sync::{Arc, RwLock};
 use uuid::Uuid;
 
@@ -20,7 +20,9 @@ impl PrestoConfig {
     #[new]
     #[args(httpPort = "8080")]
     fn new(server: String, httpPort: usize) -> Self {
-        Self { server, httpPort,
+        Self {
+            server,
+            httpPort,
             tag: None,
             constraints: Vec::new(),
             uuid: None,

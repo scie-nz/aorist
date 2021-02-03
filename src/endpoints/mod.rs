@@ -3,19 +3,19 @@ pub mod gitea;
 pub mod presto;
 pub mod ranger;
 
+use crate::concept::Concept;
 use crate::constraint::Constraint;
 pub use crate::endpoints::alluxio::AlluxioConfig;
 pub use crate::endpoints::gitea::GiteaConfig;
 pub use crate::endpoints::presto::PrestoConfig;
 pub use crate::endpoints::ranger::RangerConfig;
+use crate::AoristConcept;
+use aorist_concept::{aorist_concept, Constrainable};
+use derivative::Derivative;
 use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::sync::{Arc, RwLock};
 use uuid::Uuid;
-use crate::concept::Concept;
-use aorist_concept::{aorist_concept, Constrainable};
-use crate::AoristConcept;
-use derivative::Derivative;
 
 #[aorist_concept]
 pub struct EndpointConfig {

@@ -12,13 +12,13 @@ use syn::token::Comma;
 use syn::parse::Parser;
 use syn::{
     parse_macro_input, Data, DataEnum, DataStruct, DeriveInput, Field, Fields, Meta, Type, Variant, AttributeArgs,
+    Token, NestedMeta, parse_quote,
 };
 mod keyword {
     syn::custom_keyword!(path);
 }
 use aorist_util::{get_raw_objects_of_type, read_file};
 use std::collections::HashMap;
-use proc_macro_roids::DeriveInputExt;
 
 fn process_enum_variants(
     variants: &Punctuated<Variant, Comma>,
@@ -561,7 +561,17 @@ pub fn aorist_concept(args: TokenStream, input: TokenStream) -> TokenStream  {
                 #ast
             };
             let mut final_ast: DeriveInput = syn::parse2(quoted).unwrap();
-            final_ast.append_derives(derives.into_iter().collect());
+
+			let (attr, mut derivatives) = final_ast.attrs.iter_mut()
+            .filter(|attr| attr.path.is_ident("derivative"))
+            .filter_map(|attr| match attr.parse_meta() {
+                Ok(Meta::List(meta_list)) => Some((attr, meta_list)),
+                _ => None, // kcov-ignore
+            })
+            .next().unwrap();
+            derivatives.nested.extend::<Punctuated<NestedMeta, Token![,]>>(derives.clone().into_iter().collect());
+            *attr = parse_quote!(#[#derivatives]);
+
             let quoted2 = quote! { #final_ast };
             return proc_macro::TokenStream::from(quoted2);
         }
