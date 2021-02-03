@@ -4,7 +4,7 @@ use crate::constraint::Constraint;
 use crate::error::AoristError;
 use crate::object::TAoristObject;
 use crate::role::{Role, TRole};
-use aorist_concept::{aorist_concept, Constrainable};
+use aorist_concept::{aorist_concept2, Constrainable, PythonObject};
 use derivative::Derivative;
 use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
@@ -12,13 +12,18 @@ use std::collections::HashSet;
 use std::sync::{Arc, RwLock};
 use uuid::Uuid;
 
-#[aorist_concept(Hash)]
+#[aorist_concept2(
+    derivatives(Hash),
+    args(phone = "\"\".to_string()", roles = "None")
+)]
 pub struct User {
     firstName: String,
     lastName: String,
     email: String,
+    #[py_default = "\"\".to_string()"]
     phone: String,
     unixname: String,
+    #[py_default = "None"]
     roles: Option<Vec<Role>>,
 }
 
@@ -64,31 +69,6 @@ impl TUser for User {
     }
 }
 
-#[pymethods]
-impl User {
-    #[new]
-    #[args(phone = "\"\".to_string()", roles = "None")]
-    fn new(
-        firstName: String,
-        lastName: String,
-        email: String,
-        phone: String,
-        unixname: String,
-        roles: Option<Vec<Role>>,
-    ) -> Self {
-        Self {
-            firstName,
-            lastName,
-            email,
-            phone,
-            unixname,
-            roles,
-            uuid: None,
-            tag: None,
-            constraints: Vec::new(),
-        }
-    }
-}
 impl TAoristObject for User {
     fn get_name(&self) -> &String {
         &self.unixname

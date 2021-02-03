@@ -29,14 +29,20 @@ pub struct Universe {
     #[constrainable]
     endpoints: EndpointConfig,
 }
-impl Universe {
-    pub fn get_concept_map<'a>(&'a self) -> HashMap<(Uuid, String), Concept<'a>> {
+pub trait TUniverse {
+    fn get_concept_map<'a>(&'a self) -> HashMap<(Uuid, String), Concept<'a>>;
+    fn get_constraints_map(&self) -> HashMap<(Uuid, String), Arc<RwLock<Constraint>>>;
+    fn get_user_unixname_map(&self) -> HashMap<String, User>;
+    fn get_user_permissions(&self) -> Result<HashMap<String, HashSet<String>>, String>;
+}
+impl TUniverse for Universe {
+    fn get_concept_map<'a>(&'a self) -> HashMap<(Uuid, String), Concept<'a>> {
         let mut concept_map: HashMap<(Uuid, String), Concept<'a>> = HashMap::new();
         let concept = Concept::Universe((&self, 0, None));
         concept.populate_child_concept_map(&mut concept_map);
         concept_map
     }
-    pub fn get_constraints_map(&self) -> HashMap<(Uuid, String), Arc<RwLock<Constraint>>> {
+    fn get_constraints_map(&self) -> HashMap<(Uuid, String), Arc<RwLock<Constraint>>> {
         let mut constraints_map: HashMap<(Uuid, String), Arc<RwLock<Constraint>>> = HashMap::new();
         let mut queue: VecDeque<Arc<RwLock<Constraint>>> =
             self.get_constraints().iter().map(|x| x.clone()).collect();
@@ -54,20 +60,7 @@ impl Universe {
         }
         constraints_map
     }
-    pub fn new(name: String, tag: String, endpoints: EndpointConfig) -> Self {
-        Self {
-            name: name,
-            users: None,
-            datasets: None,
-            groups: None,
-            role_bindings: None,
-            endpoints: endpoints,
-            constraints: Vec::new(),
-            uuid: None,
-            tag: Some(tag),
-        }
-    }
-    pub fn get_user_unixname_map(&self) -> HashMap<String, User> {
+    fn get_user_unixname_map(&self) -> HashMap<String, User> {
         self.users
             .as_ref()
             .unwrap()
@@ -75,7 +68,7 @@ impl Universe {
             .map(|x| (x.get_unixname().clone(), x.clone()))
             .collect()
     }
-    pub fn get_user_permissions(&self) -> Result<HashMap<String, HashSet<String>>, String> {
+    fn get_user_permissions(&self) -> Result<HashMap<String, HashSet<String>>, String> {
         let umap = self.get_user_unixname_map();
         let mut map: HashMap<_, HashSet<String>> = HashMap::new();
         for binding in self.role_bindings.as_ref().unwrap() {
@@ -91,5 +84,20 @@ impl Universe {
             }
         }
         Ok(map)
+    }
+}
+impl Universe {
+    pub fn new(name: String, tag: String, endpoints: EndpointConfig) -> Self {
+        Self {
+            name: name,
+            users: None,
+            datasets: None,
+            groups: None,
+            role_bindings: None,
+            endpoints: endpoints,
+            constraints: Vec::new(),
+            uuid: None,
+            tag: Some(tag),
+        }
     }
 }
