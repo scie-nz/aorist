@@ -522,6 +522,26 @@ pub fn constrainable(input: TokenStream) -> TokenStream {
     }
 }
 
+#[proc_macro_derive(ConstrainObject)]
+pub fn constrain_object(input: TokenStream) -> TokenStream {
+    let ast = parse_macro_input!(input as DeriveInput);
+    match &ast.data {
+        Data::Enum(DataEnum { variants, .. }) => {
+            let enum_name = &ast.ident;
+            let variant = variants.iter().map(|x| (&x.ident));
+            let quoted = quote! { paste! {
+                #[derive(Debug, PartialEq, Serialize, Deserialize, Clone, Constrainable, FromPyObject)]
+                #[serde(tag = "type")]
+                pub enum [<Constrained #enum_name>] {
+                    #(#variant(#variant)),*
+                }
+            }};
+            return proc_macro::TokenStream::from(quoted);
+        },
+        _ => panic!("expected a struct with named fields or an enum"),
+    }
+}
+
 #[proc_macro_derive(PythonObject, attributes(py_default))]
 pub fn python_object(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
@@ -679,7 +699,7 @@ pub fn aorist_concept2(args: TokenStream, input: TokenStream) -> TokenStream {
             let enum_name = &ast.ident;
             let variant = variants.iter().map(|x| (&x.ident));
             let quoted = quote! {
-                #[derive(Debug, PartialEq, Serialize, Deserialize, Clone, Constrainable, FromPyObject)]
+                #[derive(Debug, PartialEq, Serialize, Deserialize, Clone, Constrainable, FromPyObject, ConstrainObject)]
                 #[serde(tag = "type")]
                 pub enum #enum_name {
                     #(#variant(#variant)),*
@@ -700,7 +720,9 @@ pub fn aorist_concept2(args: TokenStream, input: TokenStream) -> TokenStream {
                 .nested
                 .extend::<Punctuated<NestedMeta, Token![,]>>(derives.into_iter().collect());
             *attr = parse_quote!(#[#current_derives]);
+
             let quoted2 = quote! { #final_ast };
+
             return proc_macro::TokenStream::from(quoted2);
         }
         _ => panic!("expected a struct with named fields or an enum"),
