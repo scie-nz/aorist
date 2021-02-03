@@ -7,7 +7,7 @@ use crate::role::TRole;
 use crate::role_binding::{RoleBinding, TRoleBinding};
 use crate::user::{TUser, User};
 use crate::user_group::UserGroup;
-use aorist_concept::{aorist_concept2, Constrainable, PythonObject};
+use aorist_concept::{aorist_concept2, ConstrainObject, Constrainable, PythonObject};
 use derivative::Derivative;
 use paste::paste;
 use pyo3::prelude::*;
