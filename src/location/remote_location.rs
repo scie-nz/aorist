@@ -1,7 +1,7 @@
 use crate::concept::{AoristConcept, Concept};
 use crate::constraint::*;
-use crate::location::gcs_location::GCSLocation;
-use crate::location::web_location::WebLocation;
+use crate::location::gcs_location::*;
+use crate::location::web_location::*;
 use aorist_concept::{aorist_concept2, ConstrainObject, Constrainable};
 use paste::paste;
 use pyo3::prelude::*;

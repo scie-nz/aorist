@@ -1,7 +1,7 @@
 use crate::concept::{AoristConcept, Concept};
 use crate::constraint::AoristConstraint;
 use crate::constraint::Constraint;
-use crate::header::UpperSnakeCaseCSVHeader;
+use crate::header::upper_snake_case_csv_header::*;
 use aorist_concept::{aorist_concept2, ConstrainObject, Constrainable};
 use paste::paste;
 use pyo3::prelude::*;

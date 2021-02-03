@@ -530,10 +530,9 @@ pub fn constrain_object(input: TokenStream) -> TokenStream {
             let enum_name = &ast.ident;
             let variant = variants.iter().map(|x| (&x.ident));
             let quoted = quote! { paste! {
-                #[derive(Debug, PartialEq, Serialize, Deserialize, Clone, Constrainable, FromPyObject)]
-                #[serde(tag = "type")]
+                #[derive(Clone)]
                 pub enum [<Constrained #enum_name>] {
-                    #(#variant([<#variant>])),*
+                    #(#variant([<Constrained #variant>])),*
                 }
             }};
             return proc_macro::TokenStream::from(quoted);

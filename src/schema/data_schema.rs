@@ -1,7 +1,7 @@
 #![allow(non_snake_case)]
 use crate::concept::{AoristConcept, Concept};
 use crate::constraint::Constraint;
-use crate::schema::tabular_schema::TabularSchema;
+use crate::schema::tabular_schema::*;
 use aorist_concept::{aorist_concept2, ConstrainObject, Constrainable};
 use paste::paste;
 use pyo3::prelude::*;

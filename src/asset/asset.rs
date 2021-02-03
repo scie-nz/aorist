@@ -1,5 +1,5 @@
 #![allow(non_snake_case)]
-use crate::asset::static_data_table::StaticDataTable;
+use crate::asset::static_data_table::*;
 use crate::concept::{AoristConcept, Concept};
 use crate::constraint::{AoristConstraint, Constraint};
 use aorist_concept::{aorist_concept2, ConstrainObject, Constrainable};

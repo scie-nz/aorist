@@ -3,8 +3,8 @@
 use crate::attributes::Attribute;
 use crate::concept::{AoristConcept, Concept};
 use crate::constraint::Constraint;
-use crate::template::identifier_tuple::IdentifierTuple;
-use crate::template::keyed_struct::KeyedStruct;
+use crate::template::identifier_tuple::*;
+use crate::template::keyed_struct::*;
 use aorist_concept::{aorist_concept2, ConstrainObject, Constrainable};
 use paste::paste;
 use pyo3::prelude::*;

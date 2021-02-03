@@ -1,7 +1,7 @@
 #![allow(non_snake_case)]
 use crate::concept::{AoristConcept, Concept};
 use crate::constraint::Constraint;
-use crate::role::global_permissions_admin::GlobalPermissionsAdmin;
+use crate::role::global_permissions_admin::*;
 use aorist_concept::{aorist_concept2, ConstrainObject, Constrainable};
 use enum_dispatch::enum_dispatch;
 use paste::paste;
