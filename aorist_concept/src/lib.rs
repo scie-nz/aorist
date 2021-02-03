@@ -602,6 +602,10 @@ pub fn python_object(input: TokenStream) -> TokenStream {
                         }
                     }
                 }
+
+                struct [<Inner #struct_name>] {
+                    #(#field_names: #types,)*
+                }
             }});
         }
         _ => panic!("expected a struct with named fields or an enum"),
