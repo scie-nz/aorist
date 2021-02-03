@@ -531,12 +531,50 @@ pub fn python_object(input: TokenStream) -> TokenStream {
             fields: Fields::Named(fields),
             ..
         }) => {
+            let fields_with_default = fields
+                .named
+                .clone()
+                .into_iter()
+                .map(|x| {
+                    let mut it = x
+                        .attrs
+                        .iter()
+                        .map(|attr| {
+                            let meta = attr.parse_meta().unwrap();
+                            if let syn::Meta::NameValue(ref nv) = meta {
+                                if nv.path.is_ident("py_default") {
+                                    if let syn::Lit::Str(_) = nv.lit {
+                                        let field_name = x.ident.as_ref().unwrap().clone();
+                                        return Some(syn::MetaNameValue {
+                                            path: syn::Path::from(field_name),
+                                            eq_token: nv.eq_token.clone(),
+                                            lit: nv.lit.clone(),
+                                        });
+                                    } else {
+                                        panic!("py_default values should only be strings");
+                                    }
+                                }
+                            }
+                            None
+                        })
+                        .filter(|x| x.is_some());
+                    let default_val = it.next();
+                    if let Some(x) = default_val {
+                        assert!(it.next().is_none());
+                        return x;
+                    }
+                    None
+                })
+                .filter(|x| x.is_some())
+                .map(|x| syn::NestedMeta::Meta(syn::Meta::NameValue(x.unwrap())))
+                .collect::<syn::punctuated::Punctuated<syn::NestedMeta, syn::token::Comma>>();
+
             let struct_name = &input.ident;
             return TokenStream::from(quote! {
                 #[pymethods]
                 impl #struct_name {
                     #[new]
-                    #[args(phone = "\"\".to_string()", roles = "None")]
+                    #[args(#fields_with_default)]
                     fn new(
                         firstName: String,
                         lastName: String,
@@ -645,16 +683,18 @@ pub fn aorist_concept2(args: TokenStream, input: TokenStream) -> TokenStream {
                     fields.named.push(
                         syn::Field::parse_named
                             .parse2(quote! {
-                                            tag: Option<String>
+                                tag: Option<String>
                             })
                             .unwrap(),
                     );
                     fields.named
-                        .push(syn::Field::parse_named.parse2(quote! {
+                        .push(
+                        syn::Field::parse_named.parse2(quote! {
                             #[serde(skip)]
                             #[derivative(PartialEq = "ignore", Debug = "ignore", Hash = "ignore")]
                             pub constraints: Vec<Arc<RwLock<Constraint>>>
-            }).unwrap());
+                        }).unwrap()
+                    );
                 }
                 _ => (),
             }
@@ -679,10 +719,6 @@ pub fn aorist_concept2(args: TokenStream, input: TokenStream) -> TokenStream {
             let derives_list = match derives.get(0).unwrap() {
                 syn::NestedMeta::Meta(syn::Meta::List(ref x)) => x.nested.clone(),
                 _ => panic!("first element in aorist_concept args must be list"),
-            };
-            let args_list = match derives.get(1).unwrap() {
-                syn::NestedMeta::Meta(syn::Meta::List(ref x)) => x.nested.clone(),
-                _ => panic!("second element in aorist_concept args must be list"),
             };
 
             derivatives
