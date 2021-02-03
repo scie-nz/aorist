@@ -11,13 +11,14 @@ use syn::punctuated::Punctuated;
 use syn::token::Comma;
 use syn::parse::Parser;
 use syn::{
-    parse_macro_input, Data, DataEnum, DataStruct, DeriveInput, Field, Fields, Meta, Type, Variant,
+    parse_macro_input, Data, DataEnum, DataStruct, DeriveInput, Field, Fields, Meta, Type, Variant, AttributeArgs,
 };
 mod keyword {
     syn::custom_keyword!(path);
 }
 use aorist_util::{get_raw_objects_of_type, read_file};
 use std::collections::HashMap;
+use proc_macro_roids::DeriveInputExt;
 
 fn process_enum_variants(
     variants: &Punctuated<Variant, Comma>,
@@ -524,7 +525,10 @@ pub fn constrainable(input: TokenStream) -> TokenStream {
 
 
 #[proc_macro_attribute]
-pub fn aorist_concept(_args: TokenStream, input: TokenStream) -> TokenStream  {
+pub fn aorist_concept(args: TokenStream, input: TokenStream) -> TokenStream  {
+
+    let derives = parse_macro_input!(args as AttributeArgs);
+
     let mut ast = parse_macro_input!(input as DeriveInput);
     match &mut ast.data {
         syn::Data::Struct(ref mut struct_data) => {
@@ -550,13 +554,16 @@ pub fn aorist_concept(_args: TokenStream, input: TokenStream) -> TokenStream  {
                     ()
                 }
             }
-
-            return quote! {
+            let quoted = quote! {
                 #[pyclass]
                 #[derive(Derivative, Serialize, Deserialize, Constrainable, Clone)]
                 #[derivative(PartialEq, Debug, Eq)]
                 #ast
-            }.into();
+            };
+            let mut final_ast: DeriveInput = syn::parse2(quoted).unwrap();
+            final_ast.append_derives(derives.into_iter().collect());
+            let quoted2 = quote! { #final_ast };
+            return proc_macro::TokenStream::from(quoted2);
         }
         _ => panic!("expected a struct with named fields or an enum"),
     }
