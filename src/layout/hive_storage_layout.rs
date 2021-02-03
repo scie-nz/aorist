@@ -1,23 +1,15 @@
 #![allow(non_snake_case)]
 use crate::concept::{AoristConcept, Concept};
 use crate::constraint::Constraint;
-use aorist_concept::Constrainable;
+use aorist_concept::{aorist_concept, Constrainable};
 use derivative::Derivative;
 use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::sync::{Arc, RwLock};
 use uuid::Uuid;
 
-#[pyclass]
-#[derive(Derivative, Serialize, Deserialize, Clone, Constrainable)]
-#[derivative(PartialEq, Debug)]
-pub struct StaticHiveTableLayout {
-    uuid: Option<Uuid>,
-    tag: Option<String>,
-    #[serde(skip)]
-    #[derivative(PartialEq = "ignore", Debug = "ignore")]
-    pub constraints: Vec<Arc<RwLock<Constraint>>>,
-}
+#[aorist_concept]
+pub struct StaticHiveTableLayout {}
 
 #[pymethods]
 impl StaticHiveTableLayout {
@@ -31,16 +23,8 @@ impl StaticHiveTableLayout {
     }
 }
 
-#[pyclass]
-#[derive(Derivative, Serialize, Deserialize, Clone, Constrainable)]
-#[derivative(PartialEq, Debug)]
-pub struct DailyGranularity {
-    uuid: Option<Uuid>,
-    tag: Option<String>,
-    #[serde(skip)]
-    #[derivative(PartialEq = "ignore", Debug = "ignore")]
-    pub constraints: Vec<Arc<RwLock<Constraint>>>,
-}
+#[aorist_concept]
+pub struct DailyGranularity {}
 #[pymethods]
 impl DailyGranularity {
     #[new]
@@ -60,17 +44,10 @@ pub enum Granularity {
     DailyGranularity(DailyGranularity),
 }
 
-#[pyclass]
-#[derive(Derivative, Serialize, Deserialize, Clone, Constrainable)]
-#[derivative(PartialEq, Debug)]
+#[aorist_concept]
 pub struct DynamicHiveTableLayout {
     #[constrainable]
     granularity: Granularity,
-    uuid: Option<Uuid>,
-    tag: Option<String>,
-    #[serde(skip)]
-    #[derivative(PartialEq = "ignore", Debug = "ignore")]
-    pub constraints: Vec<Arc<RwLock<Constraint>>>,
 }
 #[pymethods]
 impl DynamicHiveTableLayout {

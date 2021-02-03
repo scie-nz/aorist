@@ -7,71 +7,27 @@ use crate::role::TRole;
 use crate::role_binding::RoleBinding;
 use crate::user::{TUser, User};
 use crate::user_group::UserGroup;
-use crate::utils::GetSetError;
-use aorist_concept::Constrainable;
+use aorist_concept::{aorist_concept, Constrainable};
 use derivative::Derivative;
-use getset::{
-    Getters, IncompleteGetters, IncompleteMutGetters, IncompleteSetters, MutGetters, Setters,
-};
 use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet, VecDeque};
 use std::sync::{Arc, RwLock};
 use uuid::Uuid;
 
-#[pyclass]
-#[derive(
-    Serialize,
-    Derivative,
-    Deserialize,
-    Getters,
-    Setters,
-    MutGetters,
-    IncompleteGetters,
-    IncompleteSetters,
-    IncompleteMutGetters,
-    Constrainable,
-)]
-#[derivative(PartialEq, Debug)]
+#[aorist_concept]
 pub struct Universe {
     name: String,
-    #[getset(
-        get_incomplete = "pub with_prefix",
-        set_incomplete = "pub",
-        get_mut_incomplete = "pub with_prefix"
-    )]
     #[constrainable]
-    users: Option<Vec<User>>,
-    #[getset(
-        get_incomplete = "pub with_prefix",
-        set_incomplete = "pub",
-        get_mut_incomplete = "pub with_prefix"
-    )]
+    pub users: Option<Vec<User>>,
     #[constrainable]
-    groups: Option<Vec<UserGroup>>,
-    #[getset(
-        get_incomplete = "pub with_prefix",
-        set_incomplete = "pub",
-        get_mut_incomplete = "pub with_prefix"
-    )]
+    pub groups: Option<Vec<UserGroup>>,
     #[constrainable]
-    datasets: Option<Vec<DataSet>>,
-    #[getset(
-        get_incomplete = "pub with_prefix",
-        set_incomplete = "pub",
-        get_mut_incomplete = "pub with_prefix"
-    )]
+    pub datasets: Option<Vec<DataSet>>,
     #[constrainable]
-    role_bindings: Option<Vec<RoleBinding>>,
-    //#[constrainable]
-    #[derivative(PartialEq = "ignore", Debug = "ignore")]
+    pub role_bindings: Option<Vec<RoleBinding>>,
+    #[constrainable]
     endpoints: EndpointConfig,
-    #[getset(get = "pub with_prefix", set = "pub", get_mut = "pub with_prefix")]
-    #[serde(skip)]
-    #[derivative(PartialEq = "ignore", Debug = "ignore")]
-    pub constraints: Vec<Arc<RwLock<Constraint>>>,
-    uuid: Option<Uuid>,
-    tag: Option<String>,
 }
 impl Universe {
     pub fn get_concept_map<'a>(&'a self) -> HashMap<(Uuid, String), Concept<'a>> {
@@ -112,8 +68,7 @@ impl Universe {
         }
     }
     pub fn get_user_unixname_map(&self) -> HashMap<String, User> {
-        let users: &Vec<User> = self.get_users().unwrap();
-        users
+        self.users.as_ref().unwrap()
             .iter()
             .map(|x| (x.get_unixname().clone(), x.clone()))
             .collect()
@@ -121,7 +76,7 @@ impl Universe {
     pub fn get_user_permissions(&self) -> Result<HashMap<String, HashSet<String>>, String> {
         let umap = self.get_user_unixname_map();
         let mut map: HashMap<_, HashSet<String>> = HashMap::new();
-        for binding in self.get_role_bindings().unwrap() {
+        for binding in self.role_bindings.as_ref().unwrap() {
             let name = binding.get_user_name();
             if !umap.contains_key(name) {
                 return Err(format!("Cannot find user with name {}.", name));

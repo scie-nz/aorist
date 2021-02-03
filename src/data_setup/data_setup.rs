@@ -88,22 +88,23 @@ impl DataSetup {
                 _ => {}
             }
         }
-        dataSetup.set_users(users).unwrap();
-        dataSetup.set_groups(groups).unwrap();
-        dataSetup.set_datasets(datasets).unwrap();
-        dataSetup.set_role_bindings(role_bindings).unwrap();
+        dataSetup.users = Some(users);
+        dataSetup.groups = Some(groups);
+        dataSetup.datasets = Some(datasets);
+        dataSetup.role_bindings = Some(role_bindings);
         //dataSetup.set_constraints(constraints);
 
         let mut role_map: HashMap<String, Vec<Role>> = HashMap::new();
-        for binding in dataSetup.get_role_bindings().unwrap() {
+        let role_bindings = dataSetup.role_bindings.as_ref().unwrap();
+        for binding in role_bindings {
             role_map
                 .entry(binding.get_user_name().clone())
                 .or_insert_with(Vec::new)
                 .push(binding.get_role().clone());
         }
         let mut user_map: HashMap<String, &mut User> = HashMap::new();
-
-        for user in dataSetup.get_users_mut().unwrap().iter_mut() {
+        let users = dataSetup.users.as_deref_mut().unwrap();
+        for user in users.iter_mut() {
             let username = user.get_unixname();
             if role_map.contains_key(&username) {
                 user_map.insert(username.clone(), user);
