@@ -4,7 +4,7 @@ use crate::constraint::Constraint;
 use crate::error::AoristError;
 use crate::object::TAoristObject;
 use crate::role::{Role, TRole};
-use aorist_concept::Constrainable;
+use aorist_concept::{Constrainable, aorist_concept};
 use derivative::Derivative;
 use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
@@ -12,6 +12,7 @@ use std::collections::HashSet;
 use std::sync::{Arc, RwLock};
 use uuid::Uuid;
 
+#[aorist_concept]
 #[pyclass]
 #[derive(Derivative, Serialize, Deserialize, Constrainable)]
 #[derivative(PartialEq, Debug, Hash, Eq, Clone)]
@@ -22,11 +23,6 @@ pub struct User {
     phone: String,
     unixname: String,
     roles: Option<Vec<Role>>,
-    uuid: Option<Uuid>,
-    tag: Option<String>,
-    #[serde(skip)]
-    #[derivative(PartialEq = "ignore", Debug = "ignore", Hash = "ignore")]
-    pub constraints: Vec<Arc<RwLock<Constraint>>>,
 }
 
 pub trait TUser {

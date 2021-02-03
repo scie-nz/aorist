@@ -9,6 +9,7 @@ use proc_macro2::{Ident, Span};
 use quote::quote;
 use syn::punctuated::Punctuated;
 use syn::token::Comma;
+use syn::parse::Parser;
 use syn::{
     parse_macro_input, Data, DataEnum, DataStruct, DeriveInput, Field, Fields, Meta, Type, Variant,
 };
@@ -504,7 +505,7 @@ fn get_constraints_map(filename: String) -> HashMap<String, Vec<String>> {
 }
 
 #[proc_macro_derive(Constrainable, attributes(constrainable))]
-pub fn aorist_concept(input: TokenStream) -> TokenStream {
+pub fn constrainable(input: TokenStream) -> TokenStream {
     // TODO: this should be passed somehow (maybe env var?)
     let constraints_map = get_constraints_map("basic.yaml".into());
     let input = parse_macro_input!(input as DeriveInput);
@@ -517,6 +518,43 @@ pub fn aorist_concept(input: TokenStream) -> TokenStream {
         Data::Enum(DataEnum { variants, .. }) => {
             process_enum_variants(variants, &input, &constraints_map)
         }
-        _ => panic!("expected a struct with named fields"),
+        _ => panic!("expected a struct with named fields or an enum"),
+    }
+}
+
+
+#[proc_macro_attribute]
+pub fn aorist_concept(_args: TokenStream, input: TokenStream) -> TokenStream  {
+    let mut ast = parse_macro_input!(input as DeriveInput);
+    match &mut ast.data {
+        syn::Data::Struct(ref mut struct_data) => {
+            match &mut struct_data.fields {
+                syn::Fields::Named(fields) => {
+                    fields
+                        .named
+                        .push(syn::Field::parse_named.parse2(quote! {
+							uuid: Option<Uuid>
+						}).unwrap());
+                    fields.named
+                        .push(syn::Field::parse_named.parse2(quote! {
+                            tag: Option<String>
+						}).unwrap());
+                    fields.named
+                        .push(syn::Field::parse_named.parse2(quote! {
+                            #[serde(skip)]
+                            #[derivative(PartialEq = "ignore", Debug = "ignore", Hash = "ignore")]
+                            pub constraints: Vec<Arc<RwLock<Constraint>>>
+						}).unwrap());
+                }
+                _ => {
+                    ()
+                }
+            }
+
+            return quote! {
+                #ast
+            }.into();
+        }
+        _ => panic!("expected a struct with named fields or an enum"),
     }
 }
