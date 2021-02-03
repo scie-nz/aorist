@@ -67,7 +67,24 @@ use crate::role_binding::RoleBinding;
 use crate::user::User;
 use crate::user_group::UserGroup;
 
+use aorist_primitives::TAttribute;
 use pyo3::prelude::*;
+use pyo3::wrap_pyfunction;
+
+#[pyfunction]
+pub fn default_tabular_schema(datum_template: DatumTemplate) -> TabularSchema {
+    TabularSchema {
+        datumTemplateName: datum_template.get_name(),
+        attributes: datum_template
+            .get_attributes()
+            .iter()
+            .map(|x| x.get_name().clone())
+            .collect(),
+        constraints: Vec::new(),
+        uuid: None,
+        tag: None,
+    }
+}
 
 #[pymodule]
 fn aorist(py: Python, m: &PyModule) -> PyResult<()> {
@@ -116,5 +133,6 @@ fn aorist(py: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<RangerConfig>()?;
     m.add_class::<PrestoConfig>()?;
     m.add_class::<GzipCompression>()?;
+    m.add_wrapped(wrap_pyfunction!(default_tabular_schema))?;
     Ok(())
 }

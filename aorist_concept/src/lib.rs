@@ -616,14 +616,14 @@ pub fn aorist_concept(args: TokenStream, input: TokenStream) -> TokenStream {
                     fields.named.push(
                         syn::Field::parse_named
                             .parse2(quote! {
-                              uuid: Option<Uuid>
+                                 pub uuid: Option<Uuid>
                             })
                             .unwrap(),
                     );
                     fields.named.push(
                         syn::Field::parse_named
                             .parse2(quote! {
-                                            tag: Option<String>
+                                 pub tag: Option<String>
                             })
                             .unwrap(),
                     );
@@ -678,14 +678,14 @@ pub fn aorist_concept2(args: TokenStream, input: TokenStream) -> TokenStream {
                     fields.named.push(
                         syn::Field::parse_named
                             .parse2(quote! {
-                              uuid: Option<Uuid>
+                            pub uuid: Option<Uuid>
                             })
                             .unwrap(),
                     );
                     fields.named.push(
                         syn::Field::parse_named
                             .parse2(quote! {
-                                tag: Option<String>
+                            pub tag: Option<String>
                             })
                             .unwrap(),
                     );

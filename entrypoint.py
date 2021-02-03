@@ -22,6 +22,7 @@ from aorist import (
     RemoteImportStorageSetup,
     StaticDataTable,
     Universe,
+    default_tabular_schema,
 )
 
 # hacky import since submodule imports don't work well
@@ -132,7 +133,7 @@ local = HiveTableStorage(
 )
 sentinel = StaticDataTable(
     name='sentinel',
-    schema=TabularSchema(sentinel_granule_datum),
+    schema=default_tabular_schema(sentinel_granule_datum),
     setup=RemoteImportStorageSetup(
         tmp_dir="/tmp/sentinel2",
         remote=remote,
