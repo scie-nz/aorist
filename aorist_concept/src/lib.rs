@@ -522,6 +522,81 @@ pub fn constrainable(input: TokenStream) -> TokenStream {
     }
 }
 
+fn field_is_constrainable(field: &Field) -> bool {
+    for a in &field.attrs {
+        if let Ok(Meta::Path(x)) = a.parse_meta() {
+            if x.is_ident("constrainable") {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+fn get_constrainable_fields(fields: Vec<Field>) -> (Vec<Field>, Vec<Field>) {
+    let mut constrainable_fields: Vec<Field> = Vec::new();
+    let mut unconstrainable_fields: Vec<Field> = Vec::new();
+    for field in fields {
+        if field_is_constrainable(&field) {
+            constrainable_fields.push(field);
+        } else {
+            unconstrainable_fields.push(field);
+        }
+    }
+    (constrainable_fields, unconstrainable_fields)
+
+}
+
+fn extract_names_and_types(fields: &Vec<Field>) -> (Vec<Ident>, Vec<Type>) {
+    let mut names: Vec<Ident> = Vec::new();
+    let mut types: Vec<Type> = Vec::new();
+    for field in fields {
+        names.push(field.ident.as_ref().unwrap().clone());
+        types.push(field.ty.clone());
+    }
+    (names, types)
+}
+
+fn extract_type_variants(fields: &Vec<Field>) -> (
+    Vec<Type>, Vec<Type>, Vec<Type>, Vec<Type>,
+    Vec<Ident>, Vec<Ident>, Vec<Ident>, Vec<Ident>,
+) {
+    let mut bare_types: Vec<Type> = Vec::new();
+    let mut vec_types: Vec<Type> = Vec::new();
+    let mut option_vec_types: Vec<Type> = Vec::new();
+    let mut option_types: Vec<Type> = Vec::new();
+
+    let mut bare_idents: Vec<Ident> = Vec::new();
+    let mut vec_idents: Vec<Ident> = Vec::new();
+    let mut option_vec_idents: Vec<Ident> = Vec::new();
+    let mut option_idents: Vec<Ident> = Vec::new();
+
+    for field in fields {
+        let tt = &field.ty;
+        let ident = field.ident.as_ref().unwrap().clone();
+
+        if let Some(vec_type) = extract_type_from_vector(tt) {
+            vec_types.push(vec_type.clone());
+            vec_idents.push(ident.clone());
+        } else if let Some(option_type) = extract_type_from_option(tt) {
+            if let Some(option_vec_type) = extract_type_from_vector(option_type) {
+                option_vec_types.push(option_vec_type.clone());
+                option_vec_idents.push(ident.clone());
+            } else {
+                option_types.push(option_type.clone());
+                option_idents.push(ident.clone());
+            }
+        } else {
+            bare_types.push(tt.clone());
+            bare_idents.push(ident.clone());
+        }
+    }
+    (
+        bare_types, vec_types, option_types, option_vec_types,
+        bare_idents, vec_idents, option_idents, option_vec_idents,
+    )
+}
+
 #[proc_macro_derive(ConstrainObject)]
 pub fn constrain_object(input: TokenStream) -> TokenStream {
     let ast = parse_macro_input!(input as DeriveInput);
@@ -542,7 +617,6 @@ pub fn constrain_object(input: TokenStream) -> TokenStream {
             ..
         }) => {
             let struct_name = &ast.ident;
-            let attrs = &ast.attrs;
             let fields_filtered = fields
                 .named
                 .clone()
@@ -552,20 +626,21 @@ pub fn constrain_object(input: TokenStream) -> TokenStream {
                     !(ident == "tag" || ident == "uuid" || ident == "constraints")
                 })
                 .collect::<Vec<_>>();
-            let field_names = fields_filtered
-                .clone()
-                .into_iter()
-                .map(|x| x.ident.unwrap())
-                .collect::<Vec<_>>();
-            let types = fields_filtered
-                .clone()
-                .into_iter()
-                .map(|x| x.ty)
-                .collect::<Vec<_>>();
+
+            let (constrainable, unconstrainable) = get_constrainable_fields(fields_filtered.clone());
+            let (
+                bare_type, vec_type, option_type, option_vec_type,
+                bare_ident, vec_ident, option_ident, option_vec_ident,
+            ) = extract_type_variants(&constrainable);
+            let (unconstrainable_name, unconstrainable_type) = extract_names_and_types(&unconstrainable);
             return TokenStream::from(quote! { paste! {
                 #[derive(Constrainable, Clone)]
                 pub struct [<Constrained #struct_name>] {
-                    #([<_ #field_names>]: #types,)*
+                    #(#bare_ident: #bare_type ,)*
+                    #(#vec_ident: Vec<#vec_type> ,)*
+                    #(#option_ident: Vec<#option_type> ,)*
+                    #(#option_vec_ident: Vec<#option_vec_type> ,)*
+                    #([<_ #unconstrainable_name>]: #unconstrainable_type,)*
                     pub uuid: Option<Uuid>,
                     pub tag: Option<String>,
                     pub constraints: Vec<Arc<RwLock<Constraint>>>,
@@ -671,16 +746,16 @@ pub fn aorist_concept2(args: TokenStream, input: TokenStream) -> TokenStream {
     match &mut ast.data {
         syn::Data::Struct(ref mut struct_data) => {
             match &mut struct_data.fields {
-                syn::Fields::Named(fields) => {
+                Fields::Named(fields) => {
                     fields.named.push(
-                        syn::Field::parse_named
+                        Field::parse_named
                             .parse2(quote! {
                             pub uuid: Option<Uuid>
                             })
                             .unwrap(),
                     );
                     fields.named.push(
-                        syn::Field::parse_named
+                        Field::parse_named
                             .parse2(quote! {
                             pub tag: Option<String>
                             })
@@ -688,7 +763,7 @@ pub fn aorist_concept2(args: TokenStream, input: TokenStream) -> TokenStream {
                     );
                     fields.named
                         .push(
-                        syn::Field::parse_named.parse2(quote! {
+                        Field::parse_named.parse2(quote! {
                             #[serde(skip)]
                             #[derivative(PartialEq = "ignore", Debug = "ignore", Hash = "ignore")]
                             pub constraints: Vec<Arc<RwLock<Constraint>>>
