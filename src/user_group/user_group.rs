@@ -2,8 +2,8 @@
 use crate::concept::{AoristConcept, Concept};
 use crate::constraint::Constraint;
 use crate::object::TAoristObject;
-use crate::user::{TUser, User};
-use aorist_concept::{aorist_concept, Constrainable};
+use crate::user::User;
+use aorist_concept::{aorist_concept2, Constrainable, PythonObject};
 use derivative::Derivative;
 use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
@@ -11,35 +11,16 @@ use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
 use uuid::Uuid;
 
-#[aorist_concept]
+#[aorist_concept2]
 pub struct UserGroup {
     name: String,
+    #[py_default = "Vec::new()"]
     members: Vec<String>,
+    #[py_default = "HashMap::new()"]
     labels: HashMap<String, String>,
+    #[py_default = "None"]
     description: Option<String>,
     users: Option<Vec<User>>,
-}
-#[pymethods]
-impl UserGroup {
-    #[new]
-    #[args(labels = "HashMap::new()", description = "None")]
-    fn new(
-        name: String,
-        labels: HashMap<String, String>,
-        description: Option<String>,
-        users: Vec<User>,
-    ) -> Self {
-        Self {
-            name,
-            members: users.iter().map(|x| x.get_unixname()).collect(),
-            labels,
-            description,
-            users: Some(users),
-            uuid: None,
-            tag: None,
-            constraints: Vec::new(),
-        }
-    }
 }
 pub trait TUserGroup {
     fn get_labels(&self) -> &HashMap<String, String>;

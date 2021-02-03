@@ -12,7 +12,7 @@ use std::collections::HashSet;
 use std::sync::{Arc, RwLock};
 use uuid::Uuid;
 
-#[aorist_concept2(derivatives(Hash))]
+#[aorist_concept2(Hash)]
 pub struct User {
     firstName: String,
     lastName: String,

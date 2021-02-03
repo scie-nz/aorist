@@ -531,8 +531,11 @@ pub fn python_object(input: TokenStream) -> TokenStream {
             fields: Fields::Named(fields),
             ..
         }) => {
-            let fields_with_default = fields
-                .named
+            let fields_filtered = fields.named.clone().into_iter().filter(|x| {
+                let ident = x.ident.as_ref().unwrap().to_string();
+                !(ident == "tag" || ident == "uuid" || ident == "constraints")
+            }).collect::<Vec<_>>();
+            let fields_with_default = fields_filtered
                 .clone()
                 .into_iter()
                 .map(|x| {
@@ -568,7 +571,16 @@ pub fn python_object(input: TokenStream) -> TokenStream {
                 .filter(|x| x.is_some())
                 .map(|x| syn::NestedMeta::Meta(syn::Meta::NameValue(x.unwrap())))
                 .collect::<syn::punctuated::Punctuated<syn::NestedMeta, syn::token::Comma>>();
-
+            let field_names = fields_filtered
+                .clone()
+                .into_iter()
+                .map(|x| x.ident.unwrap())
+                .collect::<Vec<_>>();
+            let types = fields_filtered
+                .clone()
+                .into_iter()
+                .map(|x| x.ty)
+                .collect::<Vec<_>>();
             let struct_name = &input.ident;
             return TokenStream::from(quote! {
                 #[pymethods]
@@ -576,20 +588,10 @@ pub fn python_object(input: TokenStream) -> TokenStream {
                     #[new]
                     #[args(#fields_with_default)]
                     fn new(
-                        firstName: String,
-                        lastName: String,
-                        email: String,
-                        phone: String,
-                        unixname: String,
-                        roles: Option<Vec<Role>>,
+                        #(#field_names: #types,)*
                     ) -> Self {
                         Self {
-                            firstName,
-                            lastName,
-                            email,
-                            phone,
-                            unixname,
-                            roles,
+                            #(#field_names,)*
                             uuid: None,
                             tag: None,
                             constraints: Vec::new(),
@@ -716,14 +718,9 @@ pub fn aorist_concept2(args: TokenStream, input: TokenStream) -> TokenStream {
                 })
                 .next()
                 .unwrap();
-            let derives_list = match derives.get(0).unwrap() {
-                syn::NestedMeta::Meta(syn::Meta::List(ref x)) => x.nested.clone(),
-                _ => panic!("first element in aorist_concept args must be list"),
-            };
-
             derivatives
                 .nested
-                .extend::<Punctuated<NestedMeta, Token![,]>>(derives_list.into_iter().collect());
+                .extend::<Punctuated<NestedMeta, Token![,]>>(derives.into_iter().collect());
             *attr = parse_quote!(#[#derivatives]);
 
             let quoted2 = quote! { #final_ast };
