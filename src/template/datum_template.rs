@@ -5,18 +5,18 @@ use crate::concept::{AoristConcept, Concept};
 use crate::constraint::Constraint;
 use crate::template::identifier_tuple::IdentifierTuple;
 use crate::template::keyed_struct::KeyedStruct;
-use aorist_concept::Constrainable;
+use aorist_concept::{Constrainable, aorist_concept2};
 use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::sync::{Arc, RwLock};
 use uuid::Uuid;
 
-#[derive(Debug, PartialEq, Serialize, Deserialize, Clone, Constrainable, FromPyObject)]
-#[serde(tag = "type")]
+#[aorist_concept2]
 pub enum DatumTemplate {
     KeyedStruct(KeyedStruct),
     IdentifierTuple(IdentifierTuple),
 }
+
 pub trait TDatumTemplate {
     fn get_attributes(&self) -> Vec<Attribute>;
     fn get_name(&self) -> String;

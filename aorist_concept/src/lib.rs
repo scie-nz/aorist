@@ -603,8 +603,11 @@ pub fn python_object(input: TokenStream) -> TokenStream {
                     }
                 }
 
-                struct [<Inner #struct_name>] {
+                struct [<Constrained #struct_name>] {
                     #(#field_names: #types,)*
+                    pub uuid: Option<Uuid>,
+                    pub tag: Option<String>,
+                    pub constraints: Vec<Arc<RwLock<Constraint>>>,
                 }
             }});
         }
@@ -671,6 +674,18 @@ pub fn aorist_concept2(args: TokenStream, input: TokenStream) -> TokenStream {
 
             let quoted2 = quote! { #final_ast };
             return proc_macro::TokenStream::from(quoted2);
+        },
+        Data::Enum(DataEnum { variants, .. }) => {
+            let enum_name = &ast.ident;
+            let variant = variants.iter().map(|x| (&x.ident));
+            let quoted = quote! {
+                #[derive(Debug, PartialEq, Serialize, Deserialize, Clone, Constrainable, FromPyObject)]
+                #[serde(tag = "type")]
+                pub enum #enum_name {
+                    #(#variant(#variant)),*
+                }
+            };
+            return proc_macro::TokenStream::from(quoted);
         }
         _ => panic!("expected a struct with named fields or an enum"),
     }
