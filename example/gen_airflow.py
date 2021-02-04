@@ -12,5 +12,5 @@ universe = Universe(
     datasets=[sentinel_dataset],
     endpoints=DEFAULT_ENDPOINTS,
 )
-dag = airflow_dag(universe)
+dag = airflow_dag(universe, ['Replicated'])
 print(dag)

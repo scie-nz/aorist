@@ -32,7 +32,10 @@ pub struct Universe {
 }
 pub trait TUniverse {
     fn get_concept_map<'a>(&'a self) -> HashMap<(Uuid, String), Concept<'a>>;
-    fn get_constraints_map(&self) -> HashMap<(Uuid, String), Arc<RwLock<Constraint>>>;
+    fn get_constraints_map(
+        &self,
+        queue: VecDeque<Arc<RwLock<Constraint>>>,
+    ) -> HashMap<(Uuid, String), Arc<RwLock<Constraint>>>;
     fn get_user_unixname_map(&self) -> HashMap<String, User>;
     fn get_user_permissions(&self) -> Result<HashMap<String, HashSet<String>>, String>;
 }
@@ -43,10 +46,11 @@ impl TUniverse for Universe {
         concept.populate_child_concept_map(&mut concept_map);
         concept_map
     }
-    fn get_constraints_map(&self) -> HashMap<(Uuid, String), Arc<RwLock<Constraint>>> {
+    fn get_constraints_map(
+        &self,
+        mut queue: VecDeque<Arc<RwLock<Constraint>>>,
+    ) -> HashMap<(Uuid, String), Arc<RwLock<Constraint>>> {
         let mut constraints_map: HashMap<(Uuid, String), Arc<RwLock<Constraint>>> = HashMap::new();
-        let mut queue: VecDeque<Arc<RwLock<Constraint>>> =
-            self.get_constraints().iter().map(|x| x.clone()).collect();
         while let Some(constraint) = queue.pop_front() {
             let uuid = constraint.read().unwrap().get_uuid();
             let root_type = constraint.read().unwrap().root.clone();

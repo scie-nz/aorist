@@ -63,7 +63,7 @@ spec:
 ---
 type: Constraint
 spec:
-  name: IsConsistent
+  name: Replicated
   root: Universe
   requires:
     - ReplicatedDataSets
@@ -101,7 +101,7 @@ spec:
   name: IsAuditedTable
   root: StaticDataTable
   requires:
-    - IsConsistent
+    - Replicated
 ---
 type: Constraint
 spec:
@@ -330,7 +330,7 @@ spec:
   - type: LocalFileImport
     filename: snap.yaml
   constraints:
-    - IsConsistent
+    - Replicated
 ---
 type: RoleBinding
 spec:

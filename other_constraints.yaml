@@ -5,7 +5,7 @@ spec:
   name: IsUseful
   root: Universe
   requires:
-    - IsConsistent
+    - Replicated
     - ReplicatedDatasets
     - TrainedModels
     - ComputedMetrics
@@ -16,7 +16,7 @@ spec:
   name: IsLawful
   root: Universe
   requires:
-    - IsConsistent
+    - Replicated
     - OldPIIDeleted
     - PIIProtected
     - DataAccessAudited
@@ -39,7 +39,7 @@ spec:
 ---
 type: Constraint
 spec:
-  name: IsConsistent
+  name: Replicated
   root: Universe
   requires:
     - ReplicatedDataSets

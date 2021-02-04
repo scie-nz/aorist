@@ -1,5 +1,5 @@
 use crate::code_block::CodeBlock;
-use crate::concept::{Concept, ConceptAncestry};
+use crate::concept::{AoristConcept, Concept, ConceptAncestry};
 use crate::constraint::{
     AoristConstraint, AoristStatement, Constraint, Import, LiteralsMap, ParameterTuple, Preamble,
 };
@@ -270,12 +270,26 @@ where
 
         unsatisfied_constraints
     }
-    pub fn new(data_setup: &'a Universe) -> Driver<'a, T> {
+    pub fn new(
+        data_setup: &'a Universe,
+        topline_constraint_names: Option<HashSet<String>>,
+    ) -> Driver<'a, T> {
         let mut concept_map: HashMap<(Uuid, String), Concept<'a>> = HashMap::new();
         let concept = Concept::Universe((data_setup, 0, None));
         concept.populate_child_concept_map(&mut concept_map);
 
-        let constraints = data_setup.get_constraints_map();
+        let it = data_setup.get_constraints().iter().map(|x| x.clone());
+        let topline = match topline_constraint_names {
+            Some(set) => it
+                .filter(|x| {
+                    let r = x.read().unwrap();
+                    r.root == "Universe" && set.contains(&r.name)
+                })
+                .collect(),
+            None => it.collect(),
+        };
+        let constraints = data_setup.get_constraints_map(topline);
+
         let ancestors = Self::compute_all_ancestors(concept, &concept_map);
         let concepts = Arc::new(RwLock::new(concept_map));
         let unsatisfied_constraints =
