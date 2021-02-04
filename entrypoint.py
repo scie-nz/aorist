@@ -8,7 +8,6 @@ from aorist import (
     UserGroup,
     GlobalPermissionsAdmin,
     KeyedStruct,
-    TabularSchema,
     AlluxioLocation,
     GCSLocation,
     StaticHiveTableLayout,
@@ -24,6 +23,7 @@ from aorist import (
     Universe,
     default_tabular_schema,
     airflow_dag,
+    DataSet,
 )
 
 # hacky import since submodule imports don't work well
@@ -38,7 +38,7 @@ ranger_config = RangerConfig(
 )
 presto_config = PrestoConfig(server="presto-coordinator-0")
 gitea_config = GiteaConfig(token="2b44b07e042ee9fe374e3eeebd2c9098468b5774")
-endpoint_config = EndpointConfig(
+endpoints = EndpointConfig(
     alluxio=alluxio_config,
     ranger=ranger_config,
     presto=presto_config,
@@ -132,8 +132,8 @@ local = HiveTableStorage(
     layout=StaticHiveTableLayout(),
     encoding=ORCEncoding(),
 )
-sentinel = StaticDataTable(
-    name='sentinel',
+sentinel_metadata_table = StaticDataTable(
+    name='sentinel_metadata_table',
     schema=default_tabular_schema(sentinel_granule_datum),
     setup=RemoteImportStorageSetup(
         tmp_dir="/tmp/sentinel2",
@@ -141,3 +141,18 @@ sentinel = StaticDataTable(
         local=[local],
     )
 )
+sentinel_dataset = DataSet(
+    name='sentinel-2-dataset',
+    datumTemplates=[sentinel_granule_datum],
+    assets=[sentinel_metadata_table],
+)
+
+universe = Universe(
+    name='test_universe',
+    users=[bogdan, nick, cip],
+    groups=[finance, datascience, crowding],
+    datasets=[sentinel_dataset],
+    endpoints=endpoints,
+)
+dag = airflow_dag(universe)
+print(dag)

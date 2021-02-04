@@ -18,6 +18,7 @@ use uuid::Uuid;
 pub struct DataSet {
     name: String,
     #[constrainable]
+    #[py_default="Vec::new()"]
     accessPolicies: Vec<AccessPolicy>,
     #[constrainable]
     pub datumTemplates: Vec<DatumTemplate>,
