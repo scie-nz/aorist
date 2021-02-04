@@ -57,7 +57,8 @@ for name in [
             tmp_dir='/tmp/%s' % name_underscore,
             remote=remote,
             local=[local],
-        )
+        ),
+        tag=name_underscore,
     )
     tables += [table]
 
@@ -65,4 +66,5 @@ snap_dataset = DataSet(
     name='snap-dataset',
     datumTemplates=[edge_tuple],
     assets=tables,
+    tag='snap',
 )

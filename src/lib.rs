@@ -72,6 +72,7 @@ pub fn default_tabular_schema(datum_template: InnerDatumTemplate) -> InnerTabula
             .iter()
             .map(|x| x.get_name().clone())
             .collect(),
+        tag: None,
     }
 }
 

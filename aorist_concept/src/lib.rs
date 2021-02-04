@@ -713,6 +713,7 @@ pub fn constrain_object(input: TokenStream) -> TokenStream {
                     #(pub #option_ident: Option<[<Inner #option_type>]> ,)*
                     #(pub #option_vec_ident: Option<Vec<[<Inner #option_vec_type>]>> ,)*
                     #(pub #unconstrainable_name: #unconstrainable_type,)*
+                    pub tag: Option<String>,
                 }
 
                 #[pymethods]
@@ -725,6 +726,7 @@ pub fn constrain_object(input: TokenStream) -> TokenStream {
                         #(#option_ident: Option<[<Inner #option_type>]> ,)*
                         #(#option_vec_ident: Option<Vec<[<Inner #option_vec_type>]>> ,)*
                         #(#unconstrainable_name: #unconstrainable_type,)*
+                        tag: Option<String>,
                     ) -> Self {
                         Self {
                             #(#bare_ident,)*
@@ -732,6 +734,7 @@ pub fn constrain_object(input: TokenStream) -> TokenStream {
                             #(#option_ident,)*
                             #(#option_vec_ident,)*
                             #(#unconstrainable_name,)*
+                            tag
                         }
                     }
                 }
@@ -755,7 +758,7 @@ pub fn constrain_object(input: TokenStream) -> TokenStream {
                             )*
                             #(#unconstrainable_name: inner.#unconstrainable_name,)*
                             uuid: None,
-                            tag: None,
+                            tag: inner.tag,
                             constraints: Vec::new(),
                         }
                     }

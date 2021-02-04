@@ -72,7 +72,8 @@ sentinel_metadata_table = StaticDataTable(
         tmp_dir="/tmp/sentinel2",
         remote=remote,
         local=[local],
-    )
+    ),
+    tag='sentinel',
 )
 sentinel_dataset = DataSet(
     name='sentinel-2-dataset',
