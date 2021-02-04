@@ -18,6 +18,7 @@ from aorist import (
 
 # hacky import since submodule imports don't work well
 from aorist import attributes as attr
+
 """
 Defining dataset
 """
@@ -31,18 +32,10 @@ attributes = [
     attr.NullableString("cloud_cover"),
     attr.NullableString("geometric_quality_flag"),
     attr.NullablePOSIXTimestamp("generation_time"),
-    attr.FloatLatitude(
-        "north_lat", "Northern latitude of the tile's bounding box."
-    ),
-    attr.FloatLatitude(
-        "south_lat", "Southern latitude of the tile's bounding box."
-    ),
-    attr.FloatLatitude(
-        "west_lon", "Western longitude of the tile's bounding box."
-    ),
-    attr.FloatLatitude(
-        "east_lon", "Eastern longitude of the tile's bounding box."
-    ),
+    attr.FloatLatitude("north_lat", "Northern latitude of the tile's bounding box."),
+    attr.FloatLatitude("south_lat", "Southern latitude of the tile's bounding box."),
+    attr.FloatLatitude("west_lon", "Western longitude of the tile's bounding box."),
+    attr.FloatLatitude("east_lon", "Eastern longitude of the tile's bounding box."),
     attr.URI("base_url"),
 ]
 sentinel_granule_datum = KeyedStruct(
@@ -66,17 +59,17 @@ local = HiveTableStorage(
     encoding=ORCEncoding(),
 )
 sentinel_metadata_table = StaticDataTable(
-    name='sentinel_metadata_table',
+    name="sentinel_metadata_table",
     schema=default_tabular_schema(sentinel_granule_datum),
     setup=RemoteImportStorageSetup(
         tmp_dir="/tmp/sentinel2",
         remote=remote,
         local=[local],
     ),
-    tag='sentinel',
+    tag="sentinel",
 )
 sentinel_dataset = DataSet(
-    name='sentinel-2-dataset',
+    name="sentinel-2-dataset",
     datumTemplates=[sentinel_granule_datum],
     assets=[sentinel_metadata_table],
 )

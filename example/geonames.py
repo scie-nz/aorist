@@ -16,6 +16,7 @@ from aorist import (
     default_tabular_schema,
     DataSet,
 )
+
 # From: https://geonames.nga.mil/gns/html/gis_countryfiles.html
 attributes = [
     # TODO: need richer attribute
@@ -31,19 +32,21 @@ attributes = [
         4 = Russia/ Central Asia;
         5 = Asia/Pacific;
         6 = Vietnam.
-        """
+        """,
     ),
     attr.KeyInt64Identifier(
         "ufi",
-        ("Unique Feature Identifier.  A number which "
-         "uniquely identifies a feature."),
+        (
+            "Unique Feature Identifier.  A number which "
+            "uniquely identifies a feature."
+        ),
     ),
     attr.Int64Identifier(
         "uni",
         """
         Unique Name Identifier.  A number which uniquely identifies a feature
         name.
-        """
+        """,
     ),
     # TODO: need decimal degrees latlon
     attr.FloatLatitude(
@@ -52,7 +55,7 @@ attributes = [
         Latitude of the feature in ± decimal degrees; DD; (± dd.dddddd):
         no sign (+) = North;
         negative sign (-) = South
-        """
+        """,
     ),
     attr.FloatLongitude(
         "long",
@@ -71,7 +74,7 @@ attributes = [
 
         Note: In this format, DMSH values should be interpreted
         from left to right.
-        """
+        """,
     ),
     attr.FloatLongitude(
         "dms_long",
@@ -120,7 +123,7 @@ attributes = [
         identify the type of feature a name is applied to. For a description of
         these codes/values, please see the "Look-up Tables..." section on the
         GNS Offered Services page.
-        """
+        """,
     ),
     attr.NullableInt64(
         "pc",
@@ -129,7 +132,7 @@ attributes = [
         importance of a populated place. The scale ranges from 1 (high) to
         5 (low). The scale can also include NULL (no value) as a value for
         populated places with unknown or undetermined relative importance.
-        """
+        """,
     ),
     attr.NullableStringIdentifier(
         "cc1",
@@ -394,7 +397,7 @@ attributes = [
         """
         The date a new name was added or any part of an existing name was
         modified (YYYY-MM-DD).
-        """
+        """,
     ),
     attr.NullableString(
         "f_efctv_dt",
@@ -417,9 +420,7 @@ geonames_datum = KeyedStruct(
 )
 remote = RemoteStorage(
     location=WebLocation(
-        address=(
-            "https://geonames.nga.mil/gns/html/cntyfile/geonames_20210201.zip"
-        ),
+        address=("https://geonames.nga.mil/gns/html/cntyfile/geonames_20210201.zip"),
     ),
     layout=SingleFileLayout(),
     encoding=CSVEncoding(
@@ -435,17 +436,17 @@ local = HiveTableStorage(
     encoding=ORCEncoding(),
 )
 geonames_table = StaticDataTable(
-    name='sentinel_metadata_table',
+    name="sentinel_metadata_table",
     schema=default_tabular_schema(geonames_datum),
     setup=RemoteImportStorageSetup(
         tmp_dir="geonames",
         remote=remote,
         local=[local],
     ),
-    tag='geonames',
+    tag="geonames",
 )
 geonames_dataset = DataSet(
-    name='geonames-dataset',
+    name="geonames-dataset",
     datumTemplates=[geonames_datum],
     assets=[geonames_table],
 )

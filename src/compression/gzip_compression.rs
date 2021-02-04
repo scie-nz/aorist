@@ -11,6 +11,6 @@ use uuid::Uuid;
 
 #[aorist_concept]
 pub struct GzipCompression {
-    #[py_default="None"]
+    #[py_default = "None"]
     pub filename: Option<String>,
 }

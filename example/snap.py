@@ -1,4 +1,3 @@
-
 from aorist import (
     AlluxioLocation,
     WebLocation,
@@ -19,19 +18,30 @@ from aorist import (
 
 # hacky import since submodule imports don't work well
 from aorist import attributes as attr
+
 edge_tuple = IdentifierTuple(
     name="edge",
     attributes=[
         attr.NumericIdentifier("from_id"),
         attr.NumericIdentifier("to_id"),
-    ]
+    ],
 )
 
 tables = []
 for name in [
-    'ca-AstroPh', 'ca-CondMat', 'ca-GrQc', 'ca-HepPh', 'ca-HepTh',
-    'web-BerkStan', 'web-Google', 'web-NotreDame', 'web-Stanford',
-    'amazon0302', 'amazon0312', 'amazon0505', 'amazon0601',
+    "ca-AstroPh",
+    "ca-CondMat",
+    "ca-GrQc",
+    "ca-HepPh",
+    "ca-HepTh",
+    "web-BerkStan",
+    "web-Google",
+    "web-NotreDame",
+    "web-Stanford",
+    "amazon0302",
+    "amazon0312",
+    "amazon0505",
+    "amazon0601",
 ]:
 
     name_underscore = name.replace("-", "_").lower()
@@ -54,7 +64,7 @@ for name in [
         name=name_underscore,
         schema=default_tabular_schema(edge_tuple),
         setup=RemoteImportStorageSetup(
-            tmp_dir='/tmp/%s' % name_underscore,
+            tmp_dir="/tmp/%s" % name_underscore,
             remote=remote,
             local=[local],
         ),
@@ -63,8 +73,8 @@ for name in [
     tables += [table]
 
 snap_dataset = DataSet(
-    name='snap-dataset',
+    name="snap-dataset",
     datumTemplates=[edge_tuple],
     assets=tables,
-    tag='snap',
+    tag="snap",
 )

@@ -40,12 +40,8 @@ bogdan = User(
     unixname="bogdan",
     roles=[global_permissions_admin],
 )
-nick = User(
-    firstName="Nick", lastName="Parker", email="nick@scie.nz", unixname="nick"
-)
-cip = User(
-    firstName="Ciprian", lastName="Gerea", email="cip@scie.nz", unixname="cip"
-)
+nick = User(firstName="Nick", lastName="Parker", email="nick@scie.nz", unixname="nick")
+cip = User(firstName="Ciprian", lastName="Gerea", email="cip@scie.nz", unixname="cip")
 
 """
 Defining user groups

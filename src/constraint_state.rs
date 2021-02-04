@@ -285,7 +285,7 @@ impl<'a> ConstraintState<'a> {
                 "{}__{}",
                 to_snake_case(&self.get_name()),
                 self.key.as_ref().unwrap()
-            )
+            ),
         }
     }
 }
