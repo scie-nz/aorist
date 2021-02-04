@@ -34,54 +34,44 @@ pub mod user;
 pub mod user_group;
 pub mod utils;
 
-pub use airflow_singleton::AirflowSingleton;
-pub use asset::Asset;
-pub use asset::StaticDataTable;
-pub use attributes::attribute;
+pub use access_policy::*;
+pub use airflow_singleton::*;
+pub use asset::*;
+pub use asset::*;
+pub use attributes::*;
 pub use compression::*;
-pub use concept::AoristConcept;
-pub use data_setup::{DataSetup, Universe};
-pub use dataset::DataSet;
-pub use driver::Driver;
-pub use encoding::Encoding;
-pub use header::FileHeader;
-pub use location::{GCSLocation, HiveLocation, RemoteLocation, WebLocation};
-pub use schema::{DataSchema, TabularSchema};
-pub use storage::{HiveTableStorage, RemoteStorage};
-pub use storage_setup::{RemoteImportStorageSetup, StorageSetup};
-pub use template::{DatumTemplate, IdentifierTuple, KeyedStruct, TDatumTemplate};
-pub use utils::get_data_setup;
-
-use crate::access_policy::ApproveAccessSelector;
-use crate::encoding::orc_encoding::ORCEncoding;
-use crate::encoding::{CSVEncoding, TSVEncoding};
-use crate::endpoints::{AlluxioConfig, EndpointConfig, GiteaConfig, PrestoConfig, RangerConfig};
-use crate::header::UpperSnakeCaseCSVHeader;
-use crate::layout::{
-    DailyGranularity, DynamicHiveTableLayout, SingleFileLayout, StaticHiveTableLayout,
-};
-use crate::location::AlluxioLocation;
-use crate::role::GlobalPermissionsAdmin;
-use crate::role_binding::RoleBinding;
-use crate::user::User;
-use crate::user_group::UserGroup;
+pub use concept::*;
+pub use data_setup::*;
+pub use dataset::*;
+pub use driver::*;
+pub use encoding::*;
+pub use endpoints::*;
+pub use header::*;
+pub use layout::*;
+pub use location::*;
+pub use role::*;
+pub use role_binding::*;
+pub use schema::*;
+pub use storage::*;
+pub use storage_setup::*;
+pub use template::*;
+pub use user::*;
+pub use user_group::*;
+pub use utils::*;
 
 use aorist_primitives::TAttribute;
 use pyo3::prelude::*;
 use pyo3::wrap_pyfunction;
 
 #[pyfunction]
-pub fn default_tabular_schema(datum_template: DatumTemplate) -> TabularSchema {
-    TabularSchema {
+pub fn default_tabular_schema(datum_template: InnerDatumTemplate) -> InnerTabularSchema {
+    InnerTabularSchema {
         datumTemplateName: datum_template.get_name(),
         attributes: datum_template
             .get_attributes()
             .iter()
             .map(|x| x.get_name().clone())
             .collect(),
-        constraints: Vec::new(),
-        uuid: None,
-        tag: None,
     }
 }
 
@@ -101,37 +91,37 @@ fn aorist(py: Python, m: &PyModule) -> PyResult<()> {
         Ok(driver.run())
     }
 
-    m.add_class::<ApproveAccessSelector>()?;
-    m.add_class::<CSVEncoding>()?;
-    m.add_class::<ORCEncoding>()?;
-    m.add_class::<TSVEncoding>()?;
-    m.add_class::<DataSet>()?;
-    m.add_class::<Universe>()?;
-    m.add_class::<StaticDataTable>()?;
-    m.add_class::<User>()?;
-    m.add_class::<UpperSnakeCaseCSVHeader>()?;
-    m.add_class::<SingleFileLayout>()?;
-    m.add_class::<StaticHiveTableLayout>()?;
-    m.add_class::<DailyGranularity>()?;
-    m.add_class::<DynamicHiveTableLayout>()?;
-    m.add_class::<AlluxioLocation>()?;
-    m.add_class::<GCSLocation>()?;
-    m.add_class::<WebLocation>()?;
-    m.add_class::<GlobalPermissionsAdmin>()?;
-    m.add_class::<RoleBinding>()?;
-    m.add_class::<TabularSchema>()?;
-    m.add_class::<HiveTableStorage>()?;
-    m.add_class::<RemoteStorage>()?;
-    m.add_class::<RemoteImportStorageSetup>()?;
-    m.add_class::<IdentifierTuple>()?;
-    m.add_class::<KeyedStruct>()?;
-    m.add_class::<UserGroup>()?;
-    m.add_class::<EndpointConfig>()?;
-    m.add_class::<AlluxioConfig>()?;
-    m.add_class::<GiteaConfig>()?;
-    m.add_class::<RangerConfig>()?;
-    m.add_class::<PrestoConfig>()?;
-    m.add_class::<GzipCompression>()?;
+    m.add_class::<InnerApproveAccessSelector>()?;
+    m.add_class::<InnerCSVEncoding>()?;
+    m.add_class::<InnerORCEncoding>()?;
+    m.add_class::<InnerTSVEncoding>()?;
+    m.add_class::<InnerDataSet>()?;
+    m.add_class::<InnerUniverse>()?;
+    m.add_class::<InnerStaticDataTable>()?;
+    m.add_class::<InnerUser>()?;
+    m.add_class::<InnerUpperSnakeCaseCSVHeader>()?;
+    m.add_class::<InnerSingleFileLayout>()?;
+    m.add_class::<InnerStaticHiveTableLayout>()?;
+    m.add_class::<InnerDailyGranularity>()?;
+    m.add_class::<InnerDynamicHiveTableLayout>()?;
+    m.add_class::<InnerAlluxioLocation>()?;
+    m.add_class::<InnerGCSLocation>()?;
+    m.add_class::<InnerWebLocation>()?;
+    m.add_class::<InnerGlobalPermissionsAdmin>()?;
+    m.add_class::<InnerRoleBinding>()?;
+    m.add_class::<InnerTabularSchema>()?;
+    m.add_class::<InnerHiveTableStorage>()?;
+    m.add_class::<InnerRemoteStorage>()?;
+    m.add_class::<InnerRemoteImportStorageSetup>()?;
+    m.add_class::<InnerIdentifierTuple>()?;
+    m.add_class::<InnerKeyedStruct>()?;
+    m.add_class::<InnerUserGroup>()?;
+    m.add_class::<InnerEndpointConfig>()?;
+    m.add_class::<InnerAlluxioConfig>()?;
+    m.add_class::<InnerGiteaConfig>()?;
+    m.add_class::<InnerRangerConfig>()?;
+    m.add_class::<InnerPrestoConfig>()?;
+    m.add_class::<InnerGzipCompression>()?;
     m.add_wrapped(wrap_pyfunction!(default_tabular_schema))?;
     Ok(())
 }

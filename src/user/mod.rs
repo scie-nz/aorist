@@ -3,7 +3,7 @@ use crate::concept::{AoristConcept, Concept};
 use crate::constraint::Constraint;
 use crate::error::AoristError;
 use crate::object::TAoristObject;
-use crate::role::{Role, TRole};
+use crate::role::*;
 use aorist_concept::{aorist_concept2, ConstrainObject, Constrainable, PythonObject};
 use derivative::Derivative;
 use paste::paste;
@@ -22,6 +22,7 @@ pub struct User {
     phone: String,
     unixname: String,
     #[py_default = "None"]
+    #[constrainable]
     roles: Option<Vec<Role>>,
 }
 

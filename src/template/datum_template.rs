@@ -1,6 +1,6 @@
 #![allow(non_snake_case)]
 
-use crate::attributes::Attribute;
+use crate::attributes::*;
 use crate::concept::{AoristConcept, Concept};
 use crate::constraint::Constraint;
 use crate::template::identifier_tuple::*;
@@ -22,6 +22,10 @@ pub trait TDatumTemplate {
     fn get_attributes(&self) -> Vec<Attribute>;
     fn get_name(&self) -> String;
 }
+pub trait TInnerDatumTemplate {
+    fn get_attributes(&self) -> Vec<InnerAttribute>;
+    fn get_name(&self) -> String;
+}
 impl TDatumTemplate for DatumTemplate {
     fn get_name(&self) -> String {
         match self {
@@ -33,6 +37,20 @@ impl TDatumTemplate for DatumTemplate {
         match self {
             DatumTemplate::KeyedStruct(x) => x.get_attributes(),
             DatumTemplate::IdentifierTuple(x) => x.get_attributes(),
+        }
+    }
+}
+impl TInnerDatumTemplate for InnerDatumTemplate {
+    fn get_name(&self) -> String {
+        match self {
+            InnerDatumTemplate::KeyedStruct(x) => x.name.clone(),
+            InnerDatumTemplate::IdentifierTuple(x) => x.name.clone(),
+        }
+    }
+    fn get_attributes(&self) -> Vec<InnerAttribute> {
+        match self {
+            InnerDatumTemplate::KeyedStruct(x) => x.attributes.clone(),
+            InnerDatumTemplate::IdentifierTuple(x) => x.attributes.clone(),
         }
     }
 }

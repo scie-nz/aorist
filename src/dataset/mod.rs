@@ -1,3 +1,3 @@
 mod dataset;
 
-pub use dataset::{InnerDataSet, DataSet};
+pub use dataset::{DataSet, InnerDataSet};

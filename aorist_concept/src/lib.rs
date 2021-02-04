@@ -597,7 +597,7 @@ fn extract_type_variants(fields: &Vec<Field>) -> (
     )
 }
 
-#[proc_macro_derive(ConstrainObject)]
+#[proc_macro_derive(ConstrainObject, attributes(py_default))]
 pub fn constrain_object(input: TokenStream) -> TokenStream {
     let ast = parse_macro_input!(input as DeriveInput);
     match &ast.data {
@@ -605,7 +605,7 @@ pub fn constrain_object(input: TokenStream) -> TokenStream {
             let enum_name = &ast.ident;
             let variant = variants.iter().map(|x| (&x.ident));
             let quoted = quote! { paste! {
-                #[derive(Clone)]
+                #[derive(Clone, FromPyObject)]
                 pub enum [<Inner #enum_name>] {
                     #(#variant([<Inner #variant>])),*
                 }
@@ -633,17 +633,17 @@ pub fn constrain_object(input: TokenStream) -> TokenStream {
                 bare_ident, vec_ident, option_ident, option_vec_ident,
             ) = extract_type_variants(&constrainable);
             let (unconstrainable_name, unconstrainable_type) = extract_names_and_types(&unconstrainable);
-            let py_class_name = format!("Inner{}", stringify!(struct_name));
+            let py_class_name = format!("{}", struct_name);
             return TokenStream::from(quote! { paste! {
 
                 #[pyclass(name=#py_class_name)]
-                #[derive(Clone)]
+                #[derive(Clone, PythonObject)]
                 pub struct [<Inner #struct_name>] {
-                    #(#bare_ident: [<Inner #bare_type>] ,)*
-                    #(#vec_ident: Vec<[<Inner #vec_type>]> ,)*
-                    #(#option_ident: Vec<[<Inner #option_type>]> ,)*
-                    #(#option_vec_ident: Vec<[<Inner #option_vec_type>]> ,)*
-                    #([<_ #unconstrainable_name>]: #unconstrainable_type,)*
+                    #(pub #bare_ident: [<Inner #bare_type>] ,)*
+                    #(pub #vec_ident: Vec<[<Inner #vec_type>]> ,)*
+                    #(pub #option_ident: Vec<[<Inner #option_type>]> ,)*
+                    #(pub #option_vec_ident: Vec<[<Inner #option_vec_type>]> ,)*
+                    #(pub #unconstrainable_name: #unconstrainable_type,)*
                 }
 
             }});
@@ -727,9 +727,6 @@ pub fn python_object(input: TokenStream) -> TokenStream {
                     ) -> Self {
                         Self {
                             #(#field_names,)*
-                            uuid: None,
-                            tag: None,
-                            constraints: Vec::new(),
                         }
                     }
                 }
@@ -796,8 +793,7 @@ pub fn aorist_concept2(args: TokenStream, input: TokenStream) -> TokenStream {
                 _ => (),
             }
             let quoted = quote! {
-                #[pyclass]
-                #[derive(Derivative, Serialize, Deserialize, Constrainable, Clone, PythonObject, ConstrainObject#(, #extra_derives)*)]
+                #[derive(Derivative, Serialize, Deserialize, Constrainable, Clone, ConstrainObject#(, #extra_derives)*)]
                 #[derivative(PartialEq, Debug, Eq)]
                 #ast
             };
@@ -825,7 +821,7 @@ pub fn aorist_concept2(args: TokenStream, input: TokenStream) -> TokenStream {
             let enum_name = &ast.ident;
             let variant = variants.iter().map(|x| (&x.ident));
             let quoted = quote! {
-                #[derive(Debug, PartialEq, Serialize, Deserialize, Clone, Constrainable, FromPyObject, ConstrainObject)]
+                #[derive(Debug, PartialEq, Serialize, Deserialize, Clone, Constrainable, ConstrainObject)]
                 #[serde(tag = "type")]
                 pub enum #enum_name {
                     #(#variant(#variant)),*

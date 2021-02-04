@@ -5,7 +5,7 @@ mod remote_location;
 mod web_location;
 
 pub use alluxio_location::{AlluxioLocation, InnerAlluxioLocation};
-pub use gcs_location::{InnerGCSLocation, GCSLocation};
-pub use hive_location::{InnerHiveLocation, HiveLocation};
+pub use gcs_location::{GCSLocation, InnerGCSLocation};
+pub use hive_location::{HiveLocation, InnerHiveLocation};
 pub use remote_location::{InnerRemoteLocation, RemoteLocation};
 pub use web_location::{InnerWebLocation, WebLocation};

@@ -566,7 +566,7 @@ macro_rules! register_constraint {
 }
 #[macro_export]
 macro_rules! register_attribute {
-    ( $name:ident, $($element: ident),+ ) => {
+    ( $name:ident, $($element: ident),+ ) => { paste! {
         #[aorist_concept2]
         pub enum $name {
             $(
@@ -585,6 +585,22 @@ macro_rules! register_attribute {
                 match self {
                     $(
                         $name::$element(x) => x.get_comment(),
+                    )+
+                }
+            }
+        }
+        impl TAttribute for [<Inner $name>] {
+            fn get_name(&self) -> &String {
+                match self {
+                    $(
+                        [<Inner $name>]::$element(x) => &x.name,
+                    )+
+                }
+            }
+            fn get_comment(&self) -> &Option<String> {
+                match self {
+                    $(
+                        [<Inner $name>]::$element(x) => &x.comment,
                     )+
                 }
             }
@@ -619,12 +635,12 @@ macro_rules! register_attribute {
         paste::item!(
             pub fn [<$name:snake:lower>] (m: &PyModule) -> PyResult<()> {
                 $(
-                    m.add_class::<$element>()?;
+                    m.add_class::<[<Inner $element>]>()?;
                 )+
                 Ok(())
             }
         );
-    }
+    }}
 }
 
 pub trait TAttribute {

@@ -16,7 +16,7 @@ use uuid::Uuid;
 pub struct IdentifierTuple {
     pub name: String,
     #[constrainable]
-    attributes: Vec<Attribute>,
+    pub attributes: Vec<Attribute>,
 }
 impl TDatumTemplate for IdentifierTuple {
     fn get_attributes(&self) -> Vec<Attribute> {

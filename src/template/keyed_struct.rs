@@ -17,7 +17,7 @@ use uuid::Uuid;
 pub struct KeyedStruct {
     pub name: String,
     #[constrainable]
-    attributes: Vec<Attribute>,
+    pub attributes: Vec<Attribute>,
 }
 
 impl TDatumTemplate for KeyedStruct {

@@ -9,7 +9,7 @@ use crate::AoristConcept;
 pub use alluxio::{AlluxioConfig, InnerAlluxioConfig};
 use aorist_concept::{aorist_concept2, ConstrainObject, Constrainable, PythonObject};
 use derivative::Derivative;
-pub use gitea::{InnerGiteaConfig, GiteaConfig};
+pub use gitea::{GiteaConfig, InnerGiteaConfig};
 use paste::paste;
 pub use presto::{InnerPrestoConfig, PrestoConfig};
 use pyo3::prelude::*;
@@ -20,12 +20,16 @@ use uuid::Uuid;
 
 #[aorist_concept2]
 pub struct EndpointConfig {
+    #[constrainable]
     #[py_default = "None"]
     presto: Option<PrestoConfig>,
+    #[constrainable]
     #[py_default = "None"]
     alluxio: Option<AlluxioConfig>,
+    #[constrainable]
     #[py_default = "None"]
     ranger: Option<RangerConfig>,
+    #[constrainable]
     #[py_default = "None"]
     gitea: Option<GiteaConfig>,
 }

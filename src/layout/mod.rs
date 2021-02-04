@@ -2,11 +2,10 @@ mod file_based_storage_layout;
 mod hive_storage_layout;
 
 pub use file_based_storage_layout::{
-    InnerFileBasedStorageLayout, InnerSingleFileLayout, FileBasedStorageLayout,
-    SingleFileLayout,
+    FileBasedStorageLayout, InnerFileBasedStorageLayout, InnerSingleFileLayout, SingleFileLayout,
 };
 pub use hive_storage_layout::{
-    InnerDailyGranularity, InnerDynamicHiveTableLayout, InnerGranularity,
-    InnerHiveStorageLayout, InnerStaticHiveTableLayout, DailyGranularity,
-    DynamicHiveTableLayout, Granularity, HiveStorageLayout, StaticHiveTableLayout,
+    DailyGranularity, DynamicHiveTableLayout, Granularity, HiveStorageLayout,
+    InnerDailyGranularity, InnerDynamicHiveTableLayout, InnerGranularity, InnerHiveStorageLayout,
+    InnerStaticHiveTableLayout, StaticHiveTableLayout,
 };

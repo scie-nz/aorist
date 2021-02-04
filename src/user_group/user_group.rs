@@ -2,7 +2,7 @@
 use crate::concept::{AoristConcept, Concept};
 use crate::constraint::Constraint;
 use crate::object::TAoristObject;
-use crate::user::User;
+use crate::user::*;
 use aorist_concept::{aorist_concept2, ConstrainObject, Constrainable, PythonObject};
 use derivative::Derivative;
 use paste::paste;
@@ -21,6 +21,7 @@ pub struct UserGroup {
     labels: HashMap<String, String>,
     #[py_default = "None"]
     description: Option<String>,
+    #[constrainable]
     users: Option<Vec<User>>,
 }
 pub trait TUserGroup {
