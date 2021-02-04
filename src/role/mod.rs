@@ -1,5 +1,5 @@
 mod global_permissions_admin;
 mod role;
 
-pub use global_permissions_admin::{ConstrainedGlobalPermissionsAdmin, GlobalPermissionsAdmin};
-pub use role::{ConstrainedRole, Role, TRole};
+pub use global_permissions_admin::{InnerGlobalPermissionsAdmin, GlobalPermissionsAdmin};
+pub use role::{InnerRole, Role, TRole};

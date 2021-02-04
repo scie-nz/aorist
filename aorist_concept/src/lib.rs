@@ -606,8 +606,8 @@ pub fn constrain_object(input: TokenStream) -> TokenStream {
             let variant = variants.iter().map(|x| (&x.ident));
             let quoted = quote! { paste! {
                 #[derive(Clone)]
-                pub enum [<Constrained #enum_name>] {
-                    #(#variant([<Constrained #variant>])),*
+                pub enum [<Inner #enum_name>] {
+                    #(#variant([<Inner #variant>])),*
                 }
             }};
             return proc_macro::TokenStream::from(quoted);
@@ -633,18 +633,19 @@ pub fn constrain_object(input: TokenStream) -> TokenStream {
                 bare_ident, vec_ident, option_ident, option_vec_ident,
             ) = extract_type_variants(&constrainable);
             let (unconstrainable_name, unconstrainable_type) = extract_names_and_types(&unconstrainable);
+            let py_class_name = format!("Inner{}", stringify!(struct_name));
             return TokenStream::from(quote! { paste! {
-                #[derive(Constrainable, Clone)]
-                pub struct [<Constrained #struct_name>] {
-                    #(#bare_ident: [<Constrained #bare_type>] ,)*
-                    #(#vec_ident: Vec<[<Constrained #vec_type>]> ,)*
-                    #(#option_ident: Vec<[<Constrained #option_type>]> ,)*
-                    #(#option_vec_ident: Vec<[<Constrained #option_vec_type>]> ,)*
+
+                #[pyclass(name=#py_class_name)]
+                #[derive(Clone)]
+                pub struct [<Inner #struct_name>] {
+                    #(#bare_ident: [<Inner #bare_type>] ,)*
+                    #(#vec_ident: Vec<[<Inner #vec_type>]> ,)*
+                    #(#option_ident: Vec<[<Inner #option_type>]> ,)*
+                    #(#option_vec_ident: Vec<[<Inner #option_vec_type>]> ,)*
                     #([<_ #unconstrainable_name>]: #unconstrainable_type,)*
-                    pub uuid: Option<Uuid>,
-                    pub tag: Option<String>,
-                    pub constraints: Vec<Arc<RwLock<Constraint>>>,
                 }
+
             }});
         }
 

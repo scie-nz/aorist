@@ -4,8 +4,8 @@ mod hive_location;
 mod remote_location;
 mod web_location;
 
-pub use alluxio_location::{AlluxioLocation, ConstrainedAlluxioLocation};
-pub use gcs_location::{ConstrainedGCSLocation, GCSLocation};
-pub use hive_location::{ConstrainedHiveLocation, HiveLocation};
-pub use remote_location::{ConstrainedRemoteLocation, RemoteLocation};
-pub use web_location::{ConstrainedWebLocation, WebLocation};
+pub use alluxio_location::{AlluxioLocation, InnerAlluxioLocation};
+pub use gcs_location::{InnerGCSLocation, GCSLocation};
+pub use hive_location::{InnerHiveLocation, HiveLocation};
+pub use remote_location::{InnerRemoteLocation, RemoteLocation};
+pub use web_location::{InnerWebLocation, WebLocation};
