@@ -1,5 +1,21 @@
 from aorist import attributes as attr
-
+from aorist import (
+    KeyedStruct,
+    AlluxioLocation,
+    WebLocation,
+    StaticHiveTableLayout,
+    UpperSnakeCaseCSVHeader,
+    GzipCompression,
+    ORCEncoding,
+    CSVEncoding,
+    SingleFileLayout,
+    RemoteStorage,
+    HiveTableStorage,
+    RemoteImportStorageSetup,
+    StaticDataTable,
+    default_tabular_schema,
+    DataSet,
+)
 # From: https://geonames.nga.mil/gns/html/gis_countryfiles.html
 attributes = [
     # TODO: need richer attribute
@@ -395,3 +411,41 @@ attributes = [
         """,
     ),
 ]
+geonames_datum = KeyedStruct(
+    name="geonames_datum",
+    attributes=attributes,
+)
+remote = RemoteStorage(
+    location=WebLocation(
+        address=(
+            "https://geonames.nga.mil/gns/html/cntyfile/geonames_20210201.zip"
+        ),
+    ),
+    layout=SingleFileLayout(),
+    encoding=CSVEncoding(
+        compression=GzipCompression(
+            filename="Countries.txt",
+        ),
+        header=UpperSnakeCaseCSVHeader(),
+    ),
+)
+local = HiveTableStorage(
+    location=AlluxioLocation("geonames/features"),
+    layout=StaticHiveTableLayout(),
+    encoding=ORCEncoding(),
+)
+geonames_table = StaticDataTable(
+    name='sentinel_metadata_table',
+    schema=default_tabular_schema(geonames_datum),
+    setup=RemoteImportStorageSetup(
+        tmp_dir="geonames",
+        remote=remote,
+        local=[local],
+    ),
+    tag='geonames',
+)
+geonames_dataset = DataSet(
+    name='geonames-dataset',
+    datumTemplates=[geonames_datum],
+    assets=[geonames_table],
+)

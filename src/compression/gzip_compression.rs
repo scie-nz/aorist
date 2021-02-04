@@ -10,4 +10,7 @@ use std::sync::{Arc, RwLock};
 use uuid::Uuid;
 
 #[aorist_concept]
-pub struct GzipCompression {}
+pub struct GzipCompression {
+    #[py_default="None"]
+    pub filename: Option<String>,
+}
