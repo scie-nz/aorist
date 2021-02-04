@@ -75,6 +75,16 @@ pub fn default_tabular_schema(datum_template: InnerDatumTemplate) -> InnerTabula
     }
 }
 
+#[pyfunction]
+pub fn airflow_dag(inner: InnerUniverse) -> PyResult<String> {
+    let mut universe = Universe::from(inner);
+    universe.compute_uuids();
+    universe.compute_constraints();
+    universe.traverse_constrainable_children(Vec::new());
+    let mut driver: Driver<AirflowSingleton> = Driver::new(&universe);
+    Ok(driver.run())
+}
+
 #[pymodule]
 fn aorist(py: Python, m: &PyModule) -> PyResult<()> {
     let submod = PyModule::new(py, "attributes")?;
@@ -123,5 +133,6 @@ fn aorist(py: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<InnerPrestoConfig>()?;
     m.add_class::<InnerGzipCompression>()?;
     m.add_wrapped(wrap_pyfunction!(default_tabular_schema))?;
+    m.add_wrapped(wrap_pyfunction!(airflow_dag))?;
     Ok(())
 }

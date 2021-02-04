@@ -23,6 +23,7 @@ from aorist import (
     StaticDataTable,
     Universe,
     default_tabular_schema,
+    airflow_dag,
 )
 
 # hacky import since submodule imports don't work well
