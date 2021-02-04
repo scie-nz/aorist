@@ -416,6 +416,11 @@ fn main() {
     scope.import("crate::constraint", "AllConstraintsSatisfiability");
     scope.import("crate::constraint", "ParameterTuple");
     scope.import("linked_hash_map", "LinkedHashMap");
+    scope.import("textwrap", "fill");
+    scope.import("textwrap", "Options");
+    scope.import("hyphenation", "Language");
+    scope.import("hyphenation", "Load");
+    scope.import("hyphenation", "Standard");
     scope.import("crate", "*");
     for (root, constraints) in &by_uses {
         for (constraint, dialects) in constraints {

@@ -565,7 +565,8 @@ spec:
   dialect: Presto
   call: |
     CREATE TABLE IF NOT EXISTS {table_name} (
-    {schema} ) WITH (format='{data_format}');
+    {schema}
+    ) WITH (format='{data_format}');
   kwargs:
     table_name:
       type: AncestorArgument
@@ -588,6 +589,9 @@ spec:
           {
             use crate::attributes::TAttribute;
             let DataSchema::TabularSchema(ref t) = static_data_table.schema;
+            let dictionary = Standard::from_embedded(Language::EnglishUS).unwrap();
+            let options = Options::new(66).splitter(dictionary);
+
             let attr_v = data_set
                 .datumTemplates
                 .iter()
@@ -606,15 +610,27 @@ spec:
             let attr_types = attr_map.iter().map(|x| {
                 let (name, (presto_type, comment)) = x;
                 let comment_str = match comment {
-                    Some(c) => format!(" COMMENT '{}'", c.replace("\n", "")),
-                    None => "".to_string(),
+                    Some(c) => {
+                        let cleaned_up_comment = c.split("\n").into_iter().map(|x| x.to_string().trim().to_string()).collect::<Vec<String>>().join(" ");
+                        fill(cleaned_up_comment.trim(), &options).split("\n").map(|x| x.to_string()).collect::<Vec<String>>()
+                    }
+                    None => vec!["".to_string()],
                 };
-                format!(
-                    "    {} {}{}",
-                    name,
-                    presto_type,
-                    comment_str,
-                ).to_string()
+                if comment_str.len() == 1 {
+                    return format!(
+                        "    {} {} COMMENT '{}'",
+                        name,
+                        presto_type,
+                        comment_str.get(0).unwrap(),
+                    ).to_string();
+                } else {
+                    return format!(
+                        "    {} {} COMMENT CONCAT(\n{}\n    )",
+                        name,
+                        presto_type,
+                        comment_str.into_iter().map(|x| format!("        '{}'", x).to_string()).collect::<Vec<String>>().join(",\n")
+                    ).to_string();
+                }
             }).collect::<Vec<String>>();
             format!("{}\n", attr_types.join(",\n"))
           }
