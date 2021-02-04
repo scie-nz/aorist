@@ -7,7 +7,7 @@ use crate::role::*;
 use crate::role_binding::*;
 use crate::user::*;
 use crate::user_group::*;
-use aorist_concept::{aorist_concept2, ConstrainObject, Constrainable};
+use aorist_concept::{aorist_concept, InnerObject, Constrainable};
 use derivative::Derivative;
 use paste::paste;
 use pyo3::prelude::*;
@@ -16,7 +16,7 @@ use std::collections::{HashMap, HashSet, VecDeque};
 use std::sync::{Arc, RwLock};
 use uuid::Uuid;
 
-#[aorist_concept2]
+#[aorist_concept]
 pub struct Universe {
     pub name: String,
     #[constrainable]

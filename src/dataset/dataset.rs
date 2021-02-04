@@ -5,7 +5,7 @@ use crate::concept::{AoristConcept, Concept};
 use crate::constraint::{AoristConstraint, Constraint};
 use crate::object::TAoristObject;
 use crate::template::*;
-use aorist_concept::{aorist_concept2, ConstrainObject, Constrainable};
+use aorist_concept::{aorist_concept, InnerObject, Constrainable};
 use derivative::Derivative;
 use paste::paste;
 use pyo3::prelude::*;
@@ -14,7 +14,7 @@ use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
 use uuid::Uuid;
 
-#[aorist_concept2]
+#[aorist_concept]
 pub struct DataSet {
     name: String,
     #[constrainable]

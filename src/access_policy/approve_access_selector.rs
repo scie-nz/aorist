@@ -2,7 +2,7 @@
 use crate::concept::{AoristConcept, Concept};
 use crate::constraint::Constraint;
 use crate::user_group::{TUserGroup, UserGroup};
-use aorist_concept::{aorist_concept2, ConstrainObject, Constrainable};
+use aorist_concept::{aorist_concept, InnerObject, Constrainable};
 use derivative::Derivative;
 use paste::paste;
 use pyo3::prelude::*;
@@ -11,7 +11,7 @@ use std::collections::{HashMap, HashSet};
 use std::sync::{Arc, RwLock};
 use uuid::Uuid;
 
-#[aorist_concept2]
+#[aorist_concept]
 pub struct ApproveAccessSelector {
     matchLabels: Vec<(String, Vec<String>)>,
 }

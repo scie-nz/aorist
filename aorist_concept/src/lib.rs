@@ -597,7 +597,7 @@ fn extract_type_variants(fields: &Vec<Field>) -> (
     )
 }
 
-#[proc_macro_derive(ConstrainObject, attributes(py_default))]
+#[proc_macro_derive(InnerObject, attributes(py_default))]
 pub fn constrain_object(input: TokenStream) -> TokenStream {
     let ast = parse_macro_input!(input as DeriveInput);
     match &ast.data {
@@ -710,52 +710,6 @@ pub fn constrain_object(input: TokenStream) -> TokenStream {
     }
 }
 
-#[proc_macro_derive(PythonObject, attributes(py_default))]
-pub fn python_object(input: TokenStream) -> TokenStream {
-    let input = parse_macro_input!(input as DeriveInput);
-    match &input.data {
-        Data::Struct(DataStruct {
-            fields: Fields::Named(fields),
-            ..
-        }) => {
-            let fields_filtered = fields
-                .named
-                .clone()
-                .into_iter()
-                .filter(|x| {
-                    let ident = x.ident.as_ref().unwrap().to_string();
-                    !(ident == "tag" || ident == "uuid" || ident == "constraints")
-                })
-                .collect::<Vec<_>>();
-            let field_names = fields_filtered
-                .clone()
-                .into_iter()
-                .map(|x| x.ident.unwrap())
-                .collect::<Vec<_>>();
-            let types = fields_filtered
-                .clone()
-                .into_iter()
-                .map(|x| x.ty)
-                .collect::<Vec<_>>();
-            let struct_name = &input.ident;
-            return TokenStream::from(quote! { paste! {
-                #[pymethods]
-                impl #struct_name {
-                    #[new]
-                    fn new(
-                        #(#field_names: #types,)*
-                    ) -> Self {
-                        Self {
-                            #(#field_names,)*
-                        }
-                    }
-                }
-            }});
-        }
-        _ => panic!("expected a struct with named fields or an enum"),
-    }
-}
-
 fn get_derives(attrs: Vec<NestedMeta>) -> (Vec<NestedMeta>, Vec<NestedMeta>) {
     let mut derivatives: Vec<NestedMeta> = Vec::new();
     let mut derives: Vec<NestedMeta> = Vec::new();
@@ -778,7 +732,7 @@ fn get_derives(attrs: Vec<NestedMeta>) -> (Vec<NestedMeta>, Vec<NestedMeta>) {
 }
 
 #[proc_macro_attribute]
-pub fn aorist_concept2(args: TokenStream, input: TokenStream) -> TokenStream {
+pub fn aorist_concept(args: TokenStream, input: TokenStream) -> TokenStream {
     let input_attrs = parse_macro_input!(args as AttributeArgs);
     let (extra_derives, extra_derivatives) = get_derives(input_attrs);
 
@@ -813,7 +767,7 @@ pub fn aorist_concept2(args: TokenStream, input: TokenStream) -> TokenStream {
                 _ => (),
             }
             let quoted = quote! {
-                #[derive(Derivative, Serialize, Deserialize, Constrainable, Clone, ConstrainObject#(, #extra_derives)*)]
+                #[derive(Derivative, Serialize, Deserialize, Constrainable, Clone, InnerObject#(, #extra_derives)*)]
                 #[derivative(PartialEq, Debug, Eq)]
                 #ast
             };
@@ -841,7 +795,7 @@ pub fn aorist_concept2(args: TokenStream, input: TokenStream) -> TokenStream {
             let enum_name = &ast.ident;
             let variant = variants.iter().map(|x| (&x.ident));
             let quoted = quote! {
-                #[derive(Debug, PartialEq, Serialize, Deserialize, Clone, Constrainable, ConstrainObject)]
+                #[derive(Debug, PartialEq, Serialize, Deserialize, Clone, Constrainable, InnerObject)]
                 #[serde(tag = "type")]
                 pub enum #enum_name {
                     #(#variant(#variant)),*

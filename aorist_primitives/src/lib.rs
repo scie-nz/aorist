@@ -279,7 +279,7 @@ macro_rules! register_satisfiable_constraints {
 #[macro_export]
 macro_rules! define_attribute {
     ($element:ident, $presto_type:ident, $orc_type:ident, $sql_type:ident) => {
-        #[aorist_concept2(derive($presto_type, $orc_type, $sql_type))]
+        #[aorist_concept(derive($presto_type, $orc_type, $sql_type))]
         pub struct $element {
             name: String,
             #[py_default = "None"]
@@ -567,7 +567,7 @@ macro_rules! register_constraint {
 #[macro_export]
 macro_rules! register_attribute {
     ( $name:ident, $($element: ident),+ ) => { paste! {
-        #[aorist_concept2]
+        #[aorist_concept]
         pub enum $name {
             $(
                 $element($element),

@@ -7,7 +7,7 @@ use crate::concept::Concept;
 use crate::constraint::Constraint;
 use crate::AoristConcept;
 pub use alluxio::{AlluxioConfig, InnerAlluxioConfig};
-use aorist_concept::{aorist_concept2, ConstrainObject, Constrainable};
+use aorist_concept::{aorist_concept, InnerObject, Constrainable};
 use derivative::Derivative;
 pub use gitea::{GiteaConfig, InnerGiteaConfig};
 use paste::paste;
@@ -18,7 +18,7 @@ use serde::{Deserialize, Serialize};
 use std::sync::{Arc, RwLock};
 use uuid::Uuid;
 
-#[aorist_concept2]
+#[aorist_concept]
 pub struct EndpointConfig {
     #[constrainable]
     #[py_default = "None"]
