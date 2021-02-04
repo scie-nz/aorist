@@ -4,7 +4,7 @@ use crate::compression::*;
 use crate::concept::{AoristConcept, Concept};
 use crate::constraint::Constraint;
 use crate::header::*;
-use aorist_concept::{aorist_concept2, ConstrainObject, Constrainable, PythonObject};
+use aorist_concept::{aorist_concept2, ConstrainObject, Constrainable};
 use derivative::Derivative;
 use paste::paste;
 use pyo3::prelude::*;

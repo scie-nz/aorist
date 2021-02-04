@@ -4,7 +4,7 @@ use crate::constraint::Constraint;
 use crate::error::AoristError;
 use crate::object::TAoristObject;
 use crate::role::*;
-use aorist_concept::{aorist_concept2, ConstrainObject, Constrainable, PythonObject};
+use aorist_concept::{aorist_concept2, ConstrainObject, Constrainable};
 use derivative::Derivative;
 use paste::paste;
 use pyo3::prelude::*;

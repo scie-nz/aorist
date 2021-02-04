@@ -7,7 +7,7 @@ use crate::concept::Concept;
 use crate::constraint::Constraint;
 use crate::AoristConcept;
 pub use alluxio::{AlluxioConfig, InnerAlluxioConfig};
-use aorist_concept::{aorist_concept2, ConstrainObject, Constrainable, PythonObject};
+use aorist_concept::{aorist_concept2, ConstrainObject, Constrainable};
 use derivative::Derivative;
 pub use gitea::{GiteaConfig, InnerGiteaConfig};
 use paste::paste;

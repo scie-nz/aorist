@@ -3,7 +3,7 @@ use crate::concept::{AoristConcept, Concept};
 use crate::constraint::Constraint;
 use crate::object::TAoristObject;
 use crate::user::*;
-use aorist_concept::{aorist_concept2, ConstrainObject, Constrainable, PythonObject};
+use aorist_concept::{aorist_concept2, ConstrainObject, Constrainable};
 use derivative::Derivative;
 use paste::paste;
 use pyo3::prelude::*;
@@ -22,7 +22,8 @@ pub struct UserGroup {
     #[py_default = "None"]
     description: Option<String>,
     #[constrainable]
-    users: Option<Vec<User>>,
+    #[py_default = "Vec::new()"]
+    users: Vec<User>,
 }
 pub trait TUserGroup {
     fn get_labels(&self) -> &HashMap<String, String>;

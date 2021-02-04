@@ -634,42 +634,6 @@ pub fn constrain_object(input: TokenStream) -> TokenStream {
             ) = extract_type_variants(&constrainable);
             let (unconstrainable_name, unconstrainable_type) = extract_names_and_types(&unconstrainable);
             let py_class_name = format!("{}", struct_name);
-            return TokenStream::from(quote! { paste! {
-
-                #[pyclass(name=#py_class_name)]
-                #[derive(Clone, PythonObject)]
-                pub struct [<Inner #struct_name>] {
-                    #(pub #bare_ident: [<Inner #bare_type>] ,)*
-                    #(pub #vec_ident: Vec<[<Inner #vec_type>]> ,)*
-                    #(pub #option_ident: Vec<[<Inner #option_type>]> ,)*
-                    #(pub #option_vec_ident: Vec<[<Inner #option_vec_type>]> ,)*
-                    #(pub #unconstrainable_name: #unconstrainable_type,)*
-                }
-
-            }});
-        }
-
-        _ => panic!("expected a struct with named fields or an enum"),
-    }
-}
-
-#[proc_macro_derive(PythonObject, attributes(py_default))]
-pub fn python_object(input: TokenStream) -> TokenStream {
-    let input = parse_macro_input!(input as DeriveInput);
-    match &input.data {
-        Data::Struct(DataStruct {
-            fields: Fields::Named(fields),
-            ..
-        }) => {
-            let fields_filtered = fields
-                .named
-                .clone()
-                .into_iter()
-                .filter(|x| {
-                    let ident = x.ident.as_ref().unwrap().to_string();
-                    !(ident == "tag" || ident == "uuid" || ident == "constraints")
-                })
-                .collect::<Vec<_>>();
             let fields_with_default = fields_filtered
                 .clone()
                 .into_iter()
@@ -706,6 +670,63 @@ pub fn python_object(input: TokenStream) -> TokenStream {
                 .filter(|x| x.is_some())
                 .map(|x| syn::NestedMeta::Meta(syn::Meta::NameValue(x.unwrap())))
                 .collect::<syn::punctuated::Punctuated<syn::NestedMeta, syn::token::Comma>>();
+            return TokenStream::from(quote! { paste! {
+
+                #[pyclass(name=#py_class_name)]
+                #[derive(Clone)]
+                pub struct [<Inner #struct_name>] {
+                    #(pub #bare_ident: [<Inner #bare_type>] ,)*
+                    #(pub #vec_ident: Vec<[<Inner #vec_type>]> ,)*
+                    #(pub #option_ident: Option<[<Inner #option_type>]> ,)*
+                    #(pub #option_vec_ident: Option<Vec<[<Inner #option_vec_type>]>> ,)*
+                    #(pub #unconstrainable_name: #unconstrainable_type,)*
+                }
+
+                #[pymethods]
+                impl [<Inner #struct_name>] {
+                    #[new]
+                    #[args(#fields_with_default)]
+                    fn new(
+                        #(#bare_ident: [<Inner #bare_type>] ,)*
+                        #(#vec_ident: Vec<[<Inner #vec_type>]> ,)*
+                        #(#option_ident: Option<[<Inner #option_type>]> ,)*
+                        #(#option_vec_ident: Option<Vec<[<Inner #option_vec_type>]>> ,)*
+                        #(#unconstrainable_name: #unconstrainable_type,)*
+                    ) -> Self {
+                        Self {
+                            #(#bare_ident,)*
+                            #(#vec_ident,)*
+                            #(#option_ident,)*
+                            #(#option_vec_ident,)*
+                            #(#unconstrainable_name,)*
+                        }
+                    }
+                }
+
+            }});
+        }
+
+        _ => panic!("expected a struct with named fields or an enum"),
+    }
+}
+
+#[proc_macro_derive(PythonObject, attributes(py_default))]
+pub fn python_object(input: TokenStream) -> TokenStream {
+    let input = parse_macro_input!(input as DeriveInput);
+    match &input.data {
+        Data::Struct(DataStruct {
+            fields: Fields::Named(fields),
+            ..
+        }) => {
+            let fields_filtered = fields
+                .named
+                .clone()
+                .into_iter()
+                .filter(|x| {
+                    let ident = x.ident.as_ref().unwrap().to_string();
+                    !(ident == "tag" || ident == "uuid" || ident == "constraints")
+                })
+                .collect::<Vec<_>>();
             let field_names = fields_filtered
                 .clone()
                 .into_iter()
@@ -721,7 +742,6 @@ pub fn python_object(input: TokenStream) -> TokenStream {
                 #[pymethods]
                 impl #struct_name {
                     #[new]
-                    #[args(#fields_with_default)]
                     fn new(
                         #(#field_names: #types,)*
                     ) -> Self {

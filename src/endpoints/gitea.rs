@@ -1,7 +1,7 @@
 use crate::concept::Concept;
 use crate::constraint::Constraint;
 use crate::AoristConcept;
-use aorist_concept::{aorist_concept2, ConstrainObject, Constrainable, PythonObject};
+use aorist_concept::{aorist_concept2, ConstrainObject, Constrainable};
 use derivative::Derivative;
 use paste::paste;
 use pyo3::prelude::*;
