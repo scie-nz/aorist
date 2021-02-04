@@ -509,7 +509,7 @@ where
                     && !new_task_names.contains(&new_name)
                     && proposed_names
                         .iter()
-                        .filter(|x| x.contains(&new_name))
+                        .filter(|x| *x == &new_name)
                         .collect::<Vec<_>>()
                         .len()
                         == 0

@@ -278,10 +278,14 @@ impl<'a> ConstraintState<'a> {
         self.key.as_ref().unwrap().clone()
     }
     pub fn get_fully_qualified_task_name(&self) -> String {
-        format!(
-            "{}__{}",
-            to_snake_case(&self.get_name()),
-            self.key.as_ref().unwrap()
-        )
+        let key = self.key.as_ref().unwrap();
+        match key.len() {
+            0 => to_snake_case(&self.get_name()),
+            _ => format!(
+                "{}__{}",
+                to_snake_case(&self.get_name()),
+                self.key.as_ref().unwrap()
+            )
+        }
     }
 }
