@@ -603,11 +603,20 @@ pub fn constrain_object(input: TokenStream) -> TokenStream {
     match &ast.data {
         Data::Enum(DataEnum { variants, .. }) => {
             let enum_name = &ast.ident;
-            let variant = variants.iter().map(|x| (&x.ident));
+            let variant = variants.iter().map(|x| (x.ident.clone())).collect::<Vec<_>>();
             let quoted = quote! { paste! {
                 #[derive(Clone, FromPyObject)]
                 pub enum [<Inner #enum_name>] {
                     #(#variant([<Inner #variant>])),*
+                }
+                impl From<[<Inner #enum_name>]> for #enum_name {
+                    fn from(inner: [<Inner #enum_name>]) -> Self {
+                        match inner {
+                             #(
+                                 [<Inner #enum_name>]::#variant(x) => Self::#variant(#variant::from(x)),
+                             )*
+                        }
+                    }
                 }
             }};
             return proc_macro::TokenStream::from(quoted);
@@ -699,6 +708,31 @@ pub fn constrain_object(input: TokenStream) -> TokenStream {
                             #(#option_ident,)*
                             #(#option_vec_ident,)*
                             #(#unconstrainable_name,)*
+                        }
+                    }
+                }
+
+                impl From<[<Inner #struct_name>]> for #struct_name {
+                    fn from(inner: [<Inner #struct_name>]) -> Self {
+                        Self {
+                            #(#bare_ident: #bare_type::from(inner.#bare_ident),)*
+                            #(#vec_ident: inner.#vec_ident.into_iter().map(|x| #vec_type::from(x)).collect(),)*
+                            #(
+                                #option_ident: match inner.#option_ident {
+                                    None => None,
+                                    Some(x) => Some(#option_type::from(x)),
+                                },
+                            )*
+                            #(
+                                #option_vec_ident: match inner.#option_vec_ident {
+                                    None => None,
+                                    Some(v) => Some(v.into_iter().map(|x| #option_vec_type::from(x)).collect()),
+                                },
+                            )*
+                            #(#unconstrainable_name: inner.#unconstrainable_name,)*
+                            uuid: None,
+                            tag: None,
+                            constraints: Vec::new(),
                         }
                     }
                 }
