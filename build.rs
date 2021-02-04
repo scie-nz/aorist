@@ -222,8 +222,8 @@ fn process_attributes(raw_objects: &Vec<HashMap<String, Value>>) {
     scope.import("aorist_primitives", "TSQLAttribute");
     scope.import("serde", "Serialize");
     scope.import("serde", "Deserialize");
-    scope.import("sqlparser::ast", "DataType");
     scope.import("std::sync", "Arc");
+    scope.import("sqlparser::ast", "DataType");
     scope.import("std::sync", "RwLock");
     scope.import("crate::concept", "AoristConcept");
     scope.import("crate::concept", "Concept");

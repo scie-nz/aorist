@@ -1,6 +1,5 @@
 #![allow(non_snake_case)]
 use crate::constraint::Constraint;
-use crate::data_setup::data_setup::DataSetup;
 use crate::dataset::DataSet;
 use crate::role_binding::RoleBinding;
 use crate::user::User;
@@ -25,7 +24,6 @@ pub enum AoristObject {
     User(User),
     UserGroup(UserGroup),
     RoleBinding(RoleBinding),
-    DataSetup(DataSetup),
     Attribute(Attribute),
     Program(Program),
     Constraint(Constraint),

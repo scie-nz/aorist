@@ -18,7 +18,6 @@ pub mod error;
 pub mod etl_singleton;
 pub mod etl_task;
 pub mod header;
-pub mod imports;
 pub mod layout;
 pub mod location;
 pub mod object;
@@ -92,16 +91,6 @@ fn aorist(py: Python, m: &PyModule) -> PyResult<()> {
     let submod = PyModule::new(py, "attributes")?;
     attribute(submod)?;
     m.add_submodule(submod)?;
-
-    #[pyfn(m, "build_from_yaml")]
-    fn build_from_yaml(_py: Python, filename: &str) -> PyResult<String> {
-        let mut setup = get_data_setup(filename);
-        setup.compute_uuids();
-        setup.compute_constraints();
-        setup.traverse_constrainable_children(Vec::new());
-        let mut driver: Driver<AirflowSingleton> = Driver::new(&setup, None);
-        Ok(driver.run())
-    }
 
     m.add_class::<InnerApproveAccessSelector>()?;
     m.add_class::<InnerCSVEncoding>()?;
