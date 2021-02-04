@@ -3,9 +3,9 @@
 use crate::concept::{AoristConcept, Concept};
 use crate::constraint::AoristConstraint;
 use crate::constraint::Constraint;
-use crate::encoding::Encoding;
-use crate::layout::FileBasedStorageLayout;
-use crate::location::RemoteLocation;
+use crate::encoding::*;
+use crate::layout::*;
+use crate::location::*;
 use aorist_concept::{aorist_concept2, ConstrainObject, Constrainable, PythonObject};
 use derivative::Derivative;
 use paste::paste;

@@ -229,9 +229,12 @@ fn process_attributes(raw_objects: &Vec<HashMap<String, Value>>) {
     scope.import("crate::concept", "Concept");
     scope.import("crate::constraint", "Constraint");
     scope.import("aorist_concept", "Constrainable");
+    scope.import("aorist_concept", "aorist_concept2");
+    scope.import("aorist_concept", "ConstrainObject");
     scope.import("uuid", "Uuid");
     scope.import("derivative", "Derivative");
     scope.import("pyo3::prelude", "*");
+    scope.import("paste", "paste");
 
     let sql_derive_macros = attributes
         .iter()

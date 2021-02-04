@@ -1,9 +1,9 @@
 #![allow(non_snake_case)]
 
-use crate::compression::DataCompression;
+use crate::compression::*;
 use crate::concept::{AoristConcept, Concept};
 use crate::constraint::Constraint;
-use crate::header::FileHeader;
+use crate::header::*;
 use aorist_concept::{aorist_concept2, ConstrainObject, Constrainable, PythonObject};
 use derivative::Derivative;
 use paste::paste;
