@@ -2,7 +2,7 @@ use crate::concept::{AoristConcept, Concept};
 use crate::constraint::AoristConstraint;
 use crate::constraint::Constraint;
 use crate::header::upper_snake_case_csv_header::*;
-use aorist_concept::{aorist_concept, InnerObject, Constrainable};
+use aorist_concept::{aorist_concept, Constrainable, InnerObject};
 use paste::paste;
 use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};

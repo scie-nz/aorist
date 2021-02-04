@@ -5,7 +5,7 @@ use crate::constraint::Constraint;
 use crate::encoding::csv_encoding::*;
 use crate::encoding::orc_encoding::*;
 use crate::encoding::tsv_encoding::*;
-use aorist_concept::{aorist_concept, InnerObject, Constrainable};
+use aorist_concept::{aorist_concept, Constrainable, InnerObject};
 use paste::paste;
 use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};

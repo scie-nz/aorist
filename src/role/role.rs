@@ -2,7 +2,7 @@
 use crate::concept::{AoristConcept, Concept};
 use crate::constraint::Constraint;
 use crate::role::global_permissions_admin::*;
-use aorist_concept::{aorist_concept, InnerObject, Constrainable};
+use aorist_concept::{aorist_concept, Constrainable, InnerObject};
 use enum_dispatch::enum_dispatch;
 use paste::paste;
 use pyo3::prelude::*;

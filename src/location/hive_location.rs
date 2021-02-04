@@ -1,7 +1,7 @@
 use crate::concept::{AoristConcept, Concept};
 use crate::constraint::{AoristConstraint, Constraint};
 use crate::location::alluxio_location::*;
-use aorist_concept::{aorist_concept, InnerObject, Constrainable};
+use aorist_concept::{aorist_concept, Constrainable, InnerObject};
 use paste::paste;
 use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};

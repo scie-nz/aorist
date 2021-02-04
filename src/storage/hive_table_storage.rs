@@ -5,7 +5,7 @@ use crate::constraint::*;
 use crate::encoding::*;
 use crate::layout::*;
 use crate::location::*;
-use aorist_concept::{aorist_concept, InnerObject, Constrainable};
+use aorist_concept::{aorist_concept, Constrainable, InnerObject};
 use derivative::Derivative;
 use paste::paste;
 use pyo3::prelude::*;

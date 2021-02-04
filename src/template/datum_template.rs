@@ -5,7 +5,7 @@ use crate::concept::{AoristConcept, Concept};
 use crate::constraint::Constraint;
 use crate::template::identifier_tuple::*;
 use crate::template::keyed_struct::*;
-use aorist_concept::{aorist_concept, InnerObject, Constrainable};
+use aorist_concept::{aorist_concept, Constrainable, InnerObject};
 use paste::paste;
 use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};

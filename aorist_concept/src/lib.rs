@@ -1,11 +1,10 @@
 // Following: https://github.com/dtolnay/syn/issues/516
 extern crate proc_macro;
 use self::proc_macro::TokenStream;
-use std::fs::OpenOptions;
-use std::io::prelude::*;
-use type_macro_helpers::{extract_type_from_option, extract_type_from_vector};
 use proc_macro2::{Ident, Span};
 use quote::quote;
+use std::fs::OpenOptions;
+use std::io::prelude::*;
 use syn::parse::Parser;
 use syn::punctuated::Punctuated;
 use syn::token::Comma;
@@ -13,6 +12,7 @@ use syn::{
     parse_macro_input, parse_quote, AttributeArgs, Data, DataEnum, DataStruct, DeriveInput, Field,
     Fields, Meta, NestedMeta, Token, Type, Variant,
 };
+use type_macro_helpers::{extract_type_from_option, extract_type_from_vector};
 mod keyword {
     syn::custom_keyword!(path);
 }
@@ -544,7 +544,6 @@ fn get_constrainable_fields(fields: Vec<Field>) -> (Vec<Field>, Vec<Field>) {
         }
     }
     (constrainable_fields, unconstrainable_fields)
-
 }
 
 fn extract_names_and_types(fields: &Vec<Field>) -> (Vec<Ident>, Vec<Type>) {
@@ -557,9 +556,17 @@ fn extract_names_and_types(fields: &Vec<Field>) -> (Vec<Ident>, Vec<Type>) {
     (names, types)
 }
 
-fn extract_type_variants(fields: &Vec<Field>) -> (
-    Vec<Type>, Vec<Type>, Vec<Type>, Vec<Type>,
-    Vec<Ident>, Vec<Ident>, Vec<Ident>, Vec<Ident>,
+fn extract_type_variants(
+    fields: &Vec<Field>,
+) -> (
+    Vec<Type>,
+    Vec<Type>,
+    Vec<Type>,
+    Vec<Type>,
+    Vec<Ident>,
+    Vec<Ident>,
+    Vec<Ident>,
+    Vec<Ident>,
 ) {
     let mut bare_types: Vec<Type> = Vec::new();
     let mut vec_types: Vec<Type> = Vec::new();
@@ -592,8 +599,14 @@ fn extract_type_variants(fields: &Vec<Field>) -> (
         }
     }
     (
-        bare_types, vec_types, option_types, option_vec_types,
-        bare_idents, vec_idents, option_idents, option_vec_idents,
+        bare_types,
+        vec_types,
+        option_types,
+        option_vec_types,
+        bare_idents,
+        vec_idents,
+        option_idents,
+        option_vec_idents,
     )
 }
 
@@ -603,7 +616,10 @@ pub fn constrain_object(input: TokenStream) -> TokenStream {
     match &ast.data {
         Data::Enum(DataEnum { variants, .. }) => {
             let enum_name = &ast.ident;
-            let variant = variants.iter().map(|x| (x.ident.clone())).collect::<Vec<_>>();
+            let variant = variants
+                .iter()
+                .map(|x| (x.ident.clone()))
+                .collect::<Vec<_>>();
             let quoted = quote! { paste! {
                 #[derive(Clone, FromPyObject)]
                 pub enum [<Inner #enum_name>] {
@@ -620,7 +636,7 @@ pub fn constrain_object(input: TokenStream) -> TokenStream {
                 }
             }};
             return proc_macro::TokenStream::from(quoted);
-        },
+        }
         Data::Struct(DataStruct {
             fields: Fields::Named(fields),
             ..
@@ -636,12 +652,20 @@ pub fn constrain_object(input: TokenStream) -> TokenStream {
                 })
                 .collect::<Vec<_>>();
 
-            let (constrainable, unconstrainable) = get_constrainable_fields(fields_filtered.clone());
+            let (constrainable, unconstrainable) =
+                get_constrainable_fields(fields_filtered.clone());
             let (
-                bare_type, vec_type, option_type, option_vec_type,
-                bare_ident, vec_ident, option_ident, option_vec_ident,
+                bare_type,
+                vec_type,
+                option_type,
+                option_vec_type,
+                bare_ident,
+                vec_ident,
+                option_ident,
+                option_vec_ident,
             ) = extract_type_variants(&constrainable);
-            let (unconstrainable_name, unconstrainable_type) = extract_names_and_types(&unconstrainable);
+            let (unconstrainable_name, unconstrainable_type) =
+                extract_names_and_types(&unconstrainable);
             let py_class_name = format!("{}", struct_name);
             let fields_with_default = fields_filtered
                 .clone()
@@ -751,11 +775,9 @@ fn get_derives(attrs: Vec<NestedMeta>) -> (Vec<NestedMeta>, Vec<NestedMeta>) {
         if let NestedMeta::Meta(Meta::List(x)) = attr {
             if x.path.is_ident("derivative") {
                 derivatives = x.nested.into_iter().collect();
-            }
-            else if x.path.is_ident("derive") {
+            } else if x.path.is_ident("derive") {
                 derives = x.nested.into_iter().collect();
-            }
-            else {
+            } else {
                 panic!("An attribute other than derive or derivative was specified");
             }
         } else {
@@ -819,12 +841,14 @@ pub fn aorist_concept(args: TokenStream, input: TokenStream) -> TokenStream {
                 .unwrap();
             derivatives
                 .nested
-                .extend::<Punctuated<NestedMeta, Token![,]>>(extra_derivatives.into_iter().collect());
+                .extend::<Punctuated<NestedMeta, Token![,]>>(
+                    extra_derivatives.into_iter().collect(),
+                );
             *attr = parse_quote!(#[#derivatives]);
 
             let quoted2 = quote! { #final_ast };
             return proc_macro::TokenStream::from(quoted2);
-        },
+        }
         Data::Enum(DataEnum { variants, .. }) => {
             let enum_name = &ast.ident;
             let variant = variants.iter().map(|x| (&x.ident));
@@ -848,7 +872,9 @@ pub fn aorist_concept(args: TokenStream, input: TokenStream) -> TokenStream {
                 .unwrap();
             current_derives
                 .nested
-                .extend::<Punctuated<NestedMeta, Token![,]>>(extra_derivatives.into_iter().collect());
+                .extend::<Punctuated<NestedMeta, Token![,]>>(
+                    extra_derivatives.into_iter().collect(),
+                );
             *attr = parse_quote!(#[#current_derives]);
 
             let quoted2 = quote! { #final_ast };
