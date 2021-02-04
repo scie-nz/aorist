@@ -567,8 +567,7 @@ macro_rules! register_constraint {
 #[macro_export]
 macro_rules! register_attribute {
     ( $name:ident, $($element: ident),+ ) => {
-        #[derive(Debug, PartialEq, Serialize, Deserialize, Clone, Constrainable, FromPyObject)]
-        #[serde(tag = "type")]
+        #[aorist_concept2]
         pub enum $name {
             $(
                 $element($element),

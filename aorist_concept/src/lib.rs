@@ -637,9 +637,9 @@ pub fn constrain_object(input: TokenStream) -> TokenStream {
                 #[derive(Constrainable, Clone)]
                 pub struct [<Constrained #struct_name>] {
                     #(#bare_ident: [<Constrained #bare_type>] ,)*
-                    #(#vec_ident: Vec<[<#vec_type>]> ,)*
-                    #(#option_ident: Vec<#option_type> ,)*
-                    #(#option_vec_ident: Vec<#option_vec_type> ,)*
+                    #(#vec_ident: Vec<[<Constrained #vec_type>]> ,)*
+                    #(#option_ident: Vec<[<Constrained #option_type>]> ,)*
+                    #(#option_vec_ident: Vec<[<Constrained #option_vec_type>]> ,)*
                     #([<_ #unconstrainable_name>]: #unconstrainable_type,)*
                     pub uuid: Option<Uuid>,
                     pub tag: Option<String>,

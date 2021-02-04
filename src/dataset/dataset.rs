@@ -1,10 +1,10 @@
 #![allow(non_snake_case)]
-use crate::access_policy::AccessPolicy;
-use crate::asset::Asset;
+use crate::access_policy::*;
+use crate::asset::*;
 use crate::concept::{AoristConcept, Concept};
 use crate::constraint::{AoristConstraint, Constraint};
 use crate::object::TAoristObject;
-use crate::template::{DatumTemplate, TDatumTemplate};
+use crate::template::*;
 use aorist_concept::{aorist_concept2, ConstrainObject, Constrainable, PythonObject};
 use derivative::Derivative;
 use paste::paste;
