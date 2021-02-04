@@ -7,6 +7,27 @@ spec:
 ---
 type: Attribute
 spec:
+  name: KeyInt64Identifier
+  orc: OrcBigint
+  presto: PrestoBigint
+  sql: SQLBigint
+---
+type: Attribute
+spec:
+  name: Int64Identifier
+  orc: OrcBigint
+  presto: PrestoBigint
+  sql: SQLBigint
+---
+type: Attribute
+spec:
+  name: Empty
+  orc: OrcString
+  presto: PrestoVarchar
+  sql: SQLVarchar
+---
+type: Attribute
+spec:
   name: NumericIdentifier
   orc: OrcBigint
   presto: PrestoBigint
@@ -29,6 +50,13 @@ spec:
 type: Attribute
 spec:
   name: NullableInt64
+  orc: OrcBigint
+  presto: PrestoBigint
+  sql: SQLBigint
+---
+type: Attribute
+spec:
+  name: Int64Identifier
   orc: OrcBigint
   presto: PrestoBigint
   sql: SQLBigint
