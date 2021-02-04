@@ -5,3 +5,6 @@ getset/
 .pipeline
 *.swp
 example.py
+*.so
+*/*.so
+example/__*

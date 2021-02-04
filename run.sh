@@ -1,5 +1,5 @@
 #!/bin/bash
 python gen_yaml.py > snap.yaml
-cp target/debug/liblib.so aorist.so
-python entrypoint.py > example.py
+cp target/debug/liblib.so example/aorist.so
+python example/gen_airflow.py > example.py
 black example.py
