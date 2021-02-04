@@ -231,6 +231,7 @@ fn process_attributes(raw_objects: &Vec<HashMap<String, Value>>) {
     scope.import("aorist_concept", "Constrainable");
     scope.import("aorist_concept", "aorist_concept2");
     scope.import("aorist_concept", "ConstrainObject");
+    scope.import("aorist_concept", "PythonObject");
     scope.import("uuid", "Uuid");
     scope.import("derivative", "Derivative");
     scope.import("pyo3::prelude", "*");

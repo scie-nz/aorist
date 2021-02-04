@@ -279,40 +279,11 @@ macro_rules! register_satisfiable_constraints {
 #[macro_export]
 macro_rules! define_attribute {
     ($element:ident, $presto_type:ident, $orc_type:ident, $sql_type:ident) => {
-        #[pyclass]
-        #[derive(
-            Derivative,
-            Serialize,
-            Deserialize,
-            Clone,
-            Constrainable,
-            $presto_type,
-            $orc_type,
-            $sql_type,
-        )]
-        #[derivative(PartialEq, Debug)]
+        #[aorist_concept2(derive($presto_type, $orc_type, $sql_type))]
         pub struct $element {
             name: String,
+            #[py_default = "None"]
             comment: Option<String>,
-            uuid: Option<Uuid>,
-            tag: Option<String>,
-            #[serde(skip)]
-            #[derivative(PartialEq = "ignore", Debug = "ignore")]
-            constraints: Vec<Arc<RwLock<Constraint>>>,
-        }
-        #[pymethods]
-        impl $element {
-            #[new]
-            #[args(comment = "None")]
-            fn new(name: String, comment: Option<String>) -> Self {
-                Self {
-                    name,
-                    comment,
-                    uuid: None,
-                    tag: None,
-                    constraints: Vec::new(),
-                }
-            }
         }
         impl TAttribute for $element {
             fn get_name(&self) -> &String {

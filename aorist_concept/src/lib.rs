@@ -738,9 +738,31 @@ pub fn python_object(input: TokenStream) -> TokenStream {
     }
 }
 
+fn get_derives(attrs: Vec<NestedMeta>) -> (Vec<NestedMeta>, Vec<NestedMeta>) {
+    let mut derivatives: Vec<NestedMeta> = Vec::new();
+    let mut derives: Vec<NestedMeta> = Vec::new();
+    for attr in attrs {
+        if let NestedMeta::Meta(Meta::List(x)) = attr {
+            if x.path.is_ident("derivative") {
+                derivatives = x.nested.into_iter().collect();
+            }
+            else if x.path.is_ident("derive") {
+                derives = x.nested.into_iter().collect();
+            }
+            else {
+                panic!("An attribute other than derive or derivative was specified");
+            }
+        } else {
+            panic!("An attribute other than a MetaList was specified.");
+        }
+    }
+    (derives, derivatives)
+}
+
 #[proc_macro_attribute]
 pub fn aorist_concept2(args: TokenStream, input: TokenStream) -> TokenStream {
-    let derives = parse_macro_input!(args as AttributeArgs);
+    let input_attrs = parse_macro_input!(args as AttributeArgs);
+    let (extra_derives, extra_derivatives) = get_derives(input_attrs);
 
     let mut ast = parse_macro_input!(input as DeriveInput);
     match &mut ast.data {
@@ -774,7 +796,7 @@ pub fn aorist_concept2(args: TokenStream, input: TokenStream) -> TokenStream {
             }
             let quoted = quote! {
                 #[pyclass]
-                #[derive(Derivative, Serialize, Deserialize, Constrainable, Clone, PythonObject, ConstrainObject)]
+                #[derive(Derivative, Serialize, Deserialize, Constrainable, Clone, PythonObject, ConstrainObject#(, #extra_derives)*)]
                 #[derivative(PartialEq, Debug, Eq)]
                 #ast
             };
@@ -792,7 +814,7 @@ pub fn aorist_concept2(args: TokenStream, input: TokenStream) -> TokenStream {
                 .unwrap();
             derivatives
                 .nested
-                .extend::<Punctuated<NestedMeta, Token![,]>>(derives.into_iter().collect());
+                .extend::<Punctuated<NestedMeta, Token![,]>>(extra_derivatives.into_iter().collect());
             *attr = parse_quote!(#[#derivatives]);
 
             let quoted2 = quote! { #final_ast };
@@ -821,7 +843,7 @@ pub fn aorist_concept2(args: TokenStream, input: TokenStream) -> TokenStream {
                 .unwrap();
             current_derives
                 .nested
-                .extend::<Punctuated<NestedMeta, Token![,]>>(derives.into_iter().collect());
+                .extend::<Punctuated<NestedMeta, Token![,]>>(extra_derivatives.into_iter().collect());
             *attr = parse_quote!(#[#current_derives]);
 
             let quoted2 = quote! { #final_ast };

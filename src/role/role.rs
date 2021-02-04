@@ -16,7 +16,7 @@ pub trait TRole {
 }
 
 #[enum_dispatch]
-#[aorist_concept2(Hash)]
+#[aorist_concept2]
 pub enum Role {
     GlobalPermissionsAdmin(GlobalPermissionsAdmin),
 }

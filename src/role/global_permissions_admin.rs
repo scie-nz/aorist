@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 use std::sync::{Arc, RwLock};
 use uuid::Uuid;
 
-#[aorist_concept2(Hash)]
+#[aorist_concept2]
 pub struct GlobalPermissionsAdmin {}
 impl TRole for GlobalPermissionsAdmin {
     fn get_permissions(&self) -> Vec<String> {
