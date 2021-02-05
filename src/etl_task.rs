@@ -1,8 +1,8 @@
-use crate::constraint::{
+use crate::etl_singleton::ETLSingleton;
+use crate::python::{
     AoristStatement, ArgType, Attribute, Call, Dict, Import, List, ParameterTuple,
     ParameterTupleDedupKey, SimpleIdentifier, StringLiteral, Subscript, Tuple,
 };
-use crate::etl_singleton::ETLSingleton;
 use aorist_primitives::Dialect;
 use linked_hash_map::LinkedHashMap;
 use std::marker::PhantomData;

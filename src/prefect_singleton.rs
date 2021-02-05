@@ -1,7 +1,7 @@
-use crate::constraint::{
+use crate::etl_singleton::{ETLSingleton, ETLDAG};
+use crate::python::{
     AoristStatement, ArgType, Attribute, Call, Formatted, Import, SimpleIdentifier, StringLiteral,
 };
-use crate::etl_singleton::{ETLSingleton, ETLDAG};
 use aorist_primitives::Dialect;
 use linked_hash_map::LinkedHashMap;
 use rustpython_parser::ast::{Location, Statement};

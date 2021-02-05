@@ -1,9 +1,9 @@
 use crate::concept::{Concept, ConceptAncestry};
-use crate::constraint::{
-    AllConstraintsSatisfiability, ArgType, Constraint, Formatted, List, LiteralsMap,
-    ParameterTuple, SimpleIdentifier, StringLiteral,
-};
+use crate::constraint::{AllConstraintsSatisfiability, Constraint};
 use crate::object::TAoristObject;
+use crate::python::{
+    ArgType, Formatted, List, LiteralsMap, ParameterTuple, SimpleIdentifier, StringLiteral,
+};
 use aorist_primitives::Dialect;
 use inflector::cases::snakecase::to_snake_case;
 use linked_hash_map::LinkedHashMap;

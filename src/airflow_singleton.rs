@@ -1,8 +1,8 @@
-use crate::constraint::{
+use crate::etl_singleton::{ETLSingleton, ETLDAG};
+use crate::python::{
     AoristStatement, ArgType, Attribute, BigIntLiteral, BooleanLiteral, Call, Dict, Formatted,
     Import, List, PythonNone, SimpleIdentifier, StringLiteral,
 };
-use crate::etl_singleton::{ETLSingleton, ETLDAG};
 use aorist_primitives::Dialect;
 use linked_hash_map::LinkedHashMap;
 use num_bigint::{BigInt, Sign};

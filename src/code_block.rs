@@ -1,10 +1,8 @@
-use crate::constraint::{
-    ArgType, Import, ParameterTuple, SimpleIdentifier, StringLiteral, Subscript,
-};
 use crate::constraint_state::ConstraintState;
 use crate::etl_singleton::ETLSingleton;
 use crate::etl_task::{ETLTask, ForLoopETLTask, StandaloneETLTask};
 use crate::python::PythonStatementInput;
+use crate::python::{ArgType, Import, ParameterTuple, SimpleIdentifier, StringLiteral, Subscript};
 use aorist_primitives::Dialect;
 use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;

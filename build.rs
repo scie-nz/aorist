@@ -409,12 +409,12 @@ fn main() {
     scope.import("aorist_primitives", "register_programs_for_constraint");
     scope.import("aorist_primitives", "register_satisfiable_constraints");
     scope.import("crate::concept", "ConceptAncestry");
-    scope.import("crate::constraint", "LiteralsMap");
+    scope.import("crate::python", "LiteralsMap");
     scope.import("crate::constraint", "AoristConstraint");
     scope.import("crate::constraint", "ConstraintSatisfactionBase");
     scope.import("crate::constraint", "SatisfiableConstraint");
     scope.import("crate::constraint", "AllConstraintsSatisfiability");
-    scope.import("crate::constraint", "ParameterTuple");
+    scope.import("crate::python", "ParameterTuple");
     scope.import("linked_hash_map", "LinkedHashMap");
     scope.import("textwrap", "fill");
     scope.import("textwrap", "Options");

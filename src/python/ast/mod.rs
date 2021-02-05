@@ -1,4 +1,3 @@
-#![allow(dead_code)]
 mod string_literal;
 
 pub use string_literal::StringLiteral;

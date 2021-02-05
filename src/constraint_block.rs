@@ -1,10 +1,10 @@
 use crate::code_block::CodeBlock;
-use crate::constraint::{
+use crate::etl_singleton::ETLSingleton;
+use crate::python::PythonStatementInput;
+use crate::python::{
     AoristStatement, ArgType, Dict, Import, LiteralsMap, ParameterTuple, SimpleIdentifier,
     StringLiteral,
 };
-use crate::etl_singleton::ETLSingleton;
-use crate::python::PythonStatementInput;
 use inflector::cases::snakecase::to_snake_case;
 use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;

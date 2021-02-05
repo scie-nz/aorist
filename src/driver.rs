@@ -1,11 +1,12 @@
 use crate::code_block::CodeBlock;
 use crate::concept::{AoristConcept, Concept, ConceptAncestry};
-use crate::constraint::{AoristConstraint, Constraint, LiteralsMap, ParameterTuple};
+use crate::constraint::{AoristConstraint, Constraint};
 use crate::constraint_block::ConstraintBlock;
 use crate::constraint_state::ConstraintState;
 use crate::data_setup::{TUniverse, Universe};
 use crate::etl_singleton::ETLDAG;
 use crate::object::TAoristObject;
+use crate::python::{LiteralsMap, ParameterTuple};
 use aorist_primitives::{Bash, Dialect, Presto, Python};
 use inflector::cases::snakecase::to_snake_case;
 use linked_hash_map::LinkedHashMap;
