@@ -186,11 +186,13 @@ impl ETLSingleton for AirflowSingleton {
 
 pub struct AirflowDAG {}
 impl ETLDAG for AirflowDAG {
+    type T = AirflowSingleton;
+
     fn new() -> Self {
         Self {}
     }
     /// Takes a set of statements and mutates them so as make a valid ETL flow
-    fn build_flow(self, mut statements: Vec<Statement>, location: Location) -> Vec<Statement> {
+    fn build_flow(&self, mut statements: Vec<Statement>, location: Location) -> Vec<Statement> {
         let default_args =
             ArgType::SimpleIdentifier(SimpleIdentifier::new_wrapped("default_args".to_string()));
         let mut default_args_map: LinkedHashMap<String, ArgType> = LinkedHashMap::new();

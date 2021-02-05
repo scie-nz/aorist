@@ -14,7 +14,7 @@ use uuid::Uuid;
 
 pub struct ConstraintBlock<'a, T>
 where
-    T: ETLSingleton,
+    T: ETLSingleton + 'a,
 {
     constraint_name: String,
     members: Vec<CodeBlock<'a, T>>,

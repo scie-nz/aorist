@@ -13,7 +13,7 @@ use std::sync::{Arc, RwLock};
 
 pub struct CodeBlock<'a, T>
 where
-    T: ETLSingleton,
+    T: ETLSingleton + 'a,
 {
     _dialect: Option<Dialect>,
     members: Vec<Arc<RwLock<ConstraintState<'a>>>>,

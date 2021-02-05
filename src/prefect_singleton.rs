@@ -200,6 +200,7 @@ pub struct PrefectDAG {
     flow_identifier: ArgType,
 }
 impl ETLDAG for PrefectDAG {
+    type T = PrefectSingleton;
     fn new() -> Self {
         Self {
             flow_identifier: ArgType::SimpleIdentifier(SimpleIdentifier::new_wrapped(
@@ -210,7 +211,7 @@ impl ETLDAG for PrefectDAG {
     fn get_flow_imports(&self) -> Vec<Import> {
         Vec::new()
     }
-    fn build_flow(self, mut statements: Vec<Statement>, location: Location) -> Vec<Statement> {
+    fn build_flow(&self, mut statements: Vec<Statement>, location: Location) -> Vec<Statement> {
         statements.push(
             AoristStatement::Expression(ArgType::Call(Call::new_wrapped(
                 ArgType::Attribute(Attribute::new_wrapped(

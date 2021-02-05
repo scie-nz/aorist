@@ -83,16 +83,12 @@ pub fn dag(inner: InnerUniverse, constraints: Vec<String>, mode: &str) -> PyResu
     universe.compute_constraints();
     universe.traverse_constrainable_children(Vec::new());
     Ok(match mode {
-        "airflow" => Driver::<AirflowSingleton, AirflowDAG>::new(
-            &universe,
-            Some(constraints.into_iter().collect()),
-        )
-        .run(),
-        "prefect" => Driver::<PrefectSingleton, PrefectDAG>::new(
-            &universe,
-            Some(constraints.into_iter().collect()),
-        )
-        .run(),
+        "airflow" => {
+            Driver::<AirflowDAG>::new(&universe, Some(constraints.into_iter().collect())).run()
+        }
+        "prefect" => {
+            Driver::<PrefectDAG>::new(&universe, Some(constraints.into_iter().collect())).run()
+        }
         _ => panic!("Unknown mode provided"),
     })
 }

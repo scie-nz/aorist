@@ -1,34 +1,28 @@
 use crate::code_block::CodeBlock;
 use crate::concept::{AoristConcept, Concept, ConceptAncestry};
-use crate::constraint::{
-    AoristConstraint, AoristStatement, Constraint, Import, LiteralsMap, ParameterTuple, Preamble,
-};
+use crate::constraint::{AoristConstraint, Constraint, LiteralsMap, ParameterTuple};
 use crate::constraint_block::ConstraintBlock;
 use crate::constraint_state::ConstraintState;
 use crate::data_setup::{TUniverse, Universe};
-use crate::etl_singleton::{ETLSingleton, ETLDAG};
+use crate::etl_singleton::ETLDAG;
 use crate::object::TAoristObject;
-use crate::python::PythonProgram;
 use aorist_primitives::{Bash, Dialect, Presto, Python};
 use inflector::cases::snakecase::to_snake_case;
 use linked_hash_map::LinkedHashMap;
-use linked_hash_set::LinkedHashSet;
-use rustpython_parser::ast::{Located, Location, StatementType};
-use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet, VecDeque};
+use std::collections::{HashMap, HashSet, VecDeque};
 use std::marker::PhantomData;
 use std::sync::{Arc, RwLock, RwLockReadGuard};
 use uuid::Uuid;
 
-pub struct Driver<'a, T, D>
+pub struct Driver<'a, D>
 where
-    T: ETLSingleton,
     D: ETLDAG,
 {
     _data_setup: &'a Universe,
     pub concepts: Arc<RwLock<HashMap<(Uuid, String), Concept<'a>>>>,
     constraints: HashMap<(Uuid, String), Arc<RwLock<Constraint>>>,
     satisfied_constraints: HashMap<(Uuid, String), Arc<RwLock<ConstraintState<'a>>>>,
-    blocks: Vec<ConstraintBlock<'a, T>>,
+    blocks: Vec<ConstraintBlock<'a, D::T>>,
     // map from: constraint_name => (dependent_constraint_names, constraints_by_uuid)
     unsatisfied_constraints: HashMap<
         String,
@@ -38,13 +32,11 @@ where
         ),
     >,
     ancestry: Arc<ConceptAncestry<'a>>,
-    singleton_type: PhantomData<T>,
     dag_type: PhantomData<D>,
 }
 
-impl<'a, T, D> Driver<'a, T, D>
+impl<'a, D> Driver<'a, D>
 where
-    T: ETLSingleton,
     D: ETLDAG,
 {
     fn compute_all_ancestors(
@@ -276,7 +268,7 @@ where
     pub fn new(
         data_setup: &'a Universe,
         topline_constraint_names: Option<HashSet<String>>,
-    ) -> Driver<'a, T, D> {
+    ) -> Driver<'a, D> {
         let mut concept_map: HashMap<(Uuid, String), Concept<'a>> = HashMap::new();
         let concept = Concept::Universe((data_setup, 0, None));
         concept.populate_child_concept_map(&mut concept_map);
@@ -309,7 +301,6 @@ where
             unsatisfied_constraints,
             ancestry: Arc::new(ancestry),
             blocks: Vec::new(),
-            singleton_type: PhantomData,
             dag_type: PhantomData,
         }
     }
@@ -426,11 +417,11 @@ where
         reverse_dependencies: &HashMap<(Uuid, String), HashSet<(String, Uuid, String)>>,
         literals: LiteralsMap,
         constraint_name: String,
-    ) -> Vec<CodeBlock<'a, T>> {
+    ) -> Vec<CodeBlock<'a, D::T>> {
         // (call, constraint_name, root_name) => (uuid, call parameters)
         let mut calls: HashMap<(String, String, String), Vec<(String, ParameterTuple)>> =
             HashMap::new();
-        let mut blocks: Vec<CodeBlock<'a, T>> = Vec::new();
+        let mut blocks: Vec<CodeBlock<'a, D::T>> = Vec::new();
         let mut by_dialect: HashMap<Option<Dialect>, Vec<Arc<RwLock<ConstraintState<'a>>>>> =
             HashMap::new();
         for (id, state) in block.clone() {
@@ -537,7 +528,6 @@ where
         }
     }
     pub fn run(&'a mut self) -> String {
-        let etl = D::new();
         let mut reverse_dependencies: HashMap<(Uuid, String), HashSet<(String, Uuid, String)>> =
             HashMap::new();
         for (name, (_, constraints)) in &self.unsatisfied_constraints {
@@ -575,93 +565,13 @@ where
         }
         self.shorten_task_names();
 
-        let location = Location::new(0, 0);
+        let etl = D::new();
+        assert_eq!(self.unsatisfied_constraints.len(), 0);
         let statements_and_preambles = self
             .blocks
             .iter()
             .map(|x| x.get_statements())
             .collect::<Vec<_>>();
-        let preambles = statements_and_preambles
-            .iter()
-            .map(|x| x.clone().1.into_iter())
-            .flatten()
-            .collect::<LinkedHashSet<String>>();
-
-        let processed_preambles = preambles
-            .into_iter()
-            .map(|x| Preamble::new(x))
-            .collect::<Vec<_>>();
-
-        let preamble_module_imports = processed_preambles
-            .iter()
-            .map(|x| x.imports.clone().into_iter())
-            .flatten()
-            .collect::<BTreeSet<_>>();
-
-        let mut from_imports: BTreeMap<Option<String>, BTreeSet<_>> = BTreeMap::new();
-        let preamble_from_imports = processed_preambles
-            .iter()
-            .map(|x| x.from_imports.clone().into_iter())
-            .flatten();
-        for (module, names) in preamble_from_imports {
-            for name in names {
-                from_imports
-                    .entry(module.clone())
-                    .or_insert(BTreeSet::new())
-                    .insert(name);
-            }
-        }
-        let preamble_imports = preamble_module_imports
-            .into_iter()
-            .map(|x| Located {
-                location,
-                node: StatementType::Import { names: vec![x.0] },
-            })
-            .chain(from_imports.into_iter().map(|(module, names)| Located {
-                location,
-                node: StatementType::ImportFrom {
-                    level: 0,
-                    module,
-                    names: names.into_iter().map(|x| x.0).collect(),
-                },
-            }))
-            .collect::<Vec<_>>();
-
-        let imports = statements_and_preambles
-            .iter()
-            .map(|x| x.2.clone().into_iter())
-            .flatten()
-            .chain(etl.get_flow_imports().into_iter())
-            .collect::<BTreeSet<Import>>();
-        let statements: Vec<AoristStatement> = statements_and_preambles
-            .into_iter()
-            .map(|x| x.0)
-            .flatten()
-            .collect();
-        let content = PythonProgram::render_suite(
-            preamble_imports
-                .into_iter()
-                .chain(
-                    imports
-                        .into_iter()
-                        .map(|x| AoristStatement::Import(x).statement(location)),
-                )
-                .chain(processed_preambles.into_iter().map(|x| x.statement()))
-                .chain(
-                    etl.build_flow(
-                        statements
-                            .into_iter()
-                            .map(|x| x.statement(location))
-                            .collect(),
-                        location,
-                    )
-                    .into_iter(),
-                )
-                .collect(),
-        )
-        .unwrap();
-
-        assert_eq!(self.unsatisfied_constraints.len(), 0);
-        content
+        return etl.materialize(statements_and_preambles);
     }
 }
