@@ -1,5 +1,5 @@
 use crate::constraint::{AoristStatement, ArgType, Import, Preamble};
-use crate::python::PythonProgram;
+use crate::python::{PythonProgram, PythonStatementInput};
 use aorist_primitives::Dialect;
 use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
@@ -38,14 +38,7 @@ where
     fn build_flow(&self, statements: Vec<Statement>, _location: Location) -> Vec<Statement>;
     fn get_flow_imports(&self) -> Vec<Import>;
 
-    fn materialize(
-        &self,
-        statements_and_preambles: Vec<(
-            Vec<AoristStatement>,
-            LinkedHashSet<String>,
-            BTreeSet<Import>,
-        )>,
-    ) -> String {
+    fn materialize(&self, statements_and_preambles: Vec<PythonStatementInput>) -> String {
         let flow_imports = self.get_flow_imports().into_iter();
         let location = Location::new(0, 0);
         let preambles = statements_and_preambles

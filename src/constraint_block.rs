@@ -4,6 +4,7 @@ use crate::constraint::{
     StringLiteral,
 };
 use crate::etl_singleton::ETLSingleton;
+use crate::python::PythonStatementInput;
 use inflector::cases::snakecase::to_snake_case;
 use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
@@ -143,13 +144,7 @@ where
             })
             .collect()
     }
-    pub fn get_statements(
-        &'a self,
-    ) -> (
-        Vec<AoristStatement>,
-        LinkedHashSet<String>,
-        BTreeSet<Import>,
-    ) {
+    pub fn get_statements(&'a self) -> PythonStatementInput {
         let indirection_assignments = self.compute_indirections();
 
         let preambles_and_statements = self

@@ -1,9 +1,10 @@
 use crate::constraint::{
-    AoristStatement, ArgType, Import, ParameterTuple, SimpleIdentifier, StringLiteral, Subscript,
+    ArgType, Import, ParameterTuple, SimpleIdentifier, StringLiteral, Subscript,
 };
 use crate::constraint_state::ConstraintState;
 use crate::etl_singleton::ETLSingleton;
 use crate::etl_task::{ETLTask, ForLoopETLTask, StandaloneETLTask};
+use crate::python::PythonStatementInput;
 use aorist_primitives::Dialect;
 use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
@@ -76,13 +77,7 @@ where
             }
         }
     }
-    pub fn get_statements(
-        &'a self,
-    ) -> (
-        Vec<AoristStatement>,
-        LinkedHashSet<String>,
-        BTreeSet<Import>,
-    ) {
+    pub fn get_statements(&'a self) -> PythonStatementInput {
         self.set_task_vals();
         let tasks = self
             .get_constraints()
