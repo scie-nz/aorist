@@ -1,17 +1,7 @@
-#![allow(dead_code)]
-use crate::constraint::{AoristStatement, Import};
-use linked_hash_set::LinkedHashSet;
 use rustpython_parser::ast::{
     BooleanOperator, Expression, ExpressionType, ImportSymbol, Keyword, Number, Operator,
     Parameter, Parameters, Statement, StatementType, StringGroup, Suite, Varargs,
 };
-use std::collections::BTreeSet;
-pub type PythonStatementInput = (
-    Vec<AoristStatement>,
-    LinkedHashSet<String>,
-    BTreeSet<Import>,
-);
-
 pub struct PythonProgram {}
 impl PythonProgram {
     fn render_string_group(string_group: &StringGroup) -> Result<String, String> {
