@@ -1,5 +1,5 @@
 from aorist import (
-    airflow_dag,
+    dag,
     Universe,
 )
 from common import DEFAULT_USERS, DEFAULT_GROUPS, DEFAULT_ENDPOINTS
@@ -18,5 +18,5 @@ universe = Universe(
     ],
     endpoints=DEFAULT_ENDPOINTS,
 )
-dag = airflow_dag(universe, ["Replicated"])
-print(dag)
+out = dag(universe, ["Replicated"], "prefect")
+print(out)

@@ -6,7 +6,7 @@ use crate::constraint::{
 use crate::constraint_block::ConstraintBlock;
 use crate::constraint_state::ConstraintState;
 use crate::data_setup::{TUniverse, Universe};
-use crate::etl_singleton::ETLSingleton;
+use crate::etl_singleton::{ETLSingleton, ETLDAG};
 use crate::object::TAoristObject;
 use crate::python::PythonProgram;
 use aorist_primitives::{Bash, Dialect, Presto, Python};
@@ -19,9 +19,10 @@ use std::marker::PhantomData;
 use std::sync::{Arc, RwLock, RwLockReadGuard};
 use uuid::Uuid;
 
-pub struct Driver<'a, T>
+pub struct Driver<'a, T, D>
 where
     T: ETLSingleton,
+    D: ETLDAG,
 {
     _data_setup: &'a Universe,
     pub concepts: Arc<RwLock<HashMap<(Uuid, String), Concept<'a>>>>,
@@ -38,11 +39,13 @@ where
     >,
     ancestry: Arc<ConceptAncestry<'a>>,
     singleton_type: PhantomData<T>,
+    dag_type: PhantomData<D>,
 }
 
-impl<'a, T> Driver<'a, T>
+impl<'a, T, D> Driver<'a, T, D>
 where
     T: ETLSingleton,
+    D: ETLDAG,
 {
     fn compute_all_ancestors(
         universe: Concept<'a>,
@@ -273,7 +276,7 @@ where
     pub fn new(
         data_setup: &'a Universe,
         topline_constraint_names: Option<HashSet<String>>,
-    ) -> Driver<'a, T> {
+    ) -> Driver<'a, T, D> {
         let mut concept_map: HashMap<(Uuid, String), Concept<'a>> = HashMap::new();
         let concept = Concept::Universe((data_setup, 0, None));
         concept.populate_child_concept_map(&mut concept_map);
@@ -307,6 +310,7 @@ where
             ancestry: Arc::new(ancestry),
             blocks: Vec::new(),
             singleton_type: PhantomData,
+            dag_type: PhantomData,
         }
     }
 
@@ -533,6 +537,7 @@ where
         }
     }
     pub fn run(&'a mut self) -> String {
+        let etl = D::new();
         let mut reverse_dependencies: HashMap<(Uuid, String), HashSet<(String, Uuid, String)>> =
             HashMap::new();
         for (name, (_, constraints)) in &self.unsatisfied_constraints {
@@ -626,7 +631,7 @@ where
             .iter()
             .map(|x| x.2.clone().into_iter())
             .flatten()
-            .chain(T::get_flow_imports().into_iter())
+            .chain(etl.get_flow_imports().into_iter())
             .collect::<BTreeSet<Import>>();
         let statements: Vec<AoristStatement> = statements_and_preambles
             .into_iter()
@@ -643,7 +648,7 @@ where
                 )
                 .chain(processed_preambles.into_iter().map(|x| x.statement()))
                 .chain(
-                    T::build_flow(
+                    etl.build_flow(
                         statements
                             .into_iter()
                             .map(|x| x.statement(location))

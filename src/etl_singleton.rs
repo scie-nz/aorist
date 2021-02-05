@@ -24,6 +24,9 @@ pub trait ETLSingleton {
     fn get_statements(&self) -> Vec<AoristStatement>;
     fn get_type() -> String;
     fn get_imports(&self) -> Vec<Import>;
-    fn build_flow(statements: Vec<Statement>, _location: Location) -> Vec<Statement>;
-    fn get_flow_imports() -> Vec<Import>;
+}
+pub trait ETLDAG {
+    fn new() -> Self;
+    fn build_flow(self, statements: Vec<Statement>, _location: Location) -> Vec<Statement>;
+    fn get_flow_imports(&self) -> Vec<Import>;
 }

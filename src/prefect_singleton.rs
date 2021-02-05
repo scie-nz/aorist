@@ -1,7 +1,7 @@
 use crate::constraint::{
     AoristStatement, ArgType, Attribute, Call, Formatted, Import, SimpleIdentifier, StringLiteral,
 };
-use crate::etl_singleton::ETLSingleton;
+use crate::etl_singleton::{ETLSingleton, ETLDAG};
 use aorist_primitives::Dialect;
 use linked_hash_map::LinkedHashMap;
 use rustpython_parser::ast::{Location, Statement};
@@ -16,6 +16,7 @@ pub struct PrefectSingleton {
     dep_list: Option<ArgType>,
     preamble: Option<String>,
     dialect: Option<Dialect>,
+    flow_identifier: ArgType,
 }
 impl ETLSingleton for PrefectSingleton {
     fn get_imports(&self) -> Vec<Import> {
@@ -35,12 +36,6 @@ impl ETLSingleton for PrefectSingleton {
                 "Constant".to_string(),
             )],
         }
-    }
-    fn get_flow_imports() -> Vec<Import> {
-        Vec::new()
-    }
-    fn build_flow(statements: Vec<Statement>, _location: Location) -> Vec<Statement> {
-        statements
     }
     fn get_preamble(&self) -> Vec<String> {
         let preambles = match self.dialect {
@@ -91,6 +86,9 @@ impl ETLSingleton for PrefectSingleton {
             dep_list,
             preamble,
             dialect,
+            flow_identifier: ArgType::SimpleIdentifier(SimpleIdentifier::new_wrapped(
+                "flow".to_string(),
+            )),
         }
     }
     fn compute_task_args(&self) -> Vec<ArgType> {
@@ -149,9 +147,13 @@ impl ETLSingleton for PrefectSingleton {
     }
 }
 impl PrefectSingleton {
+    fn get_flow_identifier(&self) -> ArgType {
+        self.flow_identifier.clone()
+    }
+
     fn get_flow_add_edge_statement(&self, dep: ArgType) -> AoristStatement {
         let function = ArgType::Attribute(Attribute::new_wrapped(
-            ArgType::SimpleIdentifier(SimpleIdentifier::new_wrapped("flow".to_string())),
+            self.get_flow_identifier(),
             "add_edge".to_string(),
         ));
         let add_expr = ArgType::Call(Call::new_wrapped(
@@ -183,7 +185,7 @@ impl PrefectSingleton {
     }
     pub fn get_flow_node_addition(&self) -> AoristStatement {
         let function = ArgType::Attribute(Attribute::new_wrapped(
-            ArgType::SimpleIdentifier(SimpleIdentifier::new_wrapped("flow".to_string())),
+            self.get_flow_identifier(),
             "add_node".to_string(),
         ));
         let add_expr = ArgType::Call(Call::new_wrapped(
@@ -192,5 +194,34 @@ impl PrefectSingleton {
             LinkedHashMap::new(),
         ));
         AoristStatement::Expression(add_expr)
+    }
+}
+pub struct PrefectDAG {
+    flow_identifier: ArgType,
+}
+impl ETLDAG for PrefectDAG {
+    fn new() -> Self {
+        Self {
+            flow_identifier: ArgType::SimpleIdentifier(SimpleIdentifier::new_wrapped(
+                "flow".to_string(),
+            )),
+        }
+    }
+    fn get_flow_imports(&self) -> Vec<Import> {
+        Vec::new()
+    }
+    fn build_flow(self, mut statements: Vec<Statement>, location: Location) -> Vec<Statement> {
+        statements.push(
+            AoristStatement::Expression(ArgType::Call(Call::new_wrapped(
+                ArgType::Attribute(Attribute::new_wrapped(
+                    self.flow_identifier.clone(),
+                    "run".into(),
+                )),
+                Vec::new(),
+                LinkedHashMap::new(),
+            )))
+            .statement(location),
+        );
+        statements
     }
 }

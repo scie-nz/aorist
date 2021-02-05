@@ -48,6 +48,7 @@ pub use endpoints::*;
 pub use header::*;
 pub use layout::*;
 pub use location::*;
+pub use prefect_singleton::*;
 pub use role::*;
 pub use role_binding::*;
 pub use schema::*;
@@ -76,14 +77,24 @@ pub fn default_tabular_schema(datum_template: InnerDatumTemplate) -> InnerTabula
 }
 
 #[pyfunction]
-pub fn airflow_dag(inner: InnerUniverse, constraints: Vec<String>) -> PyResult<String> {
+pub fn dag(inner: InnerUniverse, constraints: Vec<String>, mode: &str) -> PyResult<String> {
     let mut universe = Universe::from(inner);
     universe.compute_uuids();
     universe.compute_constraints();
     universe.traverse_constrainable_children(Vec::new());
-    let mut driver: Driver<AirflowSingleton> =
-        Driver::new(&universe, Some(constraints.into_iter().collect()));
-    Ok(driver.run())
+    Ok(match mode {
+        "airflow" => Driver::<AirflowSingleton, AirflowDAG>::new(
+            &universe,
+            Some(constraints.into_iter().collect()),
+        )
+        .run(),
+        "prefect" => Driver::<PrefectSingleton, PrefectDAG>::new(
+            &universe,
+            Some(constraints.into_iter().collect()),
+        )
+        .run(),
+        _ => panic!("Unknown mode provided"),
+    })
 }
 
 #[pymodule]
@@ -124,6 +135,6 @@ fn aorist(py: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<InnerPrestoConfig>()?;
     m.add_class::<InnerGzipCompression>()?;
     m.add_wrapped(wrap_pyfunction!(default_tabular_schema))?;
-    m.add_wrapped(wrap_pyfunction!(airflow_dag))?;
+    m.add_wrapped(wrap_pyfunction!(dag))?;
     Ok(())
 }
