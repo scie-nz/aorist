@@ -22,10 +22,11 @@ pub fn format_code(code: String) -> PyResult<String> {
     let py = gil.python();
 
     let black: &PyModule = PyModule::import(py, "black").unwrap();
-    /*let node = black
-    .call1("lib2to3_parse", PyTuple::new(py, &[code]))
-    .unwrap()*/
     let mode = black.call0("Mode")?;
+
+    let lit = StringLiteral::new("bla".to_string());
+    let ast: &PyModule = PyModule::import(py, "ast").unwrap();
+    let res = lit.to_python_ast_node(py.clone(), ast)?;
 
     let py_code = PyString::new(py, &code);
 

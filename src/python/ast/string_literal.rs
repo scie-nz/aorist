@@ -1,5 +1,7 @@
 use crate::python::ast::ArgType;
 use linked_hash_map::LinkedHashMap;
+use pyo3::prelude::*;
+use pyo3::types::PyModule;
 use rustpython_parser::ast::{Expression, ExpressionType, Located, Location, StringGroup};
 use std::collections::BTreeSet;
 use std::hash::Hash;
@@ -21,6 +23,13 @@ impl StringLiteral {
             object_uuids: LinkedHashMap::new(),
             owner: None,
         }
+    }
+    pub fn to_python_ast_node<'a>(
+        &self,
+        _py: Python,
+        ast_module: &'a PyModule,
+    ) -> PyResult<&'a PyAny> {
+        ast_module.call1("Constant", (&self.value,))
     }
     pub fn new_wrapped(value: String) -> Arc<RwLock<Self>> {
         Arc::new(RwLock::new(Self::new(value)))
