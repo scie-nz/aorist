@@ -29,9 +29,9 @@ impl StringLiteral {
         py: Python,
         ast_module: &'a PyModule,
     ) -> PyResult<&'a PyAny> {
-        (|_py: Python, ast_module: &'a PyModule| ast_module.call1("Constant", (&self.value,)))(
-            py, ast_module,
-        )
+        (|literal: &StringLiteral, _py: Python, ast_module: &'a PyModule| {
+            ast_module.call1("Constant", (&literal.value,))
+        })(self, py, ast_module)
     }
     pub fn new_wrapped(value: String) -> Arc<RwLock<Self>> {
         Arc::new(RwLock::new(Self::new(value)))

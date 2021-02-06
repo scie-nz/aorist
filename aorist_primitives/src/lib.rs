@@ -87,6 +87,20 @@ macro_rules! register_ast_nodes {
                 }
                 .to_string()
             }
+            pub fn to_python_ast_node<'a>(
+                &self,
+                py: Python,
+                ast_module: &'a PyModule,
+            ) -> PyResult<&'a PyAny> {
+                match &self {
+                    $(
+                        Self::$variant(x) => x.read().unwrap().to_python_ast_node(
+                            py,
+                            ast_module
+                        ),
+                    )+
+                }
+            }
         }
     }
 }
@@ -116,7 +130,7 @@ macro_rules! define_ast_node {
                 py: Python,
                 ast_module: &'a PyModule,
             ) -> PyResult<&'a PyAny> {
-                ($py_ast_closure)(py, ast_module)
+                ($py_ast_closure)(self, py, ast_module)
             }
             pub fn register_object(&self, _uuid: Uuid, _tag: Option<String>) {
                 panic!(format!(
