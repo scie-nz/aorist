@@ -26,10 +26,12 @@ impl StringLiteral {
     }
     pub fn to_python_ast_node<'a>(
         &self,
-        _py: Python,
+        py: Python,
         ast_module: &'a PyModule,
     ) -> PyResult<&'a PyAny> {
-        ast_module.call1("Constant", (&self.value,))
+        (|_py: Python, ast_module: &'a PyModule| ast_module.call1("Constant", (&self.value,)))(
+            py, ast_module,
+        )
     }
     pub fn new_wrapped(value: String) -> Arc<RwLock<Self>> {
         Arc::new(RwLock::new(Self::new(value)))

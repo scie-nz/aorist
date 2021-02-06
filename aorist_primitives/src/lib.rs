@@ -93,7 +93,11 @@ macro_rules! register_ast_nodes {
 
 #[macro_export]
 macro_rules! define_ast_node {
-    ($name:ident, $expression:expr, $descendants:expr, $($field: ident : $field_type: ty,)*) => {
+    ($name:ident,
+     $expression:expr,
+     $descendants:expr, 
+     $py_ast_closure:expr,
+     $($field: ident : $field_type: ty,)*) => {
         #[derive(Hash, PartialEq, Eq, Clone)]
         pub struct $name {
             $(
@@ -106,6 +110,13 @@ macro_rules! define_ast_node {
                 $field: $field_type,
             )*) -> Arc<RwLock<Self>> {
                 Arc::new(RwLock::new(Self::new($($field, )*)))
+            }
+            pub fn to_python_ast_node<'a>(
+                &self,
+                py: Python,
+                ast_module: &'a PyModule,
+            ) -> PyResult<&'a PyAny> {
+                ($py_ast_closure)(py, ast_module)
             }
             pub fn register_object(&self, _uuid: Uuid, _tag: Option<String>) {
                 panic!(format!(

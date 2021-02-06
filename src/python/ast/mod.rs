@@ -5,6 +5,8 @@ pub use string_literal::StringLiteral;
 use aorist_primitives::{define_ast_node, register_ast_nodes};
 use linked_hash_map::LinkedHashMap;
 use num_bigint::BigInt;
+use pyo3::prelude::*;
+use pyo3::types::PyModule;
 use rustpython_parser::ast::{
     Expression, ExpressionType, ImportSymbol, Keyword, Located, Location, Number, Statement,
     StatementType, StringGroup,
@@ -31,6 +33,7 @@ define_ast_node!(
         },
     },
     |list: &List| list.elems().clone(),
+    |_py: Python, ast_module: &'a PyModule| { ast_module.call1("Constant", ("bla",)) },
     elems: Vec<ArgType>,
 );
 
@@ -57,6 +60,7 @@ define_ast_node!(
         },
     },
     |dict: &Dict| dict.elems().values().cloned().collect::<Vec<ArgType>>(),
+    |_py: Python, ast_module: &'a PyModule| { ast_module.call1("Constant", ("bla",)) },
     elems: LinkedHashMap<String, ArgType>,
 );
 define_ast_node!(
@@ -72,6 +76,7 @@ define_ast_node!(
         },
     },
     |tuple: &Tuple| tuple.elems().iter().cloned().collect::<Vec<ArgType>>(),
+    |_py: Python, ast_module: &'a PyModule| { ast_module.call1("Constant", ("bla",)) },
     elems: Vec<ArgType>,
 );
 
@@ -85,6 +90,7 @@ define_ast_node!(
         },
     },
     |attribute: &Attribute| vec![attribute.value().clone()],
+    |_py: Python, ast_module: &'a PyModule| { ast_module.call1("Constant", ("bla",)) },
     value: ArgType,
     name: String,
 );
@@ -120,6 +126,7 @@ define_ast_node!(
         }
         v
     },
+    |_py: Python, ast_module: &'a PyModule| { ast_module.call1("Constant", ("bla",)) },
     function: ArgType,
     args: Vec<ArgType>,
     keywords: LinkedHashMap<String, ArgType>,
@@ -155,6 +162,7 @@ define_ast_node!(
         }
         v
     },
+    |_py: Python, ast_module: &'a PyModule| { ast_module.call1("Constant", ("bla",)) },
     fmt: ArgType,
     keywords: LinkedHashMap<String, ArgType>,
 );
@@ -168,6 +176,7 @@ define_ast_node!(
         },
     },
     |subscript: &Subscript| vec![subscript.a().clone(), subscript.b().clone()],
+    |_py: Python, ast_module: &'a PyModule| { ast_module.call1("Constant", ("bla",)) },
     a: ArgType,
     b: ArgType,
 );
@@ -180,6 +189,7 @@ define_ast_node!(
         },
     },
     |_| Vec::new(),
+    |_py: Python, ast_module: &'a PyModule| { ast_module.call1("Constant", ("bla",)) },
     name: String,
 );
 define_ast_node!(
@@ -192,6 +202,7 @@ define_ast_node!(
         }
     },
     |_| Vec::new(),
+    |_py: Python, ast_module: &'a PyModule| { ast_module.call1("Constant", ("bla",)) },
     val: bool,
 );
 define_ast_node!(
@@ -205,6 +216,7 @@ define_ast_node!(
         }
     },
     |_| Vec::new(),
+    |_py: Python, ast_module: &'a PyModule| { ast_module.call1("Constant", ("bla",)) },
     val: BigInt,
 );
 define_ast_node!(
@@ -214,6 +226,7 @@ define_ast_node!(
         node: ExpressionType::None,
     },
     |_| Vec::new(),
+    |_py: Python, ast_module: &'a PyModule| { ast_module.call1("Constant", ("bla",)) },
 );
 
 register_ast_nodes!(
