@@ -82,7 +82,7 @@ pub fn dag(inner: InnerUniverse, constraints: Vec<String>, mode: &str) -> PyResu
     universe.compute_uuids();
     universe.compute_constraints();
     universe.traverse_constrainable_children(Vec::new());
-    Ok(match mode {
+    python::format_code(match mode {
         "airflow" => {
             Driver::<AirflowDAG>::new(&universe, Some(constraints.into_iter().collect())).run()
         }
