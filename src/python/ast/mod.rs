@@ -535,6 +535,22 @@ pub enum Import {
     FromImport(String, String),
 }
 impl Import {
+    pub fn to_python_ast_node<'a>(
+        &self,
+        py: Python,
+        ast_module: &'a PyModule,
+    ) -> PyResult<&'a PyAny> {
+        match &self {
+            Self::ModuleImport(ref module) => {
+                let names = PyList::new(py, vec![module]);
+                ast_module.call1("Import", (names.as_ref(),))
+            }
+            Self::FromImport(ref module, ref name) => {
+                let names = PyList::new(py, vec![name]);
+                ast_module.call1("ImportFrom", (module, names.as_ref(), 0))
+            }
+        }
+    }
     pub fn statement(&self, location: Location) -> Statement {
         match &self {
             Self::ModuleImport(ref module) => Located {
@@ -569,6 +585,38 @@ pub enum AoristStatement {
     Import(Import),
 }
 impl AoristStatement {
+    pub fn to_python_ast_node<'a>(
+        &self,
+        py: Python,
+        ast_module: &'a PyModule,
+    ) -> PyResult<&'a PyAny> {
+        match &self {
+            Self::Assign(ref target, ref call) => {
+                let targets = PyList::new(py, vec![target.to_python_ast_node(py, ast_module)?]);
+                ast_module.call1(
+                    "Assign",
+                    (targets, call.to_python_ast_node(py, ast_module)?),
+                )
+            }
+            Self::Expression(ref expr) => expr.to_python_ast_node(py, ast_module),
+            Self::For(ref target, ref iter, ref body) => {
+                let body_ast = body
+                    .iter()
+                    .map(|x| x.to_python_ast_node(py, ast_module).unwrap())
+                    .collect::<Vec<_>>();
+                let body_list = PyList::new(py, body_ast);
+                ast_module.call1(
+                    "For",
+                    (
+                        target.to_python_ast_node(py, ast_module)?,
+                        iter.to_python_ast_node(py, ast_module)?,
+                        body_list.as_ref(),
+                    ),
+                )
+            }
+            Self::Import(import) => import.to_python_ast_node(py, ast_module),
+        }
+    }
     pub fn statement(&self, location: Location) -> Statement {
         match &self {
             Self::Assign(target, call) => {
