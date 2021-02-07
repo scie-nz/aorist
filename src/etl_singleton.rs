@@ -4,6 +4,8 @@ use crate::python::{
 use aorist_primitives::Dialect;
 use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
+use pyo3::prelude::*;
+use pyo3::types::PyModule;
 use rustpython_parser::ast::{Located, Location, Statement, StatementType};
 use std::collections::{BTreeMap, BTreeSet};
 
@@ -99,20 +101,26 @@ where
             .map(|x| x.0)
             .flatten()
             .collect();
+        let gil = Python::acquire_gil();
+        let py = gil.python();
+
+        let ast: &PyModule = PyModule::import(py, "ast").unwrap();
         let content = PythonProgram::render_suite(
             preamble_imports
                 .into_iter()
-                .chain(
-                    imports
-                        .into_iter()
-                        .map(|x| AoristStatement::Import(x).statement(location)),
-                )
+                .chain(imports.into_iter().map(|x| {
+                    let _test = x.to_python_ast_node(py, ast).unwrap();
+                    AoristStatement::Import(x).statement(location)
+                }))
                 .chain(processed_preambles.into_iter().map(|x| x.statement()))
                 .chain(
                     self.build_flow(
                         statements
                             .into_iter()
-                            .map(|x| x.statement(location))
+                            .map(|x| {
+                                let _test = x.to_python_ast_node(py, ast).unwrap();
+                                x.statement(location)
+                            })
                             .collect(),
                         location,
                     )
