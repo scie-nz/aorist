@@ -71,7 +71,7 @@ impl<'a> ConstraintState<'a> {
         if dep_list.len() == 1 {
             return Some(dep_list.clone().into_iter().next().unwrap());
         } else if dep_list.len() > 1 {
-            return Some(ArgType::List(Arc::new(RwLock::new(List::new(dep_list)))));
+            return Some(ArgType::List(List::new_wrapped(dep_list, false)));
         } else {
             return None;
         }

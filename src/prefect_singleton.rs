@@ -155,6 +155,7 @@ impl PrefectSingleton {
         let function = ArgType::Attribute(Attribute::new_wrapped(
             self.get_flow_identifier(),
             "add_edge".to_string(),
+            false,
         ));
         let add_expr = ArgType::Call(Call::new_wrapped(
             function,
@@ -187,6 +188,7 @@ impl PrefectSingleton {
         let function = ArgType::Attribute(Attribute::new_wrapped(
             self.get_flow_identifier(),
             "add_node".to_string(),
+            false,
         ));
         let add_expr = ArgType::Call(Call::new_wrapped(
             function,
@@ -217,6 +219,7 @@ impl ETLDAG for PrefectDAG {
                 ArgType::Attribute(Attribute::new_wrapped(
                     self.flow_identifier.clone(),
                     "run".into(),
+                    false,
                 )),
                 Vec::new(),
                 LinkedHashMap::new(),

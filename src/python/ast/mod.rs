@@ -34,16 +34,22 @@ define_ast_node!(
     },
     |list: &List| list.elems().clone(),
     |list: &List, py: Python, ast_module: &'a PyModule| {
-        let load = ast_module.call0("Load").unwrap();
+        let mode = ast_module
+            .call0(match list.store {
+                true => "Store",
+                false => "Load",
+            })
+            .unwrap();
         let children = list
             .elems
             .iter()
             .map(|x| x.to_python_ast_node(py, ast_module).unwrap())
             .collect::<Vec<_>>();
         let children_list = PyList::new(py, children);
-        ast_module.call1("List", (children_list.as_ref(), load))
+        ast_module.call1("List", (children_list.as_ref(), mode))
     },
     elems: Vec<ArgType>,
+    store: bool,
 );
 
 define_ast_node!(
@@ -96,17 +102,22 @@ define_ast_node!(
     },
     |tuple: &Tuple| tuple.elems().iter().cloned().collect::<Vec<ArgType>>(),
     |tuple: &Tuple, py: Python, ast_module: &'a PyModule| {
-        // TODO: add assignment target mode to List and Tuple
-        let load = ast_module.call0("Load").unwrap();
+        let mode = ast_module
+            .call0(match tuple.store {
+                true => "Store",
+                false => "Load",
+            })
+            .unwrap();
         let children = tuple
             .elems
             .iter()
             .map(|x| x.to_python_ast_node(py, ast_module).unwrap())
             .collect::<Vec<_>>();
         let children_list = PyList::new(py, children);
-        ast_module.call1("Tuple", (children_list.as_ref(), load))
+        ast_module.call1("Tuple", (children_list.as_ref(), mode))
     },
     elems: Vec<ArgType>,
+    store: bool,
 );
 
 define_ast_node!(
@@ -120,14 +131,19 @@ define_ast_node!(
     },
     |attribute: &Attribute| vec![attribute.value().clone()],
     |attribute: &Attribute, py: Python, ast_module: &'a PyModule| {
-        // TODO: add assignment target mode to Attribute
-        let load = ast_module.call0("Load").unwrap();
+        let mode = ast_module
+            .call0(match attribute.store {
+                true => "Store",
+                false => "Load",
+            })
+            .unwrap();
         let val_ast = attribute.value.to_python_ast_node(py, ast_module)?;
         let name_ast = PyString::new(py, &attribute.name);
-        ast_module.call1("Attribute", (val_ast, name_ast.as_ref(), load))
+        ast_module.call1("Attribute", (val_ast, name_ast.as_ref(), mode))
     },
     value: ArgType,
     name: String,
+    store: bool,
 );
 
 define_ast_node!(
@@ -273,15 +289,20 @@ define_ast_node!(
     },
     |subscript: &Subscript| vec![subscript.a().clone(), subscript.b().clone()],
     |subscript: &Subscript, py: Python, ast_module: &'a PyModule| {
-        let load = ast_module.call0("Load")?;
-        // TODO: need load vs store context
+        let mode = ast_module
+            .call0(match subscript.store {
+                true => "Store",
+                false => "Load",
+            })
+            .unwrap();
         let b_node = subscript.b.to_python_ast_node(py, ast_module)?;
         let idx = ast_module.call1("Index", (b_node,))?;
         let value = subscript.a.to_python_ast_node(py, ast_module)?;
-        ast_module.call1("Subscript", (value, idx, load))
+        ast_module.call1("Subscript", (value, idx, mode))
     },
     a: ArgType,
     b: ArgType,
+    store: bool,
 );
 define_ast_node!(
     SimpleIdentifier,
@@ -595,7 +616,7 @@ impl ParameterTuple {
         if self.args.len() > 0 {
             dict.insert(
                 "args".to_string(),
-                ArgType::List(List::new_wrapped(self.args.clone())),
+                ArgType::List(List::new_wrapped(self.args.clone(), false)),
             );
         }
         for (key, val) in &self.kwargs {

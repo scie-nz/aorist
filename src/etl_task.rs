@@ -90,7 +90,7 @@ where
         let mut local_params_map: LinkedHashMap<String, ArgType> = LinkedHashMap::new();
         if self.deps.len() > 0 {
             let dependencies = match dependencies_as_list {
-                true => ArgType::List(List::new_wrapped(self.deps.clone())),
+                true => ArgType::List(List::new_wrapped(self.deps.clone(), false)),
                 false => {
                     assert_eq!(self.deps.len(), 1);
                     self.deps.get(0).unwrap().clone()
@@ -214,7 +214,10 @@ where
             kwargs,
             match self.dependencies.len() {
                 0 => None,
-                _ => Some(ArgType::List(List::new_wrapped(self.dependencies.clone()))),
+                _ => Some(ArgType::List(List::new_wrapped(
+                    self.dependencies.clone(),
+                    false,
+                ))),
             },
             self.get_preamble(),
             self.get_dialect(),
@@ -276,9 +279,13 @@ where
 
         let params = ArgType::SimpleIdentifier(SimpleIdentifier::new_wrapped("params".to_string()));
         let ident = ArgType::SimpleIdentifier(SimpleIdentifier::new_wrapped("t".to_string()));
-        let tpl = ArgType::Tuple(Tuple::new_wrapped(vec![ident.clone(), params.clone()]));
+        let tpl = ArgType::Tuple(Tuple::new_wrapped(
+            vec![ident.clone(), params.clone()],
+            false,
+        ));
         let (dict, call, params_dedup_key, preamble, dialect) = self.key.clone();
-        let new_collector = ArgType::Subscript(Subscript::new_wrapped(dict.clone(), ident.clone()));
+        let new_collector =
+            ArgType::Subscript(Subscript::new_wrapped(dict.clone(), ident.clone(), true));
         let kwargs;
         let args;
         if let Some((num_args, kwarg_keys)) = params_dedup_key {
@@ -290,6 +297,7 @@ where
                         ArgType::Subscript(Subscript::new_wrapped(
                             params.clone(),
                             ArgType::StringLiteral(StringLiteral::new_wrapped(x.to_string())),
+                            false,
                         )),
                     )
                 })
@@ -301,10 +309,12 @@ where
                         ArgType::Subscript(Subscript::new_wrapped(
                             params.clone(),
                             ArgType::StringLiteral(StringLiteral::new_wrapped("args".to_string())),
+                            false,
                         )),
                         ArgType::StringLiteral(StringLiteral::new_wrapped(
                             format!("{}", x).to_string(),
                         )),
+                        false,
                     ))
                 })
                 .collect::<Vec<ArgType>>();
@@ -316,12 +326,14 @@ where
             true => Some(ArgType::Subscript(Subscript::new_wrapped(
                 params.clone(),
                 ArgType::StringLiteral(StringLiteral::new_wrapped("dependencies".to_string())),
+                false,
             ))),
             false => None,
         };
         let task_id = ArgType::Subscript(Subscript::new_wrapped(
             params.clone(),
             ArgType::StringLiteral(StringLiteral::new_wrapped("task_id".to_string())),
+            false,
         ));
 
         let singleton = T::new(
@@ -339,6 +351,7 @@ where
             ArgType::Attribute(Attribute::new_wrapped(
                 self.params_dict_name.clone(),
                 "items".to_string(),
+                false,
             )),
             Vec::new(),
             LinkedHashMap::new(),

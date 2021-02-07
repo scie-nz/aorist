@@ -71,6 +71,7 @@ where
                         format!("tasks_{}", self.get_constraint_name()).to_string(),
                     )),
                     ArgType::StringLiteral(Arc::new(RwLock::new(StringLiteral::new(shorter_name)))),
+                    true,
                 )));
             }
         }

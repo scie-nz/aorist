@@ -70,6 +70,7 @@ impl ETLSingleton for AirflowSingleton {
                     ArgType::Attribute(Attribute::new_wrapped(
                         self.get_task_val(),
                         "set_upstream".to_string(),
+                        false,
                     )),
                     vec![dependencies.clone()],
                     LinkedHashMap::new(),
@@ -206,9 +207,12 @@ impl ETLDAG for AirflowDAG {
         );
         default_args_map.insert(
             "email".to_string(),
-            ArgType::List(List::new_wrapped(vec![ArgType::StringLiteral(
-                StringLiteral::new_wrapped("airflow@example.com".to_string()),
-            )])),
+            ArgType::List(List::new_wrapped(
+                vec![ArgType::StringLiteral(StringLiteral::new_wrapped(
+                    "airflow@example.com".to_string(),
+                ))],
+                false,
+            )),
         );
         default_args_map.insert(
             "email_on_failure".to_string(),
@@ -271,9 +275,12 @@ impl ETLDAG for AirflowDAG {
         );
         kwargs.insert(
             "tags".to_string(),
-            ArgType::List(List::new_wrapped(vec![ArgType::StringLiteral(
-                StringLiteral::new_wrapped("aorist".to_string()),
-            )])),
+            ArgType::List(List::new_wrapped(
+                vec![ArgType::StringLiteral(StringLiteral::new_wrapped(
+                    "aorist".to_string(),
+                ))],
+                false,
+            )),
         );
         let dag_call = ArgType::Call(Call::new_wrapped(
             ArgType::SimpleIdentifier(SimpleIdentifier::new_wrapped("DAG".to_string())),
