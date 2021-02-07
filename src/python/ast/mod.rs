@@ -6,7 +6,7 @@ use aorist_primitives::{define_ast_node, register_ast_nodes};
 use linked_hash_map::LinkedHashMap;
 use num_bigint::BigInt;
 use pyo3::prelude::*;
-use pyo3::types::PyModule;
+use pyo3::types::{PyList, PyModule, PyTuple};
 use rustpython_parser::ast::{
     Expression, ExpressionType, ImportSymbol, Keyword, Located, Location, Number, Statement,
     StatementType, StringGroup,
@@ -34,12 +34,17 @@ define_ast_node!(
     },
     |list: &List| list.elems().clone(),
     |list: &List, py: Python, ast_module: &'a PyModule| {
+        let load = ast_module.call0("Load").unwrap();
         let children = list
             .elems
             .iter()
-            .map(|x| x.to_python_ast_node(py, ast_module))
+            .map(|x| x.to_python_ast_node(py, ast_module).unwrap())
             .collect::<Vec<_>>();
-        ast_module.call1("List", ("bla",))
+        let children_list = PyList::new(py, children);
+        ast_module.call1(
+            "List",
+            PyTuple::new(py, &vec![children_list.as_ref(), load]),
+        )
     },
     elems: Vec<ArgType>,
 );
