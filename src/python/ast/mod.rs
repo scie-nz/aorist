@@ -6,7 +6,7 @@ use aorist_primitives::{define_ast_node, register_ast_nodes};
 use linked_hash_map::LinkedHashMap;
 use num_bigint::BigInt;
 use pyo3::prelude::*;
-use pyo3::types::{PyList, PyModule, PyTuple};
+use pyo3::types::{PyList, PyModule, PyString, PyTuple};
 use rustpython_parser::ast::{
     Expression, ExpressionType, ImportSymbol, Keyword, Located, Location, Number, Statement,
     StatementType, StringGroup,
@@ -41,10 +41,7 @@ define_ast_node!(
             .map(|x| x.to_python_ast_node(py, ast_module).unwrap())
             .collect::<Vec<_>>();
         let children_list = PyList::new(py, children);
-        ast_module.call1(
-            "List",
-            PyTuple::new(py, &vec![children_list.as_ref(), load]),
-        )
+        ast_module.call1("List", (children_list.as_ref(), load))
     },
     elems: Vec<ArgType>,
 );
@@ -72,7 +69,17 @@ define_ast_node!(
         },
     },
     |dict: &Dict| dict.elems().values().cloned().collect::<Vec<ArgType>>(),
-    |dict: &Dict, _py: Python, ast_module: &'a PyModule| { ast_module.call1("Constant", ("bla",)) },
+    |dict: &Dict, py: Python, ast_module: &'a PyModule| {
+        let keys = dict.elems.keys().map(|x| x.clone()).collect::<Vec<_>>();
+        let values = dict
+            .elems
+            .values()
+            .map(|x| x.to_python_ast_node(py, ast_module).unwrap())
+            .collect::<Vec<_>>();
+        let keys_list = PyList::new(py, keys);
+        let values_list = PyList::new(py, values);
+        ast_module.call1("Dict", (keys_list.as_ref(), values_list.as_ref()))
+    },
     elems: LinkedHashMap<String, ArgType>,
 );
 define_ast_node!(
@@ -88,8 +95,16 @@ define_ast_node!(
         },
     },
     |tuple: &Tuple| tuple.elems().iter().cloned().collect::<Vec<ArgType>>(),
-    |tuple: &Tuple, _py: Python, ast_module: &'a PyModule| {
-        ast_module.call1("Constant", ("bla",))
+    |tuple: &Tuple, py: Python, ast_module: &'a PyModule| {
+        // TODO: add assignment target mode to List and Tuple
+        let load = ast_module.call0("Load").unwrap();
+        let children = tuple
+            .elems
+            .iter()
+            .map(|x| x.to_python_ast_node(py, ast_module).unwrap())
+            .collect::<Vec<_>>();
+        let children_list = PyList::new(py, children);
+        ast_module.call1("Tuple", (children_list.as_ref(), load))
     },
     elems: Vec<ArgType>,
 );
@@ -104,8 +119,12 @@ define_ast_node!(
         },
     },
     |attribute: &Attribute| vec![attribute.value().clone()],
-    |attribute: &Attribute, _py: Python, ast_module: &'a PyModule| {
-        ast_module.call1("Constant", ("bla",))
+    |attribute: &Attribute, py: Python, ast_module: &'a PyModule| {
+        // TODO: add assignment target mode to Attribute
+        let load = ast_module.call0("Load").unwrap();
+        let val_ast = attribute.value.to_python_ast_node(py, ast_module)?;
+        let name_ast = PyString::new(py, &attribute.name);
+        ast_module.call1("Attribute", (val_ast, name_ast.as_ref(), load))
     },
     value: ArgType,
     name: String,
@@ -142,7 +161,33 @@ define_ast_node!(
         }
         v
     },
-    |call: &Call, _py: Python, ast_module: &'a PyModule| { ast_module.call1("Constant", ("bla",)) },
+    |call: &Call, py: Python, ast_module: &'a PyModule| {
+        let args = call
+            .args
+            .iter()
+            .map(|x| x.to_python_ast_node(py, ast_module).unwrap())
+            .collect::<Vec<_>>();
+        let kwargs = call
+            .keywords
+            .iter()
+            .map(|(k, v)| {
+                ast_module
+                    .call1(
+                        "keyword",
+                        PyTuple::new(
+                            py,
+                            &vec![
+                                PyString::new(py, k).as_ref(),
+                                v.to_python_ast_node(py, ast_module).unwrap(),
+                            ],
+                        ),
+                    )
+                    .unwrap()
+            })
+            .collect::<Vec<_>>();
+        let function = call.function.to_python_ast_node(py, ast_module)?;
+        ast_module.call1("Call", (function, args, kwargs))
+    },
     function: ArgType,
     args: Vec<ArgType>,
     keywords: LinkedHashMap<String, ArgType>,
@@ -178,8 +223,41 @@ define_ast_node!(
         }
         v
     },
-    |formatted: &Formatted, _py: Python, ast_module: &'a PyModule| {
-        ast_module.call1("Constant", ("bla",))
+    |formatted: &Formatted, py: Python, ast_module: &'a PyModule| {
+        let format_fn = ast_module.call1(
+            "Attribute",
+            (
+                formatted.fmt.to_python_ast_node(py, ast_module)?,
+                PyString::new(py, "format").as_ref(),
+            ),
+        )?;
+        let kwargs = formatted
+            .keywords
+            .iter()
+            .map(|(k, v)| {
+                ast_module
+                    .call1(
+                        "keyword",
+                        PyTuple::new(
+                            py,
+                            &vec![
+                                PyString::new(py, k).as_ref(),
+                                v.to_python_ast_node(py, ast_module).unwrap(),
+                            ],
+                        ),
+                    )
+                    .unwrap()
+            })
+            .collect::<Vec<_>>();
+        let args: Vec<String> = Vec::new();
+        ast_module.call1(
+            "Call",
+            (
+                format_fn,
+                PyList::new(py, args).as_ref(),
+                PyList::new(py, kwargs).as_ref(),
+            ),
+        )
     },
     fmt: ArgType,
     keywords: LinkedHashMap<String, ArgType>,
@@ -194,8 +272,13 @@ define_ast_node!(
         },
     },
     |subscript: &Subscript| vec![subscript.a().clone(), subscript.b().clone()],
-    |subscript: &Subscript, _py: Python, ast_module: &'a PyModule| {
-        ast_module.call1("Constant", ("bla",))
+    |subscript: &Subscript, py: Python, ast_module: &'a PyModule| {
+        let load = ast_module.call0("Load")?;
+        // TODO: need load vs store context
+        let b_node = subscript.b.to_python_ast_node(py, ast_module)?;
+        let idx = ast_module.call1("Index", (b_node,))?;
+        let value = subscript.a.to_python_ast_node(py, ast_module)?;
+        ast_module.call1("Subscript", (value, idx, load))
     },
     a: ArgType,
     b: ArgType,
@@ -209,8 +292,11 @@ define_ast_node!(
         },
     },
     |_| Vec::new(),
-    |simple_identifier: &SimpleIdentifier, _py: Python, ast_module: &'a PyModule| {
-        ast_module.call1("Constant", ("bla",))
+    |simple_identifier: &SimpleIdentifier, py: Python, ast_module: &'a PyModule| {
+        ast_module.call1(
+            "Name",
+            (PyString::new(py, &simple_identifier.name).as_ref(),),
+        )
     },
     name: String,
 );
@@ -225,7 +311,7 @@ define_ast_node!(
     },
     |_| Vec::new(),
     |lit: &BooleanLiteral, _py: Python, ast_module: &'a PyModule| {
-        ast_module.call1("Constant", ("bla",))
+        ast_module.call1("Constant", (lit.val,))
     },
     val: bool,
 );
@@ -241,8 +327,10 @@ define_ast_node!(
     },
     |_| Vec::new(),
     |lit: &BigIntLiteral, _py: Python, ast_module: &'a PyModule| {
-        ast_module.call1("Constant", ("bla",))
+        let val: i64 = (*lit.val.to_u32_digits().1.get(0).unwrap()).into();
+        ast_module.call1("Constant", (val,))
     },
+    // TODO: deprecate use of BigInt when removing rustpython
     val: BigInt,
 );
 define_ast_node!(
@@ -252,7 +340,9 @@ define_ast_node!(
         node: ExpressionType::None,
     },
     |_| Vec::new(),
-    |_, _py: Python, ast_module: &'a PyModule| { ast_module.call1("Constant", ("bla",)) },
+    |_, py: Python, ast_module: &'a PyModule| {
+        ast_module.call1("Constant", (py.None().as_ref(py),))
+    },
 );
 
 register_ast_nodes!(

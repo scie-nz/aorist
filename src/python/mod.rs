@@ -24,10 +24,6 @@ pub fn format_code(code: String) -> PyResult<String> {
     let black: &PyModule = PyModule::import(py, "black").unwrap();
     let mode = black.call0("Mode")?;
 
-    let lit = StringLiteral::new("bla".to_string());
-    let ast: &PyModule = PyModule::import(py, "ast").unwrap();
-    let res = lit.to_python_ast_node(py.clone(), ast)?;
-
     let py_code = PyString::new(py, &code);
 
     let mut kwargs = HashMap::<&str, &PyAny>::new();
