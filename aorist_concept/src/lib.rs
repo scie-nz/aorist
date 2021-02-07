@@ -32,16 +32,8 @@ fn process_enum_variants(
             .collect(),
         None => Vec::new(),
     };
-    let variant = variants.iter().map(|x| (&x.ident));
-    let variant2 = variants.iter().map(|x| (&x.ident));
-    let variant3 = variants.iter().map(|x| (&x.ident));
-    let variant4 = variants.iter().map(|x| (&x.ident));
-    let variant5 = variants.iter().map(|x| (&x.ident));
-    let variant6 = variants.iter().map(|x| (&x.ident));
-    let variant7 = variants.iter().map(|x| (&x.ident));
-    let variant8 = variants.iter().map(|x| (&x.ident));
-    let variant9 = variants.iter().map(|x| (&x.ident));
-    let variant10 = variants.iter().map(|x| (&x.ident));
+    let variant = variants.iter().map(|x| (x.ident.clone())).collect::<Vec<_>>();
+
     let mut file = OpenOptions::new()
         .write(true)
         .append(true)
@@ -53,16 +45,18 @@ fn process_enum_variants(
         enum_name
     )
     .unwrap();
-    for v in variant.clone() {
+
+    for v in &variant {
         writeln!(file, "'{}'->'{}';", enum_name, v).unwrap();
     }
+
     TokenStream::from(quote! {
       impl AoristConcept for #enum_name {
         fn get_child_concepts<'a, 'b>(&'a self) -> Vec<Concept<'b>> where 'a : 'b {
           vec![
               match self {
                 #(
-                  #enum_name::#variant9(x) => Concept::#variant9(
+                  #enum_name::#variant(x) => Concept::#variant(
                       (
                           &x,
                           0, Some((
@@ -78,7 +72,7 @@ fn process_enum_variants(
         fn get_tag(&self) -> Option<String> {
             match self {
                 #(
-                  #enum_name::#variant10(x) => x.get_tag(),
+                  #enum_name::#variant(x) => x.get_tag(),
                 )*
             }
         }
@@ -98,7 +92,7 @@ fn process_enum_variants(
           let uuid = self.get_uuid();
           match self {
             #(
-              #enum_name::#variant4(ref mut x) => {
+              #enum_name::#variant(ref mut x) => {
                   x.compute_constraints();
               }
             )*
@@ -123,7 +117,7 @@ fn process_enum_variants(
           ];
           match self {
             #(
-              #enum_name::#variant8(ref mut x) => {
+              #enum_name::#variant(ref mut x) => {
                   for el in enum_constraints.into_iter() {
                       x.constraints.push(el);
                   };
@@ -135,7 +129,7 @@ fn process_enum_variants(
         fn get_constraints(&self) -> &Vec<Arc<RwLock<Constraint>>> {
           match self {
             #(
-              #enum_name::#variant2(x) => x.get_constraints(),
+              #enum_name::#variant(x) => x.get_constraints(),
             )*
           }
         }
@@ -143,7 +137,7 @@ fn process_enum_variants(
         fn get_downstream_constraints(&self) -> Vec<Arc<RwLock<Constraint>>> {
           match self {
             #(
-              #enum_name::#variant5(x) => x.get_downstream_constraints(),
+              #enum_name::#variant(x) => x.get_downstream_constraints(),
             )*
           }
         }
@@ -151,21 +145,21 @@ fn process_enum_variants(
         fn get_uuid(&self) -> Uuid {
           match self {
             #(
-              #enum_name::#variant3(x) => x.get_uuid(),
+              #enum_name::#variant(x) => x.get_uuid(),
             )*
           }
         }
         fn get_children_uuid(&self) -> Vec<Uuid> {
           match self {
             #(
-              #enum_name::#variant6(x) => x.get_children_uuid(),
+              #enum_name::#variant(x) => x.get_children_uuid(),
             )*
           }
         }
         fn compute_uuids(&mut self) {
           match self {
             #(
-              #enum_name::#variant7(x) => x.compute_uuids(),
+              #enum_name::#variant(x) => x.compute_uuids(),
             )*
           }
         }
