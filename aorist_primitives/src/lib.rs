@@ -138,7 +138,7 @@ macro_rules! define_ast_node {
                     stringify!(name),
                 ));
             }
-            pub fn new($(
+            fn new($(
                 $field: $field_type,
             )*) -> Self {
                 Self {

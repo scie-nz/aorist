@@ -70,7 +70,7 @@ where
                     ArgType::SimpleIdentifier(SimpleIdentifier::new_wrapped(
                         format!("tasks_{}", self.get_constraint_name()).to_string(),
                     )),
-                    ArgType::StringLiteral(Arc::new(RwLock::new(StringLiteral::new(shorter_name)))),
+                    ArgType::StringLiteral(StringLiteral::new_wrapped(shorter_name)),
                     true,
                 )));
             }

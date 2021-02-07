@@ -639,7 +639,7 @@ impl ParameterTuple {
                 ArgType::StringLiteral(
                     write
                         .entry(x.clone())
-                        .or_insert(Arc::new(RwLock::new(StringLiteral::new(x))))
+                        .or_insert(StringLiteral::new_wrapped(x))
                         .clone(),
                 )
             })
@@ -652,7 +652,7 @@ impl ParameterTuple {
                     ArgType::StringLiteral(
                         write
                             .entry(v.clone())
-                            .or_insert(Arc::new(RwLock::new(StringLiteral::new(v))))
+                            .or_insert(StringLiteral::new_wrapped(v))
                             .clone(),
                     ),
                 )
