@@ -2,7 +2,6 @@ use crate::python::ast::ArgType;
 use linked_hash_map::LinkedHashMap;
 use pyo3::prelude::*;
 use pyo3::types::PyModule;
-use rustpython_parser::ast::{Expression, ExpressionType, Located, Location, StringGroup};
 use std::collections::BTreeSet;
 use std::hash::Hash;
 use std::sync::{Arc, RwLock};
@@ -72,42 +71,6 @@ impl StringLiteral {
     }
     pub fn remove_owner(&mut self) {
         self.owner = None;
-    }
-    pub fn expression(&self, location: Location) -> Expression {
-        if let Some(ref val) = self.owner {
-            return val.expression(location);
-        }
-        let value;
-        if self.value.len() <= 60 || self.is_multiline() {
-            value = StringGroup::Constant {
-                value: self.value.clone(),
-            };
-        } else {
-            let mut splits = self
-                .value
-                .split(",")
-                .map(|x| x.to_string())
-                .collect::<Vec<String>>()
-                .into_iter();
-            let mut acc: String = splits.next().unwrap();
-            let mut values: Vec<StringGroup> = Vec::new();
-            for split in splits {
-                if acc.len() + split.len() + 1 >= 60 {
-                    values.push(StringGroup::Constant { value: acc.clone() });
-                    acc = "".to_string();
-                }
-                acc += ",";
-                acc += &split;
-            }
-            if acc.len() > 0 {
-                values.push(StringGroup::Constant { value: acc.clone() });
-            }
-            value = StringGroup::Joined { values };
-        }
-        Located {
-            location,
-            node: ExpressionType::String { value },
-        }
     }
     pub fn get_direct_descendants(&self) -> Vec<ArgType> {
         Vec::new()

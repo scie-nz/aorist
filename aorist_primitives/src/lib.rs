@@ -108,8 +108,7 @@ macro_rules! register_ast_nodes {
 #[macro_export]
 macro_rules! define_ast_node {
     ($name:ident,
-     $expression:expr,
-     $descendants:expr, 
+     $descendants:expr,
      $py_ast_closure:expr,
      $($field: ident : $field_type: ty,)*) => {
         #[derive(Hash, PartialEq, Eq, Clone)]
@@ -172,12 +171,6 @@ macro_rules! define_ast_node {
                     owner = x;
                 }
                 Some(owner.clone())
-            }
-            pub fn expression(&self, location: Location) -> Expression {
-                if let Some(ref val) = self.owner {
-                    return val.expression(location);
-                }
-                $expression(location, self)
             }
             pub fn get_direct_descendants(&self) -> Vec<ArgType> {
                 $descendants(self)

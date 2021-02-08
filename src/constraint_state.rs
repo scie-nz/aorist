@@ -8,7 +8,6 @@ use aorist_primitives::Dialect;
 use inflector::cases::snakecase::to_snake_case;
 use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
-use rustpython_parser::ast::{Expression, ExpressionType, Located, Location};
 use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
 use uuid::Uuid;
@@ -35,14 +34,6 @@ pub struct ConstraintState<'a> {
 impl<'a> ConstraintState<'a> {
     pub fn requires_program(&self) -> bool {
         self.constraint.read().unwrap().requires_program()
-    }
-    pub fn get_dep_ident(&self, location: Location) -> Expression {
-        Located {
-            location,
-            node: ExpressionType::Identifier {
-                name: "dep".to_string(),
-            },
-        }
     }
     pub fn set_task_val(&mut self, val: ArgType) {
         self.task_val = Some(val);

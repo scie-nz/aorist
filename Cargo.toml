@@ -42,7 +42,6 @@ aorist_derive = {path = "./aorist_derive"}
 aorist_primitives = {path = "./aorist_primitives"}
 indoc = "1.0.3"
 enum_dispatch = {version = "0.3.5"}
-rustpython-parser = { version = "0.1.2" }
 hyphenation = "0.8.0"
 paste = {git = "https://github.com/scie-nz/paste", branch = "main"}
 uuid = {version = "0.8.1", features = ["v4", "serde"]}
