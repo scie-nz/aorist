@@ -6,12 +6,10 @@ use aorist_primitives::{define_ast_node, register_ast_nodes};
 use linked_hash_map::LinkedHashMap;
 use pyo3::prelude::*;
 use pyo3::types::{PyList, PyModule, PyString, PyTuple};
-use std::collections::{HashMap, VecDeque};
+use std::collections::VecDeque;
 use std::hash::{Hash, Hasher};
 use std::sync::{Arc, RwLock};
 use uuid::Uuid;
-
-pub type LiteralsMap = Arc<RwLock<HashMap<String, Arc<RwLock<StringLiteral>>>>>;
 
 pub trait TAssignmentTarget
 where
@@ -613,32 +611,13 @@ impl ParameterTuple {
         kwargs_v: LinkedHashMap<String, String>,
     ) -> Self {
         // TODO: remove this
-        let literals = Arc::new(RwLock::new(HashMap::new()));
-        let mut write = literals.write().unwrap();
         let mut args = args_v
             .into_iter()
-            .map(|x| {
-                AST::StringLiteral(
-                    write
-                        .entry(x.clone())
-                        .or_insert(StringLiteral::new_wrapped(x))
-                        .clone(),
-                )
-            })
+            .map(|x| AST::StringLiteral(StringLiteral::new_wrapped(x)))
             .collect::<Vec<_>>();
         let mut kwargs = kwargs_v
             .into_iter()
-            .map(|(k, v)| {
-                (
-                    k,
-                    AST::StringLiteral(
-                        write
-                            .entry(v.clone())
-                            .or_insert(StringLiteral::new_wrapped(v))
-                            .clone(),
-                    ),
-                )
-            })
+            .map(|(k, v)| (k, AST::StringLiteral(StringLiteral::new_wrapped(v))))
             .collect::<LinkedHashMap<_, _>>();
         for arg in args.iter_mut() {
             arg.register_object(object_uuid.clone(), None);

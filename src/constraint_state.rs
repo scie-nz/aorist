@@ -1,9 +1,7 @@
 use crate::concept::{Concept, ConceptAncestry};
 use crate::constraint::{AllConstraintsSatisfiability, Constraint};
 use crate::object::TAoristObject;
-use crate::python::{
-    Formatted, List, LiteralsMap, ParameterTuple, SimpleIdentifier, StringLiteral, AST,
-};
+use crate::python::{Formatted, List, ParameterTuple, SimpleIdentifier, StringLiteral, AST};
 use aorist_primitives::Dialect;
 use inflector::cases::snakecase::to_snake_case;
 use linked_hash_map::LinkedHashMap;
@@ -93,10 +91,7 @@ impl<'a> ConstraintState<'a> {
             _ => Err("Dialect not supported".to_string()),
         }
     }
-    pub fn get_kwargs_map(
-        &self,
-        literals: LiteralsMap,
-    ) -> Result<LinkedHashMap<String, AST>, String> {
+    pub fn get_kwargs_map(&self) -> Result<LinkedHashMap<String, AST>, String> {
         match &self.dialect {
             Some(Dialect::Python(_)) => match self.params {
                 Some(ref p) => Ok(p.get_kwargs()),
@@ -104,7 +99,7 @@ impl<'a> ConstraintState<'a> {
             },
             Some(Dialect::Presto(_)) => {
                 let raw_command = format!("presto -e '{}'", self.get_call().unwrap().clone());
-                let format_string = literals.read().unwrap().get(&raw_command).unwrap().clone();
+                let format_string = StringLiteral::new_wrapped(raw_command.to_string());
                 let command = match self.params {
                     Some(ref p) => AST::Formatted(Formatted::new_wrapped(
                         AST::StringLiteral(format_string),
@@ -117,18 +112,13 @@ impl<'a> ConstraintState<'a> {
                 Ok(keywords)
             }
             Some(Dialect::Bash(_)) => {
-                let format_string = literals
-                    .read()
-                    .unwrap()
-                    .get(&self.get_call().unwrap())
-                    .unwrap()
-                    .clone();
+                let format_string =
+                    AST::StringLiteral(StringLiteral::new_wrapped(self.get_call().unwrap()));
                 let command = match self.params {
-                    Some(ref p) => AST::Formatted(Formatted::new_wrapped(
-                        AST::StringLiteral(format_string),
-                        p.get_kwargs(),
-                    )),
-                    None => AST::StringLiteral(format_string),
+                    Some(ref p) => {
+                        AST::Formatted(Formatted::new_wrapped(format_string, p.get_kwargs()))
+                    }
+                    None => format_string,
                 };
                 let mut keywords: LinkedHashMap<String, AST> = LinkedHashMap::new();
                 keywords.insert("command".to_string(), command);
