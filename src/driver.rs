@@ -348,11 +348,7 @@ where
 
         let mut write = state.write().unwrap();
         // TODO: remove dummy hash map
-        write.satisfy(
-            &preferences,
-            self.ancestry.clone(),
-            Arc::new(RwLock::new(HashMap::new())),
-        );
+        write.satisfy(&preferences, self.ancestry.clone());
         drop(write);
 
         // TODO: preambles and calls are superflous

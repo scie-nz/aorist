@@ -158,7 +158,6 @@ macro_rules! register_programs_for_constraint {
                 c: Concept<'a>,
                 d: &Dialect,
                 ancestry: Arc<ConceptAncestry<'a>>,
-                literals: LiteralsMap,
             ) -> Option<(String, String, ParameterTuple)> {
                 match d {
                     $(
@@ -169,7 +168,8 @@ macro_rules! register_programs_for_constraint {
                                 self.get_uuid().clone(),
                                 c.clone(),
                                 ancestry,
-                                literals,
+                                // TODO: remove this
+                                Arc::new(RwLock::new(HashMap::new())),
                             ),
                         )),
                     )+
@@ -181,7 +181,6 @@ macro_rules! register_programs_for_constraint {
                 c: Concept<'a>,
                 preferences: &Vec<Dialect>,
                 ancestry: Arc<ConceptAncestry<'a>>,
-                literals: LiteralsMap,
             ) -> Result<(String, String, ParameterTuple, Dialect), String> {
                 match c {
                     Concept::$root{..} => {
@@ -192,7 +191,6 @@ macro_rules! register_programs_for_constraint {
                                 c.clone(),
                                 &d,
                                 ancestry.clone(),
-                                literals.clone(),
                             ) {
                                 return Ok((preamble, call, params, d.clone()));
                             }
@@ -217,14 +215,13 @@ macro_rules! register_satisfiable_constraints {
                 c: Concept<'a>,
                 preferences: &Vec<Dialect>,
                 ancestry: Arc<ConceptAncestry<'a>>,
-                literals: LiteralsMap,
             ) -> Result<(String, String, ParameterTuple, Dialect), String> {
                 match &mut self.inner {
                     $(
                         Some(AoristConstraint::$constraint(ref mut x)) =>
                         x.satisfy_given_preference_ordering(
                             c, preferences,
-                            ancestry, literals
+                            ancestry,
                         ),
                     )+
                     _ => Err("Constraint is not satisfiable (no program provided).".to_string())

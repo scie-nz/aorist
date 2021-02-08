@@ -185,16 +185,11 @@ impl<'a> ConstraintState<'a> {
     pub fn get_key(&self) -> Option<String> {
         self.key.clone()
     }
-    pub fn satisfy(
-        &mut self,
-        preferences: &Vec<Dialect>,
-        ancestry: Arc<ConceptAncestry<'a>>,
-        literals: Arc<RwLock<HashMap<String, Arc<RwLock<StringLiteral>>>>>,
-    ) {
+    pub fn satisfy(&mut self, preferences: &Vec<Dialect>, ancestry: Arc<ConceptAncestry<'a>>) {
         let root_clone = self.root.clone();
         let mut constraint = self.constraint.write().unwrap();
         let (preamble, call, params, dialect) = constraint
-            .satisfy_given_preference_ordering(root_clone, preferences, ancestry, literals)
+            .satisfy_given_preference_ordering(root_clone, preferences, ancestry)
             .unwrap();
         drop(constraint);
         self.preamble = Some(preamble);
