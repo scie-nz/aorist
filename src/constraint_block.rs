@@ -2,8 +2,8 @@ use crate::code_block::CodeBlock;
 use crate::etl_singleton::ETLSingleton;
 use crate::python::PythonStatementInput;
 use crate::python::{
-    AoristStatement, AST, Dict, Import, LiteralsMap, ParameterTuple, SimpleIdentifier,
-    StringLiteral,
+    AoristStatement, Dict, Import, LiteralsMap, ParameterTuple, SimpleIdentifier, StringLiteral,
+    AST,
 };
 use inflector::cases::snakecase::to_snake_case;
 use linked_hash_map::LinkedHashMap;
@@ -102,9 +102,8 @@ where
                             format!("{}_{}", to_snake_case(&self.constraint_name), name)
                                 .to_string();
                         if proposed_name.len() < name.len() || write.is_multiline() {
-                            let owner = AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
-                                proposed_name,
-                            ));
+                            let owner =
+                                AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(proposed_name));
                             write.set_owner(owner.clone());
                             assignments.push(AoristStatement::Assign(
                                 owner.clone(),

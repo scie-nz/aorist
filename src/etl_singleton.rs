@@ -1,4 +1,4 @@
-use crate::python::{AoristStatement, AST, Import, Preamble, PythonStatementInput};
+use crate::python::{AoristStatement, Import, Preamble, PythonStatementInput, AST};
 use aorist_primitives::Dialect;
 use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;

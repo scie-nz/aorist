@@ -1,6 +1,6 @@
 use crate::etl_singleton::{ETLSingleton, ETLDAG};
 use crate::python::{
-    AoristStatement, AST, Attribute, Call, Formatted, Import, SimpleIdentifier, StringLiteral,
+    AoristStatement, Attribute, Call, Formatted, Import, SimpleIdentifier, StringLiteral, AST,
 };
 use aorist_primitives::Dialect;
 use linked_hash_map::LinkedHashMap;
@@ -130,9 +130,9 @@ impl ETLSingleton for PrefectSingleton {
     }
     fn compute_task_call(&self) -> AST {
         match self.dialect {
-            Some(Dialect::Python(_)) => Ok(AST::SimpleIdentifier(
-                SimpleIdentifier::new_wrapped(self.command.as_ref().unwrap().clone()),
-            )),
+            Some(Dialect::Python(_)) => Ok(AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
+                self.command.as_ref().unwrap().clone(),
+            ))),
             Some(Dialect::Bash(_)) | Some(Dialect::Presto(_)) => Ok(AST::SimpleIdentifier(
                 SimpleIdentifier::new_wrapped("ShellTask".to_string()),
             )),

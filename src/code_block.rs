@@ -2,7 +2,7 @@ use crate::constraint_state::ConstraintState;
 use crate::etl_singleton::ETLSingleton;
 use crate::etl_task::{ETLTask, ForLoopETLTask, StandaloneETLTask};
 use crate::python::PythonStatementInput;
-use crate::python::{AST, Import, ParameterTuple, SimpleIdentifier, StringLiteral, Subscript};
+use crate::python::{Import, ParameterTuple, SimpleIdentifier, StringLiteral, Subscript, AST};
 use aorist_primitives::Dialect;
 use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
@@ -59,9 +59,7 @@ where
             let name = write.get_task_name();
             // TODO: magic number
             if num_constraints <= 2 {
-                write.set_task_val(AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
-                    name,
-                )));
+                write.set_task_val(AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(name)));
             } else {
                 let shorter_name =
                     name.replace(&format!("{}__", self.get_constraint_name()).to_string(), "");

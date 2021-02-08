@@ -2,7 +2,7 @@ use crate::concept::{Concept, ConceptAncestry};
 use crate::constraint::{AllConstraintsSatisfiability, Constraint};
 use crate::object::TAoristObject;
 use crate::python::{
-    AST, Formatted, List, LiteralsMap, ParameterTuple, SimpleIdentifier, StringLiteral,
+    Formatted, List, LiteralsMap, ParameterTuple, SimpleIdentifier, StringLiteral, AST,
 };
 use aorist_primitives::Dialect;
 use inflector::cases::snakecase::to_snake_case;
@@ -69,9 +69,9 @@ impl<'a> ConstraintState<'a> {
     }
     pub fn get_task_call(&self) -> Result<AST, String> {
         match self.dialect {
-            Some(Dialect::Python(_)) => Ok(AST::SimpleIdentifier(
-                SimpleIdentifier::new_wrapped(self.get_call().unwrap()),
-            )),
+            Some(Dialect::Python(_)) => Ok(AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
+                self.get_call().unwrap(),
+            ))),
             Some(Dialect::Bash(_)) | Some(Dialect::Presto(_)) => Ok(AST::SimpleIdentifier(
                 SimpleIdentifier::new_wrapped("ShellTask".to_string()),
             )),
