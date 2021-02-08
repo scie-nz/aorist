@@ -611,8 +611,9 @@ impl ParameterTuple {
         object_uuid: Uuid,
         args_v: Vec<String>,
         kwargs_v: LinkedHashMap<String, String>,
-        literals: LiteralsMap,
     ) -> Self {
+        // TODO: remove this
+        let literals = Arc::new(RwLock::new(HashMap::new()));
         let mut write = literals.write().unwrap();
         let mut args = args_v
             .into_iter()

@@ -134,9 +134,12 @@ macro_rules! define_program {
                 uuid: Uuid,
                 c: Concept<'a>,
                 ancestry: Arc<ConceptAncestry<'a>>,
-                literals: LiteralsMap,
             ) -> ParameterTuple {
-                $tuple_call(uuid, c, ancestry, literals)
+                $tuple_call(
+                    uuid,
+                    c,
+                    ancestry,
+                )
             }
             fn get_preamble() -> String {
                 $preamble.to_string()
@@ -168,8 +171,6 @@ macro_rules! register_programs_for_constraint {
                                 self.get_uuid().clone(),
                                 c.clone(),
                                 ancestry,
-                                // TODO: remove this
-                                Arc::new(RwLock::new(HashMap::new())),
                             ),
                         )),
                     )+
@@ -292,8 +293,6 @@ macro_rules! define_constraint {
                 uuid: Uuid,
                 root: Concept<'a>,
                 ancestry: Arc<ConceptAncestry<'a>>,
-                literals: Arc<RwLock<HashMap<String,
-                Arc<RwLock<StringLiteral>>>>>,
             ) -> ParameterTuple;
             fn get_preamble() -> String;
             fn get_call() -> String;
@@ -332,8 +331,6 @@ macro_rules! define_constraint {
                     uuid: Uuid,
                     root: Concept<'a>,
                     ancestry: Arc<ConceptAncestry<'a>>,
-                    literals: Arc<RwLock<HashMap<String,
-                    Arc<RwLock<StringLiteral>>>>>,
                 ) -> ParameterTuple;
                 fn get_preamble() -> String;
                 fn get_call() -> String;
