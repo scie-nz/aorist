@@ -6,7 +6,8 @@ use crate::python::{
 use aorist_primitives::Dialect;
 use linked_hash_map::LinkedHashMap;
 use num_bigint::{BigInt, Sign};
-use rustpython_parser::ast::{Location, Statement};
+use pyo3::prelude::*;
+use pyo3::types::PyModule;
 
 #[derive(Clone, Hash, PartialEq, Eq)]
 pub struct AirflowSingleton {
@@ -193,7 +194,12 @@ impl ETLDAG for AirflowDAG {
         Self {}
     }
     /// Takes a set of statements and mutates them so as make a valid ETL flow
-    fn build_flow(&self, mut statements: Vec<Statement>, location: Location) -> Vec<Statement> {
+    fn build_flow<'a>(
+        &self,
+        py: Python<'a>,
+        mut statements: Vec<&'a PyAny>,
+        ast_module: &'a PyModule,
+    ) -> Vec<&'a PyAny> {
         let default_args =
             ArgType::SimpleIdentifier(SimpleIdentifier::new_wrapped("default_args".to_string()));
         let mut default_args_map: LinkedHashMap<String, ArgType> = LinkedHashMap::new();
@@ -236,7 +242,12 @@ impl ETLDAG for AirflowDAG {
 
         let default_args_dict = ArgType::Dict(Dict::new_wrapped(default_args_map));
         let default_args_assign = AoristStatement::Assign(default_args.clone(), default_args_dict);
-        statements.insert(0, default_args_assign.statement(location));
+        statements.insert(
+            0,
+            default_args_assign
+                .to_python_ast_node(py, ast_module)
+                .unwrap(),
+        );
 
         let dag = ArgType::SimpleIdentifier(SimpleIdentifier::new_wrapped("dag".to_string()));
 
@@ -290,8 +301,8 @@ impl ETLDAG for AirflowDAG {
             kwargs,
         ));
         let dag_call_assign = AoristStatement::Assign(dag, dag_call);
-        statements.insert(1, dag_call_assign.statement(location));
-
+        let dag_call_assign_ast = dag_call_assign.to_python_ast_node(py, ast_module).unwrap();
+        statements.insert(1, dag_call_assign_ast);
         statements
     }
     fn get_flow_imports(&self) -> Vec<Import> {

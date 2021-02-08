@@ -11,7 +11,6 @@ use rustpython_parser::ast::{
     Expression, ExpressionType, ImportSymbol, Keyword, Located, Location, Number, Statement,
     StatementType, StringGroup,
 };
-use rustpython_parser::parser;
 use std::cmp::Ordering;
 use std::collections::{HashMap, VecDeque};
 use std::hash::{Hash, Hasher};
@@ -19,6 +18,16 @@ use std::sync::{Arc, RwLock};
 use uuid::Uuid;
 
 pub type LiteralsMap = Arc<RwLock<HashMap<String, Arc<RwLock<StringLiteral>>>>>;
+
+pub trait TAssignmentTarget
+where
+    Self: Sized,
+{
+    fn as_assignment_target(&self) -> Self;
+    fn as_wrapped_assignment_target(&self) -> Arc<RwLock<Self>> {
+        Arc::new(RwLock::new(self.as_assignment_target()))
+    }
+}
 
 define_ast_node!(
     List,
@@ -51,6 +60,16 @@ define_ast_node!(
     elems: Vec<ArgType>,
     store: bool,
 );
+impl TAssignmentTarget for List {
+    fn as_assignment_target(&self) -> Self {
+        assert!(self.owner.is_none());
+        Self {
+            elems: self.elems.clone(),
+            store: true,
+            owner: None,
+        }
+    }
+}
 
 define_ast_node!(
     Dict,
@@ -119,6 +138,16 @@ define_ast_node!(
     elems: Vec<ArgType>,
     store: bool,
 );
+impl TAssignmentTarget for Tuple {
+    fn as_assignment_target(&self) -> Self {
+        assert!(self.owner.is_none());
+        Self {
+            elems: self.elems.clone(),
+            store: true,
+            owner: None,
+        }
+    }
+}
 
 define_ast_node!(
     Attribute,
@@ -145,6 +174,17 @@ define_ast_node!(
     name: String,
     store: bool,
 );
+impl TAssignmentTarget for Attribute {
+    fn as_assignment_target(&self) -> Self {
+        assert!(self.owner.is_none());
+        Self {
+            value: self.value.clone(),
+            name: self.name.clone(),
+            store: true,
+            owner: None,
+        }
+    }
+}
 
 define_ast_node!(
     Call,
@@ -304,6 +344,17 @@ define_ast_node!(
     b: ArgType,
     store: bool,
 );
+impl TAssignmentTarget for Subscript {
+    fn as_assignment_target(&self) -> Self {
+        assert!(self.owner.is_none());
+        Self {
+            a: self.a.clone(),
+            b: self.b.clone(),
+            store: true,
+            owner: None,
+        }
+    }
+}
 define_ast_node!(
     SimpleIdentifier,
     |location: Location, ident: &SimpleIdentifier| Located {
@@ -488,18 +539,17 @@ impl Ord for AoristImportSymbol {
     }
 }
 
-pub struct Preamble {
+pub struct Preamble<'a> {
     pub imports: Vec<(String, Option<String>)>,
     pub from_imports: Vec<(String, String, Option<String>)>,
-    body: String,
+    pub body: Vec<&'a PyAny>,
 }
-impl Preamble {
-    pub fn new(body: String, py: Python) -> Preamble {
+impl<'a> Preamble<'a> {
+    pub fn new(body: String, py: Python<'a>) -> Preamble {
         let helpers = PyModule::from_code(
             py,
             r#"
 import ast
-import astor
 
 def build_preamble(body):
     module = ast.parse(body)
@@ -518,7 +568,7 @@ def build_preamble(body):
         else:
             other += [elem]
 
-    return imports, from_imports, "\n".join([astor.to_source(x) for x in other])
+    return imports, from_imports, other
         "#,
             "helpers.py",
             "helpers",
@@ -600,17 +650,12 @@ def build_preamble(body):
             })
             .collect();
 
-        let body_no_imports: &PyString = tpl.get_item(2).extract().unwrap();
+        let body_no_imports: &PyList = tpl.get_item(2).extract().unwrap();
         Self {
             imports,
             from_imports,
-            body: body_no_imports.to_str().unwrap().to_string(),
+            body: body_no_imports.iter().map(|x| x.clone()).collect(),
         }
-    }
-    pub fn statement(self) -> Statement {
-        let program = parser::parse_program(&self.body).unwrap();
-        assert_eq!(program.statements.len(), 1);
-        program.statements.into_iter().next().unwrap()
     }
 }
 
@@ -631,7 +676,10 @@ impl Import {
                 ast_module.call1("Import", (names.as_ref(),))
             }
             Self::FromImport(ref module, ref name) => {
-                let names = PyList::new(py, vec![name]);
+                let names = PyList::new(
+                    py,
+                    vec![SimpleIdentifier::new(name.clone()).to_python_ast_node(py, ast_module)?],
+                );
                 ast_module.call1("ImportFrom", (module, names.as_ref(), 0))
             }
         }
@@ -677,25 +725,47 @@ impl AoristStatement {
     ) -> PyResult<&'a PyAny> {
         match &self {
             Self::Assign(ref target, ref call) => {
-                let targets = PyList::new(py, vec![target.to_python_ast_node(py, ast_module)?]);
+                let assign_target = match target {
+                    ArgType::Subscript(ref x) => {
+                        ArgType::Subscript(x.read().unwrap().as_wrapped_assignment_target())
+                    }
+                    ArgType::Attribute(ref x) => {
+                        ArgType::Attribute(x.read().unwrap().as_wrapped_assignment_target())
+                    }
+                    ArgType::List(ref x) => {
+                        ArgType::List(x.read().unwrap().as_wrapped_assignment_target())
+                    }
+                    ArgType::Tuple(ref x) => {
+                        ArgType::Tuple(x.read().unwrap().as_wrapped_assignment_target())
+                    }
+                    ArgType::SimpleIdentifier(_) => target.clone(),
+                    _ => panic!("Assignment target not supported."),
+                };
+                let targets =
+                    PyList::new(py, vec![assign_target.to_python_ast_node(py, ast_module)?]);
                 ast_module.call1(
                     "Assign",
                     (targets, call.to_python_ast_node(py, ast_module)?),
                 )
             }
-            Self::Expression(ref expr) => expr.to_python_ast_node(py, ast_module),
+            Self::Expression(ref expr) => {
+                ast_module.call1("Expr", (expr.to_python_ast_node(py, ast_module)?,))
+            }
             Self::For(ref target, ref iter, ref body) => {
                 let body_ast = body
                     .iter()
                     .map(|x| x.to_python_ast_node(py, ast_module).unwrap())
                     .collect::<Vec<_>>();
                 let body_list = PyList::new(py, body_ast);
+                let empty_vec: Vec<String> = Vec::new();
+                let empty_list = PyList::new(py, empty_vec);
                 ast_module.call1(
                     "For",
                     (
                         target.to_python_ast_node(py, ast_module)?,
                         iter.to_python_ast_node(py, ast_module)?,
                         body_list.as_ref(),
+                        empty_list.as_ref(),
                     ),
                 )
             }

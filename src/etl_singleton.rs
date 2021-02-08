@@ -1,12 +1,9 @@
-use crate::python::{
-    AoristStatement, ArgType, Import, Preamble, PythonProgram, PythonStatementInput,
-};
+use crate::python::{AoristStatement, ArgType, Import, Preamble, PythonStatementInput};
 use aorist_primitives::Dialect;
 use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
 use pyo3::prelude::*;
-use pyo3::types::PyModule;
-use rustpython_parser::ast::{Location, Statement};
+use pyo3::types::{PyList, PyModule, PyString};
 use std::collections::BTreeSet;
 
 pub trait ETLSingleton {
@@ -38,14 +35,15 @@ where
     type T: ETLSingleton;
 
     fn new() -> Self;
-    fn build_flow(&self, statements: Vec<Statement>, _location: Location) -> Vec<Statement>;
+    fn build_flow<'a>(
+        &self,
+        py: Python<'a>,
+        statements: Vec<&'a PyAny>,
+        ast_module: &'a PyModule,
+    ) -> Vec<&'a PyAny>;
     fn get_flow_imports(&self) -> Vec<Import>;
 
-    fn get_preamble_imports(
-        &self,
-        preambles: &Vec<Preamble>,
-        location: Location,
-    ) -> Vec<Statement> {
+    fn get_preamble_imports(&self, preambles: &Vec<Preamble>) -> Vec<Import> {
         let preamble_module_imports = preambles
             .iter()
             .map(|x| {
@@ -69,7 +67,6 @@ where
         let preamble_imports = preamble_module_imports
             .into_iter()
             .chain(from_imports.into_iter())
-            .map(|x| x.statement(location))
             .collect::<Vec<_>>();
         preamble_imports
     }
@@ -77,8 +74,10 @@ where
         let gil = Python::acquire_gil();
         let py = gil.python();
 
+        let ast = PyModule::import(py, "ast").unwrap();
+        let astor = PyModule::import(py, "astor").unwrap();
+
         let flow_imports = self.get_flow_imports().into_iter();
-        let location = Location::new(0, 0);
 
         let preambles = statements_and_preambles
             .iter()
@@ -90,46 +89,52 @@ where
             .into_iter()
             .map(|x| Preamble::new(x, py))
             .collect::<Vec<Preamble>>();
-        let preamble_imports = self.get_preamble_imports(&processed_preambles, location);
+
+        let preamble_imports: Vec<Import> = self.get_preamble_imports(&processed_preambles);
 
         let imports = statements_and_preambles
             .iter()
             .map(|x| x.2.clone().into_iter())
             .flatten()
             .chain(flow_imports)
+            .chain(preamble_imports)
             .collect::<BTreeSet<Import>>();
+
+        let imports_ast: Vec<_> = imports
+            .into_iter()
+            .map(|x| x.to_python_ast_node(py, ast).unwrap())
+            .collect();
 
         let statements: Vec<AoristStatement> = statements_and_preambles
             .into_iter()
             .map(|x| x.0)
             .flatten()
             .collect();
+        let statements_ast: Vec<_> = statements
+            .into_iter()
+            .map(|x| x.to_python_ast_node(py, ast).unwrap())
+            .collect();
+        let flow: Vec<&PyAny> = self.build_flow(py, statements_ast, ast);
 
-        let ast: &PyModule = PyModule::import(py, "ast").unwrap();
-        let content = PythonProgram::render_suite(
-            preamble_imports
-                .into_iter()
-                .chain(imports.into_iter().map(|x| {
-                    let _test = x.to_python_ast_node(py, ast).unwrap();
-                    AoristStatement::Import(x).statement(location)
-                }))
-                .chain(processed_preambles.into_iter().map(|x| x.statement()))
-                .chain(
-                    self.build_flow(
-                        statements
-                            .into_iter()
-                            .map(|x| {
-                                let _test = x.to_python_ast_node(py, ast).unwrap();
-                                x.statement(location)
-                            })
-                            .collect(),
-                        location,
-                    )
-                    .into_iter(),
-                )
-                .collect(),
-        )
-        .unwrap();
-        content
+        let content: Vec<&PyAny> = imports_ast
+            .into_iter()
+            .chain(processed_preambles.into_iter().map(|x| x.body).flatten())
+            .chain(flow.into_iter())
+            .collect();
+
+        let statements_list = PyList::new(py, content);
+        let module = ast.call1("Module", (statements_list,)).unwrap();
+        let source: PyResult<_> = astor.call1("to_source", (module,));
+        if let Err(err) = source {
+            err.print(py);
+            panic!("Exception occurred when running to_source.");
+        }
+        source
+            .unwrap()
+            .extract::<&PyString>()
+            .unwrap()
+            .to_str()
+            .unwrap()
+            .to_string()
     }
 }

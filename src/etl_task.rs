@@ -285,7 +285,7 @@ where
         ));
         let (dict, call, params_dedup_key, preamble, dialect) = self.key.clone();
         let new_collector =
-            ArgType::Subscript(Subscript::new_wrapped(dict.clone(), ident.clone(), true));
+            ArgType::Subscript(Subscript::new_wrapped(dict.clone(), ident.clone(), false));
         let kwargs;
         let args;
         if let Some((num_args, kwarg_keys)) = params_dedup_key {

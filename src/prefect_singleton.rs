@@ -4,7 +4,8 @@ use crate::python::{
 };
 use aorist_primitives::Dialect;
 use linked_hash_map::LinkedHashMap;
-use rustpython_parser::ast::{Location, Statement};
+use pyo3::prelude::*;
+use pyo3::types::PyModule;
 
 #[derive(Clone, Hash, PartialEq, Eq)]
 pub struct PrefectSingleton {
@@ -213,19 +214,28 @@ impl ETLDAG for PrefectDAG {
     fn get_flow_imports(&self) -> Vec<Import> {
         Vec::new()
     }
-    fn build_flow(&self, mut statements: Vec<Statement>, location: Location) -> Vec<Statement> {
-        statements.push(
-            AoristStatement::Expression(ArgType::Call(Call::new_wrapped(
-                ArgType::Attribute(Attribute::new_wrapped(
-                    self.flow_identifier.clone(),
-                    "run".into(),
-                    false,
-                )),
-                Vec::new(),
-                LinkedHashMap::new(),
-            )))
-            .statement(location),
-        );
+    /// Takes a set of statements and mutates them so as make a valid ETL flow
+    fn build_flow<'a>(
+        &self,
+        py: Python<'a>,
+        statements: Vec<&'a PyAny>,
+        ast_module: &'a PyModule,
+    ) -> Vec<&'a PyAny> {
         statements
+            .into_iter()
+            .chain(
+                AoristStatement::Expression(ArgType::Call(Call::new_wrapped(
+                    ArgType::Attribute(Attribute::new_wrapped(
+                        self.flow_identifier.clone(),
+                        "run".into(),
+                        false,
+                    )),
+                    Vec::new(),
+                    LinkedHashMap::new(),
+                )))
+                .to_python_ast_node(py, ast_module)
+                .into_iter(),
+            )
+            .collect()
     }
 }
