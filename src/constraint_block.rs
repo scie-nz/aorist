@@ -1,9 +1,7 @@
 use crate::code_block::CodeBlock;
 use crate::etl_singleton::ETLSingleton;
 use crate::python::PythonStatementInput;
-use crate::python::{
-    AoristStatement, Dict, Import, LiteralsMap, ParameterTuple, SimpleIdentifier, AST,
-};
+use crate::python::{AoristStatement, Dict, Import, ParameterTuple, SimpleIdentifier, AST};
 use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
 use std::collections::{BTreeSet, HashMap};
@@ -16,22 +14,16 @@ where
 {
     constraint_name: String,
     members: Vec<CodeBlock<'a, T>>,
-    _literals: LiteralsMap,
     singleton_type: PhantomData<T>,
 }
 impl<'a, T> ConstraintBlock<'a, T>
 where
     T: ETLSingleton,
 {
-    pub fn new(
-        constraint_name: String,
-        members: Vec<CodeBlock<'a, T>>,
-        literals: LiteralsMap,
-    ) -> Self {
+    pub fn new(constraint_name: String, members: Vec<CodeBlock<'a, T>>) -> Self {
         Self {
             constraint_name,
             members,
-            _literals: literals,
             singleton_type: PhantomData,
         }
     }

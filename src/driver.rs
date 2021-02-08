@@ -6,7 +6,7 @@ use crate::constraint_state::ConstraintState;
 use crate::data_setup::{TUniverse, Universe};
 use crate::etl_singleton::ETLDAG;
 use crate::object::TAoristObject;
-use crate::python::{LiteralsMap, ParameterTuple};
+use crate::python::ParameterTuple;
 use aorist_primitives::{Bash, Dialect, Presto, Python};
 use inflector::cases::snakecase::to_snake_case;
 use linked_hash_map::LinkedHashMap;
@@ -337,7 +337,6 @@ where
         uuid: (Uuid, String),
         calls: &mut HashMap<(String, String, String), Vec<(String, ParameterTuple)>>,
         state: Arc<RwLock<ConstraintState<'a>>>,
-        literals: LiteralsMap,
     ) {
         let name = constraint.get_name().clone();
         drop(constraint);
@@ -348,7 +347,12 @@ where
         ];
 
         let mut write = state.write().unwrap();
-        write.satisfy(&preferences, self.ancestry.clone(), literals);
+        // TODO: remove dummy hash map
+        write.satisfy(
+            &preferences,
+            self.ancestry.clone(),
+            Arc::new(RwLock::new(HashMap::new())),
+        );
         drop(write);
 
         // TODO: preambles and calls are superflous
@@ -368,7 +372,6 @@ where
         state: Arc<RwLock<ConstraintState<'a>>>,
         calls: &mut HashMap<(String, String, String), Vec<(String, ParameterTuple)>>,
         reverse_dependencies: &HashMap<(Uuid, String), HashSet<(String, Uuid, String)>>,
-        literals: LiteralsMap,
     ) {
         let mut write = state.write().unwrap();
         let ancestors = write.get_ancestors();
@@ -382,13 +385,7 @@ where
         let rw = self.constraints.get(&uuid).unwrap().clone();
         let constraint = rw.read().unwrap();
         if constraint.requires_program() {
-            self.process_constraint_with_program(
-                constraint,
-                uuid.clone(),
-                calls,
-                state.clone(),
-                literals,
-            );
+            self.process_constraint_with_program(constraint, uuid.clone(), calls, state.clone());
         }
 
         if let Some(v) = reverse_dependencies.get(&uuid) {
@@ -416,7 +413,6 @@ where
         &mut self,
         block: &mut HashMap<(Uuid, String), Arc<RwLock<ConstraintState<'a>>>>,
         reverse_dependencies: &HashMap<(Uuid, String), HashSet<(String, Uuid, String)>>,
-        literals: LiteralsMap,
         constraint_name: String,
     ) -> Vec<CodeBlock<'a, D::T>> {
         // (call, constraint_name, root_name) => (uuid, call parameters)
@@ -431,7 +427,6 @@ where
                 state.clone(),
                 &mut calls,
                 reverse_dependencies,
-                literals.clone(),
             );
             self.satisfied_constraints.insert(id, state.clone());
             by_dialect
@@ -548,17 +543,15 @@ where
         loop {
             let mut satisfiable = self.find_satisfiable_constraint_block();
             if let Some((ref mut block, ref constraint_name)) = satisfiable {
-                let literals = Arc::new(RwLock::new(HashMap::new()));
                 let snake_case_name = to_snake_case(constraint_name);
                 let members = self.process_constraint_block(
                     &mut block.clone(),
                     &reverse_dependencies,
-                    literals.clone(),
                     snake_case_name.clone(),
                 );
 
                 // TODO: this can be moved to ConstraintBlock
-                let constraint_block = ConstraintBlock::new(snake_case_name, members, literals);
+                let constraint_block = ConstraintBlock::new(snake_case_name, members);
                 self.blocks.push(constraint_block);
             } else {
                 break;
