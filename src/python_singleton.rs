@@ -56,10 +56,15 @@ impl ETLSingleton for PythonSingleton {
                     AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("process".to_string()));
                 let task_creation = AoristStatement::Assign(process.clone(), creation_expr);
                 let task_assign = AoristStatement::Assign(
-                    AST::Tuple(Tuple::new_wrapped(vec![
-                        self.get_task_val().as_wrapped_assignment_target(),
-                        AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("error".to_string())),
-                    ], true)),
+                    AST::Tuple(Tuple::new_wrapped(
+                        vec![
+                            self.get_task_val().as_wrapped_assignment_target(),
+                            AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
+                                "error".to_string(),
+                            )),
+                        ],
+                        true,
+                    )),
                     AST::Call(Call::new_wrapped(
                         AST::Attribute(Attribute::new_wrapped(
                             process,

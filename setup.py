@@ -13,5 +13,6 @@ setup(
     long_description="""
     Aorist: ETL code generation for flexible environments and infrastructure
     """,
+    install_requires=["astor"],
     long_description_content_type="text/x-rst"
 )
