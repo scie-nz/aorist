@@ -6,8 +6,8 @@ use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
 use pyo3::prelude::*;
 use pyo3::types::PyModule;
-use rustpython_parser::ast::{ImportSymbol, Located, Location, Statement, StatementType};
-use std::collections::{BTreeMap, BTreeSet};
+use rustpython_parser::ast::{Location, Statement};
+use std::collections::BTreeSet;
 
 pub trait ETLSingleton {
     fn get_preamble(&self) -> Vec<String>;
@@ -48,48 +48,28 @@ where
     ) -> Vec<Statement> {
         let preamble_module_imports = preambles
             .iter()
-            .map(|x| x.imports.clone().into_iter())
+            .map(|x| {
+                x.imports
+                    .clone()
+                    .into_iter()
+                    .map(|x| Import::ModuleImport(x.0))
+            })
             .flatten()
             .collect::<BTreeSet<_>>();
 
-        let mut from_imports: BTreeMap<String, BTreeSet<_>> = BTreeMap::new();
+        // TODO: group imports by module (need to change def of import)
+        let mut from_imports: BTreeSet<_> = BTreeSet::new();
         let preamble_from_imports = preambles
             .iter()
             .map(|x| x.from_imports.clone().into_iter())
             .flatten();
         for (module, name, _alias) in preamble_from_imports {
-            from_imports
-                .entry(module.clone())
-                .or_insert(BTreeSet::new())
-                .insert(name);
+            from_imports.insert(Import::FromImport(module, name));
         }
         let preamble_imports = preamble_module_imports
             .into_iter()
-            .map(|x| Located {
-                location,
-                node: StatementType::Import {
-                    names: vec![ImportSymbol {
-                        symbol: x.0,
-                        alias: x.1,
-                    }],
-                },
-            })
-            .chain(from_imports.into_iter().map(|(module, names)| {
-                Located {
-                    location,
-                    node: StatementType::ImportFrom {
-                        level: 0,
-                        module: Some(module),
-                        names: names
-                            .into_iter()
-                            .map(|x| ImportSymbol {
-                                symbol: x,
-                                alias: None,
-                            })
-                            .collect(),
-                    },
-                }
-            }))
+            .chain(from_imports.into_iter())
+            .map(|x| x.statement(location))
             .collect::<Vec<_>>();
         preamble_imports
     }
