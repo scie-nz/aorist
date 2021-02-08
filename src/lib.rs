@@ -23,6 +23,7 @@ pub mod location;
 pub mod object;
 pub mod prefect_singleton;
 pub mod python;
+pub mod python_singleton;
 pub mod role;
 pub mod role_binding;
 pub mod schema;
@@ -49,6 +50,7 @@ pub use header::*;
 pub use layout::*;
 pub use location::*;
 pub use prefect_singleton::*;
+pub use python_singleton::*;
 pub use role::*;
 pub use role_binding::*;
 pub use schema::*;
@@ -88,6 +90,9 @@ pub fn dag(inner: InnerUniverse, constraints: Vec<String>, mode: &str) -> PyResu
         }
         "prefect" => {
             Driver::<PrefectDAG>::new(&universe, Some(constraints.into_iter().collect())).run()
+        }
+        "python" => {
+            Driver::<PythonDAG>::new(&universe, Some(constraints.into_iter().collect())).run()
         }
         _ => panic!("Unknown mode provided"),
     })

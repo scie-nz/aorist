@@ -346,6 +346,22 @@ impl PartialEq for AST {
         }
     }
 }
+impl AST {
+    pub fn as_wrapped_assignment_target(&self) -> Self {
+        match &self {
+            AST::Subscript(ref x) => {
+                AST::Subscript(x.read().unwrap().as_wrapped_assignment_target())
+            }
+            AST::Attribute(ref x) => {
+                AST::Attribute(x.read().unwrap().as_wrapped_assignment_target())
+            }
+            AST::List(ref x) => AST::List(x.read().unwrap().as_wrapped_assignment_target()),
+            AST::Tuple(ref x) => AST::Tuple(x.read().unwrap().as_wrapped_assignment_target()),
+            AST::SimpleIdentifier(_) => self.clone(),
+            _ => panic!("Assignment target not supported."),
+        }
+    }
+}
 impl Eq for AST {}
 impl Hash for AST {
     fn hash<H: Hasher>(&self, state: &mut H) {
@@ -499,7 +515,10 @@ impl Import {
     ) -> PyResult<&'a PyAny> {
         match &self {
             Self::ModuleImport(ref module) => {
-                let names = PyList::new(py, vec![module]);
+                let names = PyList::new(
+                    py,
+                    vec![SimpleIdentifier::new(module.clone()).to_python_ast_node(py, ast_module)?],
+                );
                 ast_module.call1("Import", (names.as_ref(),))
             }
             Self::FromImport(ref module, ref name) => {
