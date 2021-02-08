@@ -2,7 +2,7 @@ use crate::concept::{Concept, ConceptAncestry};
 use crate::constraint::{AllConstraintsSatisfiability, Constraint};
 use crate::object::TAoristObject;
 use crate::python::{
-    ArgType, Formatted, List, LiteralsMap, ParameterTuple, SimpleIdentifier, StringLiteral,
+    AST, Formatted, List, LiteralsMap, ParameterTuple, SimpleIdentifier, StringLiteral,
 };
 use aorist_primitives::Dialect;
 use inflector::cases::snakecase::to_snake_case;
@@ -28,29 +28,29 @@ pub struct ConstraintState<'a> {
     call: Option<String>,
     params: Option<ParameterTuple>,
     task_name: Option<String>,
-    task_val: Option<ArgType>,
+    task_val: Option<AST>,
 }
 
 impl<'a> ConstraintState<'a> {
     pub fn requires_program(&self) -> bool {
         self.constraint.read().unwrap().requires_program()
     }
-    pub fn set_task_val(&mut self, val: ArgType) {
+    pub fn set_task_val(&mut self, val: AST) {
         self.task_val = Some(val);
     }
-    pub fn get_task_val(&self) -> ArgType {
+    pub fn get_task_val(&self) -> AST {
         self.task_val.as_ref().unwrap().clone()
     }
-    pub fn get_dependencies(&self) -> Vec<ArgType> {
+    pub fn get_dependencies(&self) -> Vec<AST> {
         self.satisfied_dependencies
             .iter()
             .map(|rw| {
                 let x = rw.read().unwrap();
                 x.get_task_val()
             })
-            .collect::<Vec<ArgType>>()
+            .collect::<Vec<AST>>()
     }
-    pub fn get_dep_list(&self) -> Option<ArgType> {
+    pub fn get_dep_list(&self) -> Option<AST> {
         let dep_list = self
             .satisfied_dependencies
             .iter()
@@ -58,36 +58,36 @@ impl<'a> ConstraintState<'a> {
                 let x = rw.read().unwrap();
                 x.get_task_val()
             })
-            .collect::<Vec<ArgType>>();
+            .collect::<Vec<AST>>();
         if dep_list.len() == 1 {
             return Some(dep_list.clone().into_iter().next().unwrap());
         } else if dep_list.len() > 1 {
-            return Some(ArgType::List(List::new_wrapped(dep_list, false)));
+            return Some(AST::List(List::new_wrapped(dep_list, false)));
         } else {
             return None;
         }
     }
-    pub fn get_task_call(&self) -> Result<ArgType, String> {
+    pub fn get_task_call(&self) -> Result<AST, String> {
         match self.dialect {
-            Some(Dialect::Python(_)) => Ok(ArgType::SimpleIdentifier(
+            Some(Dialect::Python(_)) => Ok(AST::SimpleIdentifier(
                 SimpleIdentifier::new_wrapped(self.get_call().unwrap()),
             )),
-            Some(Dialect::Bash(_)) | Some(Dialect::Presto(_)) => Ok(ArgType::SimpleIdentifier(
+            Some(Dialect::Bash(_)) | Some(Dialect::Presto(_)) => Ok(AST::SimpleIdentifier(
                 SimpleIdentifier::new_wrapped("ShellTask".to_string()),
             )),
-            None => Ok(ArgType::SimpleIdentifier(SimpleIdentifier::new_wrapped(
+            None => Ok(AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
                 "ConstantTask".to_string(),
             ))),
             _ => Err("Dialect not supported".to_string()),
         }
     }
-    pub fn get_args_vec(&self) -> Result<Vec<ArgType>, String> {
+    pub fn get_args_vec(&self) -> Result<Vec<AST>, String> {
         match (&self.params, &self.dialect) {
             (Some(ref p), Some(Dialect::Python(_))) => Ok(p.get_args()),
             (None, Some(Dialect::Python(_))) => Ok(Vec::new()),
             (_, Some(Dialect::Presto(_))) => Ok(Vec::new()),
             (_, Some(Dialect::Bash(_))) => Ok(Vec::new()),
-            (_, None) => Ok(vec![ArgType::StringLiteral(StringLiteral::new_wrapped(
+            (_, None) => Ok(vec![AST::StringLiteral(StringLiteral::new_wrapped(
                 self.constraint.read().unwrap().get_name().clone(),
             ))]),
             _ => Err("Dialect not supported".to_string()),
@@ -96,7 +96,7 @@ impl<'a> ConstraintState<'a> {
     pub fn get_kwargs_map(
         &self,
         literals: LiteralsMap,
-    ) -> Result<LinkedHashMap<String, ArgType>, String> {
+    ) -> Result<LinkedHashMap<String, AST>, String> {
         match &self.dialect {
             Some(Dialect::Python(_)) => match self.params {
                 Some(ref p) => Ok(p.get_kwargs()),
@@ -106,13 +106,13 @@ impl<'a> ConstraintState<'a> {
                 let raw_command = format!("presto -e '{}'", self.get_call().unwrap().clone());
                 let format_string = literals.read().unwrap().get(&raw_command).unwrap().clone();
                 let command = match self.params {
-                    Some(ref p) => ArgType::Formatted(Formatted::new_wrapped(
-                        ArgType::StringLiteral(format_string),
+                    Some(ref p) => AST::Formatted(Formatted::new_wrapped(
+                        AST::StringLiteral(format_string),
                         p.get_kwargs(),
                     )),
-                    None => ArgType::StringLiteral(format_string),
+                    None => AST::StringLiteral(format_string),
                 };
-                let mut keywords: LinkedHashMap<String, ArgType> = LinkedHashMap::new();
+                let mut keywords: LinkedHashMap<String, AST> = LinkedHashMap::new();
                 keywords.insert("command".to_string(), command);
                 Ok(keywords)
             }
@@ -124,13 +124,13 @@ impl<'a> ConstraintState<'a> {
                     .unwrap()
                     .clone();
                 let command = match self.params {
-                    Some(ref p) => ArgType::Formatted(Formatted::new_wrapped(
-                        ArgType::StringLiteral(format_string),
+                    Some(ref p) => AST::Formatted(Formatted::new_wrapped(
+                        AST::StringLiteral(format_string),
                         p.get_kwargs(),
                     )),
-                    None => ArgType::StringLiteral(format_string),
+                    None => AST::StringLiteral(format_string),
                 };
-                let mut keywords: LinkedHashMap<String, ArgType> = LinkedHashMap::new();
+                let mut keywords: LinkedHashMap<String, AST> = LinkedHashMap::new();
                 keywords.insert("command".to_string(), command);
                 Ok(keywords)
             }

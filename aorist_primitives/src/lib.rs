@@ -29,7 +29,7 @@ macro_rules! register_ast_nodes {
                     )+
                 }
             }
-            pub fn set_owner(&mut self, obj: ArgType) {
+            pub fn set_owner(&mut self, obj: AST) {
                 match &self {
                     $(
                         Self::$variant(x) =>
@@ -37,7 +37,7 @@ macro_rules! register_ast_nodes {
                     )+
                 }
             }
-            pub fn get_owner(&self) -> Option<ArgType> {
+            pub fn get_owner(&self) -> Option<AST> {
                 match &self {
                     $(
                         Self::$variant(x) => {
@@ -47,11 +47,11 @@ macro_rules! register_ast_nodes {
                     )+
                 }
             }
-            pub fn get_descendants(&self) -> Vec<ArgType> {
+            pub fn get_descendants(&self) -> Vec<AST> {
                 let mut queue = VecDeque::new();
                 queue.push_back(self.clone());
                 let mut current = queue.pop_front();
-                let mut v: Vec<ArgType> = Vec::new();
+                let mut v: Vec<AST> = Vec::new();
                 while let Some(elem) = current {
                     let direct_descendants = match &elem {
                         $(
@@ -69,7 +69,7 @@ macro_rules! register_ast_nodes {
                 }
                 v
             }
-            pub fn get_ultimate_owner(&self) -> Option<ArgType> {
+            pub fn get_ultimate_owner(&self) -> Option<AST> {
                 match &self {
                     $(
                         Self::$variant(x) => {
@@ -116,7 +116,7 @@ macro_rules! define_ast_node {
             $(
                 $field: $field_type,
             )*
-            owner: Option<ArgType>,
+            owner: Option<AST>,
         }
         impl $name {
             pub fn new_wrapped($(
@@ -150,7 +150,7 @@ macro_rules! define_ast_node {
                     self.$field.clone()
                 }
             )*
-            pub fn set_owner(&mut self, obj: ArgType) {
+            pub fn set_owner(&mut self, obj: AST) {
                 assert!(obj.name() == "SimpleIdentifier" || obj.name() ==
                 "Subscript");
                 self.owner = Some(obj);
@@ -159,10 +159,10 @@ macro_rules! define_ast_node {
                 self.owner = None;
             }
 
-            pub fn get_owner(&self) -> Option<ArgType> {
+            pub fn get_owner(&self) -> Option<AST> {
                 self.owner.clone()
             }
-            pub fn get_ultimate_owner(&self) -> Option<ArgType> {
+            pub fn get_ultimate_owner(&self) -> Option<AST> {
                 if self.get_owner().is_none() {
                     return None;
                 }
@@ -172,7 +172,7 @@ macro_rules! define_ast_node {
                 }
                 Some(owner.clone())
             }
-            pub fn get_direct_descendants(&self) -> Vec<ArgType> {
+            pub fn get_direct_descendants(&self) -> Vec<AST> {
                 $descendants(self)
             }
         }

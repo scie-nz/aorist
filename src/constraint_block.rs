@@ -2,7 +2,7 @@ use crate::code_block::CodeBlock;
 use crate::etl_singleton::ETLSingleton;
 use crate::python::PythonStatementInput;
 use crate::python::{
-    AoristStatement, ArgType, Dict, Import, LiteralsMap, ParameterTuple, SimpleIdentifier,
+    AoristStatement, AST, Dict, Import, LiteralsMap, ParameterTuple, SimpleIdentifier,
     StringLiteral,
 };
 use inflector::cases::snakecase::to_snake_case;
@@ -102,13 +102,13 @@ where
                             format!("{}_{}", to_snake_case(&self.constraint_name), name)
                                 .to_string();
                         if proposed_name.len() < name.len() || write.is_multiline() {
-                            let owner = ArgType::SimpleIdentifier(SimpleIdentifier::new_wrapped(
+                            let owner = AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
                                 proposed_name,
                             ));
                             write.set_owner(owner.clone());
                             assignments.push(AoristStatement::Assign(
                                 owner.clone(),
-                                ArgType::StringLiteral(StringLiteral::new_wrapped(
+                                AST::StringLiteral(StringLiteral::new_wrapped(
                                     write.value().clone(),
                                 )),
                             ));
@@ -126,9 +126,9 @@ where
         for block in &self.members {
             for constraint in block.get_constraints() {
                 let read = constraint.read().unwrap();
-                if let ArgType::Subscript(sub) = read.get_task_val() {
+                if let AST::Subscript(sub) = read.get_task_val() {
                     let read2 = sub.read().unwrap();
-                    if let ArgType::SimpleIdentifier(ident) = read2.a() {
+                    if let AST::SimpleIdentifier(ident) = read2.a() {
                         to_initialize.insert(ident.read().unwrap().clone());
                     }
                 }
@@ -138,8 +138,8 @@ where
             .into_iter()
             .map(|x| {
                 AoristStatement::Assign(
-                    ArgType::SimpleIdentifier(Arc::new(RwLock::new(x))),
-                    ArgType::Dict(Dict::new_wrapped(LinkedHashMap::new())),
+                    AST::SimpleIdentifier(Arc::new(RwLock::new(x))),
+                    AST::Dict(Dict::new_wrapped(LinkedHashMap::new())),
                 )
             })
             .collect()

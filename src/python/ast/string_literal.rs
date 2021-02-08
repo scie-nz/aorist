@@ -1,4 +1,4 @@
-use crate::python::ast::ArgType;
+use crate::python::ast::AST;
 use linked_hash_map::LinkedHashMap;
 use pyo3::prelude::*;
 use pyo3::types::PyModule;
@@ -12,7 +12,7 @@ pub struct StringLiteral {
     value: String,
     // TODO: replace with LinkedHashMap<Uuid, BTreeSet>
     object_uuids: LinkedHashMap<Uuid, BTreeSet<Option<String>>>,
-    owner: Option<ArgType>,
+    owner: Option<AST>,
 }
 
 impl StringLiteral {
@@ -47,7 +47,7 @@ impl StringLiteral {
             .or_insert(BTreeSet::new())
             .insert(tag);
     }
-    pub fn set_owner(&mut self, obj: ArgType) {
+    pub fn set_owner(&mut self, obj: AST) {
         self.owner = Some(obj);
     }
     pub fn get_object_uuids(&self) -> &LinkedHashMap<Uuid, BTreeSet<Option<String>>> {
@@ -56,10 +56,10 @@ impl StringLiteral {
     pub fn is_multiline(&self) -> bool {
         self.value.contains('\n')
     }
-    pub fn get_owner(&self) -> Option<ArgType> {
+    pub fn get_owner(&self) -> Option<AST> {
         self.owner.clone()
     }
-    pub fn get_ultimate_owner(&self) -> Option<ArgType> {
+    pub fn get_ultimate_owner(&self) -> Option<AST> {
         if self.get_owner().is_none() {
             return None;
         }
@@ -72,7 +72,7 @@ impl StringLiteral {
     pub fn remove_owner(&mut self) {
         self.owner = None;
     }
-    pub fn get_direct_descendants(&self) -> Vec<ArgType> {
+    pub fn get_direct_descendants(&self) -> Vec<AST> {
         Vec::new()
     }
 }

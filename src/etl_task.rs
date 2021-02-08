@@ -1,6 +1,6 @@
 use crate::etl_singleton::ETLSingleton;
 use crate::python::{
-    AoristStatement, ArgType, Attribute, Call, Dict, Import, List, ParameterTuple,
+    AoristStatement, AST, Attribute, Call, Dict, Import, List, ParameterTuple,
     ParameterTupleDedupKey, SimpleIdentifier, StringLiteral, Subscript, Tuple,
 };
 use aorist_primitives::Dialect;
@@ -13,7 +13,7 @@ where
     T: ETLSingleton,
 {
     /// where the task creation call should be stored.
-    task_val: ArgType,
+    task_val: AST,
     /// unique task identifier
     task_id: String,
     /// function called to create task (has different meaning depending on
@@ -23,7 +23,7 @@ where
     params: Option<ParameterTuple>,
     /// task_vals (or references to them) of other tasks this one
     /// depends on.
-    dependencies: Vec<ArgType>,
+    dependencies: Vec<AST>,
     /// Python preamble used by this task call
     preamble: Option<String>,
     /// Dialect (e.g. Bash, Python, R, Presto, etc.), to be interpreted
@@ -41,7 +41,7 @@ where
 /// - dialect
 pub type ETLTaskCompressionKey = (
     // dict name
-    ArgType,
+    AST,
     // function call
     Option<String>,
     // dedup key from parameters
@@ -63,7 +63,7 @@ where
     // params
     params: Option<ParameterTuple>,
     // dep list
-    pub deps: Vec<ArgType>,
+    pub deps: Vec<AST>,
     singleton_type: PhantomData<T>,
 }
 
@@ -75,7 +75,7 @@ where
         task_id: String,
         dict: String,
         params: Option<ParameterTuple>,
-        deps: Vec<ArgType>,
+        deps: Vec<AST>,
     ) -> Self {
         Self {
             task_id,
@@ -86,11 +86,11 @@ where
         }
     }
 
-    pub fn as_python_dict(&self, dependencies_as_list: bool) -> ArgType {
-        let mut local_params_map: LinkedHashMap<String, ArgType> = LinkedHashMap::new();
+    pub fn as_python_dict(&self, dependencies_as_list: bool) -> AST {
+        let mut local_params_map: LinkedHashMap<String, AST> = LinkedHashMap::new();
         if self.deps.len() > 0 {
             let dependencies = match dependencies_as_list {
-                true => ArgType::List(List::new_wrapped(self.deps.clone(), false)),
+                true => AST::List(List::new_wrapped(self.deps.clone(), false)),
                 false => {
                     assert_eq!(self.deps.len(), 1);
                     self.deps.get(0).unwrap().clone()
@@ -102,13 +102,13 @@ where
         if T::get_type() == "airflow".to_string() {
             local_params_map.insert(
                 "task_id".to_string(),
-                ArgType::StringLiteral(StringLiteral::new_wrapped(self.task_id.clone())),
+                AST::StringLiteral(StringLiteral::new_wrapped(self.task_id.clone())),
             );
         }
         if let Some(ref p) = self.params {
             p.populate_python_dict(&mut local_params_map);
         }
-        ArgType::Dict(Dict::new_wrapped(local_params_map))
+        AST::Dict(Dict::new_wrapped(local_params_map))
     }
 }
 
@@ -120,13 +120,13 @@ where
     /// dict task val (in the future more stuff could be added here)
     pub fn is_compressible(&self) -> bool {
         match &self.task_val {
-            ArgType::Subscript(_) => true,
+            AST::Subscript(_) => true,
             _ => false,
         }
     }
-    fn get_left_of_task_val(&self) -> Result<ArgType, String> {
+    fn get_left_of_task_val(&self) -> Result<AST, String> {
         match &self.task_val {
-            ArgType::Subscript(x) => {
+            AST::Subscript(x) => {
                 let rw = x.read().unwrap();
                 Ok(rw.a().clone())
             }
@@ -135,10 +135,10 @@ where
     }
     fn get_right_of_task_val(&self) -> Result<String, String> {
         match &self.task_val {
-            ArgType::Subscript(x) => {
+            AST::Subscript(x) => {
                 let rw = x.read().unwrap();
                 match &rw.b() {
-                    ArgType::StringLiteral(l) => Ok(l.read().unwrap().value().clone()),
+                    AST::StringLiteral(l) => Ok(l.read().unwrap().value().clone()),
                     _ => Err("Right of subscript must be a string
                     literal"
                         .to_string()),
@@ -173,15 +173,15 @@ where
     fn get_dialect(&self) -> Option<Dialect> {
         self.dialect.clone()
     }
-    fn get_task_val(&self) -> ArgType {
+    fn get_task_val(&self) -> AST {
         self.task_val.clone()
     }
     pub fn new(
         task_id: String,
-        task_val: ArgType,
+        task_val: AST,
         call: Option<String>,
         params: Option<ParameterTuple>,
-        dependencies: Vec<ArgType>,
+        dependencies: Vec<AST>,
         preamble: Option<String>,
         dialect: Option<Dialect>,
     ) -> Self {
@@ -207,14 +207,14 @@ where
             kwargs = LinkedHashMap::new();
         }
         let singleton = T::new(
-            ArgType::StringLiteral(StringLiteral::new_wrapped(self.task_id.clone())),
+            AST::StringLiteral(StringLiteral::new_wrapped(self.task_id.clone())),
             self.get_task_val(),
             self.call.clone(),
             args,
             kwargs,
             match self.dependencies.len() {
                 0 => None,
-                _ => Some(ArgType::List(List::new_wrapped(
+                _ => Some(AST::List(List::new_wrapped(
                     self.dependencies.clone(),
                     false,
                 ))),
@@ -235,7 +235,7 @@ pub struct ForLoopETLTask<T>
 where
     T: ETLSingleton,
 {
-    params_dict_name: ArgType,
+    params_dict_name: AST,
     key: ETLTaskCompressionKey,
     values: Vec<ETLTaskUncompressiblePart<T>>,
     singleton_type: PhantomData<T>,
@@ -245,7 +245,7 @@ where
     T: ETLSingleton,
 {
     pub fn new(
-        params_dict_name: ArgType,
+        params_dict_name: AST,
         key: ETLTaskCompressionKey,
         values: Vec<ETLTaskUncompressiblePart<T>>,
     ) -> Self {
@@ -269,7 +269,7 @@ where
             .filter(|x| x.deps.len() > 1)
             .next()
             .is_some();
-        let dict_content = ArgType::Dict(Dict::new_wrapped(
+        let dict_content = AST::Dict(Dict::new_wrapped(
             self.values
                 .iter()
                 .map(|x| (x.dict.clone(), x.as_python_dict(dependencies_as_list)))
@@ -277,15 +277,15 @@ where
         ));
         let dict_assign = AoristStatement::Assign(self.params_dict_name.clone(), dict_content);
 
-        let params = ArgType::SimpleIdentifier(SimpleIdentifier::new_wrapped("params".to_string()));
-        let ident = ArgType::SimpleIdentifier(SimpleIdentifier::new_wrapped("t".to_string()));
-        let tpl = ArgType::Tuple(Tuple::new_wrapped(
+        let params = AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("params".to_string()));
+        let ident = AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("t".to_string()));
+        let tpl = AST::Tuple(Tuple::new_wrapped(
             vec![ident.clone(), params.clone()],
             false,
         ));
         let (dict, call, params_dedup_key, preamble, dialect) = self.key.clone();
         let new_collector =
-            ArgType::Subscript(Subscript::new_wrapped(dict.clone(), ident.clone(), false));
+            AST::Subscript(Subscript::new_wrapped(dict.clone(), ident.clone(), false));
         let kwargs;
         let args;
         if let Some((num_args, kwarg_keys)) = params_dedup_key {
@@ -294,9 +294,9 @@ where
                 .map(|x| {
                     (
                         x.clone(),
-                        ArgType::Subscript(Subscript::new_wrapped(
+                        AST::Subscript(Subscript::new_wrapped(
                             params.clone(),
-                            ArgType::StringLiteral(StringLiteral::new_wrapped(x.to_string())),
+                            AST::StringLiteral(StringLiteral::new_wrapped(x.to_string())),
                             false,
                         )),
                     )
@@ -305,34 +305,34 @@ where
 
             args = (0..num_args)
                 .map(|x| {
-                    ArgType::Subscript(Subscript::new_wrapped(
-                        ArgType::Subscript(Subscript::new_wrapped(
+                    AST::Subscript(Subscript::new_wrapped(
+                        AST::Subscript(Subscript::new_wrapped(
                             params.clone(),
-                            ArgType::StringLiteral(StringLiteral::new_wrapped("args".to_string())),
+                            AST::StringLiteral(StringLiteral::new_wrapped("args".to_string())),
                             false,
                         )),
-                        ArgType::StringLiteral(StringLiteral::new_wrapped(
+                        AST::StringLiteral(StringLiteral::new_wrapped(
                             format!("{}", x).to_string(),
                         )),
                         false,
                     ))
                 })
-                .collect::<Vec<ArgType>>();
+                .collect::<Vec<AST>>();
         } else {
             kwargs = LinkedHashMap::new();
             args = Vec::new();
         }
         let dependencies = match any_dependencies {
-            true => Some(ArgType::Subscript(Subscript::new_wrapped(
+            true => Some(AST::Subscript(Subscript::new_wrapped(
                 params.clone(),
-                ArgType::StringLiteral(StringLiteral::new_wrapped("dependencies".to_string())),
+                AST::StringLiteral(StringLiteral::new_wrapped("dependencies".to_string())),
                 false,
             ))),
             false => None,
         };
-        let task_id = ArgType::Subscript(Subscript::new_wrapped(
+        let task_id = AST::Subscript(Subscript::new_wrapped(
             params.clone(),
-            ArgType::StringLiteral(StringLiteral::new_wrapped("task_id".to_string())),
+            AST::StringLiteral(StringLiteral::new_wrapped("task_id".to_string())),
             false,
         ));
 
@@ -347,8 +347,8 @@ where
             dialect.clone(),
         );
         let statements = singleton.get_statements();
-        let items_call = ArgType::Call(Call::new_wrapped(
-            ArgType::Attribute(Attribute::new_wrapped(
+        let items_call = AST::Call(Call::new_wrapped(
+            AST::Attribute(Attribute::new_wrapped(
                 self.params_dict_name.clone(),
                 "items".to_string(),
                 false,

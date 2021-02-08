@@ -1,6 +1,6 @@
 use crate::etl_singleton::{ETLSingleton, ETLDAG};
 use crate::python::{
-    AoristStatement, ArgType, Attribute, BigIntLiteral, BooleanLiteral, Call, Dict, Formatted,
+    AoristStatement, AST, Attribute, BigIntLiteral, BooleanLiteral, Call, Dict, Formatted,
     Import, List, PythonNone, SimpleIdentifier, StringLiteral,
 };
 use aorist_primitives::Dialect;
@@ -11,12 +11,12 @@ use pyo3::types::PyModule;
 
 #[derive(Clone, Hash, PartialEq, Eq)]
 pub struct AirflowSingleton {
-    task_id: ArgType,
-    task_val: ArgType,
+    task_id: AST,
+    task_val: AST,
     command: Option<String>,
-    args: Vec<ArgType>,
-    kwargs: LinkedHashMap<String, ArgType>,
-    dep_list: Option<ArgType>,
+    args: Vec<AST>,
+    kwargs: LinkedHashMap<String, AST>,
+    dep_list: Option<AST>,
     preamble: Option<String>,
     dialect: Option<Dialect>,
 }
@@ -52,11 +52,11 @@ impl ETLSingleton for AirflowSingleton {
     fn get_dialect(&self) -> Option<Dialect> {
         self.dialect.clone()
     }
-    fn get_task_val(&self) -> ArgType {
+    fn get_task_val(&self) -> AST {
         self.task_val.clone()
     }
     fn get_statements(&self) -> Vec<AoristStatement> {
-        let creation_expr = ArgType::Call(Call::new_wrapped(
+        let creation_expr = AST::Call(Call::new_wrapped(
             self.compute_task_call(),
             self.compute_task_args(),
             self.compute_task_kwargs(),
@@ -66,9 +66,9 @@ impl ETLSingleton for AirflowSingleton {
             creation_expr,
         )];
         if let Some(ref dependencies) = self.dep_list {
-            statements.push(AoristStatement::Expression(ArgType::Call(
+            statements.push(AoristStatement::Expression(AST::Call(
                 Call::new_wrapped(
-                    ArgType::Attribute(Attribute::new_wrapped(
+                    AST::Attribute(Attribute::new_wrapped(
                         self.get_task_val(),
                         "set_upstream".to_string(),
                         false,
@@ -81,12 +81,12 @@ impl ETLSingleton for AirflowSingleton {
         statements
     }
     fn new(
-        task_id: ArgType,
-        task_val: ArgType,
+        task_id: AST,
+        task_val: AST,
         call: Option<String>,
-        args: Vec<ArgType>,
-        kwargs: LinkedHashMap<String, ArgType>,
-        dep_list: Option<ArgType>,
+        args: Vec<AST>,
+        kwargs: LinkedHashMap<String, AST>,
+        dep_list: Option<AST>,
         preamble: Option<String>,
         dialect: Option<Dialect>,
     ) -> Self {
@@ -101,13 +101,13 @@ impl ETLSingleton for AirflowSingleton {
             dialect,
         }
     }
-    fn compute_task_args(&self) -> Vec<ArgType> {
+    fn compute_task_args(&self) -> Vec<AST> {
         Vec::new()
     }
     fn get_type() -> String {
         "airflow".to_string()
     }
-    fn compute_task_kwargs(&self) -> LinkedHashMap<String, ArgType> {
+    fn compute_task_kwargs(&self) -> LinkedHashMap<String, AST> {
         let mut kwargs;
         if self.dialect.is_none() {
             kwargs = self.kwargs.clone();
@@ -119,11 +119,11 @@ impl ETLSingleton for AirflowSingleton {
                 _ => panic!("Dialect not supported"),
             };
             let call_param_value = match self.dialect {
-                Some(Dialect::Python(_)) => ArgType::SimpleIdentifier(
+                Some(Dialect::Python(_)) => AST::SimpleIdentifier(
                     SimpleIdentifier::new_wrapped(self.command.as_ref().unwrap().clone()),
                 ),
-                Some(Dialect::Bash(_)) => ArgType::Formatted(Formatted::new_wrapped(
-                    ArgType::StringLiteral(StringLiteral::new_wrapped(
+                Some(Dialect::Bash(_)) => AST::Formatted(Formatted::new_wrapped(
+                    AST::StringLiteral(StringLiteral::new_wrapped(
                         self.command.as_ref().unwrap().clone(),
                     )),
                     self.kwargs.clone(),
@@ -132,16 +132,16 @@ impl ETLSingleton for AirflowSingleton {
                     let mut fmt_args = LinkedHashMap::new();
                     fmt_args.insert(
                         "query".to_string(),
-                        ArgType::Formatted(Formatted::new_wrapped(
-                            ArgType::StringLiteral(StringLiteral::new_wrapped(
+                        AST::Formatted(Formatted::new_wrapped(
+                            AST::StringLiteral(StringLiteral::new_wrapped(
                                 self.command.as_ref().unwrap().clone(),
                             )),
                             self.kwargs.clone(),
                         )),
                     );
 
-                    ArgType::Formatted(Formatted::new_wrapped(
-                        ArgType::StringLiteral(StringLiteral::new_wrapped(
+                    AST::Formatted(Formatted::new_wrapped(
+                        AST::StringLiteral(StringLiteral::new_wrapped(
                             "presto -e \"{query}\"".to_string(),
                         )),
                         fmt_args,
@@ -154,30 +154,30 @@ impl ETLSingleton for AirflowSingleton {
                 if self.kwargs.len() > 0 {
                     kwargs.insert(
                         "op_kwargs".to_string(),
-                        ArgType::Dict(Dict::new_wrapped(self.kwargs.clone())),
+                        AST::Dict(Dict::new_wrapped(self.kwargs.clone())),
                     );
                 }
             }
         }
         kwargs.insert(
             "dag".to_string(),
-            ArgType::SimpleIdentifier(SimpleIdentifier::new_wrapped("dag".to_string())),
+            AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("dag".to_string())),
         );
         kwargs.insert("task_id".to_string(), self.task_id.clone());
         kwargs
     }
-    fn compute_task_call(&self) -> ArgType {
+    fn compute_task_call(&self) -> AST {
         match self.dialect {
-            Some(Dialect::Python(_)) => Ok(ArgType::SimpleIdentifier(
+            Some(Dialect::Python(_)) => Ok(AST::SimpleIdentifier(
                 SimpleIdentifier::new_wrapped("PythonOperator".to_string()),
             )),
-            Some(Dialect::Bash(_)) => Ok(ArgType::SimpleIdentifier(SimpleIdentifier::new_wrapped(
+            Some(Dialect::Bash(_)) => Ok(AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
                 "BashOperator".to_string(),
             ))),
-            Some(Dialect::Presto(_)) => Ok(ArgType::SimpleIdentifier(
+            Some(Dialect::Presto(_)) => Ok(AST::SimpleIdentifier(
                 SimpleIdentifier::new_wrapped("BashOperator".to_string()),
             )),
-            None => Ok(ArgType::SimpleIdentifier(SimpleIdentifier::new_wrapped(
+            None => Ok(AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
                 "DummyOperator".to_string(),
             ))),
             _ => Err("Dialect not supported".to_string()),
@@ -201,20 +201,20 @@ impl ETLDAG for AirflowDAG {
         ast_module: &'a PyModule,
     ) -> Vec<&'a PyAny> {
         let default_args =
-            ArgType::SimpleIdentifier(SimpleIdentifier::new_wrapped("default_args".to_string()));
-        let mut default_args_map: LinkedHashMap<String, ArgType> = LinkedHashMap::new();
+            AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("default_args".to_string()));
+        let mut default_args_map: LinkedHashMap<String, AST> = LinkedHashMap::new();
         default_args_map.insert(
             "owner".to_string(),
-            ArgType::StringLiteral(StringLiteral::new_wrapped("airflow".to_string())),
+            AST::StringLiteral(StringLiteral::new_wrapped("airflow".to_string())),
         );
         default_args_map.insert(
             "depends_on_past".to_string(),
-            ArgType::BooleanLiteral(BooleanLiteral::new_wrapped(false)),
+            AST::BooleanLiteral(BooleanLiteral::new_wrapped(false)),
         );
         default_args_map.insert(
             "email".to_string(),
-            ArgType::List(List::new_wrapped(
-                vec![ArgType::StringLiteral(StringLiteral::new_wrapped(
+            AST::List(List::new_wrapped(
+                vec![AST::StringLiteral(StringLiteral::new_wrapped(
                     "airflow@example.com".to_string(),
                 ))],
                 false,
@@ -222,25 +222,25 @@ impl ETLDAG for AirflowDAG {
         );
         default_args_map.insert(
             "email_on_failure".to_string(),
-            ArgType::BooleanLiteral(BooleanLiteral::new_wrapped(false)),
+            AST::BooleanLiteral(BooleanLiteral::new_wrapped(false)),
         );
         default_args_map.insert(
             "email_on_retry".to_string(),
-            ArgType::BooleanLiteral(BooleanLiteral::new_wrapped(false)),
+            AST::BooleanLiteral(BooleanLiteral::new_wrapped(false)),
         );
         default_args_map.insert(
             "retries".to_string(),
-            ArgType::BigIntLiteral(BigIntLiteral::new_wrapped(BigInt::new(Sign::Plus, vec![1]))),
+            AST::BigIntLiteral(BigIntLiteral::new_wrapped(BigInt::new(Sign::Plus, vec![1]))),
         );
         default_args_map.insert(
             "retry_delay".to_string(),
-            ArgType::BigIntLiteral(BigIntLiteral::new_wrapped(BigInt::new(
+            AST::BigIntLiteral(BigIntLiteral::new_wrapped(BigInt::new(
                 Sign::Plus,
                 vec![300],
             ))),
         );
 
-        let default_args_dict = ArgType::Dict(Dict::new_wrapped(default_args_map));
+        let default_args_dict = AST::Dict(Dict::new_wrapped(default_args_map));
         let default_args_assign = AoristStatement::Assign(default_args.clone(), default_args_dict);
         statements.insert(
             0,
@@ -249,34 +249,34 @@ impl ETLDAG for AirflowDAG {
                 .unwrap(),
         );
 
-        let dag = ArgType::SimpleIdentifier(SimpleIdentifier::new_wrapped("dag".to_string()));
+        let dag = AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("dag".to_string()));
 
-        let mut kwargs: LinkedHashMap<String, ArgType> = LinkedHashMap::new();
+        let mut kwargs: LinkedHashMap<String, AST> = LinkedHashMap::new();
         kwargs.insert("default_args".to_string(), default_args);
         kwargs.insert(
             "description".to_string(),
-            ArgType::StringLiteral(StringLiteral::new_wrapped(
+            AST::StringLiteral(StringLiteral::new_wrapped(
                 "Auto-generated by Aorist".to_string(),
             )),
         );
         kwargs.insert(
             "schedule_interval".to_string(),
-            ArgType::PythonNone(PythonNone::new_wrapped()),
+            AST::PythonNone(PythonNone::new_wrapped()),
         );
         kwargs.insert(
             "start_date".to_string(),
-            ArgType::Call(Call::new_wrapped(
-                ArgType::SimpleIdentifier(SimpleIdentifier::new_wrapped("datetime".to_string())),
+            AST::Call(Call::new_wrapped(
+                AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("datetime".to_string())),
                 vec![
-                    ArgType::BigIntLiteral(BigIntLiteral::new_wrapped(BigInt::new(
+                    AST::BigIntLiteral(BigIntLiteral::new_wrapped(BigInt::new(
                         Sign::Plus,
                         vec![2021],
                     ))),
-                    ArgType::BigIntLiteral(BigIntLiteral::new_wrapped(BigInt::new(
+                    AST::BigIntLiteral(BigIntLiteral::new_wrapped(BigInt::new(
                         Sign::Plus,
                         vec![01],
                     ))),
-                    ArgType::BigIntLiteral(BigIntLiteral::new_wrapped(BigInt::new(
+                    AST::BigIntLiteral(BigIntLiteral::new_wrapped(BigInt::new(
                         Sign::Plus,
                         vec![01],
                     ))),
@@ -286,16 +286,16 @@ impl ETLDAG for AirflowDAG {
         );
         kwargs.insert(
             "tags".to_string(),
-            ArgType::List(List::new_wrapped(
-                vec![ArgType::StringLiteral(StringLiteral::new_wrapped(
+            AST::List(List::new_wrapped(
+                vec![AST::StringLiteral(StringLiteral::new_wrapped(
                     "aorist".to_string(),
                 ))],
                 false,
             )),
         );
-        let dag_call = ArgType::Call(Call::new_wrapped(
-            ArgType::SimpleIdentifier(SimpleIdentifier::new_wrapped("DAG".to_string())),
-            vec![ArgType::StringLiteral(StringLiteral::new_wrapped(
+        let dag_call = AST::Call(Call::new_wrapped(
+            AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("DAG".to_string())),
+            vec![AST::StringLiteral(StringLiteral::new_wrapped(
                 "flow".to_string(),
             ))],
             kwargs,

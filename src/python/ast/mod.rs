@@ -42,7 +42,7 @@ define_ast_node!(
         let children_list = PyList::new(py, children);
         ast_module.call1("List", (children_list.as_ref(), mode))
     },
-    elems: Vec<ArgType>,
+    elems: Vec<AST>,
     store: bool,
 );
 impl TAssignmentTarget for List {
@@ -58,7 +58,7 @@ impl TAssignmentTarget for List {
 
 define_ast_node!(
     Dict,
-    |dict: &Dict| dict.elems().values().cloned().collect::<Vec<ArgType>>(),
+    |dict: &Dict| dict.elems().values().cloned().collect::<Vec<AST>>(),
     |dict: &Dict, py: Python, ast_module: &'a PyModule| {
         let keys = dict
             .elems
@@ -78,11 +78,11 @@ define_ast_node!(
         let values_list = PyList::new(py, values);
         ast_module.call1("Dict", (keys_list.as_ref(), values_list.as_ref()))
     },
-    elems: LinkedHashMap<String, ArgType>,
+    elems: LinkedHashMap<String, AST>,
 );
 define_ast_node!(
     Tuple,
-    |tuple: &Tuple| tuple.elems().iter().cloned().collect::<Vec<ArgType>>(),
+    |tuple: &Tuple| tuple.elems().iter().cloned().collect::<Vec<AST>>(),
     |tuple: &Tuple, py: Python, ast_module: &'a PyModule| {
         let mode = ast_module
             .call0(match tuple.store {
@@ -98,7 +98,7 @@ define_ast_node!(
         let children_list = PyList::new(py, children);
         ast_module.call1("Tuple", (children_list.as_ref(), mode))
     },
-    elems: Vec<ArgType>,
+    elems: Vec<AST>,
     store: bool,
 );
 impl TAssignmentTarget for Tuple {
@@ -126,7 +126,7 @@ define_ast_node!(
         let name_ast = PyString::new(py, &attribute.name);
         ast_module.call1("Attribute", (val_ast, name_ast.as_ref(), mode))
     },
-    value: ArgType,
+    value: AST,
     name: String,
     store: bool,
 );
@@ -181,9 +181,9 @@ define_ast_node!(
         let function = call.function.to_python_ast_node(py, ast_module)?;
         ast_module.call1("Call", (function, args, kwargs))
     },
-    function: ArgType,
-    args: Vec<ArgType>,
-    keywords: LinkedHashMap<String, ArgType>,
+    function: AST,
+    args: Vec<AST>,
+    keywords: LinkedHashMap<String, AST>,
 );
 
 define_ast_node!(
@@ -231,8 +231,8 @@ define_ast_node!(
             ),
         )
     },
-    fmt: ArgType,
-    keywords: LinkedHashMap<String, ArgType>,
+    fmt: AST,
+    keywords: LinkedHashMap<String, AST>,
 );
 define_ast_node!(
     Subscript,
@@ -249,8 +249,8 @@ define_ast_node!(
         let value = subscript.a.to_python_ast_node(py, ast_module)?;
         ast_module.call1("Subscript", (value, idx, mode))
     },
-    a: ArgType,
-    b: ArgType,
+    a: AST,
+    b: AST,
     store: bool,
 );
 impl TAssignmentTarget for Subscript {
@@ -302,7 +302,7 @@ define_ast_node!(
 );
 
 register_ast_nodes!(
-    ArgType,
+    AST,
     StringLiteral,
     SimpleIdentifier,
     Subscript,
@@ -316,33 +316,33 @@ register_ast_nodes!(
     BigIntLiteral,
     PythonNone,
 );
-impl PartialEq for ArgType {
+impl PartialEq for AST {
     fn eq(&self, other: &Self) -> bool {
         match (&self, other) {
-            (ArgType::StringLiteral(v1), ArgType::StringLiteral(v2)) => {
+            (AST::StringLiteral(v1), AST::StringLiteral(v2)) => {
                 v1.read().unwrap().eq(&v2.read().unwrap())
             }
-            (ArgType::SimpleIdentifier(v1), ArgType::SimpleIdentifier(v2)) => {
+            (AST::SimpleIdentifier(v1), AST::SimpleIdentifier(v2)) => {
                 v1.read().unwrap().eq(&v2.read().unwrap())
             }
-            (ArgType::Subscript(v1), ArgType::Subscript(v2)) => {
+            (AST::Subscript(v1), AST::Subscript(v2)) => {
                 v1.read().unwrap().eq(&v2.read().unwrap())
             }
-            (ArgType::Formatted(v1), ArgType::Formatted(v2)) => {
+            (AST::Formatted(v1), AST::Formatted(v2)) => {
                 v1.read().unwrap().eq(&v2.read().unwrap())
             }
-            (ArgType::Call(v1), ArgType::Call(v2)) => v1.read().unwrap().eq(&v2.read().unwrap()),
-            (ArgType::Attribute(v1), ArgType::Attribute(v2)) => {
+            (AST::Call(v1), AST::Call(v2)) => v1.read().unwrap().eq(&v2.read().unwrap()),
+            (AST::Attribute(v1), AST::Attribute(v2)) => {
                 v1.read().unwrap().eq(&v2.read().unwrap())
             }
-            (ArgType::List(v1), ArgType::List(v2)) => v1.read().unwrap().eq(&v2.read().unwrap()),
-            (ArgType::Dict(v1), ArgType::Dict(v2)) => v1.read().unwrap().eq(&v2.read().unwrap()),
-            (ArgType::Tuple(v1), ArgType::Tuple(v2)) => v1.read().unwrap().eq(&v2.read().unwrap()),
-            (ArgType::BooleanLiteral(v1), ArgType::BooleanLiteral(v2)) => {
+            (AST::List(v1), AST::List(v2)) => v1.read().unwrap().eq(&v2.read().unwrap()),
+            (AST::Dict(v1), AST::Dict(v2)) => v1.read().unwrap().eq(&v2.read().unwrap()),
+            (AST::Tuple(v1), AST::Tuple(v2)) => v1.read().unwrap().eq(&v2.read().unwrap()),
+            (AST::BooleanLiteral(v1), AST::BooleanLiteral(v2)) => {
                 v1.read().unwrap().eq(&v2.read().unwrap())
             }
-            (ArgType::PythonNone(_), ArgType::PythonNone(_)) => true,
-            (ArgType::BigIntLiteral(v1), ArgType::BigIntLiteral(v2)) => {
+            (AST::PythonNone(_), AST::PythonNone(_)) => true,
+            (AST::BigIntLiteral(v1), AST::BigIntLiteral(v2)) => {
                 v1.read().unwrap().eq(&v2.read().unwrap())
             }
             _ => {
@@ -354,22 +354,22 @@ impl PartialEq for ArgType {
         }
     }
 }
-impl Eq for ArgType {}
-impl Hash for ArgType {
+impl Eq for AST {}
+impl Hash for AST {
     fn hash<H: Hasher>(&self, state: &mut H) {
         match &self {
-            ArgType::StringLiteral(v) => v.read().unwrap().hash(state),
-            ArgType::SimpleIdentifier(ref x) => x.read().unwrap().hash(state),
-            ArgType::Subscript(ref x) => x.read().unwrap().hash(state),
-            ArgType::Formatted(ref x) => x.read().unwrap().hash(state),
-            ArgType::Call(ref x) => x.read().unwrap().hash(state),
-            ArgType::Attribute(ref attr) => attr.read().unwrap().hash(state),
-            ArgType::List(ref list) => list.read().unwrap().hash(state),
-            ArgType::Dict(ref dict) => dict.read().unwrap().hash(state),
-            ArgType::Tuple(ref tuple) => tuple.read().unwrap().hash(state),
-            ArgType::BooleanLiteral(ref l) => l.read().unwrap().hash(state),
-            ArgType::BigIntLiteral(ref l) => l.read().unwrap().hash(state),
-            ArgType::PythonNone(ref l) => l.read().unwrap().hash(state),
+            AST::StringLiteral(v) => v.read().unwrap().hash(state),
+            AST::SimpleIdentifier(ref x) => x.read().unwrap().hash(state),
+            AST::Subscript(ref x) => x.read().unwrap().hash(state),
+            AST::Formatted(ref x) => x.read().unwrap().hash(state),
+            AST::Call(ref x) => x.read().unwrap().hash(state),
+            AST::Attribute(ref attr) => attr.read().unwrap().hash(state),
+            AST::List(ref list) => list.read().unwrap().hash(state),
+            AST::Dict(ref dict) => dict.read().unwrap().hash(state),
+            AST::Tuple(ref tuple) => tuple.read().unwrap().hash(state),
+            AST::BooleanLiteral(ref l) => l.read().unwrap().hash(state),
+            AST::BigIntLiteral(ref l) => l.read().unwrap().hash(state),
+            AST::PythonNone(ref l) => l.read().unwrap().hash(state),
         }
     }
 }
@@ -523,9 +523,9 @@ impl Import {
 
 #[derive(Clone, Hash, PartialEq, Eq)]
 pub enum AoristStatement {
-    Assign(ArgType, ArgType),
-    Expression(ArgType),
-    For(ArgType, ArgType, Vec<AoristStatement>),
+    Assign(AST, AST),
+    Expression(AST),
+    For(AST, AST, Vec<AoristStatement>),
     Import(Import),
 }
 impl AoristStatement {
@@ -537,19 +537,19 @@ impl AoristStatement {
         match &self {
             Self::Assign(ref target, ref call) => {
                 let assign_target = match target {
-                    ArgType::Subscript(ref x) => {
-                        ArgType::Subscript(x.read().unwrap().as_wrapped_assignment_target())
+                    AST::Subscript(ref x) => {
+                        AST::Subscript(x.read().unwrap().as_wrapped_assignment_target())
                     }
-                    ArgType::Attribute(ref x) => {
-                        ArgType::Attribute(x.read().unwrap().as_wrapped_assignment_target())
+                    AST::Attribute(ref x) => {
+                        AST::Attribute(x.read().unwrap().as_wrapped_assignment_target())
                     }
-                    ArgType::List(ref x) => {
-                        ArgType::List(x.read().unwrap().as_wrapped_assignment_target())
+                    AST::List(ref x) => {
+                        AST::List(x.read().unwrap().as_wrapped_assignment_target())
                     }
-                    ArgType::Tuple(ref x) => {
-                        ArgType::Tuple(x.read().unwrap().as_wrapped_assignment_target())
+                    AST::Tuple(ref x) => {
+                        AST::Tuple(x.read().unwrap().as_wrapped_assignment_target())
                     }
-                    ArgType::SimpleIdentifier(_) => target.clone(),
+                    AST::SimpleIdentifier(_) => target.clone(),
                     _ => panic!("Assignment target not supported."),
                 };
                 let targets =
@@ -587,16 +587,16 @@ impl AoristStatement {
 
 #[derive(Clone, PartialEq, Eq, Hash)]
 pub struct ParameterTuple {
-    args: Vec<ArgType>,
-    kwargs: LinkedHashMap<String, ArgType>,
+    args: Vec<AST>,
+    kwargs: LinkedHashMap<String, AST>,
 }
 pub type ParameterTupleDedupKey = (usize, Vec<String>);
 impl ParameterTuple {
-    pub fn populate_python_dict(&self, dict: &mut LinkedHashMap<String, ArgType>) {
+    pub fn populate_python_dict(&self, dict: &mut LinkedHashMap<String, AST>) {
         if self.args.len() > 0 {
             dict.insert(
                 "args".to_string(),
-                ArgType::List(List::new_wrapped(self.args.clone(), false)),
+                AST::List(List::new_wrapped(self.args.clone(), false)),
             );
         }
         for (key, val) in &self.kwargs {
@@ -616,7 +616,7 @@ impl ParameterTuple {
         let mut args = args_v
             .into_iter()
             .map(|x| {
-                ArgType::StringLiteral(
+                AST::StringLiteral(
                     write
                         .entry(x.clone())
                         .or_insert(StringLiteral::new_wrapped(x))
@@ -629,7 +629,7 @@ impl ParameterTuple {
             .map(|(k, v)| {
                 (
                     k,
-                    ArgType::StringLiteral(
+                    AST::StringLiteral(
                         write
                             .entry(v.clone())
                             .or_insert(StringLiteral::new_wrapped(v))
@@ -646,10 +646,10 @@ impl ParameterTuple {
         }
         Self { args, kwargs }
     }
-    pub fn get_args(&self) -> Vec<ArgType> {
+    pub fn get_args(&self) -> Vec<AST> {
         self.args.clone()
     }
-    pub fn get_kwargs(&self) -> LinkedHashMap<String, ArgType> {
+    pub fn get_kwargs(&self) -> LinkedHashMap<String, AST> {
         self.kwargs.clone()
     }
     pub fn get_args_format_string(&self) -> String {
@@ -665,7 +665,7 @@ impl ParameterTuple {
         }
         for (k, arg) in &self.kwargs {
             let fmt: String = format!("{{{}}}", k).to_string();
-            if let ArgType::StringLiteral(v) = arg {
+            if let AST::StringLiteral(v) = arg {
                 call = call.replace(&fmt, &v.read().unwrap().value());
             }
         }

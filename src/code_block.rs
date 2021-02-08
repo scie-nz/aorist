@@ -2,7 +2,7 @@ use crate::constraint_state::ConstraintState;
 use crate::etl_singleton::ETLSingleton;
 use crate::etl_task::{ETLTask, ForLoopETLTask, StandaloneETLTask};
 use crate::python::PythonStatementInput;
-use crate::python::{ArgType, Import, ParameterTuple, SimpleIdentifier, StringLiteral, Subscript};
+use crate::python::{AST, Import, ParameterTuple, SimpleIdentifier, StringLiteral, Subscript};
 use aorist_primitives::Dialect;
 use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
@@ -59,18 +59,18 @@ where
             let name = write.get_task_name();
             // TODO: magic number
             if num_constraints <= 2 {
-                write.set_task_val(ArgType::SimpleIdentifier(SimpleIdentifier::new_wrapped(
+                write.set_task_val(AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
                     name,
                 )));
             } else {
                 let shorter_name =
                     name.replace(&format!("{}__", self.get_constraint_name()).to_string(), "");
 
-                write.set_task_val(ArgType::Subscript(Subscript::new_wrapped(
-                    ArgType::SimpleIdentifier(SimpleIdentifier::new_wrapped(
+                write.set_task_val(AST::Subscript(Subscript::new_wrapped(
+                    AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
                         format!("tasks_{}", self.get_constraint_name()).to_string(),
                     )),
-                    ArgType::StringLiteral(StringLiteral::new_wrapped(shorter_name)),
+                    AST::StringLiteral(StringLiteral::new_wrapped(shorter_name)),
                     false,
                 )));
             }
@@ -110,7 +110,7 @@ where
         for (compression_key, tasks) in compressible.into_iter() {
             // TODO: this is a magic number
             if tasks.len() > 2 {
-                let params_constraint = ArgType::SimpleIdentifier(SimpleIdentifier::new_wrapped(
+                let params_constraint = AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
                     match num_compression_tasks {
                         0 => format!("params_{}", self.get_constraint_name()).to_string(),
                         _ => format!(

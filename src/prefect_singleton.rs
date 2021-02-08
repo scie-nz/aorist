@@ -1,6 +1,6 @@
 use crate::etl_singleton::{ETLSingleton, ETLDAG};
 use crate::python::{
-    AoristStatement, ArgType, Attribute, Call, Formatted, Import, SimpleIdentifier, StringLiteral,
+    AoristStatement, AST, Attribute, Call, Formatted, Import, SimpleIdentifier, StringLiteral,
 };
 use aorist_primitives::Dialect;
 use linked_hash_map::LinkedHashMap;
@@ -9,15 +9,15 @@ use pyo3::types::PyModule;
 
 #[derive(Clone, Hash, PartialEq, Eq)]
 pub struct PrefectSingleton {
-    task_id: ArgType,
-    task_val: ArgType,
+    task_id: AST,
+    task_val: AST,
     command: Option<String>,
-    args: Vec<ArgType>,
-    kwargs: LinkedHashMap<String, ArgType>,
-    dep_list: Option<ArgType>,
+    args: Vec<AST>,
+    kwargs: LinkedHashMap<String, AST>,
+    dep_list: Option<AST>,
     preamble: Option<String>,
     dialect: Option<Dialect>,
-    flow_identifier: ArgType,
+    flow_identifier: AST,
 }
 impl ETLSingleton for PrefectSingleton {
     fn get_imports(&self) -> Vec<Import> {
@@ -51,11 +51,11 @@ impl ETLSingleton for PrefectSingleton {
     fn get_dialect(&self) -> Option<Dialect> {
         self.dialect.clone()
     }
-    fn get_task_val(&self) -> ArgType {
+    fn get_task_val(&self) -> AST {
         self.task_val.clone()
     }
     fn get_statements(&self) -> Vec<AoristStatement> {
-        let creation_expr = ArgType::Call(Call::new_wrapped(
+        let creation_expr = AST::Call(Call::new_wrapped(
             self.compute_task_call(),
             self.compute_task_args(),
             self.compute_task_kwargs(),
@@ -69,12 +69,12 @@ impl ETLSingleton for PrefectSingleton {
         stmts
     }
     fn new(
-        task_id: ArgType,
-        task_val: ArgType,
+        task_id: AST,
+        task_val: AST,
         call: Option<String>,
-        args: Vec<ArgType>,
-        kwargs: LinkedHashMap<String, ArgType>,
-        dep_list: Option<ArgType>,
+        args: Vec<AST>,
+        kwargs: LinkedHashMap<String, AST>,
+        dep_list: Option<AST>,
         preamble: Option<String>,
         dialect: Option<Dialect>,
     ) -> Self {
@@ -87,18 +87,18 @@ impl ETLSingleton for PrefectSingleton {
             dep_list,
             preamble,
             dialect,
-            flow_identifier: ArgType::SimpleIdentifier(SimpleIdentifier::new_wrapped(
+            flow_identifier: AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
                 "flow".to_string(),
             )),
         }
     }
-    fn compute_task_args(&self) -> Vec<ArgType> {
+    fn compute_task_args(&self) -> Vec<AST> {
         if let Some(Dialect::Python(_)) = self.dialect {
             return self.args.clone();
         }
         Vec::new()
     }
-    fn compute_task_kwargs(&self) -> LinkedHashMap<String, ArgType> {
+    fn compute_task_kwargs(&self) -> LinkedHashMap<String, AST> {
         if self.dialect.is_none() {
             return self.kwargs.clone();
         }
@@ -111,14 +111,14 @@ impl ETLSingleton for PrefectSingleton {
             _ => panic!("Dialect not supported"),
         };
         let call_param_value = match self.dialect {
-            Some(Dialect::Bash(_)) => ArgType::Formatted(Formatted::new_wrapped(
-                ArgType::StringLiteral(StringLiteral::new_wrapped(
+            Some(Dialect::Bash(_)) => AST::Formatted(Formatted::new_wrapped(
+                AST::StringLiteral(StringLiteral::new_wrapped(
                     self.command.as_ref().unwrap().clone(),
                 )),
                 self.kwargs.clone(),
             )),
-            Some(Dialect::Presto(_)) => ArgType::Formatted(Formatted::new_wrapped(
-                ArgType::StringLiteral(StringLiteral::new_wrapped(
+            Some(Dialect::Presto(_)) => AST::Formatted(Formatted::new_wrapped(
+                AST::StringLiteral(StringLiteral::new_wrapped(
                     format!("presto -e '{}'", self.command.as_ref().unwrap()).to_string(),
                 )),
                 self.kwargs.clone(),
@@ -128,15 +128,15 @@ impl ETLSingleton for PrefectSingleton {
         kwargs.insert(call_param_name, call_param_value);
         kwargs
     }
-    fn compute_task_call(&self) -> ArgType {
+    fn compute_task_call(&self) -> AST {
         match self.dialect {
-            Some(Dialect::Python(_)) => Ok(ArgType::SimpleIdentifier(
+            Some(Dialect::Python(_)) => Ok(AST::SimpleIdentifier(
                 SimpleIdentifier::new_wrapped(self.command.as_ref().unwrap().clone()),
             )),
-            Some(Dialect::Bash(_)) | Some(Dialect::Presto(_)) => Ok(ArgType::SimpleIdentifier(
+            Some(Dialect::Bash(_)) | Some(Dialect::Presto(_)) => Ok(AST::SimpleIdentifier(
                 SimpleIdentifier::new_wrapped("ShellTask".to_string()),
             )),
-            None => Ok(ArgType::SimpleIdentifier(SimpleIdentifier::new_wrapped(
+            None => Ok(AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
                 "Constant".to_string(),
             ))),
             _ => Err("Dialect not supported".to_string()),
@@ -148,17 +148,17 @@ impl ETLSingleton for PrefectSingleton {
     }
 }
 impl PrefectSingleton {
-    fn get_flow_identifier(&self) -> ArgType {
+    fn get_flow_identifier(&self) -> AST {
         self.flow_identifier.clone()
     }
 
-    fn get_flow_add_edge_statement(&self, dep: ArgType) -> AoristStatement {
-        let function = ArgType::Attribute(Attribute::new_wrapped(
+    fn get_flow_add_edge_statement(&self, dep: AST) -> AoristStatement {
+        let function = AST::Attribute(Attribute::new_wrapped(
             self.get_flow_identifier(),
             "add_edge".to_string(),
             false,
         ));
-        let add_expr = ArgType::Call(Call::new_wrapped(
+        let add_expr = AST::Call(Call::new_wrapped(
             function,
             vec![self.get_task_val(), dep],
             LinkedHashMap::new(),
@@ -168,9 +168,9 @@ impl PrefectSingleton {
     pub fn get_edge_addition_statements(&self) -> Vec<AoristStatement> {
         match self.dep_list {
             None => Vec::new(),
-            Some(ArgType::List(_)) => {
+            Some(AST::List(_)) => {
                 let target =
-                    ArgType::SimpleIdentifier(SimpleIdentifier::new_wrapped("dep".to_string()));
+                    AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("dep".to_string()));
                 let for_stmt = AoristStatement::For(
                     target.clone(),
                     self.dep_list.as_ref().unwrap().clone(),
@@ -186,12 +186,12 @@ impl PrefectSingleton {
         }
     }
     pub fn get_flow_node_addition(&self) -> AoristStatement {
-        let function = ArgType::Attribute(Attribute::new_wrapped(
+        let function = AST::Attribute(Attribute::new_wrapped(
             self.get_flow_identifier(),
             "add_node".to_string(),
             false,
         ));
-        let add_expr = ArgType::Call(Call::new_wrapped(
+        let add_expr = AST::Call(Call::new_wrapped(
             function,
             vec![self.get_task_val()],
             LinkedHashMap::new(),
@@ -200,13 +200,13 @@ impl PrefectSingleton {
     }
 }
 pub struct PrefectDAG {
-    flow_identifier: ArgType,
+    flow_identifier: AST,
 }
 impl ETLDAG for PrefectDAG {
     type T = PrefectSingleton;
     fn new() -> Self {
         Self {
-            flow_identifier: ArgType::SimpleIdentifier(SimpleIdentifier::new_wrapped(
+            flow_identifier: AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
                 "flow".to_string(),
             )),
         }
@@ -224,8 +224,8 @@ impl ETLDAG for PrefectDAG {
         statements
             .into_iter()
             .chain(
-                AoristStatement::Expression(ArgType::Call(Call::new_wrapped(
-                    ArgType::Attribute(Attribute::new_wrapped(
+                AoristStatement::Expression(AST::Call(Call::new_wrapped(
+                    AST::Attribute(Attribute::new_wrapped(
                         self.flow_identifier.clone(),
                         "run".into(),
                         false,

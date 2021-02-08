@@ -1,4 +1,4 @@
-use crate::python::{AoristStatement, ArgType, Import, Preamble, PythonStatementInput};
+use crate::python::{AoristStatement, AST, Import, Preamble, PythonStatementInput};
 use aorist_primitives::Dialect;
 use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
@@ -9,21 +9,21 @@ use std::collections::BTreeSet;
 pub trait ETLSingleton {
     fn get_preamble(&self) -> Vec<String>;
     fn get_dialect(&self) -> Option<Dialect>;
-    fn get_task_val(&self) -> ArgType;
+    fn get_task_val(&self) -> AST;
     fn new(
-        task_id: ArgType,
+        task_id: AST,
         // TODO: change this to optional dict
-        task_val: ArgType,
+        task_val: AST,
         call: Option<String>,
-        args: Vec<ArgType>,
-        kwargs: LinkedHashMap<String, ArgType>,
-        dep_list: Option<ArgType>,
+        args: Vec<AST>,
+        kwargs: LinkedHashMap<String, AST>,
+        dep_list: Option<AST>,
         preamble: Option<String>,
         dialect: Option<Dialect>,
     ) -> Self;
-    fn compute_task_call(&self) -> ArgType;
-    fn compute_task_args(&self) -> Vec<ArgType>;
-    fn compute_task_kwargs(&self) -> LinkedHashMap<String, ArgType>;
+    fn compute_task_call(&self) -> AST;
+    fn compute_task_args(&self) -> Vec<AST>;
+    fn compute_task_kwargs(&self) -> LinkedHashMap<String, AST>;
     fn get_statements(&self) -> Vec<AoristStatement>;
     fn get_type() -> String;
     fn get_imports(&self) -> Vec<Import>;
