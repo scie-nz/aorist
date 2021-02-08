@@ -60,7 +60,15 @@ define_ast_node!(
     Dict,
     |dict: &Dict| dict.elems().values().cloned().collect::<Vec<ArgType>>(),
     |dict: &Dict, py: Python, ast_module: &'a PyModule| {
-        let keys = dict.elems.keys().map(|x| x.clone()).collect::<Vec<_>>();
+        let keys = dict
+            .elems
+            .keys()
+            .map(|x| {
+                StringLiteral::new(x.clone())
+                    .to_python_ast_node(py, ast_module)
+                    .unwrap()
+            })
+            .collect::<Vec<_>>();
         let values = dict
             .elems
             .values()

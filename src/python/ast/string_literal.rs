@@ -16,7 +16,7 @@ pub struct StringLiteral {
 }
 
 impl StringLiteral {
-    fn new(value: String) -> Self {
+    pub fn new(value: String) -> Self {
         Self {
             value,
             object_uuids: LinkedHashMap::new(),
