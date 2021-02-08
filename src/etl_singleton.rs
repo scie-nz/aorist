@@ -6,7 +6,7 @@ use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
 use pyo3::prelude::*;
 use pyo3::types::PyModule;
-use rustpython_parser::ast::{Located, Location, Statement, StatementType};
+use rustpython_parser::ast::{ImportSymbol, Located, Location, Statement, StatementType};
 use std::collections::{BTreeMap, BTreeSet};
 
 pub trait ETLSingleton {
@@ -41,9 +41,65 @@ where
     fn build_flow(&self, statements: Vec<Statement>, _location: Location) -> Vec<Statement>;
     fn get_flow_imports(&self) -> Vec<Import>;
 
+    fn get_preamble_imports(
+        &self,
+        preambles: &Vec<Preamble>,
+        location: Location,
+    ) -> Vec<Statement> {
+        let preamble_module_imports = preambles
+            .iter()
+            .map(|x| x.imports.clone().into_iter())
+            .flatten()
+            .collect::<BTreeSet<_>>();
+
+        let mut from_imports: BTreeMap<String, BTreeSet<_>> = BTreeMap::new();
+        let preamble_from_imports = preambles
+            .iter()
+            .map(|x| x.from_imports.clone().into_iter())
+            .flatten();
+        for (module, name, _alias) in preamble_from_imports {
+            from_imports
+                .entry(module.clone())
+                .or_insert(BTreeSet::new())
+                .insert(name);
+        }
+        let preamble_imports = preamble_module_imports
+            .into_iter()
+            .map(|x| Located {
+                location,
+                node: StatementType::Import {
+                    names: vec![ImportSymbol {
+                        symbol: x.0,
+                        alias: x.1,
+                    }],
+                },
+            })
+            .chain(from_imports.into_iter().map(|(module, names)| {
+                Located {
+                    location,
+                    node: StatementType::ImportFrom {
+                        level: 0,
+                        module: Some(module),
+                        names: names
+                            .into_iter()
+                            .map(|x| ImportSymbol {
+                                symbol: x,
+                                alias: None,
+                            })
+                            .collect(),
+                    },
+                }
+            }))
+            .collect::<Vec<_>>();
+        preamble_imports
+    }
     fn materialize(&self, statements_and_preambles: Vec<PythonStatementInput>) -> String {
+        let gil = Python::acquire_gil();
+        let py = gil.python();
+
         let flow_imports = self.get_flow_imports().into_iter();
         let location = Location::new(0, 0);
+
         let preambles = statements_and_preambles
             .iter()
             .map(|x| x.clone().1.into_iter())
@@ -52,43 +108,9 @@ where
 
         let processed_preambles = preambles
             .into_iter()
-            .map(|x| Preamble::new(x))
-            .collect::<Vec<_>>();
-
-        let preamble_module_imports = processed_preambles
-            .iter()
-            .map(|x| x.imports.clone().into_iter())
-            .flatten()
-            .collect::<BTreeSet<_>>();
-
-        let mut from_imports: BTreeMap<Option<String>, BTreeSet<_>> = BTreeMap::new();
-        let preamble_from_imports = processed_preambles
-            .iter()
-            .map(|x| x.from_imports.clone().into_iter())
-            .flatten();
-        for (module, names) in preamble_from_imports {
-            for name in names {
-                from_imports
-                    .entry(module.clone())
-                    .or_insert(BTreeSet::new())
-                    .insert(name);
-            }
-        }
-        let preamble_imports = preamble_module_imports
-            .into_iter()
-            .map(|x| Located {
-                location,
-                node: StatementType::Import { names: vec![x.0] },
-            })
-            .chain(from_imports.into_iter().map(|(module, names)| Located {
-                location,
-                node: StatementType::ImportFrom {
-                    level: 0,
-                    module,
-                    names: names.into_iter().map(|x| x.0).collect(),
-                },
-            }))
-            .collect::<Vec<_>>();
+            .map(|x| Preamble::new(x, py))
+            .collect::<Vec<Preamble>>();
+        let preamble_imports = self.get_preamble_imports(&processed_preambles, location);
 
         let imports = statements_and_preambles
             .iter()
@@ -96,13 +118,12 @@ where
             .flatten()
             .chain(flow_imports)
             .collect::<BTreeSet<Import>>();
+
         let statements: Vec<AoristStatement> = statements_and_preambles
             .into_iter()
             .map(|x| x.0)
             .flatten()
             .collect();
-        let gil = Python::acquire_gil();
-        let py = gil.python();
 
         let ast: &PyModule = PyModule::import(py, "ast").unwrap();
         let content = PythonProgram::render_suite(

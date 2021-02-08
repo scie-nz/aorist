@@ -13,7 +13,7 @@ use rustpython_parser::ast::{
 };
 use rustpython_parser::parser;
 use std::cmp::Ordering;
-use std::collections::{BTreeMap, HashMap, VecDeque};
+use std::collections::{HashMap, VecDeque};
 use std::hash::{Hash, Hasher};
 use std::sync::{Arc, RwLock};
 use uuid::Uuid;
@@ -489,43 +489,128 @@ impl Ord for AoristImportSymbol {
 }
 
 pub struct Preamble {
-    pub imports: Vec<AoristImportSymbol>,
-    pub from_imports: BTreeMap<Option<String>, Vec<AoristImportSymbol>>,
-    statement: Statement,
+    pub imports: Vec<(String, Option<String>)>,
+    pub from_imports: Vec<(String, String, Option<String>)>,
+    body: String,
 }
 impl Preamble {
-    pub fn new(body: String) -> Preamble {
-        let program = parser::parse_program(&body).unwrap();
+    pub fn new(body: String, py: Python) -> Preamble {
+        let helpers = PyModule::from_code(
+            py,
+            r#"
+import ast
+import astor
 
-        let mut imports = Vec::new();
-        let mut from_imports = BTreeMap::new();
-        let mut others = Vec::new();
+def build_preamble(body):
+    module = ast.parse(body)
 
-        for statement in program.statements {
-            if let StatementType::Import { names } = statement.node {
-                for name in names {
-                    imports.push(AoristImportSymbol(name));
+    imports = []
+    from_imports = []
+    other = []
+
+    for elem in module.body:
+        if isinstance(elem, ast.Import):
+            for name in elem.names:
+                imports += [(name.name, name.asname)]
+        elif isinstance(elem, ast.ImportFrom):
+            for name in elem.names:
+                from_imports += [(elem.module, name.name, name.asname)]
+        else:
+            other += [elem]
+
+    return imports, from_imports, "\n".join([astor.to_source(x) for x in other])
+        "#,
+            "helpers.py",
+            "helpers",
+        )
+        .unwrap();
+
+        let tpl: &PyTuple = helpers
+            .call1("build_preamble", (body,))
+            .unwrap()
+            .downcast()
+            .unwrap();
+
+        let imports_list: &PyList = tpl.get_item(0).extract().unwrap();
+        let imports: Vec<(String, Option<String>)> = imports_list
+            .iter()
+            .map(|x| {
+                let tpl: &PyTuple = x.extract().unwrap();
+                let name: String = tpl
+                    .get_item(0)
+                    .extract::<&PyString>()
+                    .unwrap()
+                    .to_str()
+                    .unwrap()
+                    .to_string();
+                let alias = tpl.get_item(1);
+                let asname: Option<String> = match alias.is_none() {
+                    true => None,
+                    false => Some(
+                        alias
+                            .extract::<&PyString>()
+                            .unwrap()
+                            .to_str()
+                            .unwrap()
+                            .to_string(),
+                    ),
+                };
+                if asname.is_some() {
+                    panic!("Aliased imports not supported yet.");
                 }
-            } else if let StatementType::ImportFrom { module, names, .. } = statement.node {
-                for name in names {
-                    from_imports
-                        .entry(module.clone())
-                        .or_insert(Vec::new())
-                        .push(AoristImportSymbol(name));
+                (name, asname)
+            })
+            .collect();
+
+        let from_imports_list: &PyList = tpl.get_item(1).extract().unwrap();
+        let from_imports: Vec<(String, String, Option<String>)> = from_imports_list
+            .iter()
+            .map(|x| {
+                let tpl: &PyTuple = x.extract().unwrap();
+                let module: String = tpl
+                    .get_item(0)
+                    .extract::<&PyString>()
+                    .unwrap()
+                    .to_str()
+                    .unwrap()
+                    .to_string();
+                let name: String = tpl
+                    .get_item(1)
+                    .extract::<&PyString>()
+                    .unwrap()
+                    .to_str()
+                    .unwrap()
+                    .to_string();
+                let alias = tpl.get_item(2);
+                let asname: Option<String> = match alias.is_none() {
+                    true => None,
+                    false => Some(
+                        alias
+                            .extract::<&PyString>()
+                            .unwrap()
+                            .to_str()
+                            .unwrap()
+                            .to_string(),
+                    ),
+                };
+                if asname.is_some() {
+                    panic!("Aliased imports not supported yet.");
                 }
-            } else {
-                others.push(statement);
-            }
-        }
-        assert_eq!(others.len(), 1);
+                (module, name, asname)
+            })
+            .collect();
+
+        let body_no_imports: &PyString = tpl.get_item(2).extract().unwrap();
         Self {
             imports,
             from_imports,
-            statement: others.into_iter().next().unwrap(),
+            body: body_no_imports.to_str().unwrap().to_string(),
         }
     }
     pub fn statement(self) -> Statement {
-        self.statement
+        let program = parser::parse_program(&self.body).unwrap();
+        assert_eq!(program.statements.len(), 1);
+        program.statements.into_iter().next().unwrap()
     }
 }
 
