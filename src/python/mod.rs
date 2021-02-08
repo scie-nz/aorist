@@ -1,5 +1,4 @@
 mod ast;
-mod program;
 use linked_hash_set::LinkedHashSet;
 use pyo3::prelude::*;
 use pyo3::types::{IntoPyDict, PyString, PyTuple};
@@ -15,7 +14,6 @@ pub use ast::{
     Dict, Formatted, Import, List, LiteralsMap, ParameterTuple, ParameterTupleDedupKey, Preamble,
     PythonNone, SimpleIdentifier, StringLiteral, Subscript, Tuple,
 };
-pub use program::PythonProgram;
 
 pub fn format_code(code: String) -> PyResult<String> {
     let gil = Python::acquire_gil();
