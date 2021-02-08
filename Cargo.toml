@@ -18,7 +18,7 @@ cargo-fmt = []
 trace_macros = []
 
 [lib]
-name = "lib"
+name = "aorist"
 path = "src/lib.rs"
 crate-type = ["cdylib"]
 
@@ -50,7 +50,7 @@ siphasher = {version = "0.3"}
 Inflector = {version = "0.11.4"}
 linked-hash-map = "0.5.3"
 linked_hash_set = "0.1.4"
-pyo3 = {git = "https://github.com/PyO3/pyo3", features = ["extension-module"]}
+pyo3 = {version = "0.13.1", features=["extension-module"]}
 textwrap = {version = "0.13.2", features = ["hyphenation"]}
 sqlparser = {version = "0.6.1"}
 maplit = {version = "1.0.2"}

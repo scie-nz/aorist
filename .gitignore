@@ -8,3 +8,5 @@ example.py
 *.so
 */*.so
 example/__*
+env/
+*.egg-info/

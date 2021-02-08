@@ -1,0 +1,7 @@
+include Cargo.toml
+recursive-include src *
+recursive-include aorist_primitives *
+recursive-include aorist_derive *
+recursive-include aorist_concept *
+recursive-include aorist_util *
+recursive-include type_macro_helpers *
