@@ -4,7 +4,6 @@ pub use string_literal::StringLiteral;
 
 use aorist_primitives::{define_ast_node, register_ast_nodes};
 use linked_hash_map::LinkedHashMap;
-use num_bigint::BigInt;
 use pyo3::prelude::*;
 use pyo3::types::{PyList, PyModule, PyString, PyTuple};
 use std::collections::{HashMap, VecDeque};
@@ -287,11 +286,10 @@ define_ast_node!(
     BigIntLiteral,
     |_| Vec::new(),
     |lit: &BigIntLiteral, _py: Python, ast_module: &'a PyModule| {
-        let val: i64 = (*lit.val.to_u32_digits().1.get(0).unwrap()).into();
-        ast_module.call1("Constant", (val,))
+        ast_module.call1("Constant", (lit.val,))
     },
     // TODO: deprecate use of BigInt when removing rustpython
-    val: BigInt,
+    val: i64,
 );
 define_ast_node!(
     PythonNone,
@@ -325,16 +323,10 @@ impl PartialEq for AST {
             (AST::SimpleIdentifier(v1), AST::SimpleIdentifier(v2)) => {
                 v1.read().unwrap().eq(&v2.read().unwrap())
             }
-            (AST::Subscript(v1), AST::Subscript(v2)) => {
-                v1.read().unwrap().eq(&v2.read().unwrap())
-            }
-            (AST::Formatted(v1), AST::Formatted(v2)) => {
-                v1.read().unwrap().eq(&v2.read().unwrap())
-            }
+            (AST::Subscript(v1), AST::Subscript(v2)) => v1.read().unwrap().eq(&v2.read().unwrap()),
+            (AST::Formatted(v1), AST::Formatted(v2)) => v1.read().unwrap().eq(&v2.read().unwrap()),
             (AST::Call(v1), AST::Call(v2)) => v1.read().unwrap().eq(&v2.read().unwrap()),
-            (AST::Attribute(v1), AST::Attribute(v2)) => {
-                v1.read().unwrap().eq(&v2.read().unwrap())
-            }
+            (AST::Attribute(v1), AST::Attribute(v2)) => v1.read().unwrap().eq(&v2.read().unwrap()),
             (AST::List(v1), AST::List(v2)) => v1.read().unwrap().eq(&v2.read().unwrap()),
             (AST::Dict(v1), AST::Dict(v2)) => v1.read().unwrap().eq(&v2.read().unwrap()),
             (AST::Tuple(v1), AST::Tuple(v2)) => v1.read().unwrap().eq(&v2.read().unwrap()),
@@ -543,9 +535,7 @@ impl AoristStatement {
                     AST::Attribute(ref x) => {
                         AST::Attribute(x.read().unwrap().as_wrapped_assignment_target())
                     }
-                    AST::List(ref x) => {
-                        AST::List(x.read().unwrap().as_wrapped_assignment_target())
-                    }
+                    AST::List(ref x) => AST::List(x.read().unwrap().as_wrapped_assignment_target()),
                     AST::Tuple(ref x) => {
                         AST::Tuple(x.read().unwrap().as_wrapped_assignment_target())
                     }
