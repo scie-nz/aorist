@@ -90,25 +90,24 @@ where
 
         let mut assignments: Vec<AoristStatement> = Vec::new();
         for (_k, v) in read.iter() {
-            let mut write = v.write().unwrap();
             if all_uuids.len() > 1 {
-                let num_objects_covered = write.get_object_uuids().len();
+                let vread = v.read().unwrap();
+                let num_objects_covered = vread.get_object_uuids().len();
                 let num_objects_total = all_uuids.len();
                 if num_objects_covered > num_objects_total / 2 {
-                    let val = write.value();
+                    let val = vread.value();
                     let possible_name = most_frequent_names.get(&val).unwrap();
                     if let Some(ref name) = possible_name {
                         let proposed_name =
                             format!("{}_{}", to_snake_case(&self.constraint_name), name)
                                 .to_string();
-                        if proposed_name.len() < name.len() || write.is_multiline() {
+                        if proposed_name.len() < name.len() || vread.is_multiline() {
                             let owner =
                                 AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(proposed_name));
-                            write.set_owner(owner.clone());
                             assignments.push(AoristStatement::Assign(
                                 owner.clone(),
                                 AST::StringLiteral(StringLiteral::new_wrapped(
-                                    write.value().clone(),
+                                    vread.value().clone(),
                                 )),
                             ));
                         }

@@ -46,11 +46,9 @@ define_ast_node!(
 );
 impl TAssignmentTarget for List {
     fn as_assignment_target(&self) -> Self {
-        assert!(self.owner.is_none());
         Self {
             elems: self.elems.clone(),
             store: true,
-            owner: None,
         }
     }
 }
@@ -102,11 +100,9 @@ define_ast_node!(
 );
 impl TAssignmentTarget for Tuple {
     fn as_assignment_target(&self) -> Self {
-        assert!(self.owner.is_none());
         Self {
             elems: self.elems.clone(),
             store: true,
-            owner: None,
         }
     }
 }
@@ -131,12 +127,10 @@ define_ast_node!(
 );
 impl TAssignmentTarget for Attribute {
     fn as_assignment_target(&self) -> Self {
-        assert!(self.owner.is_none());
         Self {
             value: self.value.clone(),
             name: self.name.clone(),
             store: true,
-            owner: None,
         }
     }
 }
@@ -254,12 +248,10 @@ define_ast_node!(
 );
 impl TAssignmentTarget for Subscript {
     fn as_assignment_target(&self) -> Self {
-        assert!(self.owner.is_none());
         Self {
             a: self.a.clone(),
             b: self.b.clone(),
             store: true,
-            owner: None,
         }
     }
 }
