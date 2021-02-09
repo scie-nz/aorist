@@ -1,11 +1,10 @@
 use crate::etl_singleton::{ETLSingleton, ETLDAG};
 use crate::python::{
-    AoristStatement, AST, Attribute, BigIntLiteral, BooleanLiteral, Call, Dict, Formatted,
-    Import, List, PythonNone, SimpleIdentifier, StringLiteral,
+    AoristStatement, Attribute, BigIntLiteral, BooleanLiteral, Call, Dict, Formatted, Import, List,
+    PythonNone, SimpleIdentifier, StringLiteral, AST,
 };
 use aorist_primitives::Dialect;
 use linked_hash_map::LinkedHashMap;
-use num_bigint::{BigInt, Sign};
 use pyo3::prelude::*;
 use pyo3::types::PyModule;
 
@@ -66,17 +65,15 @@ impl ETLSingleton for AirflowSingleton {
             creation_expr,
         )];
         if let Some(ref dependencies) = self.dep_list {
-            statements.push(AoristStatement::Expression(AST::Call(
-                Call::new_wrapped(
-                    AST::Attribute(Attribute::new_wrapped(
-                        self.get_task_val(),
-                        "set_upstream".to_string(),
-                        false,
-                    )),
-                    vec![dependencies.clone()],
-                    LinkedHashMap::new(),
-                ),
-            )));
+            statements.push(AoristStatement::Expression(AST::Call(Call::new_wrapped(
+                AST::Attribute(Attribute::new_wrapped(
+                    self.get_task_val(),
+                    "set_upstream".to_string(),
+                    false,
+                )),
+                vec![dependencies.clone()],
+                LinkedHashMap::new(),
+            ))));
         }
         statements
     }
@@ -119,9 +116,9 @@ impl ETLSingleton for AirflowSingleton {
                 _ => panic!("Dialect not supported"),
             };
             let call_param_value = match self.dialect {
-                Some(Dialect::Python(_)) => AST::SimpleIdentifier(
-                    SimpleIdentifier::new_wrapped(self.command.as_ref().unwrap().clone()),
-                ),
+                Some(Dialect::Python(_)) => AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
+                    self.command.as_ref().unwrap().clone(),
+                )),
                 Some(Dialect::Bash(_)) => AST::Formatted(Formatted::new_wrapped(
                     AST::StringLiteral(StringLiteral::new_wrapped(
                         self.command.as_ref().unwrap().clone(),
@@ -168,15 +165,15 @@ impl ETLSingleton for AirflowSingleton {
     }
     fn compute_task_call(&self) -> AST {
         match self.dialect {
-            Some(Dialect::Python(_)) => Ok(AST::SimpleIdentifier(
-                SimpleIdentifier::new_wrapped("PythonOperator".to_string()),
-            )),
+            Some(Dialect::Python(_)) => Ok(AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
+                "PythonOperator".to_string(),
+            ))),
             Some(Dialect::Bash(_)) => Ok(AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
                 "BashOperator".to_string(),
             ))),
-            Some(Dialect::Presto(_)) => Ok(AST::SimpleIdentifier(
-                SimpleIdentifier::new_wrapped("BashOperator".to_string()),
-            )),
+            Some(Dialect::Presto(_)) => Ok(AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
+                "BashOperator".to_string(),
+            ))),
             None => Ok(AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
                 "DummyOperator".to_string(),
             ))),
@@ -230,14 +227,11 @@ impl ETLDAG for AirflowDAG {
         );
         default_args_map.insert(
             "retries".to_string(),
-            AST::BigIntLiteral(BigIntLiteral::new_wrapped(BigInt::new(Sign::Plus, vec![1]))),
+            AST::BigIntLiteral(BigIntLiteral::new_wrapped(1)),
         );
         default_args_map.insert(
             "retry_delay".to_string(),
-            AST::BigIntLiteral(BigIntLiteral::new_wrapped(BigInt::new(
-                Sign::Plus,
-                vec![300],
-            ))),
+            AST::BigIntLiteral(BigIntLiteral::new_wrapped(300)),
         );
 
         let default_args_dict = AST::Dict(Dict::new_wrapped(default_args_map));
@@ -268,18 +262,9 @@ impl ETLDAG for AirflowDAG {
             AST::Call(Call::new_wrapped(
                 AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("datetime".to_string())),
                 vec![
-                    AST::BigIntLiteral(BigIntLiteral::new_wrapped(BigInt::new(
-                        Sign::Plus,
-                        vec![2021],
-                    ))),
-                    AST::BigIntLiteral(BigIntLiteral::new_wrapped(BigInt::new(
-                        Sign::Plus,
-                        vec![01],
-                    ))),
-                    AST::BigIntLiteral(BigIntLiteral::new_wrapped(BigInt::new(
-                        Sign::Plus,
-                        vec![01],
-                    ))),
+                    AST::BigIntLiteral(BigIntLiteral::new_wrapped(2021)),
+                    AST::BigIntLiteral(BigIntLiteral::new_wrapped(1)),
+                    AST::BigIntLiteral(BigIntLiteral::new_wrapped(1)),
                 ],
                 LinkedHashMap::new(),
             )),

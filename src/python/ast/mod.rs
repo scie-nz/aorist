@@ -4,15 +4,12 @@ pub use string_literal::StringLiteral;
 
 use aorist_primitives::{define_ast_node, register_ast_nodes};
 use linked_hash_map::LinkedHashMap;
-use num_bigint::BigInt;
 use pyo3::prelude::*;
 use pyo3::types::{PyList, PyModule, PyString, PyTuple};
-use std::collections::{HashMap, VecDeque};
+use std::collections::VecDeque;
 use std::hash::{Hash, Hasher};
 use std::sync::{Arc, RwLock};
 use uuid::Uuid;
-
-pub type LiteralsMap = Arc<RwLock<HashMap<String, Arc<RwLock<StringLiteral>>>>>;
 
 pub trait TAssignmentTarget
 where
@@ -47,11 +44,9 @@ define_ast_node!(
 );
 impl TAssignmentTarget for List {
     fn as_assignment_target(&self) -> Self {
-        assert!(self.owner.is_none());
         Self {
             elems: self.elems.clone(),
             store: true,
-            owner: None,
         }
     }
 }
@@ -103,11 +98,9 @@ define_ast_node!(
 );
 impl TAssignmentTarget for Tuple {
     fn as_assignment_target(&self) -> Self {
-        assert!(self.owner.is_none());
         Self {
             elems: self.elems.clone(),
             store: true,
-            owner: None,
         }
     }
 }
@@ -132,12 +125,10 @@ define_ast_node!(
 );
 impl TAssignmentTarget for Attribute {
     fn as_assignment_target(&self) -> Self {
-        assert!(self.owner.is_none());
         Self {
             value: self.value.clone(),
             name: self.name.clone(),
             store: true,
-            owner: None,
         }
     }
 }
@@ -255,12 +246,10 @@ define_ast_node!(
 );
 impl TAssignmentTarget for Subscript {
     fn as_assignment_target(&self) -> Self {
-        assert!(self.owner.is_none());
         Self {
             a: self.a.clone(),
             b: self.b.clone(),
             store: true,
-            owner: None,
         }
     }
 }
@@ -287,11 +276,10 @@ define_ast_node!(
     BigIntLiteral,
     |_| Vec::new(),
     |lit: &BigIntLiteral, _py: Python, ast_module: &'a PyModule| {
-        let val: i64 = (*lit.val.to_u32_digits().1.get(0).unwrap()).into();
-        ast_module.call1("Constant", (val,))
+        ast_module.call1("Constant", (lit.val,))
     },
     // TODO: deprecate use of BigInt when removing rustpython
-    val: BigInt,
+    val: i64,
 );
 define_ast_node!(
     PythonNone,
@@ -325,16 +313,10 @@ impl PartialEq for AST {
             (AST::SimpleIdentifier(v1), AST::SimpleIdentifier(v2)) => {
                 v1.read().unwrap().eq(&v2.read().unwrap())
             }
-            (AST::Subscript(v1), AST::Subscript(v2)) => {
-                v1.read().unwrap().eq(&v2.read().unwrap())
-            }
-            (AST::Formatted(v1), AST::Formatted(v2)) => {
-                v1.read().unwrap().eq(&v2.read().unwrap())
-            }
+            (AST::Subscript(v1), AST::Subscript(v2)) => v1.read().unwrap().eq(&v2.read().unwrap()),
+            (AST::Formatted(v1), AST::Formatted(v2)) => v1.read().unwrap().eq(&v2.read().unwrap()),
             (AST::Call(v1), AST::Call(v2)) => v1.read().unwrap().eq(&v2.read().unwrap()),
-            (AST::Attribute(v1), AST::Attribute(v2)) => {
-                v1.read().unwrap().eq(&v2.read().unwrap())
-            }
+            (AST::Attribute(v1), AST::Attribute(v2)) => v1.read().unwrap().eq(&v2.read().unwrap()),
             (AST::List(v1), AST::List(v2)) => v1.read().unwrap().eq(&v2.read().unwrap()),
             (AST::Dict(v1), AST::Dict(v2)) => v1.read().unwrap().eq(&v2.read().unwrap()),
             (AST::Tuple(v1), AST::Tuple(v2)) => v1.read().unwrap().eq(&v2.read().unwrap()),
@@ -351,6 +333,22 @@ impl PartialEq for AST {
                 }
                 false
             }
+        }
+    }
+}
+impl AST {
+    pub fn as_wrapped_assignment_target(&self) -> Self {
+        match &self {
+            AST::Subscript(ref x) => {
+                AST::Subscript(x.read().unwrap().as_wrapped_assignment_target())
+            }
+            AST::Attribute(ref x) => {
+                AST::Attribute(x.read().unwrap().as_wrapped_assignment_target())
+            }
+            AST::List(ref x) => AST::List(x.read().unwrap().as_wrapped_assignment_target()),
+            AST::Tuple(ref x) => AST::Tuple(x.read().unwrap().as_wrapped_assignment_target()),
+            AST::SimpleIdentifier(_) => self.clone(),
+            _ => panic!("Assignment target not supported."),
         }
     }
 }
@@ -507,7 +505,10 @@ impl Import {
     ) -> PyResult<&'a PyAny> {
         match &self {
             Self::ModuleImport(ref module) => {
-                let names = PyList::new(py, vec![module]);
+                let names = PyList::new(
+                    py,
+                    vec![SimpleIdentifier::new(module.clone()).to_python_ast_node(py, ast_module)?],
+                );
                 ast_module.call1("Import", (names.as_ref(),))
             }
             Self::FromImport(ref module, ref name) => {
@@ -543,9 +544,7 @@ impl AoristStatement {
                     AST::Attribute(ref x) => {
                         AST::Attribute(x.read().unwrap().as_wrapped_assignment_target())
                     }
-                    AST::List(ref x) => {
-                        AST::List(x.read().unwrap().as_wrapped_assignment_target())
-                    }
+                    AST::List(ref x) => AST::List(x.read().unwrap().as_wrapped_assignment_target()),
                     AST::Tuple(ref x) => {
                         AST::Tuple(x.read().unwrap().as_wrapped_assignment_target())
                     }
@@ -610,33 +609,15 @@ impl ParameterTuple {
         object_uuid: Uuid,
         args_v: Vec<String>,
         kwargs_v: LinkedHashMap<String, String>,
-        literals: LiteralsMap,
     ) -> Self {
-        let mut write = literals.write().unwrap();
+        // TODO: remove this
         let mut args = args_v
             .into_iter()
-            .map(|x| {
-                AST::StringLiteral(
-                    write
-                        .entry(x.clone())
-                        .or_insert(StringLiteral::new_wrapped(x))
-                        .clone(),
-                )
-            })
+            .map(|x| AST::StringLiteral(StringLiteral::new_wrapped(x)))
             .collect::<Vec<_>>();
         let mut kwargs = kwargs_v
             .into_iter()
-            .map(|(k, v)| {
-                (
-                    k,
-                    AST::StringLiteral(
-                        write
-                            .entry(v.clone())
-                            .or_insert(StringLiteral::new_wrapped(v))
-                            .clone(),
-                    ),
-                )
-            })
+            .map(|(k, v)| (k, AST::StringLiteral(StringLiteral::new_wrapped(v))))
             .collect::<LinkedHashMap<_, _>>();
         for arg in args.iter_mut() {
             arg.register_object(object_uuid.clone(), None);

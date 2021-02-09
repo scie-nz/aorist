@@ -409,7 +409,6 @@ fn main() {
     scope.import("aorist_primitives", "register_programs_for_constraint");
     scope.import("aorist_primitives", "register_satisfiable_constraints");
     scope.import("crate::concept", "ConceptAncestry");
-    scope.import("crate::python", "LiteralsMap");
     scope.import("crate::constraint", "AoristConstraint");
     scope.import("crate::constraint", "ConstraintSatisfactionBase");
     scope.import("crate::constraint", "SatisfiableConstraint");
@@ -477,14 +476,13 @@ fn main() {
                             uuid: Uuid,
                             concept: Concept<'a>,
                             ancestry: Arc<ConceptAncestry<'a>>,
-                            literals: LiteralsMap,
                         | {{
                             {objects}
                             let args = vec![{params}];
                             let {mut_kw}kwargs: LinkedHashMap<String, String> =
                             LinkedHashMap::new();
                             {kwargs}
-                            ParameterTuple::new(uuid, args, kwargs, literals)
+                            ParameterTuple::new(uuid, args, kwargs)
                         }}
                     );",
                     objects=object_names.iter().map(|x| {

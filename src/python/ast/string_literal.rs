@@ -12,7 +12,6 @@ pub struct StringLiteral {
     value: String,
     // TODO: replace with LinkedHashMap<Uuid, BTreeSet>
     object_uuids: LinkedHashMap<Uuid, BTreeSet<Option<String>>>,
-    owner: Option<AST>,
 }
 
 impl StringLiteral {
@@ -20,7 +19,6 @@ impl StringLiteral {
         Self {
             value,
             object_uuids: LinkedHashMap::new(),
-            owner: None,
         }
     }
     pub fn to_python_ast_node<'a>(
@@ -47,30 +45,11 @@ impl StringLiteral {
             .or_insert(BTreeSet::new())
             .insert(tag);
     }
-    pub fn set_owner(&mut self, obj: AST) {
-        self.owner = Some(obj);
-    }
     pub fn get_object_uuids(&self) -> &LinkedHashMap<Uuid, BTreeSet<Option<String>>> {
         &self.object_uuids
     }
     pub fn is_multiline(&self) -> bool {
         self.value.contains('\n')
-    }
-    pub fn get_owner(&self) -> Option<AST> {
-        self.owner.clone()
-    }
-    pub fn get_ultimate_owner(&self) -> Option<AST> {
-        if self.get_owner().is_none() {
-            return None;
-        }
-        let mut owner = self.get_owner().unwrap();
-        while let Some(x) = owner.get_owner() {
-            owner = x;
-        }
-        Some(owner.clone())
-    }
-    pub fn remove_owner(&mut self) {
-        self.owner = None;
     }
     pub fn get_direct_descendants(&self) -> Vec<AST> {
         Vec::new()

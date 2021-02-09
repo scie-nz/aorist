@@ -1,6 +1,6 @@
 use crate::concept::{AoristConcept, Concept, ConceptAncestry};
 use crate::object::TAoristObject;
-use crate::python::{LiteralsMap, ParameterTuple, StringLiteral};
+use crate::python::ParameterTuple;
 use aorist_primitives::{define_constraint, register_constraint, Dialect};
 use maplit::hashmap;
 use serde::{Deserialize, Serialize};
@@ -31,7 +31,6 @@ pub trait SatisfiableConstraint: TConstraint {
         c: Concept<'a>,
         d: &Dialect,
         ancestry: Arc<ConceptAncestry<'a>>,
-        literals: LiteralsMap,
     ) -> Option<(String, String, ParameterTuple)>;
 
     fn satisfy_given_preference_ordering<'a>(
@@ -39,7 +38,6 @@ pub trait SatisfiableConstraint: TConstraint {
         r: Concept<'a>,
         preferences: &Vec<Dialect>,
         ancestry: Arc<ConceptAncestry<'a>>,
-        literals: LiteralsMap,
     ) -> Result<(String, String, ParameterTuple, Dialect), String>;
 }
 // TODO: duplicate function, should be unified in trait
@@ -49,7 +47,6 @@ pub trait AllConstraintsSatisfiability {
         c: Concept<'a>,
         preferences: &Vec<Dialect>,
         ancestry: Arc<ConceptAncestry<'a>>,
-        literals: LiteralsMap,
     ) -> Result<(String, String, ParameterTuple, Dialect), String>;
 }
 
