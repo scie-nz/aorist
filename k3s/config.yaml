@@ -43,22 +43,22 @@ data:
             <name>javax.jdo.option.ConnectionPassword</name>
             <value>$MYSQL_PASSWORD</value>
         </property>
-        <property>
-            <name>hive.security.authorization.enabled</name>
-            <value>true</value>
-        </property>
-        <property>
-            <name>hive.security.authorization.manager</name>
-            <value>org.apache.ranger.authorization.hive.authorizer.RangerHiveAuthorizerFactory</value>
-        </property>
-        <property>
-            <name>hive.security.authenticator.manager</name>
-            <value>org.apache.hadoop.hive.ql.security.SessionStateUserAuthenticator</value>
-        </property>
-        <property>
-            <name>hive.conf.restricted.list</name>
-            <value>hive.security.authorization.enabled,hive.security.authorization.manager,hive.security.authenticator.manager</value>
-        </property>
+        # <property>
+        #     <name>hive.security.authorization.enabled</name>
+        #     <value>true</value>
+        # </property>
+        # <property>
+        #     <name>hive.security.authorization.manager</name>
+        #     <value>org.apache.ranger.authorization.hive.authorizer.RangerHiveAuthorizerFactory</value>
+        # </property>
+        # <property>
+        #     <name>hive.security.authenticator.manager</name>
+        #     <value>org.apache.hadoop.hive.ql.security.SessionStateUserAuthenticator</value>
+        # </property>
+        # <property>
+        #     <name>hive.conf.restricted.list</name>
+        #     <value>hive.security.authorization.enabled,hive.security.authorization.manager,hive.security.authenticator.manager</value>
+        # </property>
 
     </configuration>
   alluxio-site.properties: |
@@ -280,11 +280,11 @@ data:
       </property>
       <property>
         <name>fs.s3.awsAccessKeyId</name>
-        <value>minio</value>
+        <value>5GfOoRgz3NDAEFxo7lwa</value>
       </property>
       <property>
         <name>fs.s3.awsSecretAccessKey</name>
-        <value>minio123</value>
+        <value>gxhtXmhOTa5hfcYwXiQSKPqEAf6JSbdBuDepMFCG</value>
       </property>
     </configuration>
   jvm.config: |

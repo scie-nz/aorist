@@ -66,9 +66,9 @@ spec:
         - name: HIVE_METASTORE_PORT
           value: "9083"
         - name: ALLUXIO_WORKER_HOSTNAME
-          value: $HOSTNAME.presto-coordinator.default.svc.cluster.local
+          value: $HOSTNAME.presto-coordinator.scienz.svc.cluster.local
         - name: ALLUXIO_WORKER_CONTAINER_HOSTNAME
-          value: $HOSTNAME.presto-coordinator.default.svc.cluster.local
+          value: $HOSTNAME.presto-coordinator.scienz.svc.cluster.local
         - name: POD_IP
           valueFrom:
             fieldRef:
@@ -180,9 +180,9 @@ spec:
         - name: HIVE_METASTORE_PORT
           value: "9083"
         - name: ALLUXIO_WORKER_HOSTNAME
-          value: $HOSTNAME.presto-worker.default.svc.cluster.local
+          value: $HOSTNAME.presto-worker.scienz.svc.cluster.local
         - name: ALLUXIO_WORKER_CONTAINER_HOSTNAME
-          value: $HOSTNAME.presto-worker.default.svc.cluster.local
+          value: $HOSTNAME.presto-worker.scienz.svc.cluster.local
         - name: POD_IP
           valueFrom:
             fieldRef:
@@ -210,9 +210,9 @@ spec:
         - name: ALLUXIO_MASTER_HOSTNAME
           value: alluxio-server
         - name: ALLUXIO_WORKER_HOSTNAME
-          value: $HOSTNAME.presto-worker.default.svc.cluster.local
+          value: $HOSTNAME.presto-worker.scienz.svc.cluster.local
         - name: ALLUXIO_WORKER_CONTAINER_HOSTNAME
-          value: $HOSTNAME.presto-worker.default.svc.cluster.local
+          value: $HOSTNAME.presto-worker.scienz.svc.cluster.local
         - name: ALLUXIO_WORKER_JAVA_OPTS
           value: " -Dalluxio.worker.hostname=$(ALLUXIO_WORKER_HOSTNAME) "
         - name: POD_IP
@@ -240,9 +240,9 @@ spec:
         - name: ALLUXIO_MASTER_HOSTNAME
           value: alluxio-server
         - name: ALLUXIO_WORKER_HOSTNAME
-          value: $HOSTNAME.presto-worker.default.svc.cluster.local
+          value: $HOSTNAME.presto-worker.scienz.svc.cluster.local
         - name: ALLUXIO_WORKER_CONTAINER_HOSTNAME
-          value: $HOSTNAME.presto-worker.default.svc.cluster.local
+          value: $HOSTNAME.presto-worker.scienz.svc.cluster.local
         - name: ALLUXIO_WORKER_JAVA_OPTS
           value: " -Dalluxio.worker.hostname=$(ALLUXIO_WORKER_HOSTNAME) "
         - name: POD_IP
