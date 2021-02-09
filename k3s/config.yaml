@@ -43,21 +43,22 @@ data:
             <name>javax.jdo.option.ConnectionPassword</name>
             <value>$MYSQL_PASSWORD</value>
         </property>
-    <name>hive.security.authorization.enabled</name>
-        <value>true</value>
-    </property>
-    <property>
-        <name>hive.security.authorization.manager</name>
-        <value>org.apache.ranger.authorization.hive.authorizer.RangerHiveAuthorizerFactory</value>
-    </property>
-    <property>
-        <name>hive.security.authenticator.manager</name>
-        <value>org.apache.hadoop.hive.ql.security.SessionStateUserAuthenticator</value>
-    </property>
-    <property>
-        <name>hive.conf.restricted.list</name>
-        <value>hive.security.authorization.enabled,hive.security.authorization.manager,hive.security.authenticator.manager</value>
-    </property>
+        <property>
+            <name>hive.security.authorization.enabled</name>
+            <value>true</value>
+        </property>
+        <property>
+            <name>hive.security.authorization.manager</name>
+            <value>org.apache.ranger.authorization.hive.authorizer.RangerHiveAuthorizerFactory</value>
+        </property>
+        <property>
+            <name>hive.security.authenticator.manager</name>
+            <value>org.apache.hadoop.hive.ql.security.SessionStateUserAuthenticator</value>
+        </property>
+        <property>
+            <name>hive.conf.restricted.list</name>
+            <value>hive.security.authorization.enabled,hive.security.authorization.manager,hive.security.authenticator.manager</value>
+        </property>
 
     </configuration>
   alluxio-site.properties: |
@@ -258,14 +259,14 @@ data:
     query.max-memory-per-node=4000MB
     query.max-total-memory-per-node=4000MB
     task.writer-count=2
-    access-control.config-files=etc/access-control-ranger.properties
+    #access-control.config-files=etc/access-control-ranger.properties
     discovery.uri=http://presto-coordinator-headless:8080
     $(bash -c "if [ $HOSTNAME == 'presto-coordinator-0' ]; then echo '
     discovery-server.enabled=true
     '; else echo ''; fi")
-    access-control.config-files=etc/access-control-ranger.properties
+    #access-control.config-files=etc/access-control-ranger.properties
   access-control-ranger.properties: |
-    access-control.name=ranger
+    #access-control.name=ranger
     #ranger.policy-rest-url=http://ranger-admin-svc:6080
     #ranger.service-name=presto-production
     #ranger.presto-plugin-username=admin

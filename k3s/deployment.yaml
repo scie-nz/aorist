@@ -1199,36 +1199,6 @@ spec:
         volumeMounts:
           - name: pre-install
             mountPath: /presto-server-344/etc
-            # - args:
-            #   - worker
-            #   - --no-format
-            #   env:
-            #   - name: ALLUXIO_MASTER_ADDRESS
-            #     value: alluxio-server
-            #   - name: ALLUXIO_MASTER_HOSTNAME
-            #     value: alluxio-server
-            #   - name: ALLUXIO_WORKER_HOSTNAME
-            #     value: $HOSTNAME.presto-coordinator.default.svc.cluster.local
-            #   - name: ALLUXIO_WORKER_CONTAINER_HOSTNAME
-            #     value: $HOSTNAME.presto-coordinator.default.svc.cluster.local
-            #   - name: ALLUXIO_WORKER_JAVA_OPTS
-            #     value: " -Dalluxio.worker.hostname=$(ALLUXIO_WORKER_HOSTNAME) "
-            #   - name: POD_IP
-            #     valueFrom:
-            #       fieldRef:
-            #         fieldPath: status.podIP
-            #   image: eu.gcr.io/dataia-exp-users-scienz/alluxio:latest
-            #   imagePullPolicy: "Always"
-            #   name: alluxio-worker
-            #   ports:
-            #   - containerPort: 29998
-            #   - containerPort: 29999
-            #   resources: {}
-            #   volumeMounts:
-            #     - name: pre-install
-            #       mountPath: /opt/alluxio/conf
-            #     - mountPath: /dev/shm
-            #       name: mem
       restartPolicy: Always
       serviceAccountName: ""
 ---
@@ -1382,7 +1352,7 @@ spec:
 status:
   loadBalancer: {}
 ---
-# Presto Coordinator deployment. Features a Presto server (set up as a
+# Presto worker deployment. Features a Presto server (set up as a
 # coordinator), and an Alluxio worker. Note that Alluxio workers always need to
 # be tightly coupled with the Presto server.
 apiVersion: apps/v1
