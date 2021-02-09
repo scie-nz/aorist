@@ -1,0 +1,122 @@
+---
+# Alluxio server deployment. This is like the virtualized File Allocation Table
+# that keeps track of where stuff is mounted as far as distributed storage is
+# concerned. Presto interacts with this as it would with HDFS -- Alluxio
+# provides a unified interface to talk to a whole bunch of different storage
+# solutions.
+#  kubectl port-forward [alluxio-pod-name] 19999:19999
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert
+    kompose.version: 1.21.0 (992df58d8)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: alluxio-server
+  name: alluxio-server
+  namespace: scienz
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: alluxio-server
+  strategy: {}
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert
+        kompose.version: 1.21.0 (992df58d8)
+      creationTimestamp: null
+      labels:
+        io.kompose.service: alluxio-server
+    spec:
+      nodeSelector:
+        kubernetes.io/arch: amd64
+      volumes:
+        - name: alluxio-site
+          configMap:
+            name: properties
+        - name: pre-install
+          emptyDir: {}
+      initContainers:
+      - name: copy-ro-scripts
+        image: busybox
+        command: ['sh', '-c', 'mkdir -p /opt/alluxio-2.4.0/conf && cp /conf/* /opt/alluxio-2.4.0/conf/']
+        volumeMounts:
+          - name: alluxio-site
+            mountPath: /conf
+          - name: pre-install
+            mountPath: /opt/alluxio-2.4.0/conf
+      containers:
+      - name: alluxio-server
+        args: ["master"]
+        # args:
+        # - master
+        # command: [ "/bin/bash", "-c", "--" ]
+        # args: [ "while true; do sleep 30; done;" ]
+        env:
+        - name: ALLUXIO_MASTER_ADDRESS
+          value: alluxio-server
+        - name: ALLUXIO_MASTER_HOSTNAME
+          value: alluxio-server
+        image: scienz/aorist-test-alluxio
+        imagePullPolicy: "Always"
+        ports:
+        - containerPort: 19200
+        - containerPort: 19998
+        - containerPort: 19999
+        - containerPort: 20000
+        - containerPort: 20001
+        - containerPort: 30000
+        resources: {}
+        volumeMounts:
+        - name: pre-install
+          mountPath: /opt/alluxio/conf
+      restartPolicy: Always
+      serviceAccountName: ""
+---
+# Alluxio server service, exposes ports needed by Presto and the Alluxio
+# worker.
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    kompose.cmd: kompose convert
+    kompose.version: 1.21.0 (992df58d8)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: alluxio-server
+  name: alluxio-server
+  namespace: scienz
+spec:
+  ports:
+  - name: "19998"
+    port: 19998
+    targetPort: 19998
+  - name: "19999"
+    port: 19999
+    targetPort: 19999
+  - name: "20000"
+    port: 20000
+    targetPort: 20000
+  - name: "20001"
+    port: 20001
+    targetPort: 20001
+  - name: "20002"
+    port: 20002
+    targetPort: 20002
+  - name: "20003"
+    port: 20003
+    targetPort: 20003
+  - name: "30000"
+    port: 30000
+    targetPort: 30000
+  - name: "19200"
+    port: 19200
+    targetPort: 19200
+  selector:
+    io.kompose.service: alluxio-server
+status:
+  loadBalancer: {}
+---
