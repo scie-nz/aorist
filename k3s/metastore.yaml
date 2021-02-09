@@ -1,0 +1,163 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql
+  namespace: scienz
+spec:
+  ports:
+  - port: 3306
+    targetPort: 3306
+  selector:
+    app: mysql
+  clusterIP: None
+---
+apiVersion: apps/v1 # for versions before 1.9.0 use apps/v1beta2
+kind: Deployment
+metadata:
+  name: mysql
+  namespace: scienz
+spec:
+  selector:
+    matchLabels:
+      app: mysql
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: mysql
+    spec:
+      nodeSelector:
+        kubernetes.io/arch: amd64
+      containers:
+      - image: mysql:5.6
+        name: mysql
+        env:
+          # Use secret in real usage
+        - name: MYSQL_ROOT_PASSWORD
+          value: eagerLamprey
+        ports:
+        - containerPort: 3306
+          name: mysql
+        volumeMounts:
+        - name: mysql-persistent-storage
+          mountPath: /var/lib/mysql
+      volumes:
+      - name: mysql-persistent-storage
+        persistentVolumeClaim:
+          claimName: mysql-pvc
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: mysql-pv-volume
+  labels:
+    type: local
+    app: mysql
+  namespace: scienz
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/mnt/data"
+  storageClassName: local-path
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mysql-pvc
+  namespace: scienz
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+# Hive standalone metastore service, keeps track of table metadata.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert
+    kompose.version: 1.21.0 (992df58d8)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: metastore
+  name: metastore
+  namespace: scienz
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: metastore
+  strategy: {}
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert
+        kompose.version: 1.21.0 (992df58d8)
+      creationTimestamp: null
+      labels:
+        io.kompose.service: metastore
+    spec:
+      nodeSelector:
+        kubernetes.io/arch: amd64
+      containers:
+      - name: metastore
+        image: scienz/aorist-test-metastore:latest
+        env:
+          - name: MYSQL_HOST
+            value: mysql
+          - name: METASTORE_PORT
+            value: "9083"
+          - name: MYSQL_USER
+            value: root
+          - name: MYSQL_PASSWORD
+            value: "eagerLamprey"
+          - name: MYSQL_PORT
+            value: "3306"
+          - name: METASTORE_DB
+            value: "metastore_db"
+        imagePullPolicy: "Always"
+        ports:
+        - containerPort: 9083
+        resources: {}
+        volumeMounts:
+          - mountPath: /apache-hive-metastore-3.0.0-bin/metastore-site.xml.template
+            name: properties-vol
+            subPath: metastore-site.xml.template
+            readOnly: false
+      volumes:
+        - name: properties-vol
+          configMap:
+            defaultMode: 420
+            name: properties
+      restartPolicy: Always
+      serviceAccountName: ""
+status: {}
+---
+# Hive Metastore service, exposes port 9083 to other services (Presto /
+# Alluxio)
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    kompose.cmd: kompose convert
+    kompose.version: 1.21.0 (992df58d8)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: metastore
+  name: metastore
+  namespace: scienz
+spec:
+  ports:
+  - port: 9083
+  selector:
+    io.kompose.service: metastore
+status:
+  loadBalancer: {}
+---
