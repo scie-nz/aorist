@@ -211,8 +211,11 @@ spec:
   dialect: Python
   preamble: |
     from google.cloud import storage
+    import os
     def download_blob_to_file(bucket_name, blob_name, tmp_dir, file_name):
-      client = storage.Client.from_service_account_json('/gcloud/social_norms.json')
+      client = storage.Client.from_service_account_json('/home/bogdan/.gcloud/social_norms.json')
+      if not os.path.exists(tmp_dir):
+          os.makedirs(tmp_dir)
       bucket = client.bucket(bucket_name)
       blob = bucket.blob(blob_name)
       dest = "%s/%s" % (tmp_dir, file_name)
@@ -241,7 +244,7 @@ spec:
   use: DownloadDataFromRemoteWebLocation
   root: WebLocation
   dialect: Bash
-  call: curl {address} -O {tmp_dir}/{file_name}
+  call: mkdir -p {tmp_dir} && curl {address} -O {tmp_dir}/{file_name}
   kwargs:
     address:
       type: AncestorArgument

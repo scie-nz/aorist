@@ -112,7 +112,7 @@ impl ETLSingleton for PythonSingleton {
             ))],
             Some(Dialect::Presto(_)) => vec![AST::Formatted(Formatted::new_wrapped(
                 AST::StringLiteral(StringLiteral::new_wrapped(
-                    format!("presto -e '{}'", self.command.as_ref().unwrap()).to_string(),
+                    format!("presto -e '{}'", self.command.as_ref().unwrap().to_string().replace("'", "\\'")).to_string(),
                 )),
                 self.kwargs.clone(),
             ))],
@@ -149,7 +149,7 @@ impl ETLSingleton for PythonSingleton {
             Some(Dialect::Bash(_)) | Some(Dialect::Presto(_)) => {
                 Ok(AST::Attribute(Attribute::new_wrapped(
                     AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("subprocess".to_string())),
-                    "popen".to_string(),
+                    "Popen".to_string(),
                     false,
                 )))
             }

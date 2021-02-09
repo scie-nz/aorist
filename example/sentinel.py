@@ -44,8 +44,8 @@ sentinel_granule_datum = KeyedStruct(
 )
 remote = RemoteStorage(
     location=GCSLocation(
-        bucket="gcp-public-data-sentinel2",
-        blob="index.csv.gz-backup",
+        bucket="gcp-public-data-sentinel-2",
+        blob="index.csv.gz",
     ),
     layout=SingleFileLayout(),
     encoding=CSVEncoding(
