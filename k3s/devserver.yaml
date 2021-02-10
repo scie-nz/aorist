@@ -19,8 +19,8 @@ spec:
       containers:
       - image: scienz/aorist-test-devserver
         name: devserver
-        command: [ "/bin/bash", "-c", "--" ]
-        args: [ "while true; do sleep 30; done;" ]
+        # command: [ "/bin/bash", "-c", "--" ]
+        # args: [ "while true; do sleep 30; done;" ]
         volumeMounts:
         - name: devserver-persistent-storage
           mountPath: /var/lib/devserver
