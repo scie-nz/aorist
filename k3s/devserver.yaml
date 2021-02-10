@@ -1,0 +1,67 @@
+apiVersion: apps/v1 # for versions before 1.9.0 use apps/v1beta2
+kind: Deployment
+metadata:
+  name: devserver
+  namespace: scienz
+spec:
+  selector:
+    matchLabels:
+      app: devserver
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: devserver
+    spec:
+      nodeSelector:
+        kubernetes.io/arch: amd64
+      containers:
+      - image: scienz/aorist-test-devserver
+        name: devserver
+        command: [ "/bin/bash", "-c", "--" ]
+        args: [ "while true; do sleep 30; done;" ]
+        volumeMounts:
+        - name: devserver-persistent-storage
+          mountPath: /var/lib/devserver
+        - name: secret-volume
+          readOnly: true
+          mountPath: "/etc/deploy_key"
+      volumes:
+      - name: devserver-persistent-storage
+        persistentVolumeClaim:
+          claimName: devserver-pvc
+      - name: secret-volume
+        secret:
+          secretName: aorist-deploy-key
+          defaultMode: 0400
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: devserver-pv-volume
+  labels:
+    type: local
+    app: devserver
+  namespace: scienz
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/mnt/devserver"
+  storageClassName: local-path
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: devserver-pvc
+  namespace: scienz
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
