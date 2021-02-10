@@ -13,7 +13,6 @@ universe = Universe(
     groups=DEFAULT_GROUPS,
     datasets=[
         geonames_dataset,
-        sentinel_dataset,
         snap_dataset,
     ],
     endpoints=DEFAULT_ENDPOINTS,

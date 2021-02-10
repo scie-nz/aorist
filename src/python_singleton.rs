@@ -119,7 +119,8 @@ impl ETLSingleton for PythonSingleton {
             ));
             let rows = AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("rows".to_string()));
             let mut command_map = LinkedHashMap::new();
-            let command_ident = AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("command".to_string()));
+            let command_ident =
+                AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("command".to_string()));
             let command_ident_with_comments = AST::Call(Call::new_wrapped(
                 AST::Attribute(Attribute::new_wrapped(
                     AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("re".to_string())),
@@ -127,7 +128,9 @@ impl ETLSingleton for PythonSingleton {
                     false,
                 )),
                 vec![
-                    AST::StringLiteral(StringLiteral::new_wrapped(format!("'{}n{}s+'", "\\", "\\").to_string())),
+                    AST::StringLiteral(StringLiteral::new_wrapped(
+                        format!("'{}n{}s+'", "\\", "\\").to_string(),
+                    )),
                     AST::StringLiteral(StringLiteral::new_wrapped("''".to_string())),
                     command_ident.clone(),
                 ],

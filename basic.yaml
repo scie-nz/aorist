@@ -116,7 +116,7 @@ spec:
   name: Test
   root: Universe
   requires:
-    - ReplicatedSchema
+    - DownloadDataFromRemote
 ---
 type: Constraint
 spec:
@@ -251,7 +251,7 @@ spec:
         attaches: RemoteImportStorageSetup
     - type: AncestorArgument
       spec:
-        call: static_data_table.name
+        call: format!("{}.downloaded", static_data_table.name).to_string()
         attaches: StaticDataTable
 ---
 type: Program
@@ -259,7 +259,7 @@ spec:
   use: DownloadDataFromRemoteWebLocation
   root: WebLocation
   dialect: Bash
-  call: mkdir -p {tmp_dir} && curl {address} -O {tmp_dir}/{file_name}
+  call: mkdir -p {tmp_dir} && curl {address} -o {tmp_dir}/{file_name}
   kwargs:
     address:
       type: AncestorArgument
@@ -276,7 +276,7 @@ spec:
     file_name:
       type: AncestorArgument
       spec:
-        call: static_data_table.name
+        call: format!("{}.downloaded", static_data_table.name).to_string()
         attaches: StaticDataTable
         name: file_name
 ---

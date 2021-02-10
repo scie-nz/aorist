@@ -420,7 +420,7 @@ geonames_datum = KeyedStruct(
 )
 remote = RemoteStorage(
     location=WebLocation(
-        address=("https://geonames.nga.mil/gns/html/cntyfile/geonames_20210201.zip"),
+        address=("https://geonames.nga.mil/gns/html/cntyfile/geonames_20210208.zip"),
     ),
     layout=SingleFileLayout(),
     encoding=CSVEncoding(
