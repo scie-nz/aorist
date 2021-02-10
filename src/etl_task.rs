@@ -1,8 +1,8 @@
 use crate::endpoints::EndpointConfig;
 use crate::etl_singleton::ETLSingleton;
 use crate::python::{
-    AoristStatement, Attribute, Call, Dict, Import, List, ParameterTuple, ParameterTupleDedupKey,
-    SimpleIdentifier, StringLiteral, Subscript, Tuple, AST, BigIntLiteral,
+    AoristStatement, Attribute, BigIntLiteral, Call, Dict, Import, List, ParameterTuple,
+    ParameterTupleDedupKey, SimpleIdentifier, StringLiteral, Subscript, Tuple, AST,
 };
 use aorist_primitives::Dialect;
 use linked_hash_map::LinkedHashMap;
