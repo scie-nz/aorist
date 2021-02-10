@@ -54,7 +54,7 @@ remote = RemoteStorage(
     ),
 )
 local = HiveTableStorage(
-    location=AlluxioLocation("sentinel2/metadata"),
+    location=AlluxioLocation("sentinel2", "metadata"),
     layout=StaticHiveTableLayout(),
     encoding=ORCEncoding(),
 )

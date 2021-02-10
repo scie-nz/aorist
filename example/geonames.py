@@ -431,7 +431,7 @@ remote = RemoteStorage(
     ),
 )
 local = HiveTableStorage(
-    location=AlluxioLocation("geonames/features"),
+    location=AlluxioLocation("geonames", "features"),
     layout=StaticHiveTableLayout(),
     encoding=ORCEncoding(),
 )

@@ -1,5 +1,5 @@
 use crate::concept::{AoristConcept, Concept};
-use crate::constraint::Constraint;
+use crate::constraint::*;
 use aorist_concept::{aorist_concept, Constrainable, InnerObject};
 use derivative::Derivative;
 use paste::paste;
@@ -10,5 +10,6 @@ use uuid::Uuid;
 
 #[aorist_concept]
 pub struct AlluxioLocation {
-    path: String,
+    pub schema: String,
+    pub path: String,
 }

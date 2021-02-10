@@ -1,3 +1,4 @@
+use crate::endpoints::EndpointConfig;
 use crate::python::{AoristStatement, Import, Preamble, PythonStatementInput, AST};
 use aorist_primitives::Dialect;
 use linked_hash_map::LinkedHashMap;
@@ -24,7 +25,7 @@ pub trait ETLSingleton {
     fn compute_task_call(&self) -> AST;
     fn compute_task_args(&self) -> Vec<AST>;
     fn compute_task_kwargs(&self) -> LinkedHashMap<String, AST>;
-    fn get_statements(&self) -> Vec<AoristStatement>;
+    fn get_statements(&self, endpoints: &EndpointConfig) -> Vec<AoristStatement>;
     fn get_type() -> String;
     fn get_imports(&self) -> Vec<Import>;
 }

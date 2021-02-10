@@ -18,5 +18,5 @@ universe = Universe(
     ],
     endpoints=DEFAULT_ENDPOINTS,
 )
-out = dag(universe, ["Replicated"], "python")
+out = dag(universe, ["Test"], "python")
 print(out)

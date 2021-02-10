@@ -109,12 +109,27 @@ spec:
   name: ReplicatedSchema
   root: StaticDataTable
   requires:
-      - HiveSchemasCreated
+      - TableSchemasCreated
 ---
 type: Constraint
 spec:
-  name: HiveSchemasCreated
+  name: Test
+  root: Universe
+  requires:
+    - ReplicatedSchema
+---
+type: Constraint
+spec:
+  name: TableSchemasCreated
   root: HiveTableStorage
+  requiresProgram: true
+  requires:
+    - HiveDirectoriesCreated
+---
+type: Constraint
+spec:
+  name: HiveDirectoriesCreated
+  root: AlluxioLocation
   requiresProgram: true
 ---
 type: Constraint
@@ -374,16 +389,45 @@ spec:
         attaches:
           - StaticDataTable
           - DataSet
+
 ---
 type: Program
 spec:
-  use: HiveSchemasCreated
+  use: HiveDirectoriesCreated
+  root: AlluxioLocation
+  dialect: Presto
+  call: CREATE SCHEMA IF NOT EXISTS {presto_schema} WITH (location='{location}');
+  kwargs:
+    presto_schema:
+      type: AncestorArgument
+      spec:
+        attaches: HiveLocation
+        call: >
+          match &hive_location {
+            HiveLocation::AlluxioLocation(a) => a.schema.to_string(),
+          }
+    location:
+      type: MultipleAncestorsArgument
+      spec:
+        attaches:
+           - HiveTableStorage
+           - Universe
+        call: >
+          match &hive_table_storage.location {
+            HiveLocation::AlluxioLocation(a) => format!(
+                "alluxio://{}:{}/{}",
+                universe.endpoints.alluxio.as_ref().unwrap().server,
+                universe.endpoints.alluxio.as_ref().unwrap().apiPort,
+                a.schema
+            ).to_string()
+          }
+---
+type: Program
+spec:
+  use: TableSchemasCreated
   root: HiveTableStorage
   dialect: Presto
-  call: |
-    CREATE TABLE IF NOT EXISTS {table_name} (
-    {schema}
-    ) WITH (format='{data_format}');
+  call: CREATE TABLE IF NOT EXISTS {presto_schema}.{table_name} ({schema}) WITH (format='{data_format}');
   kwargs:
     table_name:
       type: AncestorArgument
@@ -399,6 +443,14 @@ spec:
             _ => panic!("Format not supported for hive table")
           }
         attaches: HiveTableStorage
+    presto_schema:
+      type: AncestorArgument
+      spec:
+        attaches: HiveTableStorage
+        call: >
+          match &hive_table_storage.location {
+            HiveLocation::AlluxioLocation(a) => a.schema.to_string(),
+          }
     schema:
       type: MultipleAncestorsArgument
       spec:

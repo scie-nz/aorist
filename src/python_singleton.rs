@@ -1,7 +1,8 @@
+use crate::endpoints::EndpointConfig;
 use crate::etl_singleton::{ETLSingleton, ETLDAG};
 use crate::python::{
-    AoristStatement, Attribute, Call, Formatted, Import, SimpleIdentifier, StringLiteral, Tuple,
-    AST,
+    AoristStatement, Attribute, BooleanLiteral, Call, Formatted, Import, List, SimpleIdentifier,
+    StringLiteral, Tuple, AST,
 };
 use aorist_primitives::Dialect;
 use linked_hash_map::LinkedHashMap;
@@ -18,14 +19,61 @@ pub struct PythonSingleton {
     dep_list: Option<AST>,
     preamble: Option<String>,
     dialect: Option<Dialect>,
+    conn_ident: Option<AST>,
+    cursor_ident: Option<AST>,
+}
+impl PythonSingleton {
+    // TODO: add endpoints
+    fn presto_connection_statement(
+        &self,
+        endpoints: &EndpointConfig,
+        schema: AST,
+    ) -> AoristStatement {
+        let mut kwargs = LinkedHashMap::new();
+        let presto_endpoints = endpoints.presto().as_ref().unwrap();
+
+        kwargs.insert(
+            "host".to_string(),
+            AST::StringLiteral(StringLiteral::new_wrapped(presto_endpoints.server.clone())),
+        );
+        kwargs.insert(
+            "port".to_string(),
+            AST::BigIntLiteral(BigIntLiteral::new_wrapped(presto_endpoints.httpPort as i64)),
+        );
+        kwargs.insert("schema".to_string(), schema);
+        kwargs.insert(
+            "catalog".to_string(),
+            AST::StringLiteral(StringLiteral::new_wrapped("hive".to_string())),
+        );
+
+        AoristStatement::Assign(
+            self.conn_ident.as_ref().unwrap().clone(),
+            AST::Call(Call::new_wrapped(
+                AST::Attribute(Attribute::new_wrapped(
+                    AST::Attribute(Attribute::new_wrapped(
+                        AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
+                            "prestodb".to_string(),
+                        )),
+                        "dbapi".to_string(),
+                        false,
+                    )),
+                    "connect".to_string(),
+                    false,
+                )),
+                vec![],
+                kwargs,
+            )),
+        )
+    }
 }
 impl ETLSingleton for PythonSingleton {
     fn get_imports(&self) -> Vec<Import> {
         match self.dialect {
             Some(Dialect::Python(_)) | None => vec![],
-            Some(Dialect::Bash(_)) | Some(Dialect::Presto(_)) | Some(Dialect::R(_)) => {
+            Some(Dialect::Bash(_)) | Some(Dialect::R(_)) => {
                 vec![Import::ModuleImport("subprocess".to_string())]
             }
+            Some(Dialect::Presto(_)) => vec!["subprocess".to_string(), "prestodb".to_string()],
         }
     }
     fn get_preamble(&self) -> Vec<String> {
@@ -44,7 +92,10 @@ impl ETLSingleton for PythonSingleton {
     fn get_task_val(&self) -> AST {
         self.task_val.clone()
     }
-    fn get_statements(&self) -> Vec<AoristStatement> {
+    fn get_statements(&self, endpoints: &EndpointConfig) -> Vec<AoristStatement> {
+        if let Some(Dialect::Presto(_)) = self.dialect {
+            return vec![self.presto_connection_statement(endpoints)];
+        }
         let creation_expr = AST::Call(Call::new_wrapped(
             self.compute_task_call(),
             self.compute_task_args(),
@@ -99,6 +150,18 @@ impl ETLSingleton for PythonSingleton {
             dep_list,
             preamble,
             dialect,
+            conn_ident: match &dialect {
+                Dialect::Presto(_) => Some(AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
+                    "conn".to_string(),
+                ))),
+                _ => None,
+            },
+            cursor_ident: match &dialect {
+                Dialect::Presto(_) => Some(AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
+                    "cursor".to_string(),
+                ))),
+                _ => None,
+            },
         }
     }
     fn compute_task_args(&self) -> Vec<AST> {
@@ -110,12 +173,45 @@ impl ETLSingleton for PythonSingleton {
                 )),
                 self.kwargs.clone(),
             ))],
-            Some(Dialect::Presto(_)) => vec![AST::Formatted(Formatted::new_wrapped(
-                AST::StringLiteral(StringLiteral::new_wrapped(
-                    format!("presto -e '{}'", self.command.as_ref().unwrap().to_string().replace("'", "\\'")).to_string(),
-                )),
-                self.kwargs.clone(),
-            ))],
+            Some(Dialect::Presto(_)) => {
+                let command = AST::Formatted(Formatted::new_wrapped(
+                    AST::StringLiteral(StringLiteral::new_wrapped(
+                        self.command.as_ref().unwrap().to_string(),
+                    )),
+                    self.kwargs.clone(),
+                ));
+                /*
+                let replaced = AST::Call(Call::new_wrapped(
+                    AST::Attribute(Attribute::new_wrapped(
+                        command,
+                        "replace".to_string(),
+                        false,
+                    )),
+                    vec![
+                        AST::StringLiteral(StringLiteral::new_wrapped("'".to_string())),
+                        AST::StringLiteral(StringLiteral::new_wrapped("\\'".to_string())),
+                    ],
+                    LinkedHashMap::new(),
+                ));*/
+                let mut kwargs = LinkedHashMap::new();
+                kwargs.insert("command".to_string(), command);
+
+                vec![AST::List(List::new_wrapped(
+                    vec![
+                        AST::StringLiteral(StringLiteral::new_wrapped("presto".to_string())),
+                        AST::StringLiteral(StringLiteral::new_wrapped("--catalog".to_string())),
+                        AST::StringLiteral(StringLiteral::new_wrapped("hive".to_string())),
+                        AST::StringLiteral(StringLiteral::new_wrapped("--execute".to_string())),
+                        AST::Formatted(Formatted::new_wrapped(
+                            AST::StringLiteral(StringLiteral::new_wrapped(
+                                "\"{command}\"".to_string(),
+                            )),
+                            kwargs,
+                        )),
+                    ],
+                    false,
+                ))]
+            }
             None => vec![self.task_id.clone()],
             _ => panic!("Dialect not supported"),
         }
@@ -135,6 +231,10 @@ impl ETLSingleton for PythonSingleton {
                         "PIPE".to_string(),
                         false,
                     )),
+                );
+                kwargs.insert(
+                    "shell".to_string(),
+                    AST::BooleanLiteral(BooleanLiteral::new_wrapped(true)),
                 );
                 kwargs
             }

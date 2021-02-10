@@ -4,6 +4,7 @@ use crate::constraint::{AoristConstraint, Constraint};
 use crate::constraint_block::ConstraintBlock;
 use crate::constraint_state::ConstraintState;
 use crate::data_setup::{TUniverse, Universe};
+use crate::endpoints::EndpointConfig;
 use crate::etl_singleton::ETLDAG;
 use crate::object::TAoristObject;
 use crate::python::ParameterTuple;
@@ -34,6 +35,7 @@ where
     >,
     ancestry: Arc<ConceptAncestry<'a>>,
     dag_type: PhantomData<D>,
+    endpoints: EndpointConfig,
 }
 
 impl<'a, D> Driver<'a, D>
@@ -267,14 +269,14 @@ where
         unsatisfied_constraints
     }
     pub fn new(
-        data_setup: &'a Universe,
+        universe: &'a Universe,
         topline_constraint_names: Option<HashSet<String>>,
     ) -> Driver<'a, D> {
         let mut concept_map: HashMap<(Uuid, String), Concept<'a>> = HashMap::new();
-        let concept = Concept::Universe((data_setup, 0, None));
+        let concept = Concept::Universe((universe, 0, None));
         concept.populate_child_concept_map(&mut concept_map);
 
-        let it = data_setup.get_constraints().iter().map(|x| x.clone());
+        let it = universe.get_constraints().iter().map(|x| x.clone());
         let topline = match topline_constraint_names {
             Some(set) => it
                 .filter(|x| {
@@ -284,7 +286,7 @@ where
                 .collect(),
             None => it.collect(),
         };
-        let constraints = data_setup.get_constraints_map(topline);
+        let constraints = universe.get_constraints_map(topline);
 
         let ancestors = Self::compute_all_ancestors(concept, &concept_map);
         let concepts = Arc::new(RwLock::new(concept_map));
@@ -303,6 +305,7 @@ where
             ancestry: Arc::new(ancestry),
             blocks: Vec::new(),
             dag_type: PhantomData,
+            endpoints: universe.endpoints.clone(),
         }
     }
 
@@ -560,7 +563,7 @@ where
         let statements_and_preambles = self
             .blocks
             .iter()
-            .map(|x| x.get_statements())
+            .map(|x| x.get_statements(&self.endpoints))
             .collect::<Vec<_>>();
         return etl.materialize(statements_and_preambles);
     }

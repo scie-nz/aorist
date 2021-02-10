@@ -22,14 +22,14 @@ use uuid::Uuid;
 pub struct EndpointConfig {
     #[constrainable]
     #[py_default = "None"]
-    presto: Option<PrestoConfig>,
+    pub presto: Option<PrestoConfig>,
     #[constrainable]
     #[py_default = "None"]
-    alluxio: Option<AlluxioConfig>,
+    pub alluxio: Option<AlluxioConfig>,
     #[constrainable]
     #[py_default = "None"]
-    ranger: Option<RangerConfig>,
+    pub ranger: Option<RangerConfig>,
     #[constrainable]
     #[py_default = "None"]
-    gitea: Option<GiteaConfig>,
+    pub gitea: Option<GiteaConfig>,
 }

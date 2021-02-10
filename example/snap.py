@@ -56,7 +56,7 @@ for name in [
         ),
     )
     local = HiveTableStorage(
-        location=AlluxioLocation("snap/%s" % name_underscore),
+        location=AlluxioLocation("snap", name_underscore),
         layout=StaticHiveTableLayout(),
         encoding=ORCEncoding(),
     )
