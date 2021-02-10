@@ -116,7 +116,7 @@ spec:
   name: Test
   root: Universe
   requires:
-    - DownloadDataFromRemote
+    - Decompress
 ---
 type: Constraint
 spec:
@@ -199,6 +199,26 @@ spec:
 type: Constraint
 spec:
   name: Decompress
+  root: DataCompression
+  requires:
+    - DecompressGzip
+    - DecompressZip
+---
+type: Constraint
+spec:
+  name: DecompressGzip
+  root: GzipCompression
+  requiresProgram: true
+---
+type: Constraint
+spec:
+  name: DecompressZip
+  root: ZipCompression
+  requiresProgram: true
+---
+type: Constraint
+spec:
+  name: Decompress2
   root: GzipCompression
   requires:
     - DownloadDataFromRemote
@@ -282,8 +302,8 @@ spec:
 ---
 type: Program
 spec:
-  use: Decompress
-  root: GzipCompression
+  use: DecompressZip
+  root: ZipCompression
   dialect: Bash
   call: unzip {command}
   kwargs:
@@ -292,21 +312,42 @@ spec:
       spec:
         name: command
         call: >
-          match &gzip_compression.filename {
+          match &zip_compression.filename {
             Some(ref file) => format!(
-                "-p {tmp_dir}/{archive_name} {file_name} > {tmp_dir}/{archive_name}.txt",
+                "-p {tmp_dir}/{archive_name}.downloaded {file_name} > {tmp_dir}/{archive_name}.txt",
                 tmp_dir=remote_import_storage_setup.tmp_dir,
                 archive_name=static_data_table.name,
                 file_name=file,
             ).to_string(),
             None => format!(
-                "-p {tmp_dir}/{archive_name} > {tmp_dir}/{archive_name}.txt",
+                "-p {tmp_dir}/{archive_name}.downloaded > {tmp_dir}/{archive_name}.txt",
                 tmp_dir=remote_import_storage_setup.tmp_dir,
                 archive_name=static_data_table.name,
             )
           }
         attaches:
-          - GzipCompression
+          - ZipCompression
+          - StaticDataTable
+          - RemoteImportStorageSetup
+---
+type: Program
+spec:
+  use: DecompressGzip
+  root: GzipCompression
+  dialect: Bash
+  call: gunzip {command}
+  kwargs:
+    command:
+      type: MultipleAncestorsArgument
+      spec:
+        name: command
+        call: >
+            format!(
+                "--suffix=downloaded -c {tmp_dir}/{archive_name}.downloaded > {tmp_dir}/{archive_name}.txt",
+                tmp_dir=remote_import_storage_setup.tmp_dir,
+                archive_name=static_data_table.name,
+            )
+        attaches:
           - StaticDataTable
           - RemoteImportStorageSetup
 ---

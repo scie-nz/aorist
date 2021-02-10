@@ -135,6 +135,7 @@ fn aorist(py: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<InnerRangerConfig>()?;
     m.add_class::<InnerPrestoConfig>()?;
     m.add_class::<InnerGzipCompression>()?;
+    m.add_class::<InnerZipCompression>()?;
     m.add_wrapped(wrap_pyfunction!(default_tabular_schema))?;
     m.add_wrapped(wrap_pyfunction!(dag))?;
     Ok(())

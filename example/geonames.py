@@ -5,7 +5,7 @@ from aorist import (
     WebLocation,
     StaticHiveTableLayout,
     UpperSnakeCaseCSVHeader,
-    GzipCompression,
+    ZipCompression,
     ORCEncoding,
     CSVEncoding,
     SingleFileLayout,
@@ -424,7 +424,7 @@ remote = RemoteStorage(
     ),
     layout=SingleFileLayout(),
     encoding=CSVEncoding(
-        compression=GzipCompression(
+        compression=ZipCompression(
             filename="Countries.txt",
         ),
         header=UpperSnakeCaseCSVHeader(),
