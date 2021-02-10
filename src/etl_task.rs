@@ -1,3 +1,4 @@
+use crate::endpoints::EndpointConfig;
 use crate::etl_singleton::ETLSingleton;
 use crate::python::{
     AoristStatement, Attribute, Call, Dict, Import, List, ParameterTuple, ParameterTupleDedupKey,
@@ -196,7 +197,10 @@ where
             singleton_type: PhantomData,
         }
     }
-    pub fn get_statements(&self) -> (Vec<AoristStatement>, Vec<String>, Vec<Import>) {
+    pub fn get_statements(
+        &self,
+        endpoints: &EndpointConfig,
+    ) -> (Vec<AoristStatement>, Vec<String>, Vec<Import>) {
         let args;
         let kwargs;
         if let Some(ref p) = self.params {
@@ -223,7 +227,7 @@ where
             self.get_dialect(),
         );
         (
-            singleton.get_statements(),
+            singleton.get_statements(endpoints),
             singleton.get_preamble(),
             singleton.get_imports(),
         )
@@ -256,7 +260,10 @@ where
             singleton_type: PhantomData,
         }
     }
-    pub fn get_statements(&self) -> (Vec<AoristStatement>, Vec<String>, Vec<Import>) {
+    pub fn get_statements(
+        &self,
+        endpoints: &EndpointConfig,
+    ) -> (Vec<AoristStatement>, Vec<String>, Vec<Import>) {
         let any_dependencies = self
             .values
             .iter()
@@ -346,7 +353,7 @@ where
             preamble.clone(),
             dialect.clone(),
         );
-        let statements = singleton.get_statements();
+        let statements = singleton.get_statements(endpoints);
         let items_call = AST::Call(Call::new_wrapped(
             AST::Attribute(Attribute::new_wrapped(
                 self.params_dict_name.clone(),
@@ -376,10 +383,13 @@ impl<T> ETLTask<T>
 where
     T: ETLSingleton,
 {
-    pub fn get_statements(&self) -> (Vec<AoristStatement>, Vec<String>, Vec<Import>) {
+    pub fn get_statements(
+        &self,
+        endpoints: &EndpointConfig,
+    ) -> (Vec<AoristStatement>, Vec<String>, Vec<Import>) {
         match &self {
-            ETLTask::StandaloneETLTask(x) => x.get_statements(),
-            ETLTask::ForLoopETLTask(x) => x.get_statements(),
+            ETLTask::StandaloneETLTask(x) => x.get_statements(endpoints),
+            ETLTask::ForLoopETLTask(x) => x.get_statements(endpoints),
         }
     }
 }

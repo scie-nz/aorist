@@ -16,7 +16,7 @@ alluxio_config = AlluxioConfig(server="alluxio-server", apiPort=19998)
 ranger_config = RangerConfig(
     server="localhost", user="admin", password="G0powerRangers"
 )
-presto_config = PrestoConfig(server="presto-coordinator-0")
+presto_config = PrestoConfig(server="localhost", user="bogdan")
 gitea_config = GiteaConfig(token="2b44b07e042ee9fe374e3eeebd2c9098468b5774")
 endpoints = EndpointConfig(
     alluxio=alluxio_config,

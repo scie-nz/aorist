@@ -1,4 +1,5 @@
 use crate::constraint_state::ConstraintState;
+use crate::endpoints::EndpointConfig;
 use crate::etl_singleton::ETLSingleton;
 use crate::etl_task::{ETLTask, ForLoopETLTask, StandaloneETLTask};
 use crate::python::PythonStatementInput;
@@ -74,7 +75,7 @@ where
             }
         }
     }
-    pub fn get_statements(&'a self) -> PythonStatementInput {
+    pub fn get_statements(&'a self, endpoints: &EndpointConfig) -> PythonStatementInput {
         self.set_task_vals();
         let tasks = self
             .get_constraints()
@@ -137,7 +138,7 @@ where
         }
         let preambles_and_statements = etl_tasks
             .into_iter()
-            .map(|x| x.get_statements())
+            .map(|x| x.get_statements(endpoints))
             .collect::<Vec<_>>();
         let preambles = preambles_and_statements
             .iter()

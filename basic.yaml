@@ -396,7 +396,7 @@ spec:
   use: HiveDirectoriesCreated
   root: AlluxioLocation
   dialect: Presto
-  call: CREATE SCHEMA IF NOT EXISTS {presto_schema} WITH (location='{location}');
+  call: CREATE SCHEMA IF NOT EXISTS {presto_schema} WITH (location='{location}')
   kwargs:
     presto_schema:
       type: AncestorArgument
@@ -427,7 +427,7 @@ spec:
   use: TableSchemasCreated
   root: HiveTableStorage
   dialect: Presto
-  call: CREATE TABLE IF NOT EXISTS {presto_schema}.{table_name} ({schema}) WITH (format='{data_format}');
+  call: CREATE TABLE IF NOT EXISTS {presto_schema}.{table_name} ({schema}) WITH (format='{data_format}')
   kwargs:
     table_name:
       type: AncestorArgument
@@ -495,17 +495,17 @@ spec:
                         "    {} {} COMMENT '{}'",
                         name,
                         presto_type,
-                        comment_str.get(0).unwrap(),
+                        comment_str.get(0).unwrap().to_string().replace("\'", "`"),
                     ).to_string();
                 } else {
                     return format!(
-                        "    {} {} COMMENT CONCAT(\n{}\n    )",
+                        "    {} {} \n COMMENT {}\n",
                         name,
                         presto_type,
                         comment_str
                           .into_iter()
-                          .map(|x| format!("        '{}'", x).to_string())
-                          .collect::<Vec<String>>().join(",\n")
+                          .map(|x| format!("        '{}'", x.to_string().replace("\'", "`")).to_string())
+                          .collect::<Vec<String>>().join("\n")
                     ).to_string();
                 }
             }).collect::<Vec<String>>();

@@ -55,7 +55,7 @@ impl ETLSingleton for AirflowSingleton {
     fn get_task_val(&self) -> AST {
         self.task_val.clone()
     }
-    fn get_statements(&self, _e: EndpointConfig) -> Vec<AoristStatement> {
+    fn get_statements(&self, _e: &EndpointConfig) -> Vec<AoristStatement> {
         let creation_expr = AST::Call(Call::new_wrapped(
             self.compute_task_call(),
             self.compute_task_args(),

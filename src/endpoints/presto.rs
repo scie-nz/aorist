@@ -12,7 +12,8 @@ use uuid::Uuid;
 
 #[aorist_concept]
 pub struct PrestoConfig {
-    server: String,
+    pub server: String,
     #[py_default = "8080"]
-    httpPort: usize,
+    pub httpPort: usize,
+    pub user: String,
 }

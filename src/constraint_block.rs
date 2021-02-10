@@ -1,4 +1,5 @@
 use crate::code_block::CodeBlock;
+use crate::endpoints::EndpointConfig;
 use crate::etl_singleton::ETLSingleton;
 use crate::python::PythonStatementInput;
 use crate::python::{AoristStatement, Dict, Import, ParameterTuple, SimpleIdentifier, AST};
@@ -60,11 +61,11 @@ where
             })
             .collect()
     }
-    pub fn get_statements(&'a self) -> PythonStatementInput {
+    pub fn get_statements(&'a self, endpoints: &EndpointConfig) -> PythonStatementInput {
         let preambles_and_statements = self
             .members
             .iter()
-            .map(|x| x.get_statements())
+            .map(|x| x.get_statements(endpoints))
             .collect::<Vec<_>>();
         let preambles = preambles_and_statements
             .iter()

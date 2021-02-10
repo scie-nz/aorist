@@ -377,7 +377,7 @@ attributes = [
         """,
     ),
     attr.NullableInt64(
-        "uni",
+        "uni2",
         """
         Unique Name Identifier (UNI) that links romanized names to their
         non-Roman script equivalent and vice-versa.
@@ -436,7 +436,7 @@ local = HiveTableStorage(
     encoding=ORCEncoding(),
 )
 geonames_table = StaticDataTable(
-    name="sentinel_metadata_table",
+    name="features",
     schema=default_tabular_schema(geonames_datum),
     setup=RemoteImportStorageSetup(
         tmp_dir="geonames",

@@ -20,7 +20,6 @@ pub struct Driver<'a, D>
 where
     D: ETLDAG,
 {
-    _data_setup: &'a Universe,
     pub concepts: Arc<RwLock<HashMap<(Uuid, String), Concept<'a>>>>,
     constraints: HashMap<(Uuid, String), Arc<RwLock<Constraint>>>,
     satisfied_constraints: HashMap<(Uuid, String), Arc<RwLock<ConstraintState<'a>>>>,
@@ -297,7 +296,6 @@ where
             parents: concepts.clone(),
         };
         Self {
-            _data_setup: data_setup,
             concepts,
             constraints: constraints.clone(),
             satisfied_constraints: HashMap::new(),
