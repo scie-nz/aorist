@@ -231,14 +231,16 @@ where
                     .unwrap()
                     .clone();
 
-                for rev in reverse_dependencies.get(&elem).unwrap() {
-                    let mut write = raw_unsatisfied_constraints
-                        .get(rev)
-                        .unwrap()
-                        .write()
-                        .unwrap();
-                    assert!(write.unsatisfied_dependencies.remove(&elem));
-                    write.unsatisfied_dependencies.insert(dep.clone());
+                if let Some(rev_deps) = reverse_dependencies.get(&elem) {
+                    for rev in rev_deps.iter() {
+                        let mut write = raw_unsatisfied_constraints
+                            .get(rev)
+                            .unwrap()
+                            .write()
+                            .unwrap();
+                        assert!(write.unsatisfied_dependencies.remove(&elem));
+                        write.unsatisfied_dependencies.insert(dep.clone());
+                    }
                 }
             } else {
                 break;

@@ -26,9 +26,7 @@ edge_tuple = IdentifierTuple(
         attr.NumericIdentifier("to_id"),
     ],
 )
-
-tables = []
-for name in [
+names = [
     "ca-AstroPh",
     "ca-CondMat",
     "ca-GrQc",
@@ -42,7 +40,9 @@ for name in [
     "amazon0312",
     "amazon0505",
     "amazon0601",
-]:
+]
+tables = []
+for name in ['web-Stanford']:
 
     name_underscore = name.replace("-", "_").lower()
     remote = RemoteStorage(
