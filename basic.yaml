@@ -116,7 +116,7 @@ spec:
   name: Test
   root: Universe
   requires:
-    - Decompress
+    - RemoveFileHeader
 ---
 type: Constraint
 spec:
@@ -185,9 +185,14 @@ type: Constraint
 spec:
   name: RemoveFileHeader
   root: FileHeader
+  requiresProgram: true
+---
+type: Constraint
+spec:
+  name: RemoveFileHeader2
+  root: FileHeader
   requires:
     - FileIsDecompressed
-  requiresProgram: true
 ---
 type: Constraint
 spec:
@@ -209,20 +214,16 @@ spec:
   name: DecompressGzip
   root: GzipCompression
   requiresProgram: true
+  requires:
+    - DownloadDataFromRemote
 ---
 type: Constraint
 spec:
   name: DecompressZip
   root: ZipCompression
   requiresProgram: true
----
-type: Constraint
-spec:
-  name: Decompress2
-  root: GzipCompression
   requires:
     - DownloadDataFromRemote
-  requiresProgram: true
 ---
 type: Constraint
 spec:
@@ -357,8 +358,8 @@ spec:
   root: FileHeader
   dialect: Bash
   call: |
-    tail -n +{n} {tmp_dir}/{file_name} > {tmp_dir}/{file_name}.no_header &&
-    rm {tmp_dir}/{file_name}
+    tail -n +{n} {tmp_dir}/{file_name}.txt > {tmp_dir}/{file_name}.no_header &&
+    rm {tmp_dir}/{file_name}.txt
   kwargs:
     n:
       type: AncestorArgument
