@@ -13,6 +13,7 @@ use uuid::Uuid;
 #[aorist_concept]
 pub struct AlluxioConfig {
     pub server: String,
+    pub server_cli: String,
     #[py_default = "19998"]
     pub rpcPort: usize,
     #[py_default = "39999"]

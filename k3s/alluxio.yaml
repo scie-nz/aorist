@@ -73,6 +73,25 @@ spec:
         volumeMounts:
         - name: pre-install
           mountPath: /opt/alluxio/conf
+      - name: alluxio-proxy
+        args: ["proxy"]
+        # args:
+        # - master
+        # command: [ "/bin/bash", "-c", "--" ]
+        # args: [ "while true; do sleep 30; done;" ]
+        env:
+        - name: ALLUXIO_MASTER_ADDRESS
+          value: alluxio-server
+        - name: ALLUXIO_MASTER_HOSTNAME
+          value: alluxio-server
+        image: scienz/aorist-test-alluxio
+        imagePullPolicy: "Always"
+        ports:
+        - containerPort: 39999
+        resources: {}
+        volumeMounts:
+        - name: pre-install
+          mountPath: /opt/alluxio/conf
       restartPolicy: Always
       serviceAccountName: ""
 ---
@@ -115,6 +134,9 @@ spec:
   - name: "19200"
     port: 19200
     targetPort: 19200
+  - name: "39999"
+    port: 39999
+    targetPort: 39999
   selector:
     io.kompose.service: alluxio-server
 status:

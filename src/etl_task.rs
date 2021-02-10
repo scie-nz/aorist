@@ -2,7 +2,7 @@ use crate::endpoints::EndpointConfig;
 use crate::etl_singleton::ETLSingleton;
 use crate::python::{
     AoristStatement, Attribute, Call, Dict, Import, List, ParameterTuple, ParameterTupleDedupKey,
-    SimpleIdentifier, StringLiteral, Subscript, Tuple, AST,
+    SimpleIdentifier, StringLiteral, Subscript, Tuple, AST, BigIntLiteral,
 };
 use aorist_primitives::Dialect;
 use linked_hash_map::LinkedHashMap;
@@ -318,9 +318,7 @@ where
                             AST::StringLiteral(StringLiteral::new_wrapped("args".to_string())),
                             false,
                         )),
-                        AST::StringLiteral(StringLiteral::new_wrapped(
-                            format!("{}", x).to_string(),
-                        )),
+                        AST::BigIntLiteral(BigIntLiteral::new_wrapped(x as i64)),
                         false,
                     ))
                 })

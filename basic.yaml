@@ -116,7 +116,7 @@ spec:
   name: Test
   root: Universe
   requires:
-    - RemoveFileHeader
+    - UploadDataToLocal
 ---
 type: Constraint
 spec:
@@ -186,11 +186,6 @@ spec:
   name: RemoveFileHeader
   root: FileHeader
   requiresProgram: true
----
-type: Constraint
-spec:
-  name: RemoveFileHeader2
-  root: FileHeader
   requires:
     - FileIsDecompressed
 ---
@@ -229,6 +224,12 @@ type: Constraint
 spec:
   name: ConvertCSVToOrc
   root: RemoteImportStorageSetup
+  requiresProgram: true
+---
+type: Constraint
+spec:
+  name: ConvertCSVToOrc2
+  root: RemoteImportStorageSetup
   requires:
       - FileReadyForUpload
   requiresProgram: true
@@ -238,7 +239,58 @@ spec:
   name: UploadDataToLocal
   root: HiveLocation
   requires:
-      - ConvertCSVToOrc
+      - UploadDataToAlluxio
+---
+type: Constraint
+spec:
+  name: UploadDataToAlluxio
+  root: AlluxioLocation
+  requiresProgram: true
+---
+type: Program
+spec:
+  use: UploadDataToAlluxio
+  root: AlluxioLocation
+  dialect: Python
+  preamble: |
+    import alluxio
+    from alluxio import option
+
+    def upload_to_alluxio(hostname, port, schema, tablename, tmp_dir, source_file):
+      directory = '/' + schema + '/' + tablename
+      client = alluxio.Client(hostname, int(port))
+      opt = option.CreateDirectory(recursive=True)
+      client.create_directory(directory, opt)
+      with client.open(directory + '/data.csv', 'w') as f:
+        with open(tmp_dir + '/' + source_file) as source:
+          f.write(source)
+      print("Done uploading %s" % source_file)
+  call: upload_to_alluxio
+  args:
+    - type: AncestorArgument
+      spec:
+        call: universe.endpoints.alluxio.as_ref().unwrap().server_cli.clone()
+        attaches: Universe
+    - type: AncestorArgument
+      spec:
+        call: format!("{}", universe.endpoints.alluxio.as_ref().unwrap().apiPort).to_string()
+        attaches: Universe
+    - type: AncestorArgument
+      spec:
+        call: alluxio_location.schema
+        attaches: AlluxioLocation
+    - type: AncestorArgument
+      spec:
+        call: format!("{}_csv", static_data_table.name).to_string()
+        attaches: StaticDataTable
+    - type: AncestorArgument
+      spec:
+        call: remote_import_storage_setup.tmp_dir
+        attaches: RemoteImportStorageSetup
+    - type: AncestorArgument
+      spec:
+        call: format!("{}.no_header", static_data_table.name).to_string()
+        attaches: StaticDataTable
 ---
 type: Program
 spec:
@@ -459,7 +511,7 @@ spec:
             HiveLocation::AlluxioLocation(a) => format!(
                 "alluxio://{}:{}/{}",
                 universe.endpoints.alluxio.as_ref().unwrap().server,
-                universe.endpoints.alluxio.as_ref().unwrap().apiPort,
+                universe.endpoints.alluxio.as_ref().unwrap().rpcPort,
                 a.schema
             ).to_string()
           }
