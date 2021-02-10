@@ -15,7 +15,8 @@ RUN pip3 install alluxio google-cloud-storage
 RUN apt-get -y install vim
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | bash -s -- -y
 ENV PATH="/root/.cargo/bin:${PATH}"
-RUN apt-get -y install git
+RUN apt-get -y install git unzip
 RUN pip3 install astor black
+WORKDIR /home
 COPY entrypoint.sh .
 ENTRYPOINT ["entrypoint.sh"]

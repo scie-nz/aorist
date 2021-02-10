@@ -246,6 +246,8 @@ spec:
   name: UploadDataToAlluxio
   root: AlluxioLocation
   requiresProgram: true
+  requires:
+    - FileReadyForUpload
 ---
 type: Program
 spec:

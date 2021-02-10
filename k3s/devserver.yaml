@@ -23,10 +23,17 @@ spec:
         # args: [ "while true; do sleep 30; done;" ]
         volumeMounts:
         - name: devserver-persistent-storage
-          mountPath: /var/lib/devserver
+          mountPath: /home/root
         - name: secret-volume
           readOnly: true
           mountPath: "/etc/deploy_key"
+        resources:
+          requests:
+            memory: "2048Mi"
+            cpu: "2000m"
+          limits:
+            memory: "4096Mi"
+            cpu: "8000m"
       volumes:
       - name: devserver-persistent-storage
         persistentVolumeClaim:
