@@ -1,0 +1,84 @@
+---
+type: Attribute
+spec:
+  name: KeyStringIdentifier
+  orc: OrcString
+  presto: PrestoVarchar
+  sql: SQLVarchar
+---
+type: Attribute
+spec:
+  name: KeyInt64Identifier
+  orc: OrcBigint
+  presto: PrestoBigint
+  sql: SQLBigint
+---
+type: Attribute
+spec:
+  name: Empty
+  orc: OrcString
+  presto: PrestoVarchar
+  sql: SQLVarchar
+---
+type: Attribute
+spec:
+  name: NumericIdentifier
+  orc: OrcBigint
+  presto: PrestoBigint
+  sql: SQLBigint
+---
+type: Attribute
+spec:
+  name: NullableStringIdentifier
+  orc: OrcString
+  presto: PrestoVarchar
+  sql: SQLVarchar
+---
+type: Attribute
+spec:
+  name: NullablePOSIXTimestamp
+  orc: OrcBigint
+  presto: PrestoBigint
+  sql: SQLBigint
+---
+type: Attribute
+spec:
+  name: NullableInt64
+  orc: OrcBigint
+  presto: PrestoBigint
+  sql: SQLBigint
+---
+type: Attribute
+spec:
+  name: Int64Identifier
+  orc: OrcBigint
+  presto: PrestoBigint
+  sql: SQLBigint
+---
+type: Attribute
+spec:
+  name: NullableString
+  orc: OrcString
+  presto: PrestoVarchar
+  sql: SQLVarchar
+---
+type: Attribute
+spec:
+  name: FloatLatitude
+  orc: OrcFloat
+  presto: PrestoReal
+  sql: SQLReal
+---
+type: Attribute
+spec:
+  name: FloatLongitude
+  orc: OrcFloat
+  presto: PrestoReal
+  sql: SQLReal
+---
+type: Attribute
+spec:
+  name: URI
+  orc: OrcString
+  presto: PrestoVarchar
+  sql: SQLVarchar
