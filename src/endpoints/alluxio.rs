@@ -18,4 +18,5 @@ pub struct AlluxioConfig {
     pub rpcPort: usize,
     #[py_default = "39999"]
     pub apiPort: usize,
+    pub directory: String,
 }

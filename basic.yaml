@@ -102,7 +102,6 @@ spec:
   root: Asset
   requires:
     - ReplicatedSchema
-    - ReplicatedData
 ---
 type: Constraint
 spec:
@@ -248,6 +247,7 @@ spec:
   requiresProgram: true
   requires:
     - FileReadyForUpload
+    - ReplicatedSchema
 ---
 type: Program
 spec:
@@ -258,8 +258,8 @@ spec:
     import alluxio
     from alluxio import option
 
-    def upload_to_alluxio(hostname, port, schema, tablename, tmp_dir, source_file):
-      directory = '/' + schema + '/' + tablename
+    def upload_to_alluxio(hostname, port, schema, directory, tablename, tmp_dir, source_file):
+      directory = '/' + schema + '/' + directory + '/' + tablename
       client = alluxio.Client(hostname, int(port))
       opt = option.CreateDirectory(recursive=True)
       client.create_directory(directory, opt)
@@ -271,7 +271,7 @@ spec:
   args:
     - type: AncestorArgument
       spec:
-        call: universe.endpoints.alluxio.as_ref().unwrap().server_cli.clone()
+        call: universe.endpoints.alluxio.as_ref().unwrap().server.clone()
         attaches: Universe
     - type: AncestorArgument
       spec:
@@ -281,6 +281,10 @@ spec:
       spec:
         call: alluxio_location.schema
         attaches: AlluxioLocation
+    - type: AncestorArgument
+      spec:
+        call: universe.endpoints.alluxio.as_ref().unwrap().directory.clone()
+        attaches: Universe
     - type: AncestorArgument
       spec:
         call: format!("{}_csv", static_data_table.name).to_string()
@@ -511,9 +515,10 @@ spec:
         call: >
           match &hive_table_storage.location {
             HiveLocation::AlluxioLocation(a) => format!(
-                "alluxio://{}:{}/{}",
+                "alluxio://{}:{}/{}/{}",
                 universe.endpoints.alluxio.as_ref().unwrap().server,
                 universe.endpoints.alluxio.as_ref().unwrap().rpcPort,
+                universe.endpoints.alluxio.as_ref().unwrap().directory,
                 a.schema
             ).to_string()
           }

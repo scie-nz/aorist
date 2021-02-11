@@ -42,7 +42,7 @@ names = [
     "amazon0601",
 ]
 tables = []
-for name in names:
+for name in names[:1]:
 
     name_underscore = name.replace("-", "_").lower()
     remote = RemoteStorage(
@@ -56,7 +56,7 @@ for name in names:
         ),
     )
     local = HiveTableStorage(
-        location=AlluxioLocation("snap", name_underscore),
+        location=AlluxioLocation("snap_data", name_underscore),
         layout=StaticHiveTableLayout(),
         encoding=ORCEncoding(),
     )

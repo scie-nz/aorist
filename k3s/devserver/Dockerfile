@@ -17,6 +17,7 @@ RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | bash -s -- -y
 ENV PATH="/root/.cargo/bin:${PATH}"
 RUN apt-get -y install git unzip
 RUN pip3 install astor black
+RUN pip3 install presto-python-client
 WORKDIR /home
 COPY entrypoint.sh .
 RUN echo "export GIT_SSH_COMMAND='ssh -i /etc/deploy_key/ssh-privatekey'" >> /root/.bashrc

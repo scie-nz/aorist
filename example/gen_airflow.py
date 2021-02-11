@@ -16,5 +16,5 @@ universe = Universe(
     ],
     endpoints=DEFAULT_ENDPOINTS,
 )
-out = dag(universe, ["Test"], "prefect")
+out = dag(universe, ["Test"], "python")
 print(out.replace("\\\\","\\"))
