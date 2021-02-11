@@ -1,0 +1,85 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: prefect-postgres
+  namespace: scienz
+spec:
+  ports:
+  - name: service
+    port: 5432
+    targetPort: service
+  selector:
+    app: prefect-postgres
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: prefect-postgres
+  namespace: scienz
+  labels:
+    app: prefect-postgres
+spec:
+  serviceName: prefect-postgres
+  replicas: 1
+  selector:
+    matchLabels:
+      app: prefect-postgres
+  template:
+    metadata:
+      labels:
+        app: prefect-postgres
+    spec:
+      containers:
+      - name: postgres
+        image: postgres:12 # debian, as opposed to 12-alpine
+        imagePullPolicy: IfNotPresent
+        # Command/env references:
+        # - https://github.com/docker-library/postgres/blob/master/12/Dockerfile
+        # - https://github.com/docker-library/postgres/blob/master/12/docker-entrypoint.sh
+        command:
+        - bash
+        - -c
+        - 'chown -R postgres:postgres "$PGDATA"
+&& chmod 777 "$PGDATA"
+&& /usr/local/bin/docker-entrypoint.sh postgres'
+        env:
+        - name: PGDATA
+          value: /data
+        - name: POSTGRES_DB
+          value: prefect
+        - name: POSTGRES_USER
+          valueFrom:
+            secretKeyRef:
+              name: prefect
+              key: postgres-user
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: prefect
+              key: postgres-pass
+        startupProbe:
+          exec:
+            command:
+            - /bin/bash
+            - -c
+            - pg_isready -q -d $POSTGRES_DB -U $POSTGRES_USER
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 10
+          failureThreshold: 60
+        ports:
+        - name: service
+          containerPort: 5432
+        volumeMounts:
+        - name: storage
+          mountPath: /data
+  volumeClaimTemplates:
+  - metadata:
+      name: storage # pvc will be named "storage-prefect-postgres-0"
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      storageClassName: local-path
+      resources:
+        requests:
+          storage: 10Gi
