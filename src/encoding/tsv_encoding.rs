@@ -2,7 +2,7 @@
 
 use crate::compression::*;
 use crate::concept::{AoristConcept, Concept};
-use crate::constraint::Constraint;
+use crate::constraint::*;
 use crate::header::*;
 use aorist_concept::{aorist_concept, Constrainable, InnerObject};
 use derivative::Derivative;

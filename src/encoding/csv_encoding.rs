@@ -2,7 +2,7 @@
 
 use crate::compression::*;
 use crate::concept::{AoristConcept, Concept};
-use crate::constraint::Constraint;
+use crate::constraint::*;
 use crate::header::*;
 use aorist_concept::{aorist_concept, Constrainable, InnerObject};
 use derivative::Derivative;
@@ -14,8 +14,10 @@ use uuid::Uuid;
 
 #[aorist_concept]
 pub struct CSVEncoding {
+    #[py_default="None"]
     #[constrainable]
-    compression: DataCompression,
+    compression: Option<DataCompression>,
+    #[py_default="None"]
     #[constrainable]
-    header: FileHeader,
+    header: Option<FileHeader>,
 }
