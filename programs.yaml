@@ -6,19 +6,22 @@ spec:
   dialect: Python
   preamble: |
     import alluxio
-    from alluxio import option
-
+    from alluxio import option, wire
     def upload_to_alluxio(hostname, port, schema, directory, tablename, tmp_dir, source_file):
-      directory = '/' + schema + '/' + directory + '/' + tablename
+      directory = '/' + directory + '/' + schema + '/' + tablename
       client = alluxio.Client(hostname, int(port))
-      opt = option.CreateDirectory(recursive=True, allow_exists=True)
+      opt = option.CreateDirectory(recursive=True, allow_exists=True, write_type=wire.WRITE_TYPE_MUST_CACHE)
       client.create_directory(directory, opt)
       path = directory + "/data.csv"
       if client.exists(path):
         client.delete(path)
-      with client.open(path, 'w') as f:
+      opt = option.CreateFile(write_type=wire.WRITE_TYPE_MUST_CACHE)
+      with client.open(path, 'w', opt) as f:
         with open(tmp_dir + '/' + source_file) as source:
-          f.write(source)
+          try:
+            f.write(source)
+          except:
+            pass
       print("Done uploading %s to %s" % (source_file, path))
   call: upload_to_alluxio
   args:
@@ -48,7 +51,7 @@ spec:
         attaches: RemoteImportStorageSetup
     - type: AncestorArgument
       spec:
-        call: format!("{}.no_header", static_data_table.name).to_string()
+        call: format!("{}.csv", static_data_table.name).to_string()
         attaches: StaticDataTable
 ---
 type: Program

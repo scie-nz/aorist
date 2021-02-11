@@ -32,7 +32,7 @@ spec:
   name: Test
   root: Universe
   requires:
-    - UploadDataToAlluxio
+    - CSVTableSchemasCreated
 ---
 type: Constraint
 spec:
