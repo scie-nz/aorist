@@ -476,3 +476,59 @@ spec:
           - StaticDataTable
           - RemoteImportStorageSetup
           - RemoteStorage
+---
+type: Program
+spec:
+  use: ConvertCSVTableToORCTable
+  root: HiveTableStorage
+  dialect: Presto
+  call: INSERT OVERWRITE INTO {presto_schema}.{table_name} SELECT {columns} FROM {presto_schema}.{table_name}_csv;
+  kwargs:
+    table_name:
+      type: AncestorArgument
+      spec:
+        call: format!("{}_csv", static_data_table.name).to_string()
+        attaches: StaticDataTable
+    presto_schema:
+      type: AncestorArgument
+      spec:
+        attaches: HiveTableStorage
+        call: >
+          match &hive_table_storage.location {
+            HiveLocation::AlluxioLocation(a) => a.schema.to_string(),
+          }
+    columns:
+      type: MultipleAncestorsArgument
+      spec:
+        call: >
+          {
+            use crate::attributes::TAttribute;
+            let DataSchema::TabularSchema(ref t) = static_data_table.schema;
+            let attr_v = data_set
+                .datumTemplates
+                .iter()
+                .filter(|x| {
+                    x.get_name().clone() == t.datumTemplateName
+                })
+                .map(|x| match x {
+                    DatumTemplate::KeyedStruct(k) => k.get_attributes(),
+                    DatumTemplate::IdentifierTuple(t) => t.get_attributes(),
+                })
+                .next().unwrap();
+            let attr_map = attr_v.iter()
+                .map(|x|
+                    (x.get_name().clone(), x.get_presto_type()))
+                .collect::<Vec<_>>();
+            let attr_types = attr_map.iter().map(|x| {
+                let (name, presto_type) = x;
+                return format!(
+                    "CAST({name} AS {presto_type}) AS {name}",
+                    name=name,
+                    presto_type=presto_type,
+                ).to_string();
+            }).collect::<Vec<String>>();
+            format!("{}\n", attr_types.join(",\n"))
+          }
+        attaches:
+          - StaticDataTable
+          - DataSet

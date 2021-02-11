@@ -32,7 +32,7 @@ spec:
   name: Test
   root: Universe
   requires:
-    - UploadDataToAlluxio
+    - ConvertCSVTableToORCTable
 ---
 type: Constraint
 spec:
@@ -189,3 +189,11 @@ spec:
   requiresProgram: true
   requires:
     - RemoveFileHeader
+---
+type: Constraint
+spec:
+  name: ConvertCSVTableToORCTable
+  root: HiveTableStorage
+  requires:
+    - UploadDataToAlluxio
+  requiresProgram: true
