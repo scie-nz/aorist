@@ -29,7 +29,7 @@ spec:
 ---
 type: Constraint
 spec:
-  name: Test
+  name: DataDownloadedAndConverted
   root: Universe
   requires:
     - ConvertCSVTableToORCTable

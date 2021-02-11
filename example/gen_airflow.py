@@ -13,8 +13,11 @@ universe = Universe(
     groups=DEFAULT_GROUPS,
     datasets=[
         snap_dataset,
+        geonames_dataset,
     ],
     endpoints=DEFAULT_ENDPOINTS,
 )
-out = dag(universe, ["Test"], "airflow")
+out = dag(universe, [
+    "DataDownloadedAndConverted"
+], "prefect")
 print(out.replace("\\\\","\\"))

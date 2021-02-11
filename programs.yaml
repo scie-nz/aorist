@@ -440,7 +440,7 @@ spec:
                     presto_type,
                 ).to_string();
             }).collect::<Vec<String>>();
-            format!("{}\n", attr_types.join(",\n"))
+            format!("\n{}\n", attr_types.join(",\n"))
           }
         attaches:
           - StaticDataTable
