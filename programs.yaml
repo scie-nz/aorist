@@ -11,12 +11,15 @@ spec:
     def upload_to_alluxio(hostname, port, schema, directory, tablename, tmp_dir, source_file):
       directory = '/' + schema + '/' + directory + '/' + tablename
       client = alluxio.Client(hostname, int(port))
-      opt = option.CreateDirectory(recursive=True)
+      opt = option.CreateDirectory(recursive=True, allow_exists=True)
       client.create_directory(directory, opt)
-      with client.open(directory + '/data.csv', 'w') as f:
+      path = directory + "/data.csv"
+      if client.exists(path):
+        client.delete(path)
+      with client.open(path, 'w') as f:
         with open(tmp_dir + '/' + source_file) as source:
           f.write(source)
-      print("Done uploading %s" % source_file)
+      print("Done uploading %s to %s" % (source_file, path))
   call: upload_to_alluxio
   args:
     - type: AncestorArgument
@@ -371,12 +374,30 @@ spec:
   use: CSVTableSchemasCreated
   root: HiveTableStorage
   dialect: Presto
-  call: CREATE TABLE IF NOT EXISTS {presto_schema}.{table_name} ({schema}) WITH (format='CSV')
+  call: CREATE TABLE IF NOT EXISTS {presto_schema}.{table_name} ({schema}) WITH (format='CSV', external_location='{external_location}')
   kwargs:
+    external_location:
+      type: MultipleAncestorsArgument
+      spec:
+        attaches:
+           - HiveTableStorage
+           - Universe
+           - StaticDataTable
+        call: >
+          match &hive_table_storage.location {
+            HiveLocation::AlluxioLocation(a) => format!(
+                "alluxio://{}:{}/{}/{}/{}_csv",
+                universe.endpoints.alluxio.as_ref().unwrap().server,
+                universe.endpoints.alluxio.as_ref().unwrap().rpcPort,
+                universe.endpoints.alluxio.as_ref().unwrap().directory,
+                a.schema,
+                static_data_table.name,
+            ).to_string()
+          }
     table_name:
       type: AncestorArgument
       spec:
-        call: static_data_table.name
+        call: format!("{}_csv", static_data_table.name).to_string()
         attaches: StaticDataTable
     presto_schema:
       type: AncestorArgument
@@ -393,9 +414,6 @@ spec:
           {
             use crate::attributes::TAttribute;
             let DataSchema::TabularSchema(ref t) = static_data_table.schema;
-            let dictionary = Standard::from_embedded(Language::EnglishUS).unwrap();
-            let options = Options::new(66).splitter(dictionary);
-
             let attr_v = data_set
                 .datumTemplates
                 .iter()
@@ -409,40 +427,15 @@ spec:
                 .next().unwrap();
             let attr_map = attr_v.iter()
                 .map(|x|
-                    (x.get_name().clone(), ("VARCHAR".to_string(), x.get_comment().clone())))
+                    (x.get_name().clone(), "VARCHAR".to_string()))
                 .collect::<Vec<_>>();
             let attr_types = attr_map.iter().map(|x| {
-                let (name, (presto_type, comment)) = x;
-                let comment_str = match comment {
-                    Some(c) => {
-                        let cleaned_up_comment = c
-                          .split("\n")
-                          .into_iter()
-                          .map(|x| x.to_string().trim().to_string())
-                          .collect::<Vec<String>>().join(" ");
-                        fill(cleaned_up_comment.trim(), &options)
-                          .split("\n").map(|x| x.to_string()).collect::<Vec<String>>()
-                    }
-                    None => vec!["".to_string()],
-                };
-                if comment_str.len() == 1 {
-                    return format!(
-                        "    {} {} COMMENT '{}'",
-                        name,
-                        presto_type,
-                        comment_str.get(0).unwrap().to_string().replace("\'", "`"),
-                    ).to_string();
-                } else {
-                    return format!(
-                        "    {} {} \n COMMENT {}\n",
-                        name,
-                        presto_type,
-                        comment_str
-                          .into_iter()
-                          .map(|x| format!("        '{}'", x.to_string().replace("\'", "`")).to_string())
-                          .collect::<Vec<String>>().join("\n")
-                    ).to_string();
-                }
+                let (name, presto_type) = x;
+                return format!(
+                    "    {} {}",
+                    name,
+                    presto_type,
+                ).to_string();
             }).collect::<Vec<String>>();
             format!("{}\n", attr_types.join(",\n"))
           }

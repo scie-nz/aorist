@@ -1,7 +1,7 @@
 use crate::endpoints::EndpointConfig;
 use crate::etl_singleton::{ETLSingleton, ETLDAG};
 use crate::python::{
-    AoristStatement, Attribute, BigIntLiteral, BooleanLiteral, Call, Formatted, Import, List,
+    AoristStatement, Attribute, BigIntLiteral, BooleanLiteral, Call, Formatted, Import,
     SimpleIdentifier, StringLiteral, Tuple, AST,
 };
 use aorist_primitives::Dialect;
