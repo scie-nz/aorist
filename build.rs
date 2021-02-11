@@ -375,7 +375,7 @@ fn main() {
     process_concepts(&raw_objects);
     process_constraints(&raw_objects);
 
-    let s = fs::read_to_string("basic.yaml").unwrap();
+    let s = fs::read_to_string("programs.yaml").unwrap();
     let programs = s
         .split("\n---\n")
         .filter(|x| x.len() > 0)
@@ -383,7 +383,6 @@ fn main() {
             let p: Result<BuildObject, _> = from_str(x);
             p
         })
-        .filter(|x| x.is_ok())
         .map(|x| match x.unwrap() {
             BuildObject::Program(p) => p,
         })

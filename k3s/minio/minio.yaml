@@ -23,10 +23,7 @@ spec:
             port:
               # Same port also provides web dashboard
               name: s3
-
 ---
----
-
 apiVersion: v1
 kind: Service
 metadata:
@@ -104,3 +101,49 @@ spec:
       resources:
         requests:
           storage: 50Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    service: mc
+  name: mc
+  namespace: scienz
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      service: mc
+  strategy: {}
+  template:
+    metadata:
+      labels:
+        service: mc
+    spec:
+      initContainers:
+      - name: init-mc
+        image: "busybox:1.28"
+        command:
+          - sh
+          - "-c"
+          - "until nslookup minio.$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace).svc.cluster.local; do echo waiting for apollo; sleep 2; done"
+      containers:
+      - name: mc
+        image: minio/mc
+        command: [ "/bin/bash", "-c", "--" ]
+        args: [ "mc config host add s3 minio:9000 $MINIO_ROOT_USER $MINIO_ROOT_PASSWORD --api S3v4; while true; do sleep 30; done;" ]
+        env:
+        - name: MINIO_ROOT_USER
+          valueFrom:
+            secretKeyRef:
+              name: minio-root
+              key: user
+        - name: MINIO_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: minio-root
+              key: pass
+        - name: NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
