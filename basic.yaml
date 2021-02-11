@@ -32,7 +32,7 @@ spec:
   name: Test
   root: Universe
   requires:
-    - CSVTableSchemasCreated
+    - ConvertToCSV
 ---
 type: Constraint
 spec:
@@ -181,4 +181,4 @@ spec:
   root: RemoteStorage
   requiresProgram: true
   requires:
-    - FileReadyForUpload
+    - RemoveFileHeader
