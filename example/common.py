@@ -12,7 +12,7 @@ from aorist import (
 """
 Defining endpoints.
 """
-alluxio_config = AlluxioConfig(server="alluxio-server", server_cli="localhost",
+alluxio_config = AlluxioConfig(server="alluxio-server", server_cli="alluxio-server",
         rpcPort=19998, apiPort=39999)
 ranger_config = RangerConfig(
     server="localhost", user="admin", password="G0powerRangers"
