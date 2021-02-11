@@ -225,7 +225,7 @@ macro_rules! register_satisfiable_constraints {
                             ancestry,
                         ),
                     )+
-                    _ => Err("Constraint is not satisfiable (no program provided).".to_string())
+                    _ => Err(format!("Constraint {} is not satisfiable (no program provided).", self.inner.as_ref().unwrap().get_name()).to_string())
                 }
             }
         }
@@ -510,6 +510,13 @@ macro_rules! register_constraint {
                 hashmap! {
                     $(
                         stringify!($element).to_string() => $element::get_required_constraint_names(),
+                    )+
+                }
+            }
+            pub fn get_name(&self) -> String {
+                match self {
+                    $(
+                        Self::$element(x) => stringify!($element).to_string(),
                     )+
                 }
             }

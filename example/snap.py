@@ -4,7 +4,7 @@ from aorist import (
     StaticHiveTableLayout,
     UpperSnakeCaseCSVHeader,
     GzipCompression,
-    CSVEncoding,
+    ORCEncoding,
     TSVEncoding,
     SingleFileLayout,
     RemoteStorage,
@@ -58,7 +58,7 @@ for name in names[:1]:
     local = HiveTableStorage(
         location=AlluxioLocation("snap_data", name_underscore),
         layout=StaticHiveTableLayout(),
-        encoding=CSVEncoding(),
+        encoding=ORCEncoding(),
     )
     table = StaticDataTable(
         name=name_underscore,

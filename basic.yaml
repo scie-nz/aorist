@@ -26,6 +26,7 @@ spec:
   root: StaticDataTable
   requires:
       - TableSchemasCreated
+      - CSVTableSchemasCreated
 ---
 type: Constraint
 spec:
@@ -37,6 +38,14 @@ spec:
 type: Constraint
 spec:
   name: TableSchemasCreated
+  root: HiveTableStorage
+  requiresProgram: true
+  requires:
+    - HiveDirectoriesCreated
+---
+type: Constraint
+spec:
+  name: CSVTableSchemasCreated
   root: HiveTableStorage
   requiresProgram: true
   requires:
@@ -163,5 +172,13 @@ spec:
   root: AlluxioLocation
   requiresProgram: true
   requires:
-    - FileReadyForUpload
     - ReplicatedSchema
+    - ConvertToCSV
+---
+type: Constraint
+spec:
+  name: ConvertToCSV
+  root: HiveTableStorage
+  requiresProgram: true
+  requires:
+    - FileReadyForUpload
