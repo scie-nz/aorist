@@ -11,7 +11,7 @@ Concrete concepts "instantiate" abstract ones, much like classes can instantiate
 
 Abstract concepts have the following hierarchy:
 
-- `DataSetup`: the core Aorist abstraction, one per project
+- `Universe`: the core Aorist abstraction, one per project
   - `DataSet`:  a universe of instantiated objects which have inter-related schemas
   - `User`:  someone accessing the objects
   - `Group`:  a group of users
@@ -26,7 +26,7 @@ Here is the current hierarchy of Aorist concepts:
 
 A constraint is a fact that can be verified about a concept.
 A constraint may have dependent constraints. For instance, we may have
-the constraint "is consistent" on `DataSetup`, that further breaks down into:
+the constraint "is consistent" on `Universe`, that further breaks down into:
 - "datasets are replicated",
 - "users are instantiated",
 - "role bindings are created",
@@ -49,7 +49,7 @@ the dependency to be satisfied when *ALL* constraints of the dependent kind
 associated with the lower-order concepts directly inheriting from the
 constrained concept have been satisfied.
 
-For instance we may say that a constraint placed on the DataSetup (our
+For instance we may say that a constraint placed on the Universe (our
 abstraction for a Data Warehouse or Data Lake), of the kind: "no columns
 contain PII" is to be satisfied when all columns in *ALL* the tables are
 confirmed to not contain any PII.
@@ -63,7 +63,7 @@ publishable on the web if we can confirm that no data in the warehouse
 whatsoever contains any PII. This is a very strict guarantee, but it is
 logically correct -- if there is no PII in the warehouse, there can be no PII
 in the model. This is why we could have a constraint at the model-level that
-depends on the DataSetup-level "no PII" constraint.
+depends on the Universe-level "no PII" constraint.
 
 ## Constraint DAG generation
 

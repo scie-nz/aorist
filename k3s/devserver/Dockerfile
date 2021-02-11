@@ -19,4 +19,5 @@ RUN apt-get -y install git unzip
 RUN pip3 install astor black
 WORKDIR /home
 COPY entrypoint.sh .
-ENTRYPOINT ["entrypoint.sh"]
+RUN echo "export GIT_SSH_COMMAND='ssh -i /etc/deploy_key/ssh-privatekey'" >> /root/.bashrc
+ENTRYPOINT ["/home/entrypoint.sh"]

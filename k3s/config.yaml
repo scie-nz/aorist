@@ -62,7 +62,7 @@ data:
 
     </configuration>
   alluxio-site.properties: |
-    alluxio.master.mount.table.root.ufs=s3a://minio-test-bucket/
+    alluxio.master.mount.table.root.ufs=s3a://minio-test-bucket/alluxio
     alluxio.underfs.s3.endpoint=minio:9000
     alluxio.underfs.s3.disable.dns.buckets=true
     alluxio.underfs.s3.inherit.acl=false
@@ -75,7 +75,7 @@ data:
     alluxio.master.hostname=$ALLUXIO_MASTER_HOSTNAME
     alluxio.master.journal.type=UFS
     alluxio.worker.memory.size=1000MB
-    alluxio.underfs.s3.streaming.upload.enabled=false
+    alluxio.underfs.s3.streaming.upload.enabled=true
     alluxio.user.file.metadata.load.type=ONCE
     alluxio.user.file.passive.cache.enabled=true
     alluxio.user.file.persistence.initial.wait.time=-1

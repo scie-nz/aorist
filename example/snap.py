@@ -42,7 +42,7 @@ names = [
     "amazon0601",
 ]
 tables = []
-for name in ['web-Stanford']:
+for name in names:
 
     name_underscore = name.replace("-", "_").lower()
     remote = RemoteStorage(
