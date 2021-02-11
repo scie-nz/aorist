@@ -370,9 +370,10 @@ fn main() {
         .open("constrainables.txt")
         .unwrap();
 
-    let raw_objects = read_file("basic.yaml");
+    let raw_objects = read_file("attributes.yaml");
     process_attributes(&raw_objects);
     process_concepts(&raw_objects);
+    let raw_objects = read_file("basic.yaml");
     process_constraints(&raw_objects);
 
     let s = fs::read_to_string("programs.yaml").unwrap();
