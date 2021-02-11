@@ -485,12 +485,12 @@ spec:
   use: ConvertCSVTableToORCTable
   root: HiveTableStorage
   dialect: Presto
-  call: INSERT OVERWRITE INTO {presto_schema}.{table_name} SELECT {columns} FROM {presto_schema}.{table_name}_csv;
+  call: INSERT INTO {presto_schema}.{table_name} SELECT {columns} FROM {presto_schema}.{table_name}_csv
   kwargs:
     table_name:
       type: AncestorArgument
       spec:
-        call: format!("{}_csv", static_data_table.name).to_string()
+        call: format!("{}", static_data_table.name).to_string()
         attaches: StaticDataTable
     presto_schema:
       type: AncestorArgument
