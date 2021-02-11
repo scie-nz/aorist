@@ -178,7 +178,7 @@ spec:
 type: Constraint
 spec:
   name: ConvertToCSV
-  root: HiveTableStorage
+  root: RemoteStorage
   requiresProgram: true
   requires:
     - FileReadyForUpload

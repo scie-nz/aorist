@@ -365,3 +365,121 @@ spec:
         attaches:
           - StaticDataTable
           - DataSet
+---
+type: Program
+spec:
+  use: CSVTableSchemasCreated
+  root: HiveTableStorage
+  dialect: Presto
+  call: CREATE TABLE IF NOT EXISTS {presto_schema}.{table_name} ({schema}) WITH (format='CSV')
+  kwargs:
+    table_name:
+      type: AncestorArgument
+      spec:
+        call: static_data_table.name
+        attaches: StaticDataTable
+    presto_schema:
+      type: AncestorArgument
+      spec:
+        attaches: HiveTableStorage
+        call: >
+          match &hive_table_storage.location {
+            HiveLocation::AlluxioLocation(a) => a.schema.to_string(),
+          }
+    schema:
+      type: MultipleAncestorsArgument
+      spec:
+        call: >
+          {
+            use crate::attributes::TAttribute;
+            let DataSchema::TabularSchema(ref t) = static_data_table.schema;
+            let dictionary = Standard::from_embedded(Language::EnglishUS).unwrap();
+            let options = Options::new(66).splitter(dictionary);
+
+            let attr_v = data_set
+                .datumTemplates
+                .iter()
+                .filter(|x| {
+                    x.get_name().clone() == t.datumTemplateName
+                })
+                .map(|x| match x {
+                    DatumTemplate::KeyedStruct(k) => k.get_attributes(),
+                    DatumTemplate::IdentifierTuple(t) => t.get_attributes(),
+                })
+                .next().unwrap();
+            let attr_map = attr_v.iter()
+                .map(|x|
+                    (x.get_name().clone(), ("VARCHAR".to_string(), x.get_comment().clone())))
+                .collect::<Vec<_>>();
+            let attr_types = attr_map.iter().map(|x| {
+                let (name, (presto_type, comment)) = x;
+                let comment_str = match comment {
+                    Some(c) => {
+                        let cleaned_up_comment = c
+                          .split("\n")
+                          .into_iter()
+                          .map(|x| x.to_string().trim().to_string())
+                          .collect::<Vec<String>>().join(" ");
+                        fill(cleaned_up_comment.trim(), &options)
+                          .split("\n").map(|x| x.to_string()).collect::<Vec<String>>()
+                    }
+                    None => vec!["".to_string()],
+                };
+                if comment_str.len() == 1 {
+                    return format!(
+                        "    {} {} COMMENT '{}'",
+                        name,
+                        presto_type,
+                        comment_str.get(0).unwrap().to_string().replace("\'", "`"),
+                    ).to_string();
+                } else {
+                    return format!(
+                        "    {} {} \n COMMENT {}\n",
+                        name,
+                        presto_type,
+                        comment_str
+                          .into_iter()
+                          .map(|x| format!("        '{}'", x.to_string().replace("\'", "`")).to_string())
+                          .collect::<Vec<String>>().join("\n")
+                    ).to_string();
+                }
+            }).collect::<Vec<String>>();
+            format!("{}\n", attr_types.join(",\n"))
+          }
+        attaches:
+          - StaticDataTable
+          - DataSet
+---
+type: Program
+spec:
+  use: ConvertToCSV
+  root: RemoteStorage
+  dialect: Bash
+  call: >
+    {call}
+  kwargs:
+    call:
+      type: MultipleAncestorsArgument
+      spec:
+        call: >
+          {
+            let tmp_dir = &remote_import_storage_setup.tmp_dir;
+            let file_name = &static_data_table.name;
+            match &remote_storage.encoding {
+               Encoding::CSVEncoding(_) => format!(
+                  "mv {tmp_dir}/{file_name}.no_header {tmp_dir}{file_name}.csv",
+                  tmp_dir=tmp_dir,
+                  file_name=file_name,
+               ).to_string(),
+               Encoding::TSVEncoding(_) => format!(
+                  "cat {tmp_dir}/{file_name}.no_header | tr '\\\\t' ',' > {tmp_dir}{file_name}.csv",
+                  tmp_dir=tmp_dir,
+                  file_name=file_name,
+               ).to_string(),
+              _ => panic!("Encoding not supported.")
+            }
+          }
+        attaches:
+          - StaticDataTable
+          - RemoteImportStorageSetup
+          - RemoteStorage

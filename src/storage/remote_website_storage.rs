@@ -17,9 +17,9 @@ use uuid::Uuid;
 #[aorist_concept]
 pub struct RemoteStorage {
     #[constrainable]
-    location: RemoteLocation,
+    pub location: RemoteLocation,
     #[constrainable]
-    layout: FileBasedStorageLayout,
+    pub layout: FileBasedStorageLayout,
     #[constrainable]
-    encoding: Encoding,
+    pub encoding: Encoding,
 }
