@@ -171,9 +171,7 @@ spec:
   use: RemoveFileHeader
   root: FileHeader
   dialect: Bash
-  call: |
-    tail -n +{n} {tmp_dir}/{file_name}.txt > {tmp_dir}/{file_name}.no_header &&
-    rm {tmp_dir}/{file_name}.txt
+  call: tail -n +{n} {tmp_dir}/{file_name}.txt > {tmp_dir}/{file_name}.no_header && rm {tmp_dir}/{file_name}.txt
   kwargs:
     n:
       type: AncestorArgument
@@ -240,7 +238,7 @@ spec:
                     attr_map.get(x).unwrap().clone()
                 ).to_string()
             ).collect::<Vec<String>>();
-            attr_types.join(",")
+            format!("\n    {}    \n", attr_types.join(",")).to_string()
           }
         attaches:
           - StaticDataTable
@@ -284,7 +282,9 @@ spec:
   use: TableSchemasCreated
   root: HiveTableStorage
   dialect: Presto
-  call: CREATE TABLE IF NOT EXISTS {presto_schema}.{table_name} ({schema}) WITH (format='{data_format}')
+  call: |
+      \nCREATE TABLE IF NOT EXISTS {presto_schema}.{table_name} 
+      ({schema}) WITH (format='{data_format}')
   kwargs:
     table_name:
       type: AncestorArgument
@@ -366,7 +366,7 @@ spec:
                     ).to_string();
                 }
             }).collect::<Vec<String>>();
-            format!("{}\n", attr_types.join(",\n"))
+            format!("\n{}    \n", attr_types.join(",\n"))
           }
         attaches:
           - StaticDataTable
@@ -377,7 +377,7 @@ spec:
   use: CSVTableSchemasCreated
   root: HiveTableStorage
   dialect: Presto
-  call: CREATE TABLE IF NOT EXISTS {presto_schema}.{table_name} ({schema}) WITH (format='CSV', external_location='{external_location}')
+  call: \nCREATE TABLE IF NOT EXISTS {presto_schema}.{table_name} \n({schema})\nWITH (format='CSV', external_location='{external_location}')\n
   kwargs:
     external_location:
       type: MultipleAncestorsArgument
@@ -485,7 +485,7 @@ spec:
   use: ConvertCSVTableToORCTable
   root: HiveTableStorage
   dialect: Presto
-  call: INSERT INTO {presto_schema}.{table_name} SELECT {columns} FROM {presto_schema}.{table_name}_csv
+  call: \nINSERT INTO {presto_schema}.{table_name} \nSELECT {columns} \nFROM {presto_schema}.{table_name}_csv\n
   kwargs:
     table_name:
       type: AncestorArgument
@@ -530,7 +530,7 @@ spec:
                     presto_type=presto_type,
                 ).to_string();
             }).collect::<Vec<String>>();
-            format!("{}\n", attr_types.join(",\n"))
+            format!("\n{}\n", attr_types.join(",\n"))
           }
         attaches:
           - StaticDataTable
