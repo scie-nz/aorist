@@ -32,7 +32,7 @@ spec:
   name: Test
   root: Universe
   requires:
-    - ConvertToCSV
+    - UploadDataToAlluxio
 ---
 type: Constraint
 spec:
@@ -172,7 +172,14 @@ spec:
   root: AlluxioLocation
   requiresProgram: true
   requires:
+    - CSVIsConverted
     - ReplicatedSchema
+---
+type: Constraint
+spec:
+  name: CSVIsConverted
+  root: StaticDataTable
+  requires:
     - ConvertToCSV
 ---
 type: Constraint

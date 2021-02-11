@@ -460,12 +460,12 @@ spec:
             let file_name = &static_data_table.name;
             match &remote_storage.encoding {
                Encoding::CSVEncoding(_) => format!(
-                  "mv {tmp_dir}/{file_name}.no_header {tmp_dir}{file_name}.csv",
+                  "mv {tmp_dir}/{file_name}.no_header {tmp_dir}/{file_name}.csv",
                   tmp_dir=tmp_dir,
                   file_name=file_name,
                ).to_string(),
                Encoding::TSVEncoding(_) => format!(
-                  "cat {tmp_dir}/{file_name}.no_header | tr '\\\\t' ',' > {tmp_dir}{file_name}.csv",
+                  "cat {tmp_dir}/{file_name}.no_header | tr '\\\\t' ',' > {tmp_dir}/{file_name}.csv",
                   tmp_dir=tmp_dir,
                   file_name=file_name,
                ).to_string(),
