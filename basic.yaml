@@ -26,14 +26,13 @@ spec:
   root: StaticDataTable
   requires:
       - TableSchemasCreated
-      - CSVTableSchemasCreated
 ---
 type: Constraint
 spec:
   name: Test
   root: Universe
   requires:
-    - UploadDataToLocal
+    - CSVTableSchemasCreated
 ---
 type: Constraint
 spec:
@@ -50,6 +49,7 @@ spec:
   requiresProgram: true
   requires:
     - HiveDirectoriesCreated
+    - UploadDataToLocal
 ---
 type: Constraint
 spec:
