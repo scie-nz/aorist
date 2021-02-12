@@ -73,7 +73,7 @@ for name in names[1:2]:
     tables += [table]
 
 snap_dataset = DataSet(
-    name="snap-dataset",
+    name="snap",
     datumTemplates=[edge_tuple],
     assets=tables,
     tag="snap",

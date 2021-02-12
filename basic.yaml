@@ -54,7 +54,7 @@ spec:
 type: Constraint
 spec:
   name: HiveDirectoriesCreated
-  root: AlluxioLocation
+  root: HiveLocation
   requiresProgram: true
 ---
 type: Constraint

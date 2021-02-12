@@ -63,13 +63,14 @@ spec:
     from minio import Minio
     def upload_to_minio(hostname, port, access_key, secret_key, bucket, schema, tablename, tmp_dir, source_file):
         client = Minio(
-            "%s:%d" % (hostname, port),
+            "%s:%s" % (hostname, port),
             access_key=access_key,
             secret_key=secret_key,
+            secure=False,
         )
 
         assert client.bucket_exists(bucket)
-        dest_path = schema + '/' + tablename
+        dest_path = schema + '/' + tablename + '/data.csv'
         source_path = tmp_dir + "/" + source_file
         client.fput_object(bucket, dest_path, source_path)
         print("Successfully uploaded %s to %s" % (source_path, dest_path))
@@ -306,7 +307,7 @@ spec:
 type: Program
 spec:
   use: HiveDirectoriesCreated
-  root: AlluxioLocation
+  root: HiveLocation
   dialect: Presto
   call: CREATE SCHEMA IF NOT EXISTS {presto_schema} {location}
   kwargs:
