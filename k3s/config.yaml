@@ -242,10 +242,15 @@ data:
     log4j.logger.org.apache.ratis.server.impl.RaftServerImpl=WARN
   hive.properties: |
     connector.name=hive-hadoop2
-    hive.metastore.uri=thrift://metastore:9083
-    hive.config.resources=/presto-server-344/etc/catalog/core-site.xml
+    hive.metastore=file
+    hive.metastore.catalog.dir=s3://minio-test-bucket/
+    hive.s3.aws-access-key=5GfOoRgz3NDAEFxo7lwa
+    hive.s3.aws-secret-key=gxhtXmhOTa5hfcYwXiQSKPqEAf6JSbdBuDepMFCG
+    hive.s3.ssl.enabled=false
+    hive.s3.path-style-access=true
+    hive.s3select-pushdown.enabled=true
     hive.temporary-staging-directory-enabled=false
-    hive.s3.endpoint=s3a://minio:9000/
+    hive.s3.endpoint=http://minio:9000
     hive.allow-add-column=true
     hive.allow-comment-column=true
     hive.allow-comment-table=true
