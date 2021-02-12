@@ -22,6 +22,14 @@ where
 }
 
 define_ast_node!(
+    Expression,
+    |expr: &Expression| vec![expr.inner.clone()],
+    |expr: &Expression, py: Python, ast_module: &'a PyModule| {
+        ast_module.call1("Expr", (expr.inner.to_python_ast_node(py, ast_module)?,))
+    },
+    inner: AST,
+);
+define_ast_node!(
     List,
     |list: &List| list.elems().clone(),
     |list: &List, py: Python, ast_module: &'a PyModule| {
