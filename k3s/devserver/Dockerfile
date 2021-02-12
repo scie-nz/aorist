@@ -18,6 +18,7 @@ ENV PATH="/root/.cargo/bin:${PATH}"
 RUN apt-get -y install git unzip
 RUN pip3 install astor black
 RUN pip3 install presto-python-client
+RUN pip3 install minio
 WORKDIR /home
 COPY entrypoint.sh .
 RUN echo "export GIT_SSH_COMMAND='ssh -i /etc/deploy_key/ssh-privatekey'" >> /root/.bashrc

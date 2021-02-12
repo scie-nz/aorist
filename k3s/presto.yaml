@@ -24,6 +24,8 @@ spec:
       labels:
         io.kompose.service: presto-coordinator
     spec:
+      nodeSelector:
+        kubernetes.io/arch: amd64
       volumes:
         - name: alluxio-site
           configMap:

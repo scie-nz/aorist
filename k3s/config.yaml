@@ -242,8 +242,8 @@ data:
     log4j.logger.org.apache.ratis.server.impl.RaftServerImpl=WARN
   hive.properties: |
     connector.name=hive-hadoop2
-    hive.metastore=file
-    hive.metastore.catalog.dir=s3://minio-test-bucket/
+    hive.metastore.uri=thrift://metastore:9083
+    hive.config.resources=/presto-server-344/etc/catalog/core-site.xml
     hive.s3.aws-access-key=5GfOoRgz3NDAEFxo7lwa
     hive.s3.aws-secret-key=gxhtXmhOTa5hfcYwXiQSKPqEAf6JSbdBuDepMFCG
     hive.s3.ssl.enabled=false
@@ -292,11 +292,23 @@ data:
         <value>alluxio.hadoop.FileSystem</value>
       </property>
       <property>
+        <name>fs.s3.impl</name>
+        <value>org.apache.hadoop.fs.s3native.NativeS3FileSystem</value>
+      </property>
+      <property>
         <name>fs.s3.awsAccessKeyId</name>
         <value>5GfOoRgz3NDAEFxo7lwa</value>
       </property>
       <property>
         <name>fs.s3.awsSecretAccessKey</name>
+        <value>gxhtXmhOTa5hfcYwXiQSKPqEAf6JSbdBuDepMFCG</value>
+      </property>
+      <property>
+        <name>fs.s3a.access.key</name>
+        <value>5GfOoRgz3NDAEFxo7lwa</value>
+      </property>
+      <property>
+        <name>fs.s3a.secret.key</name>
         <value>gxhtXmhOTa5hfcYwXiQSKPqEAf6JSbdBuDepMFCG</value>
       </property>
     </configuration>
