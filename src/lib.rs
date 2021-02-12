@@ -119,6 +119,7 @@ fn aorist(py: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<InnerDynamicHiveTableLayout>()?;
     m.add_class::<InnerAlluxioLocation>()?;
     m.add_class::<InnerGCSLocation>()?;
+    m.add_class::<InnerMinioLocation>()?;
     m.add_class::<InnerWebLocation>()?;
     m.add_class::<InnerGlobalPermissionsAdmin>()?;
     m.add_class::<InnerRoleBinding>()?;
@@ -131,6 +132,7 @@ fn aorist(py: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<InnerUserGroup>()?;
     m.add_class::<InnerEndpointConfig>()?;
     m.add_class::<InnerAlluxioConfig>()?;
+    m.add_class::<InnerMinioConfig>()?;
     m.add_class::<InnerGiteaConfig>()?;
     m.add_class::<InnerRangerConfig>()?;
     m.add_class::<InnerPrestoConfig>()?;

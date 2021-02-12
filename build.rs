@@ -313,6 +313,7 @@ fn process_concepts(raw_objects: &Vec<HashMap<String, Value>>) {
         ("crate::location", "AlluxioLocation"),
         ("crate::location", "GCSLocation"),
         ("crate::location", "HiveLocation"),
+        ("crate::location", "MinioLocation"),
         ("crate::location", "RemoteLocation"),
         ("crate::location", "WebLocation"),
         ("crate::encoding", "CSVEncoding"),

@@ -1,5 +1,6 @@
 pub mod alluxio;
 pub mod gitea;
+pub mod minio;
 pub mod presto;
 pub mod ranger;
 
@@ -10,6 +11,7 @@ pub use alluxio::{AlluxioConfig, InnerAlluxioConfig};
 use aorist_concept::{aorist_concept, Constrainable, InnerObject};
 use derivative::Derivative;
 pub use gitea::{GiteaConfig, InnerGiteaConfig};
+pub use minio::{InnerMinioConfig, MinioConfig};
 use paste::paste;
 pub use presto::{InnerPrestoConfig, PrestoConfig};
 use pyo3::prelude::*;
@@ -32,4 +34,7 @@ pub struct EndpointConfig {
     #[constrainable]
     #[py_default = "None"]
     pub gitea: Option<GiteaConfig>,
+    #[constrainable]
+    #[py_default = "None"]
+    pub minio: Option<MinioConfig>,
 }

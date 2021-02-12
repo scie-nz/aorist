@@ -16,7 +16,7 @@ use uuid::Uuid;
 
 #[aorist_concept]
 pub struct DataSet {
-    name: String,
+    pub name: String,
     #[constrainable]
     #[py_default = "Vec::new()"]
     accessPolicies: Vec<AccessPolicy>,

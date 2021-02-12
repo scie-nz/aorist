@@ -35,8 +35,8 @@ spec:
         attaches: Universe
     - type: AncestorArgument
       spec:
-        call: alluxio_location.schema
-        attaches: AlluxioLocation
+        call: data_set.name
+        attaches: DataSet
     - type: AncestorArgument
       spec:
         call: universe.endpoints.alluxio.as_ref().unwrap().directory.clone()
@@ -250,31 +250,31 @@ spec:
   use: HiveDirectoriesCreated
   root: AlluxioLocation
   dialect: Presto
-  call: CREATE SCHEMA IF NOT EXISTS {presto_schema} WITH (location='{location}')
+  call: CREATE SCHEMA IF NOT EXISTS {presto_schema} {location}
   kwargs:
     presto_schema:
       type: AncestorArgument
       spec:
-        attaches: HiveLocation
-        call: >
-          match &hive_location {
-            HiveLocation::AlluxioLocation(a) => a.schema.to_string(),
-          }
+        attaches: DataSet
+        call: data_set.name.clone()
     location:
       type: MultipleAncestorsArgument
       spec:
         attaches:
            - HiveTableStorage
            - Universe
+           - DataSet
         call: >
           match &hive_table_storage.location {
             HiveLocation::AlluxioLocation(a) => format!(
-                "alluxio://{}:{}/{}/{}",
+                "WITH (location='alluxio://{}:{}/{}/{}/{}')",
                 universe.endpoints.alluxio.as_ref().unwrap().server,
                 universe.endpoints.alluxio.as_ref().unwrap().rpcPort,
                 universe.endpoints.alluxio.as_ref().unwrap().directory,
-                a.schema
-            ).to_string()
+                data_set.name,
+                a.path,
+            ).to_string(),
+            HiveLocation::MinioLocation(_) => "".to_string(),
           }
 ---
 type: Program
@@ -283,7 +283,7 @@ spec:
   root: HiveTableStorage
   dialect: Presto
   call: |
-      \nCREATE TABLE IF NOT EXISTS {presto_schema}.{table_name} 
+      \nCREATE TABLE IF NOT EXISTS {presto_schema}.{table_name}
       ({schema}) WITH (format='{data_format}')
   kwargs:
     table_name:
@@ -303,11 +303,8 @@ spec:
     presto_schema:
       type: AncestorArgument
       spec:
-        attaches: HiveTableStorage
-        call: >
-          match &hive_table_storage.location {
-            HiveLocation::AlluxioLocation(a) => a.schema.to_string(),
-          }
+        attaches: DataSet
+        call: data_set.name.clone()
     schema:
       type: MultipleAncestorsArgument
       spec:
@@ -386,16 +383,23 @@ spec:
            - HiveTableStorage
            - Universe
            - StaticDataTable
+           - DataSet
         call: >
           match &hive_table_storage.location {
-            HiveLocation::AlluxioLocation(a) => format!(
+            HiveLocation::AlluxioLocation(_) => format!(
                 "alluxio://{}:{}/{}/{}/{}_csv",
                 universe.endpoints.alluxio.as_ref().unwrap().server,
                 universe.endpoints.alluxio.as_ref().unwrap().rpcPort,
                 universe.endpoints.alluxio.as_ref().unwrap().directory,
-                a.schema,
+                data_set.name,
                 static_data_table.name,
-            ).to_string()
+            ).to_string(),
+            HiveLocation::MinioLocation(_) => format!(
+                "s3a://{}/{}/{}_csv/",
+                universe.endpoints.minio.as_ref().unwrap().bucket,
+                data_set.name,
+                static_data_table.name,
+            ).to_string(),
           }
     table_name:
       type: AncestorArgument
@@ -405,11 +409,8 @@ spec:
     presto_schema:
       type: AncestorArgument
       spec:
-        attaches: HiveTableStorage
-        call: >
-          match &hive_table_storage.location {
-            HiveLocation::AlluxioLocation(a) => a.schema.to_string(),
-          }
+        attaches: DataSet
+        call: data_set.name.clone()
     schema:
       type: MultipleAncestorsArgument
       spec:
@@ -495,11 +496,8 @@ spec:
     presto_schema:
       type: AncestorArgument
       spec:
-        attaches: HiveTableStorage
-        call: >
-          match &hive_table_storage.location {
-            HiveLocation::AlluxioLocation(a) => a.schema.to_string(),
-          }
+        attaches: DataSet
+        call: data_set.name.clone()
     columns:
       type: MultipleAncestorsArgument
       spec:

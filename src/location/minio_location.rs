@@ -9,6 +9,6 @@ use std::sync::{Arc, RwLock};
 use uuid::Uuid;
 
 #[aorist_concept]
-pub struct AlluxioLocation {
-    pub path: String,
+pub struct MinioLocation {
+    pub name: String,
 }

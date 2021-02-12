@@ -1,5 +1,7 @@
-use crate::concept::{AoristConcept, Concept};
-use crate::constraint::*;
+#![allow(non_snake_case)]
+use crate::concept::Concept;
+use crate::constraint::Constraint;
+use crate::AoristConcept;
 use aorist_concept::{aorist_concept, Constrainable, InnerObject};
 use derivative::Derivative;
 use paste::paste;
@@ -9,6 +11,9 @@ use std::sync::{Arc, RwLock};
 use uuid::Uuid;
 
 #[aorist_concept]
-pub struct AlluxioLocation {
-    pub path: String,
+pub struct MinioConfig {
+    pub server: String,
+    #[py_default = "9000"]
+    pub port: usize,
+    pub bucket: String,
 }
