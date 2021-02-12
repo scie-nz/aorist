@@ -21,8 +21,8 @@ FROM alpine:3.10.2 AS extractor
 ARG ENABLE_DYNAMIC_USER=false
 
 RUN apk add curl
-RUN curl -O https://downloads.alluxio.io/downloads/files/2.4.0/alluxio-2.4.0-bin.tar.gz
-RUN mv alluxio-2.4.0-bin.tar.gz /opt
+RUN curl -O https://downloads.alluxio.io/downloads/files/2.4.1-2/alluxio-2.4.1-2-bin.tar.gz
+RUN mv alluxio-2.4.1-2-bin.tar.gz /opt
 # if the tarball was remote, it needs to be untarred
 # use ln -s instead of mv to avoid issues with Centos (see https://github.com/moby/moby/issues/2.458)
 RUN cd /opt && \
