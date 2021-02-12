@@ -1,5 +1,5 @@
 from aorist import (
-    AlluxioLocation,
+    MinioLocation,
     WebLocation,
     StaticHiveTableLayout,
     UpperSnakeCaseCSVHeader,
@@ -56,7 +56,7 @@ for name in names[1:2]:
         ),
     )
     local = HiveTableStorage(
-        location=AlluxioLocation(path=name_underscore),
+        location=MinioLocation(name=name_underscore),
         layout=StaticHiveTableLayout(),
         encoding=ORCEncoding(),
     )

@@ -165,11 +165,21 @@ spec:
   root: HiveLocation
   requires:
       - UploadDataToAlluxio
+      - UploadDataToMinio
 ---
 type: Constraint
 spec:
   name: UploadDataToAlluxio
   root: AlluxioLocation
+  requiresProgram: true
+  requires:
+    - CSVIsConverted
+    - ReplicatedSchema
+---
+type: Constraint
+spec:
+  name: UploadDataToMinio
+  root: MinioLocation
   requiresProgram: true
   requires:
     - CSVIsConverted

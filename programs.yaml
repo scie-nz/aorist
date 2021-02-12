@@ -56,6 +56,64 @@ spec:
 ---
 type: Program
 spec:
+  use: UploadDataToMinio
+  root: MinioLocation
+  dialect: Python
+  preamble: |
+    from minio import Minio
+    def upload_to_minio(hostname, port, access_key, secret_key, bucket, schema, tablename, tmp_dir, source_file):
+        client = Minio(
+            "%s:%d" % (hostname, port),
+            access_key=access_key,
+            secret_key=secret_key,
+        )
+
+        assert client.bucket_exists(bucket)
+        dest_path = schema + '/' + tablename
+        source_path = tmp_dir + "/" + source_file
+        client.fput_object(bucket, dest_path, source_path)
+        print("Successfully uploaded %s to %s" % (source_path, dest_path))
+  call: upload_to_minio
+  args:
+    - type: AncestorArgument
+      spec:
+        call: universe.endpoints.minio.as_ref().unwrap().server
+        attaches: Universe
+    - type: AncestorArgument
+      spec:
+        call: universe.endpoints.minio.as_ref().unwrap().port.to_string()
+        attaches: Universe
+    - type: AncestorArgument
+      spec:
+        call: universe.endpoints.minio.as_ref().unwrap().access_key
+        attaches: Universe
+    - type: AncestorArgument
+      spec:
+        call: universe.endpoints.minio.as_ref().unwrap().secret_key
+        attaches: Universe
+    - type: AncestorArgument
+      spec:
+        call: universe.endpoints.minio.as_ref().unwrap().bucket
+        attaches: Universe
+    - type: AncestorArgument
+      spec:
+        call: data_set.name
+        attaches: DataSet
+    - type: AncestorArgument
+      spec:
+        call: format!("{}_csv", static_data_table.name).to_string()
+        attaches: StaticDataTable
+    - type: AncestorArgument
+      spec:
+        call: remote_import_storage_setup.tmp_dir
+        attaches: RemoteImportStorageSetup
+    - type: AncestorArgument
+      spec:
+        call: format!("{}.csv", static_data_table.name).to_string()
+        attaches: StaticDataTable
+---
+type: Program
+spec:
   use: DownloadDataFromRemoteGCSLocation
   root: GCSLocation
   dialect: Python

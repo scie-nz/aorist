@@ -16,4 +16,6 @@ pub struct MinioConfig {
     #[py_default = "9000"]
     pub port: usize,
     pub bucket: String,
+    pub access_key: String,
+    pub secret_key: String,
 }

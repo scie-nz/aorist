@@ -5,6 +5,7 @@ from aorist import (
     PrestoConfig,
     RangerConfig,
     GiteaConfig,
+    MinioConfig,
     UserGroup,
     GlobalPermissionsAdmin,
 )
@@ -12,18 +13,31 @@ from aorist import (
 """
 Defining endpoints.
 """
-alluxio_config = AlluxioConfig(server="alluxio-server", server_cli="alluxio-server",
-        rpcPort=19998, apiPort=39999, directory='data')
+alluxio_config = AlluxioConfig(
+    server="alluxio-server",
+    server_cli="alluxio-server",
+    rpcPort=19998,
+    apiPort=39999,
+    directory="data",
+)
 ranger_config = RangerConfig(
     server="localhost", user="admin", password="G0powerRangers"
 )
 presto_config = PrestoConfig(server="presto-coordinator-headless", user="bogdan")
 gitea_config = GiteaConfig(token="2b44b07e042ee9fe374e3eeebd2c9098468b5774")
+minio_config = MinioConfig(
+    server="minio",
+    port=9000,
+    bucket="minio-test-bucket",
+    access_key="5GfOoRgz3NDAEFxo7lwa",
+    secret_key="gxhtXmhOTa5hfcYwXiQSKPqEAf6JSbdBuDepMFCG",
+)
 endpoints = EndpointConfig(
     alluxio=alluxio_config,
     ranger=ranger_config,
     presto=presto_config,
     gitea=gitea_config,
+    minio=minio_config,
 )
 
 """
