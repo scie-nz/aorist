@@ -208,7 +208,7 @@ impl ETLSingleton for PythonSingleton {
                 );
                 vec![task_creation, task_assign]
             }
-            _ => vec![AoristStatement::Expression(creation_expr)],
+            _ => vec![AoristStatement::Assign(self.get_task_val(), creation_expr)],
         }
     }
     fn new(

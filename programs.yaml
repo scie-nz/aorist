@@ -333,7 +333,11 @@ spec:
                 data_set.name,
                 a.path,
             ).to_string(),
-            HiveLocation::MinioLocation(_) => "".to_string(),
+            HiveLocation::MinioLocation(_) => format!(
+                "WITH (location='s3a://{}/{}/')",
+                universe.endpoints.minio.as_ref().unwrap().bucket,
+                data_set.name,
+            ).to_string(),
           }
 ---
 type: Program
@@ -342,7 +346,7 @@ spec:
   root: HiveTableStorage
   dialect: Presto
   call: |
-      \nCREATE TABLE IF NOT EXISTS {presto_schema}.{table_name}
+      \nCREATE TABLE IF NOT EXISTS hive.{presto_schema}.{table_name}
       ({schema}) WITH (format='{data_format}')
   kwargs:
     table_name:
@@ -427,6 +431,44 @@ spec:
         attaches:
           - StaticDataTable
           - DataSet
+---
+type: Program
+spec:
+  use: TableSchemasDroppedIfExisting
+  root: HiveTableStorage
+  dialect: Presto
+  call: |
+      \nDROP TABLE IF EXISTS hive.{presto_schema}.{table_name}
+  kwargs:
+    table_name:
+      type: AncestorArgument
+      spec:
+        call: static_data_table.name
+        attaches: StaticDataTable
+    presto_schema:
+      type: AncestorArgument
+      spec:
+        attaches: DataSet
+        call: data_set.name.clone()
+---
+type: Program
+spec:
+  use: DroppedCSVTable
+  root: HiveTableStorage
+  dialect: Presto
+  call: |
+      \nDROP TABLE IF EXISTS hive.{presto_schema}.{table_name}_csv
+  kwargs:
+    table_name:
+      type: AncestorArgument
+      spec:
+        call: static_data_table.name
+        attaches: StaticDataTable
+    presto_schema:
+      type: AncestorArgument
+      spec:
+        attaches: DataSet
+        call: data_set.name.clone()
 ---
 type: Program
 spec:
@@ -587,7 +629,7 @@ spec:
                     presto_type=presto_type,
                 ).to_string();
             }).collect::<Vec<String>>();
-            format!("\n{}\n", attr_types.join(",\n"))
+            format!("\n{}", attr_types.join(",\n"))
           }
         attaches:
           - StaticDataTable

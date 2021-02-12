@@ -32,11 +32,19 @@ spec:
   name: DataDownloadedAndConverted
   root: Universe
   requires:
-    - ConvertCSVTableToORCTable
+    - DroppedCSVTable
 ---
 type: Constraint
 spec:
   name: TableSchemasCreated
+  root: HiveTableStorage
+  requiresProgram: true
+  requires:
+    - TableSchemasDroppedIfExisting
+---
+type: Constraint
+spec:
+  name: TableSchemasDroppedIfExisting
   root: HiveTableStorage
   requiresProgram: true
   requires:
@@ -206,4 +214,12 @@ spec:
   root: HiveTableStorage
   requires:
     - CSVTableSchemasCreated
+  requiresProgram: true
+---
+type: Constraint
+spec:
+  name: DroppedCSVTable
+  root: HiveTableStorage
+  requires:
+    - ConvertCSVTableToORCTable
   requiresProgram: true
