@@ -32,7 +32,10 @@ fn process_enum_variants(
             .collect(),
         None => Vec::new(),
     };
-    let variant = variants.iter().map(|x| (x.ident.clone())).collect::<Vec<_>>();
+    let variant = variants
+        .iter()
+        .map(|x| (x.ident.clone()))
+        .collect::<Vec<_>>();
 
     let mut file = OpenOptions::new()
         .write(true)

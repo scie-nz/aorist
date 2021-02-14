@@ -135,11 +135,7 @@ macro_rules! define_program {
                 c: Concept<'a>,
                 ancestry: Arc<ConceptAncestry<'a>>,
             ) -> ParameterTuple {
-                $tuple_call(
-                    uuid,
-                    c,
-                    ancestry,
-                )
+                $tuple_call(uuid, c, ancestry)
             }
             fn get_preamble() -> String {
                 $preamble.to_string()

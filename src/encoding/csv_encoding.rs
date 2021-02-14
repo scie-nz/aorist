@@ -14,10 +14,10 @@ use uuid::Uuid;
 
 #[aorist_concept]
 pub struct CSVEncoding {
-    #[py_default="None"]
+    #[py_default = "None"]
     #[constrainable]
     compression: Option<DataCompression>,
-    #[py_default="None"]
+    #[py_default = "None"]
     #[constrainable]
     header: Option<FileHeader>,
 }
