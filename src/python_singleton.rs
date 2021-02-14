@@ -1,8 +1,8 @@
 use crate::endpoints::EndpointConfig;
 use crate::etl_singleton::{ETLSingleton, ETLDAG};
 use crate::python::{
-    Assignment, Attribute, BooleanLiteral, Call, Formatted, Import,
-    SimpleIdentifier, StringLiteral, Tuple, AST, PrestoPythonTask,
+    Assignment, Attribute, BooleanLiteral, Call, Formatted, Import, PrestoPythonTask,
+    SimpleIdentifier, StringLiteral, Tuple, AST,
 };
 use aorist_primitives::Dialect;
 use linked_hash_map::LinkedHashMap;
@@ -61,12 +61,8 @@ impl ETLSingleton for PythonSingleton {
                 self.kwargs.clone(),
             ));
             let presto_endpoints = endpoints.presto.as_ref().unwrap().clone();
-            return PrestoPythonTask::new(
-                command,
-                self.task_val.clone(),
-                presto_endpoints,
-            )
-            .get_statements();
+            return PrestoPythonTask::new(command, self.task_val.clone(), presto_endpoints)
+                .get_statements();
         }
         let creation_expr = AST::Call(Call::new_wrapped(
             self.compute_task_call(),

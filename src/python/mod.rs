@@ -6,9 +6,8 @@ use std::collections::{BTreeSet, HashMap};
 
 pub use ast::{
     Assignment, Attribute, BigIntLiteral, BooleanLiteral, Call, Dict, Expression, ForLoop,
-    Formatted, Import, List, ParameterTuple, ParameterTupleDedupKey, Preamble, PythonImport,
-    PythonNone, SimpleIdentifier, StringLiteral, Subscript, Tuple, AST,
-    PrestoPythonTask,
+    Formatted, Import, List, ParameterTuple, ParameterTupleDedupKey, Preamble, PrestoPythonTask,
+    PythonImport, PythonNone, SimpleIdentifier, StringLiteral, Subscript, Tuple, AST,
 };
 pub type PythonStatementInput = (Vec<AST>, LinkedHashSet<String>, BTreeSet<Import>);
 

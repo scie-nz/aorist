@@ -4,6 +4,7 @@ pub mod airflow_singleton;
 pub mod asset;
 pub mod attributes;
 pub mod code_block;
+pub mod compliance;
 pub mod compression;
 pub mod concept;
 pub mod constraint;

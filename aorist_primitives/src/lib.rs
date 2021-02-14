@@ -91,6 +91,20 @@ macro_rules! register_ast_nodes {
     }
 }
 #[macro_export]
+macro_rules! gdpr_data_type {
+    ($name:ident
+     $(, $field: ident : $field_type: ty)*) => {
+        #[derive(Hash, PartialEq, Eq, Clone, Debug, Serialize, Deserialize, FromPyObject)]
+        pub struct $name {
+            description: String,
+            $(
+                $field: $field_type,
+            )*
+        }
+     };
+}
+
+#[macro_export]
 macro_rules! define_task_node {
     ($name:ident,
      $descendants:expr,

@@ -308,6 +308,7 @@ fn process_concepts(raw_objects: &Vec<HashMap<String, Value>>) {
         ("crate::compression", "GzipCompression"),
         ("crate::compression", "DataCompression"),
         ("crate::compression", "ZipCompression"),
+        ("crate::compliance", "ComplianceConfig"),
         ("crate::header", "UpperSnakeCaseCSVHeader"),
         ("crate::header", "FileHeader"),
         ("crate::location", "AlluxioLocation"),

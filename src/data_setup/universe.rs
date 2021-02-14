@@ -1,4 +1,5 @@
 #![allow(non_snake_case)]
+use crate::compliance::*;
 use crate::concept::{AoristConcept, Concept};
 use crate::constraint::{AoristConstraint, Constraint};
 use crate::dataset::*;
@@ -29,6 +30,8 @@ pub struct Universe {
     pub role_bindings: Option<Vec<RoleBinding>>,
     #[constrainable]
     pub endpoints: EndpointConfig,
+    #[constrainable]
+    pub compliance: Option<Vec<ComplianceConfig>>,
 }
 pub trait TUniverse {
     fn get_concept_map<'a>(&'a self) -> HashMap<(Uuid, String), Concept<'a>>;
