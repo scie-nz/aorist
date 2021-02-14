@@ -90,6 +90,47 @@ macro_rules! register_ast_nodes {
         }
     }
 }
+#[macro_export]
+macro_rules! define_task_node {
+    ($name:ident,
+     $descendants:expr,
+     $py_ast_closure:expr,
+     $($field: ident : $field_type: ty,)*) => {
+        #[derive(Hash, PartialEq, Eq, Clone)]
+        pub struct $name {
+            $(
+                $field: $field_type,
+            )*
+        }
+        impl $name {
+            pub fn new_wrapped($(
+                $field: $field_type,
+            )*) -> Arc<RwLock<Self>> {
+                Arc::new(RwLock::new(Self::new($($field, )*)))
+            }
+            pub fn get_statements<'a>(
+                &self,
+            ) -> Vec<AST> {
+                ($py_ast_closure)(self)
+            }
+            pub fn new($(
+                $field: $field_type,
+            )*) -> Self {
+                Self {
+                    $($field,)*
+                }
+            }
+            $(
+                pub fn $field(&self) -> $field_type {
+                    self.$field.clone()
+                }
+            )*
+            pub fn get_direct_descendants(&self) -> Vec<AST> {
+                $descendants(self)
+            }
+        }
+    };
+}
 
 #[macro_export]
 macro_rules! define_ast_node {

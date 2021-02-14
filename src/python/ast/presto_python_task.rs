@@ -1,16 +1,13 @@
 #![allow(dead_code)]
 use crate::endpoints::PrestoConfig;
 use crate::python::ast::{
-    Assignment, Attribute, BigIntLiteral, Call, SimpleIdentifier, StringLiteral, AST,
-    Formatted, Expression,
+    Assignment, Attribute, BigIntLiteral, Call, Expression, Formatted, SimpleIdentifier,
+    StringLiteral, AST,
 };
-use aorist_primitives::define_ast_node;
+use aorist_primitives::define_task_node;
 use linked_hash_map::LinkedHashMap;
-use pyo3::prelude::*;
-use pyo3::types::{PyList, PyModule};
 use std::hash::Hash;
 use std::sync::{Arc, RwLock};
-use uuid::Uuid;
 
 pub trait TAssignmentTarget
 where
@@ -22,10 +19,10 @@ where
     }
 }
 
-define_ast_node!(
+define_task_node!(
     PrestoPythonTask,
     |task: &PrestoPythonTask| vec![task.sql.clone()],
-    |task: &PrestoPythonTask, py: Python, ast_module: &'a PyModule| {
+    |task: &PrestoPythonTask| {
         let rows = AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("rows".to_string()));
         let mut command_map = LinkedHashMap::new();
         let command_ident =
@@ -47,7 +44,7 @@ define_ast_node!(
         ));
 
         command_map.insert("command".to_string(), command_ident.clone());
-        let body = vec![
+        vec![
             task.presto_connection_statement(&task.endpoint),
             task.presto_cursor_statement(),
             AST::Assignment(Assignment::new_wrapped(
@@ -86,18 +83,13 @@ define_ast_node!(
                 LinkedHashMap::new(),
             )))),
             AST::Assignment(Assignment::new_wrapped(task.task_val.clone(), rows)),
-        ];
-        let body_vec: Vec<&PyAny> = body
-            .iter()
-            .map(|x| x.to_python_ast_node(py, ast_module).unwrap())
-            .collect();
-        let body_list = PyList::new(py, body_vec);
-        ast_module.call1("Module", (body_list.as_ref(),))
+        ]
     },
     sql: AST,
     task_val: AST,
     endpoint: PrestoConfig,
 );
+
 impl PrestoPythonTask {
     fn cursor_ident(&self) -> AST {
         AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("cursor".to_string()))

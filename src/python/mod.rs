@@ -8,6 +8,7 @@ pub use ast::{
     Assignment, Attribute, BigIntLiteral, BooleanLiteral, Call, Dict, Expression, ForLoop,
     Formatted, Import, List, ParameterTuple, ParameterTupleDedupKey, Preamble, PythonImport,
     PythonNone, SimpleIdentifier, StringLiteral, Subscript, Tuple, AST,
+    PrestoPythonTask,
 };
 pub type PythonStatementInput = (Vec<AST>, LinkedHashSet<String>, BTreeSet<Import>);
 

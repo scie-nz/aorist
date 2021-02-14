@@ -1,8 +1,8 @@
 use crate::endpoints::EndpointConfig;
 use crate::etl_singleton::{ETLSingleton, ETLDAG};
 use crate::python::{
-    Assignment, Attribute, BigIntLiteral, BooleanLiteral, Call, Expression, Formatted, Import,
-    SimpleIdentifier, StringLiteral, Tuple, AST,
+    Assignment, Attribute, BooleanLiteral, Call, Formatted, Import,
+    SimpleIdentifier, StringLiteral, Tuple, AST, PrestoPythonTask,
 };
 use aorist_primitives::Dialect;
 use linked_hash_map::LinkedHashMap;
@@ -21,63 +21,6 @@ pub struct PythonSingleton {
     dialect: Option<Dialect>,
     conn_ident: Option<AST>,
     cursor_ident: Option<AST>,
-}
-impl PythonSingleton {
-    // TODO: add endpoints
-    fn presto_connection_statement(&self, endpoints: &EndpointConfig) -> AST {
-        let mut kwargs = LinkedHashMap::new();
-        let presto_endpoints = endpoints.presto.as_ref().unwrap();
-
-        kwargs.insert(
-            "host".to_string(),
-            AST::StringLiteral(StringLiteral::new_wrapped(presto_endpoints.server.clone())),
-        );
-        kwargs.insert(
-            "user".to_string(),
-            AST::StringLiteral(StringLiteral::new_wrapped(presto_endpoints.user.clone())),
-        );
-        kwargs.insert(
-            "port".to_string(),
-            AST::BigIntLiteral(BigIntLiteral::new_wrapped(presto_endpoints.httpPort as i64)),
-        );
-        kwargs.insert(
-            "catalog".to_string(),
-            AST::StringLiteral(StringLiteral::new_wrapped("hive".to_string())),
-        );
-
-        AST::Assignment(Assignment::new_wrapped(
-            self.conn_ident.as_ref().unwrap().clone(),
-            AST::Call(Call::new_wrapped(
-                AST::Attribute(Attribute::new_wrapped(
-                    AST::Attribute(Attribute::new_wrapped(
-                        AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
-                            "prestodb".to_string(),
-                        )),
-                        "dbapi".to_string(),
-                        false,
-                    )),
-                    "connect".to_string(),
-                    false,
-                )),
-                vec![],
-                kwargs,
-            )),
-        ))
-    }
-    fn presto_cursor_statement(&self) -> AST {
-        AST::Assignment(Assignment::new_wrapped(
-            self.cursor_ident.as_ref().unwrap().clone(),
-            AST::Call(Call::new_wrapped(
-                AST::Attribute(Attribute::new_wrapped(
-                    self.conn_ident.as_ref().unwrap().clone(),
-                    "cursor".to_string(),
-                    false,
-                )),
-                vec![],
-                LinkedHashMap::new(),
-            )),
-        ))
-    }
 }
 impl ETLSingleton for PythonSingleton {
     fn get_imports(&self) -> Vec<Import> {
@@ -117,64 +60,13 @@ impl ETLSingleton for PythonSingleton {
                 )),
                 self.kwargs.clone(),
             ));
-            let rows = AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("rows".to_string()));
-            let mut command_map = LinkedHashMap::new();
-            let command_ident =
-                AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("command".to_string()));
-            let command_ident_with_comments = AST::Call(Call::new_wrapped(
-                AST::Attribute(Attribute::new_wrapped(
-                    AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("re".to_string())),
-                    "sub".to_string(),
-                    false,
-                )),
-                vec![
-                    AST::StringLiteral(StringLiteral::new_wrapped(
-                        format!("'{}n{}s+'", "\\", "\\").to_string(),
-                    )),
-                    AST::StringLiteral(StringLiteral::new_wrapped("''".to_string())),
-                    command_ident.clone(),
-                ],
-                LinkedHashMap::new(),
-            ));
-
-            command_map.insert("command".to_string(), command_ident.clone());
-            return vec![
-                self.presto_connection_statement(endpoints),
-                self.presto_cursor_statement(),
-                AST::Assignment(Assignment::new_wrapped(command_ident.clone(), command)),
-                AST::Expression(Expression::new_wrapped(AST::Call(Call::new_wrapped(
-                    AST::Attribute(Attribute::new_wrapped(
-                        self.cursor_ident.as_ref().unwrap().clone(),
-                        "execute".to_string(),
-                        false,
-                    )),
-                    vec![command_ident_with_comments],
-                    LinkedHashMap::new(),
-                )))),
-                AST::Assignment(Assignment::new_wrapped(
-                    AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("rows".to_string())),
-                    AST::Call(Call::new_wrapped(
-                        AST::Attribute(Attribute::new_wrapped(
-                            self.cursor_ident.as_ref().unwrap().clone(),
-                            "fetchall".to_string(),
-                            false,
-                        )),
-                        vec![],
-                        LinkedHashMap::new(),
-                    )),
-                )),
-                AST::Expression(Expression::new_wrapped(AST::Call(Call::new_wrapped(
-                    AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("print".to_string())),
-                    vec![AST::Formatted(Formatted::new_wrapped(
-                        AST::StringLiteral(StringLiteral::new_wrapped(
-                            "Ran command: {command}".to_string(),
-                        )),
-                        command_map,
-                    ))],
-                    LinkedHashMap::new(),
-                )))),
-                AST::Assignment(Assignment::new_wrapped(self.get_task_val(), rows)),
-            ];
+            let presto_endpoints = endpoints.presto.as_ref().unwrap().clone();
+            return PrestoPythonTask::new(
+                command,
+                self.task_val.clone(),
+                presto_endpoints,
+            )
+            .get_statements();
         }
         let creation_expr = AST::Call(Call::new_wrapped(
             self.compute_task_call(),

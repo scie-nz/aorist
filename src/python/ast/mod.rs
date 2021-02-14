@@ -2,6 +2,7 @@ mod presto_python_task;
 mod string_literal;
 
 pub use string_literal::StringLiteral;
+pub use presto_python_task::PrestoPythonTask;
 
 use aorist_primitives::{define_ast_node, register_ast_nodes};
 use linked_hash_map::LinkedHashMap;
