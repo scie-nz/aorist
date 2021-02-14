@@ -375,38 +375,6 @@ register_ast_nodes!(
     BigIntLiteral,
     PythonNone,
 );
-impl PartialEq for AST {
-    fn eq(&self, other: &Self) -> bool {
-        match (&self, other) {
-            (AST::StringLiteral(v1), AST::StringLiteral(v2)) => {
-                v1.read().unwrap().eq(&v2.read().unwrap())
-            }
-            (AST::SimpleIdentifier(v1), AST::SimpleIdentifier(v2)) => {
-                v1.read().unwrap().eq(&v2.read().unwrap())
-            }
-            (AST::Subscript(v1), AST::Subscript(v2)) => v1.read().unwrap().eq(&v2.read().unwrap()),
-            (AST::Formatted(v1), AST::Formatted(v2)) => v1.read().unwrap().eq(&v2.read().unwrap()),
-            (AST::Call(v1), AST::Call(v2)) => v1.read().unwrap().eq(&v2.read().unwrap()),
-            (AST::Attribute(v1), AST::Attribute(v2)) => v1.read().unwrap().eq(&v2.read().unwrap()),
-            (AST::List(v1), AST::List(v2)) => v1.read().unwrap().eq(&v2.read().unwrap()),
-            (AST::Dict(v1), AST::Dict(v2)) => v1.read().unwrap().eq(&v2.read().unwrap()),
-            (AST::Tuple(v1), AST::Tuple(v2)) => v1.read().unwrap().eq(&v2.read().unwrap()),
-            (AST::BooleanLiteral(v1), AST::BooleanLiteral(v2)) => {
-                v1.read().unwrap().eq(&v2.read().unwrap())
-            }
-            (AST::PythonNone(_), AST::PythonNone(_)) => true,
-            (AST::BigIntLiteral(v1), AST::BigIntLiteral(v2)) => {
-                v1.read().unwrap().eq(&v2.read().unwrap())
-            }
-            _ => {
-                if self.name() == other.name() {
-                    panic!(format!("PartialEq not implemented for {}", self.name()))
-                }
-                false
-            }
-        }
-    }
-}
 impl AST {
     pub fn as_wrapped_assignment_target(&self) -> Self {
         match &self {

@@ -66,6 +66,18 @@ macro_rules! register_ast_nodes {
                 }
             }
         }
+        impl PartialEq for $name {
+            fn eq(&self, other: &Self) -> bool {
+                match (&self, other) {
+                    $(
+                        (Self::$variant(v1), Self::$variant(v2)) => {
+                            v1.read().unwrap().eq(&v2.read().unwrap())
+                        },
+                    )+
+                    (_, _) => false,
+                }
+            }
+        }
     }
 }
 
