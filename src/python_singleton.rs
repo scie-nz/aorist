@@ -1,7 +1,7 @@
 use crate::endpoints::EndpointConfig;
 use crate::etl_singleton::{ETLSingleton, ETLDAG};
 use crate::python::{
-    AoristStatement, Attribute, BigIntLiteral, BooleanLiteral, Call, Formatted, Import,
+    Assignment, Attribute, BigIntLiteral, BooleanLiteral, Call, Expression, Formatted, Import,
     SimpleIdentifier, StringLiteral, Tuple, AST,
 };
 use aorist_primitives::Dialect;
@@ -24,7 +24,7 @@ pub struct PythonSingleton {
 }
 impl PythonSingleton {
     // TODO: add endpoints
-    fn presto_connection_statement(&self, endpoints: &EndpointConfig) -> AoristStatement {
+    fn presto_connection_statement(&self, endpoints: &EndpointConfig) -> AST {
         let mut kwargs = LinkedHashMap::new();
         let presto_endpoints = endpoints.presto.as_ref().unwrap();
 
@@ -45,7 +45,7 @@ impl PythonSingleton {
             AST::StringLiteral(StringLiteral::new_wrapped("hive".to_string())),
         );
 
-        AoristStatement::Assign(
+        AST::Assignment(Assignment::new_wrapped(
             self.conn_ident.as_ref().unwrap().clone(),
             AST::Call(Call::new_wrapped(
                 AST::Attribute(Attribute::new_wrapped(
@@ -62,10 +62,10 @@ impl PythonSingleton {
                 vec![],
                 kwargs,
             )),
-        )
+        ))
     }
-    fn presto_cursor_statement(&self) -> AoristStatement {
-        AoristStatement::Assign(
+    fn presto_cursor_statement(&self) -> AST {
+        AST::Assignment(Assignment::new_wrapped(
             self.cursor_ident.as_ref().unwrap().clone(),
             AST::Call(Call::new_wrapped(
                 AST::Attribute(Attribute::new_wrapped(
@@ -76,7 +76,7 @@ impl PythonSingleton {
                 vec![],
                 LinkedHashMap::new(),
             )),
-        )
+        ))
     }
 }
 impl ETLSingleton for PythonSingleton {
@@ -109,7 +109,7 @@ impl ETLSingleton for PythonSingleton {
     fn get_task_val(&self) -> AST {
         self.task_val.clone()
     }
-    fn get_statements(&self, endpoints: &EndpointConfig) -> Vec<AoristStatement> {
+    fn get_statements(&self, endpoints: &EndpointConfig) -> Vec<AST> {
         if let Some(Dialect::Presto(_)) = self.dialect {
             let command = AST::Formatted(Formatted::new_wrapped(
                 AST::StringLiteral(StringLiteral::new_wrapped(
@@ -141,8 +141,8 @@ impl ETLSingleton for PythonSingleton {
             return vec![
                 self.presto_connection_statement(endpoints),
                 self.presto_cursor_statement(),
-                AoristStatement::Assign(command_ident.clone(), command),
-                AoristStatement::Expression(AST::Call(Call::new_wrapped(
+                AST::Assignment(Assignment::new_wrapped(command_ident.clone(), command)),
+                AST::Expression(Expression::new_wrapped(AST::Call(Call::new_wrapped(
                     AST::Attribute(Attribute::new_wrapped(
                         self.cursor_ident.as_ref().unwrap().clone(),
                         "execute".to_string(),
@@ -150,8 +150,8 @@ impl ETLSingleton for PythonSingleton {
                     )),
                     vec![command_ident_with_comments],
                     LinkedHashMap::new(),
-                ))),
-                AoristStatement::Assign(
+                )))),
+                AST::Assignment(Assignment::new_wrapped(
                     AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("rows".to_string())),
                     AST::Call(Call::new_wrapped(
                         AST::Attribute(Attribute::new_wrapped(
@@ -162,8 +162,8 @@ impl ETLSingleton for PythonSingleton {
                         vec![],
                         LinkedHashMap::new(),
                     )),
-                ),
-                AoristStatement::Expression(AST::Call(Call::new_wrapped(
+                )),
+                AST::Expression(Expression::new_wrapped(AST::Call(Call::new_wrapped(
                     AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("print".to_string())),
                     vec![AST::Formatted(Formatted::new_wrapped(
                         AST::StringLiteral(StringLiteral::new_wrapped(
@@ -172,8 +172,8 @@ impl ETLSingleton for PythonSingleton {
                         command_map,
                     ))],
                     LinkedHashMap::new(),
-                ))),
-                AoristStatement::Assign(self.get_task_val(), rows),
+                )))),
+                AST::Assignment(Assignment::new_wrapped(self.get_task_val(), rows)),
             ];
         }
         let creation_expr = AST::Call(Call::new_wrapped(
@@ -185,8 +185,9 @@ impl ETLSingleton for PythonSingleton {
             Some(Dialect::Bash(_)) | Some(Dialect::Presto(_)) | Some(Dialect::R(_)) => {
                 let process =
                     AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("process".to_string()));
-                let task_creation = AoristStatement::Assign(process.clone(), creation_expr);
-                let task_assign = AoristStatement::Assign(
+                let task_creation =
+                    AST::Assignment(Assignment::new_wrapped(process.clone(), creation_expr));
+                let task_assign = AST::Assignment(Assignment::new_wrapped(
                     AST::Tuple(Tuple::new_wrapped(
                         vec![
                             self.get_task_val().as_wrapped_assignment_target(),
@@ -205,10 +206,13 @@ impl ETLSingleton for PythonSingleton {
                         Vec::new(),
                         LinkedHashMap::new(),
                     )),
-                );
+                ));
                 vec![task_creation, task_assign]
             }
-            _ => vec![AoristStatement::Assign(self.get_task_val(), creation_expr)],
+            _ => vec![AST::Assignment(Assignment::new_wrapped(
+                self.get_task_val(),
+                creation_expr,
+            ))],
         }
     }
     fn new(

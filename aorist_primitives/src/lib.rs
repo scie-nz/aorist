@@ -78,6 +78,16 @@ macro_rules! register_ast_nodes {
                 }
             }
         }
+        impl Eq for $name {}
+        impl Hash for $name {
+            fn hash<H: Hasher>(&self, state: &mut H) {
+                match &self {
+                    $(
+                        Self::$variant(x) => x.read().unwrap().hash(state),
+                    )+
+                }
+            }
+        }
     }
 }
 

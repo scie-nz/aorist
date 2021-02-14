@@ -3,17 +3,13 @@ use linked_hash_set::LinkedHashSet;
 use pyo3::prelude::*;
 use pyo3::types::{IntoPyDict, PyString, PyTuple};
 use std::collections::{BTreeSet, HashMap};
-pub type PythonStatementInput = (
-    Vec<AoristStatement>,
-    LinkedHashSet<String>,
-    BTreeSet<Import>,
-);
 
 pub use ast::{
-    AoristStatement, Attribute, BigIntLiteral, BooleanLiteral, Call, Dict, Formatted, Import, List,
-    ParameterTuple, ParameterTupleDedupKey, Preamble, PythonNone, SimpleIdentifier, StringLiteral,
-    Subscript, Tuple, AST,
+    Assignment, Attribute, BigIntLiteral, BooleanLiteral, Call, Dict, Expression, ForLoop,
+    Formatted, Import, List, ParameterTuple, ParameterTupleDedupKey, Preamble, PythonImport,
+    PythonNone, SimpleIdentifier, StringLiteral, Subscript, Tuple, AST,
 };
+pub type PythonStatementInput = (Vec<AST>, LinkedHashSet<String>, BTreeSet<Import>);
 
 pub fn format_code(code: String) -> PyResult<String> {
     let gil = Python::acquire_gil();

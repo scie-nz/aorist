@@ -1,8 +1,8 @@
 use crate::endpoints::EndpointConfig;
 use crate::etl_singleton::{ETLSingleton, ETLDAG};
 use crate::python::{
-    AoristStatement, Attribute, BigIntLiteral, BooleanLiteral, Call, Dict, Formatted, Import, List,
-    PythonNone, SimpleIdentifier, StringLiteral, AST,
+    Assignment, Attribute, BigIntLiteral, BooleanLiteral, Call, Dict, Expression, Formatted,
+    Import, List, PythonNone, SimpleIdentifier, StringLiteral, AST,
 };
 use aorist_primitives::Dialect;
 use linked_hash_map::LinkedHashMap;
@@ -55,25 +55,27 @@ impl ETLSingleton for AirflowSingleton {
     fn get_task_val(&self) -> AST {
         self.task_val.clone()
     }
-    fn get_statements(&self, _e: &EndpointConfig) -> Vec<AoristStatement> {
+    fn get_statements(&self, _e: &EndpointConfig) -> Vec<AST> {
         let creation_expr = AST::Call(Call::new_wrapped(
             self.compute_task_call(),
             self.compute_task_args(),
             self.compute_task_kwargs(),
         ));
-        let mut statements = vec![AoristStatement::Assign(
+        let mut statements = vec![AST::Assignment(Assignment::new_wrapped(
             self.task_val.clone(),
             creation_expr,
-        )];
+        ))];
         if let Some(ref dependencies) = self.dep_list {
-            statements.push(AoristStatement::Expression(AST::Call(Call::new_wrapped(
-                AST::Attribute(Attribute::new_wrapped(
-                    self.get_task_val(),
-                    "set_upstream".to_string(),
-                    false,
-                )),
-                vec![dependencies.clone()],
-                LinkedHashMap::new(),
+            statements.push(AST::Expression(Expression::new_wrapped(AST::Call(
+                Call::new_wrapped(
+                    AST::Attribute(Attribute::new_wrapped(
+                        self.get_task_val(),
+                        "set_upstream".to_string(),
+                        false,
+                    )),
+                    vec![dependencies.clone()],
+                    LinkedHashMap::new(),
+                ),
             ))));
         }
         statements
@@ -236,7 +238,10 @@ impl ETLDAG for AirflowDAG {
         );
 
         let default_args_dict = AST::Dict(Dict::new_wrapped(default_args_map));
-        let default_args_assign = AoristStatement::Assign(default_args.clone(), default_args_dict);
+        let default_args_assign = AST::Assignment(Assignment::new_wrapped(
+            default_args.clone(),
+            default_args_dict,
+        ));
         statements.insert(
             0,
             default_args_assign
@@ -286,7 +291,7 @@ impl ETLDAG for AirflowDAG {
             ))],
             kwargs,
         ));
-        let dag_call_assign = AoristStatement::Assign(dag, dag_call);
+        let dag_call_assign = AST::Assignment(Assignment::new_wrapped(dag, dag_call));
         let dag_call_assign_ast = dag_call_assign.to_python_ast_node(py, ast_module).unwrap();
         statements.insert(1, dag_call_assign_ast);
         statements

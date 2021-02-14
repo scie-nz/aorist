@@ -2,7 +2,7 @@ use crate::code_block::CodeBlock;
 use crate::endpoints::EndpointConfig;
 use crate::etl_singleton::ETLSingleton;
 use crate::python::PythonStatementInput;
-use crate::python::{AoristStatement, Dict, Import, ParameterTuple, SimpleIdentifier, AST};
+use crate::python::{Assignment, Dict, Import, ParameterTuple, SimpleIdentifier, AST};
 use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
 use std::collections::{BTreeSet, HashMap};
@@ -38,7 +38,7 @@ where
             .flatten()
             .collect()
     }
-    pub fn get_task_val_assignments(&'a self) -> Vec<AoristStatement> {
+    pub fn get_task_val_assignments(&'a self) -> Vec<AST> {
         let mut to_initialize: LinkedHashSet<SimpleIdentifier> = LinkedHashSet::new();
         for block in &self.members {
             for constraint in block.get_constraints() {
@@ -54,10 +54,10 @@ where
         to_initialize
             .into_iter()
             .map(|x| {
-                AoristStatement::Assign(
+                AST::Assignment(Assignment::new_wrapped(
                     AST::SimpleIdentifier(Arc::new(RwLock::new(x))),
                     AST::Dict(Dict::new_wrapped(LinkedHashMap::new())),
-                )
+                ))
             })
             .collect()
     }

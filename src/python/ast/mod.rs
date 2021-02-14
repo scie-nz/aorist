@@ -374,6 +374,10 @@ register_ast_nodes!(
     BooleanLiteral,
     BigIntLiteral,
     PythonNone,
+    Expression,
+    Assignment,
+    ForLoop,
+    PythonImport,
 );
 impl AST {
     pub fn as_wrapped_assignment_target(&self) -> Self {
@@ -391,26 +395,6 @@ impl AST {
         }
     }
 }
-impl Eq for AST {}
-impl Hash for AST {
-    fn hash<H: Hasher>(&self, state: &mut H) {
-        match &self {
-            AST::StringLiteral(v) => v.read().unwrap().hash(state),
-            AST::SimpleIdentifier(ref x) => x.read().unwrap().hash(state),
-            AST::Subscript(ref x) => x.read().unwrap().hash(state),
-            AST::Formatted(ref x) => x.read().unwrap().hash(state),
-            AST::Call(ref x) => x.read().unwrap().hash(state),
-            AST::Attribute(ref attr) => attr.read().unwrap().hash(state),
-            AST::List(ref list) => list.read().unwrap().hash(state),
-            AST::Dict(ref dict) => dict.read().unwrap().hash(state),
-            AST::Tuple(ref tuple) => tuple.read().unwrap().hash(state),
-            AST::BooleanLiteral(ref l) => l.read().unwrap().hash(state),
-            AST::BigIntLiteral(ref l) => l.read().unwrap().hash(state),
-            AST::PythonNone(ref l) => l.read().unwrap().hash(state),
-        }
-    }
-}
-
 pub struct Preamble<'a> {
     pub imports: Vec<(String, Option<String>)>,
     pub from_imports: Vec<(String, String, Option<String>)>,
@@ -557,68 +541,6 @@ impl Import {
                 );
                 ast_module.call1("ImportFrom", (module, names.as_ref(), 0))
             }
-        }
-    }
-}
-
-#[derive(Clone, Hash, PartialEq, Eq)]
-pub enum AoristStatement {
-    Assign(AST, AST),
-    Expression(AST),
-    For(AST, AST, Vec<AoristStatement>),
-    Import(Import),
-}
-impl AoristStatement {
-    pub fn to_python_ast_node<'a>(
-        &self,
-        py: Python,
-        ast_module: &'a PyModule,
-    ) -> PyResult<&'a PyAny> {
-        match &self {
-            Self::Assign(ref target, ref call) => {
-                let assign_target = match target {
-                    AST::Subscript(ref x) => {
-                        AST::Subscript(x.read().unwrap().as_wrapped_assignment_target())
-                    }
-                    AST::Attribute(ref x) => {
-                        AST::Attribute(x.read().unwrap().as_wrapped_assignment_target())
-                    }
-                    AST::List(ref x) => AST::List(x.read().unwrap().as_wrapped_assignment_target()),
-                    AST::Tuple(ref x) => {
-                        AST::Tuple(x.read().unwrap().as_wrapped_assignment_target())
-                    }
-                    AST::SimpleIdentifier(_) => target.clone(),
-                    _ => panic!("Assignment target not supported."),
-                };
-                let targets =
-                    PyList::new(py, vec![assign_target.to_python_ast_node(py, ast_module)?]);
-                ast_module.call1(
-                    "Assign",
-                    (targets, call.to_python_ast_node(py, ast_module)?),
-                )
-            }
-            Self::Expression(ref expr) => {
-                ast_module.call1("Expr", (expr.to_python_ast_node(py, ast_module)?,))
-            }
-            Self::For(ref target, ref iter, ref body) => {
-                let body_ast = body
-                    .iter()
-                    .map(|x| x.to_python_ast_node(py, ast_module).unwrap())
-                    .collect::<Vec<_>>();
-                let body_list = PyList::new(py, body_ast);
-                let empty_vec: Vec<String> = Vec::new();
-                let empty_list = PyList::new(py, empty_vec);
-                ast_module.call1(
-                    "For",
-                    (
-                        target.to_python_ast_node(py, ast_module)?,
-                        iter.to_python_ast_node(py, ast_module)?,
-                        body_list.as_ref(),
-                        empty_list.as_ref(),
-                    ),
-                )
-            }
-            Self::Import(import) => import.to_python_ast_node(py, ast_module),
         }
     }
 }

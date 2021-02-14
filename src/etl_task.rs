@@ -1,7 +1,7 @@
 use crate::endpoints::EndpointConfig;
 use crate::etl_singleton::ETLSingleton;
 use crate::python::{
-    AoristStatement, Attribute, BigIntLiteral, Call, Dict, Import, List, ParameterTuple,
+    Assignment, Attribute, BigIntLiteral, Call, Dict, ForLoop, Import, List, ParameterTuple,
     ParameterTupleDedupKey, SimpleIdentifier, StringLiteral, Subscript, Tuple, AST,
 };
 use aorist_primitives::Dialect;
@@ -200,7 +200,7 @@ where
     pub fn get_statements(
         &self,
         endpoints: &EndpointConfig,
-    ) -> (Vec<AoristStatement>, Vec<String>, Vec<Import>) {
+    ) -> (Vec<AST>, Vec<String>, Vec<Import>) {
         let args;
         let kwargs;
         if let Some(ref p) = self.params {
@@ -263,7 +263,7 @@ where
     pub fn get_statements(
         &self,
         endpoints: &EndpointConfig,
-    ) -> (Vec<AoristStatement>, Vec<String>, Vec<Import>) {
+    ) -> (Vec<AST>, Vec<String>, Vec<Import>) {
         let any_dependencies = self
             .values
             .iter()
@@ -282,7 +282,10 @@ where
                 .map(|x| (x.dict.clone(), x.as_python_dict(dependencies_as_list)))
                 .collect(),
         ));
-        let dict_assign = AoristStatement::Assign(self.params_dict_name.clone(), dict_content);
+        let dict_assign = AST::Assignment(Assignment::new_wrapped(
+            self.params_dict_name.clone(),
+            dict_content,
+        ));
 
         let params = AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("params".to_string()));
         let ident = AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("t".to_string()));
@@ -361,7 +364,11 @@ where
             Vec::new(),
             LinkedHashMap::new(),
         ));
-        let for_loop = AoristStatement::For(tpl.clone(), items_call, statements.clone());
+        let for_loop = AST::ForLoop(ForLoop::new_wrapped(
+            tpl.clone(),
+            items_call,
+            statements.clone(),
+        ));
         (
             vec![dict_assign, for_loop],
             singleton.get_preamble(),
@@ -384,7 +391,7 @@ where
     pub fn get_statements(
         &self,
         endpoints: &EndpointConfig,
-    ) -> (Vec<AoristStatement>, Vec<String>, Vec<Import>) {
+    ) -> (Vec<AST>, Vec<String>, Vec<Import>) {
         match &self {
             ETLTask::StandaloneETLTask(x) => x.get_statements(endpoints),
             ETLTask::ForLoopETLTask(x) => x.get_statements(endpoints),

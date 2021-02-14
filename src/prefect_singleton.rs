@@ -1,7 +1,8 @@
 use crate::endpoints::EndpointConfig;
 use crate::etl_singleton::{ETLSingleton, ETLDAG};
 use crate::python::{
-    AoristStatement, Attribute, Call, Formatted, Import, SimpleIdentifier, StringLiteral, AST,
+    Assignment, Attribute, Call, Expression, ForLoop, Formatted, Import, SimpleIdentifier,
+    StringLiteral, AST,
 };
 use aorist_primitives::Dialect;
 use linked_hash_map::LinkedHashMap;
@@ -55,13 +56,14 @@ impl ETLSingleton for PrefectSingleton {
     fn get_task_val(&self) -> AST {
         self.task_val.clone()
     }
-    fn get_statements(&self, _e: &EndpointConfig) -> Vec<AoristStatement> {
+    fn get_statements(&self, _e: &EndpointConfig) -> Vec<AST> {
         let creation_expr = AST::Call(Call::new_wrapped(
             self.compute_task_call(),
             self.compute_task_args(),
             self.compute_task_kwargs(),
         ));
-        let task_creation = AoristStatement::Assign(self.get_task_val(), creation_expr);
+        let task_creation =
+            AST::Assignment(Assignment::new_wrapped(self.get_task_val(), creation_expr));
         let mut stmts = vec![task_creation];
         stmts.push(self.get_flow_node_addition());
         for stmt in self.get_edge_addition_statements() {
@@ -153,7 +155,7 @@ impl PrefectSingleton {
         self.flow_identifier.clone()
     }
 
-    fn get_flow_add_edge_statement(&self, dep: AST) -> AoristStatement {
+    fn get_flow_add_edge_statement(&self, dep: AST) -> AST {
         let function = AST::Attribute(Attribute::new_wrapped(
             self.get_flow_identifier(),
             "add_edge".to_string(),
@@ -164,19 +166,19 @@ impl PrefectSingleton {
             vec![self.get_task_val(), dep],
             LinkedHashMap::new(),
         ));
-        AoristStatement::Expression(add_expr)
+        AST::Expression(Expression::new_wrapped(add_expr))
     }
-    pub fn get_edge_addition_statements(&self) -> Vec<AoristStatement> {
+    pub fn get_edge_addition_statements(&self) -> Vec<AST> {
         match self.dep_list {
             None => Vec::new(),
             Some(AST::List(_)) => {
                 let target =
                     AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("dep".to_string()));
-                let for_stmt = AoristStatement::For(
+                let for_stmt = AST::ForLoop(ForLoop::new_wrapped(
                     target.clone(),
                     self.dep_list.as_ref().unwrap().clone(),
                     vec![self.get_flow_add_edge_statement(target.clone())],
-                );
+                ));
                 vec![for_stmt]
             }
             _ => {
@@ -186,7 +188,7 @@ impl PrefectSingleton {
             }
         }
     }
-    pub fn get_flow_node_addition(&self) -> AoristStatement {
+    pub fn get_flow_node_addition(&self) -> AST {
         let function = AST::Attribute(Attribute::new_wrapped(
             self.get_flow_identifier(),
             "add_node".to_string(),
@@ -197,7 +199,7 @@ impl PrefectSingleton {
             vec![self.get_task_val()],
             LinkedHashMap::new(),
         ));
-        AoristStatement::Expression(add_expr)
+        AST::Expression(Expression::new_wrapped(add_expr))
     }
 }
 pub struct PrefectDAG {
@@ -225,7 +227,7 @@ impl ETLDAG for PrefectDAG {
         statements
             .into_iter()
             .chain(
-                AoristStatement::Expression(AST::Call(Call::new_wrapped(
+                AST::Expression(Expression::new_wrapped(AST::Call(Call::new_wrapped(
                     AST::Attribute(Attribute::new_wrapped(
                         self.flow_identifier.clone(),
                         "run".into(),
@@ -233,7 +235,7 @@ impl ETLDAG for PrefectDAG {
                     )),
                     Vec::new(),
                     LinkedHashMap::new(),
-                )))
+                ))))
                 .to_python_ast_node(py, ast_module)
                 .into_iter(),
             )
