@@ -22,6 +22,69 @@ where
 }
 
 define_ast_node!(
+    PythonImport,
+    |import: &PythonImport| vec![import.inner.clone()],
+    |import: &PythonImport, py: Python, ast_module: &'a PyModule| {
+        import.to_python_ast_node(py, ast_module)
+    },
+    inner: AST,
+);
+
+define_ast_node!(
+    ForLoop,
+    |for_loop: &ForLoop| vec![for_loop.target.clone(), for_loop.iter.clone()]
+        .into_iter()
+        .chain(for_loop.body.clone().into_iter())
+        .collect(),
+    |for_loop: &ForLoop, py: Python, ast_module: &'a PyModule| {
+        let body_ast = for_loop
+            .body
+            .iter()
+            .map(|x| x.to_python_ast_node(py, ast_module).unwrap())
+            .collect::<Vec<_>>();
+        let body_list = PyList::new(py, body_ast);
+        let empty_vec: Vec<String> = Vec::new();
+        let empty_list = PyList::new(py, empty_vec);
+        ast_module.call1(
+            "For",
+            (
+                for_loop.target.to_python_ast_node(py, ast_module)?,
+                for_loop.iter.to_python_ast_node(py, ast_module)?,
+                body_list.as_ref(),
+                empty_list.as_ref(),
+            ),
+        )
+    },
+    target: AST,
+    iter: AST,
+    body: Vec<AST>,
+);
+define_ast_node!(
+    Assignment,
+    |assign: &Assignment| vec![assign.target.clone(), assign.call.clone()],
+    |assign: &Assignment, py: Python, ast_module: &'a PyModule| {
+        let assign_target = match assign.target {
+            AST::Subscript(ref x) => {
+                AST::Subscript(x.read().unwrap().as_wrapped_assignment_target())
+            }
+            AST::Attribute(ref x) => {
+                AST::Attribute(x.read().unwrap().as_wrapped_assignment_target())
+            }
+            AST::List(ref x) => AST::List(x.read().unwrap().as_wrapped_assignment_target()),
+            AST::Tuple(ref x) => AST::Tuple(x.read().unwrap().as_wrapped_assignment_target()),
+            AST::SimpleIdentifier(_) => assign.target.clone(),
+            _ => panic!("Assignment target not supported."),
+        };
+        let targets = PyList::new(py, vec![assign_target.to_python_ast_node(py, ast_module)?]);
+        ast_module.call1(
+            "Assign",
+            (targets, assign.call.to_python_ast_node(py, ast_module)?),
+        )
+    },
+    target: AST,
+    call: AST,
+);
+define_ast_node!(
     Expression,
     |expr: &Expression| vec![expr.inner.clone()],
     |expr: &Expression, py: Python, ast_module: &'a PyModule| {
