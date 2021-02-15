@@ -149,6 +149,56 @@ macro_rules! define_task_node {
         }
     };
 }
+#[macro_export]
+macro_rules! register_task_nodes {
+    ($name:ident, $($variant: ident,)+) => {
+
+        #[derive(Clone)]
+        pub enum $name {
+            $(
+                $variant(Arc<RwLock<$variant>>),
+            )+
+        }
+        impl $name {
+            pub fn get_imports(&self) -> Vec<Import>{
+                match &self {
+                    $(
+                        Self::$variant(x) => x.read().unwrap().get_imports(),
+                    )+
+                }
+            }
+            pub fn get_statements(&self) -> Vec<AST> {
+                match &self {
+                    $(
+                        Self::$variant(x) => x.read().unwrap().get_statements(),
+                    )+
+                }
+            }
+        }
+        impl PartialEq for $name {
+            fn eq(&self, other: &Self) -> bool {
+                match (&self, other) {
+                    $(
+                        (Self::$variant(v1), Self::$variant(v2)) => {
+                            v1.read().unwrap().eq(&v2.read().unwrap())
+                        },
+                    )+
+                    (_, _) => false,
+                }
+            }
+        }
+        impl Eq for $name {}
+        impl Hash for $name {
+            fn hash<H: Hasher>(&self, state: &mut H) {
+                match &self {
+                    $(
+                        Self::$variant(x) => x.read().unwrap().hash(state),
+                    )+
+                }
+            }
+        }
+    }
+}
 
 #[macro_export]
 macro_rules! define_ast_node {
