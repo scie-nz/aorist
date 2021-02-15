@@ -131,6 +131,16 @@ spec:
             value: "3306"
           - name: METASTORE_DB
             value: "metastore_db"
+          - name: MINIO_ACCESS_KEY_ID
+            valueFrom:
+              secretKeyRef:
+                name: minio-root
+                key: user
+          - name: MINIO_ACCESS_KEY_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: minio-root
+                key: pass
         imagePullPolicy: "Always"
         ports:
         - containerPort: 9083

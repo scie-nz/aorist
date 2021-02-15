@@ -9,18 +9,18 @@
   </property>
   <property>
     <name>fs.s3.awsAccessKeyId</name>
-    <value>5GfOoRgz3NDAEFxo7lwa</value>
+    <value>__MINIO_ACCESS_KEY_ID</value>
   </property>
   <property>
     <name>fs.s3.awsSecretAccessKey</name>
-    <value>gxhtXmhOTa5hfcYwXiQSKPqEAf6JSbdBuDepMFCG</value>
+    <value>__MINIO_ACCESS_KEY_SECRET</value>
   </property>
   <property>
     <name>fs.s3a.access.key</name>
-    <value>5GfOoRgz3NDAEFxo7lwa</value>
+    <value>__MINIO_ACCESS_KEY_ID</value>
   </property>
   <property>
     <name>fs.s3a.secret.key</name>
-    <value>gxhtXmhOTa5hfcYwXiQSKPqEAf6JSbdBuDepMFCG</value>
+    <value>__MINIO_ACCESS_KEY_SECRET</value>
   </property>
 </configuration>

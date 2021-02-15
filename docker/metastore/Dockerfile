@@ -2,7 +2,7 @@ FROM scienz/aorist-test-ranger:latest
 FROM scienz/aorist-test-base-image:latest
 
 ENV HADOOP_VERSION=3.2.2
-ENV METASTORE_VERSION=3.0.0
+ENV METASTORE_VERSION=3.1.2
 ENV HADOOP_HOME=/opt/hadoop-${HADOOP_VERSION}
 ENV HIVE_HOME=/opt/apache-hive-metastore-${METASTORE_VERSION}-bin
 ENV DEBIAN_FRONTEND="noninteractive"
@@ -12,7 +12,7 @@ RUN apt-get update && apt-get -y install openjdk-8-jre mysql-client-core-8.0
 
 RUN mkdir -p $HIVE_HOME && chmod a+rw $HIVE_HOME && mkdir -p $HIVE_HOME/lib \
   && chmod a+rw $HIVE_HOME/lib && mkdir -p $HADOOP_HOME && chmod a+rw $HADOOP_HOME
-RUN curl -L ftp://ftp.funet.fi/pub/mirrors/apache.org/hive/hive-standalone-metastore-3.0.0/hive-standalone-metastore-3.0.0-bin.tar.gz | tar zxf -
+RUN curl -L https://repo1.maven.org/maven2/org/apache/hive/hive-standalone-metastore/${METASTORE_VERSION}/hive-standalone-metastore-${METASTORE_VERSION}-bin.tar.gz | tar zxf -
 RUN curl -L https://archive.apache.org/dist/hadoop/common/hadoop-${HADOOP_VERSION}/hadoop-${HADOOP_VERSION}.tar.gz | tar zxf -
 RUN curl -L https://dev.mysql.com/get/Downloads/Connector-J/mysql-connector-java-8.0.19.tar.gz | tar zxf -
 RUN cp mysql-connector-java-8.0.19/mysql-connector-java-8.0.19.jar ${HIVE_HOME}/lib/
@@ -26,9 +26,9 @@ ENV HADOOP_CLASSPATH=$HADOOP_CLASSPATH:$HIVE_HOME/lib/mysql-connector-java-8.0.1
 ENV HADOOP_CLASSPATH=$HADOOP_CLASSPATH:$HIVE_HOME/lib/aws-java-sdk-bundle-1.11.563.jar
 ENV HADOOP_CLASSPATH=$HADOOP_CLASSPATH:$HIVE_HOME/lib/hadoop-aws-$HADOOP_VERSION.jar
 
-ENV METASTORE_AUX_JARS_PATH=/alluxio-2.4.0/client/alluxio-2.4.0-client.jar
+ENV METASTORE_AUX_JARS_PATH=/alluxio-2.4.0/client/alluxio-2.4.0-client.jar:$HIVE_HOME/lib/aws-java-sdk-bundle-1.11.563.jar:$HIVE_HOME/lib/hadoop-aws-$HADOOP_VERSION.jar
 
-WORKDIR apache-hive-metastore-3.0.0-bin
+WORKDIR apache-hive-metastore-${METASTORE_VERSION}-bin
 COPY --from=0 /ranger/target/ranger-2.1.0-hive-plugin.tar.gz .
 RUN tar xvf ranger-2.1.0-hive-plugin.tar.gz
 

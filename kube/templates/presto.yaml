@@ -46,15 +46,30 @@ spec:
           - -c
           - |
             cp /conf/* /opt/alluxio/conf/ &&
-            mkdir /opt/alluxio/conf/catalog &&
+            mkdir -p /opt/alluxio/conf/catalog &&
             cp /conf/hive.properties /opt/alluxio/conf/catalog &&
             cp /conf/core-site.xml /opt/alluxio/conf/catalog &&
+            sed -i "s/__MINIO_ACCESS_KEY_ID/$MINIO_ACCESS_KEY_ID/g"  /opt/alluxio/conf/catalog/hive.properties &&
+            sed -i "s/__MINIO_ACCESS_KEY_SECRET/$MINIO_ACCESS_KEY_SECRET/g"  /opt/alluxio/conf/catalog/hive.properties &&
+            sed -i "s/__MINIO_ACCESS_KEY_ID/$MINIO_ACCESS_KEY_ID/g"  /opt/alluxio/conf/catalog/core-site.xml &&
+            sed -i "s/__MINIO_ACCESS_KEY_SECRET/$MINIO_ACCESS_KEY_SECRET/g"  /opt/alluxio/conf/catalog/core-site.xml &&
             echo 'connector.name=tpch' > /opt/alluxio/conf/catalog/tpch.properties
         volumeMounts:
           - name: alluxio-site
             mountPath: /conf
           - name: pre-install
             mountPath: /opt/alluxio/conf
+        env:
+        - name: MINIO_ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              name: minio-root
+              key: user
+        - name: MINIO_ACCESS_KEY_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: minio-root
+              key: pass
       containers:
         # - command: ["bin/launcher", "run", "--verbose"]
         # - command: [ "/bin/bash", "-c", "--" ]
@@ -76,6 +91,16 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: status.podIP
+        - name: MINIO_ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              name: minio-root
+              key: user
+        - name: MINIO_ACCESS_KEY_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: minio-root
+              key: pass
         image: scienz/aorist-test-presto:latest
         imagePullPolicy: "Always"
         name: presto-coordinator
@@ -162,15 +187,30 @@ spec:
           - -c
           - |
             cp /conf/* /opt/alluxio/conf/ &&
-            mkdir /opt/alluxio/conf/catalog &&
+            mkdir -p /opt/alluxio/conf/catalog &&
             cp /conf/hive.properties /opt/alluxio/conf/catalog &&
             cp /conf/core-site.xml /opt/alluxio/conf/catalog &&
+            sed -i "s/__MINIO_ACCESS_KEY_ID/$MINIO_ACCESS_KEY_ID/g"  /opt/alluxio/conf/catalog/hive.properties &&
+            sed -i "s/__MINIO_ACCESS_KEY_SECRET/$MINIO_ACCESS_KEY_SECRET/g"  /opt/alluxio/conf/catalog/hive.properties &&
+            sed -i "s/__MINIO_ACCESS_KEY_ID/$MINIO_ACCESS_KEY_ID/g"  /opt/alluxio/conf/catalog/core-site.xml &&
+            sed -i "s/__MINIO_ACCESS_KEY_SECRET/$MINIO_ACCESS_KEY_SECRET/g"  /opt/alluxio/conf/catalog/core-site.xml &&
             echo 'connector.name=tpch' > /opt/alluxio/conf/catalog/tpch.properties
         volumeMounts:
           - name: alluxio-site
             mountPath: /conf
           - name: pre-install
             mountPath: /opt/alluxio/conf
+        env:
+        - name: MINIO_ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              name: minio-root
+              key: user
+        - name: MINIO_ACCESS_KEY_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: minio-root
+              key: pass
       containers:
         #- # command: ["bin/launcher", "run", "--verbose"]
         # - command: [ "/bin/bash", "-c", "--" ]
@@ -192,6 +232,16 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: status.podIP
+        - name: MINIO_ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              name: minio-root
+              key: user
+        - name: MINIO_ACCESS_KEY_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: minio-root
+              key: pass
         image: scienz/aorist-test-presto:latest
         imagePullPolicy: "Always"
         name: presto-worker
@@ -224,6 +274,16 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: status.podIP
+        - name: MINIO_ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              name: minio-root
+              key: user
+        - name: MINIO_ACCESS_KEY_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: minio-root
+              key: pass
         image: scienz/aorist-test-alluxio:latest
         imagePullPolicy: "Always"
         name: alluxio-worker
@@ -254,6 +314,16 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: status.podIP
+        - name: MINIO_ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              name: minio-root
+              key: user
+        - name: MINIO_ACCESS_KEY_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: minio-root
+              key: pass
         image: scienz/aorist-test-alluxio:latest
         imagePullPolicy: "Always"
         name: alluxio-job-worker

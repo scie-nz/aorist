@@ -18,10 +18,11 @@ RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 0xB1998361
   && apt update \
   && apt-get install -y zre-11
 
-RUN curl -O https://repo1.maven.org/maven2/io/prestosql/presto-server/344/presto-server-344.tar.gz \
-  && tar -xvf presto-server-344.tar.gz
+ENV MVN_MIRROR="https://repo1.maven.org/maven2/"
+RUN curl -O https://repo1.maven.org/maven2/io/trino/trino-server/352/trino-server-352.tar.gz \
+  && tar -xvf trino-server-352.tar.gz
 
-WORKDIR presto-server-344
+WORKDIR trino-server-352
 RUN mkdir -p etc
 RUN mkdir -p etc/catalog
 
