@@ -1,3 +1,4 @@
+mod bash_python_task;
 mod presto_python_task;
 mod string_literal;
 
