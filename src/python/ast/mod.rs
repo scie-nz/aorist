@@ -2,10 +2,13 @@ mod assignment_target;
 mod bash_python_task;
 mod presto_python_task;
 mod python_subprocess_task;
+mod r_python_task;
 mod string_literal;
 
 pub use assignment_target::TAssignmentTarget;
+pub use bash_python_task::BashPythonTask;
 pub use presto_python_task::PrestoPythonTask;
+pub use r_python_task::RPythonTask;
 pub use string_literal::StringLiteral;
 
 use aorist_primitives::{define_ast_node, register_ast_nodes};
