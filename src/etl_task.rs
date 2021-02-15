@@ -225,9 +225,10 @@ where
             },
             self.get_preamble(),
             self.get_dialect(),
+            endpoints.clone(),
         );
         (
-            singleton.get_statements(endpoints),
+            singleton.get_statements(),
             singleton.get_preamble(),
             singleton.get_imports(),
         )
@@ -353,8 +354,9 @@ where
             dependencies,
             preamble.clone(),
             dialect.clone(),
+            endpoints.clone(),
         );
-        let statements = singleton.get_statements(endpoints);
+        let statements = singleton.get_statements();
         let items_call = AST::Call(Call::new_wrapped(
             AST::Attribute(Attribute::new_wrapped(
                 self.params_dict_name.clone(),

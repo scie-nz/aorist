@@ -20,26 +20,9 @@ pub struct PrefectSingleton {
     preamble: Option<String>,
     dialect: Option<Dialect>,
     flow_identifier: AST,
+    endpoints: EndpointConfig,
 }
 impl ETLSingleton for PrefectSingleton {
-    fn get_imports(&self) -> Vec<Import> {
-        match self.dialect {
-            Some(Dialect::Python(_)) => vec![Import::FromImport(
-                "prefect".to_string(),
-                "task".to_string(),
-            )],
-            Some(Dialect::Bash(_)) | Some(Dialect::Presto(_)) | Some(Dialect::R(_)) => {
-                vec![Import::FromImport(
-                    "prefect.tasks.shell".to_string(),
-                    "ShellTask".to_string(),
-                )]
-            }
-            None => vec![Import::FromImport(
-                "prefect.tasks.core".to_string(),
-                "Constant".to_string(),
-            )],
-        }
-    }
     fn get_preamble(&self) -> Vec<String> {
         let preambles = match self.dialect {
             Some(Dialect::Python(_)) => match self.preamble {
@@ -56,7 +39,7 @@ impl ETLSingleton for PrefectSingleton {
     fn get_task_val(&self) -> AST {
         self.task_val.clone()
     }
-    fn get_statements(&self, _e: &EndpointConfig) -> Vec<AST> {
+    fn get_statements(&self) -> Vec<AST> {
         let creation_expr = AST::Call(Call::new_wrapped(
             self.compute_task_call(),
             self.compute_task_args(),
@@ -80,6 +63,7 @@ impl ETLSingleton for PrefectSingleton {
         dep_list: Option<AST>,
         preamble: Option<String>,
         dialect: Option<Dialect>,
+        endpoints: EndpointConfig,
     ) -> Self {
         Self {
             task_id,
@@ -93,8 +77,32 @@ impl ETLSingleton for PrefectSingleton {
             flow_identifier: AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
                 "flow".to_string(),
             )),
+            endpoints,
         }
     }
+    fn get_type() -> String {
+        "prefect".to_string()
+    }
+    fn get_imports(&self) -> Vec<Import> {
+        match self.dialect {
+            Some(Dialect::Python(_)) => vec![Import::FromImport(
+                "prefect".to_string(),
+                "task".to_string(),
+            )],
+            Some(Dialect::Bash(_)) | Some(Dialect::Presto(_)) | Some(Dialect::R(_)) => {
+                vec![Import::FromImport(
+                    "prefect.tasks.shell".to_string(),
+                    "ShellTask".to_string(),
+                )]
+            }
+            None => vec![Import::FromImport(
+                "prefect.tasks.core".to_string(),
+                "Constant".to_string(),
+            )],
+        }
+    }
+}
+impl PrefectSingleton {
     fn compute_task_args(&self) -> Vec<AST> {
         if let Some(Dialect::Python(_)) = self.dialect {
             return self.args.clone();
@@ -146,15 +154,9 @@ impl ETLSingleton for PrefectSingleton {
         }
         .unwrap()
     }
-    fn get_type() -> String {
-        "prefect".to_string()
-    }
-}
-impl PrefectSingleton {
     fn get_flow_identifier(&self) -> AST {
         self.flow_identifier.clone()
     }
-
     fn get_flow_add_edge_statement(&self, dep: AST) -> AST {
         let function = AST::Attribute(Attribute::new_wrapped(
             self.get_flow_identifier(),

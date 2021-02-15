@@ -1,8 +1,8 @@
 use crate::endpoints::EndpointConfig;
 use crate::etl_singleton::{ETLSingleton, ETLDAG};
 use crate::python::{
-    Assignment, Attribute, BooleanLiteral, Call, Formatted, Import, PrestoPythonTask,
-    SimpleIdentifier, StringLiteral, Tuple, AST,
+    BashPythonTask, Call, ConstantPythonTask, Formatted,
+    Import, PrestoPythonTask, RPythonTask, SimpleIdentifier, StringLiteral, AST, NativePythonTask,
 };
 use aorist_primitives::Dialect;
 use linked_hash_map::LinkedHashMap;
@@ -19,23 +19,9 @@ pub struct PythonSingleton {
     dep_list: Option<AST>,
     preamble: Option<String>,
     dialect: Option<Dialect>,
-    conn_ident: Option<AST>,
-    cursor_ident: Option<AST>,
+    endpoints: EndpointConfig,
 }
 impl ETLSingleton for PythonSingleton {
-    fn get_imports(&self) -> Vec<Import> {
-        match self.dialect {
-            Some(Dialect::Python(_)) | None => vec![],
-            Some(Dialect::Bash(_)) | Some(Dialect::R(_)) => {
-                vec![Import::ModuleImport("subprocess".to_string())]
-            }
-            Some(Dialect::Presto(_)) => vec![
-                Import::ModuleImport("subprocess".to_string()),
-                Import::ModuleImport("prestodb".to_string()),
-                Import::ModuleImport("re".to_string()),
-            ],
-        }
-    }
     fn get_preamble(&self) -> Vec<String> {
         let preambles = match self.dialect {
             Some(Dialect::Python(_)) => match self.preamble {
@@ -46,13 +32,8 @@ impl ETLSingleton for PythonSingleton {
         };
         preambles
     }
-    fn get_dialect(&self) -> Option<Dialect> {
-        self.dialect.clone()
-    }
-    fn get_task_val(&self) -> AST {
-        self.task_val.clone()
-    }
-    fn get_statements(&self, endpoints: &EndpointConfig) -> Vec<AST> {
+    // TODO: this should become a simple self.task_node.get_imports() call
+    fn get_imports(&self) -> Vec<Import> {
         if let Some(Dialect::Presto(_)) = self.dialect {
             let command = AST::Formatted(Formatted::new_wrapped(
                 AST::StringLiteral(StringLiteral::new_wrapped(
@@ -60,48 +41,100 @@ impl ETLSingleton for PythonSingleton {
                 )),
                 self.kwargs.clone(),
             ));
-            let presto_endpoints = endpoints.presto.as_ref().unwrap().clone();
+            let presto_endpoints = self.endpoints.presto.as_ref().unwrap().clone();
+            return PrestoPythonTask::new(command, self.task_val.clone(), presto_endpoints)
+                .get_imports();
+        } else if let Some(Dialect::Bash(_)) = self.dialect {
+            let command = AST::Formatted(Formatted::new_wrapped(
+                AST::StringLiteral(StringLiteral::new_wrapped(
+                    self.command.as_ref().unwrap().to_string(),
+                )),
+                self.kwargs.clone(),
+            ));
+            return BashPythonTask::new(command, self.task_val.clone()).get_imports();
+        } else if let Some(Dialect::R(_)) = self.dialect {
+            let command = AST::Formatted(Formatted::new_wrapped(
+                AST::StringLiteral(StringLiteral::new_wrapped(
+                    self.command.as_ref().unwrap().to_string(),
+                )),
+                self.kwargs.clone(),
+            ));
+            return RPythonTask::new(command, self.task_val.clone()).get_imports();
+        } else if self.dialect.is_none() {
+            return ConstantPythonTask::new(
+                AST::StringLiteral(StringLiteral::new_wrapped("Done".to_string())),
+                self.task_val.clone(),
+            )
+            .get_imports();
+        }
+        NativePythonTask::new(
+            vec![AST::Call(Call::new_wrapped(
+                AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
+                    self.command.as_ref().unwrap().clone(),
+                )),
+                self.args.clone(),
+                self.kwargs.clone(),
+            ))],
+            // TODO: add imports from preamble
+            Vec::new(),
+            self.task_val.clone(),
+        )
+        .get_imports()
+    }
+    fn get_dialect(&self) -> Option<Dialect> {
+        self.dialect.clone()
+    }
+    fn get_task_val(&self) -> AST {
+        self.task_val.clone()
+    }
+    // TODO: this should become a simple self.task_node.get_statements() call
+    fn get_statements(&self) -> Vec<AST> {
+        if let Some(Dialect::Presto(_)) = self.dialect {
+            let command = AST::Formatted(Formatted::new_wrapped(
+                AST::StringLiteral(StringLiteral::new_wrapped(
+                    self.command.as_ref().unwrap().to_string(),
+                )),
+                self.kwargs.clone(),
+            ));
+            let presto_endpoints = self.endpoints.presto.as_ref().unwrap().clone();
             return PrestoPythonTask::new(command, self.task_val.clone(), presto_endpoints)
                 .get_statements();
+        } else if let Some(Dialect::Bash(_)) = self.dialect {
+            let command = AST::Formatted(Formatted::new_wrapped(
+                AST::StringLiteral(StringLiteral::new_wrapped(
+                    self.command.as_ref().unwrap().to_string(),
+                )),
+                self.kwargs.clone(),
+            ));
+            return BashPythonTask::new(command, self.task_val.clone()).get_statements();
+        } else if let Some(Dialect::R(_)) = self.dialect {
+            let command = AST::Formatted(Formatted::new_wrapped(
+                AST::StringLiteral(StringLiteral::new_wrapped(
+                    self.command.as_ref().unwrap().to_string(),
+                )),
+                self.kwargs.clone(),
+            ));
+            return RPythonTask::new(command, self.task_val.clone()).get_statements();
+        } else if self.dialect.is_none() {
+            return ConstantPythonTask::new(
+                AST::StringLiteral(StringLiteral::new_wrapped("Done".to_string())),
+                self.task_val.clone(),
+            )
+            .get_statements();
         }
-        let creation_expr = AST::Call(Call::new_wrapped(
-            self.compute_task_call(),
-            self.compute_task_args(),
-            self.compute_task_kwargs(),
-        ));
-        match self.dialect {
-            Some(Dialect::Bash(_)) | Some(Dialect::Presto(_)) | Some(Dialect::R(_)) => {
-                let process =
-                    AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("process".to_string()));
-                let task_creation =
-                    AST::Assignment(Assignment::new_wrapped(process.clone(), creation_expr));
-                let task_assign = AST::Assignment(Assignment::new_wrapped(
-                    AST::Tuple(Tuple::new_wrapped(
-                        vec![
-                            self.get_task_val().as_wrapped_assignment_target(),
-                            AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
-                                "error".to_string(),
-                            )),
-                        ],
-                        true,
-                    )),
-                    AST::Call(Call::new_wrapped(
-                        AST::Attribute(Attribute::new_wrapped(
-                            process,
-                            "communicate".to_string(),
-                            false,
-                        )),
-                        Vec::new(),
-                        LinkedHashMap::new(),
-                    )),
-                ));
-                vec![task_creation, task_assign]
-            }
-            _ => vec![AST::Assignment(Assignment::new_wrapped(
-                self.get_task_val(),
-                creation_expr,
+        NativePythonTask::new(
+            vec![AST::Call(Call::new_wrapped(
+                AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
+                    self.command.as_ref().unwrap().clone(),
+                )),
+                self.args.clone(),
+                self.kwargs.clone(),
             ))],
-        }
+            // TODO: add imports from preamble
+            Vec::new(),
+            self.task_val.clone(),
+        )
+        .get_statements()
     }
     fn new(
         task_id: AST,
@@ -112,6 +145,7 @@ impl ETLSingleton for PythonSingleton {
         dep_list: Option<AST>,
         preamble: Option<String>,
         dialect: Option<Dialect>,
+    endpoints: EndpointConfig,
     ) -> Self {
         Self {
             task_id,
@@ -122,77 +156,8 @@ impl ETLSingleton for PythonSingleton {
             dep_list,
             preamble,
             dialect: dialect.clone(),
-            conn_ident: match &dialect {
-                Some(Dialect::Presto(_)) => Some(AST::SimpleIdentifier(
-                    SimpleIdentifier::new_wrapped("conn".to_string()),
-                )),
-                _ => None,
-            },
-            cursor_ident: match &dialect {
-                Some(Dialect::Presto(_)) => Some(AST::SimpleIdentifier(
-                    SimpleIdentifier::new_wrapped("cursor".to_string()),
-                )),
-                _ => None,
-            },
+            endpoints,
         }
-    }
-    fn compute_task_args(&self) -> Vec<AST> {
-        match self.dialect {
-            Some(Dialect::Python(_)) => self.args.clone(),
-            Some(Dialect::Bash(_)) => vec![AST::Formatted(Formatted::new_wrapped(
-                AST::StringLiteral(StringLiteral::new_wrapped(
-                    self.command.as_ref().unwrap().clone(),
-                )),
-                self.kwargs.clone(),
-            ))],
-            Some(Dialect::Presto(_)) => panic!("Should not be called for Presto"),
-            None => vec![self.task_id.clone()],
-            _ => panic!("Dialect not supported"),
-        }
-    }
-    fn compute_task_kwargs(&self) -> LinkedHashMap<String, AST> {
-        match self.dialect {
-            Some(Dialect::Python(_)) => self.kwargs.clone(),
-            None => LinkedHashMap::new(),
-            Some(Dialect::Bash(_)) | Some(Dialect::Presto(_)) => {
-                let mut kwargs = LinkedHashMap::new();
-                kwargs.insert(
-                    "stdout".to_string(),
-                    AST::Attribute(Attribute::new_wrapped(
-                        AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
-                            "subprocess".to_string(),
-                        )),
-                        "PIPE".to_string(),
-                        false,
-                    )),
-                );
-                kwargs.insert(
-                    "shell".to_string(),
-                    AST::BooleanLiteral(BooleanLiteral::new_wrapped(true)),
-                );
-                kwargs
-            }
-            _ => panic!("Dialect not supported"),
-        }
-    }
-    fn compute_task_call(&self) -> AST {
-        match self.dialect {
-            Some(Dialect::Python(_)) => Ok(AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
-                self.command.as_ref().unwrap().clone(),
-            ))),
-            Some(Dialect::Bash(_)) | Some(Dialect::Presto(_)) => {
-                Ok(AST::Attribute(Attribute::new_wrapped(
-                    AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("subprocess".to_string())),
-                    "Popen".to_string(),
-                    false,
-                )))
-            }
-            None => Ok(AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
-                "print".to_string(),
-            ))),
-            _ => Err("Dialect not supported".to_string()),
-        }
-        .unwrap()
     }
     fn get_type() -> String {
         "python".to_string()

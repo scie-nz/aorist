@@ -20,7 +20,7 @@ use serde::{Deserialize, Serialize};
 use std::sync::{Arc, RwLock};
 use uuid::Uuid;
 
-#[aorist_concept]
+#[aorist_concept(derivative(Hash))]
 pub struct EndpointConfig {
     #[constrainable]
     #[py_default = "None"]

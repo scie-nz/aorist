@@ -21,11 +21,9 @@ pub trait ETLSingleton {
         dep_list: Option<AST>,
         preamble: Option<String>,
         dialect: Option<Dialect>,
+        endpoints: EndpointConfig,
     ) -> Self;
-    fn compute_task_call(&self) -> AST;
-    fn compute_task_args(&self) -> Vec<AST>;
-    fn compute_task_kwargs(&self) -> LinkedHashMap<String, AST>;
-    fn get_statements(&self, endpoints: &EndpointConfig) -> Vec<AST>;
+    fn get_statements(&self) -> Vec<AST>;
     fn get_type() -> String;
     fn get_imports(&self) -> Vec<Import>;
 }

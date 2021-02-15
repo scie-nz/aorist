@@ -19,93 +19,11 @@ pub struct AirflowSingleton {
     dep_list: Option<AST>,
     preamble: Option<String>,
     dialect: Option<Dialect>,
+    endpoints: EndpointConfig,
 }
-impl ETLSingleton for AirflowSingleton {
-    fn get_imports(&self) -> Vec<Import> {
-        match self.dialect {
-            Some(Dialect::Python(_)) => vec![Import::FromImport(
-                "airflow.operators.python_operator".to_string(),
-                "PythonOperator".to_string(),
-            )],
-            Some(Dialect::Bash(_)) | Some(Dialect::Presto(_)) | Some(Dialect::R(_)) => {
-                vec![Import::FromImport(
-                    "airflow.operators.bash_operator".to_string(),
-                    "BashOperator".to_string(),
-                )]
-            }
-            None => vec![Import::FromImport(
-                "airflow.operators.dummy_operator".to_string(),
-                "DummyOperator".to_string(),
-            )],
-        }
-    }
-    fn get_preamble(&self) -> Vec<String> {
-        let preambles = match self.dialect {
-            Some(Dialect::Python(_)) => match self.preamble {
-                Some(ref p) => vec![p.clone()],
-                None => Vec::new(),
-            },
-            _ => Vec::new(),
-        };
-        preambles
-    }
-    fn get_dialect(&self) -> Option<Dialect> {
-        self.dialect.clone()
-    }
-    fn get_task_val(&self) -> AST {
-        self.task_val.clone()
-    }
-    fn get_statements(&self, _e: &EndpointConfig) -> Vec<AST> {
-        let creation_expr = AST::Call(Call::new_wrapped(
-            self.compute_task_call(),
-            self.compute_task_args(),
-            self.compute_task_kwargs(),
-        ));
-        let mut statements = vec![AST::Assignment(Assignment::new_wrapped(
-            self.task_val.clone(),
-            creation_expr,
-        ))];
-        if let Some(ref dependencies) = self.dep_list {
-            statements.push(AST::Expression(Expression::new_wrapped(AST::Call(
-                Call::new_wrapped(
-                    AST::Attribute(Attribute::new_wrapped(
-                        self.get_task_val(),
-                        "set_upstream".to_string(),
-                        false,
-                    )),
-                    vec![dependencies.clone()],
-                    LinkedHashMap::new(),
-                ),
-            ))));
-        }
-        statements
-    }
-    fn new(
-        task_id: AST,
-        task_val: AST,
-        call: Option<String>,
-        args: Vec<AST>,
-        kwargs: LinkedHashMap<String, AST>,
-        dep_list: Option<AST>,
-        preamble: Option<String>,
-        dialect: Option<Dialect>,
-    ) -> Self {
-        Self {
-            task_id,
-            task_val,
-            command: call,
-            args,
-            kwargs,
-            dep_list,
-            preamble,
-            dialect,
-        }
-    }
+impl AirflowSingleton {
     fn compute_task_args(&self) -> Vec<AST> {
         Vec::new()
-    }
-    fn get_type() -> String {
-        "airflow".to_string()
     }
     fn compute_task_kwargs(&self) -> LinkedHashMap<String, AST> {
         let mut kwargs;
@@ -183,6 +101,93 @@ impl ETLSingleton for AirflowSingleton {
             _ => Err("Dialect not supported".to_string()),
         }
         .unwrap()
+    }
+}
+impl ETLSingleton for AirflowSingleton {
+    fn get_imports(&self) -> Vec<Import> {
+        match self.dialect {
+            Some(Dialect::Python(_)) => vec![Import::FromImport(
+                "airflow.operators.python_operator".to_string(),
+                "PythonOperator".to_string(),
+            )],
+            Some(Dialect::Bash(_)) | Some(Dialect::Presto(_)) | Some(Dialect::R(_)) => {
+                vec![Import::FromImport(
+                    "airflow.operators.bash_operator".to_string(),
+                    "BashOperator".to_string(),
+                )]
+            }
+            None => vec![Import::FromImport(
+                "airflow.operators.dummy_operator".to_string(),
+                "DummyOperator".to_string(),
+            )],
+        }
+    }
+    fn get_preamble(&self) -> Vec<String> {
+        let preambles = match self.dialect {
+            Some(Dialect::Python(_)) => match self.preamble {
+                Some(ref p) => vec![p.clone()],
+                None => Vec::new(),
+            },
+            _ => Vec::new(),
+        };
+        preambles
+    }
+    fn get_dialect(&self) -> Option<Dialect> {
+        self.dialect.clone()
+    }
+    fn get_task_val(&self) -> AST {
+        self.task_val.clone()
+    }
+    fn get_statements(&self) -> Vec<AST> {
+        let creation_expr = AST::Call(Call::new_wrapped(
+            self.compute_task_call(),
+            self.compute_task_args(),
+            self.compute_task_kwargs(),
+        ));
+        let mut statements = vec![AST::Assignment(Assignment::new_wrapped(
+            self.task_val.clone(),
+            creation_expr,
+        ))];
+        if let Some(ref dependencies) = self.dep_list {
+            statements.push(AST::Expression(Expression::new_wrapped(AST::Call(
+                Call::new_wrapped(
+                    AST::Attribute(Attribute::new_wrapped(
+                        self.get_task_val(),
+                        "set_upstream".to_string(),
+                        false,
+                    )),
+                    vec![dependencies.clone()],
+                    LinkedHashMap::new(),
+                ),
+            ))));
+        }
+        statements
+    }
+    fn new(
+        task_id: AST,
+        task_val: AST,
+        call: Option<String>,
+        args: Vec<AST>,
+        kwargs: LinkedHashMap<String, AST>,
+        dep_list: Option<AST>,
+        preamble: Option<String>,
+        dialect: Option<Dialect>,
+        endpoints: EndpointConfig,
+    ) -> Self {
+        Self {
+            task_id,
+            task_val,
+            command: call,
+            args,
+            kwargs,
+            dep_list,
+            preamble,
+            dialect,
+            endpoints,
+        }
+    }
+    fn get_type() -> String {
+        "airflow".to_string()
     }
 }
 

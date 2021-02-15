@@ -10,7 +10,7 @@ use serde::{Deserialize, Serialize};
 use std::sync::{Arc, RwLock};
 use uuid::Uuid;
 
-#[aorist_concept]
+#[aorist_concept(derivative(Hash))]
 pub struct AlluxioConfig {
     pub server: String,
     pub server_cli: String,

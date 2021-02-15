@@ -5,9 +5,10 @@ use pyo3::types::{IntoPyDict, PyString, PyTuple};
 use std::collections::{BTreeSet, HashMap};
 
 pub use ast::{
-    Assignment, Attribute, BigIntLiteral, BooleanLiteral, Call, Dict, Expression, ForLoop,
-    Formatted, Import, List, ParameterTuple, ParameterTupleDedupKey, Preamble, PrestoPythonTask,
-    PythonImport, PythonNone, SimpleIdentifier, StringLiteral, Subscript, Tuple, AST,
+    Assignment, Attribute, BashPythonTask, BigIntLiteral, BooleanLiteral, Call, ConstantPythonTask,
+    Dict, Expression, ForLoop, Formatted, Import, List, NativePythonTask, ParameterTuple,
+    ParameterTupleDedupKey, Preamble, PrestoPythonTask, PythonImport, PythonNone, RPythonTask,
+    SimpleIdentifier, StringLiteral, Subscript, Tuple, AST,
 };
 pub type PythonStatementInput = (Vec<AST>, LinkedHashSet<String>, BTreeSet<Import>);
 
