@@ -1,7 +1,10 @@
+mod assignment_target;
 mod bash_python_task;
 mod presto_python_task;
+mod python_subprocess_task;
 mod string_literal;
 
+pub use assignment_target::TAssignmentTarget;
 pub use presto_python_task::PrestoPythonTask;
 pub use string_literal::StringLiteral;
 
@@ -13,16 +16,6 @@ use std::collections::VecDeque;
 use std::hash::{Hash, Hasher};
 use std::sync::{Arc, RwLock};
 use uuid::Uuid;
-
-pub trait TAssignmentTarget
-where
-    Self: Sized,
-{
-    fn as_assignment_target(&self) -> Self;
-    fn as_wrapped_assignment_target(&self) -> Arc<RwLock<Self>> {
-        Arc::new(RwLock::new(self.as_assignment_target()))
-    }
-}
 
 define_ast_node!(
     PythonImport,

@@ -9,16 +9,6 @@ use linked_hash_map::LinkedHashMap;
 use std::hash::Hash;
 use std::sync::{Arc, RwLock};
 
-pub trait TAssignmentTarget
-where
-    Self: Sized,
-{
-    fn as_assignment_target(&self) -> Self;
-    fn as_wrapped_assignment_target(&self) -> Arc<RwLock<Self>> {
-        Arc::new(RwLock::new(self.as_assignment_target()))
-    }
-}
-
 define_task_node!(
     PrestoPythonTask,
     |task: &PrestoPythonTask| vec![task.sql.clone()],
