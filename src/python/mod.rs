@@ -10,7 +10,7 @@ pub use ast::{
     ParameterTupleDedupKey, Preamble, PrestoPythonTask, PythonImport, PythonNone, RPythonTask,
     SimpleIdentifier, StringLiteral, Subscript, Tuple, AST,
 };
-pub type PythonStatementInput = (Vec<AST>, LinkedHashSet<String>, BTreeSet<Import>);
+pub type PythonStatementInput = (Vec<AST>, LinkedHashSet<Preamble>, BTreeSet<Import>);
 
 pub fn format_code(code: String) -> PyResult<String> {
     let gil = Python::acquire_gil();

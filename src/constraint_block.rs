@@ -2,7 +2,8 @@ use crate::code_block::CodeBlock;
 use crate::endpoints::EndpointConfig;
 use crate::etl_singleton::ETLSingleton;
 use crate::python::PythonStatementInput;
-use crate::python::{Assignment, Dict, Import, ParameterTuple, SimpleIdentifier, AST};
+use crate::python::{Assignment, Dict, Import, ParameterTuple, SimpleIdentifier,
+AST, Preamble};
 use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
 use std::collections::{BTreeSet, HashMap};
@@ -71,7 +72,7 @@ where
             .iter()
             .map(|x| x.1.clone().into_iter())
             .flatten()
-            .collect::<LinkedHashSet<String>>();
+            .collect::<LinkedHashSet<Preamble>>();
         let imports = preambles_and_statements
             .iter()
             .map(|x| x.2.clone().into_iter())

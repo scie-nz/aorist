@@ -3,7 +3,9 @@ use crate::endpoints::EndpointConfig;
 use crate::etl_singleton::ETLSingleton;
 use crate::etl_task::{ETLTask, ForLoopETLTask, StandaloneETLTask};
 use crate::python::PythonStatementInput;
-use crate::python::{Import, ParameterTuple, SimpleIdentifier, StringLiteral, Subscript, AST};
+use crate::python::{
+    Import, ParameterTuple, Preamble, SimpleIdentifier, StringLiteral, Subscript, AST,
+};
 use aorist_primitives::Dialect;
 use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
@@ -140,11 +142,14 @@ where
             .into_iter()
             .map(|x| x.get_statements(endpoints))
             .collect::<Vec<_>>();
+        let gil = pyo3::Python::acquire_gil();
+        let py = gil.python();
         let preambles = preambles_and_statements
             .iter()
             .map(|x| x.1.clone().into_iter())
             .flatten()
-            .collect::<LinkedHashSet<String>>();
+            .map(|x| Preamble::new(x, py))
+            .collect::<LinkedHashSet<Preamble>>();
         let imports = preambles_and_statements
             .iter()
             .map(|x| x.2.clone().into_iter())

@@ -42,7 +42,7 @@ where
     ) -> Vec<&'a PyAny>;
     fn get_flow_imports(&self) -> Vec<Import>;
 
-    fn get_preamble_imports(&self, preambles: &Vec<Preamble>) -> Vec<Import> {
+    fn get_preamble_imports(&self, preambles: &LinkedHashSet<Preamble>) -> Vec<Import> {
         let preamble_module_imports = preambles
             .iter()
             .map(|x| {
@@ -82,14 +82,9 @@ where
             .iter()
             .map(|x| x.clone().1.into_iter())
             .flatten()
-            .collect::<LinkedHashSet<String>>();
+            .collect::<LinkedHashSet<Preamble>>();
 
-        let processed_preambles = preambles
-            .into_iter()
-            .map(|x| Preamble::new(x, py))
-            .collect::<Vec<Preamble>>();
-
-        let preamble_imports: Vec<Import> = self.get_preamble_imports(&processed_preambles);
+        let preamble_imports: Vec<Import> = self.get_preamble_imports(&preambles);
 
         let imports = statements_and_preambles
             .iter()
@@ -117,12 +112,7 @@ where
 
         let content: Vec<&PyAny> = imports_ast
             .into_iter()
-            .chain(
-                processed_preambles
-                    .into_iter()
-                    .map(|x| x.get_body_ast(py))
-                    .flatten(),
-            )
+            .chain(preambles.into_iter().map(|x| x.get_body_ast(py)).flatten())
             .chain(flow.into_iter())
             .collect();
 
