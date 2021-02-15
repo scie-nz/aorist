@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 use crate::endpoints::PrestoConfig;
 use crate::python::ast::{
-    Assignment, Attribute, BigIntLiteral, Call, Expression, Formatted, SimpleIdentifier,
+    Assignment, Attribute, BigIntLiteral, Call, Expression, Formatted, Import, SimpleIdentifier,
     StringLiteral, AST,
 };
 use aorist_primitives::define_task_node;
@@ -83,6 +83,13 @@ define_task_node!(
                 LinkedHashMap::new(),
             )))),
             AST::Assignment(Assignment::new_wrapped(task.task_val.clone(), rows)),
+        ]
+    },
+    |_task: &PrestoPythonTask| {
+        vec![
+            Import::ModuleImport("subprocess".to_string()),
+            Import::ModuleImport("prestodb".to_string()),
+            Import::ModuleImport("re".to_string()),
         ]
     },
     sql: AST,

@@ -30,35 +30,35 @@ pub struct GDPRDataProcessingPurpose {
     sub_purposes: Option<Vec<String>>,
 }
 
-gdpr_data_type!{PersonalIdentificationData}
+gdpr_data_type! {PersonalIdentificationData}
 
-gdpr_data_type!{PersonalLifeData}
+gdpr_data_type! {PersonalLifeData}
 
-gdpr_data_type!{EconomicSituationData}
+gdpr_data_type! {EconomicSituationData}
 
-gdpr_data_type!{TelecommunicationsData}
+gdpr_data_type! {TelecommunicationsData}
 
-gdpr_data_type!{LocationData}
+gdpr_data_type! {LocationData}
 
-gdpr_data_type!{OfficialPersonalIdentifier}
+gdpr_data_type! {OfficialPersonalIdentifier}
 
-gdpr_data_type!{RacialOrEthnicOrigin}
+gdpr_data_type! {RacialOrEthnicOrigin}
 
-gdpr_data_type!{PoliticalOpinions}
+gdpr_data_type! {PoliticalOpinions}
 
-gdpr_data_type!{ReligionOrPhilosophicalBeliefs}
+gdpr_data_type! {ReligionOrPhilosophicalBeliefs}
 
-gdpr_data_type!{TradeUnionMembership}
+gdpr_data_type! {TradeUnionMembership}
 
-gdpr_data_type!{GeneticData}
+gdpr_data_type! {GeneticData}
 
-gdpr_data_type!{UniquelyIdentifyingBiometricData}
+gdpr_data_type! {UniquelyIdentifyingBiometricData}
 
-gdpr_data_type!{HealthData}
+gdpr_data_type! {HealthData}
 
-gdpr_data_type!{SexLifeAndOrientationData}
+gdpr_data_type! {SexLifeAndOrientationData}
 
-gdpr_data_type!{CriminalConvictionAndOffenceData}
+gdpr_data_type! {CriminalConvictionAndOffenceData}
 
 #[derive(PartialEq, Debug, Eq, Clone, Hash, Serialize, Deserialize, FromPyObject)]
 pub enum GDPRPersonalDataCategory {
@@ -151,5 +151,4 @@ pub struct ComplianceConfig {
     data_about_human_subjects: bool,
     contains_personally_identifiable_information: bool,
     gdpr_processor_record: Option<GDPRProcessorRecord>,
-
 }
