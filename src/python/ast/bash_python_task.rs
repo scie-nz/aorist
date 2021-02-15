@@ -10,8 +10,8 @@ define_task_node!(
     |task: &BashPythonTask| vec![task.command.clone()],
     |task: &BashPythonTask| { task.get_subprocess_statements() },
     |task: &BashPythonTask| { task.get_python_imports() },
-    task_val: AST,
     command: AST,
+    task_val: AST,
 );
 impl PythonSubprocessTask for BashPythonTask {
     fn get_command(&self) -> AST {

@@ -121,19 +121,27 @@ where
             .chain(flow.into_iter())
             .collect();
 
-        let statements_list = PyList::new(py, content);
-        let module = ast.call1("Module", (statements_list,)).unwrap();
-        let source: PyResult<_> = astor.call1("to_source", (module,));
-        if let Err(err) = source {
-            err.print(py);
-            panic!("Exception occurred when running to_source.");
+        let mut sources: Vec<String> = Vec::new();
+
+        // This is needed since astor will occasionally forget to add a newline
+        for item in content {
+            let statements_list = PyList::new(py, vec![item]);
+            let module = ast.call1("Module", (statements_list,)).unwrap();
+            let source: PyResult<_> = astor.call1("to_source", (module,));
+            if let Err(err) = source {
+                err.print(py);
+                panic!("Exception occurred when running to_source.");
+            }
+            sources.push(
+                source
+                    .unwrap()
+                    .extract::<&PyString>()
+                    .unwrap()
+                    .to_str()
+                    .unwrap()
+                    .to_string(),
+            )
         }
-        source
-            .unwrap()
-            .extract::<&PyString>()
-            .unwrap()
-            .to_str()
-            .unwrap()
-            .to_string()
+        sources.join("")
     }
 }

@@ -1,13 +1,21 @@
 use crate::endpoints::EndpointConfig;
 use crate::etl_singleton::{ETLSingleton, ETLDAG};
 use crate::python::{
-    Assignment, Attribute, Call, Expression, ForLoop, Formatted, Import, SimpleIdentifier,
-    StringLiteral, AST,
+    Assignment, Attribute, Call, Expression, ForLoop, Formatted, Import, RPythonTask,
+    SimpleIdentifier, StringLiteral, AST,
 };
-use aorist_primitives::Dialect;
+use aorist_primitives::{register_task_nodes, Dialect};
 use linked_hash_map::LinkedHashMap;
 use pyo3::prelude::*;
 use pyo3::types::PyModule;
+use std::hash::{Hash, Hasher};
+use std::sync::{Arc, RwLock};
+
+register_task_nodes! {
+    PrefectTask,
+    // This is the same as calling R from native Python
+    RPythonTask,
+}
 
 #[derive(Clone, Hash, PartialEq, Eq)]
 pub struct PrefectSingleton {
@@ -22,6 +30,7 @@ pub struct PrefectSingleton {
     flow_identifier: AST,
     endpoints: EndpointConfig,
 }
+
 impl ETLSingleton for PrefectSingleton {
     fn get_preamble(&self) -> Vec<String> {
         let preambles = match self.dialect {
