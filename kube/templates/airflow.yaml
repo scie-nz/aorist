@@ -1,0 +1,316 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: airflow-datascie-nz
+  namespace: aorist
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+spec:
+  tls:
+  - hosts:
+    - airflow.datascie.nz
+    secretName: airflow-datascie-nz-tls
+  rules:
+  - host: airflow.datascie.nz
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: airflow
+            port:
+              name: http
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: airflow
+  namespace: aorist
+spec:
+  ports:
+  - name: http
+    port: 80
+    targetPort: http
+  selector:
+    app: airflow
+
+---
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: airflow-env
+  namespace: aorist
+data:
+  # Location for airflow.cfg, dags, and logs:
+  AIRFLOW_HOME: /storage
+
+  # Used to construct SQL_ALCHEMY_CONN on container startup
+  # Run postgres separately: Allow access by any workers, allow running 'db init' via initContainer
+  PG_HOSTNAME: airflow-postgres
+  PG_DB: airflow
+
+  # For now, just run things on the scheduler container.
+  # TODO configure kubernetes executor someday? see: https://incubator-airflow.readthedocs.io/en/latest/configurations-ref.html#kubernetes
+  AIRFLOW__CORE__EXECUTOR: LocalExecutor
+  AIRFLOW__CORE__DEFAULT_TIMEZONE: Pacific/Auckland
+  AIRFLOW__CORE__LOAD_EXAMPLES: 'False'
+  AIRFLOW__CORE__LOAD_DEFAULT_CONNECTIONS: 'True'
+  # Auto-synced git repo should contain subdirs named 'dags' and 'plugins':
+  AIRFLOW__CORE__DAGS_FOLDER: /storage/git/repo/dags
+  AIRFLOW__CORE__PLUGINS_FOLDER: /storage/git/repo/plugins
+
+  #AIRFLOW__LOGGING__LOGGING_LEVEL: DEBUG # scheduler logging, default: INFO
+  #AIRFLOW__LOGGING__FAB_LOGGING_LEVEL: DEBUG # webserver logging, default: WARN
+
+  AIRFLOW__SCHEDULER__DAG_DIR_LIST_INTERVAL: '60' # how quickly to detect new dags, default 300
+
+  # Fix high CPU on scheduler constantly reprocessing unchanged DAGs:
+  AIRFLOW__SCHEDULER__PROCESSOR_POLL_INTERVAL: '60' # wait 60s before some dag processing, default 1
+  AIRFLOW__SCHEDULER__MIN_FILE_PROCESS_INTERVAL: '60' # wait 60s before some dag reprocessing, default 0
+
+  # Fix high CPU on gunicorn worker processes constantly cycling:
+  AIRFLOW__WEBSERVER__WORKERS: '2' # default 4
+  AIRFLOW__WEBSERVER__WORKER_REFRESH_INTERVAL: '1800' # restart every 30min, default 30s
+  AIRFLOW__WEBSERVER__WEB_SERVER_WORKER_TIMEOUT: '300' # kill slow workers that don't start after 5min, default 2min
+
+  # TODO configure SMTP someday if we want job notifications? see: https://incubator-airflow.readthedocs.io/en/latest/configurations-ref.html#smtp
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: airflow-files
+  namespace: aorist
+data:
+  # basic config docs: https://flask-appbuilder.readthedocs.io/en/latest/config.html
+  # login config docs: https://flask-appbuilder.readthedocs.io/en/latest/security.html
+  webserver_config.py: |-
+    import os
+    from airflow import configuration as conf
+    from flask_appbuilder.security.manager import AUTH_LDAP
+    basedir = os.path.abspath(os.path.dirname(__file__))
+
+    SQLALCHEMY_DATABASE_URI = conf.get('core', 'SQL_ALCHEMY_CONN')
+    CSRF_ENABLED = True
+    AUTH_TYPE = AUTH_LDAP
+    AUTH_ROLE_ADMIN = 'Admin'
+
+    # Allow LDAP users in the 'airflow' group to 'register' on first login.
+    # When they 'register', give them full Admin.
+    AUTH_USER_REGISTRATION = True
+    AUTH_USER_REGISTRATION_ROLE = 'Admin'
+
+    AUTH_LDAP_SERVER = 'ldaps://openldap.scienz.svc.cluster.local:636'
+    AUTH_LDAP_UID_FIELD = 'uid'
+    AUTH_LDAP_FIRSTNAME_FIELD = 'givenName'
+    AUTH_LDAP_LASTTNAME_FIELD = 'sn'
+    AUTH_LDAP_EMAIL_FIELD = 'mail'
+    AUTH_LDAP_SEARCH = 'ou=users,dc=scie,dc=nz'
+    AUTH_LDAP_SEARCH_FILTER = '(memberOf=cn=airflow,ou=groups,dc=scie,dc=nz)'
+    # replaced during webserver container startup
+    AUTH_LDAP_BIND_USER = '__LDAP_AIRFLOW_USERNAME__'
+    AUTH_LDAP_BIND_PASSWORD = '__LDAP_AIRFLOW_PASSWORD__'
+
+    # TLS (note: USE_TLS is specifically for STARTTLS)
+    AUTH_LDAP_USE_TLS = False
+    AUTH_LDAP_ALLOW_SELF_SIGNED = False
+    AUTH_LDAP_TLS_CACERTFILE = '/rocerts-ca/ca.pem'
+
+---
+
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: airflow
+  namespace: aorist
+  labels:
+    app: airflow
+spec:
+  serviceName: airflow
+  replicas: 1
+  selector:
+    matchLabels:
+      app: airflow
+  template:
+    metadata:
+      labels:
+        app: airflow
+    spec:
+      # Run containers as nobody:nogroup
+      securityContext:
+        runAsUser: 65534
+        runAsGroup: 65534
+
+      initContainers:
+
+      - name: init
+        image: registry.gitlab.com/nickbp/k8s/airflow:20210113 # from images/airflow/
+        imagePullPolicy: IfNotPresent
+        command: ['airflow', 'db', 'init']
+        env:
+        - name: PG_USER
+          valueFrom:
+            secretKeyRef:
+              name: airflow-postgres
+              key: user
+        - name: PG_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: airflow-postgres
+              key: pass
+        # dependent envvars. PG_HOSTNAME/PG_DB are from the configMapRef below
+        - name: AIRFLOW__CORE__SQL_ALCHEMY_CONN
+          value: 'postgresql+psycopg2://$(PG_USER):$(PG_PASSWORD)@$(PG_HOSTNAME)/$(PG_DB)'
+        envFrom:
+        - configMapRef:
+            name: airflow-env
+        volumeMounts:
+        - name: storage
+          mountPath: /storage
+
+      containers:
+
+      - name: scheduler
+        image: registry.gitlab.com/nickbp/k8s/airflow:20210113
+        imagePullPolicy: IfNotPresent
+        command: ['airflow', 'scheduler']
+        env:
+        - name: PG_USER
+          valueFrom:
+            secretKeyRef:
+              name: airflow-postgres
+              key: user
+        - name: PG_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: airflow-postgres
+              key: pass
+        # dependent envvars. PG_HOSTNAME/PG_DB are from the configMapRef below
+        - name: AIRFLOW__CORE__SQL_ALCHEMY_CONN
+          value: 'postgresql+psycopg2://$(PG_USER):$(PG_PASSWORD)@$(PG_HOSTNAME)/$(PG_DB)'
+        envFrom:
+        - configMapRef:
+            name: airflow-env
+        volumeMounts:
+        - name: storage
+          mountPath: /storage
+
+      - name: webserver
+        image: registry.gitlab.com/nickbp/k8s/airflow:20210113
+        imagePullPolicy: IfNotPresent
+        command:
+        - bash
+        - -c
+        # webserver_config.py needs to have LDAP credentials in it,
+        # so keep it in container-local storage via a symlink rather than the shared volume
+        - 'rm -vf /storage/webserver_config.py
+&& cp -v /config-ro/webserver_config.py /tmp/webserver_config.py
+&& sed -i "s/__LDAP_AIRFLOW_USERNAME__/$LDAP_AIRFLOW_USERNAME/g" /tmp/webserver_config.py
+&& sed -i "s/__LDAP_AIRFLOW_PASSWORD__/$LDAP_AIRFLOW_PASSWORD/g" /tmp/webserver_config.py
+&& ln -s /tmp/webserver_config.py /storage/webserver_config.py
+&& airflow webserver -p 8080'
+        env:
+        - name: PG_USER
+          valueFrom:
+            secretKeyRef:
+              name: airflow-postgres
+              key: user
+        - name: PG_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: airflow-postgres
+              key: pass
+        # dependent envvars. PG_HOSTNAME/PG_DB are from the configMapRef below
+        - name: AIRFLOW__CORE__SQL_ALCHEMY_CONN
+          value: 'postgresql+psycopg2://$(PG_USER):$(PG_PASSWORD)@$(PG_HOSTNAME)/$(PG_DB)'
+        - name: LDAP_AIRFLOW_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: openldap-account-airflow
+              key: user
+        - name: LDAP_AIRFLOW_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: openldap-account-airflow
+              key: pass
+        envFrom:
+        - configMapRef:
+            name: airflow-env
+        ports:
+        - name: http
+          containerPort: 8080
+        volumeMounts:
+        - name: storage
+          mountPath: /storage
+        - name: webserver-config-ro
+          mountPath: /config-ro
+        - name: tls-rocerts-ca
+          mountPath: /rocerts-ca
+
+      - name: gitsync
+        image: k8s.gcr.io/git-sync/git-sync:v3.2.2
+        imagePullPolicy: IfNotPresent
+        command:
+        - /bin/sh
+        - -c
+        # - ensure ssh key ends with a trailing newline (otherwise we get 'Load key "/ssh-ro/id_rsa": invalid format')
+        # - ensure ssh key has the required file permissions
+        # - init known_hosts if it doesn't already exist
+        # - start git-sync
+        - "cat /ssh-ro/id_rsa | sed -e '$a\\' > /tmp/id_rsa
+&& chmod 400 /tmp/id_rsa
+&& if [ ! -f $GIT_SSH_KNOWN_HOSTS_FILE ]; then
+  ssh-keyscan github.com > $GIT_SSH_KNOWN_HOSTS_FILE
+  && ssh-keyscan gitlab.com >> $GIT_SSH_KNOWN_HOSTS_FILE;
+fi
+&& cat $GIT_SSH_KNOWN_HOSTS_FILE
+&& /git-sync"
+        env:
+        - name: GIT_SYNC_REPO
+          value: 'git@github.com:scie-nz/aorist-dags'
+        - name: GIT_SYNC_BRANCH
+          value: main
+        - name: GIT_SYNC_ROOT
+          value: /storage/git # can't just use /storage: git-sync fails with 'git root exists and is not empty'
+        - name: GIT_SYNC_DEST
+          value: repo # results in repo contents being placed in /storage/git/repo/
+        - name: GIT_SYNC_WAIT # seconds between polls
+          value: '5'
+        - name: GIT_SYNC_SSH
+          value: 'true'
+        - name: GIT_SSH_KEY_FILE
+          value: /tmp/id_rsa
+        - name: GIT_SSH_KNOWN_HOSTS_FILE
+          value: /storage/ssh_known_hosts
+        volumeMounts:
+        - name: storage
+          mountPath: /storage
+        - name: sshkey
+          mountPath: /ssh-ro
+
+      volumes:
+      - name: webserver-config-ro
+        configMap:
+          name: airflow-files
+          items:
+          - key: webserver_config.py
+            path: webserver_config.py
+      - name: tls-rocerts-ca
+        configMap:
+          name: ca-cert-pub # ca.pem
+      - name: sshkey
+        secret:
+          secretName: airflow-git-sync # added to nickbp-bot@github.com and nickbp-bot@gitlab.com
+
+  volumeClaimTemplates:
+  - metadata:
+      name: storage # pvc will be named "storage-airflow-0"
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      storageClassName: local-path
+      resources:
+        requests:
+          storage: 10Gi

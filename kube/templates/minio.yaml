@@ -1,0 +1,106 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: s3-datascie-nz
+  namespace: aorist
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+spec:
+  tls:
+  - hosts:
+    - s3.datascie.nz
+    secretName: s3-datascie-nz-tls
+  rules:
+  - host: s3.datascie.nz
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: minio
+            port:
+              # Same port also provides web dashboard
+              name: s3
+
+---
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: minio
+  namespace: aorist
+  labels:
+    app: minio
+spec:
+  ports:
+  - name: s3
+    port: 9000
+    targetPort: s3
+  selector:
+    app: minio
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: minio
+  namespace: aorist
+  labels:
+    app: minio
+spec:
+  serviceName: minio
+  replicas: 4
+  selector:
+    matchLabels:
+      app: minio
+  template:
+    metadata:
+      labels:
+        app: minio
+    spec:
+      # Run containers as nobody:nogroup
+      securityContext:
+        runAsUser: 65534
+        runAsGroup: 65534
+      containers:
+      - name: minio
+        image: minio/minio:RELEASE.2021-01-30T00-20-58Z
+        imagePullPolicy: IfNotPresent
+        command:
+        - /bin/bash
+        - -c
+        # see https://docs.min.io/docs/distributed-minio-quickstart-guide.html
+        - 'minio server http://minio-{0...3}.minio.${NAMESPACE}.svc.cluster.local:9000/data'
+        env:
+        - name: MINIO_ROOT_USER
+          valueFrom:
+            secretKeyRef:
+              name: minio-root
+              key: user
+        - name: MINIO_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: minio-root
+              key: pass
+        - name: NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        ports:
+        - name: s3
+          containerPort: 9000
+        volumeMounts:
+        - name: storage
+          mountPath: /data
+  volumeClaimTemplates:
+  - metadata:
+      name: storage # pvc will be named "storage-minio-0"
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      storageClassName: local-path
+      resources:
+        requests:
+          storage: 50Gi

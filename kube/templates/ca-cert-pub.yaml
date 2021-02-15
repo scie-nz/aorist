@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ca-cert-pub
+  namespace: aorist
+data:
+  ca.pem: |-
+{{ .Files.Get "configs/ca.pem" | indent 4 }}
