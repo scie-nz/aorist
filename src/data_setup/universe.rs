@@ -31,7 +31,7 @@ pub struct Universe {
     #[constrainable]
     pub endpoints: EndpointConfig,
     #[constrainable]
-    pub compliance: Option<Vec<ComplianceConfig>>,
+    pub compliance: Option<ComplianceConfig>,
 }
 pub trait TUniverse {
     fn get_concept_map<'a>(&'a self) -> HashMap<(Uuid, String), Concept<'a>>;

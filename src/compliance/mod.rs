@@ -147,5 +147,9 @@ pub struct GDPRThirdPartyCountryOrInternationalOrganizationTransferRecord {
 
 #[aorist_concept]
 pub struct ComplianceConfig {
+    description: String,
+    data_about_human_subjects: bool,
+    contains_personally_identifiable_information: bool,
     gdpr_processor_record: Option<GDPRProcessorRecord>,
+
 }

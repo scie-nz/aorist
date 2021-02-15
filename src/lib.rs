@@ -41,6 +41,7 @@ pub use asset::*;
 pub use asset::*;
 pub use attributes::*;
 pub use compression::*;
+pub use compliance::*;
 pub use concept::*;
 pub use data_setup::*;
 pub use dataset::*;
@@ -139,6 +140,7 @@ fn aorist(py: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<InnerPrestoConfig>()?;
     m.add_class::<InnerGzipCompression>()?;
     m.add_class::<InnerZipCompression>()?;
+    m.add_class::<InnerComplianceConfig>()?;
     m.add_wrapped(wrap_pyfunction!(default_tabular_schema))?;
     m.add_wrapped(wrap_pyfunction!(dag))?;
     Ok(())
