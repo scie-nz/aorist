@@ -3,7 +3,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: mysql
-  namespace: scienz
+  namespace: aorist
 spec:
   ports:
   - port: 3306
@@ -16,7 +16,7 @@ apiVersion: apps/v1 # for versions before 1.9.0 use apps/v1beta2
 kind: Deployment
 metadata:
   name: mysql
-  namespace: scienz
+  namespace: aorist
 spec:
   selector:
     matchLabels:
@@ -55,7 +55,7 @@ metadata:
   labels:
     type: local
     app: mysql
-  namespace: scienz
+  namespace: aorist
 spec:
   capacity:
     storage: 1Gi
@@ -69,13 +69,22 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: mysql-pvc
-  namespace: scienz
+  namespace: aorist
 spec:
   accessModes:
     - ReadWriteOnce
   resources:
     requests:
       storage: 1Gi
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: metastore
+  namespace: aorist
+data:
+  metastore-site.xml.template: |-
+{{ .Files.Get "configs/metastore-site.xml.template" | indent 4 }}
 ---
 # Hive standalone metastore service, keeps track of table metadata.
 apiVersion: apps/v1
@@ -88,7 +97,7 @@ metadata:
   labels:
     io.kompose.service: metastore
   name: metastore
-  namespace: scienz
+  namespace: aorist
 spec:
   replicas: 1
   selector:
@@ -128,14 +137,14 @@ spec:
         resources: {}
         volumeMounts:
           - mountPath: /apache-hive-metastore-3.0.0-bin/metastore-site.xml.template
-            name: properties-vol
+            name: config
             subPath: metastore-site.xml.template
             readOnly: false
       volumes:
-        - name: properties-vol
+        - name: config
           configMap:
             defaultMode: 420
-            name: properties
+            name: metastore
       restartPolicy: Always
       serviceAccountName: ""
 status: {}
@@ -152,7 +161,7 @@ metadata:
   labels:
     io.kompose.service: metastore
   name: metastore
-  namespace: scienz
+  namespace: aorist
 spec:
   ports:
   - port: 9083

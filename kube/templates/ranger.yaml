@@ -119,6 +119,9 @@ spec:
       labels:
         app: mysql-ranger
     spec:
+      # Image is amd64-only
+      nodeSelector:
+        kubernetes.io/arch: amd64
       containers:
       - image: mysql:5.6
         name: mysql
