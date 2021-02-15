@@ -46,23 +46,6 @@ spec:
           claimName: mysql-pvc
 ---
 apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: mysql-pv-volume
-  namespace: aorist
-  labels:
-    type: local
-    app: mysql
-spec:
-  capacity:
-    storage: 1Gi
-  accessModes:
-    - ReadWriteOnce
-  hostPath:
-    path: "/mnt/data"
-  storageClassName: local-path
----
-apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: mysql-pvc
@@ -1403,23 +1386,6 @@ spec:
 status:
   loadBalancer: {}
 ---
-kind: PersistentVolume
-apiVersion: v1
-metadata:
-  name: postgres-pv-volume
-  namespace: aorist
-  labels:
-    type: local
-    app: postgres
-spec:
-  capacity:
-    storage: 5Gi
-  accessModes:
-    - ReadWriteOnce
-  hostPath:
-    path: "/mnt/data"
-  storageClassName: local-path
----
 kind: PersistentVolumeClaim
 apiVersion: v1
 metadata:
@@ -2163,22 +2129,6 @@ spec:
         emptyDir: {}
 ---
 apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: git-data-vol
-  namespace: aorist
-  labels:
-    type: local
-spec:
-  capacity:
-    storage: 1G
-  accessModes:
-    - ReadWriteOnce
-  hostPath:
-    path: "/mnt/git-data"
-  storageClassName: local-path
----
-apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: git-data-pvc
@@ -2210,23 +2160,6 @@ spec:
       nodePort: 30808
   selector:
     app: gitea
----
-kind: PersistentVolume
-apiVersion: v1
-metadata:
-  name: postgres-gitea-pv-volume
-  namespace: aorist
-  labels:
-    type: local
-    app: postgres-gitea
-spec:
-  capacity:
-    storage: 1Gi
-  accessModes:
-    - ReadWriteOnce
-  hostPath:
-    path: "/mnt/data/pv-postgres-gitea"
-  storageClassName: local-path
 ---
 kind: PersistentVolumeClaim
 apiVersion: v1
@@ -2327,20 +2260,6 @@ spec:
       - name: mysql-persistent-storage
         persistentVolumeClaim:
           claimName: mysql-pvc-ranger
----
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: mysql-pv-volume-ranger
-  namespace: aorist
-spec:
-  capacity:
-    storage: 1Gi
-  accessModes:
-    - ReadWriteOnce
-  storageClassName: local-path
-  hostPath:
-    path: "/mnt/data-ranger"
 ---
 apiVersion: v1
 kind: Service
