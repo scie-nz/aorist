@@ -109,7 +109,7 @@ spec:
         resources: {}
         volumeMounts:
           - name: pre-install
-            mountPath: /presto-server-344/etc
+            mountPath: /trino-server-352/etc
       restartPolicy: Always
       serviceAccountName: ""
 ---
@@ -253,7 +253,7 @@ spec:
             memory: "6Gi"
         volumeMounts:
           - name: pre-install
-            mountPath: /presto-server-344/etc
+            mountPath: /trino-server-352/etc
           - mountPath: /dev/shm
             name: mem
       - args:

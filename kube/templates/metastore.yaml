@@ -146,7 +146,7 @@ spec:
         - containerPort: 9083
         resources: {}
         volumeMounts:
-          - mountPath: /apache-hive-metastore-3.0.0-bin/metastore-site.xml.template
+          - mountPath: /apache-hive-metastore-3.1.2-bin/metastore-site.xml.template
             name: config
             subPath: metastore-site.xml.template
             readOnly: false
