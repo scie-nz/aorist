@@ -1,0 +1,26 @@
+<configuration>
+  <property>
+    <name>fs.alluxio.impl</name>
+    <value>alluxio.hadoop.FileSystem</value>
+  </property>
+  <property>
+    <name>fs.s3.impl</name>
+    <value>org.apache.hadoop.fs.s3native.NativeS3FileSystem</value>
+  </property>
+  <property>
+    <name>fs.s3.awsAccessKeyId</name>
+    <value>5GfOoRgz3NDAEFxo7lwa</value>
+  </property>
+  <property>
+    <name>fs.s3.awsSecretAccessKey</name>
+    <value>gxhtXmhOTa5hfcYwXiQSKPqEAf6JSbdBuDepMFCG</value>
+  </property>
+  <property>
+    <name>fs.s3a.access.key</name>
+    <value>5GfOoRgz3NDAEFxo7lwa</value>
+  </property>
+  <property>
+    <name>fs.s3a.secret.key</name>
+    <value>gxhtXmhOTa5hfcYwXiQSKPqEAf6JSbdBuDepMFCG</value>
+  </property>
+</configuration>

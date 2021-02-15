@@ -9,6 +9,7 @@ metadata:
   labels:
     io.kompose.service: presto-coordinator
   name: presto-coordinator
+  namespace: aorist
 spec:
   serviceName: "presto-coordinator"
   replicas: 1
@@ -99,6 +100,7 @@ metadata:
   labels:
     io.kompose.service: presto-coordinator
   name: presto-coordinator-headless
+  namespace: aorist
 spec:
   type: ClusterIP
   clusterIP: None
@@ -124,6 +126,7 @@ metadata:
   labels:
     io.kompose.service: presto-worker
   name: presto-worker
+  namespace: aorist
 spec:
   serviceName: "presto-worker"
   replicas: 1
@@ -280,6 +283,7 @@ metadata:
   labels:
     io.kompose.service: presto-worker
   name: presto-worker
+  namespace: aorist
 spec:
   type: ClusterIP
   clusterIP: None

@@ -1,0 +1,15 @@
+{
+  "apiVersion": 1,
+  "datasources": [
+    {
+      "name": "Benchto graphite",
+      "type": "graphite",
+      "url": "http://benchto-graphite:80",
+      "access": "proxy",
+      "isDefault": true,
+      "basicAuth": true,
+      "basicAuthUser": "guest",
+      "basicAuthPassword": "guest"
+    }
+  ]
+}

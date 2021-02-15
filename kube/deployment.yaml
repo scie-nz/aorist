@@ -1,153 +1,8 @@
----
-# Source: minio/templates/serviceaccount.yaml
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: minio-statefulset
-  namespace: default
-  labels:
-    app: minio
-secrets:
-  - name: minio-statefulset
----
-# Source: minio/templates/service.yaml
-apiVersion: v1
-kind: Service
-metadata:
-  name: minio
-  namespace: default
-  labels:
-    app: minio
-spec:
-  type: ClusterIP
-  ports:
-    - name: minio
-      port: 9000
-      targetPort: minio
-      nodePort: null
-  selector:
-    app: minio
----
-# Source: minio/templates/svc-headless.yaml
-apiVersion: v1
-kind: Service
-metadata:
-  name: minio-statefulset-headless
-  namespace: default
-  labels:
-    app: minio
-spec:
-  type: ClusterIP
-  clusterIP: None
-  ports:
-    - name: minio
-      port: 9000
-      targetPort: minio
-  selector:
-    app: minio
----
-# Source: minio/templates/statefulset.yaml
-apiVersion: apps/v1
-kind: StatefulSet
-metadata:
-  name: minio-statefulset
-  namespace: default
-  labels:
-    app: minio
-spec:
-  selector:
-    matchLabels:
-      app: minio
-  serviceName: minio-statefulset-headless
-  replicas: 4
-  podManagementPolicy: Parallel
-  updateStrategy:
-    type: RollingUpdate
-  template:
-    metadata:
-      labels:
-        app: minio
-      annotations:
-        checksum/credentials-secret: 25cf9863f2e9015db5f7f0d388eb25b8b5ad218e4a6f5b405e71cec7605828f5
-    spec:
-      serviceAccountName: minio-statefulset
-
-      # securityContext:
-        #  fsGroup: 1001
-      containers:
-        - name: minio
-          image: docker.io/bitnami/minio:2020.10.18-debian-10-r0
-          imagePullPolicy: "Always"
-          command: [ "/bin/bash", "-c", "--" ]
-          # args: [ "while true; do sleep 30; done;" ]
-          # command:
-          #   - minio
-          args:
-            - minio
-              server
-              http://minio-statefulset-{0...3}.minio-statefulset-headless.default.svc.cluster.local/data
-              # securityContext:
-              # runAsUser: 1001
-          env:
-            - name: BITNAMI_DEBUG
-              value: "false"
-            - name: MINIO_DISTRIBUTED_MODE_ENABLED
-              value: "yes"
-            - name: MINIO_SKIP_CLIENT
-              value: "yes"
-            - name: MINIO_FORCE_NEW_KEYS
-              value: "no"
-            - name: MINIO_ACCESS_KEY
-              value: 'minio'
-            - name: MINIO_SECRET_KEY
-              value: 'minio123'
-            - name: MINIO_BROWSER
-              value: "on"
-            - name: MINIO_PROMETHEUS_AUTH_TYPE
-              value: public
-          ports:
-            - name: minio
-              containerPort: 9000
-          livenessProbe:
-            initialDelaySeconds: 5
-            periodSeconds: 5
-            timeoutSeconds: 5
-            successThreshold: 1
-            failureThreshold: 5
-            httpGet:
-              path: /minio/health/live
-              port: minio
-          readinessProbe:
-            initialDelaySeconds: 5
-            periodSeconds: 5
-            timeoutSeconds: 5
-            successThreshold: 1
-            failureThreshold: 5
-            tcpSocket:
-              port: minio
-          resources:
-            limits: {}
-            requests: {}
-          volumeMounts:
-            - name: data
-              mountPath: /data
-      volumes:
-  volumeClaimTemplates:
-    - metadata:
-        name: data
-        labels:
-          app: minio
-      spec:
-        accessModes:
-          - ReadWriteOnce
-        resources:
-          requests:
-            storage: "8Gi"
----
 apiVersion: v1
 kind: Service
 metadata:
   name: mysql
+  namespace: aorist
 spec:
   ports:
   - port: 3306
@@ -160,6 +15,7 @@ apiVersion: apps/v1 # for versions before 1.9.0 use apps/v1beta2
 kind: Deployment
 metadata:
   name: mysql
+  namespace: aorist
 spec:
   selector:
     matchLabels:
@@ -193,6 +49,7 @@ apiVersion: v1
 kind: PersistentVolume
 metadata:
   name: mysql-pv-volume
+  namespace: aorist
   labels:
     type: local
     app: mysql
@@ -209,6 +66,7 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: mysql-pvc
+  namespace: aorist
 spec:
   accessModes:
     - ReadWriteOnce
@@ -230,6 +88,7 @@ metadata:
   labels:
     io.kompose.service: metastore
   name: metastore
+  namespace: aorist
 spec:
   replicas: 1
   selector:
@@ -291,6 +150,7 @@ metadata:
   labels:
     io.kompose.service: metastore
   name: metastore
+  namespace: aorist
 spec:
   ports:
   - port: 9083
@@ -303,6 +163,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: properties
+  namespace: aorist
 data:
   metastore-site.xml.template: |
     <configuration>
@@ -1015,6 +876,7 @@ metadata:
   labels:
     io.kompose.service: alluxio-server
   name: alluxio-server
+  namespace: aorist
 spec:
   replicas: 1
   selector:
@@ -1085,6 +947,7 @@ metadata:
   labels:
     io.kompose.service: alluxio-server
   name: alluxio-server
+  namespace: aorist
 spec:
   ports:
   - name: "19998"
@@ -1126,6 +989,7 @@ metadata:
   labels:
     io.kompose.service: presto-coordinator
   name: presto-coordinator
+  namespace: aorist
 spec:
   serviceName: "presto-coordinator"
   replicas: 1
@@ -1183,9 +1047,9 @@ spec:
         - name: HIVE_METASTORE_PORT
           value: "9083"
         - name: ALLUXIO_WORKER_HOSTNAME
-          value: $HOSTNAME.presto-coordinator.default.svc.cluster.local
+          value: $HOSTNAME.presto-coordinator.aorist.svc.cluster.local
         - name: ALLUXIO_WORKER_CONTAINER_HOSTNAME
-          value: $HOSTNAME.presto-coordinator.default.svc.cluster.local
+          value: $HOSTNAME.presto-coordinator.aorist.svc.cluster.local
         - name: POD_IP
           valueFrom:
             fieldRef:
@@ -1214,6 +1078,7 @@ metadata:
   labels:
     alluxio: worker
   name: alluxio-worker-headless
+  namespace: aorist
 spec:
   type: ClusterIP
   clusterIP: None
@@ -1253,6 +1118,7 @@ metadata:
   labels:
     io.kompose.service: presto-coordinator
   name: presto-coordinator
+  namespace: aorist
 spec:
   type: NodePort
   ports:
@@ -1281,6 +1147,7 @@ metadata:
   labels:
     io.kompose.service: ranger-admin
   name: ranger-admin
+  namespace: aorist
 spec:
   replicas: 1
   selector:
@@ -1340,6 +1207,7 @@ metadata:
   labels:
     io.kompose.service: ranger-admin
   name: ranger-admin
+  namespace: aorist
 spec:
   type: NodePort
   ports:
@@ -1365,6 +1233,7 @@ metadata:
   labels:
     io.kompose.service: presto-worker
   name: presto-worker
+  namespace: aorist
 spec:
   serviceName: "presto-worker"
   replicas: 1
@@ -1423,9 +1292,9 @@ spec:
         - name: HIVE_METASTORE_PORT
           value: "9083"
         - name: ALLUXIO_WORKER_HOSTNAME
-          value: $HOSTNAME.presto-worker.default.svc.cluster.local
+          value: $HOSTNAME.presto-worker.aorist.svc.cluster.local
         - name: ALLUXIO_WORKER_CONTAINER_HOSTNAME
-          value: $HOSTNAME.presto-worker.default.svc.cluster.local
+          value: $HOSTNAME.presto-worker.aorist.svc.cluster.local
         - name: POD_IP
           valueFrom:
             fieldRef:
@@ -1453,9 +1322,9 @@ spec:
         - name: ALLUXIO_MASTER_HOSTNAME
           value: alluxio-server
         - name: ALLUXIO_WORKER_HOSTNAME
-          value: $HOSTNAME.presto-worker.default.svc.cluster.local
+          value: $HOSTNAME.presto-worker.aorist.svc.cluster.local
         - name: ALLUXIO_WORKER_CONTAINER_HOSTNAME
-          value: $HOSTNAME.presto-worker.default.svc.cluster.local
+          value: $HOSTNAME.presto-worker.aorist.svc.cluster.local
         - name: ALLUXIO_WORKER_JAVA_OPTS
           value: " -Dalluxio.worker.hostname=$(ALLUXIO_WORKER_HOSTNAME) "
         - name: POD_IP
@@ -1483,9 +1352,9 @@ spec:
         - name: ALLUXIO_MASTER_HOSTNAME
           value: alluxio-server
         - name: ALLUXIO_WORKER_HOSTNAME
-          value: $HOSTNAME.presto-worker.default.svc.cluster.local
+          value: $HOSTNAME.presto-worker.aorist.svc.cluster.local
         - name: ALLUXIO_WORKER_CONTAINER_HOSTNAME
-          value: $HOSTNAME.presto-worker.default.svc.cluster.local
+          value: $HOSTNAME.presto-worker.aorist.svc.cluster.local
         - name: ALLUXIO_WORKER_JAVA_OPTS
           value: " -Dalluxio.worker.hostname=$(ALLUXIO_WORKER_HOSTNAME) "
         - name: POD_IP
@@ -1521,6 +1390,7 @@ metadata:
   labels:
     io.kompose.service: presto-coordinator
   name: presto-coordinator-headless
+  namespace: aorist
 spec:
   type: ClusterIP
   clusterIP: None
@@ -1537,6 +1407,7 @@ kind: PersistentVolume
 apiVersion: v1
 metadata:
   name: postgres-pv-volume
+  namespace: aorist
   labels:
     type: local
     app: postgres
@@ -1553,6 +1424,7 @@ kind: PersistentVolumeClaim
 apiVersion: v1
 metadata:
   name: postgres-pv-claim
+  namespace: aorist
   labels:
     app: postgres
 spec:
@@ -1566,6 +1438,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: postgres
+  namespace: aorist
 spec:
   replicas: 1
   selector:
@@ -1603,6 +1476,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: postgres
+  namespace: aorist
   labels:
     app: postgres
 spec:
@@ -1618,6 +1492,7 @@ metadata:
   labels:
     service: hasura
   name: hasura
+  namespace: aorist
 spec:
   replicas: 1
   selector:
@@ -1659,7 +1534,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: hasura-node-ip
-  namespace: default
+  namespace: aorist
   labels:
     app: hasura
 spec:
@@ -1679,6 +1554,7 @@ metadata:
   labels:
     service: hasura
   name: hasura
+  namespace: aorist
 spec:
   ports:
   - name: "3000"
@@ -1693,11 +1569,13 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: prefect
+  namespace: aorist
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: prefect-role
+  namespace: aorist
   labels:
     app.kubernetes.io/component: agent
 rules:
@@ -1719,6 +1597,7 @@ apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: RoleBinding
 metadata:
   name: prefect-role-binding
+  namespace: aorist
   labels:
     app.kubernetes.io/component: agent
 roleRef:
@@ -1735,6 +1614,7 @@ metadata:
   labels:
     service: graphql
   name: graphql
+  namespace: aorist
 spec:
   replicas: 1
   selector:
@@ -1777,6 +1657,7 @@ metadata:
   labels:
     service: graphql
   name: graphql
+  namespace: aorist
 spec:
   type: ClusterIP
   clusterIP: None
@@ -1798,6 +1679,7 @@ metadata:
   labels:
     service: apollo
   name: apollo
+  namespace: aorist
 spec:
   replicas: 1
   selector:
@@ -1868,6 +1750,7 @@ metadata:
   labels:
     service: apollo
   name: apollo
+  namespace: aorist
 spec:
   type: ClusterIP
   clusterIP: None
@@ -1887,6 +1770,7 @@ metadata:
   labels:
     service: apollo
   name: apollo-node
+  namespace: aorist
 spec:
   type: NodePort
   ports:
@@ -1909,6 +1793,7 @@ metadata:
   labels:
     service: ui
   name: ui
+  namespace: aorist
 spec:
   replicas: 1
   selector:
@@ -1956,6 +1841,7 @@ metadata:
   labels:
     service: ui
   name: ui
+  namespace: aorist
 spec:
   type: NodePort
   ports:
@@ -1972,6 +1858,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: prefect-agent
+  namespace: aorist
   labels:
     app.kubernetes.io/component: agent
 spec:
@@ -1991,7 +1878,7 @@ spec:
           command:
             - sh
             - "-c"
-            - "until nslookup apollo.default.svc.cluster.local; do echo waiting for apollo; sleep 2; done"
+            - "until nslookup apollo.aorist.svc.cluster.local; do echo waiting for apollo; sleep 2; done"
           # TODO: create default tenant prefect server create-tenant --name $POD_NAME --slug $POD_NAME
       containers:
         - name: agent
@@ -2140,7 +2027,7 @@ spec:
             - name: NAMESPACE
               value: default
             - name: PREFECT__CLOUD__API
-              value: "http://apollo.default.svc.cluster.local:4200"
+              value: "http://apollo.aorist.svc.cluster.local:4200"
             - name: PREFECT__CLOUD__AGENT__RESOURCE_MANAGER__LOOP_INTERVAL
               value: "60"
             - name: PREFECT__CLOUD__AGENT__AUTH_TOKEN
@@ -2164,6 +2051,7 @@ metadata:
   labels:
     service: scheduler
   name: scheduler
+  namespace: aorist
 spec:
   replicas: 1
   selector:
@@ -2201,7 +2089,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: gitea
-  namespace: default
+  namespace: aorist
   labels:
     app: gitea
 spec:
@@ -2278,6 +2166,7 @@ apiVersion: v1
 kind: PersistentVolume
 metadata:
   name: git-data-vol
+  namespace: aorist
   labels:
     type: local
 spec:
@@ -2293,6 +2182,7 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: git-data-pvc
+  namespace: aorist
 spec:
   accessModes:
     - ReadWriteOnce
@@ -2304,7 +2194,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: gitea
-  namespace: default
+  namespace: aorist
   labels:
     app: gitea
 spec:
@@ -2325,6 +2215,7 @@ kind: PersistentVolume
 apiVersion: v1
 metadata:
   name: postgres-gitea-pv-volume
+  namespace: aorist
   labels:
     type: local
     app: postgres-gitea
@@ -2341,6 +2232,7 @@ kind: PersistentVolumeClaim
 apiVersion: v1
 metadata:
   name: postgres-gitea-pv-claim
+  namespace: aorist
   labels:
     app: postgres-gitea
 spec:
@@ -2354,6 +2246,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: postgres-gitea
+  namespace: aorist
 spec:
   replicas: 1
   selector:
@@ -2391,6 +2284,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: postgres-gitea
+  namespace: aorist
   labels:
     app: postgres-gitea
 spec:
@@ -2404,6 +2298,7 @@ apiVersion: apps/v1 # for versions before 1.9.0 use apps/v1beta2
 kind: Deployment
 metadata:
   name: mysql-ranger
+  namespace: aorist
 spec:
   selector:
     matchLabels:
@@ -2437,6 +2332,7 @@ apiVersion: v1
 kind: PersistentVolume
 metadata:
   name: mysql-pv-volume-ranger
+  namespace: aorist
 spec:
   capacity:
     storage: 1Gi
@@ -2450,6 +2346,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: mysql-ranger
+  namespace: aorist
 spec:
   ports:
   - port: 3306
@@ -2462,6 +2359,7 @@ kind: PersistentVolumeClaim
 apiVersion: v1
 metadata:
   name: mysql-pvc-ranger
+  namespace: aorist
   labels:
     app: mysql-pvc-ranger
 spec:

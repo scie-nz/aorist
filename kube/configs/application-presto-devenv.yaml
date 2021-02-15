@@ -1,0 +1,22 @@
+benchmark-service:
+  url: http://benchto-service:8080
+
+data-sources:
+  presto:
+    url: jdbc:presto://presto-coordinator-headless:8080?user=test
+    driver-class-name: io.prestosql.jdbc.PrestoDriver
+
+environment:
+  name: PRESTO-DEVENV
+
+presto:
+  url: http://presto-coordinator-headless:8080
+
+benchmark:
+  feature:
+    presto:
+      metrics.collection.enabled: true
+
+macros:
+  sleep-4s:
+    command: echo "Sleeping for 4s" && sleep 4

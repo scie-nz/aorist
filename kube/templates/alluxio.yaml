@@ -1,4 +1,3 @@
----
 # Alluxio server deployment. This is like the virtualized File Allocation Table
 # that keeps track of where stuff is mounted as far as distributed storage is
 # concerned. Presto interacts with this as it would with HDFS -- Alluxio
@@ -15,7 +14,7 @@ metadata:
   labels:
     io.kompose.service: alluxio-server
   name: alluxio-server
-  namespace: scienz
+  namespace: aorist
 spec:
   replicas: 1
   selector:
@@ -107,7 +106,7 @@ metadata:
   labels:
     io.kompose.service: alluxio-server
   name: alluxio-server
-  namespace: scienz
+  namespace: aorist
 spec:
   ports:
   - name: "19998"
