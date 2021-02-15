@@ -1,6 +1,7 @@
 mod assignment_target;
 mod bash_python_task;
 mod constant_python_task;
+mod import;
 mod native_python_task;
 mod preamble;
 mod presto_python_task;
@@ -11,6 +12,7 @@ mod string_literal;
 pub use assignment_target::TAssignmentTarget;
 pub use bash_python_task::BashPythonTask;
 pub use constant_python_task::ConstantPythonTask;
+pub use import::Import;
 pub use native_python_task::NativePythonTask;
 pub use preamble::Preamble;
 pub use presto_python_task::PrestoPythonTask;
@@ -397,36 +399,6 @@ impl AST {
             AST::Tuple(ref x) => AST::Tuple(x.read().unwrap().as_wrapped_assignment_target()),
             AST::SimpleIdentifier(_) => self.clone(),
             _ => panic!("Assignment target not supported."),
-        }
-    }
-}
-
-#[derive(Clone, Hash, PartialEq, Eq, PartialOrd, Ord)]
-pub enum Import {
-    ModuleImport(String),
-    FromImport(String, String),
-}
-impl Import {
-    pub fn to_python_ast_node<'a>(
-        &self,
-        py: Python,
-        ast_module: &'a PyModule,
-    ) -> PyResult<&'a PyAny> {
-        match &self {
-            Self::ModuleImport(ref module) => {
-                let names = PyList::new(
-                    py,
-                    vec![SimpleIdentifier::new(module.clone()).to_python_ast_node(py, ast_module)?],
-                );
-                ast_module.call1("Import", (names.as_ref(),))
-            }
-            Self::FromImport(ref module, ref name) => {
-                let names = PyList::new(
-                    py,
-                    vec![SimpleIdentifier::new(name.clone()).to_python_ast_node(py, ast_module)?],
-                );
-                ast_module.call1("ImportFrom", (module, names.as_ref(), 0))
-            }
         }
     }
 }
