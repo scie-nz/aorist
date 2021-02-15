@@ -60,6 +60,10 @@ spec:
       labels:
         app: minio
     spec:
+      # Minio complains if we have mixed architectures, so lock it to only run on ARM nodes for now. For example:
+      # Error: http://minio-1.minio.aorist.svc.cluster.local:9000/data as has incorrect configuration: Expected platform 'OS: linux | Arch: amd64', found to be running 'OS: linux | Arch: arm64' (*fmt.wrapError)
+      nodeSelector:
+        kubernetes.io/arch: arm64
       # Run containers as nobody:nogroup
       securityContext:
         runAsUser: 65534
