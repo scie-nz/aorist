@@ -117,7 +117,12 @@ where
 
         let content: Vec<&PyAny> = imports_ast
             .into_iter()
-            .chain(processed_preambles.into_iter().map(|x| x.body).flatten())
+            .chain(
+                processed_preambles
+                    .into_iter()
+                    .map(|x| x.get_body_ast(py))
+                    .flatten(),
+            )
             .chain(flow.into_iter())
             .collect();
 

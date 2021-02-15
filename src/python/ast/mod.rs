@@ -398,17 +398,18 @@ impl AST {
         }
     }
 }
-pub struct Preamble<'a> {
+pub struct Preamble {
     pub imports: Vec<(String, Option<String>)>,
     pub from_imports: Vec<(String, String, Option<String>)>,
-    pub body: Vec<&'a PyAny>,
+    pub body: String,
 }
-impl<'a> Preamble<'a> {
+impl<'a> Preamble {
     pub fn new(body: String, py: Python<'a>) -> Preamble {
         let helpers = PyModule::from_code(
             py,
             r#"
 import ast
+import astor
 
 def build_preamble(body):
     module = ast.parse(body)
@@ -425,7 +426,7 @@ def build_preamble(body):
             for name in elem.names:
                 from_imports += [(elem.module, name.name, name.asname)]
         else:
-            other += [elem]
+            other += [astor.to_source(elem)]
 
     return imports, from_imports, other
         "#,
@@ -513,8 +514,41 @@ def build_preamble(body):
         Self {
             imports,
             from_imports,
-            body: body_no_imports.iter().map(|x| x.clone()).collect(),
+            body: body_no_imports
+                .iter()
+                .map(|x| {
+                    x.extract::<&PyString>()
+                        .unwrap()
+                        .to_str()
+                        .unwrap()
+                        .to_string()
+                })
+                .collect::<Vec<String>>()
+                .join("\n"),
         }
+    }
+    pub fn get_body_ast<'b>(&self, py: Python<'b>) -> Vec<&'b PyAny> {
+        let helpers = PyModule::from_code(
+            py,
+            r#"
+import ast
+
+def to_nodes(body):
+    module = ast.parse(body)
+    return module.body
+        "#,
+            "helpers.py",
+            "helpers",
+        )
+        .unwrap();
+
+        let out: &PyList = helpers
+            .call1("to_nodes", (self.body.clone(),))
+            .unwrap()
+            .downcast()
+            .unwrap();
+
+        out.into_iter().collect()
     }
 }
 
