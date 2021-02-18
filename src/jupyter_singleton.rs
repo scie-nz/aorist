@@ -44,30 +44,30 @@ impl ETLDAG for JupyterDAG {
             .into_iter())
             .flatten()
             .collect::<Vec<_>>());
-        Ok(serde_json::to_string_pretty(&json!({
+        let notebook = json!({
             "nbformat": 4,
             "nbformat_minor": 5,
             "cells": cells,
-           "metadata": json!({
-            "kernelspec": json!({
-             "display_name": "Python 3",
-             "language": "python",
-             "name": "python3"
-            }),
-            "language_info": json!({
-             "codemirror_mode": json!({
-              "name": "ipython",
-              "version": 3
-             }),
-             "file_extension": ".py",
-             "mimetype": "text/x-python",
-             "name": "python",
-             "nbconvert_exporter": "python",
-             "pygments_lexer": "ipython3",
-             "version": "3.8.5"
-            })
+            "metadata": json!({
+                "kernelspec": json!({
+                    "display_name": "Python 3",
+                    "language": "python",
+                    "name": "python3"
+                }),
+                "language_info": json!({
+                    "codemirror_mode": json!({
+                        "name": "ipython",
+                        "version": 3
+                    }),
+                    "file_extension": ".py",
+                    "mimetype": "text/x-python",
+                    "name": "python",
+                    "nbconvert_exporter": "python",
+                    "pygments_lexer": "ipython3",
+                    "version": "3.8.5"
+                })
            }),
-        })
-        ).unwrap())
+        });
+        Ok(serde_json::to_string_pretty(&notebook).unwrap())
     }
 }

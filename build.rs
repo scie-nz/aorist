@@ -47,10 +47,12 @@ enum Arg {
     MultipleAncestorsArgument(MultipleAncestorsArgument),
 }
 
+type ConstraintTuple = (String, String, Option<String>, Option<String>);
+
 fn get_constraint_dependencies(
     constraints: &Vec<HashMap<String, Value>>,
-) -> HashMap<(String, String), Vec<String>> {
-    let mut dependencies: HashMap<(String, String), Vec<String>> = HashMap::new();
+) -> HashMap<ConstraintTuple, Vec<String>> {
+    let mut dependencies: HashMap<ConstraintTuple, Vec<String>> = HashMap::new();
     for constraint in constraints {
         let name = constraint
             .get("name")
@@ -64,6 +66,14 @@ fn get_constraint_dependencies(
             .as_str()
             .unwrap()
             .to_string();
+        let title = match constraint.get("title") {
+            Some(x) => Some(x.as_str().unwrap().to_string()),
+            None => None,
+        };
+        let body = match constraint.get("body") {
+            Some(x) => Some(x.as_str().unwrap().to_string()),
+            None => None,
+        };
         let required = match constraint.get("requires") {
             None => Vec::new(),
             Some(required) => required
@@ -74,7 +84,7 @@ fn get_constraint_dependencies(
                 .map(|x| x.as_str().unwrap().to_string())
                 .collect::<Vec<String>>(),
         };
-        dependencies.insert((name, root), required);
+        dependencies.insert((name, root, title, body), required);
     }
     let constraint_names: HashSet<String> = dependencies.keys().map(|x| x.0.clone()).collect();
     for dep in dependencies.values() {
@@ -88,9 +98,9 @@ fn get_constraint_dependencies(
 }
 
 fn compute_topological_sort(
-    dependencies: &HashMap<(String, String), Vec<String>>,
-) -> Vec<(String, String)> {
-    let mut g: HashMap<(String, String), HashSet<String>> = dependencies
+    dependencies: &HashMap<ConstraintTuple, Vec<String>>,
+) -> Vec<ConstraintTuple> {
+    let mut g: HashMap<ConstraintTuple, HashSet<String>> = dependencies
         .iter()
         .map(|(k, v)| {
             (
@@ -105,7 +115,7 @@ fn compute_topological_sort(
         .filter(|(_, v)| v.len() == 0)
         .map(|(k, _)| k)
         .next();
-    let mut order: Vec<(String, String)> = Vec::new();
+    let mut order: Vec<_> = Vec::new();
     while let Some(val) = leaf_name {
         let key = val.clone();
         println!("key: {}, {}", key.0, key.1);
@@ -162,8 +172,10 @@ fn process_constraints(raw_objects: &Vec<HashMap<String, Value>>) {
             )
         })
         .collect::<HashMap<String, bool>>();
-    for (name, root) in &order {
-        let required = dependencies.get(&(name.clone(), root.clone())).unwrap();
+    for (name, root, title, body) in &order {
+        let required = dependencies
+            .get(&(name.clone(), root.clone(), title.clone(), body.clone()))
+            .unwrap();
         let requires_program = program_required.get(name).unwrap();
         let define = match required.len() {
             0 => format!(
@@ -192,7 +204,7 @@ fn process_constraints(raw_objects: &Vec<HashMap<String, Value>>) {
             .join("\n,    ")
     ));
     fs::write(&dest_path, scope.to_string()).unwrap();
-    for (name, _) in &order {
+    for (name, _, _, _) in &order {
         writeln!(
             file,
             "node [shape = box, color=red, fontname = Helvetica, fontcolor=red] '{}';",
@@ -200,11 +212,11 @@ fn process_constraints(raw_objects: &Vec<HashMap<String, Value>>) {
         )
         .unwrap();
     }
-    for (name, root) in &order {
-        //if root != "Universe" {
+    for (name, root, title, body) in &order {
         writeln!(file, "'{}'->'{}'[color=red];", name, root,).unwrap();
-        //}
-        let required = dependencies.get(&(name.clone(), root.clone())).unwrap();
+        let required = dependencies
+            .get(&(name.clone(), root.clone(), title.clone(), body.clone()))
+            .unwrap();
         for req in required {
             writeln!(file, "'{}'->'{}'[color=red];", name, req).unwrap();
         }

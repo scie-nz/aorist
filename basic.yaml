@@ -113,6 +113,11 @@ spec:
   name: DownloadDataFromRemoteWebLocation
   root: WebLocation
   requiresProgram: true
+  title: Downloading Data From Remote Web Location
+  body: |
+      Data for this particular table is located somewhere on the web.
+      We need to download it to a local directory first, before we can 
+      do anything with it.
 ---
 type: Constraint
 spec:
