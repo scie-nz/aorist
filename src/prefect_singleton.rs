@@ -237,22 +237,24 @@ impl ETLDAG for PrefectDAG {
         py: Python<'a>,
         statements: Vec<Vec<&'a PyAny>>,
         ast_module: &'a PyModule,
-    ) -> Vec<&'a PyAny> {
+    ) -> Vec<Vec<&'a PyAny>> {
+        // TODO: add flow definition
         statements
             .into_iter()
-            .map(|x| x.into_iter())
-            .flatten()
             .chain(
-                AST::Expression(Expression::new_wrapped(AST::Call(Call::new_wrapped(
-                    AST::Attribute(Attribute::new_wrapped(
-                        self.flow_identifier.clone(),
-                        "run".into(),
-                        false,
-                    )),
-                    Vec::new(),
-                    LinkedHashMap::new(),
-                ))))
+                vec![vec![AST::Expression(Expression::new_wrapped(AST::Call(
+                    Call::new_wrapped(
+                        AST::Attribute(Attribute::new_wrapped(
+                            self.flow_identifier.clone(),
+                            "run".into(),
+                            false,
+                        )),
+                        Vec::new(),
+                        LinkedHashMap::new(),
+                    ),
+                )))
                 .to_python_ast_node(py, ast_module)
+                .unwrap()]]
                 .into_iter(),
             )
             .collect()

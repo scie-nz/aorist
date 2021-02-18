@@ -147,7 +147,7 @@ impl ETLDAG for PythonDAG {
         _py: Python<'a>,
         statements: Vec<Vec<&'a PyAny>>,
         _ast_module: &'a PyModule,
-    ) -> Vec<&'a PyAny> {
-        statements.into_iter().flatten().collect()
+    ) -> Vec<Vec<&'a PyAny>> {
+        statements
     }
 }

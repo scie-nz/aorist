@@ -207,7 +207,7 @@ impl ETLDAG for AirflowDAG {
         py: Python<'a>,
         mut statements: Vec<Vec<&'a PyAny>>,
         ast_module: &'a PyModule,
-    ) -> Vec<&'a PyAny> {
+    ) -> Vec<Vec<&'a PyAny>> {
         let default_args =
             AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("default_args".to_string()));
         let mut default_args_map: LinkedHashMap<String, AST> = LinkedHashMap::new();
@@ -250,12 +250,6 @@ impl ETLDAG for AirflowDAG {
             default_args.clone(),
             default_args_dict,
         ));
-        statements.insert(
-            0,
-            vec![default_args_assign
-                .to_python_ast_node(py, ast_module)
-                .unwrap()],
-        );
 
         let dag = AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("dag".to_string()));
 
@@ -301,8 +295,16 @@ impl ETLDAG for AirflowDAG {
         ));
         let dag_call_assign = AST::Assignment(Assignment::new_wrapped(dag, dag_call));
         let dag_call_assign_ast = dag_call_assign.to_python_ast_node(py, ast_module).unwrap();
-        statements.insert(1, vec![dag_call_assign_ast]);
-        statements.into_iter().flatten().collect()
+        statements.insert(
+            0,
+            vec![
+                default_args_assign
+                    .to_python_ast_node(py, ast_module)
+                    .unwrap(),
+                dag_call_assign_ast,
+            ],
+        );
+        statements
     }
     fn get_flow_imports(&self) -> Vec<Import> {
         vec![

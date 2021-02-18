@@ -39,7 +39,7 @@ where
         py: Python<'a>,
         statements: Vec<Vec<&'a PyAny>>,
         ast_module: &'a PyModule,
-    ) -> Vec<&'a PyAny>;
+    ) -> Vec<Vec<&'a PyAny>>;
     fn get_flow_imports(&self) -> Vec<Import>;
 
     fn get_preamble_imports(&self, preambles: &LinkedHashSet<Preamble>) -> Vec<Import> {
@@ -96,15 +96,17 @@ where
             .into_iter()
             .map(|x| {
                 x.into_iter()
-                    .map(|y| y.to_python_ast_node(py, ast).unwrap()).collect()
+                    .map(|y| y.to_python_ast_node(py, ast).unwrap())
+                    .collect()
             })
             .collect();
-        let flow: Vec<&PyAny> = self.build_flow(py, statements_ast, ast);
+
+        let flow: Vec<Vec<&PyAny>> = self.build_flow(py, statements_ast, ast);
 
         let content: Vec<&PyAny> = imports_ast
             .into_iter()
             .chain(preambles.into_iter().map(|x| x.get_body_ast(py)).flatten())
-            .chain(flow.into_iter())
+            .chain(flow.into_iter().map(|x| x.into_iter()).flatten())
             .collect();
 
         let mut sources: Vec<String> = Vec::new();
