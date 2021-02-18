@@ -10,7 +10,13 @@ pub use ast::{
     ParameterTupleDedupKey, Preamble, PrestoPythonTask, PythonImport, PythonNone, RPythonTask,
     SimpleIdentifier, StringLiteral, Subscript, Tuple, AST,
 };
-pub type PythonStatementInput = (Vec<AST>, LinkedHashSet<Preamble>, BTreeSet<Import>);
+/// Wrapper type for stuff that gets passed around when building Python
+/// statements:
+/// - A vector of AST objects (main statements),
+/// - A set of Preambles (which have their own imports attached)
+/// - A set of imports corresponding to the dialect used.
+/// - A comment string
+pub type PythonStatementInput = (Vec<AST>, LinkedHashSet<Preamble>, BTreeSet<Import>, String);
 
 pub fn format_code(code: String) -> PyResult<String> {
     let gil = Python::acquire_gil();

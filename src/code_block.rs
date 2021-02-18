@@ -2,7 +2,6 @@ use crate::constraint_state::ConstraintState;
 use crate::endpoints::EndpointConfig;
 use crate::etl_singleton::ETLSingleton;
 use crate::etl_task::{ETLTask, ForLoopETLTask, StandaloneETLTask};
-use crate::python::PythonStatementInput;
 use crate::python::{
     Import, ParameterTuple, Preamble, SimpleIdentifier, StringLiteral, Subscript, AST,
 };
@@ -77,7 +76,10 @@ where
             }
         }
     }
-    pub fn get_statements(&'a self, endpoints: &EndpointConfig) -> PythonStatementInput {
+    pub fn get_statements(
+        &'a self,
+        endpoints: &EndpointConfig,
+    ) -> (Vec<AST>, LinkedHashSet<Preamble>, BTreeSet<Import>) {
         self.set_task_vals();
         let tasks = self
             .get_constraints()

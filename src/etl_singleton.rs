@@ -37,7 +37,7 @@ where
     fn build_flow<'a>(
         &self,
         py: Python<'a>,
-        statements: Vec<Vec<&'a PyAny>>,
+        statements: Vec<(String, Vec<&'a PyAny>)>,
         ast_module: &'a PyModule,
     ) -> Vec<(String, Vec<&'a PyAny>)>;
     fn get_flow_imports(&self) -> Vec<Import>;
@@ -91,14 +91,20 @@ where
             .map(|x| x.to_python_ast_node(py, ast).unwrap())
             .collect();
 
-        let statements: Vec<Vec<AST>> = statements_and_preambles.into_iter().map(|x| x.0).collect();
-        let statements_ast: Vec<Vec<_>> = statements
+        let statements: Vec<(String, Vec<AST>)> = statements_and_preambles
             .into_iter()
-            .filter(|x| x.len() > 0)
-            .map(|x| {
-                x.into_iter()
-                    .map(|y| y.to_python_ast_node(py, ast).unwrap())
-                    .collect()
+            .map(|x| (x.3, x.0))
+            .collect();
+        let statements_ast: Vec<(String, Vec<_>)> = statements
+            .into_iter()
+            .filter(|x| x.1.len() > 0)
+            .map(|(name, x)| {
+                (
+                    name,
+                    x.into_iter()
+                        .map(|y| y.to_python_ast_node(py, ast).unwrap())
+                        .collect(),
+                )
             })
             .collect();
 

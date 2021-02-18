@@ -235,30 +235,31 @@ impl ETLDAG for PrefectDAG {
     fn build_flow<'a>(
         &self,
         py: Python<'a>,
-        statements: Vec<Vec<&'a PyAny>>,
+        statements: Vec<(String, Vec<&'a PyAny>)>,
         ast_module: &'a PyModule,
     ) -> Vec<(String, Vec<&'a PyAny>)> {
         // TODO: add flow definition
         statements
             .into_iter()
             .chain(
-                vec![vec![AST::Expression(Expression::new_wrapped(AST::Call(
-                    Call::new_wrapped(
-                        AST::Attribute(Attribute::new_wrapped(
-                            self.flow_identifier.clone(),
-                            "run".into(),
-                            false,
-                        )),
-                        Vec::new(),
-                        LinkedHashMap::new(),
-                    ),
-                )))
-                .to_python_ast_node(py, ast_module)
-                .unwrap()]]
+                vec![(
+                    "Run Prefect flow".to_string(),
+                    vec![
+                        AST::Expression(Expression::new_wrapped(AST::Call(Call::new_wrapped(
+                            AST::Attribute(Attribute::new_wrapped(
+                                self.flow_identifier.clone(),
+                                "run".into(),
+                                false,
+                            )),
+                            Vec::new(),
+                            LinkedHashMap::new(),
+                        ))))
+                        .to_python_ast_node(py, ast_module)
+                        .unwrap(),
+                    ],
+                )]
                 .into_iter(),
             )
-            .enumerate()
-            .map(|(i, x)| (format!("Block {}", i).to_string(), x))
             .collect()
     }
 }
