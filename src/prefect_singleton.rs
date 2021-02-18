@@ -235,11 +235,13 @@ impl ETLDAG for PrefectDAG {
     fn build_flow<'a>(
         &self,
         py: Python<'a>,
-        statements: Vec<&'a PyAny>,
+        statements: Vec<Vec<&'a PyAny>>,
         ast_module: &'a PyModule,
     ) -> Vec<&'a PyAny> {
         statements
             .into_iter()
+            .map(|x| x.into_iter())
+            .flatten()
             .chain(
                 AST::Expression(Expression::new_wrapped(AST::Call(Call::new_wrapped(
                     AST::Attribute(Attribute::new_wrapped(

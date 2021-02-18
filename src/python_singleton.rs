@@ -145,9 +145,9 @@ impl ETLDAG for PythonDAG {
     fn build_flow<'a>(
         &self,
         _py: Python<'a>,
-        statements: Vec<&'a PyAny>,
+        statements: Vec<Vec<&'a PyAny>>,
         _ast_module: &'a PyModule,
     ) -> Vec<&'a PyAny> {
-        statements
+        statements.into_iter().flatten().collect()
     }
 }
