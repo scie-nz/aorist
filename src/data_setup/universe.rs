@@ -38,7 +38,10 @@ pub trait TUniverse {
     fn get_constraints_map(
         &self,
         queue: VecDeque<Arc<RwLock<Constraint>>>,
-    ) -> HashMap<(Uuid, String), Arc<RwLock<Constraint>>>;
+    ) -> (
+        HashMap<(Uuid, String), Arc<RwLock<Constraint>>>,
+        HashMap<String, (Option<String>, Option<String>)>,
+    );
     fn get_user_unixname_map(&self) -> HashMap<String, User>;
     fn get_user_permissions(&self) -> Result<HashMap<String, HashSet<String>>, String>;
 }
@@ -49,13 +52,21 @@ impl TUniverse for Universe {
         concept.populate_child_concept_map(&mut concept_map);
         concept_map
     }
+    // TODO: first element should be LinkedHashMap
     fn get_constraints_map(
         &self,
         mut queue: VecDeque<Arc<RwLock<Constraint>>>,
-    ) -> HashMap<(Uuid, String), Arc<RwLock<Constraint>>> {
+    ) -> (
+        HashMap<(Uuid, String), Arc<RwLock<Constraint>>>,
+        HashMap<String, (Option<String>, Option<String>)>,
+    ) {
         let mut constraints_map: HashMap<(Uuid, String), Arc<RwLock<Constraint>>> = HashMap::new();
+        let mut explanations: HashMap<String, (Option<String>, Option<String>)> = HashMap::new();
         while let Some(constraint) = queue.pop_front() {
             let uuid = constraint.read().unwrap().get_uuid();
+            let title = constraint.read().unwrap().inner.as_ref().unwrap().get_title();
+            let body = constraint.read().unwrap().inner.as_ref().unwrap().get_body();
+            let name = constraint.read().unwrap().inner.as_ref().unwrap().get_name();
             let root_type = constraint.read().unwrap().root.clone();
             for elem in constraint
                 .read()
@@ -65,8 +76,9 @@ impl TUniverse for Universe {
                 queue.push_back(elem.clone());
             }
             constraints_map.insert((uuid, root_type), constraint);
+            explanations.insert(name, (title, body));
         }
-        constraints_map
+        (constraints_map, explanations)
     }
     fn get_user_unixname_map(&self) -> HashMap<String, User> {
         self.users

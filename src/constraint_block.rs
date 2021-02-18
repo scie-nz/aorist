@@ -14,6 +14,8 @@ where
     T: ETLSingleton + 'a,
 {
     constraint_name: String,
+    title: Option<String>,
+    body: Option<String>,
     members: Vec<CodeBlock<'a, T>>,
     singleton_type: PhantomData<T>,
 }
@@ -21,9 +23,16 @@ impl<'a, T> ConstraintBlock<'a, T>
 where
     T: ETLSingleton,
 {
-    pub fn new(constraint_name: String, members: Vec<CodeBlock<'a, T>>) -> Self {
+    pub fn new(
+        constraint_name: String,
+        title: Option<String>,
+        body: Option<String>,
+        members: Vec<CodeBlock<'a, T>>,
+    ) -> Self {
         Self {
             constraint_name,
+            title,
+            body,
             members,
             singleton_type: PhantomData,
         }

@@ -633,6 +633,20 @@ macro_rules! register_constraint {
                     )+
                 }
             }
+            pub fn get_title(&self) -> Option<String> {
+                match self {
+                    $(
+                        Self::$element(x) => x.get_title(),
+                    )+
+                }
+            }
+            pub fn get_body(&self) -> Option<String> {
+                match self {
+                    $(
+                        Self::$element(x) => x.get_body(),
+                    )+
+                }
+            }
             pub fn get_root_uuid(&self) -> Uuid {
                 match self {
                     $(

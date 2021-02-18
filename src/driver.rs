@@ -35,6 +35,7 @@ where
     ancestry: Arc<ConceptAncestry<'a>>,
     dag_type: PhantomData<D>,
     endpoints: EndpointConfig,
+    constraint_explanations: HashMap<String, (Option<String>, Option<String>)>,
 }
 
 impl<'a, D> Driver<'a, D>
@@ -287,7 +288,7 @@ where
                 .collect(),
             None => it.collect(),
         };
-        let constraints = universe.get_constraints_map(topline);
+        let (constraints, constraint_explanations) = universe.get_constraints_map(topline);
 
         let ancestors = Self::compute_all_ancestors(concept, &concept_map);
         let concepts = Arc::new(RwLock::new(concept_map));
@@ -306,6 +307,7 @@ where
             blocks: Vec::new(),
             dag_type: PhantomData,
             endpoints: universe.endpoints.clone(),
+            constraint_explanations,
         }
     }
 
@@ -548,9 +550,10 @@ where
                     &reverse_dependencies,
                     snake_case_name.clone(),
                 );
-
-                // TODO: this can be moved to ConstraintBlock
-                let constraint_block = ConstraintBlock::new(snake_case_name, members);
+                let (title, body) =
+                self.constraint_explanations.get(constraint_name).unwrap().clone();
+                // TODO: snake case name can be moved to ConstraintBlock
+                let constraint_block = ConstraintBlock::new(snake_case_name, title, body, members);
                 self.blocks.push(constraint_block);
             } else {
                 break;
