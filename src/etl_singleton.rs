@@ -49,7 +49,7 @@ where
                 x.imports
                     .clone()
                     .into_iter()
-                    .map(|x| Import::ModuleImport(x.0))
+                    .map(|x| Import::ModuleImport(x.0, x.1))
             })
             .flatten()
             .collect::<BTreeSet<_>>();
@@ -60,8 +60,8 @@ where
             .iter()
             .map(|x| x.from_imports.clone().into_iter())
             .flatten();
-        for (module, name, _alias) in preamble_from_imports {
-            from_imports.insert(Import::FromImport(module, name));
+        for (module, name, alias) in preamble_from_imports {
+            from_imports.insert(Import::FromImport(module, name, alias));
         }
         let preamble_imports = preamble_module_imports
             .into_iter()

@@ -25,8 +25,8 @@ define_task_node!(
     },
     |_task: &RPythonTask| {
         vec![
-            Import::ModuleImport("subprocess".to_string()),
-            Import::ModuleImport("rpy2".to_string()),
+            Import::ModuleImport("subprocess".to_string(), None),
+            Import::ModuleImport("rpy2".to_string(), None),
         ]
     },
     r_script: AST,

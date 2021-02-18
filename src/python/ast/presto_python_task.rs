@@ -77,9 +77,9 @@ define_task_node!(
     },
     |_task: &PrestoPythonTask| {
         vec![
-            Import::ModuleImport("subprocess".to_string()),
-            Import::ModuleImport("prestodb".to_string()),
-            Import::ModuleImport("re".to_string()),
+            Import::ModuleImport("subprocess".to_string(), None),
+            Import::ModuleImport("prestodb".to_string(), None),
+            Import::ModuleImport("re".to_string(), None),
         ]
     },
     sql: AST,

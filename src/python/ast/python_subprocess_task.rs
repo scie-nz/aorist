@@ -12,7 +12,7 @@ pub trait PythonSubprocessTask {
         ))
     }
     fn get_python_imports(&self) -> Vec<Import> {
-        vec![Import::ModuleImport("subprocess".to_string())]
+        vec![Import::ModuleImport("subprocess".to_string(), None)]
     }
     fn compute_task_kwargs(&self) -> LinkedHashMap<String, AST> {
         let mut kwargs = LinkedHashMap::new();

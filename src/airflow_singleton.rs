@@ -109,16 +109,19 @@ impl ETLSingleton for AirflowSingleton {
             Some(Dialect::Python(_)) => vec![Import::FromImport(
                 "airflow.operators.python_operator".to_string(),
                 "PythonOperator".to_string(),
+                None,
             )],
             Some(Dialect::Bash(_)) | Some(Dialect::Presto(_)) | Some(Dialect::R(_)) => {
                 vec![Import::FromImport(
                     "airflow.operators.bash_operator".to_string(),
                     "BashOperator".to_string(),
+                    None,
                 )]
             }
             None => vec![Import::FromImport(
                 "airflow.operators.dummy_operator".to_string(),
                 "DummyOperator".to_string(),
+                None,
             )],
         }
     }
@@ -303,8 +306,8 @@ impl ETLDAG for AirflowDAG {
     }
     fn get_flow_imports(&self) -> Vec<Import> {
         vec![
-            Import::FromImport("airflow".to_string(), "DAG".to_string()),
-            Import::FromImport("datetime".to_string(), "datetime".to_string()),
+            Import::FromImport("airflow".to_string(), "DAG".to_string(), None),
+            Import::FromImport("datetime".to_string(), "datetime".to_string(), None),
         ]
     }
 }

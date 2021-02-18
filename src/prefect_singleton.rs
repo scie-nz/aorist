@@ -97,16 +97,19 @@ impl ETLSingleton for PrefectSingleton {
             Some(Dialect::Python(_)) => vec![Import::FromImport(
                 "prefect".to_string(),
                 "task".to_string(),
+                None,
             )],
             Some(Dialect::Bash(_)) | Some(Dialect::Presto(_)) | Some(Dialect::R(_)) => {
                 vec![Import::FromImport(
                     "prefect.tasks.shell".to_string(),
                     "ShellTask".to_string(),
+                    None,
                 )]
             }
             None => vec![Import::FromImport(
                 "prefect.tasks.core".to_string(),
                 "Constant".to_string(),
+                None,
             )],
         }
     }

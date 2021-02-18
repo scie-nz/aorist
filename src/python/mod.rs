@@ -22,7 +22,6 @@ pub fn format_code(code: String) -> PyResult<String> {
     let py_code = PyString::new(py, &code);
 
     let mut kwargs = HashMap::<&str, &PyAny>::new();
-    println!("{}", py_code);
     kwargs.insert("mode", mode);
     black
         .call(
