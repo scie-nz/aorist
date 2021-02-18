@@ -411,10 +411,10 @@ macro_rules! define_constraint {
                 &self,
                 _upstream_constraints: Vec<Arc<RwLock<Constraint>>>
             ) {}
-            pub fn get_title(&self) -> Option<String> {
+            pub fn get_title() -> Option<String> {
                 $title
             }
-            pub fn get_body(&self) -> Option<String> {
+            pub fn get_body() -> Option<String> {
                 $body
             }
         }
@@ -563,10 +563,10 @@ macro_rules! define_constraint {
                         $([<$required:snake:lower>],)+
                     }
                 }
-                pub fn get_title(&self) -> Option<String> {
+                pub fn get_title() -> Option<String> {
                     $title
                 }
-                pub fn get_body(&self) -> Option<String> {
+                pub fn get_body() -> Option<String> {
                     $body
                 }
             }
@@ -636,14 +636,14 @@ macro_rules! register_constraint {
             pub fn get_title(&self) -> Option<String> {
                 match self {
                     $(
-                        Self::$element(x) => x.get_title(),
+                        Self::$element(_) => $element::get_title(),
                     )+
                 }
             }
             pub fn get_body(&self) -> Option<String> {
                 match self {
                     $(
-                        Self::$element(x) => x.get_body(),
+                        Self::$element(_) => $element::get_body(),
                     )+
                 }
             }
@@ -665,6 +665,17 @@ macro_rules! register_constraint {
                 hashmap! {
                     $(
                         stringify!($element).to_string() => $element::get_required_constraint_names(),
+                    )+
+                }
+            }
+            pub fn get_explanations() -> HashMap<String, (Option<String>,
+            Option<String>)> {
+                hashmap! {
+                    $(
+                        stringify!($element).to_string() => (
+                            $element::get_title(),
+                            $element::get_body(),
+                        ),
                     )+
                 }
             }
