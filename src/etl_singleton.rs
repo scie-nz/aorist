@@ -1,5 +1,5 @@
 use crate::endpoints::EndpointConfig;
-use crate::python::{Import, Preamble, PythonStatementInput, AST};
+use crate::python::{Import, Preamble, PythonStatementInput, AST, format_code};
 use aorist_primitives::Dialect;
 use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
@@ -61,7 +61,8 @@ where
             .collect::<Vec<_>>();
         preamble_imports
     }
-    fn materialize(&self, statements_and_preambles: Vec<PythonStatementInput>) -> String {
+    fn materialize(&self, statements_and_preambles: Vec<PythonStatementInput>)
+    -> PyResult<String> {
         let gil = Python::acquire_gil();
         let py = gil.python();
 
@@ -103,33 +104,39 @@ where
 
         let flow: Vec<Vec<&PyAny>> = self.build_flow(py, statements_ast, ast);
 
-        let content: Vec<&PyAny> = imports_ast
+        let content: Vec<Vec<&PyAny>> = vec![imports_ast]
             .into_iter()
-            .chain(preambles.into_iter().map(|x| x.get_body_ast(py)).flatten())
-            .chain(flow.into_iter().map(|x| x.into_iter()).flatten())
+            .chain(preambles.into_iter().map(|x| x.get_body_ast(py)))
+            .chain(flow.into_iter())
             .collect();
 
         let mut sources: Vec<String> = Vec::new();
 
         // This is needed since astor will occasionally forget to add a newline
-        for item in content {
-            let statements_list = PyList::new(py, vec![item]);
-            let module = ast.call1("Module", (statements_list,)).unwrap();
-            let source: PyResult<_> = astor.call1("to_source", (module,));
-            if let Err(err) = source {
-                err.print(py);
-                panic!("Exception occurred when running to_source.");
+        for block in content {
+            let mut lines: Vec<String> = Vec::new();
+            for item in block {
+                let statements_list = PyList::new(py, vec![item]);
+                let module = ast.call1("Module", (statements_list,))?;
+                let source: PyResult<_> = astor.call1("to_source", (module,));
+                if let Err(err) = source {
+                    err.print(py);
+                    panic!("Exception occurred when running to_source.");
+                }
+                lines.push(
+                    source
+                        .unwrap()
+                        .extract::<&PyString>()
+                        .unwrap()
+                        .to_str()
+                        .unwrap()
+                        .to_string(),
+                )
             }
             sources.push(
-                source
-                    .unwrap()
-                    .extract::<&PyString>()
-                    .unwrap()
-                    .to_str()
-                    .unwrap()
-                    .to_string(),
+                format_code(lines.join(""))?
             )
         }
-        sources.join("")
+        format_code(sources.join(""))
     }
 }

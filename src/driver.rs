@@ -522,7 +522,7 @@ where
             write.set_task_name(name.replace("____", "__"));
         }
     }
-    pub fn run(&'a mut self) -> String {
+    pub fn run(&'a mut self) -> pyo3::PyResult<String> {
         let mut reverse_dependencies: HashMap<(Uuid, String), HashSet<(String, Uuid, String)>> =
             HashMap::new();
         for (name, (_, constraints)) in &self.unsatisfied_constraints {
