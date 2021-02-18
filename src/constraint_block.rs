@@ -94,6 +94,8 @@ where
             preambles,
             imports,
             self.constraint_name.clone(),
+            self.title.clone(),
+            self.body.clone(),
         )
     }
 }

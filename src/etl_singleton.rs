@@ -37,7 +37,7 @@ where
     fn build_flow<'a>(
         &self,
         py: Python<'a>,
-        statements: Vec<(String, Vec<&'a PyAny>)>,
+        statements: Vec<(String, Option<String>, Option<String>, Vec<&'a PyAny>)>,
         ast_module: &'a PyModule,
     ) -> Vec<(String, Vec<&'a PyAny>)>;
     fn get_flow_imports(&self) -> Vec<Import>;
@@ -91,16 +91,19 @@ where
             .map(|x| x.to_python_ast_node(py, ast).unwrap())
             .collect();
 
-        let statements: Vec<(String, Vec<AST>)> = statements_and_preambles
+        let statements: Vec<(String, Option<String>, Option<String>, Vec<AST>)> =
+            statements_and_preambles
+                .into_iter()
+                .map(|x| (x.3, x.4, x.5, x.0))
+                .collect();
+        let statements_ast: Vec<_> = statements
             .into_iter()
-            .map(|x| (x.3, x.0))
-            .collect();
-        let statements_ast: Vec<(String, Vec<_>)> = statements
-            .into_iter()
-            .filter(|x| x.1.len() > 0)
-            .map(|(name, x)| {
+            .filter(|x| x.3.len() > 0)
+            .map(|(name, title, body, x)| {
                 (
                     name,
+                    title,
+                    body,
                     x.into_iter()
                         .map(|y| y.to_python_ast_node(py, ast).unwrap())
                         .collect(),
@@ -108,18 +111,19 @@ where
             })
             .collect();
 
-        let flow: Vec<(String, Vec<&PyAny>)> = self.build_flow(py, statements_ast, ast);
+        let flow = self.build_flow(py, statements_ast, ast);
 
-        let content: Vec<(String, Vec<&PyAny>)> = vec![("Imports".to_string(), imports_ast)]
-            .into_iter()
-            .chain(
-                preambles
-                    .into_iter()
-                    .enumerate()
-                    .map(|(i, x)| (format!("Preamble {}", i).to_string(), x.get_body_ast(py))),
-            )
-            .chain(flow.into_iter())
-            .collect();
+        let content: Vec<(String, Vec<&PyAny>)> =
+            vec![("Imports".to_string(), imports_ast)]
+                .into_iter()
+                .chain(
+                    preambles
+                        .into_iter()
+                        .enumerate()
+                        .map(|(i, x)| (format!("Preamble {}", i).to_string(), x.get_body_ast(py))),
+                )
+                .chain(flow.into_iter())
+                .collect();
 
         let mut sources: Vec<(String, String)> = Vec::new();
 

@@ -16,7 +16,14 @@ pub use ast::{
 /// - A set of Preambles (which have their own imports attached)
 /// - A set of imports corresponding to the dialect used.
 /// - A comment string
-pub type PythonStatementInput = (Vec<AST>, LinkedHashSet<Preamble>, BTreeSet<Import>, String);
+pub type PythonStatementInput = (
+    Vec<AST>,
+    LinkedHashSet<Preamble>,
+    BTreeSet<Import>,
+    String,
+    Option<String>,
+    Option<String>,
+);
 
 pub fn format_code(code: String) -> PyResult<String> {
     let gil = Python::acquire_gil();

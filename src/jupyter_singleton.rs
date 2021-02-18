@@ -18,10 +18,32 @@ impl ETLDAG for JupyterDAG {
     fn build_flow<'a>(
         &self,
         _py: Python<'a>,
-        statements: Vec<(String, Vec<&'a PyAny>)>,
+        statements: Vec<(String, Option<String>, Option<String>, Vec<&'a PyAny>)>,
         _ast_module: &'a PyModule,
     ) -> Vec<(String, Vec<&'a PyAny>)> {
         statements
+            .into_iter()
+            .map(|(name, title, body, code)| {
+                (
+                    match title {
+                        Some(t) => match body {
+                            Some(b) => format!(
+                                "## {}\n{}",
+                                t,
+                                b.split("\n")
+                                    .map(|x| format!("# {}", x).to_string())
+                                    .collect::<Vec<String>>()
+                                    .join("\n")
+                            )
+                            .to_string(),
+                            None => format!("## {}", t).to_string(),
+                        },
+                        None => format!("## {}", name).to_string(),
+                    },
+                    code,
+                )
+            })
+            .collect()
     }
     fn build_file(&self, sources: Vec<(String, String)>) -> PyResult<String> {
         let cells = json!(sources
