@@ -381,7 +381,8 @@ macro_rules! define_attribute {
 
 #[macro_export]
 macro_rules! define_constraint {
-    ($element:ident, $requires_program:expr, $satisfy_type:ident, $root:ident) => {
+    ($element:ident, $requires_program:expr, $satisfy_type:ident, $root:ident,
+    $title: expr, $body: expr) => {
         pub struct $element {
             id: Uuid,
             root_uuid: Uuid,
@@ -410,6 +411,12 @@ macro_rules! define_constraint {
                 &self,
                 _upstream_constraints: Vec<Arc<RwLock<Constraint>>>
             ) {}
+            pub fn get_title(&self) -> Option<String> {
+                $title
+            }
+            pub fn get_body(&self) -> Option<String> {
+                $body
+            }
         }
         pub trait $satisfy_type<'a> : ConstraintSatisfactionBase<ConstraintType=$element, RootType=$root> {
             type Dialect;
@@ -442,7 +449,8 @@ macro_rules! define_constraint {
 			}
 		}
     };
-    ($element:ident, $requires_program:expr, $satisfy_type:ident, $root:ident, $($required:ident),+) => {
+    ($element:ident, $requires_program:expr, $satisfy_type:ident, $root:ident,
+    $title:expr, $body:expr, $($required:ident),+) => {
         paste::item! {
             pub struct $element {
                 id: Uuid,
@@ -554,6 +562,12 @@ macro_rules! define_constraint {
                         root_uuid,
                         $([<$required:snake:lower>],)+
                     }
+                }
+                pub fn get_title(&self) -> Option<String> {
+                    $title
+                }
+                pub fn get_body(&self) -> Option<String> {
+                    $body
                 }
             }
             impl TConstraint for $element {

@@ -177,17 +177,28 @@ fn process_constraints(raw_objects: &Vec<HashMap<String, Value>>) {
             .get(&(name.clone(), root.clone(), title.clone(), body.clone()))
             .unwrap();
         let requires_program = program_required.get(name).unwrap();
+                let formatted_title = match title {
+                    Some(x) => format!("Some(\"{}\".to_string())", x),
+                    None => "None".to_string(),
+                };
+                let formatted_body = match body {
+                    Some(x) => format!("Some(\"{}\".to_string())", x),
+                    None => "None".to_string(),
+                };
         let define = match required.len() {
             0 => format!(
-                "define_constraint!({}, {}, Satisfy{}, {});",
-                name, requires_program, name, root
+                "define_constraint!({}, {}, Satisfy{}, {}, {}, {});",
+                name, requires_program, name, root, formatted_title,
+                formatted_body,
             ),
             _ => format!(
-                "define_constraint!({}, {}, Satisfy{}, {}, {});",
+                "define_constraint!({}, {}, Satisfy{}, {}, {}, {}, {});",
                 name,
                 requires_program,
                 name,
                 root,
+                formatted_title,
+                formatted_body,
                 required.join(", ")
             ),
         };
