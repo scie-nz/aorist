@@ -237,7 +237,7 @@ impl ETLDAG for PrefectDAG {
         py: Python<'a>,
         statements: Vec<Vec<&'a PyAny>>,
         ast_module: &'a PyModule,
-    ) -> Vec<Vec<&'a PyAny>> {
+    ) -> Vec<(String, Vec<&'a PyAny>)> {
         // TODO: add flow definition
         statements
             .into_iter()
@@ -257,6 +257,8 @@ impl ETLDAG for PrefectDAG {
                 .unwrap()]]
                 .into_iter(),
             )
+            .enumerate()
+            .map(|(i, x)| (format!("Block {}", i).to_string(), x))
             .collect()
     }
 }

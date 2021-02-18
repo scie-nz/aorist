@@ -1,5 +1,5 @@
 use crate::endpoints::EndpointConfig;
-use crate::python::{Import, Preamble, PythonStatementInput, AST, format_code};
+use crate::python::{format_code, Import, Preamble, PythonStatementInput, AST};
 use aorist_primitives::Dialect;
 use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
@@ -39,7 +39,7 @@ where
         py: Python<'a>,
         statements: Vec<Vec<&'a PyAny>>,
         ast_module: &'a PyModule,
-    ) -> Vec<Vec<&'a PyAny>>;
+    ) -> Vec<(String, Vec<&'a PyAny>)>;
     fn get_flow_imports(&self) -> Vec<Import>;
 
     fn get_preamble_imports(&self, preambles: &LinkedHashSet<Preamble>) -> Vec<Import> {
@@ -61,8 +61,7 @@ where
             .collect::<Vec<_>>();
         preamble_imports
     }
-    fn materialize(&self, statements_and_preambles: Vec<PythonStatementInput>)
-    -> PyResult<String> {
+    fn materialize(&self, statements_and_preambles: Vec<PythonStatementInput>) -> PyResult<String> {
         let gil = Python::acquire_gil();
         let py = gil.python();
 
@@ -95,6 +94,7 @@ where
         let statements: Vec<Vec<AST>> = statements_and_preambles.into_iter().map(|x| x.0).collect();
         let statements_ast: Vec<Vec<_>> = statements
             .into_iter()
+            .filter(|x| x.len() > 0)
             .map(|x| {
                 x.into_iter()
                     .map(|y| y.to_python_ast_node(py, ast).unwrap())
@@ -102,18 +102,23 @@ where
             })
             .collect();
 
-        let flow: Vec<Vec<&PyAny>> = self.build_flow(py, statements_ast, ast);
+        let flow: Vec<(String, Vec<&PyAny>)> = self.build_flow(py, statements_ast, ast);
 
-        let content: Vec<Vec<&PyAny>> = vec![imports_ast]
+        let content: Vec<(String, Vec<&PyAny>)> = vec![("Imports".to_string(), imports_ast)]
             .into_iter()
-            .chain(preambles.into_iter().map(|x| x.get_body_ast(py)))
+            .chain(
+                preambles
+                    .into_iter()
+                    .enumerate()
+                    .map(|(i, x)| (format!("Preamble {}", i).to_string(), x.get_body_ast(py))),
+            )
             .chain(flow.into_iter())
             .collect();
 
         let mut sources: Vec<String> = Vec::new();
 
         // This is needed since astor will occasionally forget to add a newline
-        for block in content {
+        for (comment, block) in content {
             let mut lines: Vec<String> = Vec::new();
             for item in block {
                 let statements_list = PyList::new(py, vec![item]);
@@ -133,9 +138,7 @@ where
                         .to_string(),
                 )
             }
-            sources.push(
-                format_code(lines.join(""))?
-            )
+            sources.push(format!("# {}\n{}\n", comment, format_code(lines.join(""))?))
         }
         format_code(sources.join(""))
     }

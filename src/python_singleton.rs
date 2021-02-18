@@ -147,7 +147,11 @@ impl ETLDAG for PythonDAG {
         _py: Python<'a>,
         statements: Vec<Vec<&'a PyAny>>,
         _ast_module: &'a PyModule,
-    ) -> Vec<Vec<&'a PyAny>> {
+    ) -> Vec<(String, Vec<&'a PyAny>)> {
         statements
+            .into_iter()
+            .enumerate()
+            .map(|(i, x)| (format!("Block {}", i).to_string(), x))
+            .collect()
     }
 }
