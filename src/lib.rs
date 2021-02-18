@@ -19,6 +19,7 @@ pub mod error;
 pub mod etl_singleton;
 pub mod etl_task;
 pub mod header;
+pub mod jupyter_singleton;
 pub mod layout;
 pub mod location;
 pub mod object;
@@ -49,6 +50,7 @@ pub use driver::*;
 pub use encoding::*;
 pub use endpoints::*;
 pub use header::*;
+pub use jupyter_singleton::*;
 pub use layout::*;
 pub use location::*;
 pub use prefect_singleton::*;
@@ -95,6 +97,9 @@ pub fn dag(inner: InnerUniverse, constraints: Vec<String>, mode: &str) -> PyResu
         }
         "python" => {
             Driver::<PythonDAG>::new(&universe, Some(constraints.into_iter().collect())).run()
+        }
+        "jupyter" => {
+            Driver::<JupyterDAG>::new(&universe, Some(constraints.into_iter().collect())).run()
         }
         _ => panic!("Unknown mode provided"),
     }

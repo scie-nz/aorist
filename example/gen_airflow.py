@@ -31,5 +31,5 @@ universe = Universe(
 )
 out = dag(universe, [
     "DataDownloadedAndConverted"
-], "airflow")
+], "jupyter")
 print(out.replace("\\\\","\\"))

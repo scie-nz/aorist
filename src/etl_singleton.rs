@@ -121,7 +121,7 @@ where
             .chain(flow.into_iter())
             .collect();
 
-        let mut sources: Vec<String> = Vec::new();
+        let mut sources: Vec<(String, String)> = Vec::new();
 
         // This is needed since astor will occasionally forget to add a newline
         for (comment, block) in content {
@@ -144,8 +144,17 @@ where
                         .to_string(),
                 )
             }
-            sources.push(format!("# {}\n{}\n", comment, format_code(lines.join(""))?))
+            sources.push((comment, format_code(lines.join(""))?))
         }
-        format_code(sources.join(""))
+        self.build_file(sources)
+    }
+    fn build_file(&self, sources: Vec<(String, String)>) -> PyResult<String> {
+        format_code(
+            sources
+                .into_iter()
+                .map(|(comment, block)| format!("# {}\n{}\n", comment, block).to_string())
+                .collect::<Vec<String>>()
+                .join(""),
+        )
     }
 }
