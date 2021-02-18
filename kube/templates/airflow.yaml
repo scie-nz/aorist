@@ -1,34 +1,14 @@
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: airflow-datascie-nz
-  namespace: aorist
-  annotations:
-    kubernetes.io/ingress.class: nginx
-    cert-manager.io/cluster-issuer: letsencrypt-prod
-spec:
-  tls:
-  - hosts:
-    - airflow.datascie.nz
-    secretName: airflow-datascie-nz-tls
-  rules:
-  - host: airflow.datascie.nz
-    http:
-      paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: airflow
-            port:
-              name: http
----
 apiVersion: v1
 kind: Service
 metadata:
   name: airflow
   namespace: aorist
 spec:
+  # ensure that only users on the VPN can access the service: assign internal IP for use by public hostname
+  # if this is changed, the public DNS record for airflow.datascie.nz must be updated to match
+  # TODO figure out how to get letsencrypt certificates, likely via DNS validation? may want a separate private-only ingress manager?
+  externalIPs:
+  - 172.31.8.11
   ports:
   - name: http
     port: 80
