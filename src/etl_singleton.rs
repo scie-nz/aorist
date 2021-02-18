@@ -45,24 +45,16 @@ where
     fn get_preamble_imports(&self, preambles: &LinkedHashSet<Preamble>) -> Vec<Import> {
         let preamble_module_imports = preambles
             .iter()
-            .map(|x| {
-                x.imports
-                    .clone()
-                    .into_iter()
-                    .map(|x| Import::ModuleImport(x.0, x.1))
-            })
+            .map(|x| x.imports.clone().into_iter())
             .flatten()
             .collect::<BTreeSet<_>>();
 
         // TODO: group imports by module (need to change def of import)
-        let mut from_imports: BTreeSet<_> = BTreeSet::new();
-        let preamble_from_imports = preambles
+        let from_imports = preambles
             .iter()
             .map(|x| x.from_imports.clone().into_iter())
-            .flatten();
-        for (module, name, alias) in preamble_from_imports {
-            from_imports.insert(Import::FromImport(module, name, alias));
-        }
+            .flatten()
+            .collect::<BTreeSet<_>>();
         let preamble_imports = preamble_module_imports
             .into_iter()
             .chain(from_imports.into_iter())

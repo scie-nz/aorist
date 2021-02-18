@@ -1,11 +1,12 @@
+use crate::python::Import;
 use pyo3::prelude::*;
 use pyo3::types::{PyList, PyModule, PyString, PyTuple};
 use std::hash::Hash;
 
 #[derive(Clone, PartialEq, Hash, Eq)]
 pub struct Preamble {
-    pub imports: Vec<(String, Option<String>)>,
-    pub from_imports: Vec<(String, String, Option<String>)>,
+    pub imports: Vec<Import>,
+    pub from_imports: Vec<Import>,
     pub body: String,
 }
 impl<'a> Preamble {
@@ -47,7 +48,7 @@ def build_preamble(body):
             .unwrap();
 
         let imports_list: &PyList = tpl.get_item(0).extract().unwrap();
-        let imports: Vec<(String, Option<String>)> = imports_list
+        let imports: Vec<Import> = imports_list
             .iter()
             .map(|x| {
                 let tpl: &PyTuple = x.extract().unwrap();
@@ -70,15 +71,12 @@ def build_preamble(body):
                             .to_string(),
                     ),
                 };
-                if asname.is_some() {
-                    panic!("Aliased imports not supported yet.");
-                }
-                (name, asname)
+                Import::ModuleImport(name, asname)
             })
             .collect();
 
         let from_imports_list: &PyList = tpl.get_item(1).extract().unwrap();
-        let from_imports: Vec<(String, String, Option<String>)> = from_imports_list
+        let from_imports: Vec<Import> = from_imports_list
             .iter()
             .map(|x| {
                 let tpl: &PyTuple = x.extract().unwrap();
@@ -108,10 +106,7 @@ def build_preamble(body):
                             .to_string(),
                     ),
                 };
-                if asname.is_some() {
-                    panic!("Aliased imports not supported yet.");
-                }
-                (module, name, asname)
+                Import::FromImport(module, name, asname)
             })
             .collect();
 
