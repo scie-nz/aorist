@@ -22,6 +22,7 @@ pub mod header;
 pub mod jupyter_singleton;
 pub mod layout;
 pub mod location;
+pub mod models;
 pub mod object;
 pub mod prefect_singleton;
 pub mod python;
@@ -53,6 +54,7 @@ pub use header::*;
 pub use jupyter_singleton::*;
 pub use layout::*;
 pub use location::*;
+pub use models::*;
 pub use prefect_singleton::*;
 pub use python_singleton::*;
 pub use role::*;
@@ -146,6 +148,7 @@ fn aorist(py: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<InnerGzipCompression>()?;
     m.add_class::<InnerZipCompression>()?;
     m.add_class::<InnerComplianceConfig>()?;
+    m.add_class::<InnerSingleObjectiveRegressor>()?;
     m.add_wrapped(wrap_pyfunction!(default_tabular_schema))?;
     m.add_wrapped(wrap_pyfunction!(dag))?;
     Ok(())

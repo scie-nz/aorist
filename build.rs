@@ -339,6 +339,8 @@ fn process_concepts(raw_objects: &Vec<HashMap<String, Value>>) {
         ("crate::location", "MinioLocation"),
         ("crate::location", "RemoteLocation"),
         ("crate::location", "WebLocation"),
+        ("crate::models", "Model"),
+        ("crate::models", "SingleObjectiveRegressor"),
         ("crate::encoding", "CSVEncoding"),
         ("crate::encoding", "TSVEncoding"),
         ("crate::encoding", "Encoding"),

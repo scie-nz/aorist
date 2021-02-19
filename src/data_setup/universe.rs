@@ -4,6 +4,7 @@ use crate::concept::{AoristConcept, Concept};
 use crate::constraint::{AoristConstraint, Constraint};
 use crate::dataset::*;
 use crate::endpoints::*;
+use crate::models::*;
 use crate::role::*;
 use crate::role_binding::*;
 use crate::user::*;
@@ -32,6 +33,8 @@ pub struct Universe {
     pub endpoints: EndpointConfig,
     #[constrainable]
     pub compliance: Option<ComplianceConfig>,
+    #[constrainable]
+    pub models: Option<Vec<Model>>,
 }
 pub trait TUniverse {
     fn get_concept_map<'a>(&'a self) -> HashMap<(Uuid, String), Concept<'a>>;
