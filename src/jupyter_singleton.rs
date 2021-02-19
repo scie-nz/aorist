@@ -28,10 +28,10 @@ impl ETLDAG for JupyterDAG {
                     match title {
                         Some(t) => match body {
                             Some(b) => format!(
-                                "## {}\n{}",
+                                "## {}\n\n{}",
                                 t,
                                 b.split("\n")
-                                    .map(|x| format!("# {}", x).to_string())
+                                    .map(|x| format!("{}", x).to_string())
                                     .collect::<Vec<String>>()
                                     .join("\n")
                             )
@@ -52,7 +52,7 @@ impl ETLDAG for JupyterDAG {
                 json!({
                     "cell_type": "markdown",
                     "metadata": json!({}),
-                    "source": format!("# {}", comment),
+                    "source": comment,
                 }),
                 json!({
                     "cell_type": "code",
