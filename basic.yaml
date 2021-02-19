@@ -41,6 +41,11 @@ spec:
   requiresProgram: true
   requires:
     - TableSchemasDroppedIfExisting
+  title: Creating Table Schemas
+  body: |
+      We will be uploading tabular data into our warehouse. Before we upload
+      data files we need to create schemas for the tables which will refer
+      to these files.
 ---
 type: Constraint
 spec:
@@ -49,6 +54,10 @@ spec:
   requiresProgram: true
   requires:
     - HiveDirectoriesCreated
+  title: Drop table schemas if they already exist.
+  body: |
+      Beware! Our workflow will overwrite any existing table schemas with the same
+      name as our data.
 ---
 type: Constraint
 spec:
@@ -58,12 +67,20 @@ spec:
   requires:
     - HiveDirectoriesCreated
     - UploadDataToLocal
+  title: Create schemas for temporary CSV tables.
+  body: |
+      We will use Hive tables with external storage as a staging location for our
+      data. We need to create these schemas to be able to write data to them.
 ---
 type: Constraint
 spec:
   name: HiveDirectoriesCreated
   root: HiveLocation
   requiresProgram: true
+  title: Created hive directories.
+  body: |
+      We need to create directories or buckets (depending on file system / storage
+      solution) in which we will store our Hive data.
 ---
 type: Constraint
 spec:
@@ -107,16 +124,21 @@ spec:
   name: DownloadDataFromRemoteGCSLocation
   root: GCSLocation
   requiresProgram: true
+  title: Downloading data from GCS
+  body: |
+      Data for this particular asset(s) is located in Google Cloud Storage.
+      We need to download it to a local directory first, before we can
+      do anything with it.
 ---
 type: Constraint
 spec:
   name: DownloadDataFromRemoteWebLocation
   root: WebLocation
   requiresProgram: true
-  title: Downloading Data From Remote Web Location
+  title: Downloading data from remote web location
   body: |
-      Data for this particular table is located somewhere on the web.
-      We need to download it to a local directory first, before we can 
+      Data for this particular asset(s) is located somewhere on the web.
+      We need to download it to a local directory first, before we can
       do anything with it.
 ---
 type: Constraint
@@ -126,6 +148,10 @@ spec:
   requiresProgram: true
   requires:
     - FileIsDecompressed
+  title: Removing file header
+  body: |
+      We are dealing with a tabular file with a header. Before we can
+      process it we need to remove the header.
 ---
 type: Constraint
 spec:
@@ -149,6 +175,10 @@ spec:
   requiresProgram: true
   requires:
     - DownloadDataFromRemote
+  title: Decompressing Gzip file
+  body: |
+      Data for this particular asset(s) is compressed with the GZIP
+      algorith. Before we can process it further we need to decompress it.
 ---
 type: Constraint
 spec:
@@ -157,20 +187,21 @@ spec:
   requiresProgram: true
   requires:
     - DownloadDataFromRemote
+  title: Decompressing Zipped file
+  body: |
+      Data for this particular asset(s) is compressed with the Zip
+      algorith. Before we can process it further we need to decompress it.
 ---
 type: Constraint
 spec:
   name: ConvertCSVToOrc
   root: RemoteImportStorageSetup
   requiresProgram: true
----
-type: Constraint
-spec:
-  name: ConvertCSVToOrc2
-  root: RemoteImportStorageSetup
-  requires:
-      - FileReadyForUpload
-  requiresProgram: true
+  title: Convert CSV to ORC
+  body: |
+      The remote data source for asset is in CSV format, but we need to
+      convert it to ORC format (native Hive table format) to be usable
+      at the destination.
 ---
 type: Constraint
 spec:
@@ -188,6 +219,10 @@ spec:
   requires:
     - CSVIsConverted
     - ReplicatedSchema
+  title: Upload data to Alluxio
+  body: |
+      Now that data has been pre-processed we can upload it to the underlying
+      Alluxio storage.
 ---
 type: Constraint
 spec:
@@ -197,6 +232,10 @@ spec:
   requires:
     - CSVIsConverted
     - ReplicatedSchema
+  title: Upload data to Min.IO
+  body: |
+      Now that data has been pre-processed we can upload it to the underlying
+      Alluxio storage.
 ---
 type: Constraint
 spec:
@@ -212,6 +251,10 @@ spec:
   requiresProgram: true
   requires:
     - RemoveFileHeader
+  title: Convert data to CSV
+  body: |
+      We need to convert the data to CSV format to process it further (or if
+      the data is already in CSV format, we will need to rename files accordingly).
 ---
 type: Constraint
 spec:
@@ -220,6 +263,10 @@ spec:
   requires:
     - CSVTableSchemasCreated
   requiresProgram: true
+  title: Convert CSV Table to ORC Table
+  body: |
+      Hive tables can be stored in external CSV format, but this is inefficient.
+      We can convert them to ORC (the native Hive format) to speed up access.
 ---
 type: Constraint
 spec:
@@ -228,3 +275,7 @@ spec:
   requires:
     - ConvertCSVTableToORCTable
   requiresProgram: true
+  title: Drop CSV Table
+  body: |
+      After we've converted a CSV table to ORC the CSV table is no longer needed,
+      so it can be dropped.

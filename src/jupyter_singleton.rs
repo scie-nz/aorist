@@ -28,7 +28,7 @@ impl ETLDAG for JupyterDAG {
                     match title {
                         Some(t) => match body {
                             Some(b) => format!(
-                                "## {}\n\n{}",
+                                "### {}\n\n{}",
                                 t,
                                 b.split("\n")
                                     .map(|x| format!("{}", x).to_string())
@@ -36,9 +36,9 @@ impl ETLDAG for JupyterDAG {
                                     .join("\n")
                             )
                             .to_string(),
-                            None => format!("## {}", t).to_string(),
+                            None => format!("### {}", t).to_string(),
                         },
-                        None => format!("## {}", name).to_string(),
+                        None => format!("### {}", name).to_string(),
                     },
                     code,
                 )
