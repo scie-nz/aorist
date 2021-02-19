@@ -47,6 +47,13 @@ define_ast_node!(
         let body_ast = for_loop
             .body
             .iter()
+            .map(|x| match &x {
+                AST::Assignment(_) | AST::Expression(_) => x,
+                _ => panic!(format!(
+                    "AST node of type {} found in for loop body",
+                    x.name()
+                )),
+            })
             .map(|x| x.to_python_ast_node(py, ast_module).unwrap())
             .collect::<Vec<_>>();
         let body_list = PyList::new(py, body_ast);

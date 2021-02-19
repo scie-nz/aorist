@@ -229,7 +229,7 @@ macro_rules! define_ast_node {
                 panic!(format!(
                     "Register object mistakenly called for object of type {}",
                     stringify!(name),
-                ));
+                ).to_string());
             }
             fn new($(
                 $field: $field_type,

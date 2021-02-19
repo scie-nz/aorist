@@ -298,7 +298,9 @@ impl ETLDAG for AirflowDAG {
         statements.insert(
             0,
             (
-                "Setting up Airflow DAG".to_string(), None, None,
+                "Setting up Airflow DAG".to_string(),
+                None,
+                None,
                 vec![
                     default_args_assign
                         .to_python_ast_node(py, ast_module)

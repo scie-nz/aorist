@@ -1,7 +1,7 @@
 use crate::endpoints::EndpointConfig;
 use crate::etl_singleton::{ETLSingleton, ETLDAG};
 use crate::python::{
-    BashPythonTask, Call, ConstantPythonTask, Formatted, Import, NativePythonTask,
+    BashPythonTask, Call, ConstantPythonTask, Expression, Formatted, Import, NativePythonTask,
     PrestoPythonTask, RPythonTask, SimpleIdentifier, StringLiteral, AST,
 };
 use aorist_primitives::{register_task_nodes, Dialect};
@@ -103,7 +103,7 @@ impl ETLSingleton for PythonSingleton {
             }
             Some(Dialect::Python(_)) => {
                 PythonTask::NativePythonTask(NativePythonTask::new_wrapped(
-                    vec![command],
+                    vec![AST::Expression(Expression::new_wrapped(command))],
                     // TODO: add imports from preamble
                     Vec::new(),
                     task_val.clone(),

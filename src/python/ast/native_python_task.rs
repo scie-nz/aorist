@@ -10,6 +10,13 @@ define_task_node!(
         .statements
         .clone()
         .into_iter()
+        .map(|x| match &x {
+            AST::Assignment(_) | AST::Expression(_) => x,
+            _ => panic!(format!(
+                "AST node of type {} found in NativePythonTask body",
+                x.name()
+            )),
+        })
         .chain(
             vec![AST::Assignment(Assignment::new_wrapped(
                 task.task_val.clone(),

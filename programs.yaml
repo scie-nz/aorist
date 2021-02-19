@@ -75,40 +75,49 @@ spec:
         client.fput_object(bucket, dest_path, source_path)
         print("Successfully uploaded %s to %s" % (source_path, dest_path))
   call: upload_to_minio
-  args:
-    - type: AncestorArgument
+  kwargs:
+    hostname:
+      type: AncestorArgument
       spec:
         call: universe.endpoints.minio.as_ref().unwrap().server
         attaches: Universe
-    - type: AncestorArgument
+    port:
+      type: AncestorArgument
       spec:
         call: universe.endpoints.minio.as_ref().unwrap().port.to_string()
         attaches: Universe
-    - type: AncestorArgument
+    access_key:
+      type: AncestorArgument
       spec:
         call: universe.endpoints.minio.as_ref().unwrap().access_key
         attaches: Universe
-    - type: AncestorArgument
+    secret_key:
+      type: AncestorArgument
       spec:
         call: universe.endpoints.minio.as_ref().unwrap().secret_key
         attaches: Universe
-    - type: AncestorArgument
+    bucket:
+      type: AncestorArgument
       spec:
         call: universe.endpoints.minio.as_ref().unwrap().bucket
         attaches: Universe
-    - type: AncestorArgument
+    schema:
+      type: AncestorArgument
       spec:
         call: data_set.name
         attaches: DataSet
-    - type: AncestorArgument
+    tablename:
+      type: AncestorArgument
       spec:
         call: format!("{}_csv", static_data_table.name).to_string()
         attaches: StaticDataTable
-    - type: AncestorArgument
+    tmp_dir:
+      type: AncestorArgument
       spec:
         call: remote_import_storage_setup.tmp_dir
         attaches: RemoteImportStorageSetup
-    - type: AncestorArgument
+    source_file:
+      type: AncestorArgument
       spec:
         call: format!("{}.csv", static_data_table.name).to_string()
         attaches: StaticDataTable
