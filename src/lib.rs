@@ -1,6 +1,7 @@
 extern crate pyo3;
 pub mod access_policy;
 pub mod airflow_singleton;
+pub mod algorithms;
 pub mod asset;
 pub mod attributes;
 pub mod code_block;
@@ -18,6 +19,7 @@ pub mod endpoints;
 pub mod error;
 pub mod etl_singleton;
 pub mod etl_task;
+pub mod features;
 pub mod header;
 pub mod jupyter_singleton;
 pub mod layout;
@@ -39,7 +41,7 @@ pub mod utils;
 
 pub use access_policy::*;
 pub use airflow_singleton::*;
-pub use asset::*;
+pub use algorithms::*;
 pub use asset::*;
 pub use attributes::*;
 pub use compliance::*;
@@ -50,6 +52,7 @@ pub use dataset::*;
 pub use driver::*;
 pub use encoding::*;
 pub use endpoints::*;
+pub use features::*;
 pub use header::*;
 pub use jupyter_singleton::*;
 pub use layout::*;
@@ -149,6 +152,8 @@ fn aorist(py: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<InnerZipCompression>()?;
     m.add_class::<InnerComplianceConfig>()?;
     m.add_class::<InnerSingleObjectiveRegressor>()?;
+    m.add_class::<InnerRandomForestRegressionAlgorithm>()?;
+    m.add_class::<InnerContinuousObjective>()?;
     m.add_wrapped(wrap_pyfunction!(default_tabular_schema))?;
     m.add_wrapped(wrap_pyfunction!(dag))?;
     Ok(())

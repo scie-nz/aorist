@@ -10,10 +10,7 @@ use uuid::Uuid;
 
 mod regressor;
 
-pub use self::regressor::{
-    SingleObjectiveRegressor,
-    InnerSingleObjectiveRegressor,
-};
+pub use self::regressor::{InnerSingleObjectiveRegressor, SingleObjectiveRegressor};
 
 #[aorist_concept]
 pub enum Model {

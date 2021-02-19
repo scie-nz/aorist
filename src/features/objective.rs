@@ -1,6 +1,4 @@
 #![allow(non_snake_case)]
-use crate::algorithms::*;
-use crate::asset::*;
 use crate::concept::{AoristConcept, Concept};
 use crate::constraint::Constraint;
 use aorist_concept::{aorist_concept, Constrainable, InnerObject};
@@ -12,10 +10,14 @@ use std::sync::{Arc, RwLock};
 use uuid::Uuid;
 
 #[aorist_concept]
-pub struct SingleObjectiveRegressor {
-    name: String,
-    #[constrainable]
-    source_data: Vec<Asset>,
-    #[constrainable]
-    algorithm: RegressionAlgorithm,
+pub struct ContinuousObjective {}
+
+#[aorist_concept]
+pub enum ContinuousRegressionObjective {
+    ContinuousObjective(ContinuousObjective),
+}
+
+#[aorist_concept]
+pub enum RegressionObjective {
+    ContinuousRegressionObjective(ContinuousRegressionObjective),
 }

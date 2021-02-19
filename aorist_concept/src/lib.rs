@@ -122,9 +122,17 @@ fn process_enum_variants(
             #(
               #enum_name::#variant(ref mut x) => {
                   for el in enum_constraints.into_iter() {
-                      x.constraints.push(el);
+                      x.add_constraint(el);
                   };
               }
+            )*
+          }
+        }
+
+        fn add_constraint(&mut self, constraint: Arc<RwLock<Constraint>>)  {
+          match self {
+            #(
+              #enum_name::#variant(ref mut x) => x.add_constraint(constraint),
             )*
           }
         }
@@ -460,6 +468,9 @@ fn process_struct_fields(
                     }
                 )*
                 uuids
+            }
+            fn add_constraint(&mut self, constraint: Arc<RwLock<Constraint>>)  {
+                self.constraints.push(constraint);
             }
             fn compute_uuids(&mut self) {
                 #(

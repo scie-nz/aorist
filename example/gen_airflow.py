@@ -36,7 +36,10 @@ universe = Universe(
             name="predict_beer_abv",
             source_data=[beers_table],
             algorithm=RandomForestRegressionAlgorithm(),
-            target=ContinuousObjective(beers_table.schema.get('abv')).log(base=2),
+            target=LogTransform(
+                ContinuousObjective(beers_table.schema.get('abv')),
+                base=2
+            ),
             validation_config=TrainTestRegressionValidationConfig(test_ratio=0.05),
             feature_groups=[
                 CountFeatureGroup(

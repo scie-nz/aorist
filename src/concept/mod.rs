@@ -15,6 +15,7 @@ pub trait AoristConcept {
     fn get_uuid(&self) -> Uuid;
     fn get_children_uuid(&self) -> Vec<Uuid>;
     fn get_tag(&self) -> Option<String>;
+    fn add_constraint(&mut self, constraint: Arc<RwLock<Constraint>>);
 
     fn get_uuid_from_children_uuid(&self) -> Uuid {
         let child_uuids = self.get_children_uuid();

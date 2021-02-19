@@ -314,6 +314,8 @@ fn process_concepts(raw_objects: &Vec<HashMap<String, Value>>) {
     let concepts = vec![
         ("crate::access_policy", "AccessPolicy"),
         ("crate::access_policy", "ApproveAccessSelector"),
+        ("crate::algorithms", "RegressionAlgorithm"),
+        ("crate::algorithms", "RandomForestRegressionAlgorithm"),
         ("crate::asset", "Asset"),
         ("crate::asset", "StaticDataTable"),
         ("crate::attributes", "Attribute"),
@@ -331,6 +333,9 @@ fn process_concepts(raw_objects: &Vec<HashMap<String, Value>>) {
         ("crate::compression", "DataCompression"),
         ("crate::compression", "ZipCompression"),
         ("crate::compliance", "ComplianceConfig"),
+        ("crate::features", "ContinuousRegressionObjective"),
+        ("crate::features", "ContinuousObjective"),
+        ("crate::features", "RegressionObjective"),
         ("crate::header", "UpperSnakeCaseCSVHeader"),
         ("crate::header", "FileHeader"),
         ("crate::location", "AlluxioLocation"),
