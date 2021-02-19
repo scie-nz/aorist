@@ -1,4 +1,4 @@
-mod objective;
+pub mod objective;
 
 pub use objective::{
     ContinuousObjective, ContinuousRegressionObjective, InnerContinuousObjective,

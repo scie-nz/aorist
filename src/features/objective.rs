@@ -21,3 +21,20 @@ pub enum ContinuousRegressionObjective {
 pub enum RegressionObjective {
     ContinuousRegressionObjective(ContinuousRegressionObjective),
 }
+
+#[aorist_concept]
+pub struct Foo {
+    bar: SomeRef,
+}
+
+#[aorist_concept]
+pub enum Bar {
+    Foo(Foo),
+}
+impl Eq for Bar {}
+
+#[pyclass]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct SomeRef {
+    bar: Box<Bar>,
+}
