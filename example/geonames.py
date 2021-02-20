@@ -15,6 +15,7 @@ from aorist import (
     StaticDataTable,
     default_tabular_schema,
     DataSet,
+    ComputedFromLocalData,
 )
 
 # From: https://geonames.nga.mil/gns/html/gis_countryfiles.html
@@ -445,6 +446,17 @@ geonames_table = StaticDataTable(
     ),
     tag="geonames",
 )
+features_histogram_location = HiveTableStorage(
+    location=AlluxioLocation(path="features"),
+    layout=StaticHiveTableLayout(),
+    encoding=ORCEncoding(),
+)
+ComputedFromLocalData(
+    source=local,
+    target=features_histogram_location,
+    tmp_dir='/tmp/features_histogram',
+)
+
 geonames_dataset = DataSet(
     name="geonames-dataset",
     datumTemplates=[geonames_datum],

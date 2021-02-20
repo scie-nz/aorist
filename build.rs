@@ -356,6 +356,7 @@ fn process_concepts(raw_objects: &Vec<HashMap<String, Value>>) {
         ("crate::schema", "DataSchema"),
         ("crate::data_setup", "Universe"),
         ("crate::storage_setup", "RemoteImportStorageSetup"),
+        ("crate::storage_setup", "ComputedFromLocalData"),
         ("crate::storage_setup", "StorageSetup"),
         ("crate::storage", "Storage"),
         ("crate::storage", "HiveTableStorage"),

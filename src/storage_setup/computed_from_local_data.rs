@@ -1,9 +1,9 @@
 #![allow(non_snake_case)]
 use crate::concept::{AoristConcept, Concept};
-use crate::constraint::Constraint;
-use crate::storage_setup::remote_import_storage_setup::*;
-use crate::storage_setup::computed_from_local_data::*;
+use crate::constraint::{Constraint};
+use crate::storage::*;
 use aorist_concept::{aorist_concept, Constrainable, InnerObject};
+use derivative::Derivative;
 use paste::paste;
 use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
@@ -11,9 +11,10 @@ use std::sync::{Arc, RwLock};
 use uuid::Uuid;
 
 #[aorist_concept]
-pub enum StorageSetup {
+pub struct ComputedFromLocalData {
     #[constrainable]
-    RemoteImportStorageSetup(RemoteImportStorageSetup),
+    source: Storage,
     #[constrainable]
-    ComputedFromLocalData(ComputedFromLocalData),
+    target: Storage,
+    pub tmp_dir: String,
 }
