@@ -55,4 +55,8 @@ impl InnerDataSet {
         self.datumTemplates.push(t);
         Ok(())
     }
+    pub fn add_asset(&mut self, a: InnerAsset) -> PyResult<()> {
+        self.assets.push(a);
+        Ok(())
+    }
 }

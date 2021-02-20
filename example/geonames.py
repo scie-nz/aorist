@@ -452,22 +452,27 @@ features_histogram_location = HiveTableStorage(
     layout=StaticHiveTableLayout(),
     encoding=ORCEncoding(),
 )
-ComputedFromLocalData(
-    source=local,
-    target=features_histogram_location,
-    tmp_dir='/tmp/features_histogram',
-)
-
 geonames_dataset = DataSet(
     name="geonames-dataset",
     datumTemplates=[geonames_datum],
     assets=[geonames_table],
 )
-feature_type = derive_integer_measure(
+feature_class_count = derive_integer_measure(
     name="feature_class_frequency",
     comment="Frequency of Feature Class",
     attribute_names=["fc"],
     dataset=geonames_dataset,
     source_asset=geonames_table,
 )
-geonames_dataset.add_template(feature_type)
+geonames_dataset.add_template(feature_class_count)
+geonames_feature_class_histogram = StaticDataTable(
+    name="feature_class_histogram",
+    schema=default_tabular_schema(feature_class_count),
+    setup=ComputedFromLocalData(
+        source=local,
+        target=features_histogram_location,
+        tmp_dir="/tmp/features_histogram",
+    ),
+    tag="fc_hist",
+)
+geonames_dataset.add_asset(geonames_feature_class_histogram)
