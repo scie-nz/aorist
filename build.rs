@@ -365,6 +365,7 @@ fn process_concepts(raw_objects: &Vec<HashMap<String, Value>>) {
         ("crate::template", "DatumTemplate"),
         ("crate::template", "IdentifierTuple"),
         ("crate::template", "KeyedStruct"),
+        ("crate::template", "IntegerMeasure"),
         ("crate::user", "User"),
         ("crate::user_group", "UserGroup"),
         ("crate::endpoints", "EndpointConfig"),

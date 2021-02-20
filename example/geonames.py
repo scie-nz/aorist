@@ -16,6 +16,7 @@ from aorist import (
     default_tabular_schema,
     DataSet,
     ComputedFromLocalData,
+    IntegerMeasure,
 )
 
 # From: https://geonames.nga.mil/gns/html/gis_countryfiles.html
@@ -455,6 +456,11 @@ ComputedFromLocalData(
     source=local,
     target=features_histogram_location,
     tmp_dir='/tmp/features_histogram',
+)
+IntegerMeasure(
+    name="feature_type_frequency",
+    attributes=[attributes[7]],
+    comment="Frequency of Feature Types",
 )
 
 geonames_dataset = DataSet(

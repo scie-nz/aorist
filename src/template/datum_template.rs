@@ -5,6 +5,7 @@ use crate::concept::{AoristConcept, Concept};
 use crate::constraint::Constraint;
 use crate::template::identifier_tuple::*;
 use crate::template::keyed_struct::*;
+use crate::template::measure::*;
 use aorist_concept::{aorist_concept, Constrainable, InnerObject};
 use paste::paste;
 use pyo3::prelude::*;
@@ -16,6 +17,7 @@ use uuid::Uuid;
 pub enum DatumTemplate {
     KeyedStruct(KeyedStruct),
     IdentifierTuple(IdentifierTuple),
+    IntegerMeasure(IntegerMeasure),
 }
 
 pub trait TDatumTemplate {
@@ -31,12 +33,14 @@ impl TDatumTemplate for DatumTemplate {
         match self {
             DatumTemplate::KeyedStruct(x) => x.get_name(),
             DatumTemplate::IdentifierTuple(x) => x.get_name(),
+            DatumTemplate::IntegerMeasure(x) => x.get_name(),
         }
     }
     fn get_attributes(&self) -> Vec<Attribute> {
         match self {
             DatumTemplate::KeyedStruct(x) => x.get_attributes(),
             DatumTemplate::IdentifierTuple(x) => x.get_attributes(),
+            DatumTemplate::IntegerMeasure(x) => x.get_attributes(),
         }
     }
 }
@@ -45,12 +49,14 @@ impl TInnerDatumTemplate for InnerDatumTemplate {
         match self {
             InnerDatumTemplate::KeyedStruct(x) => x.name.clone(),
             InnerDatumTemplate::IdentifierTuple(x) => x.name.clone(),
+            InnerDatumTemplate::IntegerMeasure(x) => x.name.clone(),
         }
     }
     fn get_attributes(&self) -> Vec<InnerAttribute> {
         match self {
             InnerDatumTemplate::KeyedStruct(x) => x.attributes.clone(),
             InnerDatumTemplate::IdentifierTuple(x) => x.attributes.clone(),
+            InnerDatumTemplate::IntegerMeasure(x) => x.attributes.clone(),
         }
     }
 }

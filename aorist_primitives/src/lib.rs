@@ -364,9 +364,9 @@ macro_rules! define_attribute {
     ($element:ident, $presto_type:ident, $orc_type:ident, $sql_type:ident) => {
         #[aorist_concept(derive($presto_type, $orc_type, $sql_type))]
         pub struct $element {
-            name: String,
+            pub name: String,
             #[py_default = "None"]
-            comment: Option<String>,
+            pub comment: Option<String>,
         }
         impl TAttribute for $element {
             fn get_name(&self) -> &String {

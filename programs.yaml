@@ -283,6 +283,8 @@ spec:
       spec:
         call: >
           {
+            // TODO: this should be validated agains the CSV header and
+            // reordered appropriately if need be.
             let DataSchema::TabularSchema(ref t) = static_data_table.schema;
             let attributes = t.attributes.clone();
             let attr_v = data_set
@@ -294,6 +296,7 @@ spec:
                 .map(|x| match x {
                     DatumTemplate::KeyedStruct(k) => k.get_attributes(),
                     DatumTemplate::IdentifierTuple(t) => t.get_attributes(),
+                    DatumTemplate::IntegerMeasure(t) => t.get_attributes(),
                 })
                 .next().unwrap();
             let attr_map = attr_v.iter()
@@ -396,6 +399,7 @@ spec:
                 .map(|x| match x {
                     DatumTemplate::KeyedStruct(k) => k.get_attributes(),
                     DatumTemplate::IdentifierTuple(t) => t.get_attributes(),
+                    DatumTemplate::IntegerMeasure(t) => t.get_attributes(),
                 })
                 .next().unwrap();
             let attr_map = attr_v.iter()
@@ -537,6 +541,7 @@ spec:
                 .map(|x| match x {
                     DatumTemplate::KeyedStruct(k) => k.get_attributes(),
                     DatumTemplate::IdentifierTuple(t) => t.get_attributes(),
+                    DatumTemplate::IntegerMeasure(t) => t.get_attributes(),
                 })
                 .next().unwrap();
             let attr_map = attr_v.iter()
@@ -624,6 +629,7 @@ spec:
                 .map(|x| match x {
                     DatumTemplate::KeyedStruct(k) => k.get_attributes(),
                     DatumTemplate::IdentifierTuple(t) => t.get_attributes(),
+                    DatumTemplate::IntegerMeasure(t) => t.get_attributes(),
                 })
                 .next().unwrap();
             let attr_map = attr_v.iter()

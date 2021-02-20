@@ -82,3 +82,10 @@ spec:
   orc: OrcString
   presto: PrestoVarchar
   sql: SQLVarchar
+---
+type: Attribute
+spec:
+  name: Count
+  orc: OrcBigint
+  presto: PrestoBigint
+  sql: SQLBigint
