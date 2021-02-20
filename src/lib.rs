@@ -73,6 +73,7 @@ pub use utils::*;
 use aorist_primitives::TAttribute;
 use pyo3::prelude::*;
 use pyo3::wrap_pyfunction;
+use std::collections::HashSet;
 
 #[pyfunction]
 pub fn default_tabular_schema(datum_template: InnerDatumTemplate) -> InnerTabularSchema {
@@ -84,6 +85,45 @@ pub fn default_tabular_schema(datum_template: InnerDatumTemplate) -> InnerTabula
             .map(|x| x.get_name().clone())
             .collect(),
         tag: None,
+    }
+}
+
+#[pyfunction]
+pub fn derive_integer_measure(
+    dataset: InnerDataSet,
+    source_asset: InnerAsset,
+    name: String,
+    comment: Option<String>,
+    attribute_names: Vec<String>,
+) -> InnerIntegerMeasure {
+    let keep: HashSet<String> = attribute_names.into_iter().collect();
+    let template_name: String = source_asset.get_schema().get_datum_template_name();
+    let attribute_names: HashSet<String> = source_asset
+        .get_schema()
+        .get_attribute_names()
+        .into_iter()
+        .collect();
+    for name in &keep {
+        if !attribute_names.contains(name) {
+            panic!("Could not find attribute {} in the schema.", name);
+        }
+    }
+    if let Some(template) = dataset.get_mapped_datum_templates().get(&template_name) {
+        let attributes = template
+            .get_attributes()
+            .into_iter()
+            .filter(|x| keep.contains(x.get_name()))
+            .collect::<Vec<_>>();
+
+        return InnerIntegerMeasure {
+            attributes,
+            name,
+            comment,
+            source_asset_name: source_asset.get_name(),
+            tag: None,
+        };
+    } else {
+        panic!("Could not find template {} in templates.", template_name);
     }
 }
 
@@ -158,5 +198,6 @@ fn aorist(py: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<InnerIntegerMeasure>()?;
     m.add_wrapped(wrap_pyfunction!(default_tabular_schema))?;
     m.add_wrapped(wrap_pyfunction!(dag))?;
+    m.add_wrapped(wrap_pyfunction!(derive_integer_measure))?;
     Ok(())
 }

@@ -24,6 +24,7 @@ pub struct IntegerMeasure {
     pub comment: Option<String>,
     #[constrainable]
     pub attributes: Vec<Attribute>,
+    source_asset_name: String,
 }
 
 impl TDatumTemplate for IntegerMeasure {

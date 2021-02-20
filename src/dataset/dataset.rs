@@ -41,3 +41,18 @@ impl TDataSet for DataSet {
             .collect()
     }
 }
+impl InnerDataSet {
+    pub fn get_mapped_datum_templates(&self) -> HashMap<String, InnerDatumTemplate> {
+        self.datumTemplates
+            .iter()
+            .map(|x| (x.get_name().clone(), x.clone()))
+            .collect()
+    }
+}
+#[pymethods]
+impl InnerDataSet {
+    pub fn add_template(&mut self, t: InnerDatumTemplate) -> PyResult<()> {
+        self.datumTemplates.push(t);
+        Ok(())
+    }
+}
