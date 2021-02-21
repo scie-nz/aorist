@@ -263,28 +263,12 @@ fn process_struct_fields(
         )
         .unwrap();
     }
-    let bare_field_name = bare_field.clone().map(|x| x.0);
-    let bare_field_type = bare_field.clone().map(|x| x.1);
-    let bare_field_name2 = bare_field_name.clone();
-    let bare_field_name3 = bare_field_name.clone();
-    let bare_field_name4 = bare_field_name.clone();
-    let bare_field_name5 = bare_field_name.clone();
-    let bare_field_name6 = bare_field_name.clone();
-    let bare_field_name7 = bare_field_name.clone();
-    let vec_field_name = vec_field.clone().map(|x| x.0);
-    let vec_field_type = vec_field.clone().map(|x| x.1);
-    let vec_field_name2 = vec_field_name.clone();
-    let vec_field_name3 = vec_field_name.clone();
-    let vec_field_name4 = vec_field_name.clone();
-    let vec_field_name5 = vec_field_name.clone();
-    let vec_field_name6 = vec_field_name.clone();
-    let option_vec_field_name = option_vec_field.clone().map(|x| x.0);
-    let option_vec_field_type = option_vec_field.clone().map(|x| x.1);
-    let option_vec_field_name2 = option_vec_field_name.clone();
-    let option_vec_field_name3 = option_vec_field_name.clone();
-    let option_vec_field_name4 = option_vec_field_name.clone();
-    let option_vec_field_name5 = option_vec_field_name.clone();
-    let option_vec_field_name6 = option_vec_field_name.clone();
+    let bare_field_name = bare_field.clone().map(|x| x.0).collect::<Vec<_>>();
+    let bare_field_type = bare_field.clone().map(|x| x.1).collect::<Vec<_>>();
+    let vec_field_name = vec_field.clone().map(|x| x.0).collect::<Vec<_>>();
+    let vec_field_type = vec_field.clone().map(|x| x.1).collect::<Vec<_>>();
+    let option_vec_field_name = option_vec_field.clone().map(|x| x.0).collect::<Vec<_>>();
+    let option_vec_field_type = option_vec_field.clone().map(|x| x.1).collect::<Vec<_>>();
 
     TokenStream::from(quote! {
 
@@ -297,21 +281,21 @@ fn process_struct_fields(
                 let mut concepts = vec![
                     #(
                       Concept::#bare_field_type((
-                          &self.#bare_field_name7,
+                          &self.#bare_field_name,
                           0,
                           id.clone()
                       )),
                     )*
                 ];
                 #(
-                    for (i, x) in self.#vec_field_name6.iter().enumerate() {
+                    for (i, x) in self.#vec_field_name.iter().enumerate() {
                         concepts.push(
                             Concept::#vec_field_type((&x, i + 1, id.clone()))
                         );
                     }
                 )*
                 #(
-                    if let Some(ref v) = self.#option_vec_field_name6 {
+                    if let Some(ref v) = self.#option_vec_field_name {
                         for (i, x) in v.iter().enumerate() {
                             concepts.push(
                                 Concept::#option_vec_field_type(
@@ -378,19 +362,19 @@ fn process_struct_fields(
                     }*/
                 }
                 #(
-                    for constraint in &self.#bare_field_name6.get_downstream_constraints() {
+                    for constraint in &self.#bare_field_name.get_downstream_constraints() {
                          downstream.push(constraint.clone());
                     }
                 )*
                 #(
-                    for elem in &self.#vec_field_name5 {
+                    for elem in &self.#vec_field_name {
                         for constraint in elem.get_downstream_constraints() {
                             downstream.push(constraint.clone());
                         }
                     }
                 )*
                 #(
-                    if let Some(ref v) = self.#option_vec_field_name5 {
+                    if let Some(ref v) = self.#option_vec_field_name {
                         for elem in v {
                             for constraint in elem.get_downstream_constraints() {
                                 downstream.push(constraint.clone());
@@ -403,13 +387,13 @@ fn process_struct_fields(
             fn compute_constraints(&mut self) {
                 let mut constraints: Vec<Arc<RwLock<Constraint>>> = Vec::new();
                 #(
-                    self.#bare_field_name3.compute_constraints();
-                    for constraint in self.#bare_field_name2.get_downstream_constraints() {
+                    self.#bare_field_name.compute_constraints();
+                    for constraint in self.#bare_field_name.get_downstream_constraints() {
                          constraints.push(constraint.clone());
                     }
                 )*
                 #(
-                    for elem in self.#vec_field_name2.iter_mut() {
+                    for elem in self.#vec_field_name.iter_mut() {
                         elem.compute_constraints();
                         for constraint in elem.get_downstream_constraints() {
                             constraints.push(constraint.clone());
@@ -417,7 +401,7 @@ fn process_struct_fields(
                     }
                 )*
                 #(
-                    if let Some(ref mut v) = self.#option_vec_field_name2 {
+                    if let Some(ref mut v) = self.#option_vec_field_name {
                         for elem in v.iter_mut() {
                             elem.compute_constraints();
                             for constraint in elem.get_downstream_constraints() {
@@ -427,7 +411,7 @@ fn process_struct_fields(
                     }
                 )*
                 let mut new_constraints = Vec::new();
-                
+
                 #(
                   if crate::constraint::#constraint::should_add(&self) {
                     new_constraints.push(
@@ -462,15 +446,15 @@ fn process_struct_fields(
             fn get_children_uuid(&self) -> Vec<Uuid> {
                 let mut uuids: Vec<Uuid> = Vec::new();
                 #(
-                    uuids.push(self.#bare_field_name4.get_uuid());
+                    uuids.push(self.#bare_field_name.get_uuid());
                 )*
                 #(
-                    for elem in &self.#vec_field_name3 {
+                    for elem in &self.#vec_field_name {
                         uuids.push(elem.get_uuid());
                     }
                 )*
                 #(
-                    if let Some(ref v) = self.#option_vec_field_name3 {
+                    if let Some(ref v) = self.#option_vec_field_name {
                         for elem in v {
                             uuids.push(elem.get_uuid());
                         }
@@ -483,15 +467,15 @@ fn process_struct_fields(
             }
             fn compute_uuids(&mut self) {
                 #(
-                    self.#bare_field_name5.compute_uuids();
+                    self.#bare_field_name.compute_uuids();
                 )*
                 #(
-                    for elem in self.#vec_field_name4.iter_mut() {
+                    for elem in self.#vec_field_name.iter_mut() {
                         elem.compute_uuids();
                     }
                 )*
                 #(
-                    if let Some(ref mut v) = self.#option_vec_field_name4 {
+                    if let Some(ref mut v) = self.#option_vec_field_name {
                         for elem in v.iter_mut() {
                             elem.compute_uuids();
                         }
