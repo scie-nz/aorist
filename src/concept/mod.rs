@@ -16,6 +16,10 @@ pub trait AoristConcept {
     fn get_children_uuid(&self) -> Vec<Uuid>;
     fn get_tag(&self) -> Option<String>;
     fn add_constraint(&mut self, constraint: Arc<RwLock<Constraint>>);
+    fn add_constraints(
+        &mut self,
+        constraint_map: &HashMap<Uuid, Vec<Arc<RwLock<Constraint>>>>
+    );
 
     fn get_uuid_from_children_uuid(&self) -> Uuid {
         let child_uuids = self.get_children_uuid();
@@ -33,7 +37,6 @@ pub trait AoristConcept {
         }
     }
     fn compute_uuids(&mut self);
-
     fn get_child_concepts<'a, 'b>(&'a self) -> Vec<Concept<'b>>
     where
         'a: 'b;

@@ -90,7 +90,25 @@ fn process_enum_variants(
             )*
           }
         }
-
+        fn add_constraints(
+            &mut self,
+            constraint_map: &std::collections::HashMap<Uuid, Vec<Arc<RwLock<Constraint>>>>
+        ) {
+            match constraint_map.get(&self.get_uuid()) {
+                Some(enum_constraints) => match self {
+                    #(
+                        #enum_name::#variant(ref mut x) => {
+                            for el in enum_constraints.iter() {
+                                x.add_constraint(el.clone());
+                            };
+                            x.add_constraints(constraint_map);
+                        },
+                    )*
+                },
+                None => panic!(format!("Could not find constraints for {}",
+                stringify!(#enum_name))),
+            }
+        }
         fn compute_constraints(&mut self) {
           let uuid = self.get_uuid();
           match self {
@@ -383,6 +401,35 @@ fn process_struct_fields(
                     }
                 )*
                 downstream
+            }
+            fn add_constraints(
+                &mut self,
+                constraint_map: &std::collections::HashMap<Uuid, Vec<Arc<RwLock<Constraint>>>>
+            ) {
+                match constraint_map.get(&self.get_uuid()) {
+                    None => panic!(format!("Could not find constraints for {}",
+                    stringify!(#struct_name))),
+                    Some(constraints) => { 
+                        for c in constraints.iter() {
+                            self.constraints.push(c.clone());
+                        }
+                        #(
+                            self.#bare_field_name.add_constraints(constraint_map);
+                        )*
+                        #(
+                            for elem in self.#vec_field_name.iter_mut() {
+                                elem.add_constraints(constraint_map);
+                            }
+                        )*
+                        #(
+                            if let Some(ref mut v) = self.#option_vec_field_name {
+                                for elem in v.iter_mut() {
+                                    elem.add_constraints(constraint_map);
+                                }
+                            }
+                        )*
+                    }
+                }
             }
             fn compute_constraints(&mut self) {
                 let mut constraints: Vec<Arc<RwLock<Constraint>>> = Vec::new();
