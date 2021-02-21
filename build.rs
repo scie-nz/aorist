@@ -172,11 +172,25 @@ fn process_constraints(raw_objects: &Vec<HashMap<String, Value>>) {
             )
         })
         .collect::<HashMap<String, bool>>();
+    let attach_if = constraints
+        .iter()
+        .map(|x| {
+            (
+                x.get("name").unwrap().as_str().unwrap().to_string(),
+                match x.get("attachIf") {
+                    Some(Value::String(ref val)) => Some(val.to_string()),
+                    None => None,
+                    _ => panic!("attachIf needs to be a string containing a Rust closure"),
+                },
+            )
+        })
+        .collect::<HashMap<String, Option<String>>>();
     for (name, root, title, body) in &order {
         let required = dependencies
             .get(&(name.clone(), root.clone(), title.clone(), body.clone()))
             .unwrap();
         let requires_program = program_required.get(name).unwrap();
+        let should_add = attach_if.get(name).unwrap();
         let formatted_title = match title {
             Some(x) => format!("Some(\"{}\".to_string())", x),
             None => "None".to_string(),
@@ -185,19 +199,24 @@ fn process_constraints(raw_objects: &Vec<HashMap<String, Value>>) {
             Some(x) => format!("Some(\"{}\".to_string())", x),
             None => "None".to_string(),
         };
+        let should_add = match should_add {
+            None => "|_| true".to_string(),
+            Some(x) => x.to_string(),
+        };
         let define = match required.len() {
             0 => format!(
-                "define_constraint!({}, {}, Satisfy{}, {}, {}, {});",
-                name, requires_program, name, root, formatted_title, formatted_body,
+                "define_constraint!({}, {}, Satisfy{}, {}, {}, {}, {});",
+                name, requires_program, name, root, formatted_title, formatted_body, should_add,
             ),
             _ => format!(
-                "define_constraint!({}, {}, Satisfy{}, {}, {}, {}, {});",
+                "define_constraint!({}, {}, Satisfy{}, {}, {}, {}, {}, {});",
                 name,
                 requires_program,
                 name,
                 root,
                 formatted_title,
                 formatted_body,
+                should_add,
                 required.join(", ")
             ),
         };

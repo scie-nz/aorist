@@ -101,23 +101,26 @@ fn process_enum_variants(
             )*
           }
           let downstream = self.get_downstream_constraints();
-          let enum_constraints = vec![
-            #(
-              Arc::new(RwLock::new(Constraint{
-                  name: stringify!(#constraint).to_string(),
-                  root: stringify!(#enum_name).to_string(),
-                  requires: None,
-                  inner: Some(
-                      AoristConstraint::#constraint(
-                          crate::constraint::#constraint::new(
-                              uuid.clone(),
-                              downstream.clone(),
-                          )
-                      )
-                  ),
-              })),
-            )*
-          ];
+          let mut enum_constraints = Vec::new();
+          #(
+            if crate::constraint::#constraint::should_add(&self) {
+              enum_constraints.push(
+                Arc::new(RwLock::new(Constraint{
+                    name: stringify!(#constraint).to_string(),
+                    root: stringify!(#enum_name).to_string(),
+                    requires: None,
+                    inner: Some(
+                        AoristConstraint::#constraint(
+                            crate::constraint::#constraint::new(
+                                uuid.clone(),
+                                downstream.clone(),
+                            )
+                        )
+                    ),
+                })),
+              );
+            }
+          )*
           match self {
             #(
               #enum_name::#variant(ref mut x) => {
@@ -137,7 +140,9 @@ fn process_enum_variants(
           }
         }
 
-        fn get_constraints(&self) -> &Vec<Arc<RwLock<Constraint>>> {
+        fn get_constraints(
+          &self,
+        ) -> &Vec<Arc<RwLock<Constraint>>> {
           match self {
             #(
               #enum_name::#variant(x) => x.get_constraints(),
@@ -323,7 +328,7 @@ fn process_struct_fields(
             }
             fn traverse_constrainable_children(
                 &self,
-                mut upstream_constraints: Vec<Arc<RwLock<Constraint>>>
+                mut upstream_constraints: Vec<Arc<RwLock<Constraint>>>,
             ) {
 
 
@@ -421,23 +426,27 @@ fn process_struct_fields(
                         }
                     }
                 )*
-                let new_constraints = vec![
-                    #(
-                        Arc::new(RwLock::new(Constraint{
-                            name: stringify!(#constraint).to_string(),
-                            root: stringify!(#struct_name).to_string(),
-                            requires: None,
-                            inner: Some(
-                                AoristConstraint::#constraint(
-                                    crate::constraint::#constraint::new(
-                                        self.get_uuid(),
-                                        constraints.clone(),
-                                    )
-                                )
-                            ),
-                        })),
-                    )*
-                ];
+                let mut new_constraints = Vec::new();
+                
+                #(
+                  if crate::constraint::#constraint::should_add(&self) {
+                    new_constraints.push(
+                      Arc::new(RwLock::new(Constraint{
+                          name: stringify!(#constraint).to_string(),
+                          root: stringify!(#struct_name).to_string(),
+                          requires: None,
+                          inner: Some(
+                              AoristConstraint::#constraint(
+                                  crate::constraint::#constraint::new(
+                                      self.get_uuid(),
+                                      constraints.clone(),
+                                  )
+                              )
+                          ),
+                      })),
+                    );
+                  }
+                )*
                 for c in new_constraints.into_iter() {
                     self.constraints.push(c);
                 }

@@ -382,7 +382,7 @@ macro_rules! define_attribute {
 #[macro_export]
 macro_rules! define_constraint {
     ($element:ident, $requires_program:expr, $satisfy_type:ident, $root:ident,
-    $title: expr, $body: expr) => {
+    $title: expr, $body: expr, $should_add: expr) => {
         pub struct $element {
             id: Uuid,
             root_uuid: Uuid,
@@ -397,6 +397,9 @@ macro_rules! define_constraint {
             }
             pub fn get_downstream_constraints_ignore_chains(&self) -> Vec<Arc<RwLock<Constraint>>> {
                 Vec::new()
+            }
+            pub fn should_add(root: &$root) -> bool {
+                $should_add(root)
             }
             pub fn get_uuid(&self) -> Uuid {
                 self.id.clone()
@@ -450,7 +453,7 @@ macro_rules! define_constraint {
 		}
     };
     ($element:ident, $requires_program:expr, $satisfy_type:ident, $root:ident,
-    $title:expr, $body:expr, $($required:ident),+) => {
+    $title:expr, $body:expr, $should_add:expr, $($required:ident),+) => {
         paste::item! {
             pub struct $element {
                 id: Uuid,
@@ -473,6 +476,9 @@ macro_rules! define_constraint {
             impl $element {
                 pub fn get_uuid(&self) -> Uuid {
                     self.id.clone()
+                }
+                pub fn should_add(root: &$root) -> bool {
+                    $should_add(root)
                 }
                 pub fn get_root_uuid(&self) -> Uuid {
                     self.root_uuid.clone()
