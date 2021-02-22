@@ -389,7 +389,7 @@ fn process_concepts(raw_objects: &Vec<HashMap<String, Value>>) {
         ("crate::user", "User"),
         ("crate::user_group", "UserGroup"),
         ("crate::endpoints", "EndpointConfig"),
-        ("crate::template", "FloatMeasure"),
+        ("crate::template", "TrainedFloatMeasure"),
     ];
     scope.import("aorist_primitives", "register_concept");
     scope.import("std::convert", "TryFrom");

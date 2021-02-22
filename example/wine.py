@@ -117,7 +117,7 @@ from aorist import (
     StaticDataTable,
     default_tabular_schema,
     DataSet,
-    FloatMeasure,
+    TrainedFloatMeasure,
 )
 
 # hacky import since submodule imports don't work well
@@ -175,12 +175,13 @@ wine_dataset = DataSet(
 )
 
 features = attributes[2:]
-classifier_template = FloatMeasure(
+classifier_template = TrainedFloatMeasure(
     name="predicted_alcohol",
     comment="""
     Predicted alcohol content, based on the following inputs:
     %s
     """ % [x.name for x in features],
-    attributes=features,
+    features=features,
+    objective=attributes[1],
     source_asset_name="wine_table",
 )

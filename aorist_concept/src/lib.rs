@@ -388,6 +388,15 @@ pub fn constrain_object(input: TokenStream) -> TokenStream {
                         }
                     }
                 }
+                impl From<#enum_name> for [<Inner #enum_name>] {
+                    fn from(outer: #enum_name) -> Self {
+                        match outer {
+                             #(
+                                 #enum_name::#variant(x) => Self::#variant([<Inner #variant>]::from(x)),
+                             )*
+                        }
+                    }
+                }
             }};
             return proc_macro::TokenStream::from(quoted);
         }
@@ -514,6 +523,29 @@ pub fn constrain_object(input: TokenStream) -> TokenStream {
                             uuid: None,
                             tag: inner.tag,
                             constraints: Vec::new(),
+                        }
+                    }
+                }
+
+                impl From<#struct_name> for [<Inner #struct_name>] {
+                    fn from(outer: #struct_name) -> Self {
+                        Self {
+                            #(#bare_ident: [<Inner #bare_type>]::from(outer.#bare_ident),)*
+                            #(#vec_ident: outer.#vec_ident.into_iter().map(|x| [<Inner #vec_type>]::from(x)).collect(),)*
+                            #(
+                                #option_ident: match outer.#option_ident {
+                                    None => None,
+                                    Some(x) => Some([<Inner #option_type>]::from(x)),
+                                },
+                            )*
+                            #(
+                                #option_vec_ident: match outer.#option_vec_ident {
+                                    None => None,
+                                    Some(v) => Some(v.into_iter().map(|x| [<Inner #option_vec_type>]::from(x)).collect()),
+                                },
+                            )*
+                            #(#unconstrainable_name: outer.#unconstrainable_name,)*
+                            tag: outer.tag,
                         }
                     }
                 }

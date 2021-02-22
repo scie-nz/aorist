@@ -49,20 +49,21 @@ impl IntegerMeasure {
         })
     }
 }
-
 #[aorist_concept]
-pub struct FloatMeasure {
+pub struct TrainedFloatMeasure {
     pub name: String,
     #[py_default = "None"]
     pub comment: Option<String>,
     #[constrainable]
-    pub attributes: Vec<Attribute>,
+    pub features: Vec<Attribute>,
+    #[constrainable]
+    pub objective: Attribute,
     pub source_asset_name: String,
 }
 
-impl TDatumTemplate for FloatMeasure {
+impl TDatumTemplate for TrainedFloatMeasure {
     fn get_attributes(&self) -> Vec<Attribute> {
-        let mut attr = self.attributes.clone();
+        let mut attr = self.features.clone();
         let prediction_attribute = self.get_prediction_attribute();
         attr.push(prediction_attribute);
         attr
@@ -71,7 +72,7 @@ impl TDatumTemplate for FloatMeasure {
         self.name.clone()
     }
 }
-impl FloatMeasure {
+impl TrainedFloatMeasure {
     pub fn get_prediction_attribute(&self) -> Attribute {
         Attribute::FloatPrediction(FloatPrediction {
             name: self.name.clone(),
@@ -80,5 +81,8 @@ impl FloatMeasure {
             uuid: None,
             constraints: Vec::new(),
         })
+    }
+    pub fn get_training_objective(&self) -> Attribute {
+        self.objective.clone()
     }
 }

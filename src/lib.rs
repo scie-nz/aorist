@@ -79,7 +79,7 @@ use std::collections::HashSet;
 pub fn default_tabular_schema(datum_template: InnerDatumTemplate) -> InnerTabularSchema {
     InnerTabularSchema {
         datumTemplateName: datum_template.get_name(),
-        attributes: datum_template
+        attributes: DatumTemplate::from(datum_template)
             .get_attributes()
             .iter()
             .map(|x| x.get_name().clone())
@@ -109,11 +109,12 @@ pub fn derive_integer_measure(
         }
     }
     if let Some(template) = dataset.get_mapped_datum_templates().get(&template_name) {
-        let attributes = template
+        let attributes = DatumTemplate::from(template.clone())
             .get_attributes()
             .into_iter()
             .filter(|x| keep.contains(x.get_name()))
-            .collect::<Vec<_>>();
+            .map(|x| InnerAttribute::from(x.clone()))
+            .collect::<Vec<InnerAttribute>>();
 
         return InnerIntegerMeasure {
             attributes,
@@ -195,7 +196,7 @@ fn aorist(py: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<InnerContinuousObjective>()?;
     m.add_class::<InnerComputedFromLocalData>()?;
     m.add_class::<InnerIntegerMeasure>()?;
-    m.add_class::<InnerFloatMeasure>()?;
+    m.add_class::<InnerTrainedFloatMeasure>()?;
     m.add_class::<InnerSupervisedModel>()?;
     m.add_wrapped(wrap_pyfunction!(default_tabular_schema))?;
     m.add_wrapped(wrap_pyfunction!(dag))?;
