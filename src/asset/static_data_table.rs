@@ -1,6 +1,6 @@
 #![allow(non_snake_case)]
 use crate::concept::{AoristConcept, Concept};
-use crate::constraint::{AoristConstraint, Constraint};
+use crate::constraint::Constraint;
 use crate::schema::*;
 use crate::storage_setup::*;
 use aorist_concept::{aorist_concept, Constrainable, InnerObject};

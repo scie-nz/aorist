@@ -1,4 +1,3 @@
-use crate::constraint::Constraint;
 use siphasher::sip128::{Hasher128, SipHasher};
 use std::collections::BTreeSet;
 use std::hash::Hasher;
@@ -6,17 +5,9 @@ use std::sync::{Arc, RwLock};
 use uuid::Uuid;
 
 pub trait AoristConcept {
-    // TODO: should be renamed to compute_bottom_up_constraints
-    fn compute_constraints(&mut self);
-    fn get_constraints(&self) -> &Vec<Arc<RwLock<Constraint>>>;
-    fn get_downstream_constraints(&self) -> Vec<Arc<RwLock<Constraint>>>;
-    // TODO: should be renamed to compute_top_down_constraints
-    fn traverse_constrainable_children(&self, upstream_constraints: Vec<Arc<RwLock<Constraint>>>);
     fn get_uuid(&self) -> Uuid;
     fn get_children_uuid(&self) -> Vec<Uuid>;
     fn get_tag(&self) -> Option<String>;
-    fn add_constraint(&mut self, constraint: Arc<RwLock<Constraint>>);
-    fn add_constraints(&mut self, constraint_map: &HashMap<Uuid, Vec<Arc<RwLock<Constraint>>>>);
 
     fn get_uuid_from_children_uuid(&self) -> Uuid {
         let child_uuids = self.get_children_uuid();

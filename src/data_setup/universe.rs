@@ -1,7 +1,7 @@
 #![allow(non_snake_case)]
 use crate::compliance::*;
 use crate::concept::{AoristConcept, Concept};
-use crate::constraint::{AoristConstraint, Constraint};
+use crate::constraint::Constraint;
 use crate::dataset::*;
 use crate::endpoints::*;
 use crate::models::*;

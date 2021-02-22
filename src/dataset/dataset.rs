@@ -2,7 +2,7 @@
 use crate::access_policy::*;
 use crate::asset::*;
 use crate::concept::{AoristConcept, Concept};
-use crate::constraint::{AoristConstraint, Constraint};
+use crate::constraint::Constraint;
 use crate::object::TAoristObject;
 use crate::template::*;
 use aorist_concept::{aorist_concept, Constrainable, InnerObject};

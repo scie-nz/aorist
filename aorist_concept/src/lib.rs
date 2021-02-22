@@ -1,7 +1,7 @@
 // Following: https://github.com/dtolnay/syn/issues/516
 extern crate proc_macro;
 use self::proc_macro::TokenStream;
-use proc_macro2::{Ident, Span};
+use proc_macro2::{Ident};
 use quote::quote;
 use std::fs::OpenOptions;
 use std::io::prelude::*;
@@ -16,22 +16,12 @@ use type_macro_helpers::{extract_type_from_option, extract_type_from_vector};
 mod keyword {
     syn::custom_keyword!(path);
 }
-use aorist_util::{get_raw_objects_of_type, read_file};
-use std::collections::HashMap;
 
 fn process_enum_variants(
     variants: &Punctuated<Variant, Comma>,
     input: &DeriveInput,
-    constraints: &HashMap<String, Vec<String>>,
 ) -> TokenStream {
     let enum_name = &input.ident;
-    let constraint: Vec<Ident> = match constraints.get(&enum_name.to_string()) {
-        Some(v) => v
-            .into_iter()
-            .map(|x| Ident::new(x, Span::call_site()))
-            .collect(),
-        None => Vec::new(),
-    };
     let variant = variants
         .iter()
         .map(|x| (x.ident.clone()))
@@ -79,102 +69,6 @@ fn process_enum_variants(
                 )*
             }
         }
-        fn traverse_constrainable_children(
-            &self,
-            upstream_constraints: Vec<Arc<RwLock<Constraint>>>
-        ) {
-          match self {
-            #(
-              #enum_name::#variant(x) =>
-              x.traverse_constrainable_children(upstream_constraints),
-            )*
-          }
-        }
-        fn add_constraints(
-            &mut self,
-            constraint_map: &std::collections::HashMap<Uuid, Vec<Arc<RwLock<Constraint>>>>
-        ) {
-            match constraint_map.get(&self.get_uuid()) {
-                Some(enum_constraints) => match self {
-                    #(
-                        #enum_name::#variant(ref mut x) => {
-                            for el in enum_constraints.iter() {
-                                x.add_constraint(el.clone());
-                            };
-                            x.add_constraints(constraint_map);
-                        },
-                    )*
-                },
-                None => panic!(format!("Could not find constraints for {}",
-                stringify!(#enum_name))),
-            }
-        }
-        fn compute_constraints(&mut self) {
-          let uuid = self.get_uuid();
-          match self {
-            #(
-              #enum_name::#variant(ref mut x) => {
-                  x.compute_constraints();
-              }
-            )*
-          }
-          let downstream = self.get_downstream_constraints();
-          let mut enum_constraints = Vec::new();
-          #(
-            if crate::constraint::#constraint::should_add(&self) {
-              enum_constraints.push(
-                Arc::new(RwLock::new(Constraint{
-                    name: stringify!(#constraint).to_string(),
-                    root: stringify!(#enum_name).to_string(),
-                    requires: None,
-                    inner: Some(
-                        AoristConstraint::#constraint(
-                            <crate::constraint::#constraint as crate::constraint::TConstraint>::new(
-                                uuid.clone(),
-                                downstream.clone(),
-                            )
-                        )
-                    ),
-                })),
-              );
-            }
-          )*
-          match self {
-            #(
-              #enum_name::#variant(ref mut x) => {
-                  for el in enum_constraints.into_iter() {
-                      x.add_constraint(el);
-                  };
-              }
-            )*
-          }
-        }
-
-        fn add_constraint(&mut self, constraint: Arc<RwLock<Constraint>>)  {
-          match self {
-            #(
-              #enum_name::#variant(ref mut x) => x.add_constraint(constraint),
-            )*
-          }
-        }
-
-        fn get_constraints(
-          &self,
-        ) -> &Vec<Arc<RwLock<Constraint>>> {
-          match self {
-            #(
-              #enum_name::#variant(x) => x.get_constraints(),
-            )*
-          }
-        }
-
-        fn get_downstream_constraints(&self) -> Vec<Arc<RwLock<Constraint>>> {
-          match self {
-            #(
-              #enum_name::#variant(x) => x.get_downstream_constraints(),
-            )*
-          }
-        }
 
         fn get_uuid(&self) -> Uuid {
           match self {
@@ -203,7 +97,6 @@ fn process_enum_variants(
 fn process_struct_fields(
     fields: &Punctuated<Field, Comma>,
     input: &DeriveInput,
-    constraints: &HashMap<String, Vec<String>>,
 ) -> TokenStream {
     let field = fields
         .iter()
@@ -222,13 +115,6 @@ fn process_struct_fields(
         .map(|field| (&field.ident, &field.ty));
 
     let struct_name = &input.ident;
-    let constraint: Vec<Ident> = match constraints.get(&struct_name.to_string()) {
-        Some(v) => v
-            .into_iter()
-            .map(|x| Ident::new(x, Span::call_site()))
-            .collect(),
-        None => Vec::new(),
-    };
     let bare_field = field.clone().filter(|x| {
         extract_type_from_option(x.1).is_none() && extract_type_from_vector(x.1).is_none()
     });
@@ -328,162 +214,6 @@ fn process_struct_fields(
             fn get_tag(&self) -> Option<String> {
                 self.tag.clone()
             }
-            fn traverse_constrainable_children(
-                &self,
-                mut upstream_constraints: Vec<Arc<RwLock<Constraint>>>,
-            ) {
-
-
-                // ingest upstream constraints, including those rooted at the
-                // same level
-                for focal_constraint in self.get_constraints().clone() {
-                    let mut my_upstream_constraints = upstream_constraints.clone();
-                    let my_uuid = focal_constraint.read().unwrap().get_uuid();
-                    // add my own constraints to upstream_constraints
-                    for constraint in self.get_constraints().clone() {
-                        if constraint.read().unwrap().get_uuid() != my_uuid {
-                            my_upstream_constraints.push(constraint.clone());
-                        }
-                    }
-                    focal_constraint.write().unwrap().ingest_upstream_constraints(my_upstream_constraints);
-                }
-                for constraint in self.get_constraints().clone() {
-                    upstream_constraints.push(constraint.clone());
-                }
-
-                #(
-                    self.#bare_field_name.traverse_constrainable_children(upstream_constraints.clone());
-                )*
-                #(
-                    for x in &self.#vec_field_name {
-                        x.traverse_constrainable_children(upstream_constraints.clone());
-                    }
-                )*
-                #(
-                    if let Some(ref v) = self.#option_vec_field_name {
-                        for x in v {
-                            x.traverse_constrainable_children(upstream_constraints.clone())
-                        }
-                    }
-                )*
-            }
-            fn get_constraints(&self) -> &Vec<Arc<RwLock<Constraint>>> {
-                &self.constraints
-            }
-            fn get_downstream_constraints(&self) -> Vec<Arc<RwLock<Constraint>>> {
-                // TODO: this is where we should enforce deduplication
-                let mut downstream: Vec<Arc<RwLock<Constraint>>> = Vec::new();
-                for constraint in &self.constraints.clone() {
-                    downstream.push(constraint.clone());
-                    /*for elem in constraint.get_downstream_constraints() {
-                        downstream.push(elem.clone());
-                    }*/
-                }
-                #(
-                    for constraint in &self.#bare_field_name.get_downstream_constraints() {
-                         downstream.push(constraint.clone());
-                    }
-                )*
-                #(
-                    for elem in &self.#vec_field_name {
-                        for constraint in elem.get_downstream_constraints() {
-                            downstream.push(constraint.clone());
-                        }
-                    }
-                )*
-                #(
-                    if let Some(ref v) = self.#option_vec_field_name {
-                        for elem in v {
-                            for constraint in elem.get_downstream_constraints() {
-                                downstream.push(constraint.clone());
-                            }
-                        }
-                    }
-                )*
-                downstream
-            }
-            fn add_constraints(
-                &mut self,
-                constraint_map: &std::collections::HashMap<Uuid, Vec<Arc<RwLock<Constraint>>>>
-            ) {
-                match constraint_map.get(&self.get_uuid()) {
-                    None => panic!(format!("Could not find constraints for {}",
-                    stringify!(#struct_name))),
-                    Some(constraints) => {
-                        for c in constraints.iter() {
-                            self.constraints.push(c.clone());
-                        }
-                        #(
-                            self.#bare_field_name.add_constraints(constraint_map);
-                        )*
-                        #(
-                            for elem in self.#vec_field_name.iter_mut() {
-                                elem.add_constraints(constraint_map);
-                            }
-                        )*
-                        #(
-                            if let Some(ref mut v) = self.#option_vec_field_name {
-                                for elem in v.iter_mut() {
-                                    elem.add_constraints(constraint_map);
-                                }
-                            }
-                        )*
-                    }
-                }
-            }
-            fn compute_constraints(&mut self) {
-                let mut constraints: Vec<Arc<RwLock<Constraint>>> = Vec::new();
-                #(
-                    self.#bare_field_name.compute_constraints();
-                    for constraint in self.#bare_field_name.get_downstream_constraints() {
-                         constraints.push(constraint.clone());
-                    }
-                )*
-                #(
-                    for elem in self.#vec_field_name.iter_mut() {
-                        elem.compute_constraints();
-                        for constraint in elem.get_downstream_constraints() {
-                            constraints.push(constraint.clone());
-                        }
-                    }
-                )*
-                #(
-                    if let Some(ref mut v) = self.#option_vec_field_name {
-                        for elem in v.iter_mut() {
-                            elem.compute_constraints();
-                            for constraint in elem.get_downstream_constraints() {
-                                constraints.push(constraint.clone());
-                            }
-                        }
-                    }
-                )*
-                let mut new_constraints = Vec::new();
-
-                #(
-                  if crate::constraint::#constraint::should_add(&self) {
-                    new_constraints.push(
-                      Arc::new(RwLock::new(Constraint{
-                          name: stringify!(#constraint).to_string(),
-                          root: stringify!(#struct_name).to_string(),
-                          requires: None,
-                          inner: Some(
-                              AoristConstraint::#constraint(
-                                  <crate::constraint::#constraint as crate::constraint::TConstraint>::new(
-                                      self.get_uuid(),
-                                      constraints.clone(),
-                                  )
-                              )
-                          ),
-                      })),
-                    );
-                  }
-                )*
-                for c in new_constraints.into_iter() {
-                    self.constraints.push(c);
-                }
-                //println!("Computed {} constraints on {}.", self.constraints.len(),
-                //stringify!(#struct_name));
-            }
             fn get_uuid(&self) -> Uuid {
                 if let Some(uuid) = self.uuid {
                     return uuid.clone();
@@ -509,9 +239,6 @@ fn process_struct_fields(
                 )*
                 uuids
             }
-            fn add_constraint(&mut self, constraint: Arc<RwLock<Constraint>>)  {
-                self.constraints.push(constraint);
-            }
             fn compute_uuids(&mut self) {
                 #(
                     self.#bare_field_name.compute_uuids();
@@ -533,38 +260,17 @@ fn process_struct_fields(
         }
     })
 }
-fn get_constraints_map(filename: String) -> HashMap<String, Vec<String>> {
-    let raw_objects = read_file(&filename);
-    let constraints = get_raw_objects_of_type(&raw_objects, "Constraint".into());
-    let constraints_parsed: Vec<(String, String)> = constraints
-        .into_iter()
-        .map(|x| {
-            (
-                x.get("name").unwrap().as_str().unwrap().into(),
-                x.get("root").unwrap().as_str().unwrap().into(),
-            )
-        })
-        .collect();
-    let mut constraints_map: HashMap<String, Vec<String>> = HashMap::new();
-    for (name, root) in constraints_parsed {
-        constraints_map.entry(root).or_insert(Vec::new()).push(name);
-    }
-    constraints_map
-}
-
 #[proc_macro_derive(Constrainable, attributes(constrainable))]
 pub fn constrainable(input: TokenStream) -> TokenStream {
-    // TODO: this should be passed somehow (maybe env var?)
-    let constraints_map = get_constraints_map("basic.yaml".into());
     let input = parse_macro_input!(input as DeriveInput);
     //let constraint_names = AoristConstraint::get_required_constraint_names();
     match &input.data {
         Data::Struct(DataStruct {
             fields: Fields::Named(fields),
             ..
-        }) => process_struct_fields(&fields.named, &input, &constraints_map),
+        }) => process_struct_fields(&fields.named, &input),
         Data::Enum(DataEnum { variants, .. }) => {
-            process_enum_variants(variants, &input, &constraints_map)
+            process_enum_variants(variants, &input)
         }
         _ => panic!("expected a struct with named fields or an enum"),
     }
