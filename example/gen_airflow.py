@@ -14,7 +14,6 @@ universe = Universe(
     groups=DEFAULT_GROUPS,
     datasets=[
         snap_dataset,
-        geonames_dataset,
     ],
     endpoints=DEFAULT_ENDPOINTS,
     compliance=ComplianceConfig(

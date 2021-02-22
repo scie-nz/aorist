@@ -291,6 +291,28 @@ where
         let constraints = universe.get_constraints_map(topline);
 
         let ancestors = Self::compute_all_ancestors(concept, &concept_map);
+        let mut family_trees: HashMap<(Uuid, String), HashMap<String, Vec<Uuid>>> = HashMap::new();
+        for (key, ancestor_v) in ancestors.iter() {
+            for record in ancestor_v {
+                family_trees
+                    .entry(key.clone())
+                    .or_insert(HashMap::new())
+                    .entry(record.object_type.clone())
+                    .or_insert(Vec::new())
+                    .push(record.uuid);
+            }
+            for record in ancestor_v {
+                let (uuid, object_type) = key;
+                let ancestor_key = record.get_key();
+                family_trees
+                    .entry(ancestor_key)
+                    .or_insert(HashMap::new())
+                    .entry(object_type.clone())
+                    .or_insert(Vec::new())
+                    .push(uuid.clone());
+            }
+        }
+
         let concepts = Arc::new(RwLock::new(concept_map));
         let unsatisfied_constraints =
             Self::get_unsatisfied_constraints(&constraints, concepts.clone(), &ancestors);
