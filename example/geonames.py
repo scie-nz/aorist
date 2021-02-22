@@ -448,7 +448,7 @@ geonames_table = StaticDataTable(
     tag="geonames",
 )
 features_histogram_location = HiveTableStorage(
-    location=AlluxioLocation(path="features"),
+    location=AlluxioLocation(path="fc_hist"),
     layout=StaticHiveTableLayout(),
     encoding=ORCEncoding(),
 )

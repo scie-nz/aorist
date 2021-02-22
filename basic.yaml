@@ -77,6 +77,12 @@ spec:
   body: |
       We will use Hive tables with external storage as a staging location for our
       data. We need to create these schemas to be able to write data to them.
+  attachIf: |
+      |root: Concept<'a>, ancestry: &ConceptAncestry<'a>|
+      match ancestry.static_data_table(root.clone()).unwrap().setup {
+          crate::storage_setup::StorageSetup::RemoteImportStorageSetup(_) => true,
+          _ => false,
+      }
 ---
 type: Constraint
 spec:
@@ -87,9 +93,6 @@ spec:
   body: |
       We need to create directories or buckets (depending on file system / storage
       solution) in which we will store our Hive data.
-  attachIf: |
-      |root: Concept<'a>, ancestry: &ConceptAncestry<'a>|
-      ancestry.remote_import_storage_setup(root.clone()).is_ok()
 ---
 type: Constraint
 spec:
