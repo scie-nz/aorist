@@ -341,12 +341,12 @@ where
             let constraint_name = builder.get_constraint_name();
 
             if let Some(root_concepts) = by_object_type.get(&root_object_type) {
-                println!(
+                /*println!(
                     "Attaching constraint {} to {} objects of type {}.",
                     constraint_name,
                     root_concepts.len(),
                     root_object_type
-                );
+                );*/
 
                 for root in root_concepts {
                     let root_key = (root.get_uuid(), root.get_type());
@@ -387,6 +387,12 @@ where
             visited_constraint_names.insert(constraint_name.clone());
         }
 
+        let constraints = generated_constraints
+            .into_iter()
+            .map(|(_, v)| v.into_iter())
+            .flatten()
+            .map(|((root_id, root_type), rw)| ((rw.read().unwrap().get_uuid().clone(), root_type), rw.clone()))
+            .collect();
         let concepts = Arc::new(RwLock::new(concept_map));
         let unsatisfied_constraints =
             Self::get_unsatisfied_constraints(&constraints, concepts.clone(), &ancestors);
