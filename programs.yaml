@@ -293,11 +293,7 @@ spec:
                 .filter(|x| {
                     x.get_name().clone() == t.datumTemplateName
                 })
-                .map(|x| match x {
-                    DatumTemplate::KeyedStruct(k) => k.get_attributes(),
-                    DatumTemplate::IdentifierTuple(t) => t.get_attributes(),
-                    DatumTemplate::IntegerMeasure(t) => t.get_attributes(),
-                })
+                .map(|x| x.get_attributes())
                 .next().unwrap();
             let attr_map = attr_v.iter()
                 .map(|x| (x.get_name().clone(), x.get_orc_type()))
@@ -386,6 +382,7 @@ spec:
         call: >
           {
             use crate::attributes::TAttribute;
+            use crate::template::TDatumTemplate;
             let DataSchema::TabularSchema(ref t) = static_data_table.schema;
             let dictionary = Standard::from_embedded(Language::EnglishUS).unwrap();
             let options = Options::new(66).splitter(dictionary);
@@ -396,11 +393,7 @@ spec:
                 .filter(|x| {
                     x.get_name().clone() == t.datumTemplateName
                 })
-                .map(|x| match x {
-                    DatumTemplate::KeyedStruct(k) => k.get_attributes(),
-                    DatumTemplate::IdentifierTuple(t) => t.get_attributes(),
-                    DatumTemplate::IntegerMeasure(t) => t.get_attributes(),
-                })
+                .map(|x| x.get_attributes())
                 .next().unwrap();
             let attr_map = attr_v.iter()
                 .map(|x|
@@ -531,6 +524,7 @@ spec:
         call: >
           {
             use crate::attributes::TAttribute;
+            use crate::template::TDatumTemplate;
             let DataSchema::TabularSchema(ref t) = static_data_table.schema;
             let attr_v = data_set
                 .datumTemplates
@@ -538,11 +532,7 @@ spec:
                 .filter(|x| {
                     x.get_name().clone() == t.datumTemplateName
                 })
-                .map(|x| match x {
-                    DatumTemplate::KeyedStruct(k) => k.get_attributes(),
-                    DatumTemplate::IdentifierTuple(t) => t.get_attributes(),
-                    DatumTemplate::IntegerMeasure(t) => t.get_attributes(),
-                })
+                .map(|x| x.get_attributes())
                 .next().unwrap();
             let attr_map = attr_v.iter()
                 .map(|x|
@@ -619,6 +609,7 @@ spec:
         call: >
           {
             use crate::attributes::TAttribute;
+            use crate::template::TDatumTemplate;
             let DataSchema::TabularSchema(ref t) = static_data_table.schema;
             let attr_v = data_set
                 .datumTemplates
@@ -626,11 +617,7 @@ spec:
                 .filter(|x| {
                     x.get_name().clone() == t.datumTemplateName
                 })
-                .map(|x| match x {
-                    DatumTemplate::KeyedStruct(k) => k.get_attributes(),
-                    DatumTemplate::IdentifierTuple(t) => t.get_attributes(),
-                    DatumTemplate::IntegerMeasure(t) => t.get_attributes(),
-                })
+                .map(|x| x.get_attributes())
                 .next().unwrap();
             let attr_map = attr_v.iter()
                 .map(|x|
@@ -687,15 +674,15 @@ spec:
                 .map(|x| format!("            {}",
                 x.get_name().clone()).to_string())
                 .collect::<Vec<String>>().join("\n, ");
-        
+
             format!("
             INSERT INTO {presto_schema}.{table_name}
-            SELECT 
-                {group_by_columns}, 
-                COUNT(*) AS {freq_column} 
+            SELECT
+                {group_by_columns},
+                COUNT(*) AS {freq_column}
             FROM {presto_schema}.{source_table_name}
             GROUP BY {group_by_columns}
-            ", 
+            ",
                 presto_schema=data_set.name,
                 table_name=format!("{}", static_data_table.name),
                 freq_column=freq_column,
