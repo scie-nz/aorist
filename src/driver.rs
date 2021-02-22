@@ -376,6 +376,11 @@ where
             g.remove(&leaf);
         }
 
+        let concepts = Arc::new(RwLock::new(concept_map));
+        let ancestry: ConceptAncestry<'a> = ConceptAncestry {
+            parents: concepts.clone(),
+        };
+
         for builder in sorted_builders {
             let root_object_type = builder.get_root_type_name();
             let constraint_name = builder.get_constraint_name();
@@ -413,14 +418,15 @@ where
                         })
                         .flatten()
                         .collect::<Vec<Arc<RwLock<Constraint>>>>();
-                    //println!("... with {} potential child constraints", potential_child_constraints.len());
-                    let constraint =
-                        builder.build_constraint(root.get_uuid(), potential_child_constraints);
-                    let gen_for_constraint = generated_constraints
-                        .entry(constraint_name.clone())
-                        .or_insert(LinkedHashMap::new());
-                    assert!(!gen_for_constraint.contains_key(&root_key));
-                    gen_for_constraint.insert(root_key, Arc::new(RwLock::new(constraint)));
+                    if builder.should_add(root.clone()) {
+                        let constraint =
+                            builder.build_constraint(root.get_uuid(), potential_child_constraints);
+                        let gen_for_constraint = generated_constraints
+                            .entry(constraint_name.clone())
+                            .or_insert(LinkedHashMap::new());
+                        assert!(!gen_for_constraint.contains_key(&root_key));
+                        gen_for_constraint.insert(root_key, Arc::new(RwLock::new(constraint)));
+                    }
                 }
             }
             for req in builder.get_required_constraint_names() {
@@ -440,13 +446,10 @@ where
                 )
             })
             .collect();
-        let concepts = Arc::new(RwLock::new(concept_map));
+
         let unsatisfied_constraints =
             Self::get_unsatisfied_constraints(&constraints, concepts.clone(), &ancestors);
 
-        let ancestry: ConceptAncestry<'a> = ConceptAncestry {
-            parents: concepts.clone(),
-        };
         Self {
             concepts,
             constraints: constraints.clone(),

@@ -394,7 +394,7 @@ macro_rules! define_constraint {
             pub fn get_downstream_constraints_ignore_chains(&self) -> Vec<Arc<RwLock<Constraint>>> {
                 Vec::new()
             }
-            pub fn should_add(root: &$root) -> bool {
+            pub fn _should_add(root: &$root) -> bool {
                 $should_add(root)
             }
             pub fn get_uuid(&self) -> Uuid {
@@ -443,6 +443,12 @@ macro_rules! define_constraint {
                        _potential_child_constraints: Vec<Arc<RwLock<Constraint>>>) -> Self {
                 Self{ id: Uuid::new_v4(), root_uuid}
             }
+            fn should_add(root: Concept) -> bool {
+                match &root {
+                    Concept::$root(x) => Self::_should_add(x.0),
+                    _ => panic!("should_add called with unexpected concept."),
+                }
+            }
         }
 		impl fmt::Debug for $element {
 			fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -477,7 +483,7 @@ macro_rules! define_constraint {
                 pub fn get_uuid(&self) -> Uuid {
                     self.id.clone()
                 }
-                pub fn should_add(root: &$root) -> bool {
+                pub fn _should_add(root: &$root) -> bool {
                     $should_add(root)
                 }
                 pub fn get_root_uuid(&self) -> Uuid {
@@ -551,6 +557,12 @@ macro_rules! define_constraint {
                         stringify!($required).into()
                     ),+]
                 }
+                fn should_add(root: Concept) -> bool {
+                    match &root {
+                        Concept::$root(x) => Self::_should_add(x.0),
+                        _ => panic!("should_add called with unexpected concept."),
+                    }
+                }
                 fn new(root_uuid: Uuid,
                        potential_child_constraints: Vec<Arc<RwLock<Constraint>>>) -> Self {
                     // TODO: we should dedupe potential child constraints
@@ -608,6 +620,13 @@ macro_rules! register_constraint {
                 match &self {
                     $(
                         [<$name Builder>]::$element(_) => $element::get_root_type_name(),
+                    )+
+                }
+            }
+            pub fn should_add(&self, root: Concept) -> bool {
+                match &self {
+                    $(
+                        [<$name Builder>]::$element(_) => $element::should_add(root),
                     )+
                 }
             }
@@ -749,6 +768,13 @@ macro_rules! register_constraint {
                 match self {
                     $(
                         Self::$element(x) => stringify!($element).to_string(),
+                    )+
+                }
+            }
+            pub fn should_add(&self, root: Concept) -> bool {
+                match &self {
+                    $(
+                        Self::$element(_) => $element::should_add(root),
                     )+
                 }
             }

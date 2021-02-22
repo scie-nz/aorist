@@ -33,6 +33,7 @@ where
     fn get_root_type_name() -> String;
     fn get_required_constraint_names() -> Vec<String>;
     fn new(root_uuid: Uuid, potential_child_constraints: Vec<Arc<RwLock<Constraint>>>) -> Self;
+    fn should_add(root: Concept) -> bool;
 }
 pub trait ConstraintSatisfactionBase
 where
