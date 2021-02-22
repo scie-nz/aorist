@@ -273,14 +273,15 @@ where
     }
     pub fn new(
         universe: &'a Universe,
-        topline_constraint_names: Option<HashSet<String>>,
+        topline_constraint_names: LinkedHashSet<String>,
+        debug: bool,
     ) -> Driver<'a, D> {
         let mut concept_map: HashMap<(Uuid, String), Concept<'a>> = HashMap::new();
         let concept = Concept::Universe((universe, 0, None));
         concept.populate_child_concept_map(&mut concept_map);
 
         let it = universe.get_constraints().iter().map(|x| x.clone());
-        let topline = match topline_constraint_names {
+        /*let topline = match topline_constraint_names {
             Some(set) => it
                 .filter(|x| {
                     let r = x.read().unwrap();
@@ -290,7 +291,7 @@ where
             None => it.collect(),
         };
         let constraints = universe.get_constraints_map(topline);
-
+        */
         let ancestors = Self::compute_all_ancestors(concept, &concept_map);
         let mut family_trees: HashMap<(Uuid, String), HashMap<String, HashSet<Uuid>>> =
             HashMap::new();
@@ -336,17 +337,70 @@ where
             LinkedHashMap<(Uuid, String), Arc<RwLock<Constraint>>>,
         > = LinkedHashMap::new();
 
-        for builder in AoristConstraint::builders() {
+        let mut builders = AoristConstraint::builders()
+            .into_iter()
+            .map(|x| (x.get_constraint_name(), x))
+            .collect::<LinkedHashMap<String, _>>();
+
+        let mut builder_q = topline_constraint_names
+            .into_iter()
+            .map(|x| (x.clone(), builders.remove(&x).unwrap()))
+            .collect::<VecDeque<_>>();
+
+        let mut relevant_builders = LinkedHashMap::new();
+        let mut visited = HashSet::new();
+        let mut g: LinkedHashMap<String, LinkedHashSet<String>> = LinkedHashMap::new();
+        let mut rev: HashMap<String, Vec<String>> = HashMap::new();
+
+        while builder_q.len() > 0 {
+            let (key, builder) = builder_q.pop_front().unwrap();
+            let mut edges = g.entry(key.clone()).or_insert(LinkedHashSet::new());
+            for req in builder.get_required_constraint_names() {
+                if !visited.contains(&req) {
+                    let another = builders.remove(&req).unwrap();
+                    builder_q.push_back((req.clone(), another));
+                    visited.insert(req.clone());
+                }
+                edges.insert(req.clone());
+                let mut rev_edges = rev.entry(req.clone()).or_insert(Vec::new());
+                rev_edges.push(key.clone());
+            }
+            relevant_builders.insert(key.clone(), builder);
+        }
+
+        let mut sorted_builders = Vec::new();
+        while g.len() > 0 {
+            let leaf = g
+                .iter()
+                .filter(|(_, v)| v.len() == 0)
+                .map(|(k, _)| k)
+                .next()
+                .unwrap()
+                .clone();
+
+            let builder = relevant_builders.remove(&leaf).unwrap();
+            if let Some(parents) = rev.remove(&leaf) {
+                for parent in parents {
+                    g.get_mut(&parent).unwrap().remove(&leaf);
+                }
+            }
+            sorted_builders.push(builder);
+            g.remove(&leaf);
+        }
+
+        for builder in sorted_builders {
             let root_object_type = builder.get_root_type_name();
             let constraint_name = builder.get_constraint_name();
 
             if let Some(root_concepts) = by_object_type.get(&root_object_type) {
-                /*println!(
-                    "Attaching constraint {} to {} objects of type {}.",
-                    constraint_name,
-                    root_concepts.len(),
-                    root_object_type
-                );*/
+                if debug {
+                    println!(
+                        "Attaching constraint {} to {} objects of type {}.",
+                        constraint_name,
+                        root_concepts.len(),
+                        root_object_type
+                    );
+                }
 
                 for root in root_concepts {
                     let root_key = (root.get_uuid(), root.get_type());
@@ -391,7 +445,12 @@ where
             .into_iter()
             .map(|(_, v)| v.into_iter())
             .flatten()
-            .map(|((root_id, root_type), rw)| ((rw.read().unwrap().get_uuid().clone(), root_type), rw.clone()))
+            .map(|((root_id, root_type), rw)| {
+                (
+                    (rw.read().unwrap().get_uuid().clone(), root_type),
+                    rw.clone(),
+                )
+            })
             .collect();
         let concepts = Arc::new(RwLock::new(concept_map));
         let unsatisfied_constraints =
