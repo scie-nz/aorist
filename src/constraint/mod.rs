@@ -13,17 +13,12 @@ pub struct ConstraintBuilder<T: TConstraint> {
     _phantom: PhantomData<T>,
 }
 impl<T: TConstraint> ConstraintBuilder<T> {
-    fn build_constraints(
-        root_to_potential_child_constraints: Vec<(Uuid, Vec<Arc<RwLock<Constraint>>>)>,
-    ) -> Vec<T> {
-        let mut output = Vec::new();
-        for (root_uuid, potential_child_constraints) in root_to_potential_child_constraints {
-            output.push(<T as crate::constraint::TConstraint>::new(
-                root_uuid,
-                potential_child_constraints,
-            ));
-        }
-        output
+    fn build_constraint(
+        &self,
+        root_uuid: Uuid,
+        potential_child_constraints: Vec<Arc<RwLock<Constraint>>>,
+    ) -> T {
+        <T as crate::constraint::TConstraint>::new(root_uuid, potential_child_constraints)
     }
     pub fn get_root_type_name(&self) -> String {
         <T as crate::constraint::TConstraint>::get_root_type_name()

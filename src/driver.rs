@@ -292,15 +292,16 @@ where
         let constraints = universe.get_constraints_map(topline);
 
         let ancestors = Self::compute_all_ancestors(concept, &concept_map);
-        let mut family_trees: HashMap<(Uuid, String), HashMap<String, Vec<Uuid>>> = HashMap::new();
+        let mut family_trees: HashMap<(Uuid, String), HashMap<String, HashSet<Uuid>>> =
+            HashMap::new();
         for (key, ancestor_v) in ancestors.iter() {
             for record in ancestor_v {
                 family_trees
                     .entry(key.clone())
                     .or_insert(HashMap::new())
                     .entry(record.object_type.clone())
-                    .or_insert(Vec::new())
-                    .push(record.uuid);
+                    .or_insert(HashSet::new())
+                    .insert(record.uuid);
             }
             for record in ancestor_v {
                 let (uuid, object_type) = key;
@@ -309,9 +310,16 @@ where
                     .entry(ancestor_key)
                     .or_insert(HashMap::new())
                     .entry(object_type.clone())
-                    .or_insert(Vec::new())
-                    .push(uuid.clone());
+                    .or_insert(HashSet::new())
+                    .insert(uuid.clone());
             }
+            let (uuid, object_type) = key;
+            family_trees
+                .entry(key.clone())
+                .or_insert(HashMap::new())
+                .entry(object_type.clone())
+                .or_insert(HashSet::new())
+                .insert(uuid.clone());
         }
 
         let mut by_object_type: HashMap<String, Vec<Concept<'a>>> = HashMap::new();
@@ -322,6 +330,12 @@ where
                 .push(concept.clone());
         }
         let mut visited_constraint_names: LinkedHashSet<String> = LinkedHashSet::new();
+        // constraint_name => root_id => constraint_object
+        let mut generated_constraints: LinkedHashMap<
+            String,
+            LinkedHashMap<(Uuid, String), Arc<RwLock<Constraint>>>,
+        > = LinkedHashMap::new();
+
         for builder in AoristConstraint::builders() {
             let root_object_type = builder.get_root_type_name();
             let constraint_name = builder.get_constraint_name();
@@ -333,8 +347,38 @@ where
                     root_concepts.len(),
                     root_object_type
                 );
-                for req in builder.get_required_constraint_names() {
-                    println!(" -- {}", req);
+
+                for root in root_concepts {
+                    let root_key = (root.get_uuid(), root.get_type());
+                    let family_tree = family_trees.get(&root_key).unwrap();
+                    let potential_child_constraints = builder
+                        .get_required_constraint_names()
+                        .into_iter()
+                        .map(|req| generated_constraints.get(&req))
+                        .filter(|x| x.is_some())
+                        .map(|x| {
+                            x.unwrap()
+                                .iter()
+                                .filter(
+                                    |((potential_root_id, potential_root_type), _constraint)| {
+                                        match family_tree.get(potential_root_type) {
+                                            None => false,
+                                            Some(set) => set.contains(potential_root_id),
+                                        }
+                                    },
+                                )
+                                .map(|(_, constraint)| constraint.clone())
+                        })
+                        .flatten()
+                        .collect::<Vec<Arc<RwLock<Constraint>>>>();
+                    //println!("... with {} potential child constraints", potential_child_constraints.len());
+                    let constraint =
+                        builder.build_constraint(root.get_uuid(), potential_child_constraints);
+                    let gen_for_constraint = generated_constraints
+                        .entry(constraint_name.clone())
+                        .or_insert(LinkedHashMap::new());
+                    assert!(!gen_for_constraint.contains_key(&root_key));
+                    gen_for_constraint.insert(root_key, Arc::new(RwLock::new(constraint)));
                 }
             }
             for req in builder.get_required_constraint_names() {

@@ -611,6 +611,27 @@ macro_rules! register_constraint {
                     )+
                 }
             }
+            pub fn build_constraint(
+                &self,
+                root_uuid: Uuid,
+                potential_child_constraints: Vec<Arc<RwLock<Constraint>>>,
+            ) -> Constraint {
+                match &self {
+                    $(
+                        [<$name Builder>]::$element(x) => Constraint {
+                            name: self.get_constraint_name(),
+                            root: self.get_root_type_name(),
+                            requires: Some(self.get_required_constraint_names()),
+                            inner: Some(
+                                $name::$element(x.build_constraint(
+                                    root_uuid,
+                                    potential_child_constraints,
+                                ))
+                            ),
+                        },
+                    )+
+                }
+            }
             pub fn get_required_constraint_names(&self) -> Vec<String> {
                 match &self {
                     $(
