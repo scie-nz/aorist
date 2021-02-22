@@ -7,6 +7,7 @@ from common import DEFAULT_USERS, DEFAULT_GROUPS, DEFAULT_ENDPOINTS
 # from sentinel import sentinel_dataset
 from snap import snap_dataset
 from geonames import geonames_dataset, geonames_table
+from wine import wine_dataset
 
 universe = Universe(
     name="my_cluster",
@@ -14,7 +15,8 @@ universe = Universe(
     groups=DEFAULT_GROUPS,
     datasets=[
         # snap_dataset,
-        geonames_dataset,
+        # geonames_dataset,
+        wine_dataset
     ],
     endpoints=DEFAULT_ENDPOINTS,
     compliance=ComplianceConfig(

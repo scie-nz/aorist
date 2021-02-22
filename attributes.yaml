@@ -89,3 +89,17 @@ spec:
   orc: OrcBigint
   presto: PrestoBigint
   sql: SQLBigint
+---
+type: Attribute
+spec:
+  name: PositiveFloat
+  orc: OrcFloat
+  presto: PrestoReal
+  sql: SQLReal
+---
+type: Attribute
+spec:
+  name: Categorical
+  orc: OrcBigint
+  presto: PrestoBigint
+  sql: SQLBigint
