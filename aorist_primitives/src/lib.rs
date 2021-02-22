@@ -981,7 +981,7 @@ macro_rules! register_concept {
                         None => Err(
                             format!(
                                 "Cannot find ancestor of type {}.",
-                                stringify!($name)
+                                stringify!($element)
                             )
                         ),
                         Some(id) => {

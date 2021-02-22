@@ -649,3 +649,58 @@ spec:
         attaches:
           - StaticDataTable
           - DataSet
+---
+type: Program
+spec:
+  use: HistogramsComputed
+  root: StaticDataTable
+  dialect: Presto
+  call: "{query}"
+  kwargs:
+    query:
+      type: MultipleAncestorsArgument
+      spec:
+        attaches:
+          - StaticDataTable
+          - DataSet
+        call: >
+          {
+            use crate::attributes::TAttribute;
+            use crate::template::DatumTemplate;
+            let DataSchema::TabularSchema(ref t) = static_data_table.schema;
+            let (attr_v, source_table, freq_column) = data_set
+                .datumTemplates
+                .iter()
+                .filter(|x| {
+                    x.get_name().clone() == t.datumTemplateName
+                })
+                .map(|x| match x {
+                    DatumTemplate::IntegerMeasure(t) => (
+                        t.get_attributes(),
+                        t.source_asset_name.clone(),
+                        t.get_frequency_attribute().get_name().clone(),
+                     ),
+                    _ => panic!("program for IntegerMeasure incorrectly called"),
+                })
+                .next().unwrap();
+            let group_by_columns = attr_v.iter()
+                .map(|x| format!("            {}",
+                x.get_name().clone()).to_string())
+                .collect::<Vec<String>>().join("\n, ");
+        
+            format!("
+            INSERT INTO {presto_schema}.{table_name}
+            SELECT 
+                {group_by_columns}, 
+                COUNT(*) AS {freq_column} 
+            FROM {presto_schema}.{source_table_name}
+            GROUP BY {group_by_columns}
+            ", 
+                presto_schema=data_set.name,
+                table_name=format!("{}", static_data_table.name),
+                freq_column=freq_column,
+                group_by_columns=group_by_columns,
+                source_table_name=source_table,
+            )
+          }
+

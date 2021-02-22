@@ -24,23 +24,28 @@ pub struct IntegerMeasure {
     pub comment: Option<String>,
     #[constrainable]
     pub attributes: Vec<Attribute>,
-    source_asset_name: String,
+    pub source_asset_name: String,
 }
 
 impl TDatumTemplate for IntegerMeasure {
     fn get_attributes(&self) -> Vec<Attribute> {
         let mut attr = self.attributes.clone();
-        let frequency_attribute = Attribute::Count(Count {
-            name: self.name.clone(),
-            comment: self.comment.clone(),
-            tag: None,
-            uuid: None,
-            constraints: Vec::new(),
-        });
+        let frequency_attribute = self.get_frequency_attribute(); 
         attr.push(frequency_attribute);
         attr
     }
     fn get_name(&self) -> String {
         self.name.clone()
+    }
+}
+impl IntegerMeasure {
+    pub fn get_frequency_attribute(&self) -> Attribute {
+        Attribute::Count(Count {
+            name: self.name.clone(),
+            comment: self.comment.clone(),
+            tag: None,
+            uuid: None,
+            constraints: Vec::new(),
+        })
     }
 }

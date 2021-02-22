@@ -39,6 +39,7 @@ spec:
   root: Universe
   requires:
     - DroppedCSVTable
+    - HistogramsComputed
 ---
 type: Constraint
 spec:
@@ -93,6 +94,38 @@ spec:
   body: |
       We need to create directories or buckets (depending on file system / storage
       solution) in which we will store our Hive data.
+---
+type: Constraint
+spec:
+  name: HistogramsComputed
+  root: StaticDataTable
+  requiresProgram: true
+  requires:
+    - Replicated
+  title: Computing aggregations
+  body: |
+      We compute a few aggregations on the source data.
+  attachIf: |
+      |root: Concept<'a>, ancestry: &ConceptAncestry<'a>| {
+          use crate::dataset::TDataSet;
+          use crate::template::DatumTemplate;
+          use crate::schema::DataSchema;
+
+          let dataset = ancestry.data_set(root.clone()).unwrap();
+          let root_tbl = ancestry.static_data_table(root.clone()).unwrap();
+          let schema = &root_tbl.schema;
+          let DataSchema::TabularSchema(ref tbl_schema) = schema;
+          let template_name = tbl_schema.datumTemplateName.clone();
+          /*println!("Template name: {}", template_name);
+          for k in dataset.get_mapped_datum_templates().keys() {
+            println!("template: {}", k);
+          }*/
+          match
+          dataset.get_mapped_datum_templates().get(&template_name).unwrap() {
+             DatumTemplate::IntegerMeasure(_) => true,
+             _ => false
+          }
+      }
 ---
 type: Constraint
 spec:
