@@ -351,3 +351,6 @@ spec:
   body: |
       After we've converted a CSV table to ORC the CSV table is no longer needed,
       so it can be dropped.
+  attachIf: |
+      |root: Concept<'a>, ancestry: &ConceptAncestry<'a>|
+      ancestry.remote_import_storage_setup(root.clone()).is_ok()

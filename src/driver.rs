@@ -117,7 +117,7 @@ where
                 )
             })
             .collect();
-
+        /*
         /* Remove redundant dependencies */
         // constraint key => constraint key dependency on it
         let mut changes_made = true;
@@ -253,7 +253,7 @@ where
                 break;
             }
         }
-
+        */
         let mut unsatisfied_constraints: HashMap<
             String,
             (
