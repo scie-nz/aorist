@@ -3,6 +3,7 @@
 use crate::attributes::*;
 use crate::concept::{AoristConcept, Concept};
 use crate::constraint::Constraint;
+use crate::schema::*;
 use crate::template::datum_template::TDatumTemplate;
 
 use aorist_concept::{aorist_concept, Constrainable, InnerObject};
@@ -84,5 +85,31 @@ impl TrainedFloatMeasure {
     }
     pub fn get_training_objective(&self) -> Attribute {
         self.objective.clone()
+    }
+    pub fn get_regressor_as_attribute(&self) -> Regressor {
+        Regressor {
+            name: "model".to_string(),
+            comment: Some("A serialized version of the model".to_string()),
+            tag: None,
+            uuid: None,
+            constraints: Vec::new(),
+        }
+    }
+    pub fn get_model_storage_tabular_schema(&self) -> TabularSchema {
+        TabularSchema {
+            datumTemplateName: self.name.clone(),
+            attributes: vec![self.get_regressor_as_attribute().name.clone()],
+            tag: None,
+            uuid: None,
+            constraints: Vec::new(),
+        }
+    }
+}
+#[pymethods]
+impl InnerTrainedFloatMeasure {
+    pub fn get_model_storage_tabular_schema(&self) -> InnerTabularSchema {
+        InnerTabularSchema::from(
+            TrainedFloatMeasure::from(self.clone()).get_model_storage_tabular_schema(),
+        )
     }
 }

@@ -110,3 +110,10 @@ spec:
   orc: OrcFloat
   presto: PrestoReal
   sql: SQLReal
+---
+type: Attribute
+spec:
+  name: Regressor
+  orc: OrcString
+  presto: PrestoVarchar
+  sql: SQLVarchar

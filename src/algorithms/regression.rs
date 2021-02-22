@@ -11,8 +11,11 @@ use uuid::Uuid;
 
 #[aorist_concept]
 pub struct RandomForestRegressionAlgorithm {}
+#[aorist_concept]
+pub struct SVMRegressionAlgorithm {}
 
 #[aorist_concept]
 pub enum RegressionAlgorithm {
     RandomForestRegressionAlgorithm(RandomForestRegressionAlgorithm),
+    SVMRegressionAlgorithm(SVMRegressionAlgorithm),
 }

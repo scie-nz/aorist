@@ -193,6 +193,7 @@ fn aorist(py: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<InnerComplianceConfig>()?;
     m.add_class::<InnerSingleObjectiveRegressor>()?;
     m.add_class::<InnerRandomForestRegressionAlgorithm>()?;
+    m.add_class::<InnerSVMRegressionAlgorithm>()?;
     m.add_class::<InnerContinuousObjective>()?;
     m.add_class::<InnerComputedFromLocalData>()?;
     m.add_class::<InnerIntegerMeasure>()?;

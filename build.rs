@@ -335,6 +335,7 @@ fn process_concepts(raw_objects: &Vec<HashMap<String, Value>>) {
         ("crate::access_policy", "ApproveAccessSelector"),
         ("crate::algorithms", "RegressionAlgorithm"),
         ("crate::algorithms", "RandomForestRegressionAlgorithm"),
+        ("crate::algorithms", "SVMRegressionAlgorithm"),
         ("crate::asset", "Asset"),
         ("crate::asset", "StaticDataTable"),
         ("crate::asset", "SupervisedModel"),

@@ -118,6 +118,9 @@ from aorist import (
     default_tabular_schema,
     DataSet,
     TrainedFloatMeasure,
+    ComputedFromLocalData,
+    SVMRegressionAlgorithm,
+    SupervisedModel,
 )
 
 # hacky import since submodule imports don't work well
@@ -158,6 +161,11 @@ local = HiveTableStorage(
     layout=StaticHiveTableLayout(),
     encoding=ORCEncoding(),
 )
+classifier_storage = HiveTableStorage(
+    location=MinioLocation(name="wine"),
+    layout=StaticHiveTableLayout(),
+    encoding=ORCEncoding(),
+)
 wine_table = StaticDataTable(
     name="wine_table",
     schema=default_tabular_schema(wine_datum),
@@ -185,3 +193,16 @@ classifier_template = TrainedFloatMeasure(
     objective=attributes[1],
     source_asset_name="wine_table",
 )
+wine_dataset.add_template(classifier_template)
+classifier_setup = ComputedFromLocalData(
+    source=local,
+    target=classifier_storage,
+    tmp_dir="/tmp/wine_classifier",
+)
+regression_model = SupervisedModel(
+    name="wine_alcohol_predictor",
+    setup=classifier_setup,
+    schema=classifier_template.get_model_storage_tabular_schema(),
+    algorithm=SVMRegressionAlgorithm(),
+)
+wine_dataset.add_asset(regression_model)
