@@ -6,7 +6,29 @@ use maplit::hashmap;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fmt;
+use std::marker::PhantomData;
 use std::sync::{Arc, RwLock};
+
+pub struct ConstraintBuilder<T: TConstraint> {
+    _phantom: PhantomData<T>,
+}
+impl<T: TConstraint> ConstraintBuilder<T> {
+    fn build_constraints(
+        root_to_potential_child_constraints: Vec<(Uuid, Vec<Arc<RwLock<Constraint>>>)>,
+    ) -> Vec<T> {
+        let mut output = Vec::new();
+        for (root_uuid, potential_child_constraints) in root_to_potential_child_constraints {
+            output.push(<T as crate::constraint::TConstraint>::new(
+                root_uuid,
+                potential_child_constraints,
+            ));
+        }
+        output
+    }
+    pub fn get_root_type_name(&self) -> String {
+        <T as crate::constraint::TConstraint>::get_root_type_name()
+    }
+}
 
 pub trait TConstraint
 where
@@ -15,6 +37,7 @@ where
     type Root;
     fn get_root_type_name() -> String;
     fn get_required_constraint_names() -> Vec<String>;
+    fn new(root_uuid: Uuid, potential_child_constraints: Vec<Arc<RwLock<Constraint>>>) -> Self;
 }
 pub trait ConstraintSatisfactionBase
 where

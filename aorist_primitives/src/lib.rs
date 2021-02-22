@@ -388,10 +388,6 @@ macro_rules! define_constraint {
             root_uuid: Uuid,
         }
         impl $element {
-            pub fn new(root_uuid: Uuid,
-                       _potential_child_constraints: Vec<Arc<RwLock<Constraint>>>) -> Self {
-                Self{ id: Uuid::new_v4(), root_uuid}
-            }
             pub fn get_downstream_constraints(&self) -> Vec<Arc<RwLock<Constraint>>> {
                 Vec::new()
             }
@@ -442,6 +438,10 @@ macro_rules! define_constraint {
             }
             fn get_required_constraint_names() -> Vec<String> {
                 Vec::new()
+            }
+            fn new(root_uuid: Uuid,
+                       _potential_child_constraints: Vec<Arc<RwLock<Constraint>>>) -> Self {
+                Self{ id: Uuid::new_v4(), root_uuid}
             }
         }
 		impl fmt::Debug for $element {
@@ -534,8 +534,25 @@ macro_rules! define_constraint {
                     }
                     downstream
                 }
-                pub fn new(root_uuid: Uuid,
-                           potential_child_constraints: Vec<Arc<RwLock<Constraint>>>) -> Self {
+                pub fn get_title() -> Option<String> {
+                    $title
+                }
+                pub fn get_body() -> Option<String> {
+                    $body
+                }
+            }
+            impl TConstraint for $element {
+                type Root = $root;
+                fn get_root_type_name() -> String {
+                    stringify!($root).into()
+                }
+                fn get_required_constraint_names() -> Vec<String> {
+                    vec![$(
+                        stringify!($required).into()
+                    ),+]
+                }
+                fn new(root_uuid: Uuid,
+                       potential_child_constraints: Vec<Arc<RwLock<Constraint>>>) -> Self {
                     // TODO: we should dedupe potential child constraints
                     $(
                         let mut [<$required:snake:lower>]: Vec<Arc<RwLock<Constraint>>> =
@@ -569,36 +586,58 @@ macro_rules! define_constraint {
                         $([<$required:snake:lower>],)+
                     }
                 }
-                pub fn get_title() -> Option<String> {
-                    $title
-                }
-                pub fn get_body() -> Option<String> {
-                    $body
-                }
-            }
-            impl TConstraint for $element {
-                type Root = $root;
-                fn get_root_type_name() -> String {
-                    stringify!($root).into()
-                }
-                fn get_required_constraint_names() -> Vec<String> {
-                    vec![$(
-                        stringify!($required).into()
-                    ),+]
-                }
             }
         }
     };
 }
 #[macro_export]
 macro_rules! register_constraint {
-    ( $name:ident, $($element: ident),+ ) => {
+    ( $name:ident, $($element: ident),+ ) => { paste::item! {
         pub enum $name {
             $(
                 $element($element),
             )+
         }
+        pub enum [<$name Builder>] {
+            $(
+                $element(crate::constraint::ConstraintBuilder<$element>),
+            )+
+        }
+        impl [<$name Builder>] {
+            pub fn get_root_type_name(&self) -> String {
+                match &self {
+                    $(
+                        [<$name Builder>]::$element(_) => $element::get_root_type_name(),
+                    )+
+                }
+            }
+            pub fn get_required_constraint_names(&self) -> Vec<String> {
+                match &self {
+                    $(
+                        [<$name Builder>]::$element(_) => $element::get_required_constraint_names(),
+                    )+
+                }
+            }
+            pub fn get_constraint_name(&self) -> String {
+                match &self {
+                    $(
+                        [<$name Builder>]::$element(_) => stringify!($element).to_string(),
+                    )+
+                }
+            }
+        }
         impl $name {
+            pub fn builders() -> Vec<[<$name Builder>]> {
+                vec![
+                    $(
+                        [<$name Builder>]::$element(
+                            crate::constraint::ConstraintBuilder::<$element>{
+                                _phantom: std::marker::PhantomData
+                            }
+                        ),
+                    )+
+                ]
+            }
             pub fn get_downstream_constraints(&self) -> Vec<Arc<RwLock<Constraint>>> {
                 match self {
                     $(
@@ -692,7 +731,7 @@ macro_rules! register_constraint {
                     )+
                 }
             }
-        }
+        }}
     }
 }
 #[macro_export]

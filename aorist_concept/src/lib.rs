@@ -129,7 +129,7 @@ fn process_enum_variants(
                     requires: None,
                     inner: Some(
                         AoristConstraint::#constraint(
-                            crate::constraint::#constraint::new(
+                            <crate::constraint::#constraint as crate::constraint::TConstraint>::new(
                                 uuid.clone(),
                                 downstream.clone(),
                             )
@@ -409,7 +409,7 @@ fn process_struct_fields(
                 match constraint_map.get(&self.get_uuid()) {
                     None => panic!(format!("Could not find constraints for {}",
                     stringify!(#struct_name))),
-                    Some(constraints) => { 
+                    Some(constraints) => {
                         for c in constraints.iter() {
                             self.constraints.push(c.clone());
                         }
@@ -468,7 +468,7 @@ fn process_struct_fields(
                           requires: None,
                           inner: Some(
                               AoristConstraint::#constraint(
-                                  crate::constraint::#constraint::new(
+                                  <crate::constraint::#constraint as crate::constraint::TConstraint>::new(
                                       self.get_uuid(),
                                       constraints.clone(),
                                   )

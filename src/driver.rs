@@ -11,6 +11,7 @@ use crate::python::ParameterTuple;
 use aorist_primitives::{Bash, Dialect, Presto, Python};
 use inflector::cases::snakecase::to_snake_case;
 use linked_hash_map::LinkedHashMap;
+use linked_hash_set::LinkedHashSet;
 use std::collections::{HashMap, HashSet, VecDeque};
 use std::marker::PhantomData;
 use std::sync::{Arc, RwLock, RwLockReadGuard};
@@ -311,6 +312,35 @@ where
                     .or_insert(Vec::new())
                     .push(uuid.clone());
             }
+        }
+
+        let mut by_object_type: HashMap<String, Vec<Concept<'a>>> = HashMap::new();
+        for ((_uuid, object_type), concept) in concept_map.clone() {
+            by_object_type
+                .entry(object_type)
+                .or_insert(Vec::new())
+                .push(concept.clone());
+        }
+        let mut visited_constraint_names: LinkedHashSet<String> = LinkedHashSet::new();
+        for builder in AoristConstraint::builders() {
+            let root_object_type = builder.get_root_type_name();
+            let constraint_name = builder.get_constraint_name();
+
+            if let Some(root_concepts) = by_object_type.get(&root_object_type) {
+                println!(
+                    "Attaching constraint {} to {} objects of type {}.",
+                    constraint_name,
+                    root_concepts.len(),
+                    root_object_type
+                );
+                for req in builder.get_required_constraint_names() {
+                    println!(" -- {}", req);
+                }
+            }
+            for req in builder.get_required_constraint_names() {
+                assert!(visited_constraint_names.contains(&req));
+            }
+            visited_constraint_names.insert(constraint_name.clone());
         }
 
         let concepts = Arc::new(RwLock::new(concept_map));
