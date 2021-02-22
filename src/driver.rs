@@ -1,9 +1,9 @@
 use crate::code_block::CodeBlock;
-use crate::concept::{AoristConcept, Concept, ConceptAncestry};
+use crate::concept::{Concept, ConceptAncestry};
 use crate::constraint::{AoristConstraint, Constraint};
 use crate::constraint_block::ConstraintBlock;
 use crate::constraint_state::{AncestorRecord, ConstraintState};
-use crate::data_setup::{TUniverse, Universe};
+use crate::data_setup::Universe;
 use crate::endpoints::EndpointConfig;
 use crate::etl_singleton::ETLDAG;
 use crate::object::TAoristObject;
@@ -280,18 +280,6 @@ where
         let concept = Concept::Universe((universe, 0, None));
         concept.populate_child_concept_map(&mut concept_map);
 
-        let it = universe.get_constraints().iter().map(|x| x.clone());
-        /*let topline = match topline_constraint_names {
-            Some(set) => it
-                .filter(|x| {
-                    let r = x.read().unwrap();
-                    r.root == "Universe" && set.contains(&r.name)
-                })
-                .collect(),
-            None => it.collect(),
-        };
-        let constraints = universe.get_constraints_map(topline);
-        */
         let ancestors = Self::compute_all_ancestors(concept, &concept_map);
         let mut family_trees: HashMap<(Uuid, String), HashMap<String, HashSet<Uuid>>> =
             HashMap::new();
@@ -354,7 +342,7 @@ where
 
         while builder_q.len() > 0 {
             let (key, builder) = builder_q.pop_front().unwrap();
-            let mut edges = g.entry(key.clone()).or_insert(LinkedHashSet::new());
+            let edges = g.entry(key.clone()).or_insert(LinkedHashSet::new());
             for req in builder.get_required_constraint_names() {
                 if !visited.contains(&req) {
                     let another = builders.remove(&req).unwrap();
@@ -362,7 +350,7 @@ where
                     visited.insert(req.clone());
                 }
                 edges.insert(req.clone());
-                let mut rev_edges = rev.entry(req.clone()).or_insert(Vec::new());
+                let rev_edges = rev.entry(req.clone()).or_insert(Vec::new());
                 rev_edges.push(key.clone());
             }
             relevant_builders.insert(key.clone(), builder);
@@ -445,7 +433,7 @@ where
             .into_iter()
             .map(|(_, v)| v.into_iter())
             .flatten()
-            .map(|((root_id, root_type), rw)| {
+            .map(|((_root_id, root_type), rw)| {
                 (
                     (rw.read().unwrap().get_uuid().clone(), root_type),
                     rw.clone(),
