@@ -10,6 +10,27 @@ use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
 use uuid::Uuid;
 
+#[derive(Clone)]
+pub struct AncestorRecord {
+    pub uuid: Uuid,
+    pub object_type: String,
+    pub tag: Option<String>,
+    pub ix: usize,
+}
+impl AncestorRecord {
+    pub fn new(uuid: Uuid, object_type: String, tag: Option<String>, ix: usize) -> Self {
+        Self {
+            uuid,
+            object_type,
+            tag,
+            ix,
+        }
+    }
+    pub fn get_key(&self) -> (Uuid, String) {
+        (self.uuid.clone(), self.object_type.clone())
+    }
+}
+
 pub struct ConstraintState<'a> {
     dialect: Option<Dialect>,
     pub key: Option<String>,
@@ -21,7 +42,7 @@ pub struct ConstraintState<'a> {
     root: Concept<'a>,
     // these are concept ancestors
     // TODO: change this to Vec<Concept<'a>>
-    ancestors: Vec<(Uuid, String, Option<String>, usize)>,
+    ancestors: Vec<AncestorRecord>,
     preamble: Option<String>,
     call: Option<String>,
     params: Option<ParameterTuple>,
@@ -157,7 +178,7 @@ impl<'a> ConstraintState<'a> {
     pub fn get_root_type(&self) -> String {
         self.root.get_type()
     }
-    pub fn get_ancestors(&self) -> Vec<(Uuid, String, Option<String>, usize)> {
+    pub fn get_ancestors(&self) -> Vec<AncestorRecord> {
         self.ancestors.clone()
     }
     pub fn get_preamble(&self) -> Option<String> {
@@ -190,7 +211,7 @@ impl<'a> ConstraintState<'a> {
     pub fn new(
         constraint: Arc<RwLock<Constraint>>,
         concepts: Arc<RwLock<HashMap<(Uuid, String), Concept<'a>>>>,
-        concept_ancestors: &HashMap<(Uuid, String), Vec<(Uuid, String, Option<String>, usize)>>,
+        concept_ancestors: &HashMap<(Uuid, String), Vec<AncestorRecord>>,
     ) -> Self {
         let arc = constraint.clone();
         let x = arc.read().unwrap();
@@ -226,24 +247,21 @@ impl<'a> ConstraintState<'a> {
             task_val: None,
         }
     }
-    pub fn compute_task_name(
-        &mut self,
-        ancestors: &Vec<(Uuid, String, Option<String>, usize)>,
-    ) -> String {
+    pub fn compute_task_name(&mut self, ancestors: &Vec<AncestorRecord>) -> String {
         self.key = Some(match self.root.get_tag() {
             None => {
                 let mut relative_path: String = "".to_string();
-                for (_, ancestor_type, tag, ix) in ancestors.iter().rev() {
-                    if let Some(t) = tag {
+                for record in ancestors.iter().rev() {
+                    if let Some(ref t) = record.tag {
                         relative_path = format!("{}__{}", relative_path, t);
                         break;
                     }
-                    if *ix > 0 {
+                    if record.ix > 0 {
                         relative_path = format!(
                             "{}__{}_{}",
                             relative_path,
-                            to_snake_case(&ancestor_type),
-                            ix
+                            to_snake_case(&record.object_type),
+                            record.ix
                         );
                     }
                 }

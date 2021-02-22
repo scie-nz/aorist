@@ -2,7 +2,7 @@ use crate::code_block::CodeBlock;
 use crate::concept::{AoristConcept, Concept, ConceptAncestry};
 use crate::constraint::{AoristConstraint, Constraint};
 use crate::constraint_block::ConstraintBlock;
-use crate::constraint_state::ConstraintState;
+use crate::constraint_state::{AncestorRecord, ConstraintState};
 use crate::data_setup::{TUniverse, Universe};
 use crate::endpoints::EndpointConfig;
 use crate::etl_singleton::ETLDAG;
@@ -45,11 +45,10 @@ where
     fn compute_all_ancestors(
         universe: Concept<'a>,
         concept_map: &HashMap<(Uuid, String), Concept<'a>>,
-    ) -> HashMap<(Uuid, String), Vec<(Uuid, String, Option<String>, usize)>> {
-        let mut ancestors: HashMap<(Uuid, String), Vec<(Uuid, String, Option<String>, usize)>> =
-            HashMap::new();
-        let mut frontier: Vec<(Uuid, String, Option<String>, usize)> = Vec::new();
-        frontier.push((
+    ) -> HashMap<(Uuid, String), Vec<AncestorRecord>> {
+        let mut ancestors: HashMap<(Uuid, String), Vec<AncestorRecord>> = HashMap::new();
+        let mut frontier: Vec<AncestorRecord> = Vec::new();
+        frontier.push(AncestorRecord::new(
             universe.get_uuid(),
             universe.get_type(),
             universe.get_tag(),
@@ -57,20 +56,21 @@ where
         ));
         ancestors.insert(
             (universe.get_uuid(), universe.get_type()),
-            vec![(universe.get_uuid(), universe.get_type(), None, 0)],
+            vec![AncestorRecord::new(
+                universe.get_uuid(),
+                universe.get_type(),
+                None,
+                0,
+            )],
         );
         while frontier.len() > 0 {
-            let mut new_frontier: Vec<(Uuid, String, Option<String>, usize)> = Vec::new();
+            let mut new_frontier: Vec<AncestorRecord> = Vec::new();
             for child in frontier.drain(0..) {
-                let concept = concept_map
-                    .get(&(child.0.clone(), child.1.clone()))
-                    .unwrap();
-                let child_ancestors = ancestors
-                    .get(&(child.0.clone(), child.1.clone()))
-                    .unwrap()
-                    .clone();
+                let key = child.get_key();
+                let concept = concept_map.get(&key).unwrap();
+                let child_ancestors = ancestors.get(&key).unwrap().clone();
                 for grandchild in concept.get_child_concepts() {
-                    let t = (
+                    let t = AncestorRecord::new(
                         grandchild.get_uuid(),
                         grandchild.get_type(),
                         grandchild.get_tag(),
@@ -92,7 +92,7 @@ where
     fn get_unsatisfied_constraints(
         constraints: &HashMap<(Uuid, String), Arc<RwLock<Constraint>>>,
         concepts: Arc<RwLock<HashMap<(Uuid, String), Concept<'a>>>>,
-        ancestors: &HashMap<(Uuid, String), Vec<(Uuid, String, Option<String>, usize)>>,
+        ancestors: &HashMap<(Uuid, String), Vec<AncestorRecord>>,
     ) -> HashMap<
         String,
         (
