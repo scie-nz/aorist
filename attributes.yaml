@@ -103,3 +103,10 @@ spec:
   orc: OrcBigint
   presto: PrestoBigint
   sql: SQLBigint
+---
+type: Attribute
+spec:
+  name: FloatPrediction
+  orc: OrcFloat
+  presto: PrestoReal
+  sql: SQLReal

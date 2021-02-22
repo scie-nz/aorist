@@ -63,8 +63,8 @@ pub struct FloatMeasure {
 impl TDatumTemplate for FloatMeasure {
     fn get_attributes(&self) -> Vec<Attribute> {
         let mut attr = self.attributes.clone();
-        let frequency_attribute = self.get_frequency_attribute();
-        attr.push(frequency_attribute);
+        let prediction_attribute = self.get_prediction_attribute();
+        attr.push(prediction_attribute);
         attr
     }
     fn get_name(&self) -> String {
@@ -72,8 +72,8 @@ impl TDatumTemplate for FloatMeasure {
     }
 }
 impl FloatMeasure {
-    pub fn get_frequency_attribute(&self) -> Attribute {
-        Attribute::Count(Count {
+    pub fn get_prediction_attribute(&self) -> Attribute {
+        Attribute::FloatPrediction(FloatPrediction {
             name: self.name.clone(),
             comment: self.comment.clone(),
             tag: None,
