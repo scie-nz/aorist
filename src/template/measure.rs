@@ -30,7 +30,7 @@ pub struct IntegerMeasure {
 impl TDatumTemplate for IntegerMeasure {
     fn get_attributes(&self) -> Vec<Attribute> {
         let mut attr = self.attributes.clone();
-        let frequency_attribute = self.get_frequency_attribute(); 
+        let frequency_attribute = self.get_frequency_attribute();
         attr.push(frequency_attribute);
         attr
     }

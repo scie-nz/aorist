@@ -42,6 +42,7 @@ where
 impl<'a, D> Driver<'a, D>
 where
     D: ETLDAG,
+    <D as ETLDAG>::T: 'a,
 {
     fn compute_all_ancestors(
         universe: Concept<'a>,
@@ -90,21 +91,12 @@ where
         }
         ancestors
     }
-    fn get_unsatisfied_constraints(
+    fn generate_constraint_states_map(
         constraints: &HashMap<(Uuid, String), Arc<RwLock<Constraint>>>,
         concepts: Arc<RwLock<HashMap<(Uuid, String), Concept<'a>>>>,
         ancestors: &HashMap<(Uuid, String), Vec<AncestorRecord>>,
-    ) -> HashMap<
-        String,
-        (
-            HashSet<String>,
-            HashMap<(Uuid, String), Arc<RwLock<ConstraintState<'a>>>>,
-        ),
-    > {
-        let mut raw_unsatisfied_constraints: HashMap<
-            (Uuid, String),
-            Arc<RwLock<ConstraintState<'a>>>,
-        > = constraints
+    ) -> HashMap<(Uuid, String), Arc<RwLock<ConstraintState<'a>>>> {
+        constraints
             .iter()
             .map(|(k, rw)| {
                 (
@@ -116,8 +108,11 @@ where
                     ))),
                 )
             })
-            .collect();
-        /*
+            .collect()
+    }
+    fn remove_redundant_dependencies(
+        raw_unsatisfied_constraints: &mut HashMap<(Uuid, String), Arc<RwLock<ConstraintState<'a>>>>,
+    ) {
         /* Remove redundant dependencies */
         // constraint key => constraint key dependency on it
         let mut changes_made = true;
@@ -166,6 +161,10 @@ where
                 }
             }
         }
+    }
+    fn remove_dangling_dummy_tasks(
+        raw_unsatisfied_constraints: &mut HashMap<(Uuid, String), Arc<RwLock<ConstraintState<'a>>>>,
+    ) {
         /* Remove dangling dummy tasks */
         let mut changes_made = true;
         while changes_made {
@@ -207,6 +206,10 @@ where
                 changes_made = true;
             }
         }
+    }
+    fn remove_superfluous_dummy_tasks(
+        raw_unsatisfied_constraints: &mut HashMap<(Uuid, String), Arc<RwLock<ConstraintState<'a>>>>,
+    ) {
         /* Remove superfluous dummy tasks */
         loop {
             let superfluous = raw_unsatisfied_constraints
@@ -253,7 +256,26 @@ where
                 break;
             }
         }
-        */
+    }
+    fn get_unsatisfied_constraints(
+        constraints: &HashMap<(Uuid, String), Arc<RwLock<Constraint>>>,
+        concepts: Arc<RwLock<HashMap<(Uuid, String), Concept<'a>>>>,
+        ancestors: &HashMap<(Uuid, String), Vec<AncestorRecord>>,
+    ) -> HashMap<
+        String,
+        (
+            HashSet<String>,
+            HashMap<(Uuid, String), Arc<RwLock<ConstraintState<'a>>>>,
+        ),
+    > {
+        let mut raw_unsatisfied_constraints: HashMap<
+            (Uuid, String),
+            Arc<RwLock<ConstraintState<'a>>>,
+        > = Self::generate_constraint_states_map(constraints, concepts, ancestors);
+        Self::remove_redundant_dependencies(&mut raw_unsatisfied_constraints);
+        Self::remove_dangling_dummy_tasks(&mut raw_unsatisfied_constraints);
+        Self::remove_superfluous_dummy_tasks(&mut raw_unsatisfied_constraints);
+
         let mut unsatisfied_constraints: HashMap<
             String,
             (
