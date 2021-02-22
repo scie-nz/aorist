@@ -337,6 +337,7 @@ fn process_concepts(raw_objects: &Vec<HashMap<String, Value>>) {
         ("crate::algorithms", "RandomForestRegressionAlgorithm"),
         ("crate::asset", "Asset"),
         ("crate::asset", "StaticDataTable"),
+        ("crate::asset", "SupervisedModel"),
         ("crate::attributes", "Attribute"),
         ("crate::layout", "FileBasedStorageLayout"),
         ("crate::layout", "SingleFileLayout"),

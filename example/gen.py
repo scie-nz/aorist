@@ -4,7 +4,7 @@ from aorist import (
     ComplianceConfig,
 )
 from common import DEFAULT_USERS, DEFAULT_GROUPS, DEFAULT_ENDPOINTS
-from sentinel import sentinel_dataset
+# from sentinel import sentinel_dataset
 from snap import snap_dataset
 from geonames import geonames_dataset, geonames_table
 
@@ -32,5 +32,5 @@ universe = Universe(
 )
 out = dag(universe, [
     "DataDownloadedAndConverted"
-], "airflow")
-print(out.replace("\\\\","\\"))
+], "jupyter")
+print(out.replace("\\\\", "\\"))

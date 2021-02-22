@@ -196,6 +196,7 @@ fn aorist(py: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<InnerComputedFromLocalData>()?;
     m.add_class::<InnerIntegerMeasure>()?;
     m.add_class::<InnerFloatMeasure>()?;
+    m.add_class::<InnerSupervisedModel>()?;
     m.add_wrapped(wrap_pyfunction!(default_tabular_schema))?;
     m.add_wrapped(wrap_pyfunction!(dag))?;
     m.add_wrapped(wrap_pyfunction!(derive_integer_measure))?;
