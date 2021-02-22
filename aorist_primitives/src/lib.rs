@@ -679,6 +679,13 @@ macro_rules! register_constraint {
                     )+
                 ]
             }
+            pub fn get_root_type_name(&self) -> String {
+                match self {
+                    $(
+                        Self::$element(_) => $element::get_root_type_name(),
+                    )+
+                }
+            }
             pub fn get_downstream_constraints(&self) -> Vec<Arc<RwLock<Constraint>>> {
                 match self {
                     $(

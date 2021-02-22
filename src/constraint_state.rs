@@ -226,6 +226,17 @@ impl<'a> ConstraintState<'a> {
             .iter()
             .map(|x| (x.read().unwrap().get_uuid(), x.read().unwrap().root.clone()))
             .collect::<LinkedHashSet<_>>();
+
+        /*
+        println!(
+            "Constraint {} on {} {} has the following dependencies",
+            x.get_name(),
+            x.get_root_type_name(),
+            &root_uuid
+        );
+        for dependency in dependencies.iter() {
+            println!("{:?}", dependency);
+        }*/
         let ancestors = concept_ancestors
             .get(&(root_uuid, x.root.clone()))
             .unwrap()

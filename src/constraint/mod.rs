@@ -122,6 +122,12 @@ impl Constraint {
         }
         panic!("Called requires_program() on a Constraint struct with no inner");
     }
+    pub fn get_root_type_name(&self) -> String {
+        if let Some(ref c) = &self.inner {
+            return c.get_root_type_name();
+        }
+        panic!("Called get_root_type_name() on a Constraint struct with no inner");
+    }
     pub fn print_dag(&self) {
         for downstream_rw in self.get_downstream_constraints() {
             let downstream = downstream_rw.read().unwrap();

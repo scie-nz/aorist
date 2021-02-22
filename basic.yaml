@@ -225,6 +225,9 @@ spec:
   requires:
       - UploadDataToAlluxio
       - UploadDataToMinio
+  attachIf: |
+      |root: Concept<'a>, ancestry: &ConceptAncestry<'a>|
+      ancestry.remote_import_storage_setup(root.clone()).is_ok()
 ---
 type: Constraint
 spec:
@@ -254,6 +257,9 @@ spec:
   body: |
       Now that data has been pre-processed we can upload it to the underlying
       Alluxio storage.
+  attachIf: |
+      |root: Concept<'a>, ancestry: &ConceptAncestry<'a>|
+      ancestry.remote_import_storage_setup(root.clone()).is_ok()
 ---
 type: Constraint
 spec:
@@ -294,6 +300,9 @@ spec:
   body: |
       Hive tables can be stored in external CSV format, but this is inefficient.
       We can convert them to ORC (the native Hive format) to speed up access.
+  attachIf: |
+      |root: Concept<'a>, ancestry: &ConceptAncestry<'a>|
+      ancestry.remote_import_storage_setup(root.clone()).is_ok()
 ---
 type: Constraint
 spec:

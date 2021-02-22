@@ -181,24 +181,28 @@ where
             let mut reverse_dependencies: LinkedHashMap<(Uuid, String), Vec<(Uuid, String)>> =
                 LinkedHashMap::new();
             for (k, v) in raw_unsatisfied_constraints.iter() {
+                //println!("Reverse dependencies for {:?}", k);
                 for dep in v.read().unwrap().unsatisfied_dependencies.iter() {
                     reverse_dependencies
                         .entry(dep.clone())
                         .or_insert(Vec::new())
                         .push(k.clone());
+                    //println!("- {:?}", dep);
                 }
             }
             for k in dangling {
                 assert!(raw_unsatisfied_constraints.remove(&k).is_some());
-                println!("{:?}", k);
-                for rev in reverse_dependencies.get(&k).unwrap() {
-                    assert!(raw_unsatisfied_constraints
-                        .get(rev)
-                        .unwrap()
-                        .write()
-                        .unwrap()
-                        .unsatisfied_dependencies
-                        .remove(&k));
+                //println!("{:?}", k);
+                if let Some(v) = reverse_dependencies.get(&k) {
+                    for rev in v {
+                        assert!(raw_unsatisfied_constraints
+                            .get(rev)
+                            .unwrap()
+                            .write()
+                            .unwrap()
+                            .unsatisfied_dependencies
+                            .remove(&k));
+                    }
                 }
                 changes_made = true;
             }
@@ -422,6 +426,13 @@ where
                     if builder.should_add(root.clone(), &ancestry) {
                         let constraint =
                             builder.build_constraint(root.get_uuid(), potential_child_constraints);
+                        if debug {
+                            println!(
+                                "added constraint {:?} on root {:?}",
+                                (constraint.get_uuid(), constraint.get_name()),
+                                &root_key
+                            );
+                        }
                         let gen_for_constraint = generated_constraints
                             .entry(constraint_name.clone())
                             .or_insert(LinkedHashMap::new());
