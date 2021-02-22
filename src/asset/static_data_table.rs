@@ -15,7 +15,7 @@ use uuid::Uuid;
 pub struct StaticDataTable {
     pub name: String,
     #[constrainable]
-    setup: StorageSetup,
+    pub setup: StorageSetup,
     #[constrainable]
     pub schema: DataSchema,
 }

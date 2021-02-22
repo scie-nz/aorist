@@ -200,7 +200,7 @@ fn process_constraints(raw_objects: &Vec<HashMap<String, Value>>) {
             None => "None".to_string(),
         };
         let should_add = match should_add {
-            None => "|_| true".to_string(),
+            None => "|_, _| true".to_string(),
             Some(x) => x.to_string(),
         };
         let define = match required.len() {

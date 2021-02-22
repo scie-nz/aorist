@@ -394,8 +394,8 @@ macro_rules! define_constraint {
             pub fn get_downstream_constraints_ignore_chains(&self) -> Vec<Arc<RwLock<Constraint>>> {
                 Vec::new()
             }
-            pub fn _should_add(root: &$root) -> bool {
-                $should_add(root)
+            pub fn _should_add<'a>(root: Concept<'a>, ancestry: &ConceptAncestry<'a>) -> bool {
+                $should_add(root, ancestry)
             }
             pub fn get_uuid(&self) -> Uuid {
                 self.id.clone()
@@ -443,9 +443,9 @@ macro_rules! define_constraint {
                        _potential_child_constraints: Vec<Arc<RwLock<Constraint>>>) -> Self {
                 Self{ id: Uuid::new_v4(), root_uuid}
             }
-            fn should_add(root: Concept) -> bool {
+            fn should_add<'a>(root: Concept<'a>, ancestry: &ConceptAncestry<'a>) -> bool {
                 match &root {
-                    Concept::$root(x) => Self::_should_add(x.0),
+                    Concept::$root(x) => Self::_should_add(root, ancestry),
                     _ => panic!("should_add called with unexpected concept."),
                 }
             }
@@ -483,8 +483,8 @@ macro_rules! define_constraint {
                 pub fn get_uuid(&self) -> Uuid {
                     self.id.clone()
                 }
-                pub fn _should_add(root: &$root) -> bool {
-                    $should_add(root)
+                pub fn _should_add<'a>(root: Concept<'a>, ancestry: &ConceptAncestry<'a>) -> bool {
+                    $should_add(root, ancestry)
                 }
                 pub fn get_root_uuid(&self) -> Uuid {
                     self.root_uuid.clone()
@@ -557,9 +557,9 @@ macro_rules! define_constraint {
                         stringify!($required).into()
                     ),+]
                 }
-                fn should_add(root: Concept) -> bool {
+                fn should_add<'a>(root: Concept<'a>, ancestry: &ConceptAncestry<'a>) -> bool {
                     match &root {
-                        Concept::$root(x) => Self::_should_add(x.0),
+                        Concept::$root(x) => Self::_should_add(root, ancestry),
                         _ => panic!("should_add called with unexpected concept."),
                     }
                 }
@@ -623,10 +623,11 @@ macro_rules! register_constraint {
                     )+
                 }
             }
-            pub fn should_add(&self, root: Concept) -> bool {
+            pub fn should_add<'a>(&self, root: Concept<'a>, ancestry:&ConceptAncestry<'a>) -> bool {
                 match &self {
                     $(
-                        [<$name Builder>]::$element(_) => $element::should_add(root),
+                        [<$name Builder>]::$element(_) =>
+                        $element::should_add(root, ancestry),
                     )+
                 }
             }
@@ -771,10 +772,12 @@ macro_rules! register_constraint {
                     )+
                 }
             }
-            pub fn should_add(&self, root: Concept) -> bool {
+            pub fn should_add<'a>(&self, root: Concept<'a>, ancestry:
+            &ConceptAncestry<'a>) -> bool {
                 match &self {
                     $(
-                        Self::$element(_) => $element::should_add(root),
+                        Self::$element(_) => $element::should_add(root,
+                        ancestry),
                     )+
                 }
             }

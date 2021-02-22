@@ -131,18 +131,19 @@ pub fn derive_integer_measure(
 pub fn dag(inner: InnerUniverse, constraints: Vec<String>, mode: &str) -> PyResult<String> {
     let mut universe = Universe::from(inner);
     universe.compute_uuids();
+    let debug = true;
     match mode {
         "airflow" => {
-            Driver::<AirflowDAG>::new(&universe, constraints.into_iter().collect(), false).run()
+            Driver::<AirflowDAG>::new(&universe, constraints.into_iter().collect(), debug).run()
         }
         "prefect" => {
-            Driver::<PrefectDAG>::new(&universe, constraints.into_iter().collect(), false).run()
+            Driver::<PrefectDAG>::new(&universe, constraints.into_iter().collect(), debug).run()
         }
         "python" => {
-            Driver::<PythonDAG>::new(&universe, constraints.into_iter().collect(), false).run()
+            Driver::<PythonDAG>::new(&universe, constraints.into_iter().collect(), debug).run()
         }
         "jupyter" => {
-            Driver::<JupyterDAG>::new(&universe, constraints.into_iter().collect(), false).run()
+            Driver::<JupyterDAG>::new(&universe, constraints.into_iter().collect(), debug).run()
         }
         _ => panic!("Unknown mode provided"),
     }

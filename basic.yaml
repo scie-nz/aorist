@@ -26,6 +26,12 @@ spec:
   root: StaticDataTable
   requires:
       - TableSchemasCreated
+  attachIf: |
+      |root: Concept<'a>, ancestry: &ConceptAncestry<'a>|
+      match ancestry.static_data_table(root.clone()).unwrap().setup {
+          crate::storage_setup::StorageSetup::RemoteImportStorageSetup(_) => true,
+          _ => false,
+      }
 ---
 type: Constraint
 spec:
@@ -81,6 +87,9 @@ spec:
   body: |
       We need to create directories or buckets (depending on file system / storage
       solution) in which we will store our Hive data.
+  attachIf: |
+      |root: Concept<'a>, ancestry: &ConceptAncestry<'a>|
+      ancestry.remote_import_storage_setup(root.clone()).is_ok()
 ---
 type: Constraint
 spec:
@@ -88,6 +97,12 @@ spec:
   root: StaticDataTable
   requires:
     - Replicated
+  attachIf: |
+      |root: Concept<'a>, ancestry: &ConceptAncestry<'a>|
+      match ancestry.static_data_table(root.clone()).unwrap().setup {
+          crate::storage_setup::StorageSetup::RemoteImportStorageSetup(_) => true,
+          _ => false,
+      }
 ---
 type: Constraint
 spec:
@@ -223,6 +238,9 @@ spec:
   body: |
       Now that data has been pre-processed we can upload it to the underlying
       Alluxio storage.
+  attachIf: |
+      |root: Concept<'a>, ancestry: &ConceptAncestry<'a>|
+      ancestry.remote_import_storage_setup(root.clone()).is_ok()
 ---
 type: Constraint
 spec:
@@ -243,6 +261,12 @@ spec:
   root: StaticDataTable
   requires:
     - ConvertToCSV
+  attachIf: |
+      |root: Concept<'a>, ancestry: &ConceptAncestry<'a>|
+      match ancestry.static_data_table(root.clone()).unwrap().setup {
+          crate::storage_setup::StorageSetup::RemoteImportStorageSetup(_) => true,
+          _ => false,
+      }
 ---
 type: Constraint
 spec:
@@ -255,6 +279,9 @@ spec:
   body: |
       We need to convert the data to CSV format to process it further (or if
       the data is already in CSV format, we will need to rename files accordingly).
+  attachIf: |
+      |root: Concept<'a>, ancestry: &ConceptAncestry<'a>|
+      ancestry.remote_import_storage_setup(root.clone()).is_ok()
 ---
 type: Constraint
 spec:

@@ -190,6 +190,7 @@ where
             }
             for k in dangling {
                 assert!(raw_unsatisfied_constraints.remove(&k).is_some());
+                println!("{:?}", k);
                 for rev in reverse_dependencies.get(&k).unwrap() {
                     assert!(raw_unsatisfied_constraints
                         .get(rev)
@@ -418,7 +419,7 @@ where
                         })
                         .flatten()
                         .collect::<Vec<Arc<RwLock<Constraint>>>>();
-                    if builder.should_add(root.clone()) {
+                    if builder.should_add(root.clone(), &ancestry) {
                         let constraint =
                             builder.build_constraint(root.get_uuid(), potential_child_constraints);
                         let gen_for_constraint = generated_constraints
