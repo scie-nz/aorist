@@ -690,4 +690,48 @@ spec:
                 source_table_name=source_table,
             )
           }
-
+---
+type: Program
+spec:
+  use: SVMRegressionModelsTrained
+  root: SupervisedModel
+  dialect: Presto
+  call: "{query}"
+  kwargs:
+    query:
+      type: MultipleAncestorsArgument
+      spec:
+        attaches:
+          - SupervisedModel
+          - DataSet
+        call: >
+          {
+            use crate::attributes::TAttribute;
+            use crate::template::DatumTemplate;
+            let DataSchema::TabularSchema(ref t) = supervised_model.schema;
+            let mapped_templates = data_set.get_mapped_datum_templates();
+            let template = mapped_templates.get(&t.datumTemplateName);
+            let tfm = match template {
+                Some(DatumTemplate::TrainedFloatMeasure(m)) => m,
+                _ => panic!(format!(
+                    "Cannot train an SVM Regression Model on asset with with template {}",
+                    t.datumTemplateName
+               )),
+            };
+            format!("
+            INSERT INTO {presto_schema}.{table_name}
+            SELECT
+                CAST(LEARN_REGRESSOR(
+                    {objective},
+                    FEATURES({features}),
+                ) AS VARCHAR) AS {model_column_name}
+            FROM {presto_schema}.{source_table_name}
+            ",
+                source_table_name=tfm.source_asset_name,
+                objective=tfm.get_training_objective().get_name().clone(),
+                model_column_name=tfm.get_regressor_as_attribute().get_name().clone(),
+                features=tfm.features.iter().map(|x| x.get_name().clone()).collect::<Vec<String>>().join(", "),
+                presto_schema=data_set.name,
+                table_name=supervised_model.name,
+            )
+          }

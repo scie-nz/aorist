@@ -19,6 +19,7 @@ spec:
   root: Asset
   requires:
     - ReplicatedSchema
+    - DroppedCSVTable
 ---
 type: Constraint
 spec:
@@ -38,8 +39,8 @@ spec:
   name: DataDownloadedAndConverted
   root: Universe
   requires:
-    - DroppedCSVTable
     - HistogramsComputed
+    - SVMRegressionModelsTrained
 ---
 type: Constraint
 spec:
@@ -357,3 +358,21 @@ spec:
   attachIf: |
       |root: Concept<'a>, ancestry: &ConceptAncestry<'a>|
       ancestry.remote_import_storage_setup(root.clone()).is_ok()
+---
+type: Constraint
+spec:
+  name: SVMRegressionModelsTrained
+  root: SupervisedModel
+  requiresProgram: true
+  requires:
+    - Replicated
+  title: Training SVM Regression Models
+  body: |
+      Support Vector Machines are some of the simplest ML models possible.
+      These are even supported by Trino!
+  attachIf: |
+      |root: Concept<'a>, ancestry: &ConceptAncestry<'a>|
+      match ancestry.supervised_model(root.clone()).unwrap().algorithm {
+          crate::algorithms::RegressionAlgorithm::SVMRegressionAlgorithm(_) => true,
+          _ => false,
+      }
