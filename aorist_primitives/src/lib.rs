@@ -398,9 +398,6 @@ macro_rules! define_constraint {
             pub fn get_downstream_constraints(&self) -> Vec<Arc<RwLock<Constraint>>> {
                 Vec::new()
             }
-            pub fn get_downstream_constraints_ignore_chains(&self) -> Vec<Arc<RwLock<Constraint>>> {
-                Vec::new()
-            }
             pub fn _should_add<'a>(root: Concept<'a>, ancestry: &ConceptAncestry<'a>) -> bool {
                 $should_add(root, ancestry)
             }
@@ -413,10 +410,6 @@ macro_rules! define_constraint {
             pub fn requires_program(&self) -> bool {
                 $requires_program
             }
-            pub fn ingest_upstream_constraints(
-                &self,
-                _upstream_constraints: Vec<Arc<RwLock<Constraint>>>
-            ) {}
             pub fn get_title() -> Option<String> {
                 $title
             }
@@ -499,20 +492,6 @@ macro_rules! define_constraint {
                 pub fn requires_program(&self) -> bool {
                     $requires_program
                 }
-                pub fn ingest_upstream_constraints(
-                    &mut self,
-                    upstream_constraints: Vec<Arc<RwLock<Constraint>>>
-                ) {
-                    for constraint in upstream_constraints {
-                        $(
-                            if let Some(AoristConstraint::$required(x)) =
-                            &constraint.read().unwrap().inner
-                            {
-                                self.[<$required:snake:lower>].push(constraint.clone());
-                            }
-                        )+
-                    }
-                }
                 // these are *all* downstream constraints
                 pub fn get_downstream_constraints(&self) -> Vec<Arc<RwLock<Constraint>>> {
                     let mut downstream: Vec<Arc<RwLock<Constraint>>> = Vec::new();
@@ -521,30 +500,6 @@ macro_rules! define_constraint {
                             downstream.push(arc.clone());
                         }
                     )+
-                    downstream
-                }
-                pub fn get_downstream_constraints_ignore_chains(&self) -> Vec<Arc<RwLock<Constraint>>> {
-                    let mut downstream: Vec<Arc<RwLock<Constraint>>> = Vec::new();
-                    $(
-                        for arc in &self.[<$required:snake:lower>] {
-                            downstream.push(arc.clone());
-                        }
-                    )+
-                    loop {
-                        if downstream.len() != 1 {
-                            break;
-                        }
-
-                        let child = downstream.pop().unwrap();
-                        if child.read().unwrap().requires_program() {
-                            downstream.push(child);
-                            break;
-                        }
-
-                        for elem in child.read().unwrap().get_downstream_constraints_ignore_chains() {
-                            downstream.push(elem.clone());
-                        }
-                    }
                     downstream
                 }
                 pub fn get_title() -> Option<String> {
@@ -700,29 +655,10 @@ macro_rules! register_constraint {
                     )+
                 }
             }
-            pub fn get_downstream_constraints_ignore_chains(&self) -> Vec<Arc<RwLock<Constraint>>> {
-                match self {
-                    $(
-                        Self::$element(x) =>
-                        x.get_downstream_constraints_ignore_chains(),
-                    )+
-                }
-            }
             pub fn requires_program(&self) -> bool {
                 match self {
                     $(
                         Self::$element(x) => x.requires_program(),
-                    )+
-                }
-            }
-            pub fn ingest_upstream_constraints(
-                &mut self,
-                upstream_constraints: Vec<Arc<RwLock<Constraint>>>
-            ) {
-                match self {
-                    $(
-                        Self::$element(ref mut x) =>
-                        x.ingest_upstream_constraints(upstream_constraints),
                     )+
                 }
             }
