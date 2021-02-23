@@ -80,8 +80,11 @@ spec:
       data. We need to create these schemas to be able to write data to them.
   attachIf: |
       |root: Concept<'a>, ancestry: &ConceptAncestry<'a>|
-      match ancestry.static_data_table(root.clone()).unwrap().setup {
-          crate::storage_setup::StorageSetup::RemoteImportStorageSetup(_) => true,
+      match ancestry.static_data_table(root.clone()) {
+          Ok(sdt) => match sdt.setup {
+              crate::storage_setup::StorageSetup::RemoteImportStorageSetup(_) => true,
+              _ => false,
+          },
           _ => false,
       }
 ---

@@ -987,8 +987,9 @@ macro_rules! register_concept {
                     match parent_id {
                         None => Err(
                             format!(
-                                "Cannot find ancestor of type {}.",
-                                stringify!($element)
+                                "Cannot find ancestor of type {} for root {}.",
+                                stringify!($element),
+                                root.get_type(),
                             )
                         ),
                         Some(id) => {

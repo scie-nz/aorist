@@ -545,7 +545,15 @@ fn main() {
                     );",
                     objects=object_names.iter().map(|x| {
                         format!(
-                            "let {x} = ancestry.{x}(concept.clone()).unwrap();",
+                            "let {x} = match ancestry.{x}(concept.clone()) {{
+                                Ok(out) => out,
+                                Err(err) => panic!(format!(
+                                    \"Error encountered for constraint {{}}:\n{{}}\",
+                                    \"{constraint}\",
+                                    err,
+                                ))
+                            }};",
+                            constraint=constraint,
                             x=to_snake_case(x),
                         ).to_string()
                     }).collect::<Vec<String>>().join("\n"),

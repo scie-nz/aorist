@@ -360,8 +360,8 @@ spec:
     table_name:
       type: AncestorArgument
       spec:
-        call: static_data_table.name
-        attaches: StaticDataTable
+        call: asset.get_name()
+        attaches: Asset
     data_format:
       type: AncestorArgument
       spec:
@@ -383,7 +383,7 @@ spec:
           {
             use crate::attributes::TAttribute;
             use crate::template::TDatumTemplate;
-            let DataSchema::TabularSchema(ref t) = static_data_table.schema;
+            let DataSchema::TabularSchema(ref t) = asset.get_schema();
             let dictionary = Standard::from_embedded(Language::EnglishUS).unwrap();
             let options = Options::new(66).splitter(dictionary);
 
@@ -435,7 +435,7 @@ spec:
             format!("\n{}    \n", attr_types.join(",\n"))
           }
         attaches:
-          - StaticDataTable
+          - Asset
           - DataSet
 ---
 type: Program
@@ -449,8 +449,8 @@ spec:
     table_name:
       type: AncestorArgument
       spec:
-        call: static_data_table.name
-        attaches: StaticDataTable
+        call: asset.get_name()
+        attaches: Asset
     presto_schema:
       type: AncestorArgument
       spec:
