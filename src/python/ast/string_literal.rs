@@ -30,15 +30,52 @@ impl StringLiteral {
             object_uuids: self.object_uuids.clone(),
         }
     }
+    pub fn pretty_sql_value(&self, depth: usize) -> String {
+        assert!(self.is_sql);
+        let splits: Vec<String> = self
+            .value
+            .clone()
+            .split("\n")
+            .filter(|x| x.len() > 0)
+            .map(|x| x.to_string())
+            .collect();
+        assert!(splits.len() > 0);
+        if splits.len() == 1 {
+            return splits.into_iter().next().unwrap()
+        }
+        let min_num_leading_spaces = splits
+            .iter()
+            .map(|x| {
+                for (i, c) in x.chars().enumerate() {
+                    if c != ' ' {
+                        return i;
+                    }
+                }
+                return x.len();
+            })
+            .min().unwrap();
+        let offset = (0..(depth * 4)).map(|_| " ").collect::<String>();
+        let pretty_splits = splits.into_iter().map(|mut x| {
+            let without_leading_spaces = x.split_off(min_num_leading_spaces);
+            format!("{}{}", &offset, without_leading_spaces).to_string()
+        }).collect::<Vec<String>>();
+        format!(
+            "\n{}\n{}",
+            pretty_splits.join("\n"),
+            offset,
+        ).to_string()
+    }
     pub fn to_python_ast_node<'a>(
         &self,
-        py: Python,
+        _py: Python,
         ast_module: &'a PyModule,
         depth: usize,
     ) -> PyResult<&'a PyAny> {
-        (|literal: &StringLiteral, _py: Python, ast_module: &'a PyModule| {
-            ast_module.call1("Constant", (&literal.value,))
-        })(self, py, ast_module)
+        let value = match self.is_sql {
+            false => self.value.clone(),
+            true => self.pretty_sql_value(depth),
+        };
+        ast_module.call1("Constant", (&value,))
     }
     pub fn new_wrapped(value: String, is_sql: bool) -> Arc<RwLock<Self>> {
         Arc::new(RwLock::new(Self::new(value, is_sql)))
