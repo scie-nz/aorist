@@ -1,6 +1,5 @@
 use syn::Path;
 
-
 pub fn extract_type_path(ty: &syn::Type) -> Option<&Path> {
     match *ty {
         syn::Type::Path(ref typepath) if typepath.qself.is_none() => Some(&typepath.path),
@@ -65,7 +64,12 @@ pub fn extract_type_from_option(ty: &syn::Type) -> Option<&syn::Type> {
 }
 
 pub fn extract_type_from_vector(ty: &syn::Type) -> Option<&syn::Type> {
-    extract_inner_from_bracketed_type(ty, vec!["Vector|".to_string(),
-    "std|vec|Vec|".into(), "Vec|".to_string()])
+    extract_inner_from_bracketed_type(
+        ty,
+        vec![
+            "Vector|".to_string(),
+            "std|vec|Vec|".into(),
+            "Vec|".to_string(),
+        ],
+    )
 }
-

@@ -1,7 +1,7 @@
 // Following: https://github.com/dtolnay/syn/issues/516
 extern crate proc_macro;
 use self::proc_macro::TokenStream;
-use proc_macro2::{Ident};
+use proc_macro2::Ident;
 use quote::quote;
 use std::fs::OpenOptions;
 use std::io::prelude::*;
@@ -94,10 +94,7 @@ fn process_enum_variants(
       }
     })
 }
-fn process_struct_fields(
-    fields: &Punctuated<Field, Comma>,
-    input: &DeriveInput,
-) -> TokenStream {
+fn process_struct_fields(fields: &Punctuated<Field, Comma>, input: &DeriveInput) -> TokenStream {
     let field = fields
         .iter()
         .filter(|field| {
@@ -269,9 +266,7 @@ pub fn constrainable(input: TokenStream) -> TokenStream {
             fields: Fields::Named(fields),
             ..
         }) => process_struct_fields(&fields.named, &input),
-        Data::Enum(DataEnum { variants, .. }) => {
-            process_enum_variants(variants, &input)
-        }
+        Data::Enum(DataEnum { variants, .. }) => process_enum_variants(variants, &input),
         _ => panic!("expected a struct with named fields or an enum"),
     }
 }

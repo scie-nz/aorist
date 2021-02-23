@@ -361,29 +361,31 @@ macro_rules! register_satisfiable_constraints {
 
 #[macro_export]
 macro_rules! define_attribute {
-    ($element:ident, $presto_type:ident, $orc_type:ident, $sql_type:ident) => { paste::item! {
-        #[aorist_concept(derive($presto_type, $orc_type, $sql_type))]
-        pub struct $element {
-            pub name: String,
-            #[py_default = "None"]
-            pub comment: Option<String>,
-        }
-        impl TAttribute for $element {
-            fn get_name(&self) -> &String {
-                &self.name
+    ($element:ident, $presto_type:ident, $orc_type:ident, $sql_type:ident) => {
+        paste::item! {
+            #[aorist_concept(derive($presto_type, $orc_type, $sql_type))]
+            pub struct $element {
+                pub name: String,
+                #[py_default = "None"]
+                pub comment: Option<String>,
             }
-            fn get_comment(&self) -> &Option<String> {
-                &self.comment
+            impl TAttribute for $element {
+                fn get_name(&self) -> &String {
+                    &self.name
+                }
+                fn get_comment(&self) -> &Option<String> {
+                    &self.comment
+                }
+            }
+            #[pymethods]
+            impl [<Inner $element>] {
+                #[getter]
+                pub fn name(&self) -> PyResult<String> {
+                    Ok(self.name.clone())
+                }
             }
         }
-        #[pymethods]
-        impl [<Inner $element>] {
-            #[getter]
-            pub fn name(&self) -> PyResult<String> {
-                Ok(self.name.clone())
-            }
-        }
-    }}
+    };
 }
 
 #[macro_export]
