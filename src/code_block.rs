@@ -70,7 +70,7 @@ where
                     AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
                         format!("tasks_{}", self.get_constraint_name()).to_string(),
                     )),
-                    AST::StringLiteral(StringLiteral::new_wrapped(shorter_name)),
+                    AST::StringLiteral(StringLiteral::new_wrapped(shorter_name, false)),
                     false,
                 )));
             }

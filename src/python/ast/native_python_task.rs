@@ -20,7 +20,7 @@ define_task_node!(
         .chain(
             vec![AST::Assignment(Assignment::new_wrapped(
                 task.task_val.clone(),
-                AST::StringLiteral(StringLiteral::new_wrapped("Done".to_string())),
+                AST::StringLiteral(StringLiteral::new_wrapped("Done".to_string(), false)),
             ))]
             .into_iter()
         )

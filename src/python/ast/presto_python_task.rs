@@ -26,8 +26,9 @@ define_task_node!(
             vec![
                 AST::StringLiteral(StringLiteral::new_wrapped(
                     format!("'{}n{}s+'", "\\", "\\").to_string(),
+                    false,
                 )),
-                AST::StringLiteral(StringLiteral::new_wrapped("''".to_string())),
+                AST::StringLiteral(StringLiteral::new_wrapped("''".to_string(), false)),
                 command_ident.clone(),
             ],
             LinkedHashMap::new(),
@@ -67,6 +68,7 @@ define_task_node!(
                 vec![AST::Formatted(Formatted::new_wrapped(
                     AST::StringLiteral(StringLiteral::new_wrapped(
                         "Ran command: {command}".to_string(),
+                        false,
                     )),
                     command_map,
                 ))],
@@ -99,11 +101,17 @@ impl PrestoPythonTask {
 
         kwargs.insert(
             "host".to_string(),
-            AST::StringLiteral(StringLiteral::new_wrapped(presto_endpoints.server.clone())),
+            AST::StringLiteral(StringLiteral::new_wrapped(
+                presto_endpoints.server.clone(),
+                false,
+            )),
         );
         kwargs.insert(
             "user".to_string(),
-            AST::StringLiteral(StringLiteral::new_wrapped(presto_endpoints.user.clone())),
+            AST::StringLiteral(StringLiteral::new_wrapped(
+                presto_endpoints.user.clone(),
+                false,
+            )),
         );
         kwargs.insert(
             "port".to_string(),
@@ -111,7 +119,7 @@ impl PrestoPythonTask {
         );
         kwargs.insert(
             "catalog".to_string(),
-            AST::StringLiteral(StringLiteral::new_wrapped("hive".to_string())),
+            AST::StringLiteral(StringLiteral::new_wrapped("hive".to_string(), false)),
         );
 
         AST::Assignment(Assignment::new_wrapped(

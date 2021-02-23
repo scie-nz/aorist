@@ -153,7 +153,7 @@ define_ast_node!(
             .elems
             .keys()
             .map(|x| {
-                StringLiteral::new(x.clone())
+                StringLiteral::new(x.clone(), false)
                     .to_python_ast_node(py, ast_module, depth + 1)
                     .unwrap()
             })
@@ -444,15 +444,16 @@ impl ParameterTuple {
         object_uuid: Uuid,
         args_v: Vec<String>,
         kwargs_v: LinkedHashMap<String, String>,
+        is_sql: bool,
     ) -> Self {
         // TODO: remove this
         let mut args = args_v
             .into_iter()
-            .map(|x| AST::StringLiteral(StringLiteral::new_wrapped(x)))
+            .map(|x| AST::StringLiteral(StringLiteral::new_wrapped(x, is_sql)))
             .collect::<Vec<_>>();
         let mut kwargs = kwargs_v
             .into_iter()
-            .map(|(k, v)| (k, AST::StringLiteral(StringLiteral::new_wrapped(v))))
+            .map(|(k, v)| (k, AST::StringLiteral(StringLiteral::new_wrapped(v, is_sql))))
             .collect::<LinkedHashMap<_, _>>();
         for arg in args.iter_mut() {
             arg.register_object(object_uuid.clone(), None);

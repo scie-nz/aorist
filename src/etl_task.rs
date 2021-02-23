@@ -103,7 +103,7 @@ where
         if T::get_type() == "airflow".to_string() {
             local_params_map.insert(
                 "task_id".to_string(),
-                AST::StringLiteral(StringLiteral::new_wrapped(self.task_id.clone())),
+                AST::StringLiteral(StringLiteral::new_wrapped(self.task_id.clone(), false)),
             );
         }
         if let Some(ref p) = self.params {
@@ -211,7 +211,7 @@ where
             kwargs = LinkedHashMap::new();
         }
         let singleton = T::new(
-            AST::StringLiteral(StringLiteral::new_wrapped(self.task_id.clone())),
+            AST::StringLiteral(StringLiteral::new_wrapped(self.task_id.clone(), false)),
             self.get_task_val(),
             self.call.clone(),
             args,
@@ -307,7 +307,7 @@ where
                         x.clone(),
                         AST::Subscript(Subscript::new_wrapped(
                             params.clone(),
-                            AST::StringLiteral(StringLiteral::new_wrapped(x.to_string())),
+                            AST::StringLiteral(StringLiteral::new_wrapped(x.to_string(), false)),
                             false,
                         )),
                     )
@@ -319,7 +319,10 @@ where
                     AST::Subscript(Subscript::new_wrapped(
                         AST::Subscript(Subscript::new_wrapped(
                             params.clone(),
-                            AST::StringLiteral(StringLiteral::new_wrapped("args".to_string())),
+                            AST::StringLiteral(StringLiteral::new_wrapped(
+                                "args".to_string(),
+                                false,
+                            )),
                             false,
                         )),
                         AST::BigIntLiteral(BigIntLiteral::new_wrapped(x as i64)),
@@ -334,14 +337,17 @@ where
         let dependencies = match any_dependencies {
             true => Some(AST::Subscript(Subscript::new_wrapped(
                 params.clone(),
-                AST::StringLiteral(StringLiteral::new_wrapped("dependencies".to_string())),
+                AST::StringLiteral(StringLiteral::new_wrapped(
+                    "dependencies".to_string(),
+                    false,
+                )),
                 false,
             ))),
             false => None,
         };
         let task_id = AST::Subscript(Subscript::new_wrapped(
             params.clone(),
-            AST::StringLiteral(StringLiteral::new_wrapped("task_id".to_string())),
+            AST::StringLiteral(StringLiteral::new_wrapped("task_id".to_string(), false)),
             false,
         ));
 

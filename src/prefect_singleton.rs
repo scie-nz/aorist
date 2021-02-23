@@ -137,12 +137,14 @@ impl PrefectSingleton {
             Some(Dialect::Bash(_)) => AST::Formatted(Formatted::new_wrapped(
                 AST::StringLiteral(StringLiteral::new_wrapped(
                     self.command.as_ref().unwrap().clone(),
+                    false,
                 )),
                 self.kwargs.clone(),
             )),
             Some(Dialect::Presto(_)) => AST::Formatted(Formatted::new_wrapped(
                 AST::StringLiteral(StringLiteral::new_wrapped(
                     format!("presto -e '{}'", self.command.as_ref().unwrap()).to_string(),
+                    true,
                 )),
                 self.kwargs.clone(),
             )),

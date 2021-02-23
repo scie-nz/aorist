@@ -69,14 +69,20 @@ impl ETLSingleton for PythonSingleton {
         endpoints: EndpointConfig,
     ) -> Self {
         let command = match &dialect {
-            Some(Dialect::Presto(_)) | Some(Dialect::Bash(_)) | Some(Dialect::R(_)) => {
-                AST::Formatted(Formatted::new_wrapped(
-                    AST::StringLiteral(StringLiteral::new_wrapped(
-                        call.as_ref().unwrap().to_string(),
-                    )),
-                    kwargs.clone(),
-                ))
-            }
+            Some(Dialect::Bash(_)) | Some(Dialect::R(_)) => AST::Formatted(Formatted::new_wrapped(
+                AST::StringLiteral(StringLiteral::new_wrapped(
+                    call.as_ref().unwrap().to_string(),
+                    false,
+                )),
+                kwargs.clone(),
+            )),
+            Some(Dialect::Presto(_)) => AST::Formatted(Formatted::new_wrapped(
+                AST::StringLiteral(StringLiteral::new_wrapped(
+                    call.as_ref().unwrap().to_string(),
+                    true,
+                )),
+                kwargs.clone(),
+            )),
             Some(Dialect::Python(_)) => AST::Call(Call::new_wrapped(
                 AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
                     call.as_ref().unwrap().clone(),
@@ -84,7 +90,7 @@ impl ETLSingleton for PythonSingleton {
                 args.clone(),
                 kwargs.clone(),
             )),
-            None => AST::StringLiteral(StringLiteral::new_wrapped("Done".to_string())),
+            None => AST::StringLiteral(StringLiteral::new_wrapped("Done".to_string(), false)),
         };
         let node = match &dialect {
             Some(Dialect::Presto(_)) => {

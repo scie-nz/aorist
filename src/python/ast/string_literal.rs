@@ -10,15 +10,24 @@ use uuid::Uuid;
 #[derive(Hash, PartialEq, Eq)]
 pub struct StringLiteral {
     value: String,
+    is_sql: bool,
     // TODO: replace with LinkedHashMap<Uuid, BTreeSet>
     object_uuids: LinkedHashMap<Uuid, BTreeSet<Option<String>>>,
 }
 
 impl StringLiteral {
-    pub fn new(value: String) -> Self {
+    pub fn new(value: String, is_sql: bool) -> Self {
         Self {
             value,
+            is_sql,
             object_uuids: LinkedHashMap::new(),
+        }
+    }
+    pub fn as_sql_string(&self) -> Self {
+        Self {
+            value: self.value.clone(),
+            is_sql: true,
+            object_uuids: self.object_uuids.clone(),
         }
     }
     pub fn to_python_ast_node<'a>(
@@ -31,8 +40,8 @@ impl StringLiteral {
             ast_module.call1("Constant", (&literal.value,))
         })(self, py, ast_module)
     }
-    pub fn new_wrapped(value: String) -> Arc<RwLock<Self>> {
-        Arc::new(RwLock::new(Self::new(value)))
+    pub fn new_wrapped(value: String, is_sql: bool) -> Arc<RwLock<Self>> {
+        Arc::new(RwLock::new(Self::new(value, is_sql)))
     }
     pub fn value(&self) -> String {
         self.value.clone()

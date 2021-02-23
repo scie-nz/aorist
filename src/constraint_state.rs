@@ -108,6 +108,7 @@ impl<'a> ConstraintState<'a> {
             (_, Some(Dialect::Bash(_))) => Ok(Vec::new()),
             (_, None) => Ok(vec![AST::StringLiteral(StringLiteral::new_wrapped(
                 self.constraint.read().unwrap().get_name().clone(),
+                false,
             ))]),
             _ => Err("Dialect not supported".to_string()),
         }
@@ -120,7 +121,7 @@ impl<'a> ConstraintState<'a> {
             },
             Some(Dialect::Presto(_)) => {
                 let raw_command = format!("presto -e '{}'", self.get_call().unwrap().clone());
-                let format_string = StringLiteral::new_wrapped(raw_command.to_string());
+                let format_string = StringLiteral::new_wrapped(raw_command.to_string(), true);
                 let command = match self.params {
                     Some(ref p) => AST::Formatted(Formatted::new_wrapped(
                         AST::StringLiteral(format_string),
@@ -134,7 +135,7 @@ impl<'a> ConstraintState<'a> {
             }
             Some(Dialect::Bash(_)) => {
                 let format_string =
-                    AST::StringLiteral(StringLiteral::new_wrapped(self.get_call().unwrap()));
+                    AST::StringLiteral(StringLiteral::new_wrapped(self.get_call().unwrap(), false));
                 let command = match self.params {
                     Some(ref p) => {
                         AST::Formatted(Formatted::new_wrapped(format_string, p.get_kwargs()))
