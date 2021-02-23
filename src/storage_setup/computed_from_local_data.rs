@@ -13,8 +13,6 @@ use uuid::Uuid;
 #[aorist_concept]
 pub struct ComputedFromLocalData {
     #[constrainable]
-    source: Storage,
-    #[constrainable]
     target: Storage,
     pub tmp_dir: String,
 }
