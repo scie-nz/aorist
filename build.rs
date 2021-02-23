@@ -543,7 +543,7 @@ fn main() {
                             ParameterTuple::new(uuid, args, kwargs, {is_sql})
                         }}
                     );",
-                    is_sql=dialect == "presto",
+                    is_sql=dialect == "Presto",
                     objects=object_names.iter().map(|x| {
                         format!(
                             "let {x} = match ancestry.{x}(concept.clone()) {{
