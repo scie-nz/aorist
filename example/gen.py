@@ -14,9 +14,7 @@ universe = Universe(
     users=DEFAULT_USERS,
     groups=DEFAULT_GROUPS,
     datasets=[
-        # snap_dataset,
-        # geonames_dataset,
-        wine_dataset
+        snap_dataset
     ],
     endpoints=DEFAULT_ENDPOINTS,
     compliance=ComplianceConfig(
@@ -34,5 +32,5 @@ universe = Universe(
 )
 out = dag(universe, [
     "DataDownloadedAndConverted"
-], "jupyter")
+], "airflow")
 print(out.replace("\\\\", "\\"))

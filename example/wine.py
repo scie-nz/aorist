@@ -129,6 +129,7 @@ from aorist import attributes as attr
 """
 Defining dataset
 """
+# Attributes in the dataset
 attributes = [
     attr.Categorical("wine_class_identifier"),
     attr.PositiveFloat("alcohol"),
@@ -144,10 +145,12 @@ attributes = [
     attr.PositiveFloat("od_280__od_315_diluted_wines"),
     attr.PositiveFloat("proline"),
 ]
+# A row is equivalent to a struct
 wine_datum = KeyedStruct(
     name="wine_datum",
     attributes=attributes,
 )
+# Data can be found remotely, on the web
 remote = RemoteStorage(
     location=WebLocation(
         address=("https://archive.ics.uci.edu/ml/"
@@ -156,16 +159,14 @@ remote = RemoteStorage(
     layout=SingleFileLayout(),
     encoding=CSVEncoding(),
 )
+# This data is to be replicated locally
 local = HiveTableStorage(
     location=MinioLocation(name="wine"),
     layout=StaticHiveTableLayout(),
     encoding=ORCEncoding(),
 )
-classifier_storage = HiveTableStorage(
-    location=MinioLocation(name="wine"),
-    layout=StaticHiveTableLayout(),
-    encoding=ORCEncoding(),
-)
+# We will create a table that will always have the same content
+# (we do not expect it to change over time)
 wine_table = StaticDataTable(
     name="wine_table",
     schema=default_tabular_schema(wine_datum),
@@ -176,10 +177,19 @@ wine_table = StaticDataTable(
     ),
     tag="wine",
 )
+# our dataset contains only this table and only this datum
+# definition. Note that multiple assets can reference the
+# same template!
 wine_dataset = DataSet(
     name="wine",
     datumTemplates=[wine_datum],
     assets=[wine_table],
+)
+
+classifier_storage = HiveTableStorage(
+    location=MinioLocation(name="wine"),
+    layout=StaticHiveTableLayout(),
+    encoding=ORCEncoding(),
 )
 
 features = attributes[2:]

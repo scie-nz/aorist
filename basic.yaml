@@ -20,6 +20,7 @@ spec:
   requires:
     - ReplicatedSchema
     - DroppedCSVTable
+    - TableSchemasCreated
 ---
 type: Constraint
 spec:
@@ -165,6 +166,7 @@ spec:
   root: RemoteImportStorageSetup
   requires:
     - RemoveFileHeader
+    - DownloadDataFromRemote
 ---
 type: Constraint
 spec:
@@ -249,17 +251,6 @@ spec:
 ---
 type: Constraint
 spec:
-  name: ConvertCSVToOrc
-  root: RemoteImportStorageSetup
-  requiresProgram: true
-  title: Convert CSV to ORC
-  body: |
-      The remote data source for asset is in CSV format, but we need to
-      convert it to ORC format (native Hive table format) to be usable
-      at the destination.
----
-type: Constraint
-spec:
   name: UploadDataToLocal
   root: HiveLocation
   requires:
@@ -321,6 +312,7 @@ spec:
   requiresProgram: true
   requires:
     - RemoveFileHeader
+    - DownloadDataFromRemote
   title: Convert data to CSV
   body: |
       We need to convert the data to CSV format to process it further (or if
