@@ -13,6 +13,7 @@ impl Import {
         &self,
         py: Python,
         ast_module: &'a PyModule,
+        depth: usize,
     ) -> PyResult<&'a PyAny> {
         match &self {
             Self::ModuleImport(ref module, ref alias) => {
@@ -25,14 +26,14 @@ impl Import {
                                 AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
                                     module.clone(),
                                 ))
-                                .to_python_ast_node(py, ast_module)?,
+                                .to_python_ast_node(py, ast_module, depth)?,
                                 (AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(x.clone())))
-                                    .to_python_ast_node(py, ast_module)?,
+                                    .to_python_ast_node(py, ast_module, depth)?,
                             ),
                         )?,
                         None => {
                             AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(module.clone()))
-                                .to_python_ast_node(py, ast_module)?
+                                .to_python_ast_node(py, ast_module, depth)?
                         }
                     }],
                 );
@@ -46,13 +47,13 @@ impl Import {
                             "alias",
                             (
                                 AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(name.clone()))
-                                    .to_python_ast_node(py, ast_module)?,
+                                    .to_python_ast_node(py, ast_module, depth)?,
                                 (AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(x.clone())))
-                                    .to_python_ast_node(py, ast_module)?,
+                                    .to_python_ast_node(py, ast_module, depth)?,
                             ),
                         )?,
                         None => AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(name.clone()))
-                            .to_python_ast_node(py, ast_module)?,
+                            .to_python_ast_node(py, ast_module, depth)?,
                     }],
                 );
                 ast_module.call1("ImportFrom", (module, alias.as_ref(), 0))

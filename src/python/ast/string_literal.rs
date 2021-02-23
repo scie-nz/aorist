@@ -25,6 +25,7 @@ impl StringLiteral {
         &self,
         py: Python,
         ast_module: &'a PyModule,
+        depth: usize,
     ) -> PyResult<&'a PyAny> {
         (|literal: &StringLiteral, _py: Python, ast_module: &'a PyModule| {
             ast_module.call1("Constant", (&literal.value,))

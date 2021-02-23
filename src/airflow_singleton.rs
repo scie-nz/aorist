@@ -294,7 +294,9 @@ impl ETLDAG for AirflowDAG {
             kwargs,
         ));
         let dag_call_assign = AST::Assignment(Assignment::new_wrapped(dag, dag_call));
-        let dag_call_assign_ast = dag_call_assign.to_python_ast_node(py, ast_module).unwrap();
+        let dag_call_assign_ast = dag_call_assign
+            .to_python_ast_node(py, ast_module, 0)
+            .unwrap();
         statements.insert(
             0,
             (
@@ -303,7 +305,7 @@ impl ETLDAG for AirflowDAG {
                 None,
                 vec![
                     default_args_assign
-                        .to_python_ast_node(py, ast_module)
+                        .to_python_ast_node(py, ast_module, 0)
                         .unwrap(),
                     dag_call_assign_ast,
                 ],

@@ -88,7 +88,7 @@ where
 
         let imports_ast: Vec<_> = imports
             .into_iter()
-            .map(|x| x.to_python_ast_node(py, ast).unwrap())
+            .map(|x| x.to_python_ast_node(py, ast, 0).unwrap())
             .collect();
 
         let statements: Vec<(String, Option<String>, Option<String>, Vec<AST>)> =
@@ -105,7 +105,7 @@ where
                     title,
                     body,
                     x.into_iter()
-                        .map(|y| y.to_python_ast_node(py, ast).unwrap())
+                        .map(|y| y.to_python_ast_node(py, ast, 0).unwrap())
                         .collect(),
                 )
             })

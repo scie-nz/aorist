@@ -55,12 +55,14 @@ macro_rules! register_ast_nodes {
                 &self,
                 py: Python,
                 ast_module: &'a PyModule,
+                depth: usize,
             ) -> PyResult<&'a PyAny> {
                 match &self {
                     $(
                         Self::$variant(x) => x.read().unwrap().to_python_ast_node(
                             py,
-                            ast_module
+                            ast_module,
+                            depth,
                         ),
                     )+
                 }
@@ -222,8 +224,9 @@ macro_rules! define_ast_node {
                 &self,
                 py: Python,
                 ast_module: &'a PyModule,
+                depth: usize,
             ) -> PyResult<&'a PyAny> {
-                ($py_ast_closure)(self, py, ast_module)
+                ($py_ast_closure)(self, py, ast_module, depth)
             }
             pub fn register_object(&self, _uuid: Uuid, _tag: Option<String>) {
                 panic!(format!(

@@ -31,8 +31,8 @@ use uuid::Uuid;
 define_ast_node!(
     PythonImport,
     |import: &PythonImport| vec![import.inner.clone()],
-    |import: &PythonImport, py: Python, ast_module: &'a PyModule| {
-        import.to_python_ast_node(py, ast_module)
+    |import: &PythonImport, py: Python, ast_module: &'a PyModule, depth: usize| {
+        import.to_python_ast_node(py, ast_module, depth)
     },
     inner: AST,
 );
@@ -43,7 +43,7 @@ define_ast_node!(
         .into_iter()
         .chain(for_loop.body.clone().into_iter())
         .collect(),
-    |for_loop: &ForLoop, py: Python, ast_module: &'a PyModule| {
+    |for_loop: &ForLoop, py: Python, ast_module: &'a PyModule, depth: usize| {
         let body_ast = for_loop
             .body
             .iter()
@@ -54,7 +54,7 @@ define_ast_node!(
                     x.name()
                 )),
             })
-            .map(|x| x.to_python_ast_node(py, ast_module).unwrap())
+            .map(|x| x.to_python_ast_node(py, ast_module, depth + 1).unwrap())
             .collect::<Vec<_>>();
         let body_list = PyList::new(py, body_ast);
         let empty_vec: Vec<String> = Vec::new();
@@ -62,8 +62,8 @@ define_ast_node!(
         ast_module.call1(
             "For",
             (
-                for_loop.target.to_python_ast_node(py, ast_module)?,
-                for_loop.iter.to_python_ast_node(py, ast_module)?,
+                for_loop.target.to_python_ast_node(py, ast_module, depth)?,
+                for_loop.iter.to_python_ast_node(py, ast_module, depth)?,
                 body_list.as_ref(),
                 empty_list.as_ref(),
             ),
@@ -76,7 +76,7 @@ define_ast_node!(
 define_ast_node!(
     Assignment,
     |assign: &Assignment| vec![assign.target.clone(), assign.call.clone()],
-    |assign: &Assignment, py: Python, ast_module: &'a PyModule| {
+    |assign: &Assignment, py: Python, ast_module: &'a PyModule, depth: usize| {
         let assign_target = match assign.target {
             AST::Subscript(ref x) => {
                 AST::Subscript(x.read().unwrap().as_wrapped_assignment_target())
@@ -89,10 +89,16 @@ define_ast_node!(
             AST::SimpleIdentifier(_) => assign.target.clone(),
             _ => panic!("Assignment target not supported."),
         };
-        let targets = PyList::new(py, vec![assign_target.to_python_ast_node(py, ast_module)?]);
+        let targets = PyList::new(
+            py,
+            vec![assign_target.to_python_ast_node(py, ast_module, depth)?],
+        );
         ast_module.call1(
             "Assign",
-            (targets, assign.call.to_python_ast_node(py, ast_module)?),
+            (
+                targets,
+                assign.call.to_python_ast_node(py, ast_module, depth)?,
+            ),
         )
     },
     target: AST,
@@ -101,15 +107,18 @@ define_ast_node!(
 define_ast_node!(
     Expression,
     |expr: &Expression| vec![expr.inner.clone()],
-    |expr: &Expression, py: Python, ast_module: &'a PyModule| {
-        ast_module.call1("Expr", (expr.inner.to_python_ast_node(py, ast_module)?,))
+    |expr: &Expression, py: Python, ast_module: &'a PyModule, depth: usize| {
+        ast_module.call1(
+            "Expr",
+            (expr.inner.to_python_ast_node(py, ast_module, depth)?,),
+        )
     },
     inner: AST,
 );
 define_ast_node!(
     List,
     |list: &List| list.elems().clone(),
-    |list: &List, py: Python, ast_module: &'a PyModule| {
+    |list: &List, py: Python, ast_module: &'a PyModule, depth: usize| {
         let mode = ast_module
             .call0(match list.store {
                 true => "Store",
@@ -119,7 +128,7 @@ define_ast_node!(
         let children = list
             .elems
             .iter()
-            .map(|x| x.to_python_ast_node(py, ast_module).unwrap())
+            .map(|x| x.to_python_ast_node(py, ast_module, depth).unwrap())
             .collect::<Vec<_>>();
         let children_list = PyList::new(py, children);
         ast_module.call1("List", (children_list.as_ref(), mode))
@@ -139,20 +148,20 @@ impl TAssignmentTarget for List {
 define_ast_node!(
     Dict,
     |dict: &Dict| dict.elems().values().cloned().collect::<Vec<AST>>(),
-    |dict: &Dict, py: Python, ast_module: &'a PyModule| {
+    |dict: &Dict, py: Python, ast_module: &'a PyModule, depth: usize| {
         let keys = dict
             .elems
             .keys()
             .map(|x| {
                 StringLiteral::new(x.clone())
-                    .to_python_ast_node(py, ast_module)
+                    .to_python_ast_node(py, ast_module, depth + 1)
                     .unwrap()
             })
             .collect::<Vec<_>>();
         let values = dict
             .elems
             .values()
-            .map(|x| x.to_python_ast_node(py, ast_module).unwrap())
+            .map(|x| x.to_python_ast_node(py, ast_module, depth + 1).unwrap())
             .collect::<Vec<_>>();
         let keys_list = PyList::new(py, keys);
         let values_list = PyList::new(py, values);
@@ -163,7 +172,7 @@ define_ast_node!(
 define_ast_node!(
     Tuple,
     |tuple: &Tuple| tuple.elems().iter().cloned().collect::<Vec<AST>>(),
-    |tuple: &Tuple, py: Python, ast_module: &'a PyModule| {
+    |tuple: &Tuple, py: Python, ast_module: &'a PyModule, depth: usize| {
         let mode = ast_module
             .call0(match tuple.store {
                 true => "Store",
@@ -173,7 +182,7 @@ define_ast_node!(
         let children = tuple
             .elems
             .iter()
-            .map(|x| x.to_python_ast_node(py, ast_module).unwrap())
+            .map(|x| x.to_python_ast_node(py, ast_module, depth + 1).unwrap())
             .collect::<Vec<_>>();
         let children_list = PyList::new(py, children);
         ast_module.call1("Tuple", (children_list.as_ref(), mode))
@@ -193,14 +202,14 @@ impl TAssignmentTarget for Tuple {
 define_ast_node!(
     Attribute,
     |attribute: &Attribute| vec![attribute.value().clone()],
-    |attribute: &Attribute, py: Python, ast_module: &'a PyModule| {
+    |attribute: &Attribute, py: Python, ast_module: &'a PyModule, depth: usize| {
         let mode = ast_module
             .call0(match attribute.store {
                 true => "Store",
                 false => "Load",
             })
             .unwrap();
-        let val_ast = attribute.value.to_python_ast_node(py, ast_module)?;
+        let val_ast = attribute.value.to_python_ast_node(py, ast_module, depth)?;
         let name_ast = PyString::new(py, &attribute.name);
         ast_module.call1("Attribute", (val_ast, name_ast.as_ref(), mode))
     },
@@ -230,11 +239,11 @@ define_ast_node!(
         }
         v
     },
-    |call: &Call, py: Python, ast_module: &'a PyModule| {
+    |call: &Call, py: Python, ast_module: &'a PyModule, depth: usize| {
         let args = call
             .args
             .iter()
-            .map(|x| x.to_python_ast_node(py, ast_module).unwrap())
+            .map(|x| x.to_python_ast_node(py, ast_module, depth + 1).unwrap())
             .collect::<Vec<_>>();
         let kwargs = call
             .keywords
@@ -247,14 +256,14 @@ define_ast_node!(
                             py,
                             &vec![
                                 PyString::new(py, k).as_ref(),
-                                v.to_python_ast_node(py, ast_module).unwrap(),
+                                v.to_python_ast_node(py, ast_module, depth + 1).unwrap(),
                             ],
                         ),
                     )
                     .unwrap()
             })
             .collect::<Vec<_>>();
-        let function = call.function.to_python_ast_node(py, ast_module)?;
+        let function = call.function.to_python_ast_node(py, ast_module, depth)?;
         ast_module.call1("Call", (function, args, kwargs))
     },
     function: AST,
@@ -271,11 +280,11 @@ define_ast_node!(
         }
         v
     },
-    |formatted: &Formatted, py: Python, ast_module: &'a PyModule| {
+    |formatted: &Formatted, py: Python, ast_module: &'a PyModule, depth: usize| {
         let format_fn = ast_module.call1(
             "Attribute",
             (
-                formatted.fmt.to_python_ast_node(py, ast_module)?,
+                formatted.fmt.to_python_ast_node(py, ast_module, depth)?,
                 PyString::new(py, "format").as_ref(),
             ),
         )?;
@@ -290,7 +299,7 @@ define_ast_node!(
                             py,
                             &vec![
                                 PyString::new(py, k).as_ref(),
-                                v.to_python_ast_node(py, ast_module).unwrap(),
+                                v.to_python_ast_node(py, ast_module, depth + 1).unwrap(),
                             ],
                         ),
                     )
@@ -313,16 +322,16 @@ define_ast_node!(
 define_ast_node!(
     Subscript,
     |subscript: &Subscript| vec![subscript.a().clone(), subscript.b().clone()],
-    |subscript: &Subscript, py: Python, ast_module: &'a PyModule| {
+    |subscript: &Subscript, py: Python, ast_module: &'a PyModule, depth: usize| {
         let mode = ast_module
             .call0(match subscript.store {
                 true => "Store",
                 false => "Load",
             })
             .unwrap();
-        let b_node = subscript.b.to_python_ast_node(py, ast_module)?;
+        let b_node = subscript.b.to_python_ast_node(py, ast_module, depth + 1)?;
         let idx = ast_module.call1("Index", (b_node,))?;
-        let value = subscript.a.to_python_ast_node(py, ast_module)?;
+        let value = subscript.a.to_python_ast_node(py, ast_module, depth + 1)?;
         ast_module.call1("Subscript", (value, idx, mode))
     },
     a: AST,
@@ -341,7 +350,7 @@ impl TAssignmentTarget for Subscript {
 define_ast_node!(
     SimpleIdentifier,
     |_| Vec::new(),
-    |simple_identifier: &SimpleIdentifier, py: Python, ast_module: &'a PyModule| {
+    |simple_identifier: &SimpleIdentifier, py: Python, ast_module: &'a PyModule, _depth: usize| {
         ast_module.call1(
             "Name",
             (PyString::new(py, &simple_identifier.name).as_ref(),),
@@ -352,7 +361,7 @@ define_ast_node!(
 define_ast_node!(
     BooleanLiteral,
     |_| Vec::new(),
-    |lit: &BooleanLiteral, _py: Python, ast_module: &'a PyModule| {
+    |lit: &BooleanLiteral, _py: Python, ast_module: &'a PyModule, _depth: usize| {
         ast_module.call1("Constant", (lit.val,))
     },
     val: bool,
@@ -360,7 +369,7 @@ define_ast_node!(
 define_ast_node!(
     BigIntLiteral,
     |_| Vec::new(),
-    |lit: &BigIntLiteral, _py: Python, ast_module: &'a PyModule| {
+    |lit: &BigIntLiteral, _py: Python, ast_module: &'a PyModule, _depth: usize| {
         ast_module.call1("Constant", (lit.val,))
     },
     // TODO: deprecate use of BigInt when removing rustpython
@@ -369,7 +378,7 @@ define_ast_node!(
 define_ast_node!(
     PythonNone,
     |_| Vec::new(),
-    |_, py: Python, ast_module: &'a PyModule| {
+    |_, py: Python, ast_module: &'a PyModule, _depth: usize| {
         ast_module.call1("Constant", (py.None().as_ref(py),))
     },
 );

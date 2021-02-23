@@ -256,7 +256,7 @@ impl ETLDAG for PrefectDAG {
                             Vec::new(),
                             LinkedHashMap::new(),
                         ))))
-                        .to_python_ast_node(py, ast_module)
+                        .to_python_ast_node(py, ast_module, 0)
                         .unwrap(),
                     ],
                 )]
