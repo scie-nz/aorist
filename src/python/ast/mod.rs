@@ -171,6 +171,11 @@ define_ast_node!(
     },
     elems: LinkedHashMap<String, AST>,
 );
+impl Dict {
+    pub fn replace_elem(&mut self, key: String, elem: AST) {
+        self.elems.insert(key, elem);
+    }
+}
 define_ast_node!(
     Tuple,
     |tuple: &Tuple| tuple.elems().iter().cloned().collect::<Vec<AST>>(),
@@ -454,17 +459,16 @@ impl ParameterTuple {
         (self.args.len(), self.kwargs.keys().cloned().collect())
     }
     pub fn new(
-        object_uuid: Uuid,
+        _object_uuid: Uuid,
         args_v: Vec<String>,
         kwargs_v: LinkedHashMap<String, String>,
         is_sql: bool,
     ) -> Self {
-        // TODO: remove this
-        let mut args = args_v
+        let args = args_v
             .into_iter()
             .map(|x| AST::StringLiteral(StringLiteral::new_wrapped(x, is_sql)))
             .collect::<Vec<_>>();
-        let mut kwargs = kwargs_v
+        let kwargs = kwargs_v
             .into_iter()
             .map(|(k, v)| (k, AST::StringLiteral(StringLiteral::new_wrapped(v, is_sql))))
             .collect::<LinkedHashMap<_, _>>();

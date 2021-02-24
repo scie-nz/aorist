@@ -1,8 +1,7 @@
-use crate::constraint_state::AncestorRecord;
 use crate::endpoints::EndpointConfig;
 use crate::python::{
     format_code, Assignment, Import, Preamble, PythonStatementInput, SimpleIdentifier,
-    StringLiteral, AST,
+    AST,
 };
 use aorist_primitives::Dialect;
 use linked_hash_map::LinkedHashMap;
@@ -106,8 +105,7 @@ where
             .collect::<Vec<_>>();
 
         // ast_value without ancestry => short_name => keys
-        let mut literals: LinkedHashMap<AST, LinkedHashMap<String, Vec<String>>> =
-            LinkedHashMap::new();
+        let mut literals: LinkedHashMap<AST, LinkedHashMap<String, Vec<_>>> = LinkedHashMap::new();
 
         for (short_name, _, _, asts) in statements_with_ast.iter() {
             for ast in asts {
@@ -115,17 +113,26 @@ where
                     let assign = rw.read().unwrap();
                     if let AST::Dict(dict_rw) = assign.call() {
                         let dict = dict_rw.read().unwrap();
-                        for (task_key, task_val) in dict.elems() {
+                        for (_task_key, task_val) in dict.elems() {
                             if let AST::Dict(param_dict_rw) = task_val {
                                 let param_dict = param_dict_rw.read().unwrap();
                                 for (key, val) in param_dict.elems() {
-                                    if let Some(ancestors) = val.get_ancestors() {
-                                        literals
-                                            .entry(val.clone_without_ancestors())
-                                            .or_insert(LinkedHashMap::new())
-                                            .entry(short_name.to_string())
-                                            .or_insert(Vec::new())
-                                            .push(key.to_string());
+                                    if let Some(_ancestors) = val.get_ancestors() {
+                                        let is_long_literal = match val {
+                                            AST::StringLiteral(ref x) => {
+                                                x.read().unwrap().value().len()
+                                                    > short_name.len() + key.len() + 2
+                                            }
+                                            _ => true,
+                                        };
+                                        if is_long_literal {
+                                            literals
+                                                .entry(val.clone_without_ancestors())
+                                                .or_insert(LinkedHashMap::new())
+                                                .entry(short_name.to_string())
+                                                .or_insert(Vec::new())
+                                                .push((key.to_string(), param_dict_rw.clone()));
+                                        }
                                     }
                                 }
                             }
@@ -138,8 +145,10 @@ where
         for (literal, val) in literals.into_iter() {
             for (short_name, keys) in val.into_iter() {
                 let mut keys_hist: BTreeMap<String, usize> = BTreeMap::new();
-                for key in keys {
-                    *keys_hist.entry(key).or_insert(1) += 1;
+                let mut rws = Vec::new();
+                for (key, rw) in keys {
+                    *keys_hist.entry(key.clone()).or_insert(1) += 1;
+                    rws.push((rw, key));
                 }
                 if keys_hist.len() == 1 {
                     assignments
@@ -149,22 +158,25 @@ where
                                 keys_hist.into_iter().next().unwrap().0,
                                 short_name
                             )
-                            .to_string(),
+                            .to_string().to_uppercase(),
                         )
                         .or_insert(Vec::new())
-                        .push(literal.clone());
+                        .push((literal.clone(), rws));
                 }
             }
         }
-        let assignments_ast = assignments
-            .into_iter()
-            .filter(|(_, vals)| vals.len() == 1)
-            .map(|(var, vals)| {
+        let mut assignments_ast = Vec::new();
+        for (var, vals) in assignments {
+            if vals.len() == 1 {
                 let lval = AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(var));
-                let rval = vals.into_iter().next().unwrap();
-                AST::Assignment(Assignment::new_wrapped(lval, rval))
-            })
-            .collect::<Vec<_>>();
+                let (rval, rws) = vals.into_iter().next().unwrap();
+                assignments_ast.push(AST::Assignment(Assignment::new_wrapped(lval.clone(), rval)));
+                for (rw, key) in rws {
+                    let mut write = rw.write().unwrap();
+                    write.replace_elem(key, lval.clone());
+                }
+            }
+        }
         if assignments_ast.len() > 0 {
             statements_with_ast.insert(
                 0,

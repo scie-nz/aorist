@@ -1,12 +1,9 @@
 use crate::constraint_state::AncestorRecord;
 use crate::python::ast::AST;
-use linked_hash_map::LinkedHashMap;
 use pyo3::prelude::*;
 use pyo3::types::PyModule;
-use std::collections::BTreeSet;
 use std::hash::Hash;
 use std::sync::{Arc, RwLock};
-use uuid::Uuid;
 
 #[derive(Hash, PartialEq, Eq, Clone)]
 pub struct StringLiteral {
