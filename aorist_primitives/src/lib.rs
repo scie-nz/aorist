@@ -21,6 +21,13 @@ macro_rules! register_ast_nodes {
                     )+
                 }
             }
+            pub fn set_ancestors(&self, ancestors: Vec<AncestorRecord>) {
+                match &self {
+                    $(
+                        Self::$variant(x) => x.write().unwrap().set_ancestors(ancestors),
+                    )+
+                }
+            }
             pub fn get_descendants(&self) -> Vec<AST> {
                 let mut queue = VecDeque::new();
                 queue.push_back(self.clone());
@@ -213,6 +220,7 @@ macro_rules! define_ast_node {
             $(
                 $field: $field_type,
             )*
+            ancestors: Option<Vec<AncestorRecord>>,
         }
         impl $name {
             pub fn new_wrapped($(
@@ -239,7 +247,12 @@ macro_rules! define_ast_node {
             )*) -> Self {
                 Self {
                     $($field,)*
+                    ancestors: None,
                 }
+            }
+            pub fn set_ancestors(&mut self, ancestors: Vec<AncestorRecord>) {
+                assert!(self.ancestors.is_none());
+                self.ancestors = Some(ancestors);
             }
             $(
                 pub fn $field(&self) -> $field_type {

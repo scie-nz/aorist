@@ -10,7 +10,7 @@ use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
 use uuid::Uuid;
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq, Eq, Hash)]
 pub struct AncestorRecord {
     pub uuid: Uuid,
     pub object_type: String,
@@ -203,6 +203,7 @@ impl<'a> ConstraintState<'a> {
         let (preamble, call, params, dialect) = constraint
             .satisfy_given_preference_ordering(root_clone, preferences, ancestry)
             .unwrap();
+        params.set_ancestors(self.ancestors.clone());
         drop(constraint);
         self.preamble = Some(preamble);
         self.call = Some(call);

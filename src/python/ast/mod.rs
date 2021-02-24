@@ -19,6 +19,7 @@ pub use presto_python_task::PrestoPythonTask;
 pub use r_python_task::RPythonTask;
 pub use string_literal::StringLiteral;
 
+use crate::constraint_state::AncestorRecord;
 use aorist_primitives::{define_ast_node, register_ast_nodes};
 use linked_hash_map::LinkedHashMap;
 use pyo3::prelude::*;
@@ -141,6 +142,7 @@ impl TAssignmentTarget for List {
         Self {
             elems: self.elems.clone(),
             store: true,
+            ancestors: self.ancestors.clone(),
         }
     }
 }
@@ -195,6 +197,7 @@ impl TAssignmentTarget for Tuple {
         Self {
             elems: self.elems.clone(),
             store: true,
+            ancestors: self.ancestors.clone(),
         }
     }
 }
@@ -223,6 +226,7 @@ impl TAssignmentTarget for Attribute {
             value: self.value.clone(),
             name: self.name.clone(),
             store: true,
+            ancestors: self.ancestors.clone(),
         }
     }
 }
@@ -344,6 +348,7 @@ impl TAssignmentTarget for Subscript {
             a: self.a.clone(),
             b: self.b.clone(),
             store: true,
+            ancestors: self.ancestors.clone(),
         }
     }
 }
@@ -426,6 +431,14 @@ pub struct ParameterTuple {
 }
 pub type ParameterTupleDedupKey = (usize, Vec<String>);
 impl ParameterTuple {
+    pub fn set_ancestors(&self, ancestors: Vec<AncestorRecord>) {
+        for arg in self.args.iter() {
+            arg.set_ancestors(ancestors.clone());
+        }
+        for v in self.kwargs.values() {
+            v.set_ancestors(ancestors.clone());
+        }
+    }
     pub fn populate_python_dict(&self, dict: &mut LinkedHashMap<String, AST>) {
         if self.args.len() > 0 {
             dict.insert(

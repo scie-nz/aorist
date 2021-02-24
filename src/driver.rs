@@ -45,6 +45,7 @@ where
     D: ETLDAG,
     <D as ETLDAG>::T: 'a,
 {
+    // TODO: unify this with ConceptAncestry
     fn compute_all_ancestors(
         universe: Concept<'a>,
         concept_map: &HashMap<(Uuid, String), Concept<'a>>,
