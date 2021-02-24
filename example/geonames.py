@@ -1,6 +1,6 @@
 from aorist import attributes as attr
 from aorist import (
-    KeyedStruct,
+    RowStruct,
     AlluxioLocation,
     WebLocation,
     StaticHiveTableLayout,
@@ -416,7 +416,7 @@ attributes = [
         """,
     ),
 ]
-geonames_datum = KeyedStruct(
+geonames_datum = RowStruct(
     name="geonames_datum",
     attributes=attributes,
 )

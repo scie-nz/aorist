@@ -5,7 +5,7 @@ mod measure;
 
 pub use datum_template::{DatumTemplate, InnerDatumTemplate, TDatumTemplate, TInnerDatumTemplate};
 pub use identifier_tuple::{IdentifierTuple, InnerIdentifierTuple};
-pub use keyed_struct::{InnerKeyedStruct, KeyedStruct};
+pub use keyed_struct::{InnerRowStruct, RowStruct};
 pub use measure::{
     InnerIntegerMeasure, InnerTrainedFloatMeasure, IntegerMeasure, TrainedFloatMeasure,
 };

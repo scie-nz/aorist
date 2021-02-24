@@ -132,7 +132,7 @@ pub fn derive_integer_measure(
 pub fn dag(inner: InnerUniverse, constraints: Vec<String>, mode: &str) -> PyResult<String> {
     let mut universe = Universe::from(inner);
     universe.compute_uuids();
-    let debug = false;
+    let debug = true;
     match mode {
         "airflow" => {
             Driver::<AirflowDAG>::new(&universe, constraints.into_iter().collect(), debug).run()
@@ -180,7 +180,7 @@ fn aorist(py: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<InnerRemoteStorage>()?;
     m.add_class::<InnerRemoteImportStorageSetup>()?;
     m.add_class::<InnerIdentifierTuple>()?;
-    m.add_class::<InnerKeyedStruct>()?;
+    m.add_class::<InnerRowStruct>()?;
     m.add_class::<InnerUserGroup>()?;
     m.add_class::<InnerEndpointConfig>()?;
     m.add_class::<InnerAlluxioConfig>()?;

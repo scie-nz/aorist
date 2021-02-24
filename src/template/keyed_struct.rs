@@ -14,13 +14,13 @@ use std::sync::{Arc, RwLock};
 use uuid::Uuid;
 
 #[aorist_concept]
-pub struct KeyedStruct {
+pub struct RowStruct {
     pub name: String,
     #[constrainable]
     pub attributes: Vec<Attribute>,
 }
 
-impl TDatumTemplate for KeyedStruct {
+impl TDatumTemplate for RowStruct {
     fn get_attributes(&self) -> Vec<Attribute> {
         self.attributes.clone()
     }

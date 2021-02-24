@@ -104,7 +104,7 @@ Description taken from: https://archive.ics.uci.edu/ml/datasets/wine
 """
 
 from aorist import (
-    KeyedStruct,
+    RowStruct,
     MinioLocation,
     WebLocation,
     StaticHiveTableLayout,
@@ -146,7 +146,7 @@ attributes = [
     attr.PositiveFloat("proline"),
 ]
 # A row is equivalent to a struct
-wine_datum = KeyedStruct(
+wine_datum = RowStruct(
     name="wine_datum",
     attributes=attributes,
 )

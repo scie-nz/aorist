@@ -14,7 +14,7 @@ use uuid::Uuid;
 #[aorist_concept]
 pub enum DatumTemplate {
     TrainedFloatMeasure(TrainedFloatMeasure),
-    KeyedStruct(KeyedStruct),
+    RowStruct(RowStruct),
     IdentifierTuple(IdentifierTuple),
     IntegerMeasure(IntegerMeasure),
 }
@@ -30,7 +30,7 @@ pub trait TInnerDatumTemplate {
 impl TDatumTemplate for DatumTemplate {
     fn get_name(&self) -> String {
         match self {
-            DatumTemplate::KeyedStruct(x) => x.get_name(),
+            DatumTemplate::RowStruct(x) => x.get_name(),
             DatumTemplate::IdentifierTuple(x) => x.get_name(),
             DatumTemplate::IntegerMeasure(x) => x.get_name(),
             DatumTemplate::TrainedFloatMeasure(x) => x.get_name(),
@@ -38,7 +38,7 @@ impl TDatumTemplate for DatumTemplate {
     }
     fn get_attributes(&self) -> Vec<Attribute> {
         match self {
-            DatumTemplate::KeyedStruct(x) => x.get_attributes(),
+            DatumTemplate::RowStruct(x) => x.get_attributes(),
             DatumTemplate::IdentifierTuple(x) => x.get_attributes(),
             DatumTemplate::IntegerMeasure(x) => x.get_attributes(),
             DatumTemplate::TrainedFloatMeasure(x) => x.get_attributes(),
@@ -48,7 +48,7 @@ impl TDatumTemplate for DatumTemplate {
 impl InnerDatumTemplate {
     pub fn get_name(&self) -> String {
         match self {
-            InnerDatumTemplate::KeyedStruct(x) => x.name.clone(),
+            InnerDatumTemplate::RowStruct(x) => x.name.clone(),
             InnerDatumTemplate::IdentifierTuple(x) => x.name.clone(),
             InnerDatumTemplate::IntegerMeasure(x) => x.name.clone(),
             InnerDatumTemplate::TrainedFloatMeasure(x) => x.name.clone(),

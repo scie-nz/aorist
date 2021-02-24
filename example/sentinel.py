@@ -1,5 +1,5 @@
 from aorist import (
-    KeyedStruct,
+    RowStruct,
     AlluxioLocation,
     GCSLocation,
     StaticHiveTableLayout,
@@ -38,7 +38,7 @@ attributes = [
     attr.FloatLatitude("east_lon", "Eastern longitude of the tile's bounding box."),
     attr.URI("base_url"),
 ]
-sentinel_granule_datum = KeyedStruct(
+sentinel_granule_datum = RowStruct(
     name="sentinel_granule_datum",
     attributes=attributes,
 )
