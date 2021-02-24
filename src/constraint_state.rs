@@ -259,11 +259,11 @@ impl<'a> ConstraintState<'a> {
             task_val: None,
         }
     }
-    pub fn compute_task_name(&mut self, ancestors: &Vec<AncestorRecord>) -> String {
+    pub fn compute_task_name(&mut self) -> String {
         self.key = Some(match self.root.get_tag() {
             None => {
                 let mut relative_path: String = "".to_string();
-                for record in ancestors.iter().rev() {
+                for record in self.ancestors.iter().rev() {
                     if let Some(ref t) = record.tag {
                         relative_path = format!("{}__{}", relative_path, t);
                         break;

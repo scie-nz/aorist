@@ -614,8 +614,7 @@ where
         reverse_dependencies: &HashMap<(Uuid, String), HashSet<(String, Uuid, String)>>,
     ) {
         let mut write = state.write().unwrap();
-        let ancestors = write.get_ancestors();
-        write.compute_task_name(&ancestors);
+        write.compute_task_name();
         // TODO: rename this function, it's confusing (this represents
         // constraitn name, key is root name)
         assert!(!write.satisfied);
