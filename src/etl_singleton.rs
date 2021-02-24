@@ -1,3 +1,4 @@
+use crate::constraint_state::AncestorRecord;
 use crate::endpoints::EndpointConfig;
 use crate::python::{format_code, Import, Preamble, PythonStatementInput, AST};
 use aorist_primitives::Dialect;
@@ -5,7 +6,7 @@ use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
 use pyo3::prelude::*;
 use pyo3::types::{PyModule, PyString};
-use std::collections::BTreeSet;
+use std::collections::{BTreeSet, BTreeMap};
 
 pub trait ETLSingleton {
     fn get_preamble(&self) -> Vec<String>;
@@ -96,9 +97,59 @@ where
                 .into_iter()
                 .map(|x| (x.3, x.4, x.5, x.0))
                 .collect();
-        let statements_ast: Vec<_> = statements
+        let statements_with_ast: Vec<_> = statements
             .into_iter()
             .filter(|x| x.3.len() > 0)
+            .collect::<Vec<_>>();
+
+        // ast_value without ancestry => short_name => keys
+        let mut literals: LinkedHashMap<AST, LinkedHashMap<String, Vec<String>>> = LinkedHashMap::new();
+
+        for (short_name, _, _, asts) in statements_with_ast.iter() {
+            for ast in asts {
+                if let AST::Assignment(rw) = ast {
+                    let assign = rw.read().unwrap();
+                    if let AST::Dict(dict_rw) = assign.call() {
+                        let dict = dict_rw.read().unwrap();
+                        for (task_key, task_val) in dict.elems() {
+                            if let AST::Dict(param_dict_rw) = task_val {
+                                let param_dict = param_dict_rw.read().unwrap();
+                                for (key, val) in param_dict.elems() {
+                                    if let Some(ancestors) = val.get_ancestors() {
+                                        let val_no_ancestors = val.clone_without_ancestors();
+                                        literals
+                                            .entry(val_no_ancestors)
+                                            .or_insert(LinkedHashMap::new())
+                                            .entry(short_name.to_string())
+                                            .or_insert(Vec::new())
+                                            .push(key.to_string());
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        let mut assignments = LinkedHashMap::new();
+        for (literal, val) in literals.into_iter() {
+            for (short_name, keys) in val.into_iter() {
+                let mut keys_hist: BTreeMap<String, usize> = BTreeMap::new();
+                for key in keys {
+                    *keys_hist.entry(key).or_insert(1) += 1;
+                }
+                if keys_hist.len() == 1 {
+                    assignments.insert(literal,
+                                       format!("{}__{}", keys_hist.into_iter().next().unwrap().0, short_name).to_string());
+                }
+            }
+        }
+        for (literal, name) in assignments.into_iter() {
+
+        }
+
+        let statements_ast = statements_with_ast
+            .into_iter()
             .map(|(name, title, body, x)| {
                 (
                     name,

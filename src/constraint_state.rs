@@ -29,6 +29,24 @@ impl AncestorRecord {
     pub fn get_key(&self) -> (Uuid, String) {
         (self.uuid.clone(), self.object_type.clone())
     }
+    pub fn compute_relative_path(ancestors: &Vec<AncestorRecord>) -> String {
+        let mut relative_path: String = "".to_string();
+        for record in ancestors.iter().rev() {
+            if let Some(ref t) = record.tag {
+                relative_path = format!("{}__{}", relative_path, t);
+                break;
+            }
+            if record.ix > 0 {
+                relative_path = format!(
+                    "{}__{}_{}",
+                    relative_path,
+                    to_snake_case(&record.object_type),
+                    record.ix
+                );
+            }
+        }
+        relative_path
+    }
 }
 
 pub struct ConstraintState<'a> {
@@ -203,6 +221,7 @@ impl<'a> ConstraintState<'a> {
         let (preamble, call, params, dialect) = constraint
             .satisfy_given_preference_ordering(root_clone, preferences, ancestry)
             .unwrap();
+        assert!(self.ancestors.len() > 0);
         params.set_ancestors(self.ancestors.clone());
         drop(constraint);
         self.preamble = Some(preamble);
@@ -262,24 +281,7 @@ impl<'a> ConstraintState<'a> {
     }
     pub fn compute_task_name(&mut self) -> String {
         self.key = Some(match self.root.get_tag() {
-            None => {
-                let mut relative_path: String = "".to_string();
-                for record in self.ancestors.iter().rev() {
-                    if let Some(ref t) = record.tag {
-                        relative_path = format!("{}__{}", relative_path, t);
-                        break;
-                    }
-                    if record.ix > 0 {
-                        relative_path = format!(
-                            "{}__{}_{}",
-                            relative_path,
-                            to_snake_case(&record.object_type),
-                            record.ix
-                        );
-                    }
-                }
-                relative_path
-            }
+            None => AncestorRecord::compute_relative_path(&self.ancestors),
             Some(t) => t,
         });
         self.key.as_ref().unwrap().clone()

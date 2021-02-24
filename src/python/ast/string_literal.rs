@@ -8,7 +8,7 @@ use std::hash::Hash;
 use std::sync::{Arc, RwLock};
 use uuid::Uuid;
 
-#[derive(Hash, PartialEq, Eq)]
+#[derive(Hash, PartialEq, Eq, Clone)]
 pub struct StringLiteral {
     value: String,
     is_sql: bool,
@@ -29,6 +29,17 @@ impl StringLiteral {
     pub fn set_ancestors(&mut self, ancestors: Vec<AncestorRecord>) {
         assert!(self.ancestors.is_none());
         self.ancestors = Some(ancestors);
+    }
+    pub fn get_ancestors(&self) -> Option<Vec<AncestorRecord>> {
+        self.ancestors.clone()
+    }
+    pub fn clone_without_ancestors(&self) -> Self {
+        Self {
+            value: self.value.clone(),
+            is_sql: self.is_sql,
+            object_uuids: self.object_uuids.clone(),
+            ancestors: None,
+        }
     }
     pub fn as_sql_string(&self) -> Self {
         Self {

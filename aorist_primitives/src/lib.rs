@@ -21,10 +21,24 @@ macro_rules! register_ast_nodes {
                     )+
                 }
             }
+            pub fn clone_without_ancestors(&self) -> Self {
+                match &self {
+                    $(
+                        Self::$variant(x) => Self::$variant(Arc::new(RwLock::new(x.read().unwrap().clone_without_ancestors()))),
+                    )+
+                }
+            }
             pub fn set_ancestors(&self, ancestors: Vec<AncestorRecord>) {
                 match &self {
                     $(
                         Self::$variant(x) => x.write().unwrap().set_ancestors(ancestors),
+                    )+
+                }
+            }
+            pub fn get_ancestors(&self) -> Option<Vec<AncestorRecord>> {
+                match &self {
+                    $(
+                        Self::$variant(x) => x.read().unwrap().get_ancestors(),
                     )+
                 }
             }
@@ -250,9 +264,18 @@ macro_rules! define_ast_node {
                     ancestors: None,
                 }
             }
+            pub fn clone_without_ancestors(&self) -> Self {
+                Self {
+                    $($field: self.$field.clone(),)*
+                    ancestors: None,
+                }
+            }
             pub fn set_ancestors(&mut self, ancestors: Vec<AncestorRecord>) {
                 assert!(self.ancestors.is_none());
                 self.ancestors = Some(ancestors);
+            }
+            pub fn get_ancestors(&self) -> Option<Vec<AncestorRecord>> {
+                self.ancestors.clone()
             }
             $(
                 pub fn $field(&self) -> $field_type {
