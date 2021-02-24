@@ -13,14 +13,6 @@ macro_rules! register_ast_nodes {
             )+
         }
         impl $name {
-            pub fn register_object(&mut self, uuid: Uuid, tag: Option<String>) {
-                match &self {
-                    $(
-                        Self::$variant(x) => x.write().unwrap().register_object(uuid,
-                        tag),
-                    )+
-                }
-            }
             pub fn clone_without_ancestors(&self) -> Self {
                 match &self {
                     $(
@@ -249,12 +241,6 @@ macro_rules! define_ast_node {
                 depth: usize,
             ) -> PyResult<&'a PyAny> {
                 ($py_ast_closure)(self, py, ast_module, depth)
-            }
-            pub fn register_object(&self, _uuid: Uuid, _tag: Option<String>) {
-                panic!(format!(
-                    "Register object mistakenly called for object of type {}",
-                    stringify!(name),
-                ).to_string());
             }
             fn new($(
                 $field: $field_type,

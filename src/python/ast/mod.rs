@@ -468,12 +468,6 @@ impl ParameterTuple {
             .into_iter()
             .map(|(k, v)| (k, AST::StringLiteral(StringLiteral::new_wrapped(v, is_sql))))
             .collect::<LinkedHashMap<_, _>>();
-        for arg in args.iter_mut() {
-            arg.register_object(object_uuid.clone(), None);
-        }
-        for (k, arg) in kwargs.iter_mut() {
-            arg.register_object(object_uuid.clone(), Some(k.clone()));
-        }
         Self { args, kwargs }
     }
     pub fn get_args(&self) -> Vec<AST> {

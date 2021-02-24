@@ -12,8 +12,6 @@ use uuid::Uuid;
 pub struct StringLiteral {
     value: String,
     is_sql: bool,
-    // TODO: replace with LinkedHashMap<Uuid, BTreeSet>
-    object_uuids: LinkedHashMap<Uuid, BTreeSet<Option<String>>>,
     ancestors: Option<Vec<AncestorRecord>>,
 }
 
@@ -22,7 +20,6 @@ impl StringLiteral {
         Self {
             value,
             is_sql,
-            object_uuids: LinkedHashMap::new(),
             ancestors: None,
         }
     }
@@ -37,7 +34,6 @@ impl StringLiteral {
         Self {
             value: self.value.clone(),
             is_sql: self.is_sql,
-            object_uuids: self.object_uuids.clone(),
             ancestors: None,
         }
     }
@@ -45,7 +41,6 @@ impl StringLiteral {
         Self {
             value: self.value.clone(),
             is_sql: true,
-            object_uuids: self.object_uuids.clone(),
             ancestors: self.ancestors.clone(),
         }
     }
@@ -104,15 +99,6 @@ impl StringLiteral {
     }
     pub fn len(&self) -> usize {
         self.value.len()
-    }
-    pub fn register_object(&mut self, uuid: Uuid, tag: Option<String>) {
-        self.object_uuids
-            .entry(uuid)
-            .or_insert(BTreeSet::new())
-            .insert(tag);
-    }
-    pub fn get_object_uuids(&self) -> &LinkedHashMap<Uuid, BTreeSet<Option<String>>> {
-        &self.object_uuids
     }
     pub fn is_multiline(&self) -> bool {
         self.value.contains('\n')

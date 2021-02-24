@@ -1,12 +1,15 @@
 use crate::constraint_state::AncestorRecord;
 use crate::endpoints::EndpointConfig;
-use crate::python::{format_code, Import, Preamble, PythonStatementInput, AST};
+use crate::python::{
+    format_code, Assignment, Import, Preamble, PythonStatementInput, SimpleIdentifier,
+    StringLiteral, AST,
+};
 use aorist_primitives::Dialect;
 use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
 use pyo3::prelude::*;
 use pyo3::types::{PyModule, PyString};
-use std::collections::{BTreeSet, BTreeMap};
+use std::collections::{BTreeMap, BTreeSet};
 
 pub trait ETLSingleton {
     fn get_preamble(&self) -> Vec<String>;
@@ -97,13 +100,14 @@ where
                 .into_iter()
                 .map(|x| (x.3, x.4, x.5, x.0))
                 .collect();
-        let statements_with_ast: Vec<_> = statements
+        let mut statements_with_ast: Vec<_> = statements
             .into_iter()
             .filter(|x| x.3.len() > 0)
             .collect::<Vec<_>>();
 
         // ast_value without ancestry => short_name => keys
-        let mut literals: LinkedHashMap<AST, LinkedHashMap<String, Vec<String>>> = LinkedHashMap::new();
+        let mut literals: LinkedHashMap<AST, LinkedHashMap<String, Vec<String>>> =
+            LinkedHashMap::new();
 
         for (short_name, _, _, asts) in statements_with_ast.iter() {
             for ast in asts {
@@ -116,9 +120,8 @@ where
                                 let param_dict = param_dict_rw.read().unwrap();
                                 for (key, val) in param_dict.elems() {
                                     if let Some(ancestors) = val.get_ancestors() {
-                                        let val_no_ancestors = val.clone_without_ancestors();
                                         literals
-                                            .entry(val_no_ancestors)
+                                            .entry(val.clone_without_ancestors())
                                             .or_insert(LinkedHashMap::new())
                                             .entry(short_name.to_string())
                                             .or_insert(Vec::new())
@@ -139,15 +142,40 @@ where
                     *keys_hist.entry(key).or_insert(1) += 1;
                 }
                 if keys_hist.len() == 1 {
-                    assignments.insert(literal,
-                                       format!("{}__{}", keys_hist.into_iter().next().unwrap().0, short_name).to_string());
+                    assignments
+                        .entry(
+                            format!(
+                                "{}__{}",
+                                keys_hist.into_iter().next().unwrap().0,
+                                short_name
+                            )
+                            .to_string(),
+                        )
+                        .or_insert(Vec::new())
+                        .push(literal.clone());
                 }
             }
         }
-        for (literal, name) in assignments.into_iter() {
-
+        let assignments_ast = assignments
+            .into_iter()
+            .filter(|(_, vals)| vals.len() == 1)
+            .map(|(var, vals)| {
+                let lval = AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(var));
+                let rval = vals.into_iter().next().unwrap();
+                AST::Assignment(Assignment::new_wrapped(lval, rval))
+            })
+            .collect::<Vec<_>>();
+        if assignments_ast.len() > 0 {
+            statements_with_ast.insert(
+                0,
+                (
+                    "assignments".to_string(),
+                    Some("Common string literals".to_string()),
+                    None,
+                    assignments_ast,
+                ),
+            );
         }
-
         let statements_ast = statements_with_ast
             .into_iter()
             .map(|(name, title, body, x)| {
