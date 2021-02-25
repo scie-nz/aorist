@@ -33,7 +33,7 @@ where
     pub concepts: Arc<RwLock<HashMap<(Uuid, String), Concept<'a>>>>,
     constraints: LinkedHashMap<(Uuid, String), Arc<RwLock<Constraint>>>,
     satisfied_constraints: HashMap<(Uuid, String), Arc<RwLock<ConstraintState<'a>>>>,
-    blocks: Vec<ConstraintBlock<'a, D::T>>,
+    blocks: Vec<ConstraintBlock<D::T>>,
     ancestry: Arc<ConceptAncestry<'a>>,
     dag_type: PhantomData<D>,
     endpoints: EndpointConfig,
@@ -646,7 +646,8 @@ where
         reverse_dependencies: &HashMap<(Uuid, String), HashSet<(String, Uuid, String)>>,
         constraint_name: String,
         unsatisfied_constraints: &ConstraintsBlockMap<'a>,
-    ) -> (Vec<CodeBlock<'a, D::T>>, Option<AST>) {
+        identifiers: &HashMap<Uuid, AST>,
+    ) -> (Vec<CodeBlock<D::T>>, Option<AST>) {
         let tasks_dict = match block.len() <= 2 {
             true => None,
             false => Some(AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
@@ -656,7 +657,7 @@ where
         // (call, constraint_name, root_name) => (uuid, call parameters)
         let mut calls: HashMap<(String, String, String), Vec<(String, ParameterTuple)>> =
             HashMap::new();
-        let mut blocks: Vec<CodeBlock<'a, D::T>> = Vec::new();
+        let mut blocks: Vec<CodeBlock<D::T>> = Vec::new();
         let mut by_dialect: HashMap<Option<Dialect>, Vec<Arc<RwLock<ConstraintState<'a>>>>> =
             HashMap::new();
         for (id, state) in block.clone() {
@@ -673,12 +674,12 @@ where
                 .or_insert(Vec::new())
                 .push(state.clone());
         }
-        for (dialect, satisfied) in by_dialect.into_iter() {
+        for (_dialect, satisfied) in by_dialect.into_iter() {
             let block = CodeBlock::new(
-                dialect,
                 satisfied,
                 constraint_name.clone(),
                 tasks_dict.clone(),
+                identifiers,
             );
             blocks.push(block);
         }
@@ -708,6 +709,7 @@ where
         }
 
         let mut existing_names = HashSet::new();
+        let mut identifiers = HashMap::new();
         // find at least one satisfiable constraint
         loop {
             let mut satisfiable =
@@ -720,6 +722,7 @@ where
                     &reverse_dependencies,
                     snake_case_name.clone(),
                     &unsatisfied_constraints,
+                    &identifiers,
                 );
                 let (title, body) = self
                     .constraint_explanations
@@ -728,25 +731,21 @@ where
                     .clone();
                 let constraint_block =
                     ConstraintBlock::new(snake_case_name, title, body, members, tasks_dict);
+                for (key, val) in constraint_block.get_identifiers() {
+                    identifiers.insert(key, val);
+                }
                 self.blocks.push(constraint_block);
             } else {
                 break;
             }
         }
 
-        let identifiers = self
-            .blocks
-            .iter()
-            .map(|x| x.get_identifiers().into_iter())
-            .flatten()
-            .collect::<HashMap<Uuid, AST>>();
-
         let etl = D::new();
         assert_eq!(unsatisfied_constraints.len(), 0);
         let statements_and_preambles = self
             .blocks
             .iter()
-            .map(|x| x.get_statements(&self.endpoints, &identifiers))
+            .map(|x| x.get_statements(&self.endpoints))
             .collect::<Vec<_>>();
 
         return etl.materialize(statements_and_preambles);

@@ -9,18 +9,18 @@ use std::collections::{BTreeSet, HashMap};
 use std::marker::PhantomData;
 use uuid::Uuid;
 
-pub struct ConstraintBlock<'a, T>
+pub struct ConstraintBlock<T>
 where
-    T: ETLSingleton + 'a,
+    T: ETLSingleton,
 {
     constraint_name: String,
     title: Option<String>,
     body: Option<String>,
-    members: Vec<CodeBlock<'a, T>>,
+    members: Vec<CodeBlock<T>>,
     singleton_type: PhantomData<T>,
     tasks_dict: Option<AST>,
 }
-impl<'a, T> ConstraintBlock<'a, T>
+impl<'a, T> ConstraintBlock<T>
 where
     T: ETLSingleton,
 {
@@ -28,7 +28,7 @@ where
         constraint_name: String,
         title: Option<String>,
         body: Option<String>,
-        members: Vec<CodeBlock<'a, T>>,
+        members: Vec<CodeBlock<T>>,
         tasks_dict: Option<AST>,
     ) -> Self {
         Self {
@@ -69,12 +69,11 @@ where
     pub fn get_statements(
         &'a self,
         endpoints: &EndpointConfig,
-        identifiers: &HashMap<Uuid, AST>,
     ) -> PythonStatementInput {
         let preambles_and_statements = self
             .members
             .iter()
-            .map(|x| x.get_statements(endpoints, identifiers))
+            .map(|x| x.get_statements(endpoints))
             .collect::<Vec<_>>();
         let preambles = preambles_and_statements
             .iter()
