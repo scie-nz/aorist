@@ -96,6 +96,8 @@ where
                 let mut deps: HashMap<AST, HashSet<String>> = HashMap::new();
                 let mut kwargs: LinkedHashMap<String, HashMap<AST, HashSet<String>>> =
                     LinkedHashMap::new();
+                let mut kwargs_by_task_id: LinkedHashMap<(String, AST), HashSet<String>> =
+                    LinkedHashMap::new();
 
                 for t in &maybe_uncompressible {
                     for dep in &t.deps {
@@ -104,12 +106,30 @@ where
                             .insert(t.task_id.clone());
                     }
                     if let Some(ref p) = t.params {
+                        let task_id_literal = AST::StringLiteral(StringLiteral::new_wrapped(
+                            t.task_id.clone(),
+                            false,
+                        ));
                         for (key, val) in p.kwargs.iter() {
-                            //println!("Inserted {} for {}", key, t.task_id);
+                            let val_no_ancestors = val.clone_without_ancestors();
+                            let task_id_subscript =
+                                t.task_id.split("__").last().unwrap().to_string();
+                            if let AST::StringLiteral(rw) = val {
+                                let x = rw.read().unwrap();
+                                if x.value() == task_id_subscript {
+                                    // TODO: pass this to ForLoopETLSingleton
+                                    let ident = AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("t".to_string()));
+                                    kwargs_by_task_id
+                                        .entry((key.clone(), ident))
+                                        .or_insert(HashSet::new())
+                                        .insert(t.task_id.clone());
+                                }
+                            }
+
                             kwargs
                                 .entry(key.clone())
                                 .or_insert(HashMap::new())
-                                .entry(val.clone_without_ancestors())
+                                .entry(val_no_ancestors)
                                 .or_insert(HashSet::new())
                                 .insert(t.task_id.clone());
                         }
@@ -120,7 +140,12 @@ where
                     .filter(|(_k, v)| v.len() == num_tasks)
                     .map(|(k, _)| k)
                     .collect::<HashSet<AST>>();
-                let compressible_kwargs = kwargs
+                let compressible_kwargs_by_task_id = kwargs_by_task_id
+                    .into_iter()
+                    .filter(|(_k, v)| v.len() == num_tasks)
+                    .map(|(k, _)| k)
+                    .collect::<LinkedHashSet<_>>();
+                let mut compressible_kwargs = kwargs
                     .into_iter()
                     .map(|(key, val)| {
                         (
@@ -135,6 +160,10 @@ where
                     .map(|(k, v)| (k, v.unwrap()))
                     .collect::<LinkedHashMap<String, AST>>();
 
+                for (key, val) in compressible_kwargs_by_task_id.iter() {
+                    compressible_kwargs.insert(key.clone(), val.clone());
+                }
+
                 for t in maybe_uncompressible.iter_mut() {
                     let mut new_deps = Vec::new();
                     for dep in t.deps.iter() {
@@ -145,6 +174,9 @@ where
                     if let Some(ref mut p) = t.params {
                         for key in compressible_kwargs.keys() {
                             //println!("Compressible kwarg: {}", key);
+                            p.kwargs.remove(key);
+                        }
+                        for (key, _) in compressible_kwargs_by_task_id.iter() {
                             p.kwargs.remove(key);
                         }
                     }
