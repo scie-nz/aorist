@@ -1,5 +1,5 @@
-use crate::constraint_state::ConstraintState;
 use crate::code_block::CodeBlock;
+use crate::constraint_state::ConstraintState;
 use crate::endpoints::EndpointConfig;
 use crate::etl_singleton::ETLSingleton;
 use crate::python::PythonStatementInput;
@@ -139,7 +139,10 @@ where
         }
         new_name
     }
-    pub fn shorten_task_names(members: Vec<CodeBlock<'a, T>>, existing_names: &mut HashSet<String>) -> Vec<CodeBlock<'a, T>> {
+    pub fn shorten_task_names(
+        members: Vec<CodeBlock<'a, T>>,
+        existing_names: &mut HashSet<String>,
+    ) -> Vec<CodeBlock<'a, T>> {
         let mut task_names: Vec<(String, Arc<RwLock<ConstraintState<'a>>>)> = Vec::new();
         let mut out = Vec::new();
         for member in members.into_iter() {
