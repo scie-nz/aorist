@@ -8,7 +8,7 @@ use crate::data_setup::Universe;
 use crate::endpoints::EndpointConfig;
 use crate::etl_singleton::ETLDAG;
 use crate::object::TAoristObject;
-use crate::python::ParameterTuple;
+use crate::python::{ParameterTuple, SimpleIdentifier, AST};
 use aorist_primitives::{Bash, Dialect, Presto, Python};
 use inflector::cases::snakecase::to_snake_case;
 use linked_hash_map::LinkedHashMap;
@@ -646,7 +646,13 @@ where
         reverse_dependencies: &HashMap<(Uuid, String), HashSet<(String, Uuid, String)>>,
         constraint_name: String,
         unsatisfied_constraints: &ConstraintsBlockMap<'a>,
-    ) -> Vec<CodeBlock<'a, D::T>> {
+    ) -> (Vec<CodeBlock<'a, D::T>>, Option<AST>) {
+        let tasks_dict = match block.len() <= 2 {
+            true => None,
+            false => Some(AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
+                format!("tasks_{}", constraint_name).to_string(),
+            ))),
+        };
         // (call, constraint_name, root_name) => (uuid, call parameters)
         let mut calls: HashMap<(String, String, String), Vec<(String, ParameterTuple)>> =
             HashMap::new();
@@ -668,11 +674,16 @@ where
                 .push(state.clone());
         }
         for (dialect, satisfied) in by_dialect.into_iter() {
-            let block = CodeBlock::new(dialect, satisfied, constraint_name.clone());
+            let block = CodeBlock::new(
+                dialect,
+                satisfied,
+                constraint_name.clone(),
+                tasks_dict.clone(),
+            );
             blocks.push(block);
         }
 
-        blocks
+        (blocks, tasks_dict)
     }
     pub fn run(&'a mut self) -> pyo3::PyResult<String> {
         let mut unsatisfied_constraints = Self::get_unsatisfied_constraints(
@@ -704,7 +715,7 @@ where
             if let Some((ref mut block, ref constraint_name)) = satisfiable {
                 ConstraintState::shorten_task_names(block, &mut existing_names);
                 let snake_case_name = to_snake_case(constraint_name);
-                let members = self.process_constraint_block(
+                let (members, tasks_dict) = self.process_constraint_block(
                     &mut block.clone(),
                     &reverse_dependencies,
                     snake_case_name.clone(),
@@ -715,20 +726,29 @@ where
                     .get(constraint_name)
                     .unwrap()
                     .clone();
-                let constraint_block = ConstraintBlock::new(snake_case_name, title, body, members);
+                let constraint_block =
+                    ConstraintBlock::new(snake_case_name, title, body, members, tasks_dict);
                 self.blocks.push(constraint_block);
             } else {
                 break;
             }
         }
 
+        let identifiers = self
+            .blocks
+            .iter()
+            .map(|x| x.get_identifiers().into_iter())
+            .flatten()
+            .collect::<HashMap<Uuid, AST>>();
+
         let etl = D::new();
         assert_eq!(unsatisfied_constraints.len(), 0);
         let statements_and_preambles = self
             .blocks
             .iter()
-            .map(|x| x.get_statements(&self.endpoints))
+            .map(|x| x.get_statements(&self.endpoints, &identifiers))
             .collect::<Vec<_>>();
+
         return etl.materialize(statements_and_preambles);
     }
 }

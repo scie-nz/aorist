@@ -11,13 +11,15 @@ use linked_hash_set::LinkedHashSet;
 use std::collections::{BTreeSet, HashMap};
 use std::marker::PhantomData;
 use std::sync::{Arc, RwLock};
+use uuid::Uuid;
 
 pub struct CodeBlock<'a, T>
 where
     T: ETLSingleton + 'a,
 {
     _dialect: Option<Dialect>,
-    members: Vec<Arc<RwLock<ConstraintState<'a>>>>,
+    members: Vec<(AST, Arc<RwLock<ConstraintState<'a>>>)>,
+    tasks_dict: Option<AST>,
     constraint_name: String,
     singleton_type: PhantomData<T>,
 }
@@ -25,25 +27,33 @@ impl<'a, T> CodeBlock<'a, T>
 where
     T: ETLSingleton,
 {
-    pub fn get_constraints(&self) -> Vec<Arc<RwLock<ConstraintState<'a>>>> {
-        self.members.clone()
+    pub fn get_tasks_dict(&self) -> Option<AST> {
+        self.tasks_dict.clone()
+    }
+    pub fn get_identifiers(&self) -> HashMap<Uuid, AST> {
+        self.members
+            .iter()
+            .map(|(x, rw)| (rw.read().unwrap().get_constraint_uuid(), x.clone()))
+            .collect()
     }
     pub fn new(
         dialect: Option<Dialect>,
         members: Vec<Arc<RwLock<ConstraintState<'a>>>>,
         constraint_name: String,
+        tasks_dict: Option<AST>,
     ) -> Self {
         Self {
             _dialect: dialect,
-            members,
+            members: Self::compute_task_vals(members, &constraint_name, &tasks_dict),
             constraint_name,
             singleton_type: PhantomData,
+            tasks_dict,
         }
     }
     pub fn get_params(&self) -> HashMap<String, Option<ParameterTuple>> {
         self.members
             .iter()
-            .map(|rw| {
+            .map(|(_, rw)| {
                 let x = rw.read().unwrap();
                 (x.get_task_name(), x.get_params())
             })
@@ -54,44 +64,55 @@ where
     }
     /// assigns task values (Python variables in which they will be stored)
     /// to each member of the code block.
-    fn set_task_vals(&'a self) {
-        let num_constraints = self.get_constraints().len();
-        for rw in self.get_constraints() {
-            let mut write = rw.write().unwrap();
-            let name = write.get_task_name();
+    fn compute_task_vals(
+        constraints: Vec<Arc<RwLock<ConstraintState<'a>>>>,
+        constraint_name: &String,
+        tasks_dict: &Option<AST>,
+    ) -> Vec<(AST, Arc<RwLock<ConstraintState<'a>>>)> {
+        let mut out = Vec::new();
+        for rw in constraints.into_iter() {
+            let read = rw.read().unwrap();
+            let name = read.get_task_name();
+            drop(read);
             // TODO: magic number
-            if num_constraints <= 2 {
-                write.set_task_val(AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(name)));
-            } else {
-                let shorter_name =
-                    name.replace(&format!("{}__", self.get_constraint_name()).to_string(), "");
+            let task_val = match tasks_dict {
+                None => AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(name)),
+                Some(ref dict) => {
+                    let shorter_name =
+                        name.replace(&format!("{}__", constraint_name).to_string(), "");
 
-                write.set_task_val(AST::Subscript(Subscript::new_wrapped(
-                    AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
-                        format!("tasks_{}", self.get_constraint_name()).to_string(),
-                    )),
-                    AST::StringLiteral(StringLiteral::new_wrapped(shorter_name, false)),
-                    false,
-                )));
-            }
+                    AST::Subscript(Subscript::new_wrapped(
+                        dict.clone(),
+                        AST::StringLiteral(StringLiteral::new_wrapped(shorter_name, false)),
+                        false,
+                    ))
+                }
+            };
+            out.push((task_val, rw));
         }
+        out
     }
     pub fn get_statements(
         &'a self,
         endpoints: &EndpointConfig,
+        identifiers: &HashMap<Uuid, AST>,
     ) -> (Vec<AST>, LinkedHashSet<Preamble>, BTreeSet<Import>) {
-        self.set_task_vals();
         let tasks = self
-            .get_constraints()
+            .members
             .iter()
-            .map(|rw| {
+            .map(|(task_val, rw)| {
                 let x = rw.read().unwrap();
+                let dep_uuids = x.get_dependencies();
+                let dependencies = dep_uuids
+                    .iter()
+                    .map(|x| identifiers.get(x).unwrap().clone())
+                    .collect();
                 StandaloneETLTask::new(
                     x.get_task_name(),
-                    x.get_task_val(),
+                    task_val.clone(),
                     x.get_call(),
                     x.get_params(),
-                    x.get_dependencies(),
+                    dependencies,
                     x.get_preamble(),
                     x.get_dialect(),
                 )

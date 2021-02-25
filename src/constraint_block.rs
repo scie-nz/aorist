@@ -2,12 +2,12 @@ use crate::code_block::CodeBlock;
 use crate::endpoints::EndpointConfig;
 use crate::etl_singleton::ETLSingleton;
 use crate::python::PythonStatementInput;
-use crate::python::{Assignment, Dict, Import, ParameterTuple, Preamble, SimpleIdentifier, AST};
+use crate::python::{Assignment, Dict, Import, ParameterTuple, Preamble, AST};
 use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
 use std::collections::{BTreeSet, HashMap};
 use std::marker::PhantomData;
-use std::sync::{Arc, RwLock};
+use uuid::Uuid;
 
 pub struct ConstraintBlock<'a, T>
 where
@@ -18,6 +18,7 @@ where
     body: Option<String>,
     members: Vec<CodeBlock<'a, T>>,
     singleton_type: PhantomData<T>,
+    tasks_dict: Option<AST>,
 }
 impl<'a, T> ConstraintBlock<'a, T>
 where
@@ -28,6 +29,7 @@ where
         title: Option<String>,
         body: Option<String>,
         members: Vec<CodeBlock<'a, T>>,
+        tasks_dict: Option<AST>,
     ) -> Self {
         Self {
             constraint_name,
@@ -35,7 +37,15 @@ where
             body,
             members,
             singleton_type: PhantomData,
+            tasks_dict,
         }
+    }
+    pub fn get_identifiers(&self) -> HashMap<Uuid, AST> {
+        self.members
+            .iter()
+            .map(|x| x.get_identifiers().into_iter())
+            .flatten()
+            .collect()
     }
     pub fn get_constraint_name(&self) -> String {
         self.constraint_name.clone()
@@ -48,33 +58,23 @@ where
             .collect()
     }
     pub fn get_task_val_assignments(&'a self) -> Vec<AST> {
-        let mut to_initialize: LinkedHashSet<SimpleIdentifier> = LinkedHashSet::new();
-        for block in &self.members {
-            for constraint in block.get_constraints() {
-                let read = constraint.read().unwrap();
-                if let AST::Subscript(sub) = read.get_task_val() {
-                    let read2 = sub.read().unwrap();
-                    if let AST::SimpleIdentifier(ident) = read2.a() {
-                        to_initialize.insert(ident.read().unwrap().clone());
-                    }
-                }
-            }
+        match &self.tasks_dict {
+            Some(ref val) => vec![AST::Assignment(Assignment::new_wrapped(
+                val.clone(),
+                AST::Dict(Dict::new_wrapped(LinkedHashMap::new())),
+            ))],
+            None => vec![],
         }
-        to_initialize
-            .into_iter()
-            .map(|x| {
-                AST::Assignment(Assignment::new_wrapped(
-                    AST::SimpleIdentifier(Arc::new(RwLock::new(x))),
-                    AST::Dict(Dict::new_wrapped(LinkedHashMap::new())),
-                ))
-            })
-            .collect()
     }
-    pub fn get_statements(&'a self, endpoints: &EndpointConfig) -> PythonStatementInput {
+    pub fn get_statements(
+        &'a self,
+        endpoints: &EndpointConfig,
+        identifiers: &HashMap<Uuid, AST>,
+    ) -> PythonStatementInput {
         let preambles_and_statements = self
             .members
             .iter()
-            .map(|x| x.get_statements(endpoints))
+            .map(|x| x.get_statements(endpoints, identifiers))
             .collect::<Vec<_>>();
         let preambles = preambles_and_statements
             .iter()

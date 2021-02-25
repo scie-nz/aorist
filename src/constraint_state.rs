@@ -1,7 +1,7 @@
 use crate::concept::{Concept, ConceptAncestry};
 use crate::constraint::{AllConstraintsSatisfiability, Constraint};
 use crate::object::TAoristObject;
-use crate::python::{Formatted, List, ParameterTuple, SimpleIdentifier, StringLiteral, AST};
+use crate::python::{Formatted, ParameterTuple, SimpleIdentifier, StringLiteral, AST};
 use aorist_primitives::Dialect;
 use inflector::cases::snakecase::to_snake_case;
 use linked_hash_map::LinkedHashMap;
@@ -65,44 +65,20 @@ pub struct ConstraintState<'a> {
     call: Option<String>,
     params: Option<ParameterTuple>,
     task_name: Option<String>,
-    task_val: Option<AST>,
 }
 
 impl<'a> ConstraintState<'a> {
     pub fn requires_program(&self) -> bool {
         self.constraint.read().unwrap().requires_program()
     }
-    pub fn set_task_val(&mut self, val: AST) {
-        self.task_val = Some(val);
-    }
-    pub fn get_task_val(&self) -> AST {
-        self.task_val.as_ref().unwrap().clone()
-    }
-    pub fn get_dependencies(&self) -> Vec<AST> {
+    pub fn get_dependencies(&self) -> Vec<Uuid> {
         self.satisfied_dependencies
             .iter()
             .map(|rw| {
                 let x = rw.read().unwrap();
-                x.get_task_val()
+                x.get_constraint_uuid()
             })
-            .collect::<Vec<AST>>()
-    }
-    pub fn get_dep_list(&self) -> Option<AST> {
-        let dep_list = self
-            .satisfied_dependencies
-            .iter()
-            .map(|rw| {
-                let x = rw.read().unwrap();
-                x.get_task_val()
-            })
-            .collect::<Vec<AST>>();
-        if dep_list.len() == 1 {
-            return Some(dep_list.clone().into_iter().next().unwrap());
-        } else if dep_list.len() > 1 {
-            return Some(AST::List(List::new_wrapped(dep_list, false)));
-        } else {
-            return None;
-        }
+            .collect::<Vec<_>>()
     }
     pub fn get_task_call(&self) -> Result<AST, String> {
         match self.dialect {
@@ -276,7 +252,6 @@ impl<'a> ConstraintState<'a> {
             call: None,
             params: None,
             task_name: None,
-            task_val: None,
         }
     }
     fn compute_task_key(&mut self) -> String {
