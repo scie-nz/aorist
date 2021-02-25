@@ -456,7 +456,7 @@ impl AST {
 #[derive(Clone, PartialEq, Eq, Hash)]
 pub struct ParameterTuple {
     args: Vec<AST>,
-    kwargs: LinkedHashMap<String, AST>,
+    pub kwargs: LinkedHashMap<String, AST>,
 }
 pub type ParameterTupleDedupKey = (usize, Vec<String>);
 impl ParameterTuple {

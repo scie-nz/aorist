@@ -92,7 +92,10 @@ where
                     .into_iter()
                     .map(|x| x.get_uncompressible_part().unwrap())
                     .collect::<Vec<_>>();
+
                 let mut deps: HashMap<AST, HashSet<String>> = HashMap::new();
+                let mut kwargs: LinkedHashMap<String, HashMap<AST, HashSet<String>>> =
+                    LinkedHashMap::new();
 
                 for t in &maybe_uncompressible {
                     for dep in &t.deps {
@@ -100,12 +103,38 @@ where
                             .or_insert(HashSet::new())
                             .insert(t.task_id.clone());
                     }
+                    if let Some(ref p) = t.params {
+                        for (key, val) in p.kwargs.iter() {
+                            //println!("Inserted {} for {}", key, t.task_id);
+                            kwargs
+                                .entry(key.clone())
+                                .or_insert(HashMap::new())
+                                .entry(val.clone_without_ancestors())
+                                .or_insert(HashSet::new())
+                                .insert(t.task_id.clone());
+                        }
+                    }
                 }
                 let compressible_deps = deps
                     .into_iter()
                     .filter(|(_k, v)| v.len() == num_tasks)
                     .map(|(k, _)| k)
                     .collect::<HashSet<AST>>();
+                let compressible_kwargs = kwargs
+                    .into_iter()
+                    .map(|(key, val)| {
+                        (
+                            key,
+                            val.into_iter()
+                                .filter(|(_k, v)| v.len() == num_tasks)
+                                .map(|(k, _)| k)
+                                .next(),
+                        )
+                    })
+                    .filter(|(_k, v)| v.is_some())
+                    .map(|(k, v)| (k, v.unwrap()))
+                    .collect::<LinkedHashMap<String, AST>>();
+
                 for t in maybe_uncompressible.iter_mut() {
                     let mut new_deps = Vec::new();
                     for dep in t.deps.iter() {
@@ -113,9 +142,16 @@ where
                             new_deps.push(dep.clone());
                         }
                     }
+                    if let Some(ref mut p) = t.params {
+                        for key in compressible_kwargs.keys() {
+                            //println!("Compressible kwarg: {}", key);
+                            p.kwargs.remove(key);
+                        }
+                    }
                     t.deps = new_deps;
                 }
                 compression_key.deps = compressible_deps.into_iter().collect();
+                compression_key.kwargs = compressible_kwargs;
                 let compressed_task =
                     ForLoopETLTask::new(params_constraint, compression_key, maybe_uncompressible);
                 etl_tasks.push(ETLTask::ForLoopETLTask(compressed_task));

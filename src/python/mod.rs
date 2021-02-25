@@ -5,10 +5,10 @@ use pyo3::types::{IntoPyDict, PyString, PyTuple};
 use std::collections::{BTreeSet, HashMap};
 
 pub use ast::{
-    Assignment, Attribute, BashPythonTask, BigIntLiteral, BooleanLiteral, Call, ConstantPythonTask,
-    Dict, Expression, ForLoop, Formatted, Import, List, NativePythonTask, ParameterTuple,
-    ParameterTupleDedupKey, Preamble, PrestoPythonTask, PythonImport, PythonNone, RPythonTask,
-    SimpleIdentifier, StringLiteral, Subscript, Tuple, AST, Add, BinOp,
+    Add, Assignment, Attribute, BashPythonTask, BigIntLiteral, BinOp, BooleanLiteral, Call,
+    ConstantPythonTask, Dict, Expression, ForLoop, Formatted, Import, List, NativePythonTask,
+    ParameterTuple, ParameterTupleDedupKey, Preamble, PrestoPythonTask, PythonImport, PythonNone,
+    RPythonTask, SimpleIdentifier, StringLiteral, Subscript, Tuple, AST,
 };
 /// Wrapper type for stuff that gets passed around when building Python
 /// statements:

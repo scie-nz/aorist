@@ -1,8 +1,8 @@
 use crate::endpoints::EndpointConfig;
 use crate::etl_singleton::ETLSingleton;
 use crate::python::{
-    Assignment, Attribute, BigIntLiteral, Call, Dict, ForLoop, Import, List, ParameterTuple,
-    ParameterTupleDedupKey, SimpleIdentifier, StringLiteral, Subscript, Tuple, AST, Add, BinOp,
+    Add, Assignment, Attribute, BigIntLiteral, BinOp, Call, Dict, ForLoop, Import, List,
+    ParameterTuple, ParameterTupleDedupKey, SimpleIdentifier, StringLiteral, Subscript, Tuple, AST,
 };
 use aorist_primitives::Dialect;
 use linked_hash_map::LinkedHashMap;
@@ -54,6 +54,8 @@ pub struct ETLTaskCompressionKey {
     dialect: Option<Dialect>,
     // optional: dependencies
     pub deps: Vec<AST>,
+    // optional: kwargs
+    pub kwargs: LinkedHashMap<String, AST>,
 }
 impl ETLTaskCompressionKey {
     pub fn new(
@@ -70,6 +72,7 @@ impl ETLTaskCompressionKey {
             preamble,
             dialect,
             deps: Vec::new(),
+            kwargs: LinkedHashMap::new(),
         }
     }
     pub fn get_dict_name(&self) -> AST {
@@ -98,7 +101,7 @@ where
     // dict value
     pub dict: String,
     // params
-    params: Option<ParameterTuple>,
+    pub params: Option<ParameterTuple>,
     // dep list
     pub deps: Vec<AST>,
     singleton_type: PhantomData<T>,
@@ -337,8 +340,8 @@ where
             ident.clone(),
             false,
         ));
-        let kwargs;
-        let args;
+        let mut kwargs;
+        let mut args;
         if let Some((num_args, kwarg_keys)) = key.get_dedup_key() {
             kwargs = kwarg_keys
                 .iter()
@@ -373,6 +376,9 @@ where
         } else {
             kwargs = LinkedHashMap::new();
             args = Vec::new();
+        }
+        for (k, v) in &key.kwargs {
+            kwargs.insert(k.clone(), v.clone());
         }
         let mut dependencies = match any_dependencies {
             true => Some(AST::Subscript(Subscript::new_wrapped(
