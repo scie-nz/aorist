@@ -3,7 +3,7 @@ use crate::endpoints::EndpointConfig;
 use crate::etl_singleton::ETLSingleton;
 use crate::etl_task::{ETLTask, ForLoopETLTask, StandaloneETLTask};
 use crate::python::{
-    Import, ParameterTuple, Preamble, SimpleIdentifier, StringLiteral, Subscript, AST, Formatted,
+    Formatted, Import, ParameterTuple, Preamble, SimpleIdentifier, StringLiteral, Subscript, AST,
 };
 use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
@@ -98,6 +98,7 @@ where
                     LinkedHashMap::new();
                 let mut kwargs_by_task_id: LinkedHashMap<(String, AST), HashSet<String>> =
                     LinkedHashMap::new();
+                let mut full_task_ids: LinkedHashMap<AST, HashSet<String>> = LinkedHashMap::new();
 
                 for t in &maybe_uncompressible {
                     for dep in &t.deps {
@@ -105,11 +106,24 @@ where
                             .or_insert(HashSet::new())
                             .insert(t.task_id.clone());
                     }
+                    let task_id_subscript = t.task_id.split("__").last().unwrap().to_string();
+                    let replaced = t.task_id.replace(&task_id_subscript, "{t}");
+                    let ident =
+                        AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("t".to_string()));
+                    let mut kw = LinkedHashMap::new();
+                    kw.insert("t".to_string(), ident);
+                    let replacement = AST::Formatted(Formatted::new_wrapped(
+                        AST::StringLiteral(StringLiteral::new_wrapped(replaced, false)),
+                        kw,
+                    ));
+                    full_task_ids
+                        .entry(replacement)
+                        .or_insert(HashSet::new())
+                        .insert(t.task_id.clone());
+
                     if let Some(ref p) = t.params {
                         for (key, val) in p.kwargs.iter() {
                             let val_no_ancestors = val.clone_without_ancestors();
-                            let task_id_subscript =
-                                t.task_id.split("__").last().unwrap().to_string();
                             if let AST::StringLiteral(rw) = val {
                                 let x = rw.read().unwrap();
                                 if x.value() == task_id_subscript {
@@ -201,8 +215,27 @@ where
                 }
                 compression_key.deps = compressible_deps.into_iter().collect();
                 compression_key.kwargs = compressible_kwargs;
-                let compressed_task =
-                    ForLoopETLTask::new(params_constraint, compression_key, maybe_uncompressible);
+
+                // TODO: insert_task_name should not be necessary
+                let (task_id, insert_task_name) = match full_task_ids.len() {
+                    1 => (full_task_ids.into_iter().next().unwrap().0, false),
+                    _ => (AST::Subscript(Subscript::new_wrapped(
+                        params_constraint.clone(),
+                        AST::StringLiteral(StringLiteral::new_wrapped(
+                            "task_id".to_string(),
+                            false,
+                        )),
+                        false,
+                    )), true)
+                };
+
+                let compressed_task = ForLoopETLTask::new(
+                    params_constraint,
+                    compression_key,
+                    maybe_uncompressible,
+                    task_id,
+                    insert_task_name,
+                );
                 etl_tasks.push(ETLTask::ForLoopETLTask(compressed_task));
             } else {
                 for task in tasks.into_iter() {

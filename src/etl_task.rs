@@ -125,8 +125,7 @@ where
             singleton_type: PhantomData,
         }
     }
-
-    pub fn as_python_dict(&self, dependencies_as_list: bool) -> AST {
+    pub fn as_python_dict(&self, dependencies_as_list: bool, insert_task_name: bool) -> AST {
         let mut local_params_map: LinkedHashMap<String, AST> = LinkedHashMap::new();
         if self.deps.len() > 0 {
             let dependencies = match dependencies_as_list {
@@ -139,7 +138,7 @@ where
             local_params_map.insert("dependencies".to_string(), dependencies);
         }
         // TODO: get_type should return an enum
-        if T::get_type() == "airflow".to_string() {
+        if insert_task_name && T::get_type() == "airflow".to_string() {
             local_params_map.insert(
                 "task_id".to_string(),
                 AST::StringLiteral(StringLiteral::new_wrapped(self.task_id.clone(), false)),
@@ -283,6 +282,8 @@ where
     key: ETLTaskCompressionKey,
     values: Vec<ETLTaskUncompressiblePart<T>>,
     singleton_type: PhantomData<T>,
+    task_id: AST,
+    insert_task_name: bool,
 }
 impl<T> ForLoopETLTask<T>
 where
@@ -292,11 +293,15 @@ where
         params_dict_name: AST,
         key: ETLTaskCompressionKey,
         values: Vec<ETLTaskUncompressiblePart<T>>,
+        task_id: AST,
+        insert_task_name: bool,
     ) -> Self {
         Self {
             params_dict_name,
             key,
             values,
+            task_id,
+            insert_task_name,
             singleton_type: PhantomData,
         }
     }
@@ -319,7 +324,7 @@ where
         let dict_content = AST::Dict(Dict::new_wrapped(
             self.values
                 .iter()
-                .map(|x| (x.dict.clone(), x.as_python_dict(dependencies_as_list)))
+                .map(|x| (x.dict.clone(), x.as_python_dict(dependencies_as_list, self.insert_task_name)))
                 .collect(),
         ));
         let dict_assign = AST::Assignment(Assignment::new_wrapped(
@@ -402,14 +407,8 @@ where
             }
         }
 
-        let task_id = AST::Subscript(Subscript::new_wrapped(
-            params.clone(),
-            AST::StringLiteral(StringLiteral::new_wrapped("task_id".to_string(), false)),
-            false,
-        ));
-
         let singleton = T::new(
-            task_id,
+            self.task_id.clone(),
             new_collector.clone(),
             key.get_call(),
             args,
