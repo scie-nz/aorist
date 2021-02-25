@@ -117,6 +117,32 @@ define_ast_node!(
     inner: AST,
 );
 define_ast_node!(
+    Add,
+    |_node: &Add| vec![],
+    |_node: &Add, _py: Python, ast_module: &'a PyModule, _depth: usize| {
+        ast_module.call0(
+            "Add",
+        )
+    },
+);
+define_ast_node!(
+    BinOp,
+    |node: &BinOp| vec![node.left.clone(), node.right.clone()],
+    |node: &BinOp, py: Python, ast_module: &'a PyModule, depth: usize| {
+        ast_module.call1(
+            "BinOp",
+            (
+                node.left.to_python_ast_node(py, ast_module, depth)?,
+                node.op.to_python_ast_node(py, ast_module, depth)?,
+                node.right.to_python_ast_node(py, ast_module, depth)?,
+            ),
+        )
+    },
+    left: AST,
+    op: AST,
+    right: AST,
+);
+define_ast_node!(
     List,
     |list: &List| list.elems().clone(),
     |list: &List, py: Python, ast_module: &'a PyModule, depth: usize| {
@@ -411,6 +437,8 @@ register_ast_nodes!(
     Assignment,
     ForLoop,
     PythonImport,
+    Add,
+    BinOp,
 );
 impl AST {
     pub fn as_wrapped_assignment_target(&self) -> Self {
