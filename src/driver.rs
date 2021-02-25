@@ -18,26 +18,28 @@ use std::marker::PhantomData;
 use std::sync::{Arc, RwLock, RwLockReadGuard};
 use uuid::Uuid;
 
+type ConstraintsBlockMap<'a> = LinkedHashMap<
+        String,
+        (
+            LinkedHashSet<String>,
+            LinkedHashMap<(Uuid, String), Arc<RwLock<ConstraintState<'a>>>>,
+        ),
+    >;
+
 pub struct Driver<'a, D>
 where
     D: ETLDAG,
 {
     pub concepts: Arc<RwLock<HashMap<(Uuid, String), Concept<'a>>>>,
-    constraints: HashMap<(Uuid, String), Arc<RwLock<Constraint>>>,
+    constraints: LinkedHashMap<(Uuid, String), Arc<RwLock<Constraint>>>,
     satisfied_constraints: HashMap<(Uuid, String), Arc<RwLock<ConstraintState<'a>>>>,
     blocks: Vec<ConstraintBlock<'a, D::T>>,
-    // map from: constraint_name => (dependent_constraint_names, constraints_by_uuid)
-    unsatisfied_constraints: HashMap<
-        String,
-        (
-            HashSet<String>,
-            HashMap<(Uuid, String), Arc<RwLock<ConstraintState<'a>>>>,
-        ),
-    >,
     ancestry: Arc<ConceptAncestry<'a>>,
     dag_type: PhantomData<D>,
     endpoints: EndpointConfig,
     constraint_explanations: HashMap<String, (Option<String>, Option<String>)>,
+    ancestors: HashMap<(Uuid, String), Vec<AncestorRecord>>,
+        topline_constraint_names: LinkedHashSet<String>,
 }
 
 impl<'a, D> Driver<'a, D>
@@ -94,10 +96,10 @@ where
         ancestors
     }
     fn generate_constraint_states_map(
-        constraints: &HashMap<(Uuid, String), Arc<RwLock<Constraint>>>,
+        constraints: &LinkedHashMap<(Uuid, String), Arc<RwLock<Constraint>>>,
         concepts: Arc<RwLock<HashMap<(Uuid, String), Concept<'a>>>>,
         ancestors: &HashMap<(Uuid, String), Vec<AncestorRecord>>,
-    ) -> HashMap<(Uuid, String), Arc<RwLock<ConstraintState<'a>>>> {
+    ) -> LinkedHashMap<(Uuid, String), Arc<RwLock<ConstraintState<'a>>>> {
         constraints
             .iter()
             .map(|(k, rw)| {
@@ -113,7 +115,7 @@ where
             .collect()
     }
     fn remove_redundant_dependencies(
-        raw_unsatisfied_constraints: &mut HashMap<(Uuid, String), Arc<RwLock<ConstraintState<'a>>>>,
+        raw_unsatisfied_constraints: &mut LinkedHashMap<(Uuid, String), Arc<RwLock<ConstraintState<'a>>>>,
     ) {
         /* Remove redundant dependencies */
         // constraint key => constraint key dependency on it
@@ -165,7 +167,7 @@ where
         }
     }
     fn remove_dangling_dummy_tasks(
-        raw_unsatisfied_constraints: &mut HashMap<(Uuid, String), Arc<RwLock<ConstraintState<'a>>>>,
+        raw_unsatisfied_constraints: &mut LinkedHashMap<(Uuid, String), Arc<RwLock<ConstraintState<'a>>>>,
     ) {
         /* Remove dangling dummy tasks */
         let mut changes_made = true;
@@ -210,7 +212,7 @@ where
         }
     }
     fn remove_superfluous_dummy_tasks(
-        raw_unsatisfied_constraints: &mut HashMap<(Uuid, String), Arc<RwLock<ConstraintState<'a>>>>,
+        raw_unsatisfied_constraints: &mut LinkedHashMap<(Uuid, String), Arc<RwLock<ConstraintState<'a>>>>,
     ) {
         /* Remove superfluous dummy tasks */
         loop {
@@ -260,18 +262,12 @@ where
         }
     }
     fn get_unsatisfied_constraints(
-        constraints: &HashMap<(Uuid, String), Arc<RwLock<Constraint>>>,
+        constraints: &LinkedHashMap<(Uuid, String), Arc<RwLock<Constraint>>>,
         concepts: Arc<RwLock<HashMap<(Uuid, String), Concept<'a>>>>,
         ancestors: &HashMap<(Uuid, String), Vec<AncestorRecord>>,
         _topline_constraint_names: LinkedHashSet<String>,
-    ) -> HashMap<
-        String,
-        (
-            HashSet<String>,
-            HashMap<(Uuid, String), Arc<RwLock<ConstraintState<'a>>>>,
-        ),
-    > {
-        let mut raw_unsatisfied_constraints: HashMap<
+    ) -> ConstraintsBlockMap<'a> {
+        let mut raw_unsatisfied_constraints: LinkedHashMap<
             (Uuid, String),
             Arc<RwLock<ConstraintState<'a>>>,
         > = Self::generate_constraint_states_map(constraints, concepts, ancestors);
@@ -279,15 +275,9 @@ where
         Self::remove_superfluous_dummy_tasks(&mut raw_unsatisfied_constraints);
         Self::remove_dangling_dummy_tasks(&mut raw_unsatisfied_constraints);
 
-        let mut unsatisfied_constraints: HashMap<
-            String,
-            (
-                HashSet<String>,
-                HashMap<(Uuid, String), Arc<RwLock<ConstraintState>>>,
-            ),
-        > = AoristConstraint::get_required_constraint_names()
+        let mut unsatisfied_constraints: LinkedHashMap<_, _> = AoristConstraint::get_required_constraint_names()
             .into_iter()
-            .map(|(k, v)| (k, (v.into_iter().collect(), HashMap::new())))
+            .map(|(k, v)| (k, (v.into_iter().collect(), LinkedHashMap::new())))
             .collect();
 
         for ((uuid, root_type), rw) in raw_unsatisfied_constraints.into_iter() {
@@ -531,34 +521,29 @@ where
             })
             .collect();
 
-        let unsatisfied_constraints = Self::get_unsatisfied_constraints(
-            &constraints,
-            concepts.clone(),
-            &ancestors,
-            topline_constraint_names,
-        );
-
         Self {
             concepts,
-            constraints: constraints.clone(),
+            ancestors,
+            constraints: constraints,
             satisfied_constraints: HashMap::new(),
-            unsatisfied_constraints,
             ancestry: Arc::new(ancestry),
             blocks: Vec::new(),
             dag_type: PhantomData,
             endpoints: universe.endpoints.clone(),
             constraint_explanations: AoristConstraint::get_explanations(),
+            topline_constraint_names,
         }
     }
 
     fn find_satisfiable_constraint_block(
-        &mut self,
+        &self,
+        unsatisfied_constraints: &mut ConstraintsBlockMap<'a>,
     ) -> Option<(
-        HashMap<(Uuid, String), Arc<RwLock<ConstraintState<'a>>>>,
+        LinkedHashMap<(Uuid, String), Arc<RwLock<ConstraintState<'a>>>>,
         String,
     )> {
-        let constraint_block_name = self
-            .unsatisfied_constraints
+        let constraint_block_name =
+            unsatisfied_constraints
             .iter()
             .filter(|(_, v)| v.0.len() == 0)
             .map(|(k, _)| k.clone())
@@ -566,8 +551,8 @@ where
         match constraint_block_name {
             Some(name) => {
                 let (_dependency_names, constraints) =
-                    self.unsatisfied_constraints.remove(&name).unwrap();
-                for (_, (v, _)) in self.unsatisfied_constraints.iter_mut() {
+                    unsatisfied_constraints.remove(&name).unwrap();
+                for (_, (v, _)) in unsatisfied_constraints.iter_mut() {
                     v.remove(&name);
                 }
                 Some((constraints, name))
@@ -613,6 +598,7 @@ where
         state: Arc<RwLock<ConstraintState<'a>>>,
         calls: &mut HashMap<(String, String, String), Vec<(String, ParameterTuple)>>,
         reverse_dependencies: &HashMap<(Uuid, String), HashSet<(String, Uuid, String)>>,
+        unsatisfied_constraints: &ConstraintsBlockMap<'a>,
     ) {
         let mut write = state.write().unwrap();
         write.compute_task_name();
@@ -630,8 +616,8 @@ where
 
         if let Some(v) = reverse_dependencies.get(&uuid) {
             for (dependency_name, dependency_uuid, dependency_root_type) in v {
-                let rw = self
-                    .unsatisfied_constraints
+                let rw =
+                    unsatisfied_constraints
                     .get(dependency_name)
                     .unwrap()
                     .1
@@ -651,9 +637,10 @@ where
 
     fn process_constraint_block(
         &mut self,
-        block: &mut HashMap<(Uuid, String), Arc<RwLock<ConstraintState<'a>>>>,
+        block: &mut LinkedHashMap<(Uuid, String), Arc<RwLock<ConstraintState<'a>>>>,
         reverse_dependencies: &HashMap<(Uuid, String), HashSet<(String, Uuid, String)>>,
         constraint_name: String,
+        unsatisfied_constraints: &ConstraintsBlockMap<'a>,
     ) -> Vec<CodeBlock<'a, D::T>> {
         // (call, constraint_name, root_name) => (uuid, call parameters)
         let mut calls: HashMap<(String, String, String), Vec<(String, ParameterTuple)>> =
@@ -667,6 +654,7 @@ where
                 state.clone(),
                 &mut calls,
                 reverse_dependencies,
+                unsatisfied_constraints,
             );
             self.satisfied_constraints.insert(id, state.clone());
             by_dialect
@@ -764,9 +752,15 @@ where
         }
     }
     pub fn run(&'a mut self) -> pyo3::PyResult<String> {
+        let mut unsatisfied_constraints = Self::get_unsatisfied_constraints(
+            &self.constraints,
+            self.concepts.clone(),
+            &self.ancestors,
+            self.topline_constraint_names.clone(),
+        );
         let mut reverse_dependencies: HashMap<(Uuid, String), HashSet<(String, Uuid, String)>> =
             HashMap::new();
-        for (name, (_, constraints)) in &self.unsatisfied_constraints {
+        for (name, (_, constraints)) in &unsatisfied_constraints {
             for ((uuid, root_type), state) in constraints {
                 for (dependency_uuid, dependency_root_type) in
                     &state.read().unwrap().unsatisfied_dependencies
@@ -781,13 +775,14 @@ where
 
         // find at least one satisfiable constraint
         loop {
-            let mut satisfiable = self.find_satisfiable_constraint_block();
+            let mut satisfiable = self.find_satisfiable_constraint_block(&mut unsatisfied_constraints);
             if let Some((ref mut block, ref constraint_name)) = satisfiable {
                 let snake_case_name = to_snake_case(constraint_name);
                 let members = self.process_constraint_block(
                     &mut block.clone(),
                     &reverse_dependencies,
                     snake_case_name.clone(),
+                    &unsatisfied_constraints,
                 );
                 let (title, body) = self
                     .constraint_explanations
@@ -804,7 +799,7 @@ where
         self.shorten_task_names();
 
         let etl = D::new();
-        assert_eq!(self.unsatisfied_constraints.len(), 0);
+        assert_eq!(unsatisfied_constraints.len(), 0);
         let statements_and_preambles = self
             .blocks
             .iter()
