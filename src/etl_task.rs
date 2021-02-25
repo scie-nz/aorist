@@ -40,18 +40,51 @@ where
 ///   - names of kwargs
 /// - preamble
 /// - dialect
-pub type ETLTaskCompressionKey = (
+#[derive(Clone, Hash, PartialEq, Eq)]
+pub struct ETLTaskCompressionKey {
     // dict name
-    AST,
+    dict_name: AST,
     // function call
-    Option<String>,
+    function_call: Option<String>,
     // dedup key from parameters
-    Option<ParameterTupleDedupKey>,
+    dedup_key: Option<ParameterTupleDedupKey>,
     // preamble
-    Option<String>,
+    preamble: Option<String>,
     // dialect
-    Option<Dialect>,
-);
+    dialect: Option<Dialect>,
+}
+impl ETLTaskCompressionKey {
+    pub fn new(
+        dict_name: AST,
+        function_call: Option<String>,
+        dedup_key: Option<ParameterTupleDedupKey>,
+        preamble: Option<String>,
+        dialect: Option<Dialect>,
+    ) -> Self {
+        Self {
+            dict_name,
+            function_call,
+            dedup_key,
+            preamble,
+            dialect,
+        }
+    }
+    pub fn get_dict_name(&self) -> AST {
+        self.dict_name.clone()
+    }
+    pub fn get_dedup_key(&self) -> Option<ParameterTupleDedupKey> {
+        self.dedup_key.clone()
+    }
+    pub fn get_call(&self) -> Option<String> {
+        self.function_call.clone()
+    }
+    pub fn get_preamble(&self) -> Option<String> {
+        self.preamble.clone()
+    }
+    pub fn get_dialect(&self) -> Option<Dialect> {
+        self.dialect.clone()
+    }
+}
 #[derive(Clone, Hash, PartialEq, Eq)]
 pub struct ETLTaskUncompressiblePart<T>
 where
@@ -149,7 +182,7 @@ where
         }
     }
     pub fn get_compression_key(&self) -> Result<ETLTaskCompressionKey, String> {
-        Ok((
+        Ok(ETLTaskCompressionKey::new(
             self.get_left_of_task_val()?,
             self.call.clone(),
             match &self.params {
@@ -294,12 +327,13 @@ where
             vec![ident.clone(), params.clone()],
             false,
         ));
-        let (dict, call, params_dedup_key, preamble, dialect) = self.key.clone();
+        //let (dict, call, params_dedup_key, preamble, dialect)
+            let key = self.key.clone();
         let new_collector =
-            AST::Subscript(Subscript::new_wrapped(dict.clone(), ident.clone(), false));
+            AST::Subscript(Subscript::new_wrapped(key.get_dict_name(), ident.clone(), false));
         let kwargs;
         let args;
-        if let Some((num_args, kwarg_keys)) = params_dedup_key {
+        if let Some((num_args, kwarg_keys)) = key.get_dedup_key() {
             kwargs = kwarg_keys
                 .iter()
                 .map(|x| {
@@ -354,12 +388,12 @@ where
         let singleton = T::new(
             task_id,
             new_collector.clone(),
-            call,
+            key.get_call(),
             args,
             kwargs,
             dependencies,
-            preamble.clone(),
-            dialect.clone(),
+            key.get_preamble(),
+            key.get_dialect(),
             endpoints.clone(),
         );
         let statements = singleton.get_statements();

@@ -36,7 +36,6 @@ where
         tasks_dict: Option<AST>,
         identifiers: &HashMap<Uuid, AST>,
     ) -> Self {
-
         let with_task_vals = Self::compute_task_vals(members, &constraint_name, &tasks_dict);
         let task_identifiers = with_task_vals
             .iter()
@@ -82,20 +81,11 @@ where
                 etl_tasks.push(ETLTask::StandaloneETLTask(task));
             }
         }
-        let mut num_compression_tasks = 0;
         for (compression_key, tasks) in compressible.into_iter() {
             // TODO: this is a magic number
             if tasks.len() > 2 {
                 let params_constraint = AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
-                    match num_compression_tasks {
-                        0 => format!("params_{}", constraint_name).to_string(),
-                        _ => format!(
-                            "params_{}_{}",
-                            constraint_name,
-                            num_compression_tasks + 1
-                        )
-                        .to_string(),
-                    },
+                    format!("params_{}", constraint_name).to_string(),
                 ));
                 let compressed_task = ForLoopETLTask::new(
                     params_constraint,
@@ -106,7 +96,6 @@ where
                         .collect(),
                 );
                 etl_tasks.push(ETLTask::ForLoopETLTask(compressed_task));
-                num_compression_tasks += 1;
             } else {
                 for task in tasks.into_iter() {
                     etl_tasks.push(ETLTask::StandaloneETLTask(task));
@@ -158,8 +147,8 @@ where
         &self,
         endpoints: &EndpointConfig,
     ) -> (Vec<AST>, LinkedHashSet<Preamble>, BTreeSet<Import>) {
-
-        let preambles_and_statements = self.etl_tasks
+        let preambles_and_statements = self
+            .etl_tasks
             .iter()
             .map(|x| x.get_statements(endpoints))
             .collect::<Vec<_>>();
@@ -177,14 +166,10 @@ where
             .flatten()
             .collect::<BTreeSet<Import>>();
         let statements = preambles_and_statements
-                .iter()
-                .map(|x| x.0.clone())
-                .flatten()
-                .collect::<Vec<_>>();
-        (
-            statements,
-            preambles,
-            imports,
-        )
+            .iter()
+            .map(|x| x.0.clone())
+            .flatten()
+            .collect::<Vec<_>>();
+        (statements, preambles, imports)
     }
 }

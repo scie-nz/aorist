@@ -66,10 +66,7 @@ where
             None => vec![],
         }
     }
-    pub fn get_statements(
-        &'a self,
-        endpoints: &EndpointConfig,
-    ) -> PythonStatementInput {
+    pub fn get_statements(&'a self, endpoints: &EndpointConfig) -> PythonStatementInput {
         let preambles_and_statements = self
             .members
             .iter()
