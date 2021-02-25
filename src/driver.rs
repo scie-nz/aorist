@@ -19,12 +19,12 @@ use std::sync::{Arc, RwLock, RwLockReadGuard};
 use uuid::Uuid;
 
 type ConstraintsBlockMap<'a> = LinkedHashMap<
-        String,
-        (
-            LinkedHashSet<String>,
-            LinkedHashMap<(Uuid, String), Arc<RwLock<ConstraintState<'a>>>>,
-        ),
-    >;
+    String,
+    (
+        LinkedHashSet<String>,
+        LinkedHashMap<(Uuid, String), Arc<RwLock<ConstraintState<'a>>>>,
+    ),
+>;
 
 pub struct Driver<'a, D>
 where
@@ -39,7 +39,7 @@ where
     endpoints: EndpointConfig,
     constraint_explanations: HashMap<String, (Option<String>, Option<String>)>,
     ancestors: HashMap<(Uuid, String), Vec<AncestorRecord>>,
-        topline_constraint_names: LinkedHashSet<String>,
+    topline_constraint_names: LinkedHashSet<String>,
 }
 
 impl<'a, D> Driver<'a, D>
@@ -115,7 +115,10 @@ where
             .collect()
     }
     fn remove_redundant_dependencies(
-        raw_unsatisfied_constraints: &mut LinkedHashMap<(Uuid, String), Arc<RwLock<ConstraintState<'a>>>>,
+        raw_unsatisfied_constraints: &mut LinkedHashMap<
+            (Uuid, String),
+            Arc<RwLock<ConstraintState<'a>>>,
+        >,
     ) {
         /* Remove redundant dependencies */
         // constraint key => constraint key dependency on it
@@ -167,7 +170,10 @@ where
         }
     }
     fn remove_dangling_dummy_tasks(
-        raw_unsatisfied_constraints: &mut LinkedHashMap<(Uuid, String), Arc<RwLock<ConstraintState<'a>>>>,
+        raw_unsatisfied_constraints: &mut LinkedHashMap<
+            (Uuid, String),
+            Arc<RwLock<ConstraintState<'a>>>,
+        >,
     ) {
         /* Remove dangling dummy tasks */
         let mut changes_made = true;
@@ -212,7 +218,10 @@ where
         }
     }
     fn remove_superfluous_dummy_tasks(
-        raw_unsatisfied_constraints: &mut LinkedHashMap<(Uuid, String), Arc<RwLock<ConstraintState<'a>>>>,
+        raw_unsatisfied_constraints: &mut LinkedHashMap<
+            (Uuid, String),
+            Arc<RwLock<ConstraintState<'a>>>,
+        >,
     ) {
         /* Remove superfluous dummy tasks */
         loop {
@@ -275,10 +284,11 @@ where
         Self::remove_superfluous_dummy_tasks(&mut raw_unsatisfied_constraints);
         Self::remove_dangling_dummy_tasks(&mut raw_unsatisfied_constraints);
 
-        let mut unsatisfied_constraints: LinkedHashMap<_, _> = AoristConstraint::get_required_constraint_names()
-            .into_iter()
-            .map(|(k, v)| (k, (v.into_iter().collect(), LinkedHashMap::new())))
-            .collect();
+        let mut unsatisfied_constraints: LinkedHashMap<_, _> =
+            AoristConstraint::get_required_constraint_names()
+                .into_iter()
+                .map(|(k, v)| (k, (v.into_iter().collect(), LinkedHashMap::new())))
+                .collect();
 
         for ((uuid, root_type), rw) in raw_unsatisfied_constraints.into_iter() {
             let constraint_name = rw.read().unwrap().get_name();
@@ -542,8 +552,7 @@ where
         LinkedHashMap<(Uuid, String), Arc<RwLock<ConstraintState<'a>>>>,
         String,
     )> {
-        let constraint_block_name =
-            unsatisfied_constraints
+        let constraint_block_name = unsatisfied_constraints
             .iter()
             .filter(|(_, v)| v.0.len() == 0)
             .map(|(k, _)| k.clone())
@@ -616,8 +625,7 @@ where
 
         if let Some(v) = reverse_dependencies.get(&uuid) {
             for (dependency_name, dependency_uuid, dependency_root_type) in v {
-                let rw =
-                    unsatisfied_constraints
+                let rw = unsatisfied_constraints
                     .get(dependency_name)
                     .unwrap()
                     .1
@@ -709,48 +717,6 @@ where
         }
         new_name
     }
-    pub fn shorten_task_names(&mut self) {
-        let mut task_names: Vec<(String, Arc<RwLock<ConstraintState<'a>>>)> = Vec::new();
-        // shorten task names
-        for constraint in self.satisfied_constraints.values() {
-            let fqn = constraint.read().unwrap().get_fully_qualified_task_name();
-            task_names.push((fqn, constraint.clone()));
-        }
-        loop {
-            let mut changes_made = false;
-
-            let mut proposed_names: Vec<String> = task_names.iter().map(|x| x.0.clone()).collect();
-            let mut new_task_names: HashSet<String> = proposed_names.clone().into_iter().collect();
-            for i in 0..task_names.len() {
-                let task_name = proposed_names.get(i).unwrap().clone();
-                let new_name = Self::get_shorter_task_name(task_name.clone());
-                if new_name != task_name
-                    && !new_task_names.contains(&new_name)
-                    && proposed_names
-                        .iter()
-                        .enumerate()
-                        .filter(|(pos, x)| *pos != i && x.contains(&new_name))
-                        .collect::<Vec<_>>()
-                        .len()
-                        == 0
-                {
-                    changes_made = true;
-                    new_task_names.insert(new_name.clone());
-                    proposed_names[i] = new_name;
-                }
-            }
-            if !changes_made {
-                break;
-            }
-            for i in 0..task_names.len() {
-                task_names[i].0 = proposed_names[i].clone();
-            }
-        }
-        for (name, rw) in task_names {
-            let mut write = rw.write().unwrap();
-            write.set_task_name(name.replace("____", "__"));
-        }
-    }
     pub fn run(&'a mut self) -> pyo3::PyResult<String> {
         let mut unsatisfied_constraints = Self::get_unsatisfied_constraints(
             &self.constraints,
@@ -773,9 +739,11 @@ where
             }
         }
 
+        let mut existing_names = HashSet::new();
         // find at least one satisfiable constraint
         loop {
-            let mut satisfiable = self.find_satisfiable_constraint_block(&mut unsatisfied_constraints);
+            let mut satisfiable =
+                self.find_satisfiable_constraint_block(&mut unsatisfied_constraints);
             if let Some((ref mut block, ref constraint_name)) = satisfiable {
                 let snake_case_name = to_snake_case(constraint_name);
                 let members = self.process_constraint_block(
@@ -790,13 +758,13 @@ where
                     .unwrap()
                     .clone();
                 // TODO: snake case name can be moved to ConstraintBlock
-                let constraint_block = ConstraintBlock::new(snake_case_name, title, body, members);
+                let with_shorter_names = ConstraintBlock::shorten_task_names(members, &mut existing_names);
+                let constraint_block = ConstraintBlock::new(snake_case_name, title, body, with_shorter_names);
                 self.blocks.push(constraint_block);
             } else {
                 break;
             }
         }
-        self.shorten_task_names();
 
         let etl = D::new();
         assert_eq!(unsatisfied_constraints.len(), 0);

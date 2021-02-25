@@ -25,8 +25,8 @@ impl<'a, T> CodeBlock<'a, T>
 where
     T: ETLSingleton,
 {
-    pub fn get_constraints(&'a self) -> &Vec<Arc<RwLock<ConstraintState<'a>>>> {
-        &self.members
+    pub fn get_constraints(&self) -> Vec<Arc<RwLock<ConstraintState<'a>>>> {
+        self.members.clone()
     }
     pub fn new(
         dialect: Option<Dialect>,

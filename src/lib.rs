@@ -132,7 +132,7 @@ pub fn derive_integer_measure(
 pub fn dag(inner: InnerUniverse, constraints: Vec<String>, mode: &str) -> PyResult<String> {
     let mut universe = Universe::from(inner);
     universe.compute_uuids();
-    let debug = true;
+    let debug = false;
     match mode {
         "airflow" => {
             Driver::<AirflowDAG>::new(&universe, constraints.into_iter().collect(), debug).run()

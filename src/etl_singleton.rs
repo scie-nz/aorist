@@ -1,7 +1,6 @@
 use crate::endpoints::EndpointConfig;
 use crate::python::{
-    format_code, Assignment, Import, Preamble, PythonStatementInput, SimpleIdentifier,
-    AST,
+    format_code, Assignment, Import, Preamble, PythonStatementInput, SimpleIdentifier, AST,
 };
 use aorist_primitives::Dialect;
 use linked_hash_map::LinkedHashMap;
@@ -158,7 +157,8 @@ where
                                 keys_hist.into_iter().next().unwrap().0,
                                 short_name
                             )
-                            .to_string().to_uppercase(),
+                            .to_string()
+                            .to_uppercase(),
                         )
                         .or_insert(Vec::new())
                         .push((literal.clone(), rws));
