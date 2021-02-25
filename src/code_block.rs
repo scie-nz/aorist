@@ -7,7 +7,7 @@ use crate::python::{
 };
 use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
-use std::collections::{BTreeSet, HashMap};
+use std::collections::{BTreeSet, HashMap, HashSet};
 use std::sync::{Arc, RwLock};
 use uuid::Uuid;
 
@@ -81,20 +81,43 @@ where
                 etl_tasks.push(ETLTask::StandaloneETLTask(task));
             }
         }
-        for (compression_key, tasks) in compressible.into_iter() {
+        for (mut compression_key, tasks) in compressible.into_iter() {
+            let num_tasks = tasks.len();
             // TODO: this is a magic number
-            if tasks.len() > 2 {
+            if num_tasks > 2 {
                 let params_constraint = AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
                     format!("params_{}", constraint_name).to_string(),
                 ));
-                let compressed_task = ForLoopETLTask::new(
-                    params_constraint,
-                    compression_key,
-                    tasks
-                        .into_iter()
-                        .map(|x| x.get_uncompressible_part().unwrap())
-                        .collect(),
-                );
+                let mut maybe_uncompressible = tasks
+                    .into_iter()
+                    .map(|x| x.get_uncompressible_part().unwrap())
+                    .collect::<Vec<_>>();
+                let mut deps: HashMap<AST, HashSet<String>> = HashMap::new();
+
+                for t in &maybe_uncompressible {
+                    for dep in &t.deps {
+                        deps.entry(dep.clone())
+                            .or_insert(HashSet::new())
+                            .insert(t.task_id.clone());
+                    }
+                }
+                let compressible_deps = deps
+                    .into_iter()
+                    .filter(|(_k, v)| v.len() == num_tasks)
+                    .map(|(k, _)| k)
+                    .collect::<HashSet<AST>>();
+                for t in maybe_uncompressible.iter_mut() {
+                    let mut new_deps = Vec::new();
+                    for dep in t.deps.iter() {
+                        if !compressible_deps.contains(dep) {
+                            new_deps.push(dep.clone());
+                        }
+                    }
+                    t.deps = new_deps;
+                }
+                compression_key.deps = compressible_deps.into_iter().collect();
+                let compressed_task =
+                    ForLoopETLTask::new(params_constraint, compression_key, maybe_uncompressible);
                 etl_tasks.push(ETLTask::ForLoopETLTask(compressed_task));
             } else {
                 for task in tasks.into_iter() {

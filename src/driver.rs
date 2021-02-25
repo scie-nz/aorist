@@ -281,8 +281,8 @@ where
             Arc<RwLock<ConstraintState<'a>>>,
         > = Self::generate_constraint_states_map(constraints, concepts, ancestors);
         Self::remove_redundant_dependencies(&mut raw_unsatisfied_constraints);
-        Self::remove_superfluous_dummy_tasks(&mut raw_unsatisfied_constraints);
-        Self::remove_dangling_dummy_tasks(&mut raw_unsatisfied_constraints);
+        //Self::remove_superfluous_dummy_tasks(&mut raw_unsatisfied_constraints);
+        //Self::remove_dangling_dummy_tasks(&mut raw_unsatisfied_constraints);
 
         let mut unsatisfied_constraints: LinkedHashMap<_, _> =
             AoristConstraint::get_required_constraint_names()

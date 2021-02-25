@@ -119,11 +119,7 @@ define_ast_node!(
 define_ast_node!(
     Add,
     |_node: &Add| vec![],
-    |_node: &Add, _py: Python, ast_module: &'a PyModule, _depth: usize| {
-        ast_module.call0(
-            "Add",
-        )
-    },
+    |_node: &Add, _py: Python, ast_module: &'a PyModule, _depth: usize| { ast_module.call0("Add") },
 );
 define_ast_node!(
     BinOp,

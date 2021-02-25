@@ -2,7 +2,7 @@ use crate::endpoints::EndpointConfig;
 use crate::etl_singleton::ETLSingleton;
 use crate::python::{
     Assignment, Attribute, BigIntLiteral, Call, Dict, ForLoop, Import, List, ParameterTuple,
-    ParameterTupleDedupKey, SimpleIdentifier, StringLiteral, Subscript, Tuple, AST,
+    ParameterTupleDedupKey, SimpleIdentifier, StringLiteral, Subscript, Tuple, AST, Add, BinOp,
 };
 use aorist_primitives::Dialect;
 use linked_hash_map::LinkedHashMap;
@@ -52,6 +52,8 @@ pub struct ETLTaskCompressionKey {
     preamble: Option<String>,
     // dialect
     dialect: Option<Dialect>,
+    // optional: dependencies
+    pub deps: Vec<AST>,
 }
 impl ETLTaskCompressionKey {
     pub fn new(
@@ -67,6 +69,7 @@ impl ETLTaskCompressionKey {
             dedup_key,
             preamble,
             dialect,
+            deps: Vec::new(),
         }
     }
     pub fn get_dict_name(&self) -> AST {
@@ -91,7 +94,7 @@ where
     T: ETLSingleton,
 {
     // unique task_id
-    task_id: String,
+    pub task_id: String,
     // dict value
     pub dict: String,
     // params
@@ -328,9 +331,12 @@ where
             false,
         ));
         //let (dict, call, params_dedup_key, preamble, dialect)
-            let key = self.key.clone();
-        let new_collector =
-            AST::Subscript(Subscript::new_wrapped(key.get_dict_name(), ident.clone(), false));
+        let key = self.key.clone();
+        let new_collector = AST::Subscript(Subscript::new_wrapped(
+            key.get_dict_name(),
+            ident.clone(),
+            false,
+        ));
         let kwargs;
         let args;
         if let Some((num_args, kwarg_keys)) = key.get_dedup_key() {
@@ -368,7 +374,7 @@ where
             kwargs = LinkedHashMap::new();
             args = Vec::new();
         }
-        let dependencies = match any_dependencies {
+        let mut dependencies = match any_dependencies {
             true => Some(AST::Subscript(Subscript::new_wrapped(
                 params.clone(),
                 AST::StringLiteral(StringLiteral::new_wrapped(
@@ -379,6 +385,17 @@ where
             ))),
             false => None,
         };
+        let compressed_dependencies = self.key.deps.clone();
+        if compressed_dependencies.len() > 0 {
+            let left = AST::List(List::new_wrapped(compressed_dependencies, false));
+            if let Some(ref right) = dependencies {
+                let op = AST::Add(Add::new_wrapped());
+                dependencies = Some(AST::BinOp(BinOp::new_wrapped(left, op, right.clone())));
+            } else {
+                dependencies = Some(left);
+            }
+        }
+
         let task_id = AST::Subscript(Subscript::new_wrapped(
             params.clone(),
             AST::StringLiteral(StringLiteral::new_wrapped("task_id".to_string(), false)),

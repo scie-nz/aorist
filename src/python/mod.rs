@@ -8,7 +8,7 @@ pub use ast::{
     Assignment, Attribute, BashPythonTask, BigIntLiteral, BooleanLiteral, Call, ConstantPythonTask,
     Dict, Expression, ForLoop, Formatted, Import, List, NativePythonTask, ParameterTuple,
     ParameterTupleDedupKey, Preamble, PrestoPythonTask, PythonImport, PythonNone, RPythonTask,
-    SimpleIdentifier, StringLiteral, Subscript, Tuple, AST,
+    SimpleIdentifier, StringLiteral, Subscript, Tuple, AST, Add, BinOp,
 };
 /// Wrapper type for stuff that gets passed around when building Python
 /// statements:
