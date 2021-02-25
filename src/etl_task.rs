@@ -341,7 +341,7 @@ where
             false,
         ));
         let mut kwargs;
-        let mut args;
+        let args;
         if let Some((num_args, kwarg_keys)) = key.get_dedup_key() {
             kwargs = kwarg_keys
                 .iter()

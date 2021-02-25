@@ -3,7 +3,7 @@ use crate::endpoints::EndpointConfig;
 use crate::etl_singleton::ETLSingleton;
 use crate::etl_task::{ETLTask, ForLoopETLTask, StandaloneETLTask};
 use crate::python::{
-    Import, ParameterTuple, Preamble, SimpleIdentifier, StringLiteral, Subscript, AST,
+    Import, ParameterTuple, Preamble, SimpleIdentifier, StringLiteral, Subscript, AST, Formatted,
 };
 use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
@@ -106,10 +106,6 @@ where
                             .insert(t.task_id.clone());
                     }
                     if let Some(ref p) = t.params {
-                        let task_id_literal = AST::StringLiteral(StringLiteral::new_wrapped(
-                            t.task_id.clone(),
-                            false,
-                        ));
                         for (key, val) in p.kwargs.iter() {
                             let val_no_ancestors = val.clone_without_ancestors();
                             let task_id_subscript =
@@ -118,11 +114,32 @@ where
                                 let x = rw.read().unwrap();
                                 if x.value() == task_id_subscript {
                                     // TODO: pass this to ForLoopETLSingleton
-                                    let ident = AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("t".to_string()));
+                                    let ident = AST::SimpleIdentifier(
+                                        SimpleIdentifier::new_wrapped("t".to_string()),
+                                    );
                                     kwargs_by_task_id
                                         .entry((key.clone(), ident))
                                         .or_insert(HashSet::new())
                                         .insert(t.task_id.clone());
+                                } else {
+                                    let replaced = x.value().replace(&task_id_subscript, "{t}");
+                                    if replaced != x.value() {
+                                        let ident = AST::SimpleIdentifier(
+                                            SimpleIdentifier::new_wrapped("t".to_string()),
+                                        );
+                                        let mut kw = LinkedHashMap::new();
+                                        kw.insert("t".to_string(), ident);
+                                        let replacement = AST::Formatted(Formatted::new_wrapped(
+                                            AST::StringLiteral(StringLiteral::new_wrapped(
+                                                replaced, false,
+                                            )),
+                                            kw,
+                                        ));
+                                        kwargs_by_task_id
+                                            .entry((key.clone(), replacement))
+                                            .or_insert(HashSet::new())
+                                            .insert(t.task_id.clone());
+                                    }
                                 }
                             }
 
