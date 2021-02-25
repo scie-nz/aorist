@@ -609,13 +609,10 @@ where
         reverse_dependencies: &HashMap<(Uuid, String), HashSet<(String, Uuid, String)>>,
         unsatisfied_constraints: &ConstraintsBlockMap<'a>,
     ) {
-        let mut write = state.write().unwrap();
-        write.compute_task_name();
-        // TODO: rename this function, it's confusing (this represents
-        // constraitn name, key is root name)
-        assert!(!write.satisfied);
-        assert_eq!(write.unsatisfied_dependencies.len(), 0);
-        drop(write);
+        let read = state.read().unwrap();
+        assert!(!read.satisfied);
+        assert_eq!(read.unsatisfied_dependencies.len(), 0);
+        drop(read);
 
         let rw = self.constraints.get(&uuid).unwrap().clone();
         let constraint = rw.read().unwrap();
@@ -705,6 +702,7 @@ where
             let mut satisfiable =
                 self.find_satisfiable_constraint_block(&mut unsatisfied_constraints);
             if let Some((ref mut block, ref constraint_name)) = satisfiable {
+                ConstraintState::shorten_task_names(block, &mut existing_names);
                 let snake_case_name = to_snake_case(constraint_name);
                 let members = self.process_constraint_block(
                     &mut block.clone(),
@@ -717,11 +715,7 @@ where
                     .get(constraint_name)
                     .unwrap()
                     .clone();
-                // TODO: snake case name can be moved to ConstraintBlock
-                let with_shorter_names =
-                    ConstraintBlock::shorten_task_names(members, &mut existing_names);
-                let constraint_block =
-                    ConstraintBlock::new(snake_case_name, title, body, with_shorter_names);
+                let constraint_block = ConstraintBlock::new(snake_case_name, title, body, members);
                 self.blocks.push(constraint_block);
             } else {
                 break;
