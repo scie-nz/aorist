@@ -84,7 +84,7 @@ where
         for (mut compression_key, tasks) in compressible.into_iter() {
             let num_tasks = tasks.len();
             // TODO: this is a magic number
-            if num_tasks > 2 {
+            if num_tasks > 1 {
                 let params_constraint = AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
                     format!("params_{}", constraint_name).to_string(),
                 ));
@@ -219,14 +219,17 @@ where
                 // TODO: insert_task_name should not be necessary
                 let (task_id, insert_task_name) = match full_task_ids.len() {
                     1 => (full_task_ids.into_iter().next().unwrap().0, false),
-                    _ => (AST::Subscript(Subscript::new_wrapped(
-                        params_constraint.clone(),
-                        AST::StringLiteral(StringLiteral::new_wrapped(
-                            "task_id".to_string(),
+                    _ => (
+                        AST::Subscript(Subscript::new_wrapped(
+                            params_constraint.clone(),
+                            AST::StringLiteral(StringLiteral::new_wrapped(
+                                "task_id".to_string(),
+                                false,
+                            )),
                             false,
                         )),
-                        false,
-                    )), true)
+                        true,
+                    ),
                 };
 
                 let compressed_task = ForLoopETLTask::new(

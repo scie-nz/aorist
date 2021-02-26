@@ -649,7 +649,7 @@ where
         unsatisfied_constraints: &ConstraintsBlockMap<'a>,
         identifiers: &HashMap<Uuid, AST>,
     ) -> (Vec<CodeBlock<D::T>>, Option<AST>) {
-        let tasks_dict = match block.len() <= 2 {
+        let tasks_dict = match block.len() == 1 {
             true => None,
             false => Some(AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
                 format!("tasks_{}", constraint_name).to_string(),
@@ -718,24 +718,26 @@ where
             if let Some((ref mut block, ref constraint_name)) = satisfiable {
                 ConstraintState::shorten_task_names(block, &mut existing_names);
                 let snake_case_name = to_snake_case(constraint_name);
-                let (members, tasks_dict) = self.process_constraint_block(
-                    &mut block.clone(),
-                    &reverse_dependencies,
-                    snake_case_name.clone(),
-                    &unsatisfied_constraints,
-                    &identifiers,
-                );
-                let (title, body) = self
-                    .constraint_explanations
-                    .get(constraint_name)
-                    .unwrap()
-                    .clone();
-                let constraint_block =
-                    ConstraintBlock::new(snake_case_name, title, body, members, tasks_dict);
-                for (key, val) in constraint_block.get_identifiers() {
-                    identifiers.insert(key, val);
+                if block.len() > 0 {
+                    let (members, tasks_dict) = self.process_constraint_block(
+                        &mut block.clone(),
+                        &reverse_dependencies,
+                        snake_case_name.clone(),
+                        &unsatisfied_constraints,
+                        &identifiers,
+                    );
+                    let (title, body) = self
+                        .constraint_explanations
+                        .get(constraint_name)
+                        .unwrap()
+                        .clone();
+                    let constraint_block =
+                        ConstraintBlock::new(snake_case_name, title, body, members, tasks_dict);
+                    for (key, val) in constraint_block.get_identifiers() {
+                        identifiers.insert(key, val);
+                    }
+                    self.blocks.push(constraint_block);
                 }
-                self.blocks.push(constraint_block);
             } else {
                 break;
             }

@@ -31,6 +31,6 @@ universe = Universe(
     ),
 )
 out = dag(universe, [
-    "DataDownloadedAndConverted", "IsAudited",
-], "airflow")
+    "DataDownloadedAndConverted",
+], "jupyter")
 print(out.replace("\\\\", "\\"))

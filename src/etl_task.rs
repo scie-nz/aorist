@@ -324,7 +324,12 @@ where
         let dict_content = AST::Dict(Dict::new_wrapped(
             self.values
                 .iter()
-                .map(|x| (x.dict.clone(), x.as_python_dict(dependencies_as_list, self.insert_task_name)))
+                .map(|x| {
+                    (
+                        x.dict.clone(),
+                        x.as_python_dict(dependencies_as_list, self.insert_task_name),
+                    )
+                })
                 .collect(),
         ));
         let dict_assign = AST::Assignment(Assignment::new_wrapped(
