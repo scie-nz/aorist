@@ -9,7 +9,5 @@ edition = "2018"
 [dependencies]
 paste = {git = "https://github.com/scie-nz/paste", branch = "main"}
 aorist_derive = {path = "../aorist_derive"}
-sqlparser = {version = "0.6.1"}
-indoc = "1.0.3"
 serde = { version = "1.0", features = ["derive"] }
 serde_yaml = "0.8"

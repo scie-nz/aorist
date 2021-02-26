@@ -70,7 +70,6 @@ pub use user::*;
 pub use user_group::*;
 pub use utils::*;
 
-use aorist_primitives::TAttribute;
 use pyo3::prelude::*;
 use pyo3::wrap_pyfunction;
 use std::collections::HashSet;

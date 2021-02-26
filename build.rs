@@ -277,14 +277,9 @@ fn process_attributes(raw_objects: &Vec<HashMap<String, Value>>) {
     let mut scope = Scope::new();
     scope.import("aorist_primitives", "define_attribute");
     scope.import("aorist_primitives", "register_attribute");
-    scope.import("aorist_primitives", "TAttribute");
-    scope.import("aorist_primitives", "TOrcAttribute");
-    scope.import("aorist_primitives", "TPrestoAttribute");
-    scope.import("aorist_primitives", "TSQLAttribute");
     scope.import("serde", "Serialize");
     scope.import("serde", "Deserialize");
     scope.import("std::sync", "Arc");
-    scope.import("sqlparser::ast", "DataType");
     scope.import("std::sync", "RwLock");
     scope.import("crate::concept", "AoristConcept");
     scope.import("crate::concept", "Concept");
