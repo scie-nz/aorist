@@ -1,14 +1,32 @@
 use indoc::formatdoc;
 use sqlparser::ast::{ColumnDef, DataType, Ident};
-
 pub trait TValue {}
 
-pub struct IntegerValue(i64);
-pub struct StringValue(String);
-pub struct FloatValue(f64);
+#[aorist_concept]
+pub struct IntegerValue {
+    inner: i64,
+}
+#[aorist_concept]
+pub struct StringValue {
+    inner: String
+}
+#[aorist_concept]
+pub struct FloatValue{
+    sign: i8,
+    mantissa: usize,
+    exponent: usize,
+}
+
 impl TValue for IntegerValue {}
 impl TValue for StringValue {}
 impl TValue for FloatValue {}
+
+#[aorist_concept]
+pub enum AttributeValue {
+    IntegerValue(IntegerValue),
+    StringValue(StringValue),
+    FloatValue(FloatValue),
+}
 
 pub trait TAttribute
 where
@@ -59,3 +77,15 @@ pub trait TSQLAttribute: TAttribute {
 
 include!(concat!(env!("OUT_DIR"), "/attributes.rs"));
 include!(concat!(env!("OUT_DIR"), "/programs.rs"));
+
+#[aorist_concept]
+pub enum AttributeOrValue {
+    Attribute(Attribute),
+    AttributeValue(AttributeValue),    
+}
+/*
+#[aorist_concept]
+pub struct EqualityPredicate {
+    left: AttributeOrValue,
+    right: AttributeOrValue,
+}*/

@@ -637,7 +637,7 @@ pub fn aorist_concept(args: TokenStream, input: TokenStream) -> TokenStream {
             let enum_name = &ast.ident;
             let variant = variants.iter().map(|x| (&x.ident));
             let quoted = quote! {
-                #[derive(Debug, PartialEq, Serialize, Deserialize, Clone, Constrainable, InnerObject)]
+                #[derive(Debug, PartialEq, Serialize, Deserialize, Clone, Constrainable, InnerObject#(, #extra_derives)*)]
                 #[serde(tag = "type")]
                 pub enum #enum_name {
                     #(#variant(#variant)),*

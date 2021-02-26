@@ -387,7 +387,8 @@ macro_rules! define_attribute {
     ($element:ident, $presto_type:ident, $orc_type:ident, $sql_type:ident,
     $value:ident) => {
         paste::item! {
-            #[aorist_concept(derive($presto_type, $orc_type, $sql_type))]
+            #[aorist_concept(derive($presto_type, $orc_type, $sql_type),
+            derivative(Hash))]
             pub struct $element {
                 pub name: String,
                 #[py_default = "None"]
@@ -779,7 +780,7 @@ macro_rules! register_constraint {
 #[macro_export]
 macro_rules! register_attribute {
     ( $name:ident, $($element: ident),+ ) => { paste! {
-        #[aorist_concept]
+        #[aorist_concept(derive(Hash))]
         pub enum $name {
             $(
                 $element($element),
