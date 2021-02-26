@@ -14,8 +14,7 @@ universe = Universe(
     users=DEFAULT_USERS,
     groups=DEFAULT_GROUPS,
     datasets=[
-        snap_dataset,
-        geonames_dataset,
+        wine_dataset,
     ],
     endpoints=DEFAULT_ENDPOINTS,
     compliance=ComplianceConfig(

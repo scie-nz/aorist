@@ -205,6 +205,7 @@ classifier_template = TrainedFloatMeasure(
 )
 wine_dataset.add_template(classifier_template)
 classifier_setup = ComputedFromLocalData(
+    source_asset_name="wine_table",
     target=classifier_storage,
     tmp_dir="/tmp/wine_classifier",
 )

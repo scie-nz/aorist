@@ -462,16 +462,17 @@ where
                             }
                         }
                     }
+                    let other_required_concept_uuids = builder.get_required(root.clone(), &ancestry).into_iter().collect::<HashSet<_>>();
                     let potential_child_constraints = raw_potential_child_constraints
                         .into_iter()
                         .map(|(_req, x)| {
                             x.iter()
                                 .filter(
                                     |((potential_root_id, potential_root_type), _constraint)| {
-                                        match family_tree.get(potential_root_type) {
+                                        (match family_tree.get(potential_root_type) {
                                             None => false,
                                             Some(set) => set.contains(potential_root_id),
-                                        }
+                                        } || other_required_concept_uuids.contains(potential_root_id))
                                     },
                                 )
                                 .map(|(_, constraint)| constraint.clone())

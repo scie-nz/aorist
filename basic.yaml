@@ -358,7 +358,7 @@ spec:
   root: SupervisedModel
   requiresProgram: true
   requires:
-    - Replicated
+    - SourceAssetHasBeenComputed
   title: Training SVM Regression Models
   body: |
       Support Vector Machines are some of the simplest ML models possible.
@@ -368,4 +368,18 @@ spec:
       match ancestry.supervised_model(root.clone()).unwrap().algorithm {
           crate::algorithms::RegressionAlgorithm::SVMRegressionAlgorithm(_) => true,
           _ => false,
+      }
+---
+type: Constraint
+spec:
+  name: SourceAssetHasBeenComputed
+  root: ComputedFromLocalData
+  requires:
+      - ReplicatedAssets
+  requiredConstraintsClosure: |
+      |root: Concept<'a>, ancestry: &ConceptAncestry<'a>| {
+          let setup = ancestry.computed_from_local_data(root.clone()).unwrap();
+          let dataset = ancestry.data_set(root.clone()).unwrap();
+          let source_asset = dataset.assets.iter().filter(|x| x.get_name() == setup.source_asset_name).next().unwrap();
+          vec![source_asset.get_uuid().clone()]
       }

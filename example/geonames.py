@@ -469,6 +469,7 @@ geonames_feature_class_histogram = StaticDataTable(
     name="feature_class_histogram",
     schema=default_tabular_schema(feature_class_count),
     setup=ComputedFromLocalData(
+        source_asset_name="features",
         target=features_histogram_location,
         tmp_dir="/tmp/features_histogram",
     ),

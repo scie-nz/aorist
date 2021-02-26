@@ -185,12 +185,26 @@ fn process_constraints(raw_objects: &Vec<HashMap<String, Value>>) {
             )
         })
         .collect::<HashMap<String, Option<String>>>();
+    let constraint_closures = constraints
+        .iter()
+        .map(|x| {
+            (
+                x.get("name").unwrap().as_str().unwrap().to_string(),
+                match x.get("requiredConstraintsClosure") {
+                    Some(Value::String(ref val)) => Some(val.to_string()),
+                    None => None,
+                    _ => panic!("requiredConstraintsClosure needs to be a string containing a Rust closure"),
+                },
+            )
+        })
+        .collect::<HashMap<String, Option<String>>>();
     for (name, root, title, body) in &order {
         let required = dependencies
             .get(&(name.clone(), root.clone(), title.clone(), body.clone()))
             .unwrap();
         let requires_program = program_required.get(name).unwrap();
         let should_add = attach_if.get(name).unwrap();
+        let get_required = constraint_closures.get(name).unwrap();
         let formatted_title = match title {
             Some(x) => format!("Some(\"{}\".to_string())", x),
             None => "None".to_string(),
@@ -203,13 +217,18 @@ fn process_constraints(raw_objects: &Vec<HashMap<String, Value>>) {
             None => "|_, _| true".to_string(),
             Some(x) => x.to_string(),
         };
+        let get_required = match get_required {
+            None => "|_, _| Vec::new()".to_string(),
+            Some(x) => x.to_string(),
+        };
+
         let define = match required.len() {
             0 => format!(
-                "define_constraint!({}, {}, Satisfy{}, {}, {}, {}, {});",
-                name, requires_program, name, root, formatted_title, formatted_body, should_add,
+                "define_constraint!({}, {}, Satisfy{}, {}, {}, {}, {}, {});",
+                name, requires_program, name, root, formatted_title, formatted_body, should_add, get_required
             ),
             _ => format!(
-                "define_constraint!({}, {}, Satisfy{}, {}, {}, {}, {}, {});",
+                "define_constraint!({}, {}, Satisfy{}, {}, {}, {}, {}, {}, {});",
                 name,
                 requires_program,
                 name,
@@ -217,6 +236,7 @@ fn process_constraints(raw_objects: &Vec<HashMap<String, Value>>) {
                 formatted_title,
                 formatted_body,
                 should_add,
+                get_required,
                 required.join(", ")
             ),
         };

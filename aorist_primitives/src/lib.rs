@@ -416,7 +416,7 @@ macro_rules! define_attribute {
 #[macro_export]
 macro_rules! define_constraint {
     ($element:ident, $requires_program:expr, $satisfy_type:ident, $root:ident,
-    $title: expr, $body: expr, $should_add: expr) => {
+    $title: expr, $body: expr, $should_add: expr, $get_required: expr) => {
         pub struct $element {
             id: Uuid,
             root_uuid: Uuid,
@@ -427,6 +427,9 @@ macro_rules! define_constraint {
             }
             pub fn _should_add<'a>(root: Concept<'a>, ancestry: &ConceptAncestry<'a>) -> bool {
                 $should_add(root, ancestry)
+            }
+            pub fn get_required<'a>(root: Concept<'a>, ancestry: &ConceptAncestry<'a>) -> Vec<Uuid> {
+                $get_required(root, ancestry)
             }
             pub fn get_uuid(&self) -> Uuid {
                 self.id.clone()
@@ -486,7 +489,7 @@ macro_rules! define_constraint {
 		}
     };
     ($element:ident, $requires_program:expr, $satisfy_type:ident, $root:ident,
-    $title:expr, $body:expr, $should_add:expr, $($required:ident),+) => {
+    $title:expr, $body:expr, $should_add:expr, $get_required:expr, $($required:ident),+) => {
         paste::item! {
             pub struct $element {
                 id: Uuid,
@@ -512,6 +515,9 @@ macro_rules! define_constraint {
                 }
                 pub fn _should_add<'a>(root: Concept<'a>, ancestry: &ConceptAncestry<'a>) -> bool {
                     $should_add(root, ancestry)
+                }
+                pub fn get_required<'a>(root: Concept<'a>, ancestry: &ConceptAncestry<'a>) -> Vec<Uuid> {
+                    $get_required(root, ancestry)
                 }
                 pub fn get_root_uuid(&self) -> Uuid {
                     self.root_uuid.clone()
@@ -609,6 +615,14 @@ macro_rules! register_constraint {
                 match &self {
                     $(
                         [<$name Builder>]::$element(_) => $element::get_root_type_name(),
+                    )+
+                }
+            }
+            pub fn get_required<'a>(&self, root: Concept<'a>, ancestry:&ConceptAncestry<'a>) -> Vec<Uuid> {
+                match &self {
+                    $(
+                        [<$name Builder>]::$element(_) =>
+                        $element::get_required(root, ancestry),
                     )+
                 }
             }

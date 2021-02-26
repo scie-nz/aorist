@@ -23,7 +23,7 @@ pub struct DataSet {
     #[constrainable]
     pub datumTemplates: Vec<DatumTemplate>,
     #[constrainable]
-    assets: Vec<Asset>,
+    pub assets: Vec<Asset>,
 }
 impl TAoristObject for DataSet {
     fn get_name(&self) -> &String {
