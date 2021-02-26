@@ -3,6 +3,7 @@ use crate::asset::static_data_table::*;
 use crate::asset::supervised_model::*;
 use crate::concept::{AoristConcept, Concept};
 use crate::schema::*;
+use crate::storage_setup::*;
 use aorist_concept::{aorist_concept, Constrainable, InnerObject};
 use paste::paste;
 use pyo3::prelude::*;
@@ -28,6 +29,12 @@ impl Asset {
         match self {
             Asset::StaticDataTable(x) => x.schema.clone(),
             Asset::SupervisedModel(x) => x.schema.clone(),
+        }
+    }
+    pub fn get_storage_setup(&self) -> StorageSetup {
+        match self {
+            Asset::StaticDataTable(x) => x.setup.clone(),
+            Asset::SupervisedModel(x) => x.setup.clone(),
         }
     }
 }

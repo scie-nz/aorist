@@ -670,14 +670,15 @@ spec:
             SELECT
                 CAST(LEARN_REGRESSOR(
                     {objective},
-                    FEATURES({features}),
+                    FEATURES(
+                        {features}
+                    )
                 ) AS VARCHAR) AS {model_column_name}
-            FROM {presto_schema}.{source_table_name}
-            ",
+            FROM {presto_schema}.{source_table_name}",
                 source_table_name=tfm.source_asset_name,
                 objective=tfm.get_training_objective().get_name().clone(),
                 model_column_name=tfm.get_regressor_as_attribute().get_name().clone(),
-                features=tfm.features.iter().map(|x| x.get_name().clone()).collect::<Vec<String>>().join(", "),
+                features=tfm.features.iter().map(|x| x.get_name().clone()).collect::<Vec<String>>().join(",\n              "),
                 presto_schema=data_set.name,
                 table_name=supervised_model.name,
             )

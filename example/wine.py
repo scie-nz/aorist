@@ -211,6 +211,7 @@ classifier_setup = ComputedFromLocalData(
 )
 regression_model = SupervisedModel(
     name="wine_alcohol_predictor",
+    tag="predictor",
     setup=classifier_setup,
     schema=classifier_template.get_model_storage_tabular_schema(),
     algorithm=SVMRegressionAlgorithm(),

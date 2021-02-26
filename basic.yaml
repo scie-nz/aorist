@@ -21,6 +21,14 @@ spec:
     - ReplicatedSchema
     - DroppedCSVTable
     - TableSchemasCreated
+  attachIf: |
+      |root: Concept<'a>, ancestry: &ConceptAncestry<'a>| {
+        use crate::storage_setup::*;
+        if let StorageSetup::RemoteImportStorageSetup(_) = ancestry.asset(root.clone()).unwrap().get_storage_setup() {
+          return true;
+        }
+        false
+      }
 ---
 type: Constraint
 spec:
@@ -376,6 +384,7 @@ spec:
   root: ComputedFromLocalData
   requires:
       - ReplicatedAssets
+      - TableSchemasCreated
   requiredConstraintsClosure: |
       |root: Concept<'a>, ancestry: &ConceptAncestry<'a>| {
           let setup = ancestry.computed_from_local_data(root.clone()).unwrap();
