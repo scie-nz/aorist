@@ -328,7 +328,6 @@ spec:
       spec:
         call: >
           {
-            use crate::attributes::TAttribute;
             use crate::template::TDatumTemplate;
             let DataSchema::TabularSchema(ref t) = asset.get_schema();
             let dictionary = Standard::from_embedded(Language::EnglishUS).unwrap();
@@ -470,7 +469,6 @@ spec:
       spec:
         call: >
           {
-            use crate::attributes::TAttribute;
             use crate::template::TDatumTemplate;
             let DataSchema::TabularSchema(ref t) = static_data_table.schema;
             let attr_v = data_set
@@ -555,7 +553,6 @@ spec:
       spec:
         call: >
           {
-            use crate::attributes::TAttribute;
             use crate::template::TDatumTemplate;
             let DataSchema::TabularSchema(ref t) = static_data_table.schema;
             let attr_v = data_set
@@ -599,7 +596,6 @@ spec:
           - DataSet
         call: >
           {
-            use crate::attributes::TAttribute;
             use crate::template::DatumTemplate;
             let DataSchema::TabularSchema(ref t) = static_data_table.schema;
             let (attr_v, source_table, freq_column) = data_set

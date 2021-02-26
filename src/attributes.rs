@@ -1,7 +1,20 @@
-use sqlparser::ast::{ColumnDef, DataType, Ident};
 use indoc::formatdoc;
+use sqlparser::ast::{ColumnDef, DataType, Ident};
 
-pub trait TAttribute {
+pub trait TValue {}
+
+pub struct IntegerValue(i64);
+pub struct StringValue(String);
+pub struct FloatValue(f64);
+impl TValue for IntegerValue {}
+impl TValue for StringValue {}
+impl TValue for FloatValue {}
+
+pub trait TAttribute
+where
+    Self::Value: TValue,
+{
+    type Value;
     fn get_name(&self) -> &String;
     fn get_comment(&self) -> &Option<String>;
 }

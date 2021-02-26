@@ -384,7 +384,8 @@ macro_rules! register_satisfiable_constraints {
 
 #[macro_export]
 macro_rules! define_attribute {
-    ($element:ident, $presto_type:ident, $orc_type:ident, $sql_type:ident) => {
+    ($element:ident, $presto_type:ident, $orc_type:ident, $sql_type:ident,
+    $value:ident) => {
         paste::item! {
             #[aorist_concept(derive($presto_type, $orc_type, $sql_type))]
             pub struct $element {
@@ -393,6 +394,8 @@ macro_rules! define_attribute {
                 pub comment: Option<String>,
             }
             impl TAttribute for $element {
+                type Value = $value;
+
                 fn get_name(&self) -> &String {
                     &self.name
                 }
@@ -782,39 +785,28 @@ macro_rules! register_attribute {
                 $element($element),
             )+
         }
-        impl TAttribute for $name {
-            fn get_name(&self) -> &String {
+        impl $name {
+            pub fn get_name(&self) -> &String {
                 match self {
                     $(
                         $name::$element(x) => x.get_name(),
                     )+
                 }
             }
-            fn get_comment(&self) -> &Option<String> {
+            pub fn get_comment(&self) -> &Option<String> {
                 match self {
                     $(
                         $name::$element(x) => x.get_comment(),
                     )+
                 }
             }
-        }
-        impl TAttribute for [<Inner $name>] {
-            fn get_name(&self) -> &String {
+            fn get_sql_type(&self) -> DataType {
                 match self {
                     $(
-                        [<Inner $name>]::$element(x) => &x.name,
+                        $name::$element(x) => x.get_sql_type(),
                     )+
                 }
             }
-            fn get_comment(&self) -> &Option<String> {
-                match self {
-                    $(
-                        [<Inner $name>]::$element(x) => &x.comment,
-                    )+
-                }
-            }
-        }
-        impl TPrestoAttribute for $name {
             fn get_presto_type(&self) -> String {
                 match self {
                     $(
@@ -822,8 +814,6 @@ macro_rules! register_attribute {
                     )+
                 }
             }
-        }
-        impl TOrcAttribute for $name {
             fn get_orc_type(&self) -> String {
                 match self {
                     $(
@@ -832,11 +822,18 @@ macro_rules! register_attribute {
                 }
             }
         }
-        impl TSQLAttribute for $name {
-            fn get_sql_type(&self) -> DataType {
+        impl [<Inner $name>] {
+            pub fn get_name(&self) -> &String {
                 match self {
                     $(
-                        $name::$element(x) => x.get_sql_type(),
+                        [<Inner $name>]::$element(x) => &x.name,
+                    )+
+                }
+            }
+            pub fn get_comment(&self) -> &Option<String> {
+                match self {
+                    $(
+                        [<Inner $name>]::$element(x) => &x.comment,
                     )+
                 }
             }

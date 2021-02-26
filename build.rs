@@ -193,7 +193,9 @@ fn process_constraints(raw_objects: &Vec<HashMap<String, Value>>) {
                 match x.get("requiredConstraintsClosure") {
                     Some(Value::String(ref val)) => Some(val.to_string()),
                     None => None,
-                    _ => panic!("requiredConstraintsClosure needs to be a string containing a Rust closure"),
+                    _ => panic!(
+                        "requiredConstraintsClosure needs to be a string containing a Rust closure"
+                    ),
                 },
             )
         })
@@ -225,7 +227,14 @@ fn process_constraints(raw_objects: &Vec<HashMap<String, Value>>) {
         let define = match required.len() {
             0 => format!(
                 "define_constraint!({}, {}, Satisfy{}, {}, {}, {}, {}, {});",
-                name, requires_program, name, root, formatted_title, formatted_body, should_add, get_required
+                name,
+                requires_program,
+                name,
+                root,
+                formatted_title,
+                formatted_body,
+                should_add,
+                get_required
             ),
             _ => format!(
                 "define_constraint!({}, {}, Satisfy{}, {}, {}, {}, {}, {}, {});",
@@ -318,6 +327,12 @@ fn process_attributes(raw_objects: &Vec<HashMap<String, Value>>) {
     for attribute in attributes {
         let name = attribute.get("name").unwrap().as_str().unwrap().to_string();
         let orc = attribute.get("orc").unwrap().as_str().unwrap().to_string();
+        let value = attribute
+            .get("value")
+            .unwrap()
+            .as_str()
+            .unwrap()
+            .to_string();
         let presto = attribute
             .get("presto")
             .unwrap()
@@ -326,7 +341,10 @@ fn process_attributes(raw_objects: &Vec<HashMap<String, Value>>) {
             .to_string();
         let sql = attribute.get("sql").unwrap().as_str().unwrap().to_string();
 
-        let define = format!("define_attribute!({}, {}, {}, {});", name, orc, presto, sql);
+        let define = format!(
+            "define_attribute!({}, {}, {}, {}, {});",
+            name, orc, presto, sql, value
+        );
         scope.raw(&define);
         attribute_names.push(name.clone());
     }

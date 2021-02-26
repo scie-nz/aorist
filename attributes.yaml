@@ -5,6 +5,7 @@ spec:
   orc: OrcString
   presto: PrestoVarchar
   sql: SQLVarchar
+  value: StringValue
 ---
 type: Attribute
 spec:
@@ -12,6 +13,7 @@ spec:
   orc: OrcBigint
   presto: PrestoBigint
   sql: SQLBigint
+  value: IntegerValue
 ---
 type: Attribute
 spec:
@@ -19,6 +21,7 @@ spec:
   orc: OrcString
   presto: PrestoVarchar
   sql: SQLVarchar
+  value: StringValue
 ---
 type: Attribute
 spec:
@@ -26,6 +29,7 @@ spec:
   orc: OrcBigint
   presto: PrestoBigint
   sql: SQLBigint
+  value: IntegerValue
 ---
 type: Attribute
 spec:
@@ -33,6 +37,7 @@ spec:
   orc: OrcString
   presto: PrestoVarchar
   sql: SQLVarchar
+  value: StringValue
 ---
 type: Attribute
 spec:
@@ -40,6 +45,7 @@ spec:
   orc: OrcBigint
   presto: PrestoBigint
   sql: SQLBigint
+  value: IntegerValue
 ---
 type: Attribute
 spec:
@@ -47,6 +53,7 @@ spec:
   orc: OrcBigint
   presto: PrestoBigint
   sql: SQLBigint
+  value: IntegerValue
 ---
 type: Attribute
 spec:
@@ -54,6 +61,7 @@ spec:
   orc: OrcBigint
   presto: PrestoBigint
   sql: SQLBigint
+  value: IntegerValue
 ---
 type: Attribute
 spec:
@@ -61,6 +69,7 @@ spec:
   orc: OrcString
   presto: PrestoVarchar
   sql: SQLVarchar
+  value: StringValue
 ---
 type: Attribute
 spec:
@@ -68,6 +77,7 @@ spec:
   orc: OrcFloat
   presto: PrestoReal
   sql: SQLReal
+  value: FloatValue
 ---
 type: Attribute
 spec:
@@ -75,6 +85,7 @@ spec:
   orc: OrcFloat
   presto: PrestoReal
   sql: SQLReal
+  value: FloatValue
 ---
 type: Attribute
 spec:
@@ -82,6 +93,7 @@ spec:
   orc: OrcString
   presto: PrestoVarchar
   sql: SQLVarchar
+  value: StringValue
 ---
 type: Attribute
 spec:
@@ -89,6 +101,7 @@ spec:
   orc: OrcBigint
   presto: PrestoBigint
   sql: SQLBigint
+  value: IntegerValue
 ---
 type: Attribute
 spec:
@@ -96,6 +109,7 @@ spec:
   orc: OrcFloat
   presto: PrestoReal
   sql: SQLReal
+  value: FloatValue
 ---
 type: Attribute
 spec:
@@ -103,6 +117,7 @@ spec:
   orc: OrcBigint
   presto: PrestoBigint
   sql: SQLBigint
+  value: StringValue
 ---
 type: Attribute
 spec:
@@ -110,6 +125,7 @@ spec:
   orc: OrcFloat
   presto: PrestoReal
   sql: SQLReal
+  value: FloatValue
 ---
 type: Attribute
 spec:
@@ -117,3 +133,4 @@ spec:
   orc: OrcString
   presto: PrestoVarchar
   sql: SQLVarchar
+  value: StringValue
