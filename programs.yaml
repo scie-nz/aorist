@@ -649,7 +649,6 @@ spec:
           - DataSet
         call: >
           {
-            use crate::attributes::TAttribute;
             use crate::template::DatumTemplate;
             let DataSchema::TabularSchema(ref t) = supervised_model.schema;
             let mapped_templates = data_set.get_mapped_datum_templates();
@@ -696,7 +695,6 @@ spec:
           - ComputedFromLocalData
         call: >
           {
-            use crate::attributes::TAttribute;
             use crate::template::DatumTemplate;
             let DataSchema::TabularSchema(ref t) = derived_asset.schema;
             let mapped_templates = data_set.get_mapped_datum_templates();

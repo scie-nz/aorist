@@ -781,68 +781,79 @@ macro_rules! register_constraint {
 macro_rules! register_attribute {
     ( $name:ident, $($element: ident),+ ) => { paste! {
         #[aorist_concept(derive(Hash, Eq))]
-        pub enum $name {
+        pub enum [<$name Enum>] {
             $(
                 $element($element),
             )+
         }
-        impl $name {
+        impl [<$name Enum>] {
             pub fn get_name(&self) -> &String {
                 match self {
                     $(
-                        $name::$element(x) => x.get_name(),
+                        [<$name Enum>]::$element(x) => x.get_name(),
                     )+
                 }
             }
             pub fn get_comment(&self) -> &Option<String> {
                 match self {
                     $(
-                        $name::$element(x) => x.get_comment(),
+                        [<$name Enum>]::$element(x) => x.get_comment(),
                     )+
                 }
             }
             fn get_sql_type(&self) -> DataType {
                 match self {
                     $(
-                        $name::$element(x) => x.get_sql_type(),
+                        [<$name Enum>]::$element(x) => x.get_sql_type(),
                     )+
                 }
             }
             fn get_presto_type(&self) -> String {
                 match self {
                     $(
-                        $name::$element(x) => x.get_presto_type(),
+                        [<$name Enum>]::$element(x) => x.get_presto_type(),
                     )+
                 }
             }
             fn get_orc_type(&self) -> String {
                 match self {
                     $(
-                        $name::$element(x) => x.get_orc_type(),
+                        [<$name Enum>]::$element(x) => x.get_orc_type(),
                     )+
                 }
             }
         }
-        impl<'a> FromPyObject<'a> for $name {
+        impl<'a> FromPyObject<'a> for [<$name Enum>] {
             fn extract(ob: &'a PyAny) -> PyResult<Self> {
-                let inner = [<Inner $name>]::extract(ob)?;
+                let inner = [<Inner $name Enum>]::extract(ob)?;
                 Ok(Self::from(inner))
             }
         }
-        impl [<Inner $name>] {
+        #[aorist_concept(derivative(Hash))]
+        pub struct $name {
+            pub inner: [<$name Enum>],
+        }
+        impl<'a> FromPyObject<'a> for $name {
+            fn extract(ob: &'a PyAny) -> PyResult<Self> {
+                let inner = [<$name Enum>]::extract(ob)?;
+                Ok(Self{ inner, constraints: Vec::new(), tag: None, uuid: None })
+            }
+        }
+        impl $name {
             pub fn get_name(&self) -> &String {
-                match self {
-                    $(
-                        [<Inner $name>]::$element(x) => &x.name,
-                    )+
-                }
+                self.inner.get_name()
             }
             pub fn get_comment(&self) -> &Option<String> {
-                match self {
-                    $(
-                        [<Inner $name>]::$element(x) => &x.comment,
-                    )+
-                }
+                self.inner.get_comment()
+            }
+            fn get_sql_type(&self) -> DataType {
+                self.inner.get_sql_type()
+            }
+            fn get_presto_type(&self) -> String {
+                self.inner.get_presto_type()
+            }
+            fn get_orc_type(&self) -> String {
+                self.inner.get_orc_type()
             }
         }
         paste::item!(

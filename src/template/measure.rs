@@ -41,13 +41,18 @@ impl TDatumTemplate for IntegerMeasure {
 }
 impl IntegerMeasure {
     pub fn get_frequency_attribute(&self) -> Attribute {
-        Attribute::Count(Count {
-            name: self.name.clone(),
-            comment: self.comment.clone(),
+        Attribute {
+            inner: AttributeEnum::Count(Count {
+                name: self.name.clone(),
+                comment: self.comment.clone(),
+                tag: None,
+                uuid: None,
+                constraints: Vec::new(),
+            }),
             tag: None,
             uuid: None,
             constraints: Vec::new(),
-        })
+        }
     }
 }
 #[aorist_concept]
@@ -67,9 +72,12 @@ impl TDatumTemplate for TrainedFloatMeasure {
         let mut attr = self.features.clone();
         let prediction_attribute = self.get_prediction_attribute();
         attr.push(prediction_attribute);
-        attr.push(Attribute::Regressor(
-            self.get_regressor_as_attribute().clone(),
-        ));
+        attr.push(Attribute {
+            inner: AttributeEnum::Regressor(self.get_regressor_as_attribute().clone()),
+            constraints: Vec::new(),
+            tag: None,
+            uuid: None,
+        });
 
         attr
     }
@@ -79,13 +87,18 @@ impl TDatumTemplate for TrainedFloatMeasure {
 }
 impl TrainedFloatMeasure {
     pub fn get_prediction_attribute(&self) -> Attribute {
-        Attribute::FloatPrediction(FloatPrediction {
-            name: self.name.clone(),
-            comment: self.comment.clone(),
+        Attribute {
+            inner: AttributeEnum::FloatPrediction(FloatPrediction {
+                name: self.name.clone(),
+                comment: self.comment.clone(),
+                tag: None,
+                uuid: None,
+                constraints: Vec::new(),
+            }),
             tag: None,
             uuid: None,
             constraints: Vec::new(),
-        })
+        }
     }
     pub fn get_training_objective(&self) -> Attribute {
         self.objective.clone()

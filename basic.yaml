@@ -416,7 +416,6 @@ spec:
       - ReplicatedAssets
   attachIf: |
       |root: Concept<'a>, ancestry: &ConceptAncestry<'a>| {
-          use crate::attributes::TAttribute;
           use crate::template::DatumTemplate;
           use crate::schema::DataSchema;
           use crate::dataset::TDataSet;
