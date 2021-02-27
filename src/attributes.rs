@@ -15,6 +15,9 @@ impl IntegerValue {
             Err(_) => Err(format!("Could not parse {} as int.", &x).into()),
         }
     }
+    fn as_sql(&self) -> String {
+        format!("{}", self.inner).to_string()
+    }
 }
 #[derive(Hash, PartialEq, Eq, Debug, Serialize, Deserialize, Clone, FromPyObject)]
 pub struct StringValue {
@@ -23,6 +26,9 @@ pub struct StringValue {
 impl StringValue {
     fn from(inner: String) -> Self {
         Self { inner }
+    }
+    fn as_sql(&self) -> String {
+        format!("\"{}\"", self.inner).to_string()
     }
 }
 #[derive(Hash, PartialEq, Eq, Debug, Serialize, Deserialize, Clone, FromPyObject)]
@@ -44,6 +50,13 @@ impl FloatValue {
             }
             Err(_) => Err(format!("Could not parse {} as float.", &x).into()),
         }
+    }
+    fn as_sql(&self) -> String {
+        let num = 2.0f64;
+        let sign_f = self.sign as f64;
+        let mantissa_f = self.mantissa as f64;
+        let exponent_f = num.powf(self.exponent as f64);
+        format!("{}", (sign_f * mantissa_f * exponent_f)).to_string()
     }
 }
 
@@ -69,6 +82,13 @@ impl AttributeValue {
                 _ => Err("Only numbers and singlue quoted strings supported as literals".into()),
             },
             _ => Err("Only values supported as nodes".into()),
+        }
+    }
+    fn as_sql(&self) -> String {
+        match &self {
+            AttributeValue::IntegerValue(x) => x.as_sql(),
+            AttributeValue::StringValue(x) => x.as_sql(),
+            AttributeValue::FloatValue(x) => x.as_sql(),
         }
     }
 }
@@ -165,6 +185,12 @@ pub enum AttributeOrValue {
     Value(AttributeValue),
 }
 impl AttributeOrValue {
+    fn as_sql(&self) -> String {
+        match &self {
+            AttributeOrValue::Attribute(x) => x.get_name().clone(),
+            AttributeOrValue::Value(x) => x.as_sql(),
+        }
+    }
     fn try_from(x: Expr, attr: &AttrMap) -> Result<Self, String> {
         match x {
             Expr::Identifier { .. } | Expr::CompoundIdentifier { .. } => {
@@ -193,6 +219,12 @@ impl PredicateInnerOrTerminal {
             _ => Err("Only Binary operators, identifiers or values supported as nodes".into()),
         }
     }
+    fn as_sql(&self) -> String {
+        match &self {
+            PredicateInnerOrTerminal::PredicateTerminal(x) => x.as_sql(),
+            PredicateInnerOrTerminal::PredicateInner(x) => format!("({})", x.as_sql()).to_string(),
+        }
+    }
 }
 
 #[derive(Hash, PartialEq, Eq, Debug, Serialize, Deserialize, Clone, FromPyObject)]
@@ -204,7 +236,18 @@ pub enum Operator {
     Lt(String),
     LtEq(String),
 }
-
+impl Operator {
+    fn as_sql(&self) -> String {
+        match &self {
+            Operator::GtEq(_) => ">=".to_string(),
+            Operator::Gt(_) => ">".to_string(),
+            Operator::Eq(_) => "=".to_string(),
+            Operator::NotEq(_) => "!=".to_string(),
+            Operator::Lt(_) => "<".to_string(),
+            Operator::LtEq(_) => "<=".to_string(),
+        }
+    }
+}
 #[derive(Hash, PartialEq, Eq, Debug, Serialize, Deserialize, Clone, FromPyObject)]
 pub struct PredicateInner {
     operator: Operator,
@@ -239,6 +282,15 @@ impl PredicateInner {
             _ => Err("Only binary operators supported.".into()),
         }
     }
+    fn as_sql(&self) -> String {
+        format!(
+            "{} {} {}",
+            self.left.as_sql(),
+            self.operator.as_sql(),
+            self.right.as_sql()
+        )
+        .to_string()
+    }
 }
 
 #[aorist_concept]
@@ -257,6 +309,9 @@ impl Predicate {
             }),
             _ => Err("Only binary operators supported.".into()),
         }
+    }
+    fn as_sql(&self) -> String {
+        self.root.as_sql()
     }
 }
 impl InnerPredicate {

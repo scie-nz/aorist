@@ -65,5 +65,5 @@ universe.derive_asset(
 )
 out = dag(universe, [
     "DataDownloadedAndConverted",
-], "jupyter")
+], "airflow")
 print(out.replace("\\\\", "\\"))

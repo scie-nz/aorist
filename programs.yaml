@@ -679,3 +679,61 @@ spec:
                 table_name=supervised_model.name,
             )
           }
+---
+type: Program
+spec:
+  use: ComputeFilter
+  root: ComputedFromLocalData
+  dialect: Presto
+  call: "{query}"
+  kwargs:
+    query:
+      type: MultipleAncestorsArgument
+      spec:
+        attaches:
+          - DerivedAsset
+          - DataSet
+          - ComputedFromLocalData
+        call: >
+          {
+            use crate::attributes::TAttribute;
+            use crate::template::DatumTemplate;
+            let DataSchema::TabularSchema(ref t) = derived_asset.schema;
+            let mapped_templates = data_set.get_mapped_datum_templates();
+            let template = mapped_templates.get(&t.datumTemplateName);
+            let filter = match template {
+                Some(DatumTemplate::Filter(m)) => m,
+                _ => panic!(format!(
+                    "Template {} not a filter.",
+                    t.datumTemplateName
+               )),
+            };
+            let query = format!("
+            INSERT INTO {presto_schema}.{table_name}
+            SELECT {attributes}
+            FROM {presto_schema}.{source_table_name}
+            {predicate}",
+                presto_schema=data_set.name,
+                table_name=derived_asset.name,
+                predicate=match filter.predicate {
+                    Some(ref f) => format!("WHERE {}", f.as_sql()),
+                    None => "".to_string(),
+                },
+                source_table_name=computed_from_local_data.source_asset_name,
+                attributes=
+                    filter
+                    .attributes
+                    .iter()
+                    .map(|x| x.get_name().clone())
+                    .collect::<Vec<String>>()
+                    .join(",\n"),
+            ).to_string();
+
+            let params = sqlformat::QueryParams::None;
+            let options = sqlformat::FormatOptions { 
+                indent: sqlformat::Indent::Spaces(4),
+                uppercase: true, 
+                lines_between_queries: 1
+            };
+            sqlformat::format(&query, &params, options).to_string()
+          }

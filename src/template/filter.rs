@@ -18,7 +18,7 @@ pub struct Filter {
     #[constrainable]
     pub attributes: Vec<Attribute>,
     #[constrainable]
-    predicate: Option<Predicate>,
+    pub predicate: Option<Predicate>,
     pub source_asset_name: String,
 }
 impl TDatumTemplate for Filter {

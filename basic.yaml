@@ -21,6 +21,7 @@ spec:
     - ReplicatedSchema
     - DroppedCSVTable
     - TableSchemasCreated
+    - UploadDataToLocal
   attachIf: |
       |root: Concept<'a>, ancestry: &ConceptAncestry<'a>| {
         use crate::storage_setup::*;
@@ -51,6 +52,7 @@ spec:
     - HistogramsComputed
     - SVMRegressionModelsTrained
     - Replicated
+    - ComputeFilter
 ---
 type: Constraint
 spec:
@@ -336,6 +338,7 @@ spec:
   root: HiveTableStorage
   requires:
     - CSVTableSchemasCreated
+    - UploadDataToLocal
   requiresProgram: true
   title: Convert CSV Table to ORC Table
   body: |
@@ -402,3 +405,50 @@ spec:
               ));
           }
       }
+---
+type: Constraint
+spec:
+  name: ComputeFilter
+  requiresProgram: true
+  root: ComputedFromLocalData
+  requires:
+      - SourceAssetHasBeenComputed
+      - ReplicatedAssets
+  attachIf: |
+      |root: Concept<'a>, ancestry: &ConceptAncestry<'a>| {
+          use crate::attributes::TAttribute;
+          use crate::template::DatumTemplate;
+          use crate::schema::DataSchema;
+          use crate::dataset::TDataSet;
+
+          let maybe_derived_asset = ancestry.derived_asset(root.clone());
+          if let Ok(derived_asset) = maybe_derived_asset {
+            let data_set = ancestry.data_set(root.clone()).unwrap();
+            let DataSchema::TabularSchema(ref t) = derived_asset.schema;
+            let mapped_templates = data_set.get_mapped_datum_templates();
+            let template = mapped_templates.get(&t.datumTemplateName);
+            return match template {
+                Some(DatumTemplate::Filter(_)) => true,
+                _ => false
+            };
+          }
+          false
+      }
+  requiredConstraintsClosure: |
+      |root: Concept<'a>, ancestry: &ConceptAncestry<'a>| {
+          let setup = ancestry.computed_from_local_data(root.clone()).unwrap();
+          let dataset = ancestry.data_set(root.clone()).unwrap();
+          if let Some(source_asset) = dataset
+              .assets
+              .iter()
+              .filter(|x| x.get_name() == setup.source_asset_name)
+              .next() {
+              return vec![source_asset.get_uuid().clone()];
+          } else {
+              panic!(format!(
+                  "Cannot find source asset with name {}",
+                  setup.source_asset_name
+              ));
+          }
+      }
+
