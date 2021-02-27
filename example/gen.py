@@ -2,6 +2,7 @@ from aorist import (
     dag,
     Universe,
     ComplianceConfig,
+    derived_asset,
 )
 from common import DEFAULT_USERS, DEFAULT_GROUPS, DEFAULT_ENDPOINTS
 # from sentinel import sentinel_dataset
@@ -30,7 +31,15 @@ universe = Universe(
         contains_personally_identifiable_information=False,
     ),
 )
-out = dag(universe, [
-    "DataDownloadedAndConverted",
-], "jupyter")
-print(out.replace("\\\\", "\\"))
+#out = dag(universe, [
+#    "DataDownloadedAndConverted",
+#], "jupyter")
+# print(out.replace("\\\\", "\\"))
+derived_asset(
+    """
+    SELECT *
+    FROM wine.wine
+    WHERE alcohol > 5.0
+    """,
+    universe
+)

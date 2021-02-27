@@ -372,6 +372,7 @@ fn process_concepts(raw_objects: &Vec<HashMap<String, Value>>) {
         ("crate::asset", "Asset"),
         ("crate::asset", "StaticDataTable"),
         ("crate::asset", "SupervisedModel"),
+        ("crate::asset", "DerivedAsset"),
         ("crate::attributes", "Attribute"),
         ("crate::attributes", "Predicate"),
         ("crate::layout", "FileBasedStorageLayout"),

@@ -26,18 +26,21 @@ impl Asset {
         match self {
             Asset::StaticDataTable(x) => x.name.clone(),
             Asset::SupervisedModel(x) => x.name.clone(),
+            Asset::DerivedAsset(x) => x.name.clone(),
         }
     }
     pub fn get_schema(&self) -> DataSchema {
         match self {
             Asset::StaticDataTable(x) => x.schema.clone(),
             Asset::SupervisedModel(x) => x.schema.clone(),
+            Asset::DerivedAsset(x) => x.schema.clone(),
         }
     }
     pub fn get_storage_setup(&self) -> StorageSetup {
         match self {
             Asset::StaticDataTable(x) => x.setup.clone(),
             Asset::SupervisedModel(x) => x.setup.clone(),
+            Asset::DerivedAsset(x) => x.setup.clone(),
         }
     }
 }
@@ -46,12 +49,14 @@ impl InnerAsset {
         match self {
             InnerAsset::StaticDataTable(x) => x.name.clone(),
             InnerAsset::SupervisedModel(x) => x.name.clone(),
+            InnerAsset::DerivedAsset(x) => x.name.clone(),
         }
     }
     pub fn get_schema(&self) -> InnerDataSchema {
         match self {
             InnerAsset::StaticDataTable(x) => x.schema.clone(),
             InnerAsset::SupervisedModel(x) => x.schema.clone(),
+            InnerAsset::DerivedAsset(x) => x.schema.clone(),
         }
     }
 }

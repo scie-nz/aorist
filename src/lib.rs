@@ -72,7 +72,33 @@ pub use utils::*;
 
 use pyo3::prelude::*;
 use pyo3::wrap_pyfunction;
+use sqlparser::ast::Statement;
+use sqlparser::dialect::GenericDialect;
+use sqlparser::parser::Parser;
 use std::collections::HashSet;
+
+use pyo3::create_exception;
+use pyo3::exceptions::PyException;
+create_exception!(aorist, SQLParseError, PyException);
+
+#[pyfunction]
+pub fn derived_asset(sql: String, universe: &InnerUniverse) -> PyResult<()> {
+    let dialect = GenericDialect {};
+    let ast = Parser::parse_sql(&dialect, &sql).unwrap();
+    if ast.len() != 1 {
+        return Err(SQLParseError::new_err(
+            "A single SELECT statement should be provided.",
+        ));
+    }
+    println!("AST: {:?}", &ast);
+    if let Statement::Query(query) = ast.into_iter().next().unwrap() {
+    } else {
+        return Err(SQLParseError::new_err(
+            "Only SELECT statements supported.",
+        ));
+    }
+    Ok(())
+}
 
 #[pyfunction]
 pub fn default_tabular_schema(datum_template: InnerDatumTemplate) -> InnerTabularSchema {
@@ -202,5 +228,7 @@ fn aorist(py: Python, m: &PyModule) -> PyResult<()> {
     m.add_wrapped(wrap_pyfunction!(default_tabular_schema))?;
     m.add_wrapped(wrap_pyfunction!(dag))?;
     m.add_wrapped(wrap_pyfunction!(derive_integer_measure))?;
+    m.add_wrapped(wrap_pyfunction!(derived_asset))?;
+    m.add("SQLParseError", py.get_type::<SQLParseError>())?;
     Ok(())
 }

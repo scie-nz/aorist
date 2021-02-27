@@ -2,6 +2,7 @@
 
 use crate::attributes::*;
 use crate::concept::{AoristConcept, Concept};
+use crate::template::filter::*;
 use crate::template::identifier_tuple::*;
 use crate::template::keyed_struct::*;
 use crate::template::measure::*;
@@ -17,6 +18,7 @@ pub enum DatumTemplate {
     RowStruct(RowStruct),
     IdentifierTuple(IdentifierTuple),
     IntegerMeasure(IntegerMeasure),
+    Filter(Filter),
 }
 
 pub trait TDatumTemplate {
@@ -34,6 +36,7 @@ impl TDatumTemplate for DatumTemplate {
             DatumTemplate::IdentifierTuple(x) => x.get_name(),
             DatumTemplate::IntegerMeasure(x) => x.get_name(),
             DatumTemplate::TrainedFloatMeasure(x) => x.get_name(),
+            DatumTemplate::Filter(x) => x.get_name(),
         }
     }
     fn get_attributes(&self) -> Vec<Attribute> {
@@ -42,6 +45,7 @@ impl TDatumTemplate for DatumTemplate {
             DatumTemplate::IdentifierTuple(x) => x.get_attributes(),
             DatumTemplate::IntegerMeasure(x) => x.get_attributes(),
             DatumTemplate::TrainedFloatMeasure(x) => x.get_attributes(),
+            DatumTemplate::Filter(x) => x.get_attributes(),
         }
     }
 }
@@ -52,6 +56,7 @@ impl InnerDatumTemplate {
             InnerDatumTemplate::IdentifierTuple(x) => x.name.clone(),
             InnerDatumTemplate::IntegerMeasure(x) => x.name.clone(),
             InnerDatumTemplate::TrainedFloatMeasure(x) => x.name.clone(),
+            InnerDatumTemplate::Filter(x) => x.name.clone(),
         }
     }
 }
