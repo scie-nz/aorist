@@ -1,4 +1,5 @@
 #![allow(non_snake_case)]
+use crate::asset::derived_asset::*;
 use crate::asset::static_data_table::*;
 use crate::asset::supervised_model::*;
 use crate::concept::{AoristConcept, Concept};
@@ -12,6 +13,8 @@ use uuid::Uuid;
 
 #[aorist_concept]
 pub enum Asset {
+    #[constrainable]
+    DerivedAsset(DerivedAsset),
     #[constrainable]
     StaticDataTable(StaticDataTable),
     #[constrainable]

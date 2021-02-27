@@ -107,3 +107,8 @@ impl<'a> FromPyObject<'a> for Box<PredicateInner> {
         Ok(Box::new(inner))
     }
 }
+
+#[aorist_concept]
+pub struct Predicate {
+    root: PredicateInner,
+}
