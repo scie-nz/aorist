@@ -8,6 +8,8 @@ use crate::endpoints::*;
 use crate::models::*;
 use crate::role::*;
 use crate::role_binding::*;
+use crate::sql_parser::*;
+use crate::attributes::*;
 use crate::template::*;
 use crate::user::*;
 use crate::user_group::*;
@@ -19,6 +21,13 @@ use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
 use std::sync::{Arc, RwLock};
 use uuid::Uuid;
+use sqlparser::parser::Parser;
+use sqlparser::dialect::GenericDialect;
+use pyo3::create_exception;
+use pyo3::exceptions::PyException;
+use sqlparser::ast::Statement;
+create_exception!(aorist, SQLParseError, PyException);
+
 
 #[aorist_concept]
 pub struct Universe {
@@ -93,5 +102,60 @@ impl InnerUniverse {
     pub fn add_asset(&mut self, a: InnerAsset, dataset_name: String) -> PyResult<()> {
         let mut dataset = self.get_dataset(dataset_name).unwrap();
         dataset.add_asset(a)
+    }
+    pub fn derive_asset(&mut self, sql: String, name: String) -> PyResult<()> {
+        let dialect = GenericDialect {};
+        let ast = Parser::parse_sql(&dialect, &sql).unwrap();
+        if ast.len() != 1 {
+            return Err(SQLParseError::new_err(
+                "A single SELECT statement should be provided.",
+            ));
+        }
+        println!("AST: {:?}", &ast);
+        if let Statement::Query(query) = ast.into_iter().next().unwrap() {
+            if let Some(ref datasets) = self.datasets {
+                let mut dataset_map = HashMap::new();
+                for dataset in datasets.iter() {
+                    let templates = dataset.get_mapped_datum_templates();
+                    let mut asset_map = HashMap::new();
+                    for asset in dataset.assets.iter() {
+                        let asset_name = asset.get_name();
+                        let schema = asset.get_schema();
+                        let attribute_names = schema.get_attribute_names();
+                        let template_name = schema.get_datum_template_name();
+                        let template =
+                            DatumTemplate::from(templates.get(&template_name).unwrap().clone());
+                        let mut attributes = template
+                            .get_attributes()
+                            .into_iter()
+                            .map(|v| (v.get_name().clone(), v))
+                            .collect::<HashMap<String, Attribute>>();
+                        let mut map = HashMap::new();
+                        for k in attribute_names {
+                            let attr = attributes.remove(&k);
+                            if let Some(a) = attr {
+                                map.insert(k.clone(), a);
+                            } else {
+                                return Err(SQLParseError::new_err(
+                                    format!(
+                                        "Could not find attribute named {} for asset {}",
+                                        k, asset_name
+                                    )
+                                    .to_string(),
+                                ));
+                            }
+                        }
+                        asset_map.insert(asset_name, map);
+                    }
+                    dataset_map.insert(dataset.get_name().clone(), asset_map);
+                }
+                let parser = SQLParser::new(dataset_map, name);
+                return parser.parse_query(*query, self);
+            } else {
+                return Err(SQLParseError::new_err("No datasets found in universe."));
+            }
+        } else {
+            return Err(SQLParseError::new_err("Only SELECT statements supported."));
+        }
     }
 }

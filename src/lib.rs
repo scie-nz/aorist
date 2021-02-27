@@ -74,71 +74,7 @@ pub use utils::*;
 
 use pyo3::prelude::*;
 use pyo3::wrap_pyfunction;
-use sqlparser::ast::Statement;
-use sqlparser::dialect::GenericDialect;
-use sqlparser::parser::Parser;
 use std::collections::{HashMap, HashSet};
-
-use pyo3::create_exception;
-use pyo3::exceptions::PyException;
-create_exception!(aorist, SQLParseError, PyException);
-
-#[pyfunction]
-pub fn derived_asset(sql: String, universe: &InnerUniverse, name: String) -> PyResult<InnerFilter> {
-    let dialect = GenericDialect {};
-    let ast = Parser::parse_sql(&dialect, &sql).unwrap();
-    if ast.len() != 1 {
-        return Err(SQLParseError::new_err(
-            "A single SELECT statement should be provided.",
-        ));
-    }
-    println!("AST: {:?}", &ast);
-    if let Statement::Query(query) = ast.into_iter().next().unwrap() {
-        if let Some(ref datasets) = universe.datasets {
-            let mut dataset_map = HashMap::new();
-            for dataset in datasets.iter() {
-                let templates = dataset.get_mapped_datum_templates();
-                let mut asset_map = HashMap::new();
-                for asset in dataset.assets.iter() {
-                    let asset_name = asset.get_name();
-                    let schema = asset.get_schema();
-                    let attribute_names = schema.get_attribute_names();
-                    let template_name = schema.get_datum_template_name();
-                    let template =
-                        DatumTemplate::from(templates.get(&template_name).unwrap().clone());
-                    let mut attributes = template
-                        .get_attributes()
-                        .into_iter()
-                        .map(|v| (v.get_name().clone(), v))
-                        .collect::<HashMap<String, Attribute>>();
-                    let mut map = HashMap::new();
-                    for k in attribute_names {
-                        let attr = attributes.remove(&k);
-                        if let Some(a) = attr {
-                            map.insert(k.clone(), a);
-                        } else {
-                            return Err(SQLParseError::new_err(
-                                format!(
-                                    "Could not find attribute named {} for asset {}",
-                                    k, asset_name
-                                )
-                                .to_string(),
-                            ));
-                        }
-                    }
-                    asset_map.insert(asset_name, map);
-                }
-                dataset_map.insert(dataset.get_name().clone(), asset_map);
-            }
-            let parser = SQLParser::new(dataset_map, name);
-            return parser.parse_query(*query);
-        } else {
-            return Err(SQLParseError::new_err("No datasets found in universe."));
-        }
-    } else {
-        return Err(SQLParseError::new_err("Only SELECT statements supported."));
-    }
-}
 
 #[pyfunction]
 pub fn default_tabular_schema(datum_template: InnerDatumTemplate) -> InnerTabularSchema {
@@ -268,7 +204,7 @@ fn aorist(py: Python, m: &PyModule) -> PyResult<()> {
     m.add_wrapped(wrap_pyfunction!(default_tabular_schema))?;
     m.add_wrapped(wrap_pyfunction!(dag))?;
     m.add_wrapped(wrap_pyfunction!(derive_integer_measure))?;
-    m.add_wrapped(wrap_pyfunction!(derived_asset))?;
+    //m.add_wrapped(wrap_pyfunction!(derive_asset))?;
     m.add("SQLParseError", py.get_type::<SQLParseError>())?;
     Ok(())
 }

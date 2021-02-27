@@ -1,4 +1,5 @@
 use crate::attributes::{Attribute, InnerAttribute, InnerPredicate};
+use crate::data_setup::InnerUniverse;
 use crate::template::*;
 use pyo3::create_exception;
 use pyo3::exceptions::PyException;
@@ -20,7 +21,7 @@ impl SQLParser {
             template_name,
         }
     }
-    pub fn parse_select(&self, select: Select) -> PyResult<InnerFilter> {
+    pub fn parse_select(&self, select: Select, universe: &mut InnerUniverse) -> PyResult<()> {
         if select.distinct {
             return Err(SQLParseError::new_err("DISTINCT not supported."));
         }
@@ -91,13 +92,15 @@ impl SQLParser {
                             .values()
                             .map(|x| InnerAttribute::from(x.clone()))
                             .collect();
-                        return Ok(InnerFilter::new(
+                        let template = InnerDatumTemplate::Filter(InnerFilter::new(
                             attributes,
                             Some(predicate),
                             self.template_name.clone(),
                             source_asset_name,
                             None,
                         ));
+                        universe.add_template(template, "wine".to_string());
+                        return Ok(());
                     } else {
                         return Err(SQLParseError::new_err(
                             format!(
@@ -117,7 +120,7 @@ impl SQLParser {
             }
         }
     }
-    pub fn parse_query(&self, query: Query) -> PyResult<InnerFilter> {
+    pub fn parse_query(&self, query: Query, universe: &mut InnerUniverse) -> PyResult<()> {
         if query.with.is_some() {
             return Err(SQLParseError::new_err("WITH clauses are not supported."));
         }
@@ -134,7 +137,7 @@ impl SQLParser {
             return Err(SQLParseError::new_err("FETCH not supported."));
         }
         if let SetExpr::Select(select) = query.body {
-            return self.parse_select(*select);
+            return self.parse_select(*select, universe);
         } else {
             return Err(SQLParseError::new_err(
                 "A single SELECT statement should be provided.",

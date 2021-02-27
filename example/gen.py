@@ -2,7 +2,6 @@ from aorist import (
     dag,
     Universe,
     ComplianceConfig,
-    derived_asset,
     HiveTableStorage,
     MinioLocation,
     StaticHiveTableLayout,
@@ -36,21 +35,19 @@ universe = Universe(
         contains_personally_identifiable_information=False,
     ),
 )
-template = derived_asset(
+universe.derive_asset(
     """
     SELECT *
     FROM wine.wine_table
-    WHERE wine.wine_table.alcohol > 5.0
+    WHERE wine.wine_table.alcohol > 14.0
     """,
-    universe,
     name="high_abv_wines",
+    storage=HiveTableStorage(
+        location=MinioLocation(name="high_abv_wines"),
+        layout=StaticHiveTableLayout(),
+        encoding=ORCEncoding(),
+    )
 )
-storage = HiveTableStorage(
-    location=MinioLocation(name="wine"),
-    layout=StaticHiveTableLayout(),
-    encoding=ORCEncoding(),
-)
-universe.add_template(template, "wine")
 #out = dag(universe, [
 #    "DataDownloadedAndConverted",
 #], "jupyter")
