@@ -1,21 +1,51 @@
 use core::convert::TryFrom;
 use indoc::formatdoc;
-use sqlparser::ast::{BinaryOperator, ColumnDef, DataType, Expr, Ident};
+use num::Float;
+use sqlparser::ast::{BinaryOperator, ColumnDef, DataType, Expr, Ident, Value};
+use std::collections::HashMap;
 pub trait TValue {}
 
 #[derive(Hash, PartialEq, Eq, Debug, Serialize, Deserialize, Clone, FromPyObject)]
 pub struct IntegerValue {
     inner: i64,
 }
+impl IntegerValue {
+    fn try_from(x: String) -> Result<Self, String> {
+        match x.parse::<i64>() {
+            Ok(val) => Ok(Self { inner: val }),
+            Err(_) => Err(format!("Could not parse {} as int.", &x).into()),
+        }
+    }
+}
 #[derive(Hash, PartialEq, Eq, Debug, Serialize, Deserialize, Clone, FromPyObject)]
 pub struct StringValue {
     inner: String,
 }
+impl StringValue {
+    fn from(inner: String) -> Self {
+        Self { inner }
+    }
+}
 #[derive(Hash, PartialEq, Eq, Debug, Serialize, Deserialize, Clone, FromPyObject)]
 pub struct FloatValue {
     sign: i8,
-    mantissa: usize,
-    exponent: usize,
+    mantissa: u64,
+    exponent: i16,
+}
+impl FloatValue {
+    fn try_from(x: String) -> Result<Self, String> {
+        match x.parse::<f64>() {
+            Ok(val) => {
+                let (mantissa, exponent, sign) = Float::integer_decode(val);
+                Ok(Self {
+                    sign,
+                    mantissa,
+                    exponent,
+                })
+            }
+            Err(_) => Err(format!("Could not parse {} as float.", &x).into()),
+        }
+    }
 }
 
 impl TValue for IntegerValue {}
@@ -27,6 +57,21 @@ pub enum AttributeValue {
     IntegerValue(IntegerValue),
     StringValue(StringValue),
     FloatValue(FloatValue),
+}
+impl AttributeValue {
+    fn try_from(x: Expr) -> Result<Self, String> {
+        match x {
+            Expr::Value(val) => match val {
+                Value::Number(inner, _) => match inner.contains(".") {
+                    true => Ok(Self::FloatValue(FloatValue::try_from(inner)?)),
+                    false => Ok(Self::IntegerValue(IntegerValue::try_from(inner)?)),
+                },
+                Value::SingleQuotedString(inner) => Ok(Self::StringValue(StringValue::from(inner))),
+                _ => Err("Only numbers and singlue quoted strings supported as literals".into()),
+            },
+            _ => Err("Only values supported as nodes".into()),
+        }
+    }
 }
 
 pub trait TAttribute
@@ -79,15 +124,55 @@ pub trait TSQLAttribute: TAttribute {
 include!(concat!(env!("OUT_DIR"), "/attributes.rs"));
 include!(concat!(env!("OUT_DIR"), "/programs.rs"));
 
+impl Attribute {
+    fn try_from(
+        x: Expr,
+        attr: &HashMap<String, HashMap<String, Attribute>>,
+    ) -> Result<Self, String> {
+        match x {
+            Expr::Identifier(_) => Err(
+                "Simple identifiers not supported for now. Please prefix with table name".into(),
+            ),
+            Expr::CompoundIdentifier(mut idents) => {
+                if idents.len() != 2 {
+                    return Err(
+                        "Exactly 2 identifiers must be in each compound identifier.".to_string()
+                    );
+                }
+                let attr_name = idents.pop().unwrap().value;
+                let asset_name = idents.pop().unwrap().value;
+                match attr.get(&asset_name) {
+                    Some(ref map) => match map.get(&attr_name) {
+                        Some(attr) => Ok(attr.clone()),
+                        None => Err(format!(
+                            "Could not find attribute {} in asset {} ",
+                            &attr_name, &asset_name
+                        )),
+                    },
+                    None => Err(format!("Could not find asset named {} ", asset_name)),
+                }
+            }
+            _ => Err("Only identifiers supported as nodes".into()),
+        }
+    }
+}
 #[derive(Hash, PartialEq, Eq, Debug, Serialize, Deserialize, Clone, FromPyObject)]
 pub enum AttributeOrValue {
     Attribute(Attribute),
-    AttributeValue(AttributeValue),
+    Value(AttributeValue),
 }
-impl TryFrom<Expr> for AttributeOrValue {
-    type Error = String;
-    fn try_from(x: Expr) -> Result<Self, String> {
-        Err("bla".into())
+impl AttributeOrValue {
+    fn try_from(
+        x: Expr,
+        attr: &HashMap<String, HashMap<String, Attribute>>,
+    ) -> Result<Self, String> {
+        match x {
+            Expr::Identifier { .. } | Expr::CompoundIdentifier { .. } => {
+                Ok(Self::Attribute(Attribute::try_from(x, attr)?))
+            }
+            Expr::Value { .. } => Ok(Self::Value(AttributeValue::try_from(x)?)),
+            _ => Err("Only identifiers or values supported as nodes".into()),
+        }
     }
 }
 
@@ -96,16 +181,18 @@ pub enum PredicateInnerOrTerminal {
     PredicateTerminal(AttributeOrValue),
     PredicateInner(Box<PredicateInner>),
 }
-impl TryFrom<Expr> for PredicateInnerOrTerminal {
-    type Error = String;
-    fn try_from(x: Expr) -> Result<Self, String> {
+impl PredicateInnerOrTerminal {
+    fn try_from(
+        x: Expr,
+        attr: &HashMap<String, HashMap<String, Attribute>>,
+    ) -> Result<Self, String> {
         match x {
-            Expr::BinaryOp { .. } => {
-                Ok(Self::PredicateInner(Box::new(PredicateInner::try_from(x)?)))
-            }
-            Expr::Identifier { .. } | Expr::CompoundIdentifier { .. } | Expr::Value { .. } => {
-                Ok(Self::PredicateTerminal(AttributeOrValue::try_from(x)?))
-            }
+            Expr::BinaryOp { .. } => Ok(Self::PredicateInner(Box::new(PredicateInner::try_from(
+                x, attr,
+            )?))),
+            Expr::Identifier { .. } | Expr::CompoundIdentifier { .. } | Expr::Value { .. } => Ok(
+                Self::PredicateTerminal(AttributeOrValue::try_from(x, attr)?),
+            ),
             _ => Err("Only Binary operators, identifiers or values supported as nodes".into()),
         }
     }
@@ -122,14 +209,16 @@ impl<'a> FromPyObject<'a> for Box<PredicateInner> {
         Ok(Box::new(inner))
     }
 }
-impl TryFrom<Expr> for PredicateInner {
-    type Error = String;
-    fn try_from(x: Expr) -> Result<Self, String> {
+impl PredicateInner {
+    fn try_from(
+        x: Expr,
+        attr: &HashMap<String, HashMap<String, Attribute>>,
+    ) -> Result<Self, String> {
         match x {
             Expr::BinaryOp { left, op, right } => match op {
                 BinaryOperator::Gt => Ok(Self {
-                    left: PredicateInnerOrTerminal::try_from(*left)?,
-                    right: PredicateInnerOrTerminal::try_from(*right)?,
+                    left: PredicateInnerOrTerminal::try_from(*left, attr)?,
+                    right: PredicateInnerOrTerminal::try_from(*right, attr)?,
                 }),
                 _ => Err("Only > operators supported.".into()),
             },
@@ -143,12 +232,14 @@ pub struct Predicate {
     root: PredicateInner,
 }
 
-impl TryFrom<Expr> for Predicate {
-    type Error = String;
-    fn try_from(x: Expr) -> Result<Self, String> {
+impl Predicate {
+    fn try_from(
+        x: Expr,
+        attr: &HashMap<String, HashMap<String, Attribute>>,
+    ) -> Result<Self, String> {
         match x {
             Expr::BinaryOp { .. } => Ok(Self {
-                root: PredicateInner::try_from(x)?,
+                root: PredicateInner::try_from(x, attr)?,
                 constraints: Vec::new(),
                 tag: None,
                 uuid: None,
