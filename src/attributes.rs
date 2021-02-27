@@ -325,3 +325,26 @@ impl InnerPredicate {
         }
     }
 }
+
+#[derive(Hash, PartialEq, Eq, Debug, Serialize, Deserialize, Clone, FromPyObject)]
+struct IdentityTransform {
+    attribute: AttributeEnum,
+    name: String,
+}
+
+#[derive(Hash, PartialEq, Eq, Debug, Serialize, Deserialize, Clone, FromPyObject)]
+enum Transform {
+    IdentityTransform(IdentityTransform),
+}
+
+#[derive(Hash, PartialEq, Eq, Debug, Serialize, Deserialize, Clone, FromPyObject)]
+enum AttributeOrTransform {
+    Attribute(AttributeEnum),
+    Transform(Box<Transform>),
+}
+impl<'a> FromPyObject<'a> for Box<Transform> {
+    fn extract(ob: &'a PyAny) -> PyResult<Self> {
+        let inner = Transform::extract(ob)?;
+        Ok(Box::new(inner))
+    }
+}
