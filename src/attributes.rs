@@ -1,4 +1,3 @@
-use core::convert::TryFrom;
 use indoc::formatdoc;
 use num::Float;
 use sqlparser::ast::{BinaryOperator, ColumnDef, DataType, Expr, Ident, Value};

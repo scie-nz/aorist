@@ -32,6 +32,7 @@ pub mod python_singleton;
 pub mod role;
 pub mod role_binding;
 pub mod schema;
+pub mod sql_parser;
 pub mod storage;
 pub mod storage_setup;
 pub mod template;
@@ -63,6 +64,7 @@ pub use python_singleton::*;
 pub use role::*;
 pub use role_binding::*;
 pub use schema::*;
+pub use sql_parser::*;
 pub use storage::*;
 pub use storage_setup::*;
 pub use template::*;
@@ -72,72 +74,14 @@ pub use utils::*;
 
 use pyo3::prelude::*;
 use pyo3::wrap_pyfunction;
-use sqlparser::ast::{Expr, Query, Select, SetExpr, Statement};
+use sqlparser::ast::Statement;
 use sqlparser::dialect::GenericDialect;
 use sqlparser::parser::Parser;
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 
 use pyo3::create_exception;
 use pyo3::exceptions::PyException;
 create_exception!(aorist, SQLParseError, PyException);
-
-pub fn parse_select(select: Select) -> PyResult<()> {
-    if select.distinct {
-        return Err(SQLParseError::new_err("DISTINCT not supported."));
-    }
-    if select.having.is_some() {
-        return Err(SQLParseError::new_err("HAVING not supported."));
-    }
-    if select.from.len() != 1 {
-        return Err(SQLParseError::new_err(
-            "Exactly 1 table must be in the FROM clause.",
-        ));
-    }
-    if select.lateral_views.len() > 0 {
-        return Err(SQLParseError::new_err("LATERAL VIEWs not supported."));
-    }
-    if select.selection.is_none() {
-        return Err(SQLParseError::new_err("A WHERE clause must be provided."));
-    }
-    if select.group_by.len() > 0 {
-        return Err(SQLParseError::new_err("GROUP BYs not supported."));
-    }
-    if select.cluster_by.len() > 0 {
-        return Err(SQLParseError::new_err("CLUSTER BYs not supported."));
-    }
-    if select.distribute_by.len() > 0 {
-        return Err(SQLParseError::new_err("DISTRIBUTE BYs not supported."));
-    }
-    if select.sort_by.len() > 0 {
-        return Err(SQLParseError::new_err("SORT BYs not supported."));
-    }
-
-    Ok(())
-}
-pub fn parse_query(query: Query) -> PyResult<()> {
-    if query.with.is_some() {
-        return Err(SQLParseError::new_err("WITH clauses are not supported."));
-    }
-    if query.order_by.len() > 0 {
-        return Err(SQLParseError::new_err("ORDER BY not supported."));
-    }
-    if query.limit.is_some() {
-        return Err(SQLParseError::new_err("LIMIT not supported."));
-    }
-    if query.offset.is_some() {
-        return Err(SQLParseError::new_err("OFFSET not supported."));
-    }
-    if query.fetch.is_some() {
-        return Err(SQLParseError::new_err("FETCH not supported."));
-    }
-    if let SetExpr::Select(select) = query.body {
-        return parse_select(*select);
-    } else {
-        return Err(SQLParseError::new_err(
-            "A single SELECT statement should be provided.",
-        ));
-    }
-}
 
 #[pyfunction]
 pub fn derived_asset(sql: String, universe: &InnerUniverse) -> PyResult<()> {
@@ -150,7 +94,36 @@ pub fn derived_asset(sql: String, universe: &InnerUniverse) -> PyResult<()> {
     }
     println!("AST: {:?}", &ast);
     if let Statement::Query(query) = ast.into_iter().next().unwrap() {
-        return parse_query(*query);
+        if let Some(ref datasets) = universe.datasets {
+            let mut dataset_map = HashMap::new();
+            for dataset in datasets.iter() {
+                let templates = dataset.get_mapped_datum_templates();
+                let mut asset_map = HashMap::new();
+                for asset in dataset.assets.iter() {
+                    let asset_name = asset.get_name();
+                    let schema = asset.get_schema();
+                    let attribute_names = schema.get_attribute_names();
+                    let template_name = schema.get_datum_template_name();
+                    let template =
+                        DatumTemplate::from(templates.get(&template_name).unwrap().clone());
+                    let mut attributes = template
+                        .get_attributes()
+                        .into_iter()
+                        .map(|v| (v.get_name().clone(), v))
+                        .collect::<HashMap<String, Attribute>>();
+                    let mut map = HashMap::new();
+                    for k in attribute_names {
+                        map.insert(k.clone(), attributes.remove(&k).unwrap());
+                    }
+                    asset_map.insert(asset_name, map);
+                }
+                dataset_map.insert(dataset.get_name().clone(), asset_map);
+            }
+            let parser = SQLParser::new(dataset_map);
+            return parser.parse_query(*query);
+        } else {
+            return Err(SQLParseError::new_err("No datasets found in universe."));
+        }
     } else {
         return Err(SQLParseError::new_err("Only SELECT statements supported."));
     }

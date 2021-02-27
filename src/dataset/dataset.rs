@@ -48,6 +48,9 @@ impl InnerDataSet {
             .map(|x| (x.get_name().clone(), x.clone()))
             .collect()
     }
+    pub fn get_name(&self) -> &String {
+        &self.name
+    }
 }
 #[pymethods]
 impl InnerDataSet {
