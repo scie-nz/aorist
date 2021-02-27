@@ -50,6 +50,7 @@ storage = HiveTableStorage(
     layout=StaticHiveTableLayout(),
     encoding=ORCEncoding(),
 )
+universe.add_template(template, "wine")
 #out = dag(universe, [
 #    "DataDownloadedAndConverted",
 #], "jupyter")

@@ -56,7 +56,8 @@ impl SQLParser {
         if select.selection.is_none() {
             return Err(SQLParseError::new_err("A WHERE clause must be provided."));
         } else {
-            let predicate = InnerPredicate::try_from(select.selection.unwrap(), &self.attr_map).unwrap();
+            let predicate =
+                InnerPredicate::try_from(select.selection.unwrap(), &self.attr_map).unwrap();
             let source_table = select.from.into_iter().next().unwrap();
             if source_table.joins.len() > 0 {
                 return Err(SQLParseError::new_err("JOINs not supported."));

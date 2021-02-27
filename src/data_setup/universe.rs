@@ -1,4 +1,5 @@
 #![allow(non_snake_case)]
+use crate::asset::*;
 use crate::compliance::*;
 use crate::concept::{AoristConcept, Concept};
 use crate::constraint::Constraint;
@@ -7,6 +8,7 @@ use crate::endpoints::*;
 use crate::models::*;
 use crate::role::*;
 use crate::role_binding::*;
+use crate::template::*;
 use crate::user::*;
 use crate::user_group::*;
 use aorist_concept::{aorist_concept, Constrainable, InnerObject};
@@ -65,5 +67,31 @@ impl TUniverse for Universe {
             }
         }
         Ok(map)
+    }
+}
+impl InnerUniverse {
+    fn get_dataset(&mut self, dataset_name: String) -> Result<&mut InnerDataSet, String> {
+        if let Some(ref mut datasets) = self.datasets {
+            if let Some(dataset) = datasets
+                .iter_mut()
+                .filter(|x| *x.get_name() == dataset_name)
+                .next()
+            {
+                return Ok(dataset);
+            }
+            return Err(format!("Cannot find dataset {}", dataset_name).to_string());
+        }
+        return Err(format!("No datasets present when looking for {}", dataset_name).to_string());
+    }
+}
+#[pymethods]
+impl InnerUniverse {
+    pub fn add_template(&mut self, t: InnerDatumTemplate, dataset_name: String) -> PyResult<()> {
+        let mut dataset = self.get_dataset(dataset_name).unwrap();
+        dataset.add_template(t)
+    }
+    pub fn add_asset(&mut self, a: InnerAsset, dataset_name: String) -> PyResult<()> {
+        let mut dataset = self.get_dataset(dataset_name).unwrap();
+        dataset.add_asset(a)
     }
 }
