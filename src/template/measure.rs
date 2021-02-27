@@ -45,9 +45,6 @@ impl IntegerMeasure {
             inner: AttributeEnum::Count(Count {
                 name: self.name.clone(),
                 comment: self.comment.clone(),
-                tag: None,
-                uuid: None,
-                constraints: Vec::new(),
             }),
             tag: None,
             uuid: None,
@@ -91,9 +88,6 @@ impl TrainedFloatMeasure {
             inner: AttributeEnum::FloatPrediction(FloatPrediction {
                 name: self.name.clone(),
                 comment: self.comment.clone(),
-                tag: None,
-                uuid: None,
-                constraints: Vec::new(),
             }),
             tag: None,
             uuid: None,
@@ -107,9 +101,6 @@ impl TrainedFloatMeasure {
         Regressor {
             name: "model".to_string(),
             comment: Some("A serialized version of the model".to_string()),
-            tag: None,
-            uuid: None,
-            constraints: Vec::new(),
         }
     }
     pub fn get_model_storage_tabular_schema(&self) -> TabularSchema {

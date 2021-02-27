@@ -387,11 +387,10 @@ macro_rules! define_attribute {
     ($element:ident, $presto_type:ident, $orc_type:ident, $sql_type:ident,
     $value:ident) => {
         paste::item! {
-            #[aorist_concept(derive($presto_type, $orc_type, $sql_type),
-            derivative(Hash))]
+            #[pyclass]
+            #[derive(Hash, PartialEq, Eq, Debug, Serialize, Deserialize, Clone, $presto_type, $orc_type, $sql_type)]
             pub struct $element {
                 pub name: String,
-                #[py_default = "None"]
                 pub comment: Option<String>,
             }
             impl TAttribute for $element {
@@ -405,7 +404,12 @@ macro_rules! define_attribute {
                 }
             }
             #[pymethods]
-            impl [<Inner $element>] {
+            impl $element {
+                #[new]
+                #[args(comment = "None")]
+                pub fn new(name: String, comment: Option<String>) -> Self {
+                    Self { name, comment }
+                }
                 #[getter]
                 pub fn name(&self) -> PyResult<String> {
                     Ok(self.name.clone())
@@ -780,7 +784,7 @@ macro_rules! register_constraint {
 #[macro_export]
 macro_rules! register_attribute {
     ( $name:ident, $($element: ident),+ ) => { paste! {
-        #[aorist_concept(derive(Hash, Eq))]
+        #[derive(Hash, PartialEq, Eq, Debug, Serialize, Deserialize, Clone, FromPyObject)]
         pub enum [<$name Enum>] {
             $(
                 $element($element),
@@ -823,12 +827,6 @@ macro_rules! register_attribute {
                 }
             }
         }
-        impl<'a> FromPyObject<'a> for [<$name Enum>] {
-            fn extract(ob: &'a PyAny) -> PyResult<Self> {
-                let inner = [<Inner $name Enum>]::extract(ob)?;
-                Ok(Self::from(inner))
-            }
-        }
         #[aorist_concept(derivative(Hash))]
         pub struct $name {
             pub inner: [<$name Enum>],
@@ -859,7 +857,7 @@ macro_rules! register_attribute {
         paste::item!(
             pub fn [<$name:snake:lower>] (m: &PyModule) -> PyResult<()> {
                 $(
-                    m.add_class::<[<Inner $element>]>()?;
+                    m.add_class::<$element>()?;
                 )+
                 Ok(())
             }

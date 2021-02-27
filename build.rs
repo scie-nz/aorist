@@ -359,8 +359,7 @@ fn process_attributes(raw_objects: &Vec<HashMap<String, Value>>) {
     fs::write(&dest_path, scope.to_string()).unwrap();
 }
 
-fn process_concepts(raw_objects: &Vec<HashMap<String, Value>>) {
-    let attributes = get_raw_objects_of_type(raw_objects, "Attribute".into());
+fn process_concepts() {
     let mut scope = Scope::new();
 
     let concepts = vec![
@@ -435,12 +434,7 @@ fn process_concepts(raw_objects: &Vec<HashMap<String, Value>>) {
         scope.import(x, y);
     }
 
-    let mut concept_names: Vec<String> = concepts.iter().map(|(_, x)| x.to_string()).collect();
-    for attribute in attributes {
-        let name = attribute.get("name").unwrap().as_str().unwrap().to_string();
-        scope.import("crate::attributes", &name);
-        concept_names.push(name.clone());
-    }
+    let concept_names: Vec<String> = concepts.iter().map(|(_, x)| x.to_string()).collect();
     let register = format!(
         "register_concept!(Concept, {});",
         concept_names
@@ -465,7 +459,7 @@ fn main() {
 
     let raw_objects = read_file("attributes.yaml");
     process_attributes(&raw_objects);
-    process_concepts(&raw_objects);
+    process_concepts();
     let raw_objects = read_file("basic.yaml");
     process_constraints(&raw_objects);
 
