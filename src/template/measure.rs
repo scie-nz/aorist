@@ -67,6 +67,8 @@ impl TDatumTemplate for TrainedFloatMeasure {
         let mut attr = self.features.clone();
         let prediction_attribute = self.get_prediction_attribute();
         attr.push(prediction_attribute);
+        attr.push(Attribute::Regressor(self.get_regressor_as_attribute().clone()));
+
         attr
     }
     fn get_name(&self) -> String {

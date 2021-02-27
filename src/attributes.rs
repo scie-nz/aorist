@@ -1,3 +1,4 @@
+pub use crate::sql_parser::AttrMap;
 use indoc::formatdoc;
 use num::Float;
 use sqlparser::ast::{BinaryOperator, ColumnDef, DataType, Expr, Ident, Value};
@@ -124,31 +125,35 @@ include!(concat!(env!("OUT_DIR"), "/attributes.rs"));
 include!(concat!(env!("OUT_DIR"), "/programs.rs"));
 
 impl Attribute {
-    fn try_from(
-        x: Expr,
-        attr: &HashMap<String, HashMap<String, Attribute>>,
-    ) -> Result<Self, String> {
+    fn try_from(x: Expr, attr: &AttrMap) -> Result<Self, String> {
         match x {
             Expr::Identifier(_) => Err(
                 "Simple identifiers not supported for now. Please prefix with table name".into(),
             ),
             Expr::CompoundIdentifier(mut idents) => {
-                if idents.len() != 2 {
+                if idents.len() != 3 {
                     return Err(
-                        "Exactly 2 identifiers must be in each compound identifier.".to_string()
+                        "Exactly 3 identifiers must be in each compound identifier.".to_string()
                     );
                 }
                 let attr_name = idents.pop().unwrap().value;
                 let asset_name = idents.pop().unwrap().value;
-                match attr.get(&asset_name) {
-                    Some(ref map) => match map.get(&attr_name) {
-                        Some(attr) => Ok(attr.clone()),
+                let dataset_name = idents.pop().unwrap().value;
+                match attr.get(&dataset_name) {
+                    Some(assets) => match assets.get(&asset_name) {
+                        Some(ref map) => match map.get(&attr_name) {
+                            Some(attr) => Ok(attr.clone()),
+                            None => Err(format!(
+                                "Could not find attribute {} in asset {} on {} ",
+                                &attr_name, &asset_name, &dataset_name,
+                            )),
+                        },
                         None => Err(format!(
-                            "Could not find attribute {} in asset {} ",
-                            &attr_name, &asset_name
+                            "Could not find asset named {} in dataset {} ",
+                            asset_name, dataset_name
                         )),
                     },
-                    None => Err(format!("Could not find asset named {} ", asset_name)),
+                    None => Err(format!("Could not find dataset named {} ", dataset_name)),
                 }
             }
             _ => Err("Only identifiers supported as nodes".into()),
@@ -161,10 +166,7 @@ pub enum AttributeOrValue {
     Value(AttributeValue),
 }
 impl AttributeOrValue {
-    fn try_from(
-        x: Expr,
-        attr: &HashMap<String, HashMap<String, Attribute>>,
-    ) -> Result<Self, String> {
+    fn try_from(x: Expr, attr: &AttrMap) -> Result<Self, String> {
         match x {
             Expr::Identifier { .. } | Expr::CompoundIdentifier { .. } => {
                 Ok(Self::Attribute(Attribute::try_from(x, attr)?))
@@ -181,10 +183,7 @@ pub enum PredicateInnerOrTerminal {
     PredicateInner(Box<PredicateInner>),
 }
 impl PredicateInnerOrTerminal {
-    fn try_from(
-        x: Expr,
-        attr: &HashMap<String, HashMap<String, Attribute>>,
-    ) -> Result<Self, String> {
+    fn try_from(x: Expr, attr: &AttrMap) -> Result<Self, String> {
         match x {
             Expr::BinaryOp { .. } => Ok(Self::PredicateInner(Box::new(PredicateInner::try_from(
                 x, attr,
@@ -209,10 +208,7 @@ impl<'a> FromPyObject<'a> for Box<PredicateInner> {
     }
 }
 impl PredicateInner {
-    fn try_from(
-        x: Expr,
-        attr: &HashMap<String, HashMap<String, Attribute>>,
-    ) -> Result<Self, String> {
+    fn try_from(x: Expr, attr: &AttrMap) -> Result<Self, String> {
         match x {
             Expr::BinaryOp { left, op, right } => match op {
                 BinaryOperator::Gt => Ok(Self {
@@ -232,10 +228,7 @@ pub struct Predicate {
 }
 
 impl Predicate {
-    fn try_from(
-        x: Expr,
-        attr: &HashMap<String, HashMap<String, Attribute>>,
-    ) -> Result<Self, String> {
+    pub fn try_from(x: Expr, attr: &AttrMap) -> Result<Self, String> {
         match x {
             Expr::BinaryOp { .. } => Ok(Self {
                 root: PredicateInner::try_from(x, attr)?,

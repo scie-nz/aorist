@@ -113,7 +113,18 @@ pub fn derived_asset(sql: String, universe: &InnerUniverse) -> PyResult<()> {
                         .collect::<HashMap<String, Attribute>>();
                     let mut map = HashMap::new();
                     for k in attribute_names {
-                        map.insert(k.clone(), attributes.remove(&k).unwrap());
+                        let attr = attributes.remove(&k);
+                        if let Some(a) = attr {
+                            map.insert(k.clone(), a);
+                        } else {
+                            return Err(SQLParseError::new_err(
+                                format!(
+                                    "Could not find attribute named {} for asset {}",
+                                    k, asset_name
+                                )
+                                .to_string(),
+                            ));
+                        }
                     }
                     asset_map.insert(asset_name, map);
                 }

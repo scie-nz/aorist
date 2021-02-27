@@ -1,4 +1,4 @@
-use crate::attributes::Attribute;
+use crate::attributes::{Attribute, Predicate};
 use pyo3::create_exception;
 use pyo3::exceptions::PyException;
 use pyo3::prelude::*;
@@ -6,7 +6,7 @@ use sqlparser::ast::{Query, Select, SetExpr};
 use std::collections::HashMap;
 create_exception!(aorist, SQLParseError, PyException);
 
-type AttrMap = HashMap<String, HashMap<String, HashMap<String, Attribute>>>;
+pub type AttrMap = HashMap<String, HashMap<String, HashMap<String, Attribute>>>;
 
 pub struct SQLParser {
     attr_map: AttrMap,
@@ -30,9 +30,6 @@ impl SQLParser {
         if select.lateral_views.len() > 0 {
             return Err(SQLParseError::new_err("LATERAL VIEWs not supported."));
         }
-        if select.selection.is_none() {
-            return Err(SQLParseError::new_err("A WHERE clause must be provided."));
-        }
         if select.group_by.len() > 0 {
             return Err(SQLParseError::new_err("GROUP BYs not supported."));
         }
@@ -45,7 +42,11 @@ impl SQLParser {
         if select.sort_by.len() > 0 {
             return Err(SQLParseError::new_err("SORT BYs not supported."));
         }
-
+        if select.selection.is_none() {
+            return Err(SQLParseError::new_err("A WHERE clause must be provided."));
+        } else {
+            let predicate = Predicate::try_from(select.selection.unwrap(), &self.attr_map).unwrap();
+        }
         Ok(())
     }
     pub fn parse_query(&self, query: Query) -> PyResult<()> {

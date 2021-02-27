@@ -38,8 +38,8 @@ universe = Universe(
 derived_asset(
     """
     SELECT *
-    FROM wine.wine
-    WHERE alcohol > 5.0
+    FROM wine.wine_table
+    WHERE wine.wine_table.alcohol > 5.0
     """,
     universe
 )
