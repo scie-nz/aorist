@@ -11,7 +11,6 @@ use crate::role::*;
 use crate::role_binding::*;
 use crate::sql_parser::*;
 use crate::storage::*;
-use crate::storage_setup::*;
 use crate::template::*;
 use crate::user::*;
 use crate::user_group::*;
@@ -97,11 +96,11 @@ impl InnerUniverse {
 #[pymethods]
 impl InnerUniverse {
     pub fn add_template(&mut self, t: InnerDatumTemplate, dataset_name: String) -> PyResult<()> {
-        let mut dataset = self.get_dataset(dataset_name).unwrap();
+        let dataset = self.get_dataset(dataset_name).unwrap();
         dataset.add_template(t)
     }
     pub fn add_asset(&mut self, a: InnerAsset, dataset_name: String) -> PyResult<()> {
-        let mut dataset = self.get_dataset(dataset_name).unwrap();
+        let dataset = self.get_dataset(dataset_name).unwrap();
         dataset.add_asset(a)
     }
     pub fn derive_asset(
@@ -118,7 +117,6 @@ impl InnerUniverse {
                 "A single SELECT statement should be provided.",
             ));
         }
-        println!("AST: {:?}", &ast);
         if let Statement::Query(query) = ast.into_iter().next().unwrap() {
             if let Some(ref datasets) = self.datasets {
                 let mut dataset_map = HashMap::new();

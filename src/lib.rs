@@ -74,7 +74,7 @@ pub use utils::*;
 
 use pyo3::prelude::*;
 use pyo3::wrap_pyfunction;
-use std::collections::{HashMap, HashSet};
+use std::collections::HashSet;
 
 #[pyfunction]
 pub fn default_tabular_schema(datum_template: InnerDatumTemplate) -> InnerTabularSchema {

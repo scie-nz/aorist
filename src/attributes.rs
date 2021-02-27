@@ -196,7 +196,18 @@ impl PredicateInnerOrTerminal {
 }
 
 #[derive(Hash, PartialEq, Eq, Debug, Serialize, Deserialize, Clone, FromPyObject)]
+pub enum Operator {
+    GtEq(String),
+    Gt(String),
+    Eq(String),
+    NotEq(String),
+    Lt(String),
+    LtEq(String),
+}
+
+#[derive(Hash, PartialEq, Eq, Debug, Serialize, Deserialize, Clone, FromPyObject)]
 pub struct PredicateInner {
+    operator: Operator,
     left: PredicateInnerOrTerminal,
     right: PredicateInnerOrTerminal,
 }
@@ -209,13 +220,22 @@ impl<'a> FromPyObject<'a> for Box<PredicateInner> {
 impl PredicateInner {
     fn try_from(x: Expr, attr: &AttrMap) -> Result<Self, String> {
         match x {
-            Expr::BinaryOp { left, op, right } => match op {
-                BinaryOperator::Gt => Ok(Self {
+            Expr::BinaryOp { left, op, right } => {
+                let operator = match op {
+                    BinaryOperator::Gt => Operator::Gt(">".to_string()),
+                    BinaryOperator::GtEq => Operator::GtEq(">=".to_string()),
+                    BinaryOperator::Eq => Operator::Eq("=".to_string()),
+                    BinaryOperator::NotEq => Operator::NotEq("!=".to_string()),
+                    BinaryOperator::Lt => Operator::Lt("<".to_string()),
+                    BinaryOperator::LtEq => Operator::GtEq("<=".to_string()),
+                    _ => return Err("Only > operators supported.".into()),
+                };
+                Ok(Self {
+                    operator,
                     left: PredicateInnerOrTerminal::try_from(*left, attr)?,
                     right: PredicateInnerOrTerminal::try_from(*right, attr)?,
-                }),
-                _ => Err("Only > operators supported.".into()),
-            },
+                })
+            }
             _ => Err("Only binary operators supported.".into()),
         }
     }

@@ -49,7 +49,21 @@ universe.derive_asset(
     ),
     tmp_dir="/tmp/high_abv_wines",
 )
-#out = dag(universe, [
-#    "DataDownloadedAndConverted",
-#], "jupyter")
-# print(out.replace("\\\\", "\\"))
+universe.derive_asset(
+    """
+    SELECT *
+    FROM wine.wine_table
+    WHERE wine.wine_table.alcohol <= 14.0
+    """,
+    name="lower_abv_wines",
+    storage=HiveTableStorage(
+        location=MinioLocation(name="lower_abv_wines"),
+        layout=StaticHiveTableLayout(),
+        encoding=ORCEncoding(),
+    ),
+    tmp_dir="/tmp/high_abv_wines",
+)
+out = dag(universe, [
+    "DataDownloadedAndConverted",
+], "jupyter")
+print(out.replace("\\\\", "\\"))

@@ -389,6 +389,16 @@ spec:
       |root: Concept<'a>, ancestry: &ConceptAncestry<'a>| {
           let setup = ancestry.computed_from_local_data(root.clone()).unwrap();
           let dataset = ancestry.data_set(root.clone()).unwrap();
-          let source_asset = dataset.assets.iter().filter(|x| x.get_name() == setup.source_asset_name).next().unwrap();
-          vec![source_asset.get_uuid().clone()]
+          if let Some(source_asset) = dataset
+              .assets
+              .iter()
+              .filter(|x| x.get_name() == setup.source_asset_name)
+              .next() {
+              return vec![source_asset.get_uuid().clone()];
+          } else {
+              panic!(format!(
+                  "Cannot find source asset with name {}",
+                  setup.source_asset_name
+              ));
+          }
       }

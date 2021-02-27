@@ -120,8 +120,8 @@ impl SQLParser {
                         let storage_setup = InnerStorageSetup::ComputedFromLocalData(
                             InnerComputedFromLocalData::new(
                                 storage,
-                                tmp_dir,
                                 source_asset_name,
+                                tmp_dir,
                                 None,
                             ),
                         );
@@ -131,7 +131,7 @@ impl SQLParser {
                             asset_name,
                             None,
                         ));
-                        universe.add_asset(asset, dataset_name.clone());
+                        universe.add_asset(asset, dataset_name.clone()).unwrap();
                         return Ok(());
                     } else {
                         return Err(SQLParseError::new_err(
