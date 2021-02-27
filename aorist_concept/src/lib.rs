@@ -478,7 +478,7 @@ pub fn constrain_object(input: TokenStream) -> TokenStream {
                 impl [<Inner #struct_name>] {
                     #[new]
                     #[args(#fields_with_default)]
-                    fn new(
+                    pub fn new(
                         #(#bare_ident: [<Inner #bare_type>] ,)*
                         #(#vec_ident: Vec<[<Inner #vec_type>]> ,)*
                         #(#option_ident: Option<[<Inner #option_type>]> ,)*

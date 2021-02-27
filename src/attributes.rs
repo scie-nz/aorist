@@ -2,7 +2,6 @@ pub use crate::sql_parser::AttrMap;
 use indoc::formatdoc;
 use num::Float;
 use sqlparser::ast::{BinaryOperator, ColumnDef, DataType, Expr, Ident, Value};
-use std::collections::HashMap;
 pub trait TValue {}
 
 #[derive(Hash, PartialEq, Eq, Debug, Serialize, Deserialize, Clone, FromPyObject)]
@@ -235,6 +234,17 @@ impl Predicate {
                 constraints: Vec::new(),
                 tag: None,
                 uuid: None,
+            }),
+            _ => Err("Only binary operators supported.".into()),
+        }
+    }
+}
+impl InnerPredicate {
+    pub fn try_from(x: Expr, attr: &AttrMap) -> Result<Self, String> {
+        match x {
+            Expr::BinaryOp { .. } => Ok(Self {
+                root: PredicateInner::try_from(x, attr)?,
+                tag: None,
             }),
             _ => Err("Only binary operators supported.".into()),
         }

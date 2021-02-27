@@ -3,8 +3,13 @@ from aorist import (
     Universe,
     ComplianceConfig,
     derived_asset,
+    HiveTableStorage,
+    MinioLocation,
+    StaticHiveTableLayout,
+    ORCEncoding,
 )
 from common import DEFAULT_USERS, DEFAULT_GROUPS, DEFAULT_ENDPOINTS
+
 # from sentinel import sentinel_dataset
 from snap import snap_dataset
 from geonames import geonames_dataset, geonames_table
@@ -31,15 +36,21 @@ universe = Universe(
         contains_personally_identifiable_information=False,
     ),
 )
-#out = dag(universe, [
-#    "DataDownloadedAndConverted",
-#], "jupyter")
-# print(out.replace("\\\\", "\\"))
-derived_asset(
+template = derived_asset(
     """
     SELECT *
     FROM wine.wine_table
     WHERE wine.wine_table.alcohol > 5.0
     """,
-    universe
+    universe,
+    name="high_abv_wines",
 )
+storage = HiveTableStorage(
+    location=MinioLocation(name="wine"),
+    layout=StaticHiveTableLayout(),
+    encoding=ORCEncoding(),
+)
+#out = dag(universe, [
+#    "DataDownloadedAndConverted",
+#], "jupyter")
+# print(out.replace("\\\\", "\\"))

@@ -84,7 +84,7 @@ use pyo3::exceptions::PyException;
 create_exception!(aorist, SQLParseError, PyException);
 
 #[pyfunction]
-pub fn derived_asset(sql: String, universe: &InnerUniverse) -> PyResult<()> {
+pub fn derived_asset(sql: String, universe: &InnerUniverse, name: String) -> PyResult<InnerFilter> {
     let dialect = GenericDialect {};
     let ast = Parser::parse_sql(&dialect, &sql).unwrap();
     if ast.len() != 1 {
@@ -130,7 +130,7 @@ pub fn derived_asset(sql: String, universe: &InnerUniverse) -> PyResult<()> {
                 }
                 dataset_map.insert(dataset.get_name().clone(), asset_map);
             }
-            let parser = SQLParser::new(dataset_map);
+            let parser = SQLParser::new(dataset_map, name);
             return parser.parse_query(*query);
         } else {
             return Err(SQLParseError::new_err("No datasets found in universe."));
