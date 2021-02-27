@@ -1,5 +1,6 @@
 #![allow(non_snake_case)]
 use crate::asset::*;
+use crate::attributes::*;
 use crate::compliance::*;
 use crate::concept::{AoristConcept, Concept};
 use crate::constraint::Constraint;
@@ -9,25 +10,25 @@ use crate::models::*;
 use crate::role::*;
 use crate::role_binding::*;
 use crate::sql_parser::*;
-use crate::attributes::*;
+use crate::storage::*;
+use crate::storage_setup::*;
 use crate::template::*;
 use crate::user::*;
 use crate::user_group::*;
 use aorist_concept::{aorist_concept, Constrainable, InnerObject};
 use derivative::Derivative;
 use paste::paste;
+use pyo3::create_exception;
+use pyo3::exceptions::PyException;
 use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
+use sqlparser::ast::Statement;
+use sqlparser::dialect::GenericDialect;
+use sqlparser::parser::Parser;
 use std::collections::{HashMap, HashSet};
 use std::sync::{Arc, RwLock};
 use uuid::Uuid;
-use sqlparser::parser::Parser;
-use sqlparser::dialect::GenericDialect;
-use pyo3::create_exception;
-use pyo3::exceptions::PyException;
-use sqlparser::ast::Statement;
 create_exception!(aorist, SQLParseError, PyException);
-
 
 #[aorist_concept]
 pub struct Universe {
@@ -103,7 +104,13 @@ impl InnerUniverse {
         let mut dataset = self.get_dataset(dataset_name).unwrap();
         dataset.add_asset(a)
     }
-    pub fn derive_asset(&mut self, sql: String, name: String) -> PyResult<()> {
+    pub fn derive_asset(
+        &mut self,
+        sql: String,
+        name: String,
+        storage: InnerStorage,
+        tmp_dir: String,
+    ) -> PyResult<()> {
         let dialect = GenericDialect {};
         let ast = Parser::parse_sql(&dialect, &sql).unwrap();
         if ast.len() != 1 {
@@ -150,7 +157,7 @@ impl InnerUniverse {
                     dataset_map.insert(dataset.get_name().clone(), asset_map);
                 }
                 let parser = SQLParser::new(dataset_map, name);
-                return parser.parse_query(*query, self);
+                return parser.parse_query(*query, self, storage, tmp_dir);
             } else {
                 return Err(SQLParseError::new_err("No datasets found in universe."));
             }

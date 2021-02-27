@@ -1,5 +1,10 @@
+use crate::asset::*;
 use crate::attributes::{Attribute, InnerAttribute, InnerPredicate};
 use crate::data_setup::InnerUniverse;
+use crate::default_tabular_schema;
+use crate::schema::*;
+use crate::storage::*;
+use crate::storage_setup::*;
 use crate::template::*;
 use pyo3::create_exception;
 use pyo3::exceptions::PyException;
@@ -21,7 +26,14 @@ impl SQLParser {
             template_name,
         }
     }
-    pub fn parse_select(&self, select: Select, universe: &mut InnerUniverse) -> PyResult<()> {
+    pub fn parse_select(
+        &self,
+        select: Select,
+        universe: &mut InnerUniverse,
+        storage: InnerStorage,
+        tmp_dir: String,
+        asset_name: String,
+    ) -> PyResult<()> {
         if select.distinct {
             return Err(SQLParseError::new_err("DISTINCT not supported."));
         }
@@ -96,10 +108,30 @@ impl SQLParser {
                             attributes,
                             Some(predicate),
                             self.template_name.clone(),
-                            source_asset_name,
+                            source_asset_name.clone(),
                             None,
                         ));
-                        universe.add_template(template, "wine".to_string());
+                        let schema = InnerDataSchema::TabularSchema(default_tabular_schema(
+                            template.clone(),
+                        ));
+                        universe
+                            .add_template(template, dataset_name.clone())
+                            .unwrap();
+                        let storage_setup = InnerStorageSetup::ComputedFromLocalData(
+                            InnerComputedFromLocalData::new(
+                                storage,
+                                tmp_dir,
+                                source_asset_name,
+                                None,
+                            ),
+                        );
+                        let asset = InnerAsset::DerivedAsset(InnerDerivedAsset::new(
+                            storage_setup,
+                            schema,
+                            asset_name,
+                            None,
+                        ));
+                        universe.add_asset(asset, dataset_name.clone());
                         return Ok(());
                     } else {
                         return Err(SQLParseError::new_err(
@@ -120,7 +152,13 @@ impl SQLParser {
             }
         }
     }
-    pub fn parse_query(&self, query: Query, universe: &mut InnerUniverse) -> PyResult<()> {
+    pub fn parse_query(
+        &self,
+        query: Query,
+        universe: &mut InnerUniverse,
+        storage: InnerStorage,
+        tmp_dir: String,
+    ) -> PyResult<()> {
         if query.with.is_some() {
             return Err(SQLParseError::new_err("WITH clauses are not supported."));
         }
@@ -137,7 +175,13 @@ impl SQLParser {
             return Err(SQLParseError::new_err("FETCH not supported."));
         }
         if let SetExpr::Select(select) = query.body {
-            return self.parse_select(*select, universe);
+            return self.parse_select(
+                *select,
+                universe,
+                storage,
+                tmp_dir,
+                self.template_name.clone(),
+            );
         } else {
             return Err(SQLParseError::new_err(
                 "A single SELECT statement should be provided.",

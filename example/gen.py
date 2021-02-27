@@ -46,7 +46,8 @@ universe.derive_asset(
         location=MinioLocation(name="high_abv_wines"),
         layout=StaticHiveTableLayout(),
         encoding=ORCEncoding(),
-    )
+    ),
+    tmp_dir="/tmp/high_abv_wines",
 )
 #out = dag(universe, [
 #    "DataDownloadedAndConverted",
