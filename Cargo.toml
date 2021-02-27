@@ -52,7 +52,7 @@ linked-hash-map = "0.5.3"
 linked_hash_set = "0.1.4"
 pyo3 = {version = "0.13.1", features=["extension-module"]}
 textwrap = {version = "0.13.2", features = ["hyphenation"]}
-sqlparser = {version = "0.6.1"}
+sqlparser = {version = "0.8.0"}
 maplit = {version = "1.0.2"}
 
 [build-dependencies]
