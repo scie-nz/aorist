@@ -72,7 +72,7 @@ pub use utils::*;
 
 use pyo3::prelude::*;
 use pyo3::wrap_pyfunction;
-use sqlparser::ast::{Query, Select, SetExpr, Statement};
+use sqlparser::ast::{Expr, Query, Select, SetExpr, Statement};
 use sqlparser::dialect::GenericDialect;
 use sqlparser::parser::Parser;
 use std::collections::HashSet;

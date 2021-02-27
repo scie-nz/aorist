@@ -1,5 +1,6 @@
+use core::convert::TryFrom;
 use indoc::formatdoc;
-use sqlparser::ast::{ColumnDef, DataType, Ident};
+use sqlparser::ast::{BinaryOperator, ColumnDef, DataType, Expr, Ident};
 pub trait TValue {}
 
 #[derive(Hash, PartialEq, Eq, Debug, Serialize, Deserialize, Clone, FromPyObject)]
@@ -83,32 +84,76 @@ pub enum AttributeOrValue {
     Attribute(Attribute),
     AttributeValue(AttributeValue),
 }
+impl TryFrom<Expr> for AttributeOrValue {
+    type Error = String;
+    fn try_from(x: Expr) -> Result<Self, String> {
+        Err("bla".into())
+    }
+}
 
 #[derive(Hash, PartialEq, Eq, Debug, Serialize, Deserialize, Clone, FromPyObject)]
 pub enum PredicateInnerOrTerminal {
-    PredicateTerminal(PredicateTerminal),
+    PredicateTerminal(AttributeOrValue),
     PredicateInner(Box<PredicateInner>),
 }
-
-#[derive(Hash, PartialEq, Eq, Debug, Serialize, Deserialize, Clone, FromPyObject)]
-pub struct PredicateTerminal {
-    left: AttributeOrValue,
-    right: AttributeOrValue,
+impl TryFrom<Expr> for PredicateInnerOrTerminal {
+    type Error = String;
+    fn try_from(x: Expr) -> Result<Self, String> {
+        match x {
+            Expr::BinaryOp { .. } => {
+                Ok(Self::PredicateInner(Box::new(PredicateInner::try_from(x)?)))
+            }
+            Expr::Identifier { .. } | Expr::CompoundIdentifier { .. } | Expr::Value { .. } => {
+                Ok(Self::PredicateTerminal(AttributeOrValue::try_from(x)?))
+            }
+            _ => Err("Only Binary operators, identifiers or values supported as nodes".into()),
+        }
+    }
 }
+
 #[derive(Hash, PartialEq, Eq, Debug, Serialize, Deserialize, Clone, FromPyObject)]
 pub struct PredicateInner {
     left: PredicateInnerOrTerminal,
     right: PredicateInnerOrTerminal,
 }
-
 impl<'a> FromPyObject<'a> for Box<PredicateInner> {
     fn extract(ob: &'a PyAny) -> PyResult<Self> {
         let inner = PredicateInner::extract(ob)?;
         Ok(Box::new(inner))
     }
 }
+impl TryFrom<Expr> for PredicateInner {
+    type Error = String;
+    fn try_from(x: Expr) -> Result<Self, String> {
+        match x {
+            Expr::BinaryOp { left, op, right } => match op {
+                BinaryOperator::Gt => Ok(Self {
+                    left: PredicateInnerOrTerminal::try_from(*left)?,
+                    right: PredicateInnerOrTerminal::try_from(*right)?,
+                }),
+                _ => Err("Only > operators supported.".into()),
+            },
+            _ => Err("Only binary operators supported.".into()),
+        }
+    }
+}
 
 #[aorist_concept]
 pub struct Predicate {
     root: PredicateInner,
+}
+
+impl TryFrom<Expr> for Predicate {
+    type Error = String;
+    fn try_from(x: Expr) -> Result<Self, String> {
+        match x {
+            Expr::BinaryOp { .. } => Ok(Self {
+                root: PredicateInner::try_from(x)?,
+                constraints: Vec::new(),
+                tag: None,
+                uuid: None,
+            }),
+            _ => Err("Only binary operators supported.".into()),
+        }
+    }
 }
