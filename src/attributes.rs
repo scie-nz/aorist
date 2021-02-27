@@ -2,16 +2,16 @@ use indoc::formatdoc;
 use sqlparser::ast::{ColumnDef, DataType, Ident};
 pub trait TValue {}
 
-#[aorist_concept]
+#[derive(Hash, PartialEq, Eq, Debug, Serialize, Deserialize, Clone, FromPyObject)]
 pub struct IntegerValue {
     inner: i64,
 }
-#[aorist_concept]
+#[derive(Hash, PartialEq, Eq, Debug, Serialize, Deserialize, Clone, FromPyObject)]
 pub struct StringValue {
-    inner: String
+    inner: String,
 }
-#[aorist_concept]
-pub struct FloatValue{
+#[derive(Hash, PartialEq, Eq, Debug, Serialize, Deserialize, Clone, FromPyObject)]
+pub struct FloatValue {
     sign: i8,
     mantissa: usize,
     exponent: usize,
@@ -21,7 +21,7 @@ impl TValue for IntegerValue {}
 impl TValue for StringValue {}
 impl TValue for FloatValue {}
 
-#[aorist_concept]
+#[derive(Hash, PartialEq, Eq, Debug, Serialize, Deserialize, Clone, FromPyObject)]
 pub enum AttributeValue {
     IntegerValue(IntegerValue),
     StringValue(StringValue),
@@ -78,14 +78,32 @@ pub trait TSQLAttribute: TAttribute {
 include!(concat!(env!("OUT_DIR"), "/attributes.rs"));
 include!(concat!(env!("OUT_DIR"), "/programs.rs"));
 
-#[aorist_concept]
+#[derive(Hash, PartialEq, Eq, Debug, Serialize, Deserialize, Clone, FromPyObject)]
 pub enum AttributeOrValue {
     Attribute(Attribute),
-    AttributeValue(AttributeValue),    
+    AttributeValue(AttributeValue),
 }
-/*
-#[aorist_concept]
-pub struct EqualityPredicate {
+
+#[derive(Hash, PartialEq, Eq, Debug, Serialize, Deserialize, Clone, FromPyObject)]
+pub enum PredicateInnerOrTerminal {
+    PredicateTerminal(PredicateTerminal),
+    PredicateInner(Box<PredicateInner>),
+}
+
+#[derive(Hash, PartialEq, Eq, Debug, Serialize, Deserialize, Clone, FromPyObject)]
+pub struct PredicateTerminal {
     left: AttributeOrValue,
     right: AttributeOrValue,
-}*/
+}
+#[derive(Hash, PartialEq, Eq, Debug, Serialize, Deserialize, Clone, FromPyObject)]
+pub struct PredicateInner {
+    left: PredicateInnerOrTerminal,
+    right: PredicateInnerOrTerminal,
+}
+
+impl<'a> FromPyObject<'a> for Box<PredicateInner> {
+    fn extract(ob: &'a PyAny) -> PyResult<Self> {
+        let inner = PredicateInner::extract(ob)?;
+        Ok(Box::new(inner))
+    }
+}

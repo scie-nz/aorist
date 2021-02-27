@@ -780,7 +780,7 @@ macro_rules! register_constraint {
 #[macro_export]
 macro_rules! register_attribute {
     ( $name:ident, $($element: ident),+ ) => { paste! {
-        #[aorist_concept(derive(Hash))]
+        #[aorist_concept(derive(Hash, Eq))]
         pub enum $name {
             $(
                 $element($element),
@@ -821,6 +821,12 @@ macro_rules! register_attribute {
                         $name::$element(x) => x.get_orc_type(),
                     )+
                 }
+            }
+        }
+        impl<'a> FromPyObject<'a> for $name {
+            fn extract(ob: &'a PyAny) -> PyResult<Self> {
+                let inner = [<Inner $name>]::extract(ob)?;
+                Ok(Self::from(inner))
             }
         }
         impl [<Inner $name>] {
