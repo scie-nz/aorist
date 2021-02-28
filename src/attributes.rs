@@ -424,3 +424,10 @@ impl AttributeOrTransform {
         }
     }
 }
+#[pymethods]
+impl InnerAttribute {
+    #[getter]
+    pub fn name(&self) -> PyResult<String> {
+        Ok(self.inner.get_name().clone())
+    }
+}

@@ -151,6 +151,14 @@ pub fn dag(inner: InnerUniverse, constraints: Vec<String>, mode: &str) -> PyResu
     }
 }
 
+#[pyfunction]
+pub fn attr_list(input: Vec<AttributeEnum>) -> PyResult<Vec<InnerAttribute>> {
+    Ok(input.into_iter().map(|x| InnerAttribute{
+        inner: AttributeOrTransform::Attribute(x),
+        tag: None,
+    }).collect())
+}
+
 #[pymodule]
 fn aorist(py: Python, m: &PyModule) -> PyResult<()> {
     let submod = PyModule::new(py, "attributes")?;
@@ -204,7 +212,7 @@ fn aorist(py: Python, m: &PyModule) -> PyResult<()> {
     m.add_wrapped(wrap_pyfunction!(default_tabular_schema))?;
     m.add_wrapped(wrap_pyfunction!(dag))?;
     m.add_wrapped(wrap_pyfunction!(derive_integer_measure))?;
-    //m.add_wrapped(wrap_pyfunction!(derive_asset))?;
+    m.add_wrapped(wrap_pyfunction!(attr_list))?;
     m.add("SQLParseError", py.get_type::<SQLParseError>())?;
     Ok(())
 }

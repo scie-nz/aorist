@@ -14,6 +14,7 @@ from aorist import (
     default_tabular_schema,
     DataSet,
     IdentifierTuple,
+    attr_list,
 )
 
 # hacky import since submodule imports don't work well
@@ -21,10 +22,10 @@ from aorist import attributes as attr
 
 edge_tuple = IdentifierTuple(
     name="edge",
-    attributes=[
+    attributes=attr_list([
         attr.NumericIdentifier("from_id"),
         attr.NumericIdentifier("to_id"),
-    ],
+    ]),
 )
 names = [
     "ca-AstroPh",

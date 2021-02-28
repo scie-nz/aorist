@@ -121,6 +121,7 @@ from aorist import (
     ComputedFromLocalData,
     SVMRegressionAlgorithm,
     SupervisedModel,
+    attr_list,
 )
 
 # hacky import since submodule imports don't work well
@@ -130,7 +131,7 @@ from aorist import attributes as attr
 Defining dataset
 """
 # Attributes in the dataset
-attributes = [
+attributes = attr_list([
     attr.Categorical("wine_class_identifier"),
     attr.PositiveFloat("alcohol"),
     attr.PositiveFloat("malic_acid"),
@@ -144,7 +145,7 @@ attributes = [
     attr.PositiveFloat("hue"),
     attr.PositiveFloat("od_280__od_315_diluted_wines"),
     attr.PositiveFloat("proline"),
-]
+])
 # A row is equivalent to a struct
 wine_datum = RowStruct(
     name="wine_datum",

@@ -17,10 +17,11 @@ from aorist import (
     DataSet,
     ComputedFromLocalData,
     derive_integer_measure,
+    attr_list,
 )
 
 # From: https://geonames.nga.mil/gns/html/gis_countryfiles.html
-attributes = [
+attributes = attr_list([
     # TODO: need richer attribute
     attr.NullableInt64(
         "rc",
@@ -415,7 +416,7 @@ attributes = [
         verified on cartographic source or imagery (YYYY-MM-DD).
         """,
     ),
-]
+])
 geonames_datum = RowStruct(
     name="geonames_datum",
     attributes=attributes,
