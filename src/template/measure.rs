@@ -42,10 +42,10 @@ impl TDatumTemplate for IntegerMeasure {
 impl IntegerMeasure {
     pub fn get_frequency_attribute(&self) -> Attribute {
         Attribute {
-            inner: AttributeEnum::Count(Count {
+            inner: AttributeOrTransform::Attribute(AttributeEnum::Count(Count {
                 name: self.name.clone(),
                 comment: self.comment.clone(),
-            }),
+            })),
             tag: None,
             uuid: None,
             constraints: Vec::new(),
@@ -70,7 +70,9 @@ impl TDatumTemplate for TrainedFloatMeasure {
         let prediction_attribute = self.get_prediction_attribute();
         attr.push(prediction_attribute);
         attr.push(Attribute {
-            inner: AttributeEnum::Regressor(self.get_regressor_as_attribute().clone()),
+            inner: AttributeOrTransform::Attribute(AttributeEnum::Regressor(
+                self.get_regressor_as_attribute().clone(),
+            )),
             constraints: Vec::new(),
             tag: None,
             uuid: None,
@@ -85,10 +87,12 @@ impl TDatumTemplate for TrainedFloatMeasure {
 impl TrainedFloatMeasure {
     pub fn get_prediction_attribute(&self) -> Attribute {
         Attribute {
-            inner: AttributeEnum::FloatPrediction(FloatPrediction {
-                name: self.name.clone(),
-                comment: self.comment.clone(),
-            }),
+            inner: AttributeOrTransform::Attribute(AttributeEnum::FloatPrediction(
+                FloatPrediction {
+                    name: self.name.clone(),
+                    comment: self.comment.clone(),
+                },
+            )),
             tag: None,
             uuid: None,
             constraints: Vec::new(),

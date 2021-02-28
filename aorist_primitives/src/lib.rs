@@ -829,11 +829,11 @@ macro_rules! register_attribute {
         }
         #[aorist_concept(derivative(Hash))]
         pub struct $name {
-            pub inner: [<$name Enum>],
+            pub inner: AttributeOrTransform,
         }
         impl<'a> FromPyObject<'a> for $name {
             fn extract(ob: &'a PyAny) -> PyResult<Self> {
-                let inner = [<$name Enum>]::extract(ob)?;
+                let inner = AttributeOrTransform::extract(ob)?;
                 Ok(Self{ inner, constraints: Vec::new(), tag: None, uuid: None })
             }
         }

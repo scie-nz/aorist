@@ -327,18 +327,62 @@ impl InnerPredicate {
 }
 
 #[derive(Hash, PartialEq, Eq, Debug, Serialize, Deserialize, Clone, FromPyObject)]
-struct IdentityTransform {
-    attribute: AttributeEnum,
+pub struct IdentityTransform {
+    attribute: AttributeOrTransform,
     name: String,
 }
-
-#[derive(Hash, PartialEq, Eq, Debug, Serialize, Deserialize, Clone, FromPyObject)]
-enum Transform {
-    IdentityTransform(IdentityTransform),
+impl IdentityTransform {
+    pub fn get_name(&self) -> &String {
+        &self.name
+    }
+    pub fn get_comment(&self) -> &Option<String> {
+        self.attribute.get_comment()
+    }
+    fn get_sql_type(&self) -> DataType {
+        self.attribute.get_sql_type()
+    }
+    pub fn get_presto_type(&self) -> String {
+        self.attribute.get_presto_type()
+    }
+    pub fn get_orc_type(&self) -> String {
+        self.attribute.get_orc_type()
+    }
 }
 
 #[derive(Hash, PartialEq, Eq, Debug, Serialize, Deserialize, Clone, FromPyObject)]
-enum AttributeOrTransform {
+pub enum Transform {
+    IdentityTransform(IdentityTransform),
+}
+impl Transform {
+    pub fn get_name(&self) -> &String {
+        match &self {
+            Transform::IdentityTransform(x) => x.get_name(),
+        }
+    }
+    pub fn get_comment(&self) -> &Option<String> {
+        match &self {
+            Transform::IdentityTransform(x) => x.get_comment(),
+        }
+    }
+    fn get_sql_type(&self) -> DataType {
+        match &self {
+            Transform::IdentityTransform(x) => x.get_sql_type(),
+        }
+    }
+    pub fn get_presto_type(&self) -> String {
+        match &self {
+            Transform::IdentityTransform(x) => x.get_presto_type(),
+        }
+    }
+    pub fn get_orc_type(&self) -> String {
+        match &self {
+            Transform::IdentityTransform(x) => x.get_orc_type(),
+        }
+    }
+}
+
+#[derive(Hash, PartialEq, Eq, Debug, Serialize, Deserialize, Clone, FromPyObject)]
+pub enum AttributeOrTransform {
     Attribute(AttributeEnum),
     Transform(Box<Transform>),
 }
@@ -346,5 +390,37 @@ impl<'a> FromPyObject<'a> for Box<Transform> {
     fn extract(ob: &'a PyAny) -> PyResult<Self> {
         let inner = Transform::extract(ob)?;
         Ok(Box::new(inner))
+    }
+}
+impl AttributeOrTransform {
+    pub fn get_name(&self) -> &String {
+        match &self {
+            AttributeOrTransform::Attribute(x) => x.get_name(),
+            AttributeOrTransform::Transform(x) => x.get_name(),
+        }
+    }
+    pub fn get_comment(&self) -> &Option<String> {
+        match &self {
+            AttributeOrTransform::Attribute(x) => x.get_comment(),
+            AttributeOrTransform::Transform(x) => x.get_comment(),
+        }
+    }
+    fn get_sql_type(&self) -> DataType {
+        match &self {
+            AttributeOrTransform::Attribute(x) => x.get_sql_type(),
+            AttributeOrTransform::Transform(x) => x.get_sql_type(),
+        }
+    }
+    pub fn get_presto_type(&self) -> String {
+        match &self {
+            AttributeOrTransform::Attribute(x) => x.get_presto_type(),
+            AttributeOrTransform::Transform(x) => x.get_presto_type(),
+        }
+    }
+    pub fn get_orc_type(&self) -> String {
+        match &self {
+            AttributeOrTransform::Attribute(x) => x.get_orc_type(),
+            AttributeOrTransform::Transform(x) => (*x).get_orc_type(),
+        }
     }
 }
