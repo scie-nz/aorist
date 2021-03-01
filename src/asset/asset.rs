@@ -21,6 +21,12 @@ pub enum Asset {
     SupervisedModel(SupervisedModel),
 }
 
+pub trait TAsset {
+    fn get_name(&self) -> String;
+    fn get_schema(&self) -> DataSchema;
+    fn get_storage_setup(&self) -> StorageSetup;
+}
+
 impl Asset {
     pub fn get_name(&self) -> String {
         match self {

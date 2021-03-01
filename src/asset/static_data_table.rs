@@ -1,4 +1,5 @@
 #![allow(non_snake_case)]
+use crate::asset::asset::TAsset;
 use crate::concept::{AoristConcept, Concept};
 use crate::constraint::Constraint;
 use crate::schema::*;
@@ -18,4 +19,16 @@ pub struct StaticDataTable {
     pub setup: StorageSetup,
     #[constrainable]
     pub schema: DataSchema,
+}
+
+impl TAsset for StaticDataTable {
+    fn get_name(&self) -> String {
+        self.name.clone()
+    }
+    fn get_schema(&self) -> DataSchema {
+        self.schema.clone()
+    }
+    fn get_storage_setup(&self) -> StorageSetup {
+        self.setup.clone()
+    }
 }
