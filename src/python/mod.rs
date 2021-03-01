@@ -36,12 +36,14 @@ pub fn format_code(code: String) -> PyResult<String> {
 
     let mut kwargs = HashMap::<&str, &PyAny>::new();
     kwargs.insert("mode", mode);
-    black
+    if let Ok(res) = black
         .call(
             "format_str",
             PyTuple::new(py, &[py_code]),
             Some(kwargs.into_py_dict(py)),
-        )
-        .unwrap()
-        .extract()
+        ) {
+        return res.extract();
+    } else {
+        panic!(format!("Error formatting code block: \n{}\n---", py_code));
+    }
 }

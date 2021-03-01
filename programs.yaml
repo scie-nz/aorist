@@ -786,16 +786,7 @@ spec:
                 data = orc.ORCFile(f)
                 df = data.read().to_pandas()
                 datasets += [df]
-  call: |
-    download_and_train(
-        {minio_hostname},
-        {minio_port},
-        {minio_access_key},
-        {minio_secret_key},
-        {minio_bucket},
-        {minio_prefix},
-        {tmp_dir},
-    )
+  call: download_and_train
   kwargs:
     minio:
       type: AncestorArgument
