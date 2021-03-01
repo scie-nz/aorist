@@ -14,6 +14,6 @@ use uuid::Uuid;
 pub struct ComputedFromLocalData {
     pub source_asset_name: String,
     #[constrainable]
-    target: Storage,
+    pub target: Storage,
     pub tmp_dir: String,
 }

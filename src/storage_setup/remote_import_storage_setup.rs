@@ -13,8 +13,8 @@ use uuid::Uuid;
 #[aorist_concept]
 pub struct RemoteImportStorageSetup {
     #[constrainable]
-    remote: Storage,
+    pub remote: Storage,
     #[constrainable]
-    local: Vec<Storage>,
+    pub local: Vec<Storage>,
     pub tmp_dir: String,
 }

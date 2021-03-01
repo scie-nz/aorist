@@ -40,6 +40,17 @@ impl DataSet {
             )),
         }
     }
+    pub fn get_asset(&self, name: String) -> Result<Asset, String> {
+        for asset in self.assets.iter() {
+            if asset.get_name() == name {
+                return Ok(asset.clone());
+            }
+        }
+        Err(format!(
+            "Could not find asset {} in dataset {}.",
+            name, self.name
+        ).to_string())
+    }
 }
 impl TAoristObject for DataSet {
     fn get_name(&self) -> &String {

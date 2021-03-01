@@ -740,3 +740,120 @@ spec:
             };
             sqlformat::format(&query, &params, options).to_string()
           }
+---
+type: Program
+spec:
+  use: SVMRegressionModelsTrained
+  root: SupervisedModel
+  dialect: Python
+  preamble: |
+    def download_and_train(
+        minio,
+        minio_prefix,
+        tmp_dir,
+    ):
+
+        import pandas as pd
+        import pyarrow.orc as orc
+        from minio import Minio
+        import json
+
+        (
+            minio_hostname, minio_port, minio_access_key,
+            minio_secret_key, minio_bucket
+        ) = json.loads(minio)
+
+
+        client = Minio(
+            "%s:%s" % (minio_hostname, minio_port),
+            access_key=minio_access_key,
+            secret_key=minio_secret_key,
+            secure=False,
+        )
+
+        assert client.bucket_exists(minio_bucket)
+        objects = client.list_objects(minio_bucket, prefix=minio_prefix)
+        datasets = []
+        for i, obj in enumerate(objects):
+            dest_file = '%s/%000d' % (tmp_dir, i)
+            client.fget_object(
+                minio_bucket,
+                obj.name,
+                file_path=dest_file,
+            )
+
+            with open(dest_file) as f:
+                data = orc.ORCFile(f)
+                df = data.read().to_pandas()
+                datasets += [df]
+  call: |
+    download_and_train(
+        {minio_hostname},
+        {minio_port},
+        {minio_access_key},
+        {minio_secret_key},
+        {minio_bucket},
+        {minio_prefix},
+        {tmp_dir},
+    )
+  kwargs:
+    minio:
+      type: AncestorArgument
+      spec:
+        attaches: Universe
+        call: |
+          {
+            let endpoint_config = universe.endpoints.clone();
+            let minio = endpoint_config.minio.unwrap();
+            format!(
+                "[\"{}\", {}, \"{}\", \"{}\", \"{}\"]",
+                minio.server,
+                minio.port,
+                minio.access_key,
+                minio.secret_key,
+                minio.bucket,
+            ).to_string()
+          }
+    tmp_dir:
+      type: AncestorArgument
+      spec:
+        attaches: SupervisedModel
+        call: supervised_model.setup.get_tmp_dir()
+    minio_prefix:
+      type: MultipleAncestorsArgument
+      spec:
+        attaches:
+          - SupervisedModel
+          - DataSet
+        call: |
+          {
+            let computed_from_local_data = match &supervised_model.setup {
+                StorageSetup::ComputedFromLocalData(m) => m,
+                _ => panic!("Only ComputedFromLocalData StorageSetups allowed here."),
+            };
+            let source = computed_from_local_data.source_asset_name.clone();
+            let source_asset = data_set.get_asset(source).unwrap();
+            let storage_setup = source_asset.get_storage_setup();
+            let local = storage_setup.get_local_storage();
+            let minio = local
+              .into_iter()
+              .map(
+                |x| if let Storage::HiveTableStorage(hive) = x {
+                  return Some(hive)
+                } else {
+                  return None
+                }
+              ).filter(|x| x.is_some())
+              .map(
+                |x| if let HiveLocation::MinioLocation(m) = x.unwrap().location {
+                  return Some(m);
+                } else {
+                  return None;
+                }
+              )
+              .filter(|x| x.is_some())
+              .map(|x| x.unwrap())
+              .next()
+              .unwrap();
+            minio.name
+          }

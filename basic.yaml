@@ -52,6 +52,7 @@ spec:
     - HistogramsComputed
     - Replicated
     - ComputeFilter
+    - SVMRegressionModelsTrained
 ---
 type: Constraint
 spec:
