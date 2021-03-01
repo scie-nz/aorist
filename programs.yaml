@@ -751,6 +751,8 @@ spec:
         minio,
         minio_prefix,
         tmp_dir,
+        objective,
+        features,
     ):
 
         import pandas as pd
@@ -778,21 +780,63 @@ spec:
             dest_file = '%s/%000d' % (tmp_dir, i)
             client.fget_object(
                 minio_bucket,
-                obj.name,
+                obj.object_name,
                 file_path=dest_file,
             )
 
-            with open(dest_file) as f:
+            with open(dest_file, 'rb') as f:
                 data = orc.ORCFile(f)
                 df = data.read().to_pandas()
                 datasets += [df]
+        data = pd.concat(datasets)
+
   call: download_and_train
   kwargs:
+    objective:
+      type: MultipleAncestorsArgument
+      spec:
+        attaches:
+          - SupervisedModel
+          - DataSet
+        call: >
+          {
+            let template = data_set.get_template_for_asset(supervised_model);
+            let tfm = match template {
+                Ok(DatumTemplate::TrainedFloatMeasure(m)) => m,
+                Err(x) => panic!(x),
+                _ => panic!(format!(
+                    "Cannot train an SVM Regression Model on asset with with template {}",
+                    supervised_model.get_schema().get_datum_template_name(),
+               )),
+            };
+            tfm.get_training_objective().get_name().clone()
+          }
+    features:
+      type: MultipleAncestorsArgument
+      spec:
+        attaches:
+          - SupervisedModel
+          - DataSet
+        call: >
+          {
+            let template = data_set.get_template_for_asset(supervised_model);
+            let tfm = match template {
+                Ok(DatumTemplate::TrainedFloatMeasure(m)) => m,
+                Err(x) => panic!(x),
+                _ => panic!(format!(
+                    "Cannot train an SVM Regression Model on asset with with template {}",
+                    supervised_model.get_schema().get_datum_template_name(),
+               )),
+            };
+            format!("[{}]",
+                tfm.features.iter().map(|x| format!("\"{}\"", x.get_name()).to_string()).collect::<Vec<String>>().join(","),
+            ).to_string()
+          }
     minio:
       type: AncestorArgument
       spec:
         attaches: Universe
-        call: |
+        call: >
           {
             let endpoint_config = universe.endpoints.clone();
             let minio = endpoint_config.minio.unwrap();
@@ -813,11 +857,8 @@ spec:
     minio_prefix:
       type: MultipleAncestorsArgument
       spec:
-        attaches:
-          - SupervisedModel
-          - DataSet
         call: |
-          {
+            {
             let computed_from_local_data = match &supervised_model.setup {
                 StorageSetup::ComputedFromLocalData(m) => m,
                 _ => panic!("Only ComputedFromLocalData StorageSetups allowed here."),
@@ -846,5 +887,8 @@ spec:
               .map(|x| x.unwrap())
               .next()
               .unwrap();
-            minio.name
-          }
+            format!("{}/{}/", minio.name, supervised_model.name)
+            }
+        attaches:
+          - SupervisedModel
+          - DataSet
