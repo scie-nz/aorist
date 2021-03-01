@@ -127,9 +127,7 @@ impl PrestoPythonTask {
             AST::Call(Call::new_wrapped(
                 AST::Attribute(Attribute::new_wrapped(
                     AST::Attribute(Attribute::new_wrapped(
-                        AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
-                            "trino".to_string(),
-                        )),
+                        AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("trino".to_string())),
                         "dbapi".to_string(),
                         false,
                     )),

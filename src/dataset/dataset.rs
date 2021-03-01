@@ -46,10 +46,7 @@ impl DataSet {
                 return Ok(asset.clone());
             }
         }
-        Err(format!(
-            "Could not find asset {} in dataset {}.",
-            name, self.name
-        ).to_string())
+        Err(format!("Could not find asset {} in dataset {}.", name, self.name).to_string())
     }
 }
 impl TAoristObject for DataSet {

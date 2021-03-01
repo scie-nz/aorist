@@ -153,10 +153,13 @@ pub fn dag(inner: InnerUniverse, constraints: Vec<String>, mode: &str) -> PyResu
 
 #[pyfunction]
 pub fn attr_list(input: Vec<AttributeEnum>) -> PyResult<Vec<InnerAttribute>> {
-    Ok(input.into_iter().map(|x| InnerAttribute{
-        inner: AttributeOrTransform::Attribute(x),
-        tag: None,
-    }).collect())
+    Ok(input
+        .into_iter()
+        .map(|x| InnerAttribute {
+            inner: AttributeOrTransform::Attribute(x),
+            tag: None,
+        })
+        .collect())
 }
 
 #[pymodule]

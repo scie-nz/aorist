@@ -6,14 +6,13 @@ use crate::schema::*;
 use crate::storage::*;
 use crate::storage_setup::*;
 use crate::template::*;
+use linked_hash_map::LinkedHashMap;
 use pyo3::create_exception;
 use pyo3::exceptions::PyException;
 use pyo3::prelude::*;
 use sqlparser::ast::{Query, Select, SelectItem, SetExpr, TableFactor};
 use std::collections::HashMap;
-use linked_hash_map::LinkedHashMap;
 create_exception!(aorist, SQLParseError, PyException);
-
 
 pub type AttrMap = HashMap<String, HashMap<String, LinkedHashMap<String, Attribute>>>;
 
