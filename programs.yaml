@@ -759,6 +759,9 @@ spec:
         import pyarrow.orc as orc
         from minio import Minio
         import json
+        from skl2onnx import convert_sklearn
+        from skl2onnx.common.data_types import FloatTensorType
+        from sklearn.svm import SVR
 
         (
             minio_hostname, minio_port, minio_access_key,
@@ -789,6 +792,18 @@ spec:
                 df = data.read().to_pandas()
                 datasets += [df]
         data = pd.concat(datasets)
+
+        features = json.loads(features)
+        X = data[features].to_numpy()
+        y = data[objective].to_numpy()
+        svr = SVR(epsilon=0.2, verbose=True)
+        model = svr.fit(X, y)
+
+        num_features = len(features)
+        initial_type = [('float_input', FloatTensorType([None, num_features]))]
+        onx = convert_sklearn(model, initial_types=initial_type)
+        with open("rf_iris.onnx", "wb") as f:
+            f.write(onx.SerializeToString())
 
   call: download_and_train
   kwargs:
@@ -864,7 +879,7 @@ spec:
                 _ => panic!("Only ComputedFromLocalData StorageSetups allowed here."),
             };
             let source = computed_from_local_data.source_asset_name.clone();
-            let source_asset = data_set.get_asset(source).unwrap();
+            let source_asset = data_set.get_asset(source.clone()).unwrap();
             let storage_setup = source_asset.get_storage_setup();
             let local = storage_setup.get_local_storage();
             let minio = local
@@ -887,7 +902,7 @@ spec:
               .map(|x| x.unwrap())
               .next()
               .unwrap();
-            format!("{}/{}/", minio.name, supervised_model.name)
+              format!("{}/{}/", minio.name, source)
             }
         attaches:
           - SupervisedModel
