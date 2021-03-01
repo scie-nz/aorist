@@ -50,7 +50,6 @@ spec:
   root: Universe
   requires:
     - HistogramsComputed
-    - SVMRegressionModelsTrained
     - Replicated
     - ComputeFilter
 ---
@@ -216,6 +215,7 @@ spec:
   requiresProgram: true
   requires:
     - FileIsDecompressed
+    - DownloadDataFromRemote
   title: Removing file header
   body: |
       We are dealing with a tabular file with a header. Before we can
@@ -298,7 +298,7 @@ spec:
   title: Upload data to Min.IO
   body: |
       Now that data has been pre-processed we can upload it to the underlying
-      Alluxio storage.
+      Min.IO storage.
   attachIf: |
       |root: Concept<'a>, ancestry: &ConceptAncestry<'a>|
       ancestry.remote_import_storage_setup(root.clone()).is_ok()

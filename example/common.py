@@ -23,14 +23,14 @@ alluxio_config = AlluxioConfig(
 ranger_config = RangerConfig(
     server="localhost", user="admin", password="G0powerRangers"
 )
-presto_config = PrestoConfig(server="presto-coordinator-headless", user="bogdan")
+presto_config = PrestoConfig(server="trino-coordinator-headless", user="bogdan")
 gitea_config = GiteaConfig(token="2b44b07e042ee9fe374e3eeebd2c9098468b5774")
 minio_config = MinioConfig(
     server="minio",
     port=9000,
     bucket="minio-test-bucket",
-    access_key="5GfOoRgz3NDAEFxo7lwa",
-    secret_key="gxhtXmhOTa5hfcYwXiQSKPqEAf6JSbdBuDepMFCG",
+    access_key="cppBrbSkEg5Vet6Mb0D4",
+    secret_key="eRtRoywXqKBj0yHDyIaYb0c1Xnr5A3mCGsiT67Y1",
 )
 endpoints = EndpointConfig(
     alluxio=alluxio_config,

@@ -270,7 +270,7 @@ impl PredicateInner {
                     BinaryOperator::Eq => Operator::Eq("=".to_string()),
                     BinaryOperator::NotEq => Operator::NotEq("!=".to_string()),
                     BinaryOperator::Lt => Operator::Lt("<".to_string()),
-                    BinaryOperator::LtEq => Operator::GtEq("<=".to_string()),
+                    BinaryOperator::LtEq => Operator::LtEq("<=".to_string()),
                     _ => return Err("Only > operators supported.".into()),
                 };
                 Ok(Self {

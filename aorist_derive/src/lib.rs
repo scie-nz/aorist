@@ -45,6 +45,34 @@ pub fn derive_presto_real(input: TokenStream) -> TokenStream {
     gen.into()
 }
 
+#[proc_macro_derive(PrestoRegressor)]
+pub fn derive_presto_regressor(input: TokenStream) -> TokenStream {
+    let ast: syn::DeriveInput = syn::parse(input).unwrap();
+    let name = &ast.ident;
+    let gen = quote! {
+        impl TPrestoAttribute for #name {
+            fn get_presto_type(&self) -> String {
+                        "REGRESSOR".to_string()
+            }
+        }
+    };
+    gen.into()
+}
+
+#[proc_macro_derive(PrestoDouble)]
+pub fn derive_presto_double(input: TokenStream) -> TokenStream {
+    let ast: syn::DeriveInput = syn::parse(input).unwrap();
+    let name = &ast.ident;
+    let gen = quote! {
+        impl TPrestoAttribute for #name {
+            fn get_presto_type(&self) -> String {
+                        "DOUBLE".to_string()
+            }
+        }
+    };
+    gen.into()
+}
+
 #[proc_macro_derive(OrcString)]
 pub fn derive_orc_string(input: TokenStream) -> TokenStream {
     let ast: syn::DeriveInput = syn::parse(input).unwrap();

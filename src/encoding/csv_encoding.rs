@@ -16,8 +16,8 @@ use uuid::Uuid;
 pub struct CSVEncoding {
     #[py_default = "None"]
     #[constrainable]
-    compression: Option<DataCompression>,
+    pub compression: Option<DataCompression>,
     #[py_default = "None"]
     #[constrainable]
-    header: Option<FileHeader>,
+    pub header: Option<FileHeader>,
 }

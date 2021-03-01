@@ -11,9 +11,11 @@ use pyo3::exceptions::PyException;
 use pyo3::prelude::*;
 use sqlparser::ast::{Query, Select, SelectItem, SetExpr, TableFactor};
 use std::collections::HashMap;
+use linked_hash_map::LinkedHashMap;
 create_exception!(aorist, SQLParseError, PyException);
 
-pub type AttrMap = HashMap<String, HashMap<String, HashMap<String, Attribute>>>;
+
+pub type AttrMap = HashMap<String, HashMap<String, LinkedHashMap<String, Attribute>>>;
 
 pub struct SQLParser {
     attr_map: AttrMap,

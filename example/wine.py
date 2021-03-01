@@ -193,7 +193,7 @@ classifier_storage = HiveTableStorage(
     encoding=ORCEncoding(),
 )
 
-features = attributes[2:]
+features = attributes[2:10]
 classifier_template = TrainedFloatMeasure(
     name="predicted_alcohol",
     comment="""

@@ -80,7 +80,7 @@ define_task_node!(
     |_task: &PrestoPythonTask| {
         vec![
             Import::ModuleImport("subprocess".to_string(), None),
-            Import::ModuleImport("prestodb".to_string(), None),
+            Import::ModuleImport("trino".to_string(), None),
             Import::ModuleImport("re".to_string(), None),
         ]
     },
@@ -128,7 +128,7 @@ impl PrestoPythonTask {
                 AST::Attribute(Attribute::new_wrapped(
                     AST::Attribute(Attribute::new_wrapped(
                         AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
-                            "prestodb".to_string(),
+                            "trino".to_string(),
                         )),
                         "dbapi".to_string(),
                         false,

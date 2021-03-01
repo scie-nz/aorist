@@ -502,8 +502,7 @@ spec:
   use: ConvertToCSV
   root: RemoteStorage
   dialect: Bash
-  call: >
-    {call}
+  call: "{call}"
   kwargs:
     call:
       type: MultipleAncestorsArgument
@@ -512,14 +511,23 @@ spec:
           {
             let tmp_dir = &remote_import_storage_setup.tmp_dir;
             let file_name = &static_data_table.name;
+            let source = match &remote_storage.encoding.get_header() {
+                Some(_) => format!("{}/{}.no_header", tmp_dir, file_name).to_string(),
+                None => match &remote_storage.encoding.get_compression() {
+                    Some(_) => format!("{}/{}.txt", tmp_dir, file_name),
+                    None => format!("{}/{}.downloaded", tmp_dir, file_name),
+                }
+            };
             match &remote_storage.encoding {
                Encoding::CSVEncoding(_) => format!(
-                  "mv {tmp_dir}/{file_name}.no_header {tmp_dir}/{file_name}.csv",
+                  "mv {source} {tmp_dir}/{file_name}.csv",
+                  source=source,
                   tmp_dir=tmp_dir,
                   file_name=file_name,
                ).to_string(),
                Encoding::TSVEncoding(_) => format!(
-                  "cat {tmp_dir}/{file_name}.no_header | tr '\\\\t' ',' > {tmp_dir}/{file_name}.csv",
+                  "cat {source} | tr '\\\\t' ',' > {tmp_dir}/{file_name}.csv",
+                  source=source,
                   tmp_dir=tmp_dir,
                   file_name=file_name,
                ).to_string(),
@@ -661,14 +669,14 @@ spec:
                )),
             };
             format!("
-            INSERT INTO {presto_schema}.{table_name}
-            SELECT
-                CAST(LEARN_REGRESSOR(
+            CREATE TABLE {presto_schema}.tmp_{table_name}_regressor
+            AS SELECT
+                LEARN_REGRESSOR(
                     {objective},
                     FEATURES(
                         {features}
                     )
-                ) AS VARCHAR) AS {model_column_name}
+                ) AS {model_column_name}
             FROM {presto_schema}.{source_table_name}",
                 source_table_name=tfm.source_asset_name,
                 objective=tfm.get_training_objective().get_name().clone(),
@@ -726,11 +734,10 @@ spec:
                     .collect::<Vec<String>>()
                     .join(",\n"),
             ).to_string();
-
             let params = sqlformat::QueryParams::None;
-            let options = sqlformat::FormatOptions { 
+            let options = sqlformat::FormatOptions {
                 indent: sqlformat::Indent::Spaces(4),
-                uppercase: true, 
+                uppercase: true,
                 lines_between_queries: 1
             };
             sqlformat::format(&query, &params, options).to_string()

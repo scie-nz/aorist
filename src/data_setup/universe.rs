@@ -16,6 +16,7 @@ use crate::user::*;
 use crate::user_group::*;
 use aorist_concept::{aorist_concept, Constrainable, InnerObject};
 use derivative::Derivative;
+use linked_hash_map::LinkedHashMap;
 use paste::paste;
 use pyo3::create_exception;
 use pyo3::exceptions::PyException;
@@ -135,7 +136,7 @@ impl InnerUniverse {
                             .into_iter()
                             .map(|v| (v.get_name().clone(), v))
                             .collect::<HashMap<String, Attribute>>();
-                        let mut map = HashMap::new();
+                        let mut map = LinkedHashMap::new();
                         for k in attribute_names {
                             let attr = attributes.remove(&k);
                             if let Some(a) = attr {

@@ -75,7 +75,7 @@ type: Attribute
 spec:
   name: FloatLatitude
   orc: OrcFloat
-  presto: PrestoReal
+  presto: PrestoDouble
   sql: SQLReal
   value: FloatValue
 ---
@@ -83,7 +83,7 @@ type: Attribute
 spec:
   name: FloatLongitude
   orc: OrcFloat
-  presto: PrestoReal
+  presto: PrestoDouble
   sql: SQLReal
   value: FloatValue
 ---
@@ -107,7 +107,7 @@ type: Attribute
 spec:
   name: PositiveFloat
   orc: OrcFloat
-  presto: PrestoReal
+  presto: PrestoDouble
   sql: SQLReal
   value: FloatValue
 ---
@@ -123,7 +123,7 @@ type: Attribute
 spec:
   name: FloatPrediction
   orc: OrcFloat
-  presto: PrestoReal
+  presto: PrestoDouble
   sql: SQLReal
   value: FloatValue
 ---
