@@ -25,6 +25,22 @@ pub struct DataSet {
     #[constrainable]
     pub assets: Vec<Asset>,
 }
+impl DataSet {
+    pub fn get_template_for_asset<T: TAsset>(&self, asset: &T) -> Result<DatumTemplate, String> {
+        let schema = asset.get_schema();
+        let template_name = schema.get_datum_template_name();
+        let mapped_templates = self.get_mapped_datum_templates();
+        let template = mapped_templates.get(&template_name);
+        match template {
+            Some(template) => Ok(template.clone()),
+            None => Err(format!(
+                "Could not find template for asset {} in dataset {}",
+                asset.get_name(),
+                self.name,
+            )),
+        }
+    }
+}
 impl TAoristObject for DataSet {
     fn get_name(&self) -> &String {
         &self.name

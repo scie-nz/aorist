@@ -657,15 +657,13 @@ spec:
           - DataSet
         call: >
           {
-            use crate::template::DatumTemplate;
-            let DataSchema::TabularSchema(ref t) = supervised_model.schema;
-            let mapped_templates = data_set.get_mapped_datum_templates();
-            let template = mapped_templates.get(&t.datumTemplateName);
+            let template = data_set.get_template_for_asset(supervised_model);
             let tfm = match template {
-                Some(DatumTemplate::TrainedFloatMeasure(m)) => m,
+                Ok(DatumTemplate::TrainedFloatMeasure(m)) => m,
+                Err(x) => panic!(x),
                 _ => panic!(format!(
                     "Cannot train an SVM Regression Model on asset with with template {}",
-                    t.datumTemplateName
+                    supervised_model.get_schema().get_datum_template_name(),
                )),
             };
             format!("
