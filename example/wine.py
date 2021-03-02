@@ -123,7 +123,6 @@ from aorist import (
     SupervisedModel,
     attr_list,
     ONNXEncoding,
-    SingleFileLayout,
     LocalFileStorage,
 )
 
@@ -195,7 +194,6 @@ classifier_storage = LocalFileStorage(
     layout=SingleFileLayout(),
     encoding=ONNXEncoding(),
 )
-
 features = attributes[2:10]
 classifier_template = TrainedFloatMeasure(
     name="predicted_alcohol",
@@ -217,7 +215,27 @@ regression_model = SupervisedModel(
     name="wine_alcohol_predictor",
     tag="predictor",
     setup=classifier_setup,
+    # TODO: change this to model prediction schema
     schema=classifier_template.get_model_storage_tabular_schema(),
     algorithm=SVMRegressionAlgorithm(),
 )
 wine_dataset.add_asset(regression_model)
+
+predictions_storage = HiveTableStorage(
+    location=MinioLocation(name="wine"),
+    layout=StaticHiveTableLayout(),
+    encoding=ORCEncoding(),
+)
+predictions_schema = default_tabular_schema(classifier_template)
+predictions_setup = ComputedFromLocalData(
+    source_asset_name="wine_alcohol_predictor",
+    target=predictions_storage,
+    tmp_dir="/tmp/wine_predictions",
+)
+predictions_table = StaticDataTable(
+    tag="wine_predictions",
+    name="wine_predictions",
+    schema=default_tabular_schema(classifier_template),
+    setup=predictions_setup,
+)
+wine_dataset.add_asset(predictions_table)
