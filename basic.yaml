@@ -480,7 +480,7 @@ spec:
             let mapped_templates = data_set.get_mapped_datum_templates();
             let template = mapped_templates.get(&t.datumTemplateName);
             return match template {
-                Some(DatumTemplate::TrainedFloatMeasure(_)) => true,
+                Some(DatumTemplate::PredictionsFromTrainedFloatMeasure(_)) => true,
                 None => panic!(format!("Could not find datum template: {}", t.datumTemplateName)),
                 _ => false,
             };

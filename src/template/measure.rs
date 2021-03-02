@@ -135,9 +135,6 @@ pub struct PredictionsFromTrainedFloatMeasure {
     pub features: Vec<Attribute>,
     #[constrainable]
     pub objective: Attribute,
-
-    pub model_asset_name: String,
-    pub features_asset_name: String,
 }
 impl PredictionsFromTrainedFloatMeasure {
     pub fn get_name(&self) -> String {
@@ -148,5 +145,11 @@ impl PredictionsFromTrainedFloatMeasure {
         let prediction_attribute = self.objective.clone();
         attr.push(prediction_attribute);
         attr
+    }
+    pub fn get_model_asset_role(&self) -> String {
+        "model".to_string()
+    }
+    pub fn get_source_asset_role(&self) -> String {
+        "source".to_string()
     }
 }

@@ -25,6 +25,9 @@ pub trait TAsset {
     fn get_name(&self) -> String;
     fn get_schema(&self) -> DataSchema;
     fn get_storage_setup(&self) -> StorageSetup;
+    fn get_template_name(&self) -> String {
+        self.get_schema().get_datum_template_name()
+    }
 }
 
 impl Asset {
