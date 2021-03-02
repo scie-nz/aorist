@@ -409,18 +409,18 @@ spec:
       |root: Concept<'a>, ancestry: &ConceptAncestry<'a>| {
           let setup = ancestry.computed_from_local_data(root.clone()).unwrap();
           let dataset = ancestry.data_set(root.clone()).unwrap();
-          if let Some(source_asset) = dataset
-              .assets
-              .iter()
-              .filter(|x| x.get_name() == setup.source_asset_name)
-              .next() {
-              return vec![source_asset.get_uuid().clone()];
-          } else {
+          let uuids: Vec<_> = dataset
+              .assets.iter()
+              .filter(|x| setup.source_asset_names.contains(&x.get_name()))
+              .map(|x| x.get_uuid().clone())
+              .collect();
+          if uuids.len() == 0 {
               panic!(format!(
-                  "Cannot find source asset with name {}",
-                  setup.source_asset_name
+                  "Cannot find source asset with names {}",
+                  setup.source_asset_names.clone().into_iter().collect::<Vec<String>>().join(",")
               ));
           }
+          uuids
       }
 ---
 type: Constraint
@@ -454,18 +454,18 @@ spec:
       |root: Concept<'a>, ancestry: &ConceptAncestry<'a>| {
           let setup = ancestry.computed_from_local_data(root.clone()).unwrap();
           let dataset = ancestry.data_set(root.clone()).unwrap();
-          if let Some(source_asset) = dataset
-              .assets
-              .iter()
-              .filter(|x| x.get_name() == setup.source_asset_name)
-              .next() {
-              return vec![source_asset.get_uuid().clone()];
-          } else {
+          let uuids: Vec<_> = dataset
+              .assets.iter()
+              .filter(|x| setup.source_asset_names.contains(&x.get_name()))
+              .map(|x| x.get_uuid().clone())
+              .collect();
+          if uuids.len() == 0 {
               panic!(format!(
-                  "Cannot find source asset with name {}",
-                  setup.source_asset_name
+                  "Cannot find source asset with names {}",
+                  setup.source_asset_names.clone().into_iter().collect::<Vec<String>>().join(",")
               ));
           }
+          uuids
       }
 ---
 type: Constraint
@@ -499,17 +499,17 @@ spec:
       |root: Concept<'a>, ancestry: &ConceptAncestry<'a>| {
           let setup = ancestry.computed_from_local_data(root.clone()).unwrap();
           let dataset = ancestry.data_set(root.clone()).unwrap();
-          if let Some(source_asset) = dataset
-              .assets
-              .iter()
-              .filter(|x| x.get_name() == setup.source_asset_name)
-              .next() {
-              return vec![source_asset.get_uuid().clone()];
-          } else {
+          let uuids: Vec<_> = dataset
+              .assets.iter()
+              .filter(|x| setup.source_asset_names.contains(&x.get_name()))
+              .map(|x| x.get_uuid().clone())
+              .collect();
+          if uuids.len() == 0 {
               panic!(format!(
-                  "Cannot find source asset with name {}",
-                  setup.source_asset_name
+                  "Cannot find source asset with names {}",
+                  setup.source_asset_names.clone().into_iter().collect::<Vec<String>>().join(",")
               ));
           }
+          uuids
       }
 

@@ -712,6 +712,9 @@ spec:
                     t.datumTemplateName
                )),
             };
+            assert_eq!(computed_from_local_data.source_asset_names.len(), 1);
+            let source_asset_name =
+                computed_from_local_data.source_asset_names.iter().next().unwrap().clone();
             let query = format!("
             INSERT INTO {presto_schema}.{table_name}
             SELECT {attributes}
@@ -723,7 +726,7 @@ spec:
                     Some(ref f) => format!("WHERE {}", f.as_sql()),
                     None => "".to_string(),
                 },
-                source_table_name=computed_from_local_data.source_asset_name,
+                source_table_name=source_asset_name,
                 attributes=
                     filter
                     .attributes
@@ -912,7 +915,9 @@ spec:
                 StorageSetup::ComputedFromLocalData(m) => m,
                 _ => panic!("Only ComputedFromLocalData StorageSetups allowed here."),
             };
-            let source = computed_from_local_data.source_asset_name.clone();
+            assert_eq!(computed_from_local_data.source_asset_names.len(), 1);
+            let source =
+                computed_from_local_data.source_asset_names.iter().next().unwrap().clone();
             let source_asset = data_set.get_asset(source.clone()).unwrap();
             let storage_setup = source_asset.get_storage_setup();
             let local = storage_setup.get_local_storage();
@@ -982,7 +987,7 @@ spec:
       type: AncestorArgument
       spec:
         attaches: ComputedFromLocalData
-        call: computed_from_local_data.source_asset_name
+        call: computed_from_local_data.source_asset_names.iter().next().unwrap().clone()
     minio:
       type: AncestorArgument
       spec:
@@ -1013,7 +1018,9 @@ spec:
           - DataSet
         call: |
           {
-            let source = computed_from_local_data.source_asset_name.clone();
+            assert_eq!(computed_from_local_data.source_asset_names.len(), 1);
+            let source =
+                computed_from_local_data.source_asset_names.iter().next().unwrap().clone();
             let source_asset = data_set.get_asset(source.clone()).unwrap();
             match source_asset {
               Asset::SupervisedModel(ref supervised_model) =>

@@ -121,7 +121,7 @@ impl SQLParser {
                         let storage_setup = InnerStorageSetup::ComputedFromLocalData(
                             InnerComputedFromLocalData::new(
                                 storage,
-                                source_asset_name,
+                                vec![source_asset_name].into_iter().collect(),
                                 tmp_dir,
                                 None,
                             ),

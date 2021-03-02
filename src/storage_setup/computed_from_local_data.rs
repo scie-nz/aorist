@@ -9,10 +9,11 @@ use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::sync::{Arc, RwLock};
 use uuid::Uuid;
+use std::collections::BTreeSet;
 
 #[aorist_concept]
 pub struct ComputedFromLocalData {
-    pub source_asset_name: String,
+    pub source_asset_names: BTreeSet<String>,
     #[constrainable]
     pub target: Storage,
     pub tmp_dir: String,
