@@ -53,6 +53,7 @@ spec:
     - Replicated
     - ComputeFilter
     - SVMRegressionModelsTrained
+    - ComputePredictions
 ---
 type: Constraint
 spec:
@@ -383,11 +384,11 @@ spec:
       match ancestry.supervised_model(root.clone()).unwrap().algorithm {
           crate::algorithms::RegressionAlgorithm::SVMRegressionAlgorithm(_) => true,
           _ => false,
-      } && 
+      } &&
       match ancestry.supervised_model(root.clone()).unwrap().setup {
           crate::storage_setup::StorageSetup::ComputedFromLocalData(ref setup)
           => match &setup.target {
-              crate::storage::Storage::LocalFileStorage(storage) => 
+              crate::storage::Storage::LocalFileStorage(storage) =>
               match storage.location {
                   OnPremiseLocation::MinioLocation(_) => true,
                   _ => false,
@@ -445,6 +446,51 @@ spec:
             return match template {
                 Some(DatumTemplate::Filter(_)) => true,
                 _ => false
+            };
+          }
+          false
+      }
+  requiredConstraintsClosure: |
+      |root: Concept<'a>, ancestry: &ConceptAncestry<'a>| {
+          let setup = ancestry.computed_from_local_data(root.clone()).unwrap();
+          let dataset = ancestry.data_set(root.clone()).unwrap();
+          if let Some(source_asset) = dataset
+              .assets
+              .iter()
+              .filter(|x| x.get_name() == setup.source_asset_name)
+              .next() {
+              return vec![source_asset.get_uuid().clone()];
+          } else {
+              panic!(format!(
+                  "Cannot find source asset with name {}",
+                  setup.source_asset_name
+              ));
+          }
+      }
+---
+type: Constraint
+spec:
+  name: ComputePredictions
+  root: ComputedFromLocalData
+  requiresProgram: true
+  requires:
+      - SVMRegressionModelsTrained
+  attachIf: |
+      |root: Concept<'a>, ancestry: &ConceptAncestry<'a>| {
+          use crate::template::DatumTemplate;
+          use crate::schema::DataSchema;
+          use crate::dataset::TDataSet;
+
+          let maybe_static_data_table = ancestry.static_data_table(root.clone());
+          if let Ok(static_data_table) = maybe_static_data_table {
+            let data_set = ancestry.data_set(root.clone()).unwrap();
+            let DataSchema::TabularSchema(ref t) = static_data_table.schema;
+            let mapped_templates = data_set.get_mapped_datum_templates();
+            let template = mapped_templates.get(&t.datumTemplateName);
+            return match template {
+                Some(DatumTemplate::TrainedFloatMeasure(_)) => true,
+                None => panic!(format!("Could not find datum template: {}", t.datumTemplateName)),
+                _ => false,
             };
           }
           false

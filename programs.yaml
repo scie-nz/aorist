@@ -941,3 +941,100 @@ spec:
         attaches:
           - SupervisedModel
           - DataSet
+---
+type: Program
+spec:
+  use: ComputePredictions
+  root: ComputedFromLocalData
+  dialect: Python
+  preamble: |
+    def make_predictions(
+        minio,
+        tmp_dir,
+        asset_name,
+        model_path,
+    ):
+
+        import pandas as pd
+        import pyarrow.orc as orc
+        from minio import Minio
+        import json
+        from skl2onnx import convert_sklearn
+        from skl2onnx.common.data_types import FloatTensorType
+        from sklearn.svm import SVR
+
+        (
+            minio_hostname, minio_port, minio_access_key,
+            minio_secret_key, minio_bucket
+        ) = json.loads(minio)
+        client = Minio(
+            "%s:%s" % (minio_hostname, minio_port),
+            access_key=minio_access_key,
+            secret_key=minio_secret_key,
+            secure=False,
+        )
+        model_path = '%s/%s.onnx' % (tmp_dir, asset_name)
+        client.fget_object(minio_bucket, model_path, tmp_output_path)
+
+  call: make_predictions
+  kwargs:
+    asset_name:
+      type: AncestorArgument
+      spec:
+        attaches: ComputedFromLocalData
+        call: computed_from_local_data.source_asset_name
+    minio:
+      type: AncestorArgument
+      spec:
+        attaches: Universe
+        call: >
+          {
+            let endpoint_config = universe.endpoints.clone();
+            let minio = endpoint_config.minio.unwrap();
+            format!(
+                "[\"{}\", {}, \"{}\", \"{}\", \"{}\"]",
+                minio.server,
+                minio.port,
+                minio.access_key,
+                minio.secret_key,
+                minio.bucket,
+            ).to_string()
+          }
+    tmp_dir:
+      type: AncestorArgument
+      spec:
+        attaches: ComputedFromLocalData
+        call: computed_from_local_data.tmp_dir
+    model_path:
+      type: MultipleAncestorsArgument
+      spec:
+        attaches:
+          - ComputedFromLocalData
+          - DataSet
+        call: |
+          {
+            let source = computed_from_local_data.source_asset_name.clone();
+            let source_asset = data_set.get_asset(source.clone()).unwrap();
+            match source_asset {
+              Asset::SupervisedModel(ref supervised_model) =>
+              match supervised_model.setup {
+                  StorageSetup::ComputedFromLocalData(ref setup) => match
+                  setup.target {
+                      Storage::LocalFileStorage(ref storage) => match
+                      storage.location {
+                          OnPremiseLocation::MinioLocation(ref l) => format!(
+                              "{}/{}.onnx",
+                              l.name,
+                              supervised_model.get_name(),
+                          ).to_string(),
+                          _ => panic!("Only on-premise locations allowed."),
+                      },
+                      _ => panic!("Only local file storage allowed."),
+                  },
+                  _ => panic!("Only locally-computed models allowed."),
+              },
+              _ => panic!(format!(
+                  "Source asset {} must be supervised model", source
+              )),
+            }
+          }
