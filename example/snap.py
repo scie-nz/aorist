@@ -42,7 +42,7 @@ names = [
     "amazon0505",
     "amazon0601",
 ]
-tables = []
+tables = {}
 for name in names:
 
     name_underscore = name.replace("-", "_").lower()
@@ -71,7 +71,7 @@ for name in names:
         ),
         tag=name_underscore,
     )
-    tables += [table]
+    tables[name] = table
 
 snap_dataset = DataSet(
     name="snap",

@@ -186,7 +186,7 @@ wine_table = StaticDataTable(
 wine_dataset = DataSet(
     name="wine",
     datumTemplates=[wine_datum],
-    assets=[wine_table],
+    assets={"wine_table": wine_table},
 )
 
 classifier_storage = LocalFileStorage(

@@ -115,7 +115,9 @@ fn process_struct_fields(fields: &Punctuated<Field, Comma>, input: &DeriveInput)
 
     let struct_name = &input.ident;
     let bare_field = field.clone().filter(|x| {
-        extract_type_from_option(x.1).is_none() && extract_type_from_vector(x.1).is_none()
+        extract_type_from_option(x.1).is_none() 
+        && extract_type_from_vector(x.1).is_none()
+        && extract_type_from_map(x.1).is_none()
     });
     let option_field = field
         .clone()
@@ -127,6 +129,12 @@ fn process_struct_fields(fields: &Punctuated<Field, Comma>, input: &DeriveInput)
             extract_type_from_option(x.1).is_none() && extract_type_from_vector(x.1).is_some()
         })
         .map(|x| (x.0, extract_type_from_vector(x.1).unwrap()));
+    let map_field = field
+        .clone()
+        .filter(|x| {
+            extract_type_from_option(x.1).is_none() && extract_type_from_map(x.1).is_some()
+        })
+        .map(|x| (x.0, extract_type_from_map(x.1).unwrap()));
     let option_vec_field = option_field
         .clone()
         .filter(|x| extract_type_from_vector(x.1).is_some())
@@ -170,6 +178,8 @@ fn process_struct_fields(fields: &Punctuated<Field, Comma>, input: &DeriveInput)
     let bare_field_type = bare_field.clone().map(|x| x.1).collect::<Vec<_>>();
     let vec_field_name = vec_field.clone().map(|x| x.0).collect::<Vec<_>>();
     let vec_field_type = vec_field.clone().map(|x| x.1).collect::<Vec<_>>();
+    let map_field_name = map_field.clone().map(|x| x.0).collect::<Vec<_>>();
+    let map_field_value_type = map_field.clone().map(|x| x.1.1).collect::<Vec<_>>();
     let option_vec_field_name = option_vec_field.clone().map(|x| x.0).collect::<Vec<_>>();
     let option_vec_field_type = option_vec_field.clone().map(|x| x.1).collect::<Vec<_>>();
 
@@ -208,6 +218,15 @@ fn process_struct_fields(fields: &Punctuated<Field, Comma>, input: &DeriveInput)
                         }
                     }
                 )*
+                #(
+                    let mut i = 0;
+                    for v in self.#map_field_name.values() {
+                        concepts.push(
+                            Concept::#map_field_value_type((&v, i + 1, id.clone()))
+                        );
+                        i += 1;
+                    }
+                )*
                 concepts
             }
             fn get_tag(&self) -> Option<String> {
@@ -236,6 +255,11 @@ fn process_struct_fields(fields: &Punctuated<Field, Comma>, input: &DeriveInput)
                         }
                     }
                 )*
+                #(
+                    for elem in self.#map_field_name.values() {
+                        uuids.push(elem.get_uuid());
+                    }
+                )*
                 uuids
             }
             fn compute_uuids(&mut self) {
@@ -252,6 +276,11 @@ fn process_struct_fields(fields: &Punctuated<Field, Comma>, input: &DeriveInput)
                         for elem in v.iter_mut() {
                             elem.compute_uuids();
                         }
+                    }
+                )*
+                #(
+                    for elem in self.#map_field_name.values_mut() {
+                        elem.compute_uuids();
                     }
                 )*
                 self.uuid = Some(self.get_uuid_from_children_uuid());
@@ -547,7 +576,7 @@ pub fn constrain_object(input: TokenStream) -> TokenStream {
                             #(#map_ident: inner.#map_ident.into_iter().map(
                               |(k, v)| (
                                 k.clone(),
-                                #map_value_type::from(x)
+                                #map_value_type::from(v)
                               )
                             ).collect(),)*
                             #(#unconstrainable_name: inner.#unconstrainable_name,)*
@@ -579,7 +608,7 @@ pub fn constrain_object(input: TokenStream) -> TokenStream {
                                 #map_ident: outer.#map_ident.into_iter().map(
                                     |(k, v)| (
                                         k.clone(),
-                                        [<Inner #map_value_type>]::from(x)
+                                        [<Inner #map_value_type>]::from(v)
                                     )
                                 ).collect(),
                             )*

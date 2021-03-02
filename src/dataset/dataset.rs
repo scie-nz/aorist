@@ -24,9 +24,13 @@ pub struct DataSet {
     #[constrainable]
     pub datumTemplates: Vec<DatumTemplate>,
     #[constrainable]
-    pub assets: Vec<Asset>,
+    assets: BTreeMap<String, Asset>,
 }
+
 impl DataSet {
+    pub fn get_assets(&self) -> Vec<Asset> {
+        self.assets.values().collect::<Vec<_>>().iter().map(|x| (*x).clone()).collect()
+    }
     pub fn get_template_for_asset<T: TAsset>(&self, asset: &T) -> Result<DatumTemplate, String> {
         let schema = asset.get_schema();
         let template_name = schema.get_datum_template_name();
@@ -42,10 +46,8 @@ impl DataSet {
         }
     }
     pub fn get_asset(&self, name: String) -> Result<Asset, String> {
-        for asset in self.assets.iter() {
-            if asset.get_name() == name {
-                return Ok(asset.clone());
-            }
+        if let Some(asset) = self.assets.get(&name) {
+            return Ok(asset.clone());
         }
         Err(format!("Could not find asset {} in dataset {}.", name, self.name).to_string())
     }
@@ -53,12 +55,11 @@ impl DataSet {
         &self,
         setup: &ComputedFromLocalData,
     ) -> Result<BTreeMap<String, Asset>, String> {
-        Ok(self
-            .assets
-            .iter()
-            .filter(|x| setup.source_asset_names.contains(&x.get_name()))
-            .map(|x| (x.get_name(), x.clone()))
-            .collect())
+        let mut assets = BTreeMap::new();
+        for name in &setup.source_asset_names {
+            assets.insert(name.clone(), self.get_asset(name.clone())?);
+        }
+        Ok(assets)
     }
 }
 impl TAoristObject for DataSet {
@@ -95,7 +96,9 @@ impl InnerDataSet {
         Ok(())
     }
     pub fn add_asset(&mut self, a: InnerAsset) -> PyResult<()> {
-        self.assets.push(a);
+        let asset_name = a.get_name();
+        assert!(!self.assets.contains_key(&asset_name));
+        self.assets.insert(a.get_name(), a);
         Ok(())
     }
 }

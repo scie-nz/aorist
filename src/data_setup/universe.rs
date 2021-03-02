@@ -124,7 +124,7 @@ impl InnerUniverse {
                 for dataset in datasets.iter() {
                     let templates = dataset.get_mapped_datum_templates();
                     let mut asset_map = HashMap::new();
-                    for asset in dataset.assets.iter() {
+                    for asset in dataset.assets.values() {
                         let asset_name = asset.get_name();
                         let schema = asset.get_schema();
                         let attribute_names = schema.get_attribute_names();

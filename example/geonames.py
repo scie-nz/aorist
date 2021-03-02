@@ -456,7 +456,9 @@ features_histogram_location = HiveTableStorage(
 geonames_dataset = DataSet(
     name="geonames-dataset",
     datumTemplates=[geonames_datum],
-    assets=[geonames_table],
+    assets={
+        'features': geonames_table
+    },
 )
 feature_class_count = derive_integer_measure(
     name="feature_class_frequency",
