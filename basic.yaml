@@ -104,7 +104,7 @@ spec:
 type: Constraint
 spec:
   name: HiveDirectoriesCreated
-  root: HiveLocation
+  root: OnPremiseLocation
   requiresProgram: true
   title: Created hive directories.
   body: |
@@ -264,7 +264,7 @@ spec:
 type: Constraint
 spec:
   name: UploadDataToLocal
-  root: HiveLocation
+  root: OnPremiseLocation
   requires:
       - UploadDataToAlluxio
       - UploadDataToMinio

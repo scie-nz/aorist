@@ -262,7 +262,7 @@ spec:
 type: Program
 spec:
   use: HiveDirectoriesCreated
-  root: HiveLocation
+  root: OnPremiseLocation
   dialect: Presto
   call: CREATE SCHEMA IF NOT EXISTS {presto_schema} {location}
   kwargs:
@@ -280,7 +280,7 @@ spec:
            - DataSet
         call: >
           match &hive_table_storage.location {
-            HiveLocation::AlluxioLocation(a) => format!(
+            OnPremiseLocation::AlluxioLocation(a) => format!(
                 "WITH (location='alluxio://{}:{}/{}/{}/{}')",
                 universe.endpoints.alluxio.as_ref().unwrap().server,
                 universe.endpoints.alluxio.as_ref().unwrap().rpcPort,
@@ -288,7 +288,7 @@ spec:
                 data_set.name,
                 a.path,
             ).to_string(),
-            HiveLocation::MinioLocation(_) => format!(
+            OnPremiseLocation::MinioLocation(_) => format!(
                 "WITH (location='s3a://{}/{}/')",
                 universe.endpoints.minio.as_ref().unwrap().bucket,
                 data_set.name,
@@ -439,7 +439,7 @@ spec:
            - DataSet
         call: >
           match &hive_table_storage.location {
-            HiveLocation::AlluxioLocation(_) => format!(
+            OnPremiseLocation::AlluxioLocation(_) => format!(
                 "alluxio://{}:{}/{}/{}/{}_csv",
                 universe.endpoints.alluxio.as_ref().unwrap().server,
                 universe.endpoints.alluxio.as_ref().unwrap().rpcPort,
@@ -447,7 +447,7 @@ spec:
                 data_set.name,
                 static_data_table.name,
             ).to_string(),
-            HiveLocation::MinioLocation(_) => format!(
+            OnPremiseLocation::MinioLocation(_) => format!(
                 "s3a://{}/{}/{}_csv/",
                 universe.endpoints.minio.as_ref().unwrap().bucket,
                 data_set.name,
@@ -892,7 +892,7 @@ spec:
                 }
               ).filter(|x| x.is_some())
               .map(
-                |x| if let HiveLocation::MinioLocation(m) = x.unwrap().location {
+                |x| if let OnPremiseLocation::MinioLocation(m) = x.unwrap().location {
                   return Some(m);
                 } else {
                   return None;

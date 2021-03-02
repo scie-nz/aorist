@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 #[aorist_concept]
-pub enum HiveLocation {
+pub enum OnPremiseLocation {
     #[constrainable]
     AlluxioLocation(AlluxioLocation),
     #[constrainable]
