@@ -804,12 +804,12 @@ spec:
         num_features = len(features)
         initial_type = [('float_input', FloatTensorType([None, num_features]))]
         onx = convert_sklearn(model, initial_types=initial_type)
-        
-        tmp_output_path = '%s/%s.onnx' (tmp_dir, asset_name)
+
+        tmp_output_path = '%s/%s.onnx' % (tmp_dir, asset_name)
         with open(tmp_output_path, "wb") as f:
             f.write(onx.SerializeToString())
         client.fput_object(minio_bucket, minio_output_path, tmp_output_path)
-  
+
   call: download_and_train
   kwargs:
     minio_output_path:
@@ -824,7 +824,7 @@ spec:
                     Storage::LocalFileStorage(ref storage) => match
                     storage.location {
                         OnPremiseLocation::MinioLocation(ref l) => format!(
-                            "{}/{}/", 
+                            "{}/{}.onnx",
                             l.name,
                             supervised_model.get_name(),
                         ).to_string(),
