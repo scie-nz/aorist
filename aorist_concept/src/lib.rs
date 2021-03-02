@@ -12,7 +12,9 @@ use syn::{
     parse_macro_input, parse_quote, AttributeArgs, Data, DataEnum, DataStruct, DeriveInput, Field,
     Fields, Meta, NestedMeta, Token, Type, Variant,
 };
-use type_macro_helpers::{extract_type_from_option, extract_type_from_vector};
+use type_macro_helpers::{
+    extract_type_from_map, extract_type_from_option, extract_type_from_vector,
+};
 mod keyword {
     syn::custom_keyword!(path);
 }
@@ -312,6 +314,9 @@ fn extract_type_variants(
     Vec<Type>,
     Vec<Type>,
     Vec<Type>,
+    Vec<Type>,
+    Vec<Type>,
+    Vec<Ident>,
     Vec<Ident>,
     Vec<Ident>,
     Vec<Ident>,
@@ -321,11 +326,14 @@ fn extract_type_variants(
     let mut vec_types: Vec<Type> = Vec::new();
     let mut option_vec_types: Vec<Type> = Vec::new();
     let mut option_types: Vec<Type> = Vec::new();
+    let mut map_key_types: Vec<Type> = Vec::new();
+    let mut map_value_types: Vec<Type> = Vec::new();
 
     let mut bare_idents: Vec<Ident> = Vec::new();
     let mut vec_idents: Vec<Ident> = Vec::new();
     let mut option_vec_idents: Vec<Ident> = Vec::new();
     let mut option_idents: Vec<Ident> = Vec::new();
+    let mut map_idents: Vec<Ident> = Vec::new();
 
     for field in fields {
         let tt = &field.ty;
@@ -342,6 +350,10 @@ fn extract_type_variants(
                 option_types.push(option_type.clone());
                 option_idents.push(ident.clone());
             }
+        } else if let Some((map_key_type, map_value_type)) = extract_type_from_map(tt) {
+            map_key_types.push(map_key_type.clone());
+            map_value_types.push(map_value_type.clone());
+            map_idents.push(ident.clone());
         } else {
             bare_types.push(tt.clone());
             bare_idents.push(ident.clone());
@@ -352,10 +364,13 @@ fn extract_type_variants(
         vec_types,
         option_types,
         option_vec_types,
+        map_key_types,
+        map_value_types,
         bare_idents,
         vec_idents,
         option_idents,
         option_vec_idents,
+        map_idents,
     )
 }
 
@@ -417,10 +432,13 @@ pub fn constrain_object(input: TokenStream) -> TokenStream {
                 vec_type,
                 option_type,
                 option_vec_type,
+                map_key_type,
+                map_value_type,
                 bare_ident,
                 vec_ident,
                 option_ident,
                 option_vec_ident,
+                map_ident,
             ) = extract_type_variants(&constrainable);
             let (unconstrainable_name, unconstrainable_type) =
                 extract_names_and_types(&unconstrainable);
@@ -470,6 +488,12 @@ pub fn constrain_object(input: TokenStream) -> TokenStream {
                     #(pub #vec_ident: Vec<[<Inner #vec_type>]> ,)*
                     #(pub #option_ident: Option<[<Inner #option_type>]> ,)*
                     #(pub #option_vec_ident: Option<Vec<[<Inner #option_vec_type>]>> ,)*
+                    #(
+                      pub #map_ident: std::collections::BTreeMap<
+                        #map_key_type,
+                        [<Inner #map_value_type>]
+                      >,
+                    )*
                     #(pub #unconstrainable_name: #unconstrainable_type,)*
                     pub tag: Option<String>,
                 }
@@ -483,6 +507,11 @@ pub fn constrain_object(input: TokenStream) -> TokenStream {
                         #(#vec_ident: Vec<[<Inner #vec_type>]> ,)*
                         #(#option_ident: Option<[<Inner #option_type>]> ,)*
                         #(#option_vec_ident: Option<Vec<[<Inner #option_vec_type>]>> ,)*
+                        #(
+                          #map_ident: std::collections::BTreeMap<
+                            #map_key_type, [<Inner #map_value_type>]
+                          >,
+                        )*
                         #(#unconstrainable_name: #unconstrainable_type,)*
                         tag: Option<String>,
                     ) -> Self {
@@ -491,6 +520,7 @@ pub fn constrain_object(input: TokenStream) -> TokenStream {
                             #(#vec_ident,)*
                             #(#option_ident,)*
                             #(#option_vec_ident,)*
+                            #(#map_ident,)*
                             #(#unconstrainable_name,)*
                             tag
                         }
@@ -514,6 +544,12 @@ pub fn constrain_object(input: TokenStream) -> TokenStream {
                                     Some(v) => Some(v.into_iter().map(|x| #option_vec_type::from(x)).collect()),
                                 },
                             )*
+                            #(#map_ident: inner.#map_ident.into_iter().map(
+                              |(k, v)| (
+                                k.clone(),
+                                #map_value_type::from(x)
+                              )
+                            ).collect(),)*
                             #(#unconstrainable_name: inner.#unconstrainable_name,)*
                             uuid: None,
                             tag: inner.tag,
@@ -538,6 +574,14 @@ pub fn constrain_object(input: TokenStream) -> TokenStream {
                                     None => None,
                                     Some(v) => Some(v.into_iter().map(|x| [<Inner #option_vec_type>]::from(x)).collect()),
                                 },
+                            )*
+                            #(
+                                #map_ident: outer.#map_ident.into_iter().map(
+                                    |(k, v)| (
+                                        k.clone(),
+                                        [<Inner #map_value_type>]::from(x)
+                                    )
+                                ).collect(),
                             )*
                             #(#unconstrainable_name: outer.#unconstrainable_name,)*
                             tag: outer.tag,

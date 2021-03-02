@@ -110,8 +110,6 @@ pub fn extract_type_from_map(ty: &syn::Type) -> Option<(&syn::Type, &syn::Type)>
         vec![
             "BTreeMap|".to_string(),
             "std|collections|BTreeMap|".into(),
-            "HashMap|".to_string(),
-            "std|collections|HashMap|".into(),
         ],
     )
 }
