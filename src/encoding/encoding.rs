@@ -5,6 +5,7 @@ use crate::concept::{AoristConcept, Concept};
 use crate::encoding::csv_encoding::*;
 use crate::encoding::orc_encoding::*;
 use crate::encoding::tsv_encoding::*;
+use crate::encoding::onnx_encoding::*;
 use crate::header::FileHeader;
 use aorist_concept::{aorist_concept, Constrainable, InnerObject};
 use paste::paste;
@@ -17,6 +18,7 @@ pub enum Encoding {
     CSVEncoding(CSVEncoding),
     ORCEncoding(ORCEncoding),
     TSVEncoding(TSVEncoding),
+    ONNXEncoding(TSVEncoding),
 }
 
 impl Encoding {
@@ -26,6 +28,7 @@ impl Encoding {
             // TODO: need to change this to also be optional
             Self::TSVEncoding(x) => Some(x.header.clone()),
             Self::ORCEncoding(_) => None,
+            Self::ONNXEncoding(_) => None,
         }
     }
     pub fn get_compression(&self) -> Option<DataCompression> {
@@ -34,6 +37,7 @@ impl Encoding {
             // TODO: need to change this to also be optional
             Self::TSVEncoding(x) => Some(x.compression.clone()),
             Self::ORCEncoding(_) => None,
+            Self::ONNXEncoding(_) => None,
         }
     }
 }

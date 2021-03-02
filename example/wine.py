@@ -122,6 +122,7 @@ from aorist import (
     SVMRegressionAlgorithm,
     SupervisedModel,
     attr_list,
+    ONNXEncoding,
 )
 
 # hacky import since submodule imports don't work well
@@ -190,7 +191,7 @@ wine_dataset = DataSet(
 classifier_storage = HiveTableStorage(
     location=MinioLocation(name="wine"),
     layout=StaticHiveTableLayout(),
-    encoding=ORCEncoding(),
+    encoding=ONNXEncoding(),
 )
 
 features = attributes[2:10]
