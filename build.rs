@@ -417,6 +417,7 @@ fn process_concepts() {
         ("crate::storage", "Storage"),
         ("crate::storage", "HiveTableStorage"),
         ("crate::storage", "RemoteStorage"),
+        ("crate::storage", "LocalFileStorage"),
         ("crate::role_binding", "RoleBinding"),
         ("crate::template", "DatumTemplate"),
         ("crate::template", "IdentifierTuple"),

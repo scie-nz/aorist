@@ -123,6 +123,8 @@ from aorist import (
     SupervisedModel,
     attr_list,
     ONNXEncoding,
+    SingleFileLayout,
+    LocalFileStorage,
 )
 
 # hacky import since submodule imports don't work well
@@ -188,9 +190,9 @@ wine_dataset = DataSet(
     assets=[wine_table],
 )
 
-classifier_storage = HiveTableStorage(
+classifier_storage = LocalFileStorage(
     location=MinioLocation(name="wine"),
-    layout=StaticHiveTableLayout(),
+    layout=SingleFileLayout(),
     encoding=ONNXEncoding(),
 )
 

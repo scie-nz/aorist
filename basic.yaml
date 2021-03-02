@@ -110,6 +110,9 @@ spec:
   body: |
       We need to create directories or buckets (depending on file system / storage
       solution) in which we will store our Hive data.
+  attachIf: |
+      |root: Concept<'a>, ancestry: &ConceptAncestry<'a>|
+          ancestry.hive_table_storage(root.clone()).is_ok()
 ---
 type: Constraint
 spec:
