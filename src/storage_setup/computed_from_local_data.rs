@@ -7,13 +7,13 @@ use derivative::Derivative;
 use paste::paste;
 use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
-use std::collections::BTreeSet;
+use std::collections::BTreeMap;
 use std::sync::{Arc, RwLock};
 use uuid::Uuid;
 
 #[aorist_concept]
 pub struct ComputedFromLocalData {
-    pub source_asset_names: BTreeSet<String>,
+    pub source_asset_names: BTreeMap<String, String>,
     #[constrainable]
     pub target: Storage,
     pub tmp_dir: String,

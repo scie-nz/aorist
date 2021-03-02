@@ -714,7 +714,7 @@ spec:
             };
             assert_eq!(computed_from_local_data.source_asset_names.len(), 1);
             let source_asset_name =
-                computed_from_local_data.source_asset_names.iter().next().unwrap().clone();
+                computed_from_local_data.source_asset_names.values().next().unwrap().clone();
             let query = format!("
             INSERT INTO {presto_schema}.{table_name}
             SELECT {attributes}
@@ -917,7 +917,7 @@ spec:
             };
             assert_eq!(computed_from_local_data.source_asset_names.len(), 1);
             let source =
-                computed_from_local_data.source_asset_names.iter().next().unwrap().clone();
+                computed_from_local_data.source_asset_names.values().next().unwrap().clone();
             let source_asset = data_set.get_asset(source.clone()).unwrap();
             let storage_setup = source_asset.get_storage_setup();
             let local = storage_setup.get_local_storage();
@@ -987,7 +987,7 @@ spec:
       type: AncestorArgument
       spec:
         attaches: ComputedFromLocalData
-        call: computed_from_local_data.source_asset_names.iter().next().unwrap().clone()
+        call: computed_from_local_data.source_asset_names.values().next().unwrap().clone()
     minio:
       type: AncestorArgument
       spec:
@@ -1020,7 +1020,7 @@ spec:
           {
             assert_eq!(computed_from_local_data.source_asset_names.len(), 1);
             let source =
-                computed_from_local_data.source_asset_names.iter().next().unwrap().clone();
+                computed_from_local_data.source_asset_names.values().next().unwrap().clone();
             let source_asset = data_set.get_asset(source.clone()).unwrap();
             match source_asset {
               Asset::SupervisedModel(ref supervised_model) =>

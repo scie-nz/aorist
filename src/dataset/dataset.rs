@@ -29,7 +29,12 @@ pub struct DataSet {
 
 impl DataSet {
     pub fn get_assets(&self) -> Vec<Asset> {
-        self.assets.values().collect::<Vec<_>>().iter().map(|x| (*x).clone()).collect()
+        self.assets
+            .values()
+            .collect::<Vec<_>>()
+            .iter()
+            .map(|x| (*x).clone())
+            .collect()
     }
     pub fn get_template_for_asset<T: TAsset>(&self, asset: &T) -> Result<DatumTemplate, String> {
         let schema = asset.get_schema();
@@ -51,12 +56,13 @@ impl DataSet {
         }
         Err(format!("Could not find asset {} in dataset {}.", name, self.name).to_string())
     }
+    // TODO: should reference identifier tuple
     pub fn get_source_assets(
         &self,
         setup: &ComputedFromLocalData,
     ) -> Result<BTreeMap<String, Asset>, String> {
         let mut assets = BTreeMap::new();
-        for name in &setup.source_asset_names {
+        for name in setup.source_asset_names.values() {
             assets.insert(name.clone(), self.get_asset(name.clone())?);
         }
         Ok(assets)

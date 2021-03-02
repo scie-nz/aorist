@@ -413,7 +413,7 @@ spec:
           if uuids.len() == 0 {
               panic!(format!(
                   "Cannot find source asset with names {}",
-                  setup.source_asset_names.clone().into_iter().collect::<Vec<String>>().join(",")
+                  setup.source_asset_names.values().map(|x| x.clone()).collect::<Vec<String>>().join(",")
               ));
           }
           uuids
@@ -454,7 +454,7 @@ spec:
           if uuids.len() == 0 {
               panic!(format!(
                   "Cannot find source asset with names {}",
-                  setup.source_asset_names.clone().into_iter().collect::<Vec<String>>().join(",")
+                  setup.source_asset_names.values().map(|x| x.clone()).collect::<Vec<String>>().join(",")
               ));
           }
           uuids
@@ -495,7 +495,7 @@ spec:
           if uuids.len() == 0 {
               panic!(format!(
                   "Cannot find source asset with names {}",
-                  setup.source_asset_names.clone().into_iter().collect::<Vec<String>>().join(",")
+                  setup.source_asset_names.values().map(|x| x.clone()).collect::<Vec<String>>().join(",")
               ));
           }
           uuids
