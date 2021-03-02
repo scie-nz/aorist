@@ -428,6 +428,7 @@ fn process_concepts() {
         ("crate::user_group", "UserGroup"),
         ("crate::endpoints", "EndpointConfig"),
         ("crate::template", "TrainedFloatMeasure"),
+        ("crate::template", "PredictionsFromTrainedFloatMeasure"),
     ];
     scope.import("aorist_primitives", "register_concept");
     scope.import("std::convert", "TryFrom");

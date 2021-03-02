@@ -125,3 +125,28 @@ impl InnerTrainedFloatMeasure {
         )
     }
 }
+
+#[aorist_concept]
+pub struct PredictionsFromTrainedFloatMeasure {
+    pub name: String,
+    #[py_default = "None"]
+    pub comment: Option<String>,
+    #[constrainable]
+    pub features: Vec<Attribute>,
+    #[constrainable]
+    pub objective: Attribute,
+
+    pub model_asset_name: String,
+    pub features_asset_name: String,
+}
+impl PredictionsFromTrainedFloatMeasure {
+    pub fn get_name(&self) -> String {
+        self.name.clone()
+    }
+    pub fn get_attributes(&self) -> Vec<Attribute> {
+        let mut attr = self.features.clone();
+        let prediction_attribute = self.objective.clone();
+        attr.push(prediction_attribute);
+        attr
+    }
+}

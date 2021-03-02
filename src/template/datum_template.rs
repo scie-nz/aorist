@@ -15,6 +15,7 @@ use uuid::Uuid;
 #[aorist_concept]
 pub enum DatumTemplate {
     TrainedFloatMeasure(TrainedFloatMeasure),
+    PredictionsFromTrainedFloatMeasure(PredictionsFromTrainedFloatMeasure),
     RowStruct(RowStruct),
     IdentifierTuple(IdentifierTuple),
     IntegerMeasure(IntegerMeasure),
@@ -36,6 +37,7 @@ impl TDatumTemplate for DatumTemplate {
             DatumTemplate::IdentifierTuple(x) => x.get_name(),
             DatumTemplate::IntegerMeasure(x) => x.get_name(),
             DatumTemplate::TrainedFloatMeasure(x) => x.get_name(),
+            DatumTemplate::PredictionsFromTrainedFloatMeasure(x) => x.get_name(),
             DatumTemplate::Filter(x) => x.get_name(),
         }
     }
@@ -45,6 +47,7 @@ impl TDatumTemplate for DatumTemplate {
             DatumTemplate::IdentifierTuple(x) => x.get_attributes(),
             DatumTemplate::IntegerMeasure(x) => x.get_attributes(),
             DatumTemplate::TrainedFloatMeasure(x) => x.get_attributes(),
+            DatumTemplate::PredictionsFromTrainedFloatMeasure(x) => x.get_attributes(),
             DatumTemplate::Filter(x) => x.get_attributes(),
         }
     }
@@ -56,6 +59,7 @@ impl InnerDatumTemplate {
             InnerDatumTemplate::IdentifierTuple(x) => x.name.clone(),
             InnerDatumTemplate::IntegerMeasure(x) => x.name.clone(),
             InnerDatumTemplate::TrainedFloatMeasure(x) => x.name.clone(),
+            InnerDatumTemplate::PredictionsFromTrainedFloatMeasure(x) => x.name.clone(),
             InnerDatumTemplate::Filter(x) => x.name.clone(),
         }
     }
