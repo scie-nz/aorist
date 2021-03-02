@@ -1060,10 +1060,11 @@ spec:
             let source_asset = data_set.get_asset(source_name.clone()).unwrap();
 
             match source_asset {
-              Asset::StaticDataTable(ref static_data_table) =>
-              match static_data_table.setup {
-                  StorageSetup::ComputedFromLocalData(ref setup) => match
-                  setup.target {
+              Asset::StaticDataTable(ref static_data_table) => {
+                let local = static_data_table.setup.get_local_storage();
+                assert_eq!(local.len(), 1);
+                let local_storage = local.iter().next().unwrap();
+                match local_storage {
                       Storage::HiveTableStorage(ref storage) => match
                       storage.location {
                           OnPremiseLocation::MinioLocation(ref l) =>
@@ -1071,9 +1072,8 @@ spec:
                           _ => panic!("Only on-premise locations allowed."),
                       },
                       _ => panic!("Only HiveTableStorage allowed."),
-                  },
-                  _ => panic!("Only locally-computed models allowed."),
-              },
+                }
+              }
               _ => panic!(format!(
                   "Source asset {} must be StaticDataTable", source_name,
               )),

@@ -221,21 +221,26 @@ regression_model = SupervisedModel(
 )
 wine_dataset.add_asset(regression_model)
 
+predictions_template = classifier_template.as_predictions_template(name="alcohol_predictions")
+wine_dataset.add_template(predictions_template)
+
 predictions_storage = HiveTableStorage(
     location=MinioLocation(name="wine"),
     layout=StaticHiveTableLayout(),
     encoding=ORCEncoding(),
 )
-predictions_schema = default_tabular_schema(classifier_template)
 predictions_setup = ComputedFromLocalData(
-    source_asset_names={"model": "wine_alcohol_predictor"},
+    source_asset_names={
+        "model": "wine_alcohol_predictor",
+        "source": "wine_table",
+    },
     target=predictions_storage,
     tmp_dir="/tmp/wine_predictions",
 )
 predictions_table = StaticDataTable(
     tag="wine_predictions",
     name="wine_predictions",
-    schema=default_tabular_schema(classifier_template),
+    schema=default_tabular_schema(predictions_template),
     setup=predictions_setup,
 )
 wine_dataset.add_asset(predictions_table)

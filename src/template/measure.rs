@@ -110,7 +110,7 @@ impl TrainedFloatMeasure {
     pub fn get_model_storage_tabular_schema(&self) -> TabularSchema {
         TabularSchema {
             datumTemplateName: self.name.clone(),
-            attributes: vec![self.get_regressor_as_attribute().name.clone()],
+            attributes: self.features.iter().map(|x| x.inner.get_name().clone()).collect(),
             tag: None,
             uuid: None,
             constraints: Vec::new(),
@@ -123,6 +123,20 @@ impl InnerTrainedFloatMeasure {
         InnerTabularSchema::from(
             TrainedFloatMeasure::from(self.clone()).get_model_storage_tabular_schema(),
         )
+    }
+    #[args(tag="None")]
+    pub fn as_predictions_template(
+        &self,
+        name: String,
+        tag: Option<String>
+    ) -> InnerPredictionsFromTrainedFloatMeasure {
+        InnerPredictionsFromTrainedFloatMeasure {
+            name: name,
+            comment: self.comment.clone(),
+            features: self.features.clone(),
+            objective: self.objective.clone(),
+            tag: tag,
+        }
     }
 }
 
