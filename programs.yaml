@@ -753,6 +753,8 @@ spec:
         tmp_dir,
         objective,
         features,
+        asset_name,
+        minio_output_path,
     ):
 
         import pandas as pd
@@ -796,17 +798,44 @@ spec:
         features = json.loads(features)
         X = data[features].to_numpy()
         y = data[objective].to_numpy()
-        svr = SVR(epsilon=0.2, verbose=True)
+        svr = SVR(verbose=True)
         model = svr.fit(X, y)
 
         num_features = len(features)
         initial_type = [('float_input', FloatTensorType([None, num_features]))]
         onx = convert_sklearn(model, initial_types=initial_type)
-        with open("rf_iris.onnx", "wb") as f:
+        
+        tmp_output_path = '%s/%s.onnx' (tmp_dir, asset_name)
+        with open(tmp_output_path, "wb") as f:
             f.write(onx.SerializeToString())
-
+        client.fput_object(minio_bucket, minio_output_path, tmp_output_path)
+  
   call: download_and_train
   kwargs:
+    minio_output_path:
+      type: AncestorArgument
+      spec:
+        attaches: SupervisedModel
+        call: >
+          {
+            match supervised_model.setup {
+                StorageSetup::ComputedFromLocalData(ref setup) => match
+                setup.target {
+                    Storage::LocalFileStorage(ref storage) => match
+                    storage.location {
+                        OnPremiseLocation::MinioLocation(ref l) => format!(
+                            "{}/{}/", 
+                            l.name,
+                            supervised_model.get_name(),
+                        ).to_string(),
+                        _ => panic!("Only on-premise locations allowed."),
+                    },
+                    _ => panic!("Only local file storage allowed."),
+                },
+                _ => panic!("Only locally-computed models allowed."),
+            }
+          }
+
     objective:
       type: MultipleAncestorsArgument
       spec:
@@ -826,6 +855,11 @@ spec:
             };
             tfm.get_training_objective().get_name().clone()
           }
+    asset_name:
+      type: AncestorArgument
+      spec:
+        attaches: SupervisedModel
+        call: supervised_model.get_name()
     features:
       type: MultipleAncestorsArgument
       spec:

@@ -383,6 +383,18 @@ spec:
       match ancestry.supervised_model(root.clone()).unwrap().algorithm {
           crate::algorithms::RegressionAlgorithm::SVMRegressionAlgorithm(_) => true,
           _ => false,
+      } && 
+      match ancestry.supervised_model(root.clone()).unwrap().setup {
+          crate::storage_setup::StorageSetup::ComputedFromLocalData(ref setup)
+          => match &setup.target {
+              crate::storage::Storage::LocalFileStorage(storage) => 
+              match storage.location {
+                  OnPremiseLocation::MinioLocation(_) => true,
+                  _ => false,
+              }
+              _ => false,
+          },
+          _ => false,
       }
 ---
 type: Constraint
