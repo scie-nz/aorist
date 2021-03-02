@@ -60,8 +60,8 @@ spec:
   root: MinioLocation
   dialect: Python
   preamble: |
+    from minio import Minio
     def upload_to_minio(hostname, port, access_key, secret_key, bucket, schema, tablename, tmp_dir, source_file):
-        from minio import Minio
         client = Minio(
             "%s:%s" % (hostname, port),
             access_key=access_key,
@@ -750,6 +750,14 @@ spec:
   root: SupervisedModel
   dialect: Python
   preamble: |
+    import pandas as pd
+    import pyarrow.orc as orc
+    from minio import Minio
+    import json
+    from skl2onnx import convert_sklearn
+    from skl2onnx.common.data_types import FloatTensorType
+    from sklearn.svm import SVR
+
     def download_and_train(
         minio,
         minio_prefix,
@@ -759,14 +767,6 @@ spec:
         asset_name,
         minio_output_path,
     ):
-
-        import pandas as pd
-        import pyarrow.orc as orc
-        from minio import Minio
-        import json
-        from skl2onnx import convert_sklearn
-        from skl2onnx.common.data_types import FloatTensorType
-        from sklearn.svm import SVR
 
         (
             minio_hostname, minio_port, minio_access_key,
@@ -953,6 +953,12 @@ spec:
   root: ComputedFromLocalData
   dialect: Python
   preamble: |
+    import pandas as pd
+    import pyarrow.orc as orc
+    from minio import Minio
+    import json
+    import onnxruntime as rt
+
     def make_predictions(
         minio,
         tmp_dir,
@@ -962,13 +968,6 @@ spec:
         destination_path,
         features,
     ):
-
-        import pandas as pd
-        import pyarrow.orc as orc
-        from minio import Minio
-        import json
-        import onnxruntime as rt
-
 
         (
             minio_hostname, minio_port, minio_access_key,
