@@ -4,13 +4,14 @@ use crate::asset::*;
 use crate::concept::{AoristConcept, Concept};
 use crate::constraint::Constraint;
 use crate::object::TAoristObject;
+use crate::storage_setup::ComputedFromLocalData;
 use crate::template::*;
 use aorist_concept::{aorist_concept, Constrainable, InnerObject};
 use derivative::Derivative;
 use paste::paste;
 use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
+use std::collections::{BTreeMap, HashMap};
 use std::sync::{Arc, RwLock};
 use uuid::Uuid;
 
@@ -47,6 +48,17 @@ impl DataSet {
             }
         }
         Err(format!("Could not find asset {} in dataset {}.", name, self.name).to_string())
+    }
+    pub fn get_source_assets(
+        &self,
+        setup: &ComputedFromLocalData,
+    ) -> Result<BTreeMap<String, Asset>, String> {
+        Ok(self
+            .assets
+            .iter()
+            .filter(|x| setup.source_asset_names.contains(&x.get_name()))
+            .map(|x| (x.get_name(), x.clone()))
+            .collect())
     }
 }
 impl TAoristObject for DataSet {

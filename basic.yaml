@@ -409,11 +409,7 @@ spec:
       |root: Concept<'a>, ancestry: &ConceptAncestry<'a>| {
           let setup = ancestry.computed_from_local_data(root.clone()).unwrap();
           let dataset = ancestry.data_set(root.clone()).unwrap();
-          let uuids: Vec<_> = dataset
-              .assets.iter()
-              .filter(|x| setup.source_asset_names.contains(&x.get_name()))
-              .map(|x| x.get_uuid().clone())
-              .collect();
+          let uuids: Vec<_> = dataset.get_source_assets(&setup).unwrap().values().map(|x| x.get_uuid().clone()).collect();
           if uuids.len() == 0 {
               panic!(format!(
                   "Cannot find source asset with names {}",
@@ -454,11 +450,7 @@ spec:
       |root: Concept<'a>, ancestry: &ConceptAncestry<'a>| {
           let setup = ancestry.computed_from_local_data(root.clone()).unwrap();
           let dataset = ancestry.data_set(root.clone()).unwrap();
-          let uuids: Vec<_> = dataset
-              .assets.iter()
-              .filter(|x| setup.source_asset_names.contains(&x.get_name()))
-              .map(|x| x.get_uuid().clone())
-              .collect();
+          let uuids: Vec<_> = dataset.get_source_assets(&setup).unwrap().values().map(|x| x.get_uuid().clone()).collect();
           if uuids.len() == 0 {
               panic!(format!(
                   "Cannot find source asset with names {}",
@@ -499,11 +491,7 @@ spec:
       |root: Concept<'a>, ancestry: &ConceptAncestry<'a>| {
           let setup = ancestry.computed_from_local_data(root.clone()).unwrap();
           let dataset = ancestry.data_set(root.clone()).unwrap();
-          let uuids: Vec<_> = dataset
-              .assets.iter()
-              .filter(|x| setup.source_asset_names.contains(&x.get_name()))
-              .map(|x| x.get_uuid().clone())
-              .collect();
+          let uuids: Vec<_> = dataset.get_source_assets(&setup).unwrap().values().map(|x| x.get_uuid().clone()).collect();
           if uuids.len() == 0 {
               panic!(format!(
                   "Cannot find source asset with names {}",

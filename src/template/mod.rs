@@ -9,6 +9,6 @@ pub use filter::{Filter, InnerFilter};
 pub use identifier_tuple::{IdentifierTuple, InnerIdentifierTuple};
 pub use keyed_struct::{InnerRowStruct, RowStruct};
 pub use measure::{
-    InnerIntegerMeasure, InnerTrainedFloatMeasure, IntegerMeasure, TrainedFloatMeasure,
-    PredictionsFromTrainedFloatMeasure, InnerPredictionsFromTrainedFloatMeasure,
+    InnerIntegerMeasure, InnerPredictionsFromTrainedFloatMeasure, InnerTrainedFloatMeasure,
+    IntegerMeasure, PredictionsFromTrainedFloatMeasure, TrainedFloatMeasure,
 };

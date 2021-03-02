@@ -7,9 +7,9 @@ use derivative::Derivative;
 use paste::paste;
 use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
+use std::collections::BTreeSet;
 use std::sync::{Arc, RwLock};
 use uuid::Uuid;
-use std::collections::BTreeSet;
 
 #[aorist_concept]
 pub struct ComputedFromLocalData {
