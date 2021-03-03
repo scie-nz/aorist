@@ -46,7 +46,7 @@ spec:
 ---
 type: Constraint
 spec:
-  name: DataDownloadedAndConverted
+  name: AllAssetsComputed
   root: Universe
   requires:
     - HistogramsComputed

@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 pub use crate::sql_parser::AttrMap;
 use indoc::formatdoc;
 use num::Float;

@@ -115,9 +115,9 @@ fn process_struct_fields(fields: &Punctuated<Field, Comma>, input: &DeriveInput)
 
     let struct_name = &input.ident;
     let bare_field = field.clone().filter(|x| {
-        extract_type_from_option(x.1).is_none() 
-        && extract_type_from_vector(x.1).is_none()
-        && extract_type_from_map(x.1).is_none()
+        extract_type_from_option(x.1).is_none()
+            && extract_type_from_vector(x.1).is_none()
+            && extract_type_from_map(x.1).is_none()
     });
     let option_field = field
         .clone()
@@ -131,9 +131,7 @@ fn process_struct_fields(fields: &Punctuated<Field, Comma>, input: &DeriveInput)
         .map(|x| (x.0, extract_type_from_vector(x.1).unwrap()));
     let map_field = field
         .clone()
-        .filter(|x| {
-            extract_type_from_option(x.1).is_none() && extract_type_from_map(x.1).is_some()
-        })
+        .filter(|x| extract_type_from_option(x.1).is_none() && extract_type_from_map(x.1).is_some())
         .map(|x| (x.0, extract_type_from_map(x.1).unwrap()));
     let option_vec_field = option_field
         .clone()
@@ -179,7 +177,7 @@ fn process_struct_fields(fields: &Punctuated<Field, Comma>, input: &DeriveInput)
     let vec_field_name = vec_field.clone().map(|x| x.0).collect::<Vec<_>>();
     let vec_field_type = vec_field.clone().map(|x| x.1).collect::<Vec<_>>();
     let map_field_name = map_field.clone().map(|x| x.0).collect::<Vec<_>>();
-    let map_field_value_type = map_field.clone().map(|x| x.1.1).collect::<Vec<_>>();
+    let map_field_value_type = map_field.clone().map(|x| x.1 .1).collect::<Vec<_>>();
     let option_vec_field_name = option_vec_field.clone().map(|x| x.0).collect::<Vec<_>>();
     let option_vec_field_type = option_vec_field.clone().map(|x| x.1).collect::<Vec<_>>();
 
