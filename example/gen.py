@@ -20,7 +20,7 @@ universe = Universe(
     users=DEFAULT_USERS,
     groups=DEFAULT_GROUPS,
     datasets=[
-        wine_dataset,
+        snap_dataset,
     ],
     endpoints=DEFAULT_ENDPOINTS,
     compliance=ComplianceConfig(

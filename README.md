@@ -1,5 +1,9 @@
 # Aorist
 
+Aorist is a code-generation tool for MLOps. Its aim is to generate legible
+code for common repetitive tasks in data science, such as data replication,
+common transformations, as well as machine learning operations.
+
 ## How to install
 
 These instructions require [Anaconda](https://anaconda.org) and were tested
@@ -15,6 +19,104 @@ python example/gen.py python
 python example/gen.py jupyter
 python example/gen.py airflow
 ```
+
+## Overview of an Aorist universe
+
+Let's say we are starting a new project which involves analyzing a number of
+large graph datasets, such as the ones provided by the
+[SNAP](snap.stanford.edu) project.
+
+We will conduct our analysis in a mini data-lake, such as the
+[Trino](trino.io) + [MinIO](min.io) solution specified by
+[Walden](https://github.com/scie-nz/walden).
+
+We would like to replicate all these graphs into our data lake before we
+can start analyzing them. At a very high-level, this is achieved by defining
+a "universe", the totality of things we care about in our project. One such
+universe is specified below:
+
+```python
+from snap import snap_dataset
+from aorist import (
+    dag,
+    Universe,
+    ComplianceConfig,
+    HiveTableStorage,
+    MinioLocation,
+    StaticHiveTableLayout,
+    ORCEncoding,
+)
+from common import DEFAULT_USERS, DEFAULT_GROUPS, DEFAULT_ENDPOINTS
+
+universe = Universe(
+    name="my_cluster",
+    datasets=[
+        snap_dataset,
+    ],
+    endpoints=DEFAULT_ENDPOINTS,
+    users=DEFAULT_USERS,
+    groups=DEFAULT_GROUPS,
+    compliance=ComplianceConfig(
+        description="""
+        Testing workflow for data replication of SNAP data to
+        local cluster. The SNAP dataset collection is provided
+        as open data by Stanford University. The collection contains
+        various social and technological network graphs, with
+        reasonable and systematic efforts having been made to ensure
+        the removal of all Personally Identifiable Information.
+        """,
+        data_about_human_subjects=True,
+        contains_personally_identifiable_information=False,
+    ),
+)
+```
+
+The universe definition contains a number of things:
+- the datasets we are talking about (more about it in a bit),
+- the endpoints we have available (e.g. the fact that a MinIO server
+  is available for storage, as opposed to HDFS or S3, etc., and where
+  that server is available; what endpoint we should use for Presto /
+  Trino, etc.)
+- who the users and groups are that will access the dataset,
+- some compliance annotations.
+
+Note: Currently users, groups, and compliance annotations are supported as a
+proof of concept -- these concepts are not essential to an introduction
+so we will skip them for now.
+
+## Generating a DAG
+
+To generate a flow that replicates our data all we have to do is run:
+
+```
+DIALECT = "python"
+out = dag(
+  universe, [
+    "DataDownloadedAndConverted",
+  ], DIALECT
+)
+```
+This will generate a set of Python tasks, which will do the following, for
+each asset (i.e., each graph) in our dataset:
+
+- download it from its remote location,
+- decompress it, if necessary
+- remove its header,
+- convert the file to a CSV, if necessary
+- upload the CSV data to MinIO
+- create a Hive table backing the MinIO location
+- convert the CSV-based Hive table to an ORC-based Hive table
+- drop the temporary CSV-based Hive table
+
+This set of tasks is also known as a Directed Acyclic Graph (DAG).
+The same DAG can be generated as a Jupyter notebook, e.g. by setting:
+```
+DIALECT = "jupyter"
+```
+Or we can set `DIALECT` to `"airflow"` for an Airflow DAG.
+
+
+
 
 ## How to build
 
