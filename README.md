@@ -115,6 +115,51 @@ DIALECT = "jupyter"
 ```
 Or we can set `DIALECT` to `"airflow"` for an Airflow DAG.
 
+
+### Aside: what is actually going on?
+What Aorist does is quite complex -- the following is an explanation of the
+conceptual details, but you can skip this if you'd want something a bit more
+concrete:
+- first, you describe the universe. This universe is actually a
+  highly-structured hierarchy of concepts, each of which can be
+  "constrained".
+- A constraint is something that "needs to happen". In this example all
+  you declare that needs to happen is the constraint
+  `DataDownloadedAndConverted`. This constraint is attached to the Universe,
+  which is a singleton object.
+- Constraints attach to specific kinds of objects -- some attach to the entire
+  Universe, others attach to tables, etc.
+- Constraints are considered to be satisfied when their dependent constraints
+  are satisfied. When we populate each constraint's own dependent constraints
+  we follow a set of complex mapping rules that are nonetheless fairly
+  intuitive (but difficult to express without a longer discussion, see the end
+  of this document for that)
+- Programs ("recipes") are attached to this constraint graph by a Driver. The
+  Driver decides which languages are prefered (e.g. maybe the Driver likes
+  Bash scrips more than Presto, etc.). The driver will complain if it can't
+  provide a solution for a particular constraint.
+- Once the recipes are attached, various minutiae are extracted from the
+  concept hierarchy -- e.g., which endpoints to hit, actual schemas of input
+  datasets, etc.
+- Once the various minutiae are filled in, we have a graph of Python code
+  snippets. If these snippets are repetitive (e.g. 100 instances of the same
+  function call but with different arguments) we compress them into for loops
+  over parameter dictionarie.
+- We then take the compressed snippet-graph and further optimize it, for
+  instance by pushing repeated parameters out of parameter dictionaries and
+  into the main body of the for loop.
+- We also compute unique, maximally-descriptive names for the tasks, a
+  combination of the constraint name and the concept's position in the
+  hierarchy. (e.g. `wine_table_has_replicated_schema`). These names are
+  shortened as much as possible while still being unique (e.g., we may shorten
+  things to `wine_schema`, a less mouthful of a task name).
+- The driver then adds scaffolding for native Python, Airflow or Jupyter code
+  generation. Other output formats (e.g. Prefect, Dagster, Makefiles, etc.)
+  will be supported in the future.
+- Finally, the driver converts the generated Python AST to a concrete string,
+  which it then formats as a *pretty* (PEP8-compliant) Python program via
+  Python [black](https://github.com/psf/black).
+
 ## Describing a dataset
 
 Before we can turn our attention to what we would like to achieve with
@@ -201,7 +246,7 @@ wine_table = StaticDataTable(
 Here's what we do here:
   - we define an asset called `wine_table`. This is also going to be the name
   of any Hive table that will be created to back this asset (or file, or
-  directory, etc., depending on the dataset storage.
+  directory, etc., depending on the dataset storage).
   - we also define a schema. A schema tells us *exactly* how we can turn a row
   into a template. For instance, we need the exact order of columns in a row
   to know unambiguously how to convert it into a struct.
@@ -219,7 +264,7 @@ Here's what we do here:
 
 Finally, let's define our dataset:
 
-```
+```python
 wine_dataset = DataSet(
     name="wine",
     datumTemplates=[wine_datum],
@@ -264,6 +309,10 @@ multiple assets. For instance, we may have multiple tables with exactly the
 same schema, some being huge tables with real data, and others being
 downsampled tables used for development. These tables should be refered to
 using the same template.
+
+This is also very useful in terms of tracking data lineage, on two levels:
+semantically (how does template Y follow from template X?) and concretely (how
+does row A in table T1 follow from row B in table T2?).
 
 ## Back to the SNAP dataset
 
@@ -395,6 +444,40 @@ then as an Airflow task, etc.
 Also note that while currently Aorist only supports generating single files as
 DAGs, in the future we expect it will support multiple file generation for
 complex projects.
+
+## SQL and derived assets
+
+Especially when datasets are in tabular form, it makes sense to think of data
+transformations in terms of standard SQL operations -- selections, projections,
+groups, explodes, and joins. These transformations can be supported via a
+`derive_asset` directive used in the process of Universe creation. For
+instance, if we are interested in training a model for high-ABV wines only, we
+can write:
+
+```python
+universe.derive_asset(
+    """
+    SELECT *
+    FROM wine.wine_table
+    WHERE wine.wine_table.alcohol > 14.0
+    """,
+    name="high_abv_wines",
+    storage=HiveTableStorage(
+        location=MinioLocation(name="high_abv_wines"),
+        layout=StaticHiveTableLayout(),
+        encoding=ORCEncoding(),
+    ),
+    tmp_dir="/tmp/high_abv_wines",
+)
+```
+
+Behind the scenes, this directive does two things:
+- if necessary, creates a new template expressing the operation of filtering a
+  table on the alcohol attribute.
+- it creates a new `StaticDataTable` asset living in the indicated storage.
+  This table will only be computed *after* its source tables (the ones in the
+  `FROM` clause) are ready.
+
 
 ## How to build
 
