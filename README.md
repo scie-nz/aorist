@@ -12,7 +12,7 @@ against Ubuntu Linux 20.04 LTS.
 ```
 conda create -n aorist python=3.8 anaconda
 conda activate aorist
-pip install https://storage.googleapis.com/scienz-artifacts/aorist-0.0.1-cp38-cp38-manylinux2010_x86_64.whl
+pip3 install https://storage.googleapis.com/scienz-artifacts/aorist-0.0.1-cp38-cp38-linux_x86_64.whl
 
 # Try it out
 python example/gen.py python
