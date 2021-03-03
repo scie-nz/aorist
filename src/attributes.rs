@@ -399,6 +399,16 @@ impl AttributeOrTransform {
             AttributeOrTransform::Transform(x) => x.get_name(),
         }
     }
+    pub fn as_predicted_objective(&self) -> Result<Self, String> {
+        match &self {
+            AttributeOrTransform::Attribute(x) => {
+                Ok(AttributeOrTransform::Attribute(x.as_predicted_objective()))
+            }
+            AttributeOrTransform::Transform(_) => {
+                Err("Transforms cannot be predicted objectives".to_string())
+            }
+        }
+    }
     pub fn get_comment(&self) -> &Option<String> {
         match &self {
             AttributeOrTransform::Attribute(x) => x.get_comment(),
@@ -429,5 +439,12 @@ impl InnerAttribute {
     #[getter]
     pub fn name(&self) -> PyResult<String> {
         Ok(self.inner.get_name().clone())
+    }
+    pub fn as_predicted_objective(&self) -> PyResult<Self> {
+        // TODO: change unwrap to PyErr
+        Ok(Self {
+            inner: self.inner.as_predicted_objective().unwrap(),
+            tag: self.tag.clone(),
+        })
     }
 }
