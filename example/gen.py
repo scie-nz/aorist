@@ -1,3 +1,4 @@
+import sys
 from aorist import (
     dag,
     Universe,
@@ -65,5 +66,5 @@ universe.derive_asset(
 )
 out = dag(universe, [
     "DataDownloadedAndConverted",
-], "python")
+], sys.argv[1])
 print(out.replace("\\\\", "\\"))

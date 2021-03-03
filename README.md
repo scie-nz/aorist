@@ -9,7 +9,11 @@ against Ubuntu Linux 20.04 LTS.
 conda create -n aorist python=3.8 anaconda
 conda activate aorist
 pip install https://storage.googleapis.com/scienz-artifacts/aorist-0.0.1-cp38-cp38-manylinux2010_x86_64.whl
-python example/gen.py
+
+# Try it out
+python example/gen.py python
+python example/gen.py jupyter
+python example/gen.py airflow
 ```
 
 ## How to build
