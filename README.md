@@ -1,4 +1,35 @@
-# dataorist
+# Aorist
+
+## How to install
+
+These instructions require [Anaconda](https://anaconda.org) and were tested
+against Ubuntu Linux 20.04 LTS.
+
+```
+conda create -n aorist python=3.8 anaconda
+conda activate aorist
+pip install https://storage.googleapis.com/scienz-artifacts/aorist-0.0.1-cp38-cp38-manylinux2010_x86_64.whl
+python example/gen.py
+```
+
+## How to build
+
+To build cargo library (need Rust installed):
+
+```
+cargo build
+```
+
+To try out Python code against .so library:
+
+```
+./run.sh
+```
+
+To rebuild pip wheel (requires [maturin](https://github.com/PyO3/maturin)):
+```
+maturin build
+```
 
 ## Concepts
 Aorist uses two types of concepts:
