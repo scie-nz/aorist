@@ -246,6 +246,7 @@ predictions_storage = HiveTableStorage(
     location=MinioLocation(name="wine"),
     layout=StaticHiveTableLayout(),
     encoding=ORCEncoding(),
+    tag="wine_predictions_storage",
 )
 # Our predictions will be computed from local data
 predictions_setup = ComputedFromLocalData(

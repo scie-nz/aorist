@@ -53,7 +53,7 @@ spec:
     - Replicated
     - ComputeFilter
     - SVMRegressionModelsTrained
-    - ComputePredictions
+    - ConvertPredictionsCSVTableToORCTable
 ---
 type: Constraint
 spec:
@@ -95,9 +95,23 @@ spec:
   attachIf: |
       |root: Concept<'a>, ancestry: &ConceptAncestry<'a>|
       match ancestry.static_data_table(root.clone()) {
-          Ok(sdt) => match sdt.setup {
+          Ok(sdt) => match &sdt.setup {
               crate::storage_setup::StorageSetup::RemoteImportStorageSetup(_) => true,
-              _ => false,
+              crate::storage_setup::StorageSetup::ComputedFromLocalData(cfld) => match &cfld.target {
+                crate::storage::Storage::HiveTableStorage(hts) => match hts.encoding {
+                  crate::encoding::Encoding::ORCEncoding(_) => {
+                    let data_set = ancestry.data_set(root.clone()).unwrap();
+                    let template = data_set.get_template_for_asset(sdt);
+                    match template {
+                      Ok(crate::template::DatumTemplate::PredictionsFromTrainedFloatMeasure(_)) => true,
+                        Ok(_) => false,
+                        Err(err) => panic!(err),
+                    }
+                  },
+                  _ => false,
+                }
+                _ => false,
+              }
           },
           _ => false,
       }
@@ -339,6 +353,41 @@ spec:
 ---
 type: Constraint
 spec:
+  name: ConvertPredictionsCSVTableToORCTable
+  root: HiveTableStorage
+  requires:
+    - ComputePredictions
+  requiresProgram: true
+  title: Convert CSV Table to ORC Table
+  body: |
+      Hive tables can be stored in external CSV format, but this is inefficient.
+      We can convert them to ORC (the native Hive format) to speed up access.
+  attachIf: |
+      |root: Concept<'a>, ancestry: &ConceptAncestry<'a>|
+      match ancestry.static_data_table(root.clone()) {
+          Ok(sdt) => match &sdt.setup {
+              crate::storage_setup::StorageSetup::ComputedFromLocalData(cfld) => match &cfld.target {
+                crate::storage::Storage::HiveTableStorage(hts) => match hts.encoding {
+                  crate::encoding::Encoding::ORCEncoding(_) => {
+                    let data_set = ancestry.data_set(root.clone()).unwrap();
+                    let template = data_set.get_template_for_asset(sdt);
+                    match template {
+                      Ok(crate::template::DatumTemplate::PredictionsFromTrainedFloatMeasure(_)) => true,
+                        Ok(_) => false,
+                        Err(err) => panic!(err),
+                    }
+                  },
+                  _ => false,
+                }
+                _ => false,
+              },
+              _ => false,
+          },
+          _ => false,
+      }
+---
+type: Constraint
+spec:
   name: ConvertCSVTableToORCTable
   root: HiveTableStorage
   requires:
@@ -351,7 +400,13 @@ spec:
       We can convert them to ORC (the native Hive format) to speed up access.
   attachIf: |
       |root: Concept<'a>, ancestry: &ConceptAncestry<'a>|
-      ancestry.remote_import_storage_setup(root.clone()).is_ok()
+      match ancestry.static_data_table(root.clone()) {
+          Ok(sdt) => match &sdt.setup {
+              crate::storage_setup::StorageSetup::RemoteImportStorageSetup(_) => true,
+              _ => false,
+          },
+          _ => false,
+      }
 ---
 type: Constraint
 spec:

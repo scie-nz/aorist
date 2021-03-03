@@ -315,6 +315,7 @@ spec:
         call: >
           match &hive_table_storage.encoding {
             Encoding::ORCEncoding(_) => "ORC".to_string(),
+            Encoding::CSVEncoding(_) => "CSV".to_string(),
             _ => panic!("Format not supported for hive table")
           }
         attaches: HiveTableStorage
@@ -958,6 +959,7 @@ spec:
     from minio import Minio
     import json
     import onnxruntime as rt
+    import numpy
 
     def make_predictions(
         minio,
@@ -1005,8 +1007,13 @@ spec:
 
         features = json.loads(features)
         X = input_data[features].to_numpy()
-        X['prediction'] = sess.run([label_name], {input_name: X.astype(numpy.float32)})[0]
-        X.to_csv(destination_path)
+        predictions = sess.run([label_name], {input_name: X.astype(numpy.float32)})[0]
+        X = numpy.concatenate((X, predictions), axis=1)
+        tmp_output_path = "%s/data.csv" % tmp_dir
+        numpy.savetxt(tmp_output_path, X, delimiter=",")
+        print("Wrote data.csv to %s" % destination_path)
+        client.fput_object(minio_bucket, destination_path + "/data.csv", tmp_output_path)
+
 
   call: make_predictions
   kwargs:
@@ -1067,7 +1074,7 @@ spec:
                       Storage::HiveTableStorage(ref storage) => match
                       storage.location {
                           OnPremiseLocation::MinioLocation(ref l) =>
-                            format!("{}/{}", l.name, static_data_table.get_name()).to_string(),
+                            format!("{}/{}/", l.name, static_data_table.get_name()).to_string(),
                           _ => panic!("Only on-premise locations allowed."),
                       },
                       _ => panic!("Only HiveTableStorage allowed."),
@@ -1134,7 +1141,7 @@ spec:
                     Storage::HiveTableStorage(ref storage) => match
                     storage.location {
                         OnPremiseLocation::MinioLocation(ref l) => format!(
-                            "{}/{}",
+                            "{}/{}_csv",
                             l.name,
                             static_data_table.get_name(),
                         ).to_string(),
@@ -1162,3 +1169,53 @@ spec:
                 ptfm.features.iter().map(|x| format!("\"{}\"", x.get_name()).to_string()).collect::<Vec<String>>().join(","),
             ).to_string()
           }
+---
+type: Program
+spec:
+  use: ConvertPredictionsCSVTableToORCTable
+  root: HiveTableStorage
+  dialect: Presto
+  call: \nINSERT INTO {presto_schema}.{table_name} \nSELECT {columns} \nFROM {presto_schema}.{table_name}_csv\n
+  kwargs:
+    table_name:
+      type: AncestorArgument
+      spec:
+        call: format!("{}", static_data_table.name).to_string()
+        attaches: StaticDataTable
+    presto_schema:
+      type: AncestorArgument
+      spec:
+        attaches: DataSet
+        call: data_set.name.clone()
+    columns:
+      type: MultipleAncestorsArgument
+      spec:
+        call: >
+          {
+            use crate::template::TDatumTemplate;
+            let DataSchema::TabularSchema(ref t) = static_data_table.schema;
+            let attr_v = data_set
+                .datumTemplates
+                .iter()
+                .filter(|x| {
+                    x.get_name().clone() == t.datumTemplateName
+                })
+                .map(|x| x.get_attributes())
+                .next().unwrap();
+            let attr_map = attr_v.iter()
+                .map(|x|
+                    (x.get_name().clone(), x.get_presto_type()))
+                .collect::<Vec<_>>();
+            let attr_types = attr_map.iter().map(|x| {
+                let (name, presto_type) = x;
+                return format!(
+                    "CAST({name} AS {presto_type}) AS {name}",
+                    name=name,
+                    presto_type=presto_type,
+                ).to_string();
+            }).collect::<Vec<String>>();
+            format!("\n{}", attr_types.join(",\n"))
+          }
+        attaches:
+          - StaticDataTable
+          - DataSet
