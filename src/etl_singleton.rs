@@ -1,7 +1,6 @@
 use crate::endpoints::EndpointConfig;
 use crate::python::{
-    format_code, Assignment, Import, Preamble, PythonStatementInput,
-    SimpleIdentifier, AST, Dict,
+    format_code, Assignment, Dict, Import, Preamble, PythonStatementInput, SimpleIdentifier, AST,
 };
 use aorist_primitives::Dialect;
 use linked_hash_map::LinkedHashMap;
@@ -101,6 +100,51 @@ where
             }
         }
     }
+    fn literals_to_assignments(
+        literals: LinkedHashMap<AST, LinkedHashMap<String, Vec<(String, Arc<RwLock<Dict>>)>>>,
+    ) -> Vec<AST> {
+        let mut assignments: LinkedHashMap<
+            String,
+            Vec<(AST, Vec<(Arc<RwLock<Dict>>, std::string::String)>)>,
+        > = LinkedHashMap::new();
+        for (literal, val) in literals.into_iter() {
+            for (short_name, keys) in val.into_iter() {
+                let mut keys_hist: BTreeMap<String, usize> = BTreeMap::new();
+                let mut rws = Vec::new();
+                for (key, rw) in keys {
+                    *keys_hist.entry(key.clone()).or_insert(1) += 1;
+                    rws.push((rw, key));
+                }
+                if keys_hist.len() == 1 {
+                    assignments
+                        .entry(
+                            format!(
+                                "{}__{}",
+                                keys_hist.into_iter().next().unwrap().0,
+                                short_name
+                            )
+                            .to_string()
+                            .to_uppercase(),
+                        )
+                        .or_insert(Vec::new())
+                        .push((literal.clone(), rws));
+                }
+            }
+        }
+        let mut assignments_ast = Vec::new();
+        for (var, vals) in assignments {
+            if vals.len() == 1 {
+                let lval = AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(var));
+                let (rval, rws) = vals.into_iter().next().unwrap();
+                assignments_ast.push(AST::Assignment(Assignment::new_wrapped(lval.clone(), rval)));
+                for (rw, key) in rws {
+                    let mut write = rw.write().unwrap();
+                    write.replace_elem(key, lval.clone());
+                }
+            }
+        }
+        assignments_ast
+    }
     fn materialize(&self, statements_and_preambles: Vec<PythonStatementInput>) -> PyResult<String> {
         let gil = Python::acquire_gil();
         let py = gil.python();
@@ -149,43 +193,8 @@ where
                 Self::extract_literals(ast, &short_name, &mut literals);
             }
         }
-        let mut assignments = LinkedHashMap::new();
-        for (literal, val) in literals.into_iter() {
-            for (short_name, keys) in val.into_iter() {
-                let mut keys_hist: BTreeMap<String, usize> = BTreeMap::new();
-                let mut rws = Vec::new();
-                for (key, rw) in keys {
-                    *keys_hist.entry(key.clone()).or_insert(1) += 1;
-                    rws.push((rw, key));
-                }
-                if keys_hist.len() == 1 {
-                    assignments
-                        .entry(
-                            format!(
-                                "{}__{}",
-                                keys_hist.into_iter().next().unwrap().0,
-                                short_name
-                            )
-                            .to_string()
-                            .to_uppercase(),
-                        )
-                        .or_insert(Vec::new())
-                        .push((literal.clone(), rws));
-                }
-            }
-        }
-        let mut assignments_ast = Vec::new();
-        for (var, vals) in assignments {
-            if vals.len() == 1 {
-                let lval = AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(var));
-                let (rval, rws) = vals.into_iter().next().unwrap();
-                assignments_ast.push(AST::Assignment(Assignment::new_wrapped(lval.clone(), rval)));
-                for (rw, key) in rws {
-                    let mut write = rw.write().unwrap();
-                    write.replace_elem(key, lval.clone());
-                }
-            }
-        }
+        let assignments_ast = Self::literals_to_assignments(literals);
+
         if assignments_ast.len() > 0 {
             statements_with_ast.insert(
                 0,
