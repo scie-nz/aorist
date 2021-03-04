@@ -40,7 +40,9 @@ impl StorageSetup {
 impl InnerStorageSetup {
     pub fn replicate_to_local(&self, t: InnerStorage, tmp_dir: String) -> Self {
         match self {
-            Self::RemoteStorageSetup(x) => Self::RemoteImportStorageSetup(x.replicate_to_local(t, tmp_dir)),
+            Self::RemoteStorageSetup(x) => {
+                Self::RemoteImportStorageSetup(x.replicate_to_local(t, tmp_dir))
+            }
             _ => panic!("Only assets with RemoteStorageSetup can be replicated"),
         }
     }

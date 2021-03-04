@@ -18,7 +18,11 @@ pub struct RemoteStorageSetup {
 }
 
 impl InnerRemoteStorageSetup {
-    pub fn replicate_to_local(&self, t: InnerStorage, tmp_dir: String) -> InnerRemoteImportStorageSetup {
+    pub fn replicate_to_local(
+        &self,
+        t: InnerStorage,
+        tmp_dir: String,
+    ) -> InnerRemoteImportStorageSetup {
         InnerRemoteImportStorageSetup {
             remote: self.remote.clone(),
             local: vec![t],

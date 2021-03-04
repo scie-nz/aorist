@@ -113,7 +113,10 @@ impl InnerDataSet {
         match self.assets.get(&asset_name) {
             Some(InnerAsset::StaticDataTable(x)) => Ok(x.clone()),
             Some(_) => panic!(format!("Asset {} is not a StaticDataTable.", asset_name)),
-            _ => panic!(format!("Dataset does not contain asset called {}.", asset_name))
+            _ => panic!(format!(
+                "Dataset does not contain asset called {}.",
+                asset_name
+            )),
         }
     }
     pub fn replicate_to_local(&self, storage: InnerStorage, tmp_dir: String) -> InnerDataSet {
@@ -121,7 +124,16 @@ impl InnerDataSet {
             name: self.name.clone(),
             accessPolicies: self.accessPolicies.clone(),
             datumTemplates: self.datumTemplates.clone(),
-            assets: self.assets.iter().map(|(k, v)| (k.clone(), v.replicate_to_local(storage.clone(), tmp_dir.clone()))).collect(),
+            assets: self
+                .assets
+                .iter()
+                .map(|(k, v)| {
+                    (
+                        k.clone(),
+                        v.replicate_to_local(storage.clone(), tmp_dir.clone()),
+                    )
+                })
+                .collect(),
             tag: self.tag.clone(),
         }
     }
@@ -133,7 +145,11 @@ impl InnerDataSet {
         let template = mapped_templates.get(&template_name);
         match template {
             Some(template) => {
-                let mut attributes = template.get_attributes().into_iter().map(|x| (x.name().unwrap().clone(), x)).collect::<HashMap<_, _>>();
+                let mut attributes = template
+                    .get_attributes()
+                    .into_iter()
+                    .map(|x| (x.name().unwrap().clone(), x))
+                    .collect::<HashMap<_, _>>();
                 let mut asset_attributes = Vec::new();
                 for attribute_name in schema.get_attribute_names() {
                     asset_attributes.push(attributes.remove(&attribute_name).unwrap());

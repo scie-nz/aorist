@@ -71,8 +71,12 @@ impl InnerAsset {
     }
     pub fn replicate_to_local(&self, t: InnerStorage, tmp_dir: String) -> Self {
         match self {
-            InnerAsset::StaticDataTable(x) => InnerAsset::StaticDataTable(x.replicate_to_local(t, tmp_dir)),
-            InnerAsset::SupervisedModel(x) => InnerAsset::SupervisedModel(x.replicate_to_local(t, tmp_dir)),
+            InnerAsset::StaticDataTable(x) => {
+                InnerAsset::StaticDataTable(x.replicate_to_local(t, tmp_dir))
+            }
+            InnerAsset::SupervisedModel(x) => {
+                InnerAsset::SupervisedModel(x.replicate_to_local(t, tmp_dir))
+            }
             InnerAsset::DerivedAsset(_) => panic!(
                 "DerivedAssets are already stored locally, they cannot be replicated to local"
             ),
