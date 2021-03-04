@@ -1,24 +1,20 @@
-from scienz import wine
+from scienz import snap
 from aorist import (
-    dag, Universe, HiveTableStorage,
-    MinioLocation, StaticHiveTableLayout, ORCEncoding,
+    Universe, HiveTableStorage, MinioLocation,
+    StaticHiveTableLayout, ORCEncoding,
 )
 from common import DEFAULT_ENDPOINTS
-
+tmp_dir = "tmp/snap"
 local = HiveTableStorage(
     location=MinioLocation(name="wine"),
     layout=StaticHiveTableLayout(),
     encoding=ORCEncoding(),
 )
-wine_dataset = wine.replicate_to_local(
-    tmp_dir="/tmp/wine",
-    storage=local,
-)
 universe = Universe(
     name="my_cluster",
-    datasets=[wine_dataset],
+    datasets=[snap.replicate_to_local(
+        local, tmp_dir,
+    )],
     endpoints=DEFAULT_ENDPOINTS,
 )
-
-out = dag(universe, ["Replicated"], "jupyter")
-print(out)
+print(universe.jupyter("Replicated"))
