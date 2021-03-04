@@ -63,4 +63,11 @@ impl InnerDatumTemplate {
             InnerDatumTemplate::Filter(x) => x.name.clone(),
         }
     }
+    pub fn get_attributes(&self) -> Vec<InnerAttribute> {
+        match self {
+            InnerDatumTemplate::RowStruct(x) => x.attributes.clone(),
+            InnerDatumTemplate::IdentifierTuple(x) => x.attributes.clone(),
+            _ => panic!("Not implemented"),
+        }
+    }
 }

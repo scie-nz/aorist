@@ -4,6 +4,7 @@ use crate::asset::static_data_table::*;
 use crate::asset::supervised_model::*;
 use crate::concept::{AoristConcept, Concept};
 use crate::schema::*;
+use crate::storage::*;
 use crate::storage_setup::*;
 use aorist_concept::{aorist_concept, Constrainable, InnerObject};
 use paste::paste;
@@ -66,6 +67,15 @@ impl InnerAsset {
             InnerAsset::StaticDataTable(x) => x.schema.clone(),
             InnerAsset::SupervisedModel(x) => x.schema.clone(),
             InnerAsset::DerivedAsset(x) => x.schema.clone(),
+        }
+    }
+    pub fn replicate_to_local(&self, t: InnerStorage, tmp_dir: String) -> Self {
+        match self {
+            InnerAsset::StaticDataTable(x) => InnerAsset::StaticDataTable(x.replicate_to_local(t, tmp_dir)),
+            InnerAsset::SupervisedModel(x) => InnerAsset::SupervisedModel(x.replicate_to_local(t, tmp_dir)),
+            InnerAsset::DerivedAsset(_) => panic!(
+                "DerivedAssets are already stored locally, they cannot be replicated to local"
+            ),
         }
     }
 }

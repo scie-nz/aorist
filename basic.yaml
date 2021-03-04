@@ -111,7 +111,8 @@ spec:
                   _ => false,
                 }
                 _ => false,
-              }
+              },
+              _ => false,
           },
           _ => false,
       }

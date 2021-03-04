@@ -1,9 +1,11 @@
 #![allow(non_snake_case)]
 use crate::access_policy::*;
 use crate::asset::*;
+use crate::attributes::*;
 use crate::concept::{AoristConcept, Concept};
 use crate::constraint::Constraint;
 use crate::object::TAoristObject;
+use crate::storage::*;
 use crate::storage_setup::ComputedFromLocalData;
 use crate::template::*;
 use aorist_concept::{aorist_concept, Constrainable, InnerObject};
@@ -106,5 +108,43 @@ impl InnerDataSet {
         assert!(!self.assets.contains_key(&asset_name));
         self.assets.insert(a.get_name(), a);
         Ok(())
+    }
+    pub fn get_static_data_table(&self, asset_name: String) -> PyResult<InnerStaticDataTable> {
+        match self.assets.get(&asset_name) {
+            Some(InnerAsset::StaticDataTable(x)) => Ok(x.clone()),
+            Some(_) => panic!(format!("Asset {} is not a StaticDataTable.", asset_name)),
+            _ => panic!(format!("Dataset does not contain asset called {}.", asset_name))
+        }
+    }
+    pub fn replicate_to_local(&self, storage: InnerStorage, tmp_dir: String) -> InnerDataSet {
+        InnerDataSet {
+            name: self.name.clone(),
+            accessPolicies: self.accessPolicies.clone(),
+            datumTemplates: self.datumTemplates.clone(),
+            assets: self.assets.iter().map(|(k, v)| (k.clone(), v.replicate_to_local(storage.clone(), tmp_dir.clone()))).collect(),
+            tag: self.tag.clone(),
+        }
+    }
+    pub fn get_attributes_for_asset(&self, asset_name: String) -> PyResult<Vec<InnerAttribute>> {
+        let asset = self.assets.get(&asset_name).unwrap();
+        let schema = asset.get_schema();
+        let template_name = schema.get_datum_template_name();
+        let mapped_templates = self.get_mapped_datum_templates();
+        let template = mapped_templates.get(&template_name);
+        match template {
+            Some(template) => {
+                let mut attributes = template.get_attributes().into_iter().map(|x| (x.name().unwrap().clone(), x)).collect::<HashMap<_, _>>();
+                let mut asset_attributes = Vec::new();
+                for attribute_name in schema.get_attribute_names() {
+                    asset_attributes.push(attributes.remove(&attribute_name).unwrap());
+                }
+                Ok(asset_attributes)
+            }
+            None => panic!(format!(
+                "Could not find template for asset {} in dataset {}",
+                asset.get_name(),
+                self.name,
+            )),
+        }
     }
 }

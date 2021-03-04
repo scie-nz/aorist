@@ -4,6 +4,7 @@ use crate::asset::asset::TAsset;
 use crate::concept::{AoristConcept, Concept};
 use crate::constraint::Constraint;
 use crate::schema::*;
+use crate::storage::*;
 use crate::storage_setup::*;
 use aorist_concept::{aorist_concept, Constrainable, InnerObject};
 use derivative::Derivative;
@@ -33,5 +34,17 @@ impl TAsset for SupervisedModel {
     }
     fn get_storage_setup(&self) -> StorageSetup {
         self.setup.clone()
+    }
+}
+
+impl InnerSupervisedModel {
+    pub fn replicate_to_local(&self, t: InnerStorage, tmp_dir: String) -> Self {
+        Self {
+            name: self.name.clone(),
+            setup: self.setup.replicate_to_local(t, tmp_dir),
+            schema: self.schema.clone(),
+            tag: self.tag.clone(),
+            algorithm: self.algorithm.clone(),
+        }
     }
 }
