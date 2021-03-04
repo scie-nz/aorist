@@ -134,7 +134,7 @@ pub fn dag(inner: InnerUniverse, constraints: Vec<String>, mode: &str) -> PyResu
     let mut universe = Universe::from(inner);
     universe.compute_uuids();
     let debug = false;
-    match mode {
+    let output = match mode {
         "airflow" => {
             Driver::<AirflowDAG>::new(&universe, constraints.into_iter().collect(), debug).run()
         }
@@ -148,7 +148,8 @@ pub fn dag(inner: InnerUniverse, constraints: Vec<String>, mode: &str) -> PyResu
             Driver::<JupyterDAG>::new(&universe, constraints.into_iter().collect(), debug).run()
         }
         _ => panic!("Unknown mode provided"),
-    }
+    }?;
+    Ok(output.replace("\\\\", "\\"))
 }
 
 #[pyfunction]

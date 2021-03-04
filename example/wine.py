@@ -1,4 +1,4 @@
-from wine_asset import wine_dataset
+from scienz import wine
 
 from aorist import (
     MinioLocation,
@@ -25,7 +25,7 @@ local = HiveTableStorage(
     layout=StaticHiveTableLayout(),
     encoding=ORCEncoding(),
 )
-wine_dataset = wine_dataset.replicate_to_local(
+wine_dataset = wine.replicate_to_local(
     tmp_dir="/tmp/wine",
     storage=local,
 )
