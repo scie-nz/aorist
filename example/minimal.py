@@ -1,9 +1,7 @@
 from scienz import snap
-from aorist import (
-    Universe, HiveTableStorage, MinioLocation,
-    StaticHiveTableLayout, ORCEncoding,
-)
+from aorist import *
 from common import DEFAULT_ENDPOINTS
+
 tmp_dir = "tmp/snap"
 local = HiveTableStorage(
     location=MinioLocation(name="wine"),
