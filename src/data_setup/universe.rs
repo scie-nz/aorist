@@ -14,6 +14,7 @@ use crate::storage::*;
 use crate::template::*;
 use crate::user::*;
 use crate::user_group::*;
+use crate::dag;
 use aorist_concept::{aorist_concept, Constrainable, InnerObject};
 use derivative::Derivative;
 use linked_hash_map::LinkedHashMap;
@@ -99,6 +100,10 @@ impl InnerUniverse {
     pub fn add_template(&mut self, t: InnerDatumTemplate, dataset_name: String) -> PyResult<()> {
         let dataset = self.get_dataset(dataset_name).unwrap();
         dataset.add_template(t)
+    }
+    pub fn jupyter(&self, constraint: String) -> PyResult<String> {
+        let inner = self.clone();
+        dag(inner, vec![constraint], "jupyter")
     }
     pub fn add_asset(&mut self, a: InnerAsset, dataset_name: String) -> PyResult<()> {
         let dataset = self.get_dataset(dataset_name).unwrap();

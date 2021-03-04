@@ -12,13 +12,25 @@ against Ubuntu Linux 20.04 LTS.
 ```
 conda create -n aorist python=3.8 anaconda
 conda activate aorist
-pip install https://storage.googleapis.com/scienz-artifacts/aorist-0.0.1-cp38-cp38-manylinux2010_x86_64.whl
+pip3 install https://storage.googleapis.com/scienz-artifacts/aorist-0.0.1-cp38-cp38-linux_x86_64.whl
+```
+Alternatively, if you have Rust
+[installed](https://www.rust-lang.org/tools/install), you can run:
 
-# Try it out
+```
+cargo build
+cp target/debug/libaorist.so example/aorist.so
+```
+
+To try it out:
+```
 python example/gen.py python
 python example/gen.py jupyter
 python example/gen.py airflow
 ```
+
+The command above generates Python code or a Jupyter notebook -- you can pipe the code to a
+file.
 
 ## Overview of an Aorist universe
 
@@ -92,7 +104,7 @@ To generate a flow that replicates our data all we have to do is run:
 DIALECT = "python"
 out = dag(
   universe, [
-    "DataDownloadedAndConverted",
+    "AllAssetsComputed",
   ], DIALECT
 )
 ```
@@ -125,7 +137,7 @@ concrete:
   "constrained".
 - A constraint is something that "needs to happen". In this example all
   you declare that needs to happen is the constraint
-  `DataDownloadedAndConverted`. This constraint is attached to the Universe,
+  `AllAssetsComputed`. This constraint is attached to the Universe,
   which is a singleton object.
 - Constraints attach to specific kinds of objects -- some attach to the entire
   Universe, others attach to tables, etc.

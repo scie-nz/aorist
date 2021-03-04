@@ -138,7 +138,7 @@ impl InnerTrainedFloatMeasure {
             name: name,
             comment: self.comment.clone(),
             features: self.features.clone(),
-            objective: self.objective.clone(),
+            objective: self.objective.as_predicted_objective().unwrap(),
             tag: tag,
         }
     }

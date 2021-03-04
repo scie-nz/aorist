@@ -20,7 +20,7 @@ universe = Universe(
     users=DEFAULT_USERS,
     groups=DEFAULT_GROUPS,
     datasets=[
-        snap_dataset,
+        wine_dataset,
     ],
     endpoints=DEFAULT_ENDPOINTS,
     compliance=ComplianceConfig(
@@ -36,35 +36,36 @@ universe = Universe(
         contains_personally_identifiable_information=False,
     ),
 )
-universe.derive_asset(
-    """
-    SELECT *
-    FROM wine.wine_table
-    WHERE wine.wine_table.alcohol > 14.0
-    """,
-    name="high_abv_wines",
-    storage=HiveTableStorage(
-        location=MinioLocation(name="high_abv_wines"),
-        layout=StaticHiveTableLayout(),
-        encoding=ORCEncoding(),
-    ),
-    tmp_dir="/tmp/high_abv_wines",
-)
-universe.derive_asset(
-    """
-    SELECT *
-    FROM wine.wine_table
-    WHERE wine.wine_table.alcohol <= 14.0
-    """,
-    name="lower_abv_wines",
-    storage=HiveTableStorage(
-        location=MinioLocation(name="lower_abv_wines"),
-        layout=StaticHiveTableLayout(),
-        encoding=ORCEncoding(),
-    ),
-    tmp_dir="/tmp/high_abv_wines",
-)
 out = dag(universe, [
-    "DataDownloadedAndConverted",
+    "AllAssetsComputed",
 ], sys.argv[1])
 print(out.replace("\\\\", "\\"))
+
+# universe.derive_asset(
+#     """
+#     SELECT *
+#     FROM wine.wine_table
+#     WHERE wine.wine_table.alcohol > 14.0
+#     """,
+#     name="high_abv_wines",
+#     storage=HiveTableStorage(
+#         location=MinioLocation(name="high_abv_wines"),
+#         layout=StaticHiveTableLayout(),
+#         encoding=ORCEncoding(),
+#     ),
+#     tmp_dir="/tmp/high_abv_wines",
+# )
+# universe.derive_asset(
+#     """
+#     SELECT *
+#     FROM wine.wine_table
+#     WHERE wine.wine_table.alcohol <= 14.0
+#     """,
+#     name="lower_abv_wines",
+#     storage=HiveTableStorage(
+#         location=MinioLocation(name="lower_abv_wines"),
+#         layout=StaticHiveTableLayout(),
+#         encoding=ORCEncoding(),
+#     ),
+#     tmp_dir="/tmp/high_abv_wines",
+# )

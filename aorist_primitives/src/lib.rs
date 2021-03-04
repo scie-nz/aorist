@@ -798,6 +798,16 @@ macro_rules! register_attribute {
                     )+
                 }
             }
+            pub fn as_predicted_objective(&self) -> Self {
+                match self {
+                    $(
+                        [<$name Enum>]::$element(x) => [<$name Enum>]::$element($element {
+                            name: format!("predicted_{}", x.get_name()).to_string(),
+                            comment: x.get_comment().clone(),
+                        }),
+                    )+
+                }
+            }
             pub fn get_comment(&self) -> &Option<String> {
                 match self {
                     $(

@@ -134,7 +134,7 @@ pub fn dag(inner: InnerUniverse, constraints: Vec<String>, mode: &str) -> PyResu
     let mut universe = Universe::from(inner);
     universe.compute_uuids();
     let debug = false;
-    match mode {
+    let output = match mode {
         "airflow" => {
             Driver::<AirflowDAG>::new(&universe, constraints.into_iter().collect(), debug).run()
         }
@@ -148,7 +148,8 @@ pub fn dag(inner: InnerUniverse, constraints: Vec<String>, mode: &str) -> PyResu
             Driver::<JupyterDAG>::new(&universe, constraints.into_iter().collect(), debug).run()
         }
         _ => panic!("Unknown mode provided"),
-    }
+    }?;
+    Ok(output.replace("\\\\", "\\"))
 }
 
 #[pyfunction]
@@ -214,6 +215,7 @@ fn aorist(py: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<InnerFilter>()?;
     m.add_class::<InnerONNXEncoding>()?;
     m.add_class::<InnerLocalFileStorage>()?;
+    m.add_class::<InnerRemoteStorageSetup>()?;
     m.add_wrapped(wrap_pyfunction!(default_tabular_schema))?;
     m.add_wrapped(wrap_pyfunction!(dag))?;
     m.add_wrapped(wrap_pyfunction!(derive_integer_measure))?;
