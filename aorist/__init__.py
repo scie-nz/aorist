@@ -1,1 +1,1 @@
-from aorist import *
+from .aorist import *

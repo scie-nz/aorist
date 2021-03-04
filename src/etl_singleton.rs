@@ -1,6 +1,7 @@
 use crate::endpoints::EndpointConfig;
 use crate::python::{
-    format_code, Assignment, Import, Preamble, PythonStatementInput, SimpleIdentifier, AST,
+    format_code, Assignment, Import, Preamble, PythonStatementInput,
+    SimpleIdentifier, AST, Dict,
 };
 use aorist_primitives::Dialect;
 use linked_hash_map::LinkedHashMap;
@@ -8,6 +9,7 @@ use linked_hash_set::LinkedHashSet;
 use pyo3::prelude::*;
 use pyo3::types::{PyModule, PyString};
 use std::collections::{BTreeMap, BTreeSet};
+use std::sync::{Arc, RwLock};
 
 pub trait ETLSingleton {
     fn get_preamble(&self) -> Vec<String>;
@@ -63,6 +65,42 @@ where
             .collect::<Vec<_>>();
         preamble_imports
     }
+    fn extract_literals(
+        ast: &AST,
+        short_name: &String,
+        literals: &mut LinkedHashMap<AST, LinkedHashMap<String, Vec<(String, Arc<RwLock<Dict>>)>>>,
+    ) {
+        if let AST::Assignment(rw) = ast {
+            let assign = rw.read().unwrap();
+            if let AST::Dict(dict_rw) = assign.call() {
+                let dict = dict_rw.read().unwrap();
+                for (_task_key, task_val) in dict.elems() {
+                    if let AST::Dict(param_dict_rw) = task_val {
+                        let param_dict = param_dict_rw.read().unwrap();
+                        for (key, val) in param_dict.elems() {
+                            if let Some(_ancestors) = val.get_ancestors() {
+                                let is_long_literal = match val {
+                                    AST::StringLiteral(ref x) => {
+                                        x.read().unwrap().value().len()
+                                            > short_name.len() + key.len() + 2
+                                    }
+                                    _ => true,
+                                };
+                                if is_long_literal {
+                                    literals
+                                        .entry(val.clone_without_ancestors())
+                                        .or_insert(LinkedHashMap::new())
+                                        .entry(short_name.to_string())
+                                        .or_insert(Vec::new())
+                                        .push((key.to_string(), param_dict_rw.clone()));
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
     fn materialize(&self, statements_and_preambles: Vec<PythonStatementInput>) -> PyResult<String> {
         let gil = Python::acquire_gil();
         let py = gil.python();
@@ -108,36 +146,7 @@ where
 
         for (short_name, _, _, asts) in statements_with_ast.iter() {
             for ast in asts {
-                if let AST::Assignment(rw) = ast {
-                    let assign = rw.read().unwrap();
-                    if let AST::Dict(dict_rw) = assign.call() {
-                        let dict = dict_rw.read().unwrap();
-                        for (_task_key, task_val) in dict.elems() {
-                            if let AST::Dict(param_dict_rw) = task_val {
-                                let param_dict = param_dict_rw.read().unwrap();
-                                for (key, val) in param_dict.elems() {
-                                    if let Some(_ancestors) = val.get_ancestors() {
-                                        let is_long_literal = match val {
-                                            AST::StringLiteral(ref x) => {
-                                                x.read().unwrap().value().len()
-                                                    > short_name.len() + key.len() + 2
-                                            }
-                                            _ => true,
-                                        };
-                                        if is_long_literal {
-                                            literals
-                                                .entry(val.clone_without_ancestors())
-                                                .or_insert(LinkedHashMap::new())
-                                                .entry(short_name.to_string())
-                                                .or_insert(Vec::new())
-                                                .push((key.to_string(), param_dict_rw.clone()));
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
+                Self::extract_literals(ast, &short_name, &mut literals);
             }
         }
         let mut assignments = LinkedHashMap::new();
