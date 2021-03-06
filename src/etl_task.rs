@@ -305,16 +305,7 @@ where
             singleton_type: PhantomData,
         }
     }
-    pub fn get_statements(
-        &self,
-        endpoints: &EndpointConfig,
-    ) -> (Vec<AST>, Vec<String>, Vec<Import>) {
-        let any_dependencies = self
-            .values
-            .iter()
-            .filter(|x| x.deps.len() > 0)
-            .next()
-            .is_some();
+    fn get_dict_assign(&self) -> AST {
         let dependencies_as_list = self
             .values
             .iter()
@@ -332,27 +323,46 @@ where
                 })
                 .collect(),
         ));
-        let dict_assign = AST::Assignment(Assignment::new_wrapped(
+        AST::Assignment(Assignment::new_wrapped(
             self.params_dict_name.clone(),
             dict_content,
-        ));
-
-        let params = AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("params".to_string()));
-        let ident = AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("t".to_string()));
-        let tpl = AST::Tuple(Tuple::new_wrapped(
+        ))
+    }
+    fn get_for_loop_tuple(&self, ident: &AST, params: &AST) -> AST {
+        AST::Tuple(Tuple::new_wrapped(
             vec![ident.clone(), params.clone()],
             false,
-        ));
-        //let (dict, call, params_dedup_key, preamble, dialect)
-        let key = self.key.clone();
-        let new_collector = AST::Subscript(Subscript::new_wrapped(
-            key.get_dict_name(),
+        ))
+    }
+    fn get_task_collector(&self, ident: &AST) -> AST {
+        AST::Subscript(Subscript::new_wrapped(
+            self.key.clone().get_dict_name(),
             ident.clone(),
             false,
-        ));
+        ))
+    }
+    pub fn get_statements(
+        &self,
+        endpoints: &EndpointConfig,
+    ) -> (Vec<AST>, Vec<String>, Vec<Import>) {
+        let any_dependencies = self
+            .values
+            .iter()
+            .filter(|x| x.deps.len() > 0)
+            .next()
+            .is_some();
+
+        let dict_assign = self.get_dict_assign();
+        
+        let params = AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("params".to_string()));
+        let ident = AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("t".to_string()));
+        
+        let tpl = self.get_for_loop_tuple(&params, &ident);
+        let new_collector = self.get_task_collector(&ident);
+        
         let mut kwargs;
         let args;
-        if let Some((num_args, kwarg_keys)) = key.get_dedup_key() {
+        if let Some((num_args, kwarg_keys)) = self.key.get_dedup_key() {
             kwargs = kwarg_keys
                 .iter()
                 .map(|x| {
@@ -387,7 +397,7 @@ where
             kwargs = LinkedHashMap::new();
             args = Vec::new();
         }
-        for (k, v) in &key.kwargs {
+        for (k, v) in &self.key.kwargs {
             kwargs.insert(k.clone(), v.clone());
         }
         let mut dependencies = match any_dependencies {
@@ -415,12 +425,12 @@ where
         let singleton = T::new(
             self.task_id.clone(),
             new_collector.clone(),
-            key.get_call(),
+            self.key.get_call(),
             args,
             kwargs,
             dependencies,
-            key.get_preamble(),
-            key.get_dialect(),
+            self.key.get_preamble(),
+            self.key.get_dialect(),
             endpoints.clone(),
         );
         let statements = singleton.get_statements();
