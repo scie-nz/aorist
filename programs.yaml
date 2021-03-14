@@ -185,6 +185,54 @@ spec:
 ---
 type: Program
 spec:
+  use: DownloadDataFromRemotePushshiftAPILocation
+  root: PushshiftAPILocation
+  dialect: Python
+  preamble: |
+      def download_subreddit(subreddit, tmp_dir, file_name):
+          
+          from pmaw import PushshiftAPI
+          import json
+
+          output_file = '%s/%s' % (tmp_dir, file_name)
+
+          api = PushshiftAPI(
+              num_workers=16,
+              limit_type='backoff',
+              jitter='decorr',
+          )
+          posts = api.search_submissions(
+              subreddit=subreddit,
+              limit=10e9,
+              after=0
+          )
+          with open(output_file, 'w') as f:
+            for post in posts:
+                line = json.dumps(post) + '\\n'
+                f.write(line)
+  call: download_subreddit
+  kwargs:
+    subreddit:
+      type: AncestorArgument
+      spec:
+        call: pushshift_api_location.subreddit
+        attaches: PushshiftAPILocation
+        name: subreddit
+    tmp_dir:
+      type: AncestorArgument
+      spec:
+        call: remote_import_storage_setup.tmp_dir
+        attaches: RemoteImportStorageSetup
+        name: tmp_dir
+    file_name:
+      type: AncestorArgument
+      spec:
+        call: format!("{}.downloaded", static_data_table.name).to_string()
+        attaches: StaticDataTable
+        name: file_name
+---
+type: Program
+spec:
   use: DecompressZip
   root: ZipCompression
   dialect: Bash
