@@ -6,6 +6,7 @@ use crate::encoding::csv_encoding::*;
 use crate::encoding::onnx_encoding::*;
 use crate::encoding::orc_encoding::*;
 use crate::encoding::tsv_encoding::*;
+use crate::encoding::json_encoding::*;
 use crate::header::FileHeader;
 use aorist_concept::{aorist_concept, Constrainable, InnerObject};
 use paste::paste;
@@ -16,6 +17,7 @@ use uuid::Uuid;
 #[aorist_concept]
 pub enum Encoding {
     CSVEncoding(CSVEncoding),
+    JSONEncoding(JSONEncoding),
     ORCEncoding(ORCEncoding),
     TSVEncoding(TSVEncoding),
     ONNXEncoding(TSVEncoding),
@@ -27,6 +29,7 @@ impl Encoding {
             Self::CSVEncoding(x) => x.header.clone(),
             // TODO: need to change this to also be optional
             Self::TSVEncoding(x) => Some(x.header.clone()),
+            Self::JSONEncoding(_) => None,
             Self::ORCEncoding(_) => None,
             Self::ONNXEncoding(_) => None,
         }
@@ -36,6 +39,7 @@ impl Encoding {
             Self::CSVEncoding(x) => x.compression.clone(),
             // TODO: need to change this to also be optional
             Self::TSVEncoding(x) => Some(x.compression.clone()),
+            Self::JSONEncoding(_) => None,
             Self::ORCEncoding(_) => None,
             Self::ONNXEncoding(_) => None,
         }

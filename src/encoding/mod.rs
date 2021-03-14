@@ -1,9 +1,11 @@
 mod csv_encoding;
 mod encoding;
+mod json_encoding;
 mod onnx_encoding;
 pub mod orc_encoding;
 mod tsv_encoding;
 
+pub use json_encoding::*;
 pub use csv_encoding::{CSVEncoding, InnerCSVEncoding};
 pub use encoding::{Encoding, InnerEncoding};
 pub use onnx_encoding::{InnerONNXEncoding, ONNXEncoding};

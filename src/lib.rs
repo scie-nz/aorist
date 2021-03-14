@@ -218,6 +218,7 @@ fn aorist(py: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<InnerRemoteStorageSetup>()?;
     m.add_class::<InnerPushshiftAPILocation>()?;
     m.add_class::<InnerPushshiftSubredditPostsAPILayout>()?;
+    m.add_class::<InnerJSONEncoding>()?;
     m.add_wrapped(wrap_pyfunction!(default_tabular_schema))?;
     m.add_wrapped(wrap_pyfunction!(dag))?;
     m.add_wrapped(wrap_pyfunction!(derive_integer_measure))?;

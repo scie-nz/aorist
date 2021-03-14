@@ -410,6 +410,7 @@ fn process_concepts() {
         ("crate::encoding", "CSVEncoding"),
         ("crate::encoding", "TSVEncoding"),
         ("crate::encoding", "Encoding"),
+        ("crate::encoding", "JSONEncoding"),
         ("crate::encoding", "ORCEncoding"),
         ("crate::encoding", "ONNXEncoding"),
         ("crate::schema", "TabularSchema"),
