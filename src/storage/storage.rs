@@ -3,7 +3,7 @@
 use crate::concept::{AoristConcept, Concept};
 use crate::storage::hive_table_storage::*;
 use crate::storage::local_file_storage::*;
-use crate::storage::remote_website_storage::*;
+use crate::storage::remote_storage::*;
 use aorist_concept::{aorist_concept, Constrainable, InnerObject};
 use paste::paste;
 use pyo3::prelude::*;

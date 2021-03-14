@@ -18,7 +18,7 @@ pub struct RemoteStorage {
     #[constrainable]
     pub location: RemoteLocation,
     #[constrainable]
-    pub layout: FileBasedStorageLayout,
+    pub layout: APIOrFileLayout,
     #[constrainable]
     pub encoding: Encoding,
 }

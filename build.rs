@@ -375,6 +375,7 @@ fn process_concepts() {
         ("crate::attributes", "Attribute"),
         ("crate::attributes", "Predicate"),
         ("crate::layout", "APILayout"),
+        ("crate::layout", "APIOrFileLayout"),
         ("crate::layout", "FileBasedStorageLayout"),
         ("crate::layout", "SingleFileLayout"),
         ("crate::layout", "PushshiftSubredditPostsAPILayout"),
