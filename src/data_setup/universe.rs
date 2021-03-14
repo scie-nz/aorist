@@ -105,6 +105,14 @@ impl InnerUniverse {
         let inner = self.clone();
         dag(inner, vec![constraint], "jupyter")
     }
+    pub fn python(&self, constraint: String) -> PyResult<String> {
+        let inner = self.clone();
+        dag(inner, vec![constraint], "python")
+    }
+    pub fn airflow(&self, constraint: String) -> PyResult<String> {
+        let inner = self.clone();
+        dag(inner, vec![constraint], "airflow")
+    }
     pub fn add_asset(&mut self, a: InnerAsset, dataset_name: String) -> PyResult<()> {
         let dataset = self.get_dataset(dataset_name).unwrap();
         dataset.add_asset(a)

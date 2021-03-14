@@ -1,8 +1,8 @@
-from scienz import snap
+from scienz import subreddits
 from aorist import *
 from common import DEFAULT_ENDPOINTS
 
-tmp_dir = "tmp/snap"
+tmp_dir = "tmp/subreddits"
 local = HiveTableStorage(
     location=MinioLocation(name="wine"),
     layout=StaticHiveTableLayout(),
@@ -10,9 +10,9 @@ local = HiveTableStorage(
 )
 universe = Universe(
     name="my_cluster",
-    datasets=[snap.replicate_to_local(
+    datasets=[subreddits.replicate_to_local(
         local, tmp_dir,
     )],
     endpoints=DEFAULT_ENDPOINTS,
 )
-print(universe.jupyter("Replicated"))
+print(universe.python("Replicated"))

@@ -43,3 +43,8 @@ coronavirus = StaticDataTable(
     tag='r_coronavirus',
 )
 
+subreddits = DataSet(
+    name="subreddits",
+    datumTemplates=[subreddit_datum],
+    assets={"coronavirus": coronavirus},
+)

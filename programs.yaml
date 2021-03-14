@@ -520,7 +520,7 @@ spec:
                 }
             };
             match &remote_storage.encoding {
-               Encoding::CSVEncoding(_) => format!(
+               Encoding::CSVEncoding(_) | Encoding::JSONEncoding(_) => format!(
                   "mv {source} {tmp_dir}/{file_name}.csv",
                   source=source,
                   tmp_dir=tmp_dir,
