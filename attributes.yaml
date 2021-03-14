@@ -41,7 +41,23 @@ spec:
 ---
 type: Attribute
 spec:
+  name: StringIdentifier
+  orc: OrcString
+  presto: PrestoVarchar
+  sql: SQLVarchar
+  value: StringValue
+---
+type: Attribute
+spec:
   name: NullablePOSIXTimestamp
+  orc: OrcBigint
+  presto: PrestoBigint
+  sql: SQLBigint
+  value: IntegerValue
+---
+type: Attribute
+spec:
+  name: POSIXTimestamp
   orc: OrcBigint
   presto: PrestoBigint
   sql: SQLBigint
@@ -130,6 +146,14 @@ spec:
 type: Attribute
 spec:
   name: Regressor
+  orc: OrcString
+  presto: PrestoVarchar
+  sql: SQLVarchar
+  value: StringValue
+---
+type: Attribute
+spec:
+  name: FreeText
   orc: OrcString
   presto: PrestoVarchar
   sql: SQLVarchar

@@ -353,13 +353,13 @@ where
             .is_some();
 
         let dict_assign = self.get_dict_assign();
-        
+
         let params = AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("params".to_string()));
         let ident = AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("t".to_string()));
-        
+
         let tpl = self.get_for_loop_tuple(&params, &ident);
         let new_collector = self.get_task_collector(&ident);
-        
+
         let mut kwargs;
         let args;
         if let Some((num_args, kwarg_keys)) = self.key.get_dedup_key() {

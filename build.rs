@@ -399,6 +399,7 @@ fn process_concepts() {
         ("crate::location", "GCSLocation"),
         ("crate::location", "OnPremiseLocation"),
         ("crate::location", "MinioLocation"),
+        ("crate::location", "PushshiftAPILocation"),
         ("crate::location", "RemoteLocation"),
         ("crate::location", "WebLocation"),
         ("crate::models", "Model"),
