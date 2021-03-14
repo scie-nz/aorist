@@ -516,35 +516,48 @@ spec:
     schema:
       type: MultipleAncestorsArgument
       spec:
-        call: >
+        call: > 
           {
-            use crate::template::TDatumTemplate;
-            let DataSchema::TabularSchema(ref t) = static_data_table.schema;
-            let attr_v = data_set
-                .datumTemplates
-                .iter()
-                .filter(|x| {
-                    x.get_name().clone() == t.datumTemplateName
-                })
-                .map(|x| x.get_attributes())
-                .next().unwrap();
-            let attr_map = attr_v.iter()
-                .map(|x|
-                    (x.get_name().clone(), "VARCHAR".to_string()))
-                .collect::<Vec<_>>();
-            let attr_types = attr_map.iter().map(|x| {
-                let (name, presto_type) = x;
-                return format!(
-                    "    {} {}",
-                    name,
-                    presto_type,
-                ).to_string();
-            }).collect::<Vec<String>>();
-            format!("\n{}\n", attr_types.join(",\n"))
+              let replicate_schema = || {
+                use crate::template::TDatumTemplate;
+                let DataSchema::TabularSchema(ref t) = static_data_table.schema;
+                let attr_v = data_set
+                    .datumTemplates
+                    .iter()
+                    .filter(|x| {
+                        x.get_name().clone() == t.datumTemplateName
+                    })
+                    .map(|x| x.get_attributes())
+                    .next().unwrap();
+                let attr_map = attr_v.iter()
+                    .map(|x|
+                        (x.get_name().clone(), "VARCHAR".to_string()))
+                    .collect::<Vec<_>>();
+                let attr_types = attr_map.iter().map(|x| {
+                    let (name, presto_type) = x;
+                    return format!(
+                        "    {} {}",
+                        name,
+                        presto_type,
+                    ).to_string();
+                }).collect::<Vec<String>>();
+                format!("\n{}\n", attr_types.join(",\n"))
+              };
+              match storage_setup {
+                crate::StorageSetup::RemoteImportStorageSetup(r) =>
+                  match r.remote.get_encoding() {
+                    crate::Encoding::JSONEncoding(_) => { 
+                        "\njson_obj VARCHAR\n".to_string()
+                      },
+                    _ => replicate_schema(),
+                  },
+                _ => replicate_schema(),
+              }
           }
         attaches:
           - StaticDataTable
           - DataSet
+          - StorageSetup
 ---
 type: Program
 spec:

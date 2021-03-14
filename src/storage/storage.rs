@@ -1,6 +1,7 @@
 #![allow(non_snake_case)]
 
 use crate::concept::{AoristConcept, Concept};
+use crate::encoding::*;
 use crate::storage::hive_table_storage::*;
 use crate::storage::local_file_storage::*;
 use crate::storage::remote_storage::*;
@@ -18,4 +19,14 @@ pub enum Storage {
     HiveTableStorage(HiveTableStorage),
     #[constrainable]
     LocalFileStorage(LocalFileStorage),
+}
+
+impl Storage {
+    pub fn get_encoding(&self) -> Encoding {
+        match &self {
+            Self::RemoteStorage(x) => x.encoding.clone(),
+            Self::HiveTableStorage(x) => x.encoding.clone(),
+            Self::LocalFileStorage(x) => x.encoding.clone(),
+        }
+    }
 }
