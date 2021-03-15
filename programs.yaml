@@ -550,7 +550,7 @@ spec:
               match storage_setup {
                 crate::StorageSetup::RemoteImportStorageSetup(r) =>
                   match r.remote.get_encoding() {
-                    crate::Encoding::JSONEncoding(_) => { 
+                    Some(crate::Encoding::JSONEncoding(_)) => { 
                         "\njson_obj VARCHAR\n".to_string()
                       },
                     _ => replicate_schema(),
@@ -628,7 +628,7 @@ spec:
               match storage_setup {
                 crate::StorageSetup::RemoteImportStorageSetup(r) =>
                   match r.remote.get_encoding() {
-                    crate::Encoding::JSONEncoding(_) => format!(
+                    Some(crate::Encoding::JSONEncoding(_)) => format!(
                         "(SELECT 
                             JSON_PARSE(json_obj) AS json_obj 
                           FROM {})",
@@ -662,7 +662,7 @@ spec:
               let from_json = match storage_setup {
                   crate::StorageSetup::RemoteImportStorageSetup(r) => 
                     match r.remote.get_encoding() {
-                      crate::Encoding::JSONEncoding(_) => true,
+                      Some(crate::Encoding::JSONEncoding(_)) => true,
                       _ => false,
                     },
                   _ => false,

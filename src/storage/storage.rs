@@ -22,11 +22,11 @@ pub enum Storage {
 }
 
 impl Storage {
-    pub fn get_encoding(&self) -> Encoding {
+    pub fn get_encoding(&self) -> Option<Encoding> {
         match &self {
-            Self::RemoteStorage(x) => x.encoding.clone(),
-            Self::HiveTableStorage(x) => x.encoding.clone(),
-            Self::LocalFileStorage(x) => x.encoding.clone(),
+            Self::RemoteStorage(x) => Some(x.encoding.clone()),
+            Self::HiveTableStorage(x) => Some(x.encoding.clone()),
+            Self::LocalFileStorage(x) => Some(x.encoding.clone()),
         }
     }
 }

@@ -3,10 +3,9 @@ from aorist import *
 from common import DEFAULT_ENDPOINTS
 
 tmp_dir = "tmp/subreddits"
-local = HiveTableStorage(
-    location=MinioLocation(name="wine"),
+local = SQLiteStorage(
+    location=SQLiteLocation(file_name="subreddits"),
     layout=StaticHiveTableLayout(),
-    encoding=ORCEncoding(),
 )
 universe = Universe(
     name="my_cluster",
