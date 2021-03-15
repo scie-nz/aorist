@@ -337,6 +337,20 @@ spec:
 ---
 type: Constraint
 spec:
+  name: UploadDataToSQLite
+  root: SQLiteLocation
+  requiresProgram: true
+  requires:
+    - CSVIsConverted
+  title: Upload data to SQLite
+  body: |
+      Now that data has been converted to a CSV we can upload it to SQLite.
+  attachIf: |
+      |root: Concept<'a>, ancestry: &ConceptAncestry<'a>|
+      ancestry.remote_import_storage_setup(root.clone()).is_ok()
+---
+type: Constraint
+spec:
   name: CSVIsConverted
   root: StaticDataTable
   requires:

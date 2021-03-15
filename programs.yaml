@@ -1320,3 +1320,128 @@ spec:
         attaches:
           - StaticDataTable
           - DataSet
+---
+type: Program
+spec:
+  use: UploadDataToSQLite
+  root: SQLiteLocation
+  dialect: Python
+  preamble: |
+    def upload_to_sqlite(
+        db_filename, tablename, tmp_dir, source_file,
+        # insertion order matters if we are dealing with a csv
+        columns,
+        source_is_json,
+    ):
+        import sqlite3
+        import json
+        source_is_json = bool(source_is_json)
+        assert source_is_json or header is None
+
+        columns = json.loads(columns)
+
+        con = sqlite3.connect(db_filename)
+        con.execute("""
+        CREATE TABLE {tablename}({schema})
+        """.format(
+            tablename=tablename,
+            schema=",\n".join(["%s %s" % (k, v) for k, v in columns]),
+        ))
+
+        values = []
+        type_fn = []
+        for _, v in columns:
+            if v == 'TEXT':
+                type_fn += [lambda x: x]
+            else if v == 'INTEGER':
+                type_fn += [int]
+            else if v == 'REAL'
+                type_fn += [float]
+            else if v == 'BLOB'
+                type_fn += [bytes]
+            else:
+                type_fn += [lambda _: None]
+        
+        with open(source_file, 'r') as f:
+            if source_is_json:
+                for line in f.readlines():
+                    obj = json.loads(line)
+                    tpl = tuple(
+                        fn(obj[x])
+                        for fn, x in zip(
+                            type_fn,
+                            [k for k, _ in columns]
+                        )
+                    )
+                    values += [tpl]
+            else:
+                for line in f.readlines():
+                    splits = line.strip().split(",")
+                    assert len(splits) == len(type_fn)
+                    tpl = tuple(fn(arg) for fn, arg in zip(type_fn, splits))
+                    values += [tpl]
+        
+        con.executemany(
+            """
+                INSERT INTO {tablename}({columns}) VALUES ({vals})
+            """.format(
+                tablename=tablename,
+                columns=", ".join([k for k, _ in columns]),
+                vals=", ".join(["?"] * len(columns))
+            ), 
+            values
+        )
+  call: upload_to_sqlite
+  kwargs:
+    db_filename:
+      type: AncestorArgument
+      spec:
+        call: sq_lite_location.file_name
+        attaches: SQLiteLocation
+    tablename:
+      type: MultipleAncestorsArgument
+      spec:
+        call: format!("{}__{}", data_set.name, static_data_table.name).to_string()
+        attaches: 
+          - StaticDataTable
+          - DataSet
+    tmp_dir:
+      type: AncestorArgument
+      spec:
+        call: remote_import_storage_setup.tmp_dir
+        attaches: RemoteImportStorageSetup
+    source_file:
+      type: AncestorArgument
+      spec:
+        call: format!("{}.csv", static_data_table.name).to_string()
+        attaches: StaticDataTable
+    columns:
+      type: MultipleAncestorsArgument
+      spec:
+        attaches:
+          - DataSet
+          - StaticDataTable
+        call: >
+          {
+            use crate::template::TDatumTemplate;
+            let template =
+            data_set.get_template_for_asset(static_data_table).unwrap();
+            let attributes = template.get_attributes();
+            let attributes_vec = attributes.into_iter().map(
+                |x| (x.get_name().to_string(), x.get_sql_type().to_string())
+            ).collect::<Vec<_>>();
+            serde_json::json!(attributes_vec).to_string()
+          }
+    source_is_json:
+      type: AncestorArgument
+      spec:
+        attaches: StorageSetup
+        call: >
+          format!("{}", match storage_setup {
+            crate::StorageSetup::RemoteImportStorageSetup(r) =>
+              match r.remote.get_encoding() {
+                Some(crate::Encoding::JSONEncoding(_)) => "True",
+                _ => "False",
+              },
+              _ => "False",
+          }).to_string()
