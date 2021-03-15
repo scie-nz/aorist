@@ -30,21 +30,21 @@ subreddit_datum = RowStruct(
     name="subreddit",
     attributes=attributes,
 )
-coronavirus = StaticDataTable(
-    name='coronavirus',
+wairarapa = StaticDataTable(
+    name='wairarapa',
     schema=default_tabular_schema(subreddit_datum),
     setup=RemoteStorageSetup(
         remote=RemoteStorage(
-            location=PushshiftAPILocation(subreddit='coronavirus'),
+            location=PushshiftAPILocation(subreddit='wairarapa'),
             layout=PushshiftSubredditPostsAPILayout(),
             encoding=JSONEncoding(),
         ),
     ),
-    tag='r_coronavirus',
+    tag='r_wairarapa',
 )
 
 subreddits = DataSet(
     name="subreddits",
     datumTemplates=[subreddit_datum],
-    assets={"coronavirus": coronavirus},
+    assets={"wairarapa": wairarapa},
 )

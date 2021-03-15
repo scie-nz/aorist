@@ -193,6 +193,10 @@ spec:
           
           from pmaw import PushshiftAPI
           import json
+          
+          import os
+          if not os.path.exists(tmp_dir):
+              os.makedirs(tmp_dir)
 
           output_file = '%s/%s' % (tmp_dir, file_name)
 
