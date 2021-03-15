@@ -18,7 +18,7 @@ pub struct HiveTableStorage {
     #[constrainable]
     pub location: HiveLocation,
     #[constrainable]
-    layout: HiveStorageLayout,
+    layout: TabularLayout,
     #[constrainable]
     pub encoding: Encoding,
 }

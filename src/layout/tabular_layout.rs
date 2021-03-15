@@ -28,7 +28,7 @@ pub struct DynamicTabularLayout {
 }
 
 #[aorist_concept]
-pub enum HiveStorageLayout {
+pub enum TabularLayout {
     StaticTabularLayout(StaticTabularLayout),
     DynamicTabularLayout(DynamicTabularLayout),
 }

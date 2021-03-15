@@ -379,7 +379,7 @@ fn process_concepts() {
         ("crate::layout", "FileBasedStorageLayout"),
         ("crate::layout", "SingleFileLayout"),
         ("crate::layout", "PushshiftSubredditPostsAPILayout"),
-        ("crate::layout", "HiveStorageLayout"),
+        ("crate::layout", "TabularLayout"),
         ("crate::layout", "DynamicTabularLayout"),
         ("crate::layout", "StaticTabularLayout"),
         ("crate::layout", "Granularity"),
