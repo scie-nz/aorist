@@ -404,6 +404,7 @@ fn process_concepts() {
         ("crate::location", "MinioLocation"),
         ("crate::location", "PushshiftAPILocation"),
         ("crate::location", "RemoteLocation"),
+        ("crate::location", "SQLiteLocation"),
         ("crate::location", "WebLocation"),
         ("crate::models", "Model"),
         ("crate::models", "SingleObjectiveRegressor"),

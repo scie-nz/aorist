@@ -345,6 +345,7 @@ spec:
                 universe.endpoints.minio.as_ref().unwrap().bucket,
                 data_set.name,
             ).to_string(),
+            _ => panic!("Location not supported"),
           }
 ---
 type: Program
@@ -506,6 +507,7 @@ spec:
                 data_set.name,
                 static_data_table.name,
             ).to_string(),
+            _ => panic!("Location not supported"),
           }
     table_name:
       type: AncestorArgument
