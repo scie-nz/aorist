@@ -606,50 +606,86 @@ spec:
   use: ConvertCSVTableToORCTable
   root: HiveTableStorage
   dialect: Presto
-  call: \nINSERT INTO {presto_schema}.{table_name} \nSELECT {columns} \nFROM {presto_schema}.{table_name}_csv\n
+  call: >
+      INSERT INTO {presto_schema}.{table_name}
+      SELECT {columns} 
+      FROM {source_table}
   kwargs:
-    table_name:
-      type: AncestorArgument
+    source_table:
+      type: MultipleAncestorsArgument
       spec:
-        call: format!("{}", static_data_table.name).to_string()
-        attaches: StaticDataTable
-    presto_schema:
-      type: AncestorArgument
-      spec:
-        attaches: DataSet
-        call: data_set.name.clone()
+        attaches:
+          - StaticDataTable
+          - DataSet
+          - StorageSetup
+        call: >
+          {
+            let source = format!("{}.{}", data_set.name, static_data_table.name).to_string();
+              match storage_setup {
+                crate::StorageSetup::RemoteImportStorageSetup(r) =>
+                  match r.remote.get_encoding() {
+                    crate::Encoding::JSONEncoding(_) => format!(
+                        "(SELECT 
+                            JSON_PARSE(json_obj) AS json_obj 
+                          FROM {})",
+                        source
+                    ).to_string(),
+                    _ => source,
+                  },
+                  _ => source,
+              }
+          }
     columns:
       type: MultipleAncestorsArgument
       spec:
         call: >
           {
-            use crate::template::TDatumTemplate;
-            let DataSchema::TabularSchema(ref t) = static_data_table.schema;
-            let attr_v = data_set
-                .datumTemplates
-                .iter()
-                .filter(|x| {
-                    x.get_name().clone() == t.datumTemplateName
-                })
-                .map(|x| x.get_attributes())
-                .next().unwrap();
-            let attr_map = attr_v.iter()
-                .map(|x|
-                    (x.get_name().clone(), x.get_presto_type()))
-                .collect::<Vec<_>>();
-            let attr_types = attr_map.iter().map(|x| {
-                let (name, presto_type) = x;
-                return format!(
-                    "CAST({name} AS {presto_type}) AS {name}",
-                    name=name,
-                    presto_type=presto_type,
-                ).to_string();
-            }).collect::<Vec<String>>();
-            format!("\n{}", attr_types.join(",\n"))
+              use crate::template::TDatumTemplate;
+              let DataSchema::TabularSchema(ref t) = static_data_table.schema;
+              let attr_v = data_set
+                  .datumTemplates
+                  .iter()
+                  .filter(|x| {
+                      x.get_name().clone() == t.datumTemplateName
+                  })
+                  .map(|x| x.get_attributes())
+                  .next().unwrap();
+              let attr_map = attr_v.iter()
+                  .map(|x|
+                      (x.get_name().clone(), x.get_presto_type()))
+                  .collect::<Vec<_>>();
+              
+              let from_json = match storage_setup {
+                  crate::StorageSetup::RemoteImportStorageSetup(r) => 
+                    match r.remote.get_encoding() {
+                      crate::Encoding::JSONEncoding(_) => true,
+                      _ => false,
+                    },
+                  _ => false,
+              };
+
+              let attr_types = attr_map.iter().map(|x| {
+                  let (name, presto_type) = x;
+                  return match from_json {
+                    false => format!(
+                        "CAST({name} AS {presto_type}) AS {name}", 
+                        name=name, 
+                        presto_type=presto_type,
+                    ),
+                    true => format!(
+                        "CAST(json_obj.{name} AS {presto_type}) AS {name})",
+                        name=name,
+                        presto_type=presto_type,
+                    )
+                  }.to_string();
+              }).collect::<Vec<String>>();
+              
+              format!("\n{}", attr_types.join(",\n"))
           }
         attaches:
           - StaticDataTable
           - DataSet
+          - StorageSetup
 ---
 type: Program
 spec:
