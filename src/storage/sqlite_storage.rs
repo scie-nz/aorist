@@ -17,5 +17,5 @@ pub struct SQLiteStorage {
     #[constrainable]
     pub location: SQLiteLocation,
     #[constrainable]
-    layout: FileBasedStorageLayout,
+    layout: TabularLayout,
 }

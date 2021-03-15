@@ -5,6 +5,7 @@ use crate::encoding::*;
 use crate::storage::hive_table_storage::*;
 use crate::storage::local_file_storage::*;
 use crate::storage::remote_storage::*;
+use crate::storage::sqlite_storage::*;
 use aorist_concept::{aorist_concept, Constrainable, InnerObject};
 use paste::paste;
 use pyo3::prelude::*;
@@ -19,6 +20,8 @@ pub enum Storage {
     HiveTableStorage(HiveTableStorage),
     #[constrainable]
     LocalFileStorage(LocalFileStorage),
+    #[constrainable]
+    SQLiteStorage(SQLiteStorageStorage),
 }
 
 impl Storage {
@@ -27,6 +30,7 @@ impl Storage {
             Self::RemoteStorage(x) => Some(x.encoding.clone()),
             Self::HiveTableStorage(x) => Some(x.encoding.clone()),
             Self::LocalFileStorage(x) => Some(x.encoding.clone()),
+            Self::SQLiteStorage(_) => None,
         }
     }
 }
