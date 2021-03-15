@@ -3,7 +3,7 @@ from aorist import (
     RowStruct,
     AlluxioLocation,
     WebLocation,
-    StaticHiveTableLayout,
+    StaticTabularLayout,
     UpperSnakeCaseCSVHeader,
     ZipCompression,
     ORCEncoding,
@@ -435,7 +435,7 @@ remote = RemoteStorage(
 )
 local = HiveTableStorage(
     location=AlluxioLocation(path="features"),
-    layout=StaticHiveTableLayout(),
+    layout=StaticTabularLayout(),
     encoding=ORCEncoding(),
 )
 geonames_table = StaticDataTable(
@@ -450,7 +450,7 @@ geonames_table = StaticDataTable(
 )
 features_histogram_location = HiveTableStorage(
     location=AlluxioLocation(path="fc_hist"),
-    layout=StaticHiveTableLayout(),
+    layout=StaticTabularLayout(),
     encoding=ORCEncoding(),
 )
 geonames_dataset = DataSet(

@@ -10,7 +10,7 @@ use std::sync::{Arc, RwLock};
 use uuid::Uuid;
 
 #[aorist_concept]
-pub struct StaticHiveTableLayout {}
+pub struct StaticTabularLayout {}
 
 #[aorist_concept]
 pub struct DailyGranularity {}
@@ -22,13 +22,13 @@ pub enum Granularity {
 }
 
 #[aorist_concept]
-pub struct DynamicHiveTableLayout {
+pub struct DynamicTabularLayout {
     #[constrainable]
     granularity: Granularity,
 }
 
 #[aorist_concept]
 pub enum HiveStorageLayout {
-    StaticHiveTableLayout(StaticHiveTableLayout),
-    DynamicHiveTableLayout(DynamicHiveTableLayout),
+    StaticTabularLayout(StaticTabularLayout),
+    DynamicTabularLayout(DynamicTabularLayout),
 }

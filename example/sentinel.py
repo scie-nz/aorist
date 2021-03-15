@@ -2,7 +2,7 @@ from aorist import (
     RowStruct,
     AlluxioLocation,
     GCSLocation,
-    StaticHiveTableLayout,
+    StaticTabularLayout,
     UpperSnakeCaseCSVHeader,
     GzipCompression,
     ORCEncoding,
@@ -55,7 +55,7 @@ remote = RemoteStorage(
 )
 local = HiveTableStorage(
     location=AlluxioLocation(path="metadata"),
-    layout=StaticHiveTableLayout(),
+    layout=StaticTabularLayout(),
     encoding=ORCEncoding(),
 )
 sentinel_metadata_table = StaticDataTable(

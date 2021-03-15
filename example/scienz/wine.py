@@ -107,7 +107,7 @@ from aorist import (
     RowStruct,
     MinioLocation,
     WebLocation,
-    StaticHiveTableLayout,
+    StaticTabularLayout,
     ORCEncoding,
     CSVEncoding,
     SingleFileLayout,
@@ -159,7 +159,7 @@ remote = RemoteStorage(
 # This data is to be replicated locally
 local = HiveTableStorage(
     location=MinioLocation(name="wine"),
-    layout=StaticHiveTableLayout(),
+    layout=StaticTabularLayout(),
     encoding=ORCEncoding(),
 )
 # We will create a table that will always have the same content

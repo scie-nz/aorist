@@ -179,9 +179,9 @@ fn aorist(py: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<InnerUser>()?;
     m.add_class::<InnerUpperSnakeCaseCSVHeader>()?;
     m.add_class::<InnerSingleFileLayout>()?;
-    m.add_class::<InnerStaticHiveTableLayout>()?;
+    m.add_class::<InnerStaticTabularLayout>()?;
     m.add_class::<InnerDailyGranularity>()?;
-    m.add_class::<InnerDynamicHiveTableLayout>()?;
+    m.add_class::<InnerDynamicTabularLayout>()?;
     m.add_class::<InnerAlluxioLocation>()?;
     m.add_class::<InnerGCSLocation>()?;
     m.add_class::<InnerMinioLocation>()?;

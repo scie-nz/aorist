@@ -2,7 +2,7 @@ from scienz import wine
 
 from aorist import (
     MinioLocation,
-    StaticHiveTableLayout,
+    StaticTabularLayout,
     ORCEncoding,
     SingleFileLayout,
     HiveTableStorage,
@@ -22,7 +22,7 @@ Defining dataset
 # This data is to be replicated locally
 local = HiveTableStorage(
     location=MinioLocation(name="wine"),
-    layout=StaticHiveTableLayout(),
+    layout=StaticTabularLayout(),
     encoding=ORCEncoding(),
 )
 wine_dataset = wine.replicate_to_local(
@@ -89,7 +89,7 @@ wine_dataset.add_template(predictions_template)
 # We will store our predictions in a Hive table
 predictions_storage = HiveTableStorage(
     location=MinioLocation(name="wine"),
-    layout=StaticHiveTableLayout(),
+    layout=StaticTabularLayout(),
     encoding=ORCEncoding(),
     tag="wine_predictions_storage",
 )

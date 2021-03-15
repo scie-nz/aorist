@@ -1,7 +1,7 @@
 from aorist import (
     MinioLocation,
     WebLocation,
-    StaticHiveTableLayout,
+    StaticTabularLayout,
     UpperSnakeCaseCSVHeader,
     GzipCompression,
     ORCEncoding,
@@ -58,7 +58,7 @@ for name in names:
     )
     local = HiveTableStorage(
         location=MinioLocation(name=name_underscore),
-        layout=StaticHiveTableLayout(),
+        layout=StaticTabularLayout(),
         encoding=ORCEncoding(),
     )
     table = StaticDataTable(

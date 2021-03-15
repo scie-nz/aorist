@@ -5,7 +5,7 @@ from aorist import (
     ComplianceConfig,
     HiveTableStorage,
     MinioLocation,
-    StaticHiveTableLayout,
+    StaticTabularLayout,
     ORCEncoding,
 )
 from common import DEFAULT_USERS, DEFAULT_GROUPS, DEFAULT_ENDPOINTS
@@ -50,7 +50,7 @@ print(out.replace("\\\\", "\\"))
 #     name="high_abv_wines",
 #     storage=HiveTableStorage(
 #         location=MinioLocation(name="high_abv_wines"),
-#         layout=StaticHiveTableLayout(),
+#         layout=StaticTabularLayout(),
 #         encoding=ORCEncoding(),
 #     ),
 #     tmp_dir="/tmp/high_abv_wines",
@@ -64,7 +64,7 @@ print(out.replace("\\\\", "\\"))
 #     name="lower_abv_wines",
 #     storage=HiveTableStorage(
 #         location=MinioLocation(name="lower_abv_wines"),
-#         layout=StaticHiveTableLayout(),
+#         layout=StaticTabularLayout(),
 #         encoding=ORCEncoding(),
 #     ),
 #     tmp_dir="/tmp/high_abv_wines",

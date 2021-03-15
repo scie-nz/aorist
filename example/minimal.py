@@ -5,7 +5,7 @@ from common import DEFAULT_ENDPOINTS
 tmp_dir = "tmp/subreddits"
 local = SQLiteStorage(
     location=SQLiteLocation(file_name="subreddits"),
-    layout=StaticHiveTableLayout(),
+    layout=StaticTabularLayout(),
 )
 universe = Universe(
     name="my_cluster",

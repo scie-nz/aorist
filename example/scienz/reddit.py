@@ -3,7 +3,7 @@ from aorist import (
     RowStruct,
     MinioLocation,
     WebLocation,
-    StaticHiveTableLayout,
+    StaticTabularLayout,
     ORCEncoding,
     CSVEncoding,
     SingleFileLayout,
