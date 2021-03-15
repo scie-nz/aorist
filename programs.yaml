@@ -332,7 +332,7 @@ spec:
            - DataSet
         call: >
           match &hive_table_storage.location {
-            OnPremiseLocation::AlluxioLocation(a) => format!(
+            HiveLocation::AlluxioLocation(a) => format!(
                 "WITH (location='alluxio://{}:{}/{}/{}/{}')",
                 universe.endpoints.alluxio.as_ref().unwrap().server,
                 universe.endpoints.alluxio.as_ref().unwrap().rpcPort,
@@ -340,12 +340,11 @@ spec:
                 data_set.name,
                 a.path,
             ).to_string(),
-            OnPremiseLocation::MinioLocation(_) => format!(
+            HiveLocation::MinioLocation(_) => format!(
                 "WITH (location='s3a://{}/{}/')",
                 universe.endpoints.minio.as_ref().unwrap().bucket,
                 data_set.name,
             ).to_string(),
-            _ => panic!("Location not supported"),
           }
 ---
 type: Program
@@ -493,7 +492,7 @@ spec:
            - DataSet
         call: >
           match &hive_table_storage.location {
-            OnPremiseLocation::AlluxioLocation(_) => format!(
+            HiveLocation::AlluxioLocation(_) => format!(
                 "alluxio://{}:{}/{}/{}/{}_csv",
                 universe.endpoints.alluxio.as_ref().unwrap().server,
                 universe.endpoints.alluxio.as_ref().unwrap().rpcPort,
@@ -501,13 +500,12 @@ spec:
                 data_set.name,
                 static_data_table.name,
             ).to_string(),
-            OnPremiseLocation::MinioLocation(_) => format!(
+            HiveLocation::MinioLocation(_) => format!(
                 "s3a://{}/{}/{}_csv/",
                 universe.endpoints.minio.as_ref().unwrap().bucket,
                 data_set.name,
                 static_data_table.name,
             ).to_string(),
-            _ => panic!("Location not supported"),
           }
     table_name:
       type: AncestorArgument
@@ -1035,7 +1033,7 @@ spec:
                 }
               ).filter(|x| x.is_some())
               .map(
-                |x| if let OnPremiseLocation::MinioLocation(m) = x.unwrap().location {
+                |x| if let HiveLocation::MinioLocation(m) = x.unwrap().location {
                   return Some(m);
                 } else {
                   return None;
@@ -1176,7 +1174,7 @@ spec:
                 match local_storage {
                       Storage::HiveTableStorage(ref storage) => match
                       storage.location {
-                          OnPremiseLocation::MinioLocation(ref l) =>
+                          HiveLocation::MinioLocation(ref l) =>
                             format!("{}/{}/", l.name, static_data_table.get_name()).to_string(),
                           _ => panic!("Only on-premise locations allowed."),
                       },
@@ -1243,7 +1241,7 @@ spec:
                 setup.target {
                     Storage::HiveTableStorage(ref storage) => match
                     storage.location {
-                        OnPremiseLocation::MinioLocation(ref l) => format!(
+                        HiveLocation::MinioLocation(ref l) => format!(
                             "{}/{}_csv",
                             l.name,
                             static_data_table.get_name(),

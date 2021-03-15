@@ -400,6 +400,7 @@ fn process_concepts() {
         ("crate::header", "FileHeader"),
         ("crate::location", "AlluxioLocation"),
         ("crate::location", "GCSLocation"),
+        ("crate::location", "HiveLocation"),
         ("crate::location", "OnPremiseLocation"),
         ("crate::location", "MinioLocation"),
         ("crate::location", "PushshiftAPILocation"),

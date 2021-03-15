@@ -16,7 +16,7 @@ use uuid::Uuid;
 #[aorist_concept]
 pub struct HiveTableStorage {
     #[constrainable]
-    pub location: OnPremiseLocation,
+    pub location: HiveLocation,
     #[constrainable]
     layout: HiveStorageLayout,
     #[constrainable]
