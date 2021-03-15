@@ -156,3 +156,45 @@ pub fn derive_sql_real(input: TokenStream) -> TokenStream {
     };
     gen.into()
 }
+
+#[proc_macro_derive(SQLiteInteger)]
+pub fn derive_sqlite_integer(input: TokenStream) -> TokenStream {
+    let ast: syn::DeriveInput = syn::parse(input).unwrap();
+    let name = &ast.ident;
+    let gen = quote! {
+        impl TSQLiteAttribute for #name {
+            fn get_sqlite_type(&self) -> String {
+                "INTEGER".to_string()
+            }
+        }
+    };
+    gen.into()
+}
+
+#[proc_macro_derive(SQLiteReal)]
+pub fn derive_sqlite_real(input: TokenStream) -> TokenStream {
+    let ast: syn::DeriveInput = syn::parse(input).unwrap();
+    let name = &ast.ident;
+    let gen = quote! {
+        impl TSQLiteAttribute for #name {
+            fn get_sqlite_type(&self) -> String {
+                "REAL".to_string()
+            }
+        }
+    };
+    gen.into()
+}
+
+#[proc_macro_derive(SQLiteText)]
+pub fn derive_sqlite_text(input: TokenStream) -> TokenStream {
+    let ast: syn::DeriveInput = syn::parse(input).unwrap();
+    let name = &ast.ident;
+    let gen = quote! {
+        impl TSQLiteAttribute for #name {
+            fn get_sqlite_type(&self) -> String {
+                "TEXT".to_string()
+            }
+        }
+    };
+    gen.into()
+}

@@ -384,11 +384,29 @@ macro_rules! register_satisfiable_constraints {
 
 #[macro_export]
 macro_rules! define_attribute {
-    ($element:ident, $presto_type:ident, $orc_type:ident, $sql_type:ident,
-    $value:ident) => {
+    (
+      $element:ident, 
+      $presto_type:ident,
+      $orc_type:ident,
+      $sql_type:ident,
+      $sqlite_type:ident,
+      $value:ident
+    ) => {
         paste::item! {
             #[pyclass]
-            #[derive(Hash, PartialEq, Eq, Debug, Serialize, Deserialize, Clone, $presto_type, $orc_type, $sql_type)]
+            #[derive(
+                Hash, 
+                PartialEq, 
+                Eq, 
+                Debug, 
+                Serialize, 
+                Deserialize, 
+                Clone,
+                $presto_type, 
+                $orc_type, 
+                $sql_type, 
+                $sqlite_type
+            )]
             pub struct $element {
                 pub name: String,
                 pub comment: Option<String>,

@@ -141,6 +141,13 @@ pub trait TSQLAttribute: TAttribute {
     }
 }
 
+pub trait TSQLiteAttribute: TAttribute {
+    fn get_sqlite_type(&self) -> String;
+    fn get_sqlite_coldef(&self) -> String {
+        format!("{} {}", self.get_name(), self.get_sqlite_type()).to_string()
+    }
+}
+
 include!(concat!(env!("OUT_DIR"), "/attributes.rs"));
 include!(concat!(env!("OUT_DIR"), "/programs.rs"));
 

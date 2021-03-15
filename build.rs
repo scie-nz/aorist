@@ -313,11 +313,16 @@ fn process_attributes(raw_objects: &Vec<HashMap<String, Value>>) {
         .iter()
         .map(|x| x.get("presto").unwrap().as_str().unwrap().to_string())
         .collect::<HashSet<_>>();
+    let sqlite_derive_macros = attributes
+        .iter()
+        .map(|x| x.get("sqlite").unwrap().as_str().unwrap().to_string())
+        .collect::<HashSet<_>>();
 
     let derive_macros = sql_derive_macros
         .into_iter()
         .chain(orc_derive_macros.into_iter())
         .chain(presto_derive_macros.into_iter())
+        .chain(sqlite_derive_macros.into_iter())
         .collect::<HashSet<_>>();
 
     for item in derive_macros {
@@ -340,10 +345,11 @@ fn process_attributes(raw_objects: &Vec<HashMap<String, Value>>) {
             .unwrap()
             .to_string();
         let sql = attribute.get("sql").unwrap().as_str().unwrap().to_string();
+        let sqlite = attribute.get("sqlite").unwrap().as_str().unwrap().to_string();
 
         let define = format!(
-            "define_attribute!({}, {}, {}, {}, {});",
-            name, orc, presto, sql, value
+            "define_attribute!({}, {}, {}, {}, {}, {});",
+            name, orc, presto, sql, sqlite, value
         );
         scope.raw(&define);
         attribute_names.push(name.clone());
