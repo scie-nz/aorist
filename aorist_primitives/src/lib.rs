@@ -847,6 +847,13 @@ macro_rules! register_attribute {
                     )+
                 }
             }
+            fn get_sqlite_type(&self) -> String {
+                match self {
+                    $(
+                        [<$name Enum>]::$element(x) => x.get_sqlite_type(),
+                    )+
+                }
+            }
             fn get_orc_type(&self) -> String {
                 match self {
                     $(
@@ -877,6 +884,9 @@ macro_rules! register_attribute {
             }
             fn get_presto_type(&self) -> String {
                 self.inner.get_presto_type()
+            }
+            fn get_sqlite_type(&self) -> String {
+                self.inner.get_sqlite_type()
             }
             fn get_orc_type(&self) -> String {
                 self.inner.get_orc_type()

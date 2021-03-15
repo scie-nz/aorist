@@ -1428,7 +1428,7 @@ spec:
             data_set.get_template_for_asset(static_data_table).unwrap();
             let attributes = template.get_attributes();
             let attributes_vec = attributes.into_iter().map(
-                |x| (x.get_name().to_string(), x.get_sql_type().to_string())
+                |x| (x.get_name().to_string(), x.get_sqlite_type().to_string())
             ).collect::<Vec<_>>();
             serde_json::json!(attributes_vec).to_string()
           }
