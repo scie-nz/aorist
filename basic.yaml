@@ -299,6 +299,7 @@ spec:
   requires:
       - UploadDataToAlluxio
       - UploadDataToMinio
+      - UploadDataToSQLite
   attachIf: |
       |root: Concept<'a>, ancestry: &ConceptAncestry<'a>|
       ancestry.remote_import_storage_setup(root.clone()).is_ok()

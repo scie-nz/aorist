@@ -1345,7 +1345,7 @@ spec:
         CREATE TABLE {tablename}({schema})
         """.format(
             tablename=tablename,
-            schema=",\n".join(["%s %s" % (k, v) for k, v in columns]),
+            schema=",\\n".join(["%s %s" % (k, v) for k, v in columns]),
         ))
 
         values = []
@@ -1353,11 +1353,11 @@ spec:
         for _, v in columns:
             if v == 'TEXT':
                 type_fn += [lambda x: x]
-            else if v == 'INTEGER':
+            elif v == 'INTEGER':
                 type_fn += [int]
-            else if v == 'REAL'
+            elif v == 'REAL':
                 type_fn += [float]
-            else if v == 'BLOB'
+            elif v == 'BLOB':
                 type_fn += [bytes]
             else:
                 type_fn += [lambda _: None]

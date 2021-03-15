@@ -9,7 +9,7 @@ pub use file_based_storage_layout::{
     FileBasedStorageLayout, InnerFileBasedStorageLayout, InnerSingleFileLayout, SingleFileLayout,
 };
 pub use tabular_layout::{
-    DailyGranularity, DynamicTabularLayout, Granularity, TabularLayout,
-    InnerDailyGranularity, InnerDynamicTabularLayout, InnerGranularity, InnerTabularLayout,
-    InnerStaticTabularLayout, StaticTabularLayout,
+    DailyGranularity, DynamicTabularLayout, Granularity, InnerDailyGranularity,
+    InnerDynamicTabularLayout, InnerGranularity, InnerStaticTabularLayout, InnerTabularLayout,
+    StaticTabularLayout, TabularLayout,
 };
