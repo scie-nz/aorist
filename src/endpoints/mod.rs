@@ -1,6 +1,7 @@
 pub mod alluxio;
 pub mod gitea;
 pub mod minio;
+pub mod postgres;
 pub mod presto;
 pub mod ranger;
 
@@ -16,6 +17,7 @@ use paste::paste;
 pub use presto::{InnerPrestoConfig, PrestoConfig};
 use pyo3::prelude::*;
 pub use ranger::{InnerRangerConfig, RangerConfig};
+pub use postgres::{InnerPostgresConfig, PostgresConfig};
 use serde::{Deserialize, Serialize};
 use std::sync::{Arc, RwLock};
 use uuid::Uuid;
@@ -37,4 +39,7 @@ pub struct EndpointConfig {
     #[constrainable]
     #[py_default = "None"]
     pub minio: Option<MinioConfig>,
+    #[constrainable]
+    #[py_default = "None"]
+    pub postgres: Option<PostgresConfig>,
 }

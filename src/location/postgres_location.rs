@@ -9,9 +9,4 @@ use std::sync::{Arc, RwLock};
 use uuid::Uuid;
 
 #[aorist_concept]
-pub struct PostgresLocation {
-    pub hostname: String,
-    pub port: usize,
-    pub username: String,
-    pub password: String,
-}
+pub struct PostgresLocation {}

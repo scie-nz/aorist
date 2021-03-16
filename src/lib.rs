@@ -221,6 +221,8 @@ fn aorist(py: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<InnerJSONEncoding>()?;
     m.add_class::<InnerSQLiteLocation>()?;
     m.add_class::<InnerSQLiteStorage>()?;
+    m.add_class::<InnerPostgresLocation>()?;
+    m.add_class::<InnerPostgresConfig>()?;
     m.add_wrapped(wrap_pyfunction!(default_tabular_schema))?;
     m.add_wrapped(wrap_pyfunction!(dag))?;
     m.add_wrapped(wrap_pyfunction!(derive_integer_measure))?;
