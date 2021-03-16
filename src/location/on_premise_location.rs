@@ -1,6 +1,7 @@
 use crate::concept::{AoristConcept, Concept};
 use crate::location::alluxio_location::*;
 use crate::location::minio_location::*;
+use crate::location::postgres_location::*;
 use crate::location::sqlite_location::*;
 use aorist_concept::{aorist_concept, Constrainable, InnerObject};
 use paste::paste;
@@ -16,4 +17,6 @@ pub enum OnPremiseLocation {
     MinioLocation(MinioLocation),
     #[constrainable]
     SQLiteLocation(SQLiteLocation),
+    #[constrainable]
+    PostgresLocation(PostgresLocation),
 }
