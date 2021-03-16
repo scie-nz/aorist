@@ -6,6 +6,7 @@ from aorist import (
     RangerConfig,
     GiteaConfig,
     MinioConfig,
+    PostgresConfig,
     UserGroup,
     GlobalPermissionsAdmin,
 )
@@ -32,12 +33,19 @@ minio_config = MinioConfig(
     access_key="cppBrbSkEg5Vet6Mb0D4",
     secret_key="eRtRoywXqKBj0yHDyIaYb0c1Xnr5A3mCGsiT67Y1",
 )
+postgres_config = PostgresConfig(
+    server='postgres',
+    port=8080,
+    username='admin',
+    password='password',
+)
 endpoints = EndpointConfig(
     alluxio=alluxio_config,
     ranger=ranger_config,
     presto=presto_config,
     gitea=gitea_config,
     minio=minio_config,
+    postgres=postgres_config,
 )
 
 """

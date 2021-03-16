@@ -3,8 +3,8 @@ from aorist import *
 from common import DEFAULT_ENDPOINTS
 
 tmp_dir = "tmp/subreddits"
-local = SQLiteStorage(
-    location=SQLiteLocation(file_name="subreddits"),
+local = PostgresStorage(
+    location=PostgresLocation(),
     layout=StaticTabularLayout(),
 )
 universe = Universe(
