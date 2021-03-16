@@ -300,6 +300,7 @@ spec:
       - UploadDataToAlluxio
       - UploadDataToMinio
       - UploadDataToSQLite
+      - UploadDataToPostgres
   attachIf: |
       |root: Concept<'a>, ancestry: &ConceptAncestry<'a>|
       ancestry.remote_import_storage_setup(root.clone()).is_ok()
@@ -346,6 +347,20 @@ spec:
   title: Upload data to SQLite
   body: |
       Now that data has been converted to a CSV we can upload it to SQLite.
+  attachIf: |
+      |root: Concept<'a>, ancestry: &ConceptAncestry<'a>|
+      ancestry.remote_import_storage_setup(root.clone()).is_ok()
+---
+type: Constraint
+spec:
+  name: UploadDataToPostgres
+  root: PostgresLocation
+  requiresProgram: true
+  requires:
+    - CSVIsConverted
+  title: Upload data to Postgres
+  body: |
+      Now that data has been converted to a CSV we can upload it to Postgres.
   attachIf: |
       |root: Concept<'a>, ancestry: &ConceptAncestry<'a>|
       ancestry.remote_import_storage_setup(root.clone()).is_ok()

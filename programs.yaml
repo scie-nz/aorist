@@ -190,16 +190,16 @@ spec:
   dialect: Python
   preamble: |
       def download_subreddit(subreddit, tmp_dir, file_name):
-          
+
           from pmaw import PushshiftAPI
           import json
-          
+
           import os
           if not os.path.exists(tmp_dir):
               os.makedirs(tmp_dir)
 
           output_file = '%s/%s' % (tmp_dir, file_name)
-          
+
           if not os.path.exists(output_file):
               api = PushshiftAPI(
                   num_workers=16,
@@ -521,7 +521,7 @@ spec:
     schema:
       type: MultipleAncestorsArgument
       spec:
-        call: > 
+        call: >
           {
               let replicate_schema = || {
                 use crate::template::TDatumTemplate;
@@ -551,7 +551,7 @@ spec:
               match storage_setup {
                 crate::StorageSetup::RemoteImportStorageSetup(r) =>
                   match r.remote.get_encoding() {
-                    Some(crate::Encoding::JSONEncoding(_)) => { 
+                    Some(crate::Encoding::JSONEncoding(_)) => {
                         "\njson_obj VARCHAR\n".to_string()
                       },
                     _ => replicate_schema(),
@@ -613,7 +613,7 @@ spec:
   dialect: Presto
   call: >
       INSERT INTO {presto_schema}.{table_name}
-      SELECT {columns} 
+      SELECT {columns}
       FROM {source_table}
   kwargs:
     source_table:
@@ -630,8 +630,8 @@ spec:
                 crate::StorageSetup::RemoteImportStorageSetup(r) =>
                   match r.remote.get_encoding() {
                     Some(crate::Encoding::JSONEncoding(_)) => format!(
-                        "(SELECT 
-                            JSON_PARSE(json_obj) AS json_obj 
+                        "(SELECT
+                            JSON_PARSE(json_obj) AS json_obj
                           FROM {})",
                         source
                     ).to_string(),
@@ -659,9 +659,9 @@ spec:
                   .map(|x|
                       (x.get_name().clone(), x.get_presto_type()))
                   .collect::<Vec<_>>();
-              
+
               let from_json = match storage_setup {
-                  crate::StorageSetup::RemoteImportStorageSetup(r) => 
+                  crate::StorageSetup::RemoteImportStorageSetup(r) =>
                     match r.remote.get_encoding() {
                       Some(crate::Encoding::JSONEncoding(_)) => true,
                       _ => false,
@@ -673,8 +673,8 @@ spec:
                   let (name, presto_type) = x;
                   return match from_json {
                     false => format!(
-                        "CAST({name} AS {presto_type}) AS {name}", 
-                        name=name, 
+                        "CAST({name} AS {presto_type}) AS {name}",
+                        name=name,
                         presto_type=presto_type,
                     ),
                     true => format!(
@@ -684,7 +684,7 @@ spec:
                     )
                   }.to_string();
               }).collect::<Vec<String>>();
-              
+
               format!("\n{}", attr_types.join(",\n"))
           }
         attaches:
@@ -1367,14 +1367,14 @@ spec:
                 type_fn += [bytes]
             else:
                 type_fn += [lambda _: None]
-        
+
         with open(tmp_dir + '/' + source_file, 'r') as f:
             if source_is_json:
                 for line in f.readlines():
                     obj = json.loads(line)
                     tpl = tuple(
-                        fn(obj[x]) 
-                        if not nullable 
+                        fn(obj[x])
+                        if not nullable
                         else (
                             lambda y: fn(obj[y]) if y in obj else None
                         )(x)
@@ -1391,7 +1391,7 @@ spec:
                     assert len(splits) == len(type_fn)
                     tpl = tuple(fn(arg) for fn, arg in zip(type_fn, splits))
                     values += [tpl]
-        
+
         con.executemany(
             """
                 INSERT INTO {tablename}({columns}) VALUES ({vals})
@@ -1399,7 +1399,7 @@ spec:
                 tablename=tablename,
                 columns=", ".join([k for k, _, _ in columns]),
                 vals=", ".join(["?"] * len(columns))
-            ), 
+            ),
             values
         )
         con.commit()
@@ -1418,9 +1418,186 @@ spec:
       type: MultipleAncestorsArgument
       spec:
         call: format!("{}__{}", data_set.name, static_data_table.name).to_string()
-        attaches: 
+        attaches:
           - StaticDataTable
           - DataSet
+    tmp_dir:
+      type: AncestorArgument
+      spec:
+        call: remote_import_storage_setup.tmp_dir
+        attaches: RemoteImportStorageSetup
+    source_file:
+      type: AncestorArgument
+      spec:
+        call: format!("{}.csv", static_data_table.name).to_string()
+        attaches: StaticDataTable
+    columns:
+      type: MultipleAncestorsArgument
+      spec:
+        attaches:
+          - DataSet
+          - StaticDataTable
+        call: >
+          {
+            use crate::template::TDatumTemplate;
+            let template =
+            data_set.get_template_for_asset(static_data_table).unwrap();
+            let attributes = template.get_attributes();
+            let attributes_vec = attributes.into_iter().map(
+                |x| (
+                    x.get_name().to_string(),
+                    x.get_sqlite_type().to_string(),
+                    x.is_nullable().to_string(),
+                )
+            ).collect::<Vec<_>>();
+            serde_json::json!(attributes_vec).to_string()
+          }
+    source_is_json:
+      type: AncestorArgument
+      spec:
+        attaches: StorageSetup
+        call: >
+          format!("{}", match storage_setup {
+            crate::StorageSetup::RemoteImportStorageSetup(r) =>
+              match r.remote.get_encoding() {
+                Some(crate::Encoding::JSONEncoding(_)) => "True",
+                _ => "False",
+              },
+              _ => "False",
+          }).to_string()
+---
+type: Program
+spec:
+  use: UploadDataToPostgres
+  root: PostgresLocation
+  dialect: Python
+  preamble: |
+    def upload_to_postgres(
+        server,
+        port,
+        username,
+        password,
+        db_name,
+        tablename,
+        tmp_dir,
+        source_file,
+        # insertion order matters if we are dealing with a csv
+        columns,
+        source_is_json,
+    ):
+        import psycopg2
+        import json
+        source_is_json = bool(source_is_json)
+        assert source_is_json or header is None
+
+        conn_string = " ".join([
+            "host=%s" % server,
+            "port=%s" % port,
+            "dbname=%s" % db_name,
+            "user=%s" % username,
+            "password=%s" % password,
+        ])
+        conn=psycopg2.connect(conn_string)
+        cursor = conn.cursor()
+
+        columns = json.loads(columns)
+        cursor.execute("""
+        DROP TABLE IF EXISTS {tablename}
+        """.format(
+            tablename=tablename,
+        ))
+        cursor.execute("""
+        CREATE TABLE {tablename}({schema})
+        """.format(
+            tablename=tablename,
+            schema=",\\n".join(["%s %s" % (k, v) for k, v, _ in columns]),
+        ))
+
+        values = []
+        type_fn = []
+        for _, v, _ in columns:
+            if v == 'TEXT':
+                type_fn += [lambda x: x]
+            elif v == 'INTEGER':
+                type_fn += [int]
+            elif v == 'REAL':
+                type_fn += [float]
+            elif v == 'BLOB':
+                type_fn += [bytes]
+            else:
+                type_fn += [lambda _: None]
+
+        with open(tmp_dir + '/' + source_file, 'r') as f:
+            if source_is_json:
+                for line in f.readlines():
+                    obj = json.loads(line)
+                    tpl = tuple(
+                        fn(obj[x])
+                        if not nullable
+                        else (
+                            lambda y: fn(obj[y]) if y in obj else None
+                        )(x)
+                        for fn, x, nullable in zip(
+                            type_fn,
+                            [k for k, _, _ in columns],
+                            [n for _k, _v, n in columns]
+                        )
+                    )
+                    values += [tpl]
+            else:
+                for line in f.readlines():
+                    splits = line.strip().split(",")
+                    assert len(splits) == len(type_fn)
+                    tpl = tuple(fn(arg) for fn, arg in zip(type_fn, splits))
+                    values += [tpl]
+
+        cursor.executemany(
+            """
+                INSERT INTO {tablename}({columns}) VALUES ({vals})
+            """.format(
+                tablename=tablename,
+                columns=", ".join([k for k, _, _ in columns]),
+                vals=", ".join(["%s"] * len(columns))
+            ),
+            values
+        )
+
+        count = list(cursor.execute("SELECT COUNT(*) FROM " + tablename))[0][0]
+        print("Inserted %d records into %s" % (count, tablename))
+        con.close()
+
+  call: upload_to_postgres
+  kwargs:
+    db_name:
+      type: AncestorArgument
+      spec:
+        call: data_set.name.clone()
+        attaches: DataSet
+    server:
+      type: AncestorArgument
+      spec:
+        call: universe.endpoints.postgres.as_ref().unwrap().server.clone()
+        attaches: Universe
+    port:
+      type: AncestorArgument
+      spec:
+        call: universe.endpoints.postgres.as_ref().unwrap().port.to_string()
+        attaches: Universe
+    username:
+      type: AncestorArgument
+      spec:
+        call: universe.endpoints.postgres.as_ref().unwrap().username.clone()
+        attaches: Universe
+    password:
+      type: AncestorArgument
+      spec:
+        call: universe.endpoints.postgres.as_ref().unwrap().password.clone()
+        attaches: Universe
+    tablename:
+      type: AncestorArgument
+      spec:
+        call: static_data_table.name.clone()
+        attaches: StaticDataTable
     tmp_dir:
       type: AncestorArgument
       spec:
