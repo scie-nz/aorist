@@ -357,7 +357,7 @@ where
         let params = AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("params".to_string()));
         let ident = AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("t".to_string()));
 
-        let tpl = self.get_for_loop_tuple(&params, &ident);
+        let tpl = self.get_for_loop_tuple(&ident, &params);
         let new_collector = self.get_task_collector(&ident);
 
         let mut kwargs;
