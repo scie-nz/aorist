@@ -199,21 +199,22 @@ spec:
               os.makedirs(tmp_dir)
 
           output_file = '%s/%s' % (tmp_dir, file_name)
-
-          api = PushshiftAPI(
-              num_workers=16,
-              limit_type='backoff',
-              jitter='decorr',
-          )
-          posts = api.search_submissions(
-              subreddit=subreddit,
-              limit=10e9,
-              after=0
-          )
-          with open(output_file, 'w') as f:
-            for post in posts:
-                line = json.dumps(post) + '\\n'
-                f.write(line)
+          
+          if not os.path.exists(output_file):
+              api = PushshiftAPI(
+                  num_workers=16,
+                  limit_type='backoff',
+                  jitter='decorr',
+              )
+              posts = api.search_submissions(
+                  subreddit=subreddit,
+                  limit=10e9,
+                  after=0
+              )
+              with open(output_file, 'w') as f:
+                for post in posts:
+                    line = json.dumps(post) + '\\n'
+                    f.write(line)
   call: download_subreddit
   kwargs:
     subreddit:
@@ -586,7 +587,7 @@ spec:
             };
             match &remote_storage.encoding {
                Encoding::CSVEncoding(_) | Encoding::JSONEncoding(_) => format!(
-                  "mv {source} {tmp_dir}/{file_name}.csv",
+                  "cp {source} {tmp_dir}/{file_name}.csv",
                   source=source,
                   tmp_dir=tmp_dir,
                   file_name=file_name,
@@ -1342,6 +1343,11 @@ spec:
 
         con = sqlite3.connect(db_filename)
         con.execute("""
+        DROP TABLE IF EXISTS {tablename}
+        """.format(
+            tablename=tablename,
+        ))
+        con.execute("""
         CREATE TABLE {tablename}({schema})
         """.format(
             tablename=tablename,
@@ -1362,7 +1368,7 @@ spec:
             else:
                 type_fn += [lambda _: None]
         
-        with open(source_file, 'r') as f:
+        with open(tmp_dir + '/' + source_file, 'r') as f:
             if source_is_json:
                 for line in f.readlines():
                     obj = json.loads(line)
@@ -1391,6 +1397,11 @@ spec:
             ), 
             values
         )
+        con.commit()
+        count = list(con.execute("SELECT COUNT(*) FROM " + tablename))[0][0]
+        print("Inserted %d records into %s" % (count, tablename))
+        con.close()
+
   call: upload_to_sqlite
   kwargs:
     db_filename:

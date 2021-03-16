@@ -21,30 +21,33 @@ from aorist import (
 from aorist import attributes as attr
 
 attributes = attr_list([
-    attr.KeyStringIdentifier("post_id"),
+    attr.KeyStringIdentifier("id"),
+    attr.StringIdentifier("author"),
     attr.StringIdentifier("subreddit"),
     attr.POSIXTimestamp("created_utc"),
-    attr.FreeText("text"),
+    attr.FreeText("title"),
+    attr.FreeText("selftext"),
 ])
 subreddit_datum = RowStruct(
     name="subreddit",
     attributes=attributes,
 )
-wairarapa = StaticDataTable(
-    name='wairarapa',
+subreddits = ['marton']
+assets = {x: StaticDataTable(
+    name=x,
     schema=default_tabular_schema(subreddit_datum),
     setup=RemoteStorageSetup(
         remote=RemoteStorage(
-            location=PushshiftAPILocation(subreddit='wairarapa'),
+            location=PushshiftAPILocation(subreddit=x),
             layout=PushshiftSubredditPostsAPILayout(),
             encoding=JSONEncoding(),
         ),
     ),
-    tag='r_wairarapa',
-)
+    tag='r_%s' % x,
+) for x in subreddits}
 
 subreddits = DataSet(
     name="subreddits",
     datumTemplates=[subreddit_datum],
-    assets={"wairarapa": wairarapa},
+    assets=assets,
 )
