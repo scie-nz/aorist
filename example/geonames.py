@@ -23,7 +23,7 @@ from aorist import (
 # From: https://geonames.nga.mil/gns/html/gis_countryfiles.html
 attributes = attr_list([
     # TODO: need richer attribute
-    attr.NullableInt64(
+    attr.Int64(
         "rc",
         """
         Region Font Code.  A code that determines the equivalent characters
@@ -36,6 +36,7 @@ attributes = attr_list([
         5 = Asia/Pacific;
         6 = Vietnam.
         """,
+        nullable=True,
     ),
     attr.KeyInt64Identifier(
         "ufi",
@@ -89,21 +90,23 @@ attributes = attr_list([
         left to right.
         """,
     ),
-    attr.NullableStringIdentifier(
+    attr.StringIdentifier(
         "mgrs",
         """
         Military Grid Reference System coordinates. MGRS is an alpha-numeric
         system for expressing UTM/UPS coordinates. A single alpha-numeric
         value references an area that is unique for the entire earth.
         """,
+        nullable=True
     ),
-    attr.NullableStringIdentifier(
+    attr.StringIdentifier(
         "jog",
         """
         Joint Operations Graphic reference.
         """,
+        nullable=True
     ),
-    attr.NullableInt64(
+    attr.Int64(
         "fc",
         """
         Feature Class: Nine (9) major feature categories into which similar
@@ -118,8 +121,9 @@ attributes = attr_list([
         H = Hydrographic
         S = Spot
         """,
+        nullable=True,
     ),
-    attr.NullableStringIdentifier(
+    attr.StringIdentifier(
         "dsg",
         """
         Feature Designation Code.  A two to five-character code used to
@@ -127,8 +131,9 @@ attributes = attr_list([
         these codes/values, please see the "Look-up Tables..." section on the
         GNS Offered Services page.
         """,
+        nullable=True,
     ),
-    attr.NullableInt64(
+    attr.Int64(
         "pc",
         """
         Populated Place Class.  A numerical scale identifying the relative
@@ -136,8 +141,9 @@ attributes = attr_list([
         5 (low). The scale can also include NULL (no value) as a value for
         populated places with unknown or undetermined relative importance.
         """,
+        nullable=True,
     ),
-    attr.NullableStringIdentifier(
+    attr.StringIdentifier(
         "cc1",
         """
         Primary Geopolitical Code. A two alphabetic character code from the
@@ -153,8 +159,9 @@ attributes = attr_list([
         For a description of these codes/values, please see the "Look-up
         Tables..." section on the GNS Offered Services page.
         """,
+        nullable=True,
     ),
-    attr.NullableStringIdentifier(
+    attr.StringIdentifier(
         "adm1",
         """
         Primary administrative division code. A two character alpha-numeric
@@ -164,6 +171,7 @@ attributes = attr_list([
         description of these codes/values, please see the "Look-up
         Tables..." section on the GNS Offered Services page.
         """,
+        nullable=True,
     ),
     attr.Empty(
         "pop",
@@ -177,7 +185,7 @@ attributes = attr_list([
         Elevation in meters (no longer maintained; contains no values).
         """,
     ),
-    attr.NullableStringIdentifier(
+    attr.StringIdentifier(
         "cc2",
         """
         Secondary Geopolitical Code. A two alphabetic character code from
@@ -195,8 +203,9 @@ attributes = attr_list([
         For a description of these codes/values, please see the "Look-up
         Tables..." section on the GNS Offered Services page.
         """,
+        nullable=True,
     ),
-    attr.NullableStringIdentifier(
+    attr.StringIdentifier(
         "nt",
         """
         Name Type:
@@ -232,8 +241,9 @@ attributes = attr_list([
         For a description of these codes/values, please see the "Look-up
         Tables..." section on the GNS Offered Services page.
         """,
+        nullable=True,
     ),
-    attr.NullableStringIdentifier(
+    attr.StringIdentifier(
         "lc",
         """
         Language Code. A three alphabetic character code (ISO 639-3)
@@ -241,22 +251,25 @@ attributes = attr_list([
         description of these codes/values, please see the "Look-up
         Tables..." section on the GNS Offered Services page.
         """,
+        nullable=True,
     ),
-    attr.NullableStringIdentifier(
+    attr.StringIdentifier(
         "short_form",
         """
         A part of the full name that could substitute for the full name.
         """,
+        nullable=True,
     ),
-    attr.NullableStringIdentifier(
+    attr.StringIdentifier(
         "generic",
         """
         The descriptive part of the full name such as Cerro (mountain), Arroyo
         (river), or Golfo (gulf) (generally does not apply to populated place
         names or English based generics).
         """,
+        nullable=True,
     ),
-    attr.NullableStringIdentifier(
+    attr.StringIdentifier(
         "sort_name_ro",
         """
         Sort name - reading order. A form of the full name that allows for
@@ -270,16 +283,18 @@ attributes = attr_list([
         markings/pointers are removed. This field is included for the benefit
         of the end user of the data to aid in the sorting of names if required.
         """,
+        nullable=True,
     ),
-    attr.NullableStringIdentifier(
+    attr.StringIdentifier(
         "full_name_ro",
         """
         Full name - reading order. The full name is the complete name that
         identifies a named feature.  The full name is output in reading order,
         "Mount Everest", vs. reversed generic, "Everest, Mount".
         """,
+        nullable=True,
     ),
-    attr.NullableStringIdentifier(
+    attr.StringIdentifier(
         "full_name_nd_ro",
         """
         Full name - reading order with no diacritics. Same as the full name
@@ -288,8 +303,9 @@ attributes = attr_list([
         while still maintaining casing and spaces. This field also includes
         non-roman script based names which are stripped of vowel markings.
         """,
+        nullable=True,
     ),
-    attr.NullableStringIdentifier(
+    attr.StringIdentifier(
         "sort_name_rg",
         """
         Sort name - reversed generic. A form of the full name that allows
@@ -304,16 +320,18 @@ attributes = attr_list([
         included for the benefit of the end user of the data to aid in the
         sorting of names if required.
         """,
+        nullable=True,
     ),
-    attr.NullableStringIdentifier(
+    attr.StringIdentifier(
         "full_name_rg",
         """
         Full name - reversed generic. The full name is the complete name that
         identifies a named feature. The full name is output in reversed
         generic, "Everest, Mount" vs. reading order, "Mount Everest."
         """,
+        nullable=True,
     ),
-    attr.NullableStringIdentifier(
+    attr.StringIdentifier(
         "full_name_nd_rg",
         """
         Full name - reversed generic with no diacritics. Same as the full name
@@ -322,8 +340,9 @@ attributes = attr_list([
         while still maintaining casing and spaces. This field also includes
         non-roman script based names which are stripped of vowel markings.
         """,
+        nullable=True,
     ),
-    attr.NullableStringIdentifier(
+    attr.StringIdentifier(
         "note",
         """
         This field holds a geopolitical policy note concerning the feature,
@@ -332,15 +351,17 @@ attributes = attr_list([
         semicolon followed by four spaces (1:note1; 2:note2; 3:note3;
         etc...).
         """,
+        nullable=True,
     ),
-    attr.NullableStringIdentifier(
+    attr.StringIdentifier(
         "modify_date",
         """
         The date a new feature was added or any part of an existing feature
         was modified (YYYY-MM-DD).
         """,
+        nullable=True,
     ),
-    attr.NullableStringIdentifier(
+    attr.StringIdentifier(
         "display",
         """
         Comma-separated non-spaced scale range values to aid in the
@@ -370,51 +391,58 @@ attributes = attr_list([
         A feature with display values of 1,2,3,4,5,6,7,8,9 should appear in a
         visualization client or service at all scales.
         """,
+        nullable=True,
     ),
     # TODO: change to usize
-    attr.NullableInt64(
+    attr.Int64(
         "name_rank",
         """
         A numeric value (1 - n) used to facilitate the display/visualization
         of the names associated with a feature.
         """,
+        nullable=True,
     ),
-    attr.NullableInt64(
+    attr.Int64(
         "uni2",
         """
         Unique Name Identifier (UNI) that links romanized names to their
         non-Roman script equivalent and vice-versa.
         """,
+        nullable=True,
     ),
-    attr.NullableString(
+    attr.Factor(
         "transl_cd",
         """
         Transliteration Code. This value indicates which transliteration
         system was used to arrive at the romanized equivalent of a non-Roman
         Script name.
         """,
+        nullable=True,
     ),
     # TODO: need date field
-    attr.NullableString(
+    attr.DateString(
         "nm_modify_date",
         """
         The date a new name was added or any part of an existing name was
         modified (YYYY-MM-DD).
         """,
+        nullable=True,
     ),
-    attr.NullableString(
+    attr.DateString(
         "f_efctv_dt",
         """
         Feature effectivity date. The documented date a feature came into
         existence (YYYY-MM-DD).
         """,
+        nullable=True,
     ),
-    attr.NullableString(
+    attr.DateString(
         "f_term_dt",
         """
         Feature termination date. The date a feature could no longer be
         verified on cartographic source or imagery (YYYY-MM-DD).
         """,
+        nullable=True,
     ),
 ])
 geonames_datum = RowStruct(

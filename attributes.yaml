@@ -37,30 +37,12 @@ spec:
 ---
 type: Attribute
 spec:
-  name: NullableStringIdentifier
-  orc: OrcString
-  presto: PrestoVarchar
-  sql: SQLVarchar
-  sqlite: SQLiteText
-  value: StringValue
----
-type: Attribute
-spec:
   name: StringIdentifier
   orc: OrcString
   presto: PrestoVarchar
   sql: SQLVarchar
   sqlite: SQLiteText
   value: StringValue
----
-type: Attribute
-spec:
-  name: NullablePOSIXTimestamp
-  orc: OrcBigint
-  presto: PrestoBigint
-  sql: SQLBigint
-  sqlite: SQLiteInteger
-  value: IntegerValue
 ---
 type: Attribute
 spec:
@@ -73,7 +55,7 @@ spec:
 ---
 type: Attribute
 spec:
-  name: NullableInt64
+  name: Int64
   orc: OrcBigint
   presto: PrestoBigint
   sql: SQLBigint
@@ -88,15 +70,6 @@ spec:
   sql: SQLBigint
   sqlite: SQLiteInteger
   value: IntegerValue
----
-type: Attribute
-spec:
-  name: NullableString
-  orc: OrcString
-  presto: PrestoVarchar
-  sql: SQLVarchar
-  sqlite: SQLiteText
-  value: StringValue
 ---
 type: Attribute
 spec:
@@ -150,6 +123,24 @@ spec:
   presto: PrestoBigint
   sql: SQLBigint
   sqlite: SQLiteInteger
+  value: StringValue
+---
+type: Attribute
+spec:
+  name: Factor
+  orc: OrcString
+  presto: PrestoVarchar
+  sql: SQLVarchar
+  sqlite: SQLiteText
+  value: StringValue
+---
+type: Attribute
+spec:
+  name: DateString
+  orc: OrcString
+  presto: PrestoVarchar
+  sql: SQLVarchar
+  sqlite: SQLiteText
   value: StringValue
 ---
 type: Attribute
