@@ -410,6 +410,7 @@ macro_rules! define_attribute {
             pub struct $element {
                 pub name: String,
                 pub comment: Option<String>,
+                pub nullable: bool,
             }
             impl TAttribute for $element {
                 type Value = $value;
@@ -420,13 +421,21 @@ macro_rules! define_attribute {
                 fn get_comment(&self) -> &Option<String> {
                     &self.comment
                 }
+                fn is_nullable(&self) -> bool {
+                    self.nullable
+                }
             }
             #[pymethods]
             impl $element {
                 #[new]
                 #[args(comment = "None")]
-                pub fn new(name: String, comment: Option<String>) -> Self {
-                    Self { name, comment }
+                #[args(nullable = "false")]
+                pub fn new(
+                    name: String,
+                    comment: Option<String>,
+                    nullable: bool
+                ) -> Self {
+                    Self { name, comment, nullable }
                 }
                 #[getter]
                 pub fn name(&self) -> PyResult<String> {
@@ -816,12 +825,21 @@ macro_rules! register_attribute {
                     )+
                 }
             }
+            pub fn is_nullable(&self) -> bool {
+                match self {
+                    $(
+                        [<$name Enum>]::$element(x) => x.is_nullable(),
+                    )+
+                }
+            }
+
             pub fn as_predicted_objective(&self) -> Self {
                 match self {
                     $(
                         [<$name Enum>]::$element(x) => [<$name Enum>]::$element($element {
                             name: format!("predicted_{}", x.get_name()).to_string(),
                             comment: x.get_comment().clone(),
+                            nullable: false,
                         }),
                     )+
                 }
@@ -875,6 +893,9 @@ macro_rules! register_attribute {
         impl $name {
             pub fn get_name(&self) -> &String {
                 self.inner.get_name()
+            }
+            pub fn is_nullable(&self) -> bool {
+                self.inner.is_nullable()
             }
             pub fn get_comment(&self) -> &Option<String> {
                 self.inner.get_comment()

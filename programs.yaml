@@ -1351,12 +1351,12 @@ spec:
         CREATE TABLE {tablename}({schema})
         """.format(
             tablename=tablename,
-            schema=",\\n".join(["%s %s" % (k, v) for k, v in columns]),
+            schema=",\\n".join(["%s %s" % (k, v) for k, v, _ in columns]),
         ))
 
         values = []
         type_fn = []
-        for _, v in columns:
+        for _, v, _ in columns:
             if v == 'TEXT':
                 type_fn += [lambda x: x]
             elif v == 'INTEGER':
@@ -1373,10 +1373,15 @@ spec:
                 for line in f.readlines():
                     obj = json.loads(line)
                     tpl = tuple(
-                        fn(obj[x])
-                        for fn, x in zip(
+                        fn(obj[x]) 
+                        if not nullable 
+                        else (
+                            lambda y: fn(obj[y]) if y in obj else None
+                        )(x)
+                        for fn, x, nullable in zip(
                             type_fn,
-                            [k for k, _ in columns]
+                            [k for k, _, _ in columns],
+                            [n for _k, _v, n in columns]
                         )
                     )
                     values += [tpl]
@@ -1392,7 +1397,7 @@ spec:
                 INSERT INTO {tablename}({columns}) VALUES ({vals})
             """.format(
                 tablename=tablename,
-                columns=", ".join([k for k, _ in columns]),
+                columns=", ".join([k for k, _, _ in columns]),
                 vals=", ".join(["?"] * len(columns))
             ), 
             values
@@ -1439,7 +1444,11 @@ spec:
             data_set.get_template_for_asset(static_data_table).unwrap();
             let attributes = template.get_attributes();
             let attributes_vec = attributes.into_iter().map(
-                |x| (x.get_name().to_string(), x.get_sqlite_type().to_string())
+                |x| (
+                    x.get_name().to_string(),
+                    x.get_sqlite_type().to_string(),
+                    x.is_nullable().to_string(),
+                )
             ).collect::<Vec<_>>();
             serde_json::json!(attributes_vec).to_string()
           }

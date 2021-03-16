@@ -101,6 +101,7 @@ where
     type Value;
     fn get_name(&self) -> &String;
     fn get_comment(&self) -> &Option<String>;
+    fn is_nullable(&self) -> bool;
 }
 pub trait TPrestoAttribute: TAttribute {
     fn get_presto_type(&self) -> String;
@@ -343,6 +344,9 @@ impl IdentityTransform {
     pub fn get_name(&self) -> &String {
         &self.name
     }
+    pub fn is_nullable(&self) -> bool {
+        self.attribute.is_nullable()
+    }
     pub fn get_comment(&self) -> &Option<String> {
         self.attribute.get_comment()
     }
@@ -368,6 +372,11 @@ impl Transform {
     pub fn get_name(&self) -> &String {
         match &self {
             Transform::IdentityTransform(x) => x.get_name(),
+        }
+    }
+    pub fn is_nullable(&self) -> bool {
+        match &self {
+            Transform::IdentityTransform(x) => x.is_nullable(),
         }
     }
     pub fn get_comment(&self) -> &Option<String> {
@@ -413,6 +422,12 @@ impl AttributeOrTransform {
         match &self {
             AttributeOrTransform::Attribute(x) => x.get_name(),
             AttributeOrTransform::Transform(x) => x.get_name(),
+        }
+    }
+    pub fn is_nullable(&self) -> bool {
+        match &self {
+            AttributeOrTransform::Attribute(x) => x.is_nullable(),
+            AttributeOrTransform::Transform(x) => x.is_nullable(),
         }
     }
     pub fn as_predicted_objective(&self) -> Result<Self, String> {

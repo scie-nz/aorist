@@ -26,7 +26,7 @@ attributes = attr_list([
     attr.StringIdentifier("subreddit"),
     attr.POSIXTimestamp("created_utc"),
     attr.FreeText("title"),
-    attr.FreeText("selftext"),
+    attr.FreeText("selftext", nullable=True),
 ])
 subreddit_datum = RowStruct(
     name="subreddit",

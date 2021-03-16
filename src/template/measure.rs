@@ -45,6 +45,7 @@ impl IntegerMeasure {
             inner: AttributeOrTransform::Attribute(AttributeEnum::Count(Count {
                 name: self.name.clone(),
                 comment: self.comment.clone(),
+                nullable: false,
             })),
             tag: None,
             uuid: None,
@@ -91,6 +92,7 @@ impl TrainedFloatMeasure {
                 FloatPrediction {
                     name: self.name.clone(),
                     comment: self.comment.clone(),
+                    nullable: false,
                 },
             )),
             tag: None,
@@ -105,6 +107,7 @@ impl TrainedFloatMeasure {
         Regressor {
             name: "model".to_string(),
             comment: Some("A serialized version of the model".to_string()),
+            nullable: false,
         }
     }
     pub fn get_model_storage_tabular_schema(&self) -> TabularSchema {
