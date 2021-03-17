@@ -3,8 +3,8 @@ from aorist import *
 from common import DEFAULT_ENDPOINTS
 
 tmp_dir = "tmp/subreddits"
-local = PostgresStorage(
-    location=PostgresLocation(),
+local = BigQueryStorage(
+    location=BigQueryLocation(),
     layout=StaticTabularLayout(),
 )
 universe = Universe(

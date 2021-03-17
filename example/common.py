@@ -47,7 +47,11 @@ endpoints = EndpointConfig(
     gitea=gitea_config,
     minio=minio_config,
     postgres=postgres_config,
-    gcp=GCPConfig(use_default_credentials=True),
+    gcp=GCPConfig(
+        project_name='social-norms',
+        data_location='US',
+        use_default_credentials=True
+    ),
 )
 
 """

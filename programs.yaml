@@ -1646,3 +1646,155 @@ spec:
               },
               _ => "False",
           }).to_string()
+---
+type: Program
+spec:
+  use: UploadDataToBigQuery
+  root: BigQueryLocation
+  dialect: Python
+  preamble: |
+    def upload_to_bigquery(
+        project_name,
+        dataset_name,
+        dataset_location,
+        table_name,
+        tmp_dir,
+        source_file,
+        service_account_file,
+    ):
+        from google.cloud import bigquery
+        from google.oauth2 import service_account
+
+        if service_account_file != "":
+            credentials = service_account.Credentials.from_service_account_file(service_account_file)
+            client = bigquery.Client(credentials=credentials)
+        else:
+            client = bigquery.Client()
+
+
+        source_is_json = bool(source_is_json)
+        assert source_is_json or header is None
+
+        dataset_id = project_name + "." + dataset_name
+        try:
+            dataset = client.get_dataset(dataset_id)
+        except NotFound:
+            dataset = bigquery.Dataset(dataset_id)
+            dataset.location = dataset_location
+            client.create_dataset(dataset)
+            dataset = client.get_dataset(dataset_id)
+
+
+        table_id = "{project_name}.{dataset_name}.{table_name}".format(
+            project_name=project_name,
+            dataset_name=dataset_name,
+            table_name=table_name,
+        )
+        client.delete_table(table_id, not_found_ok=True)
+
+        table_ref = dataset.table(table_name)
+
+        columns = json.loads(columns)
+        schema = [
+           bigquery.SchemaField(k, v, mode="REQUIRED" if n else "NULLABLE")
+           for k, v, n in columns
+        ]
+        table = bigquery.Table(table_ref, schema=schema)
+        client.create_table(table)
+
+
+        job_config = bigquery.LoadJobConfig(
+            source_format=(
+                bigquery.SourceFormat.JSON
+                if source_is_json else bigquery.SourceFormat.CSV
+            ),
+            skip_leading_rows=0,
+        )
+
+        with open(tmp_dir + '/' + source_file, 'rb') as f:
+            job = client.load_table_from_file(source_file, table_id, job_config=job_config)
+
+        job.result()  # Waits for the job to complete.
+        table = client.get_table(table_id)  # Make an API request.
+
+        print(
+            "Loaded {} rows and {} columns to {}".format(
+                table.num_rows, len(table.schema), table_id
+            )
+        )
+
+  call: upload_to_bigquery
+  kwargs:
+    project_name:
+      type: AncestorArgument
+      spec:
+        call: universe.endpoints.gcp.as_ref().unwrap().project_name.clone()
+        attaches: Universe
+    dataset_location:
+      type: AncestorArgument
+      spec:
+        call: universe.endpoints.gcp.as_ref().unwrap().data_location.clone()
+        attaches: Universe
+    service_account_file:
+      type: AncestorArgument
+      spec:
+        call: |
+          match universe.endpoints.gcp.as_ref().unwrap().service_account_file {
+            Some(ref f) => f.clone(),
+            None => "".to_string(),
+          }
+        attaches: Universe
+    dataset_name:
+      type: AncestorArgument
+      spec:
+        call: data_set.name.clone()
+        attaches: DataSet
+    table_name:
+      type: AncestorArgument
+      spec:
+        call: static_data_table.name.clone()
+        attaches: StaticDataTable
+    tmp_dir:
+      type: AncestorArgument
+      spec:
+        call: replication_storage_setup.tmp_dir
+        attaches: ReplicationStorageSetup
+    source_file:
+      type: AncestorArgument
+      spec:
+        call: format!("{}.csv", static_data_table.name).to_string()
+        attaches: StaticDataTable
+    columns:
+      type: MultipleAncestorsArgument
+      spec:
+        attaches:
+          - DataSet
+          - StaticDataTable
+        call: >
+          {
+            use crate::template::TDatumTemplate;
+            let template =
+            data_set.get_template_for_asset(static_data_table).unwrap();
+            let attributes = template.get_attributes();
+            let attributes_vec = attributes.into_iter().map(
+                |x| (
+                    x.get_name().to_string(),
+                    x.get_bigquery_type().to_string(),
+                    x.is_nullable().to_string(),
+                )
+            ).collect::<Vec<_>>();
+            serde_json::json!(attributes_vec).to_string()
+          }
+    source_is_json:
+      type: AncestorArgument
+      spec:
+        attaches: StorageSetup
+        call: >
+          format!("{}", match storage_setup {
+            crate::StorageSetup::ReplicationStorageSetup(r) =>
+              match r.source.get_encoding() {
+                Some(crate::Encoding::JSONEncoding(_)) => "True",
+                _ => "False",
+              },
+              _ => "False",
+          }).to_string()

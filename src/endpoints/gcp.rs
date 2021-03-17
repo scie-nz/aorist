@@ -15,4 +15,7 @@ pub struct GCPConfig {
     pub use_default_credentials: bool,
     #[py_default = "None"]
     pub service_account_file: Option<String>,
+    pub project_name: String,
+    #[py_default = "\"US\".to_string()"]
+    pub data_location: String,
 }
