@@ -443,6 +443,7 @@ fn process_concepts() {
         ("crate::storage_setup", "ComputedFromLocalData"),
         ("crate::storage_setup", "StorageSetup"),
         ("crate::storage", "Storage"),
+        ("crate::storage", "BigQueryStorage"),
         ("crate::storage", "SQLiteStorage"),
         ("crate::storage", "HiveTableStorage"),
         ("crate::storage", "RemoteStorage"),

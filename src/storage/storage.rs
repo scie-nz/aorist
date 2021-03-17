@@ -2,6 +2,7 @@
 
 use crate::concept::{AoristConcept, Concept};
 use crate::encoding::*;
+use crate::storage::bigquery_storage::*;
 use crate::storage::hive_table_storage::*;
 use crate::storage::local_file_storage::*;
 use crate::storage::postgres_storage::*;
@@ -25,6 +26,8 @@ pub enum Storage {
     SQLiteStorage(SQLiteStorage),
     #[constrainable]
     PostgresStorage(PostgresStorage),
+    #[constrainable]
+    BigQueryStorage(BigQueryStorage),
 }
 
 impl Storage {
@@ -35,6 +38,7 @@ impl Storage {
             Self::LocalFileStorage(x) => Some(x.encoding.clone()),
             Self::SQLiteStorage(_) => None,
             Self::PostgresStorage(_) => None,
+            Self::BigQueryStorage(_) => None,
         }
     }
 }
