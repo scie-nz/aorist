@@ -32,7 +32,7 @@ subreddit_datum = RowStruct(
     name="subreddit",
     attributes=attributes,
 )
-subreddits = ['wairarapa', 'manawatu', 'marlborough']
+subreddits = ['wairarapa', 'marton', 'marlborough']
 assets = {x: StaticDataTable(
     name=x,
     schema=default_tabular_schema(subreddit_datum),
