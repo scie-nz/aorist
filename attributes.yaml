@@ -6,6 +6,7 @@ spec:
   presto: PrestoVarchar
   sql: SQLVarchar
   sqlite: SQLiteText
+  bigquery: BigQueryString
   postgres: PostgresText
   value: StringValue
 ---
@@ -16,6 +17,7 @@ spec:
   presto: PrestoBigint
   sql: SQLBigint
   sqlite: SQLiteInteger
+  bigquery: BigQueryInt64
   postgres: PostgresBigInt
   value: IntegerValue
 ---
@@ -26,6 +28,7 @@ spec:
   presto: PrestoVarchar
   sql: SQLVarchar
   sqlite: SQLiteText
+  bigquery: BigQueryString
   postgres: PostgresText
   value: StringValue
 ---
@@ -36,6 +39,7 @@ spec:
   presto: PrestoBigint
   sql: SQLBigint
   sqlite: SQLiteInteger
+  bigquery: BigQueryInt64
   postgres: PostgresBigInt
   value: IntegerValue
 ---
@@ -46,6 +50,7 @@ spec:
   presto: PrestoVarchar
   sql: SQLVarchar
   sqlite: SQLiteText
+  bigquery: BigQueryString
   postgres: PostgresText
   value: StringValue
 ---
@@ -56,6 +61,7 @@ spec:
   presto: PrestoBigint
   sql: SQLBigint
   sqlite: SQLiteInteger
+  bigquery: BigQueryInt64
   postgres: PostgresBigInt
   value: IntegerValue
 ---
@@ -66,6 +72,7 @@ spec:
   presto: PrestoBigint
   sql: SQLBigint
   sqlite: SQLiteInteger
+  bigquery: BigQueryInt64
   postgres: PostgresBigInt
   value: IntegerValue
 ---
@@ -76,6 +83,7 @@ spec:
   presto: PrestoBigint
   sql: SQLBigint
   sqlite: SQLiteInteger
+  bigquery: BigQueryInt64
   postgres: PostgresBigInt
   value: IntegerValue
 ---
@@ -86,6 +94,7 @@ spec:
   presto: PrestoDouble
   sql: SQLReal
   sqlite: SQLiteReal
+  bigquery: BigQueryFloat64
   postgres: PostgresReal
   value: FloatValue
 ---
@@ -96,6 +105,7 @@ spec:
   presto: PrestoDouble
   sql: SQLReal
   sqlite: SQLiteReal
+  bigquery: BigQueryFloat64
   postgres: PostgresReal
   value: FloatValue
 ---
@@ -106,6 +116,7 @@ spec:
   presto: PrestoVarchar
   sql: SQLVarchar
   sqlite: SQLiteText
+  bigquery: BigQueryString
   postgres: PostgresText
   value: StringValue
 ---
@@ -116,6 +127,7 @@ spec:
   presto: PrestoBigint
   sql: SQLBigint
   sqlite: SQLiteInteger
+  bigquery: BigQueryInt64
   postgres: PostgresBigInt
   value: IntegerValue
 ---
@@ -126,6 +138,7 @@ spec:
   presto: PrestoDouble
   sql: SQLReal
   sqlite: SQLiteReal
+  bigquery: BigQueryFloat64
   postgres: PostgresReal
   value: FloatValue
 ---
@@ -136,6 +149,7 @@ spec:
   presto: PrestoBigint
   sql: SQLBigint
   sqlite: SQLiteInteger
+  bigquery: BigQueryInt64
   postgres: PostgresBigInt
   value: StringValue
 ---
@@ -146,6 +160,7 @@ spec:
   presto: PrestoVarchar
   sql: SQLVarchar
   sqlite: SQLiteText
+  bigquery: BigQueryString
   postgres: PostgresText
   value: StringValue
 ---
@@ -156,6 +171,7 @@ spec:
   presto: PrestoVarchar
   sql: SQLVarchar
   sqlite: SQLiteText
+  bigquery: BigQueryString
   postgres: PostgresText
   value: StringValue
 ---
@@ -166,6 +182,7 @@ spec:
   presto: PrestoDouble
   sql: SQLReal
   sqlite: SQLiteReal
+  bigquery: BigQueryFloat64
   postgres: PostgresReal
   value: FloatValue
 ---
@@ -176,6 +193,7 @@ spec:
   presto: PrestoVarchar
   sql: SQLVarchar
   sqlite: SQLiteText
+  bigquery: BigQueryString
   postgres: PostgresText
   value: StringValue
 ---
@@ -186,5 +204,6 @@ spec:
   presto: PrestoVarchar
   sql: SQLVarchar
   sqlite: SQLiteText
+  bigquery: BigQueryString
   postgres: PostgresText
   value: StringValue

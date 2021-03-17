@@ -391,6 +391,7 @@ macro_rules! define_attribute {
       $sql_type:ident,
       $sqlite_type:ident,
       $postgres_type:ident,
+      $bigquery_type:ident,
       $value:ident
     ) => {
         paste::item! {
@@ -408,6 +409,7 @@ macro_rules! define_attribute {
                 $sql_type,
                 $sqlite_type,
                 $postgres_type,
+                $bigquery_type,
             )]
             pub struct $element {
                 pub name: String,
@@ -881,6 +883,13 @@ macro_rules! register_attribute {
                     )+
                 }
             }
+            fn get_bigquery_type(&self) -> String {
+                match self {
+                    $(
+                        [<$name Enum>]::$element(x) => x.get_bigquery_type(),
+                    )+
+                }
+            }
             fn get_orc_type(&self) -> String {
                 match self {
                     $(
@@ -920,6 +929,9 @@ macro_rules! register_attribute {
             }
             fn get_postgres_type(&self) -> String {
                 self.inner.get_postgres_type()
+            }
+            fn get_bigquery_type(&self) -> String {
+                self.inner.get_bigquery_type()
             }
             fn get_orc_type(&self) -> String {
                 self.inner.get_orc_type()

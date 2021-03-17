@@ -321,6 +321,10 @@ fn process_attributes(raw_objects: &Vec<HashMap<String, Value>>) {
         .iter()
         .map(|x| x.get("postgres").unwrap().as_str().unwrap().to_string())
         .collect::<HashSet<_>>();
+    let bigquery_derive_macros = attributes
+        .iter()
+        .map(|x| x.get("bigquery").unwrap().as_str().unwrap().to_string())
+        .collect::<HashSet<_>>();
 
     let derive_macros = sql_derive_macros
         .into_iter()
@@ -328,6 +332,7 @@ fn process_attributes(raw_objects: &Vec<HashMap<String, Value>>) {
         .chain(presto_derive_macros.into_iter())
         .chain(sqlite_derive_macros.into_iter())
         .chain(postgres_derive_macros.into_iter())
+        .chain(bigquery_derive_macros.into_iter())
         .collect::<HashSet<_>>();
 
     for item in derive_macros {
@@ -352,10 +357,11 @@ fn process_attributes(raw_objects: &Vec<HashMap<String, Value>>) {
         let sql = attribute.get("sql").unwrap().as_str().unwrap().to_string();
         let sqlite = attribute.get("sqlite").unwrap().as_str().unwrap().to_string();
         let postgres = attribute.get("postgres").unwrap().as_str().unwrap().to_string();
+        let bigquery = attribute.get("bigquery").unwrap().as_str().unwrap().to_string();
 
         let define = format!(
-            "define_attribute!({}, {}, {}, {}, {}, {}, {});",
-            name, orc, presto, sql, sqlite, postgres, value
+            "define_attribute!({}, {}, {}, {}, {}, {}, {}, {});",
+            name, orc, presto, sql, sqlite, postgres, bigquery, value
         );
         scope.raw(&define);
         attribute_names.push(name.clone());
