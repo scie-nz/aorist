@@ -148,6 +148,20 @@ pub trait TSQLiteAttribute: TAttribute {
         format!("{} {}", self.get_name(), self.get_sqlite_type()).to_string()
     }
 }
+pub trait TPostgresAttribute: TAttribute {
+    fn get_postgres_type(&self) -> String;
+    fn get_postgres_coldef(&self) -> String {
+        format!(
+            "{} {}{}",
+            self.get_name(),
+            self.get_postgres_type(),
+            match self.is_nullable() {
+                true => "NOT NULL",
+                false => "",
+            },
+        ).to_string()
+    }
+}
 
 include!(concat!(env!("OUT_DIR"), "/attributes.rs"));
 include!(concat!(env!("OUT_DIR"), "/programs.rs"));
@@ -362,6 +376,9 @@ impl IdentityTransform {
     pub fn get_sqlite_type(&self) -> String {
         self.attribute.get_sqlite_type()
     }
+    pub fn get_postgres_type(&self) -> String {
+        self.attribute.get_postgres_type()
+    }
 }
 
 #[derive(Hash, PartialEq, Eq, Debug, Serialize, Deserialize, Clone, FromPyObject)]
@@ -397,6 +414,11 @@ impl Transform {
     pub fn get_sqlite_type(&self) -> String {
         match &self {
             Transform::IdentityTransform(x) => x.get_sqlite_type(),
+        }
+    }
+    pub fn get_postgres_type(&self) -> String {
+        match &self {
+            Transform::IdentityTransform(x) => x.get_postgres_type(),
         }
     }
     pub fn get_orc_type(&self) -> String {
@@ -468,6 +490,12 @@ impl AttributeOrTransform {
         match &self {
             AttributeOrTransform::Attribute(x) => x.get_sqlite_type(),
             AttributeOrTransform::Transform(x) => (*x).get_sqlite_type(),
+        }
+    }
+    pub fn get_postgres_type(&self) -> String {
+        match &self {
+            AttributeOrTransform::Attribute(x) => x.get_postgres_type(),
+            AttributeOrTransform::Transform(x) => (*x).get_postgres_type(),
         }
     }
 }

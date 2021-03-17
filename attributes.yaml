@@ -6,6 +6,7 @@ spec:
   presto: PrestoVarchar
   sql: SQLVarchar
   sqlite: SQLiteText
+  postgres: PostgresText
   value: StringValue
 ---
 type: Attribute
@@ -15,6 +16,7 @@ spec:
   presto: PrestoBigint
   sql: SQLBigint
   sqlite: SQLiteInteger
+  postgres: PostgresBigInt
   value: IntegerValue
 ---
 type: Attribute
@@ -24,6 +26,7 @@ spec:
   presto: PrestoVarchar
   sql: SQLVarchar
   sqlite: SQLiteText
+  postgres: PostgresText
   value: StringValue
 ---
 type: Attribute
@@ -33,6 +36,7 @@ spec:
   presto: PrestoBigint
   sql: SQLBigint
   sqlite: SQLiteInteger
+  postgres: PostgresBigInt
   value: IntegerValue
 ---
 type: Attribute
@@ -42,6 +46,7 @@ spec:
   presto: PrestoVarchar
   sql: SQLVarchar
   sqlite: SQLiteText
+  postgres: PostgresText
   value: StringValue
 ---
 type: Attribute
@@ -51,6 +56,7 @@ spec:
   presto: PrestoBigint
   sql: SQLBigint
   sqlite: SQLiteInteger
+  postgres: PostgresBigInt
   value: IntegerValue
 ---
 type: Attribute
@@ -60,6 +66,7 @@ spec:
   presto: PrestoBigint
   sql: SQLBigint
   sqlite: SQLiteInteger
+  postgres: PostgresBigInt
   value: IntegerValue
 ---
 type: Attribute
@@ -69,6 +76,7 @@ spec:
   presto: PrestoBigint
   sql: SQLBigint
   sqlite: SQLiteInteger
+  postgres: PostgresBigInt
   value: IntegerValue
 ---
 type: Attribute
@@ -78,6 +86,7 @@ spec:
   presto: PrestoDouble
   sql: SQLReal
   sqlite: SQLiteReal
+  postgres: PostgresReal
   value: FloatValue
 ---
 type: Attribute
@@ -87,6 +96,7 @@ spec:
   presto: PrestoDouble
   sql: SQLReal
   sqlite: SQLiteReal
+  postgres: PostgresReal
   value: FloatValue
 ---
 type: Attribute
@@ -96,6 +106,7 @@ spec:
   presto: PrestoVarchar
   sql: SQLVarchar
   sqlite: SQLiteText
+  postgres: PostgresText
   value: StringValue
 ---
 type: Attribute
@@ -105,6 +116,7 @@ spec:
   presto: PrestoBigint
   sql: SQLBigint
   sqlite: SQLiteInteger
+  postgres: PostgresBigInt
   value: IntegerValue
 ---
 type: Attribute
@@ -114,6 +126,7 @@ spec:
   presto: PrestoDouble
   sql: SQLReal
   sqlite: SQLiteReal
+  postgres: PostgresReal
   value: FloatValue
 ---
 type: Attribute
@@ -123,6 +136,7 @@ spec:
   presto: PrestoBigint
   sql: SQLBigint
   sqlite: SQLiteInteger
+  postgres: PostgresBigInt
   value: StringValue
 ---
 type: Attribute
@@ -132,6 +146,7 @@ spec:
   presto: PrestoVarchar
   sql: SQLVarchar
   sqlite: SQLiteText
+  postgres: PostgresText
   value: StringValue
 ---
 type: Attribute
@@ -141,6 +156,7 @@ spec:
   presto: PrestoVarchar
   sql: SQLVarchar
   sqlite: SQLiteText
+  postgres: PostgresText
   value: StringValue
 ---
 type: Attribute
@@ -150,6 +166,7 @@ spec:
   presto: PrestoDouble
   sql: SQLReal
   sqlite: SQLiteReal
+  postgres: PostgresReal
   value: FloatValue
 ---
 type: Attribute
@@ -159,6 +176,7 @@ spec:
   presto: PrestoVarchar
   sql: SQLVarchar
   sqlite: SQLiteText
+  postgres: PostgresText
   value: StringValue
 ---
 type: Attribute
@@ -168,4 +186,5 @@ spec:
   presto: PrestoVarchar
   sql: SQLVarchar
   sqlite: SQLiteText
+  postgres: PostgresText
   value: StringValue

@@ -1623,7 +1623,7 @@ spec:
             let attributes_vec = attributes.into_iter().map(
                 |x| (
                     x.get_name().to_string(),
-                    x.get_sqlite_type().to_string(),
+                    x.get_postgres_type().to_string(),
                     x.is_nullable().to_string(),
                 )
             ).collect::<Vec<_>>();

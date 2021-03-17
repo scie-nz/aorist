@@ -385,27 +385,29 @@ macro_rules! register_satisfiable_constraints {
 #[macro_export]
 macro_rules! define_attribute {
     (
-      $element:ident, 
+      $element:ident,
       $presto_type:ident,
       $orc_type:ident,
       $sql_type:ident,
       $sqlite_type:ident,
+      $postgres_type:ident,
       $value:ident
     ) => {
         paste::item! {
             #[pyclass]
             #[derive(
-                Hash, 
-                PartialEq, 
-                Eq, 
-                Debug, 
-                Serialize, 
-                Deserialize, 
+                Hash,
+                PartialEq,
+                Eq,
+                Debug,
+                Serialize,
+                Deserialize,
                 Clone,
-                $presto_type, 
-                $orc_type, 
-                $sql_type, 
-                $sqlite_type
+                $presto_type,
+                $orc_type,
+                $sql_type,
+                $sqlite_type,
+                $postgres_type,
             )]
             pub struct $element {
                 pub name: String,
@@ -872,6 +874,13 @@ macro_rules! register_attribute {
                     )+
                 }
             }
+            fn get_postgres_type(&self) -> String {
+                match self {
+                    $(
+                        [<$name Enum>]::$element(x) => x.get_postgres_type(),
+                    )+
+                }
+            }
             fn get_orc_type(&self) -> String {
                 match self {
                     $(
@@ -908,6 +917,9 @@ macro_rules! register_attribute {
             }
             fn get_sqlite_type(&self) -> String {
                 self.inner.get_sqlite_type()
+            }
+            fn get_postgres_type(&self) -> String {
+                self.inner.get_postgres_type()
             }
             fn get_orc_type(&self) -> String {
                 self.inner.get_orc_type()
