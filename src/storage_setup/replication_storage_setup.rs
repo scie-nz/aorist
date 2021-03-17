@@ -13,8 +13,8 @@ use uuid::Uuid;
 #[aorist_concept]
 pub struct ReplicationStorageSetup {
     #[constrainable]
-    pub remote: Storage,
+    pub source: Storage,
     #[constrainable]
-    pub local: Vec<Storage>,
+    pub targets: Vec<Storage>,
     pub tmp_dir: String,
 }

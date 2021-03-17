@@ -66,8 +66,8 @@ for name in names:
         schema=default_tabular_schema(edge_tuple),
         setup=ReplicationStorageSetup(
             tmp_dir="/tmp/%s" % name_underscore,
-            remote=remote,
-            local=[local],
+            source=remote,
+            targets=[local],
         ),
         tag=name_underscore,
     )

@@ -550,7 +550,7 @@ spec:
               };
               match storage_setup {
                 crate::StorageSetup::ReplicationStorageSetup(r) =>
-                  match r.remote.get_encoding() {
+                  match r.source.get_encoding() {
                     Some(crate::Encoding::JSONEncoding(_)) => {
                         "\njson_obj VARCHAR\n".to_string()
                       },
@@ -628,7 +628,7 @@ spec:
             let source = format!("{}.{}", data_set.name, static_data_table.name).to_string();
               match storage_setup {
                 crate::StorageSetup::ReplicationStorageSetup(r) =>
-                  match r.remote.get_encoding() {
+                  match r.source.get_encoding() {
                     Some(crate::Encoding::JSONEncoding(_)) => format!(
                         "(SELECT
                             JSON_PARSE(json_obj) AS json_obj
@@ -662,7 +662,7 @@ spec:
 
               let from_json = match storage_setup {
                   crate::StorageSetup::ReplicationStorageSetup(r) =>
-                    match r.remote.get_encoding() {
+                    match r.source.get_encoding() {
                       Some(crate::Encoding::JSONEncoding(_)) => true,
                       _ => false,
                     },
@@ -1459,7 +1459,7 @@ spec:
         call: >
           format!("{}", match storage_setup {
             crate::StorageSetup::ReplicationStorageSetup(r) =>
-              match r.remote.get_encoding() {
+              match r.source.get_encoding() {
                 Some(crate::Encoding::JSONEncoding(_)) => "True",
                 _ => "False",
               },
@@ -1640,7 +1640,7 @@ spec:
         call: >
           format!("{}", match storage_setup {
             crate::StorageSetup::ReplicationStorageSetup(r) =>
-              match r.remote.get_encoding() {
+              match r.source.get_encoding() {
                 Some(crate::Encoding::JSONEncoding(_)) => "True",
                 _ => "False",
               },

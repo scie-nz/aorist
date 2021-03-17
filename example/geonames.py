@@ -471,8 +471,8 @@ geonames_table = StaticDataTable(
     schema=default_tabular_schema(geonames_datum),
     setup=ReplicationStorageSetup(
         tmp_dir="geonames",
-        remote=remote,
-        local=[local],
+        source=remote,
+        targets=[local],
     ),
     tag="geonames",
 )

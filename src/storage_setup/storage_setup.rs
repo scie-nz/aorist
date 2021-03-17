@@ -24,7 +24,7 @@ impl StorageSetup {
     pub fn get_local_storage(&self) -> Vec<Storage> {
         match self {
             Self::RemoteStorageSetup(_) => vec![],
-            Self::ReplicationStorageSetup(s) => s.local.clone(),
+            Self::ReplicationStorageSetup(s) => s.targets.clone(),
             Self::ComputedFromLocalData(c) => vec![c.target.clone()],
         }
     }

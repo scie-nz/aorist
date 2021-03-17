@@ -24,8 +24,8 @@ impl InnerRemoteStorageSetup {
         tmp_dir: String,
     ) -> InnerReplicationStorageSetup {
         InnerReplicationStorageSetup {
-            remote: self.remote.clone(),
-            local: vec![t],
+            source: self.remote.clone(),
+            targets: vec![t],
             tag: self.tag.clone(),
             tmp_dir,
         }
