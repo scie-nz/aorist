@@ -1,4 +1,5 @@
 use crate::concept::{AoristConcept, Concept};
+use crate::location::bigquery_location::*;
 use crate::location::gcs_location::*;
 use crate::location::pushshift_api_location::*;
 use crate::location::web_location::*;
@@ -16,4 +17,6 @@ pub enum RemoteLocation {
     WebLocation(WebLocation),
     #[constrainable]
     PushshiftAPILocation(PushshiftAPILocation),
+    #[constrainable]
+    BigQueryLocation(BigQueryLocation),
 }

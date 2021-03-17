@@ -417,6 +417,7 @@ fn process_concepts() {
         ("crate::header", "UpperSnakeCaseCSVHeader"),
         ("crate::header", "FileHeader"),
         ("crate::location", "AlluxioLocation"),
+        ("crate::location", "BigQueryLocation"),
         ("crate::location", "GCSLocation"),
         ("crate::location", "HiveLocation"),
         ("crate::location", "OnPremiseLocation"),
