@@ -1,4 +1,5 @@
 pub mod alluxio;
+pub mod gcp;
 pub mod gitea;
 pub mod minio;
 pub mod postgres;
@@ -11,6 +12,7 @@ use crate::AoristConcept;
 pub use alluxio::{AlluxioConfig, InnerAlluxioConfig};
 use aorist_concept::{aorist_concept, Constrainable, InnerObject};
 use derivative::Derivative;
+pub use gcp::{GCPConfig, InnerGCPConfig};
 pub use gitea::{GiteaConfig, InnerGiteaConfig};
 pub use minio::{InnerMinioConfig, MinioConfig};
 use paste::paste;
@@ -42,4 +44,7 @@ pub struct EndpointConfig {
     #[constrainable]
     #[py_default = "None"]
     pub postgres: Option<PostgresConfig>,
+    #[constrainable]
+    #[py_default = "None"]
+    pub gcp: Option<GCPConfig>,
 }

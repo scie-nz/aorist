@@ -7,6 +7,7 @@ from aorist import (
     GiteaConfig,
     MinioConfig,
     PostgresConfig,
+    GCPConfig,
     UserGroup,
     GlobalPermissionsAdmin,
 )
@@ -46,6 +47,7 @@ endpoints = EndpointConfig(
     gitea=gitea_config,
     minio=minio_config,
     postgres=postgres_config,
+    gcp=GCPConfig(use_default_credentials=True),
 )
 
 """
