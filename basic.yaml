@@ -25,7 +25,7 @@ spec:
   attachIf: |
       |root: Concept<'a>, ancestry: &ConceptAncestry<'a>| {
         use crate::storage_setup::*;
-        if let StorageSetup::RemoteImportStorageSetup(_) = ancestry.asset(root.clone()).unwrap().get_storage_setup() {
+        if let StorageSetup::ReplicationStorageSetup(_) = ancestry.asset(root.clone()).unwrap().get_storage_setup() {
           return true;
         }
         false
@@ -40,7 +40,7 @@ spec:
   attachIf: |
       |root: Concept<'a>, ancestry: &ConceptAncestry<'a>|
       match ancestry.static_data_table(root.clone()).unwrap().setup {
-          crate::storage_setup::StorageSetup::RemoteImportStorageSetup(_) => true,
+          crate::storage_setup::StorageSetup::ReplicationStorageSetup(_) => true,
           _ => false,
       }
 ---
@@ -96,7 +96,7 @@ spec:
       |root: Concept<'a>, ancestry: &ConceptAncestry<'a>|
       match ancestry.static_data_table(root.clone()) {
           Ok(sdt) => match &sdt.setup {
-              crate::storage_setup::StorageSetup::RemoteImportStorageSetup(_) => true,
+              crate::storage_setup::StorageSetup::ReplicationStorageSetup(_) => true,
               crate::storage_setup::StorageSetup::ComputedFromLocalData(cfld) => match &cfld.target {
                 crate::storage::Storage::HiveTableStorage(hts) => match hts.encoding {
                   crate::encoding::Encoding::ORCEncoding(_) => {
@@ -171,7 +171,7 @@ spec:
   attachIf: |
       |root: Concept<'a>, ancestry: &ConceptAncestry<'a>|
       match ancestry.static_data_table(root.clone()).unwrap().setup {
-          crate::storage_setup::StorageSetup::RemoteImportStorageSetup(_) => true,
+          crate::storage_setup::StorageSetup::ReplicationStorageSetup(_) => true,
           _ => false,
       }
 ---
@@ -185,7 +185,7 @@ spec:
 type: Constraint
 spec:
   name: ReplicatedData
-  root: RemoteImportStorageSetup
+  root: ReplicationStorageSetup
   requires:
     - UploadDataToLocal
     - FileReadyForUpload
@@ -193,7 +193,7 @@ spec:
 type: Constraint
 spec:
   name: FileReadyForUpload
-  root: RemoteImportStorageSetup
+  root: ReplicationStorageSetup
   requires:
     - RemoveFileHeader
     - DownloadDataFromRemote
@@ -303,7 +303,7 @@ spec:
       - UploadDataToPostgres
   attachIf: |
       |root: Concept<'a>, ancestry: &ConceptAncestry<'a>|
-      ancestry.remote_import_storage_setup(root.clone()).is_ok()
+      ancestry.replication_storage_setup(root.clone()).is_ok()
 ---
 type: Constraint
 spec:
@@ -319,7 +319,7 @@ spec:
       Alluxio storage.
   attachIf: |
       |root: Concept<'a>, ancestry: &ConceptAncestry<'a>|
-      ancestry.remote_import_storage_setup(root.clone()).is_ok()
+      ancestry.replication_storage_setup(root.clone()).is_ok()
 ---
 type: Constraint
 spec:
@@ -335,7 +335,7 @@ spec:
       Min.IO storage.
   attachIf: |
       |root: Concept<'a>, ancestry: &ConceptAncestry<'a>|
-      ancestry.remote_import_storage_setup(root.clone()).is_ok()
+      ancestry.replication_storage_setup(root.clone()).is_ok()
 ---
 type: Constraint
 spec:
@@ -349,7 +349,7 @@ spec:
       Now that data has been converted to a CSV we can upload it to SQLite.
   attachIf: |
       |root: Concept<'a>, ancestry: &ConceptAncestry<'a>|
-      ancestry.remote_import_storage_setup(root.clone()).is_ok()
+      ancestry.replication_storage_setup(root.clone()).is_ok()
 ---
 type: Constraint
 spec:
@@ -363,7 +363,7 @@ spec:
       Now that data has been converted to a CSV we can upload it to Postgres.
   attachIf: |
       |root: Concept<'a>, ancestry: &ConceptAncestry<'a>|
-      ancestry.remote_import_storage_setup(root.clone()).is_ok()
+      ancestry.replication_storage_setup(root.clone()).is_ok()
 ---
 type: Constraint
 spec:
@@ -374,7 +374,7 @@ spec:
   attachIf: |
       |root: Concept<'a>, ancestry: &ConceptAncestry<'a>|
       match ancestry.static_data_table(root.clone()).unwrap().setup {
-          crate::storage_setup::StorageSetup::RemoteImportStorageSetup(_) => true,
+          crate::storage_setup::StorageSetup::ReplicationStorageSetup(_) => true,
           _ => false,
       }
 ---
@@ -392,7 +392,7 @@ spec:
       the data is already in CSV format, we will need to rename files accordingly).
   attachIf: |
       |root: Concept<'a>, ancestry: &ConceptAncestry<'a>|
-      ancestry.remote_import_storage_setup(root.clone()).is_ok()
+      ancestry.replication_storage_setup(root.clone()).is_ok()
 ---
 type: Constraint
 spec:
@@ -445,7 +445,7 @@ spec:
       |root: Concept<'a>, ancestry: &ConceptAncestry<'a>|
       match ancestry.static_data_table(root.clone()) {
           Ok(sdt) => match &sdt.setup {
-              crate::storage_setup::StorageSetup::RemoteImportStorageSetup(_) => true,
+              crate::storage_setup::StorageSetup::ReplicationStorageSetup(_) => true,
               _ => false,
           },
           _ => false,
@@ -464,7 +464,7 @@ spec:
       so it can be dropped.
   attachIf: |
       |root: Concept<'a>, ancestry: &ConceptAncestry<'a>|
-      ancestry.remote_import_storage_setup(root.clone()).is_ok()
+      ancestry.replication_storage_setup(root.clone()).is_ok()
 ---
 type: Constraint
 spec:

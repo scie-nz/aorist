@@ -11,7 +11,7 @@ from aorist import (
     SingleFileLayout,
     RemoteStorage,
     HiveTableStorage,
-    RemoteImportStorageSetup,
+    ReplicationStorageSetup,
     StaticDataTable,
     default_tabular_schema,
     DataSet,
@@ -469,7 +469,7 @@ local = HiveTableStorage(
 geonames_table = StaticDataTable(
     name="features",
     schema=default_tabular_schema(geonames_datum),
-    setup=RemoteImportStorageSetup(
+    setup=ReplicationStorageSetup(
         tmp_dir="geonames",
         remote=remote,
         local=[local],

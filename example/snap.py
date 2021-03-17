@@ -9,7 +9,7 @@ from aorist import (
     SingleFileLayout,
     RemoteStorage,
     HiveTableStorage,
-    RemoteImportStorageSetup,
+    ReplicationStorageSetup,
     StaticDataTable,
     default_tabular_schema,
     DataSet,
@@ -64,7 +64,7 @@ for name in names:
     table = StaticDataTable(
         name=name_underscore,
         schema=default_tabular_schema(edge_tuple),
-        setup=RemoteImportStorageSetup(
+        setup=ReplicationStorageSetup(
             tmp_dir="/tmp/%s" % name_underscore,
             remote=remote,
             local=[local],

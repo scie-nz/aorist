@@ -10,7 +10,7 @@ from aorist import (
     SingleFileLayout,
     RemoteStorage,
     HiveTableStorage,
-    RemoteImportStorageSetup,
+    ReplicationStorageSetup,
     StaticDataTable,
     default_tabular_schema,
     DataSet,
@@ -61,7 +61,7 @@ local = HiveTableStorage(
 sentinel_metadata_table = StaticDataTable(
     name="sentinel_metadata_table",
     schema=default_tabular_schema(sentinel_granule_datum),
-    setup=RemoteImportStorageSetup(
+    setup=ReplicationStorageSetup(
         tmp_dir="/tmp/sentinel2",
         remote=remote,
         local=[local],

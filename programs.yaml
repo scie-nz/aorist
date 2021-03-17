@@ -47,8 +47,8 @@ spec:
         attaches: StaticDataTable
     - type: AncestorArgument
       spec:
-        call: remote_import_storage_setup.tmp_dir
-        attaches: RemoteImportStorageSetup
+        call: replication_storage_setup.tmp_dir
+        attaches: ReplicationStorageSetup
     - type: AncestorArgument
       spec:
         call: format!("{}.csv", static_data_table.name).to_string()
@@ -114,8 +114,8 @@ spec:
     tmp_dir:
       type: AncestorArgument
       spec:
-        call: remote_import_storage_setup.tmp_dir
-        attaches: RemoteImportStorageSetup
+        call: replication_storage_setup.tmp_dir
+        attaches: ReplicationStorageSetup
     source_file:
       type: AncestorArgument
       spec:
@@ -150,8 +150,8 @@ spec:
         attaches: GCSLocation
     - type: AncestorArgument
       spec:
-        call: remote_import_storage_setup.tmp_dir
-        attaches: RemoteImportStorageSetup
+        call: replication_storage_setup.tmp_dir
+        attaches: ReplicationStorageSetup
     - type: AncestorArgument
       spec:
         call: format!("{}.downloaded", static_data_table.name).to_string()
@@ -173,8 +173,8 @@ spec:
     tmp_dir:
       type: AncestorArgument
       spec:
-        call: remote_import_storage_setup.tmp_dir
-        attaches: RemoteImportStorageSetup
+        call: replication_storage_setup.tmp_dir
+        attaches: ReplicationStorageSetup
         name: tmp_dir
     file_name:
       type: AncestorArgument
@@ -226,8 +226,8 @@ spec:
     tmp_dir:
       type: AncestorArgument
       spec:
-        call: remote_import_storage_setup.tmp_dir
-        attaches: RemoteImportStorageSetup
+        call: replication_storage_setup.tmp_dir
+        attaches: ReplicationStorageSetup
         name: tmp_dir
     file_name:
       type: AncestorArgument
@@ -251,20 +251,20 @@ spec:
           match &zip_compression.filename {
             Some(ref file) => format!(
                 "-p {tmp_dir}/{archive_name}.downloaded {file_name} > {tmp_dir}/{archive_name}.txt",
-                tmp_dir=remote_import_storage_setup.tmp_dir,
+                tmp_dir=replication_storage_setup.tmp_dir,
                 archive_name=static_data_table.name,
                 file_name=file,
             ).to_string(),
             None => format!(
                 "-p {tmp_dir}/{archive_name}.downloaded > {tmp_dir}/{archive_name}.txt",
-                tmp_dir=remote_import_storage_setup.tmp_dir,
+                tmp_dir=replication_storage_setup.tmp_dir,
                 archive_name=static_data_table.name,
             )
           }
         attaches:
           - ZipCompression
           - StaticDataTable
-          - RemoteImportStorageSetup
+          - ReplicationStorageSetup
 ---
 type: Program
 spec:
@@ -280,12 +280,12 @@ spec:
         call: >
             format!(
                 "--suffix=downloaded -c {tmp_dir}/{archive_name}.downloaded > {tmp_dir}/{archive_name}.txt",
-                tmp_dir=remote_import_storage_setup.tmp_dir,
+                tmp_dir=replication_storage_setup.tmp_dir,
                 archive_name=static_data_table.name,
             )
         attaches:
           - StaticDataTable
-          - RemoteImportStorageSetup
+          - ReplicationStorageSetup
 ---
 type: Program
 spec:
@@ -302,8 +302,8 @@ spec:
     tmp_dir:
       type: AncestorArgument
       spec:
-        call: remote_import_storage_setup.tmp_dir
-        attaches: RemoteImportStorageSetup
+        call: replication_storage_setup.tmp_dir
+        attaches: ReplicationStorageSetup
         name: tmp_dir
     file_name:
       type: AncestorArgument
@@ -549,7 +549,7 @@ spec:
                 format!("\n{}\n", attr_types.join(",\n"))
               };
               match storage_setup {
-                crate::StorageSetup::RemoteImportStorageSetup(r) =>
+                crate::StorageSetup::ReplicationStorageSetup(r) =>
                   match r.remote.get_encoding() {
                     Some(crate::Encoding::JSONEncoding(_)) => {
                         "\njson_obj VARCHAR\n".to_string()
@@ -576,7 +576,7 @@ spec:
       spec:
         call: >
           {
-            let tmp_dir = &remote_import_storage_setup.tmp_dir;
+            let tmp_dir = &replication_storage_setup.tmp_dir;
             let file_name = &static_data_table.name;
             let source = match &remote_storage.encoding.get_header() {
                 Some(_) => format!("{}/{}.no_header", tmp_dir, file_name).to_string(),
@@ -603,7 +603,7 @@ spec:
           }
         attaches:
           - StaticDataTable
-          - RemoteImportStorageSetup
+          - ReplicationStorageSetup
           - RemoteStorage
 ---
 type: Program
@@ -627,7 +627,7 @@ spec:
           {
             let source = format!("{}.{}", data_set.name, static_data_table.name).to_string();
               match storage_setup {
-                crate::StorageSetup::RemoteImportStorageSetup(r) =>
+                crate::StorageSetup::ReplicationStorageSetup(r) =>
                   match r.remote.get_encoding() {
                     Some(crate::Encoding::JSONEncoding(_)) => format!(
                         "(SELECT
@@ -661,7 +661,7 @@ spec:
                   .collect::<Vec<_>>();
 
               let from_json = match storage_setup {
-                  crate::StorageSetup::RemoteImportStorageSetup(r) =>
+                  crate::StorageSetup::ReplicationStorageSetup(r) =>
                     match r.remote.get_encoding() {
                       Some(crate::Encoding::JSONEncoding(_)) => true,
                       _ => false,
@@ -1424,8 +1424,8 @@ spec:
     tmp_dir:
       type: AncestorArgument
       spec:
-        call: remote_import_storage_setup.tmp_dir
-        attaches: RemoteImportStorageSetup
+        call: replication_storage_setup.tmp_dir
+        attaches: ReplicationStorageSetup
     source_file:
       type: AncestorArgument
       spec:
@@ -1458,7 +1458,7 @@ spec:
         attaches: StorageSetup
         call: >
           format!("{}", match storage_setup {
-            crate::StorageSetup::RemoteImportStorageSetup(r) =>
+            crate::StorageSetup::ReplicationStorageSetup(r) =>
               match r.remote.get_encoding() {
                 Some(crate::Encoding::JSONEncoding(_)) => "True",
                 _ => "False",
@@ -1605,8 +1605,8 @@ spec:
     tmp_dir:
       type: AncestorArgument
       spec:
-        call: remote_import_storage_setup.tmp_dir
-        attaches: RemoteImportStorageSetup
+        call: replication_storage_setup.tmp_dir
+        attaches: ReplicationStorageSetup
     source_file:
       type: AncestorArgument
       spec:
@@ -1639,7 +1639,7 @@ spec:
         attaches: StorageSetup
         call: >
           format!("{}", match storage_setup {
-            crate::StorageSetup::RemoteImportStorageSetup(r) =>
+            crate::StorageSetup::ReplicationStorageSetup(r) =>
               match r.remote.get_encoding() {
                 Some(crate::Encoding::JSONEncoding(_)) => "True",
                 _ => "False",

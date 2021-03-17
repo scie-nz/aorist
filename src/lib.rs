@@ -191,7 +191,7 @@ fn aorist(py: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<InnerTabularSchema>()?;
     m.add_class::<InnerHiveTableStorage>()?;
     m.add_class::<InnerRemoteStorage>()?;
-    m.add_class::<InnerRemoteImportStorageSetup>()?;
+    m.add_class::<InnerReplicationStorageSetup>()?;
     m.add_class::<InnerIdentifierTuple>()?;
     m.add_class::<InnerRowStruct>()?;
     m.add_class::<InnerUserGroup>()?;

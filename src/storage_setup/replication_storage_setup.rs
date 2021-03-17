@@ -11,7 +11,7 @@ use std::sync::{Arc, RwLock};
 use uuid::Uuid;
 
 #[aorist_concept]
-pub struct RemoteImportStorageSetup {
+pub struct ReplicationStorageSetup {
     #[constrainable]
     pub remote: Storage,
     #[constrainable]

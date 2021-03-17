@@ -2,7 +2,7 @@
 use crate::concept::{AoristConcept, Concept};
 use crate::constraint::Constraint;
 use crate::storage::*;
-use crate::storage_setup::remote_import_storage_setup::*;
+use crate::storage_setup::replication_storage_setup::*;
 use aorist_concept::{aorist_concept, Constrainable, InnerObject};
 use derivative::Derivative;
 use paste::paste;
@@ -22,8 +22,8 @@ impl InnerRemoteStorageSetup {
         &self,
         t: InnerStorage,
         tmp_dir: String,
-    ) -> InnerRemoteImportStorageSetup {
-        InnerRemoteImportStorageSetup {
+    ) -> InnerReplicationStorageSetup {
+        InnerReplicationStorageSetup {
             remote: self.remote.clone(),
             local: vec![t],
             tag: self.tag.clone(),
