@@ -478,3 +478,171 @@ pub fn derive_postgres_boolean(input: TokenStream) -> TokenStream {
     };
     gen.into()
 }
+
+#[proc_macro_derive(BigQueryBool)]
+pub fn derive_bigquery_bool(input: TokenStream) -> TokenStream {
+    let ast: syn::DeriveInput = syn::parse(input).unwrap();
+    let name = &ast.ident;
+    let gen = quote! {
+        impl TBigQueryAttribute for #name {
+            fn get_bigquery_type(&self) -> String {
+                "BOOL".to_string()
+            }
+        }
+    };
+    gen.into()
+}
+
+#[proc_macro_derive(BigQueryBytes)]
+pub fn derive_bigquery_bytes(input: TokenStream) -> TokenStream {
+    let ast: syn::DeriveInput = syn::parse(input).unwrap();
+    let name = &ast.ident;
+    let gen = quote! {
+        impl TBigQueryAttribute for #name {
+            fn get_bigquery_type(&self) -> String {
+                "BYTES".to_string()
+            }
+        }
+    };
+    gen.into()
+}
+
+#[proc_macro_derive(BigQueryDate)]
+pub fn derive_bigquery_date(input: TokenStream) -> TokenStream {
+    let ast: syn::DeriveInput = syn::parse(input).unwrap();
+    let name = &ast.ident;
+    let gen = quote! {
+        impl TBigQueryAttribute for #name {
+            fn get_bigquery_type(&self) -> String {
+                "DATE".to_string()
+            }
+        }
+    };
+    gen.into()
+}
+
+#[proc_macro_derive(BigQueryDateTime)]
+pub fn derive_bigquery_datetime(input: TokenStream) -> TokenStream {
+    let ast: syn::DeriveInput = syn::parse(input).unwrap();
+    let name = &ast.ident;
+    let gen = quote! {
+        impl TBigQueryAttribute for #name {
+            fn get_bigquery_type(&self) -> String {
+                "DATETIME".to_string()
+            }
+        }
+    };
+    gen.into()
+}
+
+#[proc_macro_derive(BigQueryGeography)]
+pub fn derive_bigquery_geography(input: TokenStream) -> TokenStream {
+    let ast: syn::DeriveInput = syn::parse(input).unwrap();
+    let name = &ast.ident;
+    let gen = quote! {
+        impl TBigQueryAttribute for #name {
+            fn get_bigquery_type(&self) -> String {
+                "GEOGRAPHY".to_string()
+            }
+        }
+    };
+    gen.into()
+}
+
+#[proc_macro_derive(BigQueryInt64)]
+pub fn derive_bigquery_int64(input: TokenStream) -> TokenStream {
+    let ast: syn::DeriveInput = syn::parse(input).unwrap();
+    let name = &ast.ident;
+    let gen = quote! {
+        impl TBigQueryAttribute for #name {
+            fn get_bigquery_type(&self) -> String {
+                "INT64".to_string()
+            }
+        }
+    };
+    gen.into()
+}
+
+#[proc_macro_derive(BigQueryNumeric)]
+pub fn derive_bigquery_numeric(input: TokenStream) -> TokenStream {
+    let ast: syn::DeriveInput = syn::parse(input).unwrap();
+    let name = &ast.ident;
+    let gen = quote! {
+        impl TBigQueryAttribute for #name {
+            fn get_bigquery_type(&self) -> String {
+                "NUMERIC".to_string()
+            }
+        }
+    };
+    gen.into()
+}
+
+#[proc_macro_derive(BigQueryBigNumeric)]
+pub fn derive_bigquery_bignumeric(input: TokenStream) -> TokenStream {
+    let ast: syn::DeriveInput = syn::parse(input).unwrap();
+    let name = &ast.ident;
+    let gen = quote! {
+        impl TBigQueryAttribute for #name {
+            fn get_bigquery_type(&self) -> String {
+                "BIGNUMERIC".to_string()
+            }
+        }
+    };
+    gen.into()
+}
+
+#[proc_macro_derive(BigQueryFloat64)]
+pub fn derive_bigquery_float64(input: TokenStream) -> TokenStream {
+    let ast: syn::DeriveInput = syn::parse(input).unwrap();
+    let name = &ast.ident;
+    let gen = quote! {
+        impl TBigQueryAttribute for #name {
+            fn get_bigquery_type(&self) -> String {
+                "FLOAT64".to_string()
+            }
+        }
+    };
+    gen.into()
+}
+
+#[proc_macro_derive(BigQueryString)]
+pub fn derive_bigquery_string(input: TokenStream) -> TokenStream {
+    let ast: syn::DeriveInput = syn::parse(input).unwrap();
+    let name = &ast.ident;
+    let gen = quote! {
+        impl TBigQueryAttribute for #name {
+            fn get_bigquery_type(&self) -> String {
+                "STRING".to_string()
+            }
+        }
+    };
+    gen.into()
+}
+
+#[proc_macro_derive(BigQueryTime)]
+pub fn derive_bigquery_time(input: TokenStream) -> TokenStream {
+    let ast: syn::DeriveInput = syn::parse(input).unwrap();
+    let name = &ast.ident;
+    let gen = quote! {
+        impl TBigQueryAttribute for #name {
+            fn get_bigquery_type(&self) -> String {
+                "TIME".to_string()
+            }
+        }
+    };
+    gen.into()
+}
+
+#[proc_macro_derive(BigQueryTimeStamp)]
+pub fn derive_bigquery_timestamp(input: TokenStream) -> TokenStream {
+    let ast: syn::DeriveInput = syn::parse(input).unwrap();
+    let name = &ast.ident;
+    let gen = quote! {
+        impl TBigQueryAttribute for #name {
+            fn get_bigquery_type(&self) -> String {
+                "TIMESTAMP".to_string()
+            }
+        }
+    };
+    gen.into()
+}
