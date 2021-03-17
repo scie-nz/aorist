@@ -34,10 +34,10 @@ minio_config = MinioConfig(
     secret_key="eRtRoywXqKBj0yHDyIaYb0c1Xnr5A3mCGsiT67Y1",
 )
 postgres_config = PostgresConfig(
-    server='postgres',
-    port=8080,
-    username='admin',
-    password='password',
+    server='172.31.81.125',
+    port=5433,
+    username='airflow',
+    password='RZpFdxPealPBKYCNfZqnujixSdqkjXVV',
 )
 endpoints = EndpointConfig(
     alluxio=alluxio_config,

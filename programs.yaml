@@ -1487,6 +1487,8 @@ spec:
     ):
         import psycopg2
         import json
+        from psycopg2.extras import execute_batch
+
         source_is_json = bool(source_is_json)
         assert source_is_json or header is None
 
@@ -1551,20 +1553,22 @@ spec:
                     tpl = tuple(fn(arg) for fn, arg in zip(type_fn, splits))
                     values += [tpl]
 
-        cursor.executemany(
+        execute_batch(
+            cursor,
             """
                 INSERT INTO {tablename}({columns}) VALUES ({vals})
             """.format(
                 tablename=tablename,
                 columns=", ".join([k for k, _, _ in columns]),
-                vals=", ".join(["%s"] * len(columns))
+                vals=", ".join(["%s"] * len(columns)),
             ),
-            values
+            values,
         )
-
-        count = list(cursor.execute("SELECT COUNT(*) FROM " + tablename))[0][0]
+        conn.commit()
+        cursor.execute("SELECT COUNT(*) FROM " + tablename)
+        conn.commit()
+        count = cursor.fetchall()[0][0]
         print("Inserted %d records into %s" % (count, tablename))
-        con.close()
 
   call: upload_to_postgres
   kwargs:

@@ -32,7 +32,7 @@ subreddit_datum = RowStruct(
     name="subreddit",
     attributes=attributes,
 )
-subreddits = ['marton', 'wairarapa', 'manawatu']
+subreddits = ['wairarapa', 'manawatu', 'marlborough']
 assets = {x: StaticDataTable(
     name=x,
     schema=default_tabular_schema(subreddit_datum),
@@ -43,7 +43,7 @@ assets = {x: StaticDataTable(
             encoding=JSONEncoding(),
         ),
     ),
-    tag='r_%s' % x,
+    tag=x,
 ) for x in subreddits}
 
 subreddits = DataSet(
