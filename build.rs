@@ -438,6 +438,7 @@ fn process_concepts() {
         ("crate::schema", "TabularSchema"),
         ("crate::schema", "DataSchema"),
         ("crate::data_setup", "Universe"),
+        ("crate::storage_setup", "LocalStorageSetup"),
         ("crate::storage_setup", "RemoteStorageSetup"),
         ("crate::storage_setup", "ReplicationStorageSetup"),
         ("crate::storage_setup", "ComputedFromLocalData"),

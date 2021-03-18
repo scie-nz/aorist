@@ -613,4 +613,9 @@ spec:
           }
           uuids
       }
-
+---
+type: Constraint
+spec:
+  name: InferSchema
+  root: DataSet
+  requiresProgram: true
