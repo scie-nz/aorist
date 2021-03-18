@@ -7,22 +7,15 @@ storage = PostgresStorage(
     location=PostgresLocation(),
     layout=StaticTabularLayout(),
 )
-subreddits = ['wairarapa', 'marton', 'marlborough']
-assets = {x: StaticDataTable(
-    name=x,
-    schema=UndefinedTabularSchema(),
-    setup=RemoteStorageSetup(remote=storage),
-    tag=x,
-) for x in subreddits}
 subreddits = DataSet(
     name="subreddits",
     datumTemplates=[],
-    assets=assets,
+    assets={},
 )
-
 universe = Universe(
     name="my_cluster",
     datasets=[subreddits],
     endpoints=DEFAULT_ENDPOINTS,
 )
+datum_templates = {}
 print(universe.python("InferSchema"))

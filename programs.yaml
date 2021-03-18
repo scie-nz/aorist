@@ -1820,7 +1820,7 @@ spec:
 type: Program
 spec:
   use: InferSchema
-  root: UndefinedTabularSchema
+  root: DataSet
   dialect: Python
   preamble: |
     def infer_schema_from_postgres(
@@ -1832,6 +1832,7 @@ spec:
     ):
         import psycopg2
         import json
+        import black
 
         conn_string = " ".join([
             "host=%s" % server,
@@ -1845,11 +1846,13 @@ spec:
         cursor.execute("""
         SELECT table_name FROM information_schema.tables
         WHERE table_schema = 'public'
-        """)        
+        """)
         coldefs = []
 
         attr_types = {
             "BOOL": "attr.FromPostgresBool",
+            "TEXT": "attr.FromPostgresText",
+            "BIGINT": "attr.FromPostgresBigInt",
         }
 
         templates = {}
@@ -1863,16 +1866,17 @@ spec:
                 WHERE table_name = %s;
                 """, table_name
             )
+            table_name = table_name[0]
             template = []
 
             for column_name, data_type, is_nullable in cursor.fetchall():
-                attr_type = attr_types[data_type]
-                template.add(
-                    "%s(%s)%s" %
+                attr_type = attr_types[data_type.upper()]
+                template += [
+                    "%s('%s'%s)" %
                     (attr_type, column_name, ", nullable=True" if is_nullable else "")
-                )
+                ]
 
-            template_tpl = tuple(template) 
+            template_tpl = tuple(template)
 
             if not template_tpl in templates:
                 templates[template_tpl] = table_name
@@ -1891,46 +1895,61 @@ spec:
                     ),
                 ),
                 tag="{table_name}",
-            )
+            ),
             """.format(table_name=table_name, template_name=template_name)
-        
-        datum_templates = []
+
+        datum_templates = {}
         for template, name in templates.items():
-            datum_templates += [
+            datum_templates[name] = (
                 """
                 RowStruct(
-                    name={name},
+                    name="{name}",
                     attributes=attr_list([{attributes}])
                 )
                 """.format(
                     name=name,
                     attributes=", ".join(template),
                 )
-            ]
+           )
 
-        code = """
-        templates = [
-            {templates}
-        ]
-        assets = {{
-            {assets}
-        }}
+        templates_code = (
+              "templates = {{\\n{templates}\\n}}"
+            ).format(
+                templates="\\n".join([
+                    '        "%s": %s' % (k, v.strip())
+                    for k, v in datum_templates.items()
+                ]),
+            )
+        print(templates_code)
+        templates_code = black.format_str(templates_code, mode=black.Mode())
+
+        assets_code = (
+              "assets = {{\\n{assets}\\n}}"
+            ).format(
+                assets="\\n".join([
+                    '        "%s": %s' % (k, v.strip())
+                    for k, v in assets.items()
+                ]),
+            )
+        assets_code = black.format_str(assets_code, mode=black.Mode())
+        print(assets_code)
+
+        dataset_code = black.format_str("""
         {db_name} = DataSet(
             name="{db_name}",
-            datumTemplates=templates,
+            datumTemplates=list(templates.values()),
             assets=assets,
         )
         """.format(
-            templates=",\\n".join(datum_templates)
-            assets=",\\n".join([
-                '"%s": %s' % (k, v)
-                for k, v in assets.items()
-            ]),
             db_name=db_name,
-        )
-        from IPython.core.getipython import get_ipython
-        shell = get_ipython()
-        shell.set_next_input(code, replace=False)
+        ), mode=black.Mode())
+        code = "\\n".join([templates_code, assets_code, dataset_code])
+        try:
+            from IPython.core.getipython import get_ipython
+            shell = get_ipython()
+            shell.set_next_input(code, replace=False)
+        except AttributeError:
+            print(code)
 
   call: infer_schema_from_postgres
   kwargs:
@@ -1959,8 +1978,3 @@ spec:
       spec:
         call: universe.endpoints.postgres.as_ref().unwrap().password.clone()
         attaches: Universe
-    tablename:
-      type: AncestorArgument
-      spec:
-        call: static_data_table.name.clone()
-        attaches: StaticDataTable
