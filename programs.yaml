@@ -1995,18 +1995,35 @@ spec:
         import json
         datasets = json.loads(datasets)
 
-        code = """
-        {name} = Universe(
-            name="{name}",
-            datasets=[{datasets}],
-            endpoints=DEFAULT_ENDPOINTS,
-        )
-        """.format(
-            name=name,
-            datasets=", ".join(datasets)
-        )
+        code = [
+            """
+            tmp_dir = "/tmp/{name}"
+            """.format(name=name),
+            """
+            local = BigQueryStorage(
+                location=BigQueryLocation(),
+                layout=StaticTabularLayout(),
+            )
+            """,
+            """
+            {name} = Universe(
+                name="{name}",
+                datasets=[{datasets}],
+                endpoints=DEFAULT_ENDPOINTS,
+            )
+            """.format(
+                name=name,
+                datasets=", ".join([
+                  '%s.replicate_to_local(local, tmp_dir)' % x for x in datasets
+                ])
+            ),
+            """
+            universe.jupyter_extend("Replicated")
+            """,
+        ]
         import black
-        code = black.format_str(code, mode=black.Mode())
+        code = "\\n".join([black.format_str(x.strip(), mode=black.Mode()) for x in code])
+
         from IPython.display import Javascript, display
         import base64
         encoded_code = (base64.b64encode(str.encode(code))).decode()
