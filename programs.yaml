@@ -1946,11 +1946,16 @@ spec:
         """.format(
             db_name=db_name,
         ), mode=black.Mode())
-        code = "\\n".join([setup_code, templates_code, assets_code, dataset_code])
 
-        from IPython.core.getipython import get_ipython
-        shell = get_ipython()
-        shell.set_next_input(code, replace=False)
+        from IPython.display import Javascript, display
+        import base64
+
+        for code in reversed([setup_code, templates_code, assets_code, dataset_code]):
+            encoded_code = (base64.b64encode(str.encode(code))).decode()
+            display(Javascript("""
+                var code = IPython.notebook.insert_cell_above('code');
+                code.set_text(atob( "{0}" ));
+                """.format(encoded_code)))
 
   call: infer_schema_from_postgres
   kwargs:
