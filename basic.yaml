@@ -149,16 +149,19 @@ spec:
           let dataset = ancestry.data_set(root.clone()).unwrap();
           let root_tbl = ancestry.static_data_table(root.clone()).unwrap();
           let schema = &root_tbl.schema;
-          let DataSchema::TabularSchema(ref tbl_schema) = schema;
-          let template_name = tbl_schema.datumTemplateName.clone();
-          /*println!("Template name: {}", template_name);
-          for k in dataset.get_mapped_datum_templates().keys() {
-            println!("template: {}", k);
-          }*/
-          match
-          dataset.get_mapped_datum_templates().get(&template_name).unwrap() {
-             DatumTemplate::IntegerMeasure(_) => true,
-             _ => false
+          if let DataSchema::TabularSchema(ref tbl_schema) = schema {
+            let template_name = tbl_schema.datumTemplateName.clone();
+            /*println!("Template name: {}", template_name);
+            for k in dataset.get_mapped_datum_templates().keys() {
+              println!("template: {}", k);
+            }*/
+            match
+            dataset.get_mapped_datum_templates().get(&template_name).unwrap() {
+               DatumTemplate::IntegerMeasure(_) => true,
+               _ => false
+            }
+          } else {
+            false
           }
       }
 ---
@@ -549,13 +552,14 @@ spec:
           let maybe_derived_asset = ancestry.derived_asset(root.clone());
           if let Ok(derived_asset) = maybe_derived_asset {
             let data_set = ancestry.data_set(root.clone()).unwrap();
-            let DataSchema::TabularSchema(ref t) = derived_asset.schema;
-            let mapped_templates = data_set.get_mapped_datum_templates();
-            let template = mapped_templates.get(&t.datumTemplateName);
-            return match template {
-                Some(DatumTemplate::Filter(_)) => true,
-                _ => false
-            };
+            if let DataSchema::TabularSchema(ref t) = derived_asset.schema {
+              let mapped_templates = data_set.get_mapped_datum_templates();
+              let template = mapped_templates.get(&t.datumTemplateName);
+              return match template {
+                  Some(DatumTemplate::Filter(_)) => true,
+                  _ => false
+              };
+            }
           }
           false
       }
@@ -589,14 +593,16 @@ spec:
           let maybe_static_data_table = ancestry.static_data_table(root.clone());
           if let Ok(static_data_table) = maybe_static_data_table {
             let data_set = ancestry.data_set(root.clone()).unwrap();
-            let DataSchema::TabularSchema(ref t) = static_data_table.schema;
-            let mapped_templates = data_set.get_mapped_datum_templates();
-            let template = mapped_templates.get(&t.datumTemplateName);
-            return match template {
-                Some(DatumTemplate::PredictionsFromTrainedFloatMeasure(_)) => true,
-                None => panic!(format!("Could not find datum template: {}", t.datumTemplateName)),
-                _ => false,
-            };
+            if let DataSchema::TabularSchema(ref t) = static_data_table.schema
+            {
+              let mapped_templates = data_set.get_mapped_datum_templates();
+              let template = mapped_templates.get(&t.datumTemplateName);
+              return match template {
+                  Some(DatumTemplate::PredictionsFromTrainedFloatMeasure(_)) => true,
+                  None => panic!(format!("Could not find datum template: {}", t.datumTemplateName)),
+                  _ => false,
+              };
+            }
           }
           false
       }
@@ -617,5 +623,5 @@ spec:
 type: Constraint
 spec:
   name: InferSchema
-  root: PostgresStorage
+  root: DataSet
   requiresProgram: true 

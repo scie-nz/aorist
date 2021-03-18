@@ -450,6 +450,7 @@ fn process_concepts() {
         ("crate::encoding", "JSONEncoding"),
         ("crate::encoding", "ORCEncoding"),
         ("crate::encoding", "ONNXEncoding"),
+        ("crate::schema", "UndefinedTabularSchema"),
         ("crate::schema", "TabularSchema"),
         ("crate::schema", "DataSchema"),
         ("crate::data_setup", "Universe"),

@@ -383,56 +383,59 @@ spec:
         call: >
           {
             use crate::template::TDatumTemplate;
-            let DataSchema::TabularSchema(ref t) = asset.get_schema();
-            let dictionary = Standard::from_embedded(Language::EnglishUS).unwrap();
-            let options = Options::new(66).splitter(dictionary);
+            if let DataSchema::TabularSchema(ref t) = asset.get_schema() {
+              let dictionary = Standard::from_embedded(Language::EnglishUS).unwrap();
+              let options = Options::new(66).splitter(dictionary);
 
-            let attr_v = data_set
-                .datumTemplates
-                .iter()
-                .filter(|x| {
-                    x.get_name().clone() == t.datumTemplateName
-                })
-                .map(|x| x.get_attributes())
-                .next().unwrap();
-            let attr_map = attr_v.iter()
-                .map(|x|
-                    (x.get_name().clone(), (x.get_presto_type(), x.get_comment().clone())))
-                .collect::<Vec<_>>();
-            let attr_types = attr_map.iter().map(|x| {
-                let (name, (presto_type, comment)) = x;
-                let comment_str = match comment {
-                    Some(c) => {
-                        let cleaned_up_comment = c
-                          .split("\n")
-                          .into_iter()
-                          .map(|x| x.to_string().trim().to_string())
-                          .collect::<Vec<String>>().join(" ");
-                        fill(cleaned_up_comment.trim(), &options)
-                          .split("\n").map(|x| x.to_string()).collect::<Vec<String>>()
-                    }
-                    None => vec!["".to_string()],
-                };
-                if comment_str.len() == 1 {
-                    return format!(
-                        "    {} {} COMMENT '{}'",
-                        name,
-                        presto_type,
-                        comment_str.get(0).unwrap().to_string().replace("\'", "`"),
-                    ).to_string();
-                } else {
-                    return format!(
-                        "    {} {} \n COMMENT {}\n",
-                        name,
-                        presto_type,
-                        comment_str
-                          .into_iter()
-                          .map(|x| format!("        '{}'", x.to_string().replace("\'", "`")).to_string())
-                          .collect::<Vec<String>>().join("\n")
-                    ).to_string();
-                }
-            }).collect::<Vec<String>>();
-            format!("\n{}    \n", attr_types.join(",\n"))
+              let attr_v = data_set
+                  .datumTemplates
+                  .iter()
+                  .filter(|x| {
+                      x.get_name().clone() == t.datumTemplateName
+                  })
+                  .map(|x| x.get_attributes())
+                  .next().unwrap();
+              let attr_map = attr_v.iter()
+                  .map(|x|
+                      (x.get_name().clone(), (x.get_presto_type(), x.get_comment().clone())))
+                  .collect::<Vec<_>>();
+              let attr_types = attr_map.iter().map(|x| {
+                  let (name, (presto_type, comment)) = x;
+                  let comment_str = match comment {
+                      Some(c) => {
+                          let cleaned_up_comment = c
+                            .split("\n")
+                            .into_iter()
+                            .map(|x| x.to_string().trim().to_string())
+                            .collect::<Vec<String>>().join(" ");
+                          fill(cleaned_up_comment.trim(), &options)
+                            .split("\n").map(|x| x.to_string()).collect::<Vec<String>>()
+                      }
+                      None => vec!["".to_string()],
+                  };
+                  if comment_str.len() == 1 {
+                      return format!(
+                          "    {} {} COMMENT '{}'",
+                          name,
+                          presto_type,
+                          comment_str.get(0).unwrap().to_string().replace("\'", "`"),
+                      ).to_string();
+                  } else {
+                      return format!(
+                          "    {} {} \n COMMENT {}\n",
+                          name,
+                          presto_type,
+                          comment_str
+                            .into_iter()
+                            .map(|x| format!("        '{}'", x.to_string().replace("\'", "`")).to_string())
+                            .collect::<Vec<String>>().join("\n")
+                      ).to_string();
+                  }
+              }).collect::<Vec<String>>();
+              format!("\n{}    \n", attr_types.join(",\n"))
+            } else {
+              panic!("Schema should be TabularSchema")
+            }
           }
         attaches:
           - Asset
@@ -525,28 +528,31 @@ spec:
           {
               let replicate_schema = || {
                 use crate::template::TDatumTemplate;
-                let DataSchema::TabularSchema(ref t) = static_data_table.schema;
-                let attr_v = data_set
-                    .datumTemplates
-                    .iter()
-                    .filter(|x| {
-                        x.get_name().clone() == t.datumTemplateName
-                    })
-                    .map(|x| x.get_attributes())
-                    .next().unwrap();
-                let attr_map = attr_v.iter()
-                    .map(|x|
-                        (x.get_name().clone(), "VARCHAR".to_string()))
-                    .collect::<Vec<_>>();
-                let attr_types = attr_map.iter().map(|x| {
-                    let (name, presto_type) = x;
-                    return format!(
-                        "    {} {}",
-                        name,
-                        presto_type,
-                    ).to_string();
-                }).collect::<Vec<String>>();
-                format!("\n{}\n", attr_types.join(",\n"))
+                if let DataSchema::TabularSchema(ref t) = static_data_table.schema {
+                  let attr_v = data_set
+                      .datumTemplates
+                      .iter()
+                      .filter(|x| {
+                          x.get_name().clone() == t.datumTemplateName
+                      })
+                      .map(|x| x.get_attributes())
+                      .next().unwrap();
+                  let attr_map = attr_v.iter()
+                      .map(|x|
+                          (x.get_name().clone(), "VARCHAR".to_string()))
+                      .collect::<Vec<_>>();
+                  let attr_types = attr_map.iter().map(|x| {
+                      let (name, presto_type) = x;
+                      return format!(
+                          "    {} {}",
+                          name,
+                          presto_type,
+                      ).to_string();
+                  }).collect::<Vec<String>>();
+                  format!("\n{}\n", attr_types.join(",\n"))
+                } else {
+                  panic!("schema should be TabularSchema");
+                }
               };
               match storage_setup {
                 crate::StorageSetup::ReplicationStorageSetup(r) =>
@@ -646,46 +652,49 @@ spec:
         call: >
           {
               use crate::template::TDatumTemplate;
-              let DataSchema::TabularSchema(ref t) = static_data_table.schema;
-              let attr_v = data_set
-                  .datumTemplates
-                  .iter()
-                  .filter(|x| {
-                      x.get_name().clone() == t.datumTemplateName
-                  })
-                  .map(|x| x.get_attributes())
-                  .next().unwrap();
-              let attr_map = attr_v.iter()
-                  .map(|x|
-                      (x.get_name().clone(), x.get_presto_type()))
-                  .collect::<Vec<_>>();
+              if let DataSchema::TabularSchema(ref t) = static_data_table.schema {
+                let attr_v = data_set
+                    .datumTemplates
+                    .iter()
+                    .filter(|x| {
+                        x.get_name().clone() == t.datumTemplateName
+                    })
+                    .map(|x| x.get_attributes())
+                    .next().unwrap();
+                let attr_map = attr_v.iter()
+                    .map(|x|
+                        (x.get_name().clone(), x.get_presto_type()))
+                    .collect::<Vec<_>>();
 
-              let from_json = match storage_setup {
-                  crate::StorageSetup::ReplicationStorageSetup(r) =>
-                    match r.source.get_encoding() {
-                      Some(crate::Encoding::JSONEncoding(_)) => true,
-                      _ => false,
-                    },
-                  _ => false,
-              };
+                let from_json = match storage_setup {
+                    crate::StorageSetup::ReplicationStorageSetup(r) =>
+                      match r.source.get_encoding() {
+                        Some(crate::Encoding::JSONEncoding(_)) => true,
+                        _ => false,
+                      },
+                    _ => false,
+                };
 
-              let attr_types = attr_map.iter().map(|x| {
-                  let (name, presto_type) = x;
-                  return match from_json {
-                    false => format!(
-                        "CAST({name} AS {presto_type}) AS {name}",
-                        name=name,
-                        presto_type=presto_type,
-                    ),
-                    true => format!(
-                        "CAST(json_obj.{name} AS {presto_type}) AS {name})",
-                        name=name,
-                        presto_type=presto_type,
-                    )
-                  }.to_string();
-              }).collect::<Vec<String>>();
+                let attr_types = attr_map.iter().map(|x| {
+                    let (name, presto_type) = x;
+                    return match from_json {
+                      false => format!(
+                          "CAST({name} AS {presto_type}) AS {name}",
+                          name=name,
+                          presto_type=presto_type,
+                      ),
+                      true => format!(
+                          "CAST(json_obj.{name} AS {presto_type}) AS {name})",
+                          name=name,
+                          presto_type=presto_type,
+                      )
+                    }.to_string();
+                }).collect::<Vec<String>>();
 
-              format!("\n{}", attr_types.join(",\n"))
+                format!("\n{}", attr_types.join(",\n"))
+              } else {
+                panic!("Schema should be TabularSchema");
+              }
           }
         attaches:
           - StaticDataTable
@@ -708,41 +717,44 @@ spec:
         call: >
           {
             use crate::template::DatumTemplate;
-            let DataSchema::TabularSchema(ref t) = static_data_table.schema;
-            let (attr_v, source_table, freq_column) = data_set
-                .datumTemplates
-                .iter()
-                .filter(|x| {
-                    x.get_name().clone() == t.datumTemplateName
-                })
-                .map(|x| match x {
-                    DatumTemplate::IntegerMeasure(t) => (
-                        t.get_attributes(),
-                        t.source_asset_name.clone(),
-                        t.get_frequency_attribute().get_name().clone(),
-                     ),
-                    _ => panic!("program for IntegerMeasure incorrectly called"),
-                })
-                .next().unwrap();
-            let group_by_columns = attr_v.iter()
-                .map(|x| format!("            {}",
-                x.get_name().clone()).to_string())
-                .collect::<Vec<String>>().join("\n, ");
+            if let DataSchema::TabularSchema(ref t) = static_data_table.schema {
+              let (attr_v, source_table, freq_column) = data_set
+                  .datumTemplates
+                  .iter()
+                  .filter(|x| {
+                      x.get_name().clone() == t.datumTemplateName
+                  })
+                  .map(|x| match x {
+                      DatumTemplate::IntegerMeasure(t) => (
+                          t.get_attributes(),
+                          t.source_asset_name.clone(),
+                          t.get_frequency_attribute().get_name().clone(),
+                       ),
+                      _ => panic!("program for IntegerMeasure incorrectly called"),
+                  })
+                  .next().unwrap();
+              let group_by_columns = attr_v.iter()
+                  .map(|x| format!("            {}",
+                  x.get_name().clone()).to_string())
+                  .collect::<Vec<String>>().join("\n, ");
 
-            format!("
-            INSERT INTO {presto_schema}.{table_name}
-            SELECT
-                {group_by_columns},
-                COUNT(*) AS {freq_column}
-            FROM {presto_schema}.{source_table_name}
-            GROUP BY {group_by_columns}
-            ",
-                presto_schema=data_set.name,
-                table_name=format!("{}", static_data_table.name),
-                freq_column=freq_column,
-                group_by_columns=group_by_columns,
-                source_table_name=source_table,
-            )
+              format!("
+              INSERT INTO {presto_schema}.{table_name}
+              SELECT
+                  {group_by_columns},
+                  COUNT(*) AS {freq_column}
+              FROM {presto_schema}.{source_table_name}
+              GROUP BY {group_by_columns}
+              ",
+                  presto_schema=data_set.name,
+                  table_name=format!("{}", static_data_table.name),
+                  freq_column=freq_column,
+                  group_by_columns=group_by_columns,
+                  source_table_name=source_table,
+              )
+            } else {
+              panic!("Schema should be TabularSchema");
+            }
           }
 ---
 type: Program
@@ -805,7 +817,7 @@ spec:
         call: >
           {
             use crate::template::DatumTemplate;
-            let DataSchema::TabularSchema(ref t) = derived_asset.schema;
+            if let DataSchema::TabularSchema(ref t) = derived_asset.schema {
             let mapped_templates = data_set.get_mapped_datum_templates();
             let template = mapped_templates.get(&t.datumTemplateName);
             let filter = match template {
@@ -845,6 +857,9 @@ spec:
                 lines_between_queries: 1
             };
             sqlformat::format(&query, &params, options).to_string()
+            } else {
+              panic!("Schema should be TabularSchema");
+            }
           }
 ---
 type: Program
@@ -1295,28 +1310,31 @@ spec:
         call: >
           {
             use crate::template::TDatumTemplate;
-            let DataSchema::TabularSchema(ref t) = static_data_table.schema;
-            let attr_v = data_set
-                .datumTemplates
-                .iter()
-                .filter(|x| {
-                    x.get_name().clone() == t.datumTemplateName
-                })
-                .map(|x| x.get_attributes())
-                .next().unwrap();
-            let attr_map = attr_v.iter()
-                .map(|x|
-                    (x.get_name().clone(), x.get_presto_type()))
-                .collect::<Vec<_>>();
-            let attr_types = attr_map.iter().map(|x| {
-                let (name, presto_type) = x;
-                return format!(
-                    "CAST({name} AS {presto_type}) AS {name}",
-                    name=name,
-                    presto_type=presto_type,
-                ).to_string();
-            }).collect::<Vec<String>>();
-            format!("\n{}", attr_types.join(",\n"))
+            if let DataSchema::TabularSchema(ref t) = static_data_table.schema {
+              let attr_v = data_set
+                  .datumTemplates
+                  .iter()
+                  .filter(|x| {
+                      x.get_name().clone() == t.datumTemplateName
+                  })
+                  .map(|x| x.get_attributes())
+                  .next().unwrap();
+              let attr_map = attr_v.iter()
+                  .map(|x|
+                      (x.get_name().clone(), x.get_presto_type()))
+                  .collect::<Vec<_>>();
+              let attr_types = attr_map.iter().map(|x| {
+                  let (name, presto_type) = x;
+                  return format!(
+                      "CAST({name} AS {presto_type}) AS {name}",
+                      name=name,
+                      presto_type=presto_type,
+                  ).to_string();
+              }).collect::<Vec<String>>();
+              format!("\n{}", attr_types.join(",\n"))
+            } else {
+              panic!("Schema should be TabularSchema");
+            }
           }
         attaches:
           - StaticDataTable
