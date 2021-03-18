@@ -623,5 +623,5 @@ spec:
 type: Constraint
 spec:
   name: InferSchema
-  root: DataSet
+  root: UndefinedTabularSchema
   requiresProgram: true 

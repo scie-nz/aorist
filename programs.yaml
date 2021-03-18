@@ -1816,3 +1816,151 @@ spec:
               },
               _ => "False",
           }).to_string()
+---
+type: Program
+spec:
+  use: InferSchema
+  root: UndefinedTabularSchema
+  dialect: Python
+  preamble: |
+    def infer_schema_from_postgres(
+        server,
+        port,
+        username,
+        password,
+        db_name,
+    ):
+        import psycopg2
+        import json
+
+        conn_string = " ".join([
+            "host=%s" % server,
+            "port=%s" % port,
+            "dbname=%s" % db_name,
+            "user=%s" % username,
+            "password=%s" % password,
+        ])
+        conn=psycopg2.connect(conn_string)
+        cursor = conn.cursor()
+        cursor.execute("""
+        SELECT table_name FROM information_schema.tables
+        WHERE table_schema = 'public'
+        """)        
+        coldefs = []
+
+        attr_types = {
+            "BOOL": "attr.FromPostgresBool",
+        }
+
+        templates = {}
+        assets = {}
+
+        for table_name in cursor.fetchall():
+            cursor.execute(
+                """
+                SELECT column_name, data_type, is_nullable
+                FROM information_schema.columns
+                WHERE table_name = %s;
+                """, table_name
+            )
+            template = []
+
+            for column_name, data_type, is_nullable in cursor.fetchall():
+                attr_type = attr_types[data_type]
+                template.add(
+                    "%s(%s)%s" %
+                    (attr_type, column_name, ", nullable=True" if is_nullable else "")
+                )
+
+            template_tpl = tuple(template) 
+
+            if not template_tpl in templates:
+                templates[template_tpl] = table_name
+                template_name = table_name
+            else:
+                template_name = templates[template_tpl]
+
+            assets[table_name] = """
+            StaticDataTable(
+                name="{table_name}",
+                schema=default_tabular_schema(datum_templates["{template_name}"]),
+                setup=RemoteStorageSetup(
+                    remote=PostgresStorage(
+                        location=PostgresLocation(),
+                        layout=TabularLayout(),
+                    ),
+                ),
+                tag="{table_name}",
+            )
+            """.format(table_name=table_name, template_name=template_name)
+        
+        datum_templates = []
+        for template, name in templates.items():
+            datum_templates += [
+                """
+                RowStruct(
+                    name={name},
+                    attributes=attr_list([{attributes}])
+                )
+                """.format(
+                    name=name,
+                    attributes=", ".join(template),
+                )
+            ]
+
+        code = """
+        templates = [
+            {templates}
+        ]
+        assets = {{
+            {assets}
+        }}
+        {db_name} = DataSet(
+            name="{db_name}",
+            datumTemplates=templates,
+            assets=assets,
+        )
+        """.format(
+            templates=",\\n".join(datum_templates)
+            assets=",\\n".join([
+                '"%s": %s' % (k, v)
+                for k, v in assets.items()
+            ]),
+            db_name=db_name,
+        )
+        from IPython.core.getipython import get_ipython
+        shell = get_ipython()
+        shell.set_next_input(code, replace=False)
+
+  call: infer_schema_from_postgres
+  kwargs:
+    db_name:
+      type: AncestorArgument
+      spec:
+        call: data_set.name.clone()
+        attaches: DataSet
+    server:
+      type: AncestorArgument
+      spec:
+        call: universe.endpoints.postgres.as_ref().unwrap().server.clone()
+        attaches: Universe
+    port:
+      type: AncestorArgument
+      spec:
+        call: universe.endpoints.postgres.as_ref().unwrap().port.to_string()
+        attaches: Universe
+    username:
+      type: AncestorArgument
+      spec:
+        call: universe.endpoints.postgres.as_ref().unwrap().username.clone()
+        attaches: Universe
+    password:
+      type: AncestorArgument
+      spec:
+        call: universe.endpoints.postgres.as_ref().unwrap().password.clone()
+        attaches: Universe
+    tablename:
+      type: AncestorArgument
+      spec:
+        call: static_data_table.name.clone()
+        attaches: StaticDataTable
