@@ -22,6 +22,7 @@ use paste::paste;
 use pyo3::create_exception;
 use pyo3::exceptions::PyException;
 use pyo3::prelude::*;
+use pyo3::types::{PyList, PyModule, PyString, PyTuple};
 use serde::{Deserialize, Serialize};
 use sqlparser::ast::Statement;
 use sqlparser::dialect::GenericDialect;
@@ -104,6 +105,26 @@ impl InnerUniverse {
     pub fn jupyter(&self, constraint: String) -> PyResult<String> {
         let inner = self.clone();
         dag(inner, vec![constraint], "jupyter")
+    }
+    pub fn jupyter_extend(&self, constraint: String) -> PyResult<()> {
+        let inner = self.clone();
+        let gil = Python::acquire_gil();
+        let py = gil.python();
+        let helpers = PyModule::from_code(
+            py,
+            r#"
+def extend_jupyter(code):
+    from IPython.core.getipython import get_ipython
+    shell = get_ipython()
+    shell.set_next_input(code, replace=False)
+        "#,
+            "helpers.py",
+            "helpers",
+        )
+        .unwrap();
+        let python_code = dag(inner, vec![constraint], "python").unwrap();
+        helpers.call1("extend_jupyter", (python_code,)).unwrap();
+        Ok(())
     }
     pub fn python(&self, constraint: String) -> PyResult<String> {
         let inner = self.clone();

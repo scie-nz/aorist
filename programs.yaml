@@ -1920,7 +1920,6 @@ spec:
                     for k, v in datum_templates.items()
                 ]),
             )
-        print(templates_code)
         templates_code = black.format_str(templates_code, mode=black.Mode())
 
         assets_code = (
@@ -1932,7 +1931,6 @@ spec:
                 ]),
             )
         assets_code = black.format_str(assets_code, mode=black.Mode())
-        print(assets_code)
 
         dataset_code = black.format_str("""
         {db_name} = DataSet(
@@ -1944,12 +1942,10 @@ spec:
             db_name=db_name,
         ), mode=black.Mode())
         code = "\\n".join([templates_code, assets_code, dataset_code])
-        try:
-            from IPython.core.getipython import get_ipython
-            shell = get_ipython()
-            shell.set_next_input(code, replace=False)
-        except AttributeError:
-            print(code)
+
+        from IPython.core.getipython import get_ipython
+        shell = get_ipython()
+        shell.set_next_input(code, replace=False)
 
   call: infer_schema_from_postgres
   kwargs:

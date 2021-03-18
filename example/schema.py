@@ -18,4 +18,4 @@ universe = Universe(
     endpoints=DEFAULT_ENDPOINTS,
 )
 datum_templates = {}
-print(universe.python("InferSchema"))
+print(universe.jupyter("InferSchema"))
