@@ -1887,13 +1887,8 @@ spec:
             assets[table_name] = """
             StaticDataTable(
                 name="{table_name}",
-                schema=default_tabular_schema(datum_templates["{template_name}"]),
-                setup=RemoteStorageSetup(
-                    remote=PostgresStorage(
-                        location=PostgresLocation(),
-                        layout=TabularLayout(),
-                    ),
-                ),
+                schema=default_tabular_schema(templates["{template_name}"]),
+                setup=setup,
                 tag="{table_name}",
             ),
             """.format(table_name=table_name, template_name=template_name)
@@ -1911,6 +1906,16 @@ spec:
                     attributes=", ".join(template),
                 )
            )
+
+        setup_code = """
+        setup = RemoteStorageSetup(
+              remote=PostgresStorage(
+                location=PostgresLocation(),
+                layout=StaticTabularLayout(),
+            ),
+        )
+        """
+        setup_code = black.format_str(setup_code, mode=black.Mode())
 
         templates_code = (
               "templates = {{\\n{templates}\\n}}"
@@ -1941,7 +1946,7 @@ spec:
         """.format(
             db_name=db_name,
         ), mode=black.Mode())
-        code = "\\n".join([templates_code, assets_code, dataset_code])
+        code = "\\n".join([setup_code, templates_code, assets_code, dataset_code])
 
         from IPython.core.getipython import get_ipython
         shell = get_ipython()

@@ -207,3 +207,25 @@ spec:
   bigquery: BigQueryString
   postgres: PostgresText
   value: StringValue
+---
+type: Attribute
+spec:
+  name: FromPostgresText
+  orc: OrcString
+  presto: PrestoVarchar
+  sql: SQLVarchar
+  sqlite: SQLiteText
+  bigquery: BigQueryString
+  postgres: PostgresText
+  value: StringValue
+---
+type: Attribute
+spec:
+  name: FromPostgresBigInt
+  orc: OrcBigint
+  presto: PrestoBigint
+  sql: SQLBigint
+  sqlite: SQLiteInteger
+  bigquery: BigQueryInt64
+  postgres: PostgresBigInt
+  value: IntegerValue
