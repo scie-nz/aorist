@@ -625,3 +625,11 @@ spec:
   name: InferSchema
   root: DataSet
   requiresProgram: true
+---
+type: Constraint
+spec:
+  name: InferSchemas
+  root: Universe
+  requiresProgram: true
+  requires:
+    - InferSchema

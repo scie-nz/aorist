@@ -1950,7 +1950,7 @@ spec:
         from IPython.display import Javascript, display
         import base64
 
-        for code in reversed([setup_code, templates_code, assets_code, dataset_code]):
+        for code in [setup_code, templates_code, assets_code, dataset_code]:
             encoded_code = (base64.b64encode(str.encode(code))).decode()
             display(Javascript("""
                 var code = IPython.notebook.insert_cell_above('code');
@@ -1983,4 +1983,51 @@ spec:
       type: AncestorArgument
       spec:
         call: universe.endpoints.postgres.as_ref().unwrap().password.clone()
+        attaches: Universe
+---
+type: Program
+spec:
+  use: InferSchemas
+  root: Universe
+  dialect: Python
+  preamble: |
+    def rebuild_universe(name, datasets):
+        import json
+        datasets = json.loads(datasets)
+
+        code = """
+        {name} = Universe(
+            name="{name}",
+            datasets=[{datasets}],
+            endpoints=DEFAULT_ENDPOINTS,
+        )
+        """.format(
+            name=name,
+            datasets=", ".join(datasets)
+        )
+        import black
+        code = black.format_str(code, mode=black.Mode())
+        from IPython.display import Javascript, display
+        import base64
+        encoded_code = (base64.b64encode(str.encode(code))).decode()
+        display(Javascript("""
+            var code = IPython.notebook.insert_cell_at_bottom('code');
+            code.set_text(atob( "{0}" ));
+            var index = IPython.notebook.get_selected_index();
+            IPython.notebook.select(index - 1);
+            IPython.notebook.delete_cell();
+            IPython.notebook.delete_cell();
+            """.format(encoded_code)))
+
+  call: rebuild_universe
+  kwargs:
+    datasets:
+      type: AncestorArgument
+      spec:
+        call: serde_json::json!(universe.datasets.as_ref().unwrap().iter().map(|x| x.name.clone()).collect::<Vec<String>>()).to_string()
+        attaches: Universe
+    name:
+      type: AncestorArgument
+      spec:
+        call: universe.name.clone()
         attaches: Universe
