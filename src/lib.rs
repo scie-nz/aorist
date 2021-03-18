@@ -98,7 +98,7 @@ pub fn derive_integer_measure(
     attribute_names: Vec<String>,
 ) -> InnerIntegerMeasure {
     let keep: HashSet<String> = attribute_names.into_iter().collect();
-    let template_name: String = source_asset.get_schema().get_datum_template_name();
+    let template_name: String = source_asset.get_schema().get_datum_template_name().unwrap();
     let attribute_names: HashSet<String> = source_asset
         .get_schema()
         .get_attribute_names()

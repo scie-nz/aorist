@@ -766,7 +766,7 @@ spec:
                 Err(x) => panic!(x),
                 _ => panic!(format!(
                     "Cannot train an SVM Regression Model on asset with with template {}",
-                    supervised_model.get_schema().get_datum_template_name(),
+                    supervised_model.get_schema().get_datum_template_name().unwrap(),
                )),
             };
             format!("
@@ -956,7 +956,7 @@ spec:
                 Err(x) => panic!(x),
                 _ => panic!(format!(
                     "Cannot train an SVM Regression Model on asset with with template {}",
-                    supervised_model.get_schema().get_datum_template_name(),
+                    supervised_model.get_schema().get_datum_template_name().unwrap(),
                )),
             };
             tfm.get_training_objective().get_name().clone()
@@ -980,7 +980,7 @@ spec:
                 Err(x) => panic!(x),
                 _ => panic!(format!(
                     "Cannot train an SVM Regression Model on asset with with template {}",
-                    supervised_model.get_schema().get_datum_template_name(),
+                    supervised_model.get_schema().get_datum_template_name().unwrap(),
                )),
             };
             format!("[{}]",

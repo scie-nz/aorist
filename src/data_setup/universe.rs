@@ -141,7 +141,7 @@ impl InnerUniverse {
                         let asset_name = asset.get_name();
                         let schema = asset.get_schema();
                         let attribute_names = schema.get_attribute_names();
-                        let template_name = schema.get_datum_template_name();
+                        let template_name = schema.get_datum_template_name().unwrap();
                         let template =
                             DatumTemplate::from(templates.get(&template_name).unwrap().clone());
                         let mut attributes = template

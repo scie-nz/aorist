@@ -14,9 +14,9 @@ pub enum DataSchema {
 }
 
 impl DataSchema {
-    pub fn get_datum_template_name(&self) -> String {
+    pub fn get_datum_template_name(&self) -> Result<String, String> {
         match self {
-            DataSchema::TabularSchema(x) => x.datumTemplateName.clone(),
+            DataSchema::TabularSchema(x) => Ok(x.datumTemplateName.clone()),
         }
     }
     pub fn get_attribute_names(&self) -> Vec<String> {
@@ -26,9 +26,9 @@ impl DataSchema {
     }
 }
 impl InnerDataSchema {
-    pub fn get_datum_template_name(&self) -> String {
+    pub fn get_datum_template_name(&self) -> PyResult<String> {
         match self {
-            InnerDataSchema::TabularSchema(x) => x.datumTemplateName.clone(),
+            InnerDataSchema::TabularSchema(x) => Ok(x.datumTemplateName.clone()),
         }
     }
     pub fn get_attribute_names(&self) -> Vec<String> {

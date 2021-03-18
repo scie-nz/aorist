@@ -617,5 +617,5 @@ spec:
 type: Constraint
 spec:
   name: InferSchema
-  root: DataSet
-  requiresProgram: true
+  root: PostgresStorage
+  requiresProgram: true 

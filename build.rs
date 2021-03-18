@@ -355,9 +355,24 @@ fn process_attributes(raw_objects: &Vec<HashMap<String, Value>>) {
             .unwrap()
             .to_string();
         let sql = attribute.get("sql").unwrap().as_str().unwrap().to_string();
-        let sqlite = attribute.get("sqlite").unwrap().as_str().unwrap().to_string();
-        let postgres = attribute.get("postgres").unwrap().as_str().unwrap().to_string();
-        let bigquery = attribute.get("bigquery").unwrap().as_str().unwrap().to_string();
+        let sqlite = attribute
+            .get("sqlite")
+            .unwrap()
+            .as_str()
+            .unwrap()
+            .to_string();
+        let postgres = attribute
+            .get("postgres")
+            .unwrap()
+            .as_str()
+            .unwrap()
+            .to_string();
+        let bigquery = attribute
+            .get("bigquery")
+            .unwrap()
+            .as_str()
+            .unwrap()
+            .to_string();
 
         let define = format!(
             "define_attribute!({}, {}, {}, {}, {}, {}, {}, {});",

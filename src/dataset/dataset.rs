@@ -40,7 +40,7 @@ impl DataSet {
     }
     pub fn get_template_for_asset<T: TAsset>(&self, asset: &T) -> Result<DatumTemplate, String> {
         let schema = asset.get_schema();
-        let template_name = schema.get_datum_template_name();
+        let template_name = schema.get_datum_template_name().unwrap();
         let mapped_templates = self.get_mapped_datum_templates();
         let template = mapped_templates.get(&template_name);
         match template {
@@ -140,7 +140,7 @@ impl InnerDataSet {
     pub fn get_attributes_for_asset(&self, asset_name: String) -> PyResult<Vec<InnerAttribute>> {
         let asset = self.assets.get(&asset_name).unwrap();
         let schema = asset.get_schema();
-        let template_name = schema.get_datum_template_name();
+        let template_name = schema.get_datum_template_name().unwrap();
         let mapped_templates = self.get_mapped_datum_templates();
         let template = mapped_templates.get(&template_name);
         match template {

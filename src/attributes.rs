@@ -159,7 +159,8 @@ pub trait TPostgresAttribute: TAttribute {
                 true => "NOT NULL",
                 false => "",
             },
-        ).to_string()
+        )
+        .to_string()
     }
 }
 pub trait TBigQueryAttribute: TAttribute {
