@@ -376,6 +376,7 @@ spec:
   requiresProgram: true
   requires:
     - CSVIsConverted
+    - DownloadDataFromPostgres
   title: Upload data to BigQuery
   body: |
       Now that data has been converted to a CSV we can upload it to BigQuery.
@@ -633,3 +634,9 @@ spec:
   requiresProgram: true
   requires:
     - InferSchema
+---
+type: Constraint
+spec:
+  name: DownloadDataFromPostgres
+  root: PostgresLocation
+  requiresProgram: true

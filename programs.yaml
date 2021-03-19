@@ -1679,9 +1679,16 @@ spec:
         tmp_dir,
         source_file,
         service_account_file,
+        source_is_json,
+        columns,
     ):
+        import json
         from google.cloud import bigquery
         from google.oauth2 import service_account
+        from google.cloud.exceptions import NotFound
+        from google.api_core.exceptions import BadRequest
+
+        import json
 
         if service_account_file != "":
             credentials = service_account.Credentials.from_service_account_file(service_account_file)
@@ -1714,7 +1721,7 @@ spec:
 
         columns = json.loads(columns)
         schema = [
-           bigquery.SchemaField(k, v, mode="REQUIRED" if n else "NULLABLE")
+           bigquery.SchemaField(k, v, mode="REQUIRED" if not n else "NULLABLE")
            for k, v, n in columns
         ]
         table = bigquery.Table(table_ref, schema=schema)
@@ -1722,17 +1729,23 @@ spec:
 
 
         job_config = bigquery.LoadJobConfig(
-            source_format=(
-                bigquery.SourceFormat.JSON
-                if source_is_json else bigquery.SourceFormat.CSV
-            ),
+            source_format=bigquery.SourceFormat.NEWLINE_DELIMITED_JSON,
+            ignore_unknown_values=True,
+        ) if source_is_json else bigquery.LoadJobConfig(
+            source_format=bigquery.SourceFormat.CSV,
             skip_leading_rows=0,
         )
 
         with open(tmp_dir + '/' + source_file, 'rb') as f:
-            job = client.load_table_from_file(source_file, table_id, job_config=job_config)
+                job = client.load_table_from_file(f, table_id, job_config=job_config)
 
-        job.result()  # Waits for the job to complete.
+
+        try:
+            job.result()  # Waits for the job to complete.
+        except BadRequest:
+            print("Errors occurred while loading JSON:")
+            print(job.errors)
+
         table = client.get_table(table_id)  # Make an API request.
 
         print(
@@ -1810,9 +1823,12 @@ spec:
         call: >
           format!("{}", match storage_setup {
             crate::StorageSetup::ReplicationStorageSetup(r) =>
-              match r.source.get_encoding() {
-                Some(crate::Encoding::JSONEncoding(_)) => "True",
-                _ => "False",
+              match r.source {
+                 Storage::PostgresStorage(_) => "True",
+                 _ => match r.source.get_encoding() {
+                    Some(crate::Encoding::JSONEncoding(_)) => "True",
+                    _ => "False",
+                },
               },
               _ => "False",
           }).to_string()
@@ -2018,8 +2034,8 @@ spec:
                 ])
             ),
             """
-            universe.jupyter_extend("Replicated")
-            """,
+            {name}.jupyter_extend("UploadDataToBigQuery")
+            """.format(name=name),
         ]
         import black
         code = "\\n".join([black.format_str(x.strip(), mode=black.Mode()) for x in code])
@@ -2031,8 +2047,7 @@ spec:
             var code = IPython.notebook.insert_cell_at_bottom('code');
             code.set_text(atob( "{0}" ));
             var index = IPython.notebook.get_selected_index();
-            IPython.notebook.select(index - 1);
-            IPython.notebook.delete_cell();
+            IPython.notebook.select(index);
             IPython.notebook.delete_cell();
             """.format(encoded_code)))
 
@@ -2048,3 +2063,112 @@ spec:
       spec:
         call: universe.name.clone()
         attaches: Universe
+---
+type: Program
+spec:
+  use: DownloadDataFromPostgres
+  root: PostgresLocation
+  dialect: Python
+  preamble: |
+    def download_from_postgres(
+        server,
+        port,
+        username,
+        password,
+        db_name,
+        tablename,
+        tmp_dir,
+        output_file,
+        # insertion order matters if we are dealing with a csv
+        columns,
+    ):
+        import psycopg2
+        import json
+        import os
+
+        from psycopg2.extras import execute_batch
+        if not os.path.exists(tmp_dir):
+            os.makedirs(tmp_dir)
+
+        conn_string = " ".join([
+            "host=%s" % server,
+            "port=%s" % port,
+            "dbname=%s" % db_name,
+            "user=%s" % username,
+            "password=%s" % password,
+        ])
+        conn=psycopg2.connect(conn_string)
+        cursor = conn.cursor()
+
+        columns = json.loads(columns)
+
+        cursor.execute("""
+        SELECT {columns} FROM {tablename}
+        """.format(
+            columns=", ".join(columns),
+            tablename=tablename,
+        ))
+        with open(tmp_dir + "/" + output_file, 'w') as f:
+            for row in cursor.fetchall():
+                map = dict(zip(columns, row))
+                f.write("%s\\n" % json.dumps(map))
+
+  call: download_from_postgres
+  kwargs:
+    db_name:
+      type: AncestorArgument
+      spec:
+        call: data_set.name.clone()
+        attaches: DataSet
+    server:
+      type: AncestorArgument
+      spec:
+        call: universe.endpoints.postgres.as_ref().unwrap().server.clone()
+        attaches: Universe
+    port:
+      type: AncestorArgument
+      spec:
+        call: universe.endpoints.postgres.as_ref().unwrap().port.to_string()
+        attaches: Universe
+    username:
+      type: AncestorArgument
+      spec:
+        call: universe.endpoints.postgres.as_ref().unwrap().username.clone()
+        attaches: Universe
+    password:
+      type: AncestorArgument
+      spec:
+        call: universe.endpoints.postgres.as_ref().unwrap().password.clone()
+        attaches: Universe
+    tablename:
+      type: AncestorArgument
+      spec:
+        call: static_data_table.name.clone()
+        attaches: StaticDataTable
+    tmp_dir:
+      type: AncestorArgument
+      spec:
+        call: replication_storage_setup.tmp_dir
+        attaches: ReplicationStorageSetup
+    output_file:
+      type: AncestorArgument
+      spec:
+        call: format!("{}.csv", static_data_table.name).to_string()
+        attaches: StaticDataTable
+    columns:
+      type: MultipleAncestorsArgument
+      spec:
+        attaches:
+          - DataSet
+          - StaticDataTable
+        call: >
+          {
+            use crate::template::TDatumTemplate;
+            let template =
+            data_set.get_template_for_asset(static_data_table).unwrap();
+            let attributes = template.get_attributes();
+            let attributes_vec = attributes.into_iter().map(
+                |x| x.get_name().to_string(),
+            ).collect::<Vec<_>>();
+            serde_json::json!(attributes_vec).to_string()
+          }
