@@ -629,7 +629,7 @@ spec:
 ---
 type: Constraint
 spec:
-  name: InferSchemas
+  name: InferSchemasFromPostgresAndThenReplicateToBigQuery
   root: Universe
   requiresProgram: true
   requires:

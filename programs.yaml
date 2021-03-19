@@ -2003,7 +2003,7 @@ spec:
 ---
 type: Program
 spec:
-  use: InferSchemas
+  use: InferSchemasFromPostgresAndThenReplicateToBigQuery
   root: Universe
   dialect: Python
   preamble: |
@@ -2025,7 +2025,7 @@ spec:
             {name} = Universe(
                 name="{name}",
                 datasets=[{datasets}],
-                endpoints=DEFAULT_ENDPOINTS,
+                endpoints=endpoints,
             )
             """.format(
                 name=name,
