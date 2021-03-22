@@ -2179,31 +2179,47 @@ spec:
   root: DataSet
   dialect: Python
   preamble: |
+    
+    from datetime import datetime
+    import os
+    import json
+
     def gen_markdown_for_dataset(
         dataset_name,
         output_file,
+        asset_names,
     ):
+        asset_names = json.loads(asset_names)
         markdown = """
-        +++
-        title = "Dataset: {name}"
-        date = {today}
-        draft = false 
+    +++
+    title = "Dataset: {name}"
+    date = {today}
+    draft = false 
+    
+    [taxonomies]
+    tags = ["Aorist", "Dataset"]
+    categories = ["Datasets"]
+    
+    +++
+    
+    <!-- more -->
+    Templates:
+    
+    Assets:
+    | ---- | ---- |
+    | *Name* | *Type* | 
+    | ---- | ---- |
+    {assets}
+    | ---- | ---- |
+        """.strip().format(
+            name=dataset_name,
+            today=datetime.today().strftime('%Y-%m-%d'),
+            assets="\\n".join(["| %s | %s |" % tuple(x) for x in asset_names]),
+        )
         
-        [taxonomies]
-        tags = ["Aorist", "Dataset"]
-        categories = ["Datasets"]
-        
-        +++
-        
-        <!-- more -->
-        Tabular Schemas:
-        
-        Tables:
-        """.strip().format(name=dataset_name)
-        
-        if not os.path.exists('content'):
-            os.makedirs('content')
-        output_path = 'content/%s' % output_file
+        if not os.path.exists('content/d'):
+            os.makedirs('content/d')
+        output_path = 'content/d/%s' % output_file
         with open(output_path, 'w') as f:
             f.write(markdown)
   call: gen_markdown_for_dataset
@@ -2217,4 +2233,14 @@ spec:
       type: AncestorArgument
       spec:
         call: data_set.name
+        attaches: DataSet
+    asset_names:
+      type: AncestorArgument
+      spec:
+        call: >
+          serde_json::json!(
+              data_set.get_assets().iter().map(
+                  |x| (x.get_name(), x.get_type())
+              ).collect::<Vec<_>>()
+          ).to_string()
         attaches: DataSet

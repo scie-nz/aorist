@@ -32,6 +32,13 @@ pub trait TAsset {
 }
 
 impl Asset {
+    pub fn get_type(&self) -> String {
+        match self {
+            Asset::StaticDataTable(_) => "StaticDataTable",
+            Asset::SupervisedModel(_) => "SupervisedModel",
+            Asset::DerivedAsset(_) => "DerivedAsset",
+        }.to_string()
+    }
     pub fn get_name(&self) -> String {
         match self {
             Asset::StaticDataTable(x) => x.name.clone(),
