@@ -2172,3 +2172,49 @@ spec:
             ).collect::<Vec<_>>();
             serde_json::json!(attributes_vec).to_string()
           }
+---
+type: Program
+spec:
+  use: GenerateMarkdownForDatasets
+  root: DataSet
+  dialect: Python
+  preamble: |
+    def gen_markdown_for_dataset(
+        dataset_name,
+        output_file,
+    ):
+        markdown = """
+        +++
+        title = "Dataset: {name}"
+        date = {today}
+        draft = false 
+        
+        [taxonomies]
+        tags = ["Aorist", "Dataset"]
+        categories = ["Datasets"]
+        
+        +++
+        
+        <!-- more -->
+        Tabular Schemas:
+        
+        Tables:
+        """.strip().format(name=dataset_name)
+        
+        if not os.path.exists('content'):
+            os.makedirs('content')
+        output_path = 'content/%s' % output_file
+        with open(output_path, 'w') as f:
+            f.write(markdown)
+  call: gen_markdown_for_dataset
+  kwargs:
+    output_file:
+      type: AncestorArgument
+      spec:
+        call: format!("{}.md", data_set.name).to_string()
+        attaches: DataSet
+    dataset_name:
+      type: AncestorArgument
+      spec:
+        call: data_set.name
+        attaches: DataSet

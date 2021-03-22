@@ -640,3 +640,9 @@ spec:
   name: DownloadDataFromPostgres
   root: PostgresLocation
   requiresProgram: true
+---
+type: Constraint
+spec:
+  name: GenerateMarkdownForDatasets
+  root: DataSet
+  requiresProgram: true

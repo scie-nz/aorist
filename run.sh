@@ -1,3 +1,3 @@
 #!/bin/bash
 cp target/debug/libaorist.so example/aorist.so
-python3 example/gen.py $1
+python3 example/hub.py
