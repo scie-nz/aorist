@@ -429,7 +429,7 @@ fn process_concepts() {
         ("crate::features", "ContinuousRegressionObjective"),
         ("crate::features", "ContinuousObjective"),
         ("crate::features", "RegressionObjective"),
-        ("crate::header", "UpperSnakeCaseCSVHeader"),
+        ("crate::header", "CSVHeader"),
         ("crate::header", "FileHeader"),
         ("crate::location", "AlluxioLocation"),
         ("crate::location", "BigQueryLocation"),

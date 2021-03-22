@@ -11,6 +11,6 @@ use std::sync::{Arc, RwLock};
 use uuid::Uuid;
 
 #[aorist_concept]
-pub struct UpperSnakeCaseCSVHeader {
+pub struct CSVHeader {
     pub num_lines: Option<usize>,
 }

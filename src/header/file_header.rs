@@ -1,5 +1,5 @@
 use crate::concept::{AoristConcept, Concept};
-use crate::header::upper_snake_case_csv_header::*;
+use crate::header::csv_header::*;
 use aorist_concept::{aorist_concept, Constrainable, InnerObject};
 use paste::paste;
 use pyo3::prelude::*;
@@ -8,13 +8,13 @@ use uuid::Uuid;
 
 #[aorist_concept]
 pub enum FileHeader {
-    UpperSnakeCaseCSVHeader(UpperSnakeCaseCSVHeader),
+    CSVHeader(CSVHeader),
 }
 
 impl FileHeader {
     #[allow(dead_code)]
     pub fn get_num_lines(&self) -> usize {
-        let FileHeader::UpperSnakeCaseCSVHeader(x) = self;
+        let FileHeader::CSVHeader(x) = self;
         match x.num_lines {
             None => 1,
             Some(n) => n,

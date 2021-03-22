@@ -1,5 +1,5 @@
 mod file_header;
-mod upper_snake_case_csv_header;
+mod csv_header;
 
 pub use file_header::{FileHeader, InnerFileHeader};
-pub use upper_snake_case_csv_header::{InnerUpperSnakeCaseCSVHeader, UpperSnakeCaseCSVHeader};
+pub use csv_header::{InnerCSVHeader, CSVHeader};

@@ -4,7 +4,7 @@ from aorist import (
     AlluxioLocation,
     WebLocation,
     StaticTabularLayout,
-    UpperSnakeCaseCSVHeader,
+    CSVHeader,
     ZipCompression,
     ORCEncoding,
     CSVEncoding,
@@ -458,7 +458,7 @@ remote = RemoteStorage(
         compression=ZipCompression(
             filename="Countries.txt",
         ),
-        header=UpperSnakeCaseCSVHeader(),
+        header=CSVHeader(),
     ),
 )
 local = HiveTableStorage(

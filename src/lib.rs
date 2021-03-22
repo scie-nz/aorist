@@ -190,7 +190,7 @@ fn aorist(py: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<InnerUniverse>()?;
     m.add_class::<InnerStaticDataTable>()?;
     m.add_class::<InnerUser>()?;
-    m.add_class::<InnerUpperSnakeCaseCSVHeader>()?;
+    m.add_class::<InnerCSVHeader>()?;
     m.add_class::<InnerSingleFileLayout>()?;
     m.add_class::<InnerStaticTabularLayout>()?;
     m.add_class::<InnerDailyGranularity>()?;

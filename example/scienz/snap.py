@@ -2,7 +2,7 @@ from aorist import (
     MinioLocation,
     WebLocation,
     StaticTabularLayout,
-    UpperSnakeCaseCSVHeader,
+    CSVHeader,
     GzipCompression,
     ORCEncoding,
     TSVEncoding,
@@ -53,7 +53,7 @@ for name in names:
         layout=SingleFileLayout(),
         encoding=TSVEncoding(
             compression=GzipCompression(),
-            header=UpperSnakeCaseCSVHeader(num_lines=4),
+            header=CSVHeader(num_lines=4),
         ),
     )
     local = HiveTableStorage(
