@@ -22,7 +22,7 @@ use paste::paste;
 use pyo3::create_exception;
 use pyo3::exceptions::PyException;
 use pyo3::prelude::*;
-use pyo3::types::{PyList, PyModule, PyString, PyTuple};
+use pyo3::types::PyModule;
 use serde::{Deserialize, Serialize};
 use sqlparser::ast::Statement;
 use sqlparser::dialect::GenericDialect;

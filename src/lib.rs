@@ -129,6 +129,19 @@ pub fn derive_integer_measure(
     }
 }
 
+// TODO: these two functions should not require the round-trip to Universe
+#[pyfunction]
+pub fn serialize(inner: InnerUniverse) -> PyResult<String> {
+    let universe = Universe::from(inner);
+    let s = serde_yaml::to_string(&universe).unwrap();
+    Ok(s)
+}
+#[pyfunction]
+pub fn deserialize(input: String) -> PyResult<InnerUniverse> {
+    let universe: Universe = serde_yaml::from_str(&input).unwrap();
+    Ok(universe.into())
+}
+
 #[pyfunction]
 pub fn dag(inner: InnerUniverse, constraints: Vec<String>, mode: &str) -> PyResult<String> {
     let mut universe = Universe::from(inner);
