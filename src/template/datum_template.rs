@@ -21,7 +21,19 @@ pub enum DatumTemplate {
     IntegerMeasure(IntegerMeasure),
     Filter(Filter),
 }
-
+impl DatumTemplate {
+    pub fn get_type(&self) -> String {
+        match self {
+            DatumTemplate::RowStruct(_) => "RowStruct",
+            DatumTemplate::IdentifierTuple(_) => "IdentifierTuple",
+            DatumTemplate::IntegerMeasure(_) => "IntegerMeasure",
+            DatumTemplate::TrainedFloatMeasure(_) => "TrainedFloatMeasure",
+            DatumTemplate::PredictionsFromTrainedFloatMeasure(_) => 
+                "PredictionsFromTrainedFloatMeasure",
+            DatumTemplate::Filter(_) => "Filter",
+        }.to_string()
+    }
+}
 pub trait TDatumTemplate {
     fn get_attributes(&self) -> Vec<Attribute>;
     fn get_name(&self) -> String;

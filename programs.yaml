@@ -2188,8 +2188,10 @@ spec:
         dataset_name,
         output_file,
         asset_names,
+        template_names,
     ):
         asset_names = json.loads(asset_names)
+        template_names = json.loads(template_names)
         markdown = """
     +++
     title = "Dataset: {name}"
@@ -2204,7 +2206,12 @@ spec:
     
     <!-- more -->
     Templates:
-    
+    | ---- | ---- |
+    | *Name* | *Type* | 
+    | ---- | ---- |
+    {templates}
+    | ---- | ---- |
+
     Assets:
     | ---- | ---- |
     | *Name* | *Type* | 
@@ -2215,6 +2222,7 @@ spec:
             name=dataset_name,
             today=datetime.today().strftime('%Y-%m-%d'),
             assets="\\n".join(["| %s | %s |" % tuple(x) for x in asset_names]),
+            templates="\\n".join(["| %s | %s |" % tuple(x) for x in template_names]),
         )
         
         if not os.path.exists('content/d'):
@@ -2240,6 +2248,16 @@ spec:
         call: >
           serde_json::json!(
               data_set.get_assets().iter().map(
+                  |x| (x.get_name(), x.get_type())
+              ).collect::<Vec<_>>()
+          ).to_string()
+        attaches: DataSet
+    template_names:
+      type: AncestorArgument
+      spec:
+        call: >
+          serde_json::json!(
+              data_set.get_templates().iter().map(
                   |x| (x.get_name(), x.get_type())
               ).collect::<Vec<_>>()
           ).to_string()

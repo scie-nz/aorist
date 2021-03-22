@@ -38,6 +38,9 @@ impl DataSet {
             .map(|x| (*x).clone())
             .collect()
     }
+    pub fn get_templates(&self) -> Vec<DatumTemplate> {
+        self.datumTemplates.clone()
+    }
     pub fn get_template_for_asset<T: TAsset>(&self, asset: &T) -> Result<DatumTemplate, String> {
         let schema = asset.get_schema();
         let template_name = schema.get_datum_template_name().unwrap();
