@@ -10,11 +10,21 @@ use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::sync::{Arc, RwLock};
 use uuid::Uuid;
+use markdown_gen::markdown::*;
 
 #[aorist_concept]
 pub struct RemoteStorageSetup {
     #[constrainable]
     pub remote: Storage,
+}
+impl RemoteStorageSetup {
+    pub fn markdown(&self, md: &mut Markdown<Vec<u8>>) {
+        md.write(
+            "RemoteStorageSetup:".bold().paragraph()
+            .append(" the dataset is known to be stored in a remote location.")
+        ).unwrap();
+        self.remote.markdown(md);
+    }
 }
 
 impl InnerRemoteStorageSetup {

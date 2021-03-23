@@ -2279,6 +2279,7 @@ spec:
         output_file,
         attributes,
         template_name,
+        storage_setup,
     ):
         attributes = json.loads(attributes)
         markdown = """
@@ -2291,10 +2292,12 @@ spec:
     tags = ["Aorist", "Static Tables"]
     categories = ["Static Tables"]
 
-    Template Name: {template_name}
     +++
+    Template Name: {template_name}
 
     <!-- more -->
+    {storage_setup}
+
     Attributes:
     | ---- | ---- |
     | *Name* | *Type* |
@@ -2305,6 +2308,7 @@ spec:
             name=static_data_table_name,
             template_name=template_name,
             today=datetime.today().strftime('%Y-%m-%d'),
+            storage_setup=storage_setup,
             attributes="\\n".join(["| %s | %s |" % tuple(x) for x in attributes]),
         )
 
@@ -2324,6 +2328,17 @@ spec:
       type: AncestorArgument
       spec:
         call: static_data_table.name
+        attaches: StaticDataTable
+    storage_setup:
+      type: AncestorArgument
+      spec:
+        call: |
+          {
+            let mut md = markdown_gen::markdown::Markdown::new(Vec::new());
+            static_data_table.setup.markdown(&mut md);
+            let vec = md.into_inner();
+            String::from_utf8(vec).unwrap()
+          }
         attaches: StaticDataTable
     attributes:
       type: MultipleAncestorsArgument

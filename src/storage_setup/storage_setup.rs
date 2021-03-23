@@ -10,6 +10,7 @@ use paste::paste;
 use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
+use markdown_gen::markdown::*;
 
 #[aorist_concept]
 pub enum StorageSetup {
@@ -30,6 +31,13 @@ impl StorageSetup {
             Self::ReplicationStorageSetup(s) => s.targets.clone(),
             Self::ComputedFromLocalData(c) => vec![c.target.clone()],
             Self::LocalStorageSetup(l) => vec![l.local.clone()],
+        }
+    }
+    pub fn markdown(&self, md: &mut Markdown<Vec<u8>>) {
+        md.write("Storage Setup".heading(1)).unwrap();
+        match self {
+            Self::RemoteStorageSetup(x) => x.markdown(md),
+            _ => panic!("markdown not supported"),
         }
     }
     pub fn get_tmp_dir(&self) -> String {

@@ -7,8 +7,18 @@ use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::sync::{Arc, RwLock};
 use uuid::Uuid;
+use markdown_gen::markdown::*;
 
 #[aorist_concept]
 pub struct PushshiftAPILocation {
     pub subreddit: String,
+}
+impl PushshiftAPILocation {
+    pub fn markdown(&self, md: &mut Markdown<Vec<u8>>) {
+        md.write(
+            List::new(true)
+                .title("PushshiftAPILocation")
+                .item("subreddit".bold().paragraph().append(": ").append(&*self.subreddit))
+        ).unwrap();
+    }
 }

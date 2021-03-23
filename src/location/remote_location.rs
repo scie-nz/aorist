@@ -8,6 +8,7 @@ use paste::paste;
 use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
+use markdown_gen::markdown::*;
 
 #[aorist_concept]
 pub enum RemoteLocation {
@@ -19,4 +20,15 @@ pub enum RemoteLocation {
     PushshiftAPILocation(PushshiftAPILocation),
     #[constrainable]
     BigQueryLocation(BigQueryLocation),
+}
+
+impl RemoteLocation {
+    pub fn markdown(&self, md: &mut Markdown<Vec<u8>>) {
+        match &self {
+            RemoteLocation::GCSLocation(x) => x.markdown(md),
+            RemoteLocation::WebLocation(x) => x.markdown(md),
+            RemoteLocation::PushshiftAPILocation(x) => x.markdown(md),
+            RemoteLocation::BigQueryLocation(x) => x.markdown(md),
+        }
+    }
 }
