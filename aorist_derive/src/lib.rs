@@ -674,3 +674,219 @@ pub fn derive_postgres_timestamp_without_time_zone(input: TokenStream) -> TokenS
     };
     gen.into()
 }
+
+#[proc_macro_derive(PostgresUuid)]
+pub fn derive_postgres_uuid(input: TokenStream) -> TokenStream {
+    let ast: syn::DeriveInput = syn::parse(input).unwrap();
+    let name = &ast.ident;
+    let gen = quote! {
+        impl TPostgresAttribute for #name {
+            fn get_postgres_type(&self) -> String {
+                "UUID".to_string()
+            }
+        }
+    };
+    gen.into()
+}
+
+#[proc_macro_derive(PostgresOid)]
+pub fn derive_postgres_oid(input: TokenStream) -> TokenStream {
+    let ast: syn::DeriveInput = syn::parse(input).unwrap();
+    let name = &ast.ident;
+    let gen = quote! {
+        impl TPostgresAttribute for #name {
+            fn get_postgres_type(&self) -> String {
+                "OID".to_string()
+            }
+        }
+    };
+    gen.into()
+}
+
+#[proc_macro_derive(PostgresName)]
+pub fn derive_postgres_name(input: TokenStream) -> TokenStream {
+    let ast: syn::DeriveInput = syn::parse(input).unwrap();
+    let name = &ast.ident;
+    let gen = quote! {
+        impl TPostgresAttribute for #name {
+            fn get_postgres_type(&self) -> String {
+                "NAME".to_string()
+            }
+        }
+    };
+    gen.into()
+}
+
+#[proc_macro_derive(PostgresTimestampWithTimeZone)]
+pub fn derive_postgres_timestamp_with_time_zone(input: TokenStream) -> TokenStream {
+    let ast: syn::DeriveInput = syn::parse(input).unwrap();
+    let name = &ast.ident;
+    let gen = quote! {
+        impl TPostgresAttribute for #name {
+            fn get_postgres_type(&self) -> String {
+                "TIMESTAMP WITH TIME ZONE".to_string()
+            }
+        }
+    };
+    gen.into()
+}
+
+#[proc_macro_derive(PostgresJSONB)]
+pub fn derive_postgres_jsonb(input: TokenStream) -> TokenStream {
+    let ast: syn::DeriveInput = syn::parse(input).unwrap();
+    let jsonb = &ast.ident;
+    let gen = quote! {
+        impl TPostgresAttribute for #jsonb {
+            fn get_postgres_type(&self) -> String {
+                "JSONB".to_string()
+            }
+        }
+    };
+    gen.into()
+}
+
+#[proc_macro_derive(PostgresUserDefined)]
+pub fn derive_postgres_userdefined(input: TokenStream) -> TokenStream {
+    let ast: syn::DeriveInput = syn::parse(input).unwrap();
+    let name = &ast.ident;
+    let gen = quote! {
+        impl TPostgresAttribute for #name {
+            fn get_postgres_type(&self) -> String {
+                "USER-DEFINED".to_string()
+            }
+        }
+    };
+    gen.into()
+}
+
+#[proc_macro_derive(PostgresArray)]
+pub fn derive_postgres_array(input: TokenStream) -> TokenStream {
+    let ast: syn::DeriveInput = syn::parse(input).unwrap();
+    let array = &ast.ident;
+    let gen = quote! {
+        impl TPostgresAttribute for #array {
+            fn get_postgres_type(&self) -> String {
+                "ARRAY".to_string()
+            }
+        }
+    };
+    gen.into()
+}
+
+#[proc_macro_derive(PostgresRegProc)]
+pub fn derive_postgres_regproc(input: TokenStream) -> TokenStream {
+    let ast: syn::DeriveInput = syn::parse(input).unwrap();
+    let name = &ast.ident;
+    let gen = quote! {
+        impl TPostgresAttribute for #name {
+            fn get_postgres_type(&self) -> String {
+                "REGPROC".to_string()
+            }
+        }
+    };
+    gen.into()
+}
+#[proc_macro_derive(PostgresPgNodeTree)]
+pub fn derive_postgres_pgnodetree(input: TokenStream) -> TokenStream {
+    let ast: syn::DeriveInput = syn::parse(input).unwrap();
+    let name = &ast.ident;
+    let gen = quote! {
+        impl TPostgresAttribute for #name {
+            fn get_postgres_type(&self) -> String {
+                "PG_NODE_TREE".to_string()
+            }
+        }
+    };
+    gen.into()
+}
+#[proc_macro_derive(PostgresPgLsn)]
+pub fn derive_postgres_pglsn(input: TokenStream) -> TokenStream {
+    let ast: syn::DeriveInput = syn::parse(input).unwrap();
+    let name = &ast.ident;
+    let gen = quote! {
+        impl TPostgresAttribute for #name {
+            fn get_postgres_type(&self) -> String {
+                "PG_LSN".to_string()
+            }
+        }
+    };
+    gen.into()
+}
+#[proc_macro_derive(PostgresXid)]
+pub fn derive_postgres_xid(input: TokenStream) -> TokenStream {
+    let ast: syn::DeriveInput = syn::parse(input).unwrap();
+    let name = &ast.ident;
+    let gen = quote! {
+        impl TPostgresAttribute for #name {
+            fn get_postgres_type(&self) -> String {
+                "XID".to_string()
+            }
+        }
+    };
+    gen.into()
+}
+#[proc_macro_derive(PostgresAnyArray)]
+pub fn derive_postgres_anyarray(input: TokenStream) -> TokenStream {
+    let ast: syn::DeriveInput = syn::parse(input).unwrap();
+    let name = &ast.ident;
+    let gen = quote! {
+        impl TPostgresAttribute for #name {
+            fn get_postgres_type(&self) -> String {
+                "ANYARRAY".to_string()
+            }
+        }
+    };
+    gen.into()
+}
+#[proc_macro_derive(PostgresRegType)]
+pub fn derive_postgres_regtype(input: TokenStream) -> TokenStream {
+    let ast: syn::DeriveInput = syn::parse(input).unwrap();
+    let name = &ast.ident;
+    let gen = quote! {
+        impl TPostgresAttribute for #name {
+            fn get_postgres_type(&self) -> String {
+                "REGTYPE".to_string()
+            }
+        }
+    };
+    gen.into()
+}
+#[proc_macro_derive(PostgresPgNDistinct)]
+pub fn derive_postgres_pgndistinct(input: TokenStream) -> TokenStream {
+    let ast: syn::DeriveInput = syn::parse(input).unwrap();
+    let name = &ast.ident;
+    let gen = quote! {
+        impl TPostgresAttribute for #name {
+            fn get_postgres_type(&self) -> String {
+                "PG_NDISTINCT".to_string()
+            }
+        }
+    };
+    gen.into()
+}
+#[proc_macro_derive(PostgresPgDependencies)]
+pub fn derive_postgres_pgdependencies(input: TokenStream) -> TokenStream {
+    let ast: syn::DeriveInput = syn::parse(input).unwrap();
+    let name = &ast.ident;
+    let gen = quote! {
+        impl TPostgresAttribute for #name {
+            fn get_postgres_type(&self) -> String {
+                "PG_DEPENDENCIES".to_string()
+            }
+        }
+    };
+    gen.into()
+}
+#[proc_macro_derive(PostgresInet)]
+pub fn derive_postgres_inet(input: TokenStream) -> TokenStream {
+    let ast: syn::DeriveInput = syn::parse(input).unwrap();
+    let name = &ast.ident;
+    let gen = quote! {
+        impl TPostgresAttribute for #name {
+            fn get_postgres_type(&self) -> String {
+                "INET".to_string()
+            }
+        }
+    };
+    gen.into()
+}

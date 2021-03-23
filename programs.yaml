@@ -1855,40 +1855,67 @@ spec:
         conn=psycopg2.connect(conn_string)
         cursor = conn.cursor()
         cursor.execute("""
-        SELECT table_name FROM information_schema.tables
-        WHERE table_schema = 'public'
+        SELECT table_name, table_schema
+        FROM information_schema.tables
         """)
         coldefs = []
 
         attr_types = {
             "BOOL": "attr.FromPostgresBool",
             "TEXT": "attr.FromPostgresText",
+            "UUID": "attr.FromPostgresUuid",
+            "OID": "attr.FromPostgresOid",
+            "NAME": "attr.FromPostgresName",
             "INTEGER": "attr.FromPostgresInteger",
             "BIGINT": "attr.FromPostgresBigInt",
             "CHARACTER VARYING": "attr.FromPostgresCharacterVarying",
             "TIMESTAMP WITHOUT TIME ZONE": "attr.FromPostgresTimestampWithoutTimeZone",
+            "TIMESTAMP WITH TIME ZONE": "attr.FromPostgresTimestampWithTimeZone",
+            "CHAR": "attr.FromPostgresChar",
+            "BOOLEAN": "attr.FromPostgresBoolean",
+            "JSONB": "attr.FromPostgresJSONB",
+            "USER-DEFINED": "attr.FromPostgresUserDefined",
+            "ARRAY": "attr.FromPostgresArray",
+            "REGPROC": "attr.FromPostgresRegProc",
+            "SMALLINT": "attr.FromPostgresSmallInt",
+            "REAL": "attr.FromPostgresReal",
+            "DOUBLE PRECISION": "attr.FromPostgresDoublePrecision",
+            "PG_NODE_TREE": "attr.FromPostgresPgNodeTree",
+            "PG_LSN": "attr.FromPostgresPgLsn",
+            "XID": "attr.FromPostgresXid",
+            "INTERVAL": "attr.FromPostgresInterval",
+            "ANYARRAY": "attr.FromPostgresAnyArray",
+            "BYTEA": "attr.FromPostgresBytea",
+            "REGTYPE": "attr.FromPostgresRegType",
+            "PG_NDISTINCT": "attr.FromPostgresPgNDistinct",
+            "PG_DEPENDENCIES": "attr.FromPostgresPgDependencies",
+            "INET": "attr.FromPostgresInet",
+            "NUMERIC": "attr.FromPostgresNumeric",
         }
 
         templates = {}
         assets = {}
 
-        for table_name in cursor.fetchall():
+        for table_name, table_schema in cursor.fetchall():
             cursor.execute(
                 """
                 SELECT column_name, data_type, is_nullable
                 FROM information_schema.columns
-                WHERE table_name = %s;
-                """, table_name
+                WHERE table_name = %s AND table_schema = %s
+                """, (table_name, table_schema),
             )
-            table_name = table_name[0]
             template = []
 
             for column_name, data_type, is_nullable in cursor.fetchall():
-                attr_type = attr_types[data_type.upper()]
-                template += [
-                    "%s('%s'%s)" %
-                    (attr_type, column_name, ", nullable=True" if is_nullable else "")
-                ]
+                data_type = data_type.upper().replace('"', '')
+                if not data_type in attr_types:
+                    print("Problem with attr:" + data_type)
+                else:
+                    attr_type = attr_types[data_type]
+                    template += [
+                        "%s('%s'%s)" %
+                        (attr_type, column_name, ", nullable=True" if is_nullable else "")
+                    ]
 
             template_tpl = tuple(template)
 
@@ -1902,10 +1929,23 @@ spec:
             StaticDataTable(
                 name="{table_name}",
                 schema=default_tabular_schema(templates["{template_name}"]),
-                setup=setup,
+                setup=RemoteStorageSetup(
+                    remote=PostgresStorage(
+                        location=PostgresLocation(
+                            database="{db_name}",
+                            schema="{table_schema}",
+                        ),
+                        layout=StaticTabularLayout(),
+                    )
+                ),
                 tag="{table_name}",
             ),
-            """.format(table_name=table_name, template_name=template_name)
+            """.format(
+                table_name=table_name,
+                template_name=template_name,
+                db_name=db_name,
+                table_schema=table_schema
+            )
 
         datum_templates = {}
         for template, name in templates.items():
@@ -1920,16 +1960,6 @@ spec:
                     attributes=", ".join(template),
                 )
            )
-
-        setup_code = """
-        setup = RemoteStorageSetup(
-              remote=PostgresStorage(
-                location=PostgresLocation(),
-                layout=StaticTabularLayout(),
-            ),
-        )
-        """
-        setup_code = black.format_str(setup_code, mode=black.Mode())
 
         templates_code = (
               "templates = {{\\n{templates}\\n}}"
@@ -1964,7 +1994,7 @@ spec:
         from IPython.display import Javascript, display
         import base64
 
-        for code in [setup_code, templates_code, assets_code, dataset_code]:
+        for code in [templates_code, assets_code, dataset_code]:
             encoded_code = (base64.b64encode(str.encode(code))).decode()
             display(Javascript("""
                 var code = IPython.notebook.insert_cell_above('code');
