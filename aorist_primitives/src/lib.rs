@@ -829,6 +829,13 @@ macro_rules! register_attribute {
                     )+
                 }
             }
+            pub fn get_type(&self) -> String {
+                match self {
+                    $(
+                        [<$name Enum>]::$element(x) => stringify!($element).to_string(),
+                    )+
+                }
+            }
             pub fn is_nullable(&self) -> bool {
                 match self {
                     $(
@@ -911,6 +918,9 @@ macro_rules! register_attribute {
         impl $name {
             pub fn get_name(&self) -> &String {
                 self.inner.get_name()
+            }
+            pub fn get_type(&self) -> String {
+                self.inner.get_type()
             }
             pub fn is_nullable(&self) -> bool {
                 self.inner.is_nullable()

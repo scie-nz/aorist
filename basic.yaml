@@ -646,3 +646,18 @@ spec:
   name: GenerateMarkdownForDatasets
   root: DataSet
   requiresProgram: true
+  requires:
+    - GenerateMarkdownForAssets
+---
+type: Constraint
+spec:
+  name: GenerateMarkdownForAssets
+  root: Asset
+  requires:
+    - GenerateMarkdownForStaticDataTables
+---
+type: Constraint
+spec:
+  name: GenerateMarkdownForStaticDataTables
+  root: StaticDataTable
+  requiresProgram: true

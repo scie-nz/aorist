@@ -2179,7 +2179,7 @@ spec:
   root: DataSet
   dialect: Python
   preamble: |
-    
+
     from datetime import datetime
     import os
     import json
@@ -2196,25 +2196,25 @@ spec:
     +++
     title = "Dataset: {name}"
     date = {today}
-    draft = false 
-    
+    draft = false
+
     [taxonomies]
     tags = ["Aorist", "Dataset"]
     categories = ["Datasets"]
-    
+
     +++
-    
+
     <!-- more -->
     Templates:
     | ---- | ---- |
-    | *Name* | *Type* | 
+    | *Name* | *Type* |
     | ---- | ---- |
     {templates}
     | ---- | ---- |
 
     Assets:
     | ---- | ---- |
-    | *Name* | *Type* | 
+    | *Name* | *Type* |
     | ---- | ---- |
     {assets}
     | ---- | ---- |
@@ -2224,7 +2224,7 @@ spec:
             assets="\\n".join(["| %s | %s |" % tuple(x) for x in asset_names]),
             templates="\\n".join(["| %s | %s |" % tuple(x) for x in template_names]),
         )
-        
+
         if not os.path.exists('content/d'):
             os.makedirs('content/d')
         output_path = 'content/d/%s' % output_file
@@ -2262,3 +2262,84 @@ spec:
               ).collect::<Vec<_>>()
           ).to_string()
         attaches: DataSet
+---
+type: Program
+spec:
+  use: GenerateMarkdownForStaticDataTables
+  root: StaticDataTable
+  dialect: Python
+  preamble: |
+
+    from datetime import datetime
+    import os
+    import json
+
+    def gen_markdown_for_static_data_table(
+        static_data_table_name,
+        output_file,
+        attributes,
+        template_name,
+    ):
+        attributes = json.loads(attributes)
+        markdown = """
+    +++
+    title = "Static Data Table: {name}"
+    date = {today}
+    draft = false
+
+    [taxonomies]
+    tags = ["Aorist", "Static Tables"]
+    categories = ["Static Tables"]
+
+    Template Name: {template_name}
+    +++
+
+    <!-- more -->
+    Attributes:
+    | ---- | ---- |
+    | *Name* | *Type* |
+    | ---- | ---- |
+    {attributes}
+    | ---- | ---- |
+        """.strip().format(
+            name=static_data_table_name,
+            template_name=template_name,
+            today=datetime.today().strftime('%Y-%m-%d'),
+            attributes="\\n".join(["| %s | %s |" % tuple(x) for x in attributes]),
+        )
+
+        if not os.path.exists('content/t'):
+            os.makedirs('content/t')
+        output_path = 'content/t/%s' % output_file
+        with open(output_path, 'w') as f:
+            f.write(markdown)
+  call: gen_markdown_for_static_data_table
+  kwargs:
+    output_file:
+      type: AncestorArgument
+      spec:
+        call: format!("{}.md", static_data_table.name).to_string()
+        attaches: StaticDataTable
+    static_data_table_name:
+      type: AncestorArgument
+      spec:
+        call: static_data_table.name
+        attaches: StaticDataTable
+    attributes:
+      type: MultipleAncestorsArgument
+      spec:
+        attaches:
+          - StaticDataTable
+          - DataSet
+        call: |
+          {
+            let template = data_set.get_template_for_asset(static_data_table).unwrap();
+            serde_json::json!(
+                template.get_attributes().iter().map(|x| (x.get_name(), x.get_type())).collect::<Vec<_>>()
+            ).to_string()
+          }
+    template_name:
+      type: AncestorArgument
+      spec:
+        attaches: StaticDataTable
+        call: static_data_table.get_schema().get_datum_template_name().unwrap()

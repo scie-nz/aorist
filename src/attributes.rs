@@ -401,6 +401,11 @@ impl Transform {
             Transform::IdentityTransform(x) => x.get_name(),
         }
     }
+    pub fn get_type(&self) -> String {
+        match &self {
+            Transform::IdentityTransform(_) => "IdentityTransform".to_string(),
+        }
+    }
     pub fn is_nullable(&self) -> bool {
         match &self {
             Transform::IdentityTransform(x) => x.is_nullable(),
@@ -459,6 +464,12 @@ impl AttributeOrTransform {
         match &self {
             AttributeOrTransform::Attribute(x) => x.get_name(),
             AttributeOrTransform::Transform(x) => x.get_name(),
+        }
+    }
+    pub fn get_type(&self) -> String {
+        match &self {
+            AttributeOrTransform::Attribute(x) => x.get_type(),
+            AttributeOrTransform::Transform(x) => x.get_type(),
         }
     }
     pub fn is_nullable(&self) -> bool {
