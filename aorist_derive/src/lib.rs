@@ -646,3 +646,31 @@ pub fn derive_bigquery_timestamp(input: TokenStream) -> TokenStream {
     };
     gen.into()
 }
+
+#[proc_macro_derive(PostgresCharacterVarying)]
+pub fn derive_postgres_character_varying(input: TokenStream) -> TokenStream {
+    let ast: syn::DeriveInput = syn::parse(input).unwrap();
+    let name = &ast.ident;
+    let gen = quote! {
+        impl TPostgresAttribute for #name {
+            fn get_postgres_type(&self) -> String {
+                "CHARACTER VARYING".to_string()
+            }
+        }
+    };
+    gen.into()
+}
+
+#[proc_macro_derive(PostgresTimestampWithoutTimeZone)]
+pub fn derive_postgres_timestamp_without_time_zone(input: TokenStream) -> TokenStream {
+    let ast: syn::DeriveInput = syn::parse(input).unwrap();
+    let name = &ast.ident;
+    let gen = quote! {
+        impl TPostgresAttribute for #name {
+            fn get_postgres_type(&self) -> String {
+                "TIMESTAMP WITHOUT TIME ZONE".to_string()
+            }
+        }
+    };
+    gen.into()
+}

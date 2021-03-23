@@ -1355,7 +1355,6 @@ spec:
         import sqlite3
         import json
         source_is_json = bool(source_is_json)
-        assert source_is_json or header is None
 
         columns = json.loads(columns)
 
@@ -1508,7 +1507,6 @@ spec:
         from psycopg2.extras import execute_batch
 
         source_is_json = bool(source_is_json)
-        assert source_is_json or header is None
 
         conn_string = " ".join([
             "host=%s" % server,
@@ -1688,8 +1686,6 @@ spec:
         from google.cloud.exceptions import NotFound
         from google.api_core.exceptions import BadRequest
 
-        import json
-
         if service_account_file != "":
             credentials = service_account.Credentials.from_service_account_file(service_account_file)
             client = bigquery.Client(credentials=credentials)
@@ -1698,7 +1694,6 @@ spec:
 
 
         source_is_json = bool(source_is_json)
-        assert source_is_json or header is None
 
         dataset_id = project_name + "." + dataset_name
         try:
@@ -1868,7 +1863,10 @@ spec:
         attr_types = {
             "BOOL": "attr.FromPostgresBool",
             "TEXT": "attr.FromPostgresText",
+            "INTEGER": "attr.FromPostgresInteger",
             "BIGINT": "attr.FromPostgresBigInt",
+            "CHARACTER VARYING": "attr.FromPostgresCharacterVarying",
+            "TIMESTAMP WITHOUT TIME ZONE": "attr.FromPostgresTimestampWithoutTimeZone",
         }
 
         templates = {}
@@ -1937,7 +1935,7 @@ spec:
               "templates = {{\\n{templates}\\n}}"
             ).format(
                 templates="\\n".join([
-                    '        "%s": %s' % (k, v.strip())
+                    '        "%s": %s,' % (k, v.strip())
                     for k, v in datum_templates.items()
                 ]),
             )
@@ -2086,7 +2084,6 @@ spec:
         import json
         import os
 
-        from psycopg2.extras import execute_batch
         if not os.path.exists(tmp_dir):
             os.makedirs(tmp_dir)
 
@@ -2103,7 +2100,7 @@ spec:
         columns = json.loads(columns)
 
         cursor.execute("""
-        SELECT {columns} FROM {tablename}
+        SELECT {columns} FROM "{tablename}"
         """.format(
             columns=", ".join(columns),
             tablename=tablename,
