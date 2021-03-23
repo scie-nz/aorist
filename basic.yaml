@@ -643,6 +643,14 @@ spec:
 ---
 type: Constraint
 spec:
+  name: GenerateMarkdown
+  root: Universe
+  requiresProgram: true
+  requires:
+    - GenerateMarkdownForDatasets
+---
+type: Constraint
+spec:
   name: GenerateMarkdownForDatasets
   root: DataSet
   requiresProgram: true

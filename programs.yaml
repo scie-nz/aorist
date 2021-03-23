@@ -2205,24 +2205,24 @@ spec:
     +++
 
     <!-- more -->
+
     Templates:
-    | ---- | ---- |
-    | *Name* | *Type* |
-    | ---- | ---- |
+
+    **Name** | *Type**
+    --- | ---
     {templates}
-    | ---- | ---- |
 
     Assets:
-    | ---- | ---- |
-    | *Name* | *Type* |
-    | ---- | ---- |
+
+    **Name** | *Type**
+    --- | ---
     {assets}
-    | ---- | ---- |
-        """.strip().format(
+
+      """.strip().format(
             name=dataset_name,
             today=datetime.today().strftime('%Y-%m-%d'),
-            assets="\\n".join(["| %s | %s |" % tuple(x) for x in asset_names]),
-            templates="\\n".join(["| %s | %s |" % tuple(x) for x in template_names]),
+            assets="\\n".join(["[{dt}](@/t/{dt}.md) | {tp}".format(dt=x[0], tp=x[1]) for x in asset_names]),
+            templates="\\n".join(["%s | %s" % tuple(x) for x in template_names]),
         )
 
         if not os.path.exists('content/d'):
@@ -2299,17 +2299,16 @@ spec:
     {storage_setup}
 
     Attributes:
-    | ---- | ---- |
-    | *Name* | *Type* |
-    | ---- | ---- |
+
+    **Name** | **Type**
+    --- | ---
     {attributes}
-    | ---- | ---- |
         """.strip().format(
             name=static_data_table_name,
             template_name=template_name,
             today=datetime.today().strftime('%Y-%m-%d'),
             storage_setup=storage_setup,
-            attributes="\\n".join(["| %s | %s |" % tuple(x) for x in attributes]),
+            attributes="\\n".join(["%s | %s" % tuple(x) for x in attributes]),
         )
 
         if not os.path.exists('content/t'):
@@ -2358,3 +2357,58 @@ spec:
       spec:
         attaches: StaticDataTable
         call: static_data_table.get_schema().get_datum_template_name().unwrap()
+---
+type: Program
+spec:
+  use: GenerateMarkdown
+  root: Universe
+  dialect: Python
+  preamble: |
+
+    from datetime import datetime
+    import os
+    import json
+
+    def gen_markdown_for_universe(universe_name, dataset_names):
+        dataset_names = json.loads(dataset_names)
+        markdown = """
+    +++
+    title = "Universe: {name}"
+    date = {today}
+    paginate_by = 5
+    sort_by = "date"
+    render = true
+    +++
+    Datasets:
+    {datasets}
+        """.strip().format(
+            name=universe_name,
+            today=datetime.today().strftime('%Y-%m-%d'),
+            datasets="\\n".join([
+              "- [{d}](@/d/{d}.md)".format(d=d)
+              for d in dataset_names
+            ])
+        )
+
+        if not os.path.exists('content'):
+            os.makedirs('content')
+        output_path = 'content/universe.md'
+        with open(output_path, 'w') as f:
+            f.write(markdown)
+  call: gen_markdown_for_universe
+  kwargs:
+    universe_name:
+      type: AncestorArgument
+      spec:
+        call: universe.name
+        attaches: Universe
+    dataset_names:
+      type: AncestorArgument
+      spec:
+        call: |
+          {
+            use crate::object::TAoristObject;
+            serde_json::json!(universe.datasets.as_ref().unwrap().iter().map(|x| x.get_name().clone()).collect::<Vec<String>>()).to_string()
+          }
+        attaches: Universe
+---

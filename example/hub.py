@@ -7,4 +7,4 @@ universe = Universe(
     datasets=[subreddits],
     endpoints=DEFAULT_ENDPOINTS,
 )
-print(universe.python("GenerateMarkdownForDatasets"))
+print(universe.python("GenerateMarkdown"))
