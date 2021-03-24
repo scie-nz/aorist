@@ -37,7 +37,8 @@ impl Asset {
             Asset::StaticDataTable(_) => "StaticDataTable",
             Asset::SupervisedModel(_) => "SupervisedModel",
             Asset::DerivedAsset(_) => "DerivedAsset",
-        }.to_string()
+        }
+        .to_string()
     }
     pub fn get_name(&self) -> String {
         match self {

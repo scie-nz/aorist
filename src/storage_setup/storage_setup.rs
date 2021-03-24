@@ -6,11 +6,11 @@ use crate::storage_setup::local_storage_setup::*;
 use crate::storage_setup::remote_storage_setup::*;
 use crate::storage_setup::replication_storage_setup::*;
 use aorist_concept::{aorist_concept, Constrainable, InnerObject};
+use markdown_gen::markdown::*;
 use paste::paste;
 use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
-use markdown_gen::markdown::*;
 
 #[aorist_concept]
 pub enum StorageSetup {

@@ -1,8 +1,8 @@
 #![allow(non_snake_case)]
 use crate::concept::{AoristConcept, Concept};
 use crate::schema::tabular_schema::*;
-use crate::schema::undefined_tabular_schema::*;
 use crate::schema::time_ordered_tabular_schema::*;
+use crate::schema::undefined_tabular_schema::*;
 use aorist_concept::{aorist_concept, Constrainable, InnerObject};
 use paste::paste;
 use pyo3::prelude::*;

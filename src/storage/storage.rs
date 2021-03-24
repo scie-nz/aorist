@@ -9,11 +9,11 @@ use crate::storage::postgres_storage::*;
 use crate::storage::remote_storage::*;
 use crate::storage::sqlite_storage::*;
 use aorist_concept::{aorist_concept, Constrainable, InnerObject};
+use markdown_gen::markdown::*;
 use paste::paste;
 use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
-use markdown_gen::markdown::*;
 
 #[aorist_concept]
 pub enum Storage {

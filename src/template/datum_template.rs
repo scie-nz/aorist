@@ -28,10 +28,12 @@ impl DatumTemplate {
             DatumTemplate::IdentifierTuple(_) => "IdentifierTuple",
             DatumTemplate::IntegerMeasure(_) => "IntegerMeasure",
             DatumTemplate::TrainedFloatMeasure(_) => "TrainedFloatMeasure",
-            DatumTemplate::PredictionsFromTrainedFloatMeasure(_) => 
-                "PredictionsFromTrainedFloatMeasure",
+            DatumTemplate::PredictionsFromTrainedFloatMeasure(_) => {
+                "PredictionsFromTrainedFloatMeasure"
+            }
             DatumTemplate::Filter(_) => "Filter",
-        }.to_string()
+        }
+        .to_string()
     }
 }
 pub trait TDatumTemplate {

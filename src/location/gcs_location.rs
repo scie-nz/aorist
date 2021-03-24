@@ -2,12 +2,12 @@ use crate::concept::{AoristConcept, Concept};
 use crate::constraint::Constraint;
 use aorist_concept::{aorist_concept, Constrainable, InnerObject};
 use derivative::Derivative;
+use markdown_gen::markdown::*;
 use paste::paste;
 use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::sync::{Arc, RwLock};
 use uuid::Uuid;
-use markdown_gen::markdown::*;
 
 #[aorist_concept]
 pub struct GCSLocation {
@@ -21,8 +21,15 @@ impl GCSLocation {
         md.write(
             List::new(true)
                 .title("GCSLocation")
-                .item("bucket".bold().paragraph().append(": ").append(&*self.bucket))
-                .item("blob".bold().paragraph().append(": ").append(&*self.blob))
-        ).unwrap();
+                .item(
+                    "bucket"
+                        .bold()
+                        .paragraph()
+                        .append(": ")
+                        .append(&*self.bucket),
+                )
+                .item("blob".bold().paragraph().append(": ").append(&*self.blob)),
+        )
+        .unwrap();
     }
 }
