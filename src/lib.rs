@@ -202,6 +202,7 @@ fn aorist(py: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<InnerGlobalPermissionsAdmin>()?;
     m.add_class::<InnerRoleBinding>()?;
     m.add_class::<InnerTabularSchema>()?;
+    m.add_class::<InnerTimeOrderedTabularSchema>()?;
     m.add_class::<InnerHiveTableStorage>()?;
     m.add_class::<InnerRemoteStorage>()?;
     m.add_class::<InnerReplicationStorageSetup>()?;
