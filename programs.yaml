@@ -1857,7 +1857,6 @@ spec:
         cursor.execute("""
         SELECT table_name, table_schema
         FROM information_schema.tables
-        LIMIT 2
         """)
         coldefs = []
 
@@ -1903,6 +1902,9 @@ spec:
                 SELECT column_name, data_type, is_nullable
                 FROM information_schema.columns
                 WHERE table_name = %s AND table_schema = %s
+                AND NOT table_name LIKE 'information_schema%%'
+                AND table_schema != 'information_schema'
+                AND table_schema != 'pg_catalog'
                 """, (table_name, table_schema),
             )
             template = []
@@ -1918,35 +1920,36 @@ spec:
                         (attr_type, column_name, ", nullable=True" if is_nullable else "")
                     ]
 
-            template_tpl = tuple(template)
+            if len(template) > 0:
+                template_tpl = tuple(template)
 
-            if not template_tpl in templates:
-                templates[template_tpl] = table_name
-                template_name = table_name
-            else:
-                template_name = templates[template_tpl]
+                if not template_tpl in templates:
+                    templates[template_tpl] = table_name
+                    template_name = table_name
+                else:
+                    template_name = templates[template_tpl]
 
-            assets[table_name] = """
-            StaticDataTable(
-                name="{table_name}",
-                schema=default_tabular_schema(templates["{template_name}"]),
-                setup=RemoteStorageSetup(
-                    remote=PostgresStorage(
-                        location=PostgresLocation(
-                            database="{db_name}",
-                            schema="{table_schema}",
-                        ),
-                        layout=StaticTabularLayout(),
-                    )
+                assets[table_name] = """
+                StaticDataTable(
+                    name="{table_name}",
+                    schema=default_tabular_schema(templates["{template_name}"]),
+                    setup=RemoteStorageSetup(
+                        remote=PostgresStorage(
+                            location=PostgresLocation(
+                                database="{db_name}",
+                                schema="{table_schema}",
+                            ),
+                            layout=StaticTabularLayout(),
+                        )
+                    ),
+                    tag="{table_name}",
                 ),
-                tag="{table_name}",
-            ),
-            """.format(
-                table_name=table_name,
-                template_name=template_name,
-                db_name=db_name,
-                table_schema=table_schema
-            )
+                """.format(
+                    table_name=table_name,
+                    template_name=template_name,
+                    db_name=db_name,
+                    table_schema=table_schema
+                )
 
         datum_templates = {}
         for template, name in templates.items():
@@ -2115,6 +2118,7 @@ spec:
         import psycopg2
         import json
         import os
+        import base64
 
         if not os.path.exists(tmp_dir):
             os.makedirs(tmp_dir)
@@ -2142,10 +2146,18 @@ spec:
         cursor.execute(query)
 
         keys = [x[0] for x in columns]
+        num_rows = 0
         with open(tmp_dir + "/" + output_file, 'w') as f:
             for row in cursor.fetchall():
+                row = [
+                    x if not isinstance(x, (bytes, bytearray, memoryview))
+                    else base64.b64encode(x).decode('ascii')
+                    for x in row
+                ]
                 map = dict(zip(keys, row))
                 f.write("%s\\n" % json.dumps(map))
+                num_rows += 1
+        print("Downloaded %d rows from table %s" % (num_rows, tablename))
 
   call: download_from_postgres
   kwargs:

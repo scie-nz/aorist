@@ -276,17 +276,6 @@ spec:
 ---
 type: Attribute
 spec:
-  name: FromPostgresOid
-  orc: OrcString
-  presto: PrestoVarchar
-  sql: SQLVarchar
-  sqlite: SQLiteText
-  bigquery: BigQueryString
-  postgres: PostgresOid
-  value: StringValue
----
-type: Attribute
-spec:
   name: FromPostgresName
   orc: OrcString
   presto: PrestoVarchar
@@ -526,3 +515,14 @@ spec:
   bigquery: BigQueryFloat64
   postgres: PostgresReal
   value: FloatValue
+---
+type: Attribute
+spec:
+  name: FromPostgresOid
+  orc: OrcBigint
+  presto: PrestoBigint
+  sql: SQLBigint
+  sqlite: SQLiteInteger
+  bigquery: BigQueryInt64
+  postgres: PostgresOid
+  value: IntegerValue

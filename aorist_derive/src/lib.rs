@@ -463,6 +463,10 @@ pub fn derive_postgres_interval(input: TokenStream) -> TokenStream {
             fn get_postgres_type(&self) -> String {
                 "INTERVAL".to_string()
             }
+            // not JSON-serializable
+            fn psycopg2_value_json_serializable(&self) -> bool {
+                false
+            }
         }
     };
     gen.into()
@@ -743,11 +747,15 @@ pub fn derive_postgres_timestamp_with_time_zone(input: TokenStream) -> TokenStre
 #[proc_macro_derive(PostgresJSONB)]
 pub fn derive_postgres_jsonb(input: TokenStream) -> TokenStream {
     let ast: syn::DeriveInput = syn::parse(input).unwrap();
-    let jsonb = &ast.ident;
+    let name = &ast.ident;
     let gen = quote! {
-        impl TPostgresAttribute for #jsonb {
+        impl TPostgresAttribute for #name {
             fn get_postgres_type(&self) -> String {
                 "JSONB".to_string()
+            }
+            // not JSON-serializable
+            fn psycopg2_value_json_serializable(&self) -> bool {
+                false
             }
         }
     };
@@ -776,6 +784,10 @@ pub fn derive_postgres_array(input: TokenStream) -> TokenStream {
         impl TPostgresAttribute for #array {
             fn get_postgres_type(&self) -> String {
                 "ARRAY".to_string()
+            }
+            // not JSON-serializable
+            fn psycopg2_value_json_serializable(&self) -> bool {
+                false
             }
         }
     };
