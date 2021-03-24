@@ -1857,6 +1857,7 @@ spec:
         cursor.execute("""
         SELECT table_name, table_schema
         FROM information_schema.tables
+        LIMIT 2
         """)
         coldefs = []
 
@@ -2109,6 +2110,7 @@ spec:
         output_file,
         # insertion order matters if we are dealing with a csv
         columns,
+        schema_name,
     ):
         import psycopg2
         import json
@@ -2129,15 +2131,20 @@ spec:
 
         columns = json.loads(columns)
 
-        cursor.execute("""
-        SELECT {columns} FROM "{tablename}"
+        query = """
+        SELECT {columns} FROM {db_name}.{schema_name}."{tablename}"
         """.format(
-            columns=", ".join(columns),
+            columns=", ".join(['"%s"' % x[0] if x[1] else ('"%s"::text AS %s' % (x[0], x[0])) for x in columns]),
             tablename=tablename,
-        ))
+            db_name=db_name,
+            schema_name=schema_name,
+        )
+        cursor.execute(query)
+
+        keys = [x[0] for x in columns]
         with open(tmp_dir + "/" + output_file, 'w') as f:
             for row in cursor.fetchall():
-                map = dict(zip(columns, row))
+                map = dict(zip(keys, row))
                 f.write("%s\\n" % json.dumps(map))
 
   call: download_from_postgres
@@ -2145,8 +2152,13 @@ spec:
     db_name:
       type: AncestorArgument
       spec:
-        call: data_set.name.clone()
-        attaches: DataSet
+        call: postgres_location.database.clone()
+        attaches: PostgresLocation
+    schema_name:
+      type: AncestorArgument
+      spec:
+        call: postgres_location.schema.clone()
+        attaches: PostgresLocation
     server:
       type: AncestorArgument
       spec:
@@ -2195,7 +2207,7 @@ spec:
             data_set.get_template_for_asset(static_data_table).unwrap();
             let attributes = template.get_attributes();
             let attributes_vec = attributes.into_iter().map(
-                |x| x.get_name().to_string(),
+                |x| (x.get_name().to_string(), x.psycopg2_value_json_serializable())
             ).collect::<Vec<_>>();
             serde_json::json!(attributes_vec).to_string()
           }

@@ -162,6 +162,9 @@ pub trait TPostgresAttribute: TAttribute {
         )
         .to_string()
     }
+    fn psycopg2_value_json_serializable(&self) -> bool {
+        true
+    }
 }
 pub trait TBigQueryAttribute: TAttribute {
     fn get_bigquery_type(&self) -> String;
@@ -522,6 +525,12 @@ impl AttributeOrTransform {
         match &self {
             AttributeOrTransform::Attribute(x) => x.get_postgres_type(),
             AttributeOrTransform::Transform(x) => (*x).get_postgres_type(),
+        }
+    }
+    pub fn psycopg2_value_json_serializable(&self) -> bool {
+        match &self {
+            AttributeOrTransform::Attribute(x) => x.psycopg2_value_json_serializable(),
+            _ => panic!("Should only be called for Attributes"),
         }
     }
     pub fn get_bigquery_type(&self) -> String {

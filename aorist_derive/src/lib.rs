@@ -418,6 +418,9 @@ pub fn derive_postgres_timestamp(input: TokenStream) -> TokenStream {
             fn get_postgres_type(&self) -> String {
                 "TIMESTAMP".to_string()
             }
+            fn psycopg2_value_json_serializable(&self) -> bool {
+                false
+            }
         }
     };
     gen.into()
@@ -670,6 +673,9 @@ pub fn derive_postgres_timestamp_without_time_zone(input: TokenStream) -> TokenS
             fn get_postgres_type(&self) -> String {
                 "TIMESTAMP WITHOUT TIME ZONE".to_string()
             }
+            fn psycopg2_value_json_serializable(&self) -> bool {
+                false
+            }
         }
     };
     gen.into()
@@ -725,6 +731,9 @@ pub fn derive_postgres_timestamp_with_time_zone(input: TokenStream) -> TokenStre
         impl TPostgresAttribute for #name {
             fn get_postgres_type(&self) -> String {
                 "TIMESTAMP WITH TIME ZONE".to_string()
+            }
+            fn psycopg2_value_json_serializable(&self) -> bool {
+                false
             }
         }
     };

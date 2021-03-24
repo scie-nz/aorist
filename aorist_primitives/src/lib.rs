@@ -890,6 +890,13 @@ macro_rules! register_attribute {
                     )+
                 }
             }
+            fn psycopg2_value_json_serializable(&self) -> bool {
+                match self {
+                    $(
+                        [<$name Enum>]::$element(x) => x.psycopg2_value_json_serializable(),
+                    )+
+                }
+            }
             fn get_bigquery_type(&self) -> String {
                 match self {
                     $(
@@ -918,6 +925,9 @@ macro_rules! register_attribute {
         impl $name {
             pub fn get_name(&self) -> &String {
                 self.inner.get_name()
+            }
+            pub fn psycopg2_value_json_serializable(&self) -> bool {
+                self.inner.psycopg2_value_json_serializable()
             }
             pub fn get_type(&self) -> String {
                 self.inner.get_type()
