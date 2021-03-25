@@ -2272,13 +2272,17 @@ spec:
       """.strip().format(
             name=dataset_name,
             today=datetime.today().strftime('%Y-%m-%d'),
-            assets="\\n".join(["[{dt}](@/t/{dt}/index.md) | {tp}".format(dt=x[0], tp=x[1]) for x in asset_names]),
+            assets="\\n".join(["[{dt}](@/{dataset_name}/{dt}/index.md) | {tp}".format(
+                dataset_name=dataset_name,
+                dt=x[0],
+                tp=x[1]
+            ) for x in asset_names]),
             templates="\\n".join(["%s | %s" % tuple(x) for x in template_names]),
         )
 
-        if not os.path.exists('content/d'):
-            os.makedirs('content/d')
-        output_path = 'content/d/%s' % output_file
+        if not os.path.exists('content/%s' % dataset_name):
+            os.makedirs('content/%s' % dataset_name)
+        output_path = 'content/%s/index.md' % dataset_name
         with open(output_path, 'w') as f:
             f.write(markdown)
   call: gen_markdown_for_dataset
@@ -2352,7 +2356,8 @@ spec:
         pandas_code = "import pandas as pd" + "\\n" + csv_download_code + "\\n" + pandas_code
         pandas_num_lines = len(pandas_code.split('\\n'))
         pandas_code = highlight(pandas_code, PythonLexer(), HtmlFormatter(wrapcode=True, full=True))
-        pandas_output_file = 'content/t/%s/pandas_%s.html' % (static_data_table_name, output_file[:-3])
+        output_path = 'content/%s/%s/' % (data_set_name, static_data_table_name)
+        pandas_output_file = '%s/pandas_%s.html' % (output_path, static_data_table_name)
 
         markdown = """
     +++
@@ -2393,13 +2398,12 @@ spec:
             attributes="\\n".join(["%s | %s" % tuple(x) for x in attributes]),
         )
 
-        if not os.path.exists('content/t/%s' % static_data_table_name):
-            os.makedirs('content/t/%s' % static_data_table_name)
+        if not os.path.exists(output_path):
+            os.makedirs(output_path)
 
-        output_path = 'content/t/%s/index.md' % static_data_table_name
         with open(pandas_output_file, 'w') as f:
             f.write(pandas_code)
-        with open(output_path, 'w') as f:
+        with open(output_path + 'index.md', 'w') as f:
             f.write(markdown)
   call: gen_markdown_for_static_data_table
   kwargs:
@@ -2535,7 +2539,7 @@ spec:
             name=universe_name,
             today=datetime.today().strftime('%Y-%m-%d'),
             datasets="\\n".join([
-              "- [{d}](@/d/{d}.md)".format(d=d)
+              "- [{d}](@/{d}/index.md)".format(d=d)
               for d in dataset_names
             ])
         )
