@@ -1,5 +1,6 @@
 use crate::concept::{AoristConcept, Concept};
 use crate::location::alluxio_location::*;
+use crate::location::local_file_system_location::*;
 use crate::location::minio_location::*;
 use crate::location::postgres_location::*;
 use crate::location::sqlite_location::*;
@@ -13,6 +14,8 @@ use uuid::Uuid;
 pub enum OnPremiseLocation {
     #[constrainable]
     AlluxioLocation(AlluxioLocation),
+    #[constrainable]
+    LocalFileSystemLocation(LocalFileSystemLocation),
     #[constrainable]
     MinioLocation(MinioLocation),
     #[constrainable]

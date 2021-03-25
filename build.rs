@@ -435,6 +435,7 @@ fn process_concepts() {
         ("crate::location", "BigQueryLocation"),
         ("crate::location", "GCSLocation"),
         ("crate::location", "HiveLocation"),
+        ("crate::location", "LocalFileSystemLocation"),
         ("crate::location", "OnPremiseLocation"),
         ("crate::location", "MinioLocation"),
         ("crate::location", "PostgresLocation"),

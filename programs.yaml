@@ -2339,6 +2339,7 @@ spec:
         attributes,
         template_name,
         storage_setup,
+        csv_download_code,
     ):
         attributes = json.loads(attributes)
         pandas_code = """
@@ -2358,6 +2359,11 @@ spec:
     categories = ["Static Tables"]
 
     +++
+    <details>
+      <summary>Download as Pandas</summary>
+      {pandas_code}
+    </details>
+
     Template Name: {template_name}
 
     <!-- more -->
@@ -2368,11 +2374,6 @@ spec:
     **Name** | **Type**
     --- | ---
     {attributes}
-
-    <details>
-      <summary>as Pandas</summary>
-      {pandas_code}
-    </details>
         """.strip().format(
             name=static_data_table_name,
             pandas_code=pandas_code,
@@ -2389,6 +2390,26 @@ spec:
             f.write(markdown)
   call: gen_markdown_for_static_data_table
   kwargs:
+    csv_download_code:
+      type: MultipleAncestorsArgument
+      spec:
+        attaches:
+          - RemoteStorageSetup
+          - StaticDataTable
+        call: |
+          {
+            use crate::layout::*;
+            use crate::encoding::*;
+            let layout = FileBasedStorageLayout::SingleFileLayout(SingleFileLayout{
+                constraints: Vec::new(), tag: None, uuid: None,
+            });
+            let encoding = CSVEncoding{
+                compression: None,
+                header: None,
+                constraints: Vec::new(), tag: None, uuid: None,
+            };
+            "a".to_string()
+          }
     output_file:
       type: AncestorArgument
       spec:
