@@ -276,7 +276,7 @@ macro_rules! define_ast_node {
 macro_rules! define_program {
     ($name:ident, $root:ident, $constraint:ident, $satisfy_type:ident,
      $dialect:ident,
-     $preamble:expr, $call:expr, $tuple_call: expr) => {
+     $preamble:expr, $call:expr, $tuple_call: expr, $dialect_call: expr) => {
         pub struct $name {}
         impl ConstraintSatisfactionBase for $name {
             type RootType = $root;
@@ -296,6 +296,11 @@ macro_rules! define_program {
             }
             fn get_call() -> String {
                 $call.to_string()
+            }
+        }
+        impl $name {
+            fn get_dialect(&self) -> $dialect {
+                $dialect_call()
             }
         }
     };

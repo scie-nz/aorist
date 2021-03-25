@@ -624,8 +624,14 @@ fn main() {
                             LinkedHashMap::new();
                             {kwargs}
                             ParameterTuple::new(uuid, args, kwargs, {is_sql})
-                        }}
+                        }},
+                        || {{ {dialect_call} }}
                     );",
+                    dialect_call = match dialect.as_str() {
+                        "Python" => 
+                            "Python{ pip_requirements: Vec::new() }".to_string(),
+                        _ => format!("{}{{}}", dialect),
+                    },
                     is_sql=dialect == "Presto",
                     objects=object_names.iter().map(|x| {
                         format!(

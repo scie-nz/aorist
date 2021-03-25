@@ -585,7 +585,9 @@ where
         let name = constraint.get_name().clone();
         drop(constraint);
         let preferences = vec![
-            Dialect::Python(Python {}),
+            Dialect::Python(Python {
+                pip_requirements: Vec::new(),
+            }),
             Dialect::Presto(Presto {}),
             Dialect::Bash(Bash {}),
         ];
