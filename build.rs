@@ -546,7 +546,7 @@ fn main() {
             .or_insert(x);
     }
     scope.import("aorist_primitives", "define_program");
-    scope.import("aorist_primitives", "Dialect");
+    scope.import("crate::dialect", "Dialect");
     scope.import("aorist_primitives", "register_programs_for_constraint");
     scope.import("aorist_primitives", "register_satisfiable_constraints");
     scope.import("crate::concept", "ConceptAncestry");
@@ -568,7 +568,7 @@ fn main() {
             scope.import("crate::constraint", &format!("Satisfy{}", constraint));
 
             for (dialect, program) in dialects {
-                scope.import("aorist_primitives", dialect);
+                scope.import("crate::dialect", dialect);
                 let mut format_strings: Vec<String> = Vec::new();
                 let mut params: Vec<String> = Vec::new();
                 let mut object_names: HashSet<String> = HashSet::new();

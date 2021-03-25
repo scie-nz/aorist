@@ -1,7 +1,8 @@
 use crate::concept::{AoristConcept, Concept, ConceptAncestry};
+use crate::dialect::Dialect;
 use crate::object::TAoristObject;
 use crate::python::ParameterTuple;
-use aorist_primitives::{define_constraint, register_constraint, Dialect};
+use aorist_primitives::{define_constraint, register_constraint};
 use maplit::hashmap;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;

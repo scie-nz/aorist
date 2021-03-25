@@ -968,28 +968,6 @@ macro_rules! register_attribute {
     }}
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct Python {}
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct R {}
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct Bash {}
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct Presto {}
-
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub enum Dialect {
-    Python(Python),
-    R(R),
-    Bash(Bash),
-    Presto(Presto),
-}
-
-pub trait DownloadDataFromRemote {
-    // TODO: change this to proper error
-    fn get_call(&self, dialect: Dialect) -> Result<String, String>;
-}
-
 #[macro_export]
 macro_rules! register_concept {
     ( $name:ident, $($element: ident ),* ) => { paste::item! {

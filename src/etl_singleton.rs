@@ -1,8 +1,8 @@
+use crate::dialect::Dialect;
 use crate::endpoints::EndpointConfig;
 use crate::python::{
     format_code, Assignment, Dict, Import, Preamble, PythonStatementInput, SimpleIdentifier, AST,
 };
-use aorist_primitives::Dialect;
 use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
 use pyo3::prelude::*;

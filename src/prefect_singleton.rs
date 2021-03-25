@@ -1,10 +1,11 @@
+use crate::dialect::Dialect;
 use crate::endpoints::EndpointConfig;
 use crate::etl_singleton::{ETLSingleton, ETLDAG};
 use crate::python::{
     Assignment, Attribute, Call, Expression, ForLoop, Formatted, Import, RPythonTask,
     SimpleIdentifier, StringLiteral, AST,
 };
-use aorist_primitives::{register_task_nodes, Dialect};
+use aorist_primitives::register_task_nodes;
 use linked_hash_map::LinkedHashMap;
 use pyo3::prelude::*;
 use pyo3::types::PyModule;

@@ -1,8 +1,8 @@
 use crate::concept::{Concept, ConceptAncestry};
 use crate::constraint::{AllConstraintsSatisfiability, Constraint};
+use crate::dialect::Dialect;
 use crate::object::TAoristObject;
 use crate::python::{Formatted, ParameterTuple, SimpleIdentifier, StringLiteral, AST};
-use aorist_primitives::Dialect;
 use inflector::cases::snakecase::to_snake_case;
 use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;

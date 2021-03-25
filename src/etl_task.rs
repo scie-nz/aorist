@@ -1,10 +1,10 @@
+use crate::dialect::Dialect;
 use crate::endpoints::EndpointConfig;
 use crate::etl_singleton::ETLSingleton;
 use crate::python::{
     Add, Assignment, Attribute, BigIntLiteral, BinOp, Call, Dict, ForLoop, Import, List,
     ParameterTuple, ParameterTupleDedupKey, SimpleIdentifier, StringLiteral, Subscript, Tuple, AST,
 };
-use aorist_primitives::Dialect;
 use linked_hash_map::LinkedHashMap;
 use std::marker::PhantomData;
 
