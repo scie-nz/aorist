@@ -4,6 +4,8 @@ spec:
   use: UploadDataToAlluxio
   root: AlluxioLocation
   dialect: Python
+  pip_requires:
+    - alluxio=0.1.3
   preamble: |
     import alluxio
     from alluxio import option, wire

@@ -32,6 +32,7 @@ struct Program {
     call: String,
     args: Option<Vec<Arg>>,
     kwargs: Option<HashMap<String, Arg>>,
+    pip_requires: Option<Vec<String>>,
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
@@ -628,8 +629,20 @@ fn main() {
                         || {{ {dialect_call} }}
                     );",
                     dialect_call = match dialect.as_str() {
-                        "Python" => 
-                            "Python{ pip_requirements: Vec::new() }".to_string(),
+                        "Python" =>
+                            format!(
+                                "Python::new(
+                                     vec![{pip_requirements}] 
+                                 )",
+                                pip_requirements = match &program.pip_requires {
+                                    Some(v) => v
+                                      .iter()
+                                      .map(
+                                          |x| format!("\"{}\".to_string()", x).to_string()
+                                       ).collect::<Vec<String>>().join(","),
+                                    None => "".into(),
+                                }
+                            ).to_string(),
                         _ => format!("{}{{}}", dialect),
                     },
                     is_sql=dialect == "Presto",
