@@ -2324,6 +2324,14 @@ spec:
     from datetime import datetime
     import os
     import json
+    import pygments
+    import black
+
+
+    from pygments import highlight
+    from pygments.lexers import PythonLexer
+    from pygments.formatters import HtmlFormatter
+
 
     def gen_markdown_for_static_data_table(
         static_data_table_name,
@@ -2333,6 +2341,12 @@ spec:
         storage_setup,
     ):
         attributes = json.loads(attributes)
+        pandas_code = """
+        print("Hello world")
+        """
+        pandas_code = black.format_str(pandas_code, mode=black.Mode())
+        pandas_code = highlight(pandas_code, PythonLexer(), HtmlFormatter())
+
         markdown = """
     +++
     title = "Static Data Table: {name}"
@@ -2354,8 +2368,14 @@ spec:
     **Name** | **Type**
     --- | ---
     {attributes}
+
+    <details>
+      <summary>as Pandas</summary>
+      {pandas_code}
+    </details>
         """.strip().format(
             name=static_data_table_name,
+            pandas_code=pandas_code,
             template_name=template_name,
             today=datetime.today().strftime('%Y-%m-%d'),
             storage_setup=storage_setup,
