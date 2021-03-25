@@ -297,10 +297,8 @@ macro_rules! define_program {
             fn get_call() -> String {
                 $call.to_string()
             }
-        }
-        impl $name {
-            fn get_dialect(&self) -> $dialect {
-                $dialect_call()
+            fn get_dialect() -> Dialect {
+                Dialect::$dialect($dialect_call())
             }
         }
     };
@@ -316,7 +314,7 @@ macro_rules! register_programs_for_constraint {
                 c: Concept<'a>,
                 d: &Dialect,
                 ancestry: Arc<ConceptAncestry<'a>>,
-            ) -> Option<(String, String, ParameterTuple)> {
+            ) -> Option<(String, String, ParameterTuple, Dialect)> {
                 match d {
                     $(
                         Dialect::$dialect{..} => Some((
@@ -327,6 +325,7 @@ macro_rules! register_programs_for_constraint {
                                 c.clone(),
                                 ancestry,
                             ),
+                            $element::get_dialect(),
                         )),
                     )+
                     _ => None,
@@ -342,13 +341,13 @@ macro_rules! register_programs_for_constraint {
                     Concept::$root{..} => {
                         for d in preferences {
                             if let Some(
-                                (preamble, call, params)
+                                (preamble, call, params, dialect)
                             ) = self.satisfy(
                                 c.clone(),
                                 &d,
                                 ancestry.clone(),
                             ) {
-                                return Ok((preamble, call, params, d.clone()));
+                                return Ok((preamble, call, params, dialect));
                             }
                         }
                         Err("Cannot satisfy preference ordering.".into())
@@ -501,6 +500,7 @@ macro_rules! define_constraint {
             ) -> ParameterTuple;
             fn get_preamble() -> String;
             fn get_call() -> String;
+            fn get_dialect() -> Dialect;
         }
         impl TConstraint for $element {
             type Root = $root;
@@ -550,6 +550,7 @@ macro_rules! define_constraint {
                 ) -> ParameterTuple;
                 fn get_preamble() -> String;
                 fn get_call() -> String;
+                fn get_dialect() -> Dialect;
             }
             impl $element {
                 pub fn get_uuid(&self) -> Uuid {

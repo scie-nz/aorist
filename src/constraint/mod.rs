@@ -51,7 +51,7 @@ pub trait SatisfiableConstraint: TConstraint {
         c: Concept<'a>,
         d: &Dialect,
         ancestry: Arc<ConceptAncestry<'a>>,
-    ) -> Option<(String, String, ParameterTuple)>;
+    ) -> Option<(String, String, ParameterTuple, Dialect)>;
 
     fn satisfy_given_preference_ordering<'a>(
         &mut self,
