@@ -677,3 +677,11 @@ spec:
   requiresProgram: true
   requires:
     - ConvertToCSV
+---
+type: Constraint
+spec:
+  name: NumpyData
+  root: StaticDataTable
+  requiresProgram: true
+  requires:
+    - ConvertToCSV
