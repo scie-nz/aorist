@@ -189,14 +189,16 @@ type: Program
 spec:
   use: DownloadDataFromRemotePushshiftAPILocation
   root: PushshiftAPILocation
+  pip_requires:
+    - pmaw=1.0.4
   dialect: Python
   preamble: |
+      from pmaw import PushshiftAPI
+      import json
+      import os
+      
       def download_subreddit(subreddit, tmp_dir, file_name):
 
-          from pmaw import PushshiftAPI
-          import json
-
-          import os
           if not os.path.exists(tmp_dir):
               os.makedirs(tmp_dir)
 
@@ -2333,7 +2335,6 @@ spec:
     import pygments
     import black
 
-
     from pygments import highlight
     from pygments.lexers import PythonLexer
     from pygments.formatters import HtmlFormatter
@@ -2349,12 +2350,15 @@ spec:
         data_set_name,
     ):
         attributes = json.loads(attributes)
-
+        d = json.loads(pandas_code)
+        pandas_code = d["code"]
+        pip_requirements = d["pip"]
 
         pandas_num_lines = len(pandas_code.split('\\n'))
         pandas_code = highlight(pandas_code, PythonLexer(), HtmlFormatter(wrapcode=True, full=True))
         output_path = 'content/%s/%s/' % (data_set_name, static_data_table_name)
         pandas_output_file = '%s/pandas_%s.html' % (output_path, static_data_table_name)
+        pandas_pip_code = "\\n".join(["- %s" % x for x in pip_requirements])
 
         markdown = """
     +++
@@ -2374,6 +2378,12 @@ spec:
 
     <details>
       <summary>Download as Pandas</summary>
+      <details>
+         <summary>pip requirements</summary>
+         <div style="--aspect-ratio:20/{pip_num_lines};">
+          <pre><code>{pandas_pip_code}</pre></code>
+        </div>
+      </details>
       <div style="--aspect-ratio:45/{pandas_num_lines};">
       <iframe src="./pandas_{name}.html"></iframe>
       </div>
@@ -2387,6 +2397,8 @@ spec:
     --- | ---
     {attributes}
         """.strip().format(
+            pip_num_lines=len(pip_requirements),
+            pandas_pip_code=pandas_pip_code,
             pandas_num_lines=pandas_num_lines,
             name=static_data_table_name,
             template_name=template_name,
@@ -2466,8 +2478,13 @@ spec:
                 constraints: Vec::new(), tag: None, uuid: None,
             };
             new_universe.compute_uuids();
-            let code = Driver::<PythonDAG>::new(&new_universe, vec!["PandasData".to_string()].into_iter().collect(), false).run().unwrap();
-            code.replace("\\\\", "\\")
+            let (code, requirements) = Driver::<PythonDAG>::new(&new_universe, vec!["PandasData".to_string()].into_iter().collect(), false).run().unwrap();
+            serde_json::json!(maplit::hashmap!(
+                "code" => serde_json::json!(
+                    code.replace("\\\\", "\\")
+                ),
+                "pip" => serde_json::json!(requirements),
+            )).to_string().replace("\\", "\\\\")
           }
     output_file:
       type: AncestorArgument
@@ -2568,6 +2585,8 @@ spec:
   use: PandasData
   root: StaticDataTable
   dialect: Python
+  pip_requires:
+    - pandas=1.2.3
   preamble: |
 
     import pandas as pd

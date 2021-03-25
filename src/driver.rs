@@ -13,7 +13,7 @@ use crate::python::{ParameterTuple, SimpleIdentifier, AST};
 use inflector::cases::snakecase::to_snake_case;
 use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
-use std::collections::{HashMap, HashSet, VecDeque};
+use std::collections::{BTreeSet, HashMap, HashSet, VecDeque};
 use std::marker::PhantomData;
 use std::sync::{Arc, RwLock, RwLockReadGuard};
 use uuid::Uuid;
@@ -691,7 +691,7 @@ where
 
         (blocks, tasks_dict)
     }
-    pub fn run(&'a mut self) -> pyo3::PyResult<String> {
+    pub fn run(&'a mut self) -> pyo3::PyResult<(String, Vec<String>)> {
         let mut unsatisfied_constraints = Self::get_unsatisfied_constraints(
             &self.constraints,
             self.concepts.clone(),
@@ -755,6 +755,20 @@ where
             .map(|x| x.get_statements(&self.endpoints))
             .collect::<Vec<_>>();
 
-        return etl.materialize(statements_and_preambles);
+        let pip_dependencies = self
+            .satisfied_constraints
+            .values()
+            .map(|x| match x.read().unwrap().get_dialect() {
+                Some(Dialect::Python(x)) => Some(x.get_pip_requirements()),
+                _ => None,
+            })
+            .filter(|x| x.is_some())
+            .map(|x| x.unwrap().into_iter())
+            .flatten()
+            .collect::<BTreeSet<String>>()
+            .into_iter()
+            .collect();
+
+        Ok((etl.materialize(statements_and_preambles)?, pip_dependencies))
     }
 }

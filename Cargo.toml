@@ -57,6 +57,8 @@ num = {version="0.3.1", features = ["std"]}
 maplit = {version = "1.0.2"}
 sqlformat = {version = "0.1.5"}
 markdown-gen = {version = "1.2.1"}
+base64 = {version = "0.13.0"}
+
 [build-dependencies]
 aorist_util = {path = "./aorist_util"}
 aorist_primitives = {path = "./aorist_primitives"}

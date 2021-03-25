@@ -144,11 +144,15 @@ pub fn deserialize(input: String) -> PyResult<InnerUniverse> {
 }
 
 #[pyfunction]
-pub fn dag(inner: InnerUniverse, constraints: Vec<String>, mode: &str) -> PyResult<String> {
+pub fn dag(
+    inner: InnerUniverse,
+    constraints: Vec<String>,
+    mode: &str,
+) -> PyResult<String> {
     let mut universe = Universe::from(inner);
     universe.compute_uuids();
     let debug = false;
-    let output = match mode {
+    let (output, _requirements) = match mode {
         "airflow" => {
             Driver::<AirflowDAG>::new(&universe, constraints.into_iter().collect(), debug).run()
         }
