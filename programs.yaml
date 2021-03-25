@@ -2343,17 +2343,12 @@ spec:
         attributes,
         template_name,
         storage_setup,
-        csv_download_code,
+        pandas_code,
         data_set_name,
     ):
         attributes = json.loads(attributes)
 
-        pandas_code = """
-        data = pd.read_csv("/tmp/{data_set_name}/{static_data_table_name}/{static_data_table_name}.csv", header=None)
-        """.format(data_set_name=data_set_name, static_data_table_name=static_data_table_name)
 
-        pandas_code = black.format_str(pandas_code, mode=black.Mode())
-        pandas_code = "import pandas as pd" + "\\n" + csv_download_code + "\\n" + pandas_code
         pandas_num_lines = len(pandas_code.split('\\n'))
         pandas_code = highlight(pandas_code, PythonLexer(), HtmlFormatter(wrapcode=True, full=True))
         output_path = 'content/%s/%s/' % (data_set_name, static_data_table_name)
@@ -2412,7 +2407,7 @@ spec:
       spec:
         attaches: DataSet
         call: data_set.name.clone()
-    csv_download_code:
+    pandas_code:
       type: MultipleAncestorsArgument
       spec:
         attaches:
@@ -2469,7 +2464,7 @@ spec:
                 constraints: Vec::new(), tag: None, uuid: None,
             };
             new_universe.compute_uuids();
-            let code = Driver::<PythonDAG>::new(&new_universe, vec!["ConvertToCSV".to_string()].into_iter().collect(), false).run().unwrap();
+            let code = Driver::<PythonDAG>::new(&new_universe, vec!["PandasData".to_string()].into_iter().collect(), false).run().unwrap();
             code.replace("\\\\", "\\")
           }
     output_file:
@@ -2566,3 +2561,46 @@ spec:
           }
         attaches: Universe
 ---
+type: Program
+spec:
+  use: PandasData
+  root: StaticDataTable
+  dialect: Python
+  preamble: |
+
+    import pandas as pd
+    import json
+
+    def read_csv_into_pandas(
+        static_data_table_name,
+        data_set_name,
+        columns,
+    ):
+        columns = json.loads(columns)
+        data = pd.read_csv(
+            "/tmp/{data_set_name}/{static_data_table_name}/{static_data_table_name}.csv".format(
+                data_set_name=data_set_name,
+                static_data_table_name=static_data_table_name,
+            ),
+            header=None
+        )
+        data.columns = columns
+        return data
+        attributes
+  call: read_csv_into_pandas
+  kwargs:
+    data_set_name:
+      type: AncestorArgument
+      spec:
+        attaches: DataSet
+        call: data_set.name.clone()
+    static_data_table_name:
+      type: AncestorArgument
+      spec:
+        attaches: StaticDataTable
+        call: static_data_table.name.clone()
+    columns:
+      type: AncestorArgument
+      spec:
+        attaches: StaticDataTable
+        call: serde_json::json!(static_data_table.schema.get_attribute_names()).to_string()

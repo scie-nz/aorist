@@ -669,3 +669,11 @@ spec:
   name: GenerateMarkdownForStaticDataTables
   root: StaticDataTable
   requiresProgram: true
+---
+type: Constraint
+spec:
+  name: PandasData
+  root: StaticDataTable
+  requiresProgram: true
+  requires:
+    - ConvertToCSV
