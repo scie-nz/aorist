@@ -28,6 +28,20 @@ impl RemoteStorageSetup {
         .unwrap();
         self.remote.markdown(md);
     }
+    pub fn replicate_to_local(
+        &self,
+        t: Storage,
+        tmp_dir: String,
+    ) -> ReplicationStorageSetup {
+        ReplicationStorageSetup {
+            source: self.remote.clone(),
+            targets: vec![t],
+            tag: self.tag.clone(),
+            tmp_dir,
+            constraints: Vec::new(),
+            uuid: None,
+        }
+    }
 }
 
 impl InnerRemoteStorageSetup {

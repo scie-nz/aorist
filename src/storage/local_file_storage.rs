@@ -18,7 +18,7 @@ pub struct LocalFileStorage {
     #[constrainable]
     pub location: OnPremiseLocation,
     #[constrainable]
-    layout: FileBasedStorageLayout,
+    pub layout: FileBasedStorageLayout,
     #[constrainable]
     pub encoding: Encoding,
 }

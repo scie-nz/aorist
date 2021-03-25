@@ -2272,7 +2272,7 @@ spec:
       """.strip().format(
             name=dataset_name,
             today=datetime.today().strftime('%Y-%m-%d'),
-            assets="\\n".join(["[{dt}](@/t/{dt}.md) | {tp}".format(dt=x[0], tp=x[1]) for x in asset_names]),
+            assets="\\n".join(["[{dt}](@/t/{dt}/index.md) | {tp}".format(dt=x[0], tp=x[1]) for x in asset_names]),
             templates="\\n".join(["%s | %s" % tuple(x) for x in template_names]),
         )
 
@@ -2340,13 +2340,19 @@ spec:
         template_name,
         storage_setup,
         csv_download_code,
+        data_set_name,
     ):
         attributes = json.loads(attributes)
+
         pandas_code = """
-        print("Hello world")
-        """
+        data = pd.read_csv("/tmp/{data_set_name}/{static_data_table_name}/{static_data_table_name}.csv", header=None)
+        """.format(data_set_name=data_set_name, static_data_table_name=static_data_table_name)
+
         pandas_code = black.format_str(pandas_code, mode=black.Mode())
-        pandas_code = highlight(pandas_code, PythonLexer(), HtmlFormatter())
+        pandas_code = "import pandas as pd" + "\\n" + csv_download_code + "\\n" + pandas_code
+        pandas_num_lines = len(pandas_code.split('\\n'))
+        pandas_code = highlight(pandas_code, PythonLexer(), HtmlFormatter(wrapcode=True, full=True))
+        pandas_output_file = 'content/t/%s/pandas_%s.html' % (static_data_table_name, output_file[:-3])
 
         markdown = """
     +++
@@ -2359,14 +2365,18 @@ spec:
     categories = ["Static Tables"]
 
     +++
-    <details>
-      <summary>Download as Pandas</summary>
-      {pandas_code}
-    </details>
 
     Template Name: {template_name}
 
     <!-- more -->
+
+    <details>
+      <summary>Download as Pandas</summary>
+      <div style="--aspect-ratio:45/{pandas_num_lines};">
+      <iframe src="./pandas_{name}.html"></iframe>
+      </div>
+    </details>
+
     {storage_setup}
 
     Attributes:
@@ -2375,27 +2385,36 @@ spec:
     --- | ---
     {attributes}
         """.strip().format(
+            pandas_num_lines=pandas_num_lines,
             name=static_data_table_name,
-            pandas_code=pandas_code,
             template_name=template_name,
             today=datetime.today().strftime('%Y-%m-%d'),
             storage_setup=storage_setup,
             attributes="\\n".join(["%s | %s" % tuple(x) for x in attributes]),
         )
 
-        if not os.path.exists('content/t'):
-            os.makedirs('content/t')
-        output_path = 'content/t/%s' % output_file
+        if not os.path.exists('content/t/%s' % static_data_table_name):
+            os.makedirs('content/t/%s' % static_data_table_name)
+
+        output_path = 'content/t/%s/index.md' % static_data_table_name
+        with open(pandas_output_file, 'w') as f:
+            f.write(pandas_code)
         with open(output_path, 'w') as f:
             f.write(markdown)
   call: gen_markdown_for_static_data_table
   kwargs:
+    data_set_name:
+      type: AncestorArgument
+      spec:
+        attaches: DataSet
+        call: data_set.name.clone()
     csv_download_code:
       type: MultipleAncestorsArgument
       spec:
         attaches:
-          - RemoteStorageSetup
           - StaticDataTable
+          - DataSet
+          - Universe
         call: |
           {
             use crate::layout::*;
@@ -2403,12 +2422,51 @@ spec:
             let layout = FileBasedStorageLayout::SingleFileLayout(SingleFileLayout{
                 constraints: Vec::new(), tag: None, uuid: None,
             });
-            let encoding = CSVEncoding{
+            let encoding = Encoding::CSVEncoding(CSVEncoding{
                 compression: None,
                 header: None,
                 constraints: Vec::new(), tag: None, uuid: None,
+            });
+            let tmp_dir = format!(
+                "/tmp/{}/{}",
+                data_set.name,
+                static_data_table.name
+            ).to_string();
+            let location = OnPremiseLocation::LocalFileSystemLocation(LocalFileSystemLocation{
+                path: format!("{}/data.csv", tmp_dir).to_string(),
+                constraints: Vec::new(), tag: None, uuid: None,
+            });
+            let storage = Storage::LocalFileStorage(LocalFileStorage {
+                location,
+                layout,
+                encoding,
+                constraints: Vec::new(), tag: None, uuid: None,
+            });
+            let replicated_table = Asset::StaticDataTable(
+                static_data_table.replicate_to_local(storage, tmp_dir)
+            );
+            let template = data_set.get_template_for_asset(static_data_table).unwrap();
+            let new_dataset = DataSet{
+                name: data_set.name.clone(),
+                accessPolicies: Vec::new(),
+                datumTemplates: vec![template],
+                assets: vec![(static_data_table.name.clone(), replicated_table)].into_iter().collect(),
+                constraints: Vec::new(), tag: None, uuid: None,
             };
-            "a".to_string()
+            let mut new_universe = Universe{
+                name: universe.name.clone(),
+                users: None,
+                groups: None,
+                datasets: Some(vec![new_dataset]),
+                role_bindings: None,
+                endpoints: universe.endpoints.clone(),
+                compliance: None,
+                models: None,
+                constraints: Vec::new(), tag: None, uuid: None,
+            };
+            new_universe.compute_uuids();
+            let code = Driver::<PythonDAG>::new(&new_universe, vec!["ConvertToCSV".to_string()].into_iter().collect(), false).run().unwrap();
+            code.replace("\\\\", "\\")
           }
     output_file:
       type: AncestorArgument

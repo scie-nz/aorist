@@ -34,6 +34,19 @@ impl TAsset for StaticDataTable {
     }
 }
 
+impl StaticDataTable {
+    pub fn replicate_to_local(&self, t: Storage, tmp_dir: String) -> Self {
+        Self {
+            name: self.name.clone(),
+            setup: self.setup.replicate_to_local(t, tmp_dir),
+            schema: self.schema.clone(),
+            tag: self.tag.clone(),
+            constraints: Vec::new(),
+            uuid: None,
+        }
+    }
+}
+
 impl InnerStaticDataTable {
     pub fn replicate_to_local(&self, t: InnerStorage, tmp_dir: String) -> Self {
         Self {

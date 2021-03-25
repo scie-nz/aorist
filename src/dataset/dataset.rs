@@ -22,11 +22,11 @@ pub struct DataSet {
     pub name: String,
     #[constrainable]
     #[py_default = "Vec::new()"]
-    accessPolicies: Vec<AccessPolicy>,
+    pub accessPolicies: Vec<AccessPolicy>,
     #[constrainable]
     pub datumTemplates: Vec<DatumTemplate>,
     #[constrainable]
-    assets: BTreeMap<String, Asset>,
+    pub assets: BTreeMap<String, Asset>,
 }
 
 impl DataSet {

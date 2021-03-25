@@ -10,5 +10,5 @@ use uuid::Uuid;
 
 #[aorist_concept]
 pub struct LocalFileSystemLocation {
-    path: String,
+    pub path: String,
 }
