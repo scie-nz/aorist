@@ -135,6 +135,7 @@ attributes = attr_list([
     attr.PositiveFloat("alcalinity_of_ash"),
     attr.PositiveFloat("magnesium"),
     attr.PositiveFloat("total_phenols"),
+    attr.PositiveFloat("flavanoids"),
     attr.PositiveFloat("non_flavanoid_phenols"),
     attr.PositiveFloat("proanthocyanins"),
     attr.PositiveFloat("color_intensity"),
