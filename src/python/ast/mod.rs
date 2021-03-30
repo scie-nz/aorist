@@ -436,6 +436,23 @@ register_ast_nodes!(
     Add,
     BinOp,
 );
+
+impl Formatted {
+    pub fn optimize(&self) -> Option<AST> {
+        if self.keywords.len() == 1 {
+            if let AST::StringLiteral(rw) = &self.fmt {
+                let (unique_key, unique_value) =
+                self.keywords.iter().next().unwrap().clone();
+                let read = rw.read().unwrap();
+                if read.value() == format!("{{{}}}", unique_key).to_string() {
+                    return Some(unique_value.clone());
+                }
+            }
+        }
+        None
+    }
+}
+
 impl AST {
     pub fn as_wrapped_assignment_target(&self) -> Self {
         match &self {
@@ -449,6 +466,16 @@ impl AST {
             AST::Tuple(ref x) => AST::Tuple(x.read().unwrap().as_wrapped_assignment_target()),
             AST::SimpleIdentifier(_) => self.clone(),
             _ => panic!("Assignment target not supported."),
+        }
+    }
+
+    pub fn optimize(&self) -> Option<AST> {
+        match self {
+            AST::Formatted(ref rw) => {
+                let read = rw.read().unwrap();
+                read.optimize()
+            }
+            _ => None,
         }
     }
 }
