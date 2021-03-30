@@ -2230,11 +2230,10 @@ spec:
 ---
 type: Program
 spec:
-  use: GenerateMarkdownForDatasets
+  use: GenerateMarkdown
   root: DataSet
   dialect: Python
   preamble: |
-
     from datetime import datetime
     import os
     import json
@@ -2249,30 +2248,21 @@ spec:
         template_names = json.loads(template_names)
         markdown = """
     +++
-    title = "Dataset: {name}"
+    title = "{name}"
     date = {today}
-    draft = false
-
-    [taxonomies]
-    tags = ["Aorist", "Dataset"]
-    categories = ["Datasets"]
-
     +++
 
-    <!-- more -->
+    ### Assets
 
-    Templates:
-
-    **Name** | *Type**
-    --- | ---
-    {templates}
-
-    Assets:
-
-    **Name** | *Type**
+    **Name** | **Type**
     --- | ---
     {assets}
 
+    ### Templates
+
+    **Name** | **Type**
+    --- | ---
+    {templates}
       """.strip().format(
             name=dataset_name,
             today=datetime.today().strftime('%Y-%m-%d'),
@@ -2286,7 +2276,7 @@ spec:
 
         if not os.path.exists('content/%s' % dataset_name):
             os.makedirs('content/%s' % dataset_name)
-        output_path = 'content/%s/index.md' % dataset_name
+        output_path = 'content/%s/_index.md' % dataset_name
         with open(output_path, 'w') as f:
             f.write(markdown)
   call: gen_markdown_for_dataset
@@ -2331,6 +2321,7 @@ spec:
 
     from datetime import datetime
     import os
+    import os.path
     import json
     import pygments
     import black
@@ -2345,96 +2336,109 @@ spec:
         output_file,
         attributes,
         template_name,
-        storage_setup,
+        storage_location_name,
+        storage_location_params,
         code,
         data_set_name,
     ):
         attributes = json.loads(attributes)
-        d = json.loads(code)
-        pandas_code = d["pandas_code"]
-        pandas_pip_requirements = d["pandas_pip"]
-        numpy_code = d["numpy_code"]
-        numpy_pip_requirements = d["numpy_pip"]
+        storage_location_params = json.loads(storage_location_params)
+        code_dict = json.loads(code)
 
-        output_path = 'content/%s/%s/' % (data_set_name, static_data_table_name)
-        pandas_num_lines = len(pandas_code.split('\\n'))
-        pandas_code = highlight(pandas_code, PythonLexer(), HtmlFormatter(wrapcode=True, full=True))
-        pandas_output_file = '%s/pandas_%s.html' % (output_path, static_data_table_name)
-        pandas_pip_code = "\\n".join(["- %s" % x for x in pandas_pip_requirements])
+        output_path = os.path.join('content', data_set_name, static_data_table_name)
 
-        numpy_num_lines = len(numpy_code.split('\\n'))
-        numpy_code = highlight(numpy_code, PythonLexer(), HtmlFormatter(wrapcode=True, full=True))
-        numpy_output_file = '%s/numpy_%s.html' % (output_path, static_data_table_name)
-        numpy_pip_code = "\\n".join(["- %s" % x for x in numpy_pip_requirements])
+        pandas_code = code_dict['pandas_code']
+        pandas_requirements = '\\n'.join(code_dict['pandas_requirements'])
+
+        numpy_code = code_dict['numpy_code']
+        numpy_requirements = '\\n'.join(code_dict['numpy_requirements'])
 
         markdown = """
     +++
-    title = "Static Data Table: {name}"
+    title = "{name}"
     date = {today}
-    draft = false
-
-    [taxonomies]
-    tags = ["Aorist", "Static Tables"]
-    categories = ["Static Tables"]
-
     +++
 
-    Template Name: {template_name}
-
-    <!-- more -->
+    ### Pandas
 
     <details>
-      <summary>Download as Pandas</summary>
-      <div style="--aspect-ratio:45/{pandas_num_lines};">
-      <details>
-         <summary>pip requirements</summary>
-          <pre><code>{pandas_pip_code}</pre></code>
-      </details>
-      </div>
-      <div style="--aspect-ratio:45/{pandas_num_lines};">
-      <pre><iframe src="./pandas_{name}.html"></iframe></pre>
-      </div>
+      <summary>pandas_requirements.txt <a href="pandas_requirements.txt">Download</a></summary>
+
+    ```perl
+
+    {pandas_requirements}
+    ```
+
     </details>
     <details>
-      <summary>Download as Numpy</summary>
-      <details>
-         <summary>pip requirements</summary>
-          <pre><code>{numpy_pip_code}</pre></code>
-      </details>
-      <div style="--aspect-ratio:45/{numpy_num_lines};">
-      <iframe src="./numpy_{name}.html"></iframe>
-      </div>
+      <summary>pandas.py <a href="pandas.py">Download</a></summary>
+
+    ```py3
+
+    {pandas_code}```
+
     </details>
 
-    {storage_setup}
+    ### Numpy
 
-    Attributes:
+    <details>
+      <summary>numpy_requirements.txt <a href="numpy_requirements.txt">Download</a></summary>
+
+    ```perl
+
+    {numpy_requirements}
+    ```
+
+    </details>
+    <details>
+      <summary>numpy.py <a href="numpy.py">Download</a></summary>
+
+    ```py3
+
+    {numpy_code}```
+
+    </details>
+
+    ### Schema
 
     **Name** | **Type**
     --- | ---
     {attributes}
+
+    ### Storage
+
+    {storage_location_name}
+
+    **Param** | **Value**
+    --- | ---
+    {storage_location_params}
         """.strip().format(
-            pandas_pip_num_lines=len(pandas_pip_requirements),
-            pandas_pip_code=pandas_pip_code,
-            pandas_num_lines=pandas_num_lines,
-            numpy_pip_num_lines=len(numpy_pip_requirements),
-            numpy_pip_code=numpy_pip_code,
-            numpy_num_lines=numpy_num_lines,
             name=static_data_table_name,
             template_name=template_name,
             today=datetime.today().strftime('%Y-%m-%d'),
-            storage_setup=storage_setup,
+            storage_location_name=storage_location_name,
+            storage_location_params="\\n".join(["%s | %s" % tuple(x) for x in storage_location_params.items()]),
             attributes="\\n".join(["%s | %s" % tuple(x) for x in attributes]),
+            pandas_requirements=pandas_requirements,
+            pandas_code=pandas_code,
+            numpy_requirements=numpy_requirements,
+            numpy_code=numpy_code,
         )
 
         if not os.path.exists(output_path):
             os.makedirs(output_path)
 
-        with open(pandas_output_file, 'w') as f:
+        with open(os.path.join(output_path, 'pandas.py'), 'w') as f:
             f.write(pandas_code)
-        with open(numpy_output_file, 'w') as f:
+        with open(os.path.join(output_path, 'pandas_requirements.txt'), 'w') as f:
+            f.write(pandas_requirements)
+
+        with open(os.path.join(output_path, 'numpy.py'), 'w') as f:
             f.write(numpy_code)
-        with open(output_path + 'index.md', 'w') as f:
+        with open(os.path.join(output_path, 'numpy_requirements.txt'), 'w') as f:
+            f.write(numpy_requirements)
+
+        with open(os.path.join(output_path, 'index.md'), 'w') as f:
             f.write(markdown)
   call: gen_markdown_for_static_data_table
   kwargs:
@@ -2514,11 +2518,11 @@ spec:
                 "pandas_code" => serde_json::json!(
                     pandas_code.replace("\\\\", "\\")
                 ),
-                "pandas_pip" => serde_json::json!(pandas_requirements),
+                "pandas_requirements" => serde_json::json!(pandas_requirements),
                 "numpy_code" => serde_json::json!(
                     numpy_code.replace("\\\\", "\\")
                 ),
-                "numpy_pip" => serde_json::json!(numpy_requirements),
+                "numpy_requirements" => serde_json::json!(numpy_requirements),
             )).to_string().replace("\\", "\\\\")
           }
     output_file:
@@ -2531,15 +2535,51 @@ spec:
       spec:
         call: static_data_table.name
         attaches: StaticDataTable
-    storage_setup:
+    storage_location_name:
       type: AncestorArgument
       spec:
         call: |
           {
-            let mut md = markdown_gen::markdown::Markdown::new(Vec::new());
-            static_data_table.setup.markdown(&mut md);
-            let vec = md.into_inner();
-            String::from_utf8(vec).unwrap()
+            if let crate::StorageSetup::RemoteStorageSetup(rss) = &static_data_table.setup {
+              if let crate::Storage::RemoteStorage(rs) = &rss.remote {
+                match &rs.location {
+                  RemoteLocation::GCSLocation(_) => "GCSLocation".to_string(),
+                  RemoteLocation::WebLocation(_) => "WebLocation".to_string(),
+                  RemoteLocation::PushshiftAPILocation(_) => "PushshiftAPILocation".to_string(),
+                  RemoteLocation::BigQueryLocation(_) => "BigQueryLocation".to_string(),
+                }
+              } else {
+                "OtherStorage".to_string()
+              }
+            } else {
+              "OtherStorageSetup".to_string()
+            }
+          }
+        attaches: StaticDataTable
+    storage_location_params:
+      type: AncestorArgument
+      spec:
+        call: |
+          {
+            let mut params = std::collections::HashMap::new();
+            if let crate::StorageSetup::RemoteStorageSetup(rss) = &static_data_table.setup {
+              if let crate::Storage::RemoteStorage(rs) = &rss.remote {
+                match &rs.location {
+                  RemoteLocation::GCSLocation(gcs) => {
+                    params.insert("bucket", gcs.bucket.clone());
+                    params.insert("blob", gcs.blob.clone());
+                  }
+                  RemoteLocation::WebLocation(web) => {
+                    params.insert("address", web.address.clone());
+                  },
+                  RemoteLocation::PushshiftAPILocation(papi) => {
+                    params.insert("subreddit", papi.subreddit.clone());
+                  },
+                  RemoteLocation::BigQueryLocation(_bq) => {},
+                };
+              }
+            }
+            serde_json::json!(params).to_string()
           }
         attaches: StaticDataTable
     attributes:
@@ -2560,60 +2600,6 @@ spec:
       spec:
         attaches: StaticDataTable
         call: static_data_table.get_schema().get_datum_template_name().unwrap()
----
-type: Program
-spec:
-  use: GenerateMarkdown
-  root: Universe
-  dialect: Python
-  preamble: |
-
-    from datetime import datetime
-    import os
-    import json
-
-    def gen_markdown_for_universe(universe_name, dataset_names):
-        dataset_names = json.loads(dataset_names)
-        markdown = """
-    +++
-    title = "Universe: {name}"
-    date = {today}
-    paginate_by = 5
-    sort_by = "date"
-    render = true
-    +++
-    Datasets:
-    {datasets}
-        """.strip().format(
-            name=universe_name,
-            today=datetime.today().strftime('%Y-%m-%d'),
-            datasets="\\n".join([
-              "- [{d}](@/{d}/index.md)".format(d=d)
-              for d in dataset_names
-            ])
-        )
-
-        if not os.path.exists('content'):
-            os.makedirs('content')
-        output_path = 'content/universe.md'
-        with open(output_path, 'w') as f:
-            f.write(markdown)
-  call: gen_markdown_for_universe
-  kwargs:
-    universe_name:
-      type: AncestorArgument
-      spec:
-        call: universe.name
-        attaches: Universe
-    dataset_names:
-      type: AncestorArgument
-      spec:
-        call: |
-          {
-            use crate::object::TAoristObject;
-            serde_json::json!(universe.datasets.as_ref().unwrap().iter().map(|x| x.get_name().clone()).collect::<Vec<String>>()).to_string()
-          }
-        attaches: Universe
 ---
 type: Program
 spec:
