@@ -20,6 +20,7 @@ use uuid::Uuid;
 #[aorist_concept]
 pub struct DataSet {
     pub name: String,
+    pub description: String,
     #[constrainable]
     #[py_default = "Vec::new()"]
     pub accessPolicies: Vec<AccessPolicy>,
@@ -125,6 +126,7 @@ impl InnerDataSet {
     pub fn replicate_to_local(&self, storage: InnerStorage, tmp_dir: String) -> InnerDataSet {
         InnerDataSet {
             name: self.name.clone(),
+            description: self.description.clone(),
             accessPolicies: self.accessPolicies.clone(),
             datumTemplates: self.datumTemplates.clone(),
             assets: self
