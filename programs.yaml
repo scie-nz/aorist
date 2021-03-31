@@ -187,6 +187,40 @@ spec:
 ---
 type: Program
 spec:
+  use: DownloadDataFromRemoteWebLocation
+  root: WebLocation
+  dialect: Python
+  preamble: |
+    import os
+    import os.path
+    import urllib.request
+
+    def download_data_from_remote_web_location(src_url, tmp_dir, dest_file_name):
+        os.mkdirs(tmp_dir)
+        urllib.request.urlretrieve(url, os.path.join(tmp_dir, dest_file_name))
+  call: download_data_from_remote_web_location
+  kwargs:
+    src_url:
+      type: AncestorArgument
+      spec:
+        call: web_location.address
+        attaches: WebLocation
+        name: address
+    tmp_dir:
+      type: AncestorArgument
+      spec:
+        call: replication_storage_setup.tmp_dir
+        attaches: ReplicationStorageSetup
+        name: tmp_dir
+    dest_file_name:
+      type: AncestorArgument
+      spec:
+        call: format!("{}.downloaded", static_data_table.name).to_string()
+        attaches: StaticDataTable
+        name: file_name
+---
+type: Program
+spec:
   use: DownloadDataFromRemotePushshiftAPILocation
   root: PushshiftAPILocation
   pip_requires:
@@ -576,7 +610,50 @@ spec:
 ---
 type: Program
 spec:
-  use: ConvertToCSV
+  use: RenameCSV
+  root: RemoteStorage
+  dialect: Python
+  preamble: |
+    import os
+    import os.path
+
+    def rename_csv(tmp_dir, src_file_name, dest_file_name):
+        os.rename(os.path.join(tmp_dir, src_file_name), os.path.join(tmp_dir, dest_file_name))
+  call: convert_json_to_csv
+  kwargs:
+    tmp_dir:
+      type: MultipleAncestorsArgument
+      spec:
+        call: replication_storage_setup.tmp_dir
+        attaches:
+          - ReplicationStorageSetup
+    src_file_name:
+      type: MultipleAncestorsArgument
+      spec:
+        call: >
+          {
+            let file_name = &static_data_table.name;
+            match &remote_storage.encoding.get_header() {
+                Some(_) => format!("{}.no_header", file_name),
+                None => match &remote_storage.encoding.get_compression() {
+                    Some(_) => format!("{}.txt", file_name),
+                    None => format!("{}.downloaded", file_name),
+                }
+            }.to_string()
+          }
+        attaches:
+          - StaticDataTable
+          - RemoteStorage
+    dest_file_name:
+      type: MultipleAncestorsArgument
+      spec:
+        call: 'format!("{}.csv", static_data_table.name).to_string()'
+        attaches:
+          - StaticDataTable
+---
+type: Program
+spec:
+  use: RenameCSV
   root: RemoteStorage
   dialect: Bash
   call: "{call}"
@@ -595,21 +672,138 @@ spec:
                     None => format!("{}/{}.downloaded", tmp_dir, file_name),
                 }
             };
-            match &remote_storage.encoding {
-               Encoding::CSVEncoding(_) | Encoding::JSONEncoding(_) => format!(
-                  "cp {source} {tmp_dir}/{file_name}.csv",
-                  source=source,
-                  tmp_dir=tmp_dir,
-                  file_name=file_name,
-               ).to_string(),
-               Encoding::TSVEncoding(_) => format!(
-                  "cat {source} | tr '\\\\t' ',' > {tmp_dir}/{file_name}.csv",
-                  source=source,
-                  tmp_dir=tmp_dir,
-                  file_name=file_name,
-               ).to_string(),
-              _ => panic!("Encoding not supported.")
-            }
+            format!(
+                "mv -v '{source}' '{tmp_dir}/{file_name}.csv'",
+                source=source,
+                tmp_dir=tmp_dir,
+                file_name=file_name,
+            ).to_string()
+          }
+        attaches:
+          - StaticDataTable
+          - ReplicationStorageSetup
+          - RemoteStorage
+---
+type: Program
+spec:
+  use: ConvertJSONToCSV
+  root: RemoteStorage
+  dialect: Python
+  preamble: |
+    import os
+    import os.path
+
+    def convert_json_to_csv(tmp_dir, src_file_name, dest_file_name):
+        # TODO: for now this just moves the JSON file and doesn't actually convert it to CSV
+        os.rename(os.path.join(tmp_dir, src_file_name), os.path.join(tmp_dir, dest_file_name))
+  call: convert_json_to_csv
+  kwargs:
+    tmp_dir:
+      type: MultipleAncestorsArgument
+      spec:
+        call: replication_storage_setup.tmp_dir
+        attaches:
+          - ReplicationStorageSetup
+    src_file_name:
+      type: MultipleAncestorsArgument
+      spec:
+        call: >
+          {
+            let file_name = &static_data_table.name;
+            match &remote_storage.encoding.get_header() {
+                Some(_) => format!("{}.no_header", file_name),
+                None => match &remote_storage.encoding.get_compression() {
+                    Some(_) => format!("{}.txt", file_name),
+                    None => format!("{}.downloaded", file_name),
+                }
+            }.to_string()
+          }
+        attaches:
+          - StaticDataTable
+          - RemoteStorage
+    dest_file_name:
+      type: MultipleAncestorsArgument
+      spec:
+        call: 'format!("{}.csv", static_data_table.name).to_string()'
+        attaches:
+          - StaticDataTable
+---
+type: Program
+spec:
+  use: ConvertTSVToCSV
+  root: RemoteStorage
+  dialect: Python
+  preamble: |
+    import os.path
+
+    def tsv_to_csv(tmp_dir, src_file_name, dest_file_name):
+        with open(os.path.join(tmp_dir, src_file_name)) as sourcef, open(os.path.join(tmp_dir, dest_file_name), 'w') as destf:
+                while True:
+                    chunk = sourcef.read(10240)
+                    if not chunk:
+                        destf.flush()
+                        destf.close()
+                        break
+                    destf.write(chunk.replace('\\t', ','))
+  call: tsv_to_csv
+  kwargs:
+    tmp_dir:
+      type: MultipleAncestorsArgument
+      spec:
+        call: replication_storage_setup.tmp_dir
+        attaches:
+          - ReplicationStorageSetup
+    src_file_name:
+      type: MultipleAncestorsArgument
+      spec:
+        call: >
+          {
+            let file_name = &static_data_table.name;
+            match &remote_storage.encoding.get_header() {
+                Some(_) => format!("{}.no_header", file_name),
+                None => match &remote_storage.encoding.get_compression() {
+                    Some(_) => format!("{}.txt", file_name),
+                    None => format!("{}.downloaded", file_name),
+                }
+            }.to_string()
+          }
+        attaches:
+          - StaticDataTable
+          - RemoteStorage
+    dest_file_name:
+      type: MultipleAncestorsArgument
+      spec:
+        call: 'format!("{}.csv", static_data_table.name).to_string()'
+        attaches:
+          - StaticDataTable
+---
+type: Program
+spec:
+  use: ConvertTSVToCSV
+  root: RemoteStorage
+  dialect: Bash
+  call: "{call}"
+  kwargs:
+    call:
+      type: MultipleAncestorsArgument
+      spec:
+        call: >
+          {
+            let tmp_dir = &replication_storage_setup.tmp_dir;
+            let file_name = &static_data_table.name;
+            let source = match &remote_storage.encoding.get_header() {
+                Some(_) => format!("{}/{}.no_header", tmp_dir, file_name).to_string(),
+                None => match &remote_storage.encoding.get_compression() {
+                    Some(_) => format!("{}/{}.txt", tmp_dir, file_name),
+                    None => format!("{}/{}.downloaded", tmp_dir, file_name),
+                }
+            };
+            format!(
+                "cat '{source}' | tr '\\\\t' ',' > '{tmp_dir}/{file_name}.csv'",
+                source=source,
+                tmp_dir=tmp_dir,
+                file_name=file_name,
+            ).to_string()
           }
         attaches:
           - StaticDataTable

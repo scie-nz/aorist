@@ -389,7 +389,9 @@ spec:
   name: CSVIsConverted
   root: StaticDataTable
   requires:
-    - ConvertToCSV
+    - RenameCSV
+    - ConvertJSONToCSV
+    - ConvertTSVToCSV
   attachIf: |
       |root: Concept<'a>, ancestry: &ConceptAncestry<'a>|
       match ancestry.static_data_table(root.clone()).unwrap().setup {
@@ -399,19 +401,60 @@ spec:
 ---
 type: Constraint
 spec:
-  name: ConvertToCSV
+  name: RenameCSV
   root: RemoteStorage
   requiresProgram: true
   requires:
-    - RemoveFileHeader
     - DownloadDataFromRemote
-  title: Convert data to CSV
+    - RemoveFileHeader
+  title: Move CSV to tmp
   body: |
-      We need to convert the data to CSV format to process it further (or if
-      the data is already in CSV format, we will need to rename files accordingly).
+      We need to move the CSV data to the tmp directory as expected in later phases.
   attachIf: |
       |root: Concept<'a>, ancestry: &ConceptAncestry<'a>|
-      ancestry.replication_storage_setup(root.clone()).is_ok()
+      match ancestry.remote_storage(root.clone()).unwrap().encoding {
+          crate::encoding::Encoding::CSVEncoding(_) =>
+              ancestry.replication_storage_setup(root.clone()).is_ok(),
+          _ => false,
+      }
+---
+type: Constraint
+spec:
+  name: ConvertJSONToCSV
+  root: RemoteStorage
+  requiresProgram: true
+  requires:
+    - DownloadDataFromRemote
+    - RemoveFileHeader
+  title: Convert JSON data to CSV
+  body: |
+      We need to convert the JSON data to CSV format to process it further.
+  attachIf: |
+      |root: Concept<'a>, ancestry: &ConceptAncestry<'a>|
+      match ancestry.remote_storage(root.clone()).unwrap().encoding {
+          crate::encoding::Encoding::JSONEncoding(_) =>
+              ancestry.replication_storage_setup(root.clone()).is_ok(),
+          _ => false,
+      }
+---
+type: Constraint
+spec:
+  name: ConvertTSVToCSV
+  root: RemoteStorage
+  requiresProgram: true
+  requires:
+    - DownloadDataFromRemote
+    - RemoveFileHeader
+  title: Convert TSV data to CSV
+  body: |
+      We need to convert the TSV data to CSV format to process it further.
+  attachIf: |
+      |root: Concept<'a>, ancestry: &ConceptAncestry<'a>|
+      match ancestry.remote_storage(root.clone()).unwrap().encoding {
+          crate::encoding::Encoding::TSVEncoding(_) =>
+              ancestry.replication_storage_setup(root.clone()).is_ok(),
+          _ => false,
+      }
 ---
 type: Constraint
 spec:
@@ -668,7 +711,8 @@ spec:
   root: StaticDataTable
   requiresProgram: true
   requires:
-    - ConvertToCSV
+    - DownloadDataFromRemote
+    - CSVIsConverted
 ---
 type: Constraint
 spec:
@@ -676,4 +720,5 @@ spec:
   root: StaticDataTable
   requiresProgram: true
   requires:
-    - ConvertToCSV
+    - DownloadDataFromRemote
+    - CSVIsConverted
