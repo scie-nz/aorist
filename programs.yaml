@@ -2435,10 +2435,21 @@ spec:
     def gen_markdown_for_dataset(
         dataset_name,
         dataset_description,
+        input_file,
         output_file,
         asset_names,
         template_names,
     ):
+        # Display source section if input_file is non-empty
+        if input_file:
+            with open(input_file) as f:
+                source_section = '''### Source
+
+    ```py3
+
+    {}```'''.format(f.read())
+        else:
+            source_section = ''
         asset_names = json.loads(asset_names)
         template_names = json.loads(template_names)
         markdown = """
@@ -2459,9 +2470,12 @@ spec:
     **Name** | **Type**
     --- | ---
     {templates}
+
+    {source_section}
       """.strip().format(
             name=dataset_name,
             description=dataset_description,
+            source_section=source_section,
             today=datetime.today().strftime('%Y-%m-%d'),
             assets="\\n".join(["[{dt}](@/{dataset_name}/{dt}/index.md) | {tp}".format(
                 dataset_name=dataset_name,
@@ -2478,11 +2492,6 @@ spec:
             f.write(markdown)
   call: gen_markdown_for_dataset
   kwargs:
-    output_file:
-      type: AncestorArgument
-      spec:
-        call: format!("{}.md", data_set.name).to_string()
-        attaches: DataSet
     dataset_name:
       type: AncestorArgument
       spec:
@@ -2492,6 +2501,16 @@ spec:
       type: AncestorArgument
       spec:
         call: data_set.description
+        attaches: DataSet
+    input_file:
+      type: AncestorArgument
+      spec:
+        call: data_set.sourcePath
+        attaches: DataSet
+    output_file:
+      type: AncestorArgument
+      spec:
+        call: format!("{}.md", data_set.name).to_string()
         attaches: DataSet
     asset_names:
       type: AncestorArgument
@@ -2690,6 +2709,7 @@ spec:
             let new_dataset = DataSet{
                 name: data_set.name.clone(),
                 description: data_set.description.clone(),
+                sourcePath: data_set.sourcePath.clone(),
                 accessPolicies: Vec::new(),
                 datumTemplates: vec![template],
                 assets: vec![(static_data_table.name.clone(), replicated_table)].into_iter().collect(),

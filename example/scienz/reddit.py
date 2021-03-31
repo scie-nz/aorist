@@ -49,6 +49,7 @@ assets = {x: StaticDataTable(
 subreddits = DataSet(
     name="subreddits",
     description="A selection of small region-based Subreddits to demonstrate collecting Reddit data via [Pushshift](https://pushshift.io/).",
+    sourcePath=__file__,
     datumTemplates=[subreddit_datum],
     assets=assets,
 )
