@@ -483,6 +483,7 @@ features_histogram_location = HiveTableStorage(
 )
 geonames_dataset = DataSet(
     name="geonames-dataset",
+    description="The US [official repository](https://geonames.nga.mil/gns/html/) of standard spellings of geographic names outside of the United States.",
     datumTemplates=[geonames_datum],
     assets={
         'features': geonames_table

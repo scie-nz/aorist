@@ -2434,6 +2434,7 @@ spec:
 
     def gen_markdown_for_dataset(
         dataset_name,
+        dataset_description,
         output_file,
         asset_names,
         template_names,
@@ -2444,6 +2445,7 @@ spec:
     +++
     title = "{name}"
     date = {today}
+    description = "{description}"
     +++
 
     ### Assets
@@ -2459,6 +2461,7 @@ spec:
     {templates}
       """.strip().format(
             name=dataset_name,
+            description=dataset_description,
             today=datetime.today().strftime('%Y-%m-%d'),
             assets="\\n".join(["[{dt}](@/{dataset_name}/{dt}/index.md) | {tp}".format(
                 dataset_name=dataset_name,
@@ -2484,6 +2487,11 @@ spec:
       type: AncestorArgument
       spec:
         call: data_set.name
+        attaches: DataSet
+    dataset_description:
+      type: AncestorArgument
+      spec:
+        call: data_set.description
         attaches: DataSet
     asset_names:
       type: AncestorArgument
@@ -2681,6 +2689,7 @@ spec:
             let template = data_set.get_template_for_asset(static_data_table).unwrap();
             let new_dataset = DataSet{
                 name: data_set.name.clone(),
+                description: data_set.description.clone(),
                 accessPolicies: Vec::new(),
                 datumTemplates: vec![template],
                 assets: vec![(static_data_table.name.clone(), replicated_table)].into_iter().collect(),
