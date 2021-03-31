@@ -20,7 +20,7 @@ pub use r_python_task::RPythonTask;
 pub use string_literal::StringLiteral;
 
 use crate::constraint_state::AncestorRecord;
-use aorist_derive::{Optimizable};
+use aorist_derive::Optimizable;
 use aorist_primitives::{define_ast_node, register_ast_nodes};
 use linked_hash_map::LinkedHashMap;
 use pyo3::prelude::*;
@@ -442,8 +442,7 @@ impl Formatted {
     pub fn optimize(&self) -> Option<AST> {
         if self.keywords.len() == 1 {
             if let AST::StringLiteral(rw) = &self.fmt {
-                let (unique_key, unique_value) =
-                self.keywords.iter().next().unwrap().clone();
+                let (unique_key, unique_value) = self.keywords.iter().next().unwrap().clone();
                 let read = rw.read().unwrap();
                 if read.value() == format!("{{{}}}", unique_key).to_string() {
                     return Some(unique_value.clone());

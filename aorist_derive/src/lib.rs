@@ -5,6 +5,7 @@ use syn;
 use syn::punctuated::Punctuated;
 use syn::token::Comma;
 use syn::{Data, DataStruct, DeriveInput, Field, Fields};
+use type_macro_helpers::{extract_type_from_linked_hash_map, extract_type_from_vector};
 
 #[proc_macro_derive(PrestoVarchar)]
 pub fn derive_presto_varchar(input: TokenStream) -> TokenStream {
@@ -929,24 +930,62 @@ pub fn optimizable(input: TokenStream) -> TokenStream {
 }
 
 fn optimize_struct_fields(fields: &Punctuated<Field, Comma>, input: &DeriveInput) -> TokenStream {
-    let field = fields
+    let bare_field_name = fields
         .iter()
         .filter(|field| match &field.ty {
             syn::Type::Path(x) => x.path.is_ident("AST"),
             _ => false,
         })
-        .map(|field| (&field.ident, &field.ty));
+        .map(|field| &field.ident);
+
+    let vec_field_name = fields
+        .iter()
+        .map(|field| (&field.ident, extract_type_from_vector(&field.ty)))
+        .filter(|x| match x.1 {
+            Some(syn::Type::Path(y)) => y.path.is_ident("AST"),
+            _ => false,
+        })
+        .map(|x| x.0);
+    
+    let map_field_name = fields
+        .iter()
+        .map(|field| (&field.ident, extract_type_from_linked_hash_map(&field.ty)))
+        .filter(|x| match x.1 {
+            Some((_, syn::Type::Path(y))) => y.path.is_ident("AST"),
+            _ => false,
+        })
+        .map(|x| x.0);
 
     let struct_name = &input.ident;
-    let bare_field_name = field.clone().map(|x| x.0).collect::<Vec<_>>();
     TokenStream::from(quote! {
 
     impl #struct_name {
         fn optimize_fields(&mut self) {
             #(
-                if let Some(opt) = match self.#bare_field_name.optimize() {
+                if let Some(opt) = self.#bare_field_name.optimize() {
                     self.#bare_field_name = opt;
                 }
+            )*
+            #(
+                let mut new_elems = Vec::new();
+                for elem in self.#vec_field_name {
+                    new_elems.push(match elem.optimize() {
+                        Some(opt) => opt,
+                        None => elem.clone(),
+                    });
+                }
+                self.#vec_field_name = new_elems;
+            )*
+            
+            #(
+                let mut new_elems = LinkedHashMap::new();
+                for (k, elem) in self.#map_field_name {
+                    new_elems.insert(k, match elem.optimize() {
+                        Some(opt) => opt,
+                        None => elem.clone(),
+                    });
+                }
+                self.#map_field_name = new_elems;
             )*
         }
     }

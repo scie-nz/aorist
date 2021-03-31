@@ -113,3 +113,13 @@ pub fn extract_type_from_map(ty: &syn::Type) -> Option<(&syn::Type, &syn::Type)>
         ],
     )
 }
+
+pub fn extract_type_from_linked_hash_map(ty: &syn::Type) -> Option<(&syn::Type, &syn::Type)> {
+    extract_inner_from_double_bracketed_type(
+        ty,
+        vec![
+            "LinkedHashMap|".to_string(),
+            "linked_hash_map|LinkedHashMap|".into(),
+        ],
+    )
+}
