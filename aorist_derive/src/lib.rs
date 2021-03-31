@@ -2,6 +2,9 @@ extern crate proc_macro;
 use proc_macro::TokenStream;
 use quote::quote;
 use syn;
+use syn::punctuated::Punctuated;
+use syn::token::Comma;
+use syn::{Data, DataStruct, DeriveInput, Field, Fields};
 
 #[proc_macro_derive(PrestoVarchar)]
 pub fn derive_presto_varchar(input: TokenStream) -> TokenStream {
@@ -910,4 +913,42 @@ pub fn derive_postgres_inet(input: TokenStream) -> TokenStream {
         }
     };
     gen.into()
+}
+
+#[proc_macro_derive(Optimizable)]
+pub fn optimizable(input: TokenStream) -> TokenStream {
+    let input = syn::parse_macro_input!(input as DeriveInput);
+    //let constraint_names = AoristConstraint::get_required_constraint_names();
+    match &input.data {
+        Data::Struct(DataStruct {
+            fields: Fields::Named(fields),
+            ..
+        }) => optimize_struct_fields(&fields.named, &input),
+        _ => panic!("expected a struct with named fields"),
+    }
+}
+
+fn optimize_struct_fields(fields: &Punctuated<Field, Comma>, input: &DeriveInput) -> TokenStream {
+    let field = fields
+        .iter()
+        .filter(|field| match &field.ty {
+            syn::Type::Path(x) => x.path.is_ident("AST"),
+            _ => false,
+        })
+        .map(|field| (&field.ident, &field.ty));
+
+    let struct_name = &input.ident;
+    let bare_field_name = field.clone().map(|x| x.0).collect::<Vec<_>>();
+    TokenStream::from(quote! {
+
+    impl #struct_name {
+        fn optimize_fields(&mut self) {
+            #(
+                if let Some(opt) = match self.#bare_field_name.optimize() {
+                    self.#bare_field_name = opt;
+                }
+            )*
+        }
+    }
+    })
 }

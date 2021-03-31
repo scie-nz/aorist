@@ -219,7 +219,7 @@ macro_rules! define_ast_node {
      $descendants:expr,
      $py_ast_closure:expr,
      $($field: ident : $field_type: ty,)*) => {
-        #[derive(Hash, PartialEq, Eq, Clone)]
+        #[derive(Hash, PartialEq, Eq, Clone, Optimizable)]
         pub struct $name {
             $(
                 $field: $field_type,

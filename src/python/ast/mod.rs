@@ -20,6 +20,7 @@ pub use r_python_task::RPythonTask;
 pub use string_literal::StringLiteral;
 
 use crate::constraint_state::AncestorRecord;
+use aorist_derive::{Optimizable};
 use aorist_primitives::{define_ast_node, register_ast_nodes};
 use linked_hash_map::LinkedHashMap;
 use pyo3::prelude::*;
