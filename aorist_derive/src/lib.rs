@@ -965,14 +965,17 @@ fn optimize_struct_fields(fields: &Punctuated<Field, Comma>, input: &DeriveInput
                 if let Some(opt) = self.#bare_field_name.optimize() {
                     self.#bare_field_name = opt;
                 }
+                self.#bare_field_name.optimize_fields();
             )*
             #(
                 let mut new_elems = Vec::new();
                 for elem in self.#vec_field_name {
-                    new_elems.push(match elem.optimize() {
+                    let new_elem = match elem.optimize() {
                         Some(opt) => opt,
                         None => elem.clone(),
-                    });
+                    };
+                    new_elem.optimize_fields();
+                    new_elems.push(new_elem);
                 }
                 self.#vec_field_name = new_elems;
             )*
@@ -980,10 +983,12 @@ fn optimize_struct_fields(fields: &Punctuated<Field, Comma>, input: &DeriveInput
             #(
                 let mut new_elems = LinkedHashMap::new();
                 for (k, elem) in self.#map_field_name {
-                    new_elems.insert(k, match elem.optimize() {
+                    let new_elem = match elem.optimize() {
                         Some(opt) => opt,
                         None => elem.clone(),
-                    });
+                    };
+                    new_elem.optimize_fields();
+                    new_elems.insert(k, new_elem);
                 }
                 self.#map_field_name = new_elems;
             )*

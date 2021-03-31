@@ -62,6 +62,13 @@ macro_rules! register_ast_nodes {
                 }
                 .to_string()
             }
+            pub fn optimize_fields(&self) {
+                match &self {
+                    $(
+                        Self::$variant(rw) => rw.write().unwrap().optimize_fields(),
+                    )+
+                }
+            }
             pub fn to_python_ast_node<'a>(
                 &self,
                 py: Python,
