@@ -2254,7 +2254,7 @@ spec:
             """.format(
                 name=name,
                 datasets=", ".join([
-                  '%s.replicate_to_local(local, tmp_dir)' % x for x in datasets
+                  '%s.replicate_to_local(local, tmp_dir, CSVEncoding())' % x for x in datasets
                 ])
             ),
             """
@@ -2553,11 +2553,11 @@ spec:
             let storage = Storage::LocalFileStorage(LocalFileStorage {
                 location,
                 layout,
-                encoding,
+                encoding: encoding.clone(),
                 constraints: Vec::new(), tag: None, uuid: None,
             });
             let replicated_table = Asset::StaticDataTable(
-                static_data_table.replicate_to_local(storage, tmp_dir)
+                static_data_table.replicate_to_local(storage, tmp_dir, encoding)
             );
             let template = data_set.get_template_for_asset(static_data_table).unwrap();
             let new_dataset = DataSet{

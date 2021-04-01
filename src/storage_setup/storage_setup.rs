@@ -1,5 +1,6 @@
 #![allow(non_snake_case)]
 use crate::concept::{AoristConcept, Concept};
+use crate::encoding::*;
 use crate::storage::*;
 use crate::storage_setup::computed_from_local_data::*;
 use crate::storage_setup::local_storage_setup::*;
@@ -40,10 +41,10 @@ impl StorageSetup {
             Self::LocalStorageSetup(l) => l.tmp_dir.clone(),
         }
     }
-    pub fn replicate_to_local(&self, t: Storage, tmp_dir: String) -> Self {
+    pub fn replicate_to_local(&self, t: Storage, tmp_dir: String, tmp_encoding: Encoding) -> Self {
         match self {
             Self::RemoteStorageSetup(x) => {
-                Self::ReplicationStorageSetup(x.replicate_to_local(t, tmp_dir))
+                Self::ReplicationStorageSetup(x.replicate_to_local(t, tmp_dir, tmp_encoding))
             }
             _ => panic!("Only assets with RemoteStorageSetup can be replicated"),
         }
@@ -51,10 +52,10 @@ impl StorageSetup {
 }
 
 impl InnerStorageSetup {
-    pub fn replicate_to_local(&self, t: InnerStorage, tmp_dir: String) -> Self {
+    pub fn replicate_to_local(&self, t: InnerStorage, tmp_dir: String, tmp_encoding: InnerEncoding) -> Self {
         match self {
             Self::RemoteStorageSetup(x) => {
-                Self::ReplicationStorageSetup(x.replicate_to_local(t, tmp_dir))
+                Self::ReplicationStorageSetup(x.replicate_to_local(t, tmp_dir, tmp_encoding))
             }
             _ => panic!("Only assets with RemoteStorageSetup can be replicated"),
         }

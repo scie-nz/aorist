@@ -4,6 +4,7 @@ use crate::asset::*;
 use crate::attributes::*;
 use crate::concept::{AoristConcept, Concept};
 use crate::constraint::Constraint;
+use crate::encoding::*;
 use crate::object::TAoristObject;
 use crate::storage::*;
 use crate::storage_setup::ComputedFromLocalData;
@@ -124,7 +125,7 @@ impl InnerDataSet {
             ),
         }
     }
-    pub fn replicate_to_local(&self, storage: InnerStorage, tmp_dir: String) -> InnerDataSet {
+    pub fn replicate_to_local(&self, storage: InnerStorage, tmp_dir: String, tmp_encoding: InnerEncoding) -> InnerDataSet {
         InnerDataSet {
             name: self.name.clone(),
             description: self.description.clone(),
@@ -137,7 +138,7 @@ impl InnerDataSet {
                 .map(|(k, v)| {
                     (
                         k.clone(),
-                        v.replicate_to_local(storage.clone(), tmp_dir.clone()),
+                        v.replicate_to_local(storage.clone(), tmp_dir.clone(), tmp_encoding.clone()),
                     )
                 })
                 .collect(),
