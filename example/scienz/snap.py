@@ -74,6 +74,7 @@ for name in names:
 snap_dataset = DataSet(
     name="snap",
     description="Sample datasets from the [Stanford Network Analysis Platform](http://snap.stanford.edu/data/index.html).",
+    sourcePath=__file__,
     datumTemplates=[edge_tuple],
     assets=tables,
     tag="snap",

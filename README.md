@@ -279,6 +279,8 @@ Finally, let's define our dataset:
 ```python
 wine_dataset = DataSet(
     name="wine",
+    description="A DataSet about wine",
+    sourcePath=__file__,
     datumTemplates=[wine_datum],
     assets={"wine_table": wine_table},
 )
@@ -386,6 +388,8 @@ for name in names:
 
 snap_dataset = DataSet(
     name="snap",
+    description="The Snap DataSet",
+    sourcePath=__file__,
     datumTemplates=[edge_tuple],
     assets=tables,
     tag="snap",
@@ -529,7 +533,7 @@ Concrete concepts "instantiate" abstract ones, much like classes can instantiate
 Abstract concepts have the following hierarchy:
 
 - `Universe`: the core Aorist abstraction, one per project
-  - `DataSet`:  a universe of instantiated objects which have inter-related schemas
+  - `DataSet`:  a grouping of instantiated objects which have inter-related schemas
   - `User`:  someone accessing the objects
   - `Group`:  a group of users
   - `Roles`:  a way in which a user may access data.

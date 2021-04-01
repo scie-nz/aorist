@@ -21,6 +21,7 @@ use uuid::Uuid;
 pub struct DataSet {
     pub name: String,
     pub description: String,
+    pub sourcePath: String,
     #[constrainable]
     #[py_default = "Vec::new()"]
     pub accessPolicies: Vec<AccessPolicy>,
@@ -127,6 +128,7 @@ impl InnerDataSet {
         InnerDataSet {
             name: self.name.clone(),
             description: self.description.clone(),
+            sourcePath: self.sourcePath.clone(),
             accessPolicies: self.accessPolicies.clone(),
             datumTemplates: self.datumTemplates.clone(),
             assets: self
