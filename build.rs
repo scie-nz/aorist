@@ -450,6 +450,7 @@ fn process_concepts() {
         ("crate::encoding", "TSVEncoding"),
         ("crate::encoding", "Encoding"),
         ("crate::encoding", "JSONEncoding"),
+        ("crate::encoding", "NewlineDelimitedJSONEncoding"),
         ("crate::encoding", "ORCEncoding"),
         ("crate::encoding", "ONNXEncoding"),
         ("crate::schema", "UndefinedTabularSchema"),
@@ -632,7 +633,7 @@ fn main() {
                         "Python" =>
                             format!(
                                 "Python::new(
-                                     vec![{pip_requirements}] 
+                                     vec![{pip_requirements}]
                                  )",
                                 pip_requirements = match &program.pip_requires {
                                     Some(v) => v

@@ -12,3 +12,6 @@ use uuid::Uuid;
 
 #[aorist_concept]
 pub struct JSONEncoding {}
+
+#[aorist_concept]
+pub struct NewlineDelimitedJSONEncoding {}
