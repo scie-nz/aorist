@@ -27,10 +27,10 @@ define_task_node!(
                         ))
                     }
                 },
-                _ => panic!(format!(
+                _ => panic!(
                     "AST node of type {} found in NativePythonTask body",
                     statement.name()
-                )),
+                ),
             });
         }
         if !task_val_assigned {

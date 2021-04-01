@@ -117,11 +117,11 @@ impl InnerDataSet {
     pub fn get_static_data_table(&self, asset_name: String) -> PyResult<InnerStaticDataTable> {
         match self.assets.get(&asset_name) {
             Some(InnerAsset::StaticDataTable(x)) => Ok(x.clone()),
-            Some(_) => panic!(format!("Asset {} is not a StaticDataTable.", asset_name)),
-            _ => panic!(format!(
+            Some(_) => panic!("Asset {} is not a StaticDataTable.", asset_name),
+            _ => panic!(
                 "Dataset does not contain asset called {}.",
                 asset_name
-            )),
+            ),
         }
     }
     pub fn replicate_to_local(&self, storage: InnerStorage, tmp_dir: String) -> InnerDataSet {
@@ -163,11 +163,11 @@ impl InnerDataSet {
                 }
                 Ok(asset_attributes)
             }
-            None => panic!(format!(
+            None => panic!(
                 "Could not find template for asset {} in dataset {}",
                 asset.get_name(),
                 self.name,
-            )),
+            ),
         }
     }
 }

@@ -973,11 +973,11 @@ spec:
             let template = data_set.get_template_for_asset(supervised_model);
             let tfm = match template {
                 Ok(DatumTemplate::TrainedFloatMeasure(m)) => m,
-                Err(x) => panic!(x),
-                _ => panic!(format!(
+                Err(x) => panic!("{}", x),
+                _ => panic!(
                     "Cannot train an SVM Regression Model on asset with with template {}",
                     supervised_model.get_schema().get_datum_template_name().unwrap(),
-               )),
+               ),
             };
             format!("
             CREATE TABLE {presto_schema}.tmp_{table_name}_regressor
@@ -1020,10 +1020,7 @@ spec:
             let template = mapped_templates.get(&t.datumTemplateName);
             let filter = match template {
                 Some(DatumTemplate::Filter(m)) => m,
-                _ => panic!(format!(
-                    "Template {} not a filter.",
-                    t.datumTemplateName
-               )),
+                _ => panic!("Template {} not a filter.", t.datumTemplateName),
             };
             assert_eq!(computed_from_local_data.source_asset_names.len(), 1);
             let source_asset_name =
@@ -1166,11 +1163,11 @@ spec:
             let template = data_set.get_template_for_asset(supervised_model);
             let tfm = match template {
                 Ok(DatumTemplate::TrainedFloatMeasure(m)) => m,
-                Err(x) => panic!(x),
-                _ => panic!(format!(
+                Err(x) => panic!("{}", x),
+                _ => panic!(
                     "Cannot train an SVM Regression Model on asset with with template {}",
                     supervised_model.get_schema().get_datum_template_name().unwrap(),
-               )),
+                ),
             };
             tfm.get_training_objective().get_name().clone()
           }
@@ -1190,11 +1187,11 @@ spec:
             let template = data_set.get_template_for_asset(supervised_model);
             let tfm = match template {
                 Ok(DatumTemplate::TrainedFloatMeasure(m)) => m,
-                Err(x) => panic!(x),
-                _ => panic!(format!(
+                Err(x) => panic!("{}", x),
+                _ => panic!(
                     "Cannot train an SVM Regression Model on asset with with template {}",
                     supervised_model.get_schema().get_datum_template_name().unwrap(),
-               )),
+                ),
             };
             format!("[{}]",
                 tfm.features.iter().map(|x| format!("\"{}\"", x.get_name()).to_string()).collect::<Vec<String>>().join(","),
@@ -1395,9 +1392,9 @@ spec:
                       _ => panic!("Only HiveTableStorage allowed."),
                 }
               }
-              _ => panic!(format!(
+              _ => panic!(
                   "Source asset {} must be StaticDataTable", source_name,
-              )),
+              ),
             }
           }
     model_path:
@@ -1439,9 +1436,9 @@ spec:
                   },
                   _ => panic!("Only locally-computed models allowed."),
               },
-              _ => panic!(format!(
+              _ => panic!(
                   "Model asset {} must be supervised model", model_name,
-              )),
+              ),
             }
           }
     destination_path:

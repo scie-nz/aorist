@@ -43,6 +43,6 @@ pub fn format_code(code: String) -> PyResult<String> {
     ) {
         return res.extract();
     } else {
-        panic!(format!("Error formatting code block: \n{}\n---", py_code));
+        panic!("Error formatting code block: \n{}\n---", py_code);
     }
 }

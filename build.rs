@@ -650,11 +650,11 @@ fn main() {
                         format!(
                             "let {x} = match ancestry.{x}(concept.clone()) {{
                                 Ok(out) => out,
-                                Err(err) => panic!(format!(
+                                Err(err) => panic!(
                                     \"Error encountered for constraint {{}}:\n{{}}\",
                                     \"{constraint}\",
                                     err,
-                                ))
+                                )
                             }};",
                             constraint=constraint,
                             x=to_snake_case(x),

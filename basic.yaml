@@ -105,7 +105,7 @@ spec:
                     match template {
                       Ok(crate::template::DatumTemplate::PredictionsFromTrainedFloatMeasure(_)) => true,
                         Ok(_) => false,
-                        Err(err) => panic!(err),
+                        Err(err) => panic!("{}", err),
                     }
                   },
                   _ => false,
@@ -479,7 +479,7 @@ spec:
                     match template {
                       Ok(crate::template::DatumTemplate::PredictionsFromTrainedFloatMeasure(_)) => true,
                         Ok(_) => false,
-                        Err(err) => panic!(err),
+                        Err(err) => panic!("{}", err),
                     }
                   },
                   _ => false,
@@ -571,10 +571,10 @@ spec:
           let dataset = ancestry.data_set(root.clone()).unwrap();
           let uuids: Vec<_> = dataset.get_source_assets(&setup).unwrap().values().map(|x| x.get_uuid().clone()).collect();
           if uuids.len() == 0 {
-              panic!(format!(
+              panic!(
                   "Cannot find source asset with names {}",
                   setup.source_asset_names.values().map(|x| x.clone()).collect::<Vec<String>>().join(",")
-              ));
+              );
           }
           uuids
       }
@@ -613,10 +613,10 @@ spec:
           let dataset = ancestry.data_set(root.clone()).unwrap();
           let uuids: Vec<_> = dataset.get_source_assets(&setup).unwrap().values().map(|x| x.get_uuid().clone()).collect();
           if uuids.len() == 0 {
-              panic!(format!(
+              panic!(
                   "Cannot find source asset with names {}",
                   setup.source_asset_names.values().map(|x| x.clone()).collect::<Vec<String>>().join(",")
-              ));
+              );
           }
           uuids
       }
@@ -643,7 +643,7 @@ spec:
               let template = mapped_templates.get(&t.datumTemplateName);
               return match template {
                   Some(DatumTemplate::PredictionsFromTrainedFloatMeasure(_)) => true,
-                  None => panic!(format!("Could not find datum template: {}", t.datumTemplateName)),
+                  None => panic!("Could not find datum template: {}", t.datumTemplateName),
                   _ => false,
               };
             }
@@ -656,10 +656,10 @@ spec:
           let dataset = ancestry.data_set(root.clone()).unwrap();
           let uuids: Vec<_> = dataset.get_source_assets(&setup).unwrap().values().map(|x| x.get_uuid().clone()).collect();
           if uuids.len() == 0 {
-              panic!(format!(
+              panic!(
                   "Cannot find source asset with names {}",
                   setup.source_asset_names.values().map(|x| x.clone()).collect::<Vec<String>>().join(",")
-              ));
+              );
           }
           uuids
       }
