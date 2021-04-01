@@ -12,12 +12,12 @@ edition = "2018"
 proc-macro = true
 
 [dependencies]
+proc-macro2 = "1.0.25"
 quote = "1"
-syn = {version = "1.0.52", features = ["full", "extra-traits", "printing"]}
-proc-macro2 = "1.0.24"
-type_macro_helpers = { path = "../type_macro_helpers" }
 serde = { version = "1.0", features = ["derive"] }
 serde_yaml = "0.8"
+syn = {version = "1.0.52", features = ["full", "extra-traits", "printing"]}
+type_macro_helpers = { path = "../type_macro_helpers" }
 
 [features]
 log_syntax = []
