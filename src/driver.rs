@@ -363,7 +363,7 @@ where
         let mut builder_q = topline_constraint_names
             .clone()
             .into_iter()
-            .map(|x| (x.clone(), builders.remove(&x).unwrap()))
+            .map(|x| (x.clone(), builders.remove(&x).expect(format!("Missing constraint named {}", x).as_str())))
             .collect::<VecDeque<_>>();
 
         let mut relevant_builders = LinkedHashMap::new();

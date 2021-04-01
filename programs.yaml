@@ -134,10 +134,10 @@ spec:
     import os
     def download_blob_to_file(bucket_name, blob_name, tmp_dir, file_name):
       client = storage.Client.from_service_account_json('/home/bogdan/.gcloud/social_norms.json')
-      if not os.path.exists(tmp_dir):
-          os.makedirs(tmp_dir)
       bucket = client.bucket(bucket_name)
       blob = bucket.blob(blob_name)
+      if not os.path.exists(tmp_dir):
+          os.makedirs(tmp_dir)
       dest = "%s/%s" % (tmp_dir, file_name)
       blob.download_to_filename(dest)
   call: download_blob_to_file
@@ -192,7 +192,6 @@ spec:
   dialect: Python
   preamble: |
     import os
-    import os.path
     import urllib.request
 
     def download_data_from_remote_web_location(src_url, tmp_dir, dest_file_name):
@@ -615,7 +614,6 @@ spec:
   dialect: Python
   preamble: |
     import os
-    import os.path
 
     def rename_csv(tmp_dir, src_file_name, dest_file_name):
         os.rename(os.path.join(tmp_dir, src_file_name), os.path.join(tmp_dir, dest_file_name))
@@ -691,7 +689,6 @@ spec:
   dialect: Python
   preamble: |
     import os
-    import os.path
 
     def convert_json_to_csv(tmp_dir, src_file_name, dest_file_name):
         # TODO: for now this just moves the JSON file and doesn't actually convert it to CSV
@@ -2305,15 +2302,14 @@ spec:
         db_name,
         tablename,
         tmp_dir,
-        output_file,
         # insertion order matters if we are dealing with a csv
         columns,
         schema_name,
     ):
-        import psycopg2
-        import json
-        import os
         import base64
+        import json
+        import psycopg2
+        import os
 
         if not os.path.exists(tmp_dir):
             os.makedirs(tmp_dir)
@@ -2342,7 +2338,7 @@ spec:
 
         keys = [x[0] for x in columns]
         num_rows = 0
-        with open(tmp_dir + "/" + output_file, 'w') as f:
+        with open(os.path.join(tmp_dir, tablename + ".csv"), 'w') as f:
             for row in cursor.fetchall():
                 row = [
                     x if not isinstance(x, (bytes, bytearray, memoryview))
@@ -2396,11 +2392,6 @@ spec:
       spec:
         call: replication_storage_setup.tmp_dir
         attaches: ReplicationStorageSetup
-    output_file:
-      type: AncestorArgument
-      spec:
-        call: format!("{}.csv", static_data_table.name).to_string()
-        attaches: StaticDataTable
     columns:
       type: MultipleAncestorsArgument
       spec:
@@ -2421,73 +2412,36 @@ spec:
 ---
 type: Program
 spec:
-  use: GenerateMarkdown
+  use: GenerateHub
   root: DataSet
   dialect: Python
   preamble: |
     from datetime import datetime
-    import os
     import json
+    import os
+    import yaml
 
-    def gen_markdown_for_dataset(
+    def gen_hub_for_dataset(
         dataset_name,
         dataset_description,
         input_file,
-        output_file,
         asset_names,
         template_names,
     ):
-        # Display source section if input_file is non-empty
-        if input_file:
-            with open(input_file) as f:
-                source_section = '''### Source
-
-    ```py3
-
-    {}```'''.format(f.read())
-        else:
-            source_section = ''
-        asset_names = json.loads(asset_names)
-        template_names = json.loads(template_names)
-        markdown = """
-    +++
-    title = "{name}"
-    date = {today}
-    description = "{description}"
-    +++
-
-    ### Assets
-
-    **Name** | **Type**
-    --- | ---
-    {assets}
-
-    ### Templates
-
-    **Name** | **Type**
-    --- | ---
-    {templates}
-
-    {source_section}
-      """.strip().format(
-            name=dataset_name,
-            description=dataset_description,
-            source_section=source_section,
-            today=datetime.today().strftime('%Y-%m-%d'),
-            assets="\\n".join(["[{dt}](@/{dataset_name}/{dt}/index.md) | {tp}".format(
-                dataset_name=dataset_name,
-                dt=x[0],
-                tp=x[1]
-            ) for x in asset_names]),
-            templates="\\n".join(["%s | %s" % tuple(x) for x in template_names]),
-        )
-
-        if not os.path.exists('content/%s' % dataset_name):
-            os.makedirs('content/%s' % dataset_name)
-        output_path = 'content/%s/_index.md' % dataset_name
-        with open(output_path, 'w') as f:
-            f.write(markdown)
-  call: gen_markdown_for_dataset
+        payload = {
+            "name": dataset_name,
+            "description": dataset_description,
+            "input_file": input_file,
+            "render_date": datetime.today().strftime('%Y-%m-%d'),
+            "assets": json.loads(asset_names),
+            "templates": json.loads(template_names),
+        }
+        output_dir = os.path.join('hub_yaml', dataset_name)
+        if not os.path.exists(output_dir):
+            os.makedirs(output_dir)
+        with open(os.path.join(output_dir, '_index.yaml'), 'w') as f:
+            yaml.dump(payload, f, indent=2)
+  call: gen_hub_for_dataset
   kwargs:
     dataset_name:
       type: AncestorArgument
@@ -2503,11 +2457,6 @@ spec:
       type: AncestorArgument
       spec:
         call: data_set.sourcePath
-        attaches: DataSet
-    output_file:
-      type: AncestorArgument
-      spec:
-        call: format!("{}.md", data_set.name).to_string()
         attaches: DataSet
     asset_names:
       type: AncestorArgument
@@ -2532,24 +2481,16 @@ spec:
 ---
 type: Program
 spec:
-  use: GenerateMarkdownForStaticDataTables
+  use: GenerateHubForStaticDataTables
   root: StaticDataTable
   dialect: Python
   preamble: |
-
     from datetime import datetime
-    import os
-    import os.path
     import json
-    import pygments
-    import black
+    import os
+    import yaml
 
-    from pygments import highlight
-    from pygments.lexers import PythonLexer
-    from pygments.formatters import HtmlFormatter
-
-
-    def gen_markdown_for_static_data_table(
+    def gen_hub_for_static_data_table(
         static_data_table_name,
         output_file,
         attributes,
@@ -2557,110 +2498,26 @@ spec:
         storage_location_name,
         storage_location_params,
         code,
-        data_set_name,
+        dataset_name,
     ):
-        attributes = json.loads(attributes)
-        storage_location_params = json.loads(storage_location_params)
-        code_dict = json.loads(code)
-
-        output_path = os.path.join('content', data_set_name, static_data_table_name)
-
-        pandas_code = code_dict['pandas_code']
-        pandas_requirements = '\\n'.join(code_dict['pandas_requirements'])
-
-        numpy_code = code_dict['numpy_code']
-        numpy_requirements = '\\n'.join(code_dict['numpy_requirements'])
-
-        markdown = """
-    +++
-    title = "{name}"
-    date = {today}
-    +++
-
-    ### Pandas
-
-    <details>
-      <summary>pandas_requirements.txt <a href="pandas_requirements.txt">Download</a></summary>
-
-    ```perl
-
-    {pandas_requirements}
-    ```
-
-    </details>
-    <details>
-      <summary>pandas.py <a href="pandas.py">Download</a></summary>
-
-    ```py3
-
-    {pandas_code}```
-
-    </details>
-
-    ### Numpy
-
-    <details>
-      <summary>numpy_requirements.txt <a href="numpy_requirements.txt">Download</a></summary>
-
-    ```perl
-
-    {numpy_requirements}
-    ```
-
-    </details>
-    <details>
-      <summary>numpy.py <a href="numpy.py">Download</a></summary>
-
-    ```py3
-
-    {numpy_code}```
-
-    </details>
-
-    ### Schema
-
-    **Name** | **Type**
-    --- | ---
-    {attributes}
-
-    ### Storage
-
-    {storage_location_name}
-
-    **Param** | **Value**
-    --- | ---
-    {storage_location_params}
-        """.strip().format(
-            name=static_data_table_name,
-            template_name=template_name,
-            today=datetime.today().strftime('%Y-%m-%d'),
-            storage_location_name=storage_location_name,
-            storage_location_params="\\n".join(["%s | %s" % tuple(x) for x in storage_location_params.items()]),
-            attributes="\\n".join(["%s | %s" % tuple(x) for x in attributes]),
-            pandas_requirements=pandas_requirements,
-            pandas_code=pandas_code,
-            numpy_requirements=numpy_requirements,
-            numpy_code=numpy_code,
-        )
-
-        if not os.path.exists(output_path):
-            os.makedirs(output_path)
-
-        with open(os.path.join(output_path, 'pandas.py'), 'w') as f:
-            f.write(pandas_code)
-        with open(os.path.join(output_path, 'pandas_requirements.txt'), 'w') as f:
-            f.write(pandas_requirements)
-
-        with open(os.path.join(output_path, 'numpy.py'), 'w') as f:
-            f.write(numpy_code)
-        with open(os.path.join(output_path, 'numpy_requirements.txt'), 'w') as f:
-            f.write(numpy_requirements)
-
-        with open(os.path.join(output_path, 'index.md'), 'w') as f:
-            f.write(markdown)
-  call: gen_markdown_for_static_data_table
+        payload = {
+            "name": static_data_table_name,
+            "dataset_name": dataset_name,
+            "template_name": template_name,
+            "render_date": datetime.today().strftime('%Y-%m-%d'),
+            "storage_location_name": storage_location_name,
+            "storage_location_params": json.loads(storage_location_params),
+            "attributes": json.loads(attributes),
+            "code": json.loads(code),
+        }
+        output_dir = os.path.join('hub_yaml', dataset_name)
+        if not os.path.exists(output_dir):
+            os.makedirs(output_dir)
+        with open(os.path.join(output_dir, static_data_table_name + '.yaml'), 'w') as f:
+            yaml.dump(payload, f, indent=2)
+  call: gen_hub_for_static_data_table
   kwargs:
-    data_set_name:
+    dataset_name:
       type: AncestorArgument
       spec:
         attaches: DataSet
@@ -2835,13 +2692,13 @@ spec:
 
     def read_csv_into_pandas(
         static_data_table_name,
-        data_set_name,
+        dataset_name,
         columns,
     ):
         columns = json.loads(columns)
         data = pd.read_csv(
-            "/tmp/{data_set_name}/{static_data_table_name}/{static_data_table_name}.csv".format(
-                data_set_name=data_set_name,
+            "/tmp/{dataset_name}/{static_data_table_name}/{static_data_table_name}.csv".format(
+                dataset_name=dataset_name,
                 static_data_table_name=static_data_table_name,
             ),
             header=None
@@ -2850,7 +2707,7 @@ spec:
         return data
   call: read_csv_into_pandas
   kwargs:
-    data_set_name:
+    dataset_name:
       type: AncestorArgument
       spec:
         attaches: DataSet
@@ -2880,13 +2737,13 @@ spec:
 
     def read_csv_into_numpy(
         static_data_table_name,
-        data_set_name,
+        dataset_name,
         columns,
     ):
         columns = json.loads(columns)
         data = np.genfromtxt(
-            "/tmp/{data_set_name}/{static_data_table_name}/{static_data_table_name}.csv".format(
-                data_set_name=data_set_name,
+            "/tmp/{dataset_name}/{static_data_table_name}/{static_data_table_name}.csv".format(
+                dataset_name=dataset_name,
                 static_data_table_name=static_data_table_name,
             ),
             delimiter=",",
@@ -2895,7 +2752,7 @@ spec:
         return data
   call: read_csv_into_numpy
   kwargs:
-    data_set_name:
+    dataset_name:
       type: AncestorArgument
       spec:
         attaches: DataSet

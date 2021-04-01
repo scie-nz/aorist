@@ -686,22 +686,22 @@ spec:
 ---
 type: Constraint
 spec:
-  name: GenerateMarkdown
+  name: GenerateHub
   root: DataSet
   requiresProgram: true
   requires:
-    - GenerateMarkdownForAssets
+    - GenerateHubForAssets
 ---
 type: Constraint
 spec:
-  name: GenerateMarkdownForAssets
+  name: GenerateHubForAssets
   root: Asset
   requires:
-    - GenerateMarkdownForStaticDataTables
+    - GenerateHubForStaticDataTables
 ---
 type: Constraint
 spec:
-  name: GenerateMarkdownForStaticDataTables
+  name: GenerateHubForStaticDataTables
   root: StaticDataTable
   requiresProgram: true
 ---
