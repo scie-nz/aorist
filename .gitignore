@@ -17,6 +17,6 @@ env/
 
 *.egg-info/
 *.pyc
-
+.vscode/*
 /constrainables.txt
 /constraints.txt
