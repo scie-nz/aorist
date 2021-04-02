@@ -2532,15 +2532,30 @@ spec:
         call: |
           {
             use crate::layout::*;
+            use crate::location::*;
             use crate::encoding::*;
+            use crate::storage_setup::*;
+            use crate::storage::*;
+
             let layout = FileBasedStorageLayout::SingleFileLayout(SingleFileLayout{
                 constraints: Vec::new(), tag: None, uuid: None,
             });
-            let encoding = Encoding::CSVEncoding(CSVEncoding{
-                compression: None,
-                header: None,
-                constraints: Vec::new(), tag: None, uuid: None,
-            });
+            let encoding = match static_data_table.setup {
+              StorageSetup::RemoteStorageSetup(ref s) => match s.remote {
+                    Storage::RemoteStorage(ref r) => match r.location {
+                        RemoteLocation::PushshiftAPILocation(_) => Encoding::NewlineDelimitedJSONEncoding(NewlineDelimitedJSONEncoding{
+                            constraints: Vec::new(), tag: None, uuid: None,
+                        }),
+                        _ => Encoding::CSVEncoding(CSVEncoding{
+                            compression: None,
+                            header: None,
+                            constraints: Vec::new(), tag: None, uuid: None,
+                        })
+                    },
+                    _ => panic!("Only RemoteStorage supported"),
+                },
+                _ => panic!("Only RemoteStorageSetup supported"),
+            };
             let tmp_dir = format!(
                 "/tmp/{}/{}",
                 data_set.name,
@@ -2583,13 +2598,13 @@ spec:
             new_universe.compute_uuids();
             let (pandas_code, pandas_requirements) = Driver::<PythonDAG>::new(
                 &new_universe,
-                vec!["PandasDataFromCSV".to_string()].into_iter().collect(),
-                false
+                vec!["PandasData".to_string()].into_iter().collect(),
+                false,
             ).run().unwrap();
             let (numpy_code, numpy_requirements) = Driver::<PythonDAG>::new(
                 &new_universe,
-                vec!["NumpyDataFromCSV".to_string()].into_iter().collect(),
-                false
+                vec!["NumpyData".to_string()].into_iter().collect(),
+                false,
             ).run().unwrap();
             serde_json::json!(maplit::hashmap!(
                 "pandas_code" => serde_json::json!(
@@ -2681,7 +2696,7 @@ spec:
 type: Program
 spec:
   use: PandasDataFromCSV
-  root: StaticDataTable
+  root: ReplicationStorageSetup
   dialect: Python
   pip_requires:
     - pandas==1.2.3
@@ -2726,7 +2741,7 @@ spec:
 type: Program
 spec:
   use: NumpyDataFromCSV
-  root: StaticDataTable
+  root: ReplicationStorageSetup
   dialect: Python
   pip_requires:
     - numpy==1.20.1
@@ -2751,6 +2766,98 @@ spec:
         )
         return data
   call: read_csv_into_numpy
+  kwargs:
+    dataset_name:
+      type: AncestorArgument
+      spec:
+        attaches: DataSet
+        call: data_set.name.clone()
+    static_data_table_name:
+      type: AncestorArgument
+      spec:
+        attaches: StaticDataTable
+        call: static_data_table.name.clone()
+    columns:
+      type: AncestorArgument
+      spec:
+        attaches: StaticDataTable
+        call: serde_json::json!(static_data_table.schema.get_attribute_names()).to_string()
+---
+type: Program
+spec:
+  use: PandasDataFromNewlineDelimitedJSON
+  root: ReplicationStorageSetup
+  dialect: Python
+  pip_requires:
+    - pandas==1.2.3
+  preamble: |
+
+    import pandas as pd
+    import json
+
+    def read_json_into_pandas(
+        static_data_table_name,
+        dataset_name,
+        columns,
+    ):
+        columns = json.loads(columns)
+
+        with open(
+            "/tmp/{data_set_name}/{static_data_table_name}/{static_data_table_name}.csv".format(
+                data_set_name=data_set_name, static_data_table_name=static_data_table_name
+            )
+        ) as f:
+            raw_records = [json.loads(l) for l in f.readlines()]
+
+        records = [[r[k] for k in columns] for r in raw_records]
+        return pd.DataFrame(records, columns=columns)
+  call: read_json_into_pandas
+  kwargs:
+    dataset_name:
+      type: AncestorArgument
+      spec:
+        attaches: DataSet
+        call: data_set.name.clone()
+    static_data_table_name:
+      type: AncestorArgument
+      spec:
+        attaches: StaticDataTable
+        call: static_data_table.name.clone()
+    columns:
+      type: AncestorArgument
+      spec:
+        attaches: StaticDataTable
+        call: serde_json::json!(static_data_table.schema.get_attribute_names()).to_string()
+---
+type: Program
+spec:
+  use: NumpyDataFromNewlineDelimitedJSON
+  root: ReplicationStorageSetup
+  dialect: Python
+  pip_requires:
+    - numpy==1.20.1
+  preamble: |
+
+    import numpy as np
+    import json
+
+    def read_json_into_numpy(
+        static_data_table_name,
+        dataset_name,
+        columns,
+    ):
+        columns = json.loads(columns)
+
+        with open(
+            "/tmp/{data_set_name}/{static_data_table_name}/{static_data_table_name}.csv".format(
+                data_set_name=data_set_name, static_data_table_name=static_data_table_name
+            )
+        ) as f:
+            raw_records = [json.loads(l) for l in f.readlines()]
+        records = [np.array([r[k] for k in columns] for r in raw_records)]
+        return np.concatenate(records, axis=0)
+
+  call: read_json_into_numpy
   kwargs:
     dataset_name:
       type: AncestorArgument

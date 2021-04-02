@@ -16,7 +16,7 @@ from aorist import (
     attr_list,
     PushshiftAPILocation,
     PushshiftSubredditPostsAPILayout,
-    JSONEncoding,
+    NewlineDelimitedJSONEncoding,
 )
 from aorist import attributes as attr
 
@@ -40,7 +40,7 @@ assets = {x: StaticDataTable(
         remote=RemoteStorage(
             location=PushshiftAPILocation(subreddit=x),
             layout=PushshiftSubredditPostsAPILayout(),
-            encoding=JSONEncoding(),
+            encoding=NewlineDelimitedJSONEncoding(),
         ),
     ),
     tag=x,

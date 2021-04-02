@@ -717,7 +717,7 @@ spec:
 type: Constraint
 spec:
   name: PandasDataFromCSV
-  root: StaticDataTable
+  root: ReplicationStorageSetup
   requiresProgram: true
   requires:
     - DownloadDataFromRemote
@@ -735,7 +735,7 @@ spec:
 type: Constraint
 spec:
   name: NumpyDataFromCSV
-  root: StaticDataTable
+  root: ReplicationStorageSetup
   requiresProgram: true
   requires:
     - DownloadDataFromRemote
@@ -752,14 +752,50 @@ spec:
 ---
 type: Constraint
 spec:
+  name: PandasDataFromNewlineDelimitedJSON
+  root: ReplicationStorageSetup
+  requiresProgram: true
+  requires:
+    - DownloadDataFromRemote
+  attachIf: |
+      |root: Concept<'a>, ancestry: &ConceptAncestry<'a>|
+      match ancestry.replication_storage_setup(root.clone()) {
+          Ok(x) => match x.tmp_encoding {
+              crate::encoding::Encoding::NewlineDelimitedJSONEncoding(_) => true,
+              _ => false,
+          }
+          _ => false,
+      }
+---
+type: Constraint
+spec:
+  name: NumpyDataFromNewlineDelimitedJSON
+  root: ReplicationStorageSetup
+  requiresProgram: true
+  requires:
+    - DownloadDataFromRemote
+  attachIf: |
+      |root: Concept<'a>, ancestry: &ConceptAncestry<'a>|
+      match ancestry.replication_storage_setup(root.clone()) {
+          Ok(x) => match x.tmp_encoding {
+              crate::encoding::Encoding::NewlineDelimitedJSONEncoding(_) => true,
+              _ => false,
+          }
+          _ => false,
+      }
+---
+type: Constraint
+spec:
   name: NumpyData
-  root: StaticDataTable
+  root: ReplicationStorageSetup
   requires:
     - NumpyDataFromCSV
+    - NumpyDataFromNewlineDelimitedJSON
 ---
 type: Constraint
 spec:
   name: PandasData
-  root: StaticDataTable
+  root: ReplicationStorageSetup
   requires:
     - PandasDataFromCSV
+    - PandasDataFromNewlineDelimitedJSON
