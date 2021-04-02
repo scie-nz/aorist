@@ -222,18 +222,17 @@ where
 
         let flow = self.build_flow(py, statements_ast, ast);
 
-        let content: Vec<(String, Vec<&PyAny>)> = vec![("Imports".to_string(), imports_ast)]
+        let content: Vec<(Option<String>, Vec<&PyAny>)> = vec![(Some("Imports".to_string()), imports_ast)]
             .into_iter()
             .chain(
                 preambles
                     .into_iter()
-                    .enumerate()
-                    .map(|(i, x)| (format!("Preamble {}", i).to_string(), x.get_body_ast(py))),
+                    .map(|x| (None, x.get_body_ast(py))),
             )
-            .chain(flow.into_iter())
+            .chain(flow.into_iter().map(|(x, y)|(Some(x), y)))
             .collect();
 
-        let mut sources: Vec<(String, String)> = Vec::new();
+        let mut sources: Vec<(Option<String>, String)> = Vec::new();
 
         // This is needed since astor will occasionally forget to add a newline
         for (comment, block) in content {
@@ -260,11 +259,14 @@ where
         }
         self.build_file(sources)
     }
-    fn build_file(&self, sources: Vec<(String, String)>) -> PyResult<String> {
+    fn build_file(&self, sources: Vec<(Option<String>, String)>) -> PyResult<String> {
         format_code(
             sources
                 .into_iter()
-                .map(|(comment, block)| format!("# {}\n{}\n", comment, block).to_string())
+                .map(|(maybe_comment, block)| match maybe_comment {
+                    Some(comment) => format!("# {}\n{}\n", comment, block).to_string(),
+                    None => block
+                })
                 .collect::<Vec<String>>()
                 .join(""),
         )

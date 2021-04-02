@@ -45,25 +45,36 @@ impl ETLDAG for JupyterDAG {
             })
             .collect()
     }
-    fn build_file(&self, sources: Vec<(String, String)>) -> PyResult<String> {
+    fn build_file(&self, sources: Vec<(Option<String>, String)>) -> PyResult<String> {
         let cells = json!(sources
             .into_iter()
-            .map(|(comment, block)| vec![
-                json!({
-                    "cell_type": "markdown",
-                    "metadata": json!({}),
-                    "source": comment,
-                }),
-                json!({
-                    "cell_type": "code",
-                    "execution_count": None as Option<usize>,
-                    "metadata": json!({}),
-                    "source": block,
-                    "outputs": Vec::<String>::new(),
+            .map(|(maybe_comment, block)| match maybe_comment {
+                Some(comment) => vec![
+                    json!({
+                        "cell_type": "markdown",
+                        "metadata": json!({}),
+                        "source": comment,
+                    }),
+                    json!({
+                        "cell_type": "code",
+                        "execution_count": None as Option<usize>,
+                        "metadata": json!({}),
+                        "source": block,
+                        "outputs": Vec::<String>::new(),
+                    })
+                ],
+                None => vec![
+                    json!({
+                        "cell_type": "code",
+                        "execution_count": None as Option<usize>,
+                        "metadata": json!({}),
+                        "source": block,
+                        "outputs": Vec::<String>::new(),
 
-                })
-            ]
-            .into_iter())
+                    })
+                ],
+            })
+            .into_iter()
             .flatten()
             .collect::<Vec<_>>());
         let notebook = json!({
