@@ -716,18 +716,50 @@ spec:
 ---
 type: Constraint
 spec:
-  name: PandasData
+  name: PandasDataFromCSV
   root: StaticDataTable
   requiresProgram: true
   requires:
     - DownloadDataFromRemote
     - CSVIsConverted
+  attachIf: |
+      |root: Concept<'a>, ancestry: &ConceptAncestry<'a>|
+      match ancestry.replication_storage_setup(root.clone()) {
+          Ok(x) => match x.tmp_encoding {
+              crate::encoding::Encoding::NewlineDelimitedJSONEncoding(_) => false,
+              _ => true,
+          }
+          _ => true,
+      }
+---
+type: Constraint
+spec:
+  name: NumpyDataFromCSV
+  root: StaticDataTable
+  requiresProgram: true
+  requires:
+    - DownloadDataFromRemote
+    - CSVIsConverted
+  attachIf: |
+      |root: Concept<'a>, ancestry: &ConceptAncestry<'a>|
+      match ancestry.replication_storage_setup(root.clone()) {
+          Ok(x) => match x.tmp_encoding {
+              crate::encoding::Encoding::NewlineDelimitedJSONEncoding(_) => false,
+              _ => true,
+          }
+          _ => true,
+      }
 ---
 type: Constraint
 spec:
   name: NumpyData
   root: StaticDataTable
-  requiresProgram: true
   requires:
-    - DownloadDataFromRemote
-    - CSVIsConverted
+    - NumpyDataFromCSV
+---
+type: Constraint
+spec:
+  name: PandasData
+  root: StaticDataTable
+  requires:
+    - PandasDataFromCSV
