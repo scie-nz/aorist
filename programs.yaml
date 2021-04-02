@@ -5,7 +5,7 @@ spec:
   root: AlluxioLocation
   dialect: Python
   pip_requires:
-    - alluxio=0.1.3
+    - alluxio==0.1.3
   preamble: |
     import alluxio
     from alluxio import option, wire
@@ -134,10 +134,10 @@ spec:
     import os
     def download_blob_to_file(bucket_name, blob_name, tmp_dir, file_name):
       client = storage.Client.from_service_account_json('/home/bogdan/.gcloud/social_norms.json')
-      if not os.path.exists(tmp_dir):
-          os.makedirs(tmp_dir)
       bucket = client.bucket(bucket_name)
       blob = bucket.blob(blob_name)
+      if not os.path.exists(tmp_dir):
+          os.makedirs(tmp_dir)
       dest = "%s/%s" % (tmp_dir, file_name)
       blob.download_to_filename(dest)
   call: download_blob_to_file
@@ -187,10 +187,43 @@ spec:
 ---
 type: Program
 spec:
-  use: DownloadDataFromRemotePushshiftAPILocation
+  use: DownloadDataFromRemoteWebLocation
+  root: WebLocation
+  dialect: Python
+  preamble: |
+    import os
+    import urllib.request
+
+    def download_data_from_remote_web_location(src_url, tmp_dir, dest_file_name):
+        os.mkdirs(tmp_dir)
+        urllib.request.urlretrieve(url, os.path.join(tmp_dir, dest_file_name))
+  call: download_data_from_remote_web_location
+  kwargs:
+    src_url:
+      type: AncestorArgument
+      spec:
+        call: web_location.address
+        attaches: WebLocation
+        name: address
+    tmp_dir:
+      type: AncestorArgument
+      spec:
+        call: replication_storage_setup.tmp_dir
+        attaches: ReplicationStorageSetup
+        name: tmp_dir
+    dest_file_name:
+      type: AncestorArgument
+      spec:
+        call: format!("{}.downloaded", static_data_table.name).to_string()
+        attaches: StaticDataTable
+        name: file_name
+---
+type: Program
+spec:
+  use: DownloadDataFromRemotePushshiftAPILocationToNewlineDelimitedJSON
   root: PushshiftAPILocation
   pip_requires:
-    - pmaw=1.0.4
+    - pmaw==1.0.4
   dialect: Python
   preamble: |
       from pmaw import PushshiftAPI
@@ -576,7 +609,49 @@ spec:
 ---
 type: Program
 spec:
-  use: ConvertToCSV
+  use: RenameCSV
+  root: RemoteStorage
+  dialect: Python
+  preamble: |
+    import os
+
+    def rename_csv(tmp_dir, src_file_name, dest_file_name):
+        os.rename(os.path.join(tmp_dir, src_file_name), os.path.join(tmp_dir, dest_file_name))
+  call: convert_json_to_csv
+  kwargs:
+    tmp_dir:
+      type: MultipleAncestorsArgument
+      spec:
+        call: replication_storage_setup.tmp_dir
+        attaches:
+          - ReplicationStorageSetup
+    src_file_name:
+      type: MultipleAncestorsArgument
+      spec:
+        call: >
+          {
+            let file_name = &static_data_table.name;
+            match &remote_storage.encoding.get_header() {
+                Some(_) => format!("{}.no_header", file_name),
+                None => match &remote_storage.encoding.get_compression() {
+                    Some(_) => format!("{}.txt", file_name),
+                    None => format!("{}.downloaded", file_name),
+                }
+            }.to_string()
+          }
+        attaches:
+          - StaticDataTable
+          - RemoteStorage
+    dest_file_name:
+      type: MultipleAncestorsArgument
+      spec:
+        call: 'format!("{}.csv", static_data_table.name).to_string()'
+        attaches:
+          - StaticDataTable
+---
+type: Program
+spec:
+  use: RenameCSV
   root: RemoteStorage
   dialect: Bash
   call: "{call}"
@@ -595,21 +670,137 @@ spec:
                     None => format!("{}/{}.downloaded", tmp_dir, file_name),
                 }
             };
-            match &remote_storage.encoding {
-               Encoding::CSVEncoding(_) | Encoding::JSONEncoding(_) => format!(
-                  "cp {source} {tmp_dir}/{file_name}.csv",
-                  source=source,
-                  tmp_dir=tmp_dir,
-                  file_name=file_name,
-               ).to_string(),
-               Encoding::TSVEncoding(_) => format!(
-                  "cat {source} | tr '\\\\t' ',' > {tmp_dir}/{file_name}.csv",
-                  source=source,
-                  tmp_dir=tmp_dir,
-                  file_name=file_name,
-               ).to_string(),
-              _ => panic!("Encoding not supported.")
-            }
+            format!(
+                "mv -v '{source}' '{tmp_dir}/{file_name}.csv'",
+                source=source,
+                tmp_dir=tmp_dir,
+                file_name=file_name,
+            ).to_string()
+          }
+        attaches:
+          - StaticDataTable
+          - ReplicationStorageSetup
+          - RemoteStorage
+---
+type: Program
+spec:
+  use: ConvertJSONToCSV
+  root: RemoteStorage
+  dialect: Python
+  preamble: |
+    import os
+
+    def convert_json_to_csv(tmp_dir, src_file_name, dest_file_name):
+        # TODO: for now this just moves the JSON file and doesn't actually convert it to CSV
+        os.rename(os.path.join(tmp_dir, src_file_name), os.path.join(tmp_dir, dest_file_name))
+  call: convert_json_to_csv
+  kwargs:
+    tmp_dir:
+      type: MultipleAncestorsArgument
+      spec:
+        call: replication_storage_setup.tmp_dir
+        attaches:
+          - ReplicationStorageSetup
+    src_file_name:
+      type: MultipleAncestorsArgument
+      spec:
+        call: >
+          {
+            let file_name = &static_data_table.name;
+            match &remote_storage.encoding.get_header() {
+                Some(_) => format!("{}.no_header", file_name),
+                None => match &remote_storage.encoding.get_compression() {
+                    Some(_) => format!("{}.txt", file_name),
+                    None => format!("{}.downloaded", file_name),
+                }
+            }.to_string()
+          }
+        attaches:
+          - StaticDataTable
+          - RemoteStorage
+    dest_file_name:
+      type: MultipleAncestorsArgument
+      spec:
+        call: 'format!("{}.csv", static_data_table.name).to_string()'
+        attaches:
+          - StaticDataTable
+---
+type: Program
+spec:
+  use: ConvertTSVToCSV
+  root: RemoteStorage
+  dialect: Python
+  preamble: |
+    import os.path
+
+    def tsv_to_csv(tmp_dir, src_file_name, dest_file_name):
+        with open(os.path.join(tmp_dir, src_file_name)) as sourcef, open(os.path.join(tmp_dir, dest_file_name), 'w') as destf:
+                while True:
+                    chunk = sourcef.read(10240)
+                    if not chunk:
+                        destf.flush()
+                        destf.close()
+                        break
+                    destf.write(chunk.replace('\\t', ','))
+  call: tsv_to_csv
+  kwargs:
+    tmp_dir:
+      type: MultipleAncestorsArgument
+      spec:
+        call: replication_storage_setup.tmp_dir
+        attaches:
+          - ReplicationStorageSetup
+    src_file_name:
+      type: MultipleAncestorsArgument
+      spec:
+        call: >
+          {
+            let file_name = &static_data_table.name;
+            match &remote_storage.encoding.get_header() {
+                Some(_) => format!("{}.no_header", file_name),
+                None => match &remote_storage.encoding.get_compression() {
+                    Some(_) => format!("{}.txt", file_name),
+                    None => format!("{}.downloaded", file_name),
+                }
+            }.to_string()
+          }
+        attaches:
+          - StaticDataTable
+          - RemoteStorage
+    dest_file_name:
+      type: MultipleAncestorsArgument
+      spec:
+        call: 'format!("{}.csv", static_data_table.name).to_string()'
+        attaches:
+          - StaticDataTable
+---
+type: Program
+spec:
+  use: ConvertTSVToCSV
+  root: RemoteStorage
+  dialect: Bash
+  call: "{call}"
+  kwargs:
+    call:
+      type: MultipleAncestorsArgument
+      spec:
+        call: >
+          {
+            let tmp_dir = &replication_storage_setup.tmp_dir;
+            let file_name = &static_data_table.name;
+            let source = match &remote_storage.encoding.get_header() {
+                Some(_) => format!("{}/{}.no_header", tmp_dir, file_name).to_string(),
+                None => match &remote_storage.encoding.get_compression() {
+                    Some(_) => format!("{}/{}.txt", tmp_dir, file_name),
+                    None => format!("{}/{}.downloaded", tmp_dir, file_name),
+                }
+            };
+            format!(
+                "cat '{source}' | tr '\\\\t' ',' > '{tmp_dir}/{file_name}.csv'",
+                source=source,
+                tmp_dir=tmp_dir,
+                file_name=file_name,
+            ).to_string()
           }
         attaches:
           - StaticDataTable
@@ -779,11 +970,11 @@ spec:
             let template = data_set.get_template_for_asset(supervised_model);
             let tfm = match template {
                 Ok(DatumTemplate::TrainedFloatMeasure(m)) => m,
-                Err(x) => panic!(x),
-                _ => panic!(format!(
+                Err(x) => panic!("{}", x),
+                _ => panic!(
                     "Cannot train an SVM Regression Model on asset with with template {}",
                     supervised_model.get_schema().get_datum_template_name().unwrap(),
-               )),
+               ),
             };
             format!("
             CREATE TABLE {presto_schema}.tmp_{table_name}_regressor
@@ -826,10 +1017,7 @@ spec:
             let template = mapped_templates.get(&t.datumTemplateName);
             let filter = match template {
                 Some(DatumTemplate::Filter(m)) => m,
-                _ => panic!(format!(
-                    "Template {} not a filter.",
-                    t.datumTemplateName
-               )),
+                _ => panic!("Template {} not a filter.", t.datumTemplateName),
             };
             assert_eq!(computed_from_local_data.source_asset_names.len(), 1);
             let source_asset_name =
@@ -972,11 +1160,11 @@ spec:
             let template = data_set.get_template_for_asset(supervised_model);
             let tfm = match template {
                 Ok(DatumTemplate::TrainedFloatMeasure(m)) => m,
-                Err(x) => panic!(x),
-                _ => panic!(format!(
+                Err(x) => panic!("{}", x),
+                _ => panic!(
                     "Cannot train an SVM Regression Model on asset with with template {}",
                     supervised_model.get_schema().get_datum_template_name().unwrap(),
-               )),
+                ),
             };
             tfm.get_training_objective().get_name().clone()
           }
@@ -996,11 +1184,11 @@ spec:
             let template = data_set.get_template_for_asset(supervised_model);
             let tfm = match template {
                 Ok(DatumTemplate::TrainedFloatMeasure(m)) => m,
-                Err(x) => panic!(x),
-                _ => panic!(format!(
+                Err(x) => panic!("{}", x),
+                _ => panic!(
                     "Cannot train an SVM Regression Model on asset with with template {}",
                     supervised_model.get_schema().get_datum_template_name().unwrap(),
-               )),
+                ),
             };
             format!("[{}]",
                 tfm.features.iter().map(|x| format!("\"{}\"", x.get_name()).to_string()).collect::<Vec<String>>().join(","),
@@ -1201,9 +1389,9 @@ spec:
                       _ => panic!("Only HiveTableStorage allowed."),
                 }
               }
-              _ => panic!(format!(
+              _ => panic!(
                   "Source asset {} must be StaticDataTable", source_name,
-              )),
+              ),
             }
           }
     model_path:
@@ -1245,9 +1433,9 @@ spec:
                   },
                   _ => panic!("Only locally-computed models allowed."),
               },
-              _ => panic!(format!(
+              _ => panic!(
                   "Model asset {} must be supervised model", model_name,
-              )),
+              ),
             }
           }
     destination_path:
@@ -2066,7 +2254,7 @@ spec:
             """.format(
                 name=name,
                 datasets=", ".join([
-                  '%s.replicate_to_local(local, tmp_dir)' % x for x in datasets
+                  '%s.replicate_to_local(local, tmp_dir, CSVEncoding())' % x for x in datasets
                 ])
             ),
             """
@@ -2114,15 +2302,14 @@ spec:
         db_name,
         tablename,
         tmp_dir,
-        output_file,
         # insertion order matters if we are dealing with a csv
         columns,
         schema_name,
     ):
-        import psycopg2
-        import json
-        import os
         import base64
+        import json
+        import psycopg2
+        import os
 
         if not os.path.exists(tmp_dir):
             os.makedirs(tmp_dir)
@@ -2151,7 +2338,7 @@ spec:
 
         keys = [x[0] for x in columns]
         num_rows = 0
-        with open(tmp_dir + "/" + output_file, 'w') as f:
+        with open(os.path.join(tmp_dir, tablename + ".csv"), 'w') as f:
             for row in cursor.fetchall():
                 row = [
                     x if not isinstance(x, (bytes, bytearray, memoryview))
@@ -2205,11 +2392,6 @@ spec:
       spec:
         call: replication_storage_setup.tmp_dir
         attaches: ReplicationStorageSetup
-    output_file:
-      type: AncestorArgument
-      spec:
-        call: format!("{}.csv", static_data_table.name).to_string()
-        attaches: StaticDataTable
     columns:
       type: MultipleAncestorsArgument
       spec:
@@ -2230,76 +2412,51 @@ spec:
 ---
 type: Program
 spec:
-  use: GenerateMarkdownForDatasets
+  use: GenerateHub
   root: DataSet
   dialect: Python
   preamble: |
-
     from datetime import datetime
-    import os
     import json
+    import os
+    import yaml
 
-    def gen_markdown_for_dataset(
+    def gen_hub_for_dataset(
         dataset_name,
-        output_file,
+        dataset_description,
+        input_file,
         asset_names,
         template_names,
     ):
-        asset_names = json.loads(asset_names)
-        template_names = json.loads(template_names)
-        markdown = """
-    +++
-    title = "Dataset: {name}"
-    date = {today}
-    draft = false
-
-    [taxonomies]
-    tags = ["Aorist", "Dataset"]
-    categories = ["Datasets"]
-
-    +++
-
-    <!-- more -->
-
-    Templates:
-
-    **Name** | *Type**
-    --- | ---
-    {templates}
-
-    Assets:
-
-    **Name** | *Type**
-    --- | ---
-    {assets}
-
-      """.strip().format(
-            name=dataset_name,
-            today=datetime.today().strftime('%Y-%m-%d'),
-            assets="\\n".join(["[{dt}](@/{dataset_name}/{dt}/index.md) | {tp}".format(
-                dataset_name=dataset_name,
-                dt=x[0],
-                tp=x[1]
-            ) for x in asset_names]),
-            templates="\\n".join(["%s | %s" % tuple(x) for x in template_names]),
-        )
-
-        if not os.path.exists('content/%s' % dataset_name):
-            os.makedirs('content/%s' % dataset_name)
-        output_path = 'content/%s/index.md' % dataset_name
-        with open(output_path, 'w') as f:
-            f.write(markdown)
-  call: gen_markdown_for_dataset
+        payload = {
+            "name": dataset_name,
+            "description": dataset_description,
+            "input_file": input_file,
+            "render_date": datetime.today().strftime('%Y-%m-%d'),
+            "assets": json.loads(asset_names),
+            "templates": json.loads(template_names),
+        }
+        output_dir = os.path.join('hub_yaml', dataset_name)
+        if not os.path.exists(output_dir):
+            os.makedirs(output_dir)
+        with open(os.path.join(output_dir, '_index.yaml'), 'w') as f:
+            yaml.dump(payload, f, indent=2)
+  call: gen_hub_for_dataset
   kwargs:
-    output_file:
-      type: AncestorArgument
-      spec:
-        call: format!("{}.md", data_set.name).to_string()
-        attaches: DataSet
     dataset_name:
       type: AncestorArgument
       spec:
         call: data_set.name
+        attaches: DataSet
+    dataset_description:
+      type: AncestorArgument
+      spec:
+        call: data_set.description
+        attaches: DataSet
+    input_file:
+      type: AncestorArgument
+      spec:
+        call: data_set.sourcePath
         attaches: DataSet
     asset_names:
       type: AncestorArgument
@@ -2324,121 +2481,43 @@ spec:
 ---
 type: Program
 spec:
-  use: GenerateMarkdownForStaticDataTables
+  use: GenerateHubForStaticDataTables
   root: StaticDataTable
   dialect: Python
   preamble: |
-
     from datetime import datetime
-    import os
     import json
-    import pygments
-    import black
+    import os
+    import yaml
 
-    from pygments import highlight
-    from pygments.lexers import PythonLexer
-    from pygments.formatters import HtmlFormatter
-
-
-    def gen_markdown_for_static_data_table(
+    def gen_hub_for_static_data_table(
         static_data_table_name,
         output_file,
         attributes,
         template_name,
-        storage_setup,
+        storage_location_name,
+        storage_location_params,
         code,
-        data_set_name,
+        dataset_name,
     ):
-        attributes = json.loads(attributes)
-        d = json.loads(code)
-        pandas_code = d["pandas_code"]
-        pandas_pip_requirements = d["pandas_pip"]
-        numpy_code = d["numpy_code"]
-        numpy_pip_requirements = d["numpy_pip"]
-
-        output_path = 'content/%s/%s/' % (data_set_name, static_data_table_name)
-        pandas_num_lines = len(pandas_code.split('\\n'))
-        pandas_code = highlight(pandas_code, PythonLexer(), HtmlFormatter(wrapcode=True, full=True))
-        pandas_output_file = '%s/pandas_%s.html' % (output_path, static_data_table_name)
-        pandas_pip_code = "\\n".join(["- %s" % x for x in pandas_pip_requirements])
-
-        numpy_num_lines = len(numpy_code.split('\\n'))
-        numpy_code = highlight(numpy_code, PythonLexer(), HtmlFormatter(wrapcode=True, full=True))
-        numpy_output_file = '%s/numpy_%s.html' % (output_path, static_data_table_name)
-        numpy_pip_code = "\\n".join(["- %s" % x for x in numpy_pip_requirements])
-
-        markdown = """
-    +++
-    title = "Static Data Table: {name}"
-    date = {today}
-    draft = false
-
-    [taxonomies]
-    tags = ["Aorist", "Static Tables"]
-    categories = ["Static Tables"]
-
-    +++
-
-    Template Name: {template_name}
-
-    <!-- more -->
-
-    <details>
-      <summary>Download as Pandas</summary>
-      <div style="--aspect-ratio:45/{pandas_num_lines};">
-      <details>
-         <summary>pip requirements</summary>
-          <pre><code>{pandas_pip_code}</pre></code>
-      </details>
-      </div>
-      <div style="--aspect-ratio:45/{pandas_num_lines};">
-      <pre><iframe src="./pandas_{name}.html"></iframe></pre>
-      </div>
-    </details>
-    <details>
-      <summary>Download as Numpy</summary>
-      <details>
-         <summary>pip requirements</summary>
-          <pre><code>{numpy_pip_code}</pre></code>
-      </details>
-      <div style="--aspect-ratio:45/{numpy_num_lines};">
-      <iframe src="./numpy_{name}.html"></iframe>
-      </div>
-    </details>
-
-    {storage_setup}
-
-    Attributes:
-
-    **Name** | **Type**
-    --- | ---
-    {attributes}
-        """.strip().format(
-            pandas_pip_num_lines=len(pandas_pip_requirements),
-            pandas_pip_code=pandas_pip_code,
-            pandas_num_lines=pandas_num_lines,
-            numpy_pip_num_lines=len(numpy_pip_requirements),
-            numpy_pip_code=numpy_pip_code,
-            numpy_num_lines=numpy_num_lines,
-            name=static_data_table_name,
-            template_name=template_name,
-            today=datetime.today().strftime('%Y-%m-%d'),
-            storage_setup=storage_setup,
-            attributes="\\n".join(["%s | %s" % tuple(x) for x in attributes]),
-        )
-
-        if not os.path.exists(output_path):
-            os.makedirs(output_path)
-
-        with open(pandas_output_file, 'w') as f:
-            f.write(pandas_code)
-        with open(numpy_output_file, 'w') as f:
-            f.write(numpy_code)
-        with open(output_path + 'index.md', 'w') as f:
-            f.write(markdown)
-  call: gen_markdown_for_static_data_table
+        payload = {
+            "name": static_data_table_name,
+            "dataset_name": dataset_name,
+            "template_name": template_name,
+            "render_date": datetime.today().strftime('%Y-%m-%d'),
+            "storage_location_name": storage_location_name,
+            "storage_location_params": json.loads(storage_location_params),
+            "attributes": json.loads(attributes),
+            "code": json.loads(code),
+        }
+        output_dir = os.path.join('hub_yaml', dataset_name)
+        if not os.path.exists(output_dir):
+            os.makedirs(output_dir)
+        with open(os.path.join(output_dir, static_data_table_name + '.yaml'), 'w') as f:
+            yaml.dump(payload, f, indent=2)
+  call: gen_hub_for_static_data_table
   kwargs:
-    data_set_name:
+    dataset_name:
       type: AncestorArgument
       spec:
         attaches: DataSet
@@ -2453,15 +2532,30 @@ spec:
         call: |
           {
             use crate::layout::*;
+            use crate::location::*;
             use crate::encoding::*;
+            use crate::storage_setup::*;
+            use crate::storage::*;
+
             let layout = FileBasedStorageLayout::SingleFileLayout(SingleFileLayout{
                 constraints: Vec::new(), tag: None, uuid: None,
             });
-            let encoding = Encoding::CSVEncoding(CSVEncoding{
-                compression: None,
-                header: None,
-                constraints: Vec::new(), tag: None, uuid: None,
-            });
+            let encoding = match static_data_table.setup {
+              StorageSetup::RemoteStorageSetup(ref s) => match s.remote {
+                    Storage::RemoteStorage(ref r) => match r.location {
+                        RemoteLocation::PushshiftAPILocation(_) => Encoding::NewlineDelimitedJSONEncoding(NewlineDelimitedJSONEncoding{
+                            constraints: Vec::new(), tag: None, uuid: None,
+                        }),
+                        _ => Encoding::CSVEncoding(CSVEncoding{
+                            compression: None,
+                            header: None,
+                            constraints: Vec::new(), tag: None, uuid: None,
+                        })
+                    },
+                    _ => panic!("Only RemoteStorage supported"),
+                },
+                _ => panic!("Only RemoteStorageSetup supported"),
+            };
             let tmp_dir = format!(
                 "/tmp/{}/{}",
                 data_set.name,
@@ -2474,15 +2568,17 @@ spec:
             let storage = Storage::LocalFileStorage(LocalFileStorage {
                 location,
                 layout,
-                encoding,
+                encoding: encoding.clone(),
                 constraints: Vec::new(), tag: None, uuid: None,
             });
             let replicated_table = Asset::StaticDataTable(
-                static_data_table.replicate_to_local(storage, tmp_dir)
+                static_data_table.replicate_to_local(storage, tmp_dir, encoding)
             );
             let template = data_set.get_template_for_asset(static_data_table).unwrap();
             let new_dataset = DataSet{
                 name: data_set.name.clone(),
+                description: data_set.description.clone(),
+                sourcePath: data_set.sourcePath.clone(),
                 accessPolicies: Vec::new(),
                 datumTemplates: vec![template],
                 assets: vec![(static_data_table.name.clone(), replicated_table)].into_iter().collect(),
@@ -2503,22 +2599,22 @@ spec:
             let (pandas_code, pandas_requirements) = Driver::<PythonDAG>::new(
                 &new_universe,
                 vec!["PandasData".to_string()].into_iter().collect(),
-                false
+                false,
             ).run().unwrap();
             let (numpy_code, numpy_requirements) = Driver::<PythonDAG>::new(
                 &new_universe,
                 vec!["NumpyData".to_string()].into_iter().collect(),
-                false
+                false,
             ).run().unwrap();
             serde_json::json!(maplit::hashmap!(
                 "pandas_code" => serde_json::json!(
                     pandas_code.replace("\\\\", "\\")
                 ),
-                "pandas_pip" => serde_json::json!(pandas_requirements),
+                "pandas_requirements" => serde_json::json!(pandas_requirements),
                 "numpy_code" => serde_json::json!(
                     numpy_code.replace("\\\\", "\\")
                 ),
-                "numpy_pip" => serde_json::json!(numpy_requirements),
+                "numpy_requirements" => serde_json::json!(numpy_requirements),
             )).to_string().replace("\\", "\\\\")
           }
     output_file:
@@ -2531,15 +2627,51 @@ spec:
       spec:
         call: static_data_table.name
         attaches: StaticDataTable
-    storage_setup:
+    storage_location_name:
       type: AncestorArgument
       spec:
         call: |
           {
-            let mut md = markdown_gen::markdown::Markdown::new(Vec::new());
-            static_data_table.setup.markdown(&mut md);
-            let vec = md.into_inner();
-            String::from_utf8(vec).unwrap()
+            if let crate::StorageSetup::RemoteStorageSetup(rss) = &static_data_table.setup {
+              if let crate::Storage::RemoteStorage(rs) = &rss.remote {
+                match &rs.location {
+                  RemoteLocation::GCSLocation(_) => "GCSLocation".to_string(),
+                  RemoteLocation::WebLocation(_) => "WebLocation".to_string(),
+                  RemoteLocation::PushshiftAPILocation(_) => "PushshiftAPILocation".to_string(),
+                  RemoteLocation::BigQueryLocation(_) => "BigQueryLocation".to_string(),
+                }
+              } else {
+                "OtherStorage".to_string()
+              }
+            } else {
+              "OtherStorageSetup".to_string()
+            }
+          }
+        attaches: StaticDataTable
+    storage_location_params:
+      type: AncestorArgument
+      spec:
+        call: |
+          {
+            let mut params = std::collections::HashMap::new();
+            if let crate::StorageSetup::RemoteStorageSetup(rss) = &static_data_table.setup {
+              if let crate::Storage::RemoteStorage(rs) = &rss.remote {
+                match &rs.location {
+                  RemoteLocation::GCSLocation(gcs) => {
+                    params.insert("bucket", gcs.bucket.clone());
+                    params.insert("blob", gcs.blob.clone());
+                  }
+                  RemoteLocation::WebLocation(web) => {
+                    params.insert("address", web.address.clone());
+                  },
+                  RemoteLocation::PushshiftAPILocation(papi) => {
+                    params.insert("subreddit", papi.subreddit.clone());
+                  },
+                  RemoteLocation::BigQueryLocation(_bq) => {},
+                };
+              }
+            }
+            serde_json::json!(params).to_string()
           }
         attaches: StaticDataTable
     attributes:
@@ -2563,65 +2695,11 @@ spec:
 ---
 type: Program
 spec:
-  use: GenerateMarkdown
-  root: Universe
-  dialect: Python
-  preamble: |
-
-    from datetime import datetime
-    import os
-    import json
-
-    def gen_markdown_for_universe(universe_name, dataset_names):
-        dataset_names = json.loads(dataset_names)
-        markdown = """
-    +++
-    title = "Universe: {name}"
-    date = {today}
-    paginate_by = 5
-    sort_by = "date"
-    render = true
-    +++
-    Datasets:
-    {datasets}
-        """.strip().format(
-            name=universe_name,
-            today=datetime.today().strftime('%Y-%m-%d'),
-            datasets="\\n".join([
-              "- [{d}](@/{d}/index.md)".format(d=d)
-              for d in dataset_names
-            ])
-        )
-
-        if not os.path.exists('content'):
-            os.makedirs('content')
-        output_path = 'content/universe.md'
-        with open(output_path, 'w') as f:
-            f.write(markdown)
-  call: gen_markdown_for_universe
-  kwargs:
-    universe_name:
-      type: AncestorArgument
-      spec:
-        call: universe.name
-        attaches: Universe
-    dataset_names:
-      type: AncestorArgument
-      spec:
-        call: |
-          {
-            use crate::object::TAoristObject;
-            serde_json::json!(universe.datasets.as_ref().unwrap().iter().map(|x| x.get_name().clone()).collect::<Vec<String>>()).to_string()
-          }
-        attaches: Universe
----
-type: Program
-spec:
-  use: PandasData
-  root: StaticDataTable
+  use: PandasDataFromCSV
+  root: ReplicationStorageSetup
   dialect: Python
   pip_requires:
-    - pandas=1.2.3
+    - pandas==1.2.3
   preamble: |
 
     import pandas as pd
@@ -2629,13 +2707,13 @@ spec:
 
     def read_csv_into_pandas(
         static_data_table_name,
-        data_set_name,
+        dataset_name,
         columns,
     ):
         columns = json.loads(columns)
         data = pd.read_csv(
-            "/tmp/{data_set_name}/{static_data_table_name}/{static_data_table_name}.csv".format(
-                data_set_name=data_set_name,
+            "/tmp/{dataset_name}/{static_data_table_name}/{static_data_table_name}.csv".format(
+                dataset_name=dataset_name,
                 static_data_table_name=static_data_table_name,
             ),
             header=None
@@ -2644,7 +2722,7 @@ spec:
         return data
   call: read_csv_into_pandas
   kwargs:
-    data_set_name:
+    dataset_name:
       type: AncestorArgument
       spec:
         attaches: DataSet
@@ -2662,11 +2740,11 @@ spec:
 ---
 type: Program
 spec:
-  use: NumpyData
-  root: StaticDataTable
+  use: NumpyDataFromCSV
+  root: ReplicationStorageSetup
   dialect: Python
   pip_requires:
-    - numpy=1.20.1
+    - numpy==1.20.1
   preamble: |
 
     import numpy as np
@@ -2674,13 +2752,13 @@ spec:
 
     def read_csv_into_numpy(
         static_data_table_name,
-        data_set_name,
+        dataset_name,
         columns,
     ):
         columns = json.loads(columns)
         data = np.genfromtxt(
-            "/tmp/{data_set_name}/{static_data_table_name}/{static_data_table_name}.csv".format(
-                data_set_name=data_set_name,
+            "/tmp/{dataset_name}/{static_data_table_name}/{static_data_table_name}.csv".format(
+                dataset_name=dataset_name,
                 static_data_table_name=static_data_table_name,
             ),
             delimiter=",",
@@ -2689,7 +2767,99 @@ spec:
         return data
   call: read_csv_into_numpy
   kwargs:
-    data_set_name:
+    dataset_name:
+      type: AncestorArgument
+      spec:
+        attaches: DataSet
+        call: data_set.name.clone()
+    static_data_table_name:
+      type: AncestorArgument
+      spec:
+        attaches: StaticDataTable
+        call: static_data_table.name.clone()
+    columns:
+      type: AncestorArgument
+      spec:
+        attaches: StaticDataTable
+        call: serde_json::json!(static_data_table.schema.get_attribute_names()).to_string()
+---
+type: Program
+spec:
+  use: PandasDataFromNewlineDelimitedJSON
+  root: ReplicationStorageSetup
+  dialect: Python
+  pip_requires:
+    - pandas==1.2.3
+  preamble: |
+
+    import pandas as pd
+    import json
+
+    def read_json_into_pandas(
+        static_data_table_name,
+        dataset_name,
+        columns,
+    ):
+        columns = json.loads(columns)
+
+        with open(
+            "/tmp/{data_set_name}/{static_data_table_name}/{static_data_table_name}.csv".format(
+                data_set_name=data_set_name, static_data_table_name=static_data_table_name
+            )
+        ) as f:
+            raw_records = [json.loads(l) for l in f.readlines()]
+
+        records = [[r[k] for k in columns] for r in raw_records]
+        return pd.DataFrame(records, columns=columns)
+  call: read_json_into_pandas
+  kwargs:
+    dataset_name:
+      type: AncestorArgument
+      spec:
+        attaches: DataSet
+        call: data_set.name.clone()
+    static_data_table_name:
+      type: AncestorArgument
+      spec:
+        attaches: StaticDataTable
+        call: static_data_table.name.clone()
+    columns:
+      type: AncestorArgument
+      spec:
+        attaches: StaticDataTable
+        call: serde_json::json!(static_data_table.schema.get_attribute_names()).to_string()
+---
+type: Program
+spec:
+  use: NumpyDataFromNewlineDelimitedJSON
+  root: ReplicationStorageSetup
+  dialect: Python
+  pip_requires:
+    - numpy==1.20.1
+  preamble: |
+
+    import numpy as np
+    import json
+
+    def read_json_into_numpy(
+        static_data_table_name,
+        dataset_name,
+        columns,
+    ):
+        columns = json.loads(columns)
+
+        with open(
+            "/tmp/{data_set_name}/{static_data_table_name}/{static_data_table_name}.csv".format(
+                data_set_name=data_set_name, static_data_table_name=static_data_table_name
+            )
+        ) as f:
+            raw_records = [json.loads(l) for l in f.readlines()]
+        records = [np.array([r[k] for k in columns] for r in raw_records)]
+        return np.concatenate(records, axis=0)
+
+  call: read_json_into_numpy
+  kwargs:
+    dataset_name:
       type: AncestorArgument
       spec:
         attaches: DataSet

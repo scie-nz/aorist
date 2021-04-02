@@ -18,6 +18,7 @@ use uuid::Uuid;
 pub enum Encoding {
     CSVEncoding(CSVEncoding),
     JSONEncoding(JSONEncoding),
+    NewlineDelimitedJSONEncoding(JSONEncoding),
     ORCEncoding(ORCEncoding),
     TSVEncoding(TSVEncoding),
     ONNXEncoding(TSVEncoding),
@@ -32,6 +33,7 @@ impl Encoding {
             Self::JSONEncoding(_) => None,
             Self::ORCEncoding(_) => None,
             Self::ONNXEncoding(_) => None,
+            Self::NewlineDelimitedJSONEncoding(_) => None,
         }
     }
     pub fn get_compression(&self) -> Option<DataCompression> {
@@ -42,6 +44,7 @@ impl Encoding {
             Self::JSONEncoding(_) => None,
             Self::ORCEncoding(_) => None,
             Self::ONNXEncoding(_) => None,
+            Self::NewlineDelimitedJSONEncoding(_) => None,
         }
     }
 }

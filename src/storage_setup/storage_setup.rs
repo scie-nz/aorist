@@ -1,12 +1,12 @@
 #![allow(non_snake_case)]
 use crate::concept::{AoristConcept, Concept};
+use crate::encoding::*;
 use crate::storage::*;
 use crate::storage_setup::computed_from_local_data::*;
 use crate::storage_setup::local_storage_setup::*;
 use crate::storage_setup::remote_storage_setup::*;
 use crate::storage_setup::replication_storage_setup::*;
 use aorist_concept::{aorist_concept, Constrainable, InnerObject};
-use markdown_gen::markdown::*;
 use paste::paste;
 use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
@@ -33,13 +33,6 @@ impl StorageSetup {
             Self::LocalStorageSetup(l) => vec![l.local.clone()],
         }
     }
-    pub fn markdown(&self, md: &mut Markdown<Vec<u8>>) {
-        md.write("Storage Setup".heading(1)).unwrap();
-        match self {
-            Self::RemoteStorageSetup(x) => x.markdown(md),
-            _ => panic!("markdown not supported"),
-        }
-    }
     pub fn get_tmp_dir(&self) -> String {
         match self {
             Self::ReplicationStorageSetup(s) => s.tmp_dir.clone(),
@@ -48,10 +41,10 @@ impl StorageSetup {
             Self::LocalStorageSetup(l) => l.tmp_dir.clone(),
         }
     }
-    pub fn replicate_to_local(&self, t: Storage, tmp_dir: String) -> Self {
+    pub fn replicate_to_local(&self, t: Storage, tmp_dir: String, tmp_encoding: Encoding) -> Self {
         match self {
             Self::RemoteStorageSetup(x) => {
-                Self::ReplicationStorageSetup(x.replicate_to_local(t, tmp_dir))
+                Self::ReplicationStorageSetup(x.replicate_to_local(t, tmp_dir, tmp_encoding))
             }
             _ => panic!("Only assets with RemoteStorageSetup can be replicated"),
         }
@@ -59,10 +52,10 @@ impl StorageSetup {
 }
 
 impl InnerStorageSetup {
-    pub fn replicate_to_local(&self, t: InnerStorage, tmp_dir: String) -> Self {
+    pub fn replicate_to_local(&self, t: InnerStorage, tmp_dir: String, tmp_encoding: InnerEncoding) -> Self {
         match self {
             Self::RemoteStorageSetup(x) => {
-                Self::ReplicationStorageSetup(x.replicate_to_local(t, tmp_dir))
+                Self::ReplicationStorageSetup(x.replicate_to_local(t, tmp_dir, tmp_encoding))
             }
             _ => panic!("Only assets with RemoteStorageSetup can be replicated"),
         }

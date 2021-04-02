@@ -178,6 +178,8 @@ wine_table = StaticDataTable(
 # same template!
 wine_dataset = DataSet(
     name="wine",
+    description="A [chemical analysis](https://archive.ics.uci.edu/ml/datasets/wine) of wines grown in the same region in Italy but derived from three different cultivars.",
+    sourcePath=__file__,
     datumTemplates=[wine_datum],
     assets={"wine_table": wine_table},
 )

@@ -2,6 +2,10 @@ extern crate proc_macro;
 use proc_macro::TokenStream;
 use quote::quote;
 use syn;
+use syn::punctuated::Punctuated;
+use syn::token::Comma;
+use syn::{Data, DataStruct, DeriveInput, Field, Fields};
+use type_macro_helpers::{extract_type_from_linked_hash_map, extract_type_from_vector};
 
 #[proc_macro_derive(PrestoVarchar)]
 pub fn derive_presto_varchar(input: TokenStream) -> TokenStream {
@@ -910,4 +914,85 @@ pub fn derive_postgres_inet(input: TokenStream) -> TokenStream {
         }
     };
     gen.into()
+}
+
+#[proc_macro_derive(Optimizable)]
+pub fn optimizable(input: TokenStream) -> TokenStream {
+    let input = syn::parse_macro_input!(input as DeriveInput);
+    //let constraint_names = AoristConstraint::get_required_constraint_names();
+    match &input.data {
+        Data::Struct(DataStruct {
+            fields: Fields::Named(fields),
+            ..
+        }) => optimize_struct_fields(&fields.named, &input),
+        _ => panic!("expected a struct with named fields"),
+    }
+}
+
+fn optimize_struct_fields(fields: &Punctuated<Field, Comma>, input: &DeriveInput) -> TokenStream {
+    let bare_field_name = fields
+        .iter()
+        .filter(|field| match &field.ty {
+            syn::Type::Path(x) => x.path.is_ident("AST"),
+            _ => false,
+        })
+        .map(|field| &field.ident);
+
+    let vec_field_name = fields
+        .iter()
+        .map(|field| (&field.ident, extract_type_from_vector(&field.ty)))
+        .filter(|x| match x.1 {
+            Some(syn::Type::Path(y)) => y.path.is_ident("AST"),
+            _ => false,
+        })
+        .map(|x| x.0);
+    
+    let map_field_name = fields
+        .iter()
+        .map(|field| (&field.ident, extract_type_from_linked_hash_map(&field.ty)))
+        .filter(|x| match x.1 {
+            Some((_, syn::Type::Path(y))) => y.path.is_ident("AST"),
+            _ => false,
+        })
+        .map(|x| x.0);
+
+    let struct_name = &input.ident;
+    TokenStream::from(quote! {
+
+    impl #struct_name {
+        fn optimize_fields(&mut self) {
+            #(
+                if let Some(opt) = self.#bare_field_name.optimize() {
+                    self.#bare_field_name = opt;
+                }
+                self.#bare_field_name.optimize_fields();
+            )*
+            #(
+                let mut new_elems = Vec::new();
+                for elem in self.#vec_field_name {
+                    let new_elem = match elem.optimize() {
+                        Some(opt) => opt,
+                        None => elem.clone(),
+                    };
+                    new_elem.optimize_fields();
+                    new_elems.push(new_elem);
+                }
+                self.#vec_field_name = new_elems;
+            )*
+            
+            #(
+                let mut new_elems = LinkedHashMap::new();
+                for (k, elem) in self.#map_field_name {
+                    let new_elem = match elem.optimize() {
+                        Some(opt) => opt,
+                        None => elem.clone(),
+                    };
+                    new_elem.optimize_fields();
+                    new_elems.insert(k, new_elem);
+                }
+                self.#map_field_name = new_elems;
+            )*
+        }
+    }
+    })
 }

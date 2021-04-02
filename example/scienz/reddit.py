@@ -16,7 +16,7 @@ from aorist import (
     attr_list,
     PushshiftAPILocation,
     PushshiftSubredditPostsAPILayout,
-    JSONEncoding,
+    NewlineDelimitedJSONEncoding,
 )
 from aorist import attributes as attr
 
@@ -40,7 +40,7 @@ assets = {x: StaticDataTable(
         remote=RemoteStorage(
             location=PushshiftAPILocation(subreddit=x),
             layout=PushshiftSubredditPostsAPILayout(),
-            encoding=JSONEncoding(),
+            encoding=NewlineDelimitedJSONEncoding(),
         ),
     ),
     tag=x,
@@ -48,6 +48,8 @@ assets = {x: StaticDataTable(
 
 subreddits = DataSet(
     name="subreddits",
+    description="A selection of small region-based Subreddits to demonstrate collecting Reddit data via [Pushshift](https://pushshift.io/).",
+    sourcePath=__file__,
     datumTemplates=[subreddit_datum],
     assets=assets,
 )

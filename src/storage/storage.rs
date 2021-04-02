@@ -9,7 +9,6 @@ use crate::storage::postgres_storage::*;
 use crate::storage::remote_storage::*;
 use crate::storage::sqlite_storage::*;
 use aorist_concept::{aorist_concept, Constrainable, InnerObject};
-use markdown_gen::markdown::*;
 use paste::paste;
 use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
@@ -40,12 +39,6 @@ impl Storage {
             Self::SQLiteStorage(_) => None,
             Self::PostgresStorage(_) => None,
             Self::BigQueryStorage(_) => None,
-        }
-    }
-    pub fn markdown(&self, md: &mut Markdown<Vec<u8>>) {
-        match &self {
-            Self::RemoteStorage(x) => x.markdown(md),
-            _ => panic!("markdown not handledn"),
         }
     }
 }

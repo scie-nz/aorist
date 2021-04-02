@@ -70,6 +70,8 @@ sentinel_metadata_table = StaticDataTable(
 )
 sentinel_dataset = DataSet(
     name="sentinel-2-dataset",
+    description="Satellite data from Sentinel-2 from Google GCS",
+    sourcePath=__file__,
     datumTemplates=[sentinel_granule_datum],
     assets=[sentinel_metadata_table],
 )

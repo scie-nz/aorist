@@ -7,7 +7,7 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-paste = {git = "https://github.com/scie-nz/paste", branch = "main"}
 aorist_derive = {path = "../aorist_derive"}
+paste = {git = "https://github.com/scie-nz/paste", branch = "main"}
 serde = { version = "1.0", features = ["derive"] }
 serde_yaml = "0.8"

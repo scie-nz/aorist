@@ -103,4 +103,6 @@ impl StringLiteral {
     pub fn get_direct_descendants(&self) -> Vec<AST> {
         Vec::new()
     }
+    pub fn optimize_fields(&self) {
+    }
 }

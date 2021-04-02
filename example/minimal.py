@@ -10,7 +10,7 @@ local = BigQueryStorage(
 universe = Universe(
     name="my_cluster",
     datasets=[subreddits.replicate_to_local(
-        local, tmp_dir,
+        local, tmp_dir, NewlineDelimitedJSONEncoding(),
     )],
     endpoints=DEFAULT_ENDPOINTS,
 )

@@ -2,6 +2,7 @@
 use crate::concept::{AoristConcept, Concept};
 use crate::constraint::Constraint;
 use crate::storage::*;
+use crate::encoding::*;
 use aorist_concept::{aorist_concept, Constrainable, InnerObject};
 use derivative::Derivative;
 use paste::paste;
@@ -17,4 +18,6 @@ pub struct ReplicationStorageSetup {
     #[constrainable]
     pub targets: Vec<Storage>,
     pub tmp_dir: String,
+    #[constrainable]
+    pub tmp_encoding: Encoding,
 }

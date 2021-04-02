@@ -4,6 +4,7 @@ use crate::asset::*;
 use crate::attributes::*;
 use crate::concept::{AoristConcept, Concept};
 use crate::constraint::Constraint;
+use crate::encoding::*;
 use crate::object::TAoristObject;
 use crate::storage::*;
 use crate::storage_setup::ComputedFromLocalData;
@@ -20,6 +21,8 @@ use uuid::Uuid;
 #[aorist_concept]
 pub struct DataSet {
     pub name: String,
+    pub description: String,
+    pub sourcePath: String,
     #[constrainable]
     #[py_default = "Vec::new()"]
     pub accessPolicies: Vec<AccessPolicy>,
@@ -115,16 +118,18 @@ impl InnerDataSet {
     pub fn get_static_data_table(&self, asset_name: String) -> PyResult<InnerStaticDataTable> {
         match self.assets.get(&asset_name) {
             Some(InnerAsset::StaticDataTable(x)) => Ok(x.clone()),
-            Some(_) => panic!(format!("Asset {} is not a StaticDataTable.", asset_name)),
-            _ => panic!(format!(
+            Some(_) => panic!("Asset {} is not a StaticDataTable.", asset_name),
+            _ => panic!(
                 "Dataset does not contain asset called {}.",
                 asset_name
-            )),
+            ),
         }
     }
-    pub fn replicate_to_local(&self, storage: InnerStorage, tmp_dir: String) -> InnerDataSet {
+    pub fn replicate_to_local(&self, storage: InnerStorage, tmp_dir: String, tmp_encoding: InnerEncoding) -> InnerDataSet {
         InnerDataSet {
             name: self.name.clone(),
+            description: self.description.clone(),
+            sourcePath: self.sourcePath.clone(),
             accessPolicies: self.accessPolicies.clone(),
             datumTemplates: self.datumTemplates.clone(),
             assets: self
@@ -133,7 +138,7 @@ impl InnerDataSet {
                 .map(|(k, v)| {
                     (
                         k.clone(),
-                        v.replicate_to_local(storage.clone(), tmp_dir.clone()),
+                        v.replicate_to_local(storage.clone(), tmp_dir.clone(), tmp_encoding.clone()),
                     )
                 })
                 .collect(),
@@ -159,11 +164,11 @@ impl InnerDataSet {
                 }
                 Ok(asset_attributes)
             }
-            None => panic!(format!(
+            None => panic!(
                 "Could not find template for asset {} in dataset {}",
                 asset.get_name(),
                 self.name,
-            )),
+            ),
         }
     }
 }

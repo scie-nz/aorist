@@ -9,6 +9,8 @@ storage = PostgresStorage(
 )
 subreddits = DataSet(
     name="subreddits",
+    description="Example schema storage",
+    sourcePath=__file__,
     datumTemplates=[],
     assets={},
 )

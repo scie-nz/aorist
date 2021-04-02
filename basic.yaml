@@ -105,7 +105,7 @@ spec:
                     match template {
                       Ok(crate::template::DatumTemplate::PredictionsFromTrainedFloatMeasure(_)) => true,
                         Ok(_) => false,
-                        Err(err) => panic!(err),
+                        Err(err) => panic!("{}", err),
                     }
                   },
                   _ => false,
@@ -208,7 +208,7 @@ spec:
   requires:
     - DownloadDataFromRemoteGCSLocation
     - DownloadDataFromRemoteWebLocation
-    - DownloadDataFromRemotePushshiftAPILocation
+    - DownloadDataFromRemotePushshiftAPILocationToNewlineDelimitedJSON
 ---
 type: Constraint
 spec:
@@ -223,7 +223,7 @@ spec:
 ---
 type: Constraint
 spec:
-  name: DownloadDataFromRemotePushshiftAPILocation
+  name: DownloadDataFromRemotePushshiftAPILocationToNewlineDelimitedJSON
   root: PushshiftAPILocation
   requiresProgram: true
   title: Downloading data from the Pushshift API
@@ -231,6 +231,15 @@ spec:
       Data for this particular asset(s) is located in the Pushshift API.
       We need to download it to a local directory first, before we can
       do anything with it.
+  attachIf: |
+      |root: Concept<'a>, ancestry: &ConceptAncestry<'a>|
+      match ancestry.replication_storage_setup(root.clone()) {
+          Ok(x) => match x.tmp_encoding {
+              crate::encoding::Encoding::NewlineDelimitedJSONEncoding(_) => true,
+              _ => false,
+          }
+          _ => false,
+      }
 ---
 type: Constraint
 spec:
@@ -389,7 +398,9 @@ spec:
   name: CSVIsConverted
   root: StaticDataTable
   requires:
-    - ConvertToCSV
+    - RenameCSV
+    - ConvertJSONToCSV
+    - ConvertTSVToCSV
   attachIf: |
       |root: Concept<'a>, ancestry: &ConceptAncestry<'a>|
       match ancestry.static_data_table(root.clone()).unwrap().setup {
@@ -399,19 +410,60 @@ spec:
 ---
 type: Constraint
 spec:
-  name: ConvertToCSV
+  name: RenameCSV
   root: RemoteStorage
   requiresProgram: true
   requires:
-    - RemoveFileHeader
     - DownloadDataFromRemote
-  title: Convert data to CSV
+    - RemoveFileHeader
+  title: Move CSV to tmp
   body: |
-      We need to convert the data to CSV format to process it further (or if
-      the data is already in CSV format, we will need to rename files accordingly).
+      We need to move the CSV data to the tmp directory as expected in later phases.
   attachIf: |
       |root: Concept<'a>, ancestry: &ConceptAncestry<'a>|
-      ancestry.replication_storage_setup(root.clone()).is_ok()
+      match ancestry.remote_storage(root.clone()).unwrap().encoding {
+          crate::encoding::Encoding::CSVEncoding(_) =>
+              ancestry.replication_storage_setup(root.clone()).is_ok(),
+          _ => false,
+      }
+---
+type: Constraint
+spec:
+  name: ConvertJSONToCSV
+  root: RemoteStorage
+  requiresProgram: true
+  requires:
+    - DownloadDataFromRemote
+    - RemoveFileHeader
+  title: Convert JSON data to CSV
+  body: |
+      We need to convert the JSON data to CSV format to process it further.
+  attachIf: |
+      |root: Concept<'a>, ancestry: &ConceptAncestry<'a>|
+      match ancestry.remote_storage(root.clone()).unwrap().encoding {
+          crate::encoding::Encoding::JSONEncoding(_) =>
+              ancestry.replication_storage_setup(root.clone()).is_ok(),
+          _ => false,
+      }
+---
+type: Constraint
+spec:
+  name: ConvertTSVToCSV
+  root: RemoteStorage
+  requiresProgram: true
+  requires:
+    - DownloadDataFromRemote
+    - RemoveFileHeader
+  title: Convert TSV data to CSV
+  body: |
+      We need to convert the TSV data to CSV format to process it further.
+  attachIf: |
+      |root: Concept<'a>, ancestry: &ConceptAncestry<'a>|
+      match ancestry.remote_storage(root.clone()).unwrap().encoding {
+          crate::encoding::Encoding::TSVEncoding(_) =>
+              ancestry.replication_storage_setup(root.clone()).is_ok(),
+          _ => false,
+      }
 ---
 type: Constraint
 spec:
@@ -436,7 +488,7 @@ spec:
                     match template {
                       Ok(crate::template::DatumTemplate::PredictionsFromTrainedFloatMeasure(_)) => true,
                         Ok(_) => false,
-                        Err(err) => panic!(err),
+                        Err(err) => panic!("{}", err),
                     }
                   },
                   _ => false,
@@ -528,10 +580,10 @@ spec:
           let dataset = ancestry.data_set(root.clone()).unwrap();
           let uuids: Vec<_> = dataset.get_source_assets(&setup).unwrap().values().map(|x| x.get_uuid().clone()).collect();
           if uuids.len() == 0 {
-              panic!(format!(
+              panic!(
                   "Cannot find source asset with names {}",
                   setup.source_asset_names.values().map(|x| x.clone()).collect::<Vec<String>>().join(",")
-              ));
+              );
           }
           uuids
       }
@@ -570,10 +622,10 @@ spec:
           let dataset = ancestry.data_set(root.clone()).unwrap();
           let uuids: Vec<_> = dataset.get_source_assets(&setup).unwrap().values().map(|x| x.get_uuid().clone()).collect();
           if uuids.len() == 0 {
-              panic!(format!(
+              panic!(
                   "Cannot find source asset with names {}",
                   setup.source_asset_names.values().map(|x| x.clone()).collect::<Vec<String>>().join(",")
-              ));
+              );
           }
           uuids
       }
@@ -600,7 +652,7 @@ spec:
               let template = mapped_templates.get(&t.datumTemplateName);
               return match template {
                   Some(DatumTemplate::PredictionsFromTrainedFloatMeasure(_)) => true,
-                  None => panic!(format!("Could not find datum template: {}", t.datumTemplateName)),
+                  None => panic!("Could not find datum template: {}", t.datumTemplateName),
                   _ => false,
               };
             }
@@ -613,10 +665,10 @@ spec:
           let dataset = ancestry.data_set(root.clone()).unwrap();
           let uuids: Vec<_> = dataset.get_source_assets(&setup).unwrap().values().map(|x| x.get_uuid().clone()).collect();
           if uuids.len() == 0 {
-              panic!(format!(
+              panic!(
                   "Cannot find source asset with names {}",
                   setup.source_asset_names.values().map(|x| x.clone()).collect::<Vec<String>>().join(",")
-              ));
+              );
           }
           uuids
       }
@@ -643,45 +695,107 @@ spec:
 ---
 type: Constraint
 spec:
-  name: GenerateMarkdown
-  root: Universe
-  requiresProgram: true
-  requires:
-    - GenerateMarkdownForDatasets
----
-type: Constraint
-spec:
-  name: GenerateMarkdownForDatasets
+  name: GenerateHub
   root: DataSet
   requiresProgram: true
   requires:
-    - GenerateMarkdownForAssets
+    - GenerateHubForAssets
 ---
 type: Constraint
 spec:
-  name: GenerateMarkdownForAssets
+  name: GenerateHubForAssets
   root: Asset
   requires:
-    - GenerateMarkdownForStaticDataTables
+    - GenerateHubForStaticDataTables
 ---
 type: Constraint
 spec:
-  name: GenerateMarkdownForStaticDataTables
+  name: GenerateHubForStaticDataTables
   root: StaticDataTable
   requiresProgram: true
 ---
 type: Constraint
 spec:
-  name: PandasData
-  root: StaticDataTable
+  name: PandasDataFromCSV
+  root: ReplicationStorageSetup
   requiresProgram: true
   requires:
-    - ConvertToCSV
+    - DownloadDataFromRemote
+    - CSVIsConverted
+  attachIf: |
+      |root: Concept<'a>, ancestry: &ConceptAncestry<'a>|
+      match ancestry.replication_storage_setup(root.clone()) {
+          Ok(x) => match x.tmp_encoding {
+              crate::encoding::Encoding::NewlineDelimitedJSONEncoding(_) => false,
+              _ => true,
+          }
+          _ => true,
+      }
+---
+type: Constraint
+spec:
+  name: NumpyDataFromCSV
+  root: ReplicationStorageSetup
+  requiresProgram: true
+  requires:
+    - DownloadDataFromRemote
+    - CSVIsConverted
+  attachIf: |
+      |root: Concept<'a>, ancestry: &ConceptAncestry<'a>|
+      match ancestry.replication_storage_setup(root.clone()) {
+          Ok(x) => match x.tmp_encoding {
+              crate::encoding::Encoding::NewlineDelimitedJSONEncoding(_) => false,
+              _ => true,
+          }
+          _ => true,
+      }
+---
+type: Constraint
+spec:
+  name: PandasDataFromNewlineDelimitedJSON
+  root: ReplicationStorageSetup
+  requiresProgram: true
+  requires:
+    - DownloadDataFromRemote
+  attachIf: |
+      |root: Concept<'a>, ancestry: &ConceptAncestry<'a>|
+      match ancestry.replication_storage_setup(root.clone()) {
+          Ok(x) => match x.tmp_encoding {
+              crate::encoding::Encoding::NewlineDelimitedJSONEncoding(_) => true,
+              _ => false,
+          }
+          _ => false,
+      }
+---
+type: Constraint
+spec:
+  name: NumpyDataFromNewlineDelimitedJSON
+  root: ReplicationStorageSetup
+  requiresProgram: true
+  requires:
+    - DownloadDataFromRemote
+  attachIf: |
+      |root: Concept<'a>, ancestry: &ConceptAncestry<'a>|
+      match ancestry.replication_storage_setup(root.clone()) {
+          Ok(x) => match x.tmp_encoding {
+              crate::encoding::Encoding::NewlineDelimitedJSONEncoding(_) => true,
+              _ => false,
+          }
+          _ => false,
+      }
 ---
 type: Constraint
 spec:
   name: NumpyData
-  root: StaticDataTable
-  requiresProgram: true
+  root: ReplicationStorageSetup
   requires:
-    - ConvertToCSV
+    - NumpyDataFromCSV
+    - NumpyDataFromNewlineDelimitedJSON
+---
+type: Constraint
+spec:
+  name: PandasData
+  root: ReplicationStorageSetup
+  requires:
+    - PandasDataFromCSV
+    - PandasDataFromNewlineDelimitedJSON

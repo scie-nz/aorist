@@ -62,6 +62,13 @@ macro_rules! register_ast_nodes {
                 }
                 .to_string()
             }
+            pub fn optimize_fields(&self) {
+                match &self {
+                    $(
+                        Self::$variant(rw) => rw.write().unwrap().optimize_fields(),
+                    )+
+                }
+            }
             pub fn to_python_ast_node<'a>(
                 &self,
                 py: Python,
@@ -219,7 +226,7 @@ macro_rules! define_ast_node {
      $descendants:expr,
      $py_ast_closure:expr,
      $($field: ident : $field_type: ty,)*) => {
-        #[derive(Hash, PartialEq, Eq, Clone)]
+        #[derive(Hash, PartialEq, Eq, Clone, Optimizable)]
         pub struct $name {
             $(
                 $field: $field_type,
