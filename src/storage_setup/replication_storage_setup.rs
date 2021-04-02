@@ -21,3 +21,18 @@ pub struct ReplicationStorageSetup {
     #[constrainable]
     pub tmp_encoding: Encoding,
 }
+
+impl ReplicationStorageSetup {
+    pub fn get_download_extension(&self) -> String {
+        match self.source.get_encoding() {
+            Some(source_encoding) => {
+                if InnerEncoding::from(source_encoding.clone()) == InnerEncoding::from(self.tmp_encoding.clone()) {
+                    return source_encoding.get_default_file_extension();
+                } else {
+                    return "downloaded".to_string();
+                }
+            },
+            None => panic!("get_download_extension called against source storage without encoding"),
+        }
+    }
+}

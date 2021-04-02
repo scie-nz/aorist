@@ -47,4 +47,15 @@ impl Encoding {
             Self::NewlineDelimitedJSONEncoding(_) => None,
         }
     }
+    pub fn get_default_file_extension(&self) -> String {
+        match &self {
+            Self::CSVEncoding(_) => "csv".to_string(),
+            // TODO: need to change this to also be optional
+            Self::TSVEncoding(_) => "tsv".to_string(),
+            Self::JSONEncoding(_) => "json".to_string(),
+            Self::ORCEncoding(_) => "orc".to_string(),
+            Self::ONNXEncoding(_) => "onnx".to_string(),
+            Self::NewlineDelimitedJSONEncoding(_) => "json".to_string(),
+        }
+    }
 }

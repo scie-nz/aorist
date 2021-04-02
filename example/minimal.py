@@ -1,16 +1,16 @@
-from scienz import subreddits
+from scienz import wine
 from aorist import *
 from common import DEFAULT_ENDPOINTS
 
-tmp_dir = "tmp/subreddits"
+tmp_dir = "tmp/wine"
 local = BigQueryStorage(
     location=BigQueryLocation(),
     layout=StaticTabularLayout(),
 )
 universe = Universe(
     name="my_cluster",
-    datasets=[subreddits.replicate_to_local(
-        local, tmp_dir, NewlineDelimitedJSONEncoding(),
+    datasets=[wine.replicate_to_local(
+        local, tmp_dir, CSVEncoding(),
     )],
     endpoints=DEFAULT_ENDPOINTS,
 )

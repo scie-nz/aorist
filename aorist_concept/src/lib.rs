@@ -28,7 +28,6 @@ fn process_enum_variants(
         .iter()
         .map(|x| (x.ident.clone()))
         .collect::<Vec<_>>();
-
     let mut file = OpenOptions::new()
         .write(true)
         .append(true)
@@ -412,7 +411,7 @@ pub fn constrain_object(input: TokenStream) -> TokenStream {
                 .map(|x| (x.ident.clone()))
                 .collect::<Vec<_>>();
             let quoted = quote! { paste! {
-                #[derive(Clone, FromPyObject)]
+                #[derive(Clone, FromPyObject, PartialEq)]
                 pub enum [<Inner #enum_name>] {
                     #(#variant([<Inner #variant>])),*
                 }
@@ -509,7 +508,7 @@ pub fn constrain_object(input: TokenStream) -> TokenStream {
             return TokenStream::from(quote! { paste! {
 
                 #[pyclass(name=#py_class_name)]
-                #[derive(Clone)]
+                #[derive(Clone, PartialEq)]
                 pub struct [<Inner #struct_name>] {
                     #(pub #bare_ident: [<Inner #bare_type>] ,)*
                     #(pub #vec_ident: Vec<[<Inner #vec_type>]> ,)*

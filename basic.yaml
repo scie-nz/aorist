@@ -398,7 +398,6 @@ spec:
   name: CSVIsConverted
   root: StaticDataTable
   requires:
-    - RenameCSV
     - ConvertJSONToCSV
     - ConvertTSVToCSV
   attachIf: |

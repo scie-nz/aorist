@@ -214,7 +214,17 @@ spec:
     dest_file_name:
       type: AncestorArgument
       spec:
-        call: format!("{}.downloaded", static_data_table.name).to_string()
+        call: |
+          {
+            format!(
+                "{}.{}",
+                static_data_table.name,
+                match static_data_table.setup {
+                     StorageSetup::ReplicationStorageSetup(ref x) => x.get_download_extension(),
+                     _ => panic!("Storage setup must be ReplicationStorageSetup"),
+                }
+            ).to_string()
+          }
         attaches: StaticDataTable
         name: file_name
 ---
