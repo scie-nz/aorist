@@ -230,12 +230,12 @@ spec:
       import json
       import os
 
-      def download_subreddit(subreddit, tmp_dir, file_name):
+      def download_subreddit(subreddit, tmp_dir):
 
           if not os.path.exists(tmp_dir):
               os.makedirs(tmp_dir)
 
-          output_file = '%s/%s' % (tmp_dir, file_name)
+          output_file = '%s/data.json' % tmp_dir
 
           if not os.path.exists(output_file) or os.stat(output_file).st_size == 0:
               api = PushshiftAPI(
@@ -266,12 +266,6 @@ spec:
         call: replication_storage_setup.tmp_dir
         attaches: ReplicationStorageSetup
         name: tmp_dir
-    file_name:
-      type: AncestorArgument
-      spec:
-        call: format!("{}.downloaded", static_data_table.name).to_string()
-        attaches: StaticDataTable
-        name: file_name
 ---
 type: Program
 spec:
@@ -2803,8 +2797,8 @@ spec:
         columns = json.loads(columns)
 
         with open(
-            "/tmp/{data_set_name}/{static_data_table_name}/{static_data_table_name}.csv".format(
-                data_set_name=data_set_name, static_data_table_name=static_data_table_name
+            "/tmp/{dataset_name}/{static_data_table_name}/data.json".format(
+                dataset_name=dataset_name, static_data_table_name=static_data_table_name
             )
         ) as f:
             raw_records = [json.loads(l) for l in f.readlines()]
@@ -2849,13 +2843,14 @@ spec:
         columns = json.loads(columns)
 
         with open(
-            "/tmp/{data_set_name}/{static_data_table_name}/{static_data_table_name}.csv".format(
-                data_set_name=data_set_name, static_data_table_name=static_data_table_name
+            "/tmp/{dataset_name}/{static_data_table_name}/data.json".format(
+                dataset_name=dataset_name, static_data_table_name=static_data_table_name
             )
         ) as f:
             raw_records = [json.loads(l) for l in f.readlines()]
-        records = [np.array([r[k] for k in columns] for r in raw_records)]
-        return np.concatenate(records, axis=0)
+        records = [[r[k] for k in columns] for r in raw_records]
+        ndarray = np.array(records)
+        return ndarray
 
   call: read_json_into_numpy
   kwargs:
