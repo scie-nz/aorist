@@ -220,7 +220,7 @@ spec:
 ---
 type: Program
 spec:
-  use: DownloadDataFromRemotePushshiftAPILocation
+  use: DownloadDataFromRemotePushshiftAPILocationToNewlineDelimitedJSON
   root: PushshiftAPILocation
   pip_requires:
     - pmaw==1.0.4

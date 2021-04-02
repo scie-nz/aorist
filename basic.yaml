@@ -208,7 +208,7 @@ spec:
   requires:
     - DownloadDataFromRemoteGCSLocation
     - DownloadDataFromRemoteWebLocation
-    - DownloadDataFromRemotePushshiftAPILocation
+    - DownloadDataFromRemotePushshiftAPILocationToNewlineDelimitedJSON
 ---
 type: Constraint
 spec:
@@ -223,7 +223,7 @@ spec:
 ---
 type: Constraint
 spec:
-  name: DownloadDataFromRemotePushshiftAPILocation
+  name: DownloadDataFromRemotePushshiftAPILocationToNewlineDelimitedJSON
   root: PushshiftAPILocation
   requiresProgram: true
   title: Downloading data from the Pushshift API
@@ -231,6 +231,15 @@ spec:
       Data for this particular asset(s) is located in the Pushshift API.
       We need to download it to a local directory first, before we can
       do anything with it.
+  attachIf: |
+      |root: Concept<'a>, ancestry: &ConceptAncestry<'a>|
+      match ancestry.replication_storage_setup(root.clone()) {
+          Ok(x) => match x.tmp_encoding {
+              crate::encoding::Encoding::NewlineDelimitedJSONEncoding(_) => true,
+              _ => false,
+          }
+          _ => false,
+      }
 ---
 type: Constraint
 spec:
