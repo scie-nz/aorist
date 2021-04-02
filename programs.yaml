@@ -195,8 +195,8 @@ spec:
     import urllib.request
 
     def download_data_from_remote_web_location(src_url, tmp_dir, dest_file_name):
-        os.mkdirs(tmp_dir)
-        urllib.request.urlretrieve(url, os.path.join(tmp_dir, dest_file_name))
+        os.makedirs(tmp_dir, exist_ok=True)
+        urllib.request.urlretrieve(src_url, os.path.join(tmp_dir, dest_file_name))
   call: download_data_from_remote_web_location
   kwargs:
     src_url:
@@ -2699,7 +2699,7 @@ spec:
 ---
 type: Program
 spec:
-  use: PandasDataFromCSV
+  use: PandasFromCSVData
   root: ReplicationStorageSetup
   dialect: Python
   pip_requires:
@@ -2744,7 +2744,7 @@ spec:
 ---
 type: Program
 spec:
-  use: NumpyDataFromCSV
+  use: NumpyFromCSVData
   root: ReplicationStorageSetup
   dialect: Python
   pip_requires:
@@ -2789,7 +2789,7 @@ spec:
 ---
 type: Program
 spec:
-  use: PandasDataFromNewlineDelimitedJSON
+  use: PandasFromNewlineDelimitedJSONData
   root: ReplicationStorageSetup
   dialect: Python
   pip_requires:
@@ -2835,7 +2835,7 @@ spec:
 ---
 type: Program
 spec:
-  use: NumpyDataFromNewlineDelimitedJSON
+  use: NumpyFromNewlineDelimitedJSONData
   root: ReplicationStorageSetup
   dialect: Python
   pip_requires:
@@ -2858,8 +2858,16 @@ spec:
             )
         ) as f:
             raw_records = [json.loads(l) for l in f.readlines()]
-        records = [[r[k] for k in columns] for r in raw_records]
-        ndarray = np.array(records)
+        records = [[str(r[k]) for k in columns] for r in raw_records]
+        max_str_lens = [max([len(y) for y in x]) for x in zip(*records)]
+        ndarray = np.array(
+            records,
+            dtype=[
+                (x, "U%d" % l)
+                for l, x in
+                zip(max_str_lens, columns)
+            ]
+        )
         return ndarray
 
   call: read_json_into_numpy

@@ -715,7 +715,7 @@ spec:
 ---
 type: Constraint
 spec:
-  name: PandasDataFromCSV
+  name: PandasFromCSVData
   root: ReplicationStorageSetup
   requiresProgram: true
   requires:
@@ -733,7 +733,7 @@ spec:
 ---
 type: Constraint
 spec:
-  name: NumpyDataFromCSV
+  name: NumpyFromCSVData
   root: ReplicationStorageSetup
   requiresProgram: true
   requires:
@@ -751,7 +751,7 @@ spec:
 ---
 type: Constraint
 spec:
-  name: PandasDataFromNewlineDelimitedJSON
+  name: PandasFromNewlineDelimitedJSONData
   root: ReplicationStorageSetup
   requiresProgram: true
   requires:
@@ -768,7 +768,7 @@ spec:
 ---
 type: Constraint
 spec:
-  name: NumpyDataFromNewlineDelimitedJSON
+  name: NumpyFromNewlineDelimitedJSONData
   root: ReplicationStorageSetup
   requiresProgram: true
   requires:
@@ -788,13 +788,13 @@ spec:
   name: NumpyData
   root: ReplicationStorageSetup
   requires:
-    - NumpyDataFromCSV
-    - NumpyDataFromNewlineDelimitedJSON
+    - NumpyFromCSVData
+    - NumpyFromNewlineDelimitedJSONData
 ---
 type: Constraint
 spec:
   name: PandasData
   root: ReplicationStorageSetup
   requires:
-    - PandasDataFromCSV
-    - PandasDataFromNewlineDelimitedJSON
+    - PandasFromCSVData
+    - PandasFromNewlineDelimitedJSONData
