@@ -222,15 +222,12 @@ where
 
         let flow = self.build_flow(py, statements_ast, ast);
 
-        let content: Vec<(Option<String>, Vec<&PyAny>)> = vec![(Some("Imports".to_string()), imports_ast)]
-            .into_iter()
-            .chain(
-                preambles
-                    .into_iter()
-                    .map(|x| (None, x.get_body_ast(py))),
-            )
-            .chain(flow.into_iter().map(|(x, y)|(Some(x), y)))
-            .collect();
+        let content: Vec<(Option<String>, Vec<&PyAny>)> =
+            vec![(Some("Imports".to_string()), imports_ast)]
+                .into_iter()
+                .chain(preambles.into_iter().map(|x| (None, x.get_body_ast(py))))
+                .chain(flow.into_iter().map(|(x, y)| (Some(x), y)))
+                .collect();
 
         let mut sources: Vec<(Option<String>, String)> = Vec::new();
 
@@ -265,7 +262,7 @@ where
                 .into_iter()
                 .map(|(maybe_comment, block)| match maybe_comment {
                     Some(comment) => format!("# {}\n{}\n", comment, block).to_string(),
-                    None => block
+                    None => block,
                 })
                 .collect::<Vec<String>>()
                 .join(""),

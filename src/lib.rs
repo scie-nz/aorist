@@ -78,6 +78,22 @@ use pyo3::wrap_pyfunction;
 use std::collections::HashSet;
 
 #[pyfunction]
+pub fn default_time_ordered_tabular_schema(
+    datum_template: InnerDatumTemplate,
+    ordering_attributes: Vec<String>,
+) -> InnerTimeOrderedTabularSchema {
+    InnerTimeOrderedTabularSchema {
+        datumTemplateName: datum_template.get_name(),
+        attributes: DatumTemplate::from(datum_template)
+            .get_attributes()
+            .iter()
+            .map(|x| x.get_name().clone())
+            .collect(),
+        tag: None,
+        orderingAttributes: ordering_attributes,
+    }
+}
+#[pyfunction]
 pub fn default_tabular_schema(datum_template: InnerDatumTemplate) -> InnerTabularSchema {
     InnerTabularSchema {
         datumTemplateName: datum_template.get_name(),
@@ -250,6 +266,7 @@ fn aorist(py: Python, m: &PyModule) -> PyResult<()> {
     m.add_wrapped(wrap_pyfunction!(dag))?;
     m.add_wrapped(wrap_pyfunction!(derive_integer_measure))?;
     m.add_wrapped(wrap_pyfunction!(attr_list))?;
+    m.add_wrapped(wrap_pyfunction!(default_time_ordered_tabular_schema))?;
     m.add("SQLParseError", py.get_type::<SQLParseError>())?;
     Ok(())
 }

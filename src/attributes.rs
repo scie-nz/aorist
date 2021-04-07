@@ -539,6 +539,14 @@ impl AttributeOrTransform {
             AttributeOrTransform::Transform(x) => (*x).get_bigquery_type(),
         }
     }
+    pub fn is_temporal_dimension(&self) -> bool {
+        match self {
+            AttributeOrTransform::Attribute(AttributeEnum::FromPostgresTimestampWithTimeZone(
+                _,
+            )) => true,
+            _ => false,
+        }
+    }
 }
 #[pymethods]
 impl InnerAttribute {

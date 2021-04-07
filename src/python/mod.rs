@@ -32,11 +32,7 @@ pub fn format_code(code: String) -> PyResult<String> {
     let black: &PyModule = PyModule::import(py, "black").unwrap();
     let mut kwargs = HashMap::<&str, usize>::new();
     kwargs.insert("line_length", 80);
-    let mode = black.call(
-        "FileMode",
-        (),
-        Some(kwargs.into_py_dict(py)),
-    )?;
+    let mode = black.call("FileMode", (), Some(kwargs.into_py_dict(py)))?;
 
     let py_code = PyString::new(py, &code);
 

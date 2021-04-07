@@ -2030,15 +2030,17 @@ spec:
   root: DataSet
   dialect: Python
   preamble: |
+    import json
+    
     def infer_schema_from_postgres(
         server,
         port,
         username,
         password,
         db_name,
+        dataset_description,
     ):
         import psycopg2
-        import json
         import black
 
         conn_string = " ".join([
@@ -2088,7 +2090,10 @@ spec:
             "INET": "attr.FromPostgresInet",
             "NUMERIC": "attr.FromPostgresNumeric",
         }
-
+        time_dimensions = {
+            "TIMESTAMP WITHOUT TIME ZONE",
+            "TIMESTAMP WITH TIME ZONE",
+        }
         templates = {}
         assets = {}
 
@@ -2104,8 +2109,19 @@ spec:
                 """, (table_name, table_schema),
             )
             template = []
+            
+            has_time_dimension = False
+            time_dimension_columns = []
 
             for column_name, data_type, is_nullable in cursor.fetchall():
+                is_nullable = False if is_nullable == "NO" else True
+                is_time_dimension = (
+                    data_type.upper() in time_dimensions and not is_nullable
+                )
+                if is_time_dimension and not has_time_dimension:
+                    has_time_dimension = True
+                    time_dimension_columns += [column_name]
+
                 data_type = data_type.upper().replace('"', '')
                 if not data_type in attr_types:
                     print("Problem with attr:" + data_type)
@@ -2128,7 +2144,7 @@ spec:
                 assets[table_name] = """
                 StaticDataTable(
                     name="{table_name}",
-                    schema=default_tabular_schema(templates["{template_name}"]),
+                    schema={schema_call},
                     setup=RemoteStorageSetup(
                         remote=PostgresStorage(
                             location=PostgresLocation(
@@ -2142,7 +2158,20 @@ spec:
                 ),
                 """.format(
                     table_name=table_name,
-                    template_name=template_name,
+                    schema_call=(
+                        (
+                            "default_tabular_schema(templates['{template_name}'])"
+                        ).format(template_name=template_name) 
+                        if not has_time_dimension else (
+                            "default_time_ordered_tabular_schema("
+                                "templates['{template_name}'], "
+                                "{time_dimension_columns}"
+                            ")"
+                        ).format(
+                            template_name=template_name,
+                            time_dimension_columns=json.dumps(time_dimension_columns),
+                        )
+                    ),
                     db_name=db_name,
                     table_schema=table_schema
                 )
@@ -2186,9 +2215,12 @@ spec:
             name="{db_name}",
             datumTemplates=list(templates.values()),
             assets=assets,
+            description="{description}",
+            sourcePath="",
         )
         """.format(
             db_name=db_name,
+            description=dataset_description,
         ), mode=black.Mode())
 
         from IPython.display import Javascript, display
@@ -2207,6 +2239,11 @@ spec:
       type: AncestorArgument
       spec:
         call: data_set.name.clone()
+        attaches: DataSet
+    dataset_description:
+      type: AncestorArgument
+      spec:
+        call: data_set.description.clone()
         attaches: DataSet
     server:
       type: AncestorArgument

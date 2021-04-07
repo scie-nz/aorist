@@ -52,7 +52,12 @@ impl StorageSetup {
 }
 
 impl InnerStorageSetup {
-    pub fn replicate_to_local(&self, t: InnerStorage, tmp_dir: String, tmp_encoding: InnerEncoding) -> Self {
+    pub fn replicate_to_local(
+        &self,
+        t: InnerStorage,
+        tmp_dir: String,
+        tmp_encoding: InnerEncoding,
+    ) -> Self {
         match self {
             Self::RemoteStorageSetup(x) => {
                 Self::ReplicationStorageSetup(x.replicate_to_local(t, tmp_dir, tmp_encoding))

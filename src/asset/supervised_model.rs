@@ -3,10 +3,10 @@ use crate::algorithms::*;
 use crate::asset::asset::TAsset;
 use crate::concept::{AoristConcept, Concept};
 use crate::constraint::Constraint;
+use crate::encoding::*;
 use crate::schema::*;
 use crate::storage::*;
 use crate::storage_setup::*;
-use crate::encoding::*;
 use aorist_concept::{aorist_concept, Constrainable, InnerObject};
 use derivative::Derivative;
 use paste::paste;
@@ -39,7 +39,12 @@ impl TAsset for SupervisedModel {
 }
 
 impl InnerSupervisedModel {
-    pub fn replicate_to_local(&self, t: InnerStorage, tmp_dir: String, tmp_encoding: InnerEncoding) -> Self {
+    pub fn replicate_to_local(
+        &self,
+        t: InnerStorage,
+        tmp_dir: String,
+        tmp_encoding: InnerEncoding,
+    ) -> Self {
         Self {
             name: self.name.clone(),
             setup: self.setup.replicate_to_local(t, tmp_dir, tmp_encoding),

@@ -119,13 +119,15 @@ impl InnerDataSet {
         match self.assets.get(&asset_name) {
             Some(InnerAsset::StaticDataTable(x)) => Ok(x.clone()),
             Some(_) => panic!("Asset {} is not a StaticDataTable.", asset_name),
-            _ => panic!(
-                "Dataset does not contain asset called {}.",
-                asset_name
-            ),
+            _ => panic!("Dataset does not contain asset called {}.", asset_name),
         }
     }
-    pub fn replicate_to_local(&self, storage: InnerStorage, tmp_dir: String, tmp_encoding: InnerEncoding) -> InnerDataSet {
+    pub fn replicate_to_local(
+        &self,
+        storage: InnerStorage,
+        tmp_dir: String,
+        tmp_encoding: InnerEncoding,
+    ) -> InnerDataSet {
         InnerDataSet {
             name: self.name.clone(),
             description: self.description.clone(),
@@ -138,7 +140,11 @@ impl InnerDataSet {
                 .map(|(k, v)| {
                     (
                         k.clone(),
-                        v.replicate_to_local(storage.clone(), tmp_dir.clone(), tmp_encoding.clone()),
+                        v.replicate_to_local(
+                            storage.clone(),
+                            tmp_dir.clone(),
+                            tmp_encoding.clone(),
+                        ),
                     )
                 })
                 .collect(),

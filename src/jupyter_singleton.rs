@@ -63,16 +63,14 @@ impl ETLDAG for JupyterDAG {
                         "outputs": Vec::<String>::new(),
                     })
                 ],
-                None => vec![
-                    json!({
-                        "cell_type": "code",
-                        "execution_count": None as Option<usize>,
-                        "metadata": json!({}),
-                        "source": block,
-                        "outputs": Vec::<String>::new(),
+                None => vec![json!({
+                    "cell_type": "code",
+                    "execution_count": None as Option<usize>,
+                    "metadata": json!({}),
+                    "source": block,
+                    "outputs": Vec::<String>::new(),
 
-                    })
-                ],
+                })],
             })
             .into_iter()
             .flatten()

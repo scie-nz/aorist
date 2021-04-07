@@ -51,10 +51,7 @@ define_ast_node!(
             .iter()
             .map(|x| match &x {
                 AST::Assignment(_) | AST::Expression(_) => x,
-                _ => panic!(
-                    "AST node of type {} found in for loop body",
-                    x.name()
-                ),
+                _ => panic!("AST node of type {} found in for loop body", x.name()),
             })
             .map(|x| x.to_python_ast_node(py, ast_module, depth + 1).unwrap())
             .collect::<Vec<_>>();
