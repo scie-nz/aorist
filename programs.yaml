@@ -2335,6 +2335,11 @@ spec:
   root: PostgresLocation
   dialect: Python
   preamble: |
+    import base64
+    import json
+    import psycopg2
+    import os
+    
     def download_from_postgres(
         server,
         port,
@@ -2346,14 +2351,18 @@ spec:
         # insertion order matters if we are dealing with a csv
         columns,
         schema_name,
+        time_ordering_columns,
     ):
-        import base64
-        import json
-        import psycopg2
-        import os
 
         if not os.path.exists(tmp_dir):
             os.makedirs(tmp_dir)
+        
+        time_ordering_columns = json.loads(time_ordering_columns)
+        try:
+            with open(tmp_dir + '/' + tablename + '.bqmax', 'r') as f:
+                bqmax = json.load(f)
+        except FileNotFoundError:
+            bqmax = None
 
         conn_string = " ".join([
             "host=%s" % server,
@@ -2375,6 +2384,15 @@ spec:
             db_name=db_name,
             schema_name=schema_name,
         )
+        if len(time_ordering_columns) > 0 and bqmax is not None:
+            max_clause = " AND ".join([
+                "{col} > '{val}'::timestamptz".format(
+                    col=col, val=bqmax[col],
+                ) for col in time_ordering_columns
+            ])
+            query = query + """
+            WHERE {max_clause}
+            """.format(max_clause=max_clause)
         cursor.execute(query)
 
         keys = [x[0] for x in columns]
@@ -2449,6 +2467,19 @@ spec:
                 |x| (x.get_name().to_string(), x.psycopg2_value_json_serializable())
             ).collect::<Vec<_>>();
             serde_json::json!(attributes_vec).to_string()
+          }
+    time_ordering_columns:
+      type: AncestorArgument
+      spec:
+        attaches: StaticDataTable
+        call: |
+          {
+              if let DataSchema::TimeOrderedTabularSchema(ref s) =
+              static_data_table.schema {
+                  serde_json::json!(s.orderingAttributes).to_string()
+              } else {
+                  "[]".to_string()
+              }
           }
 ---
 type: Program
@@ -2973,7 +3004,7 @@ spec:
             table_name=table_name,
         )
         try:
-            table = client.get_table(table_id, not_found_ok=True)
+            table = client.get_table(table_id)
         except NotFound:
             table_ref = dataset.table(table_name)
             columns = json.loads(columns)
@@ -2983,17 +3014,6 @@ spec:
             ]
             table = bigquery.Table(table_ref, schema=schema)
             client.create_table(table)        
-
-        table_ref = dataset.table(table_name)
-
-        columns = json.loads(columns)
-        schema = [
-           bigquery.SchemaField(k, v, mode="REQUIRED" if not n else "NULLABLE")
-           for k, v, n in columns
-        ]
-        table = bigquery.Table(table_ref, schema=schema)
-        client.create_table(table)
-
 
         job_config = bigquery.LoadJobConfig(
             source_format=bigquery.SourceFormat.NEWLINE_DELIMITED_JSON,
@@ -3015,8 +3035,8 @@ spec:
         table = client.get_table(table_id)  # Make an API request.
 
         print(
-            "Loaded {} rows and {} columns to {}".format(
-                table.num_rows, len(table.schema), table_id
+            "Table {} now has {} rows and {} columns.".format(
+                table_id, table.num_rows, len(table.schema),
             )
         )
 
