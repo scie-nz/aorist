@@ -382,6 +382,20 @@ type: Constraint
 spec:
   name: UploadDataToBigQuery
   root: BigQueryLocation
+  requires:
+    - UploadStaticDataToBigQuery
+    - UploadEventDataToBigQuery
+  title: Upload data to BigQuery
+  body: |
+      Now that data has been converted to a CSV we can upload it to BigQuery.
+  attachIf: |
+      |root: Concept<'a>, ancestry: &ConceptAncestry<'a>|
+      ancestry.replication_storage_setup(root.clone()).is_ok()
+---
+type: Constraint
+spec:
+  name: UploadStaticDataToBigQuery
+  root: BigQueryLocation
   requiresProgram: true
   requires:
     - CSVIsConverted
@@ -390,8 +404,18 @@ spec:
   body: |
       Now that data has been converted to a CSV we can upload it to BigQuery.
   attachIf: |
-      |root: Concept<'a>, ancestry: &ConceptAncestry<'a>|
-      ancestry.replication_storage_setup(root.clone()).is_ok()
+      |root: Concept<'a>, ancestry: &ConceptAncestry<'a>| {
+        if !ancestry.replication_storage_setup(root.clone()).is_ok() {
+            return false;
+        }
+        match ancestry.static_data_table(root.clone()) {
+            Ok(ref sdt) => match sdt.schema {
+               crate::schema::DataSchema::TimeOrderedTabularSchema(_) => false,
+               _ => true,
+            }
+            _ => false,
+        }
+      }
 ---
 type: Constraint
 spec:
@@ -691,6 +715,8 @@ spec:
   name: DownloadDataFromPostgres
   root: PostgresLocation
   requiresProgram: true
+  requires:
+    - DetermineMaxBigQueryTimeStamp
 ---
 type: Constraint
 spec:
@@ -798,3 +824,51 @@ spec:
   requires:
     - PandasFromCSVData
     - PandasFromNewlineDelimitedJSONData
+---
+type: Constraint
+spec:
+  name: UploadEventDataToBigQuery
+  root: BigQueryLocation
+  requiresProgram: true
+  requires:
+    - CSVIsConverted
+    - DownloadDataFromPostgres
+  title: Upload data to BigQuery
+  body: |
+      Now that data has been converted to a CSV we can upload it to BigQuery.
+  attachIf: |
+      |root: Concept<'a>, ancestry: &ConceptAncestry<'a>| {
+        if !ancestry.replication_storage_setup(root.clone()).is_ok() {
+            return false;
+        }
+        match ancestry.static_data_table(root.clone()) {
+            Ok(ref sdt) => match sdt.schema {
+               crate::schema::DataSchema::TimeOrderedTabularSchema(_) => true,
+               _ => false,
+            }
+            _ => false,
+        }
+      }
+---
+type: Constraint
+spec:
+  name: DetermineMaxBigQueryTimeStamp
+  root: BigQueryLocation
+  requiresProgram: true
+  title: Find maximum time stamp of data already stored in BigQuery
+  body: |
+      We will only download data created after a certain timestamp.
+  attachIf: |
+      |root: Concept<'a>, ancestry: &ConceptAncestry<'a>| {
+        if !ancestry.replication_storage_setup(root.clone()).is_ok() {
+            return false;
+        }
+        // TODO: we should also check that this is a target of replication
+        match ancestry.static_data_table(root.clone()) {
+            Ok(ref sdt) => match sdt.schema {
+               crate::schema::DataSchema::TimeOrderedTabularSchema(_) => true,
+               _ => false,
+            }
+            _ => false,
+        }
+      }

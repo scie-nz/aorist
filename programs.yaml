@@ -1861,7 +1861,7 @@ spec:
 ---
 type: Program
 spec:
-  use: UploadDataToBigQuery
+  use: UploadStaticDataToBigQuery
   root: BigQueryLocation
   dialect: Python
   preamble: |
@@ -2924,3 +2924,317 @@ spec:
       spec:
         attaches: StaticDataTable
         call: serde_json::json!(static_data_table.schema.get_attribute_names()).to_string()
+---
+type: Program
+spec:
+  use: UploadEventDataToBigQuery
+  root: BigQueryLocation
+  dialect: Python
+  preamble: |
+    def upload_events_to_bigquery(
+        project_name,
+        dataset_name,
+        dataset_location,
+        table_name,
+        tmp_dir,
+        source_file,
+        service_account_file,
+        source_is_json,
+        columns,
+        time_ordering_columns,
+    ):
+        import json
+        from google.cloud import bigquery
+        from google.oauth2 import service_account
+        from google.cloud.exceptions import NotFound
+        from google.api_core.exceptions import BadRequest
+
+        if service_account_file != "":
+            credentials = service_account.Credentials.from_service_account_file(service_account_file)
+            client = bigquery.Client(credentials=credentials)
+        else:
+            client = bigquery.Client()
+
+        source_is_json = bool(source_is_json)
+
+        dataset_id = project_name + "." + dataset_name
+        try:
+            dataset = client.get_dataset(dataset_id)
+        except NotFound:
+            dataset = bigquery.Dataset(dataset_id)
+            dataset.location = dataset_location
+            client.create_dataset(dataset)
+            dataset = client.get_dataset(dataset_id)
+
+
+        table_id = "{project_name}.{dataset_name}.{table_name}".format(
+            project_name=project_name,
+            dataset_name=dataset_name,
+            table_name=table_name,
+        )
+        try:
+            table = client.get_table(table_id, not_found_ok=True)
+        except NotFound:
+            table_ref = dataset.table(table_name)
+            columns = json.loads(columns)
+            schema = [
+                bigquery.SchemaField(k, v, mode="REQUIRED" if not n else "NULLABLE")
+                for k, v, n in columns
+            ]
+            table = bigquery.Table(table_ref, schema=schema)
+            client.create_table(table)        
+
+        table_ref = dataset.table(table_name)
+
+        columns = json.loads(columns)
+        schema = [
+           bigquery.SchemaField(k, v, mode="REQUIRED" if not n else "NULLABLE")
+           for k, v, n in columns
+        ]
+        table = bigquery.Table(table_ref, schema=schema)
+        client.create_table(table)
+
+
+        job_config = bigquery.LoadJobConfig(
+            source_format=bigquery.SourceFormat.NEWLINE_DELIMITED_JSON,
+            ignore_unknown_values=True,
+        ) if source_is_json else bigquery.LoadJobConfig(
+            source_format=bigquery.SourceFormat.CSV,
+            skip_leading_rows=0,
+        )
+
+        with open(tmp_dir + '/' + source_file, 'rb') as f:
+            job = client.load_table_from_file(f, table_id, job_config=job_config)
+
+        try:
+            job.result()  # Waits for the job to complete.
+        except BadRequest:
+            print("Errors occurred while loading JSON:")
+            print(job.errors)
+
+        table = client.get_table(table_id)  # Make an API request.
+
+        print(
+            "Loaded {} rows and {} columns to {}".format(
+                table.num_rows, len(table.schema), table_id
+            )
+        )
+
+  call: upload_events_to_bigquery
+  kwargs:
+    project_name:
+      type: AncestorArgument
+      spec:
+        call: universe.endpoints.gcp.as_ref().unwrap().project_name.clone()
+        attaches: Universe
+    dataset_location:
+      type: AncestorArgument
+      spec:
+        call: universe.endpoints.gcp.as_ref().unwrap().data_location.clone()
+        attaches: Universe
+    service_account_file:
+      type: AncestorArgument
+      spec:
+        call: |
+          match universe.endpoints.gcp.as_ref().unwrap().service_account_file {
+            Some(ref f) => f.clone(),
+            None => "".to_string(),
+          }
+        attaches: Universe
+    dataset_name:
+      type: AncestorArgument
+      spec:
+        call: data_set.name.clone()
+        attaches: DataSet
+    table_name:
+      type: AncestorArgument
+      spec:
+        call: static_data_table.name.clone()
+        attaches: StaticDataTable
+    tmp_dir:
+      type: AncestorArgument
+      spec:
+        call: replication_storage_setup.tmp_dir
+        attaches: ReplicationStorageSetup
+    source_file:
+      type: AncestorArgument
+      spec:
+        call: format!("{}.csv", static_data_table.name).to_string()
+        attaches: StaticDataTable
+    columns:
+      type: MultipleAncestorsArgument
+      spec:
+        attaches:
+          - DataSet
+          - StaticDataTable
+        call: >
+          {
+            use crate::template::TDatumTemplate;
+            let template =
+            data_set.get_template_for_asset(static_data_table).unwrap();
+            let attributes = template.get_attributes();
+            let attributes_vec = attributes.into_iter().map(
+                |x| (
+                    x.get_name().to_string(),
+                    x.get_bigquery_type().to_string(),
+                    x.is_nullable().to_string(),
+                )
+            ).collect::<Vec<_>>();
+            serde_json::json!(attributes_vec).to_string()
+          }
+    time_ordering_columns:
+      type: AncestorArgument
+      spec:
+        attaches: StaticDataTable
+        call: |
+          {
+              if let DataSchema::TimeOrderedTabularSchema(ref s) =
+              static_data_table.schema {
+                  serde_json::json!(s.orderingAttributes).to_string()
+              } else {
+                  panic!("Schema should be TimeOrderedTabularSchema.");
+              }
+          }
+    source_is_json:
+      type: AncestorArgument
+      spec:
+        attaches: StorageSetup
+        call: >
+          format!("{}", match storage_setup {
+            crate::StorageSetup::ReplicationStorageSetup(r) =>
+              match r.source {
+                 Storage::PostgresStorage(_) => "True",
+                 _ => match r.source.get_encoding() {
+                    Some(crate::Encoding::JSONEncoding(_)) => "True",
+                    _ => "False",
+                },
+              },
+              _ => "False",
+          }).to_string()
+---
+type: Program
+spec:
+  use: DetermineMaxBigQueryTimeStamp
+  root: BigQueryLocation
+  dialect: Python
+  preamble: |
+    import json
+    from google.cloud import bigquery
+    from google.oauth2 import service_account
+    from google.cloud.exceptions import NotFound
+    from google.api_core.exceptions import BadRequest
+    
+    def determine_max_bigquery_timestamp(
+        project_name,
+        dataset_name,
+        dataset_location,
+        table_name,
+        tmp_dir,
+        service_account_file,
+        time_ordering_columns,
+    ):
+
+        if service_account_file != "":
+            credentials = service_account.Credentials.from_service_account_file(service_account_file)
+            client = bigquery.Client(credentials=credentials)
+        else:
+            client = bigquery.Client()
+
+        dataset_id = project_name + "." + dataset_name
+        try:
+            dataset = client.get_dataset(dataset_id)
+        except NotFound:
+            return
+
+        table_id = "{project_name}.{dataset_name}.{table_name}".format(
+            project_name=project_name,
+            dataset_name=dataset_name,
+            table_name=table_name,
+        )
+        try:
+            table = client.get_table(table_id)
+        except NotFound:
+            return
+
+        time_ordering_columns = json.loads(time_ordering_columns)
+        col = time_ordering_columns[0]
+        query = """
+        SELECT MAX({col}) AS max_val
+        FROM {table_id}
+        """.format(table_id=table_id, col=col)
+        
+        # TODO: support multiple time ordering columns
+        assert len(time_ordering_columns) == 1
+
+        query_job = client.query(query)
+        
+
+        try:
+            results = query_job.result()  # Waits for the job to complete.
+        except BadRequest:
+            print("Errors occurred while loading JSON:")
+            print(job.errors)
+
+        max_val = list(results)[0].max_val
+
+        table = client.get_table(table_id)  # Make an API request.
+
+        print(
+            "Max. value in BQ for column {col} is {max_val}".format(
+                col=col,
+                max_val=max_val,
+            )
+        )
+        obj = { col: max_val }
+        with open(tmp_dir + '/' + table_name + '.bqmax', 'w') as f:
+            json.dump(obj, f)
+
+  call: determine_max_bigquery_timestamp
+  kwargs:
+    project_name:
+      type: AncestorArgument
+      spec:
+        call: universe.endpoints.gcp.as_ref().unwrap().project_name.clone()
+        attaches: Universe
+    dataset_location:
+      type: AncestorArgument
+      spec:
+        call: universe.endpoints.gcp.as_ref().unwrap().data_location.clone()
+        attaches: Universe
+    service_account_file:
+      type: AncestorArgument
+      spec:
+        call: |
+          match universe.endpoints.gcp.as_ref().unwrap().service_account_file {
+            Some(ref f) => f.clone(),
+            None => "".to_string(),
+          }
+        attaches: Universe
+    dataset_name:
+      type: AncestorArgument
+      spec:
+        call: data_set.name.clone()
+        attaches: DataSet
+    table_name:
+      type: AncestorArgument
+      spec:
+        call: static_data_table.name.clone()
+        attaches: StaticDataTable
+    tmp_dir:
+      type: AncestorArgument
+      spec:
+        call: replication_storage_setup.tmp_dir
+        attaches: ReplicationStorageSetup
+    time_ordering_columns:
+      type: AncestorArgument
+      spec:
+        attaches: StaticDataTable
+        call: |
+          {
+              if let DataSchema::TimeOrderedTabularSchema(ref s) =
+              static_data_table.schema {
+                  serde_json::json!(s.orderingAttributes).to_string()
+              } else {
+                  panic!("Schema should be TimeOrderedTabularSchema.");
+              }
+          }
