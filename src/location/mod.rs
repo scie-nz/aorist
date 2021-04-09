@@ -1,6 +1,7 @@
 mod alluxio_location;
 mod bigquery_location;
 mod gcs_location;
+mod github_location;
 mod hive_location;
 mod local_file_system_location;
 mod minio_location;
@@ -14,6 +15,7 @@ mod web_location;
 pub use alluxio_location::{AlluxioLocation, InnerAlluxioLocation};
 pub use bigquery_location::*;
 pub use gcs_location::{GCSLocation, InnerGCSLocation};
+pub use github_location::*;
 pub use hive_location::*;
 pub use local_file_system_location::*;
 pub use minio_location::{InnerMinioLocation, MinioLocation};

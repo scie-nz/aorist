@@ -435,6 +435,7 @@ fn process_concepts() {
         ("crate::location", "AlluxioLocation"),
         ("crate::location", "BigQueryLocation"),
         ("crate::location", "GCSLocation"),
+        ("crate::location", "GithubLocation"),
         ("crate::location", "HiveLocation"),
         ("crate::location", "LocalFileSystemLocation"),
         ("crate::location", "OnPremiseLocation"),

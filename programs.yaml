@@ -2708,6 +2708,7 @@ spec:
               if let crate::Storage::RemoteStorage(rs) = &rss.remote {
                 match &rs.location {
                   RemoteLocation::GCSLocation(_) => "GCSLocation".to_string(),
+                  RemoteLocation::GithubLocation(_) => "GithubLocation".to_string(),
                   RemoteLocation::WebLocation(_) => "WebLocation".to_string(),
                   RemoteLocation::PushshiftAPILocation(_) => "PushshiftAPILocation".to_string(),
                   RemoteLocation::BigQueryLocation(_) => "BigQueryLocation".to_string(),
@@ -2732,6 +2733,11 @@ spec:
                   RemoteLocation::GCSLocation(gcs) => {
                     params.insert("bucket", gcs.bucket.clone());
                     params.insert("blob", gcs.blob.clone());
+                  }
+                  RemoteLocation::GithubLocation(github) => {
+                    params.insert("organization", github.organization.clone());
+                    params.insert("repository", github.repository.clone());
+                    params.insert("path", github.path.clone());
                   }
                   RemoteLocation::WebLocation(web) => {
                     params.insert("address", web.address.clone());

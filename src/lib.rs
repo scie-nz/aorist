@@ -262,6 +262,7 @@ fn aorist(py: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<InnerUndefinedTabularSchema>()?;
     m.add_class::<InnerLocalFileSystemLocation>()?;
     m.add_class::<InnerNewlineDelimitedJSONEncoding>()?;
+    m.add_class::<InnerGithubLocation>()?;
     m.add_wrapped(wrap_pyfunction!(default_tabular_schema))?;
     m.add_wrapped(wrap_pyfunction!(dag))?;
     m.add_wrapped(wrap_pyfunction!(derive_integer_measure))?;
