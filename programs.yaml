@@ -2791,7 +2791,9 @@ spec:
             header=None
         )
         data.columns = columns
+        print("Downloaded dataframe with %d rows and %d columns." % data.shape)
         return data
+
   call: read_csv_into_pandas
   kwargs:
     dataset_name:
@@ -2836,6 +2838,7 @@ spec:
             delimiter=",",
             names=columns,
         )
+        print("Downloaded ndarray with %d rows and %d columns." % data.shape)
         return data
   call: read_csv_into_numpy
   kwargs:

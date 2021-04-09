@@ -478,8 +478,6 @@ spec:
     - DownloadDataFromRemote
     - RemoveFileHeader
   title: Convert TSV data to CSV
-  body: |
-      We need to convert the TSV data to CSV format to process it further.
   attachIf: |
       |root: Concept<'a>, ancestry: &ConceptAncestry<'a>|
       match ancestry.remote_storage(root.clone()).unwrap().encoding {
@@ -487,6 +485,9 @@ spec:
               ancestry.replication_storage_setup(root.clone()).is_ok(),
           _ => false,
       }
+  body: |
+      We need to convert the TSV data to CSV 
+      format to process it further.
 ---
 type: Constraint
 spec:
@@ -756,6 +757,9 @@ spec:
           }
           _ => true,
       }
+  title: Create Pandas Dataframe from CSV data
+  body: |
+    We convert an intermediary CSV file to a Pandas dataframe.
 ---
 type: Constraint
 spec:
@@ -774,6 +778,9 @@ spec:
           }
           _ => true,
       }
+  title: Create Numpy ndarray from CSV data
+  body: |
+    We convert an intermediary CSV file to a Numpy ndarray.
 ---
 type: Constraint
 spec:
@@ -791,6 +798,10 @@ spec:
           }
           _ => false,
       }
+  title: Pandas from newline-delimited JSON file
+  body: |
+    We convert an intermediary newline-delimited JSON file to a Pandas
+    dataframe.
 ---
 type: Constraint
 spec:
@@ -808,6 +819,10 @@ spec:
           }
           _ => false,
       }
+  title: Numpy from newline-delimited JSON file
+  body: |
+    We convert an intermediary newline-delimited JSON file to 
+    a Numpy ndarray.
 ---
 type: Constraint
 spec:
