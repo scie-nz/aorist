@@ -526,3 +526,14 @@ spec:
   bigquery: BigQueryInt64
   postgres: PostgresOid
   value: IntegerValue
+---
+type: Attribute
+spec:
+  name: NaturalNumber
+  orc: OrcBigint
+  presto: PrestoBigint
+  sql: SQLBigint
+  sqlite: SQLiteInteger
+  bigquery: BigQueryInt64
+  postgres: PostgresOid
+  value: IntegerValue
