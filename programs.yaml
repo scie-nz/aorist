@@ -2031,7 +2031,7 @@ spec:
   dialect: Python
   preamble: |
     import json
-    
+
     def infer_schema_from_postgres(
         server,
         port,
@@ -2109,7 +2109,7 @@ spec:
                 """, (table_name, table_schema),
             )
             template = []
-            
+
             has_time_dimension = False
             time_dimension_columns = []
 
@@ -2161,7 +2161,7 @@ spec:
                     schema_call=(
                         (
                             "default_tabular_schema(templates['{template_name}'])"
-                        ).format(template_name=template_name) 
+                        ).format(template_name=template_name)
                         if not has_time_dimension else (
                             "default_time_ordered_tabular_schema("
                                 "templates['{template_name}'], "
@@ -2339,7 +2339,7 @@ spec:
     import json
     import psycopg2
     import os
-    
+
     def download_from_postgres(
         server,
         port,
@@ -2356,7 +2356,7 @@ spec:
 
         if not os.path.exists(tmp_dir):
             os.makedirs(tmp_dir)
-        
+
         time_ordering_columns = json.loads(time_ordering_columns)
         try:
             with open(tmp_dir + '/' + tablename + '.bqmax', 'r') as f:
@@ -2386,7 +2386,7 @@ spec:
         )
         if len(time_ordering_columns) > 0 and bqmax is not None:
             max_clause = " AND ".join([
-                "{col} > '{val}'::timestamptz".format(
+                "|{col}| > '{val}'::timestamptz".replace('|', '"').format(
                     col=col, val=bqmax[col],
                 ) for col in time_ordering_columns
             ])
@@ -3016,7 +3016,7 @@ spec:
                 for k, v, n in columns
             ]
             table = bigquery.Table(table_ref, schema=schema)
-            client.create_table(table)        
+            client.create_table(table)
 
         job_config = bigquery.LoadJobConfig(
             source_format=bigquery.SourceFormat.NEWLINE_DELIMITED_JSON,
@@ -3146,7 +3146,7 @@ spec:
     from google.oauth2 import service_account
     from google.cloud.exceptions import NotFound
     from google.api_core.exceptions import BadRequest
-    
+
     def determine_max_bigquery_timestamp(
         project_name,
         dataset_name,
@@ -3156,7 +3156,8 @@ spec:
         service_account_file,
         time_ordering_columns,
     ):
-
+        if not os.path.exists(tmp_dir):
+            os.makedirs(tmp_dir)
         if service_account_file != "":
             credentials = service_account.Credentials.from_service_account_file(service_account_file)
             client = bigquery.Client(credentials=credentials)
@@ -3185,12 +3186,12 @@ spec:
         SELECT MAX({col}) AS max_val
         FROM {table_id}
         """.format(table_id=table_id, col=col)
-        
+
         # TODO: support multiple time ordering columns
         assert len(time_ordering_columns) == 1
 
         query_job = client.query(query)
-        
+
 
         try:
             results = query_job.result()  # Waits for the job to complete.
