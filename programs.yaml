@@ -2624,7 +2624,8 @@ spec:
                             constraints: Vec::new(), tag: None, uuid: None,
                         })
                     },
-                    _ => panic!("Only RemoteStorage supported"),
+                    Storage::GitStorage(ref g) => g.encoding.clone(),
+                    _ => panic!("Only GitStorage or RemoteStorage supported"),
                 },
                 _ => panic!("Only RemoteStorageSetup supported"),
             };
@@ -2705,16 +2706,18 @@ spec:
         call: |
           {
             if let crate::StorageSetup::RemoteStorageSetup(rss) = &static_data_table.setup {
-              if let crate::Storage::RemoteStorage(rs) = &rss.remote {
-                match &rs.location {
-                  RemoteLocation::GCSLocation(_) => "GCSLocation".to_string(),
-                  RemoteLocation::GithubLocation(_) => "GithubLocation".to_string(),
-                  RemoteLocation::WebLocation(_) => "WebLocation".to_string(),
-                  RemoteLocation::PushshiftAPILocation(_) => "PushshiftAPILocation".to_string(),
-                  RemoteLocation::BigQueryLocation(_) => "BigQueryLocation".to_string(),
-                }
-              } else {
-                "OtherStorage".to_string()
+              match &rss.remote {
+                crate::Storage::RemoteStorage(rs) => {
+                  match &rs.location {
+                    RemoteLocation::GCSLocation(_) => "GCSLocation".to_string(),
+                    RemoteLocation::GithubLocation(_) => "GithubLocation".to_string(),
+                    RemoteLocation::WebLocation(_) => "WebLocation".to_string(),
+                    RemoteLocation::PushshiftAPILocation(_) => "PushshiftAPILocation".to_string(),
+                    RemoteLocation::BigQueryLocation(_) => "BigQueryLocation".to_string(),
+                  }
+                }, 
+                crate::Storage::GitStorage(_) => "GithubLocation".to_string(),
+                _ => panic!("Only RemoteStorage or GitStorage supported"),
               }
             } else {
               "OtherStorageSetup".to_string()

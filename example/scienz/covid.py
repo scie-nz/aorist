@@ -15,6 +15,7 @@ from aorist import (
     attr_list,
     GithubLocation,
     GitStorage,
+    CSVHeader,
 )
 
 # hacky import since submodule imports don't work well
