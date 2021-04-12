@@ -1,23 +1,23 @@
-from scienz import covid
+from scienz import wine
 from aorist import *
 from common import DEFAULT_ENDPOINTS
 
-tmp_dir = "tmp/covid"
+tmp_dir = "tmp/wine"
 local = BigQueryStorage(
     location=BigQueryLocation(),
     layout=StaticTabularLayout(),
 )
 universe = Universe(
     name="my_cluster",
-    datasets=[covid.replicate_to_local(
+    datasets=[wine.replicate_to_local(
         local, tmp_dir, CSVEncoding(),
     )],
     endpoints=DEFAULT_ENDPOINTS,
 )
 other_universe = Universe(
     name="my_cluster",
-    datasets=[covid],
+    datasets=[wine],
     endpoints=DEFAULT_ENDPOINTS,
 )
-#print(universe.python("RemoveFileHeader"))
+print(universe.python("PandasFromCSVData"))
 print(universe.python("NumpyFromCSVData"))
