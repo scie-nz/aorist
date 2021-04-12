@@ -237,6 +237,7 @@ spec:
       match ancestry.replication_storage_setup(root.clone()) {
           Ok(x) => match x.tmp_encoding {
               crate::encoding::Encoding::NewlineDelimitedJSONEncoding(_) => true,
+              crate::encoding::Encoding::CSVEncoding(_) => true,
               _ => false,
           }
           _ => false,
@@ -459,15 +460,18 @@ spec:
   requires:
     - DownloadDataFromRemote
     - RemoveFileHeader
+    - DownloadDataFromRemotePushshiftAPILocationToNewlineDelimitedJSON
   title: Convert JSON data to CSV
   body: |
       We need to convert the JSON data to CSV format to process it further.
   attachIf: |
-      |root: Concept<'a>, ancestry: &ConceptAncestry<'a>|
-      match ancestry.remote_storage(root.clone()).unwrap().encoding {
-          crate::encoding::Encoding::JSONEncoding(_) =>
-              ancestry.replication_storage_setup(root.clone()).is_ok(),
-          _ => false,
+      |root: Concept<'a>, ancestry: &ConceptAncestry<'a>| {
+          match ancestry.remote_storage(root.clone()).unwrap().encoding {
+              crate::encoding::Encoding::NewlineDelimitedJSONEncoding(_) => {
+                  ancestry.replication_storage_setup(root.clone()).is_ok()
+              },
+              _ => false,
+          }
       }
 ---
 type: Constraint

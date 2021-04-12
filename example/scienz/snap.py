@@ -28,12 +28,12 @@ edge_tuple = IdentifierTuple(
     ]),
 )
 names = [
-    #"ca-AstroPh",
+    "ca-AstroPh",
     #"ca-CondMat",
     #"ca-GrQc",
     #"ca-HepPh",
     #"ca-HepTh",
-    "web-BerkStan",
+    #"web-BerkStan",
     #"web-Google",
     #"web-NotreDame",
     #"web-Stanford",
