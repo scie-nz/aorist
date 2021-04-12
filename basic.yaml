@@ -771,6 +771,7 @@ spec:
   requires:
     - DownloadDataFromRemote
     - CSVIsConverted
+    - RemoveFileHeader
   attachIf: |
       |root: Concept<'a>, ancestry: &ConceptAncestry<'a>|
       match ancestry.replication_storage_setup(root.clone()) {

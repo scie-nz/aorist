@@ -20,4 +20,4 @@ other_universe = Universe(
     endpoints=DEFAULT_ENDPOINTS,
 )
 #print(universe.python("RemoveFileHeader"))
-print(universe.python("PandasFromCSVData"))
+print(universe.python("NumpyFromCSVData"))

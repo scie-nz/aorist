@@ -333,8 +333,13 @@ spec:
   use: RemoveFileHeader
   root: FileHeader
   dialect: Bash
-  call: tail -n +{n} {tmp_dir}/{dataset_name}/{file_name} > {tmp_dir}/{dataset_name}/{file_name}.tmp && mv {tmp_dir}/{dataset_name}/{file_name}.tmp {tmp_dir}/{dataset_name}/{file_name}
+  call: tail -n +{n} {tmp_dir}/{dataset_name}/{table_name}/{file_name} > {tmp_dir}/{dataset_name}/{table_name}/{file_name}.tmp && mv {tmp_dir}/{dataset_name}/{table_name}/{file_name}.tmp {tmp_dir}/{dataset_name}/{table_name}/{file_name}
   kwargs:
+    table_name:
+      type: AncestorArgument
+      spec:
+        call: static_data_table.name
+        attaches: StaticDataTable
     n:
       type: AncestorArgument
       spec:
@@ -2857,17 +2862,21 @@ spec:
         static_data_table_name,
         dataset_name,
         columns,
+        tmp_dir,
     ):
         columns = json.loads(columns)
         data = np.genfromtxt(
-            "/tmp/{dataset_name}/{static_data_table_name}/{static_data_table_name}.csv".format(
+            "{tmp_dir}/{dataset_name}/{static_data_table_name}/{static_data_table_name}.csv".format(
                 dataset_name=dataset_name,
                 static_data_table_name=static_data_table_name,
+                tmp_dir=tmp_dir,
             ),
             delimiter=",",
             names=columns,
+            dtype=None,
         )
-        print("Downloaded ndarray with %d rows and %d columns." % data.shape)
+        assert data is not None
+        print("Downloaded ndarray with %d rows." % data.shape[0])
         return data
   call: read_csv_into_numpy
   kwargs:
@@ -2886,6 +2895,11 @@ spec:
       spec:
         attaches: StaticDataTable
         call: serde_json::json!(static_data_table.schema.get_attribute_names()).to_string()
+    tmp_dir:
+      type: AncestorArgument
+      spec:
+        call: replication_storage_setup.tmp_dir
+        attaches: ReplicationStorageSetup
 ---
 type: Program
 spec:
