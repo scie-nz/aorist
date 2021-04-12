@@ -1083,12 +1083,15 @@ macro_rules! register_concept {
                     )*
                 }
             }
-            pub fn populate_child_concept_map(&self, concept_map: &mut HashMap<(Uuid, String), Concept<'a>>) {
+            pub fn populate_child_concept_map(&self, concept_map: &mut HashMap<(Uuid, String), Concept<'a>>, debug: bool) {
                 match self {
                     $(
                         $name::$element((ref x, idx, parent)) => {
+                            if debug {
+                                println!("Visiting concept {}: {}", stringify!($element), x.get_uuid());
+                            }
                             for child in x.get_child_concepts() {
-                                child.populate_child_concept_map(concept_map);
+                                child.populate_child_concept_map(concept_map, debug);
                             }
                             concept_map.insert(
                                 (x.get_uuid(),

@@ -136,9 +136,13 @@ fn process_struct_fields(fields: &Punctuated<Field, Comma>, input: &DeriveInput)
         .clone()
         .filter(|x| extract_type_from_vector(x.1).is_some())
         .map(|x| (x.0, extract_type_from_vector(x.1).unwrap()));
+    let option_bare_field = option_field
+        .clone()
+        .filter(|x| extract_type_from_vector(x.1).is_none());
     let types = bare_field
         .clone()
         .chain(option_vec_field.clone())
+        .chain(option_bare_field.clone())
         .chain(vec_field.clone());
     let mut file = OpenOptions::new()
         .write(true)
@@ -173,6 +177,8 @@ fn process_struct_fields(fields: &Punctuated<Field, Comma>, input: &DeriveInput)
     }
     let bare_field_name = bare_field.clone().map(|x| x.0).collect::<Vec<_>>();
     let bare_field_type = bare_field.clone().map(|x| x.1).collect::<Vec<_>>();
+    let option_field_name = option_bare_field.clone().map(|x| x.0).collect::<Vec<_>>();
+    let option_field_type = option_bare_field.clone().map(|x| x.1).collect::<Vec<_>>();
     let vec_field_name = vec_field.clone().map(|x| x.0).collect::<Vec<_>>();
     let vec_field_type = vec_field.clone().map(|x| x.1).collect::<Vec<_>>();
     let map_field_name = map_field.clone().map(|x| x.0).collect::<Vec<_>>();
@@ -197,6 +203,13 @@ fn process_struct_fields(fields: &Punctuated<Field, Comma>, input: &DeriveInput)
                       )),
                     )*
                 ];
+                #(
+                    if let Some(ref c) = self.#option_field_name {
+                        concepts.push(
+                            Concept::#option_field_type((c, 0, id.clone()))
+                        );
+                    }
+                )*
                 #(
                     for (i, x) in self.#vec_field_name.iter().enumerate() {
                         concepts.push(
@@ -241,6 +254,11 @@ fn process_struct_fields(fields: &Punctuated<Field, Comma>, input: &DeriveInput)
                     uuids.push(self.#bare_field_name.get_uuid());
                 )*
                 #(
+                    if let Some(ref c) = self.#option_field_name {
+                        uuids.push(c.get_uuid());
+                    }
+                )*
+                #(
                     for elem in &self.#vec_field_name {
                         uuids.push(elem.get_uuid());
                     }
@@ -262,6 +280,11 @@ fn process_struct_fields(fields: &Punctuated<Field, Comma>, input: &DeriveInput)
             fn compute_uuids(&mut self) {
                 #(
                     self.#bare_field_name.compute_uuids();
+                )*
+                #(
+                    if let Some(ref mut c) = self.#option_field_name {
+                        c.compute_uuids();
+                    }
                 )*
                 #(
                     for elem in self.#vec_field_name.iter_mut() {
@@ -705,7 +728,7 @@ pub fn aorist_concept(args: TokenStream, input: TokenStream) -> TokenStream {
         }
         Data::Enum(DataEnum { variants, .. }) => {
             let enum_name = &ast.ident;
-            let variant = variants.iter().map(|x| (&x.ident));
+            let variant = variants.iter().map(|x| (&x.ident)).collect::<Vec<_>>();
             let quoted = quote! {
                 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone, Constrainable, InnerObject#(, #extra_derives)*)]
                 #[serde(tag = "type")]
@@ -731,7 +754,18 @@ pub fn aorist_concept(args: TokenStream, input: TokenStream) -> TokenStream {
                 );
             *attr = parse_quote!(#[#current_derives]);
 
-            let quoted2 = quote! { #final_ast };
+            let quoted2 = quote! { #final_ast
+                impl #enum_name {
+                    pub fn is_same_variant_in_enum_as(&self, other: &Self) -> bool {
+                        match (self, other) {
+                            #(
+                                (#enum_name::#variant(_), #enum_name::#variant(_)) => true,
+                            )*
+                            _ => false,
+                        }
+                    }
+                }
+            };
 
             return proc_macro::TokenStream::from(quoted2);
         }

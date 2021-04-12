@@ -12,7 +12,7 @@ from aorist import (
     default_tabular_schema,
     attr_list,
     GithubLocation,
-    GitStorage,
+    RemoteStorage,
     CSVHeader,
 )
 
@@ -34,11 +34,12 @@ covid_ts_datum = RowStruct(
     attributes=attributes,
 )
 # Data can be found remotely, on the web
-remote = GitStorage(
+remote = RemoteStorage(
     location=GithubLocation(
         organization="nytimes",
         repository="covid-19-data",
         path="us.csv",
+        branch="master",
     ),
     layout=SingleFileLayout(),
     encoding=CSVEncoding(header=CSVHeader(num_lines=1)),

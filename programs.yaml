@@ -333,7 +333,7 @@ spec:
   use: RemoveFileHeader
   root: FileHeader
   dialect: Bash
-  call: tail -n +{n} {tmp_dir}/{file_name}.txt > {tmp_dir}/{file_name}.no_header && rm {tmp_dir}/{file_name}.txt
+  call: tail -n +{n} {tmp_dir}/{dataset_name}/{file_name} > {tmp_dir}/{dataset_name}/{file_name}.tmp && mv {tmp_dir}/{dataset_name}/{file_name}.tmp {tmp_dir}/{dataset_name}/{file_name}
   kwargs:
     n:
       type: AncestorArgument
@@ -349,9 +349,24 @@ spec:
     file_name:
       type: AncestorArgument
       spec:
-        call: static_data_table.name
+        call: |
+          {
+            format!(
+                "{}.{}",
+                static_data_table.name,
+                match static_data_table.setup {
+                     StorageSetup::ReplicationStorageSetup(ref x) => x.get_download_extension(),
+                     _ => panic!("Storage setup must be ReplicationStorageSetup"),
+                }
+            ).to_string()
+          }
         attaches: StaticDataTable
         name: file_name
+    dataset_name:
+      type: AncestorArgument
+      spec:
+        attaches: DataSet
+        call: data_set.name.clone()
 ---
 type: Program
 spec:
@@ -621,7 +636,7 @@ spec:
 
     def rename_csv(tmp_dir, src_file_name, dest_file_name):
         os.rename(os.path.join(tmp_dir, src_file_name), os.path.join(tmp_dir, dest_file_name))
-  call: convert_json_to_csv
+  call: rename_csv
   kwargs:
     tmp_dir:
       type: MultipleAncestorsArgument
@@ -2788,10 +2803,12 @@ spec:
         static_data_table_name,
         dataset_name,
         columns,
+        tmp_dir,
     ):
         columns = json.loads(columns)
         data = pd.read_csv(
-            "/tmp/{dataset_name}/{static_data_table_name}/{static_data_table_name}.csv".format(
+            "{tmp_dir}/{dataset_name}/{static_data_table_name}/{static_data_table_name}.csv".format(
+                tmp_dir=tmp_dir,
                 dataset_name=dataset_name,
                 static_data_table_name=static_data_table_name,
             ),
@@ -2818,6 +2835,11 @@ spec:
       spec:
         attaches: StaticDataTable
         call: serde_json::json!(static_data_table.schema.get_attribute_names()).to_string()
+    tmp_dir:
+      type: AncestorArgument
+      spec:
+        call: replication_storage_setup.tmp_dir
+        attaches: ReplicationStorageSetup
 ---
 type: Program
 spec:
@@ -3269,3 +3291,102 @@ spec:
                   panic!("Schema should be TimeOrderedTabularSchema.");
               }
           }
+---
+type: Program
+spec:
+  use: DownloadDataFromGithubLocation
+  root: RemoteStorage
+  dialect: Python
+  preamble: |
+    import os
+    import urllib.request
+
+    def download_data_from_github_location(
+        organization,
+        repository,
+        branch,
+        path,
+        tmp_dir,
+        dataset_name,
+        dest_file_name,
+        table_name,
+    ):
+       os.makedirs(tmp_dir + '/' + dataset_name + '/' + table_name, exist_ok=True)
+       clone_url = (
+          "https://raw.githubusercontent.com/{org}/{repo}/{branch}/{filename}"
+       ).format(
+          org=organization,
+          repo=repository,
+          branch=branch,
+          filename=path,
+       )
+       print("Downloading data from: %s" % clone_url)
+       urllib.request.urlretrieve(clone_url, os.path.join(tmp_dir, dataset_name, table_name, dest_file_name))
+  call: download_data_from_github_location
+  kwargs:
+    organization:
+      type: AncestorArgument
+      spec:
+        call: |
+          match remote_storage.location {
+            crate::location::RemoteLocation::GithubLocation(ref g) => g.organization.clone(),
+            _ => panic!("Only GithubLocation supported"),
+          }
+        attaches: RemoteStorage
+    repository:
+      type: AncestorArgument
+      spec:
+        call: |
+          match remote_storage.location {
+            crate::location::RemoteLocation::GithubLocation(ref g) => g.repository.clone(),
+            _ => panic!("Only GithubLocation supported"),
+          }
+        attaches: RemoteStorage
+    branch:
+      type: AncestorArgument
+      spec:
+        call: |
+          match remote_storage.location {
+            crate::location::RemoteLocation::GithubLocation(ref g) => g.branch.clone(),
+            _ => panic!("Only GithubLocation supported"),
+          }
+        attaches: RemoteStorage
+    path:
+      type: AncestorArgument
+      spec:
+        call: |
+          match remote_storage.location {
+            crate::location::RemoteLocation::GithubLocation(ref g) => g.path.clone(),
+            _ => panic!("Only GithubLocation supported"),
+          }
+        attaches: RemoteStorage
+    tmp_dir:
+      type: AncestorArgument
+      spec:
+        call: replication_storage_setup.tmp_dir
+        attaches: ReplicationStorageSetup
+    dataset_name:
+      type: AncestorArgument
+      spec:
+        attaches: DataSet
+        call: data_set.name.clone()
+    dest_file_name:
+      type: AncestorArgument
+      spec:
+        call: |
+          {
+            format!(
+                "{}.{}",
+                static_data_table.name,
+                match static_data_table.setup {
+                     StorageSetup::ReplicationStorageSetup(ref x) => x.get_download_extension(),
+                     _ => panic!("Storage setup must be ReplicationStorageSetup"),
+                }
+            ).to_string()
+          }
+        attaches: StaticDataTable
+    table_name:
+      type: AncestorArgument
+      spec:
+        call: static_data_table.name
+        attaches: StaticDataTable

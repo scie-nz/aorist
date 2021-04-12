@@ -11,16 +11,14 @@ from aorist import (
 from common import DEFAULT_USERS, DEFAULT_GROUPS, DEFAULT_ENDPOINTS
 
 # from sentinel import sentinel_dataset
-from snap import snap_dataset
-from geonames import geonames_dataset, geonames_table
-from wine import wine_dataset
+from scienz import covid
 
 universe = Universe(
     name="my_cluster",
     users=DEFAULT_USERS,
     groups=DEFAULT_GROUPS,
     datasets=[
-        wine_dataset,
+        covid,
     ],
     endpoints=DEFAULT_ENDPOINTS,
     compliance=ComplianceConfig(
