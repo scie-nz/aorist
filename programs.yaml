@@ -340,13 +340,16 @@ spec:
         name: command
         call: >
             format!(
-                "--suffix=downloaded -c {tmp_dir}/{archive_name}.downloaded > {tmp_dir}/{archive_name}.txt",
+                "--suffix=downloaded -c {tmp_dir}/{dataset_name}/{table_name}/{archive_name}.downloaded > {tmp_dir}/{dataset_name}/{table_name}/{archive_name}.tmp && mv {tmp_dir}/{dataset_name}/{table_name}/{archive_name}.tmp {tmp_dir}/{dataset_name}/{table_name}/{archive_name}.downloaded",
                 tmp_dir=replication_storage_setup.tmp_dir,
                 archive_name=static_data_table.name,
+                dataset_name=data_set.name,
+                table_name=static_data_table.name,
             )
         attaches:
           - StaticDataTable
           - ReplicationStorageSetup
+          - DataSet
 ---
 type: Program
 spec:
@@ -675,12 +678,9 @@ spec:
         call: >
           {
             let file_name = &static_data_table.name;
-            match &remote_storage.encoding.get_header() {
-                Some(_) => format!("{}.no_header", file_name),
-                None => match &remote_storage.encoding.get_compression() {
-                    Some(_) => format!("{}.txt", file_name),
-                    None => format!("{}.downloaded", file_name),
-                }
+            match &remote_storage.encoding.get_compression() {
+                None => format!("{}.txt", file_name),
+                Some(_) => format!("{}.downloaded", file_name),
             }.to_string()
           }
         attaches:
@@ -707,12 +707,9 @@ spec:
           {
             let tmp_dir = &replication_storage_setup.tmp_dir;
             let file_name = &static_data_table.name;
-            let source = match &remote_storage.encoding.get_header() {
-                Some(_) => format!("{}/{}.no_header", tmp_dir, file_name).to_string(),
-                None => match &remote_storage.encoding.get_compression() {
-                    Some(_) => format!("{}/{}.txt", tmp_dir, file_name),
-                    None => format!("{}/{}.downloaded", tmp_dir, file_name),
-                }
+            let source = match &remote_storage.encoding.get_compression() {
+                None => format!("{}/{}.txt", tmp_dir, file_name),
+                Some(_) => format!("{}/{}.downloaded", tmp_dir, file_name),
             };
             format!(
                 "mv -v '{source}' '{tmp_dir}/{file_name}.csv'",
@@ -751,12 +748,9 @@ spec:
         call: >
           {
             let file_name = &static_data_table.name;
-            match &remote_storage.encoding.get_header() {
-                Some(_) => format!("{}.no_header", file_name),
-                None => match &remote_storage.encoding.get_compression() {
-                    Some(_) => format!("{}.txt", file_name),
-                    None => format!("{}.downloaded", file_name),
-                }
+            match &remote_storage.encoding.get_compression() {
+                None => format!("{}.txt", file_name),
+                Some(_) => format!("{}.downloaded", file_name),
             }.to_string()
           }
         attaches:
@@ -777,8 +771,10 @@ spec:
   preamble: |
     import os.path
 
-    def tsv_to_csv(tmp_dir, src_file_name, dest_file_name):
-        with open(os.path.join(tmp_dir, src_file_name)) as sourcef, open(os.path.join(tmp_dir, dest_file_name), 'w') as destf:
+    def tsv_to_csv(tmp_dir, src_file_name, dest_file_name, dataset_name, table_name):
+        source = os.path.join(tmp_dir, dataset_name, table_name, src_file_name)
+        dest = os.path.join(tmp_dir, dataset_name, table_name, dest_file_name)
+        with open(source) as sourcef, open(dest, 'w') as destf:
                 while True:
                     chunk = sourcef.read(10240)
                     if not chunk:
@@ -788,6 +784,16 @@ spec:
                     destf.write(chunk.replace('\\t', ','))
   call: tsv_to_csv
   kwargs:
+    dataset_name:
+      type: AncestorArgument
+      spec:
+        attaches: DataSet
+        call: data_set.name.clone()
+    table_name:
+      type: AncestorArgument
+      spec:
+        call: static_data_table.name
+        attaches: StaticDataTable
     tmp_dir:
       type: MultipleAncestorsArgument
       spec:
@@ -800,12 +806,9 @@ spec:
         call: >
           {
             let file_name = &static_data_table.name;
-            match &remote_storage.encoding.get_header() {
-                Some(_) => format!("{}.no_header", file_name),
-                None => match &remote_storage.encoding.get_compression() {
-                    Some(_) => format!("{}.txt", file_name),
-                    None => format!("{}.downloaded", file_name),
-                }
+            match &remote_storage.encoding.get_compression() {
+                None => format!("{}.txt", file_name),
+                Some(_) => format!("{}.downloaded", file_name),
             }.to_string()
           }
         attaches:
@@ -832,12 +835,9 @@ spec:
           {
             let tmp_dir = &replication_storage_setup.tmp_dir;
             let file_name = &static_data_table.name;
-            let source = match &remote_storage.encoding.get_header() {
-                Some(_) => format!("{}/{}.no_header", tmp_dir, file_name).to_string(),
-                None => match &remote_storage.encoding.get_compression() {
-                    Some(_) => format!("{}/{}.txt", tmp_dir, file_name),
-                    None => format!("{}/{}.downloaded", tmp_dir, file_name),
-                }
+            let source = match &remote_storage.encoding.get_compression() {
+                None => format!("{}/{}.txt", tmp_dir, file_name),
+                Some(_) => format!("{}/{}.downloaded", tmp_dir, file_name),
             };
             format!(
                 "cat '{source}' | tr '\\\\t' ',' > '{tmp_dir}/{file_name}.csv'",
