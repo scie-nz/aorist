@@ -18,7 +18,7 @@ pub struct GitStorage {
     #[constrainable]
     pub location: GithubLocation,
     #[constrainable]
-    layout: TabularLayout,
+    layout: FileBasedStorageLayout,
     #[constrainable]
     pub encoding: Encoding,
 }

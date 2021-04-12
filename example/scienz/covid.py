@@ -1,12 +1,10 @@
 from aorist import (
     RowStruct,
     MinioLocation,
-    WebLocation,
     StaticTabularLayout,
     ORCEncoding,
     CSVEncoding,
     SingleFileLayout,
-    RemoteStorage,
     HiveTableStorage,
     RemoteStorageSetup,
     StaticDataTable,
@@ -15,6 +13,7 @@ from aorist import (
     attr_list,
     GithubLocation,
     GitStorage,
+    CSVHeader,
 )
 
 # hacky import since submodule imports don't work well
@@ -27,8 +26,7 @@ Defining dataset
 attributes = attr_list([
     attr.DateString("date"),
     attr.NaturalNumber("cases"),
-    attr.NaturalNumber("cdeaths"),
-
+    attr.NaturalNumber("deaths"),
 ])
 # A row is equivalent to a struct
 covid_ts_datum = RowStruct(
