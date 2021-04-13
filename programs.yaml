@@ -2877,21 +2877,24 @@ spec:
 
     import numpy as np
     import json
+    import csv
 
-    def read_csv_into_numpy(
-        static_data_table_name,
-        dataset_name,
-        columns,
-        tmp_dir,
-    ):
+    def read_csv_into_numpy(static_data_table_name, dataset_name, columns, tmp_dir):
         columns = json.loads(columns)
+        file_name = (
+            "{tmp_dir}/{dataset_name}/{static_data_table_name}"
+            "/{static_data_table_name}.csv"
+        ).format(
+            dataset_name=dataset_name,
+            static_data_table_name=static_data_table_name,
+            tmp_dir=tmp_dir,
+        )
+        escaped = ("\t".join(
+            [i.replace("\t", " ") for i in x]
+        ) for x in csv.reader(open(file_name)))
         data = np.genfromtxt(
-            "{tmp_dir}/{dataset_name}/{static_data_table_name}/{static_data_table_name}.csv".format(
-                dataset_name=dataset_name,
-                static_data_table_name=static_data_table_name,
-                tmp_dir=tmp_dir,
-            ),
-            delimiter=",",
+            escaped,
+            delimiter="\t",
             names=columns,
             dtype=None,
         )

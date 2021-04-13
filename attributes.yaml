@@ -537,3 +537,124 @@ spec:
   bigquery: BigQueryInt64
   postgres: PostgresOid
   value: IntegerValue
+---
+type: Attribute
+spec:
+  name: RegionName
+  orc: OrcString
+  presto: PrestoVarchar
+  sql: SQLVarchar
+  sqlite: SQLiteText
+  bigquery: BigQueryString
+  postgres: PostgresText
+  value: StringValue
+---
+type: Attribute
+spec:
+  name: FIPSStateCode
+  orc: OrcString
+  presto: PrestoVarchar
+  sql: SQLVarchar
+  sqlite: SQLiteText
+  bigquery: BigQueryString
+  postgres: PostgresText
+  value: StringValue
+---
+type: Attribute
+spec:
+  name: FIPSCountyCode
+  orc: OrcString
+  presto: PrestoVarchar
+  sql: SQLVarchar
+  sqlite: SQLiteText
+  bigquery: BigQueryString
+  postgres: PostgresText
+  value: StringValue
+---
+type: Attribute
+spec:
+  name: IPEDSID
+  orc: OrcString
+  presto: PrestoVarchar
+  sql: SQLVarchar
+  sqlite: SQLiteText
+  bigquery: BigQueryString
+  postgres: PostgresText
+  value: StringValue
+---
+type: Attribute
+spec:
+  name: USHigherEdName
+  orc: OrcString
+  presto: PrestoVarchar
+  sql: SQLVarchar
+  sqlite: SQLiteText
+  bigquery: BigQueryString
+  postgres: PostgresText
+  value: StringValue
+---
+type: Attribute
+spec:
+  name: Proportion
+  orc: OrcFloat
+  presto: PrestoDouble
+  sql: SQLReal
+  sqlite: SQLiteReal
+  bigquery: BigQueryFloat64
+  postgres: PostgresReal
+  value: FloatValue
+---
+type: Attribute
+spec:
+  name: Year
+  orc: OrcBigint
+  presto: PrestoBigint
+  sql: SQLBigint
+  sqlite: SQLiteInteger
+  bigquery: BigQueryInt64
+  postgres: PostgresBigInt
+  value: IntegerValue
+---
+type: Attribute
+spec:
+  name: Month
+  orc: OrcBigint
+  presto: PrestoBigint
+  sql: SQLBigint
+  sqlite: SQLiteInteger
+  bigquery: BigQueryInt64
+  postgres: PostgresBigInt
+  value: IntegerValue
+---
+type: Attribute
+spec:
+  name: Week
+  orc: OrcBigint
+  presto: PrestoBigint
+  sql: SQLBigint
+  sqlite: SQLiteInteger
+  bigquery: BigQueryInt64
+  postgres: PostgresBigInt
+  value: IntegerValue
+---
+type: Attribute
+spec:
+  name: IntegerNumber
+  orc: OrcBigint
+  presto: PrestoBigint
+  sql: SQLBigint
+  sqlite: SQLiteInteger
+  bigquery: BigQueryInt64
+  postgres: PostgresOid
+  value: IntegerValue
+---
+type: Attribute
+spec:
+  name: CountryName
+  orc: OrcString
+  presto: PrestoVarchar
+  sql: SQLVarchar
+  sqlite: SQLiteText
+  bigquery: BigQueryString
+  postgres: PostgresText
+  value: StringValue

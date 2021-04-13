@@ -288,8 +288,14 @@ impl<'a> ConstraintState<'a> {
             let mut should_continue = false;
 
             let mut proposed_names: Vec<String> = task_names.iter().map(|x| x.0.clone()).collect();
-            let mut new_task_names: HashSet<String> = proposed_names.clone().into_iter().collect();
-            assert_eq!(proposed_names.len(), new_task_names.len());
+            let mut new_task_names: HashSet<String> = HashSet::new();
+
+            for name in proposed_names.clone().into_iter() {
+                if new_task_names.contains(&name) {
+                    panic!(format!("Duplicated task name: {}", name));
+                }
+                new_task_names.insert(name);
+            }
 
             for i in 0..task_names.len() {
                 let task_name = proposed_names.get(i).unwrap().clone();
