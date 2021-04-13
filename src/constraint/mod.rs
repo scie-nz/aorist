@@ -6,6 +6,7 @@ use anyhow::{Context, Result};
 use aorist_primitives::{define_constraint, register_constraint};
 use maplit::hashmap;
 use serde::{Deserialize, Serialize};
+use tracing::info;
 use std::collections::HashMap;
 use std::fmt;
 use std::marker::PhantomData;
@@ -103,7 +104,7 @@ impl Constraint {
     pub fn print_dag(&self) -> Result<()> {
         for downstream_rw in self.get_downstream_constraints()? {
             let downstream = downstream_rw.read().unwrap();
-            println!(
+            info!(
                 "{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}",
                 self.get_name(),
                 self.get_root(),

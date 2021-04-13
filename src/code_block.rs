@@ -10,6 +10,7 @@ use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
 use std::collections::{BTreeSet, HashMap, HashSet};
 use std::sync::{Arc, RwLock};
+use tracing::trace;
 use uuid::Uuid;
 
 pub struct CodeBlock<T>
@@ -197,7 +198,7 @@ where
                     }
                     if let Some(ref mut p) = t.params {
                         for key in compressible_kwargs.keys() {
-                            //println!("Compressible kwarg: {}", key);
+                            trace!("Compressible kwarg: {}", key);
                             p.kwargs.remove(key);
                         }
                         for (key, _) in compressible_kwargs_by_task_id.iter() {

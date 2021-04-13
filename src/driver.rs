@@ -17,6 +17,7 @@ use linked_hash_set::LinkedHashSet;
 use std::collections::{BTreeSet, HashMap, HashSet, VecDeque};
 use std::marker::PhantomData;
 use std::sync::{Arc, RwLock, RwLockReadGuard};
+use tracing::{debug, level_enabled, trace, Level};
 use uuid::Uuid;
 
 type ConstraintsBlockMap<'a> = LinkedHashMap<
@@ -191,18 +192,18 @@ where
                     dangling.push(k.clone());
                 }
 
-                //println!("Reverse dependencies for {:?}", k);
+                trace!("Reverse dependencies for {:?}", k);
                 for dep in x.unsatisfied_dependencies.iter() {
                     reverse_dependencies
                         .entry(dep.clone())
                         .or_insert(Vec::new())
                         .push(k.clone());
-                    //println!("- {:?}", dep);
+                    trace!("- {:?}", dep);
                 }
             }
             for k in dangling {
                 assert!(raw_unsatisfied_constraints.remove(&k).is_some());
-                //println!("{:?}", k);
+                trace!("Dangling: {:?}", k);
                 if let Some(v) = reverse_dependencies.get(&k) {
                     for rev in v {
                         assert!(raw_unsatisfied_constraints
@@ -309,11 +310,10 @@ where
     pub fn new(
         universe: &'a Universe,
         topline_constraint_names: LinkedHashSet<String>,
-        debug: bool,
     ) -> Result<Driver<'a, D>> {
         let mut concept_map: HashMap<(Uuid, String), Concept<'a>> = HashMap::new();
         let concept = Concept::Universe((universe, 0, None));
-        concept.populate_child_concept_map(&mut concept_map, debug);
+        concept.populate_child_concept_map(&mut concept_map);
 
         let ancestors = Self::compute_all_ancestors(concept, &concept_map);
         let mut family_trees: HashMap<(Uuid, String), HashMap<String, HashSet<Uuid>>> =
@@ -347,13 +347,9 @@ where
         }
 
         let mut by_object_type: HashMap<String, Vec<Concept<'a>>> = HashMap::new();
-        if debug {
-            println!("Found the following concepts:");
-        }
+        debug!("Found the following concepts:");
         for ((uuid, object_type), concept) in concept_map.clone() {
-            if debug {
-                println!("- {}: {}", &object_type, &uuid);
-            }
+            debug!("- {}: {}", &object_type, &uuid);
             by_object_type
                 .entry(object_type)
                 .or_insert(Vec::new())
@@ -392,13 +388,9 @@ where
         while builder_q.len() > 0 {
             let (key, builder) = builder_q.pop_front().unwrap();
             let edges = g.entry(key.clone()).or_insert(LinkedHashSet::new());
-            if debug {
-                println!("Constraint {} requires:", key);
-            }
+            debug!("Constraint {} requires:", key);
             for req in builder.get_required_constraint_names() {
-                if debug {
-                    println!("  - {}", req);
-                }
+                debug!("  - {}", req);
                 if !visited.contains(&req) {
                     let another = builders.remove(&req).unwrap();
                     builder_q.push_back((req.clone(), another));
@@ -441,14 +433,12 @@ where
             let constraint_name = builder.get_constraint_name();
 
             if let Some(root_concepts) = by_object_type.get(&root_object_type) {
-                if debug {
-                    println!(
-                        "Attaching constraint {} to {} objects of type {}.",
-                        constraint_name,
-                        root_concepts.len(),
-                        root_object_type
-                    );
-                }
+                debug!(
+                    "Attaching constraint {} to {} objects of type {}.",
+                    constraint_name,
+                    root_concepts.len(),
+                    root_object_type
+                );
 
                 for root in root_concepts {
                     let root_key = (root.get_uuid(), root.get_type());
@@ -460,19 +450,19 @@ where
                         .filter(|(_req, x)| x.is_some())
                         .map(|(req, x)| (req, x.unwrap()))
                         .collect::<Vec<_>>();
-                    if debug {
-                        println!(
-                                "Creating constraint {:?} on root {:?} with potential child constraints:",
-                                builder.get_constraint_name(),
-                                &root_key
-                            );
+                    if level_enabled!(Level::DEBUG) {
+                        debug!(
+                            "Creating constraint {:?} on root {:?} with potential child constraints:",
+                            builder.get_constraint_name(),
+                            &root_key
+                        );
                         for (required_constraint_name, map) in
                             raw_potential_child_constraints.iter()
                         {
-                            println!(" - for {}:", required_constraint_name);
+                            debug!(" - for {}:", required_constraint_name);
                             for (key, v) in map.iter() {
                                 let downstream = v.read().unwrap();
-                                println!(
+                                debug!(
                                     " -- {:?}: {:?}",
                                     key,
                                     (downstream.get_uuid()?, downstream.get_name())
@@ -502,11 +492,11 @@ where
                         .flatten()
                         .collect::<Vec<Arc<RwLock<Constraint>>>>();
                     if builder.should_add(root.clone(), &ancestry) {
-                        if debug {
-                            println!("After filtering:",);
+                        if level_enabled!(Level::DEBUG) {
+                            debug!("After filtering:",);
                             for downstream_rw in potential_child_constraints.iter() {
                                 let downstream = downstream_rw.read().unwrap();
-                                println!(
+                                debug!(
                                     " --  {:?}",
                                     (downstream.get_uuid()?, downstream.get_name())
                                 );
@@ -518,15 +508,15 @@ where
                             .entry(constraint_name.clone())
                             .or_insert(LinkedHashMap::new());
                         assert!(!gen_for_constraint.contains_key(&root_key));
-                        if debug {
-                            println!(
+                        if level_enabled!(Level::DEBUG) {
+                            debug!(
                                 "Added constraint {:?} on root {:?} with the following dependencies:",
                                 (constraint.get_uuid()?, constraint.get_name()),
                                 &root_key
                             );
                             for downstream_rw in constraint.get_downstream_constraints()? {
                                 let downstream = downstream_rw.read().unwrap();
-                                println!(
+                                debug!(
                                     " --  {:?}",
                                     (downstream.get_uuid()?, downstream.get_name())
                                 );
@@ -536,13 +526,11 @@ where
                     }
                 }
             } else {
-                if debug {
-                    println!(
-                        "Found no concepts of type {} for {}",
-                        root_object_type,
-                        constraint_name,
-                    );
-                }
+                debug!(
+                    "Found no concepts of type {} for {}",
+                    root_object_type,
+                    constraint_name,
+                );
             }
             for req in builder.get_required_constraint_names() {
                 assert!(visited_constraint_names.contains(&req));

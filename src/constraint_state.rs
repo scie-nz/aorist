@@ -9,6 +9,7 @@ use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
 use std::collections::{HashMap, HashSet};
 use std::sync::{Arc, RwLock};
+use tracing::{level_enabled, trace, Level};
 use uuid::Uuid;
 
 #[derive(Clone, PartialEq, Eq, Hash)]
@@ -223,16 +224,17 @@ impl<'a> ConstraintState<'a> {
             dependencies.insert((entry.get_uuid()?, entry.root.clone()));
         }
 
-        /*
-        println!(
-            "Constraint {} on {} {} has the following dependencies",
-            x.get_name(),
-            x.get_root_type_name(),
-            &root_uuid
-        );
-        for dependency in dependencies.iter() {
-            println!("{:?}", dependency);
-        }*/
+        if level_enabled!(Level::TRACE) {
+            trace!(
+                "Constraint {} on {:?} {} has the following dependencies",
+                x.get_name(),
+                x.get_root_type_name(),
+                &root_uuid
+            );
+            for dependency in dependencies.iter() {
+                trace!("  {:?}", dependency);
+            }
+        }
         let ancestors = concept_ancestors
             .get(&(root_uuid, x.root.clone()))
             .unwrap()

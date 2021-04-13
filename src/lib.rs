@@ -25,6 +25,7 @@ pub mod header;
 pub mod jupyter_singleton;
 pub mod layout;
 pub mod location;
+pub mod logging;
 pub mod models;
 pub mod object;
 pub mod prefect_singleton;
@@ -41,7 +42,6 @@ pub mod user;
 pub mod user_group;
 pub mod utils;
 
-// TODO remove these imports and have explicit references below?
 pub use access_policy::*;
 pub use airflow_singleton::*;
 pub use algorithms::*;
@@ -165,25 +165,24 @@ pub fn deserialize(input: String) -> PyResult<InnerUniverse> {
 pub fn dag(inner: InnerUniverse, constraints: Vec<String>, mode: &str) -> PyResult<String> {
     let mut universe = Universe::from(inner);
     universe.compute_uuids();
-    let debug = false;
     let (output, _requirements) = match mode {
         "airflow" => {
-            Driver::<AirflowDAG>::new(&universe, constraints.into_iter().collect(), debug)
+            Driver::<AirflowDAG>::new(&universe, constraints.into_iter().collect())
                 .map_err(|e| pyo3::exceptions::PyException::new_err(e.to_string()))?
                 .run()
         }
         "prefect" => {
-            Driver::<PrefectDAG>::new(&universe, constraints.into_iter().collect(), debug)
+            Driver::<PrefectDAG>::new(&universe, constraints.into_iter().collect())
                 .map_err(|e| pyo3::exceptions::PyException::new_err(e.to_string()))?
                 .run()
         }
         "python" => {
-            Driver::<PythonDAG>::new(&universe, constraints.into_iter().collect(), debug)
+            Driver::<PythonDAG>::new(&universe, constraints.into_iter().collect())
                 .map_err(|e| pyo3::exceptions::PyException::new_err(e.to_string()))?
                 .run()
         }
         "jupyter" => {
-            Driver::<JupyterDAG>::new(&universe, constraints.into_iter().collect(), debug)
+            Driver::<JupyterDAG>::new(&universe, constraints.into_iter().collect())
                 .map_err(|e| pyo3::exceptions::PyException::new_err(e.to_string()))?
                 .run()
         }
@@ -205,6 +204,8 @@ pub fn attr_list(input: Vec<AttributeEnum>) -> PyResult<Vec<InnerAttribute>> {
 
 #[pymodule]
 fn aorist(py: Python, m: &PyModule) -> PyResult<()> {
+    logging::init_logging();
+
     let submod = PyModule::new(py, "attributes")?;
     attribute(submod)?;
     m.add_submodule(submod)?;
