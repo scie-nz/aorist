@@ -566,6 +566,7 @@ fn main() {
     scope.import("crate::constraint", "SatisfiableConstraint");
     scope.import("crate::constraint", "AllConstraintsSatisfiability");
     scope.import("crate::python", "ParameterTuple");
+    scope.import("anyhow", "Result");
     scope.import("linked_hash_map", "LinkedHashMap");
     scope.import("textwrap", "fill");
     scope.import("textwrap", "Options");

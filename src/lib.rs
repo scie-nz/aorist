@@ -41,6 +41,7 @@ pub mod user;
 pub mod user_group;
 pub mod utils;
 
+// TODO remove these imports and have explicit references below?
 pub use access_policy::*;
 pub use airflow_singleton::*;
 pub use algorithms::*;
@@ -73,6 +74,7 @@ pub use user::*;
 pub use user_group::*;
 pub use utils::*;
 
+use anyhow::bail;
 use pyo3::prelude::*;
 use pyo3::wrap_pyfunction;
 use std::collections::HashSet;
@@ -166,19 +168,27 @@ pub fn dag(inner: InnerUniverse, constraints: Vec<String>, mode: &str) -> PyResu
     let debug = false;
     let (output, _requirements) = match mode {
         "airflow" => {
-            Driver::<AirflowDAG>::new(&universe, constraints.into_iter().collect(), debug).run()
+            Driver::<AirflowDAG>::new(&universe, constraints.into_iter().collect(), debug)
+                .map_err(|e| pyo3::exceptions::PyException::new_err(e.to_string()))?
+                .run()
         }
         "prefect" => {
-            Driver::<PrefectDAG>::new(&universe, constraints.into_iter().collect(), debug).run()
+            Driver::<PrefectDAG>::new(&universe, constraints.into_iter().collect(), debug)
+                .map_err(|e| pyo3::exceptions::PyException::new_err(e.to_string()))?
+                .run()
         }
         "python" => {
-            Driver::<PythonDAG>::new(&universe, constraints.into_iter().collect(), debug).run()
+            Driver::<PythonDAG>::new(&universe, constraints.into_iter().collect(), debug)
+                .map_err(|e| pyo3::exceptions::PyException::new_err(e.to_string()))?
+                .run()
         }
         "jupyter" => {
-            Driver::<JupyterDAG>::new(&universe, constraints.into_iter().collect(), debug).run()
+            Driver::<JupyterDAG>::new(&universe, constraints.into_iter().collect(), debug)
+                .map_err(|e| pyo3::exceptions::PyException::new_err(e.to_string()))?
+                .run()
         }
-        _ => panic!("Unknown mode provided"),
-    }?;
+        _ => panic!("Unknown mode provided: {}", mode),
+    }.map_err(|e| pyo3::exceptions::PyException::new_err(e.to_string()))?;
     Ok(output.replace("\\\\", "\\"))
 }
 

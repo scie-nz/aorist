@@ -2,6 +2,7 @@ use crate::concept::{AoristConcept, Concept, ConceptAncestry};
 use crate::dialect::Dialect;
 use crate::object::TAoristObject;
 use crate::python::ParameterTuple;
+use anyhow::{Context, Result};
 use aorist_primitives::{define_constraint, register_constraint};
 use maplit::hashmap;
 use serde::{Deserialize, Serialize};
@@ -18,10 +19,10 @@ impl<T: TConstraint> ConstraintBuilder<T> {
         &self,
         root_uuid: Uuid,
         potential_child_constraints: Vec<Arc<RwLock<Constraint>>>,
-    ) -> T {
+    ) -> Result<T> {
         <T as crate::constraint::TConstraint>::new(root_uuid, potential_child_constraints)
     }
-    pub fn get_root_type_name(&self) -> String {
+    pub fn get_root_type_name(&self) -> Result<String> {
         <T as crate::constraint::TConstraint>::get_root_type_name()
     }
 }
@@ -31,9 +32,9 @@ where
     Self::Root: AoristConcept,
 {
     type Root;
-    fn get_root_type_name() -> String;
+    fn get_root_type_name() -> Result<String>;
     fn get_required_constraint_names() -> Vec<String>;
-    fn new(root_uuid: Uuid, potential_child_constraints: Vec<Arc<RwLock<Constraint>>>) -> Self;
+    fn new(root_uuid: Uuid, potential_child_constraints: Vec<Arc<RwLock<Constraint>>>) -> Result<Self> where Self: Sized;
     fn should_add<'a>(root: Concept<'a>, ancestry: &ConceptAncestry<'a>) -> bool;
 }
 pub trait ConstraintSatisfactionBase
@@ -51,14 +52,14 @@ pub trait SatisfiableConstraint: TConstraint {
         c: Concept<'a>,
         d: &Dialect,
         ancestry: Arc<ConceptAncestry<'a>>,
-    ) -> Option<(String, String, ParameterTuple, Dialect)>;
+    ) -> Result<Option<(String, String, ParameterTuple, Dialect)>>;
 
     fn satisfy_given_preference_ordering<'a>(
         &mut self,
         r: Concept<'a>,
         preferences: &Vec<Dialect>,
         ancestry: Arc<ConceptAncestry<'a>>,
-    ) -> Result<(String, String, ParameterTuple, Dialect), String>;
+    ) -> Result<(String, String, ParameterTuple, Dialect)>;
 }
 // TODO: duplicate function, should be unified in trait
 pub trait AllConstraintsSatisfiability {
@@ -67,7 +68,7 @@ pub trait AllConstraintsSatisfiability {
         c: Concept<'a>,
         preferences: &Vec<Dialect>,
         ancestry: Arc<ConceptAncestry<'a>>,
-    ) -> Result<(String, String, ParameterTuple, Dialect), String>;
+    ) -> Result<(String, String, ParameterTuple, Dialect)>;
 }
 
 include!(concat!(env!("OUT_DIR"), "/constraints.rs"));
@@ -81,58 +82,50 @@ pub struct Constraint {
     pub requires: Option<Vec<String>>,
 }
 impl Constraint {
-    pub fn get_uuid(&self) -> Uuid {
-        if let Some(c) = &self.inner {
-            return c.get_uuid();
-        }
-        panic!("Called get_uuid() on a Constraint struct with no inner");
+    pub fn get_uuid(&self) -> Result<Uuid> {
+        self.inner("get_uuid()")?.get_uuid()
     }
     pub fn get_root(&self) -> String {
         self.root.clone()
     }
-    pub fn get_root_uuid(&self) -> Uuid {
-        if let Some(c) = &self.inner {
-            return c.get_root_uuid();
-        }
-        panic!("Called get_root_uuid() on a Constraint struct with no inner");
+    pub fn get_root_uuid(&self) -> Result<Uuid> {
+        self.inner("get_root_uuid()")?.get_root_uuid()
     }
-    pub fn get_downstream_constraints(&self) -> Vec<Arc<RwLock<Constraint>>> {
-        if let Some(c) = &self.inner {
-            return c.get_downstream_constraints();
-        }
-        panic!("Called get_downstream_constraints() on a Constraint struct with no inner");
+    pub fn get_downstream_constraints(&self) -> Result<Vec<Arc<RwLock<Constraint>>>> {
+        self.inner("get_downstream_constraints()")?.get_downstream_constraints()
     }
-    pub fn requires_program(&self) -> bool {
-        if let Some(ref c) = &self.inner {
-            return c.requires_program();
-        }
-        panic!("Called requires_program() on a Constraint struct with no inner");
+    pub fn requires_program(&self) -> Result<bool> {
+        self.inner("requires_program()")?.requires_program()
     }
-    pub fn get_root_type_name(&self) -> String {
-        if let Some(ref c) = &self.inner {
-            return c.get_root_type_name();
-        }
-        panic!("Called get_root_type_name() on a Constraint struct with no inner");
+    pub fn get_root_type_name(&self) -> Result<String> {
+        self.inner("get_root_type_name()")?.get_root_type_name()
     }
-    pub fn print_dag(&self) {
-        for downstream_rw in self.get_downstream_constraints() {
+    pub fn print_dag(&self) -> Result<()> {
+        for downstream_rw in self.get_downstream_constraints()? {
             let downstream = downstream_rw.read().unwrap();
             println!(
                 "{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}",
                 self.get_name(),
                 self.get_root(),
-                self.get_root_uuid(),
-                self.get_uuid(),
+                self.get_root_uuid()?,
+                self.get_uuid()?,
                 downstream,
                 downstream.get_root(),
-                downstream.get_root_uuid(),
-                downstream.get_uuid(),
+                downstream.get_root_uuid()?,
+                downstream.get_uuid()?,
             );
         }
-        for downstream_rw in self.get_downstream_constraints() {
+        for downstream_rw in self.get_downstream_constraints()? {
             let downstream = downstream_rw.read().unwrap();
-            downstream.print_dag();
+            downstream.print_dag()?;
         }
+        Ok(())
+    }
+
+    fn inner(&self, caller: &str) -> Result<&AoristConstraint> {
+        self.inner.as_ref().with_context(|| format!(
+            "Called {} on Constraint struct with no inner: name={}, root={}", caller, self.name, self.root
+        ))
     }
 }
 impl TAoristObject for Constraint {

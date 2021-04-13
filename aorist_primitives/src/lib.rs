@@ -321,21 +321,21 @@ macro_rules! register_programs_for_constraint {
                 c: Concept<'a>,
                 d: &Dialect,
                 ancestry: Arc<ConceptAncestry<'a>>,
-            ) -> Option<(String, String, ParameterTuple, Dialect)> {
+            ) -> Result<Option<(String, String, ParameterTuple, Dialect)>> {
                 match d {
                     $(
-                        Dialect::$dialect{..} => Some((
+                        Dialect::$dialect{..} => Ok(Some((
                             $element::get_preamble(),
                             $element::get_call(),
                             $element::compute_parameter_tuple(
-                                self.get_uuid().clone(),
+                                self.get_uuid()?.clone(),
                                 c.clone(),
                                 ancestry,
                             ),
                             $element::get_dialect(),
-                        )),
+                        ))),
                     )+
-                    _ => None,
+                    _ => Ok(None),
                 }
             }
             fn satisfy_given_preference_ordering<'a>(
@@ -343,24 +343,18 @@ macro_rules! register_programs_for_constraint {
                 c: Concept<'a>,
                 preferences: &Vec<Dialect>,
                 ancestry: Arc<ConceptAncestry<'a>>,
-            ) -> Result<(String, String, ParameterTuple, Dialect), String> {
+            ) -> Result<(String, String, ParameterTuple, Dialect)> {
                 match c {
                     Concept::$root{..} => {
                         for d in preferences {
-                            if let Some(
-                                (preamble, call, params, dialect)
-                            ) = self.satisfy(
-                                c.clone(),
-                                &d,
-                                ancestry.clone(),
-                            ) {
+                            if let Some((preamble, call, params, dialect))
+                                = self.satisfy(c.clone(), &d, ancestry.clone())? {
                                 return Ok((preamble, call, params, dialect));
                             }
                         }
-                        Err("Cannot satisfy preference ordering.".into())
+                        bail!("Cannot satisfy preference ordering for {}", c.get_uuid())
                     },
-                    _ => Err(format!("Wrong type of concept provided: {}",
-                    c.get_type()))
+                    _ => bail!("Wrong type of concept provided: {}", c.get_type())
                 }
             }
         }
@@ -377,7 +371,7 @@ macro_rules! register_satisfiable_constraints {
                 c: Concept<'a>,
                 preferences: &Vec<Dialect>,
                 ancestry: Arc<ConceptAncestry<'a>>,
-            ) -> Result<(String, String, ParameterTuple, Dialect), String> {
+            ) -> Result<(String, String, ParameterTuple, Dialect)> {
                 match &mut self.inner {
                     $(
                         Some(AoristConstraint::$constraint(ref mut x)) =>
@@ -386,7 +380,7 @@ macro_rules! register_satisfiable_constraints {
                             ancestry,
                         ),
                     )+
-                    _ => Err(format!("Constraint {} is not satisfiable (no program provided).", self.inner.as_ref().unwrap().get_name()).to_string())
+                    _ => bail!("Constraint {} is not satisfiable (no program provided).", self.inner.as_ref().unwrap().get_name())
                 }
             }
         }
@@ -470,8 +464,8 @@ macro_rules! define_constraint {
             root_uuid: Uuid,
         }
         impl $element {
-            pub fn get_downstream_constraints(&self) -> Vec<Arc<RwLock<Constraint>>> {
-                Vec::new()
+            pub fn get_downstream_constraints(&self) -> Result<Vec<Arc<RwLock<Constraint>>>> {
+                Ok(Vec::new())
             }
             pub fn _should_add<'a>(root: Concept<'a>, ancestry: &ConceptAncestry<'a>) -> bool {
                 $should_add(root, ancestry)
@@ -479,14 +473,14 @@ macro_rules! define_constraint {
             pub fn get_required<'a>(root: Concept<'a>, ancestry: &ConceptAncestry<'a>) -> Vec<Uuid> {
                 $get_required(root, ancestry)
             }
-            pub fn get_uuid(&self) -> Uuid {
-                self.id.clone()
+            pub fn get_uuid(&self) -> Result<Uuid> {
+                Ok(self.id.clone())
             }
-            pub fn get_root_uuid(&self) -> Uuid {
-                self.root_uuid.clone()
+            pub fn get_root_uuid(&self) -> Result<Uuid> {
+                Ok(self.root_uuid.clone())
             }
-            pub fn requires_program(&self) -> bool {
-                $requires_program
+            pub fn requires_program(&self) -> Result<bool> {
+                Ok($requires_program)
             }
             pub fn get_title() -> Option<String> {
                 $title
@@ -512,15 +506,15 @@ macro_rules! define_constraint {
         impl TConstraint for $element {
             type Root = $root;
 
-            fn get_root_type_name() -> String {
-                stringify!($root).into()
+            fn get_root_type_name() -> Result<String> {
+                Ok(stringify!($root).into())
             }
             fn get_required_constraint_names() -> Vec<String> {
                 Vec::new()
             }
             fn new(root_uuid: Uuid,
-                       _potential_child_constraints: Vec<Arc<RwLock<Constraint>>>) -> Self {
-                Self{ id: Uuid::new_v4(), root_uuid}
+                       _potential_child_constraints: Vec<Arc<RwLock<Constraint>>>) -> Result<Self> {
+                Ok(Self{ id: Uuid::new_v4(), root_uuid})
             }
             fn should_add<'a>(root: Concept<'a>, ancestry: &ConceptAncestry<'a>) -> bool {
                 match &root {
@@ -529,13 +523,13 @@ macro_rules! define_constraint {
                 }
             }
         }
-		impl fmt::Debug for $element {
-			fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-				f.debug_struct(stringify!($element))
-				 .field("id", &self.id)
-				 .finish()
-			}
-		}
+	impl fmt::Debug for $element {
+	    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+		f.debug_struct(stringify!($element))
+		    .field("id", &self.id)
+		    .finish()
+	    }
+	}
     };
     ($element:ident, $requires_program:expr, $satisfy_type:ident, $root:ident,
     $title:expr, $body:expr, $should_add:expr, $get_required:expr, $($required:ident),+) => {
@@ -560,8 +554,8 @@ macro_rules! define_constraint {
                 fn get_dialect() -> Dialect;
             }
             impl $element {
-                pub fn get_uuid(&self) -> Uuid {
-                    self.id.clone()
+                pub fn get_uuid(&self) -> Result<Uuid> {
+                    Ok(self.id.clone())
                 }
                 pub fn _should_add<'a>(root: Concept<'a>, ancestry: &ConceptAncestry<'a>) -> bool {
                     $should_add(root, ancestry)
@@ -569,21 +563,21 @@ macro_rules! define_constraint {
                 pub fn get_required<'a>(root: Concept<'a>, ancestry: &ConceptAncestry<'a>) -> Vec<Uuid> {
                     $get_required(root, ancestry)
                 }
-                pub fn get_root_uuid(&self) -> Uuid {
-                    self.root_uuid.clone()
+                pub fn get_root_uuid(&self) -> Result<Uuid> {
+                    Ok(self.root_uuid.clone())
                 }
-                pub fn requires_program(&self) -> bool {
-                    $requires_program
+                pub fn requires_program(&self) -> Result<bool> {
+                    Ok($requires_program)
                 }
                 // these are *all* downstream constraints
-                pub fn get_downstream_constraints(&self) -> Vec<Arc<RwLock<Constraint>>> {
+                pub fn get_downstream_constraints(&self) -> Result<Vec<Arc<RwLock<Constraint>>>> {
                     let mut downstream: Vec<Arc<RwLock<Constraint>>> = Vec::new();
                     $(
                         for arc in &self.[<$required:snake:lower>] {
                             downstream.push(arc.clone());
                         }
                     )+
-                    downstream
+                    Ok(downstream)
                 }
                 pub fn get_title() -> Option<String> {
                     $title
@@ -594,8 +588,8 @@ macro_rules! define_constraint {
             }
             impl TConstraint for $element {
                 type Root = $root;
-                fn get_root_type_name() -> String {
-                    stringify!($root).into()
+                fn get_root_type_name() -> Result<String> {
+                    Ok(stringify!($root).into())
                 }
                 fn get_required_constraint_names() -> Vec<String> {
                     vec![$(
@@ -609,26 +603,25 @@ macro_rules! define_constraint {
                     }
                 }
                 fn new(root_uuid: Uuid,
-                       potential_child_constraints: Vec<Arc<RwLock<Constraint>>>) -> Self {
+                       potential_child_constraints: Vec<Arc<RwLock<Constraint>>>) -> Result<Self> {
                     // TODO: we should dedupe potential child constraints
                     $(
                         let mut [<$required:snake:lower>]: Vec<Arc<RwLock<Constraint>>> =
                         Vec::new();
                     )+
-                    let mut actual_child_constraints: Vec<Arc<RwLock<Constraint>>> = Vec::new();
-
+                    let mut by_uuid: HashMap<Uuid, Arc<RwLock<Constraint>>> = HashMap::new();
                     for constraint in &potential_child_constraints {
                         $(
                             if let Some(AoristConstraint::$required{..}) =
                             &constraint.read().unwrap().inner
                             {
-                                actual_child_constraints.push(constraint.clone());
+                                by_uuid.insert(
+                                    constraint.read().unwrap().get_uuid()?,
+                                    constraint.clone()
+                                );
                             }
                         )+
                     }
-                    let by_uuid: HashMap<Uuid, Arc<RwLock<Constraint>>> =
-                    actual_child_constraints
-                        .into_iter().map(|x| (x.clone().read().unwrap().get_uuid(), x)).collect();
                     for constraint in by_uuid.values() {
                         $(
                             if let Some(AoristConstraint::$required{..}) =
@@ -637,11 +630,11 @@ macro_rules! define_constraint {
                             }
                         )+
                     }
-                    Self{
+                    Ok(Self{
                         id: Uuid::new_v4(),
                         root_uuid,
                         $([<$required:snake:lower>],)+
-                    }
+                    })
                 }
             }
         }
@@ -661,7 +654,7 @@ macro_rules! register_constraint {
             )+
         }
         impl [<$name Builder>] {
-            pub fn get_root_type_name(&self) -> String {
+            pub fn get_root_type_name(&self) -> Result<String> {
                 match &self {
                     $(
                         [<$name Builder>]::$element(_) => $element::get_root_type_name(),
@@ -688,20 +681,20 @@ macro_rules! register_constraint {
                 &self,
                 root_uuid: Uuid,
                 potential_child_constraints: Vec<Arc<RwLock<Constraint>>>,
-            ) -> Constraint {
+            ) -> Result<Constraint> {
                 match &self {
                     $(
-                        [<$name Builder>]::$element(x) => Constraint {
+                        [<$name Builder>]::$element(x) => Ok(Constraint {
                             name: self.get_constraint_name(),
-                            root: self.get_root_type_name(),
+                            root: self.get_root_type_name()?,
                             requires: Some(self.get_required_constraint_names()),
                             inner: Some(
                                 $name::$element(x.build_constraint(
                                     root_uuid,
                                     potential_child_constraints,
-                                ))
+                                )?)
                             ),
-                        },
+                        }),
                     )+
                 }
             }
@@ -732,28 +725,28 @@ macro_rules! register_constraint {
                     )+
                 ]
             }
-            pub fn get_root_type_name(&self) -> String {
+            pub fn get_root_type_name(&self) -> Result<String> {
                 match self {
                     $(
                         Self::$element(_) => $element::get_root_type_name(),
                     )+
                 }
             }
-            pub fn get_downstream_constraints(&self) -> Vec<Arc<RwLock<Constraint>>> {
+            pub fn get_downstream_constraints(&self) -> Result<Vec<Arc<RwLock<Constraint>>>> {
                 match self {
                     $(
                         Self::$element(x) => x.get_downstream_constraints(),
                     )+
                 }
             }
-            pub fn requires_program(&self) -> bool {
+            pub fn requires_program(&self) -> Result<bool> {
                 match self {
                     $(
                         Self::$element(x) => x.requires_program(),
                     )+
                 }
             }
-            pub fn get_uuid(&self) -> Uuid {
+            pub fn get_uuid(&self) -> Result<Uuid> {
                 match self {
                     $(
                         Self::$element(x) => x.get_uuid(),
@@ -774,19 +767,19 @@ macro_rules! register_constraint {
                     )+
                 }
             }
-            pub fn get_root_uuid(&self) -> Uuid {
+            pub fn get_root_uuid(&self) -> Result<Uuid> {
                 match self {
                     $(
                         Self::$element(x) => x.get_root_uuid(),
                     )+
                 }
             }
-            fn get_root_type_names() -> HashMap<String, String> {
-                hashmap! {
+            fn get_root_type_names() -> Result<HashMap<String, String>> {
+                Ok(hashmap! {
                     $(
-                        stringify!($element).to_string() => $element::get_root_type_name(),
+                        stringify!($element).to_string() => $element::get_root_type_name()?,
                     )+
-                }
+                })
             }
             pub fn get_required_constraint_names() -> HashMap<String, Vec<String>> {
                 hashmap! {

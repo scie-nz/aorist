@@ -3,6 +3,7 @@ use crate::constraint::{AllConstraintsSatisfiability, Constraint};
 use crate::dialect::Dialect;
 use crate::object::TAoristObject;
 use crate::python::{Formatted, ParameterTuple, SimpleIdentifier, StringLiteral, AST};
+use anyhow::{bail, Result};
 use inflector::cases::snakecase::to_snake_case;
 use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
@@ -68,19 +69,17 @@ pub struct ConstraintState<'a> {
 }
 
 impl<'a> ConstraintState<'a> {
-    pub fn requires_program(&self) -> bool {
+    pub fn requires_program(&self) -> Result<bool> {
         self.constraint.read().unwrap().requires_program()
     }
-    pub fn get_dependencies(&self) -> Vec<Uuid> {
-        self.satisfied_dependencies
-            .iter()
-            .map(|rw| {
-                let x = rw.read().unwrap();
-                x.get_constraint_uuid()
-            })
-            .collect::<Vec<_>>()
+    pub fn get_dependencies(&self) -> Result<Vec<Uuid>> {
+        let mut dependencies = Vec::new();
+        for dep in &self.satisfied_dependencies {
+            dependencies.push(dep.read().unwrap().get_constraint_uuid()?);
+        }
+        Ok(dependencies)
     }
-    pub fn get_task_call(&self) -> Result<AST, String> {
+    pub fn get_task_call(&self) -> Result<AST> {
         match self.dialect {
             Some(Dialect::Python(_)) => Ok(AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
                 self.get_call().unwrap(),
@@ -91,10 +90,10 @@ impl<'a> ConstraintState<'a> {
             None => Ok(AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
                 "ConstantTask".to_string(),
             ))),
-            _ => Err("Dialect not supported".to_string()),
+            _ => bail!("Dialect not supported for task call: {:?}", self.dialect),
         }
     }
-    pub fn get_args_vec(&self) -> Result<Vec<AST>, String> {
+    pub fn get_args_vec(&self) -> Result<Vec<AST>> {
         match (&self.params, &self.dialect) {
             (Some(ref p), Some(Dialect::Python(_))) => Ok(p.get_args()),
             (None, Some(Dialect::Python(_))) => Ok(Vec::new()),
@@ -104,10 +103,10 @@ impl<'a> ConstraintState<'a> {
                 self.constraint.read().unwrap().get_name().clone(),
                 false,
             ))]),
-            _ => Err("Dialect not supported".to_string()),
+            _ => bail!("Dialect not supported for args vec: {:?}", self.dialect),
         }
     }
-    pub fn get_kwargs_map(&self) -> Result<LinkedHashMap<String, AST>, String> {
+    pub fn get_kwargs_map(&self) -> Result<LinkedHashMap<String, AST>> {
         match &self.dialect {
             Some(Dialect::Python(_)) => match self.params {
                 Some(ref p) => Ok(p.get_kwargs()),
@@ -141,7 +140,7 @@ impl<'a> ConstraintState<'a> {
                 Ok(keywords)
             }
             None => Ok(LinkedHashMap::new()),
-            _ => Err("Dialect not supported".to_string()),
+            _ => bail!("Dialect not supported for kwargs map: {:?}", self.dialect),
         }
     }
     pub fn set_task_name(&mut self, name: String) {
@@ -163,8 +162,8 @@ impl<'a> ConstraintState<'a> {
     pub fn get_root(&self) -> Concept<'a> {
         self.root.clone()
     }
-    pub fn get_constraint_uuid(&self) -> Uuid {
-        self.constraint.read().unwrap().get_uuid().clone()
+    pub fn get_constraint_uuid(&self) -> Result<Uuid> {
+        Ok(self.constraint.read().unwrap().get_uuid()?.clone())
     }
     #[allow(dead_code)]
     pub fn get_root_uuid(&self) -> Uuid {
@@ -209,20 +208,20 @@ impl<'a> ConstraintState<'a> {
         constraint: Arc<RwLock<Constraint>>,
         concepts: Arc<RwLock<HashMap<(Uuid, String), Concept<'a>>>>,
         concept_ancestors: &HashMap<(Uuid, String), Vec<AncestorRecord>>,
-    ) -> Self {
+    ) -> Result<Self> {
         let arc = constraint.clone();
         let x = arc.read().unwrap();
-        let root_uuid = x.get_root_uuid();
+        let root_uuid = x.get_root_uuid()?;
         let guard = concepts.read().unwrap();
         let root = guard
             .get(&(root_uuid.clone(), x.root.clone()))
             .unwrap()
             .clone();
-        let dependencies = x
-            .get_downstream_constraints()
-            .iter()
-            .map(|x| (x.read().unwrap().get_uuid(), x.read().unwrap().root.clone()))
-            .collect::<LinkedHashSet<_>>();
+        let mut dependencies: LinkedHashSet<(Uuid, String)> = LinkedHashSet::new();
+        for constraint in x.get_downstream_constraints()? {
+            let entry = constraint.read().unwrap();
+            dependencies.insert((entry.get_uuid()?, entry.root.clone()));
+        }
 
         /*
         println!(
@@ -238,7 +237,7 @@ impl<'a> ConstraintState<'a> {
             .get(&(root_uuid, x.root.clone()))
             .unwrap()
             .clone();
-        Self {
+        Ok(Self {
             dialect: None,
             key: None,
             name: x.get_name().clone(),
@@ -252,7 +251,7 @@ impl<'a> ConstraintState<'a> {
             call: None,
             params: None,
             task_name: None,
-        }
+        })
     }
     fn compute_task_key(&mut self) -> String {
         self.key = Some(match self.root.get_tag() {
@@ -292,7 +291,7 @@ impl<'a> ConstraintState<'a> {
 
             for name in proposed_names.clone().into_iter() {
                 if new_task_names.contains(&name) {
-                    panic!(format!("Duplicated task name: {}", name));
+                    panic!("Duplicated task name: {}", name);
                 }
                 new_task_names.insert(name);
             }
