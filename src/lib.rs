@@ -25,6 +25,7 @@ pub mod header;
 pub mod jupyter_singleton;
 pub mod layout;
 pub mod location;
+pub mod logging;
 pub mod models;
 pub mod object;
 pub mod prefect_singleton;
@@ -73,6 +74,7 @@ pub use user::*;
 pub use user_group::*;
 pub use utils::*;
 
+use anyhow::bail;
 use pyo3::prelude::*;
 use pyo3::wrap_pyfunction;
 use std::collections::HashSet;
@@ -163,22 +165,29 @@ pub fn deserialize(input: String) -> PyResult<InnerUniverse> {
 pub fn dag(inner: InnerUniverse, constraints: Vec<String>, mode: &str) -> PyResult<String> {
     let mut universe = Universe::from(inner);
     universe.compute_uuids();
-    let debug = false;
     let (output, _requirements) = match mode {
         "airflow" => {
-            Driver::<AirflowDAG>::new(&universe, constraints.into_iter().collect(), debug).run()
+            Driver::<AirflowDAG>::new(&universe, constraints.into_iter().collect())
+                .map_err(|e| pyo3::exceptions::PyException::new_err(e.to_string()))?
+                .run()
         }
         "prefect" => {
-            Driver::<PrefectDAG>::new(&universe, constraints.into_iter().collect(), debug).run()
+            Driver::<PrefectDAG>::new(&universe, constraints.into_iter().collect())
+                .map_err(|e| pyo3::exceptions::PyException::new_err(e.to_string()))?
+                .run()
         }
         "python" => {
-            Driver::<PythonDAG>::new(&universe, constraints.into_iter().collect(), debug).run()
+            Driver::<PythonDAG>::new(&universe, constraints.into_iter().collect())
+                .map_err(|e| pyo3::exceptions::PyException::new_err(e.to_string()))?
+                .run()
         }
         "jupyter" => {
-            Driver::<JupyterDAG>::new(&universe, constraints.into_iter().collect(), debug).run()
+            Driver::<JupyterDAG>::new(&universe, constraints.into_iter().collect())
+                .map_err(|e| pyo3::exceptions::PyException::new_err(e.to_string()))?
+                .run()
         }
-        _ => panic!("Unknown mode provided"),
-    }?;
+        _ => panic!("Unknown mode provided: {}", mode),
+    }.map_err(|e| pyo3::exceptions::PyException::new_err(e.to_string()))?;
     Ok(output.replace("\\\\", "\\"))
 }
 
@@ -195,6 +204,8 @@ pub fn attr_list(input: Vec<AttributeEnum>) -> PyResult<Vec<InnerAttribute>> {
 
 #[pymodule]
 fn aorist(py: Python, m: &PyModule) -> PyResult<()> {
+    logging::init_logging();
+
     let submod = PyModule::new(py, "attributes")?;
     attribute(submod)?;
     m.add_submodule(submod)?;

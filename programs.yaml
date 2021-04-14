@@ -2712,13 +2712,11 @@ spec:
             let (pandas_code, pandas_requirements) = Driver::<PythonDAG>::new(
                 &new_universe,
                 vec!["PandasData".to_string()].into_iter().collect(),
-                false,
-            ).run().unwrap();
+            ).unwrap().run().unwrap();
             let (numpy_code, numpy_requirements) = Driver::<PythonDAG>::new(
                 &new_universe,
                 vec!["NumpyData".to_string()].into_iter().collect(),
-                false,
-            ).run().unwrap();
+            ).unwrap().run().unwrap();
             serde_json::json!(maplit::hashmap!(
                 "pandas_code" => serde_json::json!(
                     pandas_code.replace("\\\\", "\\")
