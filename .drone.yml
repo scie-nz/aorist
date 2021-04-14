@@ -1,0 +1,15 @@
+---
+kind: pipeline
+type: kubernetes
+name: default
+
+steps:
+- name: build-latest
+  image: rust:latest
+  commands:
+  - cargo build
+
+trigger:
+  event:
+    include:
+    - push
