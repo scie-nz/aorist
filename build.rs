@@ -481,6 +481,13 @@ fn process_concepts() {
         ("crate::user", "User"),
         ("crate::user_group", "UserGroup"),
         ("crate::endpoints", "EndpointConfig"),
+        ("crate::endpoints", "GCPConfig"),
+        ("crate::endpoints", "GiteaConfig"),
+        ("crate::endpoints", "PostgresConfig"),
+        ("crate::endpoints", "AlluxioConfig"),
+        ("crate::endpoints", "RangerConfig"),
+        ("crate::endpoints", "PrestoConfig"),
+        ("crate::endpoints", "MinioConfig"),
         ("crate::template", "TrainedFloatMeasure"),
         ("crate::template", "PredictionsFromTrainedFloatMeasure"),
     ];

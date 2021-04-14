@@ -164,8 +164,18 @@ spec:
   use: DownloadDataFromRemoteWebLocation
   root: WebLocation
   dialect: Bash
-  call: mkdir -p {tmp_dir} && curl {address} -o {tmp_dir}/{file_name}
+  call: mkdir -p {tmp_dir}/{dataset_name}/{table_name} && curl {address} -o {tmp_dir}/{dataset_name}/{table_name}/{file_name}
   kwargs:
+    dataset_name:
+      type: AncestorArgument
+      spec:
+        attaches: DataSet
+        call: data_set.name.clone()
+    table_name:
+      type: AncestorArgument
+      spec:
+        call: static_data_table.name
+        attaches: StaticDataTable
     address:
       type: AncestorArgument
       spec:
@@ -194,11 +204,21 @@ spec:
     import os
     import urllib.request
 
-    def download_data_from_remote_web_location(src_url, tmp_dir, dest_file_name):
-        os.makedirs(tmp_dir, exist_ok=True)
-        urllib.request.urlretrieve(src_url, os.path.join(tmp_dir, dest_file_name))
+    def download_data_from_remote_web_location(src_url, tmp_dir, dest_file_name, table_name, dataset_name):
+        os.makedirs(tmp_dir + '/' + dataset_name + '/' + table_name, exist_ok=True)
+        urllib.request.urlretrieve(src_url, os.path.join(tmp_dir, dataset_name, table_name, dest_file_name))
   call: download_data_from_remote_web_location
   kwargs:
+    dataset_name:
+      type: AncestorArgument
+      spec:
+        attaches: DataSet
+        call: data_set.name.clone()
+    table_name:
+      type: AncestorArgument
+      spec:
+        call: static_data_table.name
+        attaches: StaticDataTable
     src_url:
       type: AncestorArgument
       spec:
@@ -320,21 +340,29 @@ spec:
         name: command
         call: >
             format!(
-                "--suffix=downloaded -c {tmp_dir}/{archive_name}.downloaded > {tmp_dir}/{archive_name}.txt",
+                "--suffix=downloaded -c {tmp_dir}/{dataset_name}/{table_name}/{archive_name}.downloaded > {tmp_dir}/{dataset_name}/{table_name}/{archive_name}.tmp && mv {tmp_dir}/{dataset_name}/{table_name}/{archive_name}.tmp {tmp_dir}/{dataset_name}/{table_name}/{archive_name}.downloaded",
                 tmp_dir=replication_storage_setup.tmp_dir,
                 archive_name=static_data_table.name,
+                dataset_name=data_set.name,
+                table_name=static_data_table.name,
             )
         attaches:
           - StaticDataTable
           - ReplicationStorageSetup
+          - DataSet
 ---
 type: Program
 spec:
   use: RemoveFileHeader
   root: FileHeader
   dialect: Bash
-  call: tail -n +{n} {tmp_dir}/{file_name}.txt > {tmp_dir}/{file_name}.no_header && rm {tmp_dir}/{file_name}.txt
+  call: tail -n +{n} {tmp_dir}/{dataset_name}/{table_name}/{file_name} > {tmp_dir}/{dataset_name}/{table_name}/{file_name}.tmp && mv {tmp_dir}/{dataset_name}/{table_name}/{file_name}.tmp {tmp_dir}/{dataset_name}/{table_name}/{file_name}
   kwargs:
+    table_name:
+      type: AncestorArgument
+      spec:
+        call: static_data_table.name
+        attaches: StaticDataTable
     n:
       type: AncestorArgument
       spec:
@@ -349,9 +377,24 @@ spec:
     file_name:
       type: AncestorArgument
       spec:
-        call: static_data_table.name
+        call: |
+          {
+            format!(
+                "{}.{}",
+                static_data_table.name,
+                match static_data_table.setup {
+                     StorageSetup::ReplicationStorageSetup(ref x) => x.get_download_extension(),
+                     _ => panic!("Storage setup must be ReplicationStorageSetup"),
+                }
+            ).to_string()
+          }
         attaches: StaticDataTable
         name: file_name
+    dataset_name:
+      type: AncestorArgument
+      spec:
+        attaches: DataSet
+        call: data_set.name.clone()
 ---
 type: Program
 spec:
@@ -621,7 +664,7 @@ spec:
 
     def rename_csv(tmp_dir, src_file_name, dest_file_name):
         os.rename(os.path.join(tmp_dir, src_file_name), os.path.join(tmp_dir, dest_file_name))
-  call: convert_json_to_csv
+  call: rename_csv
   kwargs:
     tmp_dir:
       type: MultipleAncestorsArgument
@@ -635,12 +678,9 @@ spec:
         call: >
           {
             let file_name = &static_data_table.name;
-            match &remote_storage.encoding.get_header() {
-                Some(_) => format!("{}.no_header", file_name),
-                None => match &remote_storage.encoding.get_compression() {
-                    Some(_) => format!("{}.txt", file_name),
-                    None => format!("{}.downloaded", file_name),
-                }
+            match &remote_storage.encoding.get_compression() {
+                None => format!("{}.txt", file_name),
+                Some(_) => format!("{}.downloaded", file_name),
             }.to_string()
           }
         attaches:
@@ -667,12 +707,9 @@ spec:
           {
             let tmp_dir = &replication_storage_setup.tmp_dir;
             let file_name = &static_data_table.name;
-            let source = match &remote_storage.encoding.get_header() {
-                Some(_) => format!("{}/{}.no_header", tmp_dir, file_name).to_string(),
-                None => match &remote_storage.encoding.get_compression() {
-                    Some(_) => format!("{}/{}.txt", tmp_dir, file_name),
-                    None => format!("{}/{}.downloaded", tmp_dir, file_name),
-                }
+            let source = match &remote_storage.encoding.get_compression() {
+                None => format!("{}/{}.txt", tmp_dir, file_name),
+                Some(_) => format!("{}/{}.downloaded", tmp_dir, file_name),
             };
             format!(
                 "mv -v '{source}' '{tmp_dir}/{file_name}.csv'",
@@ -711,12 +748,9 @@ spec:
         call: >
           {
             let file_name = &static_data_table.name;
-            match &remote_storage.encoding.get_header() {
-                Some(_) => format!("{}.no_header", file_name),
-                None => match &remote_storage.encoding.get_compression() {
-                    Some(_) => format!("{}.txt", file_name),
-                    None => format!("{}.downloaded", file_name),
-                }
+            match &remote_storage.encoding.get_compression() {
+                None => format!("{}.txt", file_name),
+                Some(_) => format!("{}.downloaded", file_name),
             }.to_string()
           }
         attaches:
@@ -737,8 +771,10 @@ spec:
   preamble: |
     import os.path
 
-    def tsv_to_csv(tmp_dir, src_file_name, dest_file_name):
-        with open(os.path.join(tmp_dir, src_file_name)) as sourcef, open(os.path.join(tmp_dir, dest_file_name), 'w') as destf:
+    def tsv_to_csv(tmp_dir, src_file_name, dest_file_name, dataset_name, table_name):
+        source = os.path.join(tmp_dir, dataset_name, table_name, src_file_name)
+        dest = os.path.join(tmp_dir, dataset_name, table_name, dest_file_name)
+        with open(source) as sourcef, open(dest, 'w') as destf:
                 while True:
                     chunk = sourcef.read(10240)
                     if not chunk:
@@ -748,6 +784,16 @@ spec:
                     destf.write(chunk.replace('\\t', ','))
   call: tsv_to_csv
   kwargs:
+    dataset_name:
+      type: AncestorArgument
+      spec:
+        attaches: DataSet
+        call: data_set.name.clone()
+    table_name:
+      type: AncestorArgument
+      spec:
+        call: static_data_table.name
+        attaches: StaticDataTable
     tmp_dir:
       type: MultipleAncestorsArgument
       spec:
@@ -760,12 +806,9 @@ spec:
         call: >
           {
             let file_name = &static_data_table.name;
-            match &remote_storage.encoding.get_header() {
-                Some(_) => format!("{}.no_header", file_name),
-                None => match &remote_storage.encoding.get_compression() {
-                    Some(_) => format!("{}.txt", file_name),
-                    None => format!("{}.downloaded", file_name),
-                }
+            match &remote_storage.encoding.get_compression() {
+                None => format!("{}.txt", file_name),
+                Some(_) => format!("{}.downloaded", file_name),
             }.to_string()
           }
         attaches:
@@ -792,12 +835,9 @@ spec:
           {
             let tmp_dir = &replication_storage_setup.tmp_dir;
             let file_name = &static_data_table.name;
-            let source = match &remote_storage.encoding.get_header() {
-                Some(_) => format!("{}/{}.no_header", tmp_dir, file_name).to_string(),
-                None => match &remote_storage.encoding.get_compression() {
-                    Some(_) => format!("{}/{}.txt", tmp_dir, file_name),
-                    None => format!("{}/{}.downloaded", tmp_dir, file_name),
-                }
+            let source = match &remote_storage.encoding.get_compression() {
+                None => format!("{}/{}.txt", tmp_dir, file_name),
+                Some(_) => format!("{}/{}.downloaded", tmp_dir, file_name),
             };
             format!(
                 "cat '{source}' | tr '\\\\t' ',' > '{tmp_dir}/{file_name}.csv'",
@@ -2790,10 +2830,12 @@ spec:
         static_data_table_name,
         dataset_name,
         columns,
+        tmp_dir,
     ):
         columns = json.loads(columns)
         data = pd.read_csv(
-            "/tmp/{dataset_name}/{static_data_table_name}/{static_data_table_name}.csv".format(
+            "{tmp_dir}/{dataset_name}/{static_data_table_name}/{static_data_table_name}.csv".format(
+                tmp_dir=tmp_dir,
                 dataset_name=dataset_name,
                 static_data_table_name=static_data_table_name,
             ),
@@ -2820,6 +2862,11 @@ spec:
       spec:
         attaches: StaticDataTable
         call: serde_json::json!(static_data_table.schema.get_attribute_names()).to_string()
+    tmp_dir:
+      type: AncestorArgument
+      spec:
+        call: replication_storage_setup.tmp_dir
+        attaches: ReplicationStorageSetup
 ---
 type: Program
 spec:
@@ -2832,22 +2879,29 @@ spec:
 
     import numpy as np
     import json
+    import csv
 
-    def read_csv_into_numpy(
-        static_data_table_name,
-        dataset_name,
-        columns,
-    ):
+    def read_csv_into_numpy(static_data_table_name, dataset_name, columns, tmp_dir):
         columns = json.loads(columns)
-        data = np.genfromtxt(
-            "/tmp/{dataset_name}/{static_data_table_name}/{static_data_table_name}.csv".format(
-                dataset_name=dataset_name,
-                static_data_table_name=static_data_table_name,
-            ),
-            delimiter=",",
-            names=columns,
+        file_name = (
+            "{tmp_dir}/{dataset_name}/{static_data_table_name}"
+            "/{static_data_table_name}.csv"
+        ).format(
+            dataset_name=dataset_name,
+            static_data_table_name=static_data_table_name,
+            tmp_dir=tmp_dir,
         )
-        print("Downloaded ndarray with %d rows and %d columns." % data.shape)
+        escaped = ("\t".join(
+            [i.replace("\t", " ") for i in x]
+        ) for x in csv.reader(open(file_name)))
+        data = np.genfromtxt(
+            escaped,
+            delimiter="\t",
+            names=columns,
+            dtype=None,
+        )
+        assert data is not None
+        print("Downloaded ndarray with %d rows." % data.shape[0])
         return data
   call: read_csv_into_numpy
   kwargs:
@@ -2866,6 +2920,11 @@ spec:
       spec:
         attaches: StaticDataTable
         call: serde_json::json!(static_data_table.schema.get_attribute_names()).to_string()
+    tmp_dir:
+      type: AncestorArgument
+      spec:
+        call: replication_storage_setup.tmp_dir
+        attaches: ReplicationStorageSetup
 ---
 type: Program
 spec:
@@ -3271,3 +3330,102 @@ spec:
                   panic!("Schema should be TimeOrderedTabularSchema.");
               }
           }
+---
+type: Program
+spec:
+  use: DownloadDataFromGithubLocation
+  root: RemoteStorage
+  dialect: Python
+  preamble: |
+    import os
+    import urllib.request
+
+    def download_data_from_github_location(
+        organization,
+        repository,
+        branch,
+        path,
+        tmp_dir,
+        dataset_name,
+        dest_file_name,
+        table_name,
+    ):
+       os.makedirs(tmp_dir + '/' + dataset_name + '/' + table_name, exist_ok=True)
+       clone_url = (
+          "https://raw.githubusercontent.com/{org}/{repo}/{branch}/{filename}"
+       ).format(
+          org=organization,
+          repo=repository,
+          branch=branch,
+          filename=path,
+       )
+       print("Downloading data from: %s" % clone_url)
+       urllib.request.urlretrieve(clone_url, os.path.join(tmp_dir, dataset_name, table_name, dest_file_name))
+  call: download_data_from_github_location
+  kwargs:
+    organization:
+      type: AncestorArgument
+      spec:
+        call: |
+          match remote_storage.location {
+            crate::location::RemoteLocation::GithubLocation(ref g) => g.organization.clone(),
+            _ => panic!("Only GithubLocation supported"),
+          }
+        attaches: RemoteStorage
+    repository:
+      type: AncestorArgument
+      spec:
+        call: |
+          match remote_storage.location {
+            crate::location::RemoteLocation::GithubLocation(ref g) => g.repository.clone(),
+            _ => panic!("Only GithubLocation supported"),
+          }
+        attaches: RemoteStorage
+    branch:
+      type: AncestorArgument
+      spec:
+        call: |
+          match remote_storage.location {
+            crate::location::RemoteLocation::GithubLocation(ref g) => g.branch.clone(),
+            _ => panic!("Only GithubLocation supported"),
+          }
+        attaches: RemoteStorage
+    path:
+      type: AncestorArgument
+      spec:
+        call: |
+          match remote_storage.location {
+            crate::location::RemoteLocation::GithubLocation(ref g) => g.path.clone(),
+            _ => panic!("Only GithubLocation supported"),
+          }
+        attaches: RemoteStorage
+    tmp_dir:
+      type: AncestorArgument
+      spec:
+        call: replication_storage_setup.tmp_dir
+        attaches: ReplicationStorageSetup
+    dataset_name:
+      type: AncestorArgument
+      spec:
+        attaches: DataSet
+        call: data_set.name.clone()
+    dest_file_name:
+      type: AncestorArgument
+      spec:
+        call: |
+          {
+            format!(
+                "{}.{}",
+                static_data_table.name,
+                match static_data_table.setup {
+                     StorageSetup::ReplicationStorageSetup(ref x) => x.get_download_extension(),
+                     _ => panic!("Storage setup must be ReplicationStorageSetup"),
+                }
+            ).to_string()
+          }
+        attaches: StaticDataTable
+    table_name:
+      type: AncestorArgument
+      spec:
+        call: static_data_table.name
+        attaches: StaticDataTable

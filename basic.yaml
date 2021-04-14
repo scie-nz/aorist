@@ -209,6 +209,7 @@ spec:
     - DownloadDataFromRemoteGCSLocation
     - DownloadDataFromRemoteWebLocation
     - DownloadDataFromRemotePushshiftAPILocationToNewlineDelimitedJSON
+    - DownloadDataFromGithubLocation
 ---
 type: Constraint
 spec:
@@ -236,6 +237,7 @@ spec:
       match ancestry.replication_storage_setup(root.clone()) {
           Ok(x) => match x.tmp_encoding {
               crate::encoding::Encoding::NewlineDelimitedJSONEncoding(_) => true,
+              crate::encoding::Encoding::CSVEncoding(_) => true,
               _ => false,
           }
           _ => false,
@@ -458,15 +460,18 @@ spec:
   requires:
     - DownloadDataFromRemote
     - RemoveFileHeader
+    - DownloadDataFromRemotePushshiftAPILocationToNewlineDelimitedJSON
   title: Convert JSON data to CSV
   body: |
       We need to convert the JSON data to CSV format to process it further.
   attachIf: |
-      |root: Concept<'a>, ancestry: &ConceptAncestry<'a>|
-      match ancestry.remote_storage(root.clone()).unwrap().encoding {
-          crate::encoding::Encoding::JSONEncoding(_) =>
-              ancestry.replication_storage_setup(root.clone()).is_ok(),
-          _ => false,
+      |root: Concept<'a>, ancestry: &ConceptAncestry<'a>| {
+          match ancestry.remote_storage(root.clone()).unwrap().encoding {
+              crate::encoding::Encoding::NewlineDelimitedJSONEncoding(_) => {
+                  ancestry.replication_storage_setup(root.clone()).is_ok()
+              },
+              _ => false,
+          }
       }
 ---
 type: Constraint
@@ -486,7 +491,7 @@ spec:
           _ => false,
       }
   body: |
-      We need to convert the TSV data to CSV 
+      We need to convert the TSV data to CSV
       format to process it further.
 ---
 type: Constraint
@@ -748,6 +753,7 @@ spec:
   requires:
     - DownloadDataFromRemote
     - CSVIsConverted
+    - RemoveFileHeader
   attachIf: |
       |root: Concept<'a>, ancestry: &ConceptAncestry<'a>|
       match ancestry.replication_storage_setup(root.clone()) {
@@ -769,6 +775,7 @@ spec:
   requires:
     - DownloadDataFromRemote
     - CSVIsConverted
+    - RemoveFileHeader
   attachIf: |
       |root: Concept<'a>, ancestry: &ConceptAncestry<'a>|
       match ancestry.replication_storage_setup(root.clone()) {
@@ -821,7 +828,7 @@ spec:
       }
   title: Numpy from newline-delimited JSON file
   body: |
-    We convert an intermediary newline-delimited JSON file to 
+    We convert an intermediary newline-delimited JSON file to
     a Numpy ndarray.
 ---
 type: Constraint
@@ -885,5 +892,25 @@ spec:
                _ => false,
             }
             _ => false,
+        }
+      }
+---
+type: Constraint
+spec:
+  name: DownloadDataFromGithubLocation
+  root: RemoteStorage
+  requiresProgram: true
+  title: Downloading data from Github
+  body: |
+      Data is stored in Github. We will only do a shallow clone of the file
+      from the repo, without downloading the entire dataset.
+  attachIf: |
+      |root: Concept<'a>, ancestry: &ConceptAncestry<'a>| {
+        if !ancestry.replication_storage_setup(root.clone()).is_ok() {
+          return false;
+        }
+        match ancestry.remote_storage(root.clone()).unwrap().location {
+          crate::location::RemoteLocation::GithubLocation(_) => true,
+          _ => false,
         }
       }

@@ -308,7 +308,7 @@ where
     ) -> Driver<'a, D> {
         let mut concept_map: HashMap<(Uuid, String), Concept<'a>> = HashMap::new();
         let concept = Concept::Universe((universe, 0, None));
-        concept.populate_child_concept_map(&mut concept_map);
+        concept.populate_child_concept_map(&mut concept_map, debug);
 
         let ancestors = Self::compute_all_ancestors(concept, &concept_map);
         let mut family_trees: HashMap<(Uuid, String), HashMap<String, HashSet<Uuid>>> =
@@ -342,7 +342,13 @@ where
         }
 
         let mut by_object_type: HashMap<String, Vec<Concept<'a>>> = HashMap::new();
-        for ((_uuid, object_type), concept) in concept_map.clone() {
+        if debug {
+            println!("Found the following concepts:");
+        }
+        for ((uuid, object_type), concept) in concept_map.clone() {
+            if debug {
+                println!("- {}: {}", &object_type, &uuid);
+            }
             by_object_type
                 .entry(object_type)
                 .or_insert(Vec::new())
@@ -523,6 +529,14 @@ where
                         }
                         gen_for_constraint.insert(root_key, Arc::new(RwLock::new(constraint)));
                     }
+                }
+            } else {
+                if debug {
+                    println!(
+                        "Found no concepts of type {} for {}",
+                        root_object_type,
+                        constraint_name,
+                    );
                 }
             }
             for req in builder.get_required_constraint_names() {

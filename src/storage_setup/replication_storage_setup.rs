@@ -26,9 +26,7 @@ impl ReplicationStorageSetup {
     pub fn get_download_extension(&self) -> String {
         match self.source.get_encoding() {
             Some(source_encoding) => {
-                if InnerEncoding::from(source_encoding.clone())
-                    == InnerEncoding::from(self.tmp_encoding.clone())
-                {
+                if source_encoding.is_same_variant_in_enum_as(&self.tmp_encoding) {
                     return source_encoding.get_default_file_extension();
                 } else {
                     return "downloaded".to_string();

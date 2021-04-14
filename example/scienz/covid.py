@@ -1,12 +1,10 @@
 from aorist import (
     RowStruct,
     MinioLocation,
-    WebLocation,
     StaticTabularLayout,
     ORCEncoding,
     CSVEncoding,
     SingleFileLayout,
-    RemoteStorage,
     HiveTableStorage,
     RemoteStorageSetup,
     StaticDataTable,
@@ -14,7 +12,7 @@ from aorist import (
     default_tabular_schema,
     attr_list,
     GithubLocation,
-    GitStorage,
+    RemoteStorage,
     CSVHeader,
 )
 
@@ -28,8 +26,7 @@ Defining dataset
 attributes = attr_list([
     attr.DateString("date"),
     attr.NaturalNumber("cases"),
-    attr.NaturalNumber("cdeaths"),
-
+    attr.NaturalNumber("deaths"),
 ])
 # A row is equivalent to a struct
 covid_ts_datum = RowStruct(
@@ -37,11 +34,12 @@ covid_ts_datum = RowStruct(
     attributes=attributes,
 )
 # Data can be found remotely, on the web
-remote = GitStorage(
+remote = RemoteStorage(
     location=GithubLocation(
         organization="nytimes",
         repository="covid-19-data",
         path="us.csv",
+        branch="master",
     ),
     layout=SingleFileLayout(),
     encoding=CSVEncoding(header=CSVHeader(num_lines=1)),
