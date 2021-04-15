@@ -13,6 +13,6 @@ pub struct GithubLocation {
     pub organization: String,
     pub repository: String,
     pub path: String,
-    #[py_default="\"main\".to_string()"]
+    #[py_default = "\"main\".to_string()"]
     pub branch: String,
 }

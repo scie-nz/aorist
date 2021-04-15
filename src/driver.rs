@@ -111,7 +111,7 @@ where
                     rw.clone(),
                     concepts.clone(),
                     ancestors,
-                )?))
+                )?)),
             );
         }
         Ok(states_map)
@@ -502,8 +502,8 @@ where
                                 );
                             }
                         }
-                        let constraint =
-                            builder.build_constraint(root.get_uuid(), potential_child_constraints)?;
+                        let constraint = builder
+                            .build_constraint(root.get_uuid(), potential_child_constraints)?;
                         let gen_for_constraint = generated_constraints
                             .entry(constraint_name.clone())
                             .or_insert(LinkedHashMap::new());
@@ -528,8 +528,7 @@ where
             } else {
                 debug!(
                     "Found no concepts of type {} for {}",
-                    root_object_type,
-                    constraint_name,
+                    root_object_type, constraint_name,
                 );
             }
             for req in builder.get_required_constraint_names() {
@@ -543,7 +542,7 @@ where
             for ((_root_id, root_type), rw) in v.into_iter() {
                 constraints.insert(
                     (rw.read().unwrap().get_uuid()?.clone(), root_type),
-                    rw.clone()
+                    rw.clone(),
                 );
             }
         }

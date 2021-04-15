@@ -1,3 +1,7 @@
+#![allow(non_upper_case_globals)]
+#![allow(non_camel_case_types)]
+#![allow(non_snake_case)]
+
 extern crate pyo3;
 pub mod access_policy;
 pub mod airflow_singleton;
@@ -166,28 +170,21 @@ pub fn dag(inner: InnerUniverse, constraints: Vec<String>, mode: &str) -> PyResu
     let mut universe = Universe::from(inner);
     universe.compute_uuids();
     let (output, _requirements) = match mode {
-        "airflow" => {
-            Driver::<AirflowDAG>::new(&universe, constraints.into_iter().collect())
-                .map_err(|e| pyo3::exceptions::PyException::new_err(e.to_string()))?
-                .run()
-        }
-        "prefect" => {
-            Driver::<PrefectDAG>::new(&universe, constraints.into_iter().collect())
-                .map_err(|e| pyo3::exceptions::PyException::new_err(e.to_string()))?
-                .run()
-        }
-        "python" => {
-            Driver::<PythonDAG>::new(&universe, constraints.into_iter().collect())
-                .map_err(|e| pyo3::exceptions::PyException::new_err(e.to_string()))?
-                .run()
-        }
-        "jupyter" => {
-            Driver::<JupyterDAG>::new(&universe, constraints.into_iter().collect())
-                .map_err(|e| pyo3::exceptions::PyException::new_err(e.to_string()))?
-                .run()
-        }
+        "airflow" => Driver::<AirflowDAG>::new(&universe, constraints.into_iter().collect())
+            .map_err(|e| pyo3::exceptions::PyException::new_err(e.to_string()))?
+            .run(),
+        "prefect" => Driver::<PrefectDAG>::new(&universe, constraints.into_iter().collect())
+            .map_err(|e| pyo3::exceptions::PyException::new_err(e.to_string()))?
+            .run(),
+        "python" => Driver::<PythonDAG>::new(&universe, constraints.into_iter().collect())
+            .map_err(|e| pyo3::exceptions::PyException::new_err(e.to_string()))?
+            .run(),
+        "jupyter" => Driver::<JupyterDAG>::new(&universe, constraints.into_iter().collect())
+            .map_err(|e| pyo3::exceptions::PyException::new_err(e.to_string()))?
+            .run(),
         _ => panic!("Unknown mode provided: {}", mode),
-    }.map_err(|e| pyo3::exceptions::PyException::new_err(e.to_string()))?;
+    }
+    .map_err(|e| pyo3::exceptions::PyException::new_err(e.to_string()))?;
     Ok(output.replace("\\\\", "\\"))
 }
 
@@ -283,3 +280,5 @@ fn aorist(py: Python, m: &PyModule) -> PyResult<()> {
     m.add("SQLParseError", py.get_type::<SQLParseError>())?;
     Ok(())
 }
+
+include!(concat!(env!("OUT_DIR"), "/bindings.rs"));

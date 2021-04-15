@@ -6,11 +6,11 @@ use anyhow::{Context, Result};
 use aorist_primitives::{define_constraint, register_constraint};
 use maplit::hashmap;
 use serde::{Deserialize, Serialize};
-use tracing::info;
 use std::collections::HashMap;
 use std::fmt;
 use std::marker::PhantomData;
 use std::sync::{Arc, RwLock};
+use tracing::info;
 
 pub struct ConstraintBuilder<T: TConstraint> {
     _phantom: PhantomData<T>,
@@ -35,7 +35,12 @@ where
     type Root;
     fn get_root_type_name() -> Result<String>;
     fn get_required_constraint_names() -> Vec<String>;
-    fn new(root_uuid: Uuid, potential_child_constraints: Vec<Arc<RwLock<Constraint>>>) -> Result<Self> where Self: Sized;
+    fn new(
+        root_uuid: Uuid,
+        potential_child_constraints: Vec<Arc<RwLock<Constraint>>>,
+    ) -> Result<Self>
+    where
+        Self: Sized;
     fn should_add<'a>(root: Concept<'a>, ancestry: &ConceptAncestry<'a>) -> bool;
 }
 pub trait ConstraintSatisfactionBase
@@ -93,7 +98,8 @@ impl Constraint {
         self.inner("get_root_uuid()")?.get_root_uuid()
     }
     pub fn get_downstream_constraints(&self) -> Result<Vec<Arc<RwLock<Constraint>>>> {
-        self.inner("get_downstream_constraints()")?.get_downstream_constraints()
+        self.inner("get_downstream_constraints()")?
+            .get_downstream_constraints()
     }
     pub fn requires_program(&self) -> Result<bool> {
         self.inner("requires_program()")?.requires_program()
@@ -124,9 +130,12 @@ impl Constraint {
     }
 
     fn inner(&self, caller: &str) -> Result<&AoristConstraint> {
-        self.inner.as_ref().with_context(|| format!(
-            "Called {} on Constraint struct with no inner: name={}, root={}", caller, self.name, self.root
-        ))
+        self.inner.as_ref().with_context(|| {
+            format!(
+                "Called {} on Constraint struct with no inner: name={}, root={}",
+                caller, self.name, self.root
+            )
+        })
     }
 }
 impl TAoristObject for Constraint {
