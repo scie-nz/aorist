@@ -1,1 +1,2 @@
-#include <bzlib.h>
+#include <Rinternals.h>
+#include <Rembedded.h> 
