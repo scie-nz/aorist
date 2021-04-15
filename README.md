@@ -638,4 +638,8 @@ ordering) and is responsible for instantiating it into valid code that will run
 in the specific deployment. A driver could, for instance, be responsible for
 translating the constraint graph into valid Airflow code that will run in a
 particular data deployment, etc.
-# aorist-dags
+
+# Testing
+```
+cargo test --no-default-features
+```
