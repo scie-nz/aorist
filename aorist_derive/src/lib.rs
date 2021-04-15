@@ -946,7 +946,7 @@ fn optimize_struct_fields(fields: &Punctuated<Field, Comma>, input: &DeriveInput
             _ => false,
         })
         .map(|x| x.0);
-    
+
     let map_field_name = fields
         .iter()
         .map(|field| (&field.ident, extract_type_from_linked_hash_map(&field.ty)))
@@ -979,7 +979,7 @@ fn optimize_struct_fields(fields: &Punctuated<Field, Comma>, input: &DeriveInput
                 }
                 self.#vec_field_name = new_elems;
             )*
-            
+
             #(
                 let mut new_elems = LinkedHashMap::new();
                 for (k, elem) in self.#map_field_name {
