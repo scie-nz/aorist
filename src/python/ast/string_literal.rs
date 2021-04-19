@@ -4,6 +4,7 @@ use pyo3::prelude::*;
 use pyo3::types::PyModule;
 use std::hash::Hash;
 use std::sync::{Arc, RwLock};
+use extendr_api::prelude::*;
 
 #[derive(Hash, PartialEq, Eq, Clone)]
 pub struct StringLiteral {
@@ -76,6 +77,7 @@ impl StringLiteral {
             .collect::<Vec<String>>();
         format!("\n{}\n{}", pretty_splits.join("\n"), offset,).to_string()
     }
+
     pub fn to_python_ast_node<'a>(
         &self,
         _py: Python,
@@ -88,6 +90,15 @@ impl StringLiteral {
         };
         ast_module.call1("Constant", (&value,))
     }
+
+    pub fn to_r_ast_node(&self, depth: usize) -> Robj {
+        let value = match self.is_sql {
+            false => self.value.clone(),
+            true => self.pretty_sql_value(depth),
+        };
+        Robj::from(value)
+    }
+
     pub fn new_wrapped(value: String, is_sql: bool) -> Arc<RwLock<Self>> {
         Arc::new(RwLock::new(Self::new(value, is_sql)))
     }

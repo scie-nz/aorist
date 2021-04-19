@@ -643,3 +643,10 @@ particular data deployment, etc.
 ```
 cargo test --no-default-features
 ```
+
+Note: make sure that libpython is in your `LD_LIBRARY_PATH`. E.g.:
+
+
+```
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/home/bogdan/anaconda3/lib/
+```

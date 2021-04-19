@@ -12,7 +12,6 @@ use std::fs;
 use std::fs::OpenOptions;
 use std::io::Write;
 use std::path::Path;
-use std::path::PathBuf;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 struct AncestorArgument {
@@ -531,56 +530,7 @@ impl bindgen::callbacks::ParseCallbacks for IgnoreMacros {
     }
 }
 
-/// From [this tutorial](https://rust-lang.github.io/rust-bindgen/tutorial-3.html)
-fn create_bindings() {
-    // Tell cargo to tell rustc to link the system bzip2
-    // shared library.
-    println!("cargo:include=/usr/share/R/include");
-    println!("cargo:rustc-link-path=/usr/lib/R/lib");
-    println!("cargo:rustc-link-lib=R");
-    // Tell cargo to invalidate the built crate whenever the wrapper changes
-    println!("cargo:rerun-if-changed=wrapper.h");
-    let ignored_macros = IgnoreMacros(
-        vec![
-            "FP_INFINITE".into(),
-            "FP_NAN".into(),
-            "FP_NORMAL".into(),
-            "FP_SUBNORMAL".into(),
-            "FP_ZERO".into(),
-            "IPPORT_RESERVED".into(),
-        ]
-        .into_iter()
-        .collect(),
-    );
-
-    // The bindgen::Builder is the main entry point
-    // to bindgen, and lets you build up options for
-    // the resulting bindings.
-    let bindings = bindgen::Builder::default()
-        // The input header we would like to generate
-        // bindings for.
-        .header("wrapper.h")
-        // Tell cargo to invalidate the built crate whenever any of the
-        // included header files changed.
-        .clang_arg("-I/usr/share/R/include")
-        .parse_callbacks(Box::new(bindgen::CargoCallbacks))
-        .parse_callbacks(Box::new(ignored_macros))
-        // Finish the builder and generate the bindings.
-        .rustfmt_bindings(true)
-        .generate()
-        // Unwrap the Result and panic on failure.
-        .expect("Unable to generate bindings");
-
-    // Write the bindings to the $OUT_DIR/bindings.rs file.
-    let out_path = PathBuf::from(env::var("OUT_DIR").unwrap());
-    bindings
-        .write_to_file(out_path.join("bindings.rs"))
-        .expect("Couldn't write bindings!");
-}
-
 fn main() {
-    create_bindings();
-
     let _file = OpenOptions::new()
         .truncate(true)
         .write(true)

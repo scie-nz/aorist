@@ -548,3 +548,14 @@ impl ParameterTuple {
         call
     }
 }
+mod r_ast_tests {
+    use extendr_api::prelude::*;
+    use crate::python::StringLiteral;
+    #[test]
+    fn test_string_literal() {
+        test! {
+            let s = StringLiteral::new_wrapped("test".to_string(), false);
+            assert_eq!(s.read().unwrap().to_r_ast_node(0), r!("test"));
+        }
+    }
+}
