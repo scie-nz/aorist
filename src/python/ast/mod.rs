@@ -29,6 +29,7 @@ use std::collections::VecDeque;
 use std::hash::{Hash, Hasher};
 use std::sync::{Arc, RwLock};
 use uuid::Uuid;
+use extendr_api::prelude::*;
 
 define_ast_node!(
     PythonImport,
@@ -388,6 +389,13 @@ define_ast_node!(
     },
     name: String,
 );
+
+impl SimpleIdentifier{
+    pub fn to_r_ast_node(&self, _depth: usize) -> Robj {
+        r!(Symbol(&self.name))
+    }
+}
+
 define_ast_node!(
     BooleanLiteral,
     |_| Vec::new(),
@@ -550,12 +558,19 @@ impl ParameterTuple {
 }
 mod r_ast_tests {
     use extendr_api::prelude::*;
-    use crate::python::StringLiteral;
+    use crate::python::*;
     #[test]
     fn test_string_literal() {
         test! {
             let s = StringLiteral::new_wrapped("test".to_string(), false);
             assert_eq!(s.read().unwrap().to_r_ast_node(0), r!("test"));
+        }
+    }
+    #[test]
+    fn test_simple_identifier() {
+        test! {
+            let s = SimpleIdentifier::new_wrapped("test".to_string());
+            assert_eq!(s.read().unwrap().to_r_ast_node(0), r!(Symbol("test")));
         }
     }
 }
