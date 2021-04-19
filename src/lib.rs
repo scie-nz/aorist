@@ -282,4 +282,3 @@ fn aorist(py: Python, m: &PyModule) -> PyResult<()> {
     Ok(())
 }
 
-include!(concat!(env!("OUT_DIR"), "/bindings.rs"));

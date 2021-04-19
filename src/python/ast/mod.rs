@@ -368,6 +368,13 @@ define_ast_node!(
     b: AST,
     store: bool,
 );
+impl Subscript{
+    pub fn to_r_ast_node(&self, _depth: usize) -> Robj {
+        let a = r!(Symbol("a"));
+        let b = r!(Symbol("b"));
+        call!("call", "[[", a, b).unwrap() 
+    }
+}
 impl TAssignmentTarget for Subscript {
     fn as_assignment_target(&self) -> Self {
         Self {
