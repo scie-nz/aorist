@@ -82,13 +82,15 @@ define_ast_node!(
             .map(|x| x.to_r_ast_node(depth))
             .collect::<Vec<_>>();
 
-        call!(
-            "for",
+        r!(Lang(&[
+            r!(Symbol("for")),
             for_loop.target.to_r_ast_node(depth),
             for_loop.iter.to_r_ast_node(depth),
-            call!("{", pairlist).unwrap()
-        )
-        .unwrap()
+            r!(Lang(&[
+                r!(Symbol("{")),
+                r!(List(pairlist)),
+            ]))
+        ]))
     },
     target: AST,
     iter: AST,
@@ -687,6 +689,29 @@ mod r_ast_tests {
             let import = AST::ImportNode(ImportNode::new_wrapped(sym));
             let r_node = import.to_r_ast_node(0);
             assert_eq!(r_node, eval_string("call('library', rlang::sym('ggplot'))").unwrap());
+        }
+    }
+    #[test]
+    fn test_for_loop() {
+        test! {
+            let it = AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("i".to_string()));
+            let vec = AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("vec".to_string()));
+            
+            let sym = AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("a".to_string()));
+            let assign = AST::Assignment(Assignment::new_wrapped(sym, it.clone()));
+            let for_loop = AST::ForLoop(ForLoop::new_wrapped(it, vec, vec![assign]));
+            let r_node = for_loop.to_r_ast_node(0);
+            assert_eq!(r_node, eval_string(
+                "call('for', rlang::sym('i'), rlang::sym('vec'), call('{', list(call('<-', rlang::sym('a'), rlang::sym('i')))))"
+            ).unwrap());
+        }
+    }
+    #[test]
+    fn test_expression() {
+        test! {
+            let sym = AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("ggplot".to_string()));
+            let expr = AST::Expression(Expression::new_wrapped(sym));
+            assert_eq!(expr.to_r_ast_node(0), sym!(ggplot));
         }
     }
 }
