@@ -32,12 +32,12 @@ use std::sync::{Arc, RwLock};
 use uuid::Uuid;
 
 define_ast_node!(
-    PythonImport,
-    |import: &PythonImport| vec![import.inner.clone()],
-    |import: &PythonImport, py: Python, ast_module: &'a PyModule, depth: usize| {
+    ImportNode,
+    |import: &ImportNode| vec![import.inner.clone()],
+    |import: &ImportNode, py: Python, ast_module: &'a PyModule, depth: usize| {
         import.to_python_ast_node(py, ast_module, depth)
     },
-    |import: &PythonImport, depth: usize| {
+    |import: &ImportNode, depth: usize| {
         call!("call", "library", import.inner.to_r_ast_node(depth)).unwrap()
     },
     inner: AST,
@@ -531,7 +531,7 @@ register_ast_nodes!(
     Expression,
     Assignment,
     ForLoop,
-    PythonImport,
+    ImportNode,
     Add,
     BinOp,
 );
