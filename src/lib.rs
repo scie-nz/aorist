@@ -281,4 +281,3 @@ fn aorist(py: Python, m: &PyModule) -> PyResult<()> {
     m.add("SQLParseError", py.get_type::<SQLParseError>())?;
     Ok(())
 }
-

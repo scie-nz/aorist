@@ -85,6 +85,18 @@ macro_rules! register_ast_nodes {
                     )+
                 }
             }
+            pub fn to_r_ast_node(
+                &self,
+                depth: usize,
+            ) -> Robj {
+                match &self {
+                    $(
+                        Self::$variant(x) => x.read().unwrap().to_r_ast_node(
+                            depth,
+                        ),
+                    )+
+                }
+            }
         }
         impl PartialEq for $name {
             fn eq(&self, other: &Self) -> bool {
@@ -225,6 +237,7 @@ macro_rules! define_ast_node {
     ($name:ident,
      $descendants:expr,
      $py_ast_closure:expr,
+     $r_ast_closure:expr,
      $($field: ident : $field_type: ty,)*) => {
         #[derive(Hash, PartialEq, Eq, Clone, Optimizable)]
         pub struct $name {
@@ -246,6 +259,9 @@ macro_rules! define_ast_node {
                 depth: usize,
             ) -> PyResult<&'a PyAny> {
                 ($py_ast_closure)(self, py, ast_module, depth)
+            }
+            pub fn to_r_ast_node(&self, depth: usize) -> Robj {
+                ($r_ast_closure)(self, depth)
             }
             fn new($(
                 $field: $field_type,

@@ -22,6 +22,7 @@ pub use string_literal::StringLiteral;
 use crate::constraint_state::AncestorRecord;
 use aorist_derive::Optimizable;
 use aorist_primitives::{define_ast_node, register_ast_nodes};
+use extendr_api::prelude::*;
 use linked_hash_map::LinkedHashMap;
 use pyo3::prelude::*;
 use pyo3::types::{PyList, PyModule, PyString, PyTuple};
@@ -29,7 +30,6 @@ use std::collections::VecDeque;
 use std::hash::{Hash, Hasher};
 use std::sync::{Arc, RwLock};
 use uuid::Uuid;
-use extendr_api::prelude::*;
 
 define_ast_node!(
     PythonImport,
@@ -37,6 +37,7 @@ define_ast_node!(
     |import: &PythonImport, py: Python, ast_module: &'a PyModule, depth: usize| {
         import.to_python_ast_node(py, ast_module, depth)
     },
+    |import: &PythonImport, depth: usize| { call!("call", "library", import.inner.to_r_ast_node(depth)).unwrap() },
     inner: AST,
 );
 
@@ -68,6 +69,16 @@ define_ast_node!(
                 empty_list.as_ref(),
             ),
         )
+    },
+    |for_loop: &ForLoop, depth: usize| {
+        let pairlist = for_loop.body.iter().map(|x| x.to_r_ast_node(depth)).collect::<Vec<_>>();
+
+        call!(
+            "for",
+            for_loop.target.to_r_ast_node(depth),
+            for_loop.iter.to_r_ast_node(depth),
+            call!("{", pairlist).unwrap()
+        ).unwrap()
     },
     target: AST,
     iter: AST,
@@ -101,6 +112,14 @@ define_ast_node!(
             ),
         )
     },
+    |assign: &Assignment, depth: usize| {
+        call!(
+            "call",
+            "<-",
+            assign.target.to_r_ast_node(depth),
+            assign.call.to_r_ast_node(depth)
+        ).unwrap()
+    },
     target: AST,
     call: AST,
 );
@@ -113,12 +132,14 @@ define_ast_node!(
             (expr.inner.to_python_ast_node(py, ast_module, depth)?,),
         )
     },
+    |expr: &Expression, depth: usize| { expr.inner.to_r_ast_node(depth) },
     inner: AST,
 );
 define_ast_node!(
     Add,
     |_node: &Add| vec![],
     |_node: &Add, _py: Python, ast_module: &'a PyModule, _depth: usize| { ast_module.call0("Add") },
+    |_add: &Add, _depth: usize| { panic!("Should not call to_r_ast_node on Add objects directly") },
 );
 define_ast_node!(
     BinOp,
@@ -132,6 +153,18 @@ define_ast_node!(
                 node.right.to_python_ast_node(py, ast_module, depth)?,
             ),
         )
+    },
+    |binop: &BinOp, depth: usize| {
+        let op_str = match binop.op {
+            AST::Add(_) => "+",
+            _ => panic!("AST node not supported as R operator"),
+        };
+        call!(
+            "call",
+            op_str,
+            binop.left.to_r_ast_node(depth),
+            binop.right.to_r_ast_node(depth)
+        ).unwrap()
     },
     left: AST,
     op: AST,
@@ -154,6 +187,10 @@ define_ast_node!(
             .collect::<Vec<_>>();
         let children_list = PyList::new(py, children);
         ast_module.call1("List", (children_list.as_ref(), mode))
+    },
+    |list: &List, depth: usize| {
+        let elems = list.elems.iter().map(|x| x.to_r_ast_node(depth)).collect::<Vec<_>>();
+        r!(List(&elems))
     },
     elems: Vec<AST>,
     store: bool,
@@ -190,6 +227,14 @@ define_ast_node!(
         let values_list = PyList::new(py, values);
         ast_module.call1("Dict", (keys_list.as_ref(), values_list.as_ref()))
     },
+    |dict: &Dict, depth: usize| {
+        call!("list", Pairlist{
+            names_and_values: dict.elems
+                .iter()
+                .map(|(k, v)| (k.clone(), v.to_r_ast_node(depth)))
+                .collect::<Vec<(String, Robj)>>()
+        }).unwrap()
+    },
     elems: LinkedHashMap<String, AST>,
 );
 impl Dict {
@@ -215,6 +260,7 @@ define_ast_node!(
         let children_list = PyList::new(py, children);
         ast_module.call1("Tuple", (children_list.as_ref(), mode))
     },
+    |_tuple: &Tuple, _depth: usize| { panic!("No R correspondent for Tuple nodes") },
     elems: Vec<AST>,
     store: bool,
 );
@@ -242,6 +288,7 @@ define_ast_node!(
         let name_ast = PyString::new(py, &attribute.name);
         ast_module.call1("Attribute", (val_ast, name_ast.as_ref(), mode))
     },
+    |_attribute: &Attribute, _depth: usize| { panic!("No R correspondent for Attribute nodes") },
     value: AST,
     name: String,
     store: bool,
@@ -296,6 +343,15 @@ define_ast_node!(
         let function = call.function.to_python_ast_node(py, ast_module, depth)?;
         ast_module.call1("Call", (function, args, kwargs))
     },
+    |call: &Call, depth: usize| {
+        assert_eq!(call.args.len(), 0);
+        let mut args = call.keywords.clone();
+        args.insert("name".to_string(), call.function.clone());
+        let arglist: Pairlist<Vec<(String, Robj)>> = Pairlist{
+            names_and_values: args.iter().map(|(k, v)| (k.clone(), v.to_r_ast_node(depth))).collect()
+        };
+        call!("do.call", "call", arglist).unwrap()
+    },
     function: AST,
     args: Vec<AST>,
     keywords: LinkedHashMap<String, AST>,
@@ -346,6 +402,17 @@ define_ast_node!(
             ),
         )
     },
+    |formatted: &Formatted, depth: usize| {
+        let fmt_node = formatted.fmt.to_r_ast_node(depth);
+        let arglist = extendr_api::prelude::Pairlist{
+            names_and_values: formatted
+                .keywords
+                .iter()
+                .map(|(k, v)| (k.clone(), v.to_r_ast_node(depth)))
+                .collect::<Vec<_>>()
+        };
+        call!("call", "glue::glue", fmt_node, arglist).unwrap()
+    },
     fmt: AST,
     keywords: LinkedHashMap<String, AST>,
 );
@@ -364,17 +431,15 @@ define_ast_node!(
         let value = subscript.a.to_python_ast_node(py, ast_module, depth + 1)?;
         ast_module.call1("Subscript", (value, idx, mode))
     },
+    |subscript: &Subscript, depth: usize| {
+        let a_node = subscript.a.to_r_ast_node(depth);
+        let b_node = subscript.b.to_r_ast_node(depth);
+        call!("call", "[[", a_node, b_node).unwrap()
+    },
     a: AST,
     b: AST,
     store: bool,
 );
-impl Subscript{
-    pub fn to_r_ast_node(&self, _depth: usize) -> Robj {
-        let a = r!(Symbol("a"));
-        let b = r!(Symbol("b"));
-        call!("call", "[[", a, b).unwrap() 
-    }
-}
 impl TAssignmentTarget for Subscript {
     fn as_assignment_target(&self) -> Self {
         Self {
@@ -394,14 +459,9 @@ define_ast_node!(
             (PyString::new(py, &simple_identifier.name).as_ref(),),
         )
     },
+    |simple_identifier: &SimpleIdentifier, _depth: usize| { r!(Symbol(&simple_identifier.name)) },
     name: String,
 );
-
-impl SimpleIdentifier{
-    pub fn to_r_ast_node(&self, _depth: usize) -> Robj {
-        r!(Symbol(&self.name))
-    }
-}
 
 define_ast_node!(
     BooleanLiteral,
@@ -409,6 +469,7 @@ define_ast_node!(
     |lit: &BooleanLiteral, _py: Python, ast_module: &'a PyModule, _depth: usize| {
         ast_module.call1("Constant", (lit.val,))
     },
+    |lit: &BooleanLiteral, _depth: usize| { r!(lit.val) },
     val: bool,
 );
 define_ast_node!(
@@ -417,6 +478,7 @@ define_ast_node!(
     |lit: &BigIntLiteral, _py: Python, ast_module: &'a PyModule, _depth: usize| {
         ast_module.call1("Constant", (lit.val,))
     },
+    |lit: &BigIntLiteral, _depth: usize| { r!(lit.val) },
     // TODO: deprecate use of BigInt when removing rustpython
     val: i64,
 );
@@ -426,6 +488,7 @@ define_ast_node!(
     |_, py: Python, ast_module: &'a PyModule, _depth: usize| {
         ast_module.call1("Constant", (py.None().as_ref(py),))
     },
+    |_none, _depth| { r!(NULL) },
 );
 
 register_ast_nodes!(
@@ -563,9 +626,10 @@ impl ParameterTuple {
         call
     }
 }
+#[allow(unused_imports)]
 mod r_ast_tests {
     use extendr_api::prelude::*;
-    use crate::python::*;
+    use crate::python::{SimpleIdentifier, StringLiteral};
     #[test]
     fn test_string_literal() {
         test! {

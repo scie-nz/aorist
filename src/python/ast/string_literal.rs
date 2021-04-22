@@ -1,10 +1,10 @@
 use crate::constraint_state::AncestorRecord;
 use crate::python::ast::AST;
+use extendr_api::prelude::*;
 use pyo3::prelude::*;
 use pyo3::types::PyModule;
 use std::hash::Hash;
 use std::sync::{Arc, RwLock};
-use extendr_api::prelude::*;
 
 #[derive(Hash, PartialEq, Eq, Clone)]
 pub struct StringLiteral {
