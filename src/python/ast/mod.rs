@@ -32,12 +32,17 @@ use std::sync::{Arc, RwLock};
 use uuid::Uuid;
 
 define_ast_node!(
-    PythonImport,
-    |import: &PythonImport| vec![import.inner.clone()],
-    |import: &PythonImport, py: Python, ast_module: &'a PyModule, depth: usize| {
+    ImportNode,
+    |import: &ImportNode| vec![import.inner.clone()],
+    |import: &ImportNode, py: Python, ast_module: &'a PyModule, depth: usize| {
         import.to_python_ast_node(py, ast_module, depth)
     },
-    |import: &PythonImport, depth: usize| { call!("call", "library", import.inner.to_r_ast_node(depth)).unwrap() },
+    |import: &ImportNode, depth: usize| {
+        r!(Lang(&[
+            r!(Symbol("library")),
+            import.inner.to_r_ast_node(depth)
+        ]))
+    },
     inner: AST,
 );
 
@@ -71,14 +76,18 @@ define_ast_node!(
         )
     },
     |for_loop: &ForLoop, depth: usize| {
-        let pairlist = for_loop.body.iter().map(|x| x.to_r_ast_node(depth)).collect::<Vec<_>>();
+        let pairlist = for_loop
+            .body
+            .iter()
+            .map(|x| x.to_r_ast_node(depth))
+            .collect::<Vec<_>>();
 
-        call!(
-            "for",
+        r!(Lang(&[
+            r!(Symbol("for")),
             for_loop.target.to_r_ast_node(depth),
             for_loop.iter.to_r_ast_node(depth),
-            call!("{", pairlist).unwrap()
-        ).unwrap()
+            r!(Lang(&[r!(Symbol("{")), r!(List(pairlist)),]))
+        ]))
     },
     target: AST,
     iter: AST,
@@ -113,12 +122,11 @@ define_ast_node!(
         )
     },
     |assign: &Assignment, depth: usize| {
-        call!(
-            "call",
-            "<-",
+        r!(Lang(&[
+            r!(Symbol("<-")),
             assign.target.to_r_ast_node(depth),
             assign.call.to_r_ast_node(depth)
-        ).unwrap()
+        ]))
     },
     target: AST,
     call: AST,
@@ -159,12 +167,11 @@ define_ast_node!(
             AST::Add(_) => "+",
             _ => panic!("AST node not supported as R operator"),
         };
-        call!(
-            "call",
-            op_str,
+        r!(Lang(&[
+            r!(Symbol(op_str)),
             binop.left.to_r_ast_node(depth),
             binop.right.to_r_ast_node(depth)
-        ).unwrap()
+        ]))
     },
     left: AST,
     op: AST,
@@ -189,8 +196,13 @@ define_ast_node!(
         ast_module.call1("List", (children_list.as_ref(), mode))
     },
     |list: &List, depth: usize| {
-        let elems = list.elems.iter().map(|x| x.to_r_ast_node(depth)).collect::<Vec<_>>();
-        r!(List(&elems))
+        let mut elems = list
+            .elems
+            .iter()
+            .map(|x| x.to_r_ast_node(depth))
+            .collect::<Vec<_>>();
+        elems.insert(0, r!(Symbol("list")));
+        r!(Lang(&elems))
     },
     elems: Vec<AST>,
     store: bool,
@@ -228,12 +240,14 @@ define_ast_node!(
         ast_module.call1("Dict", (keys_list.as_ref(), values_list.as_ref()))
     },
     |dict: &Dict, depth: usize| {
-        call!("list", Pairlist{
-            names_and_values: dict.elems
-                .iter()
-                .map(|(k, v)| (k.clone(), v.to_r_ast_node(depth)))
-                .collect::<Vec<(String, Robj)>>()
-        }).unwrap()
+        let elems = dict
+            .elems
+            .values()
+            .map(|x| x.to_r_ast_node(depth))
+            .collect::<Vec<_>>();
+        let obj = r!(List(&elems));
+        obj.set_names(dict.elems.keys()).unwrap();
+        obj
     },
     elems: LinkedHashMap<String, AST>,
 );
@@ -345,12 +359,21 @@ define_ast_node!(
     },
     |call: &Call, depth: usize| {
         assert_eq!(call.args.len(), 0);
-        let mut args = call.keywords.clone();
-        args.insert("name".to_string(), call.function.clone());
-        let arglist: Pairlist<Vec<(String, Robj)>> = Pairlist{
-            names_and_values: args.iter().map(|(k, v)| (k.clone(), v.to_r_ast_node(depth))).collect()
-        };
-        call!("do.call", "call", arglist).unwrap()
+        let mut args = LinkedHashMap::new();
+        args.insert("n".to_string(), call.function.clone());
+        for (k, v) in call.keywords.clone() {
+            args.insert(k, v);
+        }
+        let mut elems = args
+            .values()
+            .map(|x| x.to_r_ast_node(depth))
+            .collect::<Vec<_>>();
+        elems.insert(0, r!("call"));
+        let obj = r!(List(&elems));
+        let mut names = args.keys().map(|x| x.clone()).collect::<Vec<_>>();
+        names.insert(0, "name".to_string());
+        obj.set_names(names).unwrap();
+        call!("do.call", "call", obj, quote = TRUE).unwrap()
     },
     function: AST,
     args: Vec<AST>,
@@ -404,12 +427,12 @@ define_ast_node!(
     },
     |formatted: &Formatted, depth: usize| {
         let fmt_node = formatted.fmt.to_r_ast_node(depth);
-        let arglist = extendr_api::prelude::Pairlist{
+        let arglist = extendr_api::prelude::Pairlist {
             names_and_values: formatted
                 .keywords
                 .iter()
                 .map(|(k, v)| (k.clone(), v.to_r_ast_node(depth)))
-                .collect::<Vec<_>>()
+                .collect::<Vec<_>>(),
         };
         call!("call", "glue::glue", fmt_node, arglist).unwrap()
     },
@@ -459,7 +482,11 @@ define_ast_node!(
             (PyString::new(py, &simple_identifier.name).as_ref(),),
         )
     },
-    |simple_identifier: &SimpleIdentifier, _depth: usize| { r!(Symbol(&simple_identifier.name)) },
+    |simple_identifier: &SimpleIdentifier, _depth: usize| {
+        //let call = format!("call(\"rlang::sym\", \"{}\")", simple_identifier.name);
+        //eval_string(&call).unwrap()
+        r!(Symbol(&simple_identifier.name.clone()))
+    },
     name: String,
 );
 
@@ -508,7 +535,7 @@ register_ast_nodes!(
     Expression,
     Assignment,
     ForLoop,
-    PythonImport,
+    ImportNode,
     Add,
     BinOp,
 );
@@ -628,8 +655,8 @@ impl ParameterTuple {
 }
 #[allow(unused_imports)]
 mod r_ast_tests {
+    use crate::python::*;
     use extendr_api::prelude::*;
-    use crate::python::{SimpleIdentifier, StringLiteral};
     #[test]
     fn test_string_literal() {
         test! {
@@ -641,7 +668,99 @@ mod r_ast_tests {
     fn test_simple_identifier() {
         test! {
             let s = SimpleIdentifier::new_wrapped("test".to_string());
-            assert_eq!(s.read().unwrap().to_r_ast_node(0), r!(Symbol("test")));
+            assert_eq!(s.read().unwrap().to_r_ast_node(0), sym!(test));
+        }
+    }
+    #[test]
+    fn test_assignment() {
+        test! {
+            let sym = AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("a".to_string()));
+            let val = AST::StringLiteral(StringLiteral::new_wrapped("b".to_string(), false));
+            let assign = AST::Assignment(Assignment::new_wrapped(sym, val));
+            let r_node = assign.to_r_ast_node(0);
+            assert_eq!(r_node, eval_string("call('<-', rlang::sym('a'), 'b')").unwrap());
+        }
+    }
+    #[test]
+    fn test_import() {
+        test! {
+            let sym = AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("ggplot".to_string()));
+            let import = AST::ImportNode(ImportNode::new_wrapped(sym));
+            let r_node = import.to_r_ast_node(0);
+            assert_eq!(r_node, eval_string("call('library', rlang::sym('ggplot'))").unwrap());
+        }
+    }
+    #[test]
+    fn test_for_loop() {
+        test! {
+            let it = AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("i".to_string()));
+            let vec = AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("vec".to_string()));
+
+            let sym = AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("a".to_string()));
+            let assign = AST::Assignment(Assignment::new_wrapped(sym, it.clone()));
+            let for_loop = AST::ForLoop(ForLoop::new_wrapped(it, vec, vec![assign]));
+            let r_node = for_loop.to_r_ast_node(0);
+            assert_eq!(r_node, eval_string(
+                "call('for', rlang::sym('i'), rlang::sym('vec'), call('{', list(call('<-', rlang::sym('a'), rlang::sym('i')))))"
+            ).unwrap());
+        }
+    }
+    #[test]
+    fn test_expression() {
+        test! {
+            let sym = AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("ggplot".to_string()));
+            let expr = AST::Expression(Expression::new_wrapped(sym));
+            assert_eq!(expr.to_r_ast_node(0), sym!(ggplot));
+        }
+    }
+    #[test]
+    fn test_binop() {
+        test! {
+            let sym_a = AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("a".to_string()));
+            let sym_b = AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("b".to_string()));
+            let op = AST::Add(Add::new_wrapped());
+            let binop = AST::BinOp(BinOp::new_wrapped(sym_a, op, sym_b));
+            let r_node = binop.to_r_ast_node(0);
+            assert_eq!(r_node, eval_string("call('+', rlang::sym('a'), rlang::sym('b'))").unwrap());
+        }
+    }
+    #[test]
+    fn test_list() {
+        test! {
+            let sym_a = AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("a".to_string()));
+            let sym_b = AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("b".to_string()));
+            let list = AST::List(crate::python::List::new_wrapped(vec![sym_a, sym_b], false));
+            let r_node = list.to_r_ast_node(0);
+            assert_eq!(r_node, eval_string("call('list', rlang::sym('a'), rlang::sym('b'))").unwrap());
+        }
+    }
+    #[test]
+    fn test_dict() {
+        test! {
+            let sym_a = AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("a".to_string()));
+            let sym_b = AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("b".to_string()));
+            let mut map = linked_hash_map::LinkedHashMap::new();
+            map.insert("x".to_string(), sym_a);
+            map.insert("y".to_string(), sym_b);
+            let dict = AST::Dict(crate::python::Dict::new_wrapped(map));
+            let r_node = dict.to_r_ast_node(0);
+            assert_eq!(r_node, eval_string("list(x=rlang::sym('a'), y=rlang::sym('b'))").unwrap());
+            // N.B.: this also evaluates as correct -- names don't seem to matter
+            assert_eq!(r_node, eval_string("list(z=rlang::sym('a'), y=rlang::sym('b'))").unwrap());
+        }
+    }
+    #[test]
+    fn test_call() {
+        test! {
+            let sym_fun = AST::StringLiteral(StringLiteral::new_wrapped("fun".to_string(), false));
+            let sym_a = AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("a".to_string()));
+            let sym_b = AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("b".to_string()));
+            let mut map = linked_hash_map::LinkedHashMap::new();
+            map.insert("x".to_string(), sym_a);
+            map.insert("y".to_string(), sym_b);
+            let dict = AST::Call(crate::python::Call::new_wrapped(sym_fun, vec![], map));
+            let r_node = dict.to_r_ast_node(0);
+            assert_eq!(r_node, eval_string("call('call', name='fun', x=rlang::sym('a'), y=rlang::sym('b'))").unwrap());
         }
     }
 }
