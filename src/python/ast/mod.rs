@@ -86,10 +86,7 @@ define_ast_node!(
             r!(Symbol("for")),
             for_loop.target.to_r_ast_node(depth),
             for_loop.iter.to_r_ast_node(depth),
-            r!(Lang(&[
-                r!(Symbol("{")),
-                r!(List(pairlist)),
-            ]))
+            r!(Lang(&[r!(Symbol("{")), r!(List(pairlist)),]))
         ]))
     },
     target: AST,
@@ -243,17 +240,14 @@ define_ast_node!(
         ast_module.call1("Dict", (keys_list.as_ref(), values_list.as_ref()))
     },
     |dict: &Dict, depth: usize| {
-        call!(
-            "list",
-            Pairlist {
-                names_and_values: dict
-                    .elems
-                    .iter()
-                    .map(|(k, v)| (k.clone(), v.to_r_ast_node(depth)))
-                    .collect::<Vec<(String, Robj)>>()
-            }
-        )
-        .unwrap()
+        let elems = dict
+            .elems
+            .values()
+            .map(|x| x.to_r_ast_node(depth))
+            .collect::<Vec<_>>();
+        let obj = r!(List(&elems));
+        obj.set_names(dict.elems.keys()).unwrap();
+        obj
     },
     elems: LinkedHashMap<String, AST>,
 );
@@ -365,15 +359,21 @@ define_ast_node!(
     },
     |call: &Call, depth: usize| {
         assert_eq!(call.args.len(), 0);
-        let mut args = call.keywords.clone();
-        args.insert("name".to_string(), call.function.clone());
-        let arglist: Pairlist<Vec<(String, Robj)>> = Pairlist {
-            names_and_values: args
-                .iter()
-                .map(|(k, v)| (k.clone(), v.to_r_ast_node(depth)))
-                .collect(),
-        };
-        call!("do.call", "call", arglist).unwrap()
+        let mut args = LinkedHashMap::new();
+        args.insert("n".to_string(), call.function.clone());
+        for (k, v) in call.keywords.clone() {
+            args.insert(k, v);
+        }
+        let mut elems = args
+            .values()
+            .map(|x| x.to_r_ast_node(depth))
+            .collect::<Vec<_>>();
+        elems.insert(0, r!("call"));
+        let obj = r!(List(&elems));
+        let mut names = args.keys().map(|x| x.clone()).collect::<Vec<_>>();
+        names.insert(0, "name".to_string());
+        obj.set_names(names).unwrap();
+        call!("do.call", "call", obj, quote = TRUE).unwrap()
     },
     function: AST,
     args: Vec<AST>,
@@ -695,7 +695,7 @@ mod r_ast_tests {
         test! {
             let it = AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("i".to_string()));
             let vec = AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("vec".to_string()));
-            
+
             let sym = AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("a".to_string()));
             let assign = AST::Assignment(Assignment::new_wrapped(sym, it.clone()));
             let for_loop = AST::ForLoop(ForLoop::new_wrapped(it, vec, vec![assign]));
@@ -732,6 +732,35 @@ mod r_ast_tests {
             let list = AST::List(crate::python::List::new_wrapped(vec![sym_a, sym_b], false));
             let r_node = list.to_r_ast_node(0);
             assert_eq!(r_node, eval_string("call('list', rlang::sym('a'), rlang::sym('b'))").unwrap());
+        }
+    }
+    #[test]
+    fn test_dict() {
+        test! {
+            let sym_a = AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("a".to_string()));
+            let sym_b = AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("b".to_string()));
+            let mut map = linked_hash_map::LinkedHashMap::new();
+            map.insert("x".to_string(), sym_a);
+            map.insert("y".to_string(), sym_b);
+            let dict = AST::Dict(crate::python::Dict::new_wrapped(map));
+            let r_node = dict.to_r_ast_node(0);
+            assert_eq!(r_node, eval_string("list(x=rlang::sym('a'), y=rlang::sym('b'))").unwrap());
+            // N.B.: this also evaluates as correct -- names don't seem to matter
+            assert_eq!(r_node, eval_string("list(z=rlang::sym('a'), y=rlang::sym('b'))").unwrap());
+        }
+    }
+    #[test]
+    fn test_call() {
+        test! {
+            let sym_fun = AST::StringLiteral(StringLiteral::new_wrapped("fun".to_string(), false));
+            let sym_a = AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("a".to_string()));
+            let sym_b = AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("b".to_string()));
+            let mut map = linked_hash_map::LinkedHashMap::new();
+            map.insert("x".to_string(), sym_a);
+            map.insert("y".to_string(), sym_b);
+            let dict = AST::Call(crate::python::Call::new_wrapped(sym_fun, vec![], map));
+            let r_node = dict.to_r_ast_node(0);
+            assert_eq!(r_node, eval_string("call('call', name='fun', x=rlang::sym('a'), y=rlang::sym('b'))").unwrap());
         }
     }
 }
