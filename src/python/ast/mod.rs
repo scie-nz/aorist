@@ -170,13 +170,11 @@ define_ast_node!(
             AST::Add(_) => "+",
             _ => panic!("AST node not supported as R operator"),
         };
-        call!(
-            "call",
-            op_str,
+        r!(Lang(&[
+            r!(Symbol(op_str)),
             binop.left.to_r_ast_node(depth),
             binop.right.to_r_ast_node(depth)
-        )
-        .unwrap()
+        ]))
     },
     left: AST,
     op: AST,
@@ -712,6 +710,17 @@ mod r_ast_tests {
             let sym = AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("ggplot".to_string()));
             let expr = AST::Expression(Expression::new_wrapped(sym));
             assert_eq!(expr.to_r_ast_node(0), sym!(ggplot));
+        }
+    }
+    #[test]
+    fn test_binop() {
+        test! {
+            let sym_a = AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("a".to_string()));
+            let sym_b = AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("b".to_string()));
+            let op = AST::Add(Add::new_wrapped());
+            let binop = AST::BinOp(BinOp::new_wrapped(sym_a, op, sym_b));
+            let r_node = binop.to_r_ast_node(0);
+            assert_eq!(r_node, eval_string("call('+', rlang::sym('a'), rlang::sym('b'))").unwrap());
         }
     }
 }
