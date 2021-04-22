@@ -199,12 +199,13 @@ define_ast_node!(
         ast_module.call1("List", (children_list.as_ref(), mode))
     },
     |list: &List, depth: usize| {
-        let elems = list
+        let mut elems = list
             .elems
             .iter()
             .map(|x| x.to_r_ast_node(depth))
             .collect::<Vec<_>>();
-        r!(List(&elems))
+        elems.insert(0, r!(Symbol("list")));
+        r!(Lang(&elems))
     },
     elems: Vec<AST>,
     store: bool,
@@ -721,6 +722,16 @@ mod r_ast_tests {
             let binop = AST::BinOp(BinOp::new_wrapped(sym_a, op, sym_b));
             let r_node = binop.to_r_ast_node(0);
             assert_eq!(r_node, eval_string("call('+', rlang::sym('a'), rlang::sym('b'))").unwrap());
+        }
+    }
+    #[test]
+    fn test_list() {
+        test! {
+            let sym_a = AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("a".to_string()));
+            let sym_b = AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("b".to_string()));
+            let list = AST::List(crate::python::List::new_wrapped(vec![sym_a, sym_b], false));
+            let r_node = list.to_r_ast_node(0);
+            assert_eq!(r_node, eval_string("call('list', rlang::sym('a'), rlang::sym('b'))").unwrap());
         }
     }
 }
