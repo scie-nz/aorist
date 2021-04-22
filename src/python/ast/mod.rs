@@ -38,7 +38,10 @@ define_ast_node!(
         import.to_python_ast_node(py, ast_module, depth)
     },
     |import: &ImportNode, depth: usize| {
-        call!("call", "library", import.inner.to_r_ast_node(depth)).unwrap()
+        r!(Lang(&[
+            r!(Symbol("library")),
+            import.inner.to_r_ast_node(depth)
+        ]))
     },
     inner: AST,
 );
@@ -651,7 +654,7 @@ impl ParameterTuple {
 }
 #[allow(unused_imports)]
 mod r_ast_tests {
-    use crate::python::{Assignment, SimpleIdentifier, StringLiteral, AST};
+    use crate::python::*;
     use extendr_api::prelude::*;
     #[test]
     fn test_string_literal() {
@@ -675,6 +678,15 @@ mod r_ast_tests {
             let assign = AST::Assignment(Assignment::new_wrapped(sym, val));
             let r_node = assign.to_r_ast_node(0);
             assert_eq!(r_node, eval_string("call('<-', rlang::sym('a'), 'b')").unwrap());
+        }
+    }
+    #[test]
+    fn test_import() {
+        test! {
+            let sym = AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("ggplot".to_string()));
+            let import = AST::ImportNode(ImportNode::new_wrapped(sym));
+            let r_node = import.to_r_ast_node(0);
+            assert_eq!(r_node, eval_string("call('library', rlang::sym('ggplot'))").unwrap());
         }
     }
 }
