@@ -507,7 +507,7 @@ define_ast_node!(
     |lit: &BooleanLiteral, _py: Python, ast_module: &'a PyModule, _depth: usize| {
         ast_module.call1("Constant", (lit.val,))
     },
-    |lit: &BooleanLiteral, _depth: usize| { r!(lit.val) },
+    |lit: &BooleanLiteral, _depth: usize| { Robj::from(lit.val) },
     val: bool,
 );
 define_ast_node!(
@@ -797,6 +797,15 @@ mod r_ast_tests {
             let r_node = subscript.to_r_ast_node(0);
             assert_eq!(r_node, eval_string("quote(a[[b]])").unwrap());
             
+        }
+    }
+    
+    #[test]
+    fn test_boolean_literal() {
+        test! {
+            let sym = AST::BooleanLiteral(BooleanLiteral::new_wrapped(true));
+            let r_node = sym.to_r_ast_node(0);
+            assert_eq!(r_node, eval_string("quote(TRUE)").unwrap());
         }
     }
 }
