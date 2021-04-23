@@ -5,7 +5,7 @@ use crate::python::{
     BashPythonTask, Call, ConstantPythonTask, Expression, Formatted, Import, NativePythonTask,
     PrestoPythonTask, RPythonTask, SimpleIdentifier, StringLiteral, AST,
 };
-use crate::python_based_dag::PythonBasedDAG;
+use crate::python_based_flow::PythonBasedFlow;
 use aorist_primitives::register_task_nodes;
 use linked_hash_map::LinkedHashMap;
 use pyo3::prelude::*;
@@ -141,7 +141,7 @@ impl ETLFlow for PythonSingleton {
     }
 }
 pub struct PythonDAG {}
-impl PythonBasedDAG for PythonDAG {
+impl PythonBasedFlow for PythonDAG {
     type T = PythonSingleton;
     fn new() -> Self {
         Self {}

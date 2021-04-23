@@ -34,7 +34,7 @@ pub mod models;
 pub mod object;
 pub mod prefect_singleton;
 pub mod python;
-pub mod python_based_dag;
+pub mod python_based_flow;
 pub mod python_based_task;
 pub mod python_singleton;
 pub mod role;

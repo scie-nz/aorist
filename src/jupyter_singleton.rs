@@ -1,12 +1,12 @@
 use crate::python::Import;
-use crate::python_based_dag::PythonBasedDAG;
+use crate::python_based_flow::PythonBasedFlow;
 use crate::python_singleton::PythonSingleton;
 use pyo3::prelude::*;
 use pyo3::types::PyModule;
 use serde_json::json;
 
 pub struct JupyterDAG {}
-impl PythonBasedDAG for JupyterDAG {
+impl PythonBasedFlow for JupyterDAG {
     type T = PythonSingleton;
     fn new() -> Self {
         Self {}

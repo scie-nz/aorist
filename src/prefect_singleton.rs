@@ -5,7 +5,7 @@ use crate::python::{
     Assignment, Attribute, Call, Expression, ForLoop, Formatted, Import, RPythonTask,
     SimpleIdentifier, StringLiteral, AST,
 };
-use crate::python_based_dag::PythonBasedDAG;
+use crate::python_based_flow::PythonBasedFlow;
 use aorist_primitives::register_task_nodes;
 use linked_hash_map::LinkedHashMap;
 use pyo3::prelude::*;
@@ -223,7 +223,7 @@ impl PrefectSingleton {
 pub struct PrefectDAG {
     flow_identifier: AST,
 }
-impl PythonBasedDAG for PrefectDAG {
+impl PythonBasedFlow for PrefectDAG {
     type T = PrefectSingleton;
     fn new() -> Self {
         Self {

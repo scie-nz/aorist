@@ -9,7 +9,7 @@ use crate::dialect::{Bash, Dialect, Presto, Python};
 use crate::endpoints::EndpointConfig;
 use crate::object::TAoristObject;
 use crate::python::{ParameterTuple, SimpleIdentifier, AST};
-use crate::python_based_dag::PythonBasedDAG;
+use crate::python_based_flow::PythonBasedFlow;
 use anyhow::Result;
 use inflector::cases::snakecase::to_snake_case;
 use linked_hash_map::LinkedHashMap;
@@ -30,7 +30,7 @@ type ConstraintsBlockMap<'a> = LinkedHashMap<
 
 pub struct Driver<'a, D>
 where
-    D: PythonBasedDAG,
+    D: PythonBasedFlow,
 {
     pub concepts: Arc<RwLock<HashMap<(Uuid, String), Concept<'a>>>>,
     constraints: LinkedHashMap<(Uuid, String), Arc<RwLock<Constraint>>>,
@@ -46,8 +46,8 @@ where
 
 impl<'a, D> Driver<'a, D>
 where
-    D: PythonBasedDAG,
-    <D as PythonBasedDAG>::T: 'a,
+    D: PythonBasedFlow,
+    <D as PythonBasedFlow>::T: 'a,
 {
     // TODO: unify this with ConceptAncestry
     fn compute_all_ancestors(

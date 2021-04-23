@@ -5,7 +5,7 @@ use crate::python::{
     Assignment, Attribute, BigIntLiteral, BooleanLiteral, Call, Dict, Expression, Formatted,
     Import, List, None, SimpleIdentifier, StringLiteral, AST,
 };
-use crate::python_based_dag::PythonBasedDAG;
+use crate::python_based_flow::PythonBasedFlow;
 use linked_hash_map::LinkedHashMap;
 use pyo3::prelude::*;
 use pyo3::types::PyModule;
@@ -199,7 +199,7 @@ impl ETLFlow for AirflowSingleton {
 }
 
 pub struct AirflowDAG {}
-impl PythonBasedDAG for AirflowDAG {
+impl PythonBasedFlow for AirflowDAG {
     type T = AirflowSingleton;
 
     fn new() -> Self {

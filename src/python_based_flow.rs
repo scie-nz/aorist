@@ -11,7 +11,7 @@ use std::sync::{Arc, RwLock};
 
 /// Encapsulates all the necessary bits for the construction of a DAG written in
 /// Python.
-pub trait PythonBasedDAG
+pub trait PythonBasedFlow
 where
     Self: Sized,
 {
