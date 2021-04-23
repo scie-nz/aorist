@@ -1,5 +1,4 @@
-use crate::dialect::Dialect;
-use crate::endpoints::EndpointConfig;
+use crate::etl_flow::ETLFlow;
 use crate::python::{
     format_code, Assignment, Dict, Import, Preamble, PythonStatementInput, SimpleIdentifier, AST,
 };
@@ -10,31 +9,13 @@ use pyo3::types::{PyModule, PyString};
 use std::collections::{BTreeMap, BTreeSet};
 use std::sync::{Arc, RwLock};
 
-pub trait PythonBasedFlow {
-    fn get_preamble(&self) -> Vec<String>;
-    fn get_dialect(&self) -> Option<Dialect>;
-    fn get_task_val(&self) -> AST;
-    fn new(
-        task_id: AST,
-        // TODO: change this to optional dict
-        task_val: AST,
-        call: Option<String>,
-        args: Vec<AST>,
-        kwargs: LinkedHashMap<String, AST>,
-        dep_list: Option<AST>,
-        preamble: Option<String>,
-        dialect: Option<Dialect>,
-        endpoints: EndpointConfig,
-    ) -> Self;
-    fn get_statements(&self) -> Vec<AST>;
-    fn get_type() -> String;
-    fn get_imports(&self) -> Vec<Import>;
-}
+/// Encapsulates all the necessary bits for the construction of a DAG written in
+/// Python.
 pub trait PythonBasedDAG
 where
     Self: Sized,
 {
-    type T: PythonBasedFlow;
+    type T: ETLFlow;
 
     fn new() -> Self;
     fn build_flow<'a>(

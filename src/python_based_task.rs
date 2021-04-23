@@ -1,6 +1,6 @@
 use crate::dialect::Dialect;
 use crate::endpoints::EndpointConfig;
-use crate::python_based_flow::PythonBasedFlow;
+use crate::etl_flow::ETLFlow;
 use crate::python::{
     Add, Assignment, Attribute, BigIntLiteral, BinOp, Call, Dict, ForLoop, Import, List,
     ParameterTuple, ParameterTupleDedupKey, SimpleIdentifier, StringLiteral, Subscript, Tuple, AST,
@@ -11,7 +11,7 @@ use std::marker::PhantomData;
 #[derive(Clone, Hash, PartialEq, Eq)]
 pub struct StandalonePythonBasedTask<T>
 where
-    T: PythonBasedFlow,
+    T: ETLFlow,
 {
     /// where the task creation call should be stored.
     task_val: AST,
@@ -94,7 +94,7 @@ impl PythonBasedTaskCompressionKey {
 #[derive(Clone, Hash, PartialEq, Eq)]
 pub struct PythonBasedTaskUncompressiblePart<T>
 where
-    T: PythonBasedFlow,
+    T: ETLFlow,
 {
     // unique task_id
     pub task_id: String,
@@ -109,7 +109,7 @@ where
 
 impl<T> PythonBasedTaskUncompressiblePart<T>
 where
-    T: PythonBasedFlow,
+    T: ETLFlow,
 {
     pub fn new(
         task_id: String,
@@ -153,7 +153,7 @@ where
 
 impl<T> StandalonePythonBasedTask<T>
 where
-    T: PythonBasedFlow,
+    T: ETLFlow,
 {
     /// only return true for compressible tasks, i.e. those that have a
     /// dict task val (in the future more stuff could be added here)
@@ -276,7 +276,7 @@ where
 #[derive(Clone, Hash, PartialEq, Eq)]
 pub struct ForLoopPythonBasedTask<T>
 where
-    T: PythonBasedFlow,
+    T: ETLFlow,
 {
     params_dict_name: AST,
     key: PythonBasedTaskCompressionKey,
@@ -287,7 +287,7 @@ where
 }
 impl<T> ForLoopPythonBasedTask<T>
 where
-    T: PythonBasedFlow,
+    T: ETLFlow,
 {
     pub fn new(
         params_dict_name: AST,
@@ -458,14 +458,14 @@ where
 
 pub enum PythonBasedTask<T>
 where
-    T: PythonBasedFlow,
+    T: ETLFlow,
 {
     StandalonePythonBasedTask(StandalonePythonBasedTask<T>),
     ForLoopPythonBasedTask(ForLoopPythonBasedTask<T>),
 }
 impl<T> PythonBasedTask<T>
 where
-    T: PythonBasedFlow,
+    T: ETLFlow,
 {
     pub fn get_statements(
         &self,

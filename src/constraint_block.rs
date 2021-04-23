@@ -1,6 +1,6 @@
 use crate::code_block::CodeBlock;
 use crate::endpoints::EndpointConfig;
-use crate::python_based_flow::PythonBasedFlow;
+use crate::etl_flow::ETLFlow;
 use crate::python::PythonStatementInput;
 use crate::python::{Assignment, Dict, Import, ParameterTuple, Preamble, AST};
 use linked_hash_map::LinkedHashMap;
@@ -11,7 +11,7 @@ use uuid::Uuid;
 
 pub struct ConstraintBlock<T>
 where
-    T: PythonBasedFlow,
+    T: ETLFlow,
 {
     constraint_name: String,
     title: Option<String>,
@@ -22,7 +22,7 @@ where
 }
 impl<'a, T> ConstraintBlock<T>
 where
-    T: PythonBasedFlow,
+    T: ETLFlow,
 {
     pub fn new(
         constraint_name: String,

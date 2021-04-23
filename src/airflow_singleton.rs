@@ -1,10 +1,11 @@
 use crate::dialect::Dialect;
 use crate::endpoints::EndpointConfig;
-use crate::python_based_flow::{PythonBasedFlow, PythonBasedDAG};
+use crate::etl_flow::ETLFlow;
 use crate::python::{
     Assignment, Attribute, BigIntLiteral, BooleanLiteral, Call, Dict, Expression, Formatted,
     Import, List, None, SimpleIdentifier, StringLiteral, AST,
 };
+use crate::python_based_dag::PythonBasedDAG;
 use linked_hash_map::LinkedHashMap;
 use pyo3::prelude::*;
 use pyo3::types::PyModule;
@@ -106,7 +107,7 @@ impl AirflowSingleton {
         .unwrap()
     }
 }
-impl PythonBasedFlow for AirflowSingleton {
+impl ETLFlow for AirflowSingleton {
     fn get_imports(&self) -> Vec<Import> {
         match self.dialect {
             Some(Dialect::Python(_)) => vec![Import::FromImport(

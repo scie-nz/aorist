@@ -1,9 +1,11 @@
 use crate::constraint_state::ConstraintState;
 use crate::endpoints::EndpointConfig;
-use crate::python_based_flow::PythonBasedFlow;
-use crate::python_based_task::{PythonBasedTask, ForLoopPythonBasedTask, StandalonePythonBasedTask};
+use crate::etl_flow::ETLFlow;
 use crate::python::{
     Formatted, Import, ParameterTuple, Preamble, SimpleIdentifier, StringLiteral, Subscript, AST,
+};
+use crate::python_based_task::{
+    ForLoopPythonBasedTask, PythonBasedTask, StandalonePythonBasedTask,
 };
 use anyhow::Result;
 use linked_hash_map::LinkedHashMap;
@@ -15,7 +17,7 @@ use uuid::Uuid;
 
 pub struct CodeBlock<T>
 where
-    T: PythonBasedFlow,
+    T: ETLFlow,
 {
     tasks_dict: Option<AST>,
     task_identifiers: HashMap<Uuid, AST>,
@@ -24,7 +26,7 @@ where
 }
 impl<'a, T> CodeBlock<T>
 where
-    T: PythonBasedFlow,
+    T: ETLFlow,
 {
     pub fn get_tasks_dict(&self) -> Option<AST> {
         self.tasks_dict.clone()
@@ -121,7 +123,7 @@ where
                             if let AST::StringLiteral(rw) = val {
                                 let x = rw.read().unwrap();
                                 if x.value() == task_id_subscript {
-                                    // TODO: pass this to ForLoopPythonBasedFlow
+                                    // TODO: pass this to ForLoopETLFlow
                                     let ident = AST::SimpleIdentifier(
                                         SimpleIdentifier::new_wrapped("t".to_string()),
                                     );
