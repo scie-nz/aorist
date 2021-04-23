@@ -2146,31 +2146,58 @@ spec:
                 AND NOT table_name LIKE 'information_schema%%'
                 AND table_schema != 'information_schema'
                 AND table_schema != 'pg_catalog'
-                """, (table_name, table_schema),
+                """,
+                (table_name, table_schema),
             )
             template = []
-
             has_time_dimension = False
             time_dimension_columns = []
-
+            maybe_time_dimension_columns = []
             for column_name, data_type, is_nullable in cursor.fetchall():
                 is_nullable = False if is_nullable == "NO" else True
                 is_time_dimension = (
-                    data_type.upper() in time_dimensions and not is_nullable
+                    data_type.upper() in time_dimensions
                 )
                 if is_time_dimension and not has_time_dimension:
-                    has_time_dimension = True
-                    time_dimension_columns += [column_name]
-
-                data_type = data_type.upper().replace('"', '')
+                    if is_nullable:
+                        print(maybe_time_dimension_columns)
+                        maybe_time_dimension_columns += [column_name]
+                    else:
+                        has_time_dimension = True
+                        time_dimension_columns += [column_name]
+                data_type = data_type.upper().replace('"', "")
                 if not data_type in attr_types:
                     print("Problem with attr:" + data_type)
                 else:
                     attr_type = attr_types[data_type]
                     template += [
-                        "%s('%s'%s)" %
-                        (attr_type, column_name, ", nullable=True" if is_nullable else "")
+                        "%s('%s'%s)"
+                        % (
+                            attr_type,
+                            column_name,
+                            ", nullable=True" if is_nullable else "",
+                        )
                     ]
+            if len(time_dimension_columns) == 0 and len(maybe_time_dimension_columns) > 0:
+
+                print("Looking at potential time dimension columns for table %s" % table_name)
+                query = "\\nUNION ALL\\n".join([
+                    """
+                    SELECT
+                        '{col}' AS column,
+                        COUNT(*) AS num_total,
+                        COUNT(*) FILTER(WHERE "{col}" IS NULL) AS num_null
+                    FROM {schema}.{table}
+                    """.format(col=col, table=table_name, schema=table_schema)
+                    for col in maybe_time_dimension_columns
+                ])
+                cursor.execute(query)
+                res = cursor.fetchall()
+                actually_time_dimension_columns = [x[0] for x in res if x[2] == 0]
+                time_dimension_columns += actually_time_dimension_columns
+                if len(time_dimension_columns) > 0:
+                    print("Found time dimension column: %s" % time_dimension_columns[0])
+                    has_time_dimension = True
 
             if len(template) > 0:
                 template_tpl = tuple(template)
@@ -2753,7 +2780,7 @@ spec:
                     RemoteLocation::PushshiftAPILocation(_) => "PushshiftAPILocation".to_string(),
                     RemoteLocation::BigQueryLocation(_) => "BigQueryLocation".to_string(),
                   }
-                }, 
+                },
                 crate::Storage::GitStorage(_) => "GithubLocation".to_string(),
                 _ => panic!("Only RemoteStorage or GitStorage supported"),
               }
