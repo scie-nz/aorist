@@ -808,4 +808,13 @@ mod r_ast_tests {
             assert_eq!(r_node, eval_string("quote(TRUE)").unwrap());
         }
     }
+    
+    #[test]
+    fn test_bigint_literal() {
+        test! {
+            let sym = AST::BigIntLiteral(BigIntLiteral::new_wrapped(1));
+            let r_node = sym.to_r_ast_node(0);
+            assert_eq!(r_node, eval_string("as.integer(1)").unwrap());
+        }
+    }
 }
