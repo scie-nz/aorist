@@ -242,7 +242,6 @@ where
                     err.print(py);
                     panic!("Exception occurred when running to_source.",);
                 }
-                //let dump: PyResult<_> = ast.call1("dump", (module,));
                 let out = source
                     .unwrap()
                     .extract::<&PyString>()

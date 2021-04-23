@@ -521,7 +521,7 @@ define_ast_node!(
     val: i64,
 );
 define_ast_node!(
-    PythonNone,
+    None,
     |_| Vec::new(),
     |_, py: Python, ast_module: &'a PyModule, _depth: usize| {
         ast_module.call1("Constant", (py.None().as_ref(py),))
@@ -542,7 +542,7 @@ register_ast_nodes!(
     Tuple,
     BooleanLiteral,
     BigIntLiteral,
-    PythonNone,
+    None,
     Expression,
     Assignment,
     ForLoop,
@@ -821,7 +821,7 @@ mod r_ast_tests {
     #[test]
     fn test_none() {
         test! {
-            let sym = AST::PythonNone(PythonNone::new_wrapped());
+            let sym = AST::None(None::new_wrapped());
             let r_node = sym.to_r_ast_node(0);
             assert_eq!(r_node, eval_string("quote(NULL)").unwrap());
         }

@@ -3,7 +3,7 @@ use crate::endpoints::EndpointConfig;
 use crate::etl_singleton::{ETLSingleton, ETLDAG};
 use crate::python::{
     Assignment, Attribute, BigIntLiteral, BooleanLiteral, Call, Dict, Expression, Formatted,
-    Import, List, PythonNone, SimpleIdentifier, StringLiteral, AST,
+    Import, List, None, SimpleIdentifier, StringLiteral, AST,
 };
 use linked_hash_map::LinkedHashMap;
 use pyo3::prelude::*;
@@ -268,7 +268,7 @@ impl ETLDAG for AirflowDAG {
         );
         kwargs.insert(
             "schedule_interval".to_string(),
-            AST::PythonNone(PythonNone::new_wrapped()),
+            AST::None(None::new_wrapped()),
         );
         kwargs.insert(
             "start_date".to_string(),
