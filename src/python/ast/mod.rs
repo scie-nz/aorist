@@ -466,7 +466,11 @@ define_ast_node!(
     |subscript: &Subscript, depth: usize| {
         let a_node = subscript.a.to_r_ast_node(depth);
         let b_node = subscript.b.to_r_ast_node(depth);
-        call!("call", "[[", a_node, b_node).unwrap()
+        r!(Lang(&[
+            r!(Symbol("[[")),
+            a_node,
+            b_node,
+        ]))
     },
     a: AST,
     b: AST,
@@ -782,6 +786,17 @@ mod r_ast_tests {
             let dict = AST::Formatted(crate::python::Formatted::new_wrapped(fmt, map));
             let r_node = dict.to_r_ast_node(0);
             assert_eq!(r_node, eval_string("call('call', name='glue::glue', fmt='{x} {y}', x=rlang::sym('a'), y=rlang::sym('b'))").unwrap());
+        }
+    }
+    #[test]
+    fn test_subscript() {
+        test! {
+            let sym_a = AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("a".to_string()));
+            let sym_b = AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("b".to_string()));
+            let subscript = AST::Subscript(crate::python::Subscript::new_wrapped(sym_a, sym_b, false));
+            let r_node = subscript.to_r_ast_node(0);
+            assert_eq!(r_node, eval_string("quote(a[[b]])").unwrap());
+            
         }
     }
 }
