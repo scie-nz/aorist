@@ -1,4 +1,4 @@
-use crate::etl_flow::ETLFlow;
+use crate::flow::etl_flow::ETLFlow;
 use crate::python::{
     format_code, Assignment, Dict, Import, Preamble, PythonStatementInput, SimpleIdentifier, AST,
 };

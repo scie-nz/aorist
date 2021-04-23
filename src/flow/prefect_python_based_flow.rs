@@ -1,11 +1,11 @@
 use crate::dialect::Dialect;
 use crate::endpoints::EndpointConfig;
-use crate::etl_flow::ETLFlow;
+use crate::flow::etl_flow::ETLFlow;
 use crate::python::{
     Assignment, Attribute, Call, Expression, ForLoop, Formatted, Import, RPythonTask,
     SimpleIdentifier, StringLiteral, AST,
 };
-use crate::python_based_flow::PythonBasedFlow;
+use crate::flow::python_based_flow::PythonBasedFlow;
 use aorist_primitives::register_task_nodes;
 use linked_hash_map::LinkedHashMap;
 use pyo3::prelude::*;

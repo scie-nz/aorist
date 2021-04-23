@@ -1,10 +1,10 @@
 use crate::constraint_state::ConstraintState;
 use crate::endpoints::EndpointConfig;
-use crate::etl_flow::ETLFlow;
+use crate::flow::ETLFlow;
 use crate::python::{
     Formatted, Import, ParameterTuple, Preamble, SimpleIdentifier, StringLiteral, Subscript, AST,
 };
-use crate::python_based_task::{
+use crate::flow::{
     ForLoopPythonBasedTask, PythonBasedTask, StandalonePythonBasedTask,
 };
 use anyhow::Result;
