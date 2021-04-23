@@ -7,7 +7,7 @@ use crate::constraint_state::{AncestorRecord, ConstraintState};
 use crate::data_setup::Universe;
 use crate::dialect::{Bash, Dialect, Presto, Python};
 use crate::endpoints::EndpointConfig;
-use crate::etl_singleton::ETLDAG;
+use crate::etl_singleton::PythonBasedDAG;
 use crate::object::TAoristObject;
 use crate::python::{ParameterTuple, SimpleIdentifier, AST};
 use anyhow::Result;
@@ -30,7 +30,7 @@ type ConstraintsBlockMap<'a> = LinkedHashMap<
 
 pub struct Driver<'a, D>
 where
-    D: ETLDAG,
+    D: PythonBasedDAG,
 {
     pub concepts: Arc<RwLock<HashMap<(Uuid, String), Concept<'a>>>>,
     constraints: LinkedHashMap<(Uuid, String), Arc<RwLock<Constraint>>>,
@@ -46,8 +46,8 @@ where
 
 impl<'a, D> Driver<'a, D>
 where
-    D: ETLDAG,
-    <D as ETLDAG>::T: 'a,
+    D: PythonBasedDAG,
+    <D as PythonBasedDAG>::T: 'a,
 {
     // TODO: unify this with ConceptAncestry
     fn compute_all_ancestors(

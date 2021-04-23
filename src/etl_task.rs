@@ -1,6 +1,6 @@
 use crate::dialect::Dialect;
 use crate::endpoints::EndpointConfig;
-use crate::etl_singleton::ETLSingleton;
+use crate::etl_singleton::PythonBasedFlow;
 use crate::python::{
     Add, Assignment, Attribute, BigIntLiteral, BinOp, Call, Dict, ForLoop, Import, List,
     ParameterTuple, ParameterTupleDedupKey, SimpleIdentifier, StringLiteral, Subscript, Tuple, AST,
@@ -9,9 +9,9 @@ use linked_hash_map::LinkedHashMap;
 use std::marker::PhantomData;
 
 #[derive(Clone, Hash, PartialEq, Eq)]
-pub struct StandaloneETLTask<T>
+pub struct StandalonePythonBasedTask<T>
 where
-    T: ETLSingleton,
+    T: PythonBasedFlow,
 {
     /// where the task creation call should be stored.
     task_val: AST,
@@ -41,7 +41,7 @@ where
 /// - preamble
 /// - dialect
 #[derive(Clone, Hash, PartialEq, Eq)]
-pub struct ETLTaskCompressionKey {
+pub struct PythonBasedTaskCompressionKey {
     // dict name
     dict_name: AST,
     // function call
@@ -57,7 +57,7 @@ pub struct ETLTaskCompressionKey {
     // optional: kwargs
     pub kwargs: LinkedHashMap<String, AST>,
 }
-impl ETLTaskCompressionKey {
+impl PythonBasedTaskCompressionKey {
     pub fn new(
         dict_name: AST,
         function_call: Option<String>,
@@ -92,9 +92,9 @@ impl ETLTaskCompressionKey {
     }
 }
 #[derive(Clone, Hash, PartialEq, Eq)]
-pub struct ETLTaskUncompressiblePart<T>
+pub struct PythonBasedTaskUncompressiblePart<T>
 where
-    T: ETLSingleton,
+    T: PythonBasedFlow,
 {
     // unique task_id
     pub task_id: String,
@@ -107,9 +107,9 @@ where
     singleton_type: PhantomData<T>,
 }
 
-impl<T> ETLTaskUncompressiblePart<T>
+impl<T> PythonBasedTaskUncompressiblePart<T>
 where
-    T: ETLSingleton,
+    T: PythonBasedFlow,
 {
     pub fn new(
         task_id: String,
@@ -151,9 +151,9 @@ where
     }
 }
 
-impl<T> StandaloneETLTask<T>
+impl<T> StandalonePythonBasedTask<T>
 where
-    T: ETLSingleton,
+    T: PythonBasedFlow,
 {
     /// only return true for compressible tasks, i.e. those that have a
     /// dict task val (in the future more stuff could be added here)
@@ -186,8 +186,8 @@ where
             _ => Err("Task val must be a subscript".to_string()),
         }
     }
-    pub fn get_compression_key(&self) -> Result<ETLTaskCompressionKey, String> {
-        Ok(ETLTaskCompressionKey::new(
+    pub fn get_compression_key(&self) -> Result<PythonBasedTaskCompressionKey, String> {
+        Ok(PythonBasedTaskCompressionKey::new(
             self.get_left_of_task_val()?,
             self.call.clone(),
             match &self.params {
@@ -198,8 +198,8 @@ where
             self.dialect.clone(),
         ))
     }
-    pub fn get_uncompressible_part(&self) -> Result<ETLTaskUncompressiblePart<T>, String> {
-        Ok(ETLTaskUncompressiblePart::new(
+    pub fn get_uncompressible_part(&self) -> Result<PythonBasedTaskUncompressiblePart<T>, String> {
+        Ok(PythonBasedTaskUncompressiblePart::new(
             self.task_id.clone(),
             self.get_right_of_task_val()?,
             self.params.clone(),
@@ -274,25 +274,25 @@ where
 }
 
 #[derive(Clone, Hash, PartialEq, Eq)]
-pub struct ForLoopETLTask<T>
+pub struct ForLoopPythonBasedTask<T>
 where
-    T: ETLSingleton,
+    T: PythonBasedFlow,
 {
     params_dict_name: AST,
-    key: ETLTaskCompressionKey,
-    values: Vec<ETLTaskUncompressiblePart<T>>,
+    key: PythonBasedTaskCompressionKey,
+    values: Vec<PythonBasedTaskUncompressiblePart<T>>,
     singleton_type: PhantomData<T>,
     task_id: AST,
     insert_task_name: bool,
 }
-impl<T> ForLoopETLTask<T>
+impl<T> ForLoopPythonBasedTask<T>
 where
-    T: ETLSingleton,
+    T: PythonBasedFlow,
 {
     pub fn new(
         params_dict_name: AST,
-        key: ETLTaskCompressionKey,
-        values: Vec<ETLTaskUncompressiblePart<T>>,
+        key: PythonBasedTaskCompressionKey,
+        values: Vec<PythonBasedTaskUncompressiblePart<T>>,
         task_id: AST,
         insert_task_name: bool,
     ) -> Self {
@@ -456,24 +456,24 @@ where
     }
 }
 
-pub enum ETLTask<T>
+pub enum PythonBasedTask<T>
 where
-    T: ETLSingleton,
+    T: PythonBasedFlow,
 {
-    StandaloneETLTask(StandaloneETLTask<T>),
-    ForLoopETLTask(ForLoopETLTask<T>),
+    StandalonePythonBasedTask(StandalonePythonBasedTask<T>),
+    ForLoopPythonBasedTask(ForLoopPythonBasedTask<T>),
 }
-impl<T> ETLTask<T>
+impl<T> PythonBasedTask<T>
 where
-    T: ETLSingleton,
+    T: PythonBasedFlow,
 {
     pub fn get_statements(
         &self,
         endpoints: &EndpointConfig,
     ) -> (Vec<AST>, Vec<String>, Vec<Import>) {
         match &self {
-            ETLTask::StandaloneETLTask(x) => x.get_statements(endpoints),
-            ETLTask::ForLoopETLTask(x) => x.get_statements(endpoints),
+            PythonBasedTask::StandalonePythonBasedTask(x) => x.get_statements(endpoints),
+            PythonBasedTask::ForLoopPythonBasedTask(x) => x.get_statements(endpoints),
         }
     }
 }

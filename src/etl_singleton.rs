@@ -10,7 +10,7 @@ use pyo3::types::{PyModule, PyString};
 use std::collections::{BTreeMap, BTreeSet};
 use std::sync::{Arc, RwLock};
 
-pub trait ETLSingleton {
+pub trait PythonBasedFlow {
     fn get_preamble(&self) -> Vec<String>;
     fn get_dialect(&self) -> Option<Dialect>;
     fn get_task_val(&self) -> AST;
@@ -30,11 +30,11 @@ pub trait ETLSingleton {
     fn get_type() -> String;
     fn get_imports(&self) -> Vec<Import>;
 }
-pub trait ETLDAG
+pub trait PythonBasedDAG
 where
     Self: Sized,
 {
-    type T: ETLSingleton;
+    type T: PythonBasedFlow;
 
     fn new() -> Self;
     fn build_flow<'a>(

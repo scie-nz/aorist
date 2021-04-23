@@ -1,4 +1,4 @@
-use crate::etl_singleton::ETLDAG;
+use crate::etl_singleton::PythonBasedDAG;
 use crate::python::Import;
 use crate::python_singleton::PythonSingleton;
 use pyo3::prelude::*;
@@ -6,7 +6,7 @@ use pyo3::types::PyModule;
 use serde_json::json;
 
 pub struct JupyterDAG {}
-impl ETLDAG for JupyterDAG {
+impl PythonBasedDAG for JupyterDAG {
     type T = PythonSingleton;
     fn new() -> Self {
         Self {}

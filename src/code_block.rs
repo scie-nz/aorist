@@ -1,7 +1,7 @@
 use crate::constraint_state::ConstraintState;
 use crate::endpoints::EndpointConfig;
-use crate::etl_singleton::ETLSingleton;
-use crate::etl_task::{ETLTask, ForLoopETLTask, StandaloneETLTask};
+use crate::etl_singleton::PythonBasedFlow;
+use crate::etl_task::{PythonBasedTask, ForLoopPythonBasedTask, StandalonePythonBasedTask};
 use crate::python::{
     Formatted, Import, ParameterTuple, Preamble, SimpleIdentifier, StringLiteral, Subscript, AST,
 };
@@ -15,16 +15,16 @@ use uuid::Uuid;
 
 pub struct CodeBlock<T>
 where
-    T: ETLSingleton,
+    T: PythonBasedFlow,
 {
     tasks_dict: Option<AST>,
     task_identifiers: HashMap<Uuid, AST>,
-    etl_tasks: Vec<ETLTask<T>>,
+    etl_tasks: Vec<PythonBasedTask<T>>,
     params: HashMap<String, Option<ParameterTuple>>,
 }
 impl<'a, T> CodeBlock<T>
 where
-    T: ETLSingleton,
+    T: PythonBasedFlow,
 {
     pub fn get_tasks_dict(&self) -> Option<AST> {
         self.tasks_dict.clone()
@@ -53,7 +53,7 @@ where
                 .iter()
                 .map(|x| identifiers.get(x).unwrap().clone())
                 .collect();
-            tasks.push(StandaloneETLTask::new(
+            tasks.push(StandalonePythonBasedTask::new(
                 x.get_task_name(),
                 ast.clone(),
                 x.get_call(),
@@ -65,14 +65,14 @@ where
         }
 
         let mut compressible: LinkedHashMap<_, Vec<_>> = LinkedHashMap::new();
-        let mut etl_tasks: Vec<ETLTask<T>> = Vec::new();
+        let mut etl_tasks: Vec<PythonBasedTask<T>> = Vec::new();
 
         for task in tasks.into_iter() {
             if task.is_compressible() {
                 let key = task.get_compression_key().unwrap();
                 compressible.entry(key).or_insert(Vec::new()).push(task);
             } else {
-                etl_tasks.push(ETLTask::StandaloneETLTask(task));
+                etl_tasks.push(PythonBasedTask::StandalonePythonBasedTask(task));
             }
         }
         for (mut compression_key, tasks) in compressible.into_iter() {
@@ -121,7 +121,7 @@ where
                             if let AST::StringLiteral(rw) = val {
                                 let x = rw.read().unwrap();
                                 if x.value() == task_id_subscript {
-                                    // TODO: pass this to ForLoopETLSingleton
+                                    // TODO: pass this to ForLoopPythonBasedFlow
                                     let ident = AST::SimpleIdentifier(
                                         SimpleIdentifier::new_wrapped("t".to_string()),
                                     );
@@ -226,17 +226,17 @@ where
                     ),
                 };
 
-                let compressed_task = ForLoopETLTask::new(
+                let compressed_task = ForLoopPythonBasedTask::new(
                     params_constraint,
                     compression_key,
                     maybe_uncompressible,
                     task_id,
                     insert_task_name,
                 );
-                etl_tasks.push(ETLTask::ForLoopETLTask(compressed_task));
+                etl_tasks.push(PythonBasedTask::ForLoopPythonBasedTask(compressed_task));
             } else {
                 for task in tasks.into_iter() {
-                    etl_tasks.push(ETLTask::StandaloneETLTask(task));
+                    etl_tasks.push(PythonBasedTask::StandalonePythonBasedTask(task));
                 }
             }
         }

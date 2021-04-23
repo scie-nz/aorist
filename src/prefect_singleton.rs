@@ -1,6 +1,6 @@
 use crate::dialect::Dialect;
 use crate::endpoints::EndpointConfig;
-use crate::etl_singleton::{ETLSingleton, ETLDAG};
+use crate::etl_singleton::{PythonBasedFlow, PythonBasedDAG};
 use crate::python::{
     Assignment, Attribute, Call, Expression, ForLoop, Formatted, Import, RPythonTask,
     SimpleIdentifier, StringLiteral, AST,
@@ -32,7 +32,7 @@ pub struct PrefectSingleton {
     endpoints: EndpointConfig,
 }
 
-impl ETLSingleton for PrefectSingleton {
+impl PythonBasedFlow for PrefectSingleton {
     fn get_preamble(&self) -> Vec<String> {
         let preambles = match self.dialect {
             Some(Dialect::Python(_)) => match self.preamble {
@@ -222,7 +222,7 @@ impl PrefectSingleton {
 pub struct PrefectDAG {
     flow_identifier: AST,
 }
-impl ETLDAG for PrefectDAG {
+impl PythonBasedDAG for PrefectDAG {
     type T = PrefectSingleton;
     fn new() -> Self {
         Self {

@@ -1,6 +1,6 @@
 use crate::dialect::Dialect;
 use crate::endpoints::EndpointConfig;
-use crate::etl_singleton::{ETLSingleton, ETLDAG};
+use crate::etl_singleton::{PythonBasedFlow, PythonBasedDAG};
 use crate::python::{
     Assignment, Attribute, BigIntLiteral, BooleanLiteral, Call, Dict, Expression, Formatted,
     Import, List, None, SimpleIdentifier, StringLiteral, AST,
@@ -106,7 +106,7 @@ impl AirflowSingleton {
         .unwrap()
     }
 }
-impl ETLSingleton for AirflowSingleton {
+impl PythonBasedFlow for AirflowSingleton {
     fn get_imports(&self) -> Vec<Import> {
         match self.dialect {
             Some(Dialect::Python(_)) => vec![Import::FromImport(
@@ -198,7 +198,7 @@ impl ETLSingleton for AirflowSingleton {
 }
 
 pub struct AirflowDAG {}
-impl ETLDAG for AirflowDAG {
+impl PythonBasedDAG for AirflowDAG {
     type T = AirflowSingleton;
 
     fn new() -> Self {
