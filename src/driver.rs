@@ -7,7 +7,7 @@ use crate::constraint_state::{AncestorRecord, ConstraintState};
 use crate::data_setup::Universe;
 use crate::dialect::{Bash, Dialect, Presto, Python};
 use crate::endpoints::EndpointConfig;
-use crate::etl_singleton::PythonBasedDAG;
+use crate::python_based_flow::PythonBasedDAG;
 use crate::object::TAoristObject;
 use crate::python::{ParameterTuple, SimpleIdentifier, AST};
 use anyhow::Result;

@@ -1,7 +1,7 @@
 use crate::constraint_state::ConstraintState;
 use crate::endpoints::EndpointConfig;
-use crate::etl_singleton::PythonBasedFlow;
-use crate::etl_task::{PythonBasedTask, ForLoopPythonBasedTask, StandalonePythonBasedTask};
+use crate::python_based_flow::PythonBasedFlow;
+use crate::python_based_task::{PythonBasedTask, ForLoopPythonBasedTask, StandalonePythonBasedTask};
 use crate::python::{
     Formatted, Import, ParameterTuple, Preamble, SimpleIdentifier, StringLiteral, Subscript, AST,
 };
@@ -19,7 +19,7 @@ where
 {
     tasks_dict: Option<AST>,
     task_identifiers: HashMap<Uuid, AST>,
-    etl_tasks: Vec<PythonBasedTask<T>>,
+    python_based_tasks: Vec<PythonBasedTask<T>>,
     params: HashMap<String, Option<ParameterTuple>>,
 }
 impl<'a, T> CodeBlock<T>
@@ -65,14 +65,14 @@ where
         }
 
         let mut compressible: LinkedHashMap<_, Vec<_>> = LinkedHashMap::new();
-        let mut etl_tasks: Vec<PythonBasedTask<T>> = Vec::new();
+        let mut python_based_tasks: Vec<PythonBasedTask<T>> = Vec::new();
 
         for task in tasks.into_iter() {
             if task.is_compressible() {
                 let key = task.get_compression_key().unwrap();
                 compressible.entry(key).or_insert(Vec::new()).push(task);
             } else {
-                etl_tasks.push(PythonBasedTask::StandalonePythonBasedTask(task));
+                python_based_tasks.push(PythonBasedTask::StandalonePythonBasedTask(task));
             }
         }
         for (mut compression_key, tasks) in compressible.into_iter() {
@@ -233,17 +233,17 @@ where
                     task_id,
                     insert_task_name,
                 );
-                etl_tasks.push(PythonBasedTask::ForLoopPythonBasedTask(compressed_task));
+                python_based_tasks.push(PythonBasedTask::ForLoopPythonBasedTask(compressed_task));
             } else {
                 for task in tasks.into_iter() {
-                    etl_tasks.push(PythonBasedTask::StandalonePythonBasedTask(task));
+                    python_based_tasks.push(PythonBasedTask::StandalonePythonBasedTask(task));
                 }
             }
         }
 
         Ok(Self {
             tasks_dict,
-            etl_tasks,
+            python_based_tasks,
             task_identifiers,
             params,
         })
@@ -288,7 +288,7 @@ where
         endpoints: &EndpointConfig,
     ) -> (Vec<AST>, LinkedHashSet<Preamble>, BTreeSet<Import>) {
         let preambles_and_statements = self
-            .etl_tasks
+            .python_based_tasks
             .iter()
             .map(|x| x.get_statements(endpoints))
             .collect::<Vec<_>>();

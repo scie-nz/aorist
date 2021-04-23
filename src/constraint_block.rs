@@ -1,6 +1,6 @@
 use crate::code_block::CodeBlock;
 use crate::endpoints::EndpointConfig;
-use crate::etl_singleton::PythonBasedFlow;
+use crate::python_based_flow::PythonBasedFlow;
 use crate::python::PythonStatementInput;
 use crate::python::{Assignment, Dict, Import, ParameterTuple, Preamble, AST};
 use linked_hash_map::LinkedHashMap;

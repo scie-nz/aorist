@@ -1,6 +1,6 @@
 use crate::dialect::Dialect;
 use crate::endpoints::EndpointConfig;
-use crate::etl_singleton::{PythonBasedFlow, PythonBasedDAG};
+use crate::python_based_flow::{PythonBasedFlow, PythonBasedDAG};
 use crate::python::{
     BashPythonTask, Call, ConstantPythonTask, Expression, Formatted, Import, NativePythonTask,
     PrestoPythonTask, RPythonTask, SimpleIdentifier, StringLiteral, AST,

@@ -1,6 +1,6 @@
 use crate::dialect::Dialect;
 use crate::endpoints::EndpointConfig;
-use crate::etl_singleton::PythonBasedFlow;
+use crate::python_based_flow::PythonBasedFlow;
 use crate::python::{
     Add, Assignment, Attribute, BigIntLiteral, BinOp, Call, Dict, ForLoop, Import, List,
     ParameterTuple, ParameterTupleDedupKey, SimpleIdentifier, StringLiteral, Subscript, Tuple, AST,

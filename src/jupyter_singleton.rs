@@ -1,4 +1,4 @@
-use crate::etl_singleton::PythonBasedDAG;
+use crate::python_based_flow::PythonBasedDAG;
 use crate::python::Import;
 use crate::python_singleton::PythonSingleton;
 use pyo3::prelude::*;
