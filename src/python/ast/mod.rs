@@ -817,4 +817,13 @@ mod r_ast_tests {
             assert_eq!(r_node, eval_string("as.integer(1)").unwrap());
         }
     }
+    
+    #[test]
+    fn test_none() {
+        test! {
+            let sym = AST::PythonNone(PythonNone::new_wrapped());
+            let r_node = sym.to_r_ast_node(0);
+            assert_eq!(r_node, eval_string("quote(NULL)").unwrap());
+        }
+    }
 }
