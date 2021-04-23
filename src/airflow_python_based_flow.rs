@@ -11,7 +11,7 @@ use pyo3::prelude::*;
 use pyo3::types::PyModule;
 
 #[derive(Clone, Hash, PartialEq, Eq)]
-pub struct AirflowSingleton {
+pub struct AirflowPythonBasedFlow {
     task_id: AST,
     task_val: AST,
     command: Option<String>,
@@ -22,7 +22,7 @@ pub struct AirflowSingleton {
     dialect: Option<Dialect>,
     endpoints: EndpointConfig,
 }
-impl AirflowSingleton {
+impl AirflowPythonBasedFlow {
     fn compute_task_args(&self) -> Vec<AST> {
         Vec::new()
     }
@@ -107,7 +107,7 @@ impl AirflowSingleton {
         .unwrap()
     }
 }
-impl ETLFlow for AirflowSingleton {
+impl ETLFlow for AirflowPythonBasedFlow {
     fn get_imports(&self) -> Vec<Import> {
         match self.dialect {
             Some(Dialect::Python(_)) => vec![Import::FromImport(
@@ -200,7 +200,7 @@ impl ETLFlow for AirflowSingleton {
 
 pub struct AirflowDAG {}
 impl PythonBasedFlow for AirflowDAG {
-    type T = AirflowSingleton;
+    type T = AirflowPythonBasedFlow;
 
     fn new() -> Self {
         Self {}

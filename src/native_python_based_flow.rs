@@ -23,7 +23,7 @@ register_task_nodes! {
 }
 
 #[derive(Clone, Hash, PartialEq, Eq)]
-pub struct PythonSingleton {
+pub struct NativePythonBasedFlow {
     task_id: AST,
     task_val: AST,
     command: Option<String>,
@@ -36,7 +36,7 @@ pub struct PythonSingleton {
     endpoints: EndpointConfig,
     node: PythonTask,
 }
-impl ETLFlow for PythonSingleton {
+impl ETLFlow for NativePythonBasedFlow {
     fn get_preamble(&self) -> Vec<String> {
         let preambles = match self.dialect {
             Some(Dialect::Python(_)) => match self.preamble {
@@ -142,7 +142,7 @@ impl ETLFlow for PythonSingleton {
 }
 pub struct PythonDAG {}
 impl PythonBasedFlow for PythonDAG {
-    type T = PythonSingleton;
+    type T = NativePythonBasedFlow;
     fn new() -> Self {
         Self {}
     }

@@ -20,7 +20,7 @@ register_task_nodes! {
 }
 
 #[derive(Clone, Hash, PartialEq, Eq)]
-pub struct PrefectSingleton {
+pub struct PrefectPythonBasedFlow {
     task_id: AST,
     task_val: AST,
     command: Option<String>,
@@ -33,7 +33,7 @@ pub struct PrefectSingleton {
     endpoints: EndpointConfig,
 }
 
-impl ETLFlow for PrefectSingleton {
+impl ETLFlow for PrefectPythonBasedFlow {
     fn get_preamble(&self) -> Vec<String> {
         let preambles = match self.dialect {
             Some(Dialect::Python(_)) => match self.preamble {
@@ -116,7 +116,7 @@ impl ETLFlow for PrefectSingleton {
         }
     }
 }
-impl PrefectSingleton {
+impl PrefectPythonBasedFlow {
     fn compute_task_args(&self) -> Vec<AST> {
         if let Some(Dialect::Python(_)) = self.dialect {
             return self.args.clone();
@@ -224,7 +224,7 @@ pub struct PrefectDAG {
     flow_identifier: AST,
 }
 impl PythonBasedFlow for PrefectDAG {
-    type T = PrefectSingleton;
+    type T = PrefectPythonBasedFlow;
     fn new() -> Self {
         Self {
             flow_identifier: AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
