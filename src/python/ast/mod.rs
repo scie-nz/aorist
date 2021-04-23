@@ -426,15 +426,24 @@ define_ast_node!(
         )
     },
     |formatted: &Formatted, depth: usize| {
-        let fmt_node = formatted.fmt.to_r_ast_node(depth);
-        let arglist = extendr_api::prelude::Pairlist {
-            names_and_values: formatted
-                .keywords
-                .iter()
-                .map(|(k, v)| (k.clone(), v.to_r_ast_node(depth)))
-                .collect::<Vec<_>>(),
-        };
-        call!("call", "glue::glue", fmt_node, arglist).unwrap()
+        let mut args = LinkedHashMap::new();
+        for (k, v) in formatted.keywords.clone() {
+            args.insert(k, v);
+        }
+        let mut elems = args
+            .values()
+            .map(|x| x.to_r_ast_node(depth))
+            .collect::<Vec<_>>();
+        elems.insert(0, formatted.fmt.to_r_ast_node(depth));
+        elems.insert(0, r!("glue::glue"));
+        elems.insert(0, r!("call"));
+        let obj = r!(List(&elems));
+        let mut names = args.keys().map(|x| x.clone()).collect::<Vec<_>>();
+        names.insert(0, "fmt".to_string());
+        names.insert(0, "name".to_string());
+        names.insert(0, "name".to_string());
+        obj.set_names(names).unwrap();
+        call!("do.call", "call", obj, quote = TRUE).unwrap()
     },
     fmt: AST,
     keywords: LinkedHashMap<String, AST>,
@@ -483,8 +492,6 @@ define_ast_node!(
         )
     },
     |simple_identifier: &SimpleIdentifier, _depth: usize| {
-        //let call = format!("call(\"rlang::sym\", \"{}\")", simple_identifier.name);
-        //eval_string(&call).unwrap()
         r!(Symbol(&simple_identifier.name.clone()))
     },
     name: String,
@@ -761,6 +768,20 @@ mod r_ast_tests {
             let dict = AST::Call(crate::python::Call::new_wrapped(sym_fun, vec![], map));
             let r_node = dict.to_r_ast_node(0);
             assert_eq!(r_node, eval_string("call('call', name='fun', x=rlang::sym('a'), y=rlang::sym('b'))").unwrap());
+        }
+    }
+    #[test]
+    fn test_fmt() {
+        test! {
+            let fmt = AST::StringLiteral(StringLiteral::new_wrapped("{x} {y}".to_string(), false));
+            let sym_a = AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("a".to_string()));
+            let sym_b = AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("b".to_string()));
+            let mut map = linked_hash_map::LinkedHashMap::new();
+            map.insert("x".to_string(), sym_a);
+            map.insert("y".to_string(), sym_b);
+            let dict = AST::Formatted(crate::python::Formatted::new_wrapped(fmt, map));
+            let r_node = dict.to_r_ast_node(0);
+            assert_eq!(r_node, eval_string("call('call', name='glue::glue', fmt='{x} {y}', x=rlang::sym('a'), y=rlang::sym('b'))").unwrap());
         }
     }
 }
