@@ -751,6 +751,69 @@ where
         }
         family_trees
     }
+    fn new(universe: &'a Universe, topline_constraint_names: LinkedHashSet<String>) -> Result<Self>
+    where
+        Self: Sized,
+    {
+        let sorted_builders = Self::get_relevant_builders(&topline_constraint_names);
+
+        let mut concept_map: HashMap<(Uuid, String), Concept<'a>> = HashMap::new();
+        let concept = Concept::Universe((universe, 0, None));
+        concept.populate_child_concept_map(&mut concept_map);
+        let by_object_type = Self::get_concept_map_by_object_type(concept_map.clone());
+
+        let ancestors = Self::compute_all_ancestors(concept, &concept_map);
+        let mut visited_constraint_names: LinkedHashSet<String> = LinkedHashSet::new();
+        // constraint_name => root_id => constraint_object
+        let mut generated_constraints: LinkedHashMap<
+            String,
+            LinkedHashMap<(Uuid, String), Arc<RwLock<Constraint>>>,
+        > = LinkedHashMap::new();
+
+        let concepts = Arc::new(RwLock::new(concept_map));
+        let ancestry: ConceptAncestry<'a> = ConceptAncestry {
+            parents: concepts.clone(),
+        };
+        let family_trees = Self::generate_family_trees(&ancestors);
+
+        for builder in sorted_builders {
+            Self::attach_constraints(
+                builder,
+                &by_object_type,
+                &family_trees,
+                &ancestry,
+                &mut generated_constraints,
+                &mut visited_constraint_names,
+            )?;
+        }
+
+        let mut constraints = LinkedHashMap::new();
+        for (_k, v) in generated_constraints {
+            for ((_root_id, root_type), rw) in v.into_iter() {
+                constraints.insert(
+                    (rw.read().unwrap().get_uuid()?.clone(), root_type),
+                    rw.clone(),
+                );
+            }
+        }
+
+        Ok(Self::_new(
+            concepts,
+            constraints,
+            Arc::new(ancestry),
+            universe.endpoints.clone(),
+            ancestors,
+            topline_constraint_names,
+        ))
+    }
+    fn _new(
+        concepts: Arc<RwLock<HashMap<(Uuid, String), Concept<'a>>>>,
+        constraints: LinkedHashMap<(Uuid, String), Arc<RwLock<Constraint>>>,
+        ancestry: Arc<ConceptAncestry<'a>>,
+        endpoints: EndpointConfig,
+        ancestors: HashMap<(Uuid, String), Vec<AncestorRecord>>,
+        topline_constraint_names: LinkedHashSet<String>,
+    ) -> Self;
 }
 
 pub struct PythonBasedDriver<'a, D>
@@ -836,68 +899,6 @@ where
             .collect::<BTreeSet<String>>()
             .into_iter()
             .collect()
-    }
-}
-
-impl<'a, D> PythonBasedDriver<'a, D>
-where
-    D: PythonBasedFlow,
-    <D as PythonBasedFlow>::T: 'a,
-{
-    pub fn new(
-        universe: &'a Universe,
-        topline_constraint_names: LinkedHashSet<String>,
-    ) -> Result<PythonBasedDriver<'a, D>> {
-        let sorted_builders = Self::get_relevant_builders(&topline_constraint_names);
-
-        let mut concept_map: HashMap<(Uuid, String), Concept<'a>> = HashMap::new();
-        let concept = Concept::Universe((universe, 0, None));
-        concept.populate_child_concept_map(&mut concept_map);
-        let by_object_type = Self::get_concept_map_by_object_type(concept_map.clone());
-
-        let ancestors = Self::compute_all_ancestors(concept, &concept_map);
-        let mut visited_constraint_names: LinkedHashSet<String> = LinkedHashSet::new();
-        // constraint_name => root_id => constraint_object
-        let mut generated_constraints: LinkedHashMap<
-            String,
-            LinkedHashMap<(Uuid, String), Arc<RwLock<Constraint>>>,
-        > = LinkedHashMap::new();
-
-        let concepts = Arc::new(RwLock::new(concept_map));
-        let ancestry: ConceptAncestry<'a> = ConceptAncestry {
-            parents: concepts.clone(),
-        };
-        let family_trees = Self::generate_family_trees(&ancestors);
-
-        for builder in sorted_builders {
-            Self::attach_constraints(
-                builder,
-                &by_object_type,
-                &family_trees,
-                &ancestry,
-                &mut generated_constraints,
-                &mut visited_constraint_names,
-            )?;
-        }
-
-        let mut constraints = LinkedHashMap::new();
-        for (_k, v) in generated_constraints {
-            for ((_root_id, root_type), rw) in v.into_iter() {
-                constraints.insert(
-                    (rw.read().unwrap().get_uuid()?.clone(), root_type),
-                    rw.clone(),
-                );
-            }
-        }
-
-        Ok(Self::_new(
-            concepts,
-            constraints,
-            Arc::new(ancestry),
-            universe.endpoints.clone(),
-            ancestors,
-            topline_constraint_names,
-        ))
     }
     fn _new(
         concepts: Arc<RwLock<HashMap<(Uuid, String), Concept<'a>>>>,
