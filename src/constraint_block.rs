@@ -10,7 +10,16 @@ use std::marker::PhantomData;
 use uuid::Uuid;
 
 pub trait ConstraintBlock<'a> {
+    type C: CodeBlock;
+
     fn get_statements(&'a self, endpoints: &EndpointConfig) -> PythonStatementInput;
+    fn new(
+        constraint_name: String,
+        title: Option<String>,
+        body: Option<String>,
+        members: Vec<Self::C>,
+        tasks_dict: Option<AST>,
+    ) -> Self;
 }
 
 pub struct PythonBasedConstraintBlock<T>
@@ -28,6 +37,25 @@ impl<'a, T> ConstraintBlock<'a> for PythonBasedConstraintBlock<T>
 where
     T: ETLFlow,
 {
+    type C = PythonBasedCodeBlock<T>;
+
+    fn new(
+        constraint_name: String,
+        title: Option<String>,
+        body: Option<String>,
+        members: Vec<PythonBasedCodeBlock<T>>,
+        tasks_dict: Option<AST>,
+    ) -> Self {
+        Self {
+            constraint_name,
+            title,
+            body,
+            members,
+            singleton_type: PhantomData,
+            tasks_dict,
+        }
+    }
+
     fn get_statements(&'a self, endpoints: &EndpointConfig) -> PythonStatementInput {
         let preambles_and_statements = self
             .members
@@ -62,22 +90,6 @@ impl<'a, T> PythonBasedConstraintBlock<T>
 where
     T: ETLFlow,
 {
-    pub fn new(
-        constraint_name: String,
-        title: Option<String>,
-        body: Option<String>,
-        members: Vec<PythonBasedCodeBlock<T>>,
-        tasks_dict: Option<AST>,
-    ) -> Self {
-        Self {
-            constraint_name,
-            title,
-            body,
-            members,
-            singleton_type: PhantomData,
-            tasks_dict,
-        }
-    }
     pub fn get_identifiers(&self) -> HashMap<Uuid, AST> {
         self.members
             .iter()
