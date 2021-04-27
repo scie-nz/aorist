@@ -1,4 +1,4 @@
-use crate::code_block::PythonBasedCodeBlock;
+use crate::code_block::{CodeBlock, PythonBasedCodeBlock};
 use crate::endpoints::EndpointConfig;
 use crate::flow::ETLFlow;
 use crate::parameter_tuple::ParameterTuple;

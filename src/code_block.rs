@@ -12,7 +12,7 @@ use std::sync::{Arc, RwLock};
 use tracing::trace;
 use uuid::Uuid;
 
-trait CodeBlock {
+pub trait CodeBlock {
 
     /// assigns task values (Python variables in which they will be stored)
     /// to each member of the code block.
@@ -44,6 +44,10 @@ trait CodeBlock {
         }
         out
     }
+    fn get_statements(
+        &self,
+        endpoints: &EndpointConfig,
+    ) -> (Vec<AST>, LinkedHashSet<PythonPreamble>, BTreeSet<Import>);
 }
 
 pub struct PythonBasedCodeBlock<T>
@@ -56,7 +60,38 @@ where
     params: HashMap<String, Option<ParameterTuple>>,
 }
 impl <T> CodeBlock for PythonBasedCodeBlock<T>
-where T: ETLFlow {}
+where T: ETLFlow {
+    fn get_statements(
+        &self,
+        endpoints: &EndpointConfig,
+    ) -> (Vec<AST>, LinkedHashSet<PythonPreamble>, BTreeSet<Import>) {
+        let preambles_and_statements = self
+            .python_based_tasks
+            .iter()
+            .map(|x| x.get_statements(endpoints))
+            .collect::<Vec<_>>();
+        let gil = pyo3::Python::acquire_gil();
+        let py = gil.python();
+        let preambles = preambles_and_statements
+            .iter()
+            .map(|x| x.1.clone().into_iter())
+            .flatten()
+            .map(|x| PythonPreamble::new(x, py))
+            .collect::<LinkedHashSet<PythonPreamble>>();
+        let imports = preambles_and_statements
+            .iter()
+            .map(|x| x.2.clone().into_iter())
+            .flatten()
+            .collect::<BTreeSet<Import>>();
+        let statements = preambles_and_statements
+            .iter()
+            .map(|x| x.0.clone())
+            .flatten()
+            .collect::<Vec<_>>();
+        (statements, preambles, imports)
+    }
+
+}
 
 impl<'a, T> PythonBasedCodeBlock<T>
 where
@@ -287,34 +322,5 @@ where
 
     pub fn get_params(&self) -> HashMap<String, Option<ParameterTuple>> {
         self.params.clone()
-    }
-    pub fn get_statements(
-        &self,
-        endpoints: &EndpointConfig,
-    ) -> (Vec<AST>, LinkedHashSet<PythonPreamble>, BTreeSet<Import>) {
-        let preambles_and_statements = self
-            .python_based_tasks
-            .iter()
-            .map(|x| x.get_statements(endpoints))
-            .collect::<Vec<_>>();
-        let gil = pyo3::Python::acquire_gil();
-        let py = gil.python();
-        let preambles = preambles_and_statements
-            .iter()
-            .map(|x| x.1.clone().into_iter())
-            .flatten()
-            .map(|x| PythonPreamble::new(x, py))
-            .collect::<LinkedHashSet<PythonPreamble>>();
-        let imports = preambles_and_statements
-            .iter()
-            .map(|x| x.2.clone().into_iter())
-            .flatten()
-            .collect::<BTreeSet<Import>>();
-        let statements = preambles_and_statements
-            .iter()
-            .map(|x| x.0.clone())
-            .flatten()
-            .collect::<Vec<_>>();
-        (statements, preambles, imports)
     }
 }
