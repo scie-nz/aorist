@@ -2,7 +2,7 @@
 use crate::code_block::{CodeBlock, PythonBasedCodeBlock};
 use crate::concept::{Concept, ConceptAncestry};
 use crate::constraint::{AoristConstraint, Constraint};
-use crate::constraint_block::ConstraintBlock;
+use crate::constraint_block::PythonBasedConstraintBlock;
 use crate::constraint_state::{AncestorRecord, ConstraintState};
 use crate::data_setup::Universe;
 use crate::dialect::{Bash, Dialect, Presto, Python};
@@ -453,8 +453,14 @@ where
         }
     }
     fn init_unsatisfied_constraints(&self) -> Result<ConstraintsBlockMap<'a>>;
-    fn add_block(&mut self, constraint_block: ConstraintBlock<<D as PythonBasedFlow>::T>);
-    fn get_constraint_explanation(&self, constraint_name: &String) -> (Option<String>, Option<String>);
+    fn add_block(
+        &mut self,
+        constraint_block: PythonBasedConstraintBlock<<D as PythonBasedFlow>::T>,
+    );
+    fn get_constraint_explanation(
+        &self,
+        constraint_name: &String,
+    ) -> (Option<String>, Option<String>);
 }
 
 pub struct PythonBasedDriver<'a, D>
@@ -464,7 +470,7 @@ where
     pub concepts: Arc<RwLock<HashMap<(Uuid, String), Concept<'a>>>>,
     constraints: LinkedHashMap<(Uuid, String), Arc<RwLock<Constraint>>>,
     satisfied_constraints: HashMap<(Uuid, String), Arc<RwLock<ConstraintState<'a>>>>,
-    blocks: Vec<ConstraintBlock<D::T>>,
+    blocks: Vec<PythonBasedConstraintBlock<D::T>>,
     ancestry: Arc<ConceptAncestry<'a>>,
     dag_type: PhantomData<D>,
     endpoints: EndpointConfig,
@@ -502,10 +508,16 @@ where
             self.topline_constraint_names.clone(),
         )
     }
-    fn add_block(&mut self, constraint_block: ConstraintBlock<<D as PythonBasedFlow>::T>) {
+    fn add_block(
+        &mut self,
+        constraint_block: PythonBasedConstraintBlock<<D as PythonBasedFlow>::T>,
+    ) {
         self.blocks.push(constraint_block);
     }
-    fn get_constraint_explanation(&self, constraint_name: &String) -> (Option<String>, Option<String>) {
+    fn get_constraint_explanation(
+        &self,
+        constraint_name: &String,
+    ) -> (Option<String>, Option<String>) {
         self.constraint_explanations
             .get(constraint_name)
             .unwrap()
@@ -807,8 +819,13 @@ where
                     )?;
 
                     let (title, body) = self.get_constraint_explanation(constraint_name);
-                    let constraint_block =
-                        ConstraintBlock::new(snake_case_name, title, body, members, tasks_dict);
+                    let constraint_block = PythonBasedConstraintBlock::new(
+                        snake_case_name,
+                        title,
+                        body,
+                        members,
+                        tasks_dict,
+                    );
                     for (key, val) in constraint_block.get_identifiers() {
                         identifiers.insert(key, val);
                     }

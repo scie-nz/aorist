@@ -9,7 +9,7 @@ use std::collections::{BTreeSet, HashMap};
 use std::marker::PhantomData;
 use uuid::Uuid;
 
-pub struct ConstraintBlock<T>
+pub struct PythonBasedConstraintBlock<T>
 where
     T: ETLFlow,
 {
@@ -20,7 +20,7 @@ where
     singleton_type: PhantomData<T>,
     tasks_dict: Option<AST>,
 }
-impl<'a, T> ConstraintBlock<T>
+impl<'a, T> PythonBasedConstraintBlock<T>
 where
     T: ETLFlow,
 {
