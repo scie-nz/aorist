@@ -13,6 +13,7 @@ pub trait ConstraintBlock<'a> {
     type C: CodeBlock;
 
     fn get_statements(&'a self, endpoints: &EndpointConfig) -> PythonStatementInput;
+    fn get_identifiers(&self) -> HashMap<Uuid, AST>;
     fn new(
         constraint_name: String,
         title: Option<String>,
@@ -84,19 +85,19 @@ where
             self.body.clone(),
         )
     }
-}
-
-impl<'a, T> PythonBasedConstraintBlock<T>
-where
-    T: ETLFlow,
-{
-    pub fn get_identifiers(&self) -> HashMap<Uuid, AST> {
+    fn get_identifiers(&self) -> HashMap<Uuid, AST> {
         self.members
             .iter()
             .map(|x| x.get_identifiers().into_iter())
             .flatten()
             .collect()
     }
+}
+
+impl<'a, T> PythonBasedConstraintBlock<T>
+where
+    T: ETLFlow,
+{
     pub fn get_constraint_name(&self) -> String {
         self.constraint_name.clone()
     }

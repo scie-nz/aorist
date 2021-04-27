@@ -35,6 +35,61 @@ where
     <D as PythonBasedFlow>::T: 'a,
 {
     type CB: ConstraintBlock<'a>;
+    
+    fn satisfy_constraints(&mut self) -> Result<()> {
+        let mut unsatisfied_constraints = self.init_unsatisfied_constraints()?;
+        let mut reverse_dependencies: HashMap<(Uuid, String), HashSet<(String, Uuid, String)>> =
+            HashMap::new();
+        for (name, (_, constraints)) in &unsatisfied_constraints {
+            for ((uuid, root_type), state) in constraints {
+                for (dependency_uuid, dependency_root_type) in
+                    &state.read().unwrap().unsatisfied_dependencies
+                {
+                    reverse_dependencies
+                        .entry((*dependency_uuid, dependency_root_type.clone()))
+                        .or_insert(HashSet::new())
+                        .insert((name.clone(), *uuid, root_type.clone()));
+                }
+            }
+        }
+
+        let mut existing_names = HashSet::new();
+        let mut identifiers = HashMap::new();
+        // find at least one satisfiable constraint
+        loop {
+            let mut satisfiable =
+                self.find_satisfiable_constraint_block(&mut unsatisfied_constraints);
+            if let Some((ref mut block, ref constraint_name)) = satisfiable {
+                ConstraintState::shorten_task_names(block, &mut existing_names);
+                let snake_case_name = to_snake_case(constraint_name);
+                if block.len() > 0 {
+                    let (members, tasks_dict) = self.process_constraint_block(
+                        &mut block.clone(),
+                        &reverse_dependencies,
+                        snake_case_name.clone(),
+                        &unsatisfied_constraints,
+                        &identifiers,
+                    )?;
+
+                    let (title, body) = self.get_constraint_explanation(constraint_name);
+                    let constraint_block = Self::CB::new(
+                        snake_case_name,
+                        title,
+                        body,
+                        members,
+                        tasks_dict,
+                    );
+                    for (key, val) in constraint_block.get_identifiers() {
+                        identifiers.insert(key, val);
+                    }
+                    self.add_block(constraint_block);
+                }
+            } else {
+                assert_eq!(unsatisfied_constraints.len(), 0);
+                return Ok(());
+            }
+        }
+    }
 
     // TODO: unify this with ConceptAncestry
     fn compute_all_ancestors(
@@ -455,7 +510,7 @@ where
     fn init_unsatisfied_constraints(&self) -> Result<ConstraintsBlockMap<'a>>;
     fn add_block(
         &mut self,
-        constraint_block: PythonBasedConstraintBlock<<D as PythonBasedFlow>::T>,
+        constraint_block: Self::CB,
     );
     fn get_constraint_explanation(
         &self,
@@ -782,60 +837,6 @@ where
             constraint_explanations: AoristConstraint::get_explanations(),
             topline_constraint_names,
         })
-    }
-    pub fn satisfy_constraints(&mut self) -> Result<()> {
-        let mut unsatisfied_constraints = self.init_unsatisfied_constraints()?;
-        let mut reverse_dependencies: HashMap<(Uuid, String), HashSet<(String, Uuid, String)>> =
-            HashMap::new();
-        for (name, (_, constraints)) in &unsatisfied_constraints {
-            for ((uuid, root_type), state) in constraints {
-                for (dependency_uuid, dependency_root_type) in
-                    &state.read().unwrap().unsatisfied_dependencies
-                {
-                    reverse_dependencies
-                        .entry((*dependency_uuid, dependency_root_type.clone()))
-                        .or_insert(HashSet::new())
-                        .insert((name.clone(), *uuid, root_type.clone()));
-                }
-            }
-        }
-
-        let mut existing_names = HashSet::new();
-        let mut identifiers = HashMap::new();
-        // find at least one satisfiable constraint
-        loop {
-            let mut satisfiable =
-                self.find_satisfiable_constraint_block(&mut unsatisfied_constraints);
-            if let Some((ref mut block, ref constraint_name)) = satisfiable {
-                ConstraintState::shorten_task_names(block, &mut existing_names);
-                let snake_case_name = to_snake_case(constraint_name);
-                if block.len() > 0 {
-                    let (members, tasks_dict) = self.process_constraint_block(
-                        &mut block.clone(),
-                        &reverse_dependencies,
-                        snake_case_name.clone(),
-                        &unsatisfied_constraints,
-                        &identifiers,
-                    )?;
-
-                    let (title, body) = self.get_constraint_explanation(constraint_name);
-                    let constraint_block = PythonBasedConstraintBlock::new(
-                        snake_case_name,
-                        title,
-                        body,
-                        members,
-                        tasks_dict,
-                    );
-                    for (key, val) in constraint_block.get_identifiers() {
-                        identifiers.insert(key, val);
-                    }
-                    self.add_block(constraint_block);
-                }
-            } else {
-                assert_eq!(unsatisfied_constraints.len(), 0);
-                return Ok(());
-            }
-        }
     }
     pub fn run(&'a mut self) -> Result<(String, Vec<String>)> {
         self.satisfy_constraints()?;
