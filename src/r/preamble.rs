@@ -41,8 +41,35 @@ impl<'a> RPreamble {
         let body_no_imports = res.index(1).unwrap();
         let libraries = res.index(2).unwrap();
         Self {
-            libraries: libraries.as_list_iter().unwrap().map(|x| x.as_str().unwrap().to_string()).collect(),
+            libraries: libraries.as_string_vector().unwrap(),
             body: body_no_imports.as_str().unwrap().to_string(),
+        }
+    }
+}
+
+#[allow(unused_imports)]
+mod r_test_preamble {
+    use extendr_api::prelude::*;
+    use crate::r::preamble::RPreamble;
+    #[test]
+    fn test_basic_preamble() {
+        test! {
+            let body = r#"
+            library('ggplot2')
+            library('igraph')
+            c(1)
+            f <- function(a, b) {
+              a + b
+            }
+            "#;
+            let preamble = RPreamble::new(body.to_string());
+            assert_eq!(preamble.libraries.get(0).unwrap(), "ggplot2");
+            assert_eq!(preamble.libraries.get(1).unwrap(), "igraph");
+            assert_eq!(preamble.body, r#"c(1)
+
+f <- function(a, b) {
+    a + b
+}"#);
         }
     }
 }
