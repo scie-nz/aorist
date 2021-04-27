@@ -1,4 +1,6 @@
 mod ast;
+mod preamble;
+
 use linked_hash_set::LinkedHashSet;
 use pyo3::prelude::*;
 use pyo3::types::{IntoPyDict, PyString, PyTuple};
@@ -7,9 +9,11 @@ use std::collections::{BTreeSet, HashMap};
 pub use ast::{
     Add, Assignment, Attribute, BashPythonTask, BigIntLiteral, BinOp, BooleanLiteral, Call,
     ConstantPythonTask, Dict, Expression, ForLoop, Formatted, Import, ImportNode, List,
-    NativePythonTask, None, PythonPreamble, PrestoPythonTask, RPythonTask, SimpleIdentifier,
+    NativePythonTask, None, PrestoPythonTask, RPythonTask, SimpleIdentifier,
     StringLiteral, Subscript, Tuple, AST,
 };
+pub use preamble::PythonPreamble;
+
 /// Wrapper type for stuff that gets passed around when building Python
 /// statements:
 /// - A vector of AST objects (main statements),
