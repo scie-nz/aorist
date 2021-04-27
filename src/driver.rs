@@ -29,13 +29,29 @@ type ConstraintsBlockMap<'a> = LinkedHashMap<
     ),
 >;
 
-trait Driver<'a, D>
+pub trait Driver<'a, D>
 where
     D: PythonBasedFlow,
     <D as PythonBasedFlow>::T: 'a,
+    Self::CB: 'a
 {
     type CB: ConstraintBlock<'a>;
     
+    fn run(&'a mut self) -> Result<(String, Vec<String>)> {
+        self.satisfy_constraints()?;
+        let etl = D::new();
+        let statements_and_preambles = self
+            .get_blocks()
+            .iter()
+            .map(|x| x.get_statements(self.get_endpoints()))
+            .collect::<Vec<_>>();
+
+        Ok((
+            etl.materialize(statements_and_preambles)?,
+            self.get_dependencies(),
+        ))
+    }
+
     fn satisfy_constraints(&mut self) -> Result<()> {
         let mut unsatisfied_constraints = self.init_unsatisfied_constraints()?;
         let mut reverse_dependencies: HashMap<(Uuid, String), HashSet<(String, Uuid, String)>> =
@@ -72,13 +88,8 @@ where
                     )?;
 
                     let (title, body) = self.get_constraint_explanation(constraint_name);
-                    let constraint_block = Self::CB::new(
-                        snake_case_name,
-                        title,
-                        body,
-                        members,
-                        tasks_dict,
-                    );
+                    let constraint_block =
+                        Self::CB::new(snake_case_name, title, body, members, tasks_dict);
                     for (key, val) in constraint_block.get_identifiers() {
                         identifiers.insert(key, val);
                     }
@@ -508,14 +519,14 @@ where
         }
     }
     fn init_unsatisfied_constraints(&self) -> Result<ConstraintsBlockMap<'a>>;
-    fn add_block(
-        &mut self,
-        constraint_block: Self::CB,
-    );
+    fn add_block(&mut self, constraint_block: Self::CB);
     fn get_constraint_explanation(
         &self,
         constraint_name: &String,
     ) -> (Option<String>, Option<String>);
+    fn get_blocks(&'a self) -> &'a Vec<Self::CB>;
+    fn get_dependencies(&self) -> Vec<String>;
+    fn get_endpoints<'b>(&'b self) -> &'b EndpointConfig where 'a: 'b;
 }
 
 pub struct PythonBasedDriver<'a, D>
@@ -543,6 +554,10 @@ where
 
     fn get_constraint_rwlock(&self, uuid: &(Uuid, String)) -> Arc<RwLock<Constraint>> {
         self.constraints.get(uuid).unwrap().clone()
+    }
+
+    fn get_endpoints<'b>(&'b self) -> &'b EndpointConfig where 'a: 'b {
+        &self.endpoints
     }
 
     fn get_ancestry(&self) -> Arc<ConceptAncestry<'a>> {
@@ -577,6 +592,23 @@ where
             .get(constraint_name)
             .unwrap()
             .clone()
+    }
+    fn get_blocks(&'a self) -> &'a Vec<Self::CB> {
+        &self.blocks
+    }
+    fn get_dependencies(&self) -> Vec<String> {
+        self.satisfied_constraints
+            .values()
+            .map(|x| match x.read().unwrap().get_dialect() {
+                Some(Dialect::Python(x)) => Some(x.get_pip_requirements()),
+                _ => None,
+            })
+            .filter(|x| x.is_some())
+            .map(|x| x.unwrap().into_iter())
+            .flatten()
+            .collect::<BTreeSet<String>>()
+            .into_iter()
+            .collect()
     }
 }
 
@@ -837,30 +869,5 @@ where
             constraint_explanations: AoristConstraint::get_explanations(),
             topline_constraint_names,
         })
-    }
-    pub fn run(&'a mut self) -> Result<(String, Vec<String>)> {
-        self.satisfy_constraints()?;
-        let etl = D::new();
-        let statements_and_preambles = self
-            .blocks
-            .iter()
-            .map(|x| x.get_statements(&self.endpoints))
-            .collect::<Vec<_>>();
-
-        let pip_dependencies = self
-            .satisfied_constraints
-            .values()
-            .map(|x| match x.read().unwrap().get_dialect() {
-                Some(Dialect::Python(x)) => Some(x.get_pip_requirements()),
-                _ => None,
-            })
-            .filter(|x| x.is_some())
-            .map(|x| x.unwrap().into_iter())
-            .flatten()
-            .collect::<BTreeSet<String>>()
-            .into_iter()
-            .collect();
-
-        Ok((etl.materialize(statements_and_preambles)?, pip_dependencies))
     }
 }
