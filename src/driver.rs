@@ -29,7 +29,11 @@ type ConstraintsBlockMap<'a> = LinkedHashMap<
     ),
 >;
 
-trait Driver<'a> {
+trait Driver<'a, D> 
+where
+    D: PythonBasedFlow,
+    <D as PythonBasedFlow>::T: 'a {
+
     // TODO: unify this with ConceptAncestry
     fn compute_all_ancestors(
         universe: Concept<'a>,
@@ -412,7 +416,7 @@ where
     topline_constraint_names: LinkedHashSet<String>,
 }
 
-impl<'a, D> Driver<'a> for PythonBasedDriver<'a, D>
+impl<'a, D> Driver<'a, D> for PythonBasedDriver<'a, D>
 where
     D: PythonBasedFlow,
     <D as PythonBasedFlow>::T: 'a,
