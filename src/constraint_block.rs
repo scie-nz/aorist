@@ -1,4 +1,4 @@
-use crate::code_block::CodeBlock;
+use crate::code_block::PythonBasedCodeBlock;
 use crate::endpoints::EndpointConfig;
 use crate::flow::ETLFlow;
 use crate::python::PythonStatementInput;
@@ -16,7 +16,7 @@ where
     constraint_name: String,
     title: Option<String>,
     body: Option<String>,
-    members: Vec<CodeBlock<T>>,
+    members: Vec<PythonBasedCodeBlock<T>>,
     singleton_type: PhantomData<T>,
     tasks_dict: Option<AST>,
 }
@@ -28,7 +28,7 @@ where
         constraint_name: String,
         title: Option<String>,
         body: Option<String>,
-        members: Vec<CodeBlock<T>>,
+        members: Vec<PythonBasedCodeBlock<T>>,
         tasks_dict: Option<AST>,
     ) -> Self {
         Self {

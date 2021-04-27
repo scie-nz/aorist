@@ -13,7 +13,7 @@ use std::sync::{Arc, RwLock};
 use tracing::trace;
 use uuid::Uuid;
 
-pub struct CodeBlock<T>
+pub struct PythonBasedCodeBlock<T>
 where
     T: ETLFlow,
 {
@@ -22,7 +22,7 @@ where
     python_based_tasks: Vec<PythonBasedTask<T>>,
     params: HashMap<String, Option<ParameterTuple>>,
 }
-impl<'a, T> CodeBlock<T>
+impl<'a, T> PythonBasedCodeBlock<T>
 where
     T: ETLFlow,
 {

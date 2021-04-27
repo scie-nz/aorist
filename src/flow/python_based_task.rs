@@ -456,6 +456,9 @@ where
     }
 }
 
+trait ETLTask<T>
+where T: ETLFlow {}
+
 pub enum PythonBasedTask<T>
 where
     T: ETLFlow,
@@ -477,3 +480,5 @@ where
         }
     }
 }
+
+
