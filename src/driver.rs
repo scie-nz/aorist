@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 use crate::code_block::CodeBlock;
 use crate::concept::{Concept, ConceptAncestry};
-use crate::constraint::{AoristConstraint, Constraint};
+use crate::constraint::{AoristConstraint, Constraint, AoristConstraintBuilder};
 use crate::constraint_block::{ConstraintBlock, PythonBasedConstraintBlock};
 use crate::constraint_state::{AncestorRecord, ConstraintState};
 use crate::data_setup::Universe;
@@ -33,10 +33,77 @@ pub trait Driver<'a, D>
 where
     D: PythonBasedFlow,
     <D as PythonBasedFlow>::T: 'a,
-    Self::CB: 'a
+    Self::CB: 'a,
 {
     type CB: ConstraintBlock<'a>;
     
+    fn get_relevant_builders(
+        topline_constraint_names: &LinkedHashSet<String>,
+    ) -> Vec<AoristConstraintBuilder> {
+        let mut builders = AoristConstraint::builders()
+            .into_iter()
+            .map(|x| (x.get_constraint_name(), x))
+            .collect::<LinkedHashMap<String, _>>();
+
+        let mut builder_q = topline_constraint_names
+            .clone()
+            .into_iter()
+            .map(|x| {
+                (
+                    x.clone(),
+                    builders
+                        .remove(&x)
+                        .expect(format!("Missing constraint named {}", x).as_str()),
+                )
+            })
+            .collect::<VecDeque<_>>();
+
+        let mut relevant_builders = LinkedHashMap::new();
+        let mut visited = HashSet::new();
+        let mut g: LinkedHashMap<String, LinkedHashSet<String>> = LinkedHashMap::new();
+        let mut rev: HashMap<String, Vec<String>> = HashMap::new();
+
+        while builder_q.len() > 0 {
+            let (key, builder) = builder_q.pop_front().unwrap();
+            let edges = g.entry(key.clone()).or_insert(LinkedHashSet::new());
+            debug!("Constraint {} requires:", key);
+            for req in builder.get_required_constraint_names() {
+                debug!("  - {}", req);
+                if !visited.contains(&req) {
+                    let another = builders.remove(&req).unwrap();
+                    builder_q.push_back((req.clone(), another));
+                    visited.insert(req.clone());
+                }
+                edges.insert(req.clone());
+                let rev_edges = rev.entry(req.clone()).or_insert(Vec::new());
+                rev_edges.push(key.clone());
+            }
+            relevant_builders.insert(key.clone(), builder);
+        }
+        let mut sorted_builders = Vec::new();
+        while g.len() > 0 {
+            let leaf = g
+                .iter()
+                .filter(|(_, v)| v.len() == 0)
+                .map(|(k, _)| k)
+                .next()
+                .unwrap()
+                .clone();
+
+            let builder = relevant_builders.remove(&leaf).unwrap();
+            if let Some(parents) = rev.remove(&leaf) {
+                for parent in parents {
+                    g.get_mut(&parent).unwrap().remove(&leaf);
+                }
+            }
+            sorted_builders.push(builder);
+            g.remove(&leaf);
+        }
+
+        sorted_builders
+    }
+
+
     fn run(&'a mut self) -> Result<(String, Vec<String>)> {
         self.satisfy_constraints()?;
         let etl = D::new();
@@ -526,7 +593,9 @@ where
     ) -> (Option<String>, Option<String>);
     fn get_blocks(&'a self) -> &'a Vec<Self::CB>;
     fn get_dependencies(&self) -> Vec<String>;
-    fn get_endpoints<'b>(&'b self) -> &'b EndpointConfig where 'a: 'b;
+    fn get_endpoints<'b>(&'b self) -> &'b EndpointConfig
+    where
+        'a: 'b;
 }
 
 pub struct PythonBasedDriver<'a, D>
@@ -556,7 +625,10 @@ where
         self.constraints.get(uuid).unwrap().clone()
     }
 
-    fn get_endpoints<'b>(&'b self) -> &'b EndpointConfig where 'a: 'b {
+    fn get_endpoints<'b>(&'b self) -> &'b EndpointConfig
+    where
+        'a: 'b,
+    {
         &self.endpoints
     }
 
@@ -621,6 +693,8 @@ where
         universe: &'a Universe,
         topline_constraint_names: LinkedHashSet<String>,
     ) -> Result<PythonBasedDriver<'a, D>> {
+        let sorted_builders = Self::get_relevant_builders(&topline_constraint_names);
+
         let mut concept_map: HashMap<(Uuid, String), Concept<'a>> = HashMap::new();
         let concept = Concept::Universe((universe, 0, None));
         concept.populate_child_concept_map(&mut concept_map);
@@ -671,67 +745,6 @@ where
             String,
             LinkedHashMap<(Uuid, String), Arc<RwLock<Constraint>>>,
         > = LinkedHashMap::new();
-
-        let mut builders = AoristConstraint::builders()
-            .into_iter()
-            .map(|x| (x.get_constraint_name(), x))
-            .collect::<LinkedHashMap<String, _>>();
-
-        let mut builder_q = topline_constraint_names
-            .clone()
-            .into_iter()
-            .map(|x| {
-                (
-                    x.clone(),
-                    builders
-                        .remove(&x)
-                        .expect(format!("Missing constraint named {}", x).as_str()),
-                )
-            })
-            .collect::<VecDeque<_>>();
-
-        let mut relevant_builders = LinkedHashMap::new();
-        let mut visited = HashSet::new();
-        let mut g: LinkedHashMap<String, LinkedHashSet<String>> = LinkedHashMap::new();
-        let mut rev: HashMap<String, Vec<String>> = HashMap::new();
-
-        while builder_q.len() > 0 {
-            let (key, builder) = builder_q.pop_front().unwrap();
-            let edges = g.entry(key.clone()).or_insert(LinkedHashSet::new());
-            debug!("Constraint {} requires:", key);
-            for req in builder.get_required_constraint_names() {
-                debug!("  - {}", req);
-                if !visited.contains(&req) {
-                    let another = builders.remove(&req).unwrap();
-                    builder_q.push_back((req.clone(), another));
-                    visited.insert(req.clone());
-                }
-                edges.insert(req.clone());
-                let rev_edges = rev.entry(req.clone()).or_insert(Vec::new());
-                rev_edges.push(key.clone());
-            }
-            relevant_builders.insert(key.clone(), builder);
-        }
-
-        let mut sorted_builders = Vec::new();
-        while g.len() > 0 {
-            let leaf = g
-                .iter()
-                .filter(|(_, v)| v.len() == 0)
-                .map(|(k, _)| k)
-                .next()
-                .unwrap()
-                .clone();
-
-            let builder = relevant_builders.remove(&leaf).unwrap();
-            if let Some(parents) = rev.remove(&leaf) {
-                for parent in parents {
-                    g.get_mut(&parent).unwrap().remove(&leaf);
-                }
-            }
-            sorted_builders.push(builder);
-            g.remove(&leaf);
-        }
 
         let concepts = Arc::new(RwLock::new(concept_map));
         let ancestry: ConceptAncestry<'a> = ConceptAncestry {
