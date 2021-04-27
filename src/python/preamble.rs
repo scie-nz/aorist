@@ -2,6 +2,7 @@ use crate::python::Import;
 use pyo3::prelude::*;
 use pyo3::types::{PyList, PyModule, PyString, PyTuple};
 use std::hash::Hash;
+use crate::preamble::Preamble;
 
 #[derive(Clone, PartialEq, Hash, Eq)]
 pub struct PythonPreamble {
@@ -9,6 +10,7 @@ pub struct PythonPreamble {
     pub from_imports: Vec<Import>,
     pub body: String,
 }
+impl Preamble for PythonPreamble {}
 impl<'a> PythonPreamble {
     pub fn new(body: String, py: Python<'a>) -> PythonPreamble {
         let helpers = PyModule::from_code(

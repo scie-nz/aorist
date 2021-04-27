@@ -3,6 +3,7 @@ use crate::endpoints::EndpointConfig;
 use crate::flow::ETLFlow;
 use crate::flow::{ForLoopPythonBasedTask, PythonBasedTask, StandalonePythonBasedTask};
 use crate::parameter_tuple::ParameterTuple;
+use crate::preamble::Preamble;
 use crate::python::{Formatted, Import, PythonPreamble, SimpleIdentifier, StringLiteral, Subscript, AST};
 use anyhow::Result;
 use linked_hash_map::LinkedHashMap;
@@ -12,8 +13,10 @@ use std::sync::{Arc, RwLock};
 use tracing::trace;
 use uuid::Uuid;
 
-pub trait CodeBlock {
+pub trait CodeBlock
+where Self::P: Preamble {
 
+    type P;
     /// assigns task values (Python variables in which they will be stored)
     /// to each member of the code block.
     fn compute_task_vals<'a>(
@@ -47,7 +50,7 @@ pub trait CodeBlock {
     fn get_statements(
         &self,
         endpoints: &EndpointConfig,
-    ) -> (Vec<AST>, LinkedHashSet<PythonPreamble>, BTreeSet<Import>);
+    ) -> (Vec<AST>, LinkedHashSet<Self::P>, BTreeSet<Import>);
 }
 
 pub struct PythonBasedCodeBlock<T>
@@ -61,6 +64,9 @@ where
 }
 impl <T> CodeBlock for PythonBasedCodeBlock<T>
 where T: ETLFlow {
+
+    type P = PythonPreamble;
+
     fn get_statements(
         &self,
         endpoints: &EndpointConfig,
