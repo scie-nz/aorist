@@ -14,7 +14,7 @@ use tracing::trace;
 use uuid::Uuid;
 
 pub trait CodeBlock
-where Self::P: Preamble {
+where Self::P: Preamble, Self: Sized {
 
     type P;
     /// assigns task values (Python variables in which they will be stored)
@@ -51,6 +51,15 @@ where Self::P: Preamble {
         &self,
         endpoints: &EndpointConfig,
     ) -> (Vec<AST>, LinkedHashSet<Self::P>, BTreeSet<Import>);
+    fn get_tasks_dict(&self) -> Option<AST>;
+    fn get_identifiers(&self) -> HashMap<Uuid, AST>;
+    fn get_params(&self) -> HashMap<String, Option<ParameterTuple>>;
+    fn new<'a>(
+        members: Vec<Arc<RwLock<ConstraintState<'a>>>>,
+        constraint_name: String,
+        tasks_dict: Option<AST>,
+        identifiers: &HashMap<Uuid, AST>,
+    ) -> Result<Self>;
 }
 
 pub struct PythonBasedCodeBlock<T>
@@ -96,22 +105,19 @@ where T: ETLFlow {
             .collect::<Vec<_>>();
         (statements, preambles, imports)
     }
-
-}
-
-impl<'a, T> PythonBasedCodeBlock<T>
-where
-    T: ETLFlow,
-{
-    pub fn get_tasks_dict(&self) -> Option<AST> {
+    fn get_tasks_dict(&self) -> Option<AST> {
         self.tasks_dict.clone()
     }
 
-    pub fn get_identifiers(&self) -> HashMap<Uuid, AST> {
+    fn get_identifiers(&self) -> HashMap<Uuid, AST> {
         self.task_identifiers.clone()
     }
 
-    pub fn new(
+    fn get_params(&self) -> HashMap<String, Option<ParameterTuple>> {
+        self.params.clone()
+    }
+
+    fn new<'a>(
         members: Vec<Arc<RwLock<ConstraintState<'a>>>>,
         constraint_name: String,
         tasks_dict: Option<AST>,
@@ -326,7 +332,4 @@ where
         })
     }
 
-    pub fn get_params(&self) -> HashMap<String, Option<ParameterTuple>> {
-        self.params.clone()
-    }
 }
