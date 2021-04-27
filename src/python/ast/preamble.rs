@@ -4,13 +4,13 @@ use pyo3::types::{PyList, PyModule, PyString, PyTuple};
 use std::hash::Hash;
 
 #[derive(Clone, PartialEq, Hash, Eq)]
-pub struct Preamble {
+pub struct PythonPreamble {
     pub imports: Vec<Import>,
     pub from_imports: Vec<Import>,
     pub body: String,
 }
-impl<'a> Preamble {
-    pub fn new(body: String, py: Python<'a>) -> Preamble {
+impl<'a> PythonPreamble {
+    pub fn new(body: String, py: Python<'a>) -> PythonPreamble {
         let helpers = PyModule::from_code(
             py,
             r#"

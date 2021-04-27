@@ -14,7 +14,7 @@ pub use bash_python_task::BashPythonTask;
 pub use constant_python_task::ConstantPythonTask;
 pub use import::Import;
 pub use native_python_task::NativePythonTask;
-pub use preamble::Preamble;
+pub use preamble::PythonPreamble;
 pub use presto_python_task::PrestoPythonTask;
 pub use r_python_task::RPythonTask;
 pub use string_literal::StringLiteral;

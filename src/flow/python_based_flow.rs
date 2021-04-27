@@ -1,6 +1,6 @@
 use crate::flow::etl_flow::ETLFlow;
 use crate::python::{
-    format_code, Assignment, Dict, Import, Preamble, PythonStatementInput, SimpleIdentifier, AST,
+    format_code, Assignment, Dict, Import, PythonPreamble, PythonStatementInput, SimpleIdentifier, AST,
 };
 use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
@@ -26,7 +26,7 @@ where
     ) -> Vec<(String, Vec<&'a PyAny>)>;
     fn get_flow_imports(&self) -> Vec<Import>;
 
-    fn get_preamble_imports(&self, preambles: &LinkedHashSet<Preamble>) -> Vec<Import> {
+    fn get_preamble_imports(&self, preambles: &LinkedHashSet<PythonPreamble>) -> Vec<Import> {
         let preamble_module_imports = preambles
             .iter()
             .map(|x| x.imports.clone().into_iter())
@@ -139,7 +139,7 @@ where
             .iter()
             .map(|x| x.clone().1.into_iter())
             .flatten()
-            .collect::<LinkedHashSet<Preamble>>();
+            .collect::<LinkedHashSet<PythonPreamble>>();
 
         let preamble_imports: Vec<Import> = self.get_preamble_imports(&preambles);
 

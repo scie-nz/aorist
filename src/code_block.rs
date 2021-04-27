@@ -3,7 +3,7 @@ use crate::endpoints::EndpointConfig;
 use crate::flow::ETLFlow;
 use crate::flow::{ForLoopPythonBasedTask, PythonBasedTask, StandalonePythonBasedTask};
 use crate::parameter_tuple::ParameterTuple;
-use crate::python::{Formatted, Import, Preamble, SimpleIdentifier, StringLiteral, Subscript, AST};
+use crate::python::{Formatted, Import, PythonPreamble, SimpleIdentifier, StringLiteral, Subscript, AST};
 use anyhow::Result;
 use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
@@ -291,7 +291,7 @@ where
     pub fn get_statements(
         &self,
         endpoints: &EndpointConfig,
-    ) -> (Vec<AST>, LinkedHashSet<Preamble>, BTreeSet<Import>) {
+    ) -> (Vec<AST>, LinkedHashSet<PythonPreamble>, BTreeSet<Import>) {
         let preambles_and_statements = self
             .python_based_tasks
             .iter()
@@ -303,8 +303,8 @@ where
             .iter()
             .map(|x| x.1.clone().into_iter())
             .flatten()
-            .map(|x| Preamble::new(x, py))
-            .collect::<LinkedHashSet<Preamble>>();
+            .map(|x| PythonPreamble::new(x, py))
+            .collect::<LinkedHashSet<PythonPreamble>>();
         let imports = preambles_and_statements
             .iter()
             .map(|x| x.2.clone().into_iter())

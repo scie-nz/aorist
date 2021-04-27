@@ -7,18 +7,18 @@ use std::collections::{BTreeSet, HashMap};
 pub use ast::{
     Add, Assignment, Attribute, BashPythonTask, BigIntLiteral, BinOp, BooleanLiteral, Call,
     ConstantPythonTask, Dict, Expression, ForLoop, Formatted, Import, ImportNode, List,
-    NativePythonTask, None, Preamble, PrestoPythonTask, RPythonTask, SimpleIdentifier,
+    NativePythonTask, None, PythonPreamble, PrestoPythonTask, RPythonTask, SimpleIdentifier,
     StringLiteral, Subscript, Tuple, AST,
 };
 /// Wrapper type for stuff that gets passed around when building Python
 /// statements:
 /// - A vector of AST objects (main statements),
-/// - A set of Preambles (which have their own imports attached)
+/// - A set of PythonPreambles (which have their own imports attached)
 /// - A set of imports corresponding to the dialect used.
 /// - A comment string
 pub type PythonStatementInput = (
     Vec<AST>,
-    LinkedHashSet<Preamble>,
+    LinkedHashSet<PythonPreamble>,
     BTreeSet<Import>,
     String,
     Option<String>,
