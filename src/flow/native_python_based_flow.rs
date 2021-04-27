@@ -1,10 +1,11 @@
 use crate::dialect::Dialect;
 use crate::endpoints::EndpointConfig;
-use crate::etl_singleton::{ETLSingleton, ETLDAG};
+use crate::flow::etl_flow::ETLFlow;
 use crate::python::{
     BashPythonTask, Call, ConstantPythonTask, Expression, Formatted, Import, NativePythonTask,
     PrestoPythonTask, RPythonTask, SimpleIdentifier, StringLiteral, AST,
 };
+use crate::flow::python_based_flow::PythonBasedFlow;
 use aorist_primitives::register_task_nodes;
 use linked_hash_map::LinkedHashMap;
 use pyo3::prelude::*;
@@ -22,7 +23,7 @@ register_task_nodes! {
 }
 
 #[derive(Clone, Hash, PartialEq, Eq)]
-pub struct PythonSingleton {
+pub struct NativePythonBasedFlow {
     task_id: AST,
     task_val: AST,
     command: Option<String>,
@@ -35,7 +36,7 @@ pub struct PythonSingleton {
     endpoints: EndpointConfig,
     node: PythonTask,
 }
-impl ETLSingleton for PythonSingleton {
+impl ETLFlow for NativePythonBasedFlow {
     fn get_preamble(&self) -> Vec<String> {
         let preambles = match self.dialect {
             Some(Dialect::Python(_)) => match self.preamble {
@@ -140,8 +141,8 @@ impl ETLSingleton for PythonSingleton {
     }
 }
 pub struct PythonDAG {}
-impl ETLDAG for PythonDAG {
-    type T = PythonSingleton;
+impl PythonBasedFlow for PythonDAG {
+    type T = NativePythonBasedFlow;
     fn new() -> Self {
         Self {}
     }

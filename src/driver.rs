@@ -7,9 +7,9 @@ use crate::constraint_state::{AncestorRecord, ConstraintState};
 use crate::data_setup::Universe;
 use crate::dialect::{Bash, Dialect, Presto, Python};
 use crate::endpoints::EndpointConfig;
-use crate::etl_singleton::ETLDAG;
 use crate::object::TAoristObject;
 use crate::python::{ParameterTuple, SimpleIdentifier, AST};
+use crate::flow::PythonBasedFlow;
 use anyhow::Result;
 use inflector::cases::snakecase::to_snake_case;
 use linked_hash_map::LinkedHashMap;
@@ -30,7 +30,7 @@ type ConstraintsBlockMap<'a> = LinkedHashMap<
 
 pub struct Driver<'a, D>
 where
-    D: ETLDAG,
+    D: PythonBasedFlow,
 {
     pub concepts: Arc<RwLock<HashMap<(Uuid, String), Concept<'a>>>>,
     constraints: LinkedHashMap<(Uuid, String), Arc<RwLock<Constraint>>>,
@@ -46,8 +46,8 @@ where
 
 impl<'a, D> Driver<'a, D>
 where
-    D: ETLDAG,
-    <D as ETLDAG>::T: 'a,
+    D: PythonBasedFlow,
+    <D as PythonBasedFlow>::T: 'a,
 {
     // TODO: unify this with ConceptAncestry
     fn compute_all_ancestors(

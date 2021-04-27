@@ -1,16 +1,17 @@
 use crate::dialect::Dialect;
 use crate::endpoints::EndpointConfig;
-use crate::etl_singleton::{ETLSingleton, ETLDAG};
+use crate::flow::etl_flow::ETLFlow;
 use crate::python::{
     Assignment, Attribute, BigIntLiteral, BooleanLiteral, Call, Dict, Expression, Formatted,
-    Import, List, PythonNone, SimpleIdentifier, StringLiteral, AST,
+    Import, List, None, SimpleIdentifier, StringLiteral, AST,
 };
+use crate::flow::python_based_flow::PythonBasedFlow;
 use linked_hash_map::LinkedHashMap;
 use pyo3::prelude::*;
 use pyo3::types::PyModule;
 
 #[derive(Clone, Hash, PartialEq, Eq)]
-pub struct AirflowSingleton {
+pub struct AirflowPythonBasedFlow {
     task_id: AST,
     task_val: AST,
     command: Option<String>,
@@ -21,7 +22,7 @@ pub struct AirflowSingleton {
     dialect: Option<Dialect>,
     endpoints: EndpointConfig,
 }
-impl AirflowSingleton {
+impl AirflowPythonBasedFlow {
     fn compute_task_args(&self) -> Vec<AST> {
         Vec::new()
     }
@@ -106,7 +107,7 @@ impl AirflowSingleton {
         .unwrap()
     }
 }
-impl ETLSingleton for AirflowSingleton {
+impl ETLFlow for AirflowPythonBasedFlow {
     fn get_imports(&self) -> Vec<Import> {
         match self.dialect {
             Some(Dialect::Python(_)) => vec![Import::FromImport(
@@ -198,8 +199,8 @@ impl ETLSingleton for AirflowSingleton {
 }
 
 pub struct AirflowDAG {}
-impl ETLDAG for AirflowDAG {
-    type T = AirflowSingleton;
+impl PythonBasedFlow for AirflowDAG {
+    type T = AirflowPythonBasedFlow;
 
     fn new() -> Self {
         Self {}
@@ -268,7 +269,7 @@ impl ETLDAG for AirflowDAG {
         );
         kwargs.insert(
             "schedule_interval".to_string(),
-            AST::PythonNone(PythonNone::new_wrapped()),
+            AST::None(None::new_wrapped()),
         );
         kwargs.insert(
             "start_date".to_string(),

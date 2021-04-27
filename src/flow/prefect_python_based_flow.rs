@@ -1,10 +1,11 @@
 use crate::dialect::Dialect;
 use crate::endpoints::EndpointConfig;
-use crate::etl_singleton::{ETLSingleton, ETLDAG};
+use crate::flow::etl_flow::ETLFlow;
 use crate::python::{
     Assignment, Attribute, Call, Expression, ForLoop, Formatted, Import, RPythonTask,
     SimpleIdentifier, StringLiteral, AST,
 };
+use crate::flow::python_based_flow::PythonBasedFlow;
 use aorist_primitives::register_task_nodes;
 use linked_hash_map::LinkedHashMap;
 use pyo3::prelude::*;
@@ -19,7 +20,7 @@ register_task_nodes! {
 }
 
 #[derive(Clone, Hash, PartialEq, Eq)]
-pub struct PrefectSingleton {
+pub struct PrefectPythonBasedFlow {
     task_id: AST,
     task_val: AST,
     command: Option<String>,
@@ -32,7 +33,7 @@ pub struct PrefectSingleton {
     endpoints: EndpointConfig,
 }
 
-impl ETLSingleton for PrefectSingleton {
+impl ETLFlow for PrefectPythonBasedFlow {
     fn get_preamble(&self) -> Vec<String> {
         let preambles = match self.dialect {
             Some(Dialect::Python(_)) => match self.preamble {
@@ -115,7 +116,7 @@ impl ETLSingleton for PrefectSingleton {
         }
     }
 }
-impl PrefectSingleton {
+impl PrefectPythonBasedFlow {
     fn compute_task_args(&self) -> Vec<AST> {
         if let Some(Dialect::Python(_)) = self.dialect {
             return self.args.clone();
@@ -222,8 +223,8 @@ impl PrefectSingleton {
 pub struct PrefectDAG {
     flow_identifier: AST,
 }
-impl ETLDAG for PrefectDAG {
-    type T = PrefectSingleton;
+impl PythonBasedFlow for PrefectDAG {
+    type T = PrefectPythonBasedFlow;
     fn new() -> Self {
         Self {
             flow_identifier: AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
