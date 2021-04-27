@@ -33,6 +33,7 @@ pub mod models;
 pub mod object;
 pub mod parameter_tuple;
 pub mod python;
+pub mod r;
 pub mod role;
 pub mod role_binding;
 pub mod schema;
