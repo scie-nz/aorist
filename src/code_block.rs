@@ -12,6 +12,40 @@ use std::sync::{Arc, RwLock};
 use tracing::trace;
 use uuid::Uuid;
 
+trait CodeBlock {
+
+    /// assigns task values (Python variables in which they will be stored)
+    /// to each member of the code block.
+    fn compute_task_vals<'a>(
+        constraints: Vec<Arc<RwLock<ConstraintState<'a>>>>,
+        constraint_name: &String,
+        tasks_dict: &Option<AST>,
+    ) -> Vec<(AST, Arc<RwLock<ConstraintState<'a>>>)> {
+        let mut out = Vec::new();
+        for rw in constraints.into_iter() {
+            let read = rw.read().unwrap();
+            let name = read.get_task_name();
+            drop(read);
+            // TODO: magic number
+            let task_val = match tasks_dict {
+                None => AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(name)),
+                Some(ref dict) => {
+                    let shorter_name =
+                        name.replace(&format!("{}__", constraint_name).to_string(), "");
+
+                    AST::Subscript(Subscript::new_wrapped(
+                        dict.clone(),
+                        AST::StringLiteral(StringLiteral::new_wrapped(shorter_name, false)),
+                        false,
+                    ))
+                }
+            };
+            out.push((task_val, rw));
+        }
+        out
+    }
+}
+
 pub struct PythonBasedCodeBlock<T>
 where
     T: ETLFlow,
@@ -21,6 +55,9 @@ where
     python_based_tasks: Vec<PythonBasedTask<T>>,
     params: HashMap<String, Option<ParameterTuple>>,
 }
+impl <T> CodeBlock for PythonBasedCodeBlock<T>
+where T: ETLFlow {}
+
 impl<'a, T> PythonBasedCodeBlock<T>
 where
     T: ETLFlow,
@@ -250,37 +287,6 @@ where
 
     pub fn get_params(&self) -> HashMap<String, Option<ParameterTuple>> {
         self.params.clone()
-    }
-
-    /// assigns task values (Python variables in which they will be stored)
-    /// to each member of the code block.
-    fn compute_task_vals(
-        constraints: Vec<Arc<RwLock<ConstraintState<'a>>>>,
-        constraint_name: &String,
-        tasks_dict: &Option<AST>,
-    ) -> Vec<(AST, Arc<RwLock<ConstraintState<'a>>>)> {
-        let mut out = Vec::new();
-        for rw in constraints.into_iter() {
-            let read = rw.read().unwrap();
-            let name = read.get_task_name();
-            drop(read);
-            // TODO: magic number
-            let task_val = match tasks_dict {
-                None => AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(name)),
-                Some(ref dict) => {
-                    let shorter_name =
-                        name.replace(&format!("{}__", constraint_name).to_string(), "");
-
-                    AST::Subscript(Subscript::new_wrapped(
-                        dict.clone(),
-                        AST::StringLiteral(StringLiteral::new_wrapped(shorter_name, false)),
-                        false,
-                    ))
-                }
-            };
-            out.push((task_val, rw));
-        }
-        out
     }
     pub fn get_statements(
         &self,
