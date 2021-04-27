@@ -453,10 +453,8 @@ where
         }
     }
     fn init_unsatisfied_constraints(&self) -> Result<ConstraintsBlockMap<'a>>;
-    fn add_block(
-        &mut self,
-        constraint_block: ConstraintBlock<<D as PythonBasedFlow>::T>,
-    );
+    fn add_block(&mut self, constraint_block: ConstraintBlock<<D as PythonBasedFlow>::T>);
+    fn get_constraint_explanation(&self, constraint_name: &String) -> (Option<String>, Option<String>);
 }
 
 pub struct PythonBasedDriver<'a, D>
@@ -504,11 +502,14 @@ where
             self.topline_constraint_names.clone(),
         )
     }
-    fn add_block(
-        &mut self,
-        constraint_block: ConstraintBlock<<D as PythonBasedFlow>::T>,
-    ) {
+    fn add_block(&mut self, constraint_block: ConstraintBlock<<D as PythonBasedFlow>::T>) {
         self.blocks.push(constraint_block);
+    }
+    fn get_constraint_explanation(&self, constraint_name: &String) -> (Option<String>, Option<String>) {
+        self.constraint_explanations
+            .get(constraint_name)
+            .unwrap()
+            .clone()
     }
 }
 
@@ -804,11 +805,8 @@ where
                         &unsatisfied_constraints,
                         &identifiers,
                     )?;
-                    let (title, body) = self
-                        .constraint_explanations
-                        .get(constraint_name)
-                        .unwrap()
-                        .clone();
+
+                    let (title, body) = self.get_constraint_explanation(constraint_name);
                     let constraint_block =
                         ConstraintBlock::new(snake_case_name, title, body, members, tasks_dict);
                     for (key, val) in constraint_block.get_identifiers() {
@@ -823,7 +821,6 @@ where
         }
     }
     pub fn run(&'a mut self) -> Result<(String, Vec<String>)> {
-
         self.satisfy_constraints()?;
         let etl = D::new();
         let statements_and_preambles = self
