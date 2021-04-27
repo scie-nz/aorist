@@ -452,6 +452,11 @@ where
             ))),
         }
     }
+    fn init_unsatisfied_constraints(&self) -> Result<ConstraintsBlockMap<'a>>;
+    fn add_block(
+        &mut self,
+        constraint_block: ConstraintBlock<<D as PythonBasedFlow>::T>,
+    );
 }
 
 pub struct PythonBasedDriver<'a, D>
@@ -476,7 +481,7 @@ where
     <D as PythonBasedFlow>::T: 'a,
 {
     type C = PythonBasedCodeBlock<D::T>;
-    
+
     fn get_constraint_rwlock(&self, uuid: &(Uuid, String)) -> Arc<RwLock<Constraint>> {
         self.constraints.get(uuid).unwrap().clone()
     }
@@ -490,6 +495,20 @@ where
         state: Arc<RwLock<ConstraintState<'a>>>,
     ) {
         self.satisfied_constraints.insert(id, state.clone());
+    }
+    fn init_unsatisfied_constraints(&self) -> Result<ConstraintsBlockMap<'a>> {
+        Self::get_unsatisfied_constraints(
+            &self.constraints,
+            self.concepts.clone(),
+            &self.ancestors,
+            self.topline_constraint_names.clone(),
+        )
+    }
+    fn add_block(
+        &mut self,
+        constraint_block: ConstraintBlock<<D as PythonBasedFlow>::T>,
+    ) {
+        self.blocks.push(constraint_block);
     }
 }
 
@@ -751,13 +770,8 @@ where
             topline_constraint_names,
         })
     }
-    pub fn run(&'a mut self) -> Result<(String, Vec<String>)> {
-        let mut unsatisfied_constraints = Self::get_unsatisfied_constraints(
-            &self.constraints,
-            self.concepts.clone(),
-            &self.ancestors,
-            self.topline_constraint_names.clone(),
-        )?;
+    pub fn satisfy_constraints(&mut self) -> Result<()> {
+        let mut unsatisfied_constraints = self.init_unsatisfied_constraints()?;
         let mut reverse_dependencies: HashMap<(Uuid, String), HashSet<(String, Uuid, String)>> =
             HashMap::new();
         for (name, (_, constraints)) in &unsatisfied_constraints {
@@ -800,15 +814,18 @@ where
                     for (key, val) in constraint_block.get_identifiers() {
                         identifiers.insert(key, val);
                     }
-                    self.blocks.push(constraint_block);
+                    self.add_block(constraint_block);
                 }
             } else {
-                break;
+                assert_eq!(unsatisfied_constraints.len(), 0);
+                return Ok(());
             }
         }
+    }
+    pub fn run(&'a mut self) -> Result<(String, Vec<String>)> {
 
+        self.satisfy_constraints()?;
         let etl = D::new();
-        assert_eq!(unsatisfied_constraints.len(), 0);
         let statements_and_preambles = self
             .blocks
             .iter()
