@@ -2,7 +2,7 @@
 use crate::code_block::{CodeBlock, PythonBasedCodeBlock};
 use crate::concept::{Concept, ConceptAncestry};
 use crate::constraint::{AoristConstraint, Constraint};
-use crate::constraint_block::PythonBasedConstraintBlock;
+use crate::constraint_block::{ConstraintBlock, PythonBasedConstraintBlock};
 use crate::constraint_state::{AncestorRecord, ConstraintState};
 use crate::data_setup::Universe;
 use crate::dialect::{Bash, Dialect, Presto, Python};
@@ -35,6 +35,7 @@ where
     <D as PythonBasedFlow>::T: 'a,
 {
     type C: CodeBlock;
+    type CB: ConstraintBlock<'a>;
 
     // TODO: unify this with ConceptAncestry
     fn compute_all_ancestors(
@@ -485,6 +486,7 @@ where
     <D as PythonBasedFlow>::T: 'a,
 {
     type C = PythonBasedCodeBlock<D::T>;
+    type CB = PythonBasedConstraintBlock<D::T>;
 
     fn get_constraint_rwlock(&self, uuid: &(Uuid, String)) -> Arc<RwLock<Constraint>> {
         self.constraints.get(uuid).unwrap().clone()

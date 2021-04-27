@@ -9,6 +9,10 @@ use std::collections::{BTreeSet, HashMap};
 use std::marker::PhantomData;
 use uuid::Uuid;
 
+pub trait ConstraintBlock<'a> {
+    fn get_statements(&'a self, endpoints: &EndpointConfig) -> PythonStatementInput;
+}
+
 pub struct PythonBasedConstraintBlock<T>
 where
     T: ETLFlow,
@@ -20,6 +24,40 @@ where
     singleton_type: PhantomData<T>,
     tasks_dict: Option<AST>,
 }
+impl<'a, T> ConstraintBlock<'a> for PythonBasedConstraintBlock<T>
+where
+    T: ETLFlow,
+{
+    fn get_statements(&'a self, endpoints: &EndpointConfig) -> PythonStatementInput {
+        let preambles_and_statements = self
+            .members
+            .iter()
+            .map(|x| x.get_statements(endpoints))
+            .collect::<Vec<_>>();
+        let preambles = preambles_and_statements
+            .iter()
+            .map(|x| x.1.clone().into_iter())
+            .flatten()
+            .collect::<LinkedHashSet<PythonPreamble>>();
+        let imports = preambles_and_statements
+            .iter()
+            .map(|x| x.2.clone().into_iter())
+            .flatten()
+            .collect::<BTreeSet<Import>>();
+        (
+            self.get_task_val_assignments()
+                .into_iter()
+                .chain(preambles_and_statements.into_iter().map(|x| x.0).flatten())
+                .collect::<Vec<_>>(),
+            preambles,
+            imports,
+            self.constraint_name.clone(),
+            self.title.clone(),
+            self.body.clone(),
+        )
+    }
+}
+
 impl<'a, T> PythonBasedConstraintBlock<T>
 where
     T: ETLFlow,
@@ -65,33 +103,5 @@ where
             ))],
             None => vec![],
         }
-    }
-    pub fn get_statements(&'a self, endpoints: &EndpointConfig) -> PythonStatementInput {
-        let preambles_and_statements = self
-            .members
-            .iter()
-            .map(|x| x.get_statements(endpoints))
-            .collect::<Vec<_>>();
-        let preambles = preambles_and_statements
-            .iter()
-            .map(|x| x.1.clone().into_iter())
-            .flatten()
-            .collect::<LinkedHashSet<PythonPreamble>>();
-        let imports = preambles_and_statements
-            .iter()
-            .map(|x| x.2.clone().into_iter())
-            .flatten()
-            .collect::<BTreeSet<Import>>();
-        (
-            self.get_task_val_assignments()
-                .into_iter()
-                .chain(preambles_and_statements.into_iter().map(|x| x.0).flatten())
-                .collect::<Vec<_>>(),
-            preambles,
-            imports,
-            self.constraint_name.clone(),
-            self.title.clone(),
-            self.body.clone(),
-        )
     }
 }
