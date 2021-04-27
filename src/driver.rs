@@ -7,9 +7,9 @@ use crate::constraint_state::{AncestorRecord, ConstraintState};
 use crate::data_setup::Universe;
 use crate::dialect::{Bash, Dialect, Presto, Python};
 use crate::endpoints::EndpointConfig;
+use crate::flow::PythonBasedFlow;
 use crate::object::TAoristObject;
 use crate::python::{ParameterTuple, SimpleIdentifier, AST};
-use crate::flow::PythonBasedFlow;
 use anyhow::Result;
 use inflector::cases::snakecase::to_snake_case;
 use linked_hash_map::LinkedHashMap;
@@ -346,10 +346,7 @@ trait Driver<'a> {
             .push((key, state.read().unwrap().get_params().unwrap()));
     }
 
-    fn get_constraint_rwlock(
-        &self,
-        uuid: &(Uuid, String),
-    ) -> Arc<RwLock<Constraint>>;
+    fn get_constraint_rwlock(&self, uuid: &(Uuid, String)) -> Arc<RwLock<Constraint>>;
 
     fn process_constraint_state(
         &mut self,
@@ -391,7 +388,11 @@ trait Driver<'a> {
         drop(write);
         Ok(())
     }
-    fn mark_constraint_state_as_satisfied(&mut self, id: (Uuid, String), state: Arc<RwLock<ConstraintState<'a>>>);
+    fn mark_constraint_state_as_satisfied(
+        &mut self,
+        id: (Uuid, String),
+        state: Arc<RwLock<ConstraintState<'a>>>,
+    );
 }
 
 pub struct PythonBasedDriver<'a, D>
@@ -413,19 +414,20 @@ where
 impl<'a, D> Driver<'a> for PythonBasedDriver<'a, D>
 where
     D: PythonBasedFlow,
-    <D as PythonBasedFlow>::T: 'a {
-
-    fn get_constraint_rwlock(
-        &self,
-        uuid: &(Uuid, String),
-    ) -> Arc<RwLock<Constraint>> {
+    <D as PythonBasedFlow>::T: 'a,
+{
+    fn get_constraint_rwlock(&self, uuid: &(Uuid, String)) -> Arc<RwLock<Constraint>> {
         self.constraints.get(uuid).unwrap().clone()
     }
 
     fn get_ancestry(&self) -> Arc<ConceptAncestry<'a>> {
         self.ancestry.clone()
     }
-    fn mark_constraint_state_as_satisfied(&mut self, id: (Uuid, String), state: Arc<RwLock<ConstraintState<'a>>>) {
+    fn mark_constraint_state_as_satisfied(
+        &mut self,
+        id: (Uuid, String),
+        state: Arc<RwLock<ConstraintState<'a>>>,
+    ) {
         self.satisfied_constraints.insert(id, state.clone());
     }
 }
@@ -768,6 +770,17 @@ where
 
         Ok((etl.materialize(statements_and_preambles)?, pip_dependencies))
     }
+    fn init_tasks_dict(
+        block: &LinkedHashMap<(Uuid, String), Arc<RwLock<ConstraintState<'a>>>>,
+        constraint_name: String,
+    ) -> Option<AST> {
+        match block.len() == 1 {
+            true => None,
+            false => Some(AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
+                format!("tasks_{}", constraint_name).to_string(),
+            ))),
+        }
+    }
     fn process_constraint_block(
         &mut self,
         block: &mut LinkedHashMap<(Uuid, String), Arc<RwLock<ConstraintState<'a>>>>,
@@ -776,12 +789,7 @@ where
         unsatisfied_constraints: &ConstraintsBlockMap<'a>,
         identifiers: &HashMap<Uuid, AST>,
     ) -> Result<(Vec<CodeBlock<D::T>>, Option<AST>)> {
-        let tasks_dict = match block.len() == 1 {
-            true => None,
-            false => Some(AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
-                format!("tasks_{}", constraint_name).to_string(),
-            ))),
-        };
+        let tasks_dict = Self::init_tasks_dict(block, constraint_name.clone());
         // (call, constraint_name, root_name) => (uuid, call parameters)
         let mut calls: HashMap<(String, String, String), Vec<(String, ParameterTuple)>> =
             HashMap::new();
