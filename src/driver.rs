@@ -1,5 +1,5 @@
 #![allow(dead_code)]
-use crate::code_block::{CodeBlock, PythonBasedCodeBlock};
+use crate::code_block::CodeBlock;
 use crate::concept::{Concept, ConceptAncestry};
 use crate::constraint::{AoristConstraint, Constraint};
 use crate::constraint_block::{ConstraintBlock, PythonBasedConstraintBlock};
@@ -34,7 +34,6 @@ where
     D: PythonBasedFlow,
     <D as PythonBasedFlow>::T: 'a,
 {
-    type C: CodeBlock;
     type CB: ConstraintBlock<'a>;
 
     // TODO: unify this with ConceptAncestry
@@ -408,12 +407,12 @@ where
         constraint_name: String,
         unsatisfied_constraints: &ConstraintsBlockMap<'a>,
         identifiers: &HashMap<Uuid, AST>,
-    ) -> Result<(Vec<Self::C>, Option<AST>)> {
+    ) -> Result<(Vec<<Self::CB as ConstraintBlock<'a>>::C>, Option<AST>)> {
         let tasks_dict = Self::init_tasks_dict(block, constraint_name.clone());
         // (call, constraint_name, root_name) => (uuid, call parameters)
         let mut calls: HashMap<(String, String, String), Vec<(String, ParameterTuple)>> =
             HashMap::new();
-        let mut blocks: Vec<Self::C> = Vec::new();
+        let mut blocks = Vec::new();
         let mut by_dialect: HashMap<Option<Dialect>, Vec<Arc<RwLock<ConstraintState<'a>>>>> =
             HashMap::new();
         for (id, state) in block.clone() {
@@ -431,7 +430,7 @@ where
                 .push(state.clone());
         }
         for (_dialect, satisfied) in by_dialect.into_iter() {
-            let block = Self::C::new(
+            let block = <Self::CB as ConstraintBlock<'a>>::C::new(
                 satisfied,
                 constraint_name.clone(),
                 tasks_dict.clone(),
@@ -485,7 +484,6 @@ where
     D: PythonBasedFlow,
     <D as PythonBasedFlow>::T: 'a,
 {
-    type C = PythonBasedCodeBlock<D::T>;
     type CB = PythonBasedConstraintBlock<D::T>;
 
     fn get_constraint_rwlock(&self, uuid: &(Uuid, String)) -> Arc<RwLock<Constraint>> {
