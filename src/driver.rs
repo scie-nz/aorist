@@ -703,6 +703,40 @@ where
         visited_constraint_names.insert(constraint_name.clone());
         Ok(())
     }
+    fn generate_family_trees(
+        ancestors: &HashMap<(Uuid, String), Vec<AncestorRecord>>,
+    ) -> HashMap<(Uuid, String), HashMap<String, HashSet<Uuid>>> {
+        let mut family_trees: HashMap<(Uuid, String), HashMap<String, HashSet<Uuid>>> =
+            HashMap::new();
+        for (key, ancestor_v) in ancestors.iter() {
+            for record in ancestor_v {
+                family_trees
+                    .entry(key.clone())
+                    .or_insert(HashMap::new())
+                    .entry(record.object_type.clone())
+                    .or_insert(HashSet::new())
+                    .insert(record.uuid);
+            }
+            for record in ancestor_v {
+                let (uuid, object_type) = key;
+                let ancestor_key = record.get_key();
+                family_trees
+                    .entry(ancestor_key)
+                    .or_insert(HashMap::new())
+                    .entry(object_type.clone())
+                    .or_insert(HashSet::new())
+                    .insert(uuid.clone());
+            }
+            let (uuid, object_type) = key;
+            family_trees
+                .entry(key.clone())
+                .or_insert(HashMap::new())
+                .entry(object_type.clone())
+                .or_insert(HashSet::new())
+                .insert(uuid.clone());
+        }
+        family_trees
+    }
 }
 
 pub struct PythonBasedDriver<'a, D>
@@ -796,6 +830,7 @@ where
     D: PythonBasedFlow,
     <D as PythonBasedFlow>::T: 'a,
 {
+
     pub fn new(
         universe: &'a Universe,
         topline_constraint_names: LinkedHashSet<String>,
@@ -807,36 +842,6 @@ where
         concept.populate_child_concept_map(&mut concept_map);
 
         let ancestors = Self::compute_all_ancestors(concept, &concept_map);
-        let mut family_trees: HashMap<(Uuid, String), HashMap<String, HashSet<Uuid>>> =
-            HashMap::new();
-        for (key, ancestor_v) in ancestors.iter() {
-            for record in ancestor_v {
-                family_trees
-                    .entry(key.clone())
-                    .or_insert(HashMap::new())
-                    .entry(record.object_type.clone())
-                    .or_insert(HashSet::new())
-                    .insert(record.uuid);
-            }
-            for record in ancestor_v {
-                let (uuid, object_type) = key;
-                let ancestor_key = record.get_key();
-                family_trees
-                    .entry(ancestor_key)
-                    .or_insert(HashMap::new())
-                    .entry(object_type.clone())
-                    .or_insert(HashSet::new())
-                    .insert(uuid.clone());
-            }
-            let (uuid, object_type) = key;
-            family_trees
-                .entry(key.clone())
-                .or_insert(HashMap::new())
-                .entry(object_type.clone())
-                .or_insert(HashSet::new())
-                .insert(uuid.clone());
-        }
-
         let mut by_object_type: HashMap<String, Vec<Concept<'a>>> = HashMap::new();
         debug!("Found the following concepts:");
         for ((uuid, object_type), concept) in concept_map.clone() {
@@ -857,6 +862,7 @@ where
         let ancestry: ConceptAncestry<'a> = ConceptAncestry {
             parents: concepts.clone(),
         };
+        let family_trees = Self::generate_family_trees(&ancestors);
 
         for builder in sorted_builders {
             Self::attach_constraints(
