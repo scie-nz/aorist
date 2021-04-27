@@ -9,8 +9,8 @@ use std::collections::{BTreeSet, HashMap};
 pub use ast::{
     Add, Assignment, Attribute, BashPythonTask, BigIntLiteral, BinOp, BooleanLiteral, Call,
     ConstantPythonTask, Dict, Expression, ForLoop, Formatted, Import, ImportNode, List,
-    NativePythonTask, None, PrestoPythonTask, RPythonTask, SimpleIdentifier,
-    StringLiteral, Subscript, Tuple, AST,
+    NativePythonTask, None, PrestoPythonTask, RPythonTask, SimpleIdentifier, StringLiteral,
+    Subscript, Tuple, AST,
 };
 pub use preamble::PythonPreamble;
 

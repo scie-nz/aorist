@@ -4,7 +4,9 @@ use crate::flow::ETLFlow;
 use crate::flow::{ForLoopPythonBasedTask, PythonBasedTask, StandalonePythonBasedTask};
 use crate::parameter_tuple::ParameterTuple;
 use crate::preamble::Preamble;
-use crate::python::{Formatted, Import, PythonPreamble, SimpleIdentifier, StringLiteral, Subscript, AST};
+use crate::python::{
+    Formatted, Import, PythonPreamble, SimpleIdentifier, StringLiteral, Subscript, AST,
+};
 use anyhow::Result;
 use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
@@ -14,8 +16,10 @@ use tracing::trace;
 use uuid::Uuid;
 
 pub trait CodeBlock
-where Self::P: Preamble, Self: Sized {
-
+where
+    Self::P: Preamble,
+    Self: Sized,
+{
     type P;
     /// assigns task values (Python variables in which they will be stored)
     /// to each member of the code block.
@@ -71,9 +75,10 @@ where
     python_based_tasks: Vec<PythonBasedTask<T>>,
     params: HashMap<String, Option<ParameterTuple>>,
 }
-impl <T> CodeBlock for PythonBasedCodeBlock<T>
-where T: ETLFlow {
-
+impl<T> CodeBlock for PythonBasedCodeBlock<T>
+where
+    T: ETLFlow,
+{
     type P = PythonPreamble;
 
     fn get_statements(
@@ -331,5 +336,4 @@ where T: ETLFlow {
             params,
         })
     }
-
 }

@@ -29,10 +29,12 @@ type ConstraintsBlockMap<'a> = LinkedHashMap<
     ),
 >;
 
-trait Driver<'a, D> 
+trait Driver<'a, D>
 where
     D: PythonBasedFlow,
-    <D as PythonBasedFlow>::T: 'a {
+    <D as PythonBasedFlow>::T: 'a,
+{
+    type C: CodeBlock;
 
     // TODO: unify this with ConceptAncestry
     fn compute_all_ancestors(
@@ -398,6 +400,58 @@ where
         id: (Uuid, String),
         state: Arc<RwLock<ConstraintState<'a>>>,
     );
+    fn process_constraint_block(
+        &mut self,
+        block: &mut LinkedHashMap<(Uuid, String), Arc<RwLock<ConstraintState<'a>>>>,
+        reverse_dependencies: &HashMap<(Uuid, String), HashSet<(String, Uuid, String)>>,
+        constraint_name: String,
+        unsatisfied_constraints: &ConstraintsBlockMap<'a>,
+        identifiers: &HashMap<Uuid, AST>,
+    ) -> Result<(Vec<Self::C>, Option<AST>)> {
+        let tasks_dict = Self::init_tasks_dict(block, constraint_name.clone());
+        // (call, constraint_name, root_name) => (uuid, call parameters)
+        let mut calls: HashMap<(String, String, String), Vec<(String, ParameterTuple)>> =
+            HashMap::new();
+        let mut blocks: Vec<Self::C> = Vec::new();
+        let mut by_dialect: HashMap<Option<Dialect>, Vec<Arc<RwLock<ConstraintState<'a>>>>> =
+            HashMap::new();
+        for (id, state) in block.clone() {
+            self.process_constraint_state(
+                id.clone(),
+                state.clone(),
+                &mut calls,
+                reverse_dependencies,
+                unsatisfied_constraints,
+            )?;
+            self.mark_constraint_state_as_satisfied(id, state.clone());
+            by_dialect
+                .entry(state.read().unwrap().get_dialect())
+                .or_insert(Vec::new())
+                .push(state.clone());
+        }
+        for (_dialect, satisfied) in by_dialect.into_iter() {
+            let block = Self::C::new(
+                satisfied,
+                constraint_name.clone(),
+                tasks_dict.clone(),
+                identifiers,
+            )?;
+            blocks.push(block);
+        }
+
+        Ok((blocks, tasks_dict))
+    }
+    fn init_tasks_dict(
+        block: &LinkedHashMap<(Uuid, String), Arc<RwLock<ConstraintState<'a>>>>,
+        constraint_name: String,
+    ) -> Option<AST> {
+        match block.len() == 1 {
+            true => None,
+            false => Some(AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
+                format!("tasks_{}", constraint_name).to_string(),
+            ))),
+        }
+    }
 }
 
 pub struct PythonBasedDriver<'a, D>
@@ -421,6 +475,8 @@ where
     D: PythonBasedFlow,
     <D as PythonBasedFlow>::T: 'a,
 {
+    type C = PythonBasedCodeBlock<D::T>;
+    
     fn get_constraint_rwlock(&self, uuid: &(Uuid, String)) -> Arc<RwLock<Constraint>> {
         self.constraints.get(uuid).unwrap().clone()
     }
@@ -774,57 +830,5 @@ where
             .collect();
 
         Ok((etl.materialize(statements_and_preambles)?, pip_dependencies))
-    }
-    fn init_tasks_dict(
-        block: &LinkedHashMap<(Uuid, String), Arc<RwLock<ConstraintState<'a>>>>,
-        constraint_name: String,
-    ) -> Option<AST> {
-        match block.len() == 1 {
-            true => None,
-            false => Some(AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
-                format!("tasks_{}", constraint_name).to_string(),
-            ))),
-        }
-    }
-    fn process_constraint_block(
-        &mut self,
-        block: &mut LinkedHashMap<(Uuid, String), Arc<RwLock<ConstraintState<'a>>>>,
-        reverse_dependencies: &HashMap<(Uuid, String), HashSet<(String, Uuid, String)>>,
-        constraint_name: String,
-        unsatisfied_constraints: &ConstraintsBlockMap<'a>,
-        identifiers: &HashMap<Uuid, AST>,
-    ) -> Result<(Vec<PythonBasedCodeBlock<D::T>>, Option<AST>)> {
-        let tasks_dict = Self::init_tasks_dict(block, constraint_name.clone());
-        // (call, constraint_name, root_name) => (uuid, call parameters)
-        let mut calls: HashMap<(String, String, String), Vec<(String, ParameterTuple)>> =
-            HashMap::new();
-        let mut blocks: Vec<PythonBasedCodeBlock<D::T>> = Vec::new();
-        let mut by_dialect: HashMap<Option<Dialect>, Vec<Arc<RwLock<ConstraintState<'a>>>>> =
-            HashMap::new();
-        for (id, state) in block.clone() {
-            self.process_constraint_state(
-                id.clone(),
-                state.clone(),
-                &mut calls,
-                reverse_dependencies,
-                unsatisfied_constraints,
-            )?;
-            self.mark_constraint_state_as_satisfied(id, state.clone());
-            by_dialect
-                .entry(state.read().unwrap().get_dialect())
-                .or_insert(Vec::new())
-                .push(state.clone());
-        }
-        for (_dialect, satisfied) in by_dialect.into_iter() {
-            let block = PythonBasedCodeBlock::new(
-                satisfied,
-                constraint_name.clone(),
-                tasks_dict.clone(),
-                identifiers,
-            )?;
-            blocks.push(block);
-        }
-
-        Ok((blocks, tasks_dict))
     }
 }

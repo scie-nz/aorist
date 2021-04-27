@@ -1,8 +1,8 @@
+use crate::preamble::Preamble;
 use crate::python::Import;
 use pyo3::prelude::*;
 use pyo3::types::{PyList, PyModule, PyString, PyTuple};
 use std::hash::Hash;
-use crate::preamble::Preamble;
 
 #[derive(Clone, PartialEq, Hash, Eq)]
 pub struct PythonPreamble {
