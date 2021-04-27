@@ -163,16 +163,16 @@ pub fn dag(inner: InnerUniverse, constraints: Vec<String>, mode: &str) -> PyResu
     let mut universe = Universe::from(inner);
     universe.compute_uuids();
     let (output, _requirements) = match mode {
-        "airflow" => Driver::<AirflowDAG>::new(&universe, constraints.into_iter().collect())
+        "airflow" => PythonBasedDriver::<AirflowDAG>::new(&universe, constraints.into_iter().collect())
             .map_err(|e| pyo3::exceptions::PyException::new_err(e.to_string()))?
             .run(),
-        "prefect" => Driver::<PrefectDAG>::new(&universe, constraints.into_iter().collect())
+        "prefect" => PythonBasedDriver::<PrefectDAG>::new(&universe, constraints.into_iter().collect())
             .map_err(|e| pyo3::exceptions::PyException::new_err(e.to_string()))?
             .run(),
-        "python" => Driver::<PythonDAG>::new(&universe, constraints.into_iter().collect())
+        "python" => PythonBasedDriver::<PythonDAG>::new(&universe, constraints.into_iter().collect())
             .map_err(|e| pyo3::exceptions::PyException::new_err(e.to_string()))?
             .run(),
-        "jupyter" => Driver::<JupyterDAG>::new(&universe, constraints.into_iter().collect())
+        "jupyter" => PythonBasedDriver::<JupyterDAG>::new(&universe, constraints.into_iter().collect())
             .map_err(|e| pyo3::exceptions::PyException::new_err(e.to_string()))?
             .run(),
         _ => panic!("Unknown mode provided: {}", mode),

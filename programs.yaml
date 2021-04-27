@@ -2809,11 +2809,11 @@ spec:
                 constraints: Vec::new(), tag: None, uuid: None,
             };
             new_universe.compute_uuids();
-            let (pandas_code, pandas_requirements) = Driver::<PythonDAG>::new(
+            let (pandas_code, pandas_requirements) = PythonBasedDriver::<PythonDAG>::new(
                 &new_universe,
                 vec!["PandasData".to_string()].into_iter().collect(),
             ).unwrap().run().unwrap();
-            let (numpy_code, numpy_requirements) = Driver::<PythonDAG>::new(
+            let (numpy_code, numpy_requirements) = PythonBasedDriver::<PythonDAG>::new(
                 &new_universe,
                 vec!["NumpyData".to_string()].into_iter().collect(),
             ).unwrap().run().unwrap();

@@ -28,7 +28,7 @@ type ConstraintsBlockMap<'a> = LinkedHashMap<
     ),
 >;
 
-pub struct Driver<'a, D>
+pub struct PythonBasedDriver<'a, D>
 where
     D: PythonBasedFlow,
 {
@@ -44,7 +44,7 @@ where
     topline_constraint_names: LinkedHashSet<String>,
 }
 
-impl<'a, D> Driver<'a, D>
+impl<'a, D> PythonBasedDriver<'a, D>
 where
     D: PythonBasedFlow,
     <D as PythonBasedFlow>::T: 'a,
@@ -310,7 +310,7 @@ where
     pub fn new(
         universe: &'a Universe,
         topline_constraint_names: LinkedHashSet<String>,
-    ) -> Result<Driver<'a, D>> {
+    ) -> Result<PythonBasedDriver<'a, D>> {
         let mut concept_map: HashMap<(Uuid, String), Concept<'a>> = HashMap::new();
         let concept = Concept::Universe((universe, 0, None));
         concept.populate_child_concept_map(&mut concept_map);
