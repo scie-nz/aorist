@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 use crate::code_block::CodeBlock;
 use crate::concept::{Concept, ConceptAncestry};
-use crate::constraint::{AoristConstraint, Constraint, AoristConstraintBuilder};
+use crate::constraint::{AoristConstraint, AoristConstraintBuilder, Constraint};
 use crate::constraint_block::{ConstraintBlock, PythonBasedConstraintBlock};
 use crate::constraint_state::{AncestorRecord, ConstraintState};
 use crate::data_setup::Universe;
@@ -36,7 +36,7 @@ where
     Self::CB: 'a,
 {
     type CB: ConstraintBlock<'a>;
-    
+
     fn get_relevant_builders(
         topline_constraint_names: &LinkedHashSet<String>,
     ) -> Vec<AoristConstraintBuilder> {
@@ -102,7 +102,6 @@ where
 
         sorted_builders
     }
-
 
     fn run(&'a mut self) -> Result<(String, Vec<String>)> {
         self.satisfy_constraints()?;
@@ -596,6 +595,114 @@ where
     fn get_endpoints<'b>(&'b self) -> &'b EndpointConfig
     where
         'a: 'b;
+    fn attach_constraints(
+        builder: AoristConstraintBuilder,
+        by_object_type: &HashMap<String, Vec<Concept<'a>>>,
+        family_trees: &HashMap<(Uuid, String), HashMap<String, HashSet<Uuid>>>,
+        ancestry: &ConceptAncestry<'a>, 
+        generated_constraints: &mut LinkedHashMap<
+            String,
+            LinkedHashMap<(Uuid, String), Arc<RwLock<Constraint>>>,
+        >,
+        visited_constraint_names: &mut LinkedHashSet<String>,
+    ) -> Result<()> {
+        let root_object_type = builder.get_root_type_name()?;
+        let constraint_name = builder.get_constraint_name();
+
+        if let Some(root_concepts) = by_object_type.get(&root_object_type) {
+            debug!(
+                "Attaching constraint {} to {} objects of type {}.",
+                constraint_name,
+                root_concepts.len(),
+                root_object_type
+            );
+
+            for root in root_concepts {
+                let root_key = (root.get_uuid(), root.get_type());
+                let family_tree = family_trees.get(&root_key).unwrap();
+                let raw_potential_child_constraints = builder
+                    .get_required_constraint_names()
+                    .into_iter()
+                    .map(|req| (req.clone(), generated_constraints.get(&req)))
+                    .filter(|(_req, x)| x.is_some())
+                    .map(|(req, x)| (req, x.unwrap()))
+                    .collect::<Vec<_>>();
+                if level_enabled!(Level::DEBUG) {
+                    debug!(
+                        "Creating constraint {:?} on root {:?} with potential child constraints:",
+                        builder.get_constraint_name(),
+                        &root_key
+                    );
+                    for (required_constraint_name, map) in raw_potential_child_constraints.iter() {
+                        debug!(" - for {}:", required_constraint_name);
+                        for (key, v) in map.iter() {
+                            let downstream = v.read().unwrap();
+                            debug!(
+                                " -- {:?}: {:?}",
+                                key,
+                                (downstream.get_uuid()?, downstream.get_name())
+                            );
+                        }
+                    }
+                }
+                let other_required_concept_uuids = builder
+                    .get_required(root.clone(), &ancestry)
+                    .into_iter()
+                    .collect::<HashSet<_>>();
+                let potential_child_constraints = raw_potential_child_constraints
+                    .into_iter()
+                    .map(|(_req, x)| {
+                        x.iter()
+                            .filter(|((potential_root_id, potential_root_type), _constraint)| {
+                                (match family_tree.get(potential_root_type) {
+                                    None => false,
+                                    Some(set) => set.contains(potential_root_id),
+                                } || other_required_concept_uuids.contains(potential_root_id))
+                            })
+                            .map(|(_, constraint)| constraint.clone())
+                    })
+                    .flatten()
+                    .collect::<Vec<Arc<RwLock<Constraint>>>>();
+                if builder.should_add(root.clone(), &ancestry) {
+                    if level_enabled!(Level::DEBUG) {
+                        debug!("After filtering:",);
+                        for downstream_rw in potential_child_constraints.iter() {
+                            let downstream = downstream_rw.read().unwrap();
+                            debug!(" --  {:?}", (downstream.get_uuid()?, downstream.get_name()));
+                        }
+                    }
+                    let constraint =
+                        builder.build_constraint(root.get_uuid(), potential_child_constraints)?;
+                    let gen_for_constraint = generated_constraints
+                        .entry(constraint_name.clone())
+                        .or_insert(LinkedHashMap::new());
+                    assert!(!gen_for_constraint.contains_key(&root_key));
+                    if level_enabled!(Level::DEBUG) {
+                        debug!(
+                            "Added constraint {:?} on root {:?} with the following dependencies:",
+                            (constraint.get_uuid()?, constraint.get_name()),
+                            &root_key
+                        );
+                        for downstream_rw in constraint.get_downstream_constraints()? {
+                            let downstream = downstream_rw.read().unwrap();
+                            debug!(" --  {:?}", (downstream.get_uuid()?, downstream.get_name()));
+                        }
+                    }
+                    gen_for_constraint.insert(root_key, Arc::new(RwLock::new(constraint)));
+                }
+            }
+        } else {
+            debug!(
+                "Found no concepts of type {} for {}",
+                root_object_type, constraint_name,
+            );
+        }
+        for req in builder.get_required_constraint_names() {
+            assert!(visited_constraint_names.contains(&req));
+        }
+        visited_constraint_names.insert(constraint_name.clone());
+        Ok(())
+    }
 }
 
 pub struct PythonBasedDriver<'a, D>
@@ -752,112 +859,15 @@ where
         };
 
         for builder in sorted_builders {
-            let root_object_type = builder.get_root_type_name()?;
-            let constraint_name = builder.get_constraint_name();
+            Self::attach_constraints(
+                builder,
+                &by_object_type,
+                &family_trees,
+                &ancestry,
+                &mut generated_constraints,
+                &mut visited_constraint_names,
 
-            if let Some(root_concepts) = by_object_type.get(&root_object_type) {
-                debug!(
-                    "Attaching constraint {} to {} objects of type {}.",
-                    constraint_name,
-                    root_concepts.len(),
-                    root_object_type
-                );
-
-                for root in root_concepts {
-                    let root_key = (root.get_uuid(), root.get_type());
-                    let family_tree = family_trees.get(&root_key).unwrap();
-                    let raw_potential_child_constraints = builder
-                        .get_required_constraint_names()
-                        .into_iter()
-                        .map(|req| (req.clone(), generated_constraints.get(&req)))
-                        .filter(|(_req, x)| x.is_some())
-                        .map(|(req, x)| (req, x.unwrap()))
-                        .collect::<Vec<_>>();
-                    if level_enabled!(Level::DEBUG) {
-                        debug!(
-                            "Creating constraint {:?} on root {:?} with potential child constraints:",
-                            builder.get_constraint_name(),
-                            &root_key
-                        );
-                        for (required_constraint_name, map) in
-                            raw_potential_child_constraints.iter()
-                        {
-                            debug!(" - for {}:", required_constraint_name);
-                            for (key, v) in map.iter() {
-                                let downstream = v.read().unwrap();
-                                debug!(
-                                    " -- {:?}: {:?}",
-                                    key,
-                                    (downstream.get_uuid()?, downstream.get_name())
-                                );
-                            }
-                        }
-                    }
-                    let other_required_concept_uuids = builder
-                        .get_required(root.clone(), &ancestry)
-                        .into_iter()
-                        .collect::<HashSet<_>>();
-                    let potential_child_constraints = raw_potential_child_constraints
-                        .into_iter()
-                        .map(|(_req, x)| {
-                            x.iter()
-                                .filter(
-                                    |((potential_root_id, potential_root_type), _constraint)| {
-                                        (match family_tree.get(potential_root_type) {
-                                            None => false,
-                                            Some(set) => set.contains(potential_root_id),
-                                        } || other_required_concept_uuids
-                                            .contains(potential_root_id))
-                                    },
-                                )
-                                .map(|(_, constraint)| constraint.clone())
-                        })
-                        .flatten()
-                        .collect::<Vec<Arc<RwLock<Constraint>>>>();
-                    if builder.should_add(root.clone(), &ancestry) {
-                        if level_enabled!(Level::DEBUG) {
-                            debug!("After filtering:",);
-                            for downstream_rw in potential_child_constraints.iter() {
-                                let downstream = downstream_rw.read().unwrap();
-                                debug!(
-                                    " --  {:?}",
-                                    (downstream.get_uuid()?, downstream.get_name())
-                                );
-                            }
-                        }
-                        let constraint = builder
-                            .build_constraint(root.get_uuid(), potential_child_constraints)?;
-                        let gen_for_constraint = generated_constraints
-                            .entry(constraint_name.clone())
-                            .or_insert(LinkedHashMap::new());
-                        assert!(!gen_for_constraint.contains_key(&root_key));
-                        if level_enabled!(Level::DEBUG) {
-                            debug!(
-                                "Added constraint {:?} on root {:?} with the following dependencies:",
-                                (constraint.get_uuid()?, constraint.get_name()),
-                                &root_key
-                            );
-                            for downstream_rw in constraint.get_downstream_constraints()? {
-                                let downstream = downstream_rw.read().unwrap();
-                                debug!(
-                                    " --  {:?}",
-                                    (downstream.get_uuid()?, downstream.get_name())
-                                );
-                            }
-                        }
-                        gen_for_constraint.insert(root_key, Arc::new(RwLock::new(constraint)));
-                    }
-                }
-            } else {
-                debug!(
-                    "Found no concepts of type {} for {}",
-                    root_object_type, constraint_name,
-                );
-            }
-            for req in builder.get_required_constraint_names() {
-                assert!(visited_constraint_names.contains(&req));
-            }
-            visited_constraint_names.insert(constraint_name.clone());
+            )?;
         }
 
         let mut constraints = LinkedHashMap::new();
