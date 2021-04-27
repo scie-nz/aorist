@@ -1,4 +1,4 @@
-use crate::preamble::Preamble;
+use crate::code::Preamble;
 use crate::python::Import;
 use pyo3::prelude::*;
 use pyo3::types::{PyList, PyModule, PyString, PyTuple};

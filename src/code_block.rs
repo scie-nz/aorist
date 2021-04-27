@@ -3,7 +3,7 @@ use crate::endpoints::EndpointConfig;
 use crate::flow::ETLFlow;
 use crate::flow::{ForLoopPythonBasedTask, PythonBasedTask, StandalonePythonBasedTask};
 use crate::parameter_tuple::ParameterTuple;
-use crate::preamble::Preamble;
+use crate::code::Preamble;
 use crate::python::{
     Formatted, Import, PythonPreamble, SimpleIdentifier, StringLiteral, Subscript, AST,
 };
