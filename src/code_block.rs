@@ -2,9 +2,8 @@ use crate::constraint_state::ConstraintState;
 use crate::endpoints::EndpointConfig;
 use crate::flow::ETLFlow;
 use crate::flow::{ForLoopPythonBasedTask, PythonBasedTask, StandalonePythonBasedTask};
-use crate::python::{
-    Formatted, Import, ParameterTuple, Preamble, SimpleIdentifier, StringLiteral, Subscript, AST,
-};
+use crate::parameter_tuple::ParameterTuple;
+use crate::python::{Formatted, Import, Preamble, SimpleIdentifier, StringLiteral, Subscript, AST};
 use anyhow::Result;
 use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;

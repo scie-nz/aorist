@@ -1,8 +1,8 @@
 use crate::code_block::PythonBasedCodeBlock;
 use crate::endpoints::EndpointConfig;
 use crate::flow::ETLFlow;
-use crate::python::PythonStatementInput;
-use crate::python::{Assignment, Dict, Import, ParameterTuple, Preamble, AST};
+use crate::parameter_tuple::ParameterTuple;
+use crate::python::{Assignment, Dict, Import, Preamble, PythonStatementInput, AST};
 use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
 use std::collections::{BTreeSet, HashMap};

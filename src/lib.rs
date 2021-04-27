@@ -30,6 +30,7 @@ pub mod location;
 pub mod logging;
 pub mod models;
 pub mod object;
+pub mod parameter_tuple;
 pub mod python;
 pub mod role;
 pub mod role_binding;

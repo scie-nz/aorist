@@ -1,7 +1,7 @@
 use crate::concept::{AoristConcept, Concept, ConceptAncestry};
 use crate::dialect::Dialect;
 use crate::object::TAoristObject;
-use crate::python::ParameterTuple;
+use crate::parameter_tuple::ParameterTuple;
 use anyhow::{Context, Result};
 use aorist_primitives::{define_constraint, register_constraint};
 use maplit::hashmap;
