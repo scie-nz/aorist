@@ -599,7 +599,7 @@ where
         builder: AoristConstraintBuilder,
         by_object_type: &HashMap<String, Vec<Concept<'a>>>,
         family_trees: &HashMap<(Uuid, String), HashMap<String, HashSet<Uuid>>>,
-        ancestry: &ConceptAncestry<'a>, 
+        ancestry: &ConceptAncestry<'a>,
         generated_constraints: &mut LinkedHashMap<
             String,
             LinkedHashMap<(Uuid, String), Arc<RwLock<Constraint>>>,
@@ -702,6 +702,20 @@ where
         }
         visited_constraint_names.insert(constraint_name.clone());
         Ok(())
+    }
+    fn get_concept_map_by_object_type(
+        concept_map: HashMap<(Uuid, String), Concept<'a>>,
+    ) -> HashMap<String, Vec<Concept<'a>>> {
+        let mut by_object_type: HashMap<String, Vec<Concept<'a>>> = HashMap::new();
+        debug!("Found the following concepts:");
+        for ((uuid, object_type), concept) in concept_map {
+            debug!("- {}: {}", &object_type, &uuid);
+            by_object_type
+                .entry(object_type)
+                .or_insert(Vec::new())
+                .push(concept.clone());
+        }
+        by_object_type
     }
     fn generate_family_trees(
         ancestors: &HashMap<(Uuid, String), Vec<AncestorRecord>>,
@@ -830,7 +844,6 @@ where
     D: PythonBasedFlow,
     <D as PythonBasedFlow>::T: 'a,
 {
-
     pub fn new(
         universe: &'a Universe,
         topline_constraint_names: LinkedHashSet<String>,
@@ -840,17 +853,9 @@ where
         let mut concept_map: HashMap<(Uuid, String), Concept<'a>> = HashMap::new();
         let concept = Concept::Universe((universe, 0, None));
         concept.populate_child_concept_map(&mut concept_map);
+        let by_object_type = Self::get_concept_map_by_object_type(concept_map.clone());
 
         let ancestors = Self::compute_all_ancestors(concept, &concept_map);
-        let mut by_object_type: HashMap<String, Vec<Concept<'a>>> = HashMap::new();
-        debug!("Found the following concepts:");
-        for ((uuid, object_type), concept) in concept_map.clone() {
-            debug!("- {}: {}", &object_type, &uuid);
-            by_object_type
-                .entry(object_type)
-                .or_insert(Vec::new())
-                .push(concept.clone());
-        }
         let mut visited_constraint_names: LinkedHashSet<String> = LinkedHashSet::new();
         // constraint_name => root_id => constraint_object
         let mut generated_constraints: LinkedHashMap<
@@ -872,7 +877,6 @@ where
                 &ancestry,
                 &mut generated_constraints,
                 &mut visited_constraint_names,
-
             )?;
         }
 
