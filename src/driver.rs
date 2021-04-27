@@ -890,17 +890,34 @@ where
             }
         }
 
-        Ok(Self {
+        Ok(Self::_new(
             concepts,
+            constraints,
+            Arc::new(ancestry),
+            universe.endpoints.clone(),
             ancestors,
+            topline_constraint_names,
+        ))
+    }
+    fn _new(
+        concepts: Arc<RwLock<HashMap<(Uuid, String), Concept<'a>>>>,
+        constraints: LinkedHashMap<(Uuid, String), Arc<RwLock<Constraint>>>,
+        ancestry: Arc<ConceptAncestry<'a>>,
+        endpoints: EndpointConfig,
+        ancestors: HashMap<(Uuid, String), Vec<AncestorRecord>>,
+        topline_constraint_names: LinkedHashSet<String>,
+    ) -> Self {
+        Self {
+            concepts,
             constraints,
             satisfied_constraints: HashMap::new(),
-            ancestry: Arc::new(ancestry),
             blocks: Vec::new(),
+            ancestry,
             dag_type: PhantomData,
-            endpoints: universe.endpoints.clone(),
+            endpoints,
             constraint_explanations: AoristConstraint::get_explanations(),
+            ancestors,
             topline_constraint_names,
-        })
+        }
     }
 }
