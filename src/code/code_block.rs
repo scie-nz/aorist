@@ -1,7 +1,7 @@
 use crate::code::{Import, Preamble};
 use crate::constraint_state::ConstraintState;
 use crate::endpoints::EndpointConfig;
-use crate::flow::ETLFlow;
+use crate::flow::{ETLFlow, ETLTask};
 use crate::flow::StandaloneTask;
 use crate::parameter_tuple::ParameterTuple;
 use crate::python::{SimpleIdentifier, StringLiteral, Subscript, AST};
@@ -17,11 +17,11 @@ where
     Self::I: Import,
     T: ETLFlow,
     Self: Sized,
-    Self::ST: StandaloneTask<T>,
+    Self::E: ETLTask<T>,
 {
     type P;
     type I;
-    type ST;
+    type E;
 
     /// assigns task values (Python variables in which they will be stored)
     /// to each member of the code block.
@@ -74,7 +74,7 @@ where
         tasks_dict: Option<AST>,
         identifiers: &HashMap<Uuid, AST>,
     ) -> Result<(
-        Vec<Self::ST>,
+        Vec<<Self::E as ETLTask<T>>::S>,
         HashMap<Uuid, AST>,
         HashMap<String, Option<ParameterTuple>>,
     )> {
@@ -91,7 +91,7 @@ where
                 .iter()
                 .map(|x| identifiers.get(x).unwrap().clone())
                 .collect();
-            tasks.push(Self::ST::new(
+            tasks.push(<Self::E as ETLTask<T>>::S::new(
                 x.get_task_name(),
                 ast.clone(),
                 x.get_call(),

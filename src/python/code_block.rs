@@ -2,7 +2,7 @@ use crate::code::CodeBlock;
 use crate::constraint_state::ConstraintState;
 use crate::endpoints::EndpointConfig;
 use crate::flow::ETLFlow;
-use crate::flow::{ForLoopPythonBasedTask, PythonBasedTask, StandalonePythonBasedTask, ETLTask};
+use crate::flow::{ForLoopPythonBasedTask, PythonBasedTask, ETLTask};
 use crate::parameter_tuple::ParameterTuple;
 use crate::python::{
     Formatted, PythonImport, PythonPreamble, SimpleIdentifier, StringLiteral, Subscript, AST,
@@ -30,7 +30,7 @@ where
 {
     type P = PythonPreamble;
     type I = PythonImport;
-    type ST = StandalonePythonBasedTask<T>;
+    type E = PythonBasedTask<T>;
 
     fn get_statements(
         &self,
