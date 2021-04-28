@@ -2,7 +2,7 @@ use crate::code::CodeBlock;
 use crate::constraint_state::ConstraintState;
 use crate::endpoints::EndpointConfig;
 use crate::flow::ETLFlow;
-use crate::flow::{ForLoopPythonBasedTask, PythonBasedTask, StandalonePythonBasedTask};
+use crate::flow::{ForLoopPythonBasedTask, PythonBasedTask, StandalonePythonBasedTask, ETLTask};
 use crate::parameter_tuple::ParameterTuple;
 use crate::python::{
     Formatted, PythonImport, PythonPreamble, SimpleIdentifier, StringLiteral, Subscript, AST,
@@ -97,7 +97,7 @@ where
                 let key = task.get_compression_key().unwrap();
                 compressible.entry(key).or_insert(Vec::new()).push(task);
             } else {
-                python_based_tasks.push(PythonBasedTask::StandalonePythonBasedTask(task));
+                python_based_tasks.push(PythonBasedTask::standalone_task(task));
             }
         }
         for (mut compression_key, tasks) in compressible.into_iter() {

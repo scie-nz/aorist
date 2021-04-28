@@ -478,10 +478,16 @@ where
     }
 }
 
-trait ETLTask<T>
+pub trait ETLTask<T>
 where
     T: ETLFlow,
+    Self::S: StandaloneTask<T>,
 {
+    type S;
+    type F;
+
+    fn standalone_task(task: Self::S) -> Self;
+    fn for_loop_task(task: Self::F) -> Self;
 }
 
 pub enum PythonBasedTask<T>
@@ -491,6 +497,18 @@ where
     StandalonePythonBasedTask(StandalonePythonBasedTask<T>),
     ForLoopPythonBasedTask(ForLoopPythonBasedTask<T>),
 }
+impl<T> ETLTask<T> for PythonBasedTask<T> 
+where T: ETLFlow {
+    type S = StandalonePythonBasedTask<T>;
+    type F = ForLoopPythonBasedTask<T>;
+    fn standalone_task(task: Self::S) -> Self {
+        Self::StandalonePythonBasedTask(task)
+    }
+    fn for_loop_task(task: Self::F) -> Self {
+        Self::ForLoopPythonBasedTask(task)
+    }
+}
+
 impl<T> PythonBasedTask<T>
 where
     T: ETLFlow,
