@@ -1,8 +1,8 @@
-use crate::code::Preamble;
+use crate::code::{Import, Preamble};
 use crate::constraint_state::ConstraintState;
 use crate::endpoints::EndpointConfig;
 use crate::parameter_tuple::ParameterTuple;
-use crate::python::{PythonImport, SimpleIdentifier, StringLiteral, Subscript, AST};
+use crate::python::{SimpleIdentifier, StringLiteral, Subscript, AST};
 use anyhow::Result;
 use linked_hash_set::LinkedHashSet;
 use std::collections::{BTreeSet, HashMap};
@@ -12,9 +12,12 @@ use uuid::Uuid;
 pub trait CodeBlock
 where
     Self::P: Preamble,
+    Self::I: Import,
     Self: Sized,
 {
     type P;
+    type I;
+
     /// assigns task values (Python variables in which they will be stored)
     /// to each member of the code block.
     fn compute_task_vals<'a>(
@@ -48,7 +51,8 @@ where
     fn get_statements(
         &self,
         endpoints: &EndpointConfig,
-    ) -> (Vec<AST>, LinkedHashSet<Self::P>, BTreeSet<PythonImport>);
+    ) -> (Vec<AST>, LinkedHashSet<Self::P>, BTreeSet<Self::I>);
+
     fn get_tasks_dict(&self) -> Option<AST>;
     fn get_identifiers(&self) -> HashMap<Uuid, AST>;
     fn get_params(&self) -> HashMap<String, Option<ParameterTuple>>;

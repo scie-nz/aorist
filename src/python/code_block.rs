@@ -29,6 +29,7 @@ where
     T: ETLFlow,
 {
     type P = PythonPreamble;
+    type I = PythonImport;
 
     fn get_statements(
         &self,
