@@ -2,7 +2,7 @@ use crate::code::{Import, Preamble};
 use crate::constraint_state::ConstraintState;
 use crate::endpoints::EndpointConfig;
 use crate::flow::ETLFlow;
-use crate::flow::StandalonePythonBasedTask;
+use crate::flow::{StandalonePythonBasedTask, StandaloneTask};
 use crate::parameter_tuple::ParameterTuple;
 use crate::python::{SimpleIdentifier, StringLiteral, Subscript, AST};
 use anyhow::Result;
@@ -17,9 +17,11 @@ where
     Self::I: Import,
     T: ETLFlow,
     Self: Sized,
+    Self::ST: StandaloneTask<T>,
 {
     type P;
     type I;
+    type ST;
 
     /// assigns task values (Python variables in which they will be stored)
     /// to each member of the code block.
@@ -65,6 +67,7 @@ where
         tasks_dict: Option<AST>,
         identifiers: &HashMap<Uuid, AST>,
     ) -> Result<Self>;
+
     fn create_standalone_tasks<'a>(
         members: Vec<Arc<RwLock<ConstraintState<'a>>>>,
         constraint_name: String,
@@ -74,5 +77,30 @@ where
         Vec<StandalonePythonBasedTask<T>>,
         HashMap<Uuid, AST>,
         HashMap<String, Option<ParameterTuple>>,
-    )>;
+    )> {
+        let mut task_identifiers: HashMap<Uuid, AST> = HashMap::new();
+        let mut params: HashMap<String, Option<ParameterTuple>> = HashMap::new();
+        let mut tasks = Vec::new();
+        for (ast, state) in Self::compute_task_vals(members, &constraint_name, &tasks_dict) {
+            let x = state.read().unwrap();
+            task_identifiers.insert(x.get_constraint_uuid()?, ast.clone());
+            params.insert(x.get_task_name(), x.get_params());
+
+            let dep_uuids = x.get_dependencies()?;
+            let dependencies = dep_uuids
+                .iter()
+                .map(|x| identifiers.get(x).unwrap().clone())
+                .collect();
+            tasks.push(StandalonePythonBasedTask::new(
+                x.get_task_name(),
+                ast.clone(),
+                x.get_call(),
+                x.get_params(),
+                dependencies,
+                x.get_preamble(),
+                x.get_dialect(),
+            ));
+        }
+        Ok((tasks, task_identifiers, params))
+    }
 }

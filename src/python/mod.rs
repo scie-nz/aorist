@@ -1,7 +1,7 @@
 mod ast;
 mod code_block;
-mod python_import;
 mod preamble;
+mod python_import;
 
 use linked_hash_set::LinkedHashSet;
 use pyo3::prelude::*;
@@ -15,8 +15,8 @@ pub use ast::{
     Tuple, AST,
 };
 pub use code_block::PythonBasedCodeBlock;
-pub use python_import::PythonImport;
 pub use preamble::PythonPreamble;
+pub use python_import::PythonImport;
 
 /// Wrapper type for stuff that gets passed around when building Python
 /// statements:

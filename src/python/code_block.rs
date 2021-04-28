@@ -30,6 +30,7 @@ where
 {
     type P = PythonPreamble;
     type I = PythonImport;
+    type ST = StandalonePythonBasedTask<T>;
 
     fn get_statements(
         &self,
@@ -74,42 +75,6 @@ where
 
     fn get_params(&self) -> HashMap<String, Option<ParameterTuple>> {
         self.params.clone()
-    }
-
-    fn create_standalone_tasks<'a>(
-        members: Vec<Arc<RwLock<ConstraintState<'a>>>>,
-        constraint_name: String,
-        tasks_dict: Option<AST>,
-        identifiers: &HashMap<Uuid, AST>,
-    ) -> Result<(
-        Vec<StandalonePythonBasedTask<T>>,
-        HashMap<Uuid, AST>,
-        HashMap<String, Option<ParameterTuple>>,
-    )> {
-        let mut task_identifiers: HashMap<Uuid, AST> = HashMap::new();
-        let mut params: HashMap<String, Option<ParameterTuple>> = HashMap::new();
-        let mut tasks = Vec::new();
-        for (ast, state) in Self::compute_task_vals(members, &constraint_name, &tasks_dict) {
-            let x = state.read().unwrap();
-            task_identifiers.insert(x.get_constraint_uuid()?, ast.clone());
-            params.insert(x.get_task_name(), x.get_params());
-
-            let dep_uuids = x.get_dependencies()?;
-            let dependencies = dep_uuids
-                .iter()
-                .map(|x| identifiers.get(x).unwrap().clone())
-                .collect();
-            tasks.push(StandalonePythonBasedTask::new(
-                x.get_task_name(),
-                ast.clone(),
-                x.get_call(),
-                x.get_params(),
-                dependencies,
-                x.get_preamble(),
-                x.get_dialect(),
-            ));
-        }
-        Ok((tasks, task_identifiers, params))
     }
 
     fn new<'a>(

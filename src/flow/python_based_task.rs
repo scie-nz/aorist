@@ -9,6 +9,12 @@ use crate::python::{
 use linked_hash_map::LinkedHashMap;
 use std::marker::PhantomData;
 
+pub trait StandaloneTask<T>
+where
+    T: ETLFlow,
+{
+}
+
 #[derive(Clone, Hash, PartialEq, Eq)]
 pub struct StandalonePythonBasedTask<T>
 where
@@ -151,6 +157,8 @@ where
         AST::Dict(Dict::new_wrapped(local_params_map))
     }
 }
+
+impl<T> StandaloneTask<T> for StandalonePythonBasedTask<T> where T: ETLFlow {}
 
 impl<T> StandalonePythonBasedTask<T>
 where
