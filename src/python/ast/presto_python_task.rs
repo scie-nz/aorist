@@ -1,8 +1,8 @@
 #![allow(dead_code)]
 use crate::endpoints::PrestoConfig;
 use crate::python::ast::{
-    Assignment, Attribute, BigIntLiteral, Call, Expression, Formatted,
-    SimpleIdentifier, StringLiteral, AST,
+    Assignment, Attribute, BigIntLiteral, Call, Expression, Formatted, SimpleIdentifier,
+    StringLiteral, AST,
 };
 use crate::python::PythonImport;
 use aorist_primitives::define_task_node;

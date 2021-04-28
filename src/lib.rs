@@ -9,7 +9,6 @@ pub mod algorithms;
 pub mod asset;
 pub mod attributes;
 pub mod code;
-pub mod code_block;
 pub mod compliance;
 pub mod compression;
 pub mod concept;

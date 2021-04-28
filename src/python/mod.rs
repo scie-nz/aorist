@@ -1,4 +1,5 @@
 mod ast;
+mod code_block;
 mod import;
 mod preamble;
 
@@ -13,6 +14,7 @@ pub use ast::{
     PrestoPythonTask, PythonImportNode, RPythonTask, SimpleIdentifier, StringLiteral, Subscript,
     Tuple, AST,
 };
+pub use code_block::PythonBasedCodeBlock;
 pub use import::PythonImport;
 pub use preamble::PythonPreamble;
 
