@@ -1,3 +1,4 @@
+use crate::code::Import;
 use crate::python::ast::{SimpleIdentifier, AST};
 use pyo3::prelude::*;
 use pyo3::types::{PyList, PyModule};
@@ -8,6 +9,8 @@ pub enum PythonImport {
     PythonModuleImport(String, Option<String>),
     PythonFromImport(String, String, Option<String>),
 }
+impl Import for PythonImport {}
+
 impl PythonImport {
     pub fn to_python_ast_node<'a>(
         &self,
