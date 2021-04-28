@@ -175,7 +175,7 @@ macro_rules! define_task_node {
             pub fn get_direct_descendants(&self) -> Vec<AST> {
                 $descendants(self)
             }
-            pub fn get_imports(&self) -> Vec<Import> {
+            pub fn get_imports(&self) -> Vec<PythonImport> {
                 $import_closure(self)
             }
         }
@@ -192,7 +192,7 @@ macro_rules! register_task_nodes {
             )+
         }
         impl $name {
-            pub fn get_imports(&self) -> Vec<Import>{
+            pub fn get_imports(&self) -> Vec<PythonImport>{
                 match &self {
                     $(
                         Self::$variant(x) => x.read().unwrap().get_imports(),

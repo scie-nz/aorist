@@ -1,13 +1,13 @@
 use crate::code::Preamble;
-use crate::python::Import;
+use crate::python::PythonImport;
 use pyo3::prelude::*;
 use pyo3::types::{PyList, PyModule, PyString, PyTuple};
 use std::hash::Hash;
 
 #[derive(Clone, PartialEq, Hash, Eq)]
 pub struct PythonPreamble {
-    pub imports: Vec<Import>,
-    pub from_imports: Vec<Import>,
+    pub imports: Vec<PythonImport>,
+    pub from_imports: Vec<PythonImport>,
     pub body: String,
 }
 impl Preamble for PythonPreamble {}
@@ -27,10 +27,10 @@ def build_preamble(body):
     other = []
 
     for elem in module.body:
-        if isinstance(elem, ast.Import):
+        if isinstance(elem, ast.PythonImport):
             for name in elem.names:
                 imports += [(name.name, name.asname)]
-        elif isinstance(elem, ast.ImportFrom):
+        elif isinstance(elem, ast.PythonImportFrom):
             for name in elem.names:
                 from_imports += [(elem.module, name.name, name.asname)]
         else:
@@ -50,7 +50,7 @@ def build_preamble(body):
             .unwrap();
 
         let imports_list: &PyList = tpl.get_item(0).extract().unwrap();
-        let imports: Vec<Import> = imports_list
+        let imports: Vec<PythonImport> = imports_list
             .iter()
             .map(|x| {
                 let tpl: &PyTuple = x.extract().unwrap();
@@ -73,12 +73,12 @@ def build_preamble(body):
                             .to_string(),
                     ),
                 };
-                Import::ModuleImport(name, asname)
+                PythonImport::PythonModuleImport(name, asname)
             })
             .collect();
 
         let from_imports_list: &PyList = tpl.get_item(1).extract().unwrap();
-        let from_imports: Vec<Import> = from_imports_list
+        let from_imports: Vec<PythonImport> = from_imports_list
             .iter()
             .map(|x| {
                 let tpl: &PyTuple = x.extract().unwrap();
@@ -108,7 +108,7 @@ def build_preamble(body):
                             .to_string(),
                     ),
                 };
-                Import::FromImport(module, name, asname)
+                PythonImport::PythonFromImport(module, name, asname)
             })
             .collect();
 

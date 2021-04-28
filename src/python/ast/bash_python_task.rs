@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 use super::python_subprocess_task::PythonSubprocessTask;
-use crate::python::ast::{Import, AST};
+use crate::python::ast::{PythonImport, AST};
 use aorist_primitives::define_task_node;
 use std::hash::Hash;
 use std::sync::{Arc, RwLock};

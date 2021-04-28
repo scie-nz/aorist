@@ -4,11 +4,11 @@ use pyo3::types::{PyList, PyModule};
 use std::hash::Hash;
 
 #[derive(Clone, Hash, PartialEq, Eq, PartialOrd, Ord)]
-pub enum Import {
-    ModuleImport(String, Option<String>),
-    FromImport(String, String, Option<String>),
+pub enum PythonImport {
+    PythonModuleImport(String, Option<String>),
+    PythonFromImport(String, String, Option<String>),
 }
-impl Import {
+impl PythonImport {
     pub fn to_python_ast_node<'a>(
         &self,
         py: Python,
@@ -16,7 +16,7 @@ impl Import {
         depth: usize,
     ) -> PyResult<&'a PyAny> {
         match &self {
-            Self::ModuleImport(ref module, ref alias) => {
+            Self::PythonModuleImport(ref module, ref alias) => {
                 let alias_list = PyList::new(
                     py,
                     vec![match alias {
@@ -37,9 +37,9 @@ impl Import {
                         }
                     }],
                 );
-                ast_module.call1("Import", (alias_list,))
+                ast_module.call1("PythonImport", (alias_list,))
             }
-            Self::FromImport(ref module, ref name, ref alias) => {
+            Self::PythonFromImport(ref module, ref name, ref alias) => {
                 let alias = PyList::new(
                     py,
                     vec![match alias {
@@ -56,7 +56,7 @@ impl Import {
                             .to_python_ast_node(py, ast_module, depth)?,
                     }],
                 );
-                ast_module.call1("ImportFrom", (module, alias.as_ref(), 0))
+                ast_module.call1("PythonImportFrom", (module, alias.as_ref(), 0))
             }
         }
     }

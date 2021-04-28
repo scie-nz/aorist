@@ -3,7 +3,7 @@ use crate::endpoints::EndpointConfig;
 use crate::flow::etl_flow::ETLFlow;
 use crate::parameter_tuple::{ParameterTuple, ParameterTupleDedupKey};
 use crate::python::{
-    Add, Assignment, Attribute, BigIntLiteral, BinOp, Call, Dict, ForLoop, Import, List,
+    Add, Assignment, Attribute, BigIntLiteral, BinOp, Call, Dict, ForLoop, List, PythonImport,
     SimpleIdentifier, StringLiteral, Subscript, Tuple, AST,
 };
 use linked_hash_map::LinkedHashMap;
@@ -239,7 +239,7 @@ where
     pub fn get_statements(
         &self,
         endpoints: &EndpointConfig,
-    ) -> (Vec<AST>, Vec<String>, Vec<Import>) {
+    ) -> (Vec<AST>, Vec<String>, Vec<PythonImport>) {
         let args;
         let kwargs;
         if let Some(ref p) = self.params {
@@ -345,7 +345,7 @@ where
     pub fn get_statements(
         &self,
         endpoints: &EndpointConfig,
-    ) -> (Vec<AST>, Vec<String>, Vec<Import>) {
+    ) -> (Vec<AST>, Vec<String>, Vec<PythonImport>) {
         let any_dependencies = self
             .values
             .iter()
@@ -477,7 +477,7 @@ where
     pub fn get_statements(
         &self,
         endpoints: &EndpointConfig,
-    ) -> (Vec<AST>, Vec<String>, Vec<Import>) {
+    ) -> (Vec<AST>, Vec<String>, Vec<PythonImport>) {
         match &self {
             PythonBasedTask::StandalonePythonBasedTask(x) => x.get_statements(endpoints),
             PythonBasedTask::ForLoopPythonBasedTask(x) => x.get_statements(endpoints),

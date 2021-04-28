@@ -1,4 +1,4 @@
-use crate::python::ast::{Assignment, Attribute, Call, Import, SimpleIdentifier, AST};
+use crate::python::ast::{Assignment, Attribute, Call, PythonImport, SimpleIdentifier, AST};
 use aorist_primitives::define_task_node;
 use linked_hash_map::LinkedHashMap;
 use std::hash::Hash;
@@ -25,8 +25,8 @@ define_task_node!(
     },
     |_task: &RPythonTask| {
         vec![
-            Import::ModuleImport("subprocess".to_string(), None),
-            Import::ModuleImport("rpy2".to_string(), None),
+            PythonImport::PythonModuleImport("subprocess".to_string(), None),
+            PythonImport::PythonModuleImport("rpy2".to_string(), None),
         ]
     },
     r_script: AST,

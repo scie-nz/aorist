@@ -1,4 +1,4 @@
-use crate::python::ast::{Assignment, Call, Expression, Import, SimpleIdentifier, AST};
+use crate::python::ast::{Assignment, Call, Expression, PythonImport, SimpleIdentifier, AST};
 use aorist_primitives::define_task_node;
 use linked_hash_map::LinkedHashMap;
 use std::hash::Hash;

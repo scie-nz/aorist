@@ -1,7 +1,7 @@
 use crate::flow::etl_flow::ETLFlow;
 use crate::python::{
-    format_code, Assignment, Dict, Import, PythonPreamble, PythonStatementInput, SimpleIdentifier,
-    AST,
+    format_code, Assignment, Dict, PythonImport, PythonPreamble, PythonStatementInput,
+    SimpleIdentifier, AST,
 };
 use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
@@ -25,9 +25,9 @@ where
         statements: Vec<(String, Option<String>, Option<String>, Vec<&'a PyAny>)>,
         ast_module: &'a PyModule,
     ) -> Vec<(String, Vec<&'a PyAny>)>;
-    fn get_flow_imports(&self) -> Vec<Import>;
+    fn get_flow_imports(&self) -> Vec<PythonImport>;
 
-    fn get_preamble_imports(&self, preambles: &LinkedHashSet<PythonPreamble>) -> Vec<Import> {
+    fn get_preamble_imports(&self, preambles: &LinkedHashSet<PythonPreamble>) -> Vec<PythonImport> {
         let preamble_module_imports = preambles
             .iter()
             .map(|x| x.imports.clone().into_iter())
@@ -142,7 +142,7 @@ where
             .flatten()
             .collect::<LinkedHashSet<PythonPreamble>>();
 
-        let preamble_imports: Vec<Import> = self.get_preamble_imports(&preambles);
+        let preamble_imports: Vec<PythonImport> = self.get_preamble_imports(&preambles);
 
         let imports = statements_and_preambles
             .iter()
@@ -150,7 +150,7 @@ where
             .flatten()
             .chain(flow_imports)
             .chain(preamble_imports)
-            .collect::<BTreeSet<Import>>();
+            .collect::<BTreeSet<PythonImport>>();
 
         let imports_ast: Vec<_> = imports
             .into_iter()
@@ -205,7 +205,7 @@ where
         let flow = self.build_flow(py, statements_ast, ast);
 
         let content: Vec<(Option<String>, Vec<&PyAny>)> =
-            vec![(Some("Imports".to_string()), imports_ast)]
+            vec![(Some("PythonImports".to_string()), imports_ast)]
                 .into_iter()
                 .chain(preambles.into_iter().map(|x| (None, x.get_body_ast(py))))
                 .chain(flow.into_iter().map(|(x, y)| (Some(x), y)))

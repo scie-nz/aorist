@@ -5,7 +5,7 @@ use crate::flow::ETLFlow;
 use crate::flow::{ForLoopPythonBasedTask, PythonBasedTask, StandalonePythonBasedTask};
 use crate::parameter_tuple::ParameterTuple;
 use crate::python::{
-    Formatted, Import, PythonPreamble, SimpleIdentifier, StringLiteral, Subscript, AST,
+    Formatted, PythonImport, PythonPreamble, SimpleIdentifier, StringLiteral, Subscript, AST,
 };
 use anyhow::Result;
 use linked_hash_map::LinkedHashMap;
@@ -54,7 +54,7 @@ where
     fn get_statements(
         &self,
         endpoints: &EndpointConfig,
-    ) -> (Vec<AST>, LinkedHashSet<Self::P>, BTreeSet<Import>);
+    ) -> (Vec<AST>, LinkedHashSet<Self::P>, BTreeSet<PythonImport>);
     fn get_tasks_dict(&self) -> Option<AST>;
     fn get_identifiers(&self) -> HashMap<Uuid, AST>;
     fn get_params(&self) -> HashMap<String, Option<ParameterTuple>>;
@@ -84,7 +84,11 @@ where
     fn get_statements(
         &self,
         endpoints: &EndpointConfig,
-    ) -> (Vec<AST>, LinkedHashSet<PythonPreamble>, BTreeSet<Import>) {
+    ) -> (
+        Vec<AST>,
+        LinkedHashSet<PythonPreamble>,
+        BTreeSet<PythonImport>,
+    ) {
         let preambles_and_statements = self
             .python_based_tasks
             .iter()
@@ -102,7 +106,7 @@ where
             .iter()
             .map(|x| x.2.clone().into_iter())
             .flatten()
-            .collect::<BTreeSet<Import>>();
+            .collect::<BTreeSet<PythonImport>>();
         let statements = preambles_and_statements
             .iter()
             .map(|x| x.0.clone())

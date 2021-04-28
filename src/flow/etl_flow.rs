@@ -1,6 +1,6 @@
 use crate::dialect::Dialect;
 use crate::endpoints::EndpointConfig;
-use crate::python::{Import, AST};
+use crate::python::{PythonImport, AST};
 use linked_hash_map::LinkedHashMap;
 
 /// Encapsulates the abstract bits necessary for the creation of an ETL Flow
@@ -22,5 +22,5 @@ pub trait ETLFlow {
     ) -> Self;
     fn get_statements(&self) -> Vec<AST>;
     fn get_type() -> String;
-    fn get_imports(&self) -> Vec<Import>;
+    fn get_imports(&self) -> Vec<PythonImport>;
 }

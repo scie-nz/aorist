@@ -1,5 +1,5 @@
 use crate::python::ast::{
-    Assignment, Attribute, BooleanLiteral, Call, Import, SimpleIdentifier, Tuple, AST,
+    Assignment, Attribute, BooleanLiteral, Call, PythonImport, SimpleIdentifier, Tuple, AST,
 };
 use linked_hash_map::LinkedHashMap;
 
@@ -11,8 +11,11 @@ pub trait PythonSubprocessTask {
             false,
         ))
     }
-    fn get_python_imports(&self) -> Vec<Import> {
-        vec![Import::ModuleImport("subprocess".to_string(), None)]
+    fn get_python_imports(&self) -> Vec<PythonImport> {
+        vec![PythonImport::PythonModuleImport(
+            "subprocess".to_string(),
+            None,
+        )]
     }
     fn compute_task_kwargs(&self) -> LinkedHashMap<String, AST> {
         let mut kwargs = LinkedHashMap::new();

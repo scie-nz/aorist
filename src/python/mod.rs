@@ -8,8 +8,8 @@ use std::collections::{BTreeSet, HashMap};
 
 pub use ast::{
     Add, Assignment, Attribute, BashPythonTask, BigIntLiteral, BinOp, BooleanLiteral, Call,
-    ConstantPythonTask, Dict, Expression, ForLoop, Formatted, Import, ImportNode, List,
-    NativePythonTask, None, PrestoPythonTask, RPythonTask, SimpleIdentifier, StringLiteral,
+    ConstantPythonTask, Dict, Expression, ForLoop, Formatted, List, NativePythonTask, None,
+    PrestoPythonTask, PythonImport, PythonImportNode, RPythonTask, SimpleIdentifier, StringLiteral,
     Subscript, Tuple, AST,
 };
 pub use preamble::PythonPreamble;
@@ -23,7 +23,7 @@ pub use preamble::PythonPreamble;
 pub type PythonStatementInput = (
     Vec<AST>,
     LinkedHashSet<PythonPreamble>,
-    BTreeSet<Import>,
+    BTreeSet<PythonImport>,
     String,
     Option<String>,
     Option<String>,

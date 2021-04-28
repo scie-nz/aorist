@@ -3,8 +3,8 @@ use crate::endpoints::EndpointConfig;
 use crate::flow::etl_flow::ETLFlow;
 use crate::flow::python_based_flow::PythonBasedFlow;
 use crate::python::{
-    BashPythonTask, Call, ConstantPythonTask, Expression, Formatted, Import, NativePythonTask,
-    PrestoPythonTask, RPythonTask, SimpleIdentifier, StringLiteral, AST,
+    BashPythonTask, Call, ConstantPythonTask, Expression, Formatted, NativePythonTask,
+    PrestoPythonTask, PythonImport, RPythonTask, SimpleIdentifier, StringLiteral, AST,
 };
 use aorist_primitives::register_task_nodes;
 use linked_hash_map::LinkedHashMap;
@@ -47,7 +47,7 @@ impl ETLFlow for NativePythonBasedFlow {
         };
         preambles
     }
-    fn get_imports(&self) -> Vec<Import> {
+    fn get_imports(&self) -> Vec<PythonImport> {
         self.node.get_imports()
     }
     fn get_dialect(&self) -> Option<Dialect> {
@@ -146,7 +146,7 @@ impl PythonBasedFlow for PythonDAG {
     fn new() -> Self {
         Self {}
     }
-    fn get_flow_imports(&self) -> Vec<Import> {
+    fn get_flow_imports(&self) -> Vec<PythonImport> {
         Vec::new()
     }
     /// Takes a set of statements and mutates them so as make a valid ETL flow

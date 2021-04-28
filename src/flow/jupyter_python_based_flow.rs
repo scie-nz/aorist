@@ -1,6 +1,6 @@
 use crate::flow::native_python_based_flow::NativePythonBasedFlow;
 use crate::flow::python_based_flow::PythonBasedFlow;
-use crate::python::Import;
+use crate::python::PythonImport;
 use pyo3::prelude::*;
 use pyo3::types::PyModule;
 use serde_json::json;
@@ -11,7 +11,7 @@ impl PythonBasedFlow for JupyterDAG {
     fn new() -> Self {
         Self {}
     }
-    fn get_flow_imports(&self) -> Vec<Import> {
+    fn get_flow_imports(&self) -> Vec<PythonImport> {
         Vec::new()
     }
     /// Takes a set of statements and mutates them so as make a valid ETL flow

@@ -49,8 +49,8 @@ impl<'a> RPreamble {
 
 #[allow(unused_imports)]
 mod r_test_preamble {
-    use extendr_api::prelude::*;
     use crate::r::preamble::RPreamble;
+    use extendr_api::prelude::*;
     #[test]
     fn test_basic_preamble() {
         test! {

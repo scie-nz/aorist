@@ -2,7 +2,7 @@ use crate::code_block::{CodeBlock, PythonBasedCodeBlock};
 use crate::endpoints::EndpointConfig;
 use crate::flow::ETLFlow;
 use crate::parameter_tuple::ParameterTuple;
-use crate::python::{Assignment, Dict, Import, PythonPreamble, PythonStatementInput, AST};
+use crate::python::{Assignment, Dict, PythonImport, PythonPreamble, PythonStatementInput, AST};
 use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
 use std::collections::{BTreeSet, HashMap};
@@ -72,7 +72,7 @@ where
             .iter()
             .map(|x| x.2.clone().into_iter())
             .flatten()
-            .collect::<BTreeSet<Import>>();
+            .collect::<BTreeSet<PythonImport>>();
         (
             self.get_task_val_assignments()
                 .into_iter()

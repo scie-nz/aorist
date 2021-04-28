@@ -11,7 +11,7 @@ mod string_literal;
 pub use assignment_target::TAssignmentTarget;
 pub use bash_python_task::BashPythonTask;
 pub use constant_python_task::ConstantPythonTask;
-pub use import::Import;
+pub use import::PythonImport;
 pub use native_python_task::NativePythonTask;
 pub use presto_python_task::PrestoPythonTask;
 pub use r_python_task::RPythonTask;
@@ -29,12 +29,12 @@ use std::hash::{Hash, Hasher};
 use std::sync::{Arc, RwLock};
 
 define_ast_node!(
-    ImportNode,
-    |import: &ImportNode| vec![import.inner.clone()],
-    |import: &ImportNode, py: Python, ast_module: &'a PyModule, depth: usize| {
+    PythonImportNode,
+    |import: &PythonImportNode| vec![import.inner.clone()],
+    |import: &PythonImportNode, py: Python, ast_module: &'a PyModule, depth: usize| {
         import.to_python_ast_node(py, ast_module, depth)
     },
-    |import: &ImportNode, depth: usize| {
+    |import: &PythonImportNode, depth: usize| {
         r!(Lang(&[
             r!(Symbol("library")),
             import.inner.to_r_ast_node(depth)
@@ -539,7 +539,7 @@ register_ast_nodes!(
     Expression,
     Assignment,
     ForLoop,
-    ImportNode,
+    PythonImportNode,
     Add,
     BinOp,
 );
@@ -618,7 +618,7 @@ mod r_ast_tests {
     fn test_import() {
         test! {
             let sym = AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("ggplot".to_string()));
-            let import = AST::ImportNode(ImportNode::new_wrapped(sym));
+            let import = AST::PythonImportNode(PythonImportNode::new_wrapped(sym));
             let r_node = import.to_r_ast_node(0);
             assert_eq!(r_node, eval_string("call('library', rlang::sym('ggplot'))").unwrap());
         }

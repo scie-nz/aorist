@@ -3,8 +3,8 @@ use crate::endpoints::EndpointConfig;
 use crate::flow::etl_flow::ETLFlow;
 use crate::flow::python_based_flow::PythonBasedFlow;
 use crate::python::{
-    Assignment, Attribute, BigIntLiteral, BooleanLiteral, Call, Dict, Expression, Formatted,
-    Import, List, None, SimpleIdentifier, StringLiteral, AST,
+    Assignment, Attribute, BigIntLiteral, BooleanLiteral, Call, Dict, Expression, Formatted, List,
+    None, PythonImport, SimpleIdentifier, StringLiteral, AST,
 };
 use linked_hash_map::LinkedHashMap;
 use pyo3::prelude::*;
@@ -108,21 +108,21 @@ impl AirflowPythonBasedFlow {
     }
 }
 impl ETLFlow for AirflowPythonBasedFlow {
-    fn get_imports(&self) -> Vec<Import> {
+    fn get_imports(&self) -> Vec<PythonImport> {
         match self.dialect {
-            Some(Dialect::Python(_)) => vec![Import::FromImport(
+            Some(Dialect::Python(_)) => vec![PythonImport::PythonFromImport(
                 "airflow.operators.python_operator".to_string(),
                 "PythonOperator".to_string(),
                 None,
             )],
             Some(Dialect::Bash(_)) | Some(Dialect::Presto(_)) | Some(Dialect::R(_)) => {
-                vec![Import::FromImport(
+                vec![PythonImport::PythonFromImport(
                     "airflow.operators.bash_operator".to_string(),
                     "BashOperator".to_string(),
                     None,
                 )]
             }
-            None => vec![Import::FromImport(
+            None => vec![PythonImport::PythonFromImport(
                 "airflow.operators.dummy_operator".to_string(),
                 "DummyOperator".to_string(),
                 None,
@@ -343,10 +343,10 @@ impl PythonBasedFlow for AirflowDAG {
             })
             .collect()
     }
-    fn get_flow_imports(&self) -> Vec<Import> {
+    fn get_flow_imports(&self) -> Vec<PythonImport> {
         vec![
-            Import::FromImport("airflow".to_string(), "DAG".to_string(), None),
-            Import::FromImport("datetime".to_string(), "datetime".to_string(), None),
+            PythonImport::PythonFromImport("airflow".to_string(), "DAG".to_string(), None),
+            PythonImport::PythonFromImport("datetime".to_string(), "datetime".to_string(), None),
         ]
     }
 }

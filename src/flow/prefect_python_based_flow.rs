@@ -3,7 +3,7 @@ use crate::endpoints::EndpointConfig;
 use crate::flow::etl_flow::ETLFlow;
 use crate::flow::python_based_flow::PythonBasedFlow;
 use crate::python::{
-    Assignment, Attribute, Call, Expression, ForLoop, Formatted, Import, RPythonTask,
+    Assignment, Attribute, Call, Expression, ForLoop, Formatted, PythonImport, RPythonTask,
     SimpleIdentifier, StringLiteral, AST,
 };
 use aorist_primitives::register_task_nodes;
@@ -94,21 +94,21 @@ impl ETLFlow for PrefectPythonBasedFlow {
     fn get_type() -> String {
         "prefect".to_string()
     }
-    fn get_imports(&self) -> Vec<Import> {
+    fn get_imports(&self) -> Vec<PythonImport> {
         match self.dialect {
-            Some(Dialect::Python(_)) => vec![Import::FromImport(
+            Some(Dialect::Python(_)) => vec![PythonImport::PythonFromImport(
                 "prefect".to_string(),
                 "task".to_string(),
                 None,
             )],
             Some(Dialect::Bash(_)) | Some(Dialect::Presto(_)) | Some(Dialect::R(_)) => {
-                vec![Import::FromImport(
+                vec![PythonImport::PythonFromImport(
                     "prefect.tasks.shell".to_string(),
                     "ShellTask".to_string(),
                     None,
                 )]
             }
-            None => vec![Import::FromImport(
+            None => vec![PythonImport::PythonFromImport(
                 "prefect.tasks.core".to_string(),
                 "Constant".to_string(),
                 None,
@@ -232,7 +232,7 @@ impl PythonBasedFlow for PrefectDAG {
             )),
         }
     }
-    fn get_flow_imports(&self) -> Vec<Import> {
+    fn get_flow_imports(&self) -> Vec<PythonImport> {
         Vec::new()
     }
     /// Takes a set of statements and mutates them so as make a valid ETL flow

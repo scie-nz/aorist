@@ -1,4 +1,4 @@
-use crate::python::ast::{Assignment, Import, StringLiteral, AST};
+use crate::python::ast::{Assignment, PythonImport, StringLiteral, AST};
 use aorist_primitives::define_task_node;
 use std::hash::Hash;
 use std::sync::{Arc, RwLock};
@@ -43,6 +43,6 @@ define_task_node!(
     },
     |task: &NativePythonTask| task.imports.clone(),
     statements: Vec<AST>,
-    imports: Vec<Import>,
+    imports: Vec<PythonImport>,
     task_val: AST,
 );
