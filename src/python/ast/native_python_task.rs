@@ -1,4 +1,5 @@
-use crate::python::ast::{Assignment, PythonImport, StringLiteral, AST};
+use crate::python::ast::{Assignment, StringLiteral, AST};
+use crate::python::PythonImport;
 use aorist_primitives::define_task_node;
 use std::hash::Hash;
 use std::sync::{Arc, RwLock};

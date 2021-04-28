@@ -1,4 +1,5 @@
 mod ast;
+mod import;
 mod preamble;
 
 use linked_hash_set::LinkedHashSet;
@@ -9,9 +10,10 @@ use std::collections::{BTreeSet, HashMap};
 pub use ast::{
     Add, Assignment, Attribute, BashPythonTask, BigIntLiteral, BinOp, BooleanLiteral, Call,
     ConstantPythonTask, Dict, Expression, ForLoop, Formatted, List, NativePythonTask, None,
-    PrestoPythonTask, PythonImport, PythonImportNode, RPythonTask, SimpleIdentifier, StringLiteral,
-    Subscript, Tuple, AST,
+    PrestoPythonTask, PythonImportNode, RPythonTask, SimpleIdentifier, StringLiteral, Subscript,
+    Tuple, AST,
 };
+pub use import::PythonImport;
 pub use preamble::PythonPreamble;
 
 /// Wrapper type for stuff that gets passed around when building Python

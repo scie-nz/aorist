@@ -1,6 +1,7 @@
 use crate::python::ast::{
-    Assignment, Attribute, BooleanLiteral, Call, PythonImport, SimpleIdentifier, Tuple, AST,
+    Assignment, Attribute, BooleanLiteral, Call, SimpleIdentifier, Tuple, AST,
 };
+use crate::python::PythonImport;
 use linked_hash_map::LinkedHashMap;
 
 pub trait PythonSubprocessTask {
