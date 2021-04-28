@@ -48,6 +48,27 @@ where
     dialect: Option<Dialect>,
     singleton_type: PhantomData<T>,
 }
+
+pub trait CompressionKey {
+    fn new(
+        dict_name: AST,
+        function_call: Option<String>,
+        dedup_key: Option<ParameterTupleDedupKey>,
+        preamble: Option<String>,
+        dialect: Option<Dialect>,
+    ) -> Self; 
+    fn get_dict_name(&self) -> AST;
+    fn get_dedup_key(&self) -> Option<ParameterTupleDedupKey>;
+    fn get_call(&self) -> Option<String>;
+    fn get_preamble(&self) -> Option<String>;
+    fn get_dialect(&self) -> Option<Dialect>;
+}
+
+pub trait CompressibleTask
+where Self::KeyType: CompressionKey {
+    type KeyType;
+}
+
 /// tuple of:
 /// - name of dict / list in which task_val is stored (must be dict or list)
 /// - function call (if any)
@@ -73,8 +94,8 @@ pub struct PythonBasedTaskCompressionKey {
     // optional: kwargs
     pub kwargs: LinkedHashMap<String, AST>,
 }
-impl PythonBasedTaskCompressionKey {
-    pub fn new(
+impl CompressionKey for PythonBasedTaskCompressionKey {
+    fn new(
         dict_name: AST,
         function_call: Option<String>,
         dedup_key: Option<ParameterTupleDedupKey>,
@@ -91,19 +112,19 @@ impl PythonBasedTaskCompressionKey {
             kwargs: LinkedHashMap::new(),
         }
     }
-    pub fn get_dict_name(&self) -> AST {
+    fn get_dict_name(&self) -> AST {
         self.dict_name.clone()
     }
-    pub fn get_dedup_key(&self) -> Option<ParameterTupleDedupKey> {
+    fn get_dedup_key(&self) -> Option<ParameterTupleDedupKey> {
         self.dedup_key.clone()
     }
-    pub fn get_call(&self) -> Option<String> {
+    fn get_call(&self) -> Option<String> {
         self.function_call.clone()
     }
-    pub fn get_preamble(&self) -> Option<String> {
+    fn get_preamble(&self) -> Option<String> {
         self.preamble.clone()
     }
-    pub fn get_dialect(&self) -> Option<Dialect> {
+    fn get_dialect(&self) -> Option<Dialect> {
         self.dialect.clone()
     }
 }
@@ -191,6 +212,10 @@ where
             singleton_type: PhantomData,
         }
     }
+}
+impl<T> CompressibleTask for StandalonePythonBasedTask<T> 
+where T: ETLFlow {
+    type KeyType = PythonBasedTaskCompressionKey;
 }
 
 impl<T> StandalonePythonBasedTask<T>

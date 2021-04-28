@@ -90,7 +90,7 @@ where
             identifiers,
         )?;
         let mut compressible: LinkedHashMap<_, Vec<_>> = LinkedHashMap::new();
-        let mut python_based_tasks: Vec<PythonBasedTask<T>> = Vec::new();
+        let mut python_based_tasks = Vec::new();
 
         for task in tasks.into_iter() {
             if task.is_compressible() {
