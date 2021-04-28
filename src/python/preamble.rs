@@ -27,10 +27,10 @@ def build_preamble(body):
     other = []
 
     for elem in module.body:
-        if isinstance(elem, ast.PythonImport):
+        if isinstance(elem, ast.Import):
             for name in elem.names:
                 imports += [(name.name, name.asname)]
-        elif isinstance(elem, ast.PythonImportFrom):
+        elif isinstance(elem, ast.ImportFrom):
             for name in elem.names:
                 from_imports += [(elem.module, name.name, name.asname)]
         else:

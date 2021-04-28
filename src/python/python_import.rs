@@ -40,7 +40,7 @@ impl PythonImport {
                         }
                     }],
                 );
-                ast_module.call1("PythonImport", (alias_list,))
+                ast_module.call1("Import", (alias_list,))
             }
             Self::PythonFromImport(ref module, ref name, ref alias) => {
                 let alias = PyList::new(
@@ -59,7 +59,7 @@ impl PythonImport {
                             .to_python_ast_node(py, ast_module, depth)?,
                     }],
                 );
-                ast_module.call1("PythonImportFrom", (module, alias.as_ref(), 0))
+                ast_module.call1("ImportFrom", (module, alias.as_ref(), 0))
             }
         }
     }
