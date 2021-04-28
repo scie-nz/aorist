@@ -13,6 +13,15 @@ pub trait StandaloneTask<T>
 where
     T: ETLFlow,
 {
+    fn new(
+        task_id: String,
+        task_val: AST,
+        call: Option<String>,
+        params: Option<ParameterTuple>,
+        dependencies: Vec<AST>,
+        preamble: Option<String>,
+        dialect: Option<Dialect>,
+    ) -> Self;
 }
 
 #[derive(Clone, Hash, PartialEq, Eq)]
@@ -158,7 +167,31 @@ where
     }
 }
 
-impl<T> StandaloneTask<T> for StandalonePythonBasedTask<T> where T: ETLFlow {}
+impl<T> StandaloneTask<T> for StandalonePythonBasedTask<T>
+where
+    T: ETLFlow,
+{
+    fn new(
+        task_id: String,
+        task_val: AST,
+        call: Option<String>,
+        params: Option<ParameterTuple>,
+        dependencies: Vec<AST>,
+        preamble: Option<String>,
+        dialect: Option<Dialect>,
+    ) -> Self {
+        Self {
+            task_id,
+            task_val,
+            call,
+            params,
+            dependencies,
+            preamble,
+            dialect,
+            singleton_type: PhantomData,
+        }
+    }
+}
 
 impl<T> StandalonePythonBasedTask<T>
 where
@@ -223,26 +256,6 @@ where
     }
     fn get_task_val(&self) -> AST {
         self.task_val.clone()
-    }
-    pub fn new(
-        task_id: String,
-        task_val: AST,
-        call: Option<String>,
-        params: Option<ParameterTuple>,
-        dependencies: Vec<AST>,
-        preamble: Option<String>,
-        dialect: Option<Dialect>,
-    ) -> Self {
-        Self {
-            task_id,
-            task_val,
-            call,
-            params,
-            dependencies,
-            preamble,
-            dialect,
-            singleton_type: PhantomData,
-        }
     }
     pub fn get_statements(
         &self,

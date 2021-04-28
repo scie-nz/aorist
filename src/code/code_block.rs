@@ -2,7 +2,7 @@ use crate::code::{Import, Preamble};
 use crate::constraint_state::ConstraintState;
 use crate::endpoints::EndpointConfig;
 use crate::flow::ETLFlow;
-use crate::flow::{StandalonePythonBasedTask, StandaloneTask};
+use crate::flow::StandaloneTask;
 use crate::parameter_tuple::ParameterTuple;
 use crate::python::{SimpleIdentifier, StringLiteral, Subscript, AST};
 use anyhow::Result;
@@ -74,7 +74,7 @@ where
         tasks_dict: Option<AST>,
         identifiers: &HashMap<Uuid, AST>,
     ) -> Result<(
-        Vec<StandalonePythonBasedTask<T>>,
+        Vec<Self::ST>,
         HashMap<Uuid, AST>,
         HashMap<String, Option<ParameterTuple>>,
     )> {
@@ -91,7 +91,7 @@ where
                 .iter()
                 .map(|x| identifiers.get(x).unwrap().clone())
                 .collect();
-            tasks.push(StandalonePythonBasedTask::new(
+            tasks.push(Self::ST::new(
                 x.get_task_name(),
                 ast.clone(),
                 x.get_call(),
