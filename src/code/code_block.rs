@@ -1,6 +1,8 @@
 use crate::code::{Import, Preamble};
 use crate::constraint_state::ConstraintState;
 use crate::endpoints::EndpointConfig;
+use crate::flow::ETLFlow;
+use crate::flow::StandalonePythonBasedTask;
 use crate::parameter_tuple::ParameterTuple;
 use crate::python::{SimpleIdentifier, StringLiteral, Subscript, AST};
 use anyhow::Result;
@@ -9,10 +11,11 @@ use std::collections::{BTreeSet, HashMap};
 use std::sync::{Arc, RwLock};
 use uuid::Uuid;
 
-pub trait CodeBlock
+pub trait CodeBlock<T>
 where
     Self::P: Preamble,
     Self::I: Import,
+    T: ETLFlow,
     Self: Sized,
 {
     type P;
@@ -62,4 +65,14 @@ where
         tasks_dict: Option<AST>,
         identifiers: &HashMap<Uuid, AST>,
     ) -> Result<Self>;
+    fn create_standalone_tasks<'a>(
+        members: Vec<Arc<RwLock<ConstraintState<'a>>>>,
+        constraint_name: String,
+        tasks_dict: Option<AST>,
+        identifiers: &HashMap<Uuid, AST>,
+    ) -> Result<(
+        Vec<StandalonePythonBasedTask<T>>,
+        HashMap<Uuid, AST>,
+        HashMap<String, Option<ParameterTuple>>,
+    )>;
 }

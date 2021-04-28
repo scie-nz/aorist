@@ -35,7 +35,7 @@ where
     <D as PythonBasedFlow>::T: 'a,
     Self::CB: 'a,
 {
-    type CB: ConstraintBlock<'a>;
+    type CB: ConstraintBlock<'a, <D as PythonBasedFlow>::T>;
 
     fn get_relevant_builders(
         topline_constraint_names: &LinkedHashSet<String>,
@@ -539,7 +539,10 @@ where
         constraint_name: String,
         unsatisfied_constraints: &ConstraintsBlockMap<'a>,
         identifiers: &HashMap<Uuid, AST>,
-    ) -> Result<(Vec<<Self::CB as ConstraintBlock<'a>>::C>, Option<AST>)> {
+    ) -> Result<(
+        Vec<<Self::CB as ConstraintBlock<'a, <D as PythonBasedFlow>::T>>::C>,
+        Option<AST>,
+    )> {
         let tasks_dict = Self::init_tasks_dict(block, constraint_name.clone());
         // (call, constraint_name, root_name) => (uuid, call parameters)
         let mut calls: HashMap<(String, String, String), Vec<(String, ParameterTuple)>> =
@@ -562,7 +565,7 @@ where
                 .push(state.clone());
         }
         for (_dialect, satisfied) in by_dialect.into_iter() {
-            let block = <Self::CB as ConstraintBlock<'a>>::C::new(
+            let block = <Self::CB as ConstraintBlock<'a, <D as PythonBasedFlow>::T>>::C::new(
                 satisfied,
                 constraint_name.clone(),
                 tasks_dict.clone(),

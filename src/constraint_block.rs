@@ -10,8 +10,11 @@ use std::collections::{BTreeSet, HashMap};
 use std::marker::PhantomData;
 use uuid::Uuid;
 
-pub trait ConstraintBlock<'a> {
-    type C: CodeBlock;
+pub trait ConstraintBlock<'a, T>
+where
+    T: ETLFlow,
+{
+    type C: CodeBlock<T>;
 
     fn get_statements(&'a self, endpoints: &EndpointConfig) -> PythonStatementInput;
     fn get_identifiers(&self) -> HashMap<Uuid, AST>;
@@ -35,7 +38,7 @@ where
     singleton_type: PhantomData<T>,
     tasks_dict: Option<AST>,
 }
-impl<'a, T> ConstraintBlock<'a> for PythonBasedConstraintBlock<T>
+impl<'a, T> ConstraintBlock<'a, T> for PythonBasedConstraintBlock<T>
 where
     T: ETLFlow,
 {

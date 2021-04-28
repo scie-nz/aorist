@@ -24,7 +24,7 @@ where
     python_based_tasks: Vec<PythonBasedTask<T>>,
     params: HashMap<String, Option<ParameterTuple>>,
 }
-impl<T> CodeBlock for PythonBasedCodeBlock<T>
+impl<T> CodeBlock<T> for PythonBasedCodeBlock<T>
 where
     T: ETLFlow,
 {
@@ -76,12 +76,16 @@ where
         self.params.clone()
     }
 
-    fn new<'a>(
+    fn create_standalone_tasks<'a>(
         members: Vec<Arc<RwLock<ConstraintState<'a>>>>,
         constraint_name: String,
         tasks_dict: Option<AST>,
         identifiers: &HashMap<Uuid, AST>,
-    ) -> Result<Self> {
+    ) -> Result<(
+        Vec<StandalonePythonBasedTask<T>>,
+        HashMap<Uuid, AST>,
+        HashMap<String, Option<ParameterTuple>>,
+    )> {
         let mut task_identifiers: HashMap<Uuid, AST> = HashMap::new();
         let mut params: HashMap<String, Option<ParameterTuple>> = HashMap::new();
         let mut tasks = Vec::new();
@@ -105,7 +109,21 @@ where
                 x.get_dialect(),
             ));
         }
+        Ok((tasks, task_identifiers, params))
+    }
 
+    fn new<'a>(
+        members: Vec<Arc<RwLock<ConstraintState<'a>>>>,
+        constraint_name: String,
+        tasks_dict: Option<AST>,
+        identifiers: &HashMap<Uuid, AST>,
+    ) -> Result<Self> {
+        let (tasks, task_identifiers, params) = Self::create_standalone_tasks(
+            members,
+            constraint_name.clone(),
+            tasks_dict.clone(),
+            identifiers,
+        )?;
         let mut compressible: LinkedHashMap<_, Vec<_>> = LinkedHashMap::new();
         let mut python_based_tasks: Vec<PythonBasedTask<T>> = Vec::new();
 
