@@ -61,12 +61,6 @@ where
     fn get_tasks_dict(&self) -> Option<AST>;
     fn get_identifiers(&self) -> HashMap<Uuid, AST>;
     fn get_params(&self) -> HashMap<String, Option<ParameterTuple>>;
-    fn new<'a>(
-        members: Vec<Arc<RwLock<ConstraintState<'a>>>>,
-        constraint_name: String,
-        tasks_dict: Option<AST>,
-        identifiers: &HashMap<Uuid, AST>,
-    ) -> Result<Self>;
 
     fn create_standalone_tasks<'a>(
         members: Vec<Arc<RwLock<ConstraintState<'a>>>>,
@@ -132,5 +126,27 @@ where
             }
         }
         (compressible, uncompressible)
+    }
+    fn construct<'a>(
+        tasks_dict: Option<AST>,
+        tasks: Vec<Self::E>,
+        task_identifiers: HashMap<Uuid, AST>,
+        params: HashMap<String, Option<ParameterTuple>>,
+    ) -> Self;
+    fn new<'a>(
+        members: Vec<Arc<RwLock<ConstraintState<'a>>>>,
+        constraint_name: String,
+        tasks_dict: Option<AST>,
+        identifiers: &HashMap<Uuid, AST>,
+    ) -> Result<Self> {
+        let (standalone_tasks, task_identifiers, params) = Self::create_standalone_tasks(
+            members,
+            constraint_name.clone(),
+            tasks_dict.clone(),
+            identifiers,
+        )?;
+        let (compressible, mut tasks) = Self::separate_compressible_tasks(standalone_tasks);
+        Self::run_task_compressions(compressible, &mut tasks, constraint_name);
+        Ok(Self::construct(tasks_dict, tasks, task_identifiers, params))
     }
 }

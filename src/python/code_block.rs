@@ -1,5 +1,4 @@
 use crate::code::CodeBlock;
-use crate::constraint_state::ConstraintState;
 use crate::endpoints::EndpointConfig;
 use crate::flow::{CompressibleTask, ETLFlow, ETLTask};
 use crate::parameter_tuple::ParameterTuple;
@@ -7,11 +6,9 @@ use crate::python::{
     ForLoopPythonBasedTask, Formatted, PythonBasedTask, PythonImport, PythonPreamble,
     SimpleIdentifier, StringLiteral, Subscript, AST,
 };
-use anyhow::Result;
 use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
 use std::collections::{BTreeSet, HashMap, HashSet};
-use std::sync::{Arc, RwLock};
 use tracing::trace;
 use uuid::Uuid;
 
@@ -251,26 +248,17 @@ where
             }
         }
     }
-    fn new<'a>(
-        members: Vec<Arc<RwLock<ConstraintState<'a>>>>,
-        constraint_name: String,
+    fn construct<'a>(
         tasks_dict: Option<AST>,
-        identifiers: &HashMap<Uuid, AST>,
-    ) -> Result<Self> {
-        let (tasks, task_identifiers, params) = Self::create_standalone_tasks(
-            members,
-            constraint_name.clone(),
-            tasks_dict.clone(),
-            identifiers,
-        )?;
-        let (compressible, mut python_based_tasks) = Self::separate_compressible_tasks(tasks);
-        Self::run_task_compressions(compressible, &mut python_based_tasks, constraint_name);
-
-        Ok(Self {
+        tasks: Vec<Self::E>,
+        task_identifiers: HashMap<Uuid, AST>,
+        params: HashMap<String, Option<ParameterTuple>>,
+    ) -> Self {
+        Self {
             tasks_dict,
-            python_based_tasks,
+            python_based_tasks: tasks,
             task_identifiers,
             params,
-        })
+        }
     }
 }
