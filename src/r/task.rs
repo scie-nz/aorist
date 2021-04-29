@@ -1,5 +1,5 @@
 use crate::dialect::Dialect;
-use crate::flow::{ETLFlow, StandaloneTask};
+use crate::flow::{ETLFlow, ETLTask, StandaloneTask};
 use crate::parameter_tuple::ParameterTuple;
 use crate::python::AST;
 use std::hash::Hash;
@@ -46,5 +46,20 @@ where
             dialect,
             singleton_type: PhantomData,
         }
+    }
+}
+pub enum RBasedTask<T>
+where
+    T: ETLFlow,
+{
+    StandaloneRBasedTask(StandaloneRBasedTask<T>),
+}
+impl<T> ETLTask<T> for RBasedTask<T>
+where
+    T: ETLFlow,
+{
+    type S = StandaloneRBasedTask<T>;
+    fn standalone_task(task: Self::S) -> Self {
+        Self::StandaloneRBasedTask(task)
     }
 }
