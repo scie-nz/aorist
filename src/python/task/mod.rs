@@ -7,7 +7,7 @@ pub use compressed::*;
 pub use standalone::*;
 
 use crate::endpoints::EndpointConfig;
-use crate::flow::{ETLFlow, ETLTask};
+use crate::flow::{CompressibleETLTask, ETLFlow, ETLTask};
 use crate::python::{PythonImport, AST};
 
 pub enum PythonBasedTask<T>
@@ -22,12 +22,16 @@ where
     T: ETLFlow,
 {
     type S = StandalonePythonBasedTask<T>;
-    type F = ForLoopPythonBasedTask<T>;
     fn standalone_task(task: Self::S) -> Self {
         Self::StandalonePythonBasedTask(task)
     }
 }
-
+impl<T> CompressibleETLTask<T> for PythonBasedTask<T>
+where
+    T: ETLFlow,
+{
+    type F = ForLoopPythonBasedTask<T>;
+}
 impl<T> PythonBasedTask<T>
 where
     T: ETLFlow,

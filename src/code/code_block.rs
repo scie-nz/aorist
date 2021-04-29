@@ -1,7 +1,7 @@
 use crate::code::{Import, Preamble};
 use crate::constraint_state::ConstraintState;
 use crate::endpoints::EndpointConfig;
-use crate::flow::{CompressibleTask, ETLFlow, ETLTask, StandaloneTask};
+use crate::flow::{CompressibleETLTask, CompressibleTask, ETLFlow, ETLTask, StandaloneTask};
 use crate::parameter_tuple::ParameterTuple;
 use crate::python::{SimpleIdentifier, StringLiteral, Subscript, AST};
 use anyhow::Result;
@@ -29,6 +29,8 @@ where
     Self: CodeBlock<T>,
     T: ETLFlow,
     Self: Sized,
+    <Self as CodeBlock<T>>::E: CompressibleETLTask<T>,
+    <<Self as CodeBlock<T>>::E as ETLTask<T>>::S: CompressibleTask,
 {
     fn run_task_compressions(
         compressible: LinkedHashMap<
@@ -64,6 +66,8 @@ where
 impl<C, T: ETLFlow> CodeBlockWithDefaultConstructor<T> for C
 where
     Self: CodeBlockWithForLoopCompression<T>,
+    <Self as CodeBlock<T>>::E: CompressibleETLTask<T>,
+    <<Self as CodeBlock<T>>::E as ETLTask<T>>::S: CompressibleTask,
 {
     fn new<'a>(
         members: Vec<Arc<RwLock<ConstraintState<'a>>>>,

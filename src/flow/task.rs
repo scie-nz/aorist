@@ -45,10 +45,16 @@ pub trait ETLTask<T>
 where
     T: ETLFlow,
     Self::S: StandaloneTask<T>,
-    Self::S: CompressibleTask,
 {
     type S;
-    type F;
 
     fn standalone_task(task: Self::S) -> Self;
+}
+pub trait CompressibleETLTask<T>
+where
+    T: ETLFlow,
+    Self: ETLTask<T>,
+    Self::S: CompressibleTask,
+{
+    type F;
 }
