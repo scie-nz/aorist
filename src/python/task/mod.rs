@@ -26,9 +26,6 @@ where
     fn standalone_task(task: Self::S) -> Self {
         Self::StandalonePythonBasedTask(task)
     }
-    fn for_loop_task(task: Self::F) -> Self {
-        Self::ForLoopPythonBasedTask(task)
-    }
 }
 
 impl<T> PythonBasedTask<T>
@@ -43,5 +40,9 @@ where
             PythonBasedTask::StandalonePythonBasedTask(x) => x.get_statements(endpoints),
             PythonBasedTask::ForLoopPythonBasedTask(x) => x.get_statements(endpoints),
         }
+    }
+    #[allow(dead_code)]
+    fn for_loop_task(task: ForLoopPythonBasedTask<T>) -> Self {
+        Self::ForLoopPythonBasedTask(task)
     }
 }
