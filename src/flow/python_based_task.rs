@@ -8,6 +8,7 @@ use crate::python::{
 };
 use linked_hash_map::LinkedHashMap;
 use std::marker::PhantomData;
+use std::hash::Hash;
 
 pub trait StandaloneTask<T>
 where
@@ -49,14 +50,14 @@ where
     singleton_type: PhantomData<T>,
 }
 
-pub trait CompressionKey {
+pub trait CompressionKey: Clone + Hash + PartialEq + Eq {
     fn new(
         dict_name: AST,
         function_call: Option<String>,
         dedup_key: Option<ParameterTupleDedupKey>,
         preamble: Option<String>,
         dialect: Option<Dialect>,
-    ) -> Self; 
+    ) -> Self;
     fn get_dict_name(&self) -> AST;
     fn get_dedup_key(&self) -> Option<ParameterTupleDedupKey>;
     fn get_call(&self) -> Option<String>;
@@ -67,6 +68,8 @@ pub trait CompressionKey {
 pub trait CompressibleTask
 where Self::KeyType: CompressionKey {
     type KeyType;
+    fn is_compressible(&self) -> bool;
+    fn get_compression_key(&self) -> Result<Self::KeyType, String>;
 }
 
 /// tuple of:
@@ -213,23 +216,35 @@ where
         }
     }
 }
-impl<T> CompressibleTask for StandalonePythonBasedTask<T> 
+impl<T> CompressibleTask for StandalonePythonBasedTask<T>
 where T: ETLFlow {
     type KeyType = PythonBasedTaskCompressionKey;
+    /// only return true for compressible tasks, i.e. those that have a
+    /// dict task val (in the future more stuff could be added here)
+    fn is_compressible(&self) -> bool {
+        match &self.task_val {
+            AST::Subscript(_) => true,
+            _ => false,
+        }
+    }
+    fn get_compression_key(&self) -> Result<PythonBasedTaskCompressionKey, String> {
+        Ok(PythonBasedTaskCompressionKey::new(
+            self.get_left_of_task_val()?,
+            self.call.clone(),
+            match &self.params {
+                Some(p) => Some(p.get_dedup_key()),
+                None => None,
+            },
+            self.preamble.clone(),
+            self.dialect.clone(),
+        ))
+    }
 }
 
 impl<T> StandalonePythonBasedTask<T>
 where
     T: ETLFlow,
 {
-    /// only return true for compressible tasks, i.e. those that have a
-    /// dict task val (in the future more stuff could be added here)
-    pub fn is_compressible(&self) -> bool {
-        match &self.task_val {
-            AST::Subscript(_) => true,
-            _ => false,
-        }
-    }
     fn get_left_of_task_val(&self) -> Result<AST, String> {
         match &self.task_val {
             AST::Subscript(x) => {
@@ -252,18 +267,6 @@ where
             }
             _ => Err("Task val must be a subscript".to_string()),
         }
-    }
-    pub fn get_compression_key(&self) -> Result<PythonBasedTaskCompressionKey, String> {
-        Ok(PythonBasedTaskCompressionKey::new(
-            self.get_left_of_task_val()?,
-            self.call.clone(),
-            match &self.params {
-                Some(p) => Some(p.get_dedup_key()),
-                None => None,
-            },
-            self.preamble.clone(),
-            self.dialect.clone(),
-        ))
     }
     pub fn get_uncompressible_part(&self) -> Result<PythonBasedTaskUncompressiblePart<T>, String> {
         Ok(PythonBasedTaskUncompressiblePart::new(
@@ -507,6 +510,7 @@ pub trait ETLTask<T>
 where
     T: ETLFlow,
     Self::S: StandaloneTask<T>,
+    Self::S: CompressibleTask,
 {
     type S;
     type F;
@@ -522,7 +526,7 @@ where
     StandalonePythonBasedTask(StandalonePythonBasedTask<T>),
     ForLoopPythonBasedTask(ForLoopPythonBasedTask<T>),
 }
-impl<T> ETLTask<T> for PythonBasedTask<T> 
+impl<T> ETLTask<T> for PythonBasedTask<T>
 where T: ETLFlow {
     type S = StandalonePythonBasedTask<T>;
     type F = ForLoopPythonBasedTask<T>;
