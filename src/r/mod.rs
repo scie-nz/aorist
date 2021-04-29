@@ -1,3 +1,4 @@
+mod code_block;
 mod preamble;
 mod r_import;
 mod task;
