@@ -53,4 +53,3 @@ where
     fn standalone_task(task: Self::S) -> Self;
     fn for_loop_task(task: Self::F) -> Self;
 }
-

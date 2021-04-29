@@ -1,11 +1,11 @@
 use crate::code::CodeBlock;
 use crate::constraint_state::ConstraintState;
 use crate::endpoints::EndpointConfig;
-use crate::flow::{CompressibleTask, ETLTask, ETLFlow};
+use crate::flow::{CompressibleTask, ETLFlow, ETLTask};
 use crate::parameter_tuple::ParameterTuple;
 use crate::python::{
-    ForLoopPythonBasedTask, PythonBasedTask,
-    Formatted, PythonImport, PythonPreamble, SimpleIdentifier, StringLiteral, Subscript, AST,
+    ForLoopPythonBasedTask, Formatted, PythonBasedTask, PythonImport, PythonPreamble,
+    SimpleIdentifier, StringLiteral, Subscript, AST,
 };
 use anyhow::Result;
 use linked_hash_map::LinkedHashMap;
