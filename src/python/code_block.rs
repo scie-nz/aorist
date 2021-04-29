@@ -2,7 +2,7 @@ use crate::code::CodeBlock;
 use crate::constraint_state::ConstraintState;
 use crate::endpoints::EndpointConfig;
 use crate::flow::ETLFlow;
-use crate::flow::{ForLoopPythonBasedTask, PythonBasedTask};
+use crate::flow::{CompressibleTask, ETLTask, ForLoopPythonBasedTask, PythonBasedTask};
 use crate::parameter_tuple::ParameterTuple;
 use crate::python::{
     Formatted, PythonImport, PythonPreamble, SimpleIdentifier, StringLiteral, Subscript, AST,
@@ -77,20 +77,14 @@ where
         self.params.clone()
     }
 
-    fn new<'a>(
-        members: Vec<Arc<RwLock<ConstraintState<'a>>>>,
+    fn run_task_compressions(
+        compressible: LinkedHashMap<
+            <<Self::E as ETLTask<T>>::S as CompressibleTask>::KeyType,
+            Vec<<Self::E as ETLTask<T>>::S>,
+        >,
+        python_based_tasks: &mut Vec<Self::E>,
         constraint_name: String,
-        tasks_dict: Option<AST>,
-        identifiers: &HashMap<Uuid, AST>,
-    ) -> Result<Self> {
-        let (tasks, task_identifiers, params) = Self::create_standalone_tasks(
-            members,
-            constraint_name.clone(),
-            tasks_dict.clone(),
-            identifiers,
-        )?;
-        let (compressible, mut python_based_tasks) = Self::separate_compressible_tasks(tasks);
-
+    ) {
         for (mut compression_key, tasks) in compressible.into_iter() {
             let num_tasks = tasks.len();
             // TODO: this is a magic number
@@ -256,6 +250,21 @@ where
                 }
             }
         }
+    }
+    fn new<'a>(
+        members: Vec<Arc<RwLock<ConstraintState<'a>>>>,
+        constraint_name: String,
+        tasks_dict: Option<AST>,
+        identifiers: &HashMap<Uuid, AST>,
+    ) -> Result<Self> {
+        let (tasks, task_identifiers, params) = Self::create_standalone_tasks(
+            members,
+            constraint_name.clone(),
+            tasks_dict.clone(),
+            identifiers,
+        )?;
+        let (compressible, mut python_based_tasks) = Self::separate_compressible_tasks(tasks);
+        Self::run_task_compressions(compressible, &mut python_based_tasks, constraint_name);
 
         Ok(Self {
             tasks_dict,

@@ -103,6 +103,14 @@ where
         }
         Ok((tasks, task_identifiers, params))
     }
+    fn run_task_compressions(
+        compressible: LinkedHashMap<
+            <<Self::E as ETLTask<T>>::S as CompressibleTask>::KeyType,
+            Vec<<Self::E as ETLTask<T>>::S>,
+        >,
+        tasks: &mut Vec<Self::E>,
+        constraint_name: String,
+    );
     fn separate_compressible_tasks(
         tasks: Vec<<Self::E as ETLTask<T>>::S>,
     ) -> (
