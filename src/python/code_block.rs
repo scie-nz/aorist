@@ -2,7 +2,7 @@ use crate::code::CodeBlock;
 use crate::constraint_state::ConstraintState;
 use crate::endpoints::EndpointConfig;
 use crate::flow::ETLFlow;
-use crate::flow::{ForLoopPythonBasedTask, PythonBasedTask, ETLTask, CompressibleTask};
+use crate::flow::{ForLoopPythonBasedTask, PythonBasedTask};
 use crate::parameter_tuple::ParameterTuple;
 use crate::python::{
     Formatted, PythonImport, PythonPreamble, SimpleIdentifier, StringLiteral, Subscript, AST,
@@ -89,17 +89,8 @@ where
             tasks_dict.clone(),
             identifiers,
         )?;
-        let mut compressible: LinkedHashMap<_, Vec<_>> = LinkedHashMap::new();
-        let mut python_based_tasks = Vec::new();
+        let (compressible, mut python_based_tasks) = Self::separate_compressible_tasks(tasks);
 
-        for task in tasks.into_iter() {
-            if task.is_compressible() {
-                let key = task.get_compression_key().unwrap();
-                compressible.entry(key).or_insert(Vec::new()).push(task);
-            } else {
-                python_based_tasks.push(<Self::E as ETLTask<T>>::standalone_task(task));
-            }
-        }
         for (mut compression_key, tasks) in compressible.into_iter() {
             let num_tasks = tasks.len();
             // TODO: this is a magic number

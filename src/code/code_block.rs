@@ -1,12 +1,12 @@
 use crate::code::{Import, Preamble};
 use crate::constraint_state::ConstraintState;
 use crate::endpoints::EndpointConfig;
-use crate::flow::{ETLFlow, ETLTask, StandaloneTask, CompressibleTask};
+use crate::flow::{CompressibleTask, ETLFlow, ETLTask, StandaloneTask};
 use crate::parameter_tuple::ParameterTuple;
 use crate::python::{SimpleIdentifier, StringLiteral, Subscript, AST};
 use anyhow::Result;
-use linked_hash_set::LinkedHashSet;
 use linked_hash_map::LinkedHashMap;
+use linked_hash_set::LinkedHashSet;
 use std::collections::{BTreeSet, HashMap};
 use std::sync::{Arc, RwLock};
 use uuid::Uuid;
@@ -105,17 +105,24 @@ where
     }
     fn separate_compressible_tasks(
         tasks: Vec<<Self::E as ETLTask<T>>::S>,
+    ) -> (
+        LinkedHashMap<
+            <<Self::E as ETLTask<T>>::S as CompressibleTask>::KeyType,
+            Vec<<Self::E as ETLTask<T>>::S>,
+        >,
+        Vec<Self::E>,
     ) {
-        let mut compressible: LinkedHashMap<_, Vec<_>> = LinkedHashMap::new();
-        let mut python_based_tasks = Vec::new();
+        let mut compressible = LinkedHashMap::new();
+        let mut uncompressible = Vec::new();
 
         for task in tasks.into_iter() {
             if task.is_compressible() {
                 let key = task.get_compression_key().unwrap();
                 compressible.entry(key).or_insert(Vec::new()).push(task);
             } else {
-                python_based_tasks.push(<Self::E as ETLTask<T>>::standalone_task(task));
+                uncompressible.push(<Self::E as ETLTask<T>>::standalone_task(task));
             }
         }
+        (compressible, uncompressible)
     }
 }

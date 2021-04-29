@@ -7,8 +7,8 @@ use crate::python::{
     SimpleIdentifier, StringLiteral, Subscript, Tuple, AST,
 };
 use linked_hash_map::LinkedHashMap;
-use std::marker::PhantomData;
 use std::hash::Hash;
+use std::marker::PhantomData;
 
 pub trait StandaloneTask<T>
 where
@@ -66,7 +66,9 @@ pub trait CompressionKey: Clone + Hash + PartialEq + Eq {
 }
 
 pub trait CompressibleTask
-where Self::KeyType: CompressionKey {
+where
+    Self::KeyType: CompressionKey,
+{
     type KeyType;
     fn is_compressible(&self) -> bool;
     fn get_compression_key(&self) -> Result<Self::KeyType, String>;
@@ -217,7 +219,9 @@ where
     }
 }
 impl<T> CompressibleTask for StandalonePythonBasedTask<T>
-where T: ETLFlow {
+where
+    T: ETLFlow,
+{
     type KeyType = PythonBasedTaskCompressionKey;
     /// only return true for compressible tasks, i.e. those that have a
     /// dict task val (in the future more stuff could be added here)
@@ -527,7 +531,9 @@ where
     ForLoopPythonBasedTask(ForLoopPythonBasedTask<T>),
 }
 impl<T> ETLTask<T> for PythonBasedTask<T>
-where T: ETLFlow {
+where
+    T: ETLFlow,
+{
     type S = StandalonePythonBasedTask<T>;
     type F = ForLoopPythonBasedTask<T>;
     fn standalone_task(task: Self::S) -> Self {
