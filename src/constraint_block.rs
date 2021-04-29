@@ -1,4 +1,4 @@
-use crate::code::CodeBlock;
+use crate::code::{CodeBlock, CodeBlockWithDefaultConstructor};
 use crate::endpoints::EndpointConfig;
 use crate::flow::ETLFlow;
 use crate::parameter_tuple::ParameterTuple;
@@ -13,6 +13,7 @@ use uuid::Uuid;
 pub trait ConstraintBlock<'a, T>
 where
     T: ETLFlow,
+    Self::C: CodeBlockWithDefaultConstructor<T>,
 {
     type C: CodeBlock<T>;
 

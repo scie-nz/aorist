@@ -1,4 +1,4 @@
-use crate::code::CodeBlock;
+use crate::code::{CodeBlock, CodeBlockWithForLoopCompression};
 use crate::endpoints::EndpointConfig;
 use crate::flow::{CompressibleTask, ETLFlow, ETLTask};
 use crate::parameter_tuple::ParameterTuple;
@@ -28,6 +28,20 @@ where
     type P = PythonPreamble;
     type I = PythonImport;
     type E = PythonBasedTask<T>;
+
+    fn construct<'a>(
+        tasks_dict: Option<AST>,
+        tasks: Vec<Self::E>,
+        task_identifiers: HashMap<Uuid, AST>,
+        params: HashMap<String, Option<ParameterTuple>>,
+    ) -> Self {
+        Self {
+            tasks_dict,
+            python_based_tasks: tasks,
+            task_identifiers,
+            params,
+        }
+    }
 
     fn get_statements(
         &self,
@@ -73,7 +87,11 @@ where
     fn get_params(&self) -> HashMap<String, Option<ParameterTuple>> {
         self.params.clone()
     }
-
+}
+impl<T> CodeBlockWithForLoopCompression<T> for PythonBasedCodeBlock<T>
+where
+    T: ETLFlow,
+{
     fn run_task_compressions(
         compressible: LinkedHashMap<
             <<Self::E as ETLTask<T>>::S as CompressibleTask>::KeyType,
@@ -246,19 +264,6 @@ where
                     python_based_tasks.push(PythonBasedTask::StandalonePythonBasedTask(task));
                 }
             }
-        }
-    }
-    fn construct<'a>(
-        tasks_dict: Option<AST>,
-        tasks: Vec<Self::E>,
-        task_identifiers: HashMap<Uuid, AST>,
-        params: HashMap<String, Option<ParameterTuple>>,
-    ) -> Self {
-        Self {
-            tasks_dict,
-            python_based_tasks: tasks,
-            task_identifiers,
-            params,
         }
     }
 }

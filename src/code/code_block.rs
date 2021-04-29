@@ -11,6 +11,78 @@ use std::collections::{BTreeSet, HashMap};
 use std::sync::{Arc, RwLock};
 use uuid::Uuid;
 
+pub trait CodeBlockWithDefaultConstructor<T>
+where
+    T: ETLFlow,
+    Self: CodeBlock<T>,
+{
+    fn new<'a>(
+        members: Vec<Arc<RwLock<ConstraintState<'a>>>>,
+        constraint_name: String,
+        tasks_dict: Option<AST>,
+        identifiers: &HashMap<Uuid, AST>,
+    ) -> Result<Self>;
+}
+
+pub trait CodeBlockWithForLoopCompression<T>
+where
+    Self: CodeBlock<T>,
+    T: ETLFlow,
+    Self: Sized,
+{
+    fn run_task_compressions(
+        compressible: LinkedHashMap<
+            <<Self::E as ETLTask<T>>::S as CompressibleTask>::KeyType,
+            Vec<<Self::E as ETLTask<T>>::S>,
+        >,
+        tasks: &mut Vec<Self::E>,
+        constraint_name: String,
+    );
+    fn separate_compressible_tasks(
+        tasks: Vec<<Self::E as ETLTask<T>>::S>,
+    ) -> (
+        LinkedHashMap<
+            <<Self::E as ETLTask<T>>::S as CompressibleTask>::KeyType,
+            Vec<<Self::E as ETLTask<T>>::S>,
+        >,
+        Vec<Self::E>,
+    ) {
+        let mut compressible = LinkedHashMap::new();
+        let mut uncompressible = Vec::new();
+
+        for task in tasks.into_iter() {
+            if task.is_compressible() {
+                let key = task.get_compression_key().unwrap();
+                compressible.entry(key).or_insert(Vec::new()).push(task);
+            } else {
+                uncompressible.push(<Self::E as ETLTask<T>>::standalone_task(task));
+            }
+        }
+        (compressible, uncompressible)
+    }
+}
+impl<C, T: ETLFlow> CodeBlockWithDefaultConstructor<T> for C
+where
+    Self: CodeBlockWithForLoopCompression<T>,
+{
+    fn new<'a>(
+        members: Vec<Arc<RwLock<ConstraintState<'a>>>>,
+        constraint_name: String,
+        tasks_dict: Option<AST>,
+        identifiers: &HashMap<Uuid, AST>,
+    ) -> Result<Self> {
+        let (standalone_tasks, task_identifiers, params) = Self::create_standalone_tasks(
+            members,
+            constraint_name.clone(),
+            tasks_dict.clone(),
+            identifiers,
+        )?;
+        let (compressible, mut tasks) = Self::separate_compressible_tasks(standalone_tasks);
+        Self::run_task_compressions(compressible, &mut tasks, constraint_name);
+        Ok(Self::construct(tasks_dict, tasks, task_identifiers, params))
+    }
+}
+
 pub trait CodeBlock<T>
 where
     Self::P: Preamble,
@@ -22,6 +94,13 @@ where
     type P;
     type I;
     type E;
+
+    fn construct<'a>(
+        tasks_dict: Option<AST>,
+        tasks: Vec<Self::E>,
+        task_identifiers: HashMap<Uuid, AST>,
+        params: HashMap<String, Option<ParameterTuple>>,
+    ) -> Self;
 
     /// assigns task values (Python variables in which they will be stored)
     /// to each member of the code block.
@@ -96,57 +175,5 @@ where
             ));
         }
         Ok((tasks, task_identifiers, params))
-    }
-    fn run_task_compressions(
-        compressible: LinkedHashMap<
-            <<Self::E as ETLTask<T>>::S as CompressibleTask>::KeyType,
-            Vec<<Self::E as ETLTask<T>>::S>,
-        >,
-        tasks: &mut Vec<Self::E>,
-        constraint_name: String,
-    );
-    fn separate_compressible_tasks(
-        tasks: Vec<<Self::E as ETLTask<T>>::S>,
-    ) -> (
-        LinkedHashMap<
-            <<Self::E as ETLTask<T>>::S as CompressibleTask>::KeyType,
-            Vec<<Self::E as ETLTask<T>>::S>,
-        >,
-        Vec<Self::E>,
-    ) {
-        let mut compressible = LinkedHashMap::new();
-        let mut uncompressible = Vec::new();
-
-        for task in tasks.into_iter() {
-            if task.is_compressible() {
-                let key = task.get_compression_key().unwrap();
-                compressible.entry(key).or_insert(Vec::new()).push(task);
-            } else {
-                uncompressible.push(<Self::E as ETLTask<T>>::standalone_task(task));
-            }
-        }
-        (compressible, uncompressible)
-    }
-    fn construct<'a>(
-        tasks_dict: Option<AST>,
-        tasks: Vec<Self::E>,
-        task_identifiers: HashMap<Uuid, AST>,
-        params: HashMap<String, Option<ParameterTuple>>,
-    ) -> Self;
-    fn new<'a>(
-        members: Vec<Arc<RwLock<ConstraintState<'a>>>>,
-        constraint_name: String,
-        tasks_dict: Option<AST>,
-        identifiers: &HashMap<Uuid, AST>,
-    ) -> Result<Self> {
-        let (standalone_tasks, task_identifiers, params) = Self::create_standalone_tasks(
-            members,
-            constraint_name.clone(),
-            tasks_dict.clone(),
-            identifiers,
-        )?;
-        let (compressible, mut tasks) = Self::separate_compressible_tasks(standalone_tasks);
-        Self::run_task_compressions(compressible, &mut tasks, constraint_name);
-        Ok(Self::construct(tasks_dict, tasks, task_identifiers, params))
     }
 }

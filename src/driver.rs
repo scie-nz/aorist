@@ -1,5 +1,5 @@
 #![allow(dead_code)]
-use crate::code::CodeBlock;
+use crate::code::CodeBlockWithDefaultConstructor;
 use crate::concept::{Concept, ConceptAncestry};
 use crate::constraint::{AoristConstraint, AoristConstraintBuilder, Constraint};
 use crate::constraint_block::{ConstraintBlock, PythonBasedConstraintBlock};
