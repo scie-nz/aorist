@@ -1,6 +1,6 @@
 use crate::dialect::Dialect;
 use crate::endpoints::EndpointConfig;
-use crate::flow::etl_flow::ETLFlow;
+use crate::flow::{ETLFlow, ETLTask, CompressionKey, CompressibleTask, StandaloneTask};
 use crate::parameter_tuple::{ParameterTuple, ParameterTupleDedupKey};
 use crate::python::{
     Add, Assignment, Attribute, BigIntLiteral, BinOp, Call, Dict, ForLoop, List, PythonImport,
@@ -9,21 +9,6 @@ use crate::python::{
 use linked_hash_map::LinkedHashMap;
 use std::hash::Hash;
 use std::marker::PhantomData;
-
-pub trait StandaloneTask<T>
-where
-    T: ETLFlow,
-{
-    fn new(
-        task_id: String,
-        task_val: AST,
-        call: Option<String>,
-        params: Option<ParameterTuple>,
-        dependencies: Vec<AST>,
-        preamble: Option<String>,
-        dialect: Option<Dialect>,
-    ) -> Self;
-}
 
 #[derive(Clone, Hash, PartialEq, Eq)]
 pub struct StandalonePythonBasedTask<T>
@@ -49,31 +34,6 @@ where
     dialect: Option<Dialect>,
     singleton_type: PhantomData<T>,
 }
-
-pub trait CompressionKey: Clone + Hash + PartialEq + Eq {
-    fn new(
-        dict_name: AST,
-        function_call: Option<String>,
-        dedup_key: Option<ParameterTupleDedupKey>,
-        preamble: Option<String>,
-        dialect: Option<Dialect>,
-    ) -> Self;
-    fn get_dict_name(&self) -> AST;
-    fn get_dedup_key(&self) -> Option<ParameterTupleDedupKey>;
-    fn get_call(&self) -> Option<String>;
-    fn get_preamble(&self) -> Option<String>;
-    fn get_dialect(&self) -> Option<Dialect>;
-}
-
-pub trait CompressibleTask
-where
-    Self::KeyType: CompressionKey,
-{
-    type KeyType;
-    fn is_compressible(&self) -> bool;
-    fn get_compression_key(&self) -> Result<Self::KeyType, String>;
-}
-
 /// tuple of:
 /// - name of dict / list in which task_val is stored (must be dict or list)
 /// - function call (if any)
@@ -133,6 +93,7 @@ impl CompressionKey for PythonBasedTaskCompressionKey {
         self.dialect.clone()
     }
 }
+
 #[derive(Clone, Hash, PartialEq, Eq)]
 pub struct PythonBasedTaskUncompressiblePart<T>
 where
@@ -508,19 +469,6 @@ where
             singleton.get_imports(),
         )
     }
-}
-
-pub trait ETLTask<T>
-where
-    T: ETLFlow,
-    Self::S: StandaloneTask<T>,
-    Self::S: CompressibleTask,
-{
-    type S;
-    type F;
-
-    fn standalone_task(task: Self::S) -> Self;
-    fn for_loop_task(task: Self::F) -> Self;
 }
 
 pub enum PythonBasedTask<T>

@@ -2,6 +2,7 @@ mod ast;
 mod code_block;
 mod preamble;
 mod python_import;
+mod task;
 
 use linked_hash_set::LinkedHashSet;
 use pyo3::prelude::*;
@@ -17,6 +18,11 @@ pub use ast::{
 pub use code_block::PythonBasedCodeBlock;
 pub use preamble::PythonPreamble;
 pub use python_import::PythonImport;
+pub use task::{
+    ForLoopPythonBasedTask,
+    PythonBasedTask,
+    StandalonePythonBasedTask,
+};
 
 /// Wrapper type for stuff that gets passed around when building Python
 /// statements:
