@@ -85,6 +85,7 @@ define_task_node!(
             PythonImport::PythonModuleImport("re".to_string(), None),
         ]
     },
+    PythonImport,
     sql: AST,
     task_val: AST,
     endpoint: PrestoConfig,

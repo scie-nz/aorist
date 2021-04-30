@@ -142,6 +142,7 @@ macro_rules! define_task_node {
      $descendants:expr,
      $py_ast_closure:expr,
      $import_closure:expr,
+     $import_type:ty,
      $($field: ident : $field_type: ty,)*) => {
         #[derive(Hash, PartialEq, Eq, Clone)]
         pub struct $name {
@@ -175,7 +176,7 @@ macro_rules! define_task_node {
             pub fn get_direct_descendants(&self) -> Vec<AST> {
                 $descendants(self)
             }
-            pub fn get_imports(&self) -> Vec<PythonImport> {
+            pub fn get_imports(&self) -> Vec<$import_type> {
                 $import_closure(self)
             }
         }

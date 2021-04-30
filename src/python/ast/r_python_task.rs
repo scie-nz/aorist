@@ -30,6 +30,7 @@ define_task_node!(
             PythonImport::PythonModuleImport("rpy2".to_string(), None),
         ]
     },
+    PythonImport,
     r_script: AST,
     task_val: AST,
 );

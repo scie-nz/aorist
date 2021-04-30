@@ -24,6 +24,7 @@ define_task_node!(
         ]
     },
     |_task: &ConstantPythonTask| { vec![] },
+    PythonImport,
     name: AST,
     task_val: AST,
 );

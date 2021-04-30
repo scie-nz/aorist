@@ -43,6 +43,7 @@ define_task_node!(
         statements
     },
     |task: &NativePythonTask| task.imports.clone(),
+    PythonImport,
     statements: Vec<AST>,
     imports: Vec<PythonImport>,
     task_val: AST,
