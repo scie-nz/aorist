@@ -1,3 +1,5 @@
+quick CI test by nick
+
 # Aorist
 
 Aorist is a code-generation tool for MLOps. Its aim is to generate legible
