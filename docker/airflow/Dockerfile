@@ -1,6 +1,6 @@
 # Apache Airflow image, works across amd64 and arm64.
 # Build with:
-#   docker buildx build --platform linux/amd64,linux/arm64 -t registry.gitlab.com/nickbp/k8s/airflow:$(date +%Y%m%d) .
+#   docker buildx build --platform linux/amd64,linux/arm64 -t scienz/airflow:2.0.0-$(date +%Y%m%d) .
 
 FROM debian:buster
 
@@ -9,6 +9,7 @@ FROM debian:buster
 RUN apt-get update \
   && apt-get dist-upgrade -y \
   && apt-get install -y \
+    cargo \
     curl \
     cython3 \
     freetds-dev \
