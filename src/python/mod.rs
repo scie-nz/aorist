@@ -20,6 +20,23 @@ pub use preamble::PythonPreamble;
 pub use python_import::PythonImport;
 pub use task::{ForLoopPythonBasedTask, PythonBasedTask, StandalonePythonBasedTask};
 
+pub trait FlowBuilderInput {
+    fn new(
+        statements: Vec<AST>,
+        preambles: LinkedHashSet<PythonPreamble>,
+        imports: BTreeSet<PythonImport>,
+        constraint_name: String,
+        constraint_title: Option<String>,
+        constraint_body: Option<String>,
+    ) -> Self;
+    fn get_statements(&self) -> Vec<AST>;
+    fn get_preambles(&self) -> LinkedHashSet<PythonPreamble>;
+    fn get_imports(&self) -> BTreeSet<PythonImport>;
+    fn get_constraint_name(&self) -> String;
+    fn get_constraint_title(&self) -> Option<String>;
+    fn get_constraint_body(&self) -> Option<String>;
+}
+
 /// Wrapper type for stuff that gets passed around when building Python
 /// statements:
 /// - A vector of AST objects (main statements),
@@ -34,8 +51,8 @@ pub struct PythonFlowBuilderInput {
     constraint_title: Option<String>,
     constraint_body: Option<String>,
 }
-impl PythonFlowBuilderInput {
-    pub fn new(
+impl FlowBuilderInput for PythonFlowBuilderInput {
+    fn new(
         statements: Vec<AST>,
         preambles: LinkedHashSet<PythonPreamble>,
         imports: BTreeSet<PythonImport>,
@@ -52,22 +69,22 @@ impl PythonFlowBuilderInput {
             constraint_body,
         }
     }
-    pub fn get_statements(&self) -> Vec<AST> {
+    fn get_statements(&self) -> Vec<AST> {
         self.statements.clone()
     }
-    pub fn get_preambles(&self) -> LinkedHashSet<PythonPreamble> {
+    fn get_preambles(&self) -> LinkedHashSet<PythonPreamble> {
         self.preambles.clone()
     }
-    pub fn get_imports(&self) -> BTreeSet<PythonImport> {
+    fn get_imports(&self) -> BTreeSet<PythonImport> {
         self.imports.clone()
     }
-    pub fn get_constraint_name(&self) -> String {
+    fn get_constraint_name(&self) -> String {
         self.constraint_name.clone()
     }
-    pub fn get_constraint_title(&self) -> Option<String> {
+    fn get_constraint_title(&self) -> Option<String> {
         self.constraint_title.clone()
     }
-    pub fn get_constraint_body(&self) -> Option<String> {
+    fn get_constraint_body(&self) -> Option<String> {
         self.constraint_body.clone()
     }
 }

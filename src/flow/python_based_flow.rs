@@ -1,7 +1,7 @@
 use crate::flow::etl_flow::ETLFlow;
 use crate::python::{
     format_code, Assignment, Dict, PythonFlowBuilderInput, PythonImport, PythonPreamble,
-    SimpleIdentifier, AST,
+    SimpleIdentifier, AST, FlowBuilderInput,
 };
 use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;

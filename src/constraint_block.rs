@@ -3,7 +3,7 @@ use crate::endpoints::EndpointConfig;
 use crate::flow::ETLFlow;
 use crate::parameter_tuple::ParameterTuple;
 use crate::python::PythonBasedCodeBlock;
-use crate::python::{Assignment, Dict, PythonFlowBuilderInput, PythonImport, PythonPreamble, AST};
+use crate::python::{Assignment, Dict, PythonFlowBuilderInput, PythonImport, PythonPreamble, AST, FlowBuilderInput};
 use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
 use std::collections::{BTreeSet, HashMap};
