@@ -17,6 +17,128 @@ where
     type T: ETLFlow;
     fn new() -> Self;
 }
+pub trait FlowBuilderMaterialize
+where
+    Self: Sized
+{
+    fn materialize(&self, statements_and_preambles: Vec<PythonStatementInput>) -> PyResult<String>;
+}
+
+impl<C> FlowBuilderMaterialize for C
+where
+    Self: Sized,
+    C: PythonBasedFlow {
+    fn materialize(&self, statements_and_preambles: Vec<PythonStatementInput>) -> PyResult<String> {
+        let gil = Python::acquire_gil();
+        let py = gil.python();
+
+        let ast = PyModule::import(py, "ast").unwrap();
+        let astor = PyModule::import(py, "astor").unwrap();
+
+        let flow_imports = self.get_flow_imports().into_iter();
+
+        let preambles = statements_and_preambles
+            .iter()
+            .map(|x| x.clone().1.into_iter())
+            .flatten()
+            .collect::<LinkedHashSet<PythonPreamble>>();
+
+        let preamble_imports: Vec<PythonImport> = self.get_preamble_imports(&preambles);
+
+        let imports = statements_and_preambles
+            .iter()
+            .map(|x| x.2.clone().into_iter())
+            .flatten()
+            .chain(flow_imports)
+            .chain(preamble_imports)
+            .collect::<BTreeSet<PythonImport>>();
+
+        let imports_ast: Vec<_> = imports
+            .into_iter()
+            .map(|x| x.to_python_ast_node(py, ast, 0).unwrap())
+            .collect();
+
+        let statements: Vec<(String, Option<String>, Option<String>, Vec<AST>)> =
+            statements_and_preambles
+                .into_iter()
+                .map(|x| (x.3, x.4, x.5, x.0))
+                .collect();
+        let mut statements_with_ast: Vec<_> = statements
+            .into_iter()
+            .filter(|x| x.3.len() > 0)
+            .collect::<Vec<_>>();
+
+        // ast_value without ancestry => short_name => keys
+        let mut literals: LinkedHashMap<AST, LinkedHashMap<String, Vec<_>>> = LinkedHashMap::new();
+
+        for (short_name, _, _, asts) in statements_with_ast.iter() {
+            for ast in asts {
+                Self::extract_literals(ast, &short_name, &mut literals);
+            }
+        }
+        let assignments_ast = Self::literals_to_assignments(literals);
+
+        if assignments_ast.len() > 0 {
+            statements_with_ast.insert(
+                0,
+                (
+                    "assignments".to_string(),
+                    Some("Common string literals".to_string()),
+                    None,
+                    assignments_ast,
+                ),
+            );
+        }
+        let statements_ast = statements_with_ast
+            .into_iter()
+            .map(|(name, title, body, x)| {
+                (
+                    name,
+                    title,
+                    body,
+                    x.into_iter()
+                        .map(|y| y.to_python_ast_node(py, ast, 0).unwrap())
+                        .collect(),
+                )
+            })
+            .collect();
+
+        let flow = self.build_flow(py, statements_ast, ast);
+
+        let content: Vec<(Option<String>, Vec<&PyAny>)> =
+            vec![(Some("PythonImports".to_string()), imports_ast)]
+                .into_iter()
+                .chain(preambles.into_iter().map(|x| (None, x.get_body_ast(py))))
+                .chain(flow.into_iter().map(|(x, y)| (Some(x), y)))
+                .collect();
+
+        let mut sources: Vec<(Option<String>, String)> = Vec::new();
+
+        // This is needed since astor will occasionally forget to add a newline
+        for (comment, block) in content {
+            let mut lines: Vec<String> = Vec::new();
+            for item in block {
+                //let statements_list = PyList::new(py, vec![item]);
+                let module = ast.call1("Expression", (item,))?;
+                let source: PyResult<_> = astor.call1("to_source", (module,));
+                if let Err(err) = source {
+                    err.print(py);
+                    panic!("Exception occurred when running to_source.",);
+                }
+                let out = source
+                    .unwrap()
+                    .extract::<&PyString>()
+                    .unwrap()
+                    .to_str()
+                    .unwrap()
+                    .to_string();
+                lines.push(out);
+            }
+            sources.push((comment, format_code(lines.join(""))?))
+        }
+        self.build_file(sources)
+    }
+}
 
 /// Encapsulates all the necessary bits for the construction of a DAG written in
 /// Python.
@@ -131,116 +253,6 @@ where
             }
         }
         assignments_ast
-    }
-    fn materialize(&self, statements_and_preambles: Vec<PythonStatementInput>) -> PyResult<String> {
-        let gil = Python::acquire_gil();
-        let py = gil.python();
-
-        let ast = PyModule::import(py, "ast").unwrap();
-        let astor = PyModule::import(py, "astor").unwrap();
-
-        let flow_imports = self.get_flow_imports().into_iter();
-
-        let preambles = statements_and_preambles
-            .iter()
-            .map(|x| x.clone().1.into_iter())
-            .flatten()
-            .collect::<LinkedHashSet<PythonPreamble>>();
-
-        let preamble_imports: Vec<PythonImport> = self.get_preamble_imports(&preambles);
-
-        let imports = statements_and_preambles
-            .iter()
-            .map(|x| x.2.clone().into_iter())
-            .flatten()
-            .chain(flow_imports)
-            .chain(preamble_imports)
-            .collect::<BTreeSet<PythonImport>>();
-
-        let imports_ast: Vec<_> = imports
-            .into_iter()
-            .map(|x| x.to_python_ast_node(py, ast, 0).unwrap())
-            .collect();
-
-        let statements: Vec<(String, Option<String>, Option<String>, Vec<AST>)> =
-            statements_and_preambles
-                .into_iter()
-                .map(|x| (x.3, x.4, x.5, x.0))
-                .collect();
-        let mut statements_with_ast: Vec<_> = statements
-            .into_iter()
-            .filter(|x| x.3.len() > 0)
-            .collect::<Vec<_>>();
-
-        // ast_value without ancestry => short_name => keys
-        let mut literals: LinkedHashMap<AST, LinkedHashMap<String, Vec<_>>> = LinkedHashMap::new();
-
-        for (short_name, _, _, asts) in statements_with_ast.iter() {
-            for ast in asts {
-                Self::extract_literals(ast, &short_name, &mut literals);
-            }
-        }
-        let assignments_ast = Self::literals_to_assignments(literals);
-
-        if assignments_ast.len() > 0 {
-            statements_with_ast.insert(
-                0,
-                (
-                    "assignments".to_string(),
-                    Some("Common string literals".to_string()),
-                    None,
-                    assignments_ast,
-                ),
-            );
-        }
-        let statements_ast = statements_with_ast
-            .into_iter()
-            .map(|(name, title, body, x)| {
-                (
-                    name,
-                    title,
-                    body,
-                    x.into_iter()
-                        .map(|y| y.to_python_ast_node(py, ast, 0).unwrap())
-                        .collect(),
-                )
-            })
-            .collect();
-
-        let flow = self.build_flow(py, statements_ast, ast);
-
-        let content: Vec<(Option<String>, Vec<&PyAny>)> =
-            vec![(Some("PythonImports".to_string()), imports_ast)]
-                .into_iter()
-                .chain(preambles.into_iter().map(|x| (None, x.get_body_ast(py))))
-                .chain(flow.into_iter().map(|(x, y)| (Some(x), y)))
-                .collect();
-
-        let mut sources: Vec<(Option<String>, String)> = Vec::new();
-
-        // This is needed since astor will occasionally forget to add a newline
-        for (comment, block) in content {
-            let mut lines: Vec<String> = Vec::new();
-            for item in block {
-                //let statements_list = PyList::new(py, vec![item]);
-                let module = ast.call1("Expression", (item,))?;
-                let source: PyResult<_> = astor.call1("to_source", (module,));
-                if let Err(err) = source {
-                    err.print(py);
-                    panic!("Exception occurred when running to_source.",);
-                }
-                let out = source
-                    .unwrap()
-                    .extract::<&PyString>()
-                    .unwrap()
-                    .to_str()
-                    .unwrap()
-                    .to_string();
-                lines.push(out);
-            }
-            sources.push((comment, format_code(lines.join(""))?))
-        }
-        self.build_file(sources)
     }
     fn build_file(&self, sources: Vec<(Option<String>, String)>) -> PyResult<String> {
         format_code(

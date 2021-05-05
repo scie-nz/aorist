@@ -7,7 +7,7 @@ use crate::constraint_state::{AncestorRecord, ConstraintState};
 use crate::data_setup::Universe;
 use crate::dialect::{Bash, Dialect, Presto, Python};
 use crate::endpoints::EndpointConfig;
-use crate::flow::{FlowBuilderBase, PythonBasedFlow};
+use crate::flow::{FlowBuilderBase, FlowBuilderMaterialize};
 use crate::object::TAoristObject;
 use crate::parameter_tuple::ParameterTuple;
 use crate::python::{SimpleIdentifier, AST};
@@ -32,7 +32,7 @@ type ConstraintsBlockMap<'a> = LinkedHashMap<
 pub trait Driver<'a, D>
 where
     D: FlowBuilderBase,
-    D: PythonBasedFlow,
+    D: FlowBuilderMaterialize,
     <D as FlowBuilderBase>::T: 'a,
     Self::CB: 'a,
 {
@@ -838,8 +838,8 @@ where
 
 impl<'a, D> Driver<'a, D> for PythonBasedDriver<'a, D>
 where
-    D: PythonBasedFlow,
     D: FlowBuilderBase,
+    D: FlowBuilderMaterialize,
     <D as FlowBuilderBase>::T: 'a,
 {
     type CB = PythonBasedConstraintBlock<D::T>;
