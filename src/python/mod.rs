@@ -26,7 +26,7 @@ pub use task::{ForLoopPythonBasedTask, PythonBasedTask, StandalonePythonBasedTas
 /// - A set of PythonPreambles (which have their own imports attached)
 /// - A set of imports corresponding to the dialect used.
 /// - A comment string
-pub type PythonStatementInput = (
+pub type PythonFlowBuilderInput = (
     Vec<AST>,
     LinkedHashSet<PythonPreamble>,
     BTreeSet<PythonImport>,

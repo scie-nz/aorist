@@ -1,6 +1,6 @@
 use crate::flow::etl_flow::ETLFlow;
 use crate::python::{
-    format_code, Assignment, Dict, PythonImport, PythonPreamble, PythonStatementInput,
+    format_code, Assignment, Dict, PythonImport, PythonPreamble, PythonFlowBuilderInput,
     SimpleIdentifier, AST,
 };
 use linked_hash_map::LinkedHashMap;
@@ -21,14 +21,15 @@ pub trait FlowBuilderMaterialize
 where
     Self: Sized
 {
-    fn materialize(&self, statements_and_preambles: Vec<PythonStatementInput>) -> PyResult<String>;
+    fn materialize(&self, statements_and_preambles: Vec<PythonFlowBuilderInput>) -> PyResult<String>;
 }
 
 impl<C> FlowBuilderMaterialize for C
 where
     Self: Sized,
     C: PythonBasedFlow {
-    fn materialize(&self, statements_and_preambles: Vec<PythonStatementInput>) -> PyResult<String> {
+
+    fn materialize(&self, statements_and_preambles: Vec<PythonFlowBuilderInput>) -> PyResult<String> {
         let gil = Python::acquire_gil();
         let py = gil.python();
 

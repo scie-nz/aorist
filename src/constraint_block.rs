@@ -3,7 +3,7 @@ use crate::endpoints::EndpointConfig;
 use crate::flow::ETLFlow;
 use crate::parameter_tuple::ParameterTuple;
 use crate::python::PythonBasedCodeBlock;
-use crate::python::{Assignment, Dict, PythonImport, PythonPreamble, PythonStatementInput, AST};
+use crate::python::{Assignment, Dict, PythonImport, PythonPreamble, PythonFlowBuilderInput, AST};
 use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
 use std::collections::{BTreeSet, HashMap};
@@ -17,7 +17,7 @@ where
 {
     type C: CodeBlock<T>;
 
-    fn get_statements(&'a self, endpoints: &EndpointConfig) -> PythonStatementInput;
+    fn get_statements(&'a self, endpoints: &EndpointConfig) -> PythonFlowBuilderInput;
     fn get_identifiers(&self) -> HashMap<Uuid, AST>;
     fn new(
         constraint_name: String,
@@ -62,7 +62,7 @@ where
         }
     }
 
-    fn get_statements(&'a self, endpoints: &EndpointConfig) -> PythonStatementInput {
+    fn get_statements(&'a self, endpoints: &EndpointConfig) -> PythonFlowBuilderInput {
         let preambles_and_statements = self
             .members
             .iter()
