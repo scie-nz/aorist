@@ -254,8 +254,13 @@ spec:
   root: WebLocation
   dialect: R
   preamble: |
-    download_data_from_remote_web_location <- function(src_url, tmp_dir, dest_file_name, table_name, dataset_name) {
-        print('a')
+    download.data.from.remote.web.location <- function(src_url, tmp_dir, dest_file_name, table_name, dataset_name) {
+        path <- paste(tmp_dir, dataset_name, table_name, sep='/')
+        if (!dir.exists(path)) {
+            dir.create(path)
+        }
+        dest <- paste(path, dest_file_name, sep='/')
+        download.file(src_url, dest)
     }
   call: download_data_from_remote_web_location
   kwargs:
