@@ -1,7 +1,7 @@
 use crate::dialect::Dialect;
 use crate::endpoints::EndpointConfig;
 use crate::flow::etl_flow::ETLFlow;
-use crate::flow::python_based_flow::{FlowBase, PythonBasedFlow};
+use crate::flow::python_based_flow::{FlowBuilderBase, PythonBasedFlow};
 use crate::python::{
     Assignment, Attribute, Call, Expression, ForLoop, Formatted, PythonImport, RPythonTask,
     SimpleIdentifier, StringLiteral, AST,
@@ -223,7 +223,7 @@ impl PrefectPythonBasedFlow {
 pub struct PrefectDAG {
     flow_identifier: AST,
 }
-impl FlowBase for PrefectDAG {
+impl FlowBuilderBase for PrefectDAG {
     type T = PrefectPythonBasedFlow;
     fn new() -> Self {
         Self {

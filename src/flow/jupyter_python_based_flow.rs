@@ -1,12 +1,12 @@
 use crate::flow::native_python_based_flow::NativePythonBasedFlow;
-use crate::flow::python_based_flow::{FlowBase, PythonBasedFlow};
+use crate::flow::python_based_flow::{FlowBuilderBase, PythonBasedFlow};
 use crate::python::PythonImport;
 use pyo3::prelude::*;
 use pyo3::types::PyModule;
 use serde_json::json;
 
 pub struct JupyterDAG {}
-impl FlowBase for JupyterDAG {
+impl FlowBuilderBase for JupyterDAG {
     type T = NativePythonBasedFlow;
     fn new() -> Self {
         Self {}
