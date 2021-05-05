@@ -20,10 +20,14 @@ where
 pub trait FlowBuilderMaterialize
 where
     Self: Sized,
+    Self::BuilderInputType: FlowBuilderInput,
 {
+
+    type BuilderInputType;
+
     fn materialize(
         &self,
-        statements_and_preambles: Vec<PythonFlowBuilderInput>,
+        statements_and_preambles: Vec<Self::BuilderInputType>,
     ) -> PyResult<String>;
 }
 
@@ -32,6 +36,7 @@ where
     Self: Sized,
     C: PythonBasedFlow,
 {
+    type BuilderInputType = PythonFlowBuilderInput;
     fn materialize(
         &self,
         statements_and_preambles: Vec<PythonFlowBuilderInput>,
