@@ -6,9 +6,9 @@ use crate::endpoints::EndpointConfig;
 use crate::flow::{CompressibleTask, ETLFlow, ETLTask};
 use crate::parameter_tuple::ParameterTuple;
 use crate::python::AST;
-use crate::r::task::RBasedTask;
 use crate::r::preamble::RPreamble;
 use crate::r::r_import::RImport;
+use crate::r::task::RBasedTask;
 use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
 use std::collections::{BTreeSet, HashMap, HashSet};
@@ -49,11 +49,7 @@ where
     fn get_statements(
         &self,
         endpoints: &EndpointConfig,
-    ) -> (
-        Vec<AST>,
-        LinkedHashSet<RPreamble>,
-        BTreeSet<RImport>,
-    ) {
+    ) -> (Vec<AST>, LinkedHashSet<RPreamble>, BTreeSet<RImport>) {
         /* TODO: get_statements should run for members of self.tasks
         let preambles_and_statements = self
             .tasks

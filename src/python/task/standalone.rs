@@ -35,10 +35,10 @@ where
 }
 impl<T> TaskBase<T> for StandalonePythonBasedTask<T>
 where
-    T: ETLFlow {
+    T: ETLFlow,
+{
     type I = PythonImport;
 }
-
 
 impl<T> StandaloneTask<T> for StandalonePythonBasedTask<T>
 where

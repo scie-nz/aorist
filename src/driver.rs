@@ -7,7 +7,7 @@ use crate::constraint_state::{AncestorRecord, ConstraintState};
 use crate::data_setup::Universe;
 use crate::dialect::{Bash, Dialect, Presto, Python};
 use crate::endpoints::EndpointConfig;
-use crate::flow::{PythonBasedFlow, FlowBuilderBase};
+use crate::flow::{FlowBuilderBase, PythonBasedFlow};
 use crate::object::TAoristObject;
 use crate::parameter_tuple::ParameterTuple;
 use crate::python::{SimpleIdentifier, AST};
@@ -822,7 +822,7 @@ where
 
 pub struct PythonBasedDriver<'a, D>
 where
-    D: FlowBuilderBase
+    D: FlowBuilderBase,
 {
     pub concepts: Arc<RwLock<HashMap<(Uuid, String), Concept<'a>>>>,
     constraints: LinkedHashMap<(Uuid, String), Arc<RwLock<Constraint>>>,

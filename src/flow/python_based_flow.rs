@@ -11,7 +11,9 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::sync::{Arc, RwLock};
 
 pub trait FlowBuilderBase
-where Self: Sized {
+where
+    Self: Sized,
+{
     type T: ETLFlow;
     fn new() -> Self;
 }

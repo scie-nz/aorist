@@ -7,9 +7,7 @@ use std::sync::{Arc, RwLock};
 define_task_node!(
     NativeRTask,
     |task: &NativeRTask| task.statements.clone(),
-    |task: &NativeRTask| {
-        task.statements.clone()
-    },
+    |task: &NativeRTask| { task.statements.clone() },
     |task: &NativeRTask| task.imports.clone(),
     RImport,
     statements: Vec<AST>,

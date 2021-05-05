@@ -52,6 +52,7 @@ where
 }
 impl<T> TaskBase<T> for PythonBasedTask<T>
 where
-    T: ETLFlow {
+    T: ETLFlow,
+{
     type I = PythonImport;
 }

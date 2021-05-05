@@ -51,7 +51,8 @@ where
 }
 impl<T> TaskBase<T> for StandaloneRBasedTask<T>
 where
-    T: ETLFlow {
+    T: ETLFlow,
+{
     type I = RImport;
 }
 pub enum RBasedTask<T>
@@ -71,6 +72,7 @@ where
 }
 impl<T> TaskBase<T> for RBasedTask<T>
 where
-    T: ETLFlow {
+    T: ETLFlow,
+{
     type I = RImport;
 }
