@@ -1,7 +1,7 @@
 use crate::dialect::Dialect;
 use crate::endpoints::EndpointConfig;
 use crate::flow::etl_flow::ETLFlow;
-use crate::flow::python_based_flow::{FlowBuilderBase, PythonBasedFlow};
+use crate::flow::python_based_flow_builder::{FlowBuilderBase, PythonBasedFlowBuilder};
 use crate::python::{
     Assignment, Attribute, Call, Expression, ForLoop, Formatted, PythonImport, RPythonTask,
     SimpleIdentifier, StringLiteral, AST,
@@ -235,7 +235,7 @@ impl FlowBuilderBase for PrefectFlowBuilder {
         }
     }
 }
-impl PythonBasedFlow for PrefectFlowBuilder {
+impl PythonBasedFlowBuilder for PrefectFlowBuilder {
     fn get_flow_imports(&self) -> Vec<PythonImport> {
         Vec::new()
     }

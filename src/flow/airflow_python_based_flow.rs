@@ -1,7 +1,7 @@
 use crate::dialect::Dialect;
 use crate::endpoints::EndpointConfig;
 use crate::flow::etl_flow::ETLFlow;
-use crate::flow::python_based_flow::{FlowBuilderBase, PythonBasedFlow};
+use crate::flow::python_based_flow_builder::{FlowBuilderBase, PythonBasedFlowBuilder};
 use crate::python::{
     Assignment, Attribute, BigIntLiteral, BooleanLiteral, Call, Dict, Expression, Formatted, List,
     None, PythonImport, SimpleIdentifier, StringLiteral, AST,
@@ -206,7 +206,7 @@ impl FlowBuilderBase for AirflowFlowBuilder {
         Self {}
     }
 }
-impl PythonBasedFlow for AirflowFlowBuilder {
+impl PythonBasedFlowBuilder for AirflowFlowBuilder {
     /// Takes a set of statements and mutates them so as make a valid ETL flow
     fn build_flow<'a>(
         &self,

@@ -1,5 +1,5 @@
 use crate::flow::native_python_based_flow::NativePythonBasedFlow;
-use crate::flow::python_based_flow::{FlowBuilderBase, PythonBasedFlow};
+use crate::flow::python_based_flow_builder::{FlowBuilderBase, PythonBasedFlowBuilder};
 use crate::python::PythonImport;
 use pyo3::prelude::*;
 use pyo3::types::PyModule;
@@ -12,7 +12,7 @@ impl FlowBuilderBase for JupyterFlowBuilder {
         Self {}
     }
 }
-impl PythonBasedFlow for JupyterFlowBuilder {
+impl PythonBasedFlowBuilder for JupyterFlowBuilder {
     fn get_flow_imports(&self) -> Vec<PythonImport> {
         Vec::new()
     }

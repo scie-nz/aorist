@@ -1,7 +1,7 @@
 use crate::dialect::Dialect;
 use crate::endpoints::EndpointConfig;
 use crate::flow::etl_flow::ETLFlow;
-use crate::flow::python_based_flow::{FlowBuilderBase, PythonBasedFlow};
+use crate::flow::python_based_flow_builder::{FlowBuilderBase, PythonBasedFlowBuilder};
 use crate::python::{
     BashPythonTask, Call, ConstantPythonTask, Expression, Formatted, NativePythonTask,
     PrestoPythonTask, PythonImport, RPythonTask, SimpleIdentifier, StringLiteral, AST,
@@ -149,7 +149,7 @@ impl FlowBuilderBase for PythonFlowBuilder {
         Self {}
     }
 }
-impl PythonBasedFlow for PythonFlowBuilder {
+impl PythonBasedFlowBuilder for PythonFlowBuilder {
     fn get_flow_imports(&self) -> Vec<PythonImport> {
         Vec::new()
     }

@@ -37,7 +37,7 @@ where
 impl<C> FlowBuilderMaterialize for C
 where
     Self: Sized,
-    C: PythonBasedFlow,
+    C: PythonBasedFlowBuilder,
 {
     type BuilderInputType = PythonFlowBuilderInput;
     type ErrorType = PyErr;
@@ -164,9 +164,9 @@ where
     }
 }
 
-/// Encapsulates all the necessary bits for the construction of a FlowBuilder written in
+/// Encapsulates all the necessary bits for the construction of a Flow written in
 /// Python.
-pub trait PythonBasedFlow: FlowBuilderBase
+pub trait PythonBasedFlowBuilder: FlowBuilderBase
 where
     Self: Sized,
 {
