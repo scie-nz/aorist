@@ -71,7 +71,8 @@ impl ETLFlow for NativeRBasedFlow {
         let command = match &dialect {
             Some(Dialect::R(_)) => AST::Call(Call::new_wrapped(
                 AST::StringLiteral(StringLiteral::new_wrapped(
-                    call.as_ref().unwrap().clone(), false,
+                    call.as_ref().unwrap().clone(),
+                    false,
                 )),
                 args.clone(),
                 kwargs.clone(),
