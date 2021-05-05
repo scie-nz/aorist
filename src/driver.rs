@@ -5,7 +5,7 @@ use crate::constraint::{AoristConstraint, AoristConstraintBuilder, Constraint};
 use crate::constraint_block::ConstraintBlock;
 use crate::constraint_state::{AncestorRecord, ConstraintState};
 use crate::data_setup::Universe;
-use crate::dialect::{Bash, Dialect, Presto, Python};
+use crate::dialect::{Bash, Dialect, Presto, Python, R};
 use crate::endpoints::EndpointConfig;
 use crate::flow::{ETLFlow, FlowBuilderBase, FlowBuilderMaterialize};
 use crate::object::TAoristObject;
@@ -457,6 +457,8 @@ where
 
     fn get_ancestry(&self) -> Arc<ConceptAncestry<'a>>;
 
+    fn get_preferences(&self) -> Vec<Dialect>;
+
     fn process_constraint_with_program(
         &mut self,
         constraint: RwLockReadGuard<'_, Constraint>,
@@ -466,12 +468,8 @@ where
     ) {
         let name = constraint.get_name().clone();
         drop(constraint);
-        let preferences = vec![
-            Dialect::Python(Python::new(vec![])),
-            Dialect::Presto(Presto {}),
-            Dialect::Bash(Bash {}),
-        ];
-
+        // TODO: turn into a reference to a field on self
+        let preferences = self.get_preferences();
         let mut write = state.write().unwrap();
         // TODO: remove dummy hash map
         write.satisfy(&preferences, self.get_ancestry());
@@ -848,6 +846,13 @@ where
 {
     type CB = PythonBasedConstraintBlock<D::T>;
 
+    fn get_preferences(&self) -> Vec<Dialect> {
+        vec![
+            Dialect::Python(Python::new(vec![])),
+            Dialect::Presto(Presto {}),
+            Dialect::Bash(Bash {}),
+        ]
+    }
     fn get_constraint_rwlock(&self, uuid: &(Uuid, String)) -> Arc<RwLock<Constraint>> {
         self.constraints.get(uuid).unwrap().clone()
     }
@@ -958,6 +963,11 @@ where
 
     fn get_constraint_rwlock(&self, uuid: &(Uuid, String)) -> Arc<RwLock<Constraint>> {
         self.constraints.get(uuid).unwrap().clone()
+    }
+    fn get_preferences(&self) -> Vec<Dialect> {
+        vec![
+            Dialect::R(R {}),
+        ]
     }
 
     fn get_endpoints<'b>(&'b self) -> &'b EndpointConfig
