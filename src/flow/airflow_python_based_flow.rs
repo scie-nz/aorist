@@ -5,7 +5,7 @@ use crate::flow::flow_builder::FlowBuilderBase;
 use crate::flow::python_based_flow_builder::PythonBasedFlowBuilder;
 use crate::python::{
     Assignment, Attribute, BigIntLiteral, BooleanLiteral, Call, Dict, Expression, Formatted, List,
-    None, PythonImport, SimpleIdentifier, StringLiteral, AST,
+    None, PythonImport, SimpleIdentifier, StringLiteral, AST, PythonPreamble,
 };
 use linked_hash_map::LinkedHashMap;
 use pyo3::prelude::*;
@@ -110,6 +110,7 @@ impl AirflowPythonBasedFlow {
 }
 impl ETLFlow for AirflowPythonBasedFlow {
     type ImportType = PythonImport;
+    type PreambleType = PythonPreamble;
     fn get_imports(&self) -> Vec<PythonImport> {
         match self.dialect {
             Some(Dialect::Python(_)) => vec![PythonImport::PythonFromImport(

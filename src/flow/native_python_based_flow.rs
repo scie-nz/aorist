@@ -5,7 +5,7 @@ use crate::flow::flow_builder::FlowBuilderBase;
 use crate::flow::python_based_flow_builder::PythonBasedFlowBuilder;
 use crate::python::{
     BashPythonTask, Call, ConstantPythonTask, Expression, Formatted, NativePythonTask,
-    PrestoPythonTask, PythonImport, RPythonTask, SimpleIdentifier, StringLiteral, AST,
+    PrestoPythonTask, PythonImport, RPythonTask, SimpleIdentifier, StringLiteral, AST, PythonPreamble,
 };
 use aorist_primitives::register_task_nodes;
 use linked_hash_map::LinkedHashMap;
@@ -39,7 +39,10 @@ pub struct NativePythonBasedFlow {
     node: PythonTask,
 }
 impl ETLFlow for NativePythonBasedFlow {
+
     type ImportType = PythonImport;
+    type PreambleType = PythonPreamble;
+
     fn get_preamble(&self) -> Vec<String> {
         let preambles = match self.dialect {
             Some(Dialect::Python(_)) => match self.preamble {

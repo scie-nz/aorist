@@ -2,7 +2,7 @@ use crate::dialect::Dialect;
 use crate::endpoints::EndpointConfig;
 use crate::flow::etl_flow::ETLFlow;
 use crate::python::{Call, Expression, SimpleIdentifier, StringLiteral, AST};
-use crate::r::{ConstantRTask, NativeRTask, RImport};
+use crate::r::{ConstantRTask, NativeRTask, RImport, RPreamble};
 use aorist_primitives::register_task_nodes;
 use linked_hash_map::LinkedHashMap;
 use std::hash::{Hash, Hasher};
@@ -32,6 +32,7 @@ pub struct NativeRBasedFlow {
 
 impl ETLFlow for NativeRBasedFlow {
     type ImportType = RImport;
+    type PreambleType = RPreamble;
 
     fn get_preamble(&self) -> Vec<String> {
         let preambles = match self.dialect {

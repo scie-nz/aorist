@@ -5,7 +5,7 @@ use crate::flow::flow_builder::FlowBuilderBase;
 use crate::flow::python_based_flow_builder::PythonBasedFlowBuilder;
 use crate::python::{
     Assignment, Attribute, Call, Expression, ForLoop, Formatted, PythonImport, RPythonTask,
-    SimpleIdentifier, StringLiteral, AST,
+    SimpleIdentifier, StringLiteral, AST, PythonPreamble,
 };
 use aorist_primitives::register_task_nodes;
 use linked_hash_map::LinkedHashMap;
@@ -37,6 +37,7 @@ pub struct PrefectPythonBasedFlow {
 
 impl ETLFlow for PrefectPythonBasedFlow {
     type ImportType = PythonImport;
+    type PreambleType = PythonPreamble;
     fn get_preamble(&self) -> Vec<String> {
         let preambles = match self.dialect {
             Some(Dialect::Python(_)) => match self.preamble {
