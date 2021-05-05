@@ -26,7 +26,6 @@ where
     T: ETLFlow<ImportType = PythonImport>,
 {
     type P = PythonPreamble;
-    type I = PythonImport;
     type E = PythonBasedTask<T>;
 
     fn construct<'a>(

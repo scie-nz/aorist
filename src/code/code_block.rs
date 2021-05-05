@@ -1,4 +1,4 @@
-use crate::code::{Import, Preamble};
+use crate::code::Preamble;
 use crate::constraint_state::ConstraintState;
 use crate::endpoints::EndpointConfig;
 use crate::flow::{CompressibleETLTask, CompressibleTask, ETLFlow, ETLTask, StandaloneTask};
@@ -90,13 +90,11 @@ where
 pub trait CodeBlock<T>
 where
     Self::P: Preamble,
-    Self::I: Import,
     T: ETLFlow,
     Self: Sized,
     Self::E: ETLTask<T>,
 {
     type P;
-    type I;
     type E;
 
     fn construct<'a>(
@@ -139,7 +137,7 @@ where
     fn get_statements(
         &self,
         endpoints: &EndpointConfig,
-    ) -> (Vec<AST>, LinkedHashSet<Self::P>, BTreeSet<Self::I>);
+    ) -> (Vec<AST>, LinkedHashSet<Self::P>, BTreeSet<T::ImportType>);
 
     fn get_tasks_dict(&self) -> Option<AST>;
     fn get_identifiers(&self) -> HashMap<Uuid, AST>;

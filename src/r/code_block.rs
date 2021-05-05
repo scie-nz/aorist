@@ -17,7 +17,7 @@ use uuid::Uuid;
 
 pub struct RBasedCodeBlock<T>
 where
-    T: ETLFlow,
+    T: ETLFlow<ImportType = RImport>,
 {
     tasks_dict: Option<AST>,
     task_identifiers: HashMap<Uuid, AST>,
@@ -26,10 +26,9 @@ where
 }
 impl<T> CodeBlock<T> for RBasedCodeBlock<T>
 where
-    T: ETLFlow,
+    T: ETLFlow<ImportType = RImport>,
 {
     type P = RPreamble;
-    type I = RImport;
     type E = RBasedTask<T>;
 
     fn construct<'a>(

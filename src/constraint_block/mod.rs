@@ -10,10 +10,8 @@ pub trait ConstraintBlock<'a, T>
 where
     T: ETLFlow,
     Self::C: CodeBlockWithDefaultConstructor<T>,
-    Self::BuilderInputType: FlowBuilderInput<
-        PreambleType = <Self::C as CodeBlock<T>>::P,
-        ImportType = <Self::C as CodeBlock<T>>::I,
-    >,
+    Self::BuilderInputType:
+        FlowBuilderInput<PreambleType = <Self::C as CodeBlock<T>>::P, ImportType = T::ImportType>,
 {
     type C: CodeBlock<T>;
     type BuilderInputType;
