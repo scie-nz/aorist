@@ -10,6 +10,7 @@ use crate::endpoints::EndpointConfig;
 use crate::flow::{ETLFlow, FlowBuilderBase, FlowBuilderMaterialize};
 use crate::object::TAoristObject;
 use crate::parameter_tuple::ParameterTuple;
+use crate::r::{RBasedConstraintBlock, RFlowBuilderInput, RImport};
 use crate::python::{
     PythonBasedConstraintBlock, PythonFlowBuilderInput, PythonImport, SimpleIdentifier, AST,
 };
@@ -907,6 +908,104 @@ where
             .collect::<BTreeSet<String>>()
             .into_iter()
             .collect()
+    }
+    fn _new(
+        concepts: Arc<RwLock<HashMap<(Uuid, String), Concept<'a>>>>,
+        constraints: LinkedHashMap<(Uuid, String), Arc<RwLock<Constraint>>>,
+        ancestry: Arc<ConceptAncestry<'a>>,
+        endpoints: EndpointConfig,
+        ancestors: HashMap<(Uuid, String), Vec<AncestorRecord>>,
+        topline_constraint_names: LinkedHashSet<String>,
+    ) -> Self {
+        Self {
+            concepts,
+            constraints,
+            satisfied_constraints: HashMap::new(),
+            blocks: Vec::new(),
+            ancestry,
+            dag_type: PhantomData,
+            endpoints,
+            constraint_explanations: AoristConstraint::get_explanations(),
+            ancestors,
+            topline_constraint_names,
+        }
+    }
+}
+pub struct RBasedDriver<'a, D>
+where
+    D: FlowBuilderBase,
+    <D as FlowBuilderBase>::T: ETLFlow<ImportType = RImport> + 'a,
+{
+    pub concepts: Arc<RwLock<HashMap<(Uuid, String), Concept<'a>>>>,
+    constraints: LinkedHashMap<(Uuid, String), Arc<RwLock<Constraint>>>,
+    satisfied_constraints: HashMap<(Uuid, String), Arc<RwLock<ConstraintState<'a>>>>,
+    blocks: Vec<RBasedConstraintBlock<D::T>>,
+    ancestry: Arc<ConceptAncestry<'a>>,
+    dag_type: PhantomData<D>,
+    endpoints: EndpointConfig,
+    constraint_explanations: HashMap<String, (Option<String>, Option<String>)>,
+    ancestors: HashMap<(Uuid, String), Vec<AncestorRecord>>,
+    topline_constraint_names: LinkedHashSet<String>,
+}
+
+impl<'a, D> Driver<'a, D> for RBasedDriver<'a, D>
+where
+    D: FlowBuilderBase,
+    D: FlowBuilderMaterialize<BuilderInputType = RFlowBuilderInput>,
+    <D as FlowBuilderBase>::T: ETLFlow<ImportType = RImport> + 'a,
+{
+    type CB = RBasedConstraintBlock<D::T>;
+
+    fn get_constraint_rwlock(&self, uuid: &(Uuid, String)) -> Arc<RwLock<Constraint>> {
+        self.constraints.get(uuid).unwrap().clone()
+    }
+
+    fn get_endpoints<'b>(&'b self) -> &'b EndpointConfig
+    where
+        'a: 'b,
+    {
+        &self.endpoints
+    }
+
+    fn get_ancestry(&self) -> Arc<ConceptAncestry<'a>> {
+        self.ancestry.clone()
+    }
+    fn mark_constraint_state_as_satisfied(
+        &mut self,
+        id: (Uuid, String),
+        state: Arc<RwLock<ConstraintState<'a>>>,
+    ) {
+        self.satisfied_constraints.insert(id, state.clone());
+    }
+    fn init_unsatisfied_constraints(&self) -> Result<ConstraintsBlockMap<'a>> {
+        Self::get_unsatisfied_constraints(
+            &self.constraints,
+            self.concepts.clone(),
+            &self.ancestors,
+            self.topline_constraint_names.clone(),
+        )
+    }
+    fn add_block(
+        &mut self,
+        constraint_block: RBasedConstraintBlock<<D as FlowBuilderBase>::T>,
+    ) {
+        self.blocks.push(constraint_block);
+    }
+    fn get_constraint_explanation(
+        &self,
+        constraint_name: &String,
+    ) -> (Option<String>, Option<String>) {
+        self.constraint_explanations
+            .get(constraint_name)
+            .unwrap()
+            .clone()
+    }
+    fn get_blocks(&'a self) -> &'a Vec<Self::CB> {
+        &self.blocks
+    }
+    fn get_dependencies(&self) -> Vec<String> {
+        // TODO: add libraries
+        vec![]
     }
     fn _new(
         concepts: Arc<RwLock<HashMap<(Uuid, String), Concept<'a>>>>,
