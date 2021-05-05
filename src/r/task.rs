@@ -1,7 +1,8 @@
 use crate::dialect::Dialect;
-use crate::flow::{ETLFlow, ETLTask, StandaloneTask};
+use crate::flow::{ETLFlow, ETLTask, StandaloneTask, TaskBase};
 use crate::parameter_tuple::ParameterTuple;
 use crate::python::AST;
+use crate::r::r_import::RImport;
 use std::hash::Hash;
 use std::marker::PhantomData;
 
@@ -47,6 +48,11 @@ where
             singleton_type: PhantomData,
         }
     }
+}
+impl<T> TaskBase<T> for StandaloneRBasedTask<T>
+where
+    T: ETLFlow {
+    type I = RImport;
 }
 pub enum RBasedTask<T>
 where

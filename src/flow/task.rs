@@ -1,10 +1,16 @@
+use crate::code::{Import};
 use crate::dialect::Dialect;
 use crate::flow::etl_flow::ETLFlow;
 use crate::parameter_tuple::{ParameterTuple, ParameterTupleDedupKey};
 use crate::python::AST;
 use std::hash::Hash;
 
-pub trait StandaloneTask<T>
+pub trait TaskBase<T>
+where T: ETLFlow {
+    type I: Import;
+}
+
+pub trait StandaloneTask<T>: TaskBase<T>
 where
     T: ETLFlow,
 {

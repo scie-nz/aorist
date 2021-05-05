@@ -1,6 +1,6 @@
 use crate::dialect::Dialect;
 use crate::endpoints::EndpointConfig;
-use crate::flow::{CompressibleTask, CompressionKey, ETLFlow, StandaloneTask};
+use crate::flow::{CompressibleTask, CompressionKey, ETLFlow, StandaloneTask, TaskBase};
 use crate::parameter_tuple::ParameterTuple;
 use crate::python::task::key::PythonBasedTaskCompressionKey;
 use crate::python::task::uncompressible::PythonBasedTaskUncompressiblePart;
@@ -33,6 +33,12 @@ where
     dialect: Option<Dialect>,
     singleton_type: PhantomData<T>,
 }
+impl<T> TaskBase<T> for StandalonePythonBasedTask<T>
+where
+    T: ETLFlow {
+    type I = PythonImport;
+}
+
 
 impl<T> StandaloneTask<T> for StandalonePythonBasedTask<T>
 where
