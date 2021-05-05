@@ -69,3 +69,8 @@ where
         Self::StandaloneRBasedTask(task)
     }
 }
+impl<T> TaskBase<T> for RBasedTask<T>
+where
+    T: ETLFlow {
+    type I = RImport;
+}

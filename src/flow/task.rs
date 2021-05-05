@@ -47,10 +47,11 @@ where
     fn is_compressible(&self) -> bool;
     fn get_compression_key(&self) -> Result<Self::KeyType, String>;
 }
-pub trait ETLTask<T>
+pub trait ETLTask<T>: TaskBase<T>
 where
     T: ETLFlow,
     Self::S: StandaloneTask<T>,
+    Self::S: TaskBase<T, I = <Self as TaskBase<T>>::I>,
 {
     type S;
 
