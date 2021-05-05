@@ -189,6 +189,12 @@ pub fn dag(inner: InnerUniverse, constraints: Vec<String>, mode: &str) -> PyResu
         )
         .map_err(|e| pyo3::exceptions::PyException::new_err(e.to_string()))?
         .run(),
+        "r" => RBasedDriver::<RBasedFlowBuilder>::new(
+            &universe,
+            constraints.into_iter().collect(),
+        )
+        .map_err(|e| pyo3::exceptions::PyException::new_err(e.to_string()))?
+        .run(),
         _ => panic!("Unknown mode provided: {}", mode),
     }
     .map_err(|e| pyo3::exceptions::PyException::new_err(e.to_string()))?;

@@ -15,7 +15,7 @@ pub enum RFlowBuilderError {
 }
 
 
-struct RBasedFlowBuilder {}
+pub struct RBasedFlowBuilder {}
 impl RBasedFlowBuilder {
     fn build_flow(
         &self,
