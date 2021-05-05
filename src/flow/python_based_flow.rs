@@ -1,6 +1,6 @@
 use crate::flow::etl_flow::ETLFlow;
 use crate::python::{
-    format_code, Assignment, Dict, PythonImport, PythonPreamble, PythonFlowBuilderInput,
+    format_code, Assignment, Dict, PythonFlowBuilderInput, PythonImport, PythonPreamble,
     SimpleIdentifier, AST,
 };
 use linked_hash_map::LinkedHashMap;
@@ -19,17 +19,23 @@ where
 }
 pub trait FlowBuilderMaterialize
 where
-    Self: Sized
+    Self: Sized,
 {
-    fn materialize(&self, statements_and_preambles: Vec<PythonFlowBuilderInput>) -> PyResult<String>;
+    fn materialize(
+        &self,
+        statements_and_preambles: Vec<PythonFlowBuilderInput>,
+    ) -> PyResult<String>;
 }
 
 impl<C> FlowBuilderMaterialize for C
 where
     Self: Sized,
-    C: PythonBasedFlow {
-
-    fn materialize(&self, statements_and_preambles: Vec<PythonFlowBuilderInput>) -> PyResult<String> {
+    C: PythonBasedFlow,
+{
+    fn materialize(
+        &self,
+        statements_and_preambles: Vec<PythonFlowBuilderInput>,
+    ) -> PyResult<String> {
         let gil = Python::acquire_gil();
         let py = gil.python();
 
@@ -40,7 +46,7 @@ where
 
         let preambles = statements_and_preambles
             .iter()
-            .map(|x| x.clone().1.into_iter())
+            .map(|x| x.clone().get_preambles().into_iter())
             .flatten()
             .collect::<LinkedHashSet<PythonPreamble>>();
 
@@ -48,7 +54,7 @@ where
 
         let imports = statements_and_preambles
             .iter()
-            .map(|x| x.2.clone().into_iter())
+            .map(|x| x.get_imports().clone().into_iter())
             .flatten()
             .chain(flow_imports)
             .chain(preamble_imports)
@@ -62,7 +68,14 @@ where
         let statements: Vec<(String, Option<String>, Option<String>, Vec<AST>)> =
             statements_and_preambles
                 .into_iter()
-                .map(|x| (x.3, x.4, x.5, x.0))
+                .map(|x| {
+                    (
+                        x.get_constraint_name(),
+                        x.get_constraint_title(),
+                        x.get_constraint_body(),
+                        x.get_statements(),
+                    )
+                })
                 .collect();
         let mut statements_with_ast: Vec<_> = statements
             .into_iter()

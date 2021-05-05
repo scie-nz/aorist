@@ -3,7 +3,7 @@ use crate::endpoints::EndpointConfig;
 use crate::flow::ETLFlow;
 use crate::parameter_tuple::ParameterTuple;
 use crate::python::PythonBasedCodeBlock;
-use crate::python::{Assignment, Dict, PythonImport, PythonPreamble, PythonFlowBuilderInput, AST};
+use crate::python::{Assignment, Dict, PythonFlowBuilderInput, PythonImport, PythonPreamble, AST};
 use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
 use std::collections::{BTreeSet, HashMap};
@@ -78,7 +78,7 @@ where
             .map(|x| x.2.clone().into_iter())
             .flatten()
             .collect::<BTreeSet<PythonImport>>();
-        (
+        PythonFlowBuilderInput::new(
             self.get_task_val_assignments()
                 .into_iter()
                 .chain(preambles_and_statements.into_iter().map(|x| x.0).flatten())

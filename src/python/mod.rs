@@ -26,14 +26,51 @@ pub use task::{ForLoopPythonBasedTask, PythonBasedTask, StandalonePythonBasedTas
 /// - A set of PythonPreambles (which have their own imports attached)
 /// - A set of imports corresponding to the dialect used.
 /// - A comment string
-pub type PythonFlowBuilderInput = (
-    Vec<AST>,
-    LinkedHashSet<PythonPreamble>,
-    BTreeSet<PythonImport>,
-    String,
-    Option<String>,
-    Option<String>,
-);
+pub struct PythonFlowBuilderInput {
+    statements: Vec<AST>,
+    preambles: LinkedHashSet<PythonPreamble>,
+    imports: BTreeSet<PythonImport>,
+    constraint_name: String,
+    constraint_title: Option<String>,
+    constraint_body: Option<String>,
+}
+impl PythonFlowBuilderInput {
+    pub fn new(
+        statements: Vec<AST>,
+        preambles: LinkedHashSet<PythonPreamble>,
+        imports: BTreeSet<PythonImport>,
+        constraint_name: String,
+        constraint_title: Option<String>,
+        constraint_body: Option<String>,
+    ) -> Self {
+        Self {
+            statements,
+            preambles,
+            imports,
+            constraint_name,
+            constraint_title,
+            constraint_body,
+        }
+    }
+    pub fn get_statements(&self) -> Vec<AST> {
+        self.statements.clone()
+    }
+    pub fn get_preambles(&self) -> LinkedHashSet<PythonPreamble> {
+        self.preambles.clone()
+    }
+    pub fn get_imports(&self) -> BTreeSet<PythonImport> {
+        self.imports.clone()
+    }
+    pub fn get_constraint_name(&self) -> String {
+        self.constraint_name.clone()
+    }
+    pub fn get_constraint_title(&self) -> Option<String> {
+        self.constraint_title.clone()
+    }
+    pub fn get_constraint_body(&self) -> Option<String> {
+        self.constraint_body.clone()
+    }
+}
 
 pub fn format_code(code: String) -> PyResult<String> {
     let gil = Python::acquire_gil();
