@@ -1,5 +1,6 @@
 mod ast;
 mod code_block;
+mod constraint_block;
 mod preamble;
 mod python_import;
 mod task;
@@ -17,6 +18,7 @@ pub use ast::{
     Tuple, AST,
 };
 pub use code_block::PythonBasedCodeBlock;
+pub use constraint_block::PythonBasedConstraintBlock;
 pub use preamble::PythonPreamble;
 pub use python_import::PythonImport;
 pub use task::{ForLoopPythonBasedTask, PythonBasedTask, StandalonePythonBasedTask};
@@ -36,7 +38,6 @@ pub struct PythonFlowBuilderInput {
     constraint_body: Option<String>,
 }
 impl FlowBuilderInput for PythonFlowBuilderInput {
-
     type ImportType = PythonImport;
     type PreambleType = PythonPreamble;
 

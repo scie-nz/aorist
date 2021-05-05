@@ -2,7 +2,7 @@
 use crate::code::CodeBlockWithDefaultConstructor;
 use crate::concept::{Concept, ConceptAncestry};
 use crate::constraint::{AoristConstraint, AoristConstraintBuilder, Constraint};
-use crate::constraint_block::{ConstraintBlock, PythonBasedConstraintBlock};
+use crate::constraint_block::ConstraintBlock;
 use crate::constraint_state::{AncestorRecord, ConstraintState};
 use crate::data_setup::Universe;
 use crate::dialect::{Bash, Dialect, Presto, Python};
@@ -10,7 +10,7 @@ use crate::endpoints::EndpointConfig;
 use crate::flow::{FlowBuilderBase, FlowBuilderMaterialize};
 use crate::object::TAoristObject;
 use crate::parameter_tuple::ParameterTuple;
-use crate::python::{PythonFlowBuilderInput, SimpleIdentifier, AST};
+use crate::python::{PythonBasedConstraintBlock, PythonFlowBuilderInput, SimpleIdentifier, AST};
 use anyhow::Result;
 use inflector::cases::snakecase::to_snake_case;
 use linked_hash_map::LinkedHashMap;

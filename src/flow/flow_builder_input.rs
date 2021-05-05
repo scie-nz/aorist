@@ -1,7 +1,7 @@
-use crate::python::AST;
-use std::collections::BTreeSet;
-use linked_hash_set::LinkedHashSet;
 use crate::code::{Import, Preamble};
+use crate::python::AST;
+use linked_hash_set::LinkedHashSet;
+use std::collections::BTreeSet;
 
 pub trait FlowBuilderInput
 where
@@ -26,4 +26,3 @@ where
     fn get_constraint_title(&self) -> Option<String>;
     fn get_constraint_body(&self) -> Option<String>;
 }
-

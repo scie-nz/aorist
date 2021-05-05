@@ -29,7 +29,6 @@ pub struct RFlowBuilderInput {
     constraint_body: Option<String>,
 }
 impl FlowBuilderInput for RFlowBuilderInput {
-
     type ImportType = RImport;
     type PreambleType = RPreamble;
 
