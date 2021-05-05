@@ -16,7 +16,10 @@ pub trait ConstraintBlock<'a, T>
 where
     T: ETLFlow,
     Self::C: CodeBlockWithDefaultConstructor<T>,
-    Self::BuilderInputType: FlowBuilderInput,
+    Self::BuilderInputType: FlowBuilderInput<
+        PreambleType=<Self::C as CodeBlock<T>>::P,
+        ImportType=<Self::C as CodeBlock<T>>::I,
+    >
 {
     type C: CodeBlock<T>;
     type BuilderInputType;
@@ -24,8 +27,37 @@ where
     fn get_constraint_name(&self) -> String;
     fn get_constraint_title(&self) -> Option<String>;
     fn get_constraint_body(&self) -> Option<String>;
-    fn get_code_blocks(&'a self) -> &'a Vec<Self::C>;
-    fn get_statements(&'a self, endpoints: &EndpointConfig) -> Self::BuilderInputType;
+    fn get_code_blocks<'b>(&'a self) -> &'b Vec<Self::C> where 'a : 'b;
+    fn get_task_val_assignments(&'a self) -> Vec<AST>;
+
+    fn get_statements(&'a self, endpoints: &EndpointConfig) -> Self::BuilderInputType {
+        let preambles_and_statements = self
+            .get_code_blocks()
+            .iter()
+            .map(|x| x.get_statements(endpoints))
+            .collect::<Vec<_>>();
+        let preambles = preambles_and_statements
+            .iter()
+            .map(|x| x.1.clone().into_iter())
+            .flatten()
+            .collect::<LinkedHashSet<_>>();
+        let imports = preambles_and_statements
+            .iter()
+            .map(|x| x.2.clone().into_iter())
+            .flatten()
+            .collect::<BTreeSet<_>>();
+        Self::BuilderInputType::new(
+            self.get_task_val_assignments()
+                .into_iter()
+                .chain(preambles_and_statements.into_iter().map(|x| x.0).flatten())
+                .collect::<Vec<_>>(),
+            preambles,
+            imports,
+            self.get_constraint_name(),
+            self.get_constraint_title(),
+            self.get_constraint_body(),
+        )
+    }
 
     fn get_identifiers(&self) -> HashMap<Uuid, AST>;
     fn new(
@@ -65,36 +97,8 @@ where
     fn get_constraint_body(&self) -> Option<String> {
         self.body.clone()
     }
-    fn get_code_blocks(&'a self) -> &'a Vec<PythonBasedCodeBlock<T>> {
+    fn get_code_blocks<'b>(&'a self) -> &'b Vec<Self::C> where 'a : 'b {
         &self.members
-    }
-    fn get_statements(&'a self, endpoints: &EndpointConfig) -> Self::BuilderInputType {
-        let preambles_and_statements = self
-            .get_code_blocks()
-            .iter()
-            .map(|x| x.get_statements(endpoints))
-            .collect::<Vec<_>>();
-        let preambles = preambles_and_statements
-            .iter()
-            .map(|x| x.1.clone().into_iter())
-            .flatten()
-            .collect::<LinkedHashSet<_>>();
-        let imports = preambles_and_statements
-            .iter()
-            .map(|x| x.2.clone().into_iter())
-            .flatten()
-            .collect::<BTreeSet<_>>();
-        Self::BuilderInputType::new(
-            self.get_task_val_assignments()
-                .into_iter()
-                .chain(preambles_and_statements.into_iter().map(|x| x.0).flatten())
-                .collect::<Vec<_>>(),
-            preambles,
-            imports,
-            self.get_constraint_name(),
-            self.get_constraint_title(),
-            self.get_constraint_body(),
-        )
     }
 
     fn new(
@@ -120,6 +124,16 @@ where
             .flatten()
             .collect()
     }
+
+    fn get_task_val_assignments(&'a self) -> Vec<AST> {
+        match &self.tasks_dict {
+            Some(ref val) => vec![AST::Assignment(Assignment::new_wrapped(
+                val.clone(),
+                AST::Dict(Dict::new_wrapped(LinkedHashMap::new())),
+            ))],
+            None => vec![],
+        }
+    }
 }
 
 impl<'a, T> PythonBasedConstraintBlock<T>
@@ -132,14 +146,5 @@ where
             .map(|x| x.get_params().into_iter())
             .flatten()
             .collect()
-    }
-    pub fn get_task_val_assignments(&'a self) -> Vec<AST> {
-        match &self.tasks_dict {
-            Some(ref val) => vec![AST::Assignment(Assignment::new_wrapped(
-                val.clone(),
-                AST::Dict(Dict::new_wrapped(LinkedHashMap::new())),
-            ))],
-            None => vec![],
-        }
     }
 }

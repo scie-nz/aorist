@@ -1,1 +1,3 @@
-pub trait Preamble {}
+use std::hash::Hash;
+
+pub trait Preamble: Eq + Hash + Clone {}
