@@ -54,7 +54,7 @@ impl RBasedFlowBuilder {
                 None => block,
             })
             .collect::<Vec<String>>()
-            .join("")
+            .join("\n")
     }
 }
 
@@ -90,7 +90,11 @@ impl FlowBuilderMaterialize for RBasedFlowBuilder {
 
         let imports_ast: Vec<_> = imports
             .into_iter()
-            .map(|x| x.to_r_ast_node(0).as_str().unwrap().to_string())
+            .map(|x| {
+                let call = x.to_r_ast_node(0);
+                let deparsed = call!("deparse", call).unwrap();
+                Vec::<String>::from_robj(&deparsed).unwrap().join("\n")
+            })
             .collect();
 
         let statements: Vec<(String, Option<String>, Option<String>, Vec<AST>)> =
@@ -165,7 +169,7 @@ impl FlowBuilderMaterialize for RBasedFlowBuilder {
             for item in block {
                 lines.push(item);
             }
-            sources.push((comment, lines.join("")))
+            sources.push((comment, lines.join("\n")))
         }
         Ok(self.build_file(sources))
     }

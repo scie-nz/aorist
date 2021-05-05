@@ -914,3 +914,51 @@ spec:
           _ => false,
         }
       }
+---
+type: Constraint
+spec:
+  name: RDataFrame
+  root: ReplicationStorageSetup
+  requires:
+    - RDataFrameFromCSVData
+    - RDataFrameFromNewlineDelimitedJSONData
+---
+type: Constraint
+spec:
+  name: RDataFrameFromCSVData
+  root: ReplicationStorageSetup
+  requiresProgram: true
+  requires:
+    - DownloadDataFromRemote
+  attachIf: |
+      |root: Concept<'a>, ancestry: &ConceptAncestry<'a>|
+      match ancestry.replication_storage_setup(root.clone()) {
+          Ok(x) => match x.tmp_encoding {
+              crate::encoding::Encoding::NewlineDelimitedJSONEncoding(_) => false,
+              _ => true,
+          }
+          _ => true,
+      }
+  title: Create an R data frame from CSV data
+  body: |
+    We convert an intermediary CSV file to an R dataframe.
+---
+type: Constraint
+spec:
+  name: RDataFrameFromNewlineDelimitedJSONData
+  root: ReplicationStorageSetup
+  requiresProgram: true
+  requires:
+    - DownloadDataFromRemote
+  attachIf: |
+      |root: Concept<'a>, ancestry: &ConceptAncestry<'a>|
+      match ancestry.replication_storage_setup(root.clone()) {
+          Ok(x) => match x.tmp_encoding {
+              crate::encoding::Encoding::NewlineDelimitedJSONEncoding(_) => true,
+              _ => false,
+          }
+          _ => false,
+      }
+  title: R data frame from newline-delimited JSON file
+  body: |
+    We convert an intermediary newline-delimited JSON file to an R data frame.

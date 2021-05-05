@@ -353,9 +353,12 @@ define_ast_node!(
         ast_module.call1("Call", (function, args, kwargs))
     },
     |call: &Call, depth: usize| {
-        assert_eq!(call.args.len(), 0);
+        //assert_eq!(call.args.len(), 0);
         let mut args = LinkedHashMap::new();
         args.insert("n".to_string(), call.function.clone());
+        for arg in &call.args {
+            args.insert("".to_string(), arg.clone());
+        }
         for (k, v) in call.keywords.clone() {
             args.insert(k, v);
         }

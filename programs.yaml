@@ -3577,3 +3577,56 @@ spec:
       spec:
         call: static_data_table.name
         attaches: StaticDataTable
+---
+type: Program
+spec:
+  use: RDataFrameFromCSVData
+  root: ReplicationStorageSetup
+  dialect: R
+  preamble: |
+
+    library('rjson')
+    library('glue')
+
+    read.csv.for.table <- function(
+        static_data_table_name,
+        dataset_name,
+        columns,
+        tmp_dir
+    ) {
+        columns <- fromJSON(columns)
+        data <- read.csv(
+            glue(
+                "{tmp_dir}/{dataset_name}/{static_data_table_name}/{static_data_table_name}.csv",
+                tmp_dir=tmp_dir,
+                dataset_name=dataset_name,
+                static_data_table_name=static_data_table_name,
+            ),
+        )
+        colnames(data) <- columns
+        sprintf("Downloaded dataframe with %d rows and %d columns.", nrow(data), ncol(data))
+        return(data)
+    }
+
+  call: read.csv.for.table
+  kwargs:
+    dataset_name:
+      type: AncestorArgument
+      spec:
+        attaches: DataSet
+        call: data_set.name.clone()
+    static_data_table_name:
+      type: AncestorArgument
+      spec:
+        attaches: StaticDataTable
+        call: static_data_table.name.clone()
+    columns:
+      type: AncestorArgument
+      spec:
+        attaches: StaticDataTable
+        call: serde_json::json!(static_data_table.schema.get_attribute_names()).to_string()
+    tmp_dir:
+      type: AncestorArgument
+      spec:
+        call: replication_storage_setup.tmp_dir
+        attaches: ReplicationStorageSetup

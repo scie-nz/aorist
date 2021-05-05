@@ -19,4 +19,4 @@ other_universe = Universe(
     datasets=[snap],
     endpoints=DEFAULT_ENDPOINTS,
 )
-print(universe.r("DownloadDataFromRemoteWebLocation"))
+print(universe.r("RDataFrameFromCSVData"))
