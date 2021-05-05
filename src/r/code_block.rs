@@ -49,13 +49,12 @@ where
         &self,
         endpoints: &EndpointConfig,
     ) -> (Vec<AST>, LinkedHashSet<RPreamble>, BTreeSet<RImport>) {
-        /* TODO: get_statements should run for members of self.tasks
         let preambles_and_statements = self
             .tasks
             .iter()
             .map(|x| x.get_statements(endpoints))
             .collect::<Vec<_>>();
-        let preambles_and_statements: Vec<RBasedTask<T>> = Vec::new();
+        // TODO: get_statements should run for members of self.tasks
         let preambles = preambles_and_statements
             .iter()
             .map(|x| x.1.clone().into_iter())
@@ -72,8 +71,7 @@ where
             .map(|x| x.0.clone())
             .flatten()
             .collect::<Vec<_>>();
-        (statements, preambles, imports)*/
-        (vec![], LinkedHashSet::new(), BTreeSet::new())
+        (statements, preambles, imports)
     }
     fn get_tasks_dict(&self) -> Option<AST> {
         self.tasks_dict.clone()
