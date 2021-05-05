@@ -1,7 +1,8 @@
 use crate::dialect::Dialect;
 use crate::endpoints::EndpointConfig;
 use crate::flow::etl_flow::ETLFlow;
-use crate::flow::python_based_flow_builder::{FlowBuilderBase, PythonBasedFlowBuilder};
+use crate::flow::flow_builder::FlowBuilderBase;
+use crate::flow::python_based_flow_builder::PythonBasedFlowBuilder;
 use crate::python::{
     Assignment, Attribute, BigIntLiteral, BooleanLiteral, Call, Dict, Expression, Formatted, List,
     None, PythonImport, SimpleIdentifier, StringLiteral, AST,

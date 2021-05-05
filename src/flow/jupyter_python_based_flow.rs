@@ -1,5 +1,6 @@
+use crate::flow::flow_builder::FlowBuilderBase;
 use crate::flow::native_python_based_flow::NativePythonBasedFlow;
-use crate::flow::python_based_flow_builder::{FlowBuilderBase, PythonBasedFlowBuilder};
+use crate::flow::python_based_flow_builder::PythonBasedFlowBuilder;
 use crate::python::PythonImport;
 use pyo3::prelude::*;
 use pyo3::types::PyModule;
