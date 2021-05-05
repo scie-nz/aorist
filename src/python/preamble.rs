@@ -10,7 +10,9 @@ pub struct PythonPreamble {
     pub from_imports: Vec<PythonImport>,
     pub body: String,
 }
-impl Preamble for PythonPreamble {}
+impl Preamble for PythonPreamble {
+    type ImportType = PythonImport;
+}
 impl<'a> PythonPreamble {
     pub fn new(body: String, py: Python<'a>) -> PythonPreamble {
         let helpers = PyModule::from_code(

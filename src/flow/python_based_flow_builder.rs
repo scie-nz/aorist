@@ -1,8 +1,6 @@
 use crate::flow::flow_builder::{FlowBuilderBase, FlowBuilderMaterialize};
 use crate::flow::flow_builder_input::FlowBuilderInput;
-use crate::python::{
-    format_code, PythonFlowBuilderInput, PythonImport, PythonPreamble, AST,
-};
+use crate::python::{format_code, PythonFlowBuilderInput, PythonImport, PythonPreamble, AST};
 use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
 use pyo3::prelude::*;

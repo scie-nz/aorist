@@ -1,13 +1,16 @@
 use crate::code::Preamble;
+use crate::r::r_import::RImport;
 use extendr_api::prelude::*;
 use std::hash::Hash;
 
 #[derive(Clone, PartialEq, Hash, Eq)]
 pub struct RPreamble {
-    pub libraries: Vec<String>,
+    pub libraries: Vec<RImport>,
     pub body: String,
 }
-impl Preamble for RPreamble {}
+impl Preamble for RPreamble {
+    type ImportType = RImport;
+}
 impl<'a> RPreamble {
     // Assumes R has already been started
     pub fn new(body: String) -> RPreamble {
@@ -41,7 +44,12 @@ impl<'a> RPreamble {
         let body_no_imports = res.index(1).unwrap();
         let libraries = res.index(2).unwrap();
         Self {
-            libraries: libraries.as_string_vector().unwrap(),
+            libraries: libraries
+                .as_string_vector()
+                .unwrap()
+                .into_iter()
+                .map(|x| RImport::new(x))
+                .collect(),
             body: body_no_imports.as_str().unwrap().to_string(),
         }
     }
