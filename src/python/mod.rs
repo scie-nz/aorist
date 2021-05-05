@@ -36,6 +36,10 @@ pub struct PythonFlowBuilderInput {
     constraint_body: Option<String>,
 }
 impl FlowBuilderInput for PythonFlowBuilderInput {
+
+    type ImportType = PythonImport;
+    type PreambleType = PythonPreamble;
+
     fn new(
         statements: Vec<AST>,
         preambles: LinkedHashSet<PythonPreamble>,
