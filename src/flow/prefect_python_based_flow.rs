@@ -35,6 +35,7 @@ pub struct PrefectPythonBasedFlow {
 }
 
 impl ETLFlow for PrefectPythonBasedFlow {
+    type ImportType = PythonImport;
     fn get_preamble(&self) -> Vec<String> {
         let preambles = match self.dialect {
             Some(Dialect::Python(_)) => match self.preamble {

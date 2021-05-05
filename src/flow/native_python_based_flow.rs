@@ -38,6 +38,7 @@ pub struct NativePythonBasedFlow {
     node: PythonTask,
 }
 impl ETLFlow for NativePythonBasedFlow {
+    type ImportType = PythonImport;
     fn get_preamble(&self) -> Vec<String> {
         let preambles = match self.dialect {
             Some(Dialect::Python(_)) => match self.preamble {

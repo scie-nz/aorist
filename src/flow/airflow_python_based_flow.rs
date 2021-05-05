@@ -108,6 +108,7 @@ impl AirflowPythonBasedFlow {
     }
 }
 impl ETLFlow for AirflowPythonBasedFlow {
+    type ImportType = PythonImport;
     fn get_imports(&self) -> Vec<PythonImport> {
         match self.dialect {
             Some(Dialect::Python(_)) => vec![PythonImport::PythonFromImport(
