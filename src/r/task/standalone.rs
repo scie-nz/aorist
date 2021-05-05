@@ -2,7 +2,6 @@ use crate::dialect::Dialect;
 use crate::flow::{ETLFlow, ETLTask, StandaloneTask, TaskBase};
 use crate::parameter_tuple::ParameterTuple;
 use crate::python::AST;
-use crate::r::r_import::RImport;
 use std::hash::Hash;
 use std::marker::PhantomData;
 
@@ -49,12 +48,7 @@ where
         }
     }
 }
-impl<T> TaskBase<T> for StandaloneRBasedTask<T>
-where
-    T: ETLFlow,
-{
-    type I = RImport;
-}
+impl<T> TaskBase<T> for StandaloneRBasedTask<T> where T: ETLFlow {}
 pub enum RBasedTask<T>
 where
     T: ETLFlow,
@@ -70,9 +64,4 @@ where
         Self::StandaloneRBasedTask(task)
     }
 }
-impl<T> TaskBase<T> for RBasedTask<T>
-where
-    T: ETLFlow,
-{
-    type I = RImport;
-}
+impl<T> TaskBase<T> for RBasedTask<T> where T: ETLFlow {}

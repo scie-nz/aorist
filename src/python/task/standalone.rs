@@ -1,6 +1,8 @@
 use crate::dialect::Dialect;
 use crate::endpoints::EndpointConfig;
-use crate::flow::{CompressibleTask, CompressionKey, ETLFlow, StandaloneTask, TaskBase, UncompressiblePart};
+use crate::flow::{
+    CompressibleTask, CompressionKey, ETLFlow, StandaloneTask, TaskBase, UncompressiblePart,
+};
 use crate::parameter_tuple::ParameterTuple;
 use crate::python::task::key::PythonBasedTaskCompressionKey;
 use crate::python::task::uncompressible::PythonBasedTaskUncompressiblePart;
@@ -33,12 +35,7 @@ where
     dialect: Option<Dialect>,
     singleton_type: PhantomData<T>,
 }
-impl<T> TaskBase<T> for StandalonePythonBasedTask<T>
-where
-    T: ETLFlow,
-{
-    type I = PythonImport;
-}
+impl<T> TaskBase<T> for StandalonePythonBasedTask<T> where T: ETLFlow {}
 
 impl<T> StandaloneTask<T> for StandalonePythonBasedTask<T>
 where
@@ -126,7 +123,7 @@ where
 
 impl<T> StandalonePythonBasedTask<T>
 where
-    T: ETLFlow,
+    T: ETLFlow<ImportType = PythonImport>,
 {
     pub fn get_uncompressible_part(&self) -> Result<PythonBasedTaskUncompressiblePart<T>, String> {
         Ok(PythonBasedTaskUncompressiblePart::new(

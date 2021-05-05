@@ -1,7 +1,7 @@
+use crate::code::Import;
 use crate::dialect::Dialect;
 use crate::endpoints::EndpointConfig;
-use crate::python::{PythonImport, AST};
-use crate::code::Import;
+use crate::python::AST;
 
 use linked_hash_map::LinkedHashMap;
 
@@ -26,5 +26,5 @@ pub trait ETLFlow {
     ) -> Self;
     fn get_statements(&self) -> Vec<AST>;
     fn get_type() -> String;
-    fn get_imports(&self) -> Vec<PythonImport>;
+    fn get_imports(&self) -> Vec<Self::ImportType>;
 }

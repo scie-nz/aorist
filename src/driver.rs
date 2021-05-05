@@ -7,10 +7,12 @@ use crate::constraint_state::{AncestorRecord, ConstraintState};
 use crate::data_setup::Universe;
 use crate::dialect::{Bash, Dialect, Presto, Python};
 use crate::endpoints::EndpointConfig;
-use crate::flow::{FlowBuilderBase, FlowBuilderMaterialize};
+use crate::flow::{ETLFlow, FlowBuilderBase, FlowBuilderMaterialize};
 use crate::object::TAoristObject;
 use crate::parameter_tuple::ParameterTuple;
-use crate::python::{PythonBasedConstraintBlock, PythonFlowBuilderInput, SimpleIdentifier, AST};
+use crate::python::{
+    PythonBasedConstraintBlock, PythonFlowBuilderInput, PythonImport, SimpleIdentifier, AST,
+};
 use anyhow::Result;
 use inflector::cases::snakecase::to_snake_case;
 use linked_hash_map::LinkedHashMap;
@@ -823,6 +825,7 @@ where
 pub struct PythonBasedDriver<'a, D>
 where
     D: FlowBuilderBase,
+    <D as FlowBuilderBase>::T: ETLFlow<ImportType = PythonImport> + 'a,
 {
     pub concepts: Arc<RwLock<HashMap<(Uuid, String), Concept<'a>>>>,
     constraints: LinkedHashMap<(Uuid, String), Arc<RwLock<Constraint>>>,
@@ -840,7 +843,7 @@ impl<'a, D> Driver<'a, D> for PythonBasedDriver<'a, D>
 where
     D: FlowBuilderBase,
     D: FlowBuilderMaterialize<BuilderInputType = PythonFlowBuilderInput>,
-    <D as FlowBuilderBase>::T: 'a,
+    <D as FlowBuilderBase>::T: ETLFlow<ImportType = PythonImport> + 'a,
 {
     type CB = PythonBasedConstraintBlock<D::T>;
 

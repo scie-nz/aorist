@@ -1,5 +1,5 @@
 use crate::endpoints::EndpointConfig;
-use crate::flow::{CompressionKey, ETLFlow, UncompressiblePart, ForLoopCompressedTask, TaskBase};
+use crate::flow::{CompressionKey, ETLFlow, ForLoopCompressedTask, TaskBase, UncompressiblePart};
 use crate::python::task::key::PythonBasedTaskCompressionKey;
 use crate::python::task::uncompressible::PythonBasedTaskUncompressiblePart;
 use crate::python::{
@@ -13,7 +13,7 @@ use std::marker::PhantomData;
 #[derive(Clone, Hash, PartialEq, Eq)]
 pub struct ForLoopPythonBasedTask<T>
 where
-    T: ETLFlow,
+    T: ETLFlow<ImportType = PythonImport>,
 {
     params_dict_name: AST,
     key: PythonBasedTaskCompressionKey,
@@ -23,7 +23,9 @@ where
     insert_task_name: bool,
 }
 impl<T> ForLoopCompressedTask<T> for ForLoopPythonBasedTask<T>
-where T: ETLFlow {
+where
+    T: ETLFlow<ImportType = PythonImport>,
+{
     type KeyType = PythonBasedTaskCompressionKey;
     type UncompressiblePartType = PythonBasedTaskUncompressiblePart<T>;
     fn new(
@@ -43,16 +45,11 @@ where T: ETLFlow {
         }
     }
 }
-impl<T> TaskBase<T> for ForLoopPythonBasedTask<T>
-where
-    T: ETLFlow,
-{
-    type I = PythonImport;
-}
+impl<T> TaskBase<T> for ForLoopPythonBasedTask<T> where T: ETLFlow<ImportType = PythonImport> {}
 
 impl<T> ForLoopPythonBasedTask<T>
 where
-    T: ETLFlow,
+    T: ETLFlow<ImportType = PythonImport>,
 {
     fn get_dict_assign(&self) -> AST {
         let dependencies_as_list = self

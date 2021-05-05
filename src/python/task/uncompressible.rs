@@ -21,13 +21,10 @@ where
     singleton_type: PhantomData<T>,
 }
 impl<T> UncompressiblePart<T> for PythonBasedTaskUncompressiblePart<T>
-where T: ETLFlow {
-    fn new(
-        task_id: String,
-        dict: String,
-        params: Option<ParameterTuple>,
-        deps: Vec<AST>,
-    ) -> Self {
+where
+    T: ETLFlow,
+{
+    fn new(task_id: String, dict: String, params: Option<ParameterTuple>, deps: Vec<AST>) -> Self {
         Self {
             task_id,
             dict,

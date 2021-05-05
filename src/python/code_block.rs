@@ -14,7 +14,7 @@ use uuid::Uuid;
 
 pub struct PythonBasedCodeBlock<T>
 where
-    T: ETLFlow,
+    T: ETLFlow<ImportType = PythonImport>,
 {
     tasks_dict: Option<AST>,
     task_identifiers: HashMap<Uuid, AST>,
@@ -23,7 +23,7 @@ where
 }
 impl<T> CodeBlock<T> for PythonBasedCodeBlock<T>
 where
-    T: ETLFlow,
+    T: ETLFlow<ImportType = PythonImport>,
 {
     type P = PythonPreamble;
     type I = PythonImport;
@@ -90,7 +90,7 @@ where
 }
 impl<T> CodeBlockWithForLoopCompression<T> for PythonBasedCodeBlock<T>
 where
-    T: ETLFlow,
+    T: ETLFlow<ImportType = PythonImport>,
 {
     fn run_task_compressions(
         compressible: LinkedHashMap<

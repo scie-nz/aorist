@@ -3,7 +3,7 @@ use crate::constraint_block::ConstraintBlock;
 use crate::flow::ETLFlow;
 use crate::parameter_tuple::ParameterTuple;
 use crate::python::PythonBasedCodeBlock;
-use crate::python::{Assignment, Dict, PythonFlowBuilderInput, AST};
+use crate::python::{Assignment, Dict, PythonFlowBuilderInput, PythonImport, AST};
 use linked_hash_map::LinkedHashMap;
 use std::collections::HashMap;
 use std::marker::PhantomData;
@@ -11,7 +11,7 @@ use uuid::Uuid;
 
 pub struct PythonBasedConstraintBlock<T>
 where
-    T: ETLFlow,
+    T: ETLFlow<ImportType = PythonImport>,
 {
     constraint_name: String,
     title: Option<String>,
@@ -22,7 +22,7 @@ where
 }
 impl<'a, T> ConstraintBlock<'a, T> for PythonBasedConstraintBlock<T>
 where
-    T: ETLFlow,
+    T: ETLFlow<ImportType = PythonImport>,
 {
     type C = PythonBasedCodeBlock<T>;
     type BuilderInputType = PythonFlowBuilderInput;
@@ -80,7 +80,7 @@ where
 
 impl<'a, T> PythonBasedConstraintBlock<T>
 where
-    T: ETLFlow,
+    T: ETLFlow<ImportType = PythonImport>,
 {
     pub fn get_params(&self) -> HashMap<String, Option<ParameterTuple>> {
         self.members

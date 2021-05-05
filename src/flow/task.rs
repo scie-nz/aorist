@@ -1,4 +1,3 @@
-use crate::code::Import;
 use crate::dialect::Dialect;
 use crate::flow::etl_flow::ETLFlow;
 use crate::parameter_tuple::{ParameterTuple, ParameterTupleDedupKey};
@@ -9,7 +8,6 @@ pub trait TaskBase<T>
 where
     T: ETLFlow,
 {
-    type I: Import;
 }
 
 pub trait StandaloneTask<T>: TaskBase<T>
@@ -53,13 +51,12 @@ where
     fn get_preamble(&self) -> Option<String>;
     fn get_dialect(&self) -> Option<Dialect>;
     fn get_task_val(&self) -> AST;
-
 }
 pub trait ETLTask<T>: TaskBase<T>
 where
     T: ETLFlow,
     Self::S: StandaloneTask<T>,
-    Self::S: TaskBase<T, I = <Self as TaskBase<T>>::I>,
+    Self::S: TaskBase<T>,
 {
     type S;
 
@@ -75,17 +72,15 @@ where
 }
 pub trait UncompressiblePart<T>
 where
-    T: ETLFlow {
-    fn new(
-        task_id: String,
-        dict: String,
-        params: Option<ParameterTuple>,
-        deps: Vec<AST>,
-    ) -> Self;
+    T: ETLFlow,
+{
+    fn new(task_id: String, dict: String, params: Option<ParameterTuple>, deps: Vec<AST>) -> Self;
     fn as_dict(&self, dependencies_as_list: bool, insert_task_name: bool) -> AST;
 }
 pub trait ForLoopCompressedTask<T>
-where T: ETLFlow {
+where
+    T: ETLFlow,
+{
     type KeyType: CompressionKey;
     type UncompressiblePartType: UncompressiblePart<T>;
     fn new(
@@ -96,4 +91,3 @@ where T: ETLFlow {
         insert_task_name: bool,
     ) -> Self;
 }
-

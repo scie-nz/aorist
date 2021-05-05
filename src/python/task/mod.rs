@@ -12,14 +12,14 @@ use crate::python::{PythonImport, AST};
 
 pub enum PythonBasedTask<T>
 where
-    T: ETLFlow,
+    T: ETLFlow<ImportType = PythonImport>,
 {
     StandalonePythonBasedTask(StandalonePythonBasedTask<T>),
     ForLoopPythonBasedTask(ForLoopPythonBasedTask<T>),
 }
 impl<T> ETLTask<T> for PythonBasedTask<T>
 where
-    T: ETLFlow,
+    T: ETLFlow<ImportType = PythonImport>,
 {
     type S = StandalonePythonBasedTask<T>;
     fn standalone_task(task: Self::S) -> Self {
@@ -28,13 +28,13 @@ where
 }
 impl<T> CompressibleETLTask<T> for PythonBasedTask<T>
 where
-    T: ETLFlow,
+    T: ETLFlow<ImportType = PythonImport>,
 {
     type F = ForLoopPythonBasedTask<T>;
 }
 impl<T> PythonBasedTask<T>
 where
-    T: ETLFlow,
+    T: ETLFlow<ImportType = PythonImport>,
 {
     pub fn get_statements(
         &self,
@@ -50,9 +50,4 @@ where
         Self::ForLoopPythonBasedTask(task)
     }
 }
-impl<T> TaskBase<T> for PythonBasedTask<T>
-where
-    T: ETLFlow,
-{
-    type I = PythonImport;
-}
+impl<T> TaskBase<T> for PythonBasedTask<T> where T: ETLFlow<ImportType = PythonImport> {}
