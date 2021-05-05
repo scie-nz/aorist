@@ -82,4 +82,5 @@ where
         params: Option<ParameterTuple>,
         deps: Vec<AST>,
     ) -> Self;
+    fn as_dict(&self, dependencies_as_list: bool, insert_task_name: bool) -> AST;
 }

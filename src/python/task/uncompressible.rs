@@ -36,12 +36,7 @@ where T: ETLFlow {
             singleton_type: PhantomData,
         }
     }
-}
-impl<T> PythonBasedTaskUncompressiblePart<T>
-where
-    T: ETLFlow,
-{
-    pub fn as_python_dict(&self, dependencies_as_list: bool, insert_task_name: bool) -> AST {
+    fn as_dict(&self, dependencies_as_list: bool, insert_task_name: bool) -> AST {
         let mut local_params_map: LinkedHashMap<String, AST> = LinkedHashMap::new();
         if self.deps.len() > 0 {
             let dependencies = match dependencies_as_list {

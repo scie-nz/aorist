@@ -1,5 +1,5 @@
 use crate::endpoints::EndpointConfig;
-use crate::flow::{CompressionKey, ETLFlow};
+use crate::flow::{CompressionKey, ETLFlow, UncompressiblePart};
 use crate::python::task::key::PythonBasedTaskCompressionKey;
 use crate::python::task::uncompressible::PythonBasedTaskUncompressiblePart;
 use crate::python::{
@@ -55,7 +55,7 @@ where
                 .map(|x| {
                     (
                         x.dict.clone(),
-                        x.as_python_dict(dependencies_as_list, self.insert_task_name),
+                        x.as_dict(dependencies_as_list, self.insert_task_name),
                     )
                 })
                 .collect(),
