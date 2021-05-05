@@ -1,10 +1,12 @@
 mod code_block;
 mod constant_r_task;
+mod constraint_block;
 mod native_r_task;
 mod preamble;
 mod r_import;
 mod task;
 
+pub use constraint_block::RBasedConstraintBlock;
 pub use constant_r_task::ConstantRTask;
 pub use native_r_task::NativeRTask;
 pub use preamble::RPreamble;
