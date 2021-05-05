@@ -1,4 +1,4 @@
-use crate::flow::ETLFlow;
+use crate::flow::{ETLFlow, UncompressiblePart};
 use crate::parameter_tuple::ParameterTuple;
 use crate::python::{Dict, List, StringLiteral, AST};
 use linked_hash_map::LinkedHashMap;
@@ -20,12 +20,9 @@ where
     pub deps: Vec<AST>,
     singleton_type: PhantomData<T>,
 }
-
-impl<T> PythonBasedTaskUncompressiblePart<T>
-where
-    T: ETLFlow,
-{
-    pub fn new(
+impl<T> UncompressiblePart<T> for PythonBasedTaskUncompressiblePart<T>
+where T: ETLFlow {
+    fn new(
         task_id: String,
         dict: String,
         params: Option<ParameterTuple>,
@@ -39,6 +36,11 @@ where
             singleton_type: PhantomData,
         }
     }
+}
+impl<T> PythonBasedTaskUncompressiblePart<T>
+where
+    T: ETLFlow,
+{
     pub fn as_python_dict(&self, dependencies_as_list: bool, insert_task_name: bool) -> AST {
         let mut local_params_map: LinkedHashMap<String, AST> = LinkedHashMap::new();
         if self.deps.len() > 0 {

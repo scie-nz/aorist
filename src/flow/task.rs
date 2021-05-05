@@ -73,3 +73,13 @@ where
 {
     type F;
 }
+pub trait UncompressiblePart<T>
+where
+    T: ETLFlow {
+    fn new(
+        task_id: String,
+        dict: String,
+        params: Option<ParameterTuple>,
+        deps: Vec<AST>,
+    ) -> Self;
+}

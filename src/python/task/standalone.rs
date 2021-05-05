@@ -1,6 +1,6 @@
 use crate::dialect::Dialect;
 use crate::endpoints::EndpointConfig;
-use crate::flow::{CompressibleTask, CompressionKey, ETLFlow, StandaloneTask, TaskBase};
+use crate::flow::{CompressibleTask, CompressionKey, ETLFlow, StandaloneTask, TaskBase, UncompressiblePart};
 use crate::parameter_tuple::ParameterTuple;
 use crate::python::task::key::PythonBasedTaskCompressionKey;
 use crate::python::task::uncompressible::PythonBasedTaskUncompressiblePart;
