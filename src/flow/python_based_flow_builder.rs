@@ -34,7 +34,7 @@ where
             .flatten()
             .collect::<LinkedHashSet<PythonPreamble>>();
 
-        let preamble_imports: Vec<PythonImport> = self.get_preamble_imports(&preambles);
+        let preamble_imports: Vec<PythonImport> = Self::get_preamble_imports(&preambles);
 
         let imports = statements_and_preambles
             .iter()
@@ -152,13 +152,6 @@ where
     ) -> Vec<(String, Vec<&'a PyAny>)>;
     fn get_flow_imports(&self) -> Vec<PythonImport>;
 
-    fn get_preamble_imports(&self, preambles: &LinkedHashSet<PythonPreamble>) -> Vec<PythonImport> {
-        preambles
-            .iter()
-            .map(|x| x.get_imports().into_iter())
-            .flatten()
-            .collect()
-    }
     fn build_file(&self, sources: Vec<(Option<String>, String)>) -> PyResult<String> {
         format_code(
             sources
@@ -170,5 +163,12 @@ where
                 .collect::<Vec<String>>()
                 .join(""),
         )
+    }
+    fn get_preamble_imports(preambles: &LinkedHashSet<PythonPreamble>) -> Vec<PythonImport> {
+        preambles
+            .iter()
+            .map(|x| x.get_imports().into_iter())
+            .flatten()
+            .collect()
     }
 }
