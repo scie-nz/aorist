@@ -15,6 +15,7 @@ use std::sync::{Arc, RwLock};
 
 register_task_nodes! {
     PythonTask,
+    PythonImport,
     BashPythonTask,
     RPythonTask,
     NativePythonTask,

@@ -184,7 +184,7 @@ macro_rules! define_task_node {
 }
 #[macro_export]
 macro_rules! register_task_nodes {
-    ($name:ident, $($variant: ident,)+) => {
+    ($name:ident, $import_type: ty, $($variant: ident,)+) => {
 
         #[derive(Clone)]
         pub enum $name {
@@ -193,7 +193,7 @@ macro_rules! register_task_nodes {
             )+
         }
         impl $name {
-            pub fn get_imports(&self) -> Vec<PythonImport>{
+            pub fn get_imports(&self) -> Vec<$import_type>{
                 match &self {
                     $(
                         Self::$variant(x) => x.read().unwrap().get_imports(),

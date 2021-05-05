@@ -15,6 +15,7 @@ use std::sync::{Arc, RwLock};
 
 register_task_nodes! {
     PrefectTask,
+    PythonImport,
     // This is the same as calling R from native Python
     RPythonTask,
 }
