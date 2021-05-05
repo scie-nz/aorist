@@ -1,7 +1,7 @@
 use crate::dialect::Dialect;
 use crate::endpoints::EndpointConfig;
 use crate::flow::etl_flow::ETLFlow;
-use crate::flow::python_based_flow::PythonBasedFlow;
+use crate::flow::python_based_flow::{FlowBase, PythonBasedFlow};
 use crate::python::{
     BashPythonTask, Call, ConstantPythonTask, Expression, Formatted, NativePythonTask,
     PrestoPythonTask, PythonImport, RPythonTask, SimpleIdentifier, StringLiteral, AST,
@@ -141,11 +141,13 @@ impl ETLFlow for NativePythonBasedFlow {
     }
 }
 pub struct PythonDAG {}
-impl PythonBasedFlow for PythonDAG {
+impl FlowBase for PythonDAG {
     type T = NativePythonBasedFlow;
     fn new() -> Self {
         Self {}
     }
+}
+impl PythonBasedFlow for PythonDAG {
     fn get_flow_imports(&self) -> Vec<PythonImport> {
         Vec::new()
     }

@@ -1,7 +1,7 @@
 use crate::dialect::Dialect;
 use crate::endpoints::EndpointConfig;
 use crate::flow::etl_flow::ETLFlow;
-use crate::flow::python_based_flow::PythonBasedFlow;
+use crate::flow::python_based_flow::{FlowBase, PythonBasedFlow};
 use crate::python::{
     Assignment, Attribute, BigIntLiteral, BooleanLiteral, Call, Dict, Expression, Formatted, List,
     None, PythonImport, SimpleIdentifier, StringLiteral, AST,
@@ -199,12 +199,13 @@ impl ETLFlow for AirflowPythonBasedFlow {
 }
 
 pub struct AirflowDAG {}
-impl PythonBasedFlow for AirflowDAG {
+impl FlowBase for AirflowDAG {
     type T = AirflowPythonBasedFlow;
-
     fn new() -> Self {
         Self {}
     }
+}
+impl PythonBasedFlow for AirflowDAG {
     /// Takes a set of statements and mutates them so as make a valid ETL flow
     fn build_flow<'a>(
         &self,

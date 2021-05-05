@@ -7,7 +7,7 @@ use crate::constraint_state::{AncestorRecord, ConstraintState};
 use crate::data_setup::Universe;
 use crate::dialect::{Bash, Dialect, Presto, Python};
 use crate::endpoints::EndpointConfig;
-use crate::flow::PythonBasedFlow;
+use crate::flow::{PythonBasedFlow, FlowBase};
 use crate::object::TAoristObject;
 use crate::parameter_tuple::ParameterTuple;
 use crate::python::{SimpleIdentifier, AST};
@@ -31,11 +31,12 @@ type ConstraintsBlockMap<'a> = LinkedHashMap<
 
 pub trait Driver<'a, D>
 where
+    D: FlowBase,
     D: PythonBasedFlow,
-    <D as PythonBasedFlow>::T: 'a,
+    <D as FlowBase>::T: 'a,
     Self::CB: 'a,
 {
-    type CB: ConstraintBlock<'a, <D as PythonBasedFlow>::T>;
+    type CB: ConstraintBlock<'a, <D as FlowBase>::T>;
 
     fn get_relevant_builders(
         topline_constraint_names: &LinkedHashSet<String>,
@@ -540,7 +541,7 @@ where
         unsatisfied_constraints: &ConstraintsBlockMap<'a>,
         identifiers: &HashMap<Uuid, AST>,
     ) -> Result<(
-        Vec<<Self::CB as ConstraintBlock<'a, <D as PythonBasedFlow>::T>>::C>,
+        Vec<<Self::CB as ConstraintBlock<'a, <D as FlowBase>::T>>::C>,
         Option<AST>,
     )> {
         let tasks_dict = Self::init_tasks_dict(block, constraint_name.clone());
@@ -565,7 +566,7 @@ where
                 .push(state.clone());
         }
         for (_dialect, satisfied) in by_dialect.into_iter() {
-            let block = <Self::CB as ConstraintBlock<'a, <D as PythonBasedFlow>::T>>::C::new(
+            let block = <Self::CB as ConstraintBlock<'a, <D as FlowBase>::T>>::C::new(
                 satisfied,
                 constraint_name.clone(),
                 tasks_dict.clone(),
@@ -821,7 +822,7 @@ where
 
 pub struct PythonBasedDriver<'a, D>
 where
-    D: PythonBasedFlow,
+    D: FlowBase
 {
     pub concepts: Arc<RwLock<HashMap<(Uuid, String), Concept<'a>>>>,
     constraints: LinkedHashMap<(Uuid, String), Arc<RwLock<Constraint>>>,
@@ -838,7 +839,8 @@ where
 impl<'a, D> Driver<'a, D> for PythonBasedDriver<'a, D>
 where
     D: PythonBasedFlow,
-    <D as PythonBasedFlow>::T: 'a,
+    D: FlowBase,
+    <D as FlowBase>::T: 'a,
 {
     type CB = PythonBasedConstraintBlock<D::T>;
 
@@ -873,7 +875,7 @@ where
     }
     fn add_block(
         &mut self,
-        constraint_block: PythonBasedConstraintBlock<<D as PythonBasedFlow>::T>,
+        constraint_block: PythonBasedConstraintBlock<<D as FlowBase>::T>,
     ) {
         self.blocks.push(constraint_block);
     }

@@ -10,15 +10,18 @@ use pyo3::types::{PyModule, PyString};
 use std::collections::{BTreeMap, BTreeSet};
 use std::sync::{Arc, RwLock};
 
+pub trait FlowBase
+where Self: Sized {
+    type T: ETLFlow;
+    fn new() -> Self;
+}
+
 /// Encapsulates all the necessary bits for the construction of a DAG written in
 /// Python.
-pub trait PythonBasedFlow
+pub trait PythonBasedFlow: FlowBase
 where
     Self: Sized,
 {
-    type T: ETLFlow;
-
-    fn new() -> Self;
     fn build_flow<'a>(
         &self,
         py: Python<'a>,
