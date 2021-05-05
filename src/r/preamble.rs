@@ -56,6 +56,9 @@ impl<'a> RPreamble {
             body: body_no_imports.as_str().unwrap().to_string(),
         }
     }
+    pub fn get_body(&self) -> String {
+        self.body.clone()
+    }
 }
 
 #[allow(unused_imports)]

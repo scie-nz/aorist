@@ -7,6 +7,7 @@ mod native_python_based_flow;
 mod native_r_based_flow;
 mod prefect_python_based_flow;
 mod python_based_flow_builder;
+mod r_based_flow_builder;
 mod task;
 
 pub use airflow_python_based_flow::*;
@@ -18,4 +19,5 @@ pub use native_python_based_flow::*;
 pub use native_r_based_flow::*;
 pub use prefect_python_based_flow::*;
 pub use python_based_flow_builder::*;
+pub use r_based_flow_builder::*;
 pub use task::*;
