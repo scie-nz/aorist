@@ -1,9 +1,10 @@
 use crate::dialect::Dialect;
 use crate::endpoints::EndpointConfig;
-use crate::flow::{ETLFlow, ETLTask, StandaloneTask, TaskBase};
+use crate::flow::{ETLFlow, ETLTask, StandaloneTask, TaskBase, CompressibleTask, CompressionKey};
 use crate::parameter_tuple::ParameterTuple;
 use crate::python::{AST, List, StringLiteral};
 use crate::r::RImport;
+use crate::r::task::RBasedTaskCompressionKey;
 use std::hash::Hash;
 use linked_hash_map::LinkedHashMap;
 use std::marker::PhantomData;
@@ -128,5 +129,63 @@ where T: ETLFlow<ImportType=RImport> {
         match &self {
             RBasedTask::StandaloneRBasedTask(x) => x.get_statements(endpoints),
         }
+    }
+}
+impl<T> CompressibleTask for StandaloneRBasedTask<T>
+where
+    T: ETLFlow,
+{
+    type KeyType = RBasedTaskCompressionKey;
+    /// only return true for compressible tasks, i.e. those that have a
+    /// dict task val (in the future more stuff could be added here)
+    fn is_compressible(&self) -> bool {
+        match &self.task_val {
+            AST::Subscript(_) => true,
+            _ => false,
+        }
+    }
+    fn get_compression_key(&self) -> Result<RBasedTaskCompressionKey, String> {
+        Ok(RBasedTaskCompressionKey::new(
+            self.get_left_of_task_val()?,
+            self.call.clone(),
+            match &self.params {
+                Some(p) => Some(p.get_dedup_key()),
+                None => None,
+            },
+            self.preamble.clone(),
+            self.dialect.clone(),
+        ))
+    }
+    fn get_left_of_task_val(&self) -> Result<AST, String> {
+        match &self.task_val {
+            AST::Subscript(x) => {
+                let rw = x.read().unwrap();
+                Ok(rw.a().clone())
+            }
+            _ => Err("Task val must be a subscript".to_string()),
+        }
+    }
+    fn get_right_of_task_val(&self) -> Result<String, String> {
+        match &self.task_val {
+            AST::Subscript(x) => {
+                let rw = x.read().unwrap();
+                match &rw.b() {
+                    AST::StringLiteral(l) => Ok(l.read().unwrap().value().clone()),
+                    _ => Err("Right of subscript must be a string
+                    literal"
+                        .to_string()),
+                }
+            }
+            _ => Err("Task val must be a subscript".to_string()),
+        }
+    }
+    fn get_preamble(&self) -> Option<String> {
+        self.preamble.clone()
+    }
+    fn get_dialect(&self) -> Option<Dialect> {
+        self.dialect.clone()
+    }
+    fn get_task_val(&self) -> AST {
+        self.task_val.clone()
     }
 }
