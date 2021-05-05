@@ -130,6 +130,10 @@ def extend_jupyter(code):
         let inner = self.clone();
         dag(inner, vec![constraint], "python")
     }
+    pub fn r(&self, constraint: String) -> PyResult<String> {
+        let inner = self.clone();
+        dag(inner, vec![constraint], "r")
+    }
     pub fn airflow(&self, constraint: String) -> PyResult<String> {
         let inner = self.clone();
         dag(inner, vec![constraint], "airflow")
