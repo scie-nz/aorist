@@ -90,12 +90,6 @@ where
             self.dialect.clone(),
         ))
     }
-}
-
-impl<T> StandalonePythonBasedTask<T>
-where
-    T: ETLFlow,
-{
     fn get_left_of_task_val(&self) -> Result<AST, String> {
         match &self.task_val {
             AST::Subscript(x) => {
@@ -119,14 +113,6 @@ where
             _ => Err("Task val must be a subscript".to_string()),
         }
     }
-    pub fn get_uncompressible_part(&self) -> Result<PythonBasedTaskUncompressiblePart<T>, String> {
-        Ok(PythonBasedTaskUncompressiblePart::new(
-            self.task_id.clone(),
-            self.get_right_of_task_val()?,
-            self.params.clone(),
-            self.dependencies.clone(),
-        ))
-    }
     fn get_preamble(&self) -> Option<String> {
         self.preamble.clone()
     }
@@ -135,6 +121,20 @@ where
     }
     fn get_task_val(&self) -> AST {
         self.task_val.clone()
+    }
+}
+
+impl<T> StandalonePythonBasedTask<T>
+where
+    T: ETLFlow,
+{
+    pub fn get_uncompressible_part(&self) -> Result<PythonBasedTaskUncompressiblePart<T>, String> {
+        Ok(PythonBasedTaskUncompressiblePart::new(
+            self.task_id.clone(),
+            self.get_right_of_task_val()?,
+            self.params.clone(),
+            self.dependencies.clone(),
+        ))
     }
     pub fn get_statements(
         &self,

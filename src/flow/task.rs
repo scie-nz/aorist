@@ -48,6 +48,12 @@ where
     type KeyType;
     fn is_compressible(&self) -> bool;
     fn get_compression_key(&self) -> Result<Self::KeyType, String>;
+    fn get_left_of_task_val(&self) -> Result<AST, String>;
+    fn get_right_of_task_val(&self) -> Result<String, String>;
+    fn get_preamble(&self) -> Option<String>;
+    fn get_dialect(&self) -> Option<Dialect>;
+    fn get_task_val(&self) -> AST;
+
 }
 pub trait ETLTask<T>: TaskBase<T>
 where
