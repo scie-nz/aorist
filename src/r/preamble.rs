@@ -47,12 +47,10 @@ impl<'a> RPreamble {
         let body_no_imports = res.index(1).unwrap();
         let libraries = res.index(2).unwrap();
         Self {
-            libraries: libraries
-                .as_string_vector()
-                .unwrap()
-                .into_iter()
-                .map(|x| RImport::new(x))
-                .collect(),
+            libraries: match libraries.as_string_vector() {
+                Some(v) => v.into_iter().map(|x| RImport::new(x)).collect(),
+                None => Vec::new(),
+            },
             body: body_no_imports.as_str().unwrap().to_string(),
         }
     }

@@ -1,12 +1,12 @@
 use crate::endpoints::EndpointConfig;
 use crate::flow::{CompressionKey, ETLFlow, ForLoopCompressedTask, TaskBase, UncompressiblePart};
+use crate::python::{
+    Add, Assignment, Attribute, BigIntLiteral, BinOp, Call, Dict, ForLoop, List, SimpleIdentifier,
+    StringLiteral, Subscript, Tuple, AST,
+};
+use crate::r::r_import::RImport;
 use crate::r::task::key::RBasedTaskCompressionKey;
 use crate::r::task::uncompressible::RBasedTaskUncompressiblePart;
-use crate::r::r_import::RImport;
-use crate::python::{
-    Add, Assignment, Attribute, BigIntLiteral, BinOp, Call, Dict, ForLoop, List,
-    SimpleIdentifier, StringLiteral, Subscript, Tuple, AST,
-};
 use linked_hash_map::LinkedHashMap;
 use std::hash::Hash;
 use std::marker::PhantomData;

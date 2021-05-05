@@ -1,7 +1,7 @@
 use crate::dialect::Dialect;
 use crate::endpoints::EndpointConfig;
 use crate::flow::etl_flow::ETLFlow;
-use crate::python::{Call, Expression, SimpleIdentifier, StringLiteral, AST};
+use crate::python::{Call, Expression, StringLiteral, AST};
 use crate::r::{ConstantRTask, NativeRTask, RImport, RPreamble};
 use aorist_primitives::register_task_nodes;
 use linked_hash_map::LinkedHashMap;
@@ -70,8 +70,8 @@ impl ETLFlow for NativeRBasedFlow {
     ) -> Self {
         let command = match &dialect {
             Some(Dialect::R(_)) => AST::Call(Call::new_wrapped(
-                AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
-                    call.as_ref().unwrap().clone(),
+                AST::StringLiteral(StringLiteral::new_wrapped(
+                    call.as_ref().unwrap().clone(), false,
                 )),
                 args.clone(),
                 kwargs.clone(),

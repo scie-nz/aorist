@@ -10,10 +10,10 @@ use crate::endpoints::EndpointConfig;
 use crate::flow::{ETLFlow, FlowBuilderBase, FlowBuilderMaterialize};
 use crate::object::TAoristObject;
 use crate::parameter_tuple::ParameterTuple;
-use crate::r::{RBasedConstraintBlock, RFlowBuilderInput, RImport};
 use crate::python::{
     PythonBasedConstraintBlock, PythonFlowBuilderInput, PythonImport, SimpleIdentifier, AST,
 };
+use crate::r::{RBasedConstraintBlock, RFlowBuilderInput, RImport};
 use anyhow::Result;
 use inflector::cases::snakecase::to_snake_case;
 use linked_hash_map::LinkedHashMap;
@@ -965,9 +965,7 @@ where
         self.constraints.get(uuid).unwrap().clone()
     }
     fn get_preferences(&self) -> Vec<Dialect> {
-        vec![
-            Dialect::R(R {}),
-        ]
+        vec![Dialect::R(R {})]
     }
 
     fn get_endpoints<'b>(&'b self) -> &'b EndpointConfig
@@ -995,10 +993,7 @@ where
             self.topline_constraint_names.clone(),
         )
     }
-    fn add_block(
-        &mut self,
-        constraint_block: RBasedConstraintBlock<<D as FlowBuilderBase>::T>,
-    ) {
+    fn add_block(&mut self, constraint_block: RBasedConstraintBlock<<D as FlowBuilderBase>::T>) {
         self.blocks.push(constraint_block);
     }
     fn get_constraint_explanation(

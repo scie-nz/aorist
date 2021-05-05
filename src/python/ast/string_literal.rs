@@ -96,7 +96,7 @@ impl StringLiteral {
             false => self.value.clone(),
             true => self.pretty_sql_value(depth),
         };
-        Robj::from(value)
+        Robj::from(vec![&*value])
     }
 
     pub fn new_wrapped(value: String, is_sql: bool) -> Arc<RwLock<Self>> {

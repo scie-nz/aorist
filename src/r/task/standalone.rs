@@ -1,12 +1,14 @@
 use crate::dialect::Dialect;
 use crate::endpoints::EndpointConfig;
-use crate::flow::{ETLFlow, StandaloneTask, TaskBase, CompressibleTask, CompressionKey, UncompressiblePart};
+use crate::flow::{
+    CompressibleTask, CompressionKey, ETLFlow, StandaloneTask, TaskBase, UncompressiblePart,
+};
 use crate::parameter_tuple::ParameterTuple;
-use crate::python::{AST, List, StringLiteral};
-use crate::r::RImport;
+use crate::python::{List, StringLiteral, AST};
 use crate::r::task::{RBasedTaskCompressionKey, RBasedTaskUncompressiblePart};
-use std::hash::Hash;
+use crate::r::RImport;
 use linked_hash_map::LinkedHashMap;
+use std::hash::Hash;
 use std::marker::PhantomData;
 
 #[derive(Clone, Hash, PartialEq, Eq)]
@@ -31,7 +33,9 @@ where
     singleton_type: PhantomData<T>,
 }
 impl<T> StandaloneRBasedTask<T>
-where T: ETLFlow<ImportType=RImport> {
+where
+    T: ETLFlow<ImportType = RImport>,
+{
     // TODO: move to trait
     pub fn get_uncompressible_part(&self) -> Result<RBasedTaskUncompressiblePart<T>, String> {
         Ok(RBasedTaskUncompressiblePart::new(

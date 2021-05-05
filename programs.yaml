@@ -250,6 +250,56 @@ spec:
 ---
 type: Program
 spec:
+  use: DownloadDataFromRemoteWebLocation
+  root: WebLocation
+  dialect: R
+  preamble: |
+    download_data_from_remote_web_location <- function(src_url, tmp_dir, dest_file_name, table_name, dataset_name) {
+        print('a')
+    }
+  call: download_data_from_remote_web_location
+  kwargs:
+    dataset_name:
+      type: AncestorArgument
+      spec:
+        attaches: DataSet
+        call: data_set.name.clone()
+    table_name:
+      type: AncestorArgument
+      spec:
+        call: static_data_table.name
+        attaches: StaticDataTable
+    src_url:
+      type: AncestorArgument
+      spec:
+        call: web_location.address
+        attaches: WebLocation
+        name: address
+    tmp_dir:
+      type: AncestorArgument
+      spec:
+        call: replication_storage_setup.tmp_dir
+        attaches: ReplicationStorageSetup
+        name: tmp_dir
+    dest_file_name:
+      type: AncestorArgument
+      spec:
+        call: |
+          {
+            format!(
+                "{}.{}",
+                static_data_table.name,
+                match static_data_table.setup {
+                     StorageSetup::ReplicationStorageSetup(ref x) => x.get_download_extension(),
+                     _ => panic!("Storage setup must be ReplicationStorageSetup"),
+                }
+            ).to_string()
+          }
+        attaches: StaticDataTable
+        name: file_name
+---
+type: Program
+spec:
   use: DownloadDataFromRemotePushshiftAPILocationToNewlineDelimitedJSON
   root: PushshiftAPILocation
   pip_requires:

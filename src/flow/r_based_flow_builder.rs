@@ -3,6 +3,7 @@ use crate::flow::flow_builder_input::FlowBuilderInput;
 use crate::flow::native_r_based_flow::NativeRBasedFlow;
 use crate::python::AST;
 use crate::r::{RFlowBuilderInput, RPreamble};
+use extendr_api::prelude::*;
 use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
 use std::collections::BTreeSet;
@@ -13,7 +14,6 @@ pub enum RFlowBuilderError {
     #[error("{0}")]
     Generic(String),
 }
-
 
 pub struct RBasedFlowBuilder {}
 impl RBasedFlowBuilder {
@@ -46,10 +46,7 @@ impl RBasedFlowBuilder {
             .collect()
     }
 
-    fn build_file(
-        &self,
-        sources: Vec<(Option<String>, String)>,
-    ) -> String {
+    fn build_file(&self, sources: Vec<(Option<String>, String)>) -> String {
         sources
             .into_iter()
             .map(|(maybe_comment, block)| match maybe_comment {
@@ -91,7 +88,10 @@ impl FlowBuilderMaterialize for RBasedFlowBuilder {
             .chain(preamble_imports)
             .collect::<BTreeSet<_>>();
 
-        let imports_ast: Vec<_> = imports.into_iter().map(|x| x.to_r_ast_node(0).as_str().unwrap().to_string()).collect();
+        let imports_ast: Vec<_> = imports
+            .into_iter()
+            .map(|x| x.to_r_ast_node(0).as_str().unwrap().to_string())
+            .collect();
 
         let statements: Vec<(String, Option<String>, Option<String>, Vec<AST>)> =
             statements_and_preambles
@@ -139,7 +139,10 @@ impl FlowBuilderMaterialize for RBasedFlowBuilder {
                     title,
                     body,
                     x.into_iter()
-                        .map(|y| y.to_r_ast_node(0).as_str().unwrap().to_string())
+                        .map(|y| {
+                            let deparsed = call!("deparse", y.to_r_ast_node(0)).unwrap();
+                            Vec::<String>::from_robj(&deparsed).unwrap().join("\n")
+                        })
                         .collect(),
                 )
             })

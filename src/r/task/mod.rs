@@ -1,6 +1,6 @@
 use crate::endpoints::EndpointConfig;
-use crate::flow::{ETLFlow, TaskBase, ETLTask, CompressibleETLTask};
-use crate::python::{AST};
+use crate::flow::{CompressibleETLTask, ETLFlow, ETLTask, TaskBase};
+use crate::python::AST;
 use crate::r::r_import::RImport;
 
 mod compressed;
@@ -15,7 +15,7 @@ pub use uncompressible::*;
 
 pub enum RBasedTask<T>
 where
-    T: ETLFlow<ImportType=RImport>,
+    T: ETLFlow<ImportType = RImport>,
 {
     StandaloneRBasedTask(StandaloneRBasedTask<T>),
     ForLoopRBasedTask(ForLoopRBasedTask<T>),
@@ -31,7 +31,9 @@ where
 }
 impl<T> TaskBase<T> for RBasedTask<T> where T: ETLFlow<ImportType = RImport> {}
 impl<T> RBasedTask<T>
-where T: ETLFlow<ImportType=RImport> {
+where
+    T: ETLFlow<ImportType = RImport>,
+{
     pub fn get_statements(
         &self,
         endpoints: &EndpointConfig,

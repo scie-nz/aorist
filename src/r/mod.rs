@@ -6,8 +6,8 @@ mod preamble;
 mod r_import;
 mod task;
 
-pub use constraint_block::RBasedConstraintBlock;
 pub use constant_r_task::ConstantRTask;
+pub use constraint_block::RBasedConstraintBlock;
 pub use native_r_task::NativeRTask;
 pub use preamble::RPreamble;
 pub use r_import::RImport;
