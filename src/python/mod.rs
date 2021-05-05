@@ -4,6 +4,7 @@ mod preamble;
 mod python_import;
 mod task;
 
+use crate::flow::FlowBuilderInput;
 use linked_hash_set::LinkedHashSet;
 use pyo3::prelude::*;
 use pyo3::types::{IntoPyDict, PyString, PyTuple};
@@ -19,23 +20,6 @@ pub use code_block::PythonBasedCodeBlock;
 pub use preamble::PythonPreamble;
 pub use python_import::PythonImport;
 pub use task::{ForLoopPythonBasedTask, PythonBasedTask, StandalonePythonBasedTask};
-
-pub trait FlowBuilderInput {
-    fn new(
-        statements: Vec<AST>,
-        preambles: LinkedHashSet<PythonPreamble>,
-        imports: BTreeSet<PythonImport>,
-        constraint_name: String,
-        constraint_title: Option<String>,
-        constraint_body: Option<String>,
-    ) -> Self;
-    fn get_statements(&self) -> Vec<AST>;
-    fn get_preambles(&self) -> LinkedHashSet<PythonPreamble>;
-    fn get_imports(&self) -> BTreeSet<PythonImport>;
-    fn get_constraint_name(&self) -> String;
-    fn get_constraint_title(&self) -> Option<String>;
-    fn get_constraint_body(&self) -> Option<String>;
-}
 
 /// Wrapper type for stuff that gets passed around when building Python
 /// statements:
