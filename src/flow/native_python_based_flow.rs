@@ -142,14 +142,14 @@ impl ETLFlow for NativePythonBasedFlow {
         "python".to_string()
     }
 }
-pub struct PythonDAG {}
-impl FlowBuilderBase for PythonDAG {
+pub struct PythonFlowBuilder {}
+impl FlowBuilderBase for PythonFlowBuilder {
     type T = NativePythonBasedFlow;
     fn new() -> Self {
         Self {}
     }
 }
-impl PythonBasedFlow for PythonDAG {
+impl PythonBasedFlow for PythonFlowBuilder {
     fn get_flow_imports(&self) -> Vec<PythonImport> {
         Vec::new()
     }

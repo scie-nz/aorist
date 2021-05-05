@@ -199,14 +199,14 @@ impl ETLFlow for AirflowPythonBasedFlow {
     }
 }
 
-pub struct AirflowDAG {}
-impl FlowBuilderBase for AirflowDAG {
+pub struct AirflowFlowBuilder {}
+impl FlowBuilderBase for AirflowFlowBuilder {
     type T = AirflowPythonBasedFlow;
     fn new() -> Self {
         Self {}
     }
 }
-impl PythonBasedFlow for AirflowDAG {
+impl PythonBasedFlow for AirflowFlowBuilder {
     /// Takes a set of statements and mutates them so as make a valid ETL flow
     fn build_flow<'a>(
         &self,
@@ -296,7 +296,7 @@ impl PythonBasedFlow for AirflowDAG {
             )),
         );
         let dag_call = AST::Call(Call::new_wrapped(
-            AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("DAG".to_string())),
+            AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("FlowBuilder".to_string())),
             vec![AST::StringLiteral(StringLiteral::new_wrapped(
                 "flow".to_string(),
                 false,
@@ -310,7 +310,7 @@ impl PythonBasedFlow for AirflowDAG {
         statements.insert(
             0,
             (
-                "Setting up Airflow DAG".to_string(),
+                "Setting up Airflow FlowBuilder".to_string(),
                 None,
                 None,
                 vec![
@@ -347,7 +347,7 @@ impl PythonBasedFlow for AirflowDAG {
     }
     fn get_flow_imports(&self) -> Vec<PythonImport> {
         vec![
-            PythonImport::PythonFromImport("airflow".to_string(), "DAG".to_string(), None),
+            PythonImport::PythonFromImport("airflow".to_string(), "FlowBuilder".to_string(), None),
             PythonImport::PythonFromImport("datetime".to_string(), "datetime".to_string(), None),
         ]
     }

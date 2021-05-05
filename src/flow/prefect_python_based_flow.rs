@@ -222,10 +222,10 @@ impl PrefectPythonBasedFlow {
         AST::Expression(Expression::new_wrapped(add_expr))
     }
 }
-pub struct PrefectDAG {
+pub struct PrefectFlowBuilder {
     flow_identifier: AST,
 }
-impl FlowBuilderBase for PrefectDAG {
+impl FlowBuilderBase for PrefectFlowBuilder {
     type T = PrefectPythonBasedFlow;
     fn new() -> Self {
         Self {
@@ -235,7 +235,7 @@ impl FlowBuilderBase for PrefectDAG {
         }
     }
 }
-impl PythonBasedFlow for PrefectDAG {
+impl PythonBasedFlow for PrefectFlowBuilder {
     fn get_flow_imports(&self) -> Vec<PythonImport> {
         Vec::new()
     }

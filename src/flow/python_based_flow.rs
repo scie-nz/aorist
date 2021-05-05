@@ -164,7 +164,7 @@ where
     }
 }
 
-/// Encapsulates all the necessary bits for the construction of a DAG written in
+/// Encapsulates all the necessary bits for the construction of a FlowBuilder written in
 /// Python.
 pub trait PythonBasedFlow: FlowBuilderBase
 where

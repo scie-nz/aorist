@@ -5,14 +5,14 @@ use pyo3::prelude::*;
 use pyo3::types::PyModule;
 use serde_json::json;
 
-pub struct JupyterDAG {}
-impl FlowBuilderBase for JupyterDAG {
+pub struct JupyterFlowBuilder {}
+impl FlowBuilderBase for JupyterFlowBuilder {
     type T = NativePythonBasedFlow;
     fn new() -> Self {
         Self {}
     }
 }
-impl PythonBasedFlow for JupyterDAG {
+impl PythonBasedFlow for JupyterFlowBuilder {
     fn get_flow_imports(&self) -> Vec<PythonImport> {
         Vec::new()
     }

@@ -165,26 +165,30 @@ pub fn dag(inner: InnerUniverse, constraints: Vec<String>, mode: &str) -> PyResu
     let mut universe = Universe::from(inner);
     universe.compute_uuids();
     let (output, _requirements) = match mode {
-        "airflow" => {
-            PythonBasedDriver::<AirflowDAG>::new(&universe, constraints.into_iter().collect())
-                .map_err(|e| pyo3::exceptions::PyException::new_err(e.to_string()))?
-                .run()
-        }
-        "prefect" => {
-            PythonBasedDriver::<PrefectDAG>::new(&universe, constraints.into_iter().collect())
-                .map_err(|e| pyo3::exceptions::PyException::new_err(e.to_string()))?
-                .run()
-        }
-        "python" => {
-            PythonBasedDriver::<PythonDAG>::new(&universe, constraints.into_iter().collect())
-                .map_err(|e| pyo3::exceptions::PyException::new_err(e.to_string()))?
-                .run()
-        }
-        "jupyter" => {
-            PythonBasedDriver::<JupyterDAG>::new(&universe, constraints.into_iter().collect())
-                .map_err(|e| pyo3::exceptions::PyException::new_err(e.to_string()))?
-                .run()
-        }
+        "airflow" => PythonBasedDriver::<AirflowFlowBuilder>::new(
+            &universe,
+            constraints.into_iter().collect(),
+        )
+        .map_err(|e| pyo3::exceptions::PyException::new_err(e.to_string()))?
+        .run(),
+        "prefect" => PythonBasedDriver::<PrefectFlowBuilder>::new(
+            &universe,
+            constraints.into_iter().collect(),
+        )
+        .map_err(|e| pyo3::exceptions::PyException::new_err(e.to_string()))?
+        .run(),
+        "python" => PythonBasedDriver::<PythonFlowBuilder>::new(
+            &universe,
+            constraints.into_iter().collect(),
+        )
+        .map_err(|e| pyo3::exceptions::PyException::new_err(e.to_string()))?
+        .run(),
+        "jupyter" => PythonBasedDriver::<JupyterFlowBuilder>::new(
+            &universe,
+            constraints.into_iter().collect(),
+        )
+        .map_err(|e| pyo3::exceptions::PyException::new_err(e.to_string()))?
+        .run(),
         _ => panic!("Unknown mode provided: {}", mode),
     }
     .map_err(|e| pyo3::exceptions::PyException::new_err(e.to_string()))?;
