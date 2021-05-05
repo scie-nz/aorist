@@ -12,6 +12,13 @@ pub struct PythonPreamble {
 }
 impl Preamble for PythonPreamble {
     type ImportType = PythonImport;
+    fn get_imports(&self) -> Vec<Self::ImportType> {
+        self.imports
+            .clone()
+            .into_iter()
+            .chain(self.from_imports.clone().into_iter())
+            .collect()
+    }
 }
 impl<'a> PythonPreamble {
     pub fn new(body: String, py: Python<'a>) -> PythonPreamble {

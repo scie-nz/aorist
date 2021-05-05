@@ -10,6 +10,9 @@ pub struct RPreamble {
 }
 impl Preamble for RPreamble {
     type ImportType = RImport;
+    fn get_imports(&self) -> Vec<Self::ImportType> {
+        self.libraries.clone()
+    }
 }
 impl<'a> RPreamble {
     // Assumes R has already been started

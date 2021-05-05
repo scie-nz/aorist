@@ -6,4 +6,5 @@ where
     Self::ImportType: Import,
 {
     type ImportType;
+    fn get_imports(&self) -> Vec<Self::ImportType>;
 }

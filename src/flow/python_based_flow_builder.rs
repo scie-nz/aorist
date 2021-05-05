@@ -1,3 +1,4 @@
+use crate::code::Preamble;
 use crate::flow::flow_builder::{FlowBuilderBase, FlowBuilderMaterialize};
 use crate::flow::flow_builder_input::FlowBuilderInput;
 use crate::python::{format_code, PythonFlowBuilderInput, PythonImport, PythonPreamble, AST};
@@ -152,23 +153,11 @@ where
     fn get_flow_imports(&self) -> Vec<PythonImport>;
 
     fn get_preamble_imports(&self, preambles: &LinkedHashSet<PythonPreamble>) -> Vec<PythonImport> {
-        let preamble_module_imports = preambles
+        preambles
             .iter()
-            .map(|x| x.imports.clone().into_iter())
+            .map(|x| x.get_imports().into_iter())
             .flatten()
-            .collect::<BTreeSet<_>>();
-
-        // TODO: group imports by module (need to change def of import)
-        let from_imports = preambles
-            .iter()
-            .map(|x| x.from_imports.clone().into_iter())
-            .flatten()
-            .collect::<BTreeSet<_>>();
-        let preamble_imports = preamble_module_imports
-            .into_iter()
-            .chain(from_imports.into_iter())
-            .collect::<Vec<_>>();
-        preamble_imports
+            .collect()
     }
     fn build_file(&self, sources: Vec<(Option<String>, String)>) -> PyResult<String> {
         format_code(
