@@ -1,4 +1,4 @@
-use crate::code::Preamble;
+use crate::flow::etl_flow::ETLFlow;
 use crate::flow::flow_builder::{FlowBuilderBase, FlowBuilderMaterialize};
 use crate::flow::flow_builder_input::FlowBuilderInput;
 use crate::python::{format_code, PythonFlowBuilderInput, PythonImport, PythonPreamble, AST};
@@ -12,6 +12,7 @@ impl<C> FlowBuilderMaterialize for C
 where
     Self: Sized,
     C: PythonBasedFlowBuilder,
+    <C as FlowBuilderBase>::T: ETLFlow<ImportType = PythonImport, PreambleType = PythonPreamble>,
 {
     type BuilderInputType = PythonFlowBuilderInput;
     type ErrorType = PyErr;
@@ -28,13 +29,13 @@ where
 
         let flow_imports = self.get_flow_imports().into_iter();
 
-        let preambles = statements_and_preambles
+        let preambles: LinkedHashSet<PythonPreamble> = statements_and_preambles
             .iter()
             .map(|x| x.clone().get_preambles().into_iter())
             .flatten()
-            .collect::<LinkedHashSet<PythonPreamble>>();
+            .collect();
 
-        let preamble_imports: Vec<PythonImport> = Self::get_preamble_imports(&preambles);
+        let preamble_imports = Self::get_preamble_imports(&preambles);
 
         let imports = statements_and_preambles
             .iter()
@@ -42,7 +43,7 @@ where
             .flatten()
             .chain(flow_imports)
             .chain(preamble_imports)
-            .collect::<BTreeSet<PythonImport>>();
+            .collect::<BTreeSet<_>>();
 
         let imports_ast: Vec<_> = imports
             .into_iter()
@@ -163,12 +164,5 @@ where
                 .collect::<Vec<String>>()
                 .join(""),
         )
-    }
-    fn get_preamble_imports(preambles: &LinkedHashSet<PythonPreamble>) -> Vec<PythonImport> {
-        preambles
-            .iter()
-            .map(|x| x.get_imports().into_iter())
-            .flatten()
-            .collect()
     }
 }

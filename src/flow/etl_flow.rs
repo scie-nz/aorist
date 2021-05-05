@@ -7,9 +7,8 @@ use linked_hash_map::LinkedHashMap;
 
 /// Encapsulates the abstract bits necessary for the creation of an ETL Flow
 pub trait ETLFlow {
-
     type ImportType: Import;
-    type PreambleType: Preamble<ImportType=Self::ImportType>;
+    type PreambleType: Preamble<ImportType = Self::ImportType>;
 
     fn get_preamble(&self) -> Vec<String>;
     fn get_dialect(&self) -> Option<Dialect>;

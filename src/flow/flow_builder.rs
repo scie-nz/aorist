@@ -1,7 +1,9 @@
+use crate::code::Preamble;
 use crate::flow::etl_flow::ETLFlow;
 use crate::flow::flow_builder_input::FlowBuilderInput;
 use crate::python::{Assignment, Dict, SimpleIdentifier, AST};
 use linked_hash_map::LinkedHashMap;
+use linked_hash_set::LinkedHashSet;
 use std::collections::BTreeMap;
 use std::error::Error;
 use std::sync::{Arc, RwLock};
@@ -16,6 +18,7 @@ where
 pub trait FlowBuilderMaterialize
 where
     Self: Sized,
+    Self: FlowBuilderBase,
     Self::BuilderInputType: FlowBuilderInput,
     Self::ErrorType: Error + Send + Sync + 'static,
 {
@@ -107,5 +110,14 @@ where
             }
         }
         assignments_ast
+    }
+    fn get_preamble_imports(
+        preambles: &LinkedHashSet<<<Self as FlowBuilderBase>::T as ETLFlow>::PreambleType>,
+    ) -> Vec<<<Self as FlowBuilderBase>::T as ETLFlow>::ImportType> {
+        preambles
+            .iter()
+            .map(|x| x.get_imports().into_iter())
+            .flatten()
+            .collect()
     }
 }
