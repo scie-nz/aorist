@@ -84,3 +84,16 @@ where
     ) -> Self;
     fn as_dict(&self, dependencies_as_list: bool, insert_task_name: bool) -> AST;
 }
+pub trait ForLoopCompressedTask<T>
+where T: ETLFlow {
+    type KeyType: CompressionKey;
+    type UncompressiblePartType: UncompressiblePart<T>;
+    fn new(
+        params_dict_name: AST,
+        key: Self::KeyType,
+        values: Vec<Self::UncompressiblePartType>,
+        task_id: AST,
+        insert_task_name: bool,
+    ) -> Self;
+}
+

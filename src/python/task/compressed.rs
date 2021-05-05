@@ -1,5 +1,5 @@
 use crate::endpoints::EndpointConfig;
-use crate::flow::{CompressionKey, ETLFlow, UncompressiblePart};
+use crate::flow::{CompressionKey, ETLFlow, UncompressiblePart, ForLoopCompressedTask, TaskBase};
 use crate::python::task::key::PythonBasedTaskCompressionKey;
 use crate::python::task::uncompressible::PythonBasedTaskUncompressiblePart;
 use crate::python::{
@@ -22,11 +22,11 @@ where
     task_id: AST,
     insert_task_name: bool,
 }
-impl<T> ForLoopPythonBasedTask<T>
-where
-    T: ETLFlow,
-{
-    pub fn new(
+impl<T> ForLoopCompressedTask<T> for ForLoopPythonBasedTask<T>
+where T: ETLFlow {
+    type KeyType = PythonBasedTaskCompressionKey;
+    type UncompressiblePartType = PythonBasedTaskUncompressiblePart<T>;
+    fn new(
         params_dict_name: AST,
         key: PythonBasedTaskCompressionKey,
         values: Vec<PythonBasedTaskUncompressiblePart<T>>,
@@ -42,6 +42,18 @@ where
             singleton_type: PhantomData,
         }
     }
+}
+impl<T> TaskBase<T> for ForLoopPythonBasedTask<T>
+where
+    T: ETLFlow,
+{
+    type I = PythonImport;
+}
+
+impl<T> ForLoopPythonBasedTask<T>
+where
+    T: ETLFlow,
+{
     fn get_dict_assign(&self) -> AST {
         let dependencies_as_list = self
             .values
