@@ -1,6 +1,7 @@
-use crate::flow::ETLFlow;
+use crate::flow::{ETLFlow, UncompressiblePart};
 use crate::parameter_tuple::ParameterTuple;
-use crate::python::AST;
+use crate::python::{Dict, AST};
+use linked_hash_map::LinkedHashMap;
 use std::hash::Hash;
 use std::marker::PhantomData;
 
@@ -18,4 +19,28 @@ where
     // dep list
     pub deps: Vec<AST>,
     singleton_type: PhantomData<T>,
+}
+impl<T> UncompressiblePart<T> for RBasedTaskUncompressiblePart<T>
+where T: ETLFlow {
+    fn new(
+        task_id: String,
+        dict: String,
+        params: Option<ParameterTuple>,
+        deps: Vec<AST>,
+    ) -> Self {
+        Self {
+            task_id,
+            dict,
+            params,
+            deps,
+            singleton_type: PhantomData,
+        }
+    }
+    fn as_dict(&self, _dependencies_as_list: bool, _insert_task_name: bool) -> AST {
+        let mut local_params_map: LinkedHashMap<String, AST> = LinkedHashMap::new();
+        if let Some(ref p) = self.params {
+            p.populate_python_dict(&mut local_params_map);
+        }
+        AST::Dict(Dict::new_wrapped(local_params_map))
+    }
 }
