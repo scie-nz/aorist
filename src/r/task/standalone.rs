@@ -1,6 +1,6 @@
 use crate::dialect::Dialect;
 use crate::endpoints::EndpointConfig;
-use crate::flow::{ETLFlow, ETLTask, StandaloneTask, TaskBase, CompressibleTask, CompressionKey};
+use crate::flow::{ETLFlow, StandaloneTask, TaskBase, CompressibleTask, CompressionKey};
 use crate::parameter_tuple::ParameterTuple;
 use crate::python::{AST, List, StringLiteral};
 use crate::r::RImport;
@@ -104,33 +104,6 @@ where
     }
 }
 impl<T> TaskBase<T> for StandaloneRBasedTask<T> where T: ETLFlow {}
-pub enum RBasedTask<T>
-where
-    T: ETLFlow,
-{
-    StandaloneRBasedTask(StandaloneRBasedTask<T>),
-}
-impl<T> ETLTask<T> for RBasedTask<T>
-where
-    T: ETLFlow,
-{
-    type S = StandaloneRBasedTask<T>;
-    fn standalone_task(task: Self::S) -> Self {
-        Self::StandaloneRBasedTask(task)
-    }
-}
-impl<T> TaskBase<T> for RBasedTask<T> where T: ETLFlow {}
-impl<T> RBasedTask<T>
-where T: ETLFlow<ImportType=RImport> {
-    pub fn get_statements(
-        &self,
-        endpoints: &EndpointConfig,
-    ) -> (Vec<AST>, Vec<String>, Vec<RImport>) {
-        match &self {
-            RBasedTask::StandaloneRBasedTask(x) => x.get_statements(endpoints),
-        }
-    }
-}
 impl<T> CompressibleTask for StandaloneRBasedTask<T>
 where
     T: ETLFlow,
