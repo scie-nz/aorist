@@ -1,7 +1,7 @@
 use crate::flow::etl_flow::ETLFlow;
 use crate::python::{
-    format_code, Assignment, Dict, PythonFlowBuilderInput, PythonImport, PythonPreamble,
-    SimpleIdentifier, AST, FlowBuilderInput,
+    format_code, Assignment, Dict, FlowBuilderInput, PythonFlowBuilderInput, PythonImport,
+    PythonPreamble, SimpleIdentifier, AST,
 };
 use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
@@ -22,7 +22,6 @@ where
     Self: Sized,
     Self::BuilderInputType: FlowBuilderInput,
 {
-
     type BuilderInputType;
 
     fn materialize(

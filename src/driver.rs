@@ -10,7 +10,7 @@ use crate::endpoints::EndpointConfig;
 use crate::flow::{FlowBuilderBase, FlowBuilderMaterialize};
 use crate::object::TAoristObject;
 use crate::parameter_tuple::ParameterTuple;
-use crate::python::{SimpleIdentifier, AST, PythonFlowBuilderInput};
+use crate::python::{PythonFlowBuilderInput, SimpleIdentifier, AST};
 use anyhow::Result;
 use inflector::cases::snakecase::to_snake_case;
 use linked_hash_map::LinkedHashMap;
@@ -32,7 +32,7 @@ type ConstraintsBlockMap<'a> = LinkedHashMap<
 pub trait Driver<'a, D>
 where
     D: FlowBuilderBase,
-    D: FlowBuilderMaterialize<BuilderInputType=PythonFlowBuilderInput>,
+    D: FlowBuilderMaterialize<BuilderInputType=<Self::CB as ConstraintBlock<'a, <D as FlowBuilderBase>::T>>::BuilderInputType>,
     <D as FlowBuilderBase>::T: 'a,
     Self::CB: 'a,
 {
@@ -839,7 +839,7 @@ where
 impl<'a, D> Driver<'a, D> for PythonBasedDriver<'a, D>
 where
     D: FlowBuilderBase,
-    D: FlowBuilderMaterialize<BuilderInputType=PythonFlowBuilderInput>,
+    D: FlowBuilderMaterialize<BuilderInputType = PythonFlowBuilderInput>,
     <D as FlowBuilderBase>::T: 'a,
 {
     type CB = PythonBasedConstraintBlock<D::T>;

@@ -3,7 +3,9 @@ use crate::endpoints::EndpointConfig;
 use crate::flow::ETLFlow;
 use crate::parameter_tuple::ParameterTuple;
 use crate::python::PythonBasedCodeBlock;
-use crate::python::{Assignment, Dict, PythonFlowBuilderInput, PythonImport, PythonPreamble, AST, FlowBuilderInput};
+use crate::python::{
+    Assignment, Dict, FlowBuilderInput, PythonFlowBuilderInput, PythonImport, PythonPreamble, AST,
+};
 use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
 use std::collections::{BTreeSet, HashMap};
@@ -14,10 +16,12 @@ pub trait ConstraintBlock<'a, T>
 where
     T: ETLFlow,
     Self::C: CodeBlockWithDefaultConstructor<T>,
+    Self::BuilderInputType: FlowBuilderInput,
 {
     type C: CodeBlock<T>;
+    type BuilderInputType;
 
-    fn get_statements(&'a self, endpoints: &EndpointConfig) -> PythonFlowBuilderInput;
+    fn get_statements(&'a self, endpoints: &EndpointConfig) -> Self::BuilderInputType;
     fn get_identifiers(&self) -> HashMap<Uuid, AST>;
     fn new(
         constraint_name: String,
@@ -44,6 +48,7 @@ where
     T: ETLFlow,
 {
     type C = PythonBasedCodeBlock<T>;
+    type BuilderInputType = PythonFlowBuilderInput;
 
     fn new(
         constraint_name: String,
