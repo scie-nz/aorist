@@ -603,6 +603,16 @@ impl AST {
         }
     }
 
+    pub fn to_python_source(&self) -> String {
+        let gil = Python::acquire_gil();
+        let py = gil.python();
+        let ast = PyModule::import(py, "ast").unwrap();
+        let node = self.to_python_ast_node(py, ast, 0).unwrap();
+        let module = ast.call1("Expression", (node,)).unwrap();
+        let astor = PyModule::import(py, "astor").unwrap();
+        let source: PyResult<_> = astor.call1("to_source", (module,));
+        source.unwrap().to_string()
+    }
     pub fn optimize(&self) -> Option<AST> {
         match self {
             AST::Formatted(ref rw) => {
