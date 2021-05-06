@@ -76,10 +76,7 @@ where
         ))
     }
     fn get_for_loop_tuple(&self, ident: &AST, params: &AST) -> AST {
-        AST::Tuple(Tuple::new_wrapped(
-            vec![ident.clone(), params.clone()],
-            false,
-        ))
+        params.clone()
     }
     fn get_task_collector(&self, ident: &AST) -> AST {
         AST::Subscript(Subscript::new_wrapped(
@@ -181,18 +178,9 @@ where
             endpoints.clone(),
         );
         let statements = singleton.get_statements();
-        let items_call = AST::Call(Call::new_wrapped(
-            AST::Attribute(Attribute::new_wrapped(
-                self.params_dict_name.clone(),
-                "items".to_string(),
-                false,
-            )),
-            Vec::new(),
-            LinkedHashMap::new(),
-        ));
         let for_loop = AST::ForLoop(ForLoop::new_wrapped(
             tpl.clone(),
-            items_call,
+            self.params_dict_name.clone(),
             statements.clone(),
         ));
         (

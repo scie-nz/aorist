@@ -74,15 +74,17 @@ define_ast_node!(
         let pairlist = for_loop
             .body
             .iter()
-            .map(|x| x.to_r_ast_node(depth))
+            .map(|x| x.to_r_ast_node(depth).eval().unwrap())
             .collect::<Vec<_>>();
-
-        r!(Lang(&[
-            r!(Symbol("for")),
+        assert!(pairlist.len() > 0);
+        call!(
+            "call",
+            r!("call"),
+            r!("for"),
             for_loop.target.to_r_ast_node(depth),
             for_loop.iter.to_r_ast_node(depth),
-            r!(Lang(&[r!(Symbol("{")), r!(List(pairlist)),]))
-        ]))
+            r!(call!("call", r!("{"), r!(pairlist)))
+        ).unwrap()
     },
     target: AST,
     iter: AST,
@@ -117,11 +119,16 @@ define_ast_node!(
         )
     },
     |assign: &Assignment, depth: usize| {
-        r!(Lang(&[
-            r!(Symbol("<-")),
+        println!("deparsed target: {}", Vec::<String>::from_robj(&call!("deparse", assign.target.to_r_ast_node(depth)).unwrap()).unwrap().join("\n"));
+        let assignment = call!(
+            "call",
+            r!("call"),
+            r!("<-"),
             assign.target.to_r_ast_node(depth),
             assign.call.to_r_ast_node(depth)
-        ]))
+        ).unwrap();
+        println!("deparsed assign: {}", Vec::<String>::from_robj(&call!("deparse", &assignment).unwrap()).unwrap().join("\n"));
+        assignment
     },
     target: AST,
     call: AST,
@@ -490,7 +497,7 @@ define_ast_node!(
         )
     },
     |simple_identifier: &SimpleIdentifier, _depth: usize| {
-        r!(Symbol(&simple_identifier.name.clone()))
+        call!("call", r!("call"), r!("as.name"), r!(&simple_identifier.name)).unwrap()
     },
     name: String,
 );

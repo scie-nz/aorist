@@ -29,7 +29,7 @@ edge_tuple = IdentifierTuple(
 )
 names = [
     "ca-AstroPh",
-    #"ca-CondMat",
+    "ca-CondMat",
     #"ca-GrQc",
     #"ca-HepPh",
     #"ca-HepTh",
