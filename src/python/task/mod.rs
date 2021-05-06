@@ -8,18 +8,18 @@ pub use standalone::*;
 
 use crate::endpoints::EndpointConfig;
 use crate::flow::{CompressibleETLTask, ETLFlow, ETLTask, TaskBase};
-use crate::python::{PythonImport, AST};
+use crate::python::{PythonImport, PythonPreamble, AST};
 
 pub enum PythonBasedTask<T>
 where
-    T: ETLFlow<ImportType = PythonImport>,
+    T: ETLFlow<ImportType = PythonImport, PreambleType = PythonPreamble>,
 {
     StandalonePythonBasedTask(StandalonePythonBasedTask<T>),
     ForLoopPythonBasedTask(ForLoopPythonBasedTask<T>),
 }
 impl<T> ETLTask<T> for PythonBasedTask<T>
 where
-    T: ETLFlow<ImportType = PythonImport>,
+    T: ETLFlow<ImportType = PythonImport, PreambleType = PythonPreamble>,
 {
     type S = StandalonePythonBasedTask<T>;
     fn standalone_task(task: Self::S) -> Self {
@@ -28,18 +28,18 @@ where
 }
 impl<T> CompressibleETLTask<T> for PythonBasedTask<T>
 where
-    T: ETLFlow<ImportType = PythonImport>,
+    T: ETLFlow<ImportType = PythonImport, PreambleType = PythonPreamble>,
 {
     type F = ForLoopPythonBasedTask<T>;
 }
 impl<T> PythonBasedTask<T>
 where
-    T: ETLFlow<ImportType = PythonImport>,
+    T: ETLFlow<ImportType = PythonImport, PreambleType = PythonPreamble>,
 {
     pub fn get_statements(
         &self,
         endpoints: &EndpointConfig,
-    ) -> (Vec<AST>, Vec<String>, Vec<PythonImport>) {
+    ) -> (Vec<AST>, Vec<PythonPreamble>, Vec<PythonImport>) {
         match &self {
             PythonBasedTask::StandalonePythonBasedTask(x) => x.get_statements(endpoints),
             PythonBasedTask::ForLoopPythonBasedTask(x) => x.get_statements(endpoints),
@@ -50,4 +50,7 @@ where
         Self::ForLoopPythonBasedTask(task)
     }
 }
-impl<T> TaskBase<T> for PythonBasedTask<T> where T: ETLFlow<ImportType = PythonImport> {}
+impl<T> TaskBase<T> for PythonBasedTask<T> where
+    T: ETLFlow<ImportType = PythonImport, PreambleType = PythonPreamble>
+{
+}

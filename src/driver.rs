@@ -12,8 +12,9 @@ use crate::object::TAoristObject;
 use crate::parameter_tuple::ParameterTuple;
 use crate::python::{
     PythonBasedConstraintBlock, PythonFlowBuilderInput, PythonImport, SimpleIdentifier, AST,
+    PythonPreamble,
 };
-use crate::r::{RBasedConstraintBlock, RFlowBuilderInput, RImport};
+use crate::r::{RBasedConstraintBlock, RFlowBuilderInput, RImport, RPreamble};
 use anyhow::Result;
 use inflector::cases::snakecase::to_snake_case;
 use linked_hash_map::LinkedHashMap;
@@ -824,7 +825,7 @@ where
 pub struct PythonBasedDriver<'a, D>
 where
     D: FlowBuilderBase,
-    <D as FlowBuilderBase>::T: ETLFlow<ImportType = PythonImport> + 'a,
+    <D as FlowBuilderBase>::T: ETLFlow<ImportType = PythonImport, PreambleType = PythonPreamble> + 'a,
 {
     pub concepts: Arc<RwLock<HashMap<(Uuid, String), Concept<'a>>>>,
     constraints: LinkedHashMap<(Uuid, String), Arc<RwLock<Constraint>>>,
@@ -842,7 +843,7 @@ impl<'a, D> Driver<'a, D> for PythonBasedDriver<'a, D>
 where
     D: FlowBuilderBase,
     D: FlowBuilderMaterialize<BuilderInputType = PythonFlowBuilderInput>,
-    <D as FlowBuilderBase>::T: ETLFlow<ImportType = PythonImport> + 'a,
+    <D as FlowBuilderBase>::T: ETLFlow<ImportType = PythonImport, PreambleType = PythonPreamble> + 'a,
 {
     type CB = PythonBasedConstraintBlock<D::T>;
 
@@ -939,7 +940,7 @@ where
 pub struct RBasedDriver<'a, D>
 where
     D: FlowBuilderBase,
-    <D as FlowBuilderBase>::T: ETLFlow<ImportType = RImport> + 'a,
+    <D as FlowBuilderBase>::T: ETLFlow<ImportType = RImport, PreambleType = RPreamble> + 'a,
 {
     pub concepts: Arc<RwLock<HashMap<(Uuid, String), Concept<'a>>>>,
     constraints: LinkedHashMap<(Uuid, String), Arc<RwLock<Constraint>>>,
@@ -957,7 +958,7 @@ impl<'a, D> Driver<'a, D> for RBasedDriver<'a, D>
 where
     D: FlowBuilderBase,
     D: FlowBuilderMaterialize<BuilderInputType = RFlowBuilderInput>,
-    <D as FlowBuilderBase>::T: ETLFlow<ImportType = RImport> + 'a,
+    <D as FlowBuilderBase>::T: ETLFlow<ImportType = RImport, PreambleType = RPreamble> + 'a,
 {
     type CB = RBasedConstraintBlock<D::T>;
 

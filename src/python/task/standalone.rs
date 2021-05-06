@@ -6,7 +6,7 @@ use crate::flow::{
 use crate::parameter_tuple::ParameterTuple;
 use crate::python::task::key::PythonBasedTaskCompressionKey;
 use crate::python::task::uncompressible::PythonBasedTaskUncompressiblePart;
-use crate::python::{List, PythonImport, StringLiteral, AST};
+use crate::python::{List, PythonImport, PythonPreamble, StringLiteral, AST};
 use linked_hash_map::LinkedHashMap;
 use std::hash::Hash;
 use std::marker::PhantomData;
@@ -123,7 +123,7 @@ where
 
 impl<T> StandalonePythonBasedTask<T>
 where
-    T: ETLFlow<ImportType = PythonImport>,
+    T: ETLFlow<ImportType = PythonImport, PreambleType = PythonPreamble>,
 {
     pub fn get_uncompressible_part(&self) -> Result<PythonBasedTaskUncompressiblePart<T>, String> {
         Ok(PythonBasedTaskUncompressiblePart::new(
@@ -136,7 +136,7 @@ where
     pub fn get_statements(
         &self,
         endpoints: &EndpointConfig,
-    ) -> (Vec<AST>, Vec<String>, Vec<PythonImport>) {
+    ) -> (Vec<AST>, Vec<PythonPreamble>, Vec<PythonImport>) {
         let args;
         let kwargs;
         if let Some(ref p) = self.params {

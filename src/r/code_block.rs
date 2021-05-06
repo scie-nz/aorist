@@ -14,7 +14,7 @@ use uuid::Uuid;
 
 pub struct RBasedCodeBlock<T>
 where
-    T: ETLFlow<ImportType = RImport>,
+    T: ETLFlow<ImportType = RImport, PreambleType = RPreamble>,
 {
     tasks_dict: Option<AST>,
     task_identifiers: HashMap<Uuid, AST>,
@@ -23,7 +23,7 @@ where
 }
 impl<T> CodeBlock<T> for RBasedCodeBlock<T>
 where
-    T: ETLFlow<ImportType = RImport>,
+    T: ETLFlow<ImportType = RImport, PreambleType = RPreamble>,
 {
     type P = RPreamble;
     type E = RBasedTask<T>;
@@ -56,7 +56,6 @@ where
             .iter()
             .map(|x| x.1.clone().into_iter())
             .flatten()
-            .map(|x| RPreamble::new(x))
             .collect::<LinkedHashSet<RPreamble>>();
         let imports = preambles_and_statements
             .iter()
@@ -84,7 +83,7 @@ where
 }
 impl<T> CodeBlockWithForLoopCompression<T> for RBasedCodeBlock<T>
 where
-    T: ETLFlow<ImportType = RImport>,
+    T: ETLFlow<ImportType = RImport, PreambleType = RPreamble>,
 {
     // TODO: push to trait
     fn run_task_compressions(

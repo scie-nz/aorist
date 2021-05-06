@@ -14,7 +14,7 @@ use uuid::Uuid;
 
 pub struct PythonBasedCodeBlock<T>
 where
-    T: ETLFlow<ImportType = PythonImport>,
+    T: ETLFlow<ImportType = PythonImport, PreambleType = PythonPreamble>,
 {
     tasks_dict: Option<AST>,
     task_identifiers: HashMap<Uuid, AST>,
@@ -23,7 +23,7 @@ where
 }
 impl<T> CodeBlock<T> for PythonBasedCodeBlock<T>
 where
-    T: ETLFlow<ImportType = PythonImport>,
+    T: ETLFlow<ImportType = PythonImport, PreambleType = PythonPreamble>,
 {
     type P = PythonPreamble;
     type E = PythonBasedTask<T>;
@@ -55,13 +55,10 @@ where
             .iter()
             .map(|x| x.get_statements(endpoints))
             .collect::<Vec<_>>();
-        let gil = pyo3::Python::acquire_gil();
-        let py = gil.python();
         let preambles = preambles_and_statements
             .iter()
             .map(|x| x.1.clone().into_iter())
             .flatten()
-            .map(|x| PythonPreamble::new(x, py))
             .collect::<LinkedHashSet<PythonPreamble>>();
         let imports = preambles_and_statements
             .iter()
@@ -89,7 +86,7 @@ where
 }
 impl<T> CodeBlockWithForLoopCompression<T> for PythonBasedCodeBlock<T>
 where
-    T: ETLFlow<ImportType = PythonImport>,
+    T: ETLFlow<ImportType = PythonImport, PreambleType = PythonPreamble>,
 {
     fn run_task_compressions(
         compressible: LinkedHashMap<

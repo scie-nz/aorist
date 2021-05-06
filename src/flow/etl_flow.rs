@@ -10,7 +10,7 @@ pub trait ETLFlow {
     type ImportType: Import;
     type PreambleType: Preamble<ImportType = Self::ImportType>;
 
-    fn get_preamble(&self) -> Vec<String>;
+    fn get_preamble(&self) -> Vec<Self::PreambleType>;
     fn get_dialect(&self) -> Option<Dialect>;
     fn get_task_val(&self) -> AST;
     fn new(

@@ -6,7 +6,7 @@ use crate::flow::{
 use crate::parameter_tuple::ParameterTuple;
 use crate::python::{List, StringLiteral, AST};
 use crate::r::task::{RBasedTaskCompressionKey, RBasedTaskUncompressiblePart};
-use crate::r::RImport;
+use crate::r::{RImport, RPreamble};
 use linked_hash_map::LinkedHashMap;
 use std::hash::Hash;
 use std::marker::PhantomData;
@@ -34,7 +34,7 @@ where
 }
 impl<T> StandaloneRBasedTask<T>
 where
-    T: ETLFlow<ImportType = RImport>,
+    T: ETLFlow<ImportType = RImport, PreambleType = RPreamble>,
 {
     // TODO: move to trait
     pub fn get_uncompressible_part(&self) -> Result<RBasedTaskUncompressiblePart<T>, String> {
@@ -57,7 +57,7 @@ where
     pub fn get_statements(
         &self,
         endpoints: &EndpointConfig,
-    ) -> (Vec<AST>, Vec<String>, Vec<RImport>) {
+    ) -> (Vec<AST>, Vec<RPreamble>, Vec<RImport>) {
         let args;
         let kwargs;
         if let Some(ref p) = self.params {

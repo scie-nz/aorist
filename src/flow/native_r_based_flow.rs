@@ -34,10 +34,10 @@ impl ETLFlow for NativeRBasedFlow {
     type ImportType = RImport;
     type PreambleType = RPreamble;
 
-    fn get_preamble(&self) -> Vec<String> {
+    fn get_preamble(&self) -> Vec<RPreamble> {
         let preambles = match self.dialect {
             Some(Dialect::R(_)) => match self.preamble {
-                Some(ref p) => vec![p.clone()],
+                Some(ref p) => vec![RPreamble::new(p.clone())],
                 None => Vec::new(),
             },
             _ => Vec::new(),

@@ -4,7 +4,7 @@ use crate::python::task::key::PythonBasedTaskCompressionKey;
 use crate::python::task::uncompressible::PythonBasedTaskUncompressiblePart;
 use crate::python::{
     Add, Assignment, Attribute, BigIntLiteral, BinOp, Call, Dict, ForLoop, List, PythonImport,
-    SimpleIdentifier, StringLiteral, Subscript, Tuple, AST,
+    PythonPreamble, SimpleIdentifier, StringLiteral, Subscript, Tuple, AST,
 };
 use linked_hash_map::LinkedHashMap;
 use std::hash::Hash;
@@ -24,7 +24,7 @@ where
 }
 impl<T> ForLoopCompressedTask<T> for ForLoopPythonBasedTask<T>
 where
-    T: ETLFlow<ImportType = PythonImport>,
+    T: ETLFlow<ImportType = PythonImport, PreambleType = PythonPreamble>,
 {
     type KeyType = PythonBasedTaskCompressionKey;
     type UncompressiblePartType = PythonBasedTaskUncompressiblePart<T>;
@@ -45,11 +45,14 @@ where
         }
     }
 }
-impl<T> TaskBase<T> for ForLoopPythonBasedTask<T> where T: ETLFlow<ImportType = PythonImport> {}
+impl<T> TaskBase<T> for ForLoopPythonBasedTask<T> where
+    T: ETLFlow<ImportType = PythonImport, PreambleType = PythonPreamble>
+{
+}
 
 impl<T> ForLoopPythonBasedTask<T>
 where
-    T: ETLFlow<ImportType = PythonImport>,
+    T: ETLFlow<ImportType = PythonImport, PreambleType = PythonPreamble>,
 {
     fn get_dict_assign(&self) -> AST {
         let dependencies_as_list = self
@@ -90,7 +93,7 @@ where
     pub fn get_statements(
         &self,
         endpoints: &EndpointConfig,
-    ) -> (Vec<AST>, Vec<String>, Vec<PythonImport>) {
+    ) -> (Vec<AST>, Vec<PythonPreamble>, Vec<PythonImport>) {
         let any_dependencies = self
             .values
             .iter()

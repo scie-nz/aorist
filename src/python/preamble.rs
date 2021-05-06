@@ -21,7 +21,9 @@ impl Preamble for PythonPreamble {
     }
 }
 impl<'a> PythonPreamble {
-    pub fn new(body: String, py: Python<'a>) -> PythonPreamble {
+    pub fn new(body: String) -> PythonPreamble {
+        let gil = Python::acquire_gil();
+        let py = gil.python();
         let helpers = PyModule::from_code(
             py,
             r#"

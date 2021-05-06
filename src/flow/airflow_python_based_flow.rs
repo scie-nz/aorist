@@ -132,10 +132,10 @@ impl ETLFlow for AirflowPythonBasedFlow {
             )],
         }
     }
-    fn get_preamble(&self) -> Vec<String> {
+    fn get_preamble(&self) -> Vec<PythonPreamble> {
         let preambles = match self.dialect {
             Some(Dialect::Python(_)) => match self.preamble {
-                Some(ref p) => vec![p.clone()],
+                Some(ref p) => vec![PythonPreamble::new(p.clone())],
                 None => Vec::new(),
             },
             _ => Vec::new(),

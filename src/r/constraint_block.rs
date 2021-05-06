@@ -5,6 +5,7 @@ use crate::parameter_tuple::ParameterTuple;
 use crate::python::{Assignment, Dict, AST};
 use crate::r::code_block::RBasedCodeBlock;
 use crate::r::r_import::RImport;
+use crate::r::RPreamble;
 use crate::r::RFlowBuilderInput;
 use linked_hash_map::LinkedHashMap;
 use std::collections::HashMap;
@@ -13,7 +14,7 @@ use uuid::Uuid;
 
 pub struct RBasedConstraintBlock<T>
 where
-    T: ETLFlow<ImportType = RImport>,
+    T: ETLFlow<ImportType = RImport, PreambleType = RPreamble>,
 {
     constraint_name: String,
     title: Option<String>,
@@ -24,7 +25,7 @@ where
 }
 impl<'a, T> ConstraintBlock<'a, T> for RBasedConstraintBlock<T>
 where
-    T: ETLFlow<ImportType = RImport>,
+    T: ETLFlow<ImportType = RImport, PreambleType = RPreamble>,
 {
     type C = RBasedCodeBlock<T>;
     type BuilderInputType = RFlowBuilderInput;
@@ -82,7 +83,7 @@ where
 
 impl<'a, T> RBasedConstraintBlock<T>
 where
-    T: ETLFlow<ImportType = RImport>,
+    T: ETLFlow<ImportType = RImport, PreambleType = RPreamble>,
 {
     pub fn get_params(&self) -> HashMap<String, Option<ParameterTuple>> {
         self.members

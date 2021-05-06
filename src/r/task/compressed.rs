@@ -1,9 +1,10 @@
 use crate::endpoints::EndpointConfig;
 use crate::flow::{CompressionKey, ETLFlow, ForLoopCompressedTask, TaskBase, UncompressiblePart};
 use crate::python::{
-    Add, Assignment, Attribute, BigIntLiteral, BinOp, Call, Dict, ForLoop, List, SimpleIdentifier,
-    StringLiteral, Subscript, Tuple, AST,
+    Add, Assignment, BigIntLiteral, BinOp, Dict, ForLoop, List, SimpleIdentifier,
+    StringLiteral, Subscript, AST,
 };
+use crate::r::preamble::RPreamble;
 use crate::r::r_import::RImport;
 use crate::r::task::key::RBasedTaskCompressionKey;
 use crate::r::task::uncompressible::RBasedTaskUncompressiblePart;
@@ -25,7 +26,7 @@ where
 }
 impl<T> ForLoopCompressedTask<T> for ForLoopRBasedTask<T>
 where
-    T: ETLFlow<ImportType = RImport>,
+    T: ETLFlow<ImportType = RImport, PreambleType = RPreamble>,
 {
     type KeyType = RBasedTaskCompressionKey;
     type UncompressiblePartType = RBasedTaskUncompressiblePart<T>;
@@ -46,11 +47,14 @@ where
         }
     }
 }
-impl<T> TaskBase<T> for ForLoopRBasedTask<T> where T: ETLFlow<ImportType = RImport> {}
+impl<T> TaskBase<T> for ForLoopRBasedTask<T> where
+    T: ETLFlow<ImportType = RImport, PreambleType = RPreamble>
+{
+}
 
 impl<T> ForLoopRBasedTask<T>
 where
-    T: ETLFlow<ImportType = RImport>,
+    T: ETLFlow<ImportType = RImport, PreambleType = RPreamble>,
 {
     fn get_dict_assign(&self) -> AST {
         let dependencies_as_list = self
@@ -75,7 +79,7 @@ where
             dict_content,
         ))
     }
-    fn get_for_loop_tuple(&self, ident: &AST, params: &AST) -> AST {
+    fn get_for_loop_tuple(&self, _ident: &AST, params: &AST) -> AST {
         params.clone()
     }
     fn get_task_collector(&self, ident: &AST) -> AST {
@@ -88,7 +92,7 @@ where
     pub fn get_statements(
         &self,
         endpoints: &EndpointConfig,
-    ) -> (Vec<AST>, Vec<String>, Vec<RImport>) {
+    ) -> (Vec<AST>, Vec<RPreamble>, Vec<RImport>) {
         let any_dependencies = self
             .values
             .iter()
