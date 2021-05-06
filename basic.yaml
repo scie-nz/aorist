@@ -930,6 +930,7 @@ spec:
   requiresProgram: true
   requires:
     - DownloadDataFromRemote
+    - CSVIsConverted
   attachIf: |
       |root: Concept<'a>, ancestry: &ConceptAncestry<'a>|
       match ancestry.replication_storage_setup(root.clone()) {

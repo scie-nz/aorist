@@ -463,7 +463,7 @@ define_ast_node!(
             .map(|x| x.to_r_ast_node(depth))
             .collect::<Vec<_>>();
         elems.insert(0, formatted.fmt.to_r_ast_node(depth));
-        elems.insert(0, r!("glue::glue"));
+        elems.insert(0, r!("glue"));
         elems.insert(0, r!("call"));
         let obj = r!(List(&elems));
         let mut names = args.keys().map(|x| x.clone()).collect::<Vec<_>>();
@@ -528,12 +528,7 @@ define_ast_node!(
         )
     },
     |simple_identifier: &SimpleIdentifier, _depth: usize| {
-        call!(
-            "call",
-            r!("as.name"),
-            r!(&simple_identifier.name)
-        )
-        .unwrap()
+        call!("call", r!("as.name"), r!(&simple_identifier.name)).unwrap()
     },
     name: String,
 );
@@ -761,7 +756,7 @@ mod r_ast_tests {
             map.insert("y".to_string(), sym_b);
             let dict = AST::Formatted(crate::python::Formatted::new_wrapped(fmt, map));
             let r_node = dict.to_r_ast_node(0);
-            assert_eq!(r_node, eval_string("call('call', name='glue::glue', fmt='{x} {y}', x=rlang::sym('a'), y=rlang::sym('b'))").unwrap());
+            assert_eq!(r_node, eval_string("call('call', name='glue', fmt='{x} {y}', x=rlang::sym('a'), y=rlang::sym('b'))").unwrap());
         }
     }
     #[test]

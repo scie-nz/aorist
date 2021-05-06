@@ -257,12 +257,12 @@ spec:
     download.data.from.remote.web.location <- function(src_url, tmp_dir, dest_file_name, table_name, dataset_name) {
         path <- paste(tmp_dir, dataset_name, table_name, sep='/')
         if (!dir.exists(path)) {
-            dir.create(path)
+            dir.create(path, recursive=TRUE)
         }
         dest <- paste(path, dest_file_name, sep='/')
         download.file(src_url, dest)
     }
-  call: download_data_from_remote_web_location
+  call: download.data.from.remote.web.location
   kwargs:
     dataset_name:
       type: AncestorArgument
