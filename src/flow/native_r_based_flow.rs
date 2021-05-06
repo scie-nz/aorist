@@ -40,6 +40,10 @@ impl ETLFlow for NativeRBasedFlow {
                 Some(ref p) => vec![RPreamble::new(p.clone())],
                 None => Vec::new(),
             },
+            Some(Dialect::Python(_)) => match self.preamble {
+                Some(ref p) => vec![RPreamble::from_python(self.command.as_ref().unwrap().clone(), p.clone())],
+                None => Vec::new(),
+            },
             _ => Vec::new(),
         };
         preambles
