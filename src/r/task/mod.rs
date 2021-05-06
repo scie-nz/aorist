@@ -30,7 +30,10 @@ where
         Self::StandaloneRBasedTask(task)
     }
 }
-impl<T> TaskBase<T> for RBasedTask<T> where T: ETLFlow<ImportType = RImport, PreambleType = RPreamble> {}
+impl<T> TaskBase<T> for RBasedTask<T> where
+    T: ETLFlow<ImportType = RImport, PreambleType = RPreamble>
+{
+}
 impl<T> RBasedTask<T>
 where
     T: ETLFlow<ImportType = RImport, PreambleType = RPreamble>,

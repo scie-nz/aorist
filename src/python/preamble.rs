@@ -163,4 +163,14 @@ def to_nodes(body):
 
         out.into_iter().collect()
     }
+    pub fn to_string(&self) -> String {
+        self.from_imports
+            .clone()
+            .into_iter()
+            .map(|x| x.to_string())
+            .chain(self.imports.clone().into_iter().map(|x| x.to_string()))
+            .chain(vec![self.body.clone()].into_iter())
+            .collect::<Vec<String>>()
+            .join("\n")
+    }
 }

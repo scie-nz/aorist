@@ -11,8 +11,8 @@ use crate::flow::{ETLFlow, FlowBuilderBase, FlowBuilderMaterialize};
 use crate::object::TAoristObject;
 use crate::parameter_tuple::ParameterTuple;
 use crate::python::{
-    PythonBasedConstraintBlock, PythonFlowBuilderInput, PythonImport, SimpleIdentifier, AST,
-    PythonPreamble,
+    PythonBasedConstraintBlock, PythonFlowBuilderInput, PythonImport, PythonPreamble,
+    SimpleIdentifier, AST,
 };
 use crate::r::{RBasedConstraintBlock, RFlowBuilderInput, RImport, RPreamble};
 use anyhow::Result;
@@ -825,7 +825,8 @@ where
 pub struct PythonBasedDriver<'a, D>
 where
     D: FlowBuilderBase,
-    <D as FlowBuilderBase>::T: ETLFlow<ImportType = PythonImport, PreambleType = PythonPreamble> + 'a,
+    <D as FlowBuilderBase>::T:
+        ETLFlow<ImportType = PythonImport, PreambleType = PythonPreamble> + 'a,
 {
     pub concepts: Arc<RwLock<HashMap<(Uuid, String), Concept<'a>>>>,
     constraints: LinkedHashMap<(Uuid, String), Arc<RwLock<Constraint>>>,
@@ -843,7 +844,8 @@ impl<'a, D> Driver<'a, D> for PythonBasedDriver<'a, D>
 where
     D: FlowBuilderBase,
     D: FlowBuilderMaterialize<BuilderInputType = PythonFlowBuilderInput>,
-    <D as FlowBuilderBase>::T: ETLFlow<ImportType = PythonImport, PreambleType = PythonPreamble> + 'a,
+    <D as FlowBuilderBase>::T:
+        ETLFlow<ImportType = PythonImport, PreambleType = PythonPreamble> + 'a,
 {
     type CB = PythonBasedConstraintBlock<D::T>;
 

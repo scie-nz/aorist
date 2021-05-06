@@ -1,4 +1,5 @@
 use crate::code::Preamble;
+use crate::python::PythonPreamble;
 use crate::r::r_import::RImport;
 use extendr_api::prelude::*;
 use std::hash::Hash;
@@ -52,6 +53,14 @@ impl<'a> RPreamble {
                 None => Vec::new(),
             },
             body: body_no_imports.as_str().unwrap().to_string(),
+        }
+    }
+    pub fn from_python(var_name: String, body: String) -> RPreamble {
+        let python_preamble = PythonPreamble::new(body);
+        let formatted = python_preamble.to_string();
+        Self {
+            libraries: vec![RImport::new("reticulate".to_string())],
+            body: format!("{} <- '{}'", var_name, formatted).to_string(),
         }
     }
     pub fn get_body(&self) -> String {
