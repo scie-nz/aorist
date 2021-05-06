@@ -74,7 +74,7 @@ define_ast_node!(
         let pairlist = for_loop
             .body
             .iter()
-            .map(|x| x.to_r_ast_node(depth).eval().unwrap())
+            .map(|x| x.to_r_ast_node(depth))
             .collect::<Vec<_>>();
         assert!(pairlist.len() > 0);
         call!(
@@ -374,25 +374,43 @@ define_ast_node!(
         ast_module.call1("Call", (function, args, kwargs))
     },
     |call: &Call, depth: usize| {
-        //assert_eq!(call.args.len(), 0);
-        let mut args = LinkedHashMap::new();
-        args.insert("n".to_string(), call.function.clone());
-        for arg in &call.args {
-            args.insert("".to_string(), arg.clone());
+        /*let elems = vec![
+            //AST::StringLiteral(StringLiteral::new_wrapped("call".to_string(), false)),
+            //call.function.clone(),
+        ]
+        .iter()
+        .chain(call.args.iter())
+        .chain(call.keywords.values())
+        .map(|x| x.to_r_ast_node(depth))
+        .collect::<Vec<_>>();
+        let mut names = vec![];
+        for _ in 0..(call.args.len()) {
+            names.push("".to_string());
         }
-        for (k, v) in call.keywords.clone() {
-            args.insert(k, v);
+        for name in call.keywords.keys() {
+            names.push(name.to_string());
         }
-        let mut elems = args
-            .values()
-            .map(|x| x.to_r_ast_node(depth))
-            .collect::<Vec<_>>();
-        elems.insert(0, r!("call"));
+        assert_eq!(names.len(), elems.len());
         let obj = r!(List(&elems));
-        let mut names = args.keys().map(|x| x.clone()).collect::<Vec<_>>();
-        names.insert(0, "name".to_string());
         obj.set_names(names).unwrap();
-        call!("do.call", "call", obj, quote = TRUE).unwrap()
+        call!("call", "call", "do.call", call.function.to_r_ast_node(depth), obj, quote = TRUE).unwrap()*/
+        unsafe {
+            let fn_name = match call.function {
+                AST::SimpleIdentifier(ref x) => x.read().unwrap().name(),
+                _ => panic!("function name must be SimpleIdentifier"),
+            };
+            let res = make_lang("call");
+            let mut tail = res.get();
+            tail = append_with_name(tail, r!(fn_name), "name");
+            for arg in &call.args {
+                tail = append(tail, arg.to_r_ast_node(depth));
+            }
+            for (k, v) in &call.keywords {
+                tail = append_with_name(tail, v.to_r_ast_node(depth), k);
+            }
+            let _ = tail;
+            res
+        }
     },
     function: AST,
     args: Vec<AST>,
@@ -513,7 +531,6 @@ define_ast_node!(
     |simple_identifier: &SimpleIdentifier, _depth: usize| {
         call!(
             "call",
-            r!("call"),
             r!("as.name"),
             r!(&simple_identifier.name)
         )

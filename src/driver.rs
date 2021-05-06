@@ -968,7 +968,7 @@ where
         self.constraints.get(uuid).unwrap().clone()
     }
     fn get_preferences(&self) -> Vec<Dialect> {
-        vec![Dialect::R(R {})]
+        vec![Dialect::R(R {}), Dialect::Python(Python::new(vec![]))]
     }
 
     fn get_endpoints<'b>(&'b self) -> &'b EndpointConfig

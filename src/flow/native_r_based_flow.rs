@@ -1,7 +1,7 @@
 use crate::dialect::Dialect;
 use crate::endpoints::EndpointConfig;
 use crate::flow::etl_flow::ETLFlow;
-use crate::python::{Call, Expression, StringLiteral, AST};
+use crate::python::{Call, Expression, SimpleIdentifier, StringLiteral, AST};
 use crate::r::{ConstantRTask, NativeRTask, RImport, RPreamble};
 use aorist_primitives::register_task_nodes;
 use linked_hash_map::LinkedHashMap;
@@ -23,7 +23,7 @@ pub struct NativeRBasedFlow {
     args: Vec<AST>,
     kwargs: LinkedHashMap<String, AST>,
     dep_list: Option<AST>,
-    preamble: Option<String>,
+    preamble: Vec<RPreamble>,
     dialect: Option<Dialect>,
 
     endpoints: EndpointConfig,
@@ -35,18 +35,7 @@ impl ETLFlow for NativeRBasedFlow {
     type PreambleType = RPreamble;
 
     fn get_preamble(&self) -> Vec<RPreamble> {
-        let preambles = match self.dialect {
-            Some(Dialect::R(_)) => match self.preamble {
-                Some(ref p) => vec![RPreamble::new(p.clone())],
-                None => Vec::new(),
-            },
-            Some(Dialect::Python(_)) => match self.preamble {
-                Some(ref p) => vec![RPreamble::from_python(self.command.as_ref().unwrap().clone(), p.clone())],
-                None => Vec::new(),
-            },
-            _ => Vec::new(),
-        };
-        preambles
+        self.preamble.clone()
     }
 
     fn get_imports(&self) -> Vec<RImport> {
@@ -72,20 +61,65 @@ impl ETLFlow for NativeRBasedFlow {
         dialect: Option<Dialect>,
         endpoints: EndpointConfig,
     ) -> Self {
+        let preambles = match dialect {
+            Some(Dialect::R(_)) => match preamble {
+                Some(ref p) => vec![RPreamble::new(p.clone())],
+                None => Vec::new(),
+            },
+            Some(Dialect::Python(_)) => match preamble {
+                Some(ref p) => vec![RPreamble::from_python(
+                    call.as_ref().unwrap().clone(),
+                    p.clone(),
+                )],
+                None => Vec::new(),
+            },
+            _ => Vec::new(),
+        };
         let command = match &dialect {
             Some(Dialect::R(_)) => AST::Call(Call::new_wrapped(
-                AST::StringLiteral(StringLiteral::new_wrapped(
+                AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
                     call.as_ref().unwrap().clone(),
-                    false,
                 )),
                 args.clone(),
                 kwargs.clone(),
             )),
+            Some(Dialect::Python(_)) => {
+                let call_with_args = AST::Call(Call::new_wrapped(
+                    AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
+                        call.as_ref().unwrap().clone(),
+                    )),
+                    args.clone(),
+                    kwargs.clone(),
+                ))
+                .to_python_source();
+                let mut kwargs = LinkedHashMap::new();
+                kwargs.insert(
+                    "sep".to_string(),
+                    AST::StringLiteral(StringLiteral::new_wrapped("\n".to_string(), false)),
+                );
+                let code = AST::Call(Call::new_wrapped(
+                    AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("paste".to_string())),
+                    vec![
+                        AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
+                            call.as_ref().unwrap().clone(),
+                        )),
+                        AST::StringLiteral(StringLiteral::new_wrapped(call_with_args, false)),
+                    ],
+                    kwargs,
+                ));
+                AST::Call(Call::new_wrapped(
+                    AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
+                        "py_run_string".to_string(),
+                    )),
+                    vec![code],
+                    LinkedHashMap::new(),
+                ))
+            }
             None => AST::StringLiteral(StringLiteral::new_wrapped("Done".to_string(), false)),
             _ => panic!("Dialect not supported"),
         };
         let node = match &dialect {
-            Some(Dialect::R(_)) => {
+            Some(Dialect::R(_)) | Some(Dialect::Python(_)) => {
                 RTask::NativeRTask(NativeRTask::new_wrapped(
                     vec![AST::Expression(Expression::new_wrapped(command))],
                     // TODO: add imports from preamble
@@ -104,7 +138,7 @@ impl ETLFlow for NativeRBasedFlow {
             args,
             kwargs,
             dep_list,
-            preamble,
+            preamble: preambles,
             dialect: dialect.clone(),
             endpoints,
             node,

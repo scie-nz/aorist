@@ -57,10 +57,10 @@ impl<'a> RPreamble {
     }
     pub fn from_python(var_name: String, body: String) -> RPreamble {
         let python_preamble = PythonPreamble::new(body);
-        let formatted = python_preamble.to_string();
+        let formatted = python_preamble.to_string().replace("'", "\\'");
         Self {
             libraries: vec![RImport::new("reticulate".to_string())],
-            body: format!("{} <- '{}'", var_name, formatted).to_string(),
+            body: format!("{} <- '\n{}'", var_name, formatted).to_string(),
         }
     }
     pub fn get_body(&self) -> String {
