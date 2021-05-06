@@ -9,9 +9,7 @@ local = BigQueryStorage(
 )
 universe = Universe(
     name="my_cluster",
-    datasets=[subreddits.replicate_to_local(
-        local, tmp_dir, CSVEncoding(),
-    )],
+    datasets=[subreddits],
     endpoints=DEFAULT_ENDPOINTS,
 )
 other_universe = Universe(
@@ -19,4 +17,4 @@ other_universe = Universe(
     datasets=[subreddits],
     endpoints=DEFAULT_ENDPOINTS,
 )
-print(universe.r("RDataFrameFromCSVData"))
+print(universe.r("RDataFrame"))

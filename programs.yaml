@@ -335,7 +335,7 @@ spec:
               )
               with open(output_file, 'w') as f:
                 for post in posts:
-                    line = json.dumps(post) + '\\n'
+                    line = json.dumps(post) + chr(10)
                     f.write(line)
   call: download_subreddit
   kwargs:
@@ -2872,7 +2872,6 @@ spec:
                 &new_universe,
                 vec!["NumpyData".to_string()].into_iter().collect(),
             ).unwrap().run().unwrap();
-            extendr_engine::start_r();
             let (r_code, r_requirements) = RBasedDriver::<RBasedFlowBuilder>::new(
                 &new_universe,
                 vec!["RDataFrame".to_string()].into_iter().collect(),
@@ -3642,3 +3641,48 @@ spec:
       spec:
         call: replication_storage_setup.tmp_dir
         attaches: ReplicationStorageSetup
+---
+type: Program
+spec:
+  use: RDataFrameFromNewlineDelimitedJSONData
+  root: ReplicationStorageSetup
+  dialect: R
+  preamble: |
+
+    library('rjson')
+    library('glue')
+    library('jsonlite')
+
+    read.json.for.table <- function(
+        static_data_table_name,
+        dataset_name,
+        columns
+    ) {
+        columns <- fromJSON(columns)
+        file.name <- glue(
+            "/tmp/{dataset_name}/{static_data_table_name}/data.json",
+            dataset_name=dataset_name,
+            static_data_table_name=static_data_table_name
+        )
+        data <- stream_in(file(file.name))
+        sprintf("Downloaded dataframe with %d rows and %d columns.", nrow(data), ncol(data))
+        return(data)
+    }
+
+  call: read.json.for.table
+  kwargs:
+    dataset_name:
+      type: AncestorArgument
+      spec:
+        attaches: DataSet
+        call: data_set.name.clone()
+    static_data_table_name:
+      type: AncestorArgument
+      spec:
+        attaches: StaticDataTable
+        call: static_data_table.name.clone()
+    columns:
+      type: AncestorArgument
+      spec:
+        attaches: StaticDataTable
+        call: serde_json::json!(static_data_table.schema.get_attribute_names()).to_string()

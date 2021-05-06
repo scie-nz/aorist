@@ -424,7 +424,6 @@ spec:
   name: CSVIsConverted
   root: StaticDataTable
   requires:
-    - ConvertJSONToCSV
     - ConvertTSVToCSV
   attachIf: |
       |root: Concept<'a>, ancestry: &ConceptAncestry<'a>|

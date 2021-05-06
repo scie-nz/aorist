@@ -162,6 +162,7 @@ pub fn deserialize(input: String) -> PyResult<InnerUniverse> {
 
 #[pyfunction]
 pub fn dag(inner: InnerUniverse, constraints: Vec<String>, mode: &str) -> PyResult<String> {
+    extendr_engine::start_r();
     let mut universe = Universe::from(inner);
     universe.compute_uuids();
     let (output, _requirements) = match mode {
@@ -190,7 +191,6 @@ pub fn dag(inner: InnerUniverse, constraints: Vec<String>, mode: &str) -> PyResu
         .map_err(|e| pyo3::exceptions::PyException::new_err(e.to_string()))?
         .run(),
         "r" => {
-            extendr_engine::start_r();
             RBasedDriver::<RBasedFlowBuilder>::new(&universe, constraints.into_iter().collect())
                 .map_err(|e| pyo3::exceptions::PyException::new_err(e.to_string()))?
                 .run()

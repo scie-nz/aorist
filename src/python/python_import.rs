@@ -19,10 +19,10 @@ impl PythonImport {
             }
             Self::PythonModuleImport(ref module, None) => format!("import {}", module).to_string(),
             Self::PythonFromImport(ref module, ref name, Some(ref alias)) => {
-                format!("import {}.{} as {}", module, name, alias).to_string()
+                format!("from {} import {} as {}", module, name, alias).to_string()
             }
             Self::PythonFromImport(ref module, ref name, None) => {
-                format!("import {}.{}", module, name).to_string()
+                format!("from {} import {}", module, name).to_string()
             }
         }
     }

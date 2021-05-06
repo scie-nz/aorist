@@ -44,7 +44,7 @@ assets = {x: StaticDataTable(
         ),
     ),
     tag=x,
-) for x in subreddits}
+    ) for x in subreddits[:1]}
 
 subreddits = DataSet(
     name="subreddits",

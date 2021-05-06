@@ -462,16 +462,17 @@ define_ast_node!(
             .values()
             .map(|x| x.to_r_ast_node(depth))
             .collect::<Vec<_>>();
-        elems.insert(0, formatted.fmt.to_r_ast_node(depth));
-        elems.insert(0, r!("glue"));
-        elems.insert(0, r!("call"));
-        let obj = r!(List(&elems));
-        let mut names = args.keys().map(|x| x.clone()).collect::<Vec<_>>();
-        names.insert(0, "fmt".to_string());
-        names.insert(0, "name".to_string());
-        names.insert(0, "name".to_string());
-        obj.set_names(names).unwrap();
-        call!("do.call", "call", obj, quote = TRUE).unwrap()
+        unsafe {
+            let res = make_lang("call");
+            let mut tail = res.get();
+            tail = append_with_name(tail, r!("glue"), "name");
+            tail = append(tail, formatted.fmt.to_r_ast_node(depth));
+            for (k, v) in &formatted.keywords {
+                tail = append_with_name(tail, v.to_r_ast_node(depth), k);
+            }
+            let _ = tail;
+            res
+        }
     },
     fmt: AST,
     keywords: LinkedHashMap<String, AST>,
