@@ -2872,6 +2872,11 @@ spec:
                 &new_universe,
                 vec!["NumpyData".to_string()].into_iter().collect(),
             ).unwrap().run().unwrap();
+            extendr_engine::start_r();
+            let (r_code, r_requirements) = RBasedDriver::<RBasedFlowBuilder>::new(
+                &new_universe,
+                vec!["RDataFrame".to_string()].into_iter().collect(),
+            ).unwrap().run().unwrap();
             serde_json::json!(maplit::hashmap!(
                 "pandas_code" => serde_json::json!(
                     pandas_code.replace("\\\\", "\\")
@@ -2881,6 +2886,8 @@ spec:
                     numpy_code.replace("\\\\", "\\")
                 ),
                 "numpy_requirements" => serde_json::json!(numpy_requirements),
+                "r_code" => serde_json::json!(r_code.replace("\\\\", "\\")),
+                "r_requirements" => serde_json::json!(r_requirements),
             )).to_string().replace("\\", "\\\\")
           }
     output_file:
