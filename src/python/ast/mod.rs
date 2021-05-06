@@ -71,21 +71,26 @@ define_ast_node!(
         )
     },
     |for_loop: &ForLoop, depth: usize| {
-        let pairlist = for_loop
-            .body
-            .iter()
-            .map(|x| x.to_r_ast_node(depth))
-            .collect::<Vec<_>>();
-        assert!(pairlist.len() > 0);
-        call!(
-            "call",
-            r!("call"),
-            r!("for"),
-            for_loop.target.to_r_ast_node(depth),
-            for_loop.iter.to_r_ast_node(depth),
-            r!(call!("call", r!("{"), r!(pairlist)))
-        )
-        .unwrap()
+        unsafe {
+            let res = make_lang("call");
+            let mut tail = res.get();
+            tail = append_with_name(tail, r!("for"), "name");
+            tail = append(tail, for_loop.target.to_r_ast_node(depth));
+            tail = append(tail, for_loop.iter.to_r_ast_node(depth));
+
+            let body = make_lang("call");
+            let mut body_tail = body.get();
+            body_tail = append_with_name(body_tail, r!("{"), "name");
+            for x in for_loop.body.iter() {
+                body_tail = append(body_tail, x.to_r_ast_node(depth));
+            }
+            let _ = body_tail;
+
+            tail = append(tail, body);
+
+            let _ = tail;
+            res
+        }
     },
     target: AST,
     iter: AST,
@@ -120,29 +125,15 @@ define_ast_node!(
         )
     },
     |assign: &Assignment, depth: usize| {
-        println!(
-            "deparsed target: {}",
-            Vec::<String>::from_robj(
-                &call!("deparse", assign.target.to_r_ast_node(depth)).unwrap()
-            )
-            .unwrap()
-            .join("\n")
-        );
-        let assignment = call!(
-            "call",
-            r!("call"),
-            r!("<-"),
-            assign.target.to_r_ast_node(depth),
-            assign.call.to_r_ast_node(depth)
-        )
-        .unwrap();
-        println!(
-            "deparsed assign: {}",
-            Vec::<String>::from_robj(&call!("deparse", &assignment).unwrap())
-                .unwrap()
-                .join("\n")
-        );
-        assignment
+        unsafe {
+            let res = make_lang("call");
+            let mut tail = res.get();
+            tail = append_with_name(tail, r!("<-"), "name");
+            tail = append(tail, assign.target.to_r_ast_node(depth));
+            tail = append(tail, assign.call.to_r_ast_node(depth));
+            let _ = tail;
+            res
+        }
     },
     target: AST,
     call: AST,
@@ -503,7 +494,15 @@ define_ast_node!(
     |subscript: &Subscript, depth: usize| {
         let a_node = subscript.a.to_r_ast_node(depth);
         let b_node = subscript.b.to_r_ast_node(depth);
-        r!(Lang(&[r!(Symbol("[[")), a_node, b_node,]))
+        unsafe {
+            let res = make_lang("call");
+            let mut tail = res.get();
+            tail = append_with_name(tail, r!("[["), "name");
+            tail = append(tail, a_node);
+            tail = append(tail, b_node);
+            let _ = tail;
+            res
+        }
     },
     a: AST,
     b: AST,
