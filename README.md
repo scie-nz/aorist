@@ -4,18 +4,9 @@ Aorist is a code-generation tool for MLOps. Its aim is to generate legible
 code for common repetitive tasks in data science, such as data replication,
 common transformations, as well as machine learning operations.
 
-## How to install
+## How to build
 
-These instructions require [Anaconda](https://anaconda.org) and were tested
-against Ubuntu Linux 20.04 LTS.
-
-```
-conda create -n aorist python=3.8 anaconda
-conda activate aorist
-pip3 install https://storage.googleapis.com/scienz-artifacts/aorist-0.0.1-cp38-cp38-linux_x86_64.whl
-```
-Alternatively, if you have Rust
-[installed](https://www.rust-lang.org/tools/install), you can run:
+Make sure you have Rust [installed](https://www.rust-lang.org/tools/install), following the instructions there, then run:
 
 ```
 cargo build
@@ -24,13 +15,22 @@ cp target/debug/libaorist.so example/aorist.so
 
 To try it out:
 ```
-python example/gen.py python
-python example/gen.py jupyter
-python example/gen.py airflow
+./run.sh
+python example/minimal.py
 ```
 
-The command above generates Python code or a Jupyter notebook -- you can pipe the code to a
+The command above generates Python code or R code -- you can pipe the code to a
 file.
+
+## Anaconda install (broken)
+These instructions require [Anaconda](https://anaconda.org) and were tested
+against Ubuntu Linux 20.04 LTS.
+
+```
+conda create -n aorist python=3.8 anaconda
+conda activate aorist
+pip3 install https://storage.googleapis.com/scienz-artifacts/aorist-0.0.1-cp38-cp38-linux_x86_64.whl
+```
 
 ## Overview of an Aorist universe
 
