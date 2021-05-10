@@ -3,7 +3,7 @@ from aorist import (
     AlluxioLocation,
     GCSLocation,
     StaticTabularLayout,
-    UpperSnakeCaseCSVHeader,
+    CSVHeader,
     GzipCompression,
     ORCEncoding,
     CSVEncoding,
@@ -14,6 +14,7 @@ from aorist import (
     StaticDataTable,
     default_tabular_schema,
     DataSet,
+    attr_list,
 )
 
 # hacky import since submodule imports don't work well
@@ -22,22 +23,22 @@ from aorist import attributes as attr
 """
 Defining dataset
 """
-attributes = [
+attributes = attr_list([
     attr.KeyStringIdentifier("granule_id"),
-    attr.NullableStringIdentifier("product_id"),
-    attr.NullableStringIdentifier("datatake_identifier"),
-    attr.NullableStringIdentifier("mgrs_tile"),
-    attr.NullablePOSIXTimestamp("sensing_time"),
-    attr.NullableInt64("total_size"),
-    attr.NullableString("cloud_cover"),
-    attr.NullableString("geometric_quality_flag"),
-    attr.NullablePOSIXTimestamp("generation_time"),
+    attr.StringIdentifier("product_id"),
+    attr.StringIdentifier("datatake_identifier"),
+    attr.StringIdentifier("mgrs_tile"),
+    attr.POSIXTimestamp("sensing_time"),
+    attr.Int64("total_size"),
+    attr.Proportion("cloud_cover"),
+    attr.Categorical("geometric_quality_flag"),
+    attr.POSIXTimestamp("generation_time"),
     attr.FloatLatitude("north_lat", "Northern latitude of the tile's bounding box."),
     attr.FloatLatitude("south_lat", "Southern latitude of the tile's bounding box."),
     attr.FloatLatitude("west_lon", "Western longitude of the tile's bounding box."),
     attr.FloatLatitude("east_lon", "Eastern longitude of the tile's bounding box."),
     attr.URI("base_url"),
-]
+])
 sentinel_granule_datum = RowStruct(
     name="sentinel_granule_datum",
     attributes=attributes,
@@ -50,7 +51,7 @@ remote = RemoteStorage(
     layout=SingleFileLayout(),
     encoding=CSVEncoding(
         compression=GzipCompression(),
-        header=UpperSnakeCaseCSVHeader(),
+        header=CSVHeader(),
     ),
 )
 local = HiveTableStorage(
@@ -63,8 +64,9 @@ sentinel_metadata_table = StaticDataTable(
     schema=default_tabular_schema(sentinel_granule_datum),
     setup=ReplicationStorageSetup(
         tmp_dir="/tmp/sentinel2",
-        remote=remote,
-        local=[local],
+        tmp_encoding=CSVEncoding(),
+        source=remote,
+        targets=[local],
     ),
     tag="sentinel",
 )
@@ -73,5 +75,7 @@ sentinel_dataset = DataSet(
     description="Satellite data from Sentinel-2 from Google GCS",
     sourcePath=__file__,
     datumTemplates=[sentinel_granule_datum],
-    assets=[sentinel_metadata_table],
+    assets={
+        "sentinel_metadata": sentinel_metadata_table
+    },
 )
