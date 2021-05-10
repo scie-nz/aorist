@@ -484,6 +484,7 @@ fn process_concepts() {
         ("crate::user", "User"),
         ("crate::user_group", "UserGroup"),
         ("crate::endpoints", "EndpointConfig"),
+        ("crate::endpoints", "AWSConfig"),
         ("crate::endpoints", "GCPConfig"),
         ("crate::endpoints", "GiteaConfig"),
         ("crate::endpoints", "PostgresConfig"),

@@ -1,4 +1,5 @@
 pub mod alluxio;
+pub mod aws;
 pub mod gcp;
 pub mod gitea;
 pub mod minio;
@@ -10,6 +11,7 @@ use crate::concept::Concept;
 use crate::constraint::Constraint;
 use crate::AoristConcept;
 pub use alluxio::{AlluxioConfig, InnerAlluxioConfig};
+pub use aws::*;
 use aorist_concept::{aorist_concept, Constrainable, InnerObject};
 use derivative::Derivative;
 pub use gcp::{GCPConfig, InnerGCPConfig};
@@ -47,4 +49,7 @@ pub struct EndpointConfig {
     #[constrainable]
     #[py_default = "None"]
     pub gcp: Option<GCPConfig>,
+    #[constrainable]
+    #[py_default = "None"]
+    pub aws: Option<AWSConfig>,
 }

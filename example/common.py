@@ -7,6 +7,7 @@ from aorist import (
     GiteaConfig,
     MinioConfig,
     PostgresConfig,
+    AWSConfig,
     GCPConfig,
     UserGroup,
     GlobalPermissionsAdmin,
@@ -21,6 +22,10 @@ alluxio_config = AlluxioConfig(
     rpcPort=19998,
     apiPort=39999,
     directory="data",
+)
+aws_config = AWSConfig(
+    access_key_id="[AWS_ACCESS_KEY]",
+    access_key_secret="[AWS_ACCESS_KEY_SECRET]",
 )
 ranger_config = RangerConfig(
     server="localhost", user="admin", password="G0powerRangers"
@@ -47,10 +52,12 @@ endpoints = EndpointConfig(
     gitea=gitea_config,
     minio=minio_config,
     postgres=postgres_config,
+    aws=aws_config,
     gcp=GCPConfig(
         project_name='social-norms',
         data_location='US',
-        use_default_credentials=True
+        service_account_file='/home/bogdan/.gcloud/climate-change-289705-1592601e084f.json',
+        use_default_credentials=False,
     ),
 )
 

@@ -3698,3 +3698,62 @@ spec:
       spec:
         attaches: StaticDataTable
         call: serde_json::json!(static_data_table.schema.get_attribute_names()).to_string()
+---
+type: Program
+spec:
+  use: UploadDataToS3
+  root: S3Location
+  dialect: Python
+  preamble: |
+
+    import logging
+    import boto3
+    from botocore.exceptions import ClientError
+
+    def upload_to_s3(access_key, secret_key, bucket, schema, tablename, tmp_dir, source_file):
+        client = boto3.client(
+            's3',
+            aws_access_key_id=access_key,
+            aws_secret_access_key=secret_key,
+        )
+        source_path = tmp_dir + "/" + source_file
+        dest_path = schema + '/' + tablename + '/data.csv'
+        response = client.upload_file(source_path, bucket, dest_path)
+
+  call: upload_to_s3
+  kwargs:
+    access_key:
+      type: AncestorArgument
+      spec:
+        call: universe.endpoints.aws.as_ref().unwrap().access_key_id
+        attaches: Universe
+    secret_key:
+      type: AncestorArgument
+      spec:
+        call: universe.endpoints.aws.as_ref().unwrap().access_key_secret
+        attaches: Universe
+    bucket:
+      type: AncestorArgument
+      spec:
+        call: s3_location.bucket
+        attaches: S3Location
+    schema:
+      type: AncestorArgument
+      spec:
+        call: data_set.name
+        attaches: DataSet
+    tablename:
+      type: AncestorArgument
+      spec:
+        call: format!("{}_csv", static_data_table.name).to_string()
+        attaches: StaticDataTable
+    tmp_dir:
+      type: AncestorArgument
+      spec:
+        call: replication_storage_setup.tmp_dir
+        attaches: ReplicationStorageSetup
+    source_file:
+      type: AncestorArgument
+      spec:
+        call: format!("{}.csv", static_data_table.name).to_string()
+        attaches: StaticDataTable
