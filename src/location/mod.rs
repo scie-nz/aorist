@@ -9,6 +9,7 @@ mod on_premise_location;
 mod postgres_location;
 mod pushshift_api_location;
 mod remote_location;
+mod s3_location;
 mod sqlite_location;
 mod web_location;
 
@@ -23,5 +24,6 @@ pub use on_premise_location::{InnerOnPremiseLocation, OnPremiseLocation};
 pub use postgres_location::*;
 pub use pushshift_api_location::{InnerPushshiftAPILocation, PushshiftAPILocation};
 pub use remote_location::{InnerRemoteLocation, RemoteLocation};
+pub use s3_location::*;
 pub use sqlite_location::*;
 pub use web_location::{InnerWebLocation, WebLocation};
