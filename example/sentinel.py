@@ -14,11 +14,14 @@ from aorist import (
     StaticDataTable,
     default_tabular_schema,
     DataSet,
+    MinioLocation,
     attr_list,
+    Universe,
 )
 
 # hacky import since submodule imports don't work well
 from aorist import attributes as attr
+from common import DEFAULT_ENDPOINTS
 
 """
 Defining dataset
@@ -55,7 +58,7 @@ remote = RemoteStorage(
     ),
 )
 local = HiveTableStorage(
-    location=AlluxioLocation(path="metadata"),
+    location=MinioLocation(name="metadata"),
     layout=StaticTabularLayout(),
     encoding=ORCEncoding(),
 )
@@ -79,3 +82,9 @@ sentinel_dataset = DataSet(
         "sentinel_metadata": sentinel_metadata_table
     },
 )
+universe = Universe(
+    name="my_cluster",
+    datasets=[sentinel_dataset],
+    endpoints=DEFAULT_ENDPOINTS,
+)
+print(universe.python("CSVIsConverted"))
