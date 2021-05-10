@@ -485,6 +485,12 @@ spec:
                 universe.endpoints.minio.as_ref().unwrap().bucket,
                 data_set.name,
             ).to_string(),
+            HiveLocation::S3Location(s3) => format!(
+                "WITH (location='s3a://{}/{}/{}/')",
+                s3.bucket,
+                s3.key,
+                data_set.name,
+            ).to_string(),
           }
 ---
 type: Program
@@ -648,6 +654,12 @@ spec:
                 universe.endpoints.minio.as_ref().unwrap().bucket,
                 data_set.name,
                 static_data_table.name,
+            ).to_string(),
+            HiveLocation::S3Location(s3) => format!(
+                "s3a://{}/{}/{}_csv/)",
+                s3.bucket,
+                s3.key,
+                data_set.name,
             ).to_string(),
           }
     table_name:

@@ -442,6 +442,7 @@ fn process_concepts() {
         ("crate::location", "LocalFileSystemLocation"),
         ("crate::location", "OnPremiseLocation"),
         ("crate::location", "MinioLocation"),
+        ("crate::location", "S3Location"),
         ("crate::location", "PostgresLocation"),
         ("crate::location", "PushshiftAPILocation"),
         ("crate::location", "RemoteLocation"),

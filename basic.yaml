@@ -962,3 +962,19 @@ spec:
   title: R data frame from newline-delimited JSON file
   body: |
     We convert an intermediary newline-delimited JSON file to an R data frame.
+---
+type: Constraint
+spec:
+  name: UploadDataToS3
+  root: S3Location
+  requiresProgram: true
+  requires:
+    - CSVIsConverted
+    - ReplicatedSchema
+  title: Upload data to S3
+  body: |
+      Now that data has been pre-processed we can upload it to the underlying
+      S3 storage.
+  attachIf: |
+      |root: Concept<'a>, ancestry: &ConceptAncestry<'a>|
+      ancestry.replication_storage_setup(root.clone()).is_ok()

@@ -458,10 +458,6 @@ define_ast_node!(
         for (k, v) in formatted.keywords.clone() {
             args.insert(k, v);
         }
-        let mut elems = args
-            .values()
-            .map(|x| x.to_r_ast_node(depth))
-            .collect::<Vec<_>>();
         unsafe {
             let res = make_lang("call");
             let mut tail = res.get();

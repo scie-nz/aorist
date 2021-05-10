@@ -14,7 +14,7 @@ from aorist import (
     StaticDataTable,
     default_tabular_schema,
     DataSet,
-    MinioLocation,
+    S3Location,
     attr_list,
     Universe,
 )
@@ -58,7 +58,10 @@ remote = RemoteStorage(
     ),
 )
 local = HiveTableStorage(
-    location=MinioLocation(name="metadata"),
+    location=S3Location(
+        bucket="vibrant-dragon",
+        key="datascience/sentinel2-metadata",
+    ),
     layout=StaticTabularLayout(),
     encoding=ORCEncoding(),
 )

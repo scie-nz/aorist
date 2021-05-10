@@ -285,6 +285,7 @@ fn aorist(py: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<InnerNewlineDelimitedJSONEncoding>()?;
     m.add_class::<InnerGithubLocation>()?;
     m.add_class::<InnerGitStorage>()?;
+    m.add_class::<InnerS3Location>()?;
     m.add_wrapped(wrap_pyfunction!(default_tabular_schema))?;
     m.add_wrapped(wrap_pyfunction!(dag))?;
     m.add_wrapped(wrap_pyfunction!(derive_integer_measure))?;

@@ -1,6 +1,7 @@
 use crate::concept::{AoristConcept, Concept};
 use crate::location::alluxio_location::*;
 use crate::location::minio_location::*;
+use crate::location::s3_location::*;
 use aorist_concept::{aorist_concept, Constrainable, InnerObject};
 use paste::paste;
 use pyo3::prelude::*;
@@ -13,4 +14,6 @@ pub enum HiveLocation {
     AlluxioLocation(AlluxioLocation),
     #[constrainable]
     MinioLocation(MinioLocation),
+    #[constrainable]
+    S3Location(S3Location),
 }
