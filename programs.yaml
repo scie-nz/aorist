@@ -933,6 +933,16 @@ spec:
       SELECT {columns}
       FROM {source_table}
   kwargs:
+    presto_schema:
+      type: AncestorArgument
+      spec:
+        attaches: DataSet
+        call: data_set.name.clone()
+    table_name:
+      type: AncestorArgument
+      spec:
+        attaches: StaticDataTable
+        call: static_data_table.name.clone()
     source_table:
       type: MultipleAncestorsArgument
       spec:
