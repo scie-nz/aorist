@@ -132,8 +132,12 @@ spec:
   preamble: |
     from google.cloud import storage
     import os
-    def download_blob_to_file(bucket_name, blob_name, tmp_dir, file_name):
-      client = storage.Client.from_service_account_json('/home/bogdan/.gcloud/social_norms.json')
+    def download_blob_to_file(bucket_name, blob_name, tmp_dir, file_name, credentials):
+      if credentials != "":
+          client = storage.Client.from_service_account_json(credentials)
+      else:
+          client = storage.Client()
+
       bucket = client.bucket(bucket_name)
       blob = bucket.blob(blob_name)
       if not os.path.exists(tmp_dir):
@@ -158,6 +162,16 @@ spec:
       spec:
         call: format!("{}.downloaded", static_data_table.name).to_string()
         attaches: StaticDataTable
+    - type: AncestorArgument
+      spec: 
+        call: |
+          {
+              match universe.endpoints.gcp.as_ref().unwrap().service_account_file {
+                  Some(ref s) => s.clone(),
+                  None => "".to_string(),
+              }
+          }
+        attaches: Universe
 ---
 type: Program
 spec:
