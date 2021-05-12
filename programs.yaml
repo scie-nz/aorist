@@ -962,7 +962,7 @@ spec:
                           FROM {})",
                         source
                     ).to_string(),
-                    _ => source,
+                    _ => format!("{}_csv", source),
                   },
                   _ => source,
               }

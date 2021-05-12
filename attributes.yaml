@@ -210,6 +210,17 @@ spec:
 ---
 type: Attribute
 spec:
+  name: ISO8601Timestamp
+  orc: OrcString
+  presto: PrestoVarchar
+  sql: SQLVarchar
+  sqlite: SQLiteText
+  bigquery: BigQueryString
+  postgres: PostgresText
+  value: StringValue
+---
+type: Attribute
+spec:
   name: FromPostgresText
   orc: OrcString
   presto: PrestoVarchar
