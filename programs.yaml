@@ -460,7 +460,7 @@ spec:
 type: Program
 spec:
   use: HiveDirectoriesCreated
-  root: OnPremiseLocation
+  root: HiveLocation
   dialect: Presto
   call: CREATE SCHEMA IF NOT EXISTS {presto_schema} {location}
   kwargs:
@@ -492,9 +492,8 @@ spec:
                 data_set.name,
             ).to_string(),
             HiveLocation::S3Location(s3) => format!(
-                "WITH (location='s3a://{}/{}/{}/')",
+                "WITH (location='s3a://{}/{}/')",
                 s3.bucket,
-                s3.key,
                 data_set.name,
             ).to_string(),
           }

@@ -120,7 +120,7 @@ spec:
 type: Constraint
 spec:
   name: HiveDirectoriesCreated
-  root: OnPremiseLocation
+  root: HiveLocation
   requiresProgram: true
   title: Created hive directories.
   body: |
