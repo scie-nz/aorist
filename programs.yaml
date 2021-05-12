@@ -409,16 +409,13 @@ spec:
         name: command
         call: >
             format!(
-                "--suffix=downloaded -c {tmp_dir}/{dataset_name}/{table_name}/{archive_name}.downloaded > {tmp_dir}/{dataset_name}/{table_name}/{archive_name}.tmp && mv {tmp_dir}/{dataset_name}/{table_name}/{archive_name}.tmp {tmp_dir}/{dataset_name}/{table_name}/{archive_name}.downloaded",
+                "--suffix=downloaded -c {tmp_dir}/{archive_name}.downloaded > {tmp_dir}/{archive_name}.tmp && mv {tmp_dir}/{archive_name}.tmp {tmp_dir}/{archive_name}.downloaded",
                 tmp_dir=replication_storage_setup.tmp_dir,
                 archive_name=static_data_table.name,
-                dataset_name=data_set.name,
-                table_name=static_data_table.name,
             )
         attaches:
           - StaticDataTable
           - ReplicationStorageSetup
-          - DataSet
 ---
 type: Program
 spec:
