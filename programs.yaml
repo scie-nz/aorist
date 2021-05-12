@@ -661,9 +661,10 @@ spec:
                 static_data_table.name,
             ).to_string(),
             HiveLocation::S3Location(s3) => format!(
-                "s3a://{}/{}_csv/)",
+                "s3a://{}/{}/{}_csv/",
                 s3.bucket,
                 data_set.name,
+                static_data_table.name,
             ).to_string(),
           }
     table_name:
