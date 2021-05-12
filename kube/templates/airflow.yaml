@@ -282,7 +282,7 @@ fi
           name: ca-cert-pub # ca.pem
       - name: sshkey
         secret:
-          secretName: airflow-git-sync # added to nickbp-bot@github.com and nickbp-bot@gitlab.com
+          secretName: git-sync # added to nickbp-bot@github.com and nickbp-bot@gitlab.com
 
   volumeClaimTemplates:
   - metadata:
