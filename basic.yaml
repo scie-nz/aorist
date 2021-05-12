@@ -87,7 +87,6 @@ spec:
   requiresProgram: true
   requires:
     - HiveDirectoriesCreated
-    - UploadDataToLocal
   title: Create schemas for temporary CSV tables.
   body: |
       We will use Hive tables with external storage as a staging location for our
