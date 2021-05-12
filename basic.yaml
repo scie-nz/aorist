@@ -315,6 +315,7 @@ spec:
       - UploadDataToSQLite
       - UploadDataToPostgres
       - UploadDataToBigQuery
+      - UploadDataToS3
   attachIf: |
       |root: Concept<'a>, ancestry: &ConceptAncestry<'a>|
       ancestry.replication_storage_setup(root.clone()).is_ok()
