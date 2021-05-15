@@ -61,6 +61,7 @@ pub struct TypeVariants {
     pub option_idents: Vec<Ident>,
     pub map_idents: Vec<Ident>,
     pub fields_with_default: syn::punctuated::Punctuated<syn::NestedMeta, syn::token::Comma>,
+    pub unconstrainable: Vec<Field>,
 } 
 
 impl TypeVariants {
@@ -114,7 +115,7 @@ impl TypeVariants {
             .map(|x| syn::NestedMeta::Meta(syn::Meta::NameValue(x.unwrap())))
             .collect::<syn::punctuated::Punctuated<syn::NestedMeta, syn::token::Comma>>();
         
-        let (constrainable, _unconstrainable) =
+        let (constrainable, unconstrainable) =
             get_constrainable_fields(fields_filtered.clone());
 
         let mut bare_types: Vec<Type> = Vec::new();
@@ -167,6 +168,7 @@ impl TypeVariants {
             option_vec_idents,
             map_idents,
             fields_with_default,
+            unconstrainable,
         }
     }
     pub fn to_file(&self, struct_name: &Ident, file_name: &str) {
@@ -363,7 +365,6 @@ impl TypeVariants {
     pub fn to_python_token_stream(
         &self,
         struct_name: &Ident,
-        unconstrainable: Vec<Field>,
     ) -> TokenStream {
         let (
             bare_type,
@@ -378,6 +379,7 @@ impl TypeVariants {
             option_vec_ident,
             map_ident,
             fields_with_default,
+            unconstrainable,
         ) = (
             &self.bare_types,
             &self.vec_types,
@@ -391,6 +393,7 @@ impl TypeVariants {
             &self.option_vec_idents,
             &self.map_idents,
             &self.fields_with_default,
+            &self.unconstrainable,
         );
         let (unconstrainable_name, unconstrainable_type) =
             extract_names_and_types(&unconstrainable);

@@ -3,7 +3,7 @@ extern crate proc_macro;
 mod type_variants;
 
 use self::proc_macro::TokenStream;
-use crate::type_variants::{get_constrainable_fields, TypeVariants};
+use crate::type_variants::{TypeVariants};
 use quote::quote;
 use std::fs::OpenOptions;
 use std::io::prelude::*;
@@ -154,20 +154,8 @@ pub fn constrain_object(input: TokenStream) -> TokenStream {
             ..
         }) => {
             let struct_name = &ast.ident;
-            let fields_filtered = fields
-                .named
-                .clone()
-                .into_iter()
-                .filter(|x| {
-                    let ident = x.ident.as_ref().unwrap().to_string();
-                    !(ident == "tag" || ident == "uuid" || ident == "constraints")
-                })
-                .collect::<Vec<_>>();
-
-            let (_constrainable, unconstrainable) =
-                get_constrainable_fields(fields_filtered.clone());
             let tv = TypeVariants::new(&fields);
-            tv.to_python_token_stream(struct_name, unconstrainable)
+            tv.to_python_token_stream(struct_name)
         }
 
         _ => panic!("expected a struct with named fields or an enum"),
