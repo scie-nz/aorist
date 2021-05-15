@@ -109,6 +109,7 @@ fn process_struct_fields(fields: &Punctuated<Field, Comma>, input: &DeriveInput)
     let (constrainable, unconstrainable) =
         get_constrainable_fields(fields_filtered.clone());
     let tv = TypeVariants::new(&constrainable);
+    tv.to_file(struct_name, "constrainables.txt");
     let (
         bare_type,
         vec_type,
@@ -135,50 +136,6 @@ fn process_struct_fields(fields: &Punctuated<Field, Comma>, input: &DeriveInput)
     let (_unconstrainable_name, _unconstrainable_type) =
         extract_names_and_types(&unconstrainable);
     
-    let types = bare_ident.iter()
-        .clone()
-        .chain(option_vec_ident.iter())
-        .chain(option_ident.iter())
-        .chain(vec_ident.iter())
-        .zip(
-             bare_type.iter()
-            .clone()
-            .chain(option_vec_type.iter())
-            .chain(option_type.iter())
-            .chain(vec_type.iter())
-        );
-    let mut file = OpenOptions::new()
-        .write(true)
-        .append(true)
-        .open("constrainables.txt")
-        .unwrap();
-    writeln!(
-        file,
-        "node [shape = oval, fillcolor=white, style=filled, fontname = Helvetica] '{}';",
-        struct_name
-    )
-    .unwrap();
-    for (ident, t) in types {
-        let tp = match t {
-            Type::Path(x) => &x.path,
-            _ => panic!("Something other than a type path found."),
-        };
-        let type_val = tp
-            .segments
-            .iter()
-            .map(|x| x.ident.to_string())
-            .collect::<Vec<_>>()
-            .join("|");
-        writeln!(
-            file,
-            "'{}'->'{}' [label='{}'];",
-            struct_name,
-            type_val,
-            ident,
-        )
-        .unwrap();
-    }
-            
 
     TokenStream::from(quote! {
 
@@ -418,6 +375,49 @@ impl TypeVariants {
             option_idents,
             option_vec_idents,
             map_idents,
+        }
+    }
+    pub fn to_file(&self, struct_name: &Ident, file_name: &str) {
+        let types = self.bare_idents.iter()
+            .chain(self.option_vec_idents.iter())
+            .chain(self.option_idents.iter())
+            .chain(self.vec_idents.iter())
+            .zip(
+                 self.bare_types.iter()
+                .chain(self.option_vec_types.iter())
+                .chain(self.option_types.iter())
+                .chain(self.vec_types.iter())
+            );
+        let mut file = OpenOptions::new()
+            .write(true)
+            .append(true)
+            .open(file_name)
+            .unwrap();
+        writeln!(
+            file,
+            "node [shape = oval, fillcolor=white, style=filled, fontname = Helvetica] '{}';",
+            struct_name
+        )
+        .unwrap();
+        for (ident, t) in types {
+            let tp = match t {
+                Type::Path(x) => &x.path,
+                _ => panic!("Something other than a type path found."),
+            };
+            let type_val = tp
+                .segments
+                .iter()
+                .map(|x| x.ident.to_string())
+                .collect::<Vec<_>>()
+                .join("|");
+            writeln!(
+                file,
+                "'{}'->'{}' [label='{}'];",
+                struct_name,
+                type_val,
+                ident,
+            )
+            .unwrap();
         }
     }
 }
