@@ -96,54 +96,46 @@ fn process_enum_variants(
     })
 }
 fn process_struct_fields(fields: &Punctuated<Field, Comma>, input: &DeriveInput) -> TokenStream {
-    let field = fields
-        .iter()
-        .filter(|field| {
-            field
-                .attrs
-                .iter()
-                .filter(|a| match a.parse_meta() {
-                    Ok(Meta::Path(x)) => x.is_ident("constrainable"),
-                    _ => false,
-                })
-                .collect::<Vec<_>>()
-                .len()
-                > 0
-        })
-        .map(|field| (&field.ident, &field.ty));
-
     let struct_name = &input.ident;
-    let bare_field = field.clone().filter(|x| {
-        extract_type_from_option(x.1).is_none()
-            && extract_type_from_vector(x.1).is_none()
-            && extract_type_from_map(x.1).is_none()
-    });
-    let option_field = field
+    let fields_filtered = fields
         .clone()
-        .filter(|x| extract_type_from_option(x.1).is_some())
-        .map(|x| (x.0, extract_type_from_option(x.1).unwrap()));
-    let vec_field = field
-        .clone()
+        .into_iter()
         .filter(|x| {
-            extract_type_from_option(x.1).is_none() && extract_type_from_vector(x.1).is_some()
+            let ident = x.ident.as_ref().unwrap().to_string();
+            !(ident == "tag" || ident == "uuid" || ident == "constraints")
         })
-        .map(|x| (x.0, extract_type_from_vector(x.1).unwrap()));
-    let map_field = field
+        .collect::<Vec<_>>();
+
+    let (constrainable, unconstrainable) =
+        get_constrainable_fields(fields_filtered.clone());
+    let (
+        bare_type,
+        vec_type,
+        option_type,
+        option_vec_type,
+        _map_key_type,
+        map_value_type,
+        bare_ident,
+        vec_ident,
+        option_ident,
+        option_vec_ident,
+        map_ident,
+    ) = extract_type_variants(&constrainable);
+    let (_unconstrainable_name, _unconstrainable_type) =
+        extract_names_and_types(&unconstrainable);
+    
+    let types = bare_ident.iter()
         .clone()
-        .filter(|x| extract_type_from_option(x.1).is_none() && extract_type_from_map(x.1).is_some())
-        .map(|x| (x.0, extract_type_from_map(x.1).unwrap()));
-    let option_vec_field = option_field
-        .clone()
-        .filter(|x| extract_type_from_vector(x.1).is_some())
-        .map(|x| (x.0, extract_type_from_vector(x.1).unwrap()));
-    let option_bare_field = option_field
-        .clone()
-        .filter(|x| extract_type_from_vector(x.1).is_none());
-    let types = bare_field
-        .clone()
-        .chain(option_vec_field.clone())
-        .chain(option_bare_field.clone())
-        .chain(vec_field.clone());
+        .chain(option_vec_ident.iter())
+        .chain(option_ident.iter())
+        .chain(vec_ident.iter())
+        .zip(
+             bare_type.iter()
+            .clone()
+            .chain(option_vec_type.iter())
+            .chain(option_type.iter())
+            .chain(vec_type.iter())
+        );
     let mut file = OpenOptions::new()
         .write(true)
         .append(true)
@@ -171,20 +163,11 @@ fn process_struct_fields(fields: &Punctuated<Field, Comma>, input: &DeriveInput)
             "'{}'->'{}' [label='{}'];",
             struct_name,
             type_val,
-            ident.as_ref().unwrap()
+            ident,
         )
         .unwrap();
     }
-    let bare_field_name = bare_field.clone().map(|x| x.0).collect::<Vec<_>>();
-    let bare_field_type = bare_field.clone().map(|x| x.1).collect::<Vec<_>>();
-    let option_field_name = option_bare_field.clone().map(|x| x.0).collect::<Vec<_>>();
-    let option_field_type = option_bare_field.clone().map(|x| x.1).collect::<Vec<_>>();
-    let vec_field_name = vec_field.clone().map(|x| x.0).collect::<Vec<_>>();
-    let vec_field_type = vec_field.clone().map(|x| x.1).collect::<Vec<_>>();
-    let map_field_name = map_field.clone().map(|x| x.0).collect::<Vec<_>>();
-    let map_field_value_type = map_field.clone().map(|x| x.1 .1).collect::<Vec<_>>();
-    let option_vec_field_name = option_vec_field.clone().map(|x| x.0).collect::<Vec<_>>();
-    let option_vec_field_type = option_vec_field.clone().map(|x| x.1).collect::<Vec<_>>();
+            
 
     TokenStream::from(quote! {
 
@@ -196,32 +179,32 @@ fn process_struct_fields(fields: &Punctuated<Field, Comma>, input: &DeriveInput)
                 ));
                 let mut concepts = vec![
                     #(
-                      Concept::#bare_field_type((
-                          &self.#bare_field_name,
+                      Concept::#bare_type((
+                          &self.#bare_ident,
                           0,
                           id.clone()
                       )),
                     )*
                 ];
                 #(
-                    if let Some(ref c) = self.#option_field_name {
+                    if let Some(ref c) = self.#option_ident {
                         concepts.push(
-                            Concept::#option_field_type((c, 0, id.clone()))
+                            Concept::#option_type((c, 0, id.clone()))
                         );
                     }
                 )*
                 #(
-                    for (i, x) in self.#vec_field_name.iter().enumerate() {
+                    for (i, x) in self.#vec_ident.iter().enumerate() {
                         concepts.push(
-                            Concept::#vec_field_type((&x, i + 1, id.clone()))
+                            Concept::#vec_type((&x, i + 1, id.clone()))
                         );
                     }
                 )*
                 #(
-                    if let Some(ref v) = self.#option_vec_field_name {
+                    if let Some(ref v) = self.#option_vec_ident {
                         for (i, x) in v.iter().enumerate() {
                             concepts.push(
-                                Concept::#option_vec_field_type(
+                                Concept::#option_vec_type(
                                     (&x, i + 1, id.clone())
                                 )
                             );
@@ -230,9 +213,9 @@ fn process_struct_fields(fields: &Punctuated<Field, Comma>, input: &DeriveInput)
                 )*
                 #(
                     let mut i = 0;
-                    for v in self.#map_field_name.values() {
+                    for v in self.#map_ident.values() {
                         concepts.push(
-                            Concept::#map_field_value_type((&v, i + 1, id.clone()))
+                            Concept::#map_value_type((&v, i + 1, id.clone()))
                         );
                         i += 1;
                     }
@@ -251,27 +234,27 @@ fn process_struct_fields(fields: &Punctuated<Field, Comma>, input: &DeriveInput)
             fn get_children_uuid(&self) -> Vec<Uuid> {
                 let mut uuids: Vec<Uuid> = Vec::new();
                 #(
-                    uuids.push(self.#bare_field_name.get_uuid());
+                    uuids.push(self.#bare_ident.get_uuid());
                 )*
                 #(
-                    if let Some(ref c) = self.#option_field_name {
+                    if let Some(ref c) = self.#option_ident {
                         uuids.push(c.get_uuid());
                     }
                 )*
                 #(
-                    for elem in &self.#vec_field_name {
+                    for elem in &self.#vec_ident {
                         uuids.push(elem.get_uuid());
                     }
                 )*
                 #(
-                    if let Some(ref v) = self.#option_vec_field_name {
+                    if let Some(ref v) = self.#option_vec_ident {
                         for elem in v {
                             uuids.push(elem.get_uuid());
                         }
                     }
                 )*
                 #(
-                    for elem in self.#map_field_name.values() {
+                    for elem in self.#map_ident.values() {
                         uuids.push(elem.get_uuid());
                     }
                 )*
@@ -279,27 +262,27 @@ fn process_struct_fields(fields: &Punctuated<Field, Comma>, input: &DeriveInput)
             }
             fn compute_uuids(&mut self) {
                 #(
-                    self.#bare_field_name.compute_uuids();
+                    self.#bare_ident.compute_uuids();
                 )*
                 #(
-                    if let Some(ref mut c) = self.#option_field_name {
+                    if let Some(ref mut c) = self.#option_ident {
                         c.compute_uuids();
                     }
                 )*
                 #(
-                    for elem in self.#vec_field_name.iter_mut() {
+                    for elem in self.#vec_ident.iter_mut() {
                         elem.compute_uuids();
                     }
                 )*
                 #(
-                    if let Some(ref mut v) = self.#option_vec_field_name {
+                    if let Some(ref mut v) = self.#option_vec_ident {
                         for elem in v.iter_mut() {
                             elem.compute_uuids();
                         }
                     }
                 )*
                 #(
-                    for elem in self.#map_field_name.values_mut() {
+                    for elem in self.#map_ident.values_mut() {
                         elem.compute_uuids();
                     }
                 )*
@@ -491,6 +474,7 @@ pub fn constrain_object(input: TokenStream) -> TokenStream {
             ) = extract_type_variants(&constrainable);
             let (unconstrainable_name, unconstrainable_type) =
                 extract_names_and_types(&unconstrainable);
+
             let py_class_name = format!("{}", struct_name);
             let fields_with_default = fields_filtered
                 .clone()
