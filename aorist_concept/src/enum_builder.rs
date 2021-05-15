@@ -70,6 +70,34 @@ impl EnumBuilder {
         }
 
     }
+    pub fn to_base_token_stream(&self, enum_name: &Ident) -> TokenStream {
+        let variant = &self.variant_idents;
+        let quoted = quote! { paste! {
+            #[derive(Clone, FromPyObject, PartialEq)]
+            pub enum [<Base #enum_name>] {
+                #(#variant([<Base #variant>])),*
+            }
+            impl From<[<Base #enum_name>]> for #enum_name {
+                fn from(inner: [<Base #enum_name>]) -> Self {
+                    match inner {
+                         #(
+                             [<Base #enum_name>]::#variant(x) => Self::#variant(#variant::from(x)),
+                         )*
+                    }
+                }
+            }
+            impl From<#enum_name> for [<Base #enum_name>] {
+                fn from(outer: #enum_name) -> Self {
+                    match outer {
+                         #(
+                             #enum_name::#variant(x) => Self::#variant([<Base #variant>]::from(x)),
+                         )*
+                    }
+                }
+            }
+        }};
+        return proc_macro::TokenStream::from(quoted)
+    }
     pub fn to_concept_token_stream(&self, enum_name: &Ident) -> TokenStream {
         let variant = &self.variant_idents;
         TokenStream::from(quote! {

@@ -53,7 +53,9 @@ pub fn constrain_object(input: TokenStream) -> TokenStream {
         Data::Enum(DataEnum { variants, .. }) => {
             let enum_name = &ast.ident;
             let builder = EnumBuilder::new(variants);
+            let base_stream = builder.to_base_token_stream(enum_name);
             let python_stream = builder.to_python_token_stream(enum_name);
+            //base_stream.into_iter().chain(python_stream.into_iter()).collect()
             python_stream
             
         }
@@ -63,7 +65,7 @@ pub fn constrain_object(input: TokenStream) -> TokenStream {
         }) => {
             let struct_name = &ast.ident;
             let builder = StructBuilder::new(&fields);
-            let _base_stream = builder.to_base_token_stream(struct_name);
+            let base_stream = builder.to_base_token_stream(struct_name);
             let python_stream = builder.to_python_token_stream(struct_name);
             //base_stream.into_iter().chain(python_stream.into_iter()).collect()
             python_stream

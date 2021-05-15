@@ -572,7 +572,6 @@ impl StructBuilder {
                         #(#option_vec_ident,)*
                         #(#map_ident,)*
                         #(#unconstrainable_name,)*
-                        tag
                     }
                 }
             }
