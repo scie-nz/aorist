@@ -167,43 +167,7 @@ pub fn constrain_object(input: TokenStream) -> TokenStream {
             let (_constrainable, unconstrainable) =
                 get_constrainable_fields(fields_filtered.clone());
             let tv = TypeVariants::new(&fields);
-            let fields_with_default = fields_filtered
-                .clone()
-                .into_iter()
-                .map(|x| {
-                    let mut it = x
-                        .attrs
-                        .iter()
-                        .map(|attr| {
-                            let meta = attr.parse_meta().unwrap();
-                            if let syn::Meta::NameValue(ref nv) = meta {
-                                if nv.path.is_ident("py_default") {
-                                    if let syn::Lit::Str(_) = nv.lit {
-                                        let field_name = x.ident.as_ref().unwrap().clone();
-                                        return Some(syn::MetaNameValue {
-                                            path: syn::Path::from(field_name),
-                                            eq_token: nv.eq_token.clone(),
-                                            lit: nv.lit.clone(),
-                                        });
-                                    } else {
-                                        panic!("py_default values should only be strings");
-                                    }
-                                }
-                            }
-                            None
-                        })
-                        .filter(|x| x.is_some());
-                    let default_val = it.next();
-                    if let Some(x) = default_val {
-                        assert!(it.next().is_none());
-                        return x;
-                    }
-                    None
-                })
-                .filter(|x| x.is_some())
-                .map(|x| syn::NestedMeta::Meta(syn::Meta::NameValue(x.unwrap())))
-                .collect::<syn::punctuated::Punctuated<syn::NestedMeta, syn::token::Comma>>();
-            tv.to_python_token_stream(struct_name, fields_with_default, unconstrainable)
+            tv.to_python_token_stream(struct_name, unconstrainable)
         }
 
         _ => panic!("expected a struct with named fields or an enum"),

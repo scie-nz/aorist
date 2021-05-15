@@ -60,6 +60,7 @@ pub struct TypeVariants {
     pub option_vec_idents: Vec<Ident>,
     pub option_idents: Vec<Ident>,
     pub map_idents: Vec<Ident>,
+    pub fields_with_default: syn::punctuated::Punctuated<syn::NestedMeta, syn::token::Comma>,
 } 
 
 impl TypeVariants {
@@ -76,6 +77,42 @@ impl TypeVariants {
                 !(ident == "tag" || ident == "uuid" || ident == "constraints")
             })
             .collect::<Vec<_>>();
+        let fields_with_default = fields_filtered
+            .clone()
+            .into_iter()
+            .map(|x| {
+                let mut it = x
+                    .attrs
+                    .iter()
+                    .map(|attr| {
+                        let meta = attr.parse_meta().unwrap();
+                        if let syn::Meta::NameValue(ref nv) = meta {
+                            if nv.path.is_ident("py_default") {
+                                if let syn::Lit::Str(_) = nv.lit {
+                                    let field_name = x.ident.as_ref().unwrap().clone();
+                                    return Some(syn::MetaNameValue {
+                                        path: syn::Path::from(field_name),
+                                        eq_token: nv.eq_token.clone(),
+                                        lit: nv.lit.clone(),
+                                    });
+                                } else {
+                                    panic!("py_default values should only be strings");
+                                }
+                            }
+                        }
+                        None
+                    })
+                    .filter(|x| x.is_some());
+                let default_val = it.next();
+                if let Some(x) = default_val {
+                    assert!(it.next().is_none());
+                    return x;
+                }
+                None
+            })
+            .filter(|x| x.is_some())
+            .map(|x| syn::NestedMeta::Meta(syn::Meta::NameValue(x.unwrap())))
+            .collect::<syn::punctuated::Punctuated<syn::NestedMeta, syn::token::Comma>>();
         
         let (constrainable, _unconstrainable) =
             get_constrainable_fields(fields_filtered.clone());
@@ -129,6 +166,7 @@ impl TypeVariants {
             option_idents,
             option_vec_idents,
             map_idents,
+            fields_with_default,
         }
     }
     pub fn to_file(&self, struct_name: &Ident, file_name: &str) {
@@ -325,7 +363,6 @@ impl TypeVariants {
     pub fn to_python_token_stream(
         &self,
         struct_name: &Ident,
-        fields_with_default: syn::punctuated::Punctuated<syn::NestedMeta, syn::token::Comma>,
         unconstrainable: Vec<Field>,
     ) -> TokenStream {
         let (
@@ -340,6 +377,7 @@ impl TypeVariants {
             option_ident,
             option_vec_ident,
             map_ident,
+            fields_with_default,
         ) = (
             &self.bare_types,
             &self.vec_types,
@@ -352,6 +390,7 @@ impl TypeVariants {
             &self.option_idents,
             &self.option_vec_idents,
             &self.map_idents,
+            &self.fields_with_default,
         );
         let (unconstrainable_name, unconstrainable_type) =
             extract_names_and_types(&unconstrainable);
