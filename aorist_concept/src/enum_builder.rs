@@ -24,6 +24,34 @@ impl EnumBuilder {
             variant_idents
         }
     }
+    pub fn to_python_token_stream(&self, enum_name: &Ident) -> TokenStream {
+        let variant = &self.variant_idents;
+        let quoted = quote! { paste! {
+            #[derive(Clone, FromPyObject, PartialEq)]
+            pub enum [<Inner #enum_name>] {
+                #(#variant([<Inner #variant>])),*
+            }
+            impl From<[<Inner #enum_name>]> for #enum_name {
+                fn from(inner: [<Inner #enum_name>]) -> Self {
+                    match inner {
+                         #(
+                             [<Inner #enum_name>]::#variant(x) => Self::#variant(#variant::from(x)),
+                         )*
+                    }
+                }
+            }
+            impl From<#enum_name> for [<Inner #enum_name>] {
+                fn from(outer: #enum_name) -> Self {
+                    match outer {
+                         #(
+                             #enum_name::#variant(x) => Self::#variant([<Inner #variant>]::from(x)),
+                         )*
+                    }
+                }
+            }
+        }};
+        return proc_macro::TokenStream::from(quoted)
+    }
     pub fn to_file(&self, enum_name: &Ident, file_name: &str) {
         let mut file = OpenOptions::new()
             .write(true)

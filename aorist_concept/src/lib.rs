@@ -52,44 +52,19 @@ pub fn constrain_object(input: TokenStream) -> TokenStream {
     match &ast.data {
         Data::Enum(DataEnum { variants, .. }) => {
             let enum_name = &ast.ident;
-            let variant = variants
-                .iter()
-                .map(|x| (x.ident.clone()))
-                .collect::<Vec<_>>();
-            let quoted = quote! { paste! {
-                #[derive(Clone, FromPyObject, PartialEq)]
-                pub enum [<Inner #enum_name>] {
-                    #(#variant([<Inner #variant>])),*
-                }
-                impl From<[<Inner #enum_name>]> for #enum_name {
-                    fn from(inner: [<Inner #enum_name>]) -> Self {
-                        match inner {
-                             #(
-                                 [<Inner #enum_name>]::#variant(x) => Self::#variant(#variant::from(x)),
-                             )*
-                        }
-                    }
-                }
-                impl From<#enum_name> for [<Inner #enum_name>] {
-                    fn from(outer: #enum_name) -> Self {
-                        match outer {
-                             #(
-                                 #enum_name::#variant(x) => Self::#variant([<Inner #variant>]::from(x)),
-                             )*
-                        }
-                    }
-                }
-            }};
-            return proc_macro::TokenStream::from(quoted);
+            let builder = EnumBuilder::new(variants);
+            let python_stream = builder.to_python_token_stream(enum_name);
+            python_stream
+            
         }
         Data::Struct(DataStruct {
             fields: Fields::Named(fields),
             ..
         }) => {
             let struct_name = &ast.ident;
-            let tv = StructBuilder::new(&fields);
-            let _base_stream = tv.to_base_token_stream(struct_name);
-            let python_stream = tv.to_python_token_stream(struct_name);
+            let builder = StructBuilder::new(&fields);
+            let _base_stream = builder.to_base_token_stream(struct_name);
+            let python_stream = builder.to_python_token_stream(struct_name);
             //base_stream.into_iter().chain(python_stream.into_iter()).collect()
             python_stream
         }
