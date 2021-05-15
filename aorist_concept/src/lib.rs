@@ -108,19 +108,30 @@ fn process_struct_fields(fields: &Punctuated<Field, Comma>, input: &DeriveInput)
 
     let (constrainable, unconstrainable) =
         get_constrainable_fields(fields_filtered.clone());
+    let tv = TypeVariants::new(&constrainable);
     let (
         bare_type,
         vec_type,
         option_type,
         option_vec_type,
-        _map_key_type,
         map_value_type,
         bare_ident,
         vec_ident,
         option_ident,
         option_vec_ident,
         map_ident,
-    ) = extract_type_variants(&constrainable);
+    ) = (
+        tv.bare_types,
+        tv.vec_types,
+        tv.option_types,
+        tv.option_vec_types,
+        tv.map_value_types,
+        tv.bare_idents,
+        tv.vec_idents,
+        tv.option_idents,
+        tv.option_vec_idents,
+        tv.map_idents,
+    );
     let (_unconstrainable_name, _unconstrainable_type) =
         extract_names_and_types(&unconstrainable);
     
@@ -339,71 +350,76 @@ fn extract_names_and_types(fields: &Vec<Field>) -> (Vec<Ident>, Vec<Type>) {
     (names, types)
 }
 
-fn extract_type_variants(
-    fields: &Vec<Field>,
-) -> (
-    Vec<Type>,
-    Vec<Type>,
-    Vec<Type>,
-    Vec<Type>,
-    Vec<Type>,
-    Vec<Type>,
-    Vec<Ident>,
-    Vec<Ident>,
-    Vec<Ident>,
-    Vec<Ident>,
-    Vec<Ident>,
-) {
-    let mut bare_types: Vec<Type> = Vec::new();
-    let mut vec_types: Vec<Type> = Vec::new();
-    let mut option_vec_types: Vec<Type> = Vec::new();
-    let mut option_types: Vec<Type> = Vec::new();
-    let mut map_key_types: Vec<Type> = Vec::new();
-    let mut map_value_types: Vec<Type> = Vec::new();
+struct TypeVariants {
+    pub bare_types: Vec<Type>,
+    pub vec_types: Vec<Type>,
+    pub option_vec_types: Vec<Type>,
+    pub option_types: Vec<Type>,
+    pub map_key_types: Vec<Type>,
+    pub map_value_types: Vec<Type>,
+    pub bare_idents: Vec<Ident>,
+    pub vec_idents: Vec<Ident>,
+    pub option_vec_idents: Vec<Ident>,
+    pub option_idents: Vec<Ident>,
+    pub map_idents: Vec<Ident>,
+} 
 
-    let mut bare_idents: Vec<Ident> = Vec::new();
-    let mut vec_idents: Vec<Ident> = Vec::new();
-    let mut option_vec_idents: Vec<Ident> = Vec::new();
-    let mut option_idents: Vec<Ident> = Vec::new();
-    let mut map_idents: Vec<Ident> = Vec::new();
+impl TypeVariants {
+    pub fn new(
+        fields: &Vec<Field>,
+    ) -> TypeVariants {
 
-    for field in fields {
-        let tt = &field.ty;
-        let ident = field.ident.as_ref().unwrap().clone();
+        let mut bare_types: Vec<Type> = Vec::new();
+        let mut vec_types: Vec<Type> = Vec::new();
+        let mut option_vec_types: Vec<Type> = Vec::new();
+        let mut option_types: Vec<Type> = Vec::new();
+        let mut map_key_types: Vec<Type> = Vec::new();
+        let mut map_value_types: Vec<Type> = Vec::new();
 
-        if let Some(vec_type) = extract_type_from_vector(tt) {
-            vec_types.push(vec_type.clone());
-            vec_idents.push(ident.clone());
-        } else if let Some(option_type) = extract_type_from_option(tt) {
-            if let Some(option_vec_type) = extract_type_from_vector(option_type) {
-                option_vec_types.push(option_vec_type.clone());
-                option_vec_idents.push(ident.clone());
+        let mut bare_idents: Vec<Ident> = Vec::new();
+        let mut vec_idents: Vec<Ident> = Vec::new();
+        let mut option_vec_idents: Vec<Ident> = Vec::new();
+        let mut option_idents: Vec<Ident> = Vec::new();
+        let mut map_idents: Vec<Ident> = Vec::new();
+
+        for field in fields {
+            let tt = &field.ty;
+            let ident = field.ident.as_ref().unwrap().clone();
+
+            if let Some(vec_type) = extract_type_from_vector(tt) {
+                vec_types.push(vec_type.clone());
+                vec_idents.push(ident.clone());
+            } else if let Some(option_type) = extract_type_from_option(tt) {
+                if let Some(option_vec_type) = extract_type_from_vector(option_type) {
+                    option_vec_types.push(option_vec_type.clone());
+                    option_vec_idents.push(ident.clone());
+                } else {
+                    option_types.push(option_type.clone());
+                    option_idents.push(ident.clone());
+                }
+            } else if let Some((map_key_type, map_value_type)) = extract_type_from_map(tt) {
+                map_key_types.push(map_key_type.clone());
+                map_value_types.push(map_value_type.clone());
+                map_idents.push(ident.clone());
             } else {
-                option_types.push(option_type.clone());
-                option_idents.push(ident.clone());
+                bare_types.push(tt.clone());
+                bare_idents.push(ident.clone());
             }
-        } else if let Some((map_key_type, map_value_type)) = extract_type_from_map(tt) {
-            map_key_types.push(map_key_type.clone());
-            map_value_types.push(map_value_type.clone());
-            map_idents.push(ident.clone());
-        } else {
-            bare_types.push(tt.clone());
-            bare_idents.push(ident.clone());
+        }
+        Self {
+            bare_types,
+            vec_types,
+            option_types,
+            option_vec_types,
+            map_key_types,
+            map_value_types,
+            bare_idents,
+            vec_idents,
+            option_idents,
+            option_vec_idents,
+            map_idents,
         }
     }
-    (
-        bare_types,
-        vec_types,
-        option_types,
-        option_vec_types,
-        map_key_types,
-        map_value_types,
-        bare_idents,
-        vec_idents,
-        option_idents,
-        option_vec_idents,
-        map_idents,
-    )
 }
 
 #[proc_macro_derive(InnerObject, attributes(py_default))]
@@ -459,6 +475,7 @@ pub fn constrain_object(input: TokenStream) -> TokenStream {
 
             let (constrainable, unconstrainable) =
                 get_constrainable_fields(fields_filtered.clone());
+            let tv = TypeVariants::new(&constrainable);
             let (
                 bare_type,
                 vec_type,
@@ -471,7 +488,19 @@ pub fn constrain_object(input: TokenStream) -> TokenStream {
                 option_ident,
                 option_vec_ident,
                 map_ident,
-            ) = extract_type_variants(&constrainable);
+            ) = (
+                tv.bare_types,
+                tv.vec_types,
+                tv.option_types,
+                tv.option_vec_types,
+                tv.map_key_types,
+                tv.map_value_types,
+                tv.bare_idents,
+                tv.vec_idents,
+                tv.option_idents,
+                tv.option_vec_idents,
+                tv.map_idents,
+            );
             let (unconstrainable_name, unconstrainable_type) =
                 extract_names_and_types(&unconstrainable);
 
