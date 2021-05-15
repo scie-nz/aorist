@@ -155,7 +155,10 @@ pub fn constrain_object(input: TokenStream) -> TokenStream {
         }) => {
             let struct_name = &ast.ident;
             let tv = StructBuilder::new(&fields);
-            tv.to_python_token_stream(struct_name)
+            let _base_stream = tv.to_base_token_stream(struct_name);
+            let python_stream = tv.to_python_token_stream(struct_name);
+            //base_stream.into_iter().chain(python_stream.into_iter()).collect()
+            python_stream
         }
 
         _ => panic!("expected a struct with named fields or an enum"),

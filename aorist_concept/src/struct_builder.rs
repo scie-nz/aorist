@@ -503,4 +503,141 @@ impl StructBuilder {
 
         }})
     }
+    pub fn to_base_token_stream(&self, struct_name: &Ident) -> TokenStream {
+        let (
+            bare_type,
+            vec_type,
+            option_type,
+            option_vec_type,
+            map_key_type,
+            map_value_type,
+            bare_ident,
+            vec_ident,
+            option_ident,
+            option_vec_ident,
+            map_ident,
+            unconstrainable,
+        ) = (
+            &self.bare_types,
+            &self.vec_types,
+            &self.option_types,
+            &self.option_vec_types,
+            &self.map_key_types,
+            &self.map_value_types,
+            &self.bare_idents,
+            &self.vec_idents,
+            &self.option_idents,
+            &self.option_vec_idents,
+            &self.map_idents,
+            &self.unconstrainable,
+        );
+        let (unconstrainable_name, unconstrainable_type) =
+            extract_names_and_types(&unconstrainable);
+
+        TokenStream::from(quote! { paste! {
+
+            #[derive(Clone, PartialEq)]
+            pub struct [<Base #struct_name>] {
+                #(pub #bare_ident: [<Base #bare_type>] ,)*
+                #(pub #vec_ident: Vec<[<Base #vec_type>]> ,)*
+                #(pub #option_ident: Option<[< #option_type>]> ,)*
+                #(pub #option_vec_ident: Option<Vec<[<Base #option_vec_type>]>> ,)*
+                #(
+                  pub #map_ident: std::collections::BTreeMap<
+                    #map_key_type,
+                    [<Base #map_value_type>]
+                  >,
+                )*
+                #(pub #unconstrainable_name: #unconstrainable_type,)*
+            }
+
+            impl [<Base #struct_name>] {
+                #[new]
+                pub fn new(
+                    #(#bare_ident: [<Base #bare_type>] ,)*
+                    #(#vec_ident: Vec<[<Base #vec_type>]> ,)*
+                    #(#option_ident: Option<[<Base #option_type>]> ,)*
+                    #(#option_vec_ident: Option<Vec<[<Base #option_vec_type>]>> ,)*
+                    #(
+                      #map_ident: std::collections::BTreeMap<
+                        #map_key_type, [<Base #map_value_type>]
+                      >,
+                    )*
+                    #(#unconstrainable_name: #unconstrainable_type,)*
+                ) -> Self {
+                    Self {
+                        #(#bare_ident,)*
+                        #(#vec_ident,)*
+                        #(#option_ident,)*
+                        #(#option_vec_ident,)*
+                        #(#map_ident,)*
+                        #(#unconstrainable_name,)*
+                        tag
+                    }
+                }
+            }
+
+            impl From<[<Base #struct_name>]> for #struct_name {
+                fn from(inner: [<Base #struct_name>]) -> Self {
+                    Self {
+                        #(#bare_ident: #bare_type::from(inner.#bare_ident),)*
+                        #(#vec_ident: inner.#vec_ident.into_iter().map(|x| #vec_type::from(x)).collect(),)*
+                        #(
+                            #option_ident: match inner.#option_ident {
+                                None => None,
+                                Some(x) => Some(#option_type::from(x)),
+                            },
+                        )*
+                        #(
+                            #option_vec_ident: match inner.#option_vec_ident {
+                                None => None,
+                                Some(v) => Some(v.into_iter().map(|x| #option_vec_type::from(x)).collect()),
+                            },
+                        )*
+                        #(#map_ident: inner.#map_ident.into_iter().map(
+                          |(k, v)| (
+                            k.clone(),
+                            #map_value_type::from(v)
+                          )
+                        ).collect(),)*
+                        #(#unconstrainable_name: inner.#unconstrainable_name,)*
+                        uuid: None,
+                        tag: None,
+                        constraints: Vec::new(),
+                    }
+                }
+            }
+
+            impl From<#struct_name> for [<Base #struct_name>] {
+                fn from(outer: #struct_name) -> Self {
+                    Self {
+                        #(#bare_ident: [<Base #bare_type>]::from(outer.#bare_ident),)*
+                        #(#vec_ident: outer.#vec_ident.into_iter().map(|x| [<Base #vec_type>]::from(x)).collect(),)*
+                        #(
+                            #option_ident: match outer.#option_ident {
+                                None => None,
+                                Some(x) => Some([<Base #option_type>]::from(x)),
+                            },
+                        )*
+                        #(
+                            #option_vec_ident: match outer.#option_vec_ident {
+                                None => None,
+                                Some(v) => Some(v.into_iter().map(|x| [<Base #option_vec_type>]::from(x)).collect()),
+                            },
+                        )*
+                        #(
+                            #map_ident: outer.#map_ident.into_iter().map(
+                                |(k, v)| (
+                                    k.clone(),
+                                    [<Base #map_value_type>]::from(v)
+                                )
+                            ).collect(),
+                        )*
+                        #(#unconstrainable_name: outer.#unconstrainable_name,)*
+                    }
+                }
+            }
+
+        }})
+    }
 }
