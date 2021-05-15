@@ -12,10 +12,96 @@ use syn::punctuated::Punctuated;
 use syn::token::Comma;
 use syn::{
     parse_macro_input, parse_quote, AttributeArgs, Data, DataEnum, DataStruct, DeriveInput, Field,
-    Fields, FieldsNamed, Meta, NestedMeta, Token, Variant,
+    Fields, FieldsNamed, Meta, NestedMeta, Token, Variant, Ident,
 };
 mod keyword {
     syn::custom_keyword!(path);
+}
+
+struct EnumBuilder {
+    pub variant_idents: Vec<Ident>,
+}
+impl EnumBuilder {
+    pub fn new(variants: &Punctuated<Variant, Comma>) -> Self {
+        let variant_idents = variants
+            .iter()
+            .map(|x| (x.ident.clone()))
+            .collect::<Vec<Ident>>();
+        Self {
+            variant_idents
+        }
+    }
+    pub fn to_file(&self, enum_name: &Ident, file_name: &str) {
+        let mut file = OpenOptions::new()
+            .write(true)
+            .append(true)
+            .open(file_name)
+            .unwrap();
+        writeln!(
+            file,
+            "node [shape = box, fillcolor=gray, style=filled, fontname = Helvetica] '{}';",
+            enum_name
+        )
+        .unwrap();
+
+        for v in &self.variant_idents {
+            writeln!(file, "'{}'->'{}';", enum_name, v).unwrap();
+        }
+
+    }
+    pub fn to_concept_token_stream(&self, enum_name: &Ident) -> TokenStream {
+        let variant = &self.variant_idents;
+        TokenStream::from(quote! {
+          impl AoristConcept for #enum_name {
+            fn get_child_concepts<'a, 'b>(&'a self) -> Vec<Concept<'b>> where 'a : 'b {
+              vec![
+                  match self {
+                    #(
+                      #enum_name::#variant(x) => Concept::#variant(
+                          (
+                              &x,
+                              0, Some((
+                                  self.get_uuid(),
+                                  stringify!(#enum_name).to_string()
+                              ))
+                          )
+                       ),
+                    )*
+                  }
+              ]
+            }
+            fn get_tag(&self) -> Option<String> {
+                match self {
+                    #(
+                      #enum_name::#variant(x) => x.get_tag(),
+                    )*
+                }
+            }
+
+            fn get_uuid(&self) -> Uuid {
+              match self {
+                #(
+                  #enum_name::#variant(x) => x.get_uuid(),
+                )*
+              }
+            }
+            fn get_children_uuid(&self) -> Vec<Uuid> {
+              match self {
+                #(
+                  #enum_name::#variant(x) => x.get_children_uuid(),
+                )*
+              }
+            }
+            fn compute_uuids(&mut self) {
+              match self {
+                #(
+                  #enum_name::#variant(x) => x.compute_uuids(),
+                )*
+              }
+            }
+          }
+        })
+    }
 }
 
 fn process_enum_variants(
@@ -23,76 +109,9 @@ fn process_enum_variants(
     input: &DeriveInput,
 ) -> TokenStream {
     let enum_name = &input.ident;
-    let variant = variants
-        .iter()
-        .map(|x| (x.ident.clone()))
-        .collect::<Vec<_>>();
-    let mut file = OpenOptions::new()
-        .write(true)
-        .append(true)
-        .open("constrainables.txt")
-        .unwrap();
-    writeln!(
-        file,
-        "node [shape = box, fillcolor=gray, style=filled, fontname = Helvetica] '{}';",
-        enum_name
-    )
-    .unwrap();
-
-    for v in &variant {
-        writeln!(file, "'{}'->'{}';", enum_name, v).unwrap();
-    }
-
-    TokenStream::from(quote! {
-      impl AoristConcept for #enum_name {
-        fn get_child_concepts<'a, 'b>(&'a self) -> Vec<Concept<'b>> where 'a : 'b {
-          vec![
-              match self {
-                #(
-                  #enum_name::#variant(x) => Concept::#variant(
-                      (
-                          &x,
-                          0, Some((
-                              self.get_uuid(),
-                              stringify!(#enum_name).to_string()
-                          ))
-                      )
-                   ),
-                )*
-              }
-          ]
-        }
-        fn get_tag(&self) -> Option<String> {
-            match self {
-                #(
-                  #enum_name::#variant(x) => x.get_tag(),
-                )*
-            }
-        }
-
-        fn get_uuid(&self) -> Uuid {
-          match self {
-            #(
-              #enum_name::#variant(x) => x.get_uuid(),
-            )*
-          }
-        }
-        fn get_children_uuid(&self) -> Vec<Uuid> {
-          match self {
-            #(
-              #enum_name::#variant(x) => x.get_children_uuid(),
-            )*
-          }
-        }
-        fn compute_uuids(&mut self) {
-          match self {
-            #(
-              #enum_name::#variant(x) => x.compute_uuids(),
-            )*
-          }
-        }
-      }
-    })
+    let builder = EnumBuilder::new(variants);
+    builder.to_file(enum_name, "constraints.txt");
+    builder.to_concept_token_stream(enum_name)
 }
 fn process_struct_fields(fields: &FieldsNamed, input: &DeriveInput) -> TokenStream {
     let struct_name = &input.ident;
