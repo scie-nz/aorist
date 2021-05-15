@@ -1,9 +1,9 @@
 // Following: https://github.com/dtolnay/syn/issues/516
 extern crate proc_macro;
-mod type_variants;
+mod struct_builder;
 
 use self::proc_macro::TokenStream;
-use crate::type_variants::{TypeVariants};
+use crate::struct_builder::StructBuilder;
 use quote::quote;
 use std::fs::OpenOptions;
 use std::io::prelude::*;
@@ -12,7 +12,7 @@ use syn::punctuated::Punctuated;
 use syn::token::Comma;
 use syn::{
     parse_macro_input, parse_quote, AttributeArgs, Data, DataEnum, DataStruct, DeriveInput, Field,
-    Fields, Meta, NestedMeta, Token, Variant, FieldsNamed,
+    Fields, FieldsNamed, Meta, NestedMeta, Token, Variant,
 };
 mod keyword {
     syn::custom_keyword!(path);
@@ -96,7 +96,7 @@ fn process_enum_variants(
 }
 fn process_struct_fields(fields: &FieldsNamed, input: &DeriveInput) -> TokenStream {
     let struct_name = &input.ident;
-    let tv = TypeVariants::new(fields);
+    let tv = StructBuilder::new(fields);
     tv.to_file(struct_name, "constrainables.txt");
     tv.to_concept_token_stream(struct_name)
 }
@@ -154,7 +154,7 @@ pub fn constrain_object(input: TokenStream) -> TokenStream {
             ..
         }) => {
             let struct_name = &ast.ident;
-            let tv = TypeVariants::new(&fields);
+            let tv = StructBuilder::new(&fields);
             tv.to_python_token_stream(struct_name)
         }
 

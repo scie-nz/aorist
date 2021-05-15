@@ -5,7 +5,7 @@ use proc_macro2::Ident;
 use quote::quote;
 use std::fs::OpenOptions;
 use std::io::prelude::*;
-use syn::{Field, Type, Meta, FieldsNamed};
+use syn::{Field, FieldsNamed, Meta, Type};
 use type_macro_helpers::{
     extract_type_from_map, extract_type_from_option, extract_type_from_vector,
 };
@@ -47,8 +47,7 @@ pub fn get_constrainable_fields(fields: Vec<Field>) -> (Vec<Field>, Vec<Field>) 
     (constrainable_fields, unconstrainable_fields)
 }
 
-
-pub struct TypeVariants {
+pub struct StructBuilder {
     pub bare_types: Vec<Type>,
     pub vec_types: Vec<Type>,
     pub option_vec_types: Vec<Type>,
@@ -62,13 +61,10 @@ pub struct TypeVariants {
     pub map_idents: Vec<Ident>,
     pub fields_with_default: syn::punctuated::Punctuated<syn::NestedMeta, syn::token::Comma>,
     pub unconstrainable: Vec<Field>,
-} 
+}
 
-impl TypeVariants {
-    pub fn new(
-        fields: &FieldsNamed,
-    ) -> TypeVariants {
-
+impl StructBuilder {
+    pub fn new(fields: &FieldsNamed) -> StructBuilder {
         let fields_filtered = fields
             .named
             .clone()
@@ -114,9 +110,8 @@ impl TypeVariants {
             .filter(|x| x.is_some())
             .map(|x| syn::NestedMeta::Meta(syn::Meta::NameValue(x.unwrap())))
             .collect::<syn::punctuated::Punctuated<syn::NestedMeta, syn::token::Comma>>();
-        
-        let (constrainable, unconstrainable) =
-            get_constrainable_fields(fields_filtered.clone());
+
+        let (constrainable, unconstrainable) = get_constrainable_fields(fields_filtered.clone());
 
         let mut bare_types: Vec<Type> = Vec::new();
         let mut vec_types: Vec<Type> = Vec::new();
@@ -172,15 +167,18 @@ impl TypeVariants {
         }
     }
     pub fn to_file(&self, struct_name: &Ident, file_name: &str) {
-        let types = self.bare_idents.iter()
+        let types = self
+            .bare_idents
+            .iter()
             .chain(self.option_vec_idents.iter())
             .chain(self.option_idents.iter())
             .chain(self.vec_idents.iter())
             .zip(
-                 self.bare_types.iter()
-                .chain(self.option_vec_types.iter())
-                .chain(self.option_types.iter())
-                .chain(self.vec_types.iter())
+                self.bare_types
+                    .iter()
+                    .chain(self.option_vec_types.iter())
+                    .chain(self.option_types.iter())
+                    .chain(self.vec_types.iter()),
             );
         let mut file = OpenOptions::new()
             .write(true)
@@ -207,9 +205,7 @@ impl TypeVariants {
             writeln!(
                 file,
                 "'{}'->'{}' [label='{}'];",
-                struct_name,
-                type_val,
-                ident,
+                struct_name, type_val, ident,
             )
             .unwrap();
         }
@@ -238,7 +234,6 @@ impl TypeVariants {
             &self.option_vec_idents,
             &self.map_idents,
         );
-        
 
         TokenStream::from(quote! {
 
@@ -362,10 +357,7 @@ impl TypeVariants {
             }
         })
     }
-    pub fn to_python_token_stream(
-        &self,
-        struct_name: &Ident,
-    ) -> TokenStream {
+    pub fn to_python_token_stream(&self, struct_name: &Ident) -> TokenStream {
         let (
             bare_type,
             vec_type,
@@ -512,4 +504,3 @@ impl TypeVariants {
         }})
     }
 }
-
