@@ -13,6 +13,17 @@ mod keyword {
     syn::custom_keyword!(path);
 }
 
+fn extract_names_and_types(fields: &Vec<Field>) -> (Vec<Ident>, Vec<Type>) {
+    let mut names: Vec<Ident> = Vec::new();
+    let mut types: Vec<Type> = Vec::new();
+    for field in fields {
+        names.push(field.ident.as_ref().unwrap().clone());
+        types.push(field.ty.clone());
+    }
+    (names, types)
+}
+
+
 pub struct TypeVariants {
     pub bare_types: Vec<Type>,
     pub vec_types: Vec<Type>,
@@ -273,6 +284,153 @@ impl TypeVariants {
                 }
             }
         })
+    }
+    pub fn to_python_token_stream(
+        &self,
+        struct_name: &Ident,
+        fields_with_default: syn::punctuated::Punctuated<syn::NestedMeta, syn::token::Comma>,
+        unconstrainable: Vec<Field>,
+    ) -> TokenStream {
+        let (
+            bare_type,
+            vec_type,
+            option_type,
+            option_vec_type,
+            map_key_type,
+            map_value_type,
+            bare_ident,
+            vec_ident,
+            option_ident,
+            option_vec_ident,
+            map_ident,
+        ) = (
+            &self.bare_types,
+            &self.vec_types,
+            &self.option_types,
+            &self.option_vec_types,
+            &self.map_key_types,
+            &self.map_value_types,
+            &self.bare_idents,
+            &self.vec_idents,
+            &self.option_idents,
+            &self.option_vec_idents,
+            &self.map_idents,
+        );
+        let (unconstrainable_name, unconstrainable_type) =
+            extract_names_and_types(&unconstrainable);
+
+        let py_class_name = format!("{}", struct_name);
+        TokenStream::from(quote! { paste! {
+
+            #[pyclass(name=#py_class_name)]
+            #[derive(Clone, PartialEq)]
+            pub struct [<Inner #struct_name>] {
+                #(pub #bare_ident: [<Inner #bare_type>] ,)*
+                #(pub #vec_ident: Vec<[<Inner #vec_type>]> ,)*
+                #(pub #option_ident: Option<[<Inner #option_type>]> ,)*
+                #(pub #option_vec_ident: Option<Vec<[<Inner #option_vec_type>]>> ,)*
+                #(
+                  pub #map_ident: std::collections::BTreeMap<
+                    #map_key_type,
+                    [<Inner #map_value_type>]
+                  >,
+                )*
+                #(pub #unconstrainable_name: #unconstrainable_type,)*
+                pub tag: Option<String>,
+            }
+
+            #[pymethods]
+            impl [<Inner #struct_name>] {
+                #[new]
+                #[args(#fields_with_default)]
+                pub fn new(
+                    #(#bare_ident: [<Inner #bare_type>] ,)*
+                    #(#vec_ident: Vec<[<Inner #vec_type>]> ,)*
+                    #(#option_ident: Option<[<Inner #option_type>]> ,)*
+                    #(#option_vec_ident: Option<Vec<[<Inner #option_vec_type>]>> ,)*
+                    #(
+                      #map_ident: std::collections::BTreeMap<
+                        #map_key_type, [<Inner #map_value_type>]
+                      >,
+                    )*
+                    #(#unconstrainable_name: #unconstrainable_type,)*
+                    tag: Option<String>,
+                ) -> Self {
+                    Self {
+                        #(#bare_ident,)*
+                        #(#vec_ident,)*
+                        #(#option_ident,)*
+                        #(#option_vec_ident,)*
+                        #(#map_ident,)*
+                        #(#unconstrainable_name,)*
+                        tag
+                    }
+                }
+            }
+
+            impl From<[<Inner #struct_name>]> for #struct_name {
+                fn from(inner: [<Inner #struct_name>]) -> Self {
+                    Self {
+                        #(#bare_ident: #bare_type::from(inner.#bare_ident),)*
+                        #(#vec_ident: inner.#vec_ident.into_iter().map(|x| #vec_type::from(x)).collect(),)*
+                        #(
+                            #option_ident: match inner.#option_ident {
+                                None => None,
+                                Some(x) => Some(#option_type::from(x)),
+                            },
+                        )*
+                        #(
+                            #option_vec_ident: match inner.#option_vec_ident {
+                                None => None,
+                                Some(v) => Some(v.into_iter().map(|x| #option_vec_type::from(x)).collect()),
+                            },
+                        )*
+                        #(#map_ident: inner.#map_ident.into_iter().map(
+                          |(k, v)| (
+                            k.clone(),
+                            #map_value_type::from(v)
+                          )
+                        ).collect(),)*
+                        #(#unconstrainable_name: inner.#unconstrainable_name,)*
+                        uuid: None,
+                        tag: inner.tag,
+                        constraints: Vec::new(),
+                    }
+                }
+            }
+
+            impl From<#struct_name> for [<Inner #struct_name>] {
+                fn from(outer: #struct_name) -> Self {
+                    Self {
+                        #(#bare_ident: [<Inner #bare_type>]::from(outer.#bare_ident),)*
+                        #(#vec_ident: outer.#vec_ident.into_iter().map(|x| [<Inner #vec_type>]::from(x)).collect(),)*
+                        #(
+                            #option_ident: match outer.#option_ident {
+                                None => None,
+                                Some(x) => Some([<Inner #option_type>]::from(x)),
+                            },
+                        )*
+                        #(
+                            #option_vec_ident: match outer.#option_vec_ident {
+                                None => None,
+                                Some(v) => Some(v.into_iter().map(|x| [<Inner #option_vec_type>]::from(x)).collect()),
+                            },
+                        )*
+                        #(
+                            #map_ident: outer.#map_ident.into_iter().map(
+                                |(k, v)| (
+                                    k.clone(),
+                                    [<Inner #map_value_type>]::from(v)
+                                )
+                            ).collect(),
+                        )*
+                        #(#unconstrainable_name: outer.#unconstrainable_name,)*
+                        tag: outer.tag,
+                    }
+                }
+            }
+
+        }})
     }
 }
 

@@ -4,7 +4,6 @@ mod type_variants;
 
 use self::proc_macro::TokenStream;
 use crate::type_variants::TypeVariants;
-use proc_macro2::Ident;
 use quote::quote;
 use std::fs::OpenOptions;
 use std::io::prelude::*;
@@ -13,7 +12,7 @@ use syn::punctuated::Punctuated;
 use syn::token::Comma;
 use syn::{
     parse_macro_input, parse_quote, AttributeArgs, Data, DataEnum, DataStruct, DeriveInput, Field,
-    Fields, Meta, NestedMeta, Token, Type, Variant,
+    Fields, Meta, NestedMeta, Token, Variant,
 };
 mod keyword {
     syn::custom_keyword!(path);
@@ -106,10 +105,8 @@ fn process_struct_fields(fields: &Punctuated<Field, Comma>, input: &DeriveInput)
         })
         .collect::<Vec<_>>();
 
-    let (constrainable, unconstrainable) =
+    let (constrainable, _unconstrainable) =
         get_constrainable_fields(fields_filtered.clone());
-    let (_unconstrainable_name, _unconstrainable_type) =
-        extract_names_and_types(&unconstrainable);
     
     let tv = TypeVariants::new(&constrainable);
     tv.to_file(struct_name, "constrainables.txt");
@@ -151,16 +148,6 @@ fn get_constrainable_fields(fields: Vec<Field>) -> (Vec<Field>, Vec<Field>) {
         }
     }
     (constrainable_fields, unconstrainable_fields)
-}
-
-fn extract_names_and_types(fields: &Vec<Field>) -> (Vec<Ident>, Vec<Type>) {
-    let mut names: Vec<Ident> = Vec::new();
-    let mut types: Vec<Type> = Vec::new();
-    for field in fields {
-        names.push(field.ident.as_ref().unwrap().clone());
-        types.push(field.ty.clone());
-    }
-    (names, types)
 }
 
 #[proc_macro_derive(InnerObject, attributes(py_default))]
@@ -217,35 +204,6 @@ pub fn constrain_object(input: TokenStream) -> TokenStream {
             let (constrainable, unconstrainable) =
                 get_constrainable_fields(fields_filtered.clone());
             let tv = TypeVariants::new(&constrainable);
-            let (
-                bare_type,
-                vec_type,
-                option_type,
-                option_vec_type,
-                map_key_type,
-                map_value_type,
-                bare_ident,
-                vec_ident,
-                option_ident,
-                option_vec_ident,
-                map_ident,
-            ) = (
-                tv.bare_types,
-                tv.vec_types,
-                tv.option_types,
-                tv.option_vec_types,
-                tv.map_key_types,
-                tv.map_value_types,
-                tv.bare_idents,
-                tv.vec_idents,
-                tv.option_idents,
-                tv.option_vec_idents,
-                tv.map_idents,
-            );
-            let (unconstrainable_name, unconstrainable_type) =
-                extract_names_and_types(&unconstrainable);
-
-            let py_class_name = format!("{}", struct_name);
             let fields_with_default = fields_filtered
                 .clone()
                 .into_iter()
@@ -282,117 +240,7 @@ pub fn constrain_object(input: TokenStream) -> TokenStream {
                 .filter(|x| x.is_some())
                 .map(|x| syn::NestedMeta::Meta(syn::Meta::NameValue(x.unwrap())))
                 .collect::<syn::punctuated::Punctuated<syn::NestedMeta, syn::token::Comma>>();
-            return TokenStream::from(quote! { paste! {
-
-                #[pyclass(name=#py_class_name)]
-                #[derive(Clone, PartialEq)]
-                pub struct [<Inner #struct_name>] {
-                    #(pub #bare_ident: [<Inner #bare_type>] ,)*
-                    #(pub #vec_ident: Vec<[<Inner #vec_type>]> ,)*
-                    #(pub #option_ident: Option<[<Inner #option_type>]> ,)*
-                    #(pub #option_vec_ident: Option<Vec<[<Inner #option_vec_type>]>> ,)*
-                    #(
-                      pub #map_ident: std::collections::BTreeMap<
-                        #map_key_type,
-                        [<Inner #map_value_type>]
-                      >,
-                    )*
-                    #(pub #unconstrainable_name: #unconstrainable_type,)*
-                    pub tag: Option<String>,
-                }
-
-                #[pymethods]
-                impl [<Inner #struct_name>] {
-                    #[new]
-                    #[args(#fields_with_default)]
-                    pub fn new(
-                        #(#bare_ident: [<Inner #bare_type>] ,)*
-                        #(#vec_ident: Vec<[<Inner #vec_type>]> ,)*
-                        #(#option_ident: Option<[<Inner #option_type>]> ,)*
-                        #(#option_vec_ident: Option<Vec<[<Inner #option_vec_type>]>> ,)*
-                        #(
-                          #map_ident: std::collections::BTreeMap<
-                            #map_key_type, [<Inner #map_value_type>]
-                          >,
-                        )*
-                        #(#unconstrainable_name: #unconstrainable_type,)*
-                        tag: Option<String>,
-                    ) -> Self {
-                        Self {
-                            #(#bare_ident,)*
-                            #(#vec_ident,)*
-                            #(#option_ident,)*
-                            #(#option_vec_ident,)*
-                            #(#map_ident,)*
-                            #(#unconstrainable_name,)*
-                            tag
-                        }
-                    }
-                }
-
-                impl From<[<Inner #struct_name>]> for #struct_name {
-                    fn from(inner: [<Inner #struct_name>]) -> Self {
-                        Self {
-                            #(#bare_ident: #bare_type::from(inner.#bare_ident),)*
-                            #(#vec_ident: inner.#vec_ident.into_iter().map(|x| #vec_type::from(x)).collect(),)*
-                            #(
-                                #option_ident: match inner.#option_ident {
-                                    None => None,
-                                    Some(x) => Some(#option_type::from(x)),
-                                },
-                            )*
-                            #(
-                                #option_vec_ident: match inner.#option_vec_ident {
-                                    None => None,
-                                    Some(v) => Some(v.into_iter().map(|x| #option_vec_type::from(x)).collect()),
-                                },
-                            )*
-                            #(#map_ident: inner.#map_ident.into_iter().map(
-                              |(k, v)| (
-                                k.clone(),
-                                #map_value_type::from(v)
-                              )
-                            ).collect(),)*
-                            #(#unconstrainable_name: inner.#unconstrainable_name,)*
-                            uuid: None,
-                            tag: inner.tag,
-                            constraints: Vec::new(),
-                        }
-                    }
-                }
-
-                impl From<#struct_name> for [<Inner #struct_name>] {
-                    fn from(outer: #struct_name) -> Self {
-                        Self {
-                            #(#bare_ident: [<Inner #bare_type>]::from(outer.#bare_ident),)*
-                            #(#vec_ident: outer.#vec_ident.into_iter().map(|x| [<Inner #vec_type>]::from(x)).collect(),)*
-                            #(
-                                #option_ident: match outer.#option_ident {
-                                    None => None,
-                                    Some(x) => Some([<Inner #option_type>]::from(x)),
-                                },
-                            )*
-                            #(
-                                #option_vec_ident: match outer.#option_vec_ident {
-                                    None => None,
-                                    Some(v) => Some(v.into_iter().map(|x| [<Inner #option_vec_type>]::from(x)).collect()),
-                                },
-                            )*
-                            #(
-                                #map_ident: outer.#map_ident.into_iter().map(
-                                    |(k, v)| (
-                                        k.clone(),
-                                        [<Inner #map_value_type>]::from(v)
-                                    )
-                                ).collect(),
-                            )*
-                            #(#unconstrainable_name: outer.#unconstrainable_name,)*
-                            tag: outer.tag,
-                        }
-                    }
-                }
-
-            }});
+            tv.to_python_token_stream(struct_name, fields_with_default, unconstrainable)
         }
 
         _ => panic!("expected a struct with named fields or an enum"),
