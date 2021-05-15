@@ -3,7 +3,7 @@ extern crate proc_macro;
 mod type_variants;
 
 use self::proc_macro::TokenStream;
-use crate::type_variants::TypeVariants;
+use crate::type_variants::{get_constrainable_fields, TypeVariants};
 use quote::quote;
 use std::fs::OpenOptions;
 use std::io::prelude::*;
@@ -12,7 +12,7 @@ use syn::punctuated::Punctuated;
 use syn::token::Comma;
 use syn::{
     parse_macro_input, parse_quote, AttributeArgs, Data, DataEnum, DataStruct, DeriveInput, Field,
-    Fields, Meta, NestedMeta, Token, Variant,
+    Fields, Meta, NestedMeta, Token, Variant, FieldsNamed,
 };
 mod keyword {
     syn::custom_keyword!(path);
@@ -94,60 +94,23 @@ fn process_enum_variants(
       }
     })
 }
-fn process_struct_fields(fields: &Punctuated<Field, Comma>, input: &DeriveInput) -> TokenStream {
+fn process_struct_fields(fields: &FieldsNamed, input: &DeriveInput) -> TokenStream {
     let struct_name = &input.ident;
-    let fields_filtered = fields
-        .clone()
-        .into_iter()
-        .filter(|x| {
-            let ident = x.ident.as_ref().unwrap().to_string();
-            !(ident == "tag" || ident == "uuid" || ident == "constraints")
-        })
-        .collect::<Vec<_>>();
-
-    let (constrainable, _unconstrainable) =
-        get_constrainable_fields(fields_filtered.clone());
-    
-    let tv = TypeVariants::new(&constrainable);
+    let tv = TypeVariants::new(fields);
     tv.to_file(struct_name, "constrainables.txt");
     tv.to_concept_token_stream(struct_name)
 }
 #[proc_macro_derive(Constrainable, attributes(constrainable))]
 pub fn constrainable(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
-    //let constraint_names = AoristConstraint::get_required_constraint_names();
     match &input.data {
         Data::Struct(DataStruct {
-            fields: Fields::Named(fields),
+            fields: Fields::Named(ref fields),
             ..
-        }) => process_struct_fields(&fields.named, &input),
-        Data::Enum(DataEnum { variants, .. }) => process_enum_variants(variants, &input),
+        }) => process_struct_fields(fields, &input),
+        Data::Enum(DataEnum { variants, .. }) => process_enum_variants(&variants, &input),
         _ => panic!("expected a struct with named fields or an enum"),
     }
-}
-
-fn field_is_constrainable(field: &Field) -> bool {
-    for a in &field.attrs {
-        if let Ok(Meta::Path(x)) = a.parse_meta() {
-            if x.is_ident("constrainable") {
-                return true;
-            }
-        }
-    }
-    return false;
-}
-
-fn get_constrainable_fields(fields: Vec<Field>) -> (Vec<Field>, Vec<Field>) {
-    let mut constrainable_fields: Vec<Field> = Vec::new();
-    let mut unconstrainable_fields: Vec<Field> = Vec::new();
-    for field in fields {
-        if field_is_constrainable(&field) {
-            constrainable_fields.push(field);
-        } else {
-            unconstrainable_fields.push(field);
-        }
-    }
-    (constrainable_fields, unconstrainable_fields)
 }
 
 #[proc_macro_derive(InnerObject, attributes(py_default))]
@@ -201,9 +164,9 @@ pub fn constrain_object(input: TokenStream) -> TokenStream {
                 })
                 .collect::<Vec<_>>();
 
-            let (constrainable, unconstrainable) =
+            let (_constrainable, unconstrainable) =
                 get_constrainable_fields(fields_filtered.clone());
-            let tv = TypeVariants::new(&constrainable);
+            let tv = TypeVariants::new(&fields);
             let fields_with_default = fields_filtered
                 .clone()
                 .into_iter()

@@ -5,7 +5,7 @@ use proc_macro2::Ident;
 use quote::quote;
 use std::fs::OpenOptions;
 use std::io::prelude::*;
-use syn::{Field, Type};
+use syn::{Field, Type, Meta, FieldsNamed};
 use type_macro_helpers::{
     extract_type_from_map, extract_type_from_option, extract_type_from_vector,
 };
@@ -21,6 +21,30 @@ fn extract_names_and_types(fields: &Vec<Field>) -> (Vec<Ident>, Vec<Type>) {
         types.push(field.ty.clone());
     }
     (names, types)
+}
+
+fn field_is_constrainable(field: &Field) -> bool {
+    for a in &field.attrs {
+        if let Ok(Meta::Path(x)) = a.parse_meta() {
+            if x.is_ident("constrainable") {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+pub fn get_constrainable_fields(fields: Vec<Field>) -> (Vec<Field>, Vec<Field>) {
+    let mut constrainable_fields: Vec<Field> = Vec::new();
+    let mut unconstrainable_fields: Vec<Field> = Vec::new();
+    for field in fields {
+        if field_is_constrainable(&field) {
+            constrainable_fields.push(field);
+        } else {
+            unconstrainable_fields.push(field);
+        }
+    }
+    (constrainable_fields, unconstrainable_fields)
 }
 
 
@@ -40,8 +64,21 @@ pub struct TypeVariants {
 
 impl TypeVariants {
     pub fn new(
-        fields: &Vec<Field>,
+        fields: &FieldsNamed,
     ) -> TypeVariants {
+
+        let fields_filtered = fields
+            .named
+            .clone()
+            .into_iter()
+            .filter(|x| {
+                let ident = x.ident.as_ref().unwrap().to_string();
+                !(ident == "tag" || ident == "uuid" || ident == "constraints")
+            })
+            .collect::<Vec<_>>();
+        
+        let (constrainable, _unconstrainable) =
+            get_constrainable_fields(fields_filtered.clone());
 
         let mut bare_types: Vec<Type> = Vec::new();
         let mut vec_types: Vec<Type> = Vec::new();
@@ -56,7 +93,7 @@ impl TypeVariants {
         let mut option_idents: Vec<Ident> = Vec::new();
         let mut map_idents: Vec<Ident> = Vec::new();
 
-        for field in fields {
+        for field in constrainable {
             let tt = &field.ty;
             let ident = field.ident.as_ref().unwrap().clone();
 
