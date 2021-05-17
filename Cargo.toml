@@ -27,6 +27,7 @@ crate-type = ["cdylib"]
 [dependencies]
 Inflector = "0.11.4"
 anyhow = "1.0"
+aorist_core = {path = "./aorist_core"}
 aorist_concept = {path = "./aorist_concept"}
 aorist_derive = {path = "./aorist_derive"}
 aorist_primitives = {path = "./aorist_primitives"}
