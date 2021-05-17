@@ -152,6 +152,11 @@ fn extend_derives(ast: &mut DeriveInput, extra_derives: Vec<NestedMeta>) {
 pub fn aorist_concept(args: TokenStream, input: TokenStream) -> TokenStream {
     let input_attrs = parse_macro_input!(args as AttributeArgs);
     let (mut extra_derives, extra_derivatives) = get_derives(input_attrs);
+    let path = LitStr::new("InnerObject", Span::call_site()).parse_with(Path::parse_mod_style).unwrap();
+    let inner_object = NestedMeta::Meta(Meta::Path(
+        path,
+    ));
+    extra_derives.push(inner_object);
 
     let mut ast = parse_macro_input!(input as DeriveInput);
     match &mut ast.data {
@@ -167,11 +172,6 @@ pub fn aorist_concept(args: TokenStream, input: TokenStream) -> TokenStream {
             };
             let mut final_ast: DeriveInput = syn::parse2(quoted).unwrap();
             
-            let path = LitStr::new("InnerObject", Span::call_site()).parse_with(Path::parse_mod_style).unwrap();
-            let inner_object = NestedMeta::Meta(Meta::Path(
-                path,
-            ));
-            extra_derives.push(inner_object);
             extend_derivatives(&mut final_ast, extra_derivatives);
             extend_derives(&mut final_ast, extra_derives);
 
@@ -182,29 +182,15 @@ pub fn aorist_concept(args: TokenStream, input: TokenStream) -> TokenStream {
             let enum_name = &ast.ident;
             let variant = variants.iter().map(|x| (&x.ident)).collect::<Vec<_>>();
             let quoted = quote! {
-                #[derive(Debug, PartialEq, Serialize, Deserialize, Clone, Constrainable, InnerObject#(, #extra_derives)*)]
+                #[derive(Debug, PartialEq, Serialize, Deserialize, Clone, Constrainable, )]
                 #[serde(tag = "type")]
                 pub enum #enum_name {
                     #(#variant(#variant)),*
                 }
             };
             let mut final_ast: DeriveInput = syn::parse2(quoted).unwrap();
-            let (attr, mut current_derives) = final_ast
-                .attrs
-                .iter_mut()
-                .filter(|attr| attr.path.is_ident("derive"))
-                .filter_map(|attr| match attr.parse_meta() {
-                    Ok(Meta::List(meta_list)) => Some((attr, meta_list)),
-                    _ => None, // kcov-ignore
-                })
-                .next()
-                .unwrap();
-            current_derives
-                .nested
-                .extend::<Punctuated<NestedMeta, Token![,]>>(
-                    extra_derivatives.into_iter().collect(),
-                );
-            *attr = parse_quote!(#[#current_derives]);
+            extend_derives(&mut final_ast, extra_derives);
+            extend_derives(&mut final_ast, extra_derivatives);
 
             let quoted2 = quote! { #final_ast
                 impl #enum_name {
