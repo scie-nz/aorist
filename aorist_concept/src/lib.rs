@@ -9,10 +9,11 @@ use crate::struct_builder::StructBuilder;
 use quote::quote;
 use syn::parse::Parser;
 use syn::punctuated::Punctuated;
+use proc_macro2::Span;
 use syn::token::Comma;
 use syn::{
     parse_macro_input, parse_quote, AttributeArgs, Data, DataEnum, DataStruct, DeriveInput, Field,
-    Fields, FieldsNamed, Meta, NestedMeta, Token, Variant,
+    Fields, FieldsNamed, Meta, NestedMeta, Token, Variant, LitStr, Path,
 };
 mod keyword {
     syn::custom_keyword!(path);
@@ -143,11 +144,14 @@ fn extend_metas(ast: &mut DeriveInput, extra_metas: Vec<NestedMeta>, ident: &str
 fn extend_derivatives(ast: &mut DeriveInput, extra_derivatives: Vec<NestedMeta>) {
     extend_metas(ast, extra_derivatives, "derivative");
 }
+fn extend_derives(ast: &mut DeriveInput, extra_derives: Vec<NestedMeta>) {
+    extend_metas(ast, extra_derives, "derive");
+}
 
 #[proc_macro_attribute]
 pub fn aorist_concept(args: TokenStream, input: TokenStream) -> TokenStream {
     let input_attrs = parse_macro_input!(args as AttributeArgs);
-    let (extra_derives, extra_derivatives) = get_derives(input_attrs);
+    let (mut extra_derives, extra_derivatives) = get_derives(input_attrs);
 
     let mut ast = parse_macro_input!(input as DeriveInput);
     match &mut ast.data {
@@ -156,13 +160,21 @@ pub fn aorist_concept(args: TokenStream, input: TokenStream) -> TokenStream {
             let quoted = quote! {
                 #[derive(
                     Derivative, Serialize, Deserialize,
-                    Constrainable, Clone, InnerObject#(, #extra_derives)*
+                    Constrainable, Clone,
                 )]
                 #[derivative(PartialEq, Debug, Eq)]
                 #ast
             };
             let mut final_ast: DeriveInput = syn::parse2(quoted).unwrap();
+            
+            let path = LitStr::new("InnerObject", Span::call_site()).parse_with(Path::parse_mod_style).unwrap();
+            let inner_object = NestedMeta::Meta(Meta::Path(
+                path,
+            ));
+            extra_derives.push(inner_object);
             extend_derivatives(&mut final_ast, extra_derivatives);
+            extend_derives(&mut final_ast, extra_derives);
+
             let quoted2 = quote! { #final_ast };
             return proc_macro::TokenStream::from(quoted2);
         }
