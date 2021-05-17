@@ -4,8 +4,8 @@ mod enum_builder;
 mod struct_builder;
 
 use self::proc_macro::TokenStream;
-use crate::struct_builder::StructBuilder;
 use crate::enum_builder::EnumBuilder;
+use crate::struct_builder::StructBuilder;
 use quote::quote;
 use syn::parse::Parser;
 use syn::punctuated::Punctuated;
@@ -57,7 +57,6 @@ pub fn constrain_object(input: TokenStream) -> TokenStream {
             let python_stream = builder.to_python_token_stream(enum_name);
             //base_stream.into_iter().chain(python_stream.into_iter()).collect()
             python_stream
-            
         }
         Data::Struct(DataStruct {
             fields: Fields::Named(fields),
@@ -94,6 +93,37 @@ fn get_derives(attrs: Vec<NestedMeta>) -> (Vec<NestedMeta>, Vec<NestedMeta>) {
     (derives, derivatives)
 }
 
+fn add_aorist_fields(struct_data: &mut syn::DataStruct) {
+    match &mut struct_data.fields {
+        Fields::Named(fields) => {
+            fields.named.push(
+                Field::parse_named
+                    .parse2(quote! {
+                    pub uuid: Option<Uuid>
+                    })
+                    .unwrap(),
+            );
+            fields.named.push(
+                Field::parse_named
+                    .parse2(quote! {
+                    pub tag: Option<String>
+                    })
+                    .unwrap(),
+            );
+            fields.named.push(
+                Field::parse_named
+                    .parse2(quote! {
+                        #[serde(skip)]
+                        #[derivative(PartialEq = "ignore", Debug = "ignore", Hash = "ignore")]
+                        pub constraints: Vec<Arc<RwLock<Constraint>>>
+                    })
+                    .unwrap(),
+            );
+        }
+        _ => (),
+    }
+}
+
 #[proc_macro_attribute]
 pub fn aorist_concept(args: TokenStream, input: TokenStream) -> TokenStream {
     let input_attrs = parse_macro_input!(args as AttributeArgs);
@@ -102,35 +132,12 @@ pub fn aorist_concept(args: TokenStream, input: TokenStream) -> TokenStream {
     let mut ast = parse_macro_input!(input as DeriveInput);
     match &mut ast.data {
         syn::Data::Struct(ref mut struct_data) => {
-            match &mut struct_data.fields {
-                Fields::Named(fields) => {
-                    fields.named.push(
-                        Field::parse_named
-                            .parse2(quote! {
-                            pub uuid: Option<Uuid>
-                            })
-                            .unwrap(),
-                    );
-                    fields.named.push(
-                        Field::parse_named
-                            .parse2(quote! {
-                            pub tag: Option<String>
-                            })
-                            .unwrap(),
-                    );
-                    fields.named
-                        .push(
-                        Field::parse_named.parse2(quote! {
-                            #[serde(skip)]
-                            #[derivative(PartialEq = "ignore", Debug = "ignore", Hash = "ignore")]
-                            pub constraints: Vec<Arc<RwLock<Constraint>>>
-                        }).unwrap()
-                    );
-                }
-                _ => (),
-            }
+            add_aorist_fields(struct_data);
             let quoted = quote! {
-                #[derive(Derivative, Serialize, Deserialize, Constrainable, Clone, InnerObject#(, #extra_derives)*)]
+                #[derive(
+                    Derivative, Serialize, Deserialize, 
+                    Constrainable, Clone, InnerObject#(, #extra_derives)*
+                )]
                 #[derivative(PartialEq, Debug, Eq)]
                 #ast
             };

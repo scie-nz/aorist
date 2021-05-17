@@ -4,9 +4,9 @@ use proc_macro2::Ident;
 use quote::quote;
 use std::fs::OpenOptions;
 use std::io::prelude::*;
-use syn::Variant;
 use syn::punctuated::Punctuated;
 use syn::token::Comma;
+use syn::Variant;
 mod keyword {
     syn::custom_keyword!(path);
 }
@@ -20,9 +20,7 @@ impl EnumBuilder {
             .iter()
             .map(|x| (x.ident.clone()))
             .collect::<Vec<Ident>>();
-        Self {
-            variant_idents
-        }
+        Self { variant_idents }
     }
     pub fn to_python_token_stream(&self, enum_name: &Ident) -> TokenStream {
         let variant = &self.variant_idents;
@@ -50,7 +48,7 @@ impl EnumBuilder {
                 }
             }
         }};
-        return proc_macro::TokenStream::from(quoted)
+        return proc_macro::TokenStream::from(quoted);
     }
     pub fn to_file(&self, enum_name: &Ident, file_name: &str) {
         let mut file = OpenOptions::new()
@@ -68,7 +66,6 @@ impl EnumBuilder {
         for v in &self.variant_idents {
             writeln!(file, "'{}'->'{}';", enum_name, v).unwrap();
         }
-
     }
     pub fn to_base_token_stream(&self, enum_name: &Ident) -> TokenStream {
         let variant = &self.variant_idents;
@@ -96,7 +93,7 @@ impl EnumBuilder {
                 }
             }
         }};
-        return proc_macro::TokenStream::from(quoted)
+        return proc_macro::TokenStream::from(quoted);
     }
     pub fn to_concept_token_stream(&self, enum_name: &Ident) -> TokenStream {
         let variant = &self.variant_idents;
@@ -152,4 +149,3 @@ impl EnumBuilder {
         })
     }
 }
-
