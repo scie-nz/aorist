@@ -124,21 +124,24 @@ fn add_aorist_fields(struct_data: &mut syn::DataStruct) {
     }
 }
 
-fn extend_derivatives(ast: &mut DeriveInput, extra_derivatives: Vec<NestedMeta>) {
-    let (attr, mut derivatives) = ast
+fn extend_metas(ast: &mut DeriveInput, extra_metas: Vec<NestedMeta>, ident: &str) {
+    let (attr, mut metas) = ast
         .attrs
         .iter_mut()
-        .filter(|attr| attr.path.is_ident("derivative"))
+        .filter(|attr| attr.path.is_ident(ident))
         .filter_map(|attr| match attr.parse_meta() {
             Ok(Meta::List(meta_list)) => Some((attr, meta_list)),
             _ => None, // kcov-ignore
         })
         .next()
         .unwrap();
-    derivatives
+    metas
         .nested
-        .extend::<Punctuated<NestedMeta, Token![,]>>(extra_derivatives.into_iter().collect());
-    *attr = parse_quote!(#[#derivatives]);
+        .extend::<Punctuated<NestedMeta, Token![,]>>(extra_metas.into_iter().collect());
+    *attr = parse_quote!(#[#metas]);
+}
+fn extend_derivatives(ast: &mut DeriveInput, extra_derivatives: Vec<NestedMeta>) {
+    extend_metas(ast, extra_derivatives, "derivative");
 }
 
 #[proc_macro_attribute]
