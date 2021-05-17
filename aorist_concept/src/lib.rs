@@ -147,17 +147,13 @@ fn extend_derivatives(ast: &mut DeriveInput, extra_derivatives: Vec<NestedMeta>)
 fn extend_derives(ast: &mut DeriveInput, extra_derives: Vec<NestedMeta>) {
     extend_metas(ast, extra_derives, "derive");
 }
+fn aorist_ast(args: TokenStream, input: TokenStream, derives: Vec<NestedMeta>) -> TokenStream {
 
-#[proc_macro_attribute]
-pub fn aorist_concept(args: TokenStream, input: TokenStream) -> TokenStream {
     let input_attrs = parse_macro_input!(args as AttributeArgs);
     let (mut extra_derives, extra_derivatives) = get_derives(input_attrs);
-    let path = LitStr::new("InnerObject", Span::call_site()).parse_with(Path::parse_mod_style).unwrap();
-    let inner_object = NestedMeta::Meta(Meta::Path(
-        path,
-    ));
-    extra_derives.push(inner_object);
-
+    for derive in derives {
+        extra_derives.push(derive);
+    }
     let mut ast = parse_macro_input!(input as DeriveInput);
     let quoted2 = match &mut ast.data {
         syn::Data::Struct(ref mut struct_data) => {
@@ -207,5 +203,18 @@ pub fn aorist_concept(args: TokenStream, input: TokenStream) -> TokenStream {
         }
         _ => panic!("expected a struct with named fields or an enum"),
     };
-    return proc_macro::TokenStream::from(quoted2);
+    proc_macro::TokenStream::from(quoted2)
+}
+
+#[proc_macro_attribute]
+pub fn aorist_concept(args: TokenStream, input: TokenStream) -> TokenStream {
+    let path = LitStr::new("InnerObject", Span::call_site()).parse_with(Path::parse_mod_style).unwrap();
+    let inner_object = NestedMeta::Meta(Meta::Path(
+        path,
+    ));
+    aorist_ast(args, input, vec![inner_object])
+}
+#[proc_macro_attribute]
+pub fn aorist(args: TokenStream, input: TokenStream) -> TokenStream {
+    aorist_ast(args, input, vec![])
 }
