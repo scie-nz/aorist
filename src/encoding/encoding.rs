@@ -1,7 +1,7 @@
 #![allow(non_snake_case)]
 
 use crate::compression::DataCompression;
-use crate::concept::{AoristConcept, Concept};
+use crate::concept::{AoristConcept, AoristConceptChildren, Concept};
 use crate::encoding::csv_encoding::*;
 use crate::encoding::json_encoding::*;
 use crate::encoding::onnx_encoding::*;

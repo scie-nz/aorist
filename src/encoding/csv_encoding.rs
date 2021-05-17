@@ -1,7 +1,7 @@
 #![allow(non_snake_case)]
 
 use crate::compression::*;
-use crate::concept::{AoristConcept, Concept};
+use crate::concept::{AoristConcept, AoristConceptChildren, Concept};
 use crate::constraint::*;
 use crate::header::*;
 use aorist_concept::{aorist_concept, Constrainable, InnerObject};

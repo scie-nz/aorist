@@ -25,6 +25,8 @@ pub trait AoristConcept {
         }
     }
     fn compute_uuids(&mut self);
+}
+pub trait AoristConceptChildren {
     fn get_child_concepts<'a, 'b>(&'a self) -> Vec<Concept<'b>>
     where
         'a: 'b;

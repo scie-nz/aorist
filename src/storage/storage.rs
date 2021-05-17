@@ -1,6 +1,6 @@
 #![allow(non_snake_case)]
 
-use crate::concept::{AoristConcept, Concept};
+use crate::concept::{AoristConcept, AoristConceptChildren, Concept};
 use crate::encoding::*;
 use crate::storage::bigquery_storage::*;
 use crate::storage::git_storage::*;

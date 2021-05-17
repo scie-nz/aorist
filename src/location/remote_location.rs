@@ -1,4 +1,4 @@
-use crate::concept::{AoristConcept, Concept};
+use crate::concept::{AoristConcept, AoristConceptChildren, Concept};
 use crate::location::bigquery_location::*;
 use crate::location::gcs_location::*;
 use crate::location::github_location::*;

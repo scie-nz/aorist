@@ -1,7 +1,7 @@
 #![allow(non_snake_case)]
 use crate::algorithms::*;
 use crate::asset::*;
-use crate::concept::{AoristConcept, Concept};
+use crate::concept::{AoristConcept, AoristConceptChildren, Concept};
 use crate::constraint::Constraint;
 use aorist_concept::{aorist_concept, Constrainable, InnerObject};
 use derivative::Derivative;

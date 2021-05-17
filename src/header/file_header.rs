@@ -1,4 +1,4 @@
-use crate::concept::{AoristConcept, Concept};
+use crate::concept::{AoristConcept, AoristConceptChildren, Concept};
 use crate::header::csv_header::*;
 use aorist_concept::{aorist_concept, Constrainable, InnerObject};
 use paste::paste;

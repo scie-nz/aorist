@@ -1,5 +1,5 @@
 #![allow(non_snake_case)]
-use crate::concept::{AoristConcept, Concept};
+use crate::concept::{AoristConcept, AoristConceptChildren, Concept};
 use crate::role::global_permissions_admin::*;
 use aorist_concept::{aorist_concept, Constrainable, InnerObject};
 use enum_dispatch::enum_dispatch;

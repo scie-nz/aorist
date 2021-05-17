@@ -98,7 +98,7 @@ impl EnumBuilder {
     pub fn to_concept_token_stream(&self, enum_name: &Ident) -> TokenStream {
         let variant = &self.variant_idents;
         TokenStream::from(quote! {
-          impl AoristConcept for #enum_name {
+          impl AoristConceptChildren for #enum_name {
             fn get_child_concepts<'a, 'b>(&'a self) -> Vec<Concept<'b>> where 'a : 'b {
               vec![
                   match self {
@@ -116,6 +116,8 @@ impl EnumBuilder {
                   }
               ]
             }
+          }
+          impl AoristConcept for #enum_name {
             fn get_tag(&self) -> Option<String> {
                 match self {
                     #(

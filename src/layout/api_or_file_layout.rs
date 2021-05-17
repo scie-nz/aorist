@@ -1,7 +1,7 @@
 #![allow(non_snake_case)]
 use super::api_layout::*;
 use super::file_based_storage_layout::*;
-use crate::concept::{AoristConcept, Concept};
+use crate::concept::{AoristConcept, AoristConceptChildren, Concept};
 use aorist_concept::{aorist_concept, Constrainable, InnerObject};
 use paste::paste;
 use pyo3::prelude::*;

@@ -237,7 +237,7 @@ impl StructBuilder {
 
         TokenStream::from(quote! {
 
-            impl AoristConcept for #struct_name {
+            impl AoristConceptChildren for #struct_name {
                 fn get_child_concepts<'a, 'b>(&'a self) -> Vec<Concept<'b>> where 'a : 'b {
                     let id = Some((
                         self.get_uuid(),
@@ -288,6 +288,8 @@ impl StructBuilder {
                     )*
                     concepts
                 }
+            }
+            impl AoristConcept for #struct_name {
                 fn get_tag(&self) -> Option<String> {
                     self.tag.clone()
                 }
