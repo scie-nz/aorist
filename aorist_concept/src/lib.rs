@@ -54,7 +54,7 @@ pub fn constrain_object(input: TokenStream) -> TokenStream {
         Data::Enum(DataEnum { variants, .. }) => {
             let enum_name = &ast.ident;
             let builder = EnumBuilder::new(variants);
-            let base_stream = builder.to_base_token_stream(enum_name);
+            let _base_stream = builder.to_base_token_stream(enum_name);
             let python_stream = builder.to_python_token_stream(enum_name);
             //base_stream.into_iter().chain(python_stream.into_iter()).collect()
             python_stream
@@ -65,7 +65,7 @@ pub fn constrain_object(input: TokenStream) -> TokenStream {
         }) => {
             let struct_name = &ast.ident;
             let builder = StructBuilder::new(&fields);
-            let base_stream = builder.to_base_token_stream(struct_name);
+            let _base_stream = builder.to_base_token_stream(struct_name);
             let python_stream = builder.to_python_token_stream(struct_name);
             //base_stream.into_iter().chain(python_stream.into_iter()).collect()
             python_stream
@@ -159,7 +159,7 @@ pub fn aorist_concept(args: TokenStream, input: TokenStream) -> TokenStream {
     extra_derives.push(inner_object);
 
     let mut ast = parse_macro_input!(input as DeriveInput);
-    match &mut ast.data {
+    let quoted2 = match &mut ast.data {
         syn::Data::Struct(ref mut struct_data) => {
             add_aorist_fields(struct_data);
             let quoted = quote! {
@@ -175,8 +175,7 @@ pub fn aorist_concept(args: TokenStream, input: TokenStream) -> TokenStream {
             extend_derivatives(&mut final_ast, extra_derivatives);
             extend_derives(&mut final_ast, extra_derives);
 
-            let quoted2 = quote! { #final_ast };
-            return proc_macro::TokenStream::from(quoted2);
+            quote! { #final_ast }
         }
         Data::Enum(DataEnum { variants, .. }) => {
             let enum_name = &ast.ident;
@@ -192,7 +191,8 @@ pub fn aorist_concept(args: TokenStream, input: TokenStream) -> TokenStream {
             extend_derives(&mut final_ast, extra_derives);
             extend_derives(&mut final_ast, extra_derivatives);
 
-            let quoted2 = quote! { #final_ast
+            quote! {
+                #final_ast
                 impl #enum_name {
                     pub fn is_same_variant_in_enum_as(&self, other: &Self) -> bool {
                         match (self, other) {
@@ -203,10 +203,9 @@ pub fn aorist_concept(args: TokenStream, input: TokenStream) -> TokenStream {
                         }
                     }
                 }
-            };
-
-            return proc_macro::TokenStream::from(quoted2);
+            }
         }
         _ => panic!("expected a struct with named fields or an enum"),
-    }
+    };
+    return proc_macro::TokenStream::from(quoted2);
 }
