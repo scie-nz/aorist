@@ -124,6 +124,23 @@ fn add_aorist_fields(struct_data: &mut syn::DataStruct) {
     }
 }
 
+fn extend_derivatives(ast: &mut DeriveInput, extra_derivatives: Vec<NestedMeta>) {
+    let (attr, mut derivatives) = ast
+        .attrs
+        .iter_mut()
+        .filter(|attr| attr.path.is_ident("derivative"))
+        .filter_map(|attr| match attr.parse_meta() {
+            Ok(Meta::List(meta_list)) => Some((attr, meta_list)),
+            _ => None, // kcov-ignore
+        })
+        .next()
+        .unwrap();
+    derivatives
+        .nested
+        .extend::<Punctuated<NestedMeta, Token![,]>>(extra_derivatives.into_iter().collect());
+    *attr = parse_quote!(#[#derivatives]);
+}
+
 #[proc_macro_attribute]
 pub fn aorist_concept(args: TokenStream, input: TokenStream) -> TokenStream {
     let input_attrs = parse_macro_input!(args as AttributeArgs);
@@ -135,31 +152,14 @@ pub fn aorist_concept(args: TokenStream, input: TokenStream) -> TokenStream {
             add_aorist_fields(struct_data);
             let quoted = quote! {
                 #[derive(
-                    Derivative, Serialize, Deserialize, 
+                    Derivative, Serialize, Deserialize,
                     Constrainable, Clone, InnerObject#(, #extra_derives)*
                 )]
                 #[derivative(PartialEq, Debug, Eq)]
                 #ast
             };
             let mut final_ast: DeriveInput = syn::parse2(quoted).unwrap();
-
-            let (attr, mut derivatives) = final_ast
-                .attrs
-                .iter_mut()
-                .filter(|attr| attr.path.is_ident("derivative"))
-                .filter_map(|attr| match attr.parse_meta() {
-                    Ok(Meta::List(meta_list)) => Some((attr, meta_list)),
-                    _ => None, // kcov-ignore
-                })
-                .next()
-                .unwrap();
-            derivatives
-                .nested
-                .extend::<Punctuated<NestedMeta, Token![,]>>(
-                    extra_derivatives.into_iter().collect(),
-                );
-            *attr = parse_quote!(#[#derivatives]);
-
+            extend_derivatives(&mut final_ast, extra_derivatives);
             let quoted2 = quote! { #final_ast };
             return proc_macro::TokenStream::from(quoted2);
         }
