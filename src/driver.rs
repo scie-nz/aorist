@@ -33,14 +33,15 @@ type ConstraintsBlockMap<'a> = LinkedHashMap<
     ),
 >;
 
-pub trait Driver<'a, D>
+pub trait Driver<'a, 'b, D>
 where
     D: FlowBuilderBase,
-    D: FlowBuilderMaterialize<BuilderInputType=<Self::CB as ConstraintBlock<'a, <D as FlowBuilderBase>::T>>::BuilderInputType>,
+    D: FlowBuilderMaterialize<BuilderInputType=<Self::CB as ConstraintBlock<'b, <D as FlowBuilderBase>::T>>::BuilderInputType>,
     <D as FlowBuilderBase>::T: 'a,
     Self::CB: 'a,
+    'a: 'b,
 {
-    type CB: ConstraintBlock<'a, <D as FlowBuilderBase>::T>;
+    type CB: ConstraintBlock<'b, <D as FlowBuilderBase>::T>;
 
     fn get_relevant_builders(
         topline_constraint_names: &LinkedHashSet<String>,
@@ -108,13 +109,14 @@ where
         sorted_builders
     }
 
-    fn run(&'a mut self) -> Result<(String, Vec<String>)> {
+    fn run(&'b mut self) -> Result<(String, Vec<String>)> {
         self.satisfy_constraints()?;
         let etl = D::new();
+        let endpoints = self.get_endpoints().clone();
         let statements_and_preambles = self
             .get_blocks()
             .iter()
-            .map(|x| x.get_statements(self.get_endpoints()))
+            .map(|x| x.get_statements(&endpoints))
             .collect::<Vec<_>>();
 
         Ok((
@@ -543,7 +545,7 @@ where
         unsatisfied_constraints: &ConstraintsBlockMap<'a>,
         identifiers: &HashMap<Uuid, AST>,
     ) -> Result<(
-        Vec<<Self::CB as ConstraintBlock<'a, <D as FlowBuilderBase>::T>>::C>,
+        Vec<<Self::CB as ConstraintBlock<'b, <D as FlowBuilderBase>::T>>::C>,
         Option<AST>,
     )> {
         let tasks_dict = Self::init_tasks_dict(block, constraint_name.clone());
@@ -568,7 +570,7 @@ where
                 .push(state.clone());
         }
         for (_dialect, satisfied) in by_dialect.into_iter() {
-            let block = <Self::CB as ConstraintBlock<'a, <D as FlowBuilderBase>::T>>::C::new(
+            let block = <Self::CB as ConstraintBlock<'b, <D as FlowBuilderBase>::T>>::C::new(
                 satisfied,
                 constraint_name.clone(),
                 tasks_dict.clone(),
@@ -596,11 +598,9 @@ where
         &self,
         constraint_name: &String,
     ) -> (Option<String>, Option<String>);
-    fn get_blocks(&'a self) -> &'a Vec<Self::CB>;
+    fn get_blocks(&'b self) -> &'b Vec<Self::CB>;
     fn get_dependencies(&self) -> Vec<String>;
-    fn get_endpoints<'b>(&'b self) -> &'b EndpointConfig
-    where
-        'a: 'b;
+    fn get_endpoints(&'b self) -> &'b EndpointConfig;
     fn attach_constraints(
         builder: AoristConstraintBuilder,
         by_object_type: &HashMap<String, Vec<Concept<'a>>>,
@@ -822,11 +822,12 @@ where
     ) -> Self;
 }
 
-pub struct PythonBasedDriver<'a, D>
+pub struct PythonBasedDriver<'a, 'b, D>
 where
     D: FlowBuilderBase,
     <D as FlowBuilderBase>::T:
         ETLFlow<ImportType = PythonImport, PreambleType = PythonPreamble> + 'a,
+    'a : 'b,
 {
     pub concepts: Arc<RwLock<HashMap<(Uuid, String), Concept<'a>>>>,
     constraints: LinkedHashMap<(Uuid, String), Arc<RwLock<Constraint>>>,
@@ -838,9 +839,10 @@ where
     constraint_explanations: HashMap<String, (Option<String>, Option<String>)>,
     ancestors: HashMap<(Uuid, String), Vec<AncestorRecord>>,
     topline_constraint_names: LinkedHashSet<String>,
+    _lt_phantom: PhantomData<&'b ()>,
 }
 
-impl<'a, D> Driver<'a, D> for PythonBasedDriver<'a, D>
+impl<'a, 'b, D> Driver<'a, 'b, D> for PythonBasedDriver<'a, 'b, D>
 where
     D: FlowBuilderBase,
     D: FlowBuilderMaterialize<BuilderInputType = PythonFlowBuilderInput>,
@@ -860,10 +862,7 @@ where
         self.constraints.get(uuid).unwrap().clone()
     }
 
-    fn get_endpoints<'b>(&'b self) -> &'b EndpointConfig
-    where
-        'a: 'b,
-    {
+    fn get_endpoints(&'b self) -> &'b EndpointConfig {
         &self.endpoints
     }
 
@@ -900,7 +899,7 @@ where
             .unwrap()
             .clone()
     }
-    fn get_blocks(&'a self) -> &'a Vec<Self::CB> {
+    fn get_blocks(&'b self) -> &'b Vec<Self::CB> {
         &self.blocks
     }
     fn get_dependencies(&self) -> Vec<String> {
@@ -936,10 +935,11 @@ where
             constraint_explanations: AoristConstraint::get_explanations(),
             ancestors,
             topline_constraint_names,
+            _lt_phantom: PhantomData,
         }
     }
 }
-pub struct RBasedDriver<'a, D>
+pub struct RBasedDriver<'a, 'b, D>
 where
     D: FlowBuilderBase,
     <D as FlowBuilderBase>::T: ETLFlow<ImportType = RImport, PreambleType = RPreamble> + 'a,
@@ -954,13 +954,15 @@ where
     constraint_explanations: HashMap<String, (Option<String>, Option<String>)>,
     ancestors: HashMap<(Uuid, String), Vec<AncestorRecord>>,
     topline_constraint_names: LinkedHashSet<String>,
+    _lt_phantom: PhantomData<&'b ()>,
 }
 
-impl<'a, D> Driver<'a, D> for RBasedDriver<'a, D>
+impl<'a, 'b, D> Driver<'a, 'b, D> for RBasedDriver<'a, 'b, D>
 where
     D: FlowBuilderBase,
     D: FlowBuilderMaterialize<BuilderInputType = RFlowBuilderInput>,
     <D as FlowBuilderBase>::T: ETLFlow<ImportType = RImport, PreambleType = RPreamble> + 'a,
+    'a : 'b,
 {
     type CB = RBasedConstraintBlock<D::T>;
 
@@ -971,9 +973,7 @@ where
         vec![Dialect::R(R {}), Dialect::Python(Python::new(vec![])), Dialect::Bash(Bash{})]
     }
 
-    fn get_endpoints<'b>(&'b self) -> &'b EndpointConfig
-    where
-        'a: 'b,
+    fn get_endpoints(&'b self) -> &'b EndpointConfig
     {
         &self.endpoints
     }
@@ -1008,7 +1008,7 @@ where
             .unwrap()
             .clone()
     }
-    fn get_blocks(&'a self) -> &'a Vec<Self::CB> {
+    fn get_blocks(&'b self) -> &'b Vec<Self::CB> {
         &self.blocks
     }
     fn get_dependencies(&self) -> Vec<String> {
@@ -1034,6 +1034,7 @@ where
             constraint_explanations: AoristConstraint::get_explanations(),
             ancestors,
             topline_constraint_names,
+            _lt_phantom: PhantomData,
         }
     }
 }
