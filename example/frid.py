@@ -21,7 +21,7 @@ from aorist import attributes as attr
 from common import DEFAULT_ENDPOINTS
 
 attributes = attr_list([
-    attr.WKTPolygon("wkt"),
+    attr.WKTString("wkt"),
     attr.FloatNumber("saf_cover_type"),
     attr.NaturalNumber("srm_cover_type"),
     attr.FreeText("regional_dominance_type_1"),

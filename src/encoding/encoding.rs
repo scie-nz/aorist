@@ -3,6 +3,7 @@
 use crate::compression::DataCompression;
 use crate::concept::{AoristConcept, AoristConceptChildren, Concept};
 use crate::encoding::csv_encoding::*;
+use crate::encoding::gdb_encoding::*;
 use crate::encoding::json_encoding::*;
 use crate::encoding::onnx_encoding::*;
 use crate::encoding::orc_encoding::*;
@@ -22,6 +23,7 @@ pub enum Encoding {
     ORCEncoding(ORCEncoding),
     TSVEncoding(TSVEncoding),
     ONNXEncoding(TSVEncoding),
+    GDBEncoding(TSVEncoding),
 }
 
 impl Encoding {
@@ -33,6 +35,7 @@ impl Encoding {
             Self::JSONEncoding(_) => None,
             Self::ORCEncoding(_) => None,
             Self::ONNXEncoding(_) => None,
+            Self::GDBEncoding(_) => None,
             Self::NewlineDelimitedJSONEncoding(_) => None,
         }
     }
@@ -41,6 +44,7 @@ impl Encoding {
             Self::CSVEncoding(x) => x.compression.clone(),
             // TODO: need to change this to also be optional
             Self::TSVEncoding(x) => Some(x.compression.clone()),
+            Self::GDBEncoding(x) => x.compression.clone(),
             Self::JSONEncoding(_) => None,
             Self::ORCEncoding(_) => None,
             Self::ONNXEncoding(_) => None,
@@ -52,6 +56,7 @@ impl Encoding {
             Self::CSVEncoding(_) => "csv".to_string(),
             // TODO: need to change this to also be optional
             Self::TSVEncoding(_) => "tsv".to_string(),
+            Self::GDBEncoding(_) => "gdb".to_string(),
             Self::JSONEncoding(_) => "json".to_string(),
             Self::ORCEncoding(_) => "orc".to_string(),
             Self::ONNXEncoding(_) => "onnx".to_string(),

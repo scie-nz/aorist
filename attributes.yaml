@@ -397,6 +397,17 @@ spec:
 ---
 type: Attribute
 spec:
+  name: FloatNumber
+  orc: OrcFloat
+  presto: PrestoDouble
+  sql: SQLReal
+  sqlite: SQLiteReal
+  bigquery: BigQueryFloat64
+  postgres: PostgresReal
+  value: FloatValue
+---
+type: Attribute
+spec:
   name: FromPostgresDoublePrecision
   orc: OrcFloat
   presto: PrestoDouble
@@ -662,6 +673,17 @@ spec:
 type: Attribute
 spec:
   name: CountryName
+  orc: OrcString
+  presto: PrestoVarchar
+  sql: SQLVarchar
+  sqlite: SQLiteText
+  bigquery: BigQueryString
+  postgres: PostgresText
+  value: StringValue
+---
+type: Attribute
+spec:
+  name: WKTString
   orc: OrcString
   presto: PrestoVarchar
   sql: SQLVarchar
