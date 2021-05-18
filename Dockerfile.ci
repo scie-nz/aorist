@@ -1,0 +1,12 @@
+# Builds an image containing prerequisites for building aorist in CI.
+#
+# How to build this:
+# 1. Get latest version of docker, ensure it's started with 'systemctl start docker'
+# 2. Install qemu binfmt support: ubuntu:qemu-system-misc, arch:(aur)qemu-user-static-bin
+# 3. Run: ./docker-build.sh
+FROM rust:slim
+RUN apt-get update -y \
+  && apt-get install -y r-base python3 python3-astor black \
+  && apt-get clean \
+  && rm -rf /var/lib/apt/lists /var/cache/apt/archives
+
