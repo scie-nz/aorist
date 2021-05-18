@@ -593,12 +593,13 @@ macro_rules! register_constraint {
                 $element($element),
             )+
         }
-        pub enum [<$name Builder>] {
+        pub enum [<$name Builder>]<'b> {
             $(
-                $element(crate::constraint::ConstraintBuilder<$element>),
+                $element(crate::constraint::ConstraintBuilder<'b, $element>),
             )+
         }
-        impl [<$name Builder>] {
+        impl <'a, 'b> [<$name Builder>]<'b>
+        where 'a : 'b {
             pub fn get_root_type_name(&self) -> Result<String> {
                 match &self {
                     $(
@@ -606,7 +607,7 @@ macro_rules! register_constraint {
                     )+
                 }
             }
-            pub fn get_required<'a>(&self, root: Concept<'a>, ancestry:&ConceptAncestry<'a>) -> Vec<Uuid> {
+            pub fn get_required(&'b self, root: Concept<'a>, ancestry:&ConceptAncestry<'a>) -> Vec<Uuid> {
                 match &self {
                     $(
                         [<$name Builder>]::$element(_) =>
@@ -614,7 +615,7 @@ macro_rules! register_constraint {
                     )+
                 }
             }
-            pub fn should_add<'a>(&self, root: Concept<'a>, ancestry:&ConceptAncestry<'a>) -> bool {
+            pub fn should_add(&'b self, root: Concept<'a>, ancestry:&ConceptAncestry<'a>) -> bool {
                 match &self {
                     $(
                         [<$name Builder>]::$element(_) =>
@@ -658,13 +659,14 @@ macro_rules! register_constraint {
                 }
             }
         }
-        impl $name {
-            pub fn builders() -> Vec<[<$name Builder>]> {
+        impl <'a> $name {
+            pub fn builders() -> Vec<[<$name Builder>]<'a>> {
                 vec![
                     $(
                         [<$name Builder>]::$element(
-                            crate::constraint::ConstraintBuilder::<$element>{
-                                _phantom: std::marker::PhantomData
+                            crate::constraint::ConstraintBuilder::<'a, $element>{
+                                _phantom: std::marker::PhantomData,
+                                _phantom_lt: std::marker::PhantomData
                             }
                         ),
                     )+
@@ -751,8 +753,11 @@ macro_rules! register_constraint {
                     )+
                 }
             }
-            pub fn should_add<'a>(&self, root: Concept<'a>, ancestry:
-            &ConceptAncestry<'a>) -> bool {
+            pub fn should_add(
+                &self,
+                root: Concept<'a>,
+                ancestry: &ConceptAncestry<'a>
+            ) -> bool {
                 match &self {
                     $(
                         Self::$element(_) => $element::should_add(root,

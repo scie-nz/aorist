@@ -45,7 +45,7 @@ where
 
     fn get_relevant_builders(
         topline_constraint_names: &LinkedHashSet<String>,
-    ) -> Vec<AoristConstraintBuilder> {
+    ) -> Vec<AoristConstraintBuilder<'b>> {
         let mut builders = AoristConstraint::builders()
             .into_iter()
             .map(|x| (x.get_constraint_name(), x))
@@ -602,7 +602,7 @@ where
     fn get_dependencies(&self) -> Vec<String>;
     fn get_endpoints(&'b self) -> &'b EndpointConfig;
     fn attach_constraints(
-        builder: AoristConstraintBuilder,
+        builder: &AoristConstraintBuilder<'b>,
         by_object_type: &HashMap<String, Vec<Concept<'a>>>,
         family_trees: &HashMap<(Uuid, String), HashMap<String, HashSet<Uuid>>>,
         ancestry: &ConceptAncestry<'a>,
@@ -611,7 +611,7 @@ where
             LinkedHashMap<(Uuid, String), Arc<RwLock<Constraint>>>,
         >,
         visited_constraint_names: &mut LinkedHashSet<String>,
-    ) -> Result<()> {
+    ) -> Result<()> where 'a: 'b {
         let root_object_type = builder.get_root_type_name()?;
         let constraint_name = builder.get_constraint_name();
 
@@ -784,7 +784,7 @@ where
 
         for builder in sorted_builders {
             Self::attach_constraints(
-                builder,
+                &builder,
                 &by_object_type,
                 &family_trees,
                 &ancestry,
