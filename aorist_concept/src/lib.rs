@@ -5,9 +5,9 @@ mod enum_builder;
 mod struct_builder;
 
 use self::proc_macro::TokenStream;
+use crate::builder::Builder;
 use crate::enum_builder::EnumBuilder;
 use crate::struct_builder::StructBuilder;
-use crate::builder::Builder;
 use proc_macro2::Span;
 use quote::quote;
 use syn::parse::Parser;
@@ -29,15 +29,19 @@ pub fn constrainable(input: TokenStream) -> TokenStream {
             ..
         }) => {
             let struct_name = &input.ident;
-            let tv = StructBuilder::new(fields);
-            tv.to_file(struct_name, "constrainables.txt");
-            tv.to_concept_token_stream(struct_name)
+            let builder = StructBuilder::new(fields);
+            builder.to_file(struct_name, "constrainables.txt");
+            builder.to_concept_token_stream(struct_name).into_iter().chain(
+                builder.to_concept_children_token_stream(struct_name)
+            ).collect()
         }
         Data::Enum(DataEnum { variants, .. }) => {
             let enum_name = &input.ident;
             let builder = EnumBuilder::new(variants);
             builder.to_file(enum_name, "constraints.txt");
-            builder.to_concept_token_stream(enum_name)
+            builder.to_concept_token_stream(enum_name).into_iter().chain(
+                builder.to_concept_children_token_stream(enum_name)
+            ).collect()
         }
         _ => panic!("expected a struct with named fields or an enum"),
     }

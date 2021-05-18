@@ -211,7 +211,7 @@ impl Builder for StructBuilder {
             .unwrap();
         }
     }
-    fn to_concept_token_stream(&self, struct_name: &Ident) -> TokenStream {
+    fn to_concept_children_token_stream(&self, struct_name: &Ident) -> TokenStream {
         let (
             bare_type,
             vec_type,
@@ -290,6 +290,25 @@ impl Builder for StructBuilder {
                     concepts
                 }
             }
+        })
+    }
+    fn to_concept_token_stream(&self, struct_name: &Ident) -> TokenStream {
+        let (
+            bare_ident,
+            vec_ident,
+            option_ident,
+            option_vec_ident,
+            map_ident,
+        ) = (
+            &self.bare_idents,
+            &self.vec_idents,
+            &self.option_idents,
+            &self.option_vec_idents,
+            &self.map_idents,
+        );
+
+        TokenStream::from(quote! {
+
             impl AoristConcept for #struct_name {
                 fn get_tag(&self) -> Option<String> {
                     self.tag.clone()

@@ -97,7 +97,7 @@ impl Builder for EnumBuilder {
         }};
         return proc_macro::TokenStream::from(quoted);
     }
-    fn to_concept_token_stream(&self, enum_name: &Ident) -> TokenStream {
+    fn to_concept_children_token_stream(&self, enum_name: &Ident) -> TokenStream {
         let variant = &self.variant_idents;
         TokenStream::from(quote! {
           impl AoristConceptChildren for #enum_name {
@@ -119,6 +119,11 @@ impl Builder for EnumBuilder {
               ]
             }
           }
+        })
+    }
+    fn to_concept_token_stream(&self, enum_name: &Ident) -> TokenStream {
+        let variant = &self.variant_idents;
+        TokenStream::from(quote! {
           impl AoristConcept for #enum_name {
             fn get_tag(&self) -> Option<String> {
                 match self {
