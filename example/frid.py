@@ -76,7 +76,7 @@ remote = RemoteStorage(
     ),
     layout=SingleFileLayout(),
     encoding=GDBEncoding(
-        compression=ZipCompression(),
+        compression=ZipCompression(filename="FRID_NorthCoast19_1_West.gdb"),
     ),
 )
 local = HiveTableStorage(

@@ -378,23 +378,47 @@ spec:
       spec:
         name: command
         call: >
-          match &zip_compression.filename {
-            Some(ref file) => format!(
-                "-p {tmp_dir}/{archive_name}.downloaded {file_name} > {tmp_dir}/{archive_name}.txt",
+          {
+            let filename = format!(
+                "{tmp_dir}/{dataset_name}/{table_name}/{archive_name}.downloaded",
                 tmp_dir=replication_storage_setup.tmp_dir,
                 archive_name=static_data_table.name,
-                file_name=file,
-            ).to_string(),
-            None => format!(
-                "-p {tmp_dir}/{archive_name}.downloaded > {tmp_dir}/{archive_name}.txt",
-                tmp_dir=replication_storage_setup.tmp_dir,
-                archive_name=static_data_table.name,
-            )
+                dataset_name=data_set.name,
+                table_name=static_data_table.name
+            );
+            if let Encoding::GDBEncoding(_) = remote_storage.encoding {
+                format!(
+                    "{filename} '{dirname}/*' -d {tmp_dir}/{dataset_name}/{table_name}",
+                    filename=filename,
+                    tmp_dir=replication_storage_setup.tmp_dir,
+                    dataset_name=data_set.name,
+                    table_name=static_data_table.name,
+                    dirname=zip_compression.filename.as_ref().unwrap(),
+                )
+            } else {
+                match &zip_compression.filename {
+                Some(ref file) => format!(
+                    "-p {source_filename} {file_name} > {tmp_dir}/{archive_name}.txt",
+                    source_filename=filename,
+                    tmp_dir=replication_storage_setup.tmp_dir,
+                    archive_name=static_data_table.name,
+                    file_name=file,
+                ).to_string(),
+                None => format!(
+                    "-p {source_filename} > {tmp_dir}/{archive_name}.txt",
+                    source_filename=filename,
+                    tmp_dir=replication_storage_setup.tmp_dir,
+                    archive_name=static_data_table.name,
+                )
+              }
+            }
           }
         attaches:
           - ZipCompression
           - StaticDataTable
+          - RemoteStorage
           - ReplicationStorageSetup
+          - DataSet
 ---
 type: Program
 spec:
