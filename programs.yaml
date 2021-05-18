@@ -3800,3 +3800,32 @@ spec:
       spec:
         call: format!("{}.csv", static_data_table.name).to_string()
         attaches: StaticDataTable
+---
+type: Program
+spec:
+  use: ConvertGDBToCSV
+  root: RemoteStorage
+  dialect: Bash
+  call: "{call}"
+  kwargs:
+    call:
+      type: MultipleAncestorsArgument
+      spec:
+        call: >
+          {
+            let tmp_dir = &replication_storage_setup.tmp_dir;
+            let dir = format!(
+                "{tmp_dir}/{dataset_name}/{table_name}",
+                tmp_dir=tmp_dir,
+                dataset_name=data_set.name,
+                table_name=static_data_table.name,
+            );
+            format!(
+                "ogr2ogr -f 'CSV' -lco GEOMETRY=AS_WKT {dir}/data.csv {dir}/*.gdb && sed -i '1d' {dir}/data.csv",
+                dir=dir,
+            ).to_string()
+          }
+        attaches:
+          - StaticDataTable
+          - ReplicationStorageSetup
+          - DataSet

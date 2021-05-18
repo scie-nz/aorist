@@ -425,6 +425,7 @@ spec:
   root: StaticDataTable
   requires:
     - ConvertTSVToCSV
+    - ConvertGDBToCSV
   attachIf: |
       |root: Concept<'a>, ancestry: &ConceptAncestry<'a>|
       match ancestry.static_data_table(root.clone()).unwrap().setup {
@@ -978,3 +979,23 @@ spec:
   attachIf: |
       |root: Concept<'a>, ancestry: &ConceptAncestry<'a>|
       ancestry.replication_storage_setup(root.clone()).is_ok()
+---
+type: Constraint
+spec:
+  name: ConvertGDBToCSV
+  root: RemoteStorage
+  requiresProgram: true
+  requires:
+    - DownloadDataFromRemote
+    - RemoveFileHeader
+  title: Convert GDB data to CSV
+  attachIf: |
+      |root: Concept<'a>, ancestry: &ConceptAncestry<'a>|
+      match ancestry.remote_storage(root.clone()).unwrap().encoding {
+          crate::encoding::Encoding::GDBEncoding(_) =>
+              ancestry.replication_storage_setup(root.clone()).is_ok(),
+          _ => false,
+      }
+  body: |
+      We need to convert the GDB data to CSV
+      format to process it further.

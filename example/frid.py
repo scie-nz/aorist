@@ -112,4 +112,5 @@ universe = Universe(
     datasets=[frid_dataset],
     endpoints=DEFAULT_ENDPOINTS,
 )
-print(universe.python("CSVIsConverted"))
+#print(universe.python("ConvertGDBToCSV"))
+print(universe.airflow("UploadDataToS3"))
