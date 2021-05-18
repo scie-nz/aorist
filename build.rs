@@ -718,7 +718,7 @@ fn main() {
             }
             let register = formatdoc! {
                 "register_programs_for_constraint!(
-                     {constraint}, {root}, 'a, ConceptAncestry<'a>,
+                     {constraint}, {root}, 'a, 'b, ConceptAncestry<'a>,
                      {programs}
                 );",
                 constraint=constraint,

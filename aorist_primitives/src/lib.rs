@@ -332,9 +332,9 @@ macro_rules! define_program {
 
 #[macro_export]
 macro_rules! register_programs_for_constraint {
-    ($constraint:ident, $root: ident, $lt: lifetime, $ancestry: ty,
+    ($constraint:ident, $root: ident, $lt: lifetime, $clt: lifetime, $ancestry: ty,
      $($dialect:ident, $element: ident),+) => {
-        impl<$lt> SatisfiableConstraint<$lt> for $constraint {
+        impl<$lt, $clt> SatisfiableConstraint<$lt, $clt> for $constraint where $lt : $clt {
             type TAncestry = $ancestry;
             fn satisfy(
                 &mut self,

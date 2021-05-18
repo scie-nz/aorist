@@ -54,7 +54,7 @@ where
     type RootType;
 }
 
-pub trait SatisfiableConstraint<'a>: TConstraint {
+pub trait SatisfiableConstraint<'a, 'b>: TConstraint where 'a : 'b {
     type TAncestry: Ancestry<'a>;
     fn satisfy(
         &mut self,
