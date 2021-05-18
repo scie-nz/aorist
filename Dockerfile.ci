@@ -5,13 +5,17 @@
 # 2. Install qemu binfmt support: ubuntu:qemu-system-misc, arch:(aur)qemu-user-static-bin
 # 3. Run: ./docker-build.sh
 
-# Base on official R image (based on debian testing), then install rust/python into it.
-# Skip the debian R packages since they're ancient.
+FROM debian:bullseye
 
-# From https://github.com/rocker-org/rocker/blob/master/r-base/4.0.5/Dockerfile
-FROM r-base:4.0.5
+RUN apt-get update -y \
+  && apt-get install -y r-base r-base-dev python3 python3-astor black curl \
+  && apt-get clean \
+  && rm -rf /var/lib/apt/lists /var/cache/apt/archives
 
-# Copied from https://github.com/rust-lang/docker-rust/blob/master/Dockerfile-slim.template
+# We DIY the rust install because the official rust images are based on Debian stable,
+# which has an ANCIENT version of R. Doing it ourselves allows basing on a more recent Debian.
+
+# Edited from https://github.com/rust-lang/docker-rust/blob/master/Dockerfile-slim.template
 ENV RUSTUP_HOME=/usr/local/rustup \
     CARGO_HOME=/usr/local/cargo \
     PATH=/usr/local/cargo/bin:$PATH \
@@ -25,8 +29,7 @@ RUN set -eux; \
         i386) rustArch='i686-unknown-linux-gnu' ;; \
         *) echo >&2 "unsupported architecture: ${dpkgArch}"; exit 1 ;; \
     esac; \
-    url="https://static.rust-lang.org/rustup/archive/1.24.2/${rustArch}/rustup-init"; \
-    wget "$url"; \
+    curl -o rustup-init "https://static.rust-lang.org/rustup/archive/1.24.2/${rustArch}/rustup-init"; \
     chmod +x rustup-init; \
     ./rustup-init -y --no-modify-path --profile minimal --default-toolchain $RUST_VERSION --default-host ${rustArch}; \
     rm rustup-init; \
@@ -34,8 +37,3 @@ RUN set -eux; \
     rustup --version; \
     cargo --version; \
     rustc --version;
-
-RUN apt-get update -y \
-  && apt-get install -y python3 python3-astor black \
-  && apt-get clean \
-  && rm -rf /var/lib/apt/lists /var/cache/apt/archives
