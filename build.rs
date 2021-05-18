@@ -507,7 +507,7 @@ fn process_concepts() {
 
     let concept_names: Vec<String> = concepts.iter().map(|(_, x)| x.to_string()).collect();
     let register = format!(
-        "register_concept!(Concept, {});",
+        "register_concept!(Concept, ConceptAncestry, {});",
         concept_names
             .iter()
             .map(|x| format!("{x}", x = x))

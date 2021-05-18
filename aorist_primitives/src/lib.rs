@@ -994,13 +994,14 @@ macro_rules! register_attribute {
 
 #[macro_export]
 macro_rules! register_concept {
-    ( $name:ident, $($element: ident ),* ) => { paste::item! {
+    ( $name:ident, $ancestry:ident, $($element: ident ),* ) => { paste::item! {
         #[derive(Clone)]
         pub enum $name<'a> {
             $(
                 $element((&'a $element, usize, Option<(Uuid, String)>)),
             )+
         }
+        impl <'a> ConceptEnum<'a> for $name<'a> {}
         $(
             impl <'a> TryFrom<$name<'a>> for &'a $element {
                 type Error = String;
@@ -1021,11 +1022,11 @@ macro_rules! register_concept {
                 }
             }
         )+
-        pub struct ConceptAncestry<'a> {
+        pub struct $ancestry<'a> {
             pub parents: Arc<RwLock<HashMap<(Uuid, String), $name<'a>>>>,
         }
-        impl Ancestry for ConceptAncestry<'_> {}
-        impl <'a> ConceptAncestry<'a> {
+        impl Ancestry for $ancestry<'_> {}
+        impl <'a> $ancestry<'a> {
             $(
                 pub fn [<$element:snake:lower>](
                     &self,
