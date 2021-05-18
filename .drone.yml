@@ -5,7 +5,7 @@ name: default
 
 steps:
 - name: compile-release
-  image: scienz/aorist-base:20210518
+  image: scienz/aorist-base:20210518b
   commands:
   - cargo build --release
 
