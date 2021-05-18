@@ -163,7 +163,7 @@ spec:
         call: format!("{}.downloaded", static_data_table.name).to_string()
         attaches: StaticDataTable
     - type: AncestorArgument
-      spec: 
+      spec:
         call: |
           {
               match universe.endpoints.gcp.as_ref().unwrap().service_account_file {
@@ -2730,7 +2730,12 @@ spec:
             "assets": json.loads(asset_names),
             "templates": json.loads(template_names),
         }
-        output_dir = os.path.join('hub_yaml', dataset_name)
+
+        base_dir = os.getenv('OUTPUT_DIR')
+        if base_dir is None:
+            raise Exception('Missing environment variable: OUTPUT_DIR')
+        output_dir = os.path.join(base_dir, dataset_name)
+
         if not os.path.exists(output_dir):
             os.makedirs(output_dir)
         with open(os.path.join(output_dir, '_index.yaml'), 'w') as f:
@@ -2786,7 +2791,6 @@ spec:
 
     def gen_hub_for_static_data_table(
         static_data_table_name,
-        output_file,
         attributes,
         template_name,
         storage_location_name,
@@ -2804,7 +2808,12 @@ spec:
             "attributes": json.loads(attributes),
             "code": json.loads(code),
         }
-        output_dir = os.path.join('hub_yaml', dataset_name)
+
+        base_dir = os.getenv('OUTPUT_DIR')
+        if base_dir is None:
+            raise Exception('Missing environment variable: OUTPUT_DIR')
+        output_dir = os.path.join(base_dir, dataset_name)
+
         if not os.path.exists(output_dir):
             os.makedirs(output_dir)
         with open(os.path.join(output_dir, static_data_table_name + '.yaml'), 'w') as f:
@@ -2916,11 +2925,6 @@ spec:
                 "r_requirements" => serde_json::json!(r_requirements),
             )).to_string().replace("\\", "\\\\")
           }
-    output_file:
-      type: AncestorArgument
-      spec:
-        call: format!("{}.md", static_data_table.name).to_string()
-        attaches: StaticDataTable
     static_data_table_name:
       type: AncestorArgument
       spec:
