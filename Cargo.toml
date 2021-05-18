@@ -60,6 +60,7 @@ uuid = {version = "0.8.1", features = ["v4", "serde"]}
 libc = "0.2.93"
 extendr-api = "0.2.0"
 extendr-engine = "0.2.0"
+
 [build-dependencies]
 Inflector = "0.11.4"
 aorist_primitives = {path = "./aorist_primitives"}
@@ -68,7 +69,8 @@ codegen = "0.1.3"
 indoc = "1.0.3"
 serde = { version = "1.0", features = ["derive"] }
 serde_yaml = "0.8"
-bindgen = "0.58.1"
+libR-sys = { version = "0.2.0", features = ["use-bindgen"] } # enable bindgen to avoid errors like "Cannot find libR-sys bindings file"
+bindgen = "0.53.2" # should align with the bindgen version used by libR-sys
 
 [package.metadata.maturin]
 requires-dist = ["astor==0.8.1", "black==20.8b1"]
