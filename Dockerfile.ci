@@ -3,7 +3,7 @@
 # How to build this:
 # 1. Get latest version of docker, ensure it's started with 'systemctl start docker'
 # 2. Install qemu binfmt support: ubuntu:qemu-system-misc, arch:(aur)qemu-user-static-bin
-# 3. Run: ./build-ci-docker.sh
+# 3. Run: ./docker-ci-build.sh
 
 FROM debian:bullseye
 
