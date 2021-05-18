@@ -1,39 +1,25 @@
 // Following: https://github.com/dtolnay/syn/issues/516
 extern crate proc_macro;
+mod builder;
 mod enum_builder;
 mod struct_builder;
 
 use self::proc_macro::TokenStream;
 use crate::enum_builder::EnumBuilder;
 use crate::struct_builder::StructBuilder;
+use crate::builder::Builder;
+use proc_macro2::Span;
 use quote::quote;
 use syn::parse::Parser;
 use syn::punctuated::Punctuated;
-use proc_macro2::Span;
-use syn::token::Comma;
 use syn::{
     parse_macro_input, parse_quote, AttributeArgs, Data, DataEnum, DataStruct, DeriveInput, Field,
-    Fields, FieldsNamed, Meta, NestedMeta, Token, Variant, LitStr, Path,
+    Fields, LitStr, Meta, NestedMeta, Path, Token,
 };
 mod keyword {
     syn::custom_keyword!(path);
 }
 
-fn process_enum_variants(
-    variants: &Punctuated<Variant, Comma>,
-    input: &DeriveInput,
-) -> TokenStream {
-    let enum_name = &input.ident;
-    let builder = EnumBuilder::new(variants);
-    builder.to_file(enum_name, "constraints.txt");
-    builder.to_concept_token_stream(enum_name)
-}
-fn process_struct_fields(fields: &FieldsNamed, input: &DeriveInput) -> TokenStream {
-    let struct_name = &input.ident;
-    let tv = StructBuilder::new(fields);
-    tv.to_file(struct_name, "constrainables.txt");
-    tv.to_concept_token_stream(struct_name)
-}
 #[proc_macro_derive(Constrainable, attributes(constrainable))]
 pub fn constrainable(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
@@ -41,8 +27,18 @@ pub fn constrainable(input: TokenStream) -> TokenStream {
         Data::Struct(DataStruct {
             fields: Fields::Named(ref fields),
             ..
-        }) => process_struct_fields(fields, &input),
-        Data::Enum(DataEnum { variants, .. }) => process_enum_variants(&variants, &input),
+        }) => {
+            let struct_name = &input.ident;
+            let tv = StructBuilder::new(fields);
+            tv.to_file(struct_name, "constrainables.txt");
+            tv.to_concept_token_stream(struct_name)
+        }
+        Data::Enum(DataEnum { variants, .. }) => {
+            let enum_name = &input.ident;
+            let builder = EnumBuilder::new(variants);
+            builder.to_file(enum_name, "constraints.txt");
+            builder.to_concept_token_stream(enum_name)
+        }
         _ => panic!("expected a struct with named fields or an enum"),
     }
 }
@@ -148,7 +144,6 @@ fn extend_derives(ast: &mut DeriveInput, extra_derives: Vec<NestedMeta>) {
     extend_metas(ast, extra_derives, "derive");
 }
 fn aorist_ast(args: TokenStream, input: TokenStream, derives: Vec<NestedMeta>) -> TokenStream {
-
     let input_attrs = parse_macro_input!(args as AttributeArgs);
     let (mut extra_derives, extra_derivatives) = get_derives(input_attrs);
     for derive in derives {
@@ -167,7 +162,7 @@ fn aorist_ast(args: TokenStream, input: TokenStream, derives: Vec<NestedMeta>) -
                 #ast
             };
             let mut final_ast: DeriveInput = syn::parse2(quoted).unwrap();
-            
+
             extend_derivatives(&mut final_ast, extra_derivatives);
             extend_derives(&mut final_ast, extra_derives);
 
@@ -208,10 +203,10 @@ fn aorist_ast(args: TokenStream, input: TokenStream, derives: Vec<NestedMeta>) -
 
 #[proc_macro_attribute]
 pub fn aorist_concept(args: TokenStream, input: TokenStream) -> TokenStream {
-    let path = LitStr::new("InnerObject", Span::call_site()).parse_with(Path::parse_mod_style).unwrap();
-    let inner_object = NestedMeta::Meta(Meta::Path(
-        path,
-    ));
+    let path = LitStr::new("InnerObject", Span::call_site())
+        .parse_with(Path::parse_mod_style)
+        .unwrap();
+    let inner_object = NestedMeta::Meta(Meta::Path(path));
     aorist_ast(args, input, vec![inner_object])
 }
 #[proc_macro_attribute]

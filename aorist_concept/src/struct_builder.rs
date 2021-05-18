@@ -1,6 +1,6 @@
-// Following: https://github.com/dtolnay/syn/issues/516
 extern crate proc_macro;
 use self::proc_macro::TokenStream;
+use crate::builder::Builder;
 use proc_macro2::Ident;
 use quote::quote;
 use std::fs::OpenOptions;
@@ -63,8 +63,8 @@ pub struct StructBuilder {
     pub unconstrainable: Vec<Field>,
 }
 
-impl StructBuilder {
-    pub fn new(fields: &FieldsNamed) -> StructBuilder {
+impl Builder for StructBuilder {
+    fn new(fields: &FieldsNamed) -> StructBuilder {
         let fields_filtered = fields
             .named
             .clone()
@@ -166,7 +166,7 @@ impl StructBuilder {
             unconstrainable,
         }
     }
-    pub fn to_file(&self, struct_name: &Ident, file_name: &str) {
+    fn to_file(&self, struct_name: &Ident, file_name: &str) {
         let types = self
             .bare_idents
             .iter()
@@ -210,7 +210,7 @@ impl StructBuilder {
             .unwrap();
         }
     }
-    pub fn to_concept_token_stream(&self, struct_name: &Ident) -> TokenStream {
+    fn to_concept_token_stream(&self, struct_name: &Ident) -> TokenStream {
         let (
             bare_type,
             vec_type,
@@ -359,7 +359,7 @@ impl StructBuilder {
             }
         })
     }
-    pub fn to_python_token_stream(&self, struct_name: &Ident) -> TokenStream {
+    fn to_python_token_stream(&self, struct_name: &Ident) -> TokenStream {
         let (
             bare_type,
             vec_type,
@@ -505,7 +505,7 @@ impl StructBuilder {
 
         }})
     }
-    pub fn to_base_token_stream(&self, struct_name: &Ident) -> TokenStream {
+    fn to_base_token_stream(&self, struct_name: &Ident) -> TokenStream {
         let (
             bare_type,
             vec_type,
