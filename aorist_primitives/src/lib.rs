@@ -302,7 +302,7 @@ macro_rules! define_program {
      $dialect:ident,
      $preamble:expr, $call:expr, $tuple_call: expr, $dialect_call: expr) => {
         pub struct $name {}
-        impl ConstraintSatisfactionBase for $name {
+        impl<'a> ConstraintSatisfactionBase<'a> for $name {
             type RootType = $root;
             type ConstraintType = $constraint;
         }
@@ -507,7 +507,7 @@ macro_rules! define_constraint {
                 $body
             }
         }
-        pub trait $satisfy_type<'a> : ConstraintSatisfactionBase<ConstraintType=$element, RootType=$root> {
+        pub trait $satisfy_type<'a> : ConstraintSatisfactionBase<'a, ConstraintType=$element, RootType=$root> {
             type Dialect;
 
             // computes a parameter tuple as a string, e.g. to be called from
@@ -557,7 +557,7 @@ macro_rules! define_constraint {
                 root_uuid: Uuid,
                 $([<$required:snake:lower>] : Vec<Arc<RwLock<Constraint>>>,)+
             }
-            pub trait $satisfy_type<'a> : ConstraintSatisfactionBase<ConstraintType=$element, RootType=$root> {
+            pub trait $satisfy_type<'a> : ConstraintSatisfactionBase<'a, ConstraintType=$element, RootType=$root> {
                 type Dialect;
 
                 // computes a parameter tuple as a string, e.g. to be called from
