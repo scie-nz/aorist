@@ -1,5 +1,6 @@
 extern crate proc_macro;
 use self::proc_macro::TokenStream;
+use crate::builder::Builder;
 use proc_macro2::Ident;
 use quote::quote;
 use std::fs::OpenOptions;
@@ -14,15 +15,16 @@ mod keyword {
 pub struct EnumBuilder {
     pub variant_idents: Vec<Ident>,
 }
-impl EnumBuilder {
-    pub fn new(variants: &Punctuated<Variant, Comma>) -> Self {
+impl Builder for EnumBuilder {
+    type TInput = syn::punctuated::Punctuated<Variant, Comma>;
+    fn new(variants: &Punctuated<Variant, Comma>) -> Self {
         let variant_idents = variants
             .iter()
             .map(|x| (x.ident.clone()))
             .collect::<Vec<Ident>>();
         Self { variant_idents }
     }
-    pub fn to_python_token_stream(&self, enum_name: &Ident) -> TokenStream {
+    fn to_python_token_stream(&self, enum_name: &Ident) -> TokenStream {
         let variant = &self.variant_idents;
         let quoted = quote! { paste! {
             #[derive(Clone, FromPyObject, PartialEq)]
@@ -50,7 +52,7 @@ impl EnumBuilder {
         }};
         return proc_macro::TokenStream::from(quoted);
     }
-    pub fn to_file(&self, enum_name: &Ident, file_name: &str) {
+    fn to_file(&self, enum_name: &Ident, file_name: &str) {
         let mut file = OpenOptions::new()
             .write(true)
             .append(true)
@@ -67,7 +69,7 @@ impl EnumBuilder {
             writeln!(file, "'{}'->'{}';", enum_name, v).unwrap();
         }
     }
-    pub fn to_base_token_stream(&self, enum_name: &Ident) -> TokenStream {
+    fn to_base_token_stream(&self, enum_name: &Ident) -> TokenStream {
         let variant = &self.variant_idents;
         let quoted = quote! { paste! {
             #[derive(Clone, FromPyObject, PartialEq)]
@@ -95,7 +97,7 @@ impl EnumBuilder {
         }};
         return proc_macro::TokenStream::from(quoted);
     }
-    pub fn to_concept_token_stream(&self, enum_name: &Ident) -> TokenStream {
+    fn to_concept_token_stream(&self, enum_name: &Ident) -> TokenStream {
         let variant = &self.variant_idents;
         TokenStream::from(quote! {
           impl AoristConceptChildren for #enum_name {

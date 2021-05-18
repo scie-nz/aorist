@@ -64,6 +64,7 @@ pub struct StructBuilder {
 }
 
 impl Builder for StructBuilder {
+    type TInput = FieldsNamed;
     fn new(fields: &FieldsNamed) -> StructBuilder {
         let fields_filtered = fields
             .named
