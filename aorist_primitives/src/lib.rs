@@ -330,15 +330,15 @@ macro_rules! define_program {
 
 #[macro_export]
 macro_rules! register_programs_for_constraint {
-    ($constraint:ident, $root: ident,
+    ($constraint:ident, $root: ident, $lt: lifetime, $ancestry: ty,
      $($dialect:ident, $element: ident),+) => {
-        impl<'a> SatisfiableConstraint<'a> for $constraint {
-            type TAncestry = ConceptAncestry<'a>;
+        impl<$lt> SatisfiableConstraint<$lt> for $constraint {
+            type TAncestry = $ancestry;
             fn satisfy(
                 &mut self,
-                c: Concept<'a>,
+                c: Concept<$lt>,
                 d: &Dialect,
-                ancestry: Arc<ConceptAncestry<'a>>,
+                ancestry: Arc<$ancestry>,
             ) -> Result<Option<(String, String, ParameterTuple, Dialect)>> {
                 match d {
                     $(
@@ -358,9 +358,9 @@ macro_rules! register_programs_for_constraint {
             }
             fn satisfy_given_preference_ordering(
                 &mut self,
-                c: Concept<'a>,
+                c: Concept<$lt>,
                 preferences: &Vec<Dialect>,
-                ancestry: Arc<ConceptAncestry<'a>>,
+                ancestry: Arc<$ancestry>,
             ) -> Result<(String, String, ParameterTuple, Dialect)> {
                 match c {
                     Concept::$root{..} => {
