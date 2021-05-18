@@ -58,8 +58,10 @@ tracing-futures = "0.2"
 tracing-subscriber = "0.2"
 uuid = {version = "0.8.1", features = ["v4", "serde"]}
 libc = "0.2.93"
-extendr-api = "0.2.0"
-extendr-engine = "0.2.0"
+# workaround for failure to build on ARM
+# switch back to upstream once a release with this PR is published: https://github.com/extendr/extendr/pull/213
+extendr-api = {git = "https://github.com/nickbp/extendr", branch = "master"}
+extendr-engine = {git = "https://github.com/nickbp/extendr", branch = "master"}
 
 [build-dependencies]
 Inflector = "0.11.4"

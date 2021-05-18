@@ -33,8 +33,8 @@ define_ast_node!(
         import.to_python_ast_node(py, ast_module, depth)
     },
     |import: &PythonImportNode, depth: usize| {
-        r!(Lang(&[
-            r!(Symbol("library")),
+        r!(Language::from_values(&[
+            r!(Symbol::from_string("library")),
             import.inner.to_r_ast_node(depth)
         ]))
     },
@@ -174,8 +174,8 @@ define_ast_node!(
             AST::Add(_) => "+",
             _ => panic!("AST node not supported as R operator"),
         };
-        r!(Lang(&[
-            r!(Symbol(op_str)),
+        r!(Language::from_values(&[
+            r!(Symbol::from_string(op_str)),
             binop.left.to_r_ast_node(depth),
             binop.right.to_r_ast_node(depth)
         ]))
@@ -208,8 +208,8 @@ define_ast_node!(
             .iter()
             .map(|x| x.to_r_ast_node(depth))
             .collect::<Vec<_>>();
-        elems.insert(0, r!(Symbol("list")));
-        r!(Lang(&elems))
+        elems.insert(0, r!(Symbol::from_string("list")));
+        r!(Language::from_values(&elems))
     },
     elems: Vec<AST>,
     store: bool,
@@ -252,7 +252,7 @@ define_ast_node!(
             .values()
             .map(|x| x.to_r_ast_node(depth))
             .collect::<Vec<_>>();
-        let obj = r!(List(&elems));
+        let obj = r!(extendr_api::List::from_values(&elems));
         obj.set_names(dict.elems.keys()).unwrap();
         obj
     },
@@ -382,7 +382,7 @@ define_ast_node!(
             names.push(name.to_string());
         }
         assert_eq!(names.len(), elems.len());
-        let obj = r!(List(&elems));
+        let obj = r!(List::from_values(&elems));
         obj.set_names(names).unwrap();
         call!("call", "call", "do.call", call.function.to_r_ast_node(depth), obj, quote = TRUE).unwrap()*/
         unsafe {
