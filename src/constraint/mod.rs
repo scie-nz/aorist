@@ -53,7 +53,7 @@ where
 }
 
 pub trait SatisfiableConstraint<'a>: TConstraint {
-    type TAncestry: Ancestry;
+    type TAncestry: Ancestry<'a>;
     fn satisfy(
         &mut self,
         c: Concept<'a>,
