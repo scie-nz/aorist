@@ -332,8 +332,9 @@ macro_rules! define_program {
 macro_rules! register_programs_for_constraint {
     ($constraint:ident, $root: ident,
      $($dialect:ident, $element: ident),+) => {
-        impl SatisfiableConstraint for $constraint {
-            fn satisfy<'a>(
+        impl<'a> SatisfiableConstraint<'a> for $constraint {
+            type TAncestry = ConceptAncestry<'a>;
+            fn satisfy(
                 &mut self,
                 c: Concept<'a>,
                 d: &Dialect,
@@ -355,7 +356,7 @@ macro_rules! register_programs_for_constraint {
                     _ => Ok(None),
                 }
             }
-            fn satisfy_given_preference_ordering<'a>(
+            fn satisfy_given_preference_ordering(
                 &mut self,
                 c: Concept<'a>,
                 preferences: &Vec<Dialect>,
@@ -1023,6 +1024,7 @@ macro_rules! register_concept {
         pub struct ConceptAncestry<'a> {
             pub parents: Arc<RwLock<HashMap<(Uuid, String), $name<'a>>>>,
         }
+        impl Ancestry for ConceptAncestry<'_> {}
         impl <'a> ConceptAncestry<'a> {
             $(
                 pub fn [<$element:snake:lower>](

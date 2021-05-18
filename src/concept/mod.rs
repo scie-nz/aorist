@@ -7,4 +7,5 @@ pub trait AoristConceptChildren {
     where
         'a: 'b;
 }
+pub trait Ancestry {}
 include!(concat!(env!("OUT_DIR"), "/concepts.rs"));

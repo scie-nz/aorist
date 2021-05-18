@@ -1,4 +1,4 @@
-use crate::concept::{AoristConcept, Concept, ConceptAncestry};
+use crate::concept::{AoristConcept, Concept, ConceptAncestry, Ancestry};
 use crate::dialect::Dialect;
 use crate::object::TAoristObject;
 use crate::parameter_tuple::ParameterTuple;
@@ -52,19 +52,20 @@ where
     type RootType;
 }
 
-pub trait SatisfiableConstraint: TConstraint {
-    fn satisfy<'a>(
+pub trait SatisfiableConstraint<'a>: TConstraint {
+    type TAncestry: Ancestry;
+    fn satisfy(
         &mut self,
         c: Concept<'a>,
         d: &Dialect,
-        ancestry: Arc<ConceptAncestry<'a>>,
+        ancestry: Arc<Self::TAncestry>,
     ) -> Result<Option<(String, String, ParameterTuple, Dialect)>>;
 
-    fn satisfy_given_preference_ordering<'a>(
+    fn satisfy_given_preference_ordering(
         &mut self,
         r: Concept<'a>,
         preferences: &Vec<Dialect>,
-        ancestry: Arc<ConceptAncestry<'a>>,
+        ancestry: Arc<Self::TAncestry>,
     ) -> Result<(String, String, ParameterTuple, Dialect)>;
 }
 // TODO: duplicate function, should be unified in trait
