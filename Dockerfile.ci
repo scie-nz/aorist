@@ -3,18 +3,17 @@
 # How to build this:
 # 1. Get latest version of docker, ensure it's started with 'systemctl start docker'
 # 2. Install qemu binfmt support: ubuntu:qemu-system-misc, arch:(aur)qemu-user-static-bin
-# 3. Run: ./docker-build.sh
+# 3. Run: ./build-ci-docker.sh
 
 FROM debian:bullseye
 
+# Install curl for use below
 RUN apt-get update -y \
-  && apt-get install -y clang r-base r-base-dev python3 python3-astor black curl \
+  && apt-get install -y curl \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists /var/cache/apt/archives
 
-# We DIY the rust install because the official rust images are based on Debian stable,
-# which has an ANCIENT version of R. Doing it ourselves allows basing on a more recent Debian.
-
+# DIY the rust install since it's pretty fast and it allows picking specific rust versions.
 # Edited from https://github.com/rust-lang/docker-rust/blob/master/Dockerfile-slim.template
 ENV RUSTUP_HOME=/usr/local/rustup \
     CARGO_HOME=/usr/local/cargo \
@@ -37,3 +36,13 @@ RUN set -eux; \
     rustup --version; \
     cargo --version; \
     rustc --version;
+
+# Install other aorist build prereqs:
+# - libclang-dev, r-base, r-base-dev: for R code generation (libclang for bindgen)
+# - python3, python3-astor, black: for Python code generation
+RUN apt-get update -y \
+  && apt-get install -y \
+    libclang-dev r-base r-base-dev \
+    python3 python3-astor black \
+  && apt-get clean \
+  && rm -rf /var/lib/apt/lists /var/cache/apt/archives
