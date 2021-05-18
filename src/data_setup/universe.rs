@@ -15,7 +15,7 @@ use crate::storage::*;
 use crate::template::*;
 use crate::user::*;
 use crate::user_group::*;
-use aorist_concept::{aorist_concept, Constrainable, InnerObject};
+use aorist_concept::{aorist_concept, Constrainable, ConstrainableWithChildren,  InnerObject};
 use derivative::Derivative;
 use linked_hash_map::LinkedHashMap;
 use paste::paste;

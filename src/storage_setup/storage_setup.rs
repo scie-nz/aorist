@@ -6,7 +6,7 @@ use crate::storage_setup::computed_from_local_data::*;
 use crate::storage_setup::local_storage_setup::*;
 use crate::storage_setup::remote_storage_setup::*;
 use crate::storage_setup::replication_storage_setup::*;
-use aorist_concept::{aorist_concept, Constrainable, InnerObject};
+use aorist_concept::{aorist_concept, Constrainable, ConstrainableWithChildren,  InnerObject};
 use paste::paste;
 use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};

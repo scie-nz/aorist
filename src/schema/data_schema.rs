@@ -3,7 +3,7 @@ use crate::concept::{AoristConcept, AoristConceptChildren, Concept};
 use crate::schema::tabular_schema::*;
 use crate::schema::time_ordered_tabular_schema::*;
 use crate::schema::undefined_tabular_schema::*;
-use aorist_concept::{aorist_concept, Constrainable, InnerObject};
+use aorist_concept::{aorist_concept, Constrainable, ConstrainableWithChildren,  InnerObject};
 use paste::paste;
 use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};

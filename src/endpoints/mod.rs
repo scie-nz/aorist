@@ -12,7 +12,7 @@ use crate::constraint::Constraint;
 use crate::{AoristConcept, AoristConceptChildren};
 pub use alluxio::{AlluxioConfig, InnerAlluxioConfig};
 pub use aws::*;
-use aorist_concept::{aorist_concept, Constrainable, InnerObject};
+use aorist_concept::{aorist_concept, Constrainable, ConstrainableWithChildren,  InnerObject};
 use derivative::Derivative;
 pub use gcp::{GCPConfig, InnerGCPConfig};
 pub use gitea::{GiteaConfig, InnerGiteaConfig};

@@ -297,6 +297,7 @@ fn process_attributes(raw_objects: &Vec<HashMap<String, Value>>) {
     scope.import("crate::concept", "Concept");
     scope.import("crate::constraint", "Constraint");
     scope.import("aorist_concept", "Constrainable");
+    scope.import("aorist_concept", "ConstrainableWithChildren");
     scope.import("aorist_concept", "aorist_concept");
     scope.import("aorist_concept", "InnerObject");
     scope.import("uuid", "Uuid");

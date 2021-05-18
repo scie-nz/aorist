@@ -9,7 +9,7 @@ use crate::object::TAoristObject;
 use crate::storage::*;
 use crate::storage_setup::ComputedFromLocalData;
 use crate::template::*;
-use aorist_concept::{aorist_concept, Constrainable, InnerObject};
+use aorist_concept::{aorist_concept, Constrainable, ConstrainableWithChildren,  InnerObject};
 use derivative::Derivative;
 use paste::paste;
 use pyo3::prelude::*;

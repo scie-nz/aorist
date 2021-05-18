@@ -2,7 +2,7 @@ use crate::concept::{AoristConcept, AoristConceptChildren, Concept};
 use crate::location::alluxio_location::*;
 use crate::location::minio_location::*;
 use crate::location::s3_location::*;
-use aorist_concept::{aorist_concept, Constrainable, InnerObject};
+use aorist_concept::{aorist_concept, Constrainable, ConstrainableWithChildren,  InnerObject};
 use paste::paste;
 use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};

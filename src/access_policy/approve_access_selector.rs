@@ -2,7 +2,7 @@
 use crate::concept::{AoristConcept, AoristConceptChildren, Concept};
 use crate::constraint::Constraint;
 use crate::user_group::{TUserGroup, UserGroup};
-use aorist_concept::{aorist_concept, Constrainable, InnerObject};
+use aorist_concept::{aorist_concept, Constrainable, ConstrainableWithChildren,  InnerObject};
 use derivative::Derivative;
 use paste::paste;
 use pyo3::prelude::*;

@@ -1,7 +1,7 @@
 #![allow(non_snake_case)]
 use crate::access_policy::approve_access_selector::*;
 use crate::concept::{AoristConcept, AoristConceptChildren, Concept};
-use aorist_concept::{aorist_concept, Constrainable, InnerObject};
+use aorist_concept::{aorist_concept, Constrainable, ConstrainableWithChildren,  InnerObject};
 use paste::paste;
 use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};

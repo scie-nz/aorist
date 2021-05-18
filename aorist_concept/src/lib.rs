@@ -31,17 +31,35 @@ pub fn constrainable(input: TokenStream) -> TokenStream {
             let struct_name = &input.ident;
             let builder = StructBuilder::new(fields);
             builder.to_file(struct_name, "constrainables.txt");
-            builder.to_concept_token_stream(struct_name).into_iter().chain(
-                builder.to_concept_children_token_stream(struct_name)
-            ).collect()
+            builder.to_concept_token_stream(struct_name)
         }
         Data::Enum(DataEnum { variants, .. }) => {
             let enum_name = &input.ident;
             let builder = EnumBuilder::new(variants);
             builder.to_file(enum_name, "constraints.txt");
-            builder.to_concept_token_stream(enum_name).into_iter().chain(
-                builder.to_concept_children_token_stream(enum_name)
-            ).collect()
+            builder.to_concept_token_stream(enum_name)
+        }
+        _ => panic!("expected a struct with named fields or an enum"),
+    }
+}
+#[proc_macro_derive(ConstrainableWithChildren)]
+pub fn constrainable_with_children(input: TokenStream) -> TokenStream {
+    let input = parse_macro_input!(input as DeriveInput);
+    match &input.data {
+        Data::Struct(DataStruct {
+            fields: Fields::Named(ref fields),
+            ..
+        }) => {
+            let struct_name = &input.ident;
+            let builder = StructBuilder::new(fields);
+            builder.to_file(struct_name, "constrainables.txt");
+            builder.to_concept_children_token_stream(struct_name)
+        }
+        Data::Enum(DataEnum { variants, .. }) => {
+            let enum_name = &input.ident;
+            let builder = EnumBuilder::new(variants);
+            builder.to_file(enum_name, "constraints.txt");
+            builder.to_concept_children_token_stream(enum_name)
         }
         _ => panic!("expected a struct with named fields or an enum"),
     }
@@ -160,7 +178,7 @@ fn aorist_ast(args: TokenStream, input: TokenStream, derives: Vec<NestedMeta>) -
             let quoted = quote! {
                 #[derive(
                     Derivative, Serialize, Deserialize,
-                    Constrainable, Clone,
+                    Constrainable, ConstrainableWithChildren, Clone,
                 )]
                 #[derivative(PartialEq, Debug, Eq)]
                 #ast
@@ -176,7 +194,7 @@ fn aorist_ast(args: TokenStream, input: TokenStream, derives: Vec<NestedMeta>) -
             let enum_name = &ast.ident;
             let variant = variants.iter().map(|x| (&x.ident)).collect::<Vec<_>>();
             let quoted = quote! {
-                #[derive(Debug, PartialEq, Serialize, Deserialize, Clone, Constrainable, )]
+                #[derive(Debug, PartialEq, Serialize, Deserialize, Clone, Constrainable, ConstrainableWithChildren)]
                 #[serde(tag = "type")]
                 pub enum #enum_name {
                     #(#variant(#variant)),*
