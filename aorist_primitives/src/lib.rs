@@ -588,19 +588,19 @@ macro_rules! define_constraint {
 }
 #[macro_export]
 macro_rules! register_constraint {
-    ( $name:ident, $($element: ident),+ ) => { paste::item! {
+    ( $name:ident, $clt: lifetime, $($element: ident),+ ) => { paste::item! {
         pub enum $name {
             $(
                 $element($element),
             )+
         }
-        pub enum [<$name Builder>]<'b> {
+        pub enum [<$name Builder>]<$clt> {
             $(
-                $element(crate::constraint::ConstraintBuilder<'b, $element>),
+                $element(crate::constraint::ConstraintBuilder<$clt, $element>),
             )+
         }
-        impl <'a, 'b> [<$name Builder>]<'b>
-        where 'a : 'b {
+        impl <'a, $clt> [<$name Builder>]<$clt>
+        where 'a : $clt {
             pub fn get_root_type_name(&self) -> Result<String> {
                 match &self {
                     $(
@@ -608,7 +608,7 @@ macro_rules! register_constraint {
                     )+
                 }
             }
-            pub fn get_required(&'b self, root: Concept<'a>, ancestry:&ConceptAncestry<'a>) -> Vec<Uuid> {
+            pub fn get_required(&$clt self, root: Concept<'a>, ancestry:&ConceptAncestry<'a>) -> Vec<Uuid> {
                 match &self {
                     $(
                         [<$name Builder>]::$element(_) =>
@@ -616,7 +616,7 @@ macro_rules! register_constraint {
                     )+
                 }
             }
-            pub fn should_add(&'b self, root: Concept<'a>, ancestry:&ConceptAncestry<'a>) -> bool {
+            pub fn should_add(&$clt self, root: Concept<'a>, ancestry:&ConceptAncestry<'a>) -> bool {
                 match &self {
                     $(
                         [<$name Builder>]::$element(_) =>
