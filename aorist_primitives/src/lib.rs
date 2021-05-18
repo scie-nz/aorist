@@ -299,14 +299,15 @@ macro_rules! define_ast_node {
 #[macro_export]
 macro_rules! define_program {
     ($name:ident, $root:ident, $constraint:ident, $satisfy_type:ident,
+     $lt: lifetime,
      $dialect:ident,
      $preamble:expr, $call:expr, $tuple_call: expr, $dialect_call: expr) => {
         pub struct $name {}
-        impl<'a> ConstraintSatisfactionBase<'a> for $name {
+        impl<$lt> ConstraintSatisfactionBase<$lt> for $name {
             type RootType = $root;
             type ConstraintType = $constraint;
         }
-        impl<'a> $satisfy_type<'a> for $name {
+        impl<$lt> $satisfy_type<$lt> for $name {
             type Dialect = $dialect;
             fn compute_parameter_tuple(
                 uuid: Uuid,
