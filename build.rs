@@ -450,6 +450,7 @@ fn process_concepts() {
         ("crate::location", "WebLocation"),
         ("crate::models", "Model"),
         ("crate::models", "SingleObjectiveRegressor"),
+        ("crate::encoding", "GDBEncoding"),
         ("crate::encoding", "CSVEncoding"),
         ("crate::encoding", "TSVEncoding"),
         ("crate::encoding", "Encoding"),
