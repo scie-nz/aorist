@@ -44,10 +44,11 @@ where
         Self: Sized;
     fn should_add<'a>(root: Concept<'a>, ancestry: &ConceptAncestry<'a>) -> bool;
 }
-pub trait ConstraintSatisfactionBase<'a>
+pub trait ConstraintSatisfactionBase<'a, 'b>
 where
     Self::RootType: AoristConcept,
     Self::ConstraintType: TConstraint<Root = Self::RootType>,
+    'a : 'b,
 {
     type ConstraintType;
     type RootType;

@@ -644,7 +644,7 @@ fn main() {
                     "define_program!(
                         {dialect}{constraint},
                         {root}, {constraint},
-                        Satisfy{constraint}, 'a, {dialect},
+                        Satisfy{constraint}, 'a, 'b, {dialect},
                         \"{preamble}\", \"{call}\",
                         |
                             uuid: Uuid,

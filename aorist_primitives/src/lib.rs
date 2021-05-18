@@ -299,15 +299,16 @@ macro_rules! define_ast_node {
 #[macro_export]
 macro_rules! define_program {
     ($name:ident, $root:ident, $constraint:ident, $satisfy_type:ident,
-     $lt: lifetime,
+     $lt: lifetime, $clt: lifetime,
      $dialect:ident,
      $preamble:expr, $call:expr, $tuple_call: expr, $dialect_call: expr) => {
         pub struct $name {}
-        impl<$lt> ConstraintSatisfactionBase<$lt> for $name {
+        impl<$lt, $clt> ConstraintSatisfactionBase<$lt, $clt> for $name
+        where $lt : $clt {
             type RootType = $root;
             type ConstraintType = $constraint;
         }
-        impl<$lt> $satisfy_type<$lt> for $name {
+        impl<$lt, $clt> $satisfy_type<$lt, $clt> for $name where $lt : $clt {
             type Dialect = $dialect;
             fn compute_parameter_tuple(
                 uuid: Uuid,
@@ -484,7 +485,7 @@ macro_rules! define_constraint {
                 root_uuid: Uuid,
                 $([<$required:snake:lower>] : Vec<Arc<RwLock<Constraint>>>,)*
             }
-            pub trait $satisfy_type<'a> : ConstraintSatisfactionBase<'a, ConstraintType=$element, RootType=$root> {
+            pub trait $satisfy_type<'a, 'b> : ConstraintSatisfactionBase<'a, 'b, ConstraintType=$element, RootType=$root> where 'a : 'b {
                 type Dialect;
 
                 // computes a parameter tuple as a string, e.g. to be called from
