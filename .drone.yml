@@ -5,7 +5,7 @@ name: default
 
 steps:
 - name: compile-release
-  image: docker.io/scienz/aorist-build:20210518b
+  image: docker.io/scienz/aorist-build:20210519
   commands:
   - cargo build --release
   # Tests must be run with extension-module disabled, see Cargo.toml
