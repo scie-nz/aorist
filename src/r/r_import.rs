@@ -5,7 +5,7 @@ use std::hash::Hash;
 
 #[derive(Clone, Hash, PartialEq, Eq, PartialOrd, Ord)]
 pub struct RImport {
-    library: String,
+    pub library: String,
 }
 impl Import for RImport {}
 impl RImport {

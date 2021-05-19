@@ -8,6 +8,8 @@ steps:
   image: docker.io/scienz/aorist-build:20210518b
   commands:
   - cargo build --release
+  # Tests must be run with extension-module disabled, see Cargo.toml
+  - cargo test --release --no-default-features
 
 trigger:
   event:

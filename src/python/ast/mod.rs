@@ -636,6 +636,7 @@ impl AST {
 mod r_ast_tests {
     use crate::python::*;
     use extendr_api::prelude::*;
+
     #[test]
     fn test_string_literal() {
         test! {
@@ -688,7 +689,7 @@ mod r_ast_tests {
     fn test_expression() {
         test! {
             let sym = AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("ggplot".to_string()));
-            let expr = AST::Expression(Expression::new_wrapped(sym));
+            let expr = AST::Expression(crate::python::Expression::new_wrapped(sym));
             assert_eq!(expr.to_r_ast_node(0), sym!(ggplot));
         }
     }

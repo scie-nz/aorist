@@ -16,6 +16,9 @@ map_first_last = []
 rustfmt = []
 cargo-fmt = []
 trace_macros = []
+# Allow disabling the "extension-module" feature for tests.
+# TESTS MUST BE RUN AS: cargo test --no-default-features
+# see also: https://github.com/PyO3/pyo3/issues/341
 extension-module = ["pyo3/extension-module"]
 default = ["extension-module"]
 
