@@ -74,9 +74,12 @@ pub use user_group::*;
 pub use utils::*;
 
 use anyhow::bail;
+use git_testament::{git_testament, render_testament};
 use pyo3::prelude::*;
 use pyo3::wrap_pyfunction;
 use std::collections::HashSet;
+
+git_testament!(TESTAMENT);
 
 #[pyfunction]
 pub fn default_time_ordered_tabular_schema(
@@ -94,6 +97,7 @@ pub fn default_time_ordered_tabular_schema(
         orderingAttributes: ordering_attributes,
     }
 }
+
 #[pyfunction]
 pub fn default_tabular_schema(datum_template: InnerDatumTemplate) -> InnerTabularSchema {
     InnerTabularSchema {
@@ -151,12 +155,14 @@ pub fn derive_integer_measure(
 #[pyfunction]
 pub fn serialize(inner: InnerUniverse) -> PyResult<String> {
     let universe = Universe::from(inner);
-    let s = serde_yaml::to_string(&universe).unwrap();
-    Ok(s)
+    serde_yaml::to_string(&universe)
+        .map_err(|e| pyo3::exceptions::PyException::new_err(e.to_string()))
 }
+
 #[pyfunction]
 pub fn deserialize(input: String) -> PyResult<InnerUniverse> {
-    let universe: Universe = serde_yaml::from_str(&input).unwrap();
+    let universe: Universe = serde_yaml::from_str(&input)
+        .map_err(|e| pyo3::exceptions::PyException::new_err(e.to_string()))?;
     Ok(universe.into())
 }
 
@@ -210,6 +216,12 @@ pub fn attr_list(input: Vec<AttributeEnum>) -> PyResult<Vec<InnerAttribute>> {
             tag: None,
         })
         .collect())
+}
+
+/// Utility method for returning the build of aorist
+#[pyfunction]
+pub fn version() -> PyResult<String> {
+    Ok(format!("aorist {}", render_testament!(TESTAMENT)))
 }
 
 #[pymodule]
@@ -293,6 +305,7 @@ fn aorist(py: Python, m: &PyModule) -> PyResult<()> {
     m.add_wrapped(wrap_pyfunction!(derive_integer_measure))?;
     m.add_wrapped(wrap_pyfunction!(attr_list))?;
     m.add_wrapped(wrap_pyfunction!(default_time_ordered_tabular_schema))?;
+    m.add_wrapped(wrap_pyfunction!(version))?;
     m.add("SQLParseError", py.get_type::<SQLParseError>())?;
     Ok(())
 }
