@@ -3823,7 +3823,7 @@ spec:
                 table_name=static_data_table.name,
             );
             format!(
-                "ogr2ogr -f 'CSV' -lco GEOMETRY=AS_WKT {dir}/data.csv {dir}/*.gdb && sed -i '1d' {dir}/data.csv",
+                "ogr2ogr -f 'CSV' -t_srs WGS84 -lco GEOMETRY=AS_WKT {dir}/data.csv {dir}/*.gdb && sed -i '1d' {dir}/data.csv",
                 dir=dir,
             ).to_string()
           }
