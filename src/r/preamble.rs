@@ -84,8 +84,8 @@ mod r_test_preamble {
             }
             "#;
             let preamble = RPreamble::new(body.to_string());
-            assert_eq!(preamble.libraries.get(0).unwrap(), "ggplot2");
-            assert_eq!(preamble.libraries.get(1).unwrap(), "igraph");
+            assert_eq!(preamble.libraries.get(0).unwrap().library, "ggplot2");
+            assert_eq!(preamble.libraries.get(1).unwrap().library, "igraph");
             assert_eq!(preamble.body, r#"c(1)
 
 f <- function(a, b) {
