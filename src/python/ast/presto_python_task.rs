@@ -2,7 +2,7 @@
 use crate::endpoints::PrestoConfig;
 use crate::python::ast::{
     Assignment, Attribute, BigIntLiteral, Call, Expression, Formatted, SimpleIdentifier,
-    StringLiteral, AST,
+    StringLiteral, AST, Dict, BooleanLiteral,
 };
 use crate::python::PythonImport;
 use aorist_primitives::define_task_node;
@@ -122,6 +122,15 @@ impl PrestoPythonTask {
         kwargs.insert(
             "catalog".to_string(),
             AST::StringLiteral(StringLiteral::new_wrapped("hive".to_string(), false)),
+        );
+        let mut session_properties = LinkedHashMap::new();
+        session_properties.insert(
+            "redistribute_writes".to_string(),
+            AST::BooleanLiteral(BooleanLiteral::new_wrapped(false)),
+        );
+        kwargs.insert(
+            "session_properties".to_string(),
+            AST::Dict(Dict::new_wrapped(session_properties)),
         );
 
         AST::Assignment(Assignment::new_wrapped(
