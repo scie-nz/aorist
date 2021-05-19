@@ -3796,10 +3796,12 @@ spec:
         call: replication_storage_setup.tmp_dir
         attaches: ReplicationStorageSetup
     source_file:
-      type: AncestorArgument
+      type: MultipleAncestorsArgument
       spec:
-        call: format!("{}.csv", static_data_table.name).to_string()
-        attaches: StaticDataTable
+        call: format!("{}/{}/data.csv", data_set.name, static_data_table.name).to_string()
+        attaches:
+          - StaticDataTable
+          - DataSet
 ---
 type: Program
 spec:
