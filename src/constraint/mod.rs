@@ -3,7 +3,7 @@ use crate::dialect::Dialect;
 use crate::object::TAoristObject;
 use crate::parameter_tuple::ParameterTuple;
 use anyhow::{Context, Result};
-pub use aorist_core::{ConstraintEnum, OuterConstraint};
+pub use aorist_core::{ConstraintEnum, OuterConstraint, TConstraint};
 use aorist_primitives::{define_constraint, register_constraint};
 use maplit::hashmap;
 use serde::{Deserialize, Serialize};
@@ -11,31 +11,6 @@ use std::collections::HashMap;
 use std::fmt;
 use std::marker::PhantomData;
 use std::sync::{Arc, RwLock};
-
-pub trait TConstraint<'a, 'b>
-where
-    Self::Root: AoristConcept,
-    Self::Outer: OuterConstraint,
-    Self::Ancestry: Ancestry<'a>,
-    'a: 'b,
-{
-    type Root;
-    type Outer;
-    type Ancestry;
-
-    fn get_root_type_name() -> Result<String>;
-    fn get_required_constraint_names() -> Vec<String>;
-    fn new(
-        root_uuid: Uuid,
-        potential_child_constraints: Vec<Arc<RwLock<Self::Outer>>>,
-    ) -> Result<Self>
-    where
-        Self: Sized;
-    fn should_add(
-        root: <<Self as TConstraint<'a, 'b>>::Ancestry as Ancestry<'a>>::TConcept,
-        ancestry: &<Self as TConstraint<'a, 'b>>::Ancestry,
-    ) -> bool;
-}
 
 pub struct ConstraintBuilder<'a, 'b, T: TConstraint<'a, 'b>>
 where
