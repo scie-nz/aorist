@@ -12,27 +12,28 @@ use std::marker::PhantomData;
 use std::sync::{Arc, RwLock};
 use tracing::info;
 
-pub struct ConstraintBuilder<'a, 'b, T: TConstraint> where 'a : 'b {
+pub struct ConstraintBuilder<'a, 'b, T: TConstraint<'a, 'b>> where 'a : 'b {
     _phantom: PhantomData<T>,
     _phantom_lt: PhantomData<&'a ()>,
     _phantom_clt: PhantomData<&'b ()>,
 }
-impl<'a, 'b, T: TConstraint> ConstraintBuilder<'a, 'b, T> where 'a : 'b {
+impl<'a, 'b, T: TConstraint<'a, 'b>> ConstraintBuilder<'a, 'b, T> where 'a : 'b {
     fn build_constraint(
         &self,
         root_uuid: Uuid,
         potential_child_constraints: Vec<Arc<RwLock<Constraint>>>,
     ) -> Result<T> {
-        <T as crate::constraint::TConstraint>::new(root_uuid, potential_child_constraints)
+        <T as crate::constraint::TConstraint<'a, 'b>>::new(root_uuid, potential_child_constraints)
     }
     pub fn get_root_type_name(&self) -> Result<String> {
-        <T as crate::constraint::TConstraint>::get_root_type_name()
+        <T as crate::constraint::TConstraint<'a, 'b>>::get_root_type_name()
     }
 }
 
-pub trait TConstraint
+pub trait TConstraint<'a, 'b>
 where
     Self::Root: AoristConcept,
+    'a : 'b
 {
     type Root;
     fn get_root_type_name() -> Result<String>;
@@ -43,19 +44,19 @@ where
     ) -> Result<Self>
     where
         Self: Sized;
-    fn should_add<'a>(root: Concept<'a>, ancestry: &ConceptAncestry<'a>) -> bool;
+    fn should_add(root: Concept<'a>, ancestry: &ConceptAncestry<'a>) -> bool;
 }
 pub trait ConstraintSatisfactionBase<'a, 'b>
 where
     Self::RootType: AoristConcept,
-    Self::ConstraintType: TConstraint<Root = Self::RootType>,
+    Self::ConstraintType: TConstraint<'a, 'b, Root = Self::RootType>,
     'a : 'b,
 {
     type ConstraintType;
     type RootType;
 }
 
-pub trait SatisfiableConstraint<'a, 'b>: TConstraint where 'a : 'b {
+pub trait SatisfiableConstraint<'a, 'b>: TConstraint<'a, 'b> where 'a : 'b {
     type TAncestry: Ancestry<'a>;
     fn satisfy(
         &mut self,

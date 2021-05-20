@@ -532,7 +532,7 @@ macro_rules! define_constraint {
                     $body
                 }
             }
-            impl TConstraint for $element {
+            impl <'a, 'b> TConstraint<'a, 'b> for $element where 'a : 'b {
                 type Root = $root;
                 fn get_root_type_name() -> Result<String> {
                     Ok(stringify!($root).into())
@@ -542,7 +542,7 @@ macro_rules! define_constraint {
                         stringify!($required).into()
                     ),*]
                 }
-                fn should_add<'a>(root: Concept<'a>, ancestry: &ConceptAncestry<'a>) -> bool {
+                fn should_add(root: Concept<'a>, ancestry: &ConceptAncestry<'a>) -> bool {
                     match &root {
                         Concept::$root(x) => Self::_should_add(root, ancestry),
                         _ => panic!("should_add called with unexpected concept."),
