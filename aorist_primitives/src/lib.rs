@@ -594,12 +594,12 @@ macro_rules! register_constraint {
                 $element($element),
             )+
         }
-        pub enum [<$name Builder>]<$clt> {
+        pub enum [<$name Builder>]<$lt, $clt> where $lt: $clt {
             $(
-                $element(crate::constraint::ConstraintBuilder<$clt, $element>),
+                $element(crate::constraint::ConstraintBuilder<$lt, $clt, $element>),
             )+
         }
-        impl <$lt, $clt> [<$name Builder>]<$clt>
+        impl <$lt, $clt> [<$name Builder>]<$lt, $clt>
         where $lt : $clt {
             pub fn get_root_type_name(&self) -> Result<String> {
                 match &self {
@@ -660,14 +660,15 @@ macro_rules! register_constraint {
                 }
             }
         }
-        impl <$lt> $name {
-            pub fn builders() -> Vec<[<$name Builder>]<$lt>> {
+        impl <$lt, $clt> $name where $lt : $clt {
+            pub fn builders() -> Vec<[<$name Builder>]<$lt, $clt>> {
                 vec![
                     $(
                         [<$name Builder>]::$element(
-                            crate::constraint::ConstraintBuilder::<$lt, $element>{
+                            crate::constraint::ConstraintBuilder::<$lt, $clt, $element>{
                                 _phantom: std::marker::PhantomData,
-                                _phantom_lt: std::marker::PhantomData
+                                _phantom_lt: std::marker::PhantomData,
+                                _phantom_clt: std::marker::PhantomData
                             }
                         ),
                     )+

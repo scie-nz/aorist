@@ -12,11 +12,12 @@ use std::marker::PhantomData;
 use std::sync::{Arc, RwLock};
 use tracing::info;
 
-pub struct ConstraintBuilder<'a, T: TConstraint> {
+pub struct ConstraintBuilder<'a, 'b, T: TConstraint> where 'a : 'b {
     _phantom: PhantomData<T>,
     _phantom_lt: PhantomData<&'a ()>,
+    _phantom_clt: PhantomData<&'b ()>,
 }
-impl<'a, T: TConstraint> ConstraintBuilder<'a, T> {
+impl<'a, 'b, T: TConstraint> ConstraintBuilder<'a, 'b, T> where 'a : 'b {
     fn build_constraint(
         &self,
         root_uuid: Uuid,
