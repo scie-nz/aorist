@@ -3,6 +3,11 @@ use std::collections::BTreeSet;
 use std::hash::Hasher;
 use uuid::Uuid;
 
+pub trait ConceptEnum<'a> {}
+pub trait Ancestry<'a> {
+    type TConcept: ConceptEnum<'a>;
+}
+
 pub trait AoristConcept {
     fn get_uuid(&self) -> Uuid;
     fn get_children_uuid(&self) -> Vec<Uuid>;
