@@ -4,6 +4,7 @@ use anyhow::Result;
 use std::sync::{Arc, RwLock};
 use tracing::info;
 use uuid::Uuid;
+use std::marker::PhantomData;
 
 pub trait ConstraintEnum {}
 pub trait OuterConstraint: TAoristObject + std::fmt::Display {
@@ -72,4 +73,27 @@ where
     type ConstraintType;
     type RootType;
     type Outer;
+}
+pub struct ConstraintBuilder<'a, 'b, T: TConstraint<'a, 'b>>
+where
+    'a: 'b,
+{
+    pub _phantom: PhantomData<T>,
+    pub _phantom_lt: PhantomData<&'a ()>,
+    pub _phantom_clt: PhantomData<&'b ()>,
+}
+impl<'a, 'b, T: TConstraint<'a, 'b>> ConstraintBuilder<'a, 'b, T>
+where
+    'a: 'b,
+{
+    pub fn build_constraint(
+        &self,
+        root_uuid: Uuid,
+        potential_child_constraints: Vec<Arc<RwLock<T::Outer>>>,
+    ) -> Result<T> {
+        <T as crate::constraint::TConstraint<'a, 'b>>::new(root_uuid, potential_child_constraints)
+    }
+    pub fn get_root_type_name(&self) -> Result<String> {
+        <T as crate::constraint::TConstraint<'a, 'b>>::get_root_type_name()
+    }
 }

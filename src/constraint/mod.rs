@@ -3,38 +3,14 @@ use crate::dialect::Dialect;
 use crate::object::TAoristObject;
 use crate::parameter_tuple::ParameterTuple;
 use anyhow::{Context, Result};
-pub use aorist_core::{ConstraintEnum, OuterConstraint, TConstraint, ConstraintSatisfactionBase};
+pub use aorist_core::{ConstraintEnum, OuterConstraint, TConstraint, ConstraintSatisfactionBase, ConstraintBuilder};
 use aorist_primitives::{define_constraint, register_constraint};
 use maplit::hashmap;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fmt;
-use std::marker::PhantomData;
 use std::sync::{Arc, RwLock};
 
-pub struct ConstraintBuilder<'a, 'b, T: TConstraint<'a, 'b>>
-where
-    'a: 'b,
-{
-    _phantom: PhantomData<T>,
-    _phantom_lt: PhantomData<&'a ()>,
-    _phantom_clt: PhantomData<&'b ()>,
-}
-impl<'a, 'b, T: TConstraint<'a, 'b>> ConstraintBuilder<'a, 'b, T>
-where
-    'a: 'b,
-{
-    fn build_constraint(
-        &self,
-        root_uuid: Uuid,
-        potential_child_constraints: Vec<Arc<RwLock<T::Outer>>>,
-    ) -> Result<T> {
-        <T as crate::constraint::TConstraint<'a, 'b>>::new(root_uuid, potential_child_constraints)
-    }
-    pub fn get_root_type_name(&self) -> Result<String> {
-        <T as crate::constraint::TConstraint<'a, 'b>>::get_root_type_name()
-    }
-}
 
 pub trait SatisfiableConstraint<'a, 'b>: TConstraint<'a, 'b>
 where
