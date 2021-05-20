@@ -1,5 +1,5 @@
 use crate::concept::{Concept, ConceptAncestry};
-use crate::constraint::{AllConstraintsSatisfiability, Constraint};
+use crate::constraint::{AllConstraintsSatisfiability, Constraint, OuterConstraint};
 use crate::dialect::Dialect;
 use crate::object::TAoristObject;
 use crate::parameter_tuple::ParameterTuple;

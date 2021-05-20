@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 use crate::code::CodeBlockWithDefaultConstructor;
 use crate::concept::{Concept, ConceptAncestry};
-use crate::constraint::{AoristConstraint, AoristConstraintBuilder, Constraint};
+use crate::constraint::{AoristConstraint, AoristConstraintBuilder, Constraint, OuterConstraint};
 use crate::constraint_block::ConstraintBlock;
 use crate::constraint_state::{AncestorRecord, ConstraintState};
 use crate::data_setup::Universe;

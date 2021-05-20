@@ -82,37 +82,19 @@ pub trait AllConstraintsSatisfiability {
     ) -> Result<(String, String, ParameterTuple, Dialect)>;
 }
 
+pub trait ConstraintEnum {}
 include!(concat!(env!("OUT_DIR"), "/constraints.rs"));
+impl ConstraintEnum for AoristConstraint {}
 
-#[derive(Serialize, Deserialize)]
-pub struct Constraint {
-    #[serde(skip)]
-    pub inner: Option<AoristConstraint>,
-    pub name: String,
-    pub root: String,
-    pub requires: Option<Vec<String>>,
-}
-impl Constraint {
-    pub fn get_uuid(&self) -> Result<Uuid> {
-        self.inner("get_uuid()")?.get_uuid()
-    }
-    pub fn get_root(&self) -> String {
-        self.root.clone()
-    }
-    pub fn get_root_uuid(&self) -> Result<Uuid> {
-        self.inner("get_root_uuid()")?.get_root_uuid()
-    }
-    pub fn get_downstream_constraints(&self) -> Result<Vec<Arc<RwLock<Constraint>>>> {
-        self.inner("get_downstream_constraints()")?
-            .get_downstream_constraints()
-    }
-    pub fn requires_program(&self) -> Result<bool> {
-        self.inner("requires_program()")?.requires_program()
-    }
-    pub fn get_root_type_name(&self) -> Result<String> {
-        self.inner("get_root_type_name()")?.get_root_type_name()
-    }
-    pub fn print_dag(&self) -> Result<()> {
+pub trait OuterConstraint: TAoristObject + std::fmt::Display {
+    type TEnum: ConstraintEnum;
+    fn get_uuid(&self) -> Result<Uuid>;
+    fn get_root(&self) -> String;
+    fn get_root_uuid(&self) -> Result<Uuid>;
+    fn get_downstream_constraints(&self) -> Result<Vec<Arc<RwLock<Self>>>>;
+    fn requires_program(&self) -> Result<bool>;
+    fn get_root_type_name(&self) -> Result<String>;
+    fn print_dag(&self) -> Result<()> {
         for downstream_rw in self.get_downstream_constraints()? {
             let downstream = downstream_rw.read().unwrap();
             info!(
@@ -133,8 +115,39 @@ impl Constraint {
         }
         Ok(())
     }
+    fn inner(&self, caller: &str) -> Result<&Self::TEnum>;
+}
 
-    fn inner(&self, caller: &str) -> Result<&AoristConstraint> {
+#[derive(Serialize, Deserialize)]
+pub struct Constraint {
+    #[serde(skip)]
+    pub inner: Option<AoristConstraint>,
+    pub name: String,
+    pub root: String,
+    pub requires: Option<Vec<String>>,
+}
+impl OuterConstraint for Constraint {
+    type TEnum = AoristConstraint;
+    fn get_uuid(&self) -> Result<Uuid> {
+        self.inner("get_uuid()")?.get_uuid()
+    }
+    fn get_root(&self) -> String {
+        self.root.clone()
+    }
+    fn get_root_uuid(&self) -> Result<Uuid> {
+        self.inner("get_root_uuid()")?.get_root_uuid()
+    }
+    fn get_downstream_constraints(&self) -> Result<Vec<Arc<RwLock<Self>>>> {
+        self.inner("get_downstream_constraints()")?
+            .get_downstream_constraints()
+    }
+    fn requires_program(&self) -> Result<bool> {
+        self.inner("requires_program()")?.requires_program()
+    }
+    fn get_root_type_name(&self) -> Result<String> {
+        self.inner("get_root_type_name()")?.get_root_type_name()
+    }
+    fn inner(&self, caller: &str) -> Result<&Self::TEnum> {
         self.inner.as_ref().with_context(|| {
             format!(
                 "Called {} on Constraint struct with no inner: name={}, root={}",
