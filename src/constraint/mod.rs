@@ -31,7 +31,10 @@ where
     ) -> Result<Self>
     where
         Self: Sized;
-    fn should_add(root: Concept<'a>, ancestry: &ConceptAncestry<'a>) -> bool;
+    fn should_add(
+        root: <<Self as TConstraint<'a, 'b>>::Ancestry as Ancestry<'a>>::TConcept,
+        ancestry: &<Self as TConstraint<'a, 'b>>::Ancestry,
+    ) -> bool;
 }
 
 pub struct ConstraintBuilder<'a, 'b, T: TConstraint<'a, 'b>>

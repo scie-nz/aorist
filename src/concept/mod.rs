@@ -1,4 +1,4 @@
-pub use aorist_core::{AoristConcept, ConceptEnum, Ancestry};
+pub use aorist_core::{Ancestry, AoristConcept, ConceptEnum};
 use std::sync::{Arc, RwLock};
 use uuid::Uuid;
 
