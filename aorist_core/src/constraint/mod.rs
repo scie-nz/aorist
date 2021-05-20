@@ -62,3 +62,14 @@ where
     ) -> bool;
 }
 
+pub trait ConstraintSatisfactionBase<'a, 'b>
+where
+    Self::RootType: AoristConcept,
+    Self::Outer: OuterConstraint,
+    Self::ConstraintType: TConstraint<'a, 'b, Root = Self::RootType, Outer = Self::Outer>,
+    'a: 'b,
+{
+    type ConstraintType;
+    type RootType;
+    type Outer;
+}

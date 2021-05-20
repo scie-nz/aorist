@@ -3,7 +3,7 @@ use crate::dialect::Dialect;
 use crate::object::TAoristObject;
 use crate::parameter_tuple::ParameterTuple;
 use anyhow::{Context, Result};
-pub use aorist_core::{ConstraintEnum, OuterConstraint, TConstraint};
+pub use aorist_core::{ConstraintEnum, OuterConstraint, TConstraint, ConstraintSatisfactionBase};
 use aorist_primitives::{define_constraint, register_constraint};
 use maplit::hashmap;
 use serde::{Deserialize, Serialize};
@@ -34,16 +34,6 @@ where
     pub fn get_root_type_name(&self) -> Result<String> {
         <T as crate::constraint::TConstraint<'a, 'b>>::get_root_type_name()
     }
-}
-
-pub trait ConstraintSatisfactionBase<'a, 'b>
-where
-    Self::RootType: AoristConcept,
-    Self::ConstraintType: TConstraint<'a, 'b, Root = Self::RootType, Outer = Constraint>,
-    'a: 'b,
-{
-    type ConstraintType;
-    type RootType;
 }
 
 pub trait SatisfiableConstraint<'a, 'b>: TConstraint<'a, 'b>

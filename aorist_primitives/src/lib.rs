@@ -307,6 +307,7 @@ macro_rules! define_program {
         where $lt : $clt {
             type RootType = $root;
             type ConstraintType = $constraint;
+            type Outer = Constraint;
         }
         impl<$lt, $clt> $satisfy_type<$lt, $clt> for $name where $lt : $clt {
             type Dialect = $dialect;
