@@ -1,5 +1,7 @@
 mod concept;
+mod object;
 pub use concept::*;
+pub use object::*;
 
 //mod constraint;
 //mod dialect;

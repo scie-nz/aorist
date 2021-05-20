@@ -4,13 +4,10 @@ use crate::dataset::DataSet;
 use crate::role_binding::RoleBinding;
 use crate::user::User;
 use crate::user_group::UserGroup;
-use enum_dispatch::enum_dispatch;
 use serde::{Deserialize, Serialize};
 
-#[enum_dispatch(AoristObject)]
-pub trait TAoristObject {
-    fn get_name(&self) -> &String;
-}
+pub use aorist_core::TAoristObject;
+
 #[derive(Serialize, Deserialize)]
 pub struct Attribute {}
 

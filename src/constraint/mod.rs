@@ -12,24 +12,6 @@ use std::marker::PhantomData;
 use std::sync::{Arc, RwLock};
 use tracing::info;
 
-pub struct ConstraintBuilder<'a, 'b, T: TConstraint<'a, 'b>> where 'a : 'b {
-    _phantom: PhantomData<T>,
-    _phantom_lt: PhantomData<&'a ()>,
-    _phantom_clt: PhantomData<&'b ()>,
-}
-impl<'a, 'b, T: TConstraint<'a, 'b>> ConstraintBuilder<'a, 'b, T> where 'a : 'b {
-    fn build_constraint(
-        &self,
-        root_uuid: Uuid,
-        potential_child_constraints: Vec<Arc<RwLock<T::Outer>>>,
-    ) -> Result<T> {
-        <T as crate::constraint::TConstraint<'a, 'b>>::new(root_uuid, potential_child_constraints)
-    }
-    pub fn get_root_type_name(&self) -> Result<String> {
-        <T as crate::constraint::TConstraint<'a, 'b>>::get_root_type_name()
-    }
-}
-
 pub trait TConstraint<'a, 'b>
 where
     Self::Root: AoristConcept,
@@ -49,6 +31,25 @@ where
         Self: Sized;
     fn should_add(root: Concept<'a>, ancestry: &ConceptAncestry<'a>) -> bool;
 }
+
+pub struct ConstraintBuilder<'a, 'b, T: TConstraint<'a, 'b>> where 'a : 'b {
+    _phantom: PhantomData<T>,
+    _phantom_lt: PhantomData<&'a ()>,
+    _phantom_clt: PhantomData<&'b ()>,
+}
+impl<'a, 'b, T: TConstraint<'a, 'b>> ConstraintBuilder<'a, 'b, T> where 'a : 'b {
+    fn build_constraint(
+        &self,
+        root_uuid: Uuid,
+        potential_child_constraints: Vec<Arc<RwLock<T::Outer>>>,
+    ) -> Result<T> {
+        <T as crate::constraint::TConstraint<'a, 'b>>::new(root_uuid, potential_child_constraints)
+    }
+    pub fn get_root_type_name(&self) -> Result<String> {
+        <T as crate::constraint::TConstraint<'a, 'b>>::get_root_type_name()
+    }
+}
+
 pub trait ConstraintSatisfactionBase<'a, 'b>
 where
     Self::RootType: AoristConcept,
