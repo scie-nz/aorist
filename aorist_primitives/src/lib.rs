@@ -535,6 +535,7 @@ macro_rules! define_constraint {
             impl <'a, 'b> TConstraint<'a, 'b> for $element where 'a : 'b {
                 type Root = $root;
                 type Outer = $outer;
+                type Ancestry = ConceptAncestry<'a>;
 
                 fn get_root_type_name() -> Result<String> {
                     Ok(stringify!($root).into())

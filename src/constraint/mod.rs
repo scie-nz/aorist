@@ -16,10 +16,12 @@ pub trait TConstraint<'a, 'b>
 where
     Self::Root: AoristConcept,
     Self::Outer: OuterConstraint,
+    Self::Ancestry: Ancestry<'a>,
     'a: 'b,
 {
     type Root;
     type Outer;
+    type Ancestry;
 
     fn get_root_type_name() -> Result<String>;
     fn get_required_constraint_names() -> Vec<String>;
