@@ -21,7 +21,7 @@ impl<'a, 'b, T: TConstraint<'a, 'b>> ConstraintBuilder<'a, 'b, T> where 'a : 'b 
     fn build_constraint(
         &self,
         root_uuid: Uuid,
-        potential_child_constraints: Vec<Arc<RwLock<Constraint>>>,
+        potential_child_constraints: Vec<Arc<RwLock<T::Outer>>>,
     ) -> Result<T> {
         <T as crate::constraint::TConstraint<'a, 'b>>::new(root_uuid, potential_child_constraints)
     }
@@ -33,14 +33,17 @@ impl<'a, 'b, T: TConstraint<'a, 'b>> ConstraintBuilder<'a, 'b, T> where 'a : 'b 
 pub trait TConstraint<'a, 'b>
 where
     Self::Root: AoristConcept,
+    Self::Outer: OuterConstraint,
     'a : 'b
 {
     type Root;
+    type Outer;
+
     fn get_root_type_name() -> Result<String>;
     fn get_required_constraint_names() -> Vec<String>;
     fn new(
         root_uuid: Uuid,
-        potential_child_constraints: Vec<Arc<RwLock<Constraint>>>,
+        potential_child_constraints: Vec<Arc<RwLock<Self::Outer>>>,
     ) -> Result<Self>
     where
         Self: Sized;
@@ -49,7 +52,7 @@ where
 pub trait ConstraintSatisfactionBase<'a, 'b>
 where
     Self::RootType: AoristConcept,
-    Self::ConstraintType: TConstraint<'a, 'b, Root = Self::RootType>,
+    Self::ConstraintType: TConstraint<'a, 'b, Root = Self::RootType, Outer=Constraint>,
     'a : 'b,
 {
     type ConstraintType;

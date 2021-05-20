@@ -229,7 +229,7 @@ fn process_constraints(raw_objects: &Vec<HashMap<String, Value>>) {
 
         let define = match required.len() {
             0 => format!(
-                "define_constraint!({}, {}, Satisfy{}, {}, {}, {}, {}, {});",
+                "define_constraint!({}, {}, Satisfy{}, {}, Constraint, {}, {}, {}, {});",
                 name,
                 requires_program,
                 name,
@@ -240,7 +240,7 @@ fn process_constraints(raw_objects: &Vec<HashMap<String, Value>>) {
                 get_required
             ),
             _ => format!(
-                "define_constraint!({}, {}, Satisfy{}, {}, {}, {}, {}, {}, {});",
+                "define_constraint!({}, {}, Satisfy{}, {}, Constraint, {}, {}, {}, {}, {});",
                 name,
                 requires_program,
                 name,

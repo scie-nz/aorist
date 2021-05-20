@@ -477,13 +477,13 @@ macro_rules! define_attribute {
 
 #[macro_export]
 macro_rules! define_constraint {
-    ($element:ident, $requires_program:expr, $satisfy_type:ident, $root:ident,
+    ($element:ident, $requires_program:expr, $satisfy_type:ident, $root:ident, $outer:ident,
     $title:expr, $body:expr, $should_add:expr, $get_required:expr $(, $required:ident)*) => {
         paste::item! {
             pub struct $element {
                 id: Uuid,
                 root_uuid: Uuid,
-                $([<$required:snake:lower>] : Vec<Arc<RwLock<Constraint>>>,)*
+                $([<$required:snake:lower>] : Vec<Arc<RwLock<$outer>>>,)*
             }
             pub trait $satisfy_type<'a, 'b> : ConstraintSatisfactionBase<'a, 'b, ConstraintType=$element, RootType=$root> where 'a : 'b {
                 type Dialect;
@@ -534,6 +534,8 @@ macro_rules! define_constraint {
             }
             impl <'a, 'b> TConstraint<'a, 'b> for $element where 'a : 'b {
                 type Root = $root;
+                type Outer = $outer;
+
                 fn get_root_type_name() -> Result<String> {
                     Ok(stringify!($root).into())
                 }
