@@ -1,6 +1,6 @@
+pub use aorist_core::AoristConcept;
 use std::sync::{Arc, RwLock};
 use uuid::Uuid;
-pub use aorist_core::AoristConcept;
 
 pub trait ConceptEnum<'a> {}
 pub trait Ancestry<'a> {

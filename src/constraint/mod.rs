@@ -1,8 +1,9 @@
-use crate::concept::{AoristConcept, Concept, ConceptAncestry, Ancestry};
+use crate::concept::{Ancestry, AoristConcept, Concept, ConceptAncestry};
 use crate::dialect::Dialect;
 use crate::object::TAoristObject;
 use crate::parameter_tuple::ParameterTuple;
 use anyhow::{Context, Result};
+pub use aorist_core::{ConstraintEnum, OuterConstraint};
 use aorist_primitives::{define_constraint, register_constraint};
 use maplit::hashmap;
 use serde::{Deserialize, Serialize};
@@ -10,13 +11,12 @@ use std::collections::HashMap;
 use std::fmt;
 use std::marker::PhantomData;
 use std::sync::{Arc, RwLock};
-use tracing::info;
 
 pub trait TConstraint<'a, 'b>
 where
     Self::Root: AoristConcept,
     Self::Outer: OuterConstraint,
-    'a : 'b
+    'a: 'b,
 {
     type Root;
     type Outer;
@@ -32,12 +32,18 @@ where
     fn should_add(root: Concept<'a>, ancestry: &ConceptAncestry<'a>) -> bool;
 }
 
-pub struct ConstraintBuilder<'a, 'b, T: TConstraint<'a, 'b>> where 'a : 'b {
+pub struct ConstraintBuilder<'a, 'b, T: TConstraint<'a, 'b>>
+where
+    'a: 'b,
+{
     _phantom: PhantomData<T>,
     _phantom_lt: PhantomData<&'a ()>,
     _phantom_clt: PhantomData<&'b ()>,
 }
-impl<'a, 'b, T: TConstraint<'a, 'b>> ConstraintBuilder<'a, 'b, T> where 'a : 'b {
+impl<'a, 'b, T: TConstraint<'a, 'b>> ConstraintBuilder<'a, 'b, T>
+where
+    'a: 'b,
+{
     fn build_constraint(
         &self,
         root_uuid: Uuid,
@@ -53,14 +59,17 @@ impl<'a, 'b, T: TConstraint<'a, 'b>> ConstraintBuilder<'a, 'b, T> where 'a : 'b 
 pub trait ConstraintSatisfactionBase<'a, 'b>
 where
     Self::RootType: AoristConcept,
-    Self::ConstraintType: TConstraint<'a, 'b, Root = Self::RootType, Outer=Constraint>,
-    'a : 'b,
+    Self::ConstraintType: TConstraint<'a, 'b, Root = Self::RootType, Outer = Constraint>,
+    'a: 'b,
 {
     type ConstraintType;
     type RootType;
 }
 
-pub trait SatisfiableConstraint<'a, 'b>: TConstraint<'a, 'b> where 'a : 'b {
+pub trait SatisfiableConstraint<'a, 'b>: TConstraint<'a, 'b>
+where
+    'a: 'b,
+{
     type TAncestry: Ancestry<'a>;
     fn satisfy(
         &mut self,
@@ -86,41 +95,8 @@ pub trait AllConstraintsSatisfiability {
     ) -> Result<(String, String, ParameterTuple, Dialect)>;
 }
 
-pub trait ConstraintEnum {}
 include!(concat!(env!("OUT_DIR"), "/constraints.rs"));
 impl ConstraintEnum for AoristConstraint {}
-
-pub trait OuterConstraint: TAoristObject + std::fmt::Display {
-    type TEnum: ConstraintEnum;
-    fn get_uuid(&self) -> Result<Uuid>;
-    fn get_root(&self) -> String;
-    fn get_root_uuid(&self) -> Result<Uuid>;
-    fn get_downstream_constraints(&self) -> Result<Vec<Arc<RwLock<Self>>>>;
-    fn requires_program(&self) -> Result<bool>;
-    fn get_root_type_name(&self) -> Result<String>;
-    fn print_dag(&self) -> Result<()> {
-        for downstream_rw in self.get_downstream_constraints()? {
-            let downstream = downstream_rw.read().unwrap();
-            info!(
-                "{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}",
-                self.get_name(),
-                self.get_root(),
-                self.get_root_uuid()?,
-                self.get_uuid()?,
-                downstream,
-                downstream.get_root(),
-                downstream.get_root_uuid()?,
-                downstream.get_uuid()?,
-            );
-        }
-        for downstream_rw in self.get_downstream_constraints()? {
-            let downstream = downstream_rw.read().unwrap();
-            downstream.print_dag()?;
-        }
-        Ok(())
-    }
-    fn inner(&self, caller: &str) -> Result<&Self::TEnum>;
-}
 
 #[derive(Serialize, Deserialize)]
 pub struct Constraint {

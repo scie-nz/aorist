@@ -7,7 +7,7 @@ use crate::encoding::*;
 use crate::schema::*;
 use crate::storage::*;
 use crate::storage_setup::*;
-use aorist_concept::{aorist_concept, Constrainable, ConstrainableWithChildren,  InnerObject};
+use aorist_concept::{aorist_concept, Constrainable, ConstrainableWithChildren, InnerObject};
 use derivative::Derivative;
 use paste::paste;
 use pyo3::prelude::*;

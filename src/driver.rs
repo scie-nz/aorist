@@ -827,7 +827,7 @@ where
     D: FlowBuilderBase,
     <D as FlowBuilderBase>::T:
         ETLFlow<ImportType = PythonImport, PreambleType = PythonPreamble> + 'a,
-    'a : 'b,
+    'a: 'b,
 {
     pub concepts: Arc<RwLock<HashMap<(Uuid, String), Concept<'a>>>>,
     constraints: LinkedHashMap<(Uuid, String), Arc<RwLock<Constraint>>>,
@@ -962,7 +962,7 @@ where
     D: FlowBuilderBase,
     D: FlowBuilderMaterialize<BuilderInputType = RFlowBuilderInput>,
     <D as FlowBuilderBase>::T: ETLFlow<ImportType = RImport, PreambleType = RPreamble> + 'a,
-    'a : 'b,
+    'a: 'b,
 {
     type CB = RBasedConstraintBlock<D::T>;
 
@@ -970,11 +970,14 @@ where
         self.constraints.get(uuid).unwrap().clone()
     }
     fn get_preferences(&self) -> Vec<Dialect> {
-        vec![Dialect::R(R {}), Dialect::Python(Python::new(vec![])), Dialect::Bash(Bash{})]
+        vec![
+            Dialect::R(R {}),
+            Dialect::Python(Python::new(vec![])),
+            Dialect::Bash(Bash {}),
+        ]
     }
 
-    fn get_endpoints(&'b self) -> &'b EndpointConfig
-    {
+    fn get_endpoints(&'b self) -> &'b EndpointConfig {
         &self.endpoints
     }
 

@@ -1,7 +1,7 @@
 #![allow(non_snake_case)]
 use crate::concept::{AoristConcept, AoristConceptChildren, Concept};
 use crate::constraint::Constraint;
-use aorist_concept::{aorist_concept, Constrainable, ConstrainableWithChildren,  InnerObject};
+use aorist_concept::{aorist_concept, Constrainable, ConstrainableWithChildren, InnerObject};
 use derivative::Derivative;
 use paste::paste;
 use pyo3::prelude::*;

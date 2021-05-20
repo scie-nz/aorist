@@ -1,7 +1,7 @@
 #![allow(non_snake_case)]
 use crate::concept::{AoristConcept, AoristConceptChildren, Concept};
 use crate::role::global_permissions_admin::*;
-use aorist_concept::{aorist_concept, Constrainable, ConstrainableWithChildren,  InnerObject};
+use aorist_concept::{aorist_concept, Constrainable, ConstrainableWithChildren, InnerObject};
 use enum_dispatch::enum_dispatch;
 use paste::paste;
 use pyo3::prelude::*;

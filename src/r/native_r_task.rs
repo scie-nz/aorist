@@ -1,4 +1,4 @@
-use crate::python::{AST, Assignment, StringLiteral};
+use crate::python::{Assignment, StringLiteral, AST};
 use crate::r::r_import::RImport;
 use aorist_primitives::define_task_node;
 use std::hash::Hash;
@@ -8,7 +8,6 @@ define_task_node!(
     NativeRTask,
     |task: &NativeRTask| task.statements.clone(),
     |task: &NativeRTask| {
-
         let mut statements: Vec<AST> = Vec::new();
 
         let mut it = task.statements.iter();
@@ -42,7 +41,6 @@ define_task_node!(
             )));
         }
         statements
-
     },
     |task: &NativeRTask| task.imports.clone(),
     RImport,

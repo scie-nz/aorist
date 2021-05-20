@@ -4,7 +4,7 @@ use crate::location::gcs_location::*;
 use crate::location::github_location::*;
 use crate::location::pushshift_api_location::*;
 use crate::location::web_location::*;
-use aorist_concept::{aorist_concept, Constrainable, ConstrainableWithChildren,  InnerObject};
+use aorist_concept::{aorist_concept, Constrainable, ConstrainableWithChildren, InnerObject};
 use paste::paste;
 use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};

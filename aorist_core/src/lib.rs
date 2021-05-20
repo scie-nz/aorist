@@ -1,9 +1,10 @@
 mod concept;
+mod constraint;
 mod object;
 pub use concept::*;
+pub use constraint::*;
 pub use object::*;
 
-//mod constraint;
 //mod dialect;
 //mod object;
 //mod parameter_tuple;

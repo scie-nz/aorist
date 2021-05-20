@@ -9,7 +9,7 @@ use crate::storage::local_file_storage::*;
 use crate::storage::postgres_storage::*;
 use crate::storage::remote_storage::*;
 use crate::storage::sqlite_storage::*;
-use aorist_concept::{aorist_concept, Constrainable, ConstrainableWithChildren,  InnerObject};
+use aorist_concept::{aorist_concept, Constrainable, ConstrainableWithChildren, InnerObject};
 use paste::paste;
 use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
