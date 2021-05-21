@@ -1,8 +1,10 @@
+mod code;
 mod concept;
 mod constraint;
 pub mod dialect;
 mod object;
 mod ancestor_record;
+pub use code::*;
 pub use concept::*;
 pub use constraint::*;
 pub use dialect::*;
