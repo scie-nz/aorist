@@ -27,12 +27,12 @@ use std::hash::{Hash, Hasher};
 use std::sync::{Arc, RwLock};
 
 define_ast_node!(
-    PythonImportNode,
-    |import: &PythonImportNode| vec![import.inner.clone()],
-    |import: &PythonImportNode, py: Python, ast_module: &'a PyModule, depth: usize| {
+    ImportNode,
+    |import: &ImportNode| vec![import.inner.clone()],
+    |import: &ImportNode, py: Python, ast_module: &'a PyModule, depth: usize| {
         import.to_python_ast_node(py, ast_module, depth)
     },
-    |import: &PythonImportNode, depth: usize| {
+    |import: &ImportNode, depth: usize| {
         r!(Language::from_values(&[
             r!(Symbol::from_string("library")),
             import.inner.to_r_ast_node(depth)
@@ -575,7 +575,7 @@ register_ast_nodes!(
     Expression,
     Assignment,
     ForLoop,
-    PythonImportNode,
+    ImportNode,
     Add,
     BinOp,
 );
@@ -665,7 +665,7 @@ mod r_ast_tests {
     fn test_import() {
         test! {
             let sym = AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("ggplot".to_string()));
-            let import = AST::PythonImportNode(PythonImportNode::new_wrapped(sym));
+            let import = AST::ImportNode(ImportNode::new_wrapped(sym));
             let r_node = import.to_r_ast_node(0);
             assert_eq!(r_node, eval_string("call('library', rlang::sym('ggplot'))").unwrap());
         }

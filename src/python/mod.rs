@@ -14,7 +14,7 @@ use std::collections::{BTreeSet, HashMap};
 pub use ast::{
     Add, Assignment, Attribute, BashPythonTask, BigIntLiteral, BinOp, BooleanLiteral, Call,
     ConstantPythonTask, Dict, Expression, ForLoop, Formatted, List, NativePythonTask, None,
-    PrestoPythonTask, PythonImportNode, RPythonTask, SimpleIdentifier, StringLiteral, Subscript,
+    PrestoPythonTask, ImportNode, RPythonTask, SimpleIdentifier, StringLiteral, Subscript,
     Tuple, AST,
 };
 pub use code_block::PythonBasedCodeBlock;
