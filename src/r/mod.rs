@@ -14,7 +14,7 @@ pub use r_import::RImport;
 pub use task::StandaloneRBasedTask;
 
 use crate::flow::FlowBuilderInput;
-use crate::python::AST;
+use aorist_ast::AST;
 use linked_hash_set::LinkedHashSet;
 use std::collections::BTreeSet;
 

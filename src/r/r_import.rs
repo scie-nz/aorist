@@ -1,5 +1,5 @@
 use crate::code::Import;
-use crate::python::{Call, SimpleIdentifier, StringLiteral, AST};
+use aorist_ast::{Call, SimpleIdentifier, StringLiteral, AST};
 use extendr_api::prelude::*;
 use std::hash::Hash;
 

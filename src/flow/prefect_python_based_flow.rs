@@ -3,9 +3,10 @@ use crate::endpoints::EndpointConfig;
 use crate::flow::etl_flow::ETLFlow;
 use crate::flow::flow_builder::FlowBuilderBase;
 use crate::flow::python_based_flow_builder::PythonBasedFlowBuilder;
-use crate::python::{
-    Assignment, Attribute, Call, Expression, ForLoop, Formatted, PythonImport, PythonPreamble,
-    RPythonTask, SimpleIdentifier, StringLiteral, AST,
+use crate::python::{PythonImport, PythonPreamble, RPythonTask};
+use aorist_ast::{
+    Assignment, Attribute, Call, Expression, ForLoop, Formatted, SimpleIdentifier, StringLiteral,
+    AST,
 };
 use aorist_primitives::register_task_nodes;
 use linked_hash_map::LinkedHashMap;

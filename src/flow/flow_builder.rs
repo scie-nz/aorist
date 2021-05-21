@@ -1,7 +1,7 @@
 use crate::code::Preamble;
 use crate::flow::etl_flow::ETLFlow;
 use crate::flow::flow_builder_input::FlowBuilderInput;
-use crate::python::{Assignment, Dict, SimpleIdentifier, AST};
+use aorist_ast::{Assignment, Dict, SimpleIdentifier, AST};
 use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
 use std::collections::BTreeMap;

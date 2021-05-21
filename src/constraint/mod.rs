@@ -3,14 +3,15 @@ use crate::dialect::Dialect;
 use crate::object::TAoristObject;
 use crate::parameter_tuple::ParameterTuple;
 use anyhow::{Context, Result};
-pub use aorist_core::{ConstraintEnum, OuterConstraint, TConstraint, ConstraintSatisfactionBase, ConstraintBuilder};
+pub use aorist_core::{
+    ConstraintBuilder, ConstraintEnum, ConstraintSatisfactionBase, OuterConstraint, TConstraint,
+};
 use aorist_primitives::{define_constraint, register_constraint};
 use maplit::hashmap;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fmt;
 use std::sync::{Arc, RwLock};
-
 
 pub trait SatisfiableConstraint<'a, 'b>: TConstraint<'a, 'b>
 where

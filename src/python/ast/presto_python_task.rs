@@ -1,10 +1,10 @@
 #![allow(dead_code)]
 use crate::endpoints::PrestoConfig;
-use crate::python::ast::{
+use crate::python::PythonImport;
+use aorist_ast::{
     Assignment, Attribute, BigIntLiteral, BooleanLiteral, Call, Dict, Expression, Formatted,
     SimpleIdentifier, StringLiteral, AST,
 };
-use crate::python::PythonImport;
 use aorist_primitives::define_task_node;
 use linked_hash_map::LinkedHashMap;
 use std::hash::Hash;

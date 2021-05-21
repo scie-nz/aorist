@@ -1,5 +1,5 @@
-use crate::python::ast::{Assignment, Call, Expression, SimpleIdentifier, AST};
 use crate::python::PythonImport;
+use aorist_ast::{Assignment, Call, Expression, SimpleIdentifier, AST};
 use aorist_primitives::define_task_node;
 use linked_hash_map::LinkedHashMap;
 use std::hash::Hash;

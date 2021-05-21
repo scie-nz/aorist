@@ -1,5 +1,5 @@
 use crate::code::{Import, Preamble};
-use crate::python::AST;
+use aorist_ast::AST;
 use linked_hash_set::LinkedHashSet;
 use std::collections::BTreeSet;
 

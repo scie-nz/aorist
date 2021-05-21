@@ -1,5 +1,5 @@
-use crate::python::ast::{Assignment, StringLiteral, AST};
 use crate::python::PythonImport;
+use aorist_ast::{Assignment, StringLiteral, AST};
 use aorist_primitives::define_task_node;
 use std::hash::Hash;
 use std::sync::{Arc, RwLock};
@@ -24,7 +24,7 @@ define_task_node!(
                         task_val_assigned = true;
                         AST::Assignment(Assignment::new_wrapped(
                             task.task_val.clone(),
-                            expr.read().unwrap().inner.clone(),
+                            expr.read().unwrap().inner().clone(),
                         ))
                     }
                 },

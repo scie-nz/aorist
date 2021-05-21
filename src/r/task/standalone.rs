@@ -4,9 +4,9 @@ use crate::flow::{
     CompressibleTask, CompressionKey, ETLFlow, StandaloneTask, TaskBase, UncompressiblePart,
 };
 use crate::parameter_tuple::ParameterTuple;
-use crate::python::{List, StringLiteral, AST};
 use crate::r::task::{RBasedTaskCompressionKey, RBasedTaskUncompressiblePart};
 use crate::r::{RImport, RPreamble};
+use aorist_ast::{List, StringLiteral, AST};
 use linked_hash_map::LinkedHashMap;
 use std::hash::Hash;
 use std::marker::PhantomData;

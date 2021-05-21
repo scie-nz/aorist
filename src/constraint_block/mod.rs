@@ -1,7 +1,7 @@
 use crate::code::{CodeBlock, CodeBlockWithDefaultConstructor};
 use crate::endpoints::EndpointConfig;
 use crate::flow::{ETLFlow, FlowBuilderInput};
-use crate::python::AST;
+use aorist_ast::AST;
 use linked_hash_set::LinkedHashSet;
 use std::collections::{BTreeSet, HashMap};
 use uuid::Uuid;

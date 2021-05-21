@@ -1,5 +1,5 @@
 use crate::code::Import;
-use crate::python::ast::{SimpleIdentifier, AST};
+use aorist_ast::{SimpleIdentifier, AST};
 use pyo3::prelude::*;
 use pyo3::types::{PyList, PyModule};
 use std::hash::Hash;

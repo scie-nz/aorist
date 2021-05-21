@@ -1,8 +1,8 @@
 use crate::endpoints::EndpointConfig;
 use crate::flow::{CompressibleETLTask, ETLFlow, ETLTask, TaskBase};
-use crate::python::AST;
 use crate::r::preamble::RPreamble;
 use crate::r::r_import::RImport;
+use aorist_ast::AST;
 
 mod compressed;
 mod key;

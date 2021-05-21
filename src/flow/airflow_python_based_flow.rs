@@ -3,9 +3,10 @@ use crate::endpoints::EndpointConfig;
 use crate::flow::etl_flow::ETLFlow;
 use crate::flow::flow_builder::FlowBuilderBase;
 use crate::flow::python_based_flow_builder::PythonBasedFlowBuilder;
-use crate::python::{
+use crate::python::{PythonImport, PythonPreamble};
+use aorist_ast::{
     Assignment, Attribute, BigIntLiteral, BooleanLiteral, Call, Dict, Expression, Formatted, List,
-    None, PythonImport, PythonPreamble, SimpleIdentifier, StringLiteral, AST,
+    None, SimpleIdentifier, StringLiteral, AST,
 };
 use linked_hash_map::LinkedHashMap;
 use pyo3::prelude::*;

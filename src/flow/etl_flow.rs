@@ -1,7 +1,7 @@
 use crate::code::{Import, Preamble};
 use crate::dialect::Dialect;
 use crate::endpoints::EndpointConfig;
-use crate::python::AST;
+use aorist_ast::AST;
 
 use linked_hash_map::LinkedHashMap;
 

@@ -1,8 +1,8 @@
 use crate::dialect::Dialect;
 use crate::endpoints::EndpointConfig;
 use crate::flow::etl_flow::ETLFlow;
-use crate::python::{Call, Expression, Formatted, SimpleIdentifier, StringLiteral, AST};
 use crate::r::{ConstantRTask, NativeRTask, RImport, RPreamble};
+use aorist_ast::{Call, Expression, Formatted, SimpleIdentifier, StringLiteral, AST};
 use aorist_primitives::register_task_nodes;
 use linked_hash_map::LinkedHashMap;
 use std::hash::{Hash, Hasher};
