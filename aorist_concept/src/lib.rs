@@ -92,12 +92,8 @@ pub fn constrain_object(input: TokenStream) -> TokenStream {
         _ => panic!("expected a struct with named fields or an enum"),
     }
 }
-
-struct ConceptBuilder {}
-impl ConceptBuilder {
-    fn new() -> Self {
-        Self {}
-    }
+trait TConceptBuilder {
+    fn new() -> Self;
     fn get_derives(&self, attrs: Vec<NestedMeta>) -> (Vec<NestedMeta>, Vec<NestedMeta>) {
         let mut derivatives: Vec<NestedMeta> = Vec::new();
         let mut derives: Vec<NestedMeta> = Vec::new();
@@ -225,6 +221,12 @@ impl ConceptBuilder {
             _ => panic!("expected a struct with named fields or an enum"),
         };
         proc_macro::TokenStream::from(quoted2)
+    }
+}
+struct ConceptBuilder {}
+impl TConceptBuilder for ConceptBuilder {
+    fn new() -> Self {
+        Self {}
     }
 }
 
