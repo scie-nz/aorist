@@ -120,3 +120,13 @@ where
         ancestry: Arc<Self::TAncestry>,
     ) -> Result<(String, String, ParameterTuple, Dialect)>;
 }
+// TODO: duplicate function, should be unified in trait
+pub trait SatisfiableOuterConstraint<'a> : OuterConstraint<'a> {
+    fn satisfy_given_preference_ordering(
+        &mut self,
+        c: <<Self as OuterConstraint<'a>>::TAncestry as Ancestry<'a>>::TConcept,
+        preferences: &Vec<Dialect>,
+        ancestry: Arc<<Self as OuterConstraint<'a>>::TAncestry>,
+    ) -> Result<(String, String, ParameterTuple, Dialect)>;
+}
+

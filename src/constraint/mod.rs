@@ -5,7 +5,7 @@ use aorist_core::Dialect;
 use aorist_core::ParameterTuple;
 pub use aorist_core::{
     ConstraintBuilder, ConstraintEnum, ConstraintSatisfactionBase, OuterConstraint, TConstraint,
-    SatisfiableConstraint, Ancestry,
+    SatisfiableConstraint, SatisfiableOuterConstraint,
 };
 use aorist_primitives::{define_constraint, register_constraint};
 use maplit::hashmap;
@@ -13,16 +13,6 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fmt;
 use std::sync::{Arc, RwLock};
-
-// TODO: duplicate function, should be unified in trait
-pub trait SatisfiableOuterConstraint<'a> : OuterConstraint<'a> {
-    fn satisfy_given_preference_ordering(
-        &mut self,
-        c: <<Self as OuterConstraint<'a>>::TAncestry as Ancestry<'a>>::TConcept,
-        preferences: &Vec<Dialect>,
-        ancestry: Arc<<Self as OuterConstraint<'a>>::TAncestry>,
-    ) -> Result<(String, String, ParameterTuple, Dialect)>;
-}
 
 include!(concat!(env!("OUT_DIR"), "/constraints.rs"));
 impl ConstraintEnum for AoristConstraint {}
