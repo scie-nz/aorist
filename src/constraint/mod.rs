@@ -1,10 +1,11 @@
-use crate::concept::{Ancestry, AoristConcept, Concept, ConceptAncestry};
+use crate::concept::{AoristConcept, Concept, ConceptAncestry};
 use crate::object::TAoristObject;
 use anyhow::{Context, Result};
 use aorist_core::Dialect;
 use aorist_core::ParameterTuple;
 pub use aorist_core::{
     ConstraintBuilder, ConstraintEnum, ConstraintSatisfactionBase, OuterConstraint, TConstraint,
+    SatisfiableConstraint,
 };
 use aorist_primitives::{define_constraint, register_constraint};
 use maplit::hashmap;
@@ -13,25 +14,6 @@ use std::collections::HashMap;
 use std::fmt;
 use std::sync::{Arc, RwLock};
 
-pub trait SatisfiableConstraint<'a, 'b>: TConstraint<'a, 'b>
-where
-    'a: 'b,
-{
-    type TAncestry: Ancestry<'a>;
-    fn satisfy(
-        &mut self,
-        c: <Self::TAncestry as Ancestry<'a>>::TConcept, 
-        d: &Dialect,
-        ancestry: Arc<Self::TAncestry>,
-    ) -> Result<Option<(String, String, ParameterTuple, Dialect)>>;
-
-    fn satisfy_given_preference_ordering(
-        &mut self,
-        r: <Self::TAncestry as Ancestry<'a>>::TConcept, 
-        preferences: &Vec<Dialect>,
-        ancestry: Arc<Self::TAncestry>,
-    ) -> Result<(String, String, ParameterTuple, Dialect)>;
-}
 // TODO: duplicate function, should be unified in trait
 pub trait AllConstraintsSatisfiability {
     fn satisfy_given_preference_ordering<'a>(
