@@ -1,6 +1,6 @@
-use crate::dialect::Dialect;
 use crate::flow::CompressionKey;
 use crate::python::AST;
+use aorist_core::Dialect;
 use aorist_core::ParameterTupleDedupKey;
 use linked_hash_map::LinkedHashMap;
 use std::hash::Hash;

@@ -1,7 +1,7 @@
-use crate::dialect::Dialect;
 use crate::flow::etl_flow::ETLFlow;
-use aorist_core::{ParameterTuple, ParameterTupleDedupKey};
 use aorist_ast::AST;
+use aorist_core::Dialect;
+use aorist_core::{ParameterTuple, ParameterTupleDedupKey};
 use std::hash::Hash;
 
 pub trait TaskBase<T>

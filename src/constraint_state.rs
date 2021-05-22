@@ -1,10 +1,10 @@
 use crate::concept::{Concept, ConceptAncestry};
 use crate::constraint::{AllConstraintsSatisfiability, Constraint, OuterConstraint};
-use crate::dialect::Dialect;
 use crate::object::TAoristObject;
-use aorist_core::ParameterTuple;
 use anyhow::{bail, Result};
 use aorist_ast::{AncestorRecord, Formatted, SimpleIdentifier, StringLiteral, AST};
+use aorist_core::Dialect;
+use aorist_core::ParameterTuple;
 use inflector::cases::snakecase::to_snake_case;
 use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;

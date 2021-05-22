@@ -1,12 +1,12 @@
-use crate::dialect::Dialect;
 use crate::endpoints::EndpointConfig;
 use crate::flow::{
     CompressibleTask, CompressionKey, ETLFlow, StandaloneTask, TaskBase, UncompressiblePart,
 };
-use aorist_core::ParameterTuple;
 use crate::r::task::{RBasedTaskCompressionKey, RBasedTaskUncompressiblePart};
 use crate::r::{RImport, RPreamble};
 use aorist_ast::{List, StringLiteral, AST};
+use aorist_core::Dialect;
+use aorist_core::ParameterTuple;
 use linked_hash_map::LinkedHashMap;
 use std::hash::Hash;
 use std::marker::PhantomData;

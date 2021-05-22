@@ -17,7 +17,6 @@ pub mod constraint_block;
 pub mod constraint_state;
 pub mod data_setup;
 pub mod dataset;
-pub mod dialect;
 pub mod driver;
 pub mod encoding;
 pub mod endpoints;

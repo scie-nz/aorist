@@ -1,6 +1,6 @@
 use crate::flow::{ETLFlow, UncompressiblePart};
-use aorist_core::ParameterTuple;
 use aorist_ast::{Dict, AST};
+use aorist_core::ParameterTuple;
 use linked_hash_map::LinkedHashMap;
 use std::hash::Hash;
 use std::marker::PhantomData;

@@ -1,8 +1,8 @@
 use crate::concept::{Ancestry, AoristConcept, Concept, ConceptAncestry};
-use crate::dialect::Dialect;
 use crate::object::TAoristObject;
-use aorist_core::ParameterTuple;
 use anyhow::{Context, Result};
+use aorist_core::Dialect;
+use aorist_core::ParameterTuple;
 pub use aorist_core::{
     ConstraintBuilder, ConstraintEnum, ConstraintSatisfactionBase, OuterConstraint, TConstraint,
 };
