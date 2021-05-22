@@ -1,10 +1,11 @@
 mod assignment_target;
 mod string_literal;
+mod ancestor_record;
 
 pub use string_literal::*;
 pub use assignment_target::*;
+pub use ancestor_record::*;
 
-use aorist_core::AncestorRecord;
 use aorist_derive::Optimizable;
 use aorist_primitives::{define_ast_node, register_ast_nodes};
 use extendr_api::prelude::*;

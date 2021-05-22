@@ -1,5 +1,4 @@
-use crate::constraint_state::AncestorRecord;
-use aorist_ast::{List, StringLiteral, AST};
+use aorist_ast::{AncestorRecord, List, StringLiteral, AST};
 use linked_hash_map::LinkedHashMap;
 use std::hash::Hash;
 use uuid::Uuid;
