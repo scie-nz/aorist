@@ -385,8 +385,8 @@ macro_rules! register_programs_for_constraint {
 #[macro_export]
 macro_rules! register_satisfiable_constraints {
 
-    ($($constraint:ident),+)  => {
-        impl <'a> SatisfiableOuterConstraint<'a> for Constraint {
+    ($outer: ident, $($constraint:ident),+)  => {
+        impl <'a> SatisfiableOuterConstraint<'a> for $outer {
             fn satisfy_given_preference_ordering(
                 &mut self,
                 c: Concept<'a>,

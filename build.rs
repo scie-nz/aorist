@@ -731,7 +731,7 @@ fn main() {
         }
     }
     let register = formatdoc! {
-        "register_satisfiable_constraints!({constraints});",
+        "register_satisfiable_constraints!(Constraint, {constraints});",
         constraints=by_uses.values().map(
             |x| x.keys().map(|y| y.to_string())
         ).flatten().collect::<Vec<String>>().join(", "),
