@@ -1,5 +1,5 @@
 use crate::flow::{ETLFlow, UncompressiblePart};
-use crate::parameter_tuple::ParameterTuple;
+use aorist_core::ParameterTuple;
 use aorist_ast::{Dict, AST};
 use linked_hash_map::LinkedHashMap;
 use std::hash::Hash;

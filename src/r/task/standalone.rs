@@ -3,7 +3,7 @@ use crate::endpoints::EndpointConfig;
 use crate::flow::{
     CompressibleTask, CompressionKey, ETLFlow, StandaloneTask, TaskBase, UncompressiblePart,
 };
-use crate::parameter_tuple::ParameterTuple;
+use aorist_core::ParameterTuple;
 use crate::r::task::{RBasedTaskCompressionKey, RBasedTaskUncompressiblePart};
 use crate::r::{RImport, RPreamble};
 use aorist_ast::{List, StringLiteral, AST};

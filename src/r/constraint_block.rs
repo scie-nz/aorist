@@ -1,7 +1,7 @@
 use crate::code::CodeBlock;
 use crate::constraint_block::ConstraintBlock;
 use crate::flow::ETLFlow;
-use crate::parameter_tuple::ParameterTuple;
+use aorist_core::ParameterTuple;
 use crate::r::code_block::RBasedCodeBlock;
 use crate::r::r_import::RImport;
 use crate::r::RFlowBuilderInput;

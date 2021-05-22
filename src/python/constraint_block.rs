@@ -1,7 +1,7 @@
 use crate::code::CodeBlock;
 use crate::constraint_block::ConstraintBlock;
 use crate::flow::ETLFlow;
-use crate::parameter_tuple::ParameterTuple;
+use aorist_core::ParameterTuple;
 use crate::python::PythonBasedCodeBlock;
 use crate::python::{Assignment, Dict, PythonFlowBuilderInput, PythonImport, PythonPreamble, AST};
 use linked_hash_map::LinkedHashMap;

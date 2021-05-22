@@ -9,7 +9,7 @@ use crate::dialect::{Bash, Dialect, Presto, Python, R};
 use crate::endpoints::EndpointConfig;
 use crate::flow::{ETLFlow, FlowBuilderBase, FlowBuilderMaterialize};
 use crate::object::TAoristObject;
-use crate::parameter_tuple::ParameterTuple;
+use aorist_core::ParameterTuple;
 use crate::python::{
     PythonBasedConstraintBlock, PythonFlowBuilderInput, PythonImport, PythonPreamble,
 };

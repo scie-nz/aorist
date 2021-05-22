@@ -1,7 +1,7 @@
 use crate::code::{CodeBlock, CodeBlockWithForLoopCompression};
 use crate::endpoints::EndpointConfig;
 use crate::flow::{CompressibleTask, ETLFlow, ETLTask, ForLoopCompressedTask};
-use crate::parameter_tuple::ParameterTuple;
+use aorist_core::ParameterTuple;
 use crate::python::{
     ForLoopPythonBasedTask, Formatted, PythonBasedTask, PythonImport, PythonPreamble,
     SimpleIdentifier, StringLiteral, Subscript, AST,

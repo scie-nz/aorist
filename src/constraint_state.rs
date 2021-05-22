@@ -2,7 +2,7 @@ use crate::concept::{Concept, ConceptAncestry};
 use crate::constraint::{AllConstraintsSatisfiability, Constraint, OuterConstraint};
 use crate::dialect::Dialect;
 use crate::object::TAoristObject;
-use crate::parameter_tuple::ParameterTuple;
+use aorist_core::ParameterTuple;
 use anyhow::{bail, Result};
 use aorist_ast::{AncestorRecord, Formatted, SimpleIdentifier, StringLiteral, AST};
 use inflector::cases::snakecase::to_snake_case;
