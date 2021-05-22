@@ -20,14 +20,14 @@ where
     type TAncestry: Ancestry<'a>;
     fn satisfy(
         &mut self,
-        c: Concept<'a>,
+        c: <Self::TAncestry as Ancestry<'a>>::TConcept, 
         d: &Dialect,
         ancestry: Arc<Self::TAncestry>,
     ) -> Result<Option<(String, String, ParameterTuple, Dialect)>>;
 
     fn satisfy_given_preference_ordering(
         &mut self,
-        r: Concept<'a>,
+        r: <Self::TAncestry as Ancestry<'a>>::TConcept, 
         preferences: &Vec<Dialect>,
         ancestry: Arc<Self::TAncestry>,
     ) -> Result<(String, String, ParameterTuple, Dialect)>;
