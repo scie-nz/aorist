@@ -585,7 +585,7 @@ fn main() {
     scope.import("crate::constraint", "AoristConstraint");
     scope.import("crate::constraint", "ConstraintSatisfactionBase");
     scope.import("crate::constraint", "SatisfiableConstraint");
-    scope.import("crate::constraint", "AllConstraintsSatisfiability");
+    scope.import("crate::constraint", "SatisfiableOuterConstraint");
     scope.import("aorist_core", "ParameterTuple");
     scope.import("anyhow", "Result");
     scope.import("linked_hash_map", "LinkedHashMap");
