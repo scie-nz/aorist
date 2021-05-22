@@ -5,7 +5,7 @@ use aorist_core::Dialect;
 use aorist_core::ParameterTuple;
 pub use aorist_core::{
     ConstraintBuilder, ConstraintEnum, ConstraintSatisfactionBase, OuterConstraint, TConstraint,
-    SatisfiableConstraint,
+    SatisfiableConstraint, Ancestry,
 };
 use aorist_primitives::{define_constraint, register_constraint};
 use maplit::hashmap;
@@ -18,9 +18,9 @@ use std::sync::{Arc, RwLock};
 pub trait SatisfiableOuterConstraint<'a> : OuterConstraint<'a> {
     fn satisfy_given_preference_ordering(
         &mut self,
-        c: Concept<'a>,
+        c: <<Self as OuterConstraint<'a>>::TAncestry as Ancestry<'a>>::TConcept,
         preferences: &Vec<Dialect>,
-        ancestry: Arc<ConceptAncestry<'a>>,
+        ancestry: Arc<<Self as OuterConstraint<'a>>::TAncestry>,
     ) -> Result<(String, String, ParameterTuple, Dialect)>;
 }
 
