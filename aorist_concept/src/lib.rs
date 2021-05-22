@@ -177,8 +177,7 @@ fn aorist_ast(args: TokenStream, input: TokenStream, derives: Vec<NestedMeta>) -
             add_aorist_fields(struct_data);
             let quoted = quote! {
                 #[derive(
-                    Derivative, Serialize, Deserialize,
-                    Constrainable, ConstrainableWithChildren, Clone,
+                    Derivative, Serialize, Deserialize, Clone,
                 )]
                 #[derivative(PartialEq, Debug, Eq)]
                 #ast
@@ -194,7 +193,7 @@ fn aorist_ast(args: TokenStream, input: TokenStream, derives: Vec<NestedMeta>) -
             let enum_name = &ast.ident;
             let variant = variants.iter().map(|x| (&x.ident)).collect::<Vec<_>>();
             let quoted = quote! {
-                #[derive(Debug, PartialEq, Serialize, Deserialize, Clone, Constrainable, ConstrainableWithChildren)]
+                #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
                 #[serde(tag = "type")]
                 pub enum #enum_name {
                     #(#variant(#variant)),*
@@ -225,11 +224,15 @@ fn aorist_ast(args: TokenStream, input: TokenStream, derives: Vec<NestedMeta>) -
 
 #[proc_macro_attribute]
 pub fn aorist_concept(args: TokenStream, input: TokenStream) -> TokenStream {
-    let path = LitStr::new("InnerObject", Span::call_site())
-        .parse_with(Path::parse_mod_style)
-        .unwrap();
-    let inner_object = NestedMeta::Meta(Meta::Path(path));
-    aorist_ast(args, input, vec![inner_object])
+    let mut extra_derives = Vec::new();
+    for t in vec!["InnerObject", "Constrainable", "ConstrainableWithChildren"] {
+        let path = LitStr::new(t, Span::call_site())
+            .parse_with(Path::parse_mod_style)
+            .unwrap();
+        let derive = NestedMeta::Meta(Meta::Path(path));
+        extra_derives.push(derive);
+    }
+    aorist_ast(args, input, extra_derives)
 }
 #[proc_macro_attribute]
 pub fn aorist(args: TokenStream, input: TokenStream) -> TokenStream {
