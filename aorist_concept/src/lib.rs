@@ -113,36 +113,6 @@ trait TConceptBuilder {
         (derives, derivatives)
     }
 
-    fn add_aorist_fields(&self, struct_data: &mut syn::DataStruct) {
-        match &mut struct_data.fields {
-            Fields::Named(fields) => {
-                fields.named.push(
-                    Field::parse_named
-                        .parse2(quote! {
-                        pub uuid: Option<Uuid>
-                        })
-                        .unwrap(),
-                );
-                fields.named.push(
-                    Field::parse_named
-                        .parse2(quote! {
-                        pub tag: Option<String>
-                        })
-                        .unwrap(),
-                );
-                fields.named.push(
-                    Field::parse_named
-                        .parse2(quote! {
-                            #[serde(skip)]
-                            #[derivative(PartialEq = "ignore", Debug = "ignore", Hash = "ignore")]
-                            pub constraints: Vec<Arc<RwLock<Constraint>>>
-                        })
-                        .unwrap(),
-                );
-            }
-            _ => (),
-        }
-    }
     fn extend_metas(&self, ast: &mut DeriveInput, extra_metas: Vec<NestedMeta>, ident: &str) {
         let (attr, mut metas) = ast
             .attrs
@@ -222,11 +192,69 @@ trait TConceptBuilder {
         };
         proc_macro::TokenStream::from(quoted2)
     }
+    fn add_aorist_fields(&self, struct_data: &mut syn::DataStruct);
 }
 struct ConceptBuilder {}
 impl TConceptBuilder for ConceptBuilder {
     fn new() -> Self {
         Self {}
+    }
+    fn add_aorist_fields(&self, struct_data: &mut syn::DataStruct) {
+        match &mut struct_data.fields {
+            Fields::Named(fields) => {
+                fields.named.push(
+                    Field::parse_named
+                        .parse2(quote! {
+                        pub uuid: Option<Uuid>
+                        })
+                        .unwrap(),
+                );
+                fields.named.push(
+                    Field::parse_named
+                        .parse2(quote! {
+                        pub tag: Option<String>
+                        })
+                        .unwrap(),
+                );
+                fields.named.push(
+                    Field::parse_named
+                        .parse2(quote! {
+                            #[serde(skip)]
+                            #[derivative(PartialEq = "ignore", Debug = "ignore", Hash = "ignore")]
+                            pub constraints: Vec<Arc<RwLock<Constraint>>>
+                        })
+                        .unwrap(),
+                );
+            }
+            _ => (),
+        }
+    }
+}
+struct RawConceptBuilder {}
+impl TConceptBuilder for RawConceptBuilder {
+    fn new() -> Self {
+        Self {}
+    }
+    fn add_aorist_fields(&self, struct_data: &mut syn::DataStruct) {
+        match &mut struct_data.fields {
+            Fields::Named(fields) => {
+                fields.named.push(
+                    Field::parse_named
+                        .parse2(quote! {
+                        pub uuid: Option<Uuid>
+                        })
+                        .unwrap(),
+                );
+                fields.named.push(
+                    Field::parse_named
+                        .parse2(quote! {
+                        pub tag: Option<String>
+                        })
+                        .unwrap(),
+                );
+            }
+            _ => (),
+        }
     }
 }
 
@@ -245,6 +273,6 @@ pub fn aorist_concept(args: TokenStream, input: TokenStream) -> TokenStream {
 }
 #[proc_macro_attribute]
 pub fn aorist(args: TokenStream, input: TokenStream) -> TokenStream {
-    let builder = ConceptBuilder::new();
+    let builder = RawConceptBuilder::new();
     builder.gen(args, input, vec![])
 }
