@@ -9,8 +9,10 @@ use uuid::Uuid;
 use std::marker::PhantomData;
 
 pub trait ConstraintEnum {}
-pub trait OuterConstraint: TAoristObject + std::fmt::Display {
+pub trait OuterConstraint<'a>: TAoristObject + std::fmt::Display {
     type TEnum: ConstraintEnum;
+    type TAncestry: Ancestry<'a>;
+
     fn get_uuid(&self) -> Result<Uuid>;
     fn get_root(&self) -> String;
     fn get_root_uuid(&self) -> Result<Uuid>;
@@ -43,7 +45,7 @@ pub trait OuterConstraint: TAoristObject + std::fmt::Display {
 pub trait TConstraint<'a, 'b>
 where
     Self::Root: AoristConcept,
-    Self::Outer: OuterConstraint,
+    Self::Outer: OuterConstraint<'a, TAncestry=Self::Ancestry>,
     Self::Ancestry: Ancestry<'a>,
     'a: 'b,
 {
@@ -68,7 +70,7 @@ where
 pub trait ConstraintSatisfactionBase<'a, 'b>
 where
     Self::RootType: AoristConcept,
-    Self::Outer: OuterConstraint,
+    Self::Outer: OuterConstraint<'a>,
     Self::ConstraintType: TConstraint<'a, 'b, Root = Self::RootType, Outer = Self::Outer>,
     'a: 'b,
 {

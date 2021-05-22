@@ -15,8 +15,8 @@ use std::fmt;
 use std::sync::{Arc, RwLock};
 
 // TODO: duplicate function, should be unified in trait
-pub trait SatisfiableOuterConstraint : OuterConstraint {
-    fn satisfy_given_preference_ordering<'a>(
+pub trait SatisfiableOuterConstraint<'a> : OuterConstraint<'a> {
+    fn satisfy_given_preference_ordering(
         &mut self,
         c: Concept<'a>,
         preferences: &Vec<Dialect>,
@@ -35,8 +35,10 @@ pub struct Constraint {
     pub root: String,
     pub requires: Option<Vec<String>>,
 }
-impl OuterConstraint for Constraint {
+impl <'a> OuterConstraint<'a> for Constraint {
     type TEnum = AoristConstraint;
+    type TAncestry = ConceptAncestry<'a>;
+
     fn get_uuid(&self) -> Result<Uuid> {
         self.inner("get_uuid()")?.get_uuid()
     }
