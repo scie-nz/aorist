@@ -95,7 +95,10 @@ pub fn constrain_object(input: TokenStream) -> TokenStream {
 
 struct ConceptBuilder {}
 impl ConceptBuilder {
-    fn get_derives(attrs: Vec<NestedMeta>) -> (Vec<NestedMeta>, Vec<NestedMeta>) {
+    fn new() -> Self {
+        Self {}
+    }
+    fn get_derives(&self, attrs: Vec<NestedMeta>) -> (Vec<NestedMeta>, Vec<NestedMeta>) {
         let mut derivatives: Vec<NestedMeta> = Vec::new();
         let mut derives: Vec<NestedMeta> = Vec::new();
         for attr in attrs {
@@ -114,7 +117,7 @@ impl ConceptBuilder {
         (derives, derivatives)
     }
 
-    fn add_aorist_fields(struct_data: &mut syn::DataStruct) {
+    fn add_aorist_fields(&self, struct_data: &mut syn::DataStruct) {
         match &mut struct_data.fields {
             Fields::Named(fields) => {
                 fields.named.push(
@@ -144,7 +147,7 @@ impl ConceptBuilder {
             _ => (),
         }
     }
-    fn extend_metas(ast: &mut DeriveInput, extra_metas: Vec<NestedMeta>, ident: &str) {
+    fn extend_metas(&self, ast: &mut DeriveInput, extra_metas: Vec<NestedMeta>, ident: &str) {
         let (attr, mut metas) = ast
             .attrs
             .iter_mut()
@@ -160,23 +163,23 @@ impl ConceptBuilder {
             .extend::<Punctuated<NestedMeta, Token![,]>>(extra_metas.into_iter().collect());
         *attr = parse_quote!(#[#metas]);
     }
-    fn extend_derivatives(ast: &mut DeriveInput, extra_derivatives: Vec<NestedMeta>) {
-        Self::extend_metas(ast, extra_derivatives, "derivative");
+    fn extend_derivatives(&self, ast: &mut DeriveInput, extra_derivatives: Vec<NestedMeta>) {
+        self.extend_metas(ast, extra_derivatives, "derivative");
     }
-    fn extend_derives(ast: &mut DeriveInput, extra_derives: Vec<NestedMeta>) {
-        Self::extend_metas(ast, extra_derives, "derive");
+    fn extend_derives(&self, ast: &mut DeriveInput, extra_derives: Vec<NestedMeta>) {
+        self.extend_metas(ast, extra_derives, "derive");
     }
 
-    fn gen(args: TokenStream, input: TokenStream, derives: Vec<NestedMeta>) -> TokenStream {
+    fn gen(&self, args: TokenStream, input: TokenStream, derives: Vec<NestedMeta>) -> TokenStream {
         let input_attrs = parse_macro_input!(args as AttributeArgs);
-        let (mut extra_derives, extra_derivatives) = Self::get_derives(input_attrs);
+        let (mut extra_derives, extra_derivatives) = self.get_derives(input_attrs);
         for derive in derives {
             extra_derives.push(derive);
         }
         let mut ast = parse_macro_input!(input as DeriveInput);
         let quoted2 = match &mut ast.data {
             syn::Data::Struct(ref mut struct_data) => {
-                Self::add_aorist_fields(struct_data);
+                self.add_aorist_fields(struct_data);
                 let quoted = quote! {
                     #[derive(
                         Derivative, Serialize, Deserialize, Clone,
@@ -186,8 +189,8 @@ impl ConceptBuilder {
                 };
                 let mut final_ast: DeriveInput = syn::parse2(quoted).unwrap();
 
-                Self::extend_derivatives(&mut final_ast, extra_derivatives);
-                Self::extend_derives(&mut final_ast, extra_derives);
+                self.extend_derivatives(&mut final_ast, extra_derivatives);
+                self.extend_derives(&mut final_ast, extra_derives);
 
                 quote! { #final_ast }
             }
@@ -202,8 +205,8 @@ impl ConceptBuilder {
                     }
                 };
                 let mut final_ast: DeriveInput = syn::parse2(quoted).unwrap();
-                Self::extend_derives(&mut final_ast, extra_derives);
-                Self::extend_derives(&mut final_ast, extra_derivatives);
+                self.extend_derives(&mut final_ast, extra_derives);
+                self.extend_derives(&mut final_ast, extra_derivatives);
 
                 quote! {
                     #final_ast
@@ -235,9 +238,11 @@ pub fn aorist_concept(args: TokenStream, input: TokenStream) -> TokenStream {
         let derive = NestedMeta::Meta(Meta::Path(path));
         extra_derives.push(derive);
     }
-    ConceptBuilder::gen(args, input, extra_derives)
+    let builder = ConceptBuilder::new();
+    builder.gen(args, input, extra_derives)
 }
 #[proc_macro_attribute]
 pub fn aorist(args: TokenStream, input: TokenStream) -> TokenStream {
-    ConceptBuilder::gen(args, input, vec![])
+    let builder = ConceptBuilder::new();
+    builder.gen(args, input, vec![])
 }
