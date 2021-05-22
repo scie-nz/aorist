@@ -15,7 +15,7 @@ use std::fmt;
 use std::sync::{Arc, RwLock};
 
 // TODO: duplicate function, should be unified in trait
-pub trait SatisfiableOuterConstraint {
+pub trait SatisfiableOuterConstraint : OuterConstraint {
     fn satisfy_given_preference_ordering<'a>(
         &mut self,
         c: Concept<'a>,
