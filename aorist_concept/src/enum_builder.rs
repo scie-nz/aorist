@@ -127,8 +127,24 @@ impl Builder for EnumBuilder {
           impl <'a> ConceptEnum<'a> for &'a #enum_name {}
           impl <'a> AoristConcept<'a> for #enum_name {
             type TChildrenEnum = &'a #enum_name;
-            fn get_children(&'a self) -> Vec<&'a #enum_name> {
-                vec![&self]
+            fn get_children(&'a self) -> Vec<(
+                // enum name
+                &str,
+                // field name
+                Option<&str>,
+                // ix
+                Option<usize>,
+                // uuid
+                Uuid,
+                &'a #enum_name
+            )> {
+                vec![(
+                    stringify!(#enum_name),
+                    None,
+                    None,
+                    self.get_uuid(),
+                    &self
+                )]
             }
             fn get_tag(&self) -> Option<String> {
                 match self {

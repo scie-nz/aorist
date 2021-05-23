@@ -358,31 +358,72 @@ impl Builder for StructBuilder {
                 fn get_tag(&self) -> Option<String> {
                     self.tag.clone()
                 }
-                fn get_children(&'a self) -> Vec<[<#struct_name Children>]<'a>> {
+                fn get_children(&'a self) -> Vec<(
+                    // struct name
+                    &str,
+                    // field name
+                    Option<&str>,
+                    // ix
+                    Option<usize>,
+                    // uuid
+                    Uuid,
+                    // wrapped reference
+                    [<#struct_name Children>]<'a>,
+                )> {
                     let mut children: Vec<_> = Vec::new();
                     #(
-                        children.push([<#struct_name Children>]::#bare_type(&self.#bare_ident));
+                        children.push((
+                            stringify!(#struct_name),
+                            Some(stringify!(#bare_ident)),
+                            None,
+                            self.get_uuid(),
+                            [<#struct_name Children>]::#bare_type(&self.#bare_ident)
+                        ));
                     )*
                     #(
                         if let Some(ref c) = self.#option_ident {
-                            children.push([<#struct_name Children>]::#option_type(c));
+                            children.push((
+                                stringify!(#struct_name),
+                                Some(stringify!(#option_ident)),
+                                None,
+                                self.get_uuid(),
+                                [<#struct_name Children>]::#option_type(c)
+                            ));
                         }
                     )*
                     #(
-                        for elem in &self.#vec_ident {
-                            children.push([<#struct_name Children>]::#vec_type(elem));
+                        for (ix, elem) in self.#vec_ident.iter().enumerate() {
+                            children.push((
+                                stringify!(#struct_name),
+                                Some(stringify!(#vec_ident)),
+                                Some(ix),
+                                self.get_uuid(),
+                                [<#struct_name Children>]::#vec_type(elem)
+                            ));
                         }
                     )*
                     #(
                         if let Some(ref v) = self.#option_vec_ident {
-                            for elem in v.iter() {
-                                children.push([<#struct_name Children>]::#option_vec_type(elem));
+                            for (ix, elem) in v.iter().enumerate() {
+                                children.push((
+                                    stringify!(#struct_name),
+                                    Some(stringify!(#option_vec_ident)),
+                                    Some(ix),
+                                    self.get_uuid(),
+                                    [<#struct_name Children>]::#option_vec_type(elem)
+                                ));
                             }
                         }
                     )*
                     #(
                         for elem in self.#map_ident.values() {
-                            children.push([<#struct_name Children>]::#map_value_type(elem));
+                            children.push((
+                                stringify!(#struct_name),
+                                Some(stringify!(#map_ident)),
+                                None,
+                                self.get_uuid(),
+                                [<#struct_name Children>]::#map_value_type(elem)
+                            ));
                         }
                     )*
                     children
@@ -394,7 +435,7 @@ impl Builder for StructBuilder {
                     panic!("Uuid was not set on object.");
                 }
                 fn get_children_uuid(&self) -> Vec<Uuid> {
-                    self.get_children().iter().map(|x| x.get_uuid()).collect()
+                    self.get_children().iter().map(|x| x.4.get_uuid()).collect()
                 }
                 fn compute_uuids(&mut self) {
                     #(

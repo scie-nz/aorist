@@ -11,7 +11,18 @@ pub trait AoristConcept<'a> {
     
     type TChildrenEnum: ConceptEnum<'a>;
 
-    fn get_children(&'a self) -> Vec<Self::TChildrenEnum>;
+    fn get_children(&'a self) -> Vec<(
+        // struct name
+        &str,
+        // field name
+        Option<&str>,
+        // ix
+        Option<usize>,
+        // uuid
+        Uuid,
+        // wrapped reference
+        Self::TChildrenEnum,
+    )>;
     fn get_uuid(&self) -> Uuid;
     fn get_children_uuid(&self) -> Vec<Uuid>;
     fn get_tag(&self) -> Option<String>;
