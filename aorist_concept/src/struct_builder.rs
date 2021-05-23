@@ -320,16 +320,17 @@ impl Builder for StructBuilder {
 
         TokenStream::from(quote! { paste! {
 
-            pub enum [<#struct_name Children>] {
+            pub enum [<#struct_name Children>]<'a> {
                 #(
-                    #types(#types),
+                    #types(&'a #types),
                 )*
+                _phantom(&'a ()),
             }
-            impl <'a> ConceptEnum<'a> for [<#struct_name Children>] {}
+            impl <'a> ConceptEnum<'a> for [<#struct_name Children>]<'a> {}
 
             impl <'a> AoristConcept<'a> for #struct_name {
                 
-                type TChildrenEnum = [<#struct_name Children>];
+                type TChildrenEnum = [<#struct_name Children>]<'a>;
 
                 fn get_tag(&self) -> Option<String> {
                     self.tag.clone()
