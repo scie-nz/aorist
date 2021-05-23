@@ -336,6 +336,16 @@ impl Builder for StructBuilder {
                 )*
                 _phantom(&'a ()),
             }
+            impl <'a> [<#struct_name Children>]<'a> {
+                pub fn get_uuid(&self) -> Uuid {
+                    match &self {
+                        #(
+                            Self::#types(x) => x.get_uuid(),
+                        )*
+                        Self::_phantom(_) => panic!("_phantom arm was activated.")
+                    }
+                }
+            }
             impl <'a> ConceptEnum<'a> for [<#struct_name Children>]<'a> {}
 
             impl <'a> AoristConcept<'a> for #struct_name {
@@ -381,33 +391,7 @@ impl Builder for StructBuilder {
                     panic!("Uuid was not set on object.");
                 }
                 fn get_children_uuid(&self) -> Vec<Uuid> {
-                    let mut uuids: Vec<Uuid> = Vec::new();
-                    #(
-                        uuids.push(self.#bare_ident.get_uuid());
-                    )*
-                    #(
-                        if let Some(ref c) = self.#option_ident {
-                            uuids.push(c.get_uuid());
-                        }
-                    )*
-                    #(
-                        for elem in &self.#vec_ident {
-                            uuids.push(elem.get_uuid());
-                        }
-                    )*
-                    #(
-                        if let Some(ref v) = self.#option_vec_ident {
-                            for elem in v {
-                                uuids.push(elem.get_uuid());
-                            }
-                        }
-                    )*
-                    #(
-                        for elem in self.#map_ident.values() {
-                            uuids.push(elem.get_uuid());
-                        }
-                    )*
-                    uuids
+                    self.get_children().iter().map(|x| x.get_uuid()).collect()
                 }
                 fn compute_uuids(&mut self) {
                     #(
