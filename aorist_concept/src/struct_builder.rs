@@ -326,6 +326,9 @@ impl Builder for StructBuilder {
                 )*
             }
             impl AoristConcept for #struct_name {
+                
+                type TChildrenEnum = [<#struct_name Children>];
+
                 fn get_tag(&self) -> Option<String> {
                     self.tag.clone()
                 }

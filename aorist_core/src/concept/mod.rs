@@ -9,6 +9,9 @@ pub trait Ancestry<'a> {
 }
 
 pub trait AoristConcept {
+    
+    type TChildrenEnum;
+
     fn get_uuid(&self) -> Uuid;
     fn get_children_uuid(&self) -> Vec<Uuid>;
     fn get_tag(&self) -> Option<String>;

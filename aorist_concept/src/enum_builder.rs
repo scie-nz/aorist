@@ -125,6 +125,7 @@ impl Builder for EnumBuilder {
         let variant = &self.variant_idents;
         TokenStream::from(quote! {
           impl AoristConcept for #enum_name {
+            type TChildrenEnum = #enum_name;
             fn get_tag(&self) -> Option<String> {
                 match self {
                     #(
