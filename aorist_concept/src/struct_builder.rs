@@ -325,7 +325,7 @@ impl Builder for StructBuilder {
                     #types(#types),
                 )*
             }
-            impl AoristConcept for #struct_name {
+            impl <'a> AoristConcept<'a> for #struct_name {
                 
                 type TChildrenEnum = [<#struct_name Children>];
 

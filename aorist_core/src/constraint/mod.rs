@@ -44,7 +44,7 @@ pub trait OuterConstraint<'a>: TAoristObject + std::fmt::Display {
 }
 pub trait TConstraint<'a, 'b>
 where
-    Self::Root: AoristConcept,
+    Self::Root: AoristConcept<'a>,
     Self::Outer: OuterConstraint<'a, TAncestry=Self::Ancestry>,
     Self::Ancestry: Ancestry<'a>,
     'a: 'b,
@@ -69,7 +69,7 @@ where
 
 pub trait ConstraintSatisfactionBase<'a, 'b>
 where
-    Self::RootType: AoristConcept,
+    Self::RootType: AoristConcept<'a>,
     Self::Outer: OuterConstraint<'a>,
     Self::ConstraintType: TConstraint<'a, 'b, Root = Self::RootType, Outer = Self::Outer>,
     'a: 'b,

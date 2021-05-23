@@ -8,7 +8,7 @@ pub trait Ancestry<'a> {
     type TConcept: ConceptEnum<'a>;
 }
 
-pub trait AoristConcept {
+pub trait AoristConcept<'a> {
     
     type TChildrenEnum;
 
