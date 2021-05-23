@@ -300,12 +300,22 @@ impl Builder for StructBuilder {
             option_ident,
             option_vec_ident,
             map_ident,
+            bare_type,
+            vec_type,
+            option_type,
+            option_vec_type,
+            map_value_type,
         ) = (
             &self.bare_idents,
             &self.vec_idents,
             &self.option_idents,
             &self.option_vec_idents,
             &self.map_idents,
+            &self.bare_types,
+            &self.vec_types,
+            &self.option_types,
+            &self.option_vec_types,
+            &self.map_value_types,
         );
         
         let types: Vec<_> = self.bare_types.iter().chain(
@@ -334,6 +344,35 @@ impl Builder for StructBuilder {
 
                 fn get_tag(&self) -> Option<String> {
                     self.tag.clone()
+                }
+                fn get_children(&'a self) -> Vec<[<#struct_name Children>]<'a>> {
+                    let mut children: Vec<_> = Vec::new();
+                    #(
+                        children.push([<#struct_name Children>]::#bare_type(&self.#bare_ident));
+                    )*
+                    #(
+                        if let Some(ref c) = self.#option_ident {
+                            children.push([<#struct_name Children>]::#option_type(c));
+                        }
+                    )*
+                    #(
+                        for elem in &self.#vec_ident {
+                            children.push([<#struct_name Children>]::#vec_type(elem));
+                        }
+                    )*
+                    #(
+                        if let Some(ref v) = self.#option_vec_ident {
+                            for elem in v.iter() {
+                                children.push([<#struct_name Children>]::#option_vec_type(elem));
+                            }
+                        }
+                    )*
+                    #(
+                        for elem in self.#map_ident.values() {
+                            children.push([<#struct_name Children>]::#map_value_type(elem));
+                        }
+                    )*
+                    children
                 }
                 fn get_uuid(&self) -> Uuid {
                     if let Some(uuid) = self.uuid {
