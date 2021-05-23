@@ -4,6 +4,7 @@ use aorist_concept::{aorist, Constrainable};
 use derivative::Derivative;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
+use paste::paste;
 
 #[aorist]
 pub struct GlobalPermissionsAdmin {}

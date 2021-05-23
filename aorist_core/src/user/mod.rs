@@ -6,6 +6,7 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 use crate::concept::{AoristConcept};
 use aorist_concept::{aorist, Constrainable};
+use paste::paste;
 
 #[aorist]
 pub struct User {

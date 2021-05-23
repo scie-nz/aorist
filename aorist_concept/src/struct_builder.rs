@@ -12,6 +12,7 @@ use type_macro_helpers::{
 mod keyword {
     syn::custom_keyword!(path);
 }
+use linked_hash_set::LinkedHashSet;
 
 fn extract_names_and_types(fields: &Vec<Field>) -> (Vec<Ident>, Vec<Type>) {
     let mut names: Vec<Ident> = Vec::new();
@@ -306,9 +307,24 @@ impl Builder for StructBuilder {
             &self.option_vec_idents,
             &self.map_idents,
         );
+        
+        let types: Vec<_> = self.bare_types.iter().chain(
+            self.vec_types.iter()
+        ).chain(
+            self.option_types.iter()
+        ).chain(
+            self.option_vec_types.iter()
+        ).chain(
+            self.map_value_types.iter()
+        ).collect::<LinkedHashSet<_>>().into_iter().collect();
 
-        TokenStream::from(quote! {
+        TokenStream::from(quote! { paste! {
 
+            pub enum [<#struct_name Children>] {
+                #(
+                    #types(#types),
+                )*
+            }
             impl AoristConcept for #struct_name {
                 fn get_tag(&self) -> Option<String> {
                     self.tag.clone()
@@ -377,7 +393,7 @@ impl Builder for StructBuilder {
                     self.uuid = Some(self.get_uuid_from_children_uuid());
                 }
             }
-        })
+        }})
     }
     fn to_python_token_stream(&self, struct_name: &Ident) -> TokenStream {
         let (
