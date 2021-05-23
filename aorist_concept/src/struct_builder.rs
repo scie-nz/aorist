@@ -248,9 +248,47 @@ impl Builder for StructBuilder {
             &self.option_vec_idents,
             &self.map_idents,
         );
+        let types = self.get_all_types();
 
-        TokenStream::from(quote! {
+        TokenStream::from(quote! { paste! {
 
+            impl <'a> std::convert::From<(
+                // struct name
+                &str,
+                // field name
+                Option<&str>,
+                // ix
+                Option<usize>,
+                // uuid
+                Uuid,
+                // wrapped reference
+                [<#struct_name Children>]<'a>
+            )> for Concept<'a> {
+                fn from(
+                    tpl: (
+                        &str,
+                        Option<&str>,
+                        Option<usize>,
+                        Uuid,
+                        [<#struct_name Children>]<'a>
+                    )
+                ) -> Self {
+                    let (name, field, ix, uuid, children_enum) = tpl;
+                    match children_enum {
+                        #(
+                            [<#struct_name Children>]::#types(x) => Concept::#types((
+                                x,
+                                match ix {
+                                    Some(i) => i,
+                                    None => 0,
+                                },
+                                Some((uuid, name.to_string())),
+                            )),
+                        )*
+                        _ => panic!("_phantom arm should not be activated"),
+                    }
+                }
+            }
             impl AoristConceptChildren for #struct_name {
                 fn get_child_concepts<'a, 'b>(&'a self) -> Vec<Concept<'b>> where 'a : 'b {
                     let id = Some((
@@ -303,7 +341,7 @@ impl Builder for StructBuilder {
                     concepts
                 }
             }
-        })
+        }})
     }
     fn to_concept_token_stream(&self, struct_name: &Ident) -> TokenStream {
         let (
