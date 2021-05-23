@@ -13,7 +13,7 @@ pub use parameter_tuple::*;
 //mod object;
 //mod parameter_tuple;
 
-//mod role;
+mod role;
 //mod user;
 
 //pub use constraint::*;

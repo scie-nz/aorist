@@ -1,17 +1,18 @@
 use proc_macro::TokenStream;
+use proc_macro2::Span;
 use quote::quote;
 use syn::parse::Parser;
 use syn::punctuated::Punctuated;
 use syn::{
     parse_macro_input, parse_quote, AttributeArgs, Data, DataEnum, DeriveInput, Field,
-    Fields, Meta, NestedMeta, Token,
+    Fields, Meta, NestedMeta, Token, LitStr, Path,
 };
 mod keyword {
     syn::custom_keyword!(path);
 }
 
 pub trait TConceptBuilder {
-    fn new() -> Self;
+    fn new(extra_derives: Vec<&str>) -> Self;
     fn get_derives(&self, attrs: Vec<NestedMeta>) -> (Vec<NestedMeta>, Vec<NestedMeta>) {
         let mut derivatives: Vec<NestedMeta> = Vec::new();
         let mut derives: Vec<NestedMeta> = Vec::new();
@@ -53,11 +54,11 @@ pub trait TConceptBuilder {
     fn extend_derives(&self, ast: &mut DeriveInput, extra_derives: Vec<NestedMeta>) {
         self.extend_metas(ast, extra_derives, "derive");
     }
-
-    fn gen(&self, args: TokenStream, input: TokenStream, derives: Vec<NestedMeta>) -> TokenStream {
+    fn get_extra_derives(&self) -> Vec<NestedMeta>;
+    fn gen(&self, args: TokenStream, input: TokenStream) -> TokenStream {
         let input_attrs = parse_macro_input!(args as AttributeArgs);
         let (mut extra_derives, extra_derivatives) = self.get_derives(input_attrs);
-        for derive in derives {
+        for derive in self.get_extra_derives() {
             extra_derives.push(derive);
         }
         let mut ast = parse_macro_input!(input as DeriveInput);
@@ -111,11 +112,29 @@ pub trait TConceptBuilder {
         proc_macro::TokenStream::from(quoted2)
     }
     fn add_aorist_fields(&self, struct_data: &mut syn::DataStruct);
+    fn parse_extra_derives(extra_derives_v: Vec<&str>) -> Vec<NestedMeta> {
+        let mut extra_derives = Vec::new();
+        for t in extra_derives_v {
+            let path = LitStr::new(t, Span::call_site())
+                .parse_with(Path::parse_mod_style)
+                .unwrap();
+            let derive = NestedMeta::Meta(Meta::Path(path));
+            extra_derives.push(derive);
+        }
+        extra_derives
+    }
 }
-pub struct ConceptBuilder {}
+pub struct ConceptBuilder {
+    extra_derives: Vec<NestedMeta>,
+}
 impl TConceptBuilder for ConceptBuilder {
-    fn new() -> Self {
-        Self {}
+    fn new(extra_derives_v: Vec<&str>) -> Self {
+        Self {
+            extra_derives: Self::parse_extra_derives(extra_derives_v),
+        }
+    }
+    fn get_extra_derives(&self) -> Vec<NestedMeta> {
+        self.extra_derives.clone()
     }
     fn add_aorist_fields(&self, struct_data: &mut syn::DataStruct) {
         match &mut struct_data.fields {
@@ -148,10 +167,17 @@ impl TConceptBuilder for ConceptBuilder {
         }
     }
 }
-pub struct RawConceptBuilder {}
+pub struct RawConceptBuilder {
+    extra_derives: Vec<NestedMeta>,
+}
 impl TConceptBuilder for RawConceptBuilder {
-    fn new() -> Self {
-        Self {}
+    fn new(extra_derives_v: Vec<&str>) -> Self {
+        Self {
+            extra_derives: Self::parse_extra_derives(extra_derives_v),
+        }
+    }
+    fn get_extra_derives(&self) -> Vec<NestedMeta> {
+        self.extra_derives.clone()
     }
     fn add_aorist_fields(&self, struct_data: &mut syn::DataStruct) {
         match &mut struct_data.fields {

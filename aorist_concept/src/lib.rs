@@ -10,10 +10,8 @@ use crate::builder::Builder;
 use crate::concept_builder::{ConceptBuilder, RawConceptBuilder, TConceptBuilder};
 use crate::enum_builder::EnumBuilder;
 use crate::struct_builder::StructBuilder;
-use proc_macro2::Span;
 use syn::{
-    parse_macro_input, Data, DataEnum, DataStruct, DeriveInput,
-    Fields, LitStr, Meta, NestedMeta, Path,
+    parse_macro_input, Data, DataEnum, DataStruct, DeriveInput, Fields, 
 };
 mod keyword {
     syn::custom_keyword!(path);
@@ -93,19 +91,11 @@ pub fn constrain_object(input: TokenStream) -> TokenStream {
 }
 #[proc_macro_attribute]
 pub fn aorist_concept(args: TokenStream, input: TokenStream) -> TokenStream {
-    let mut extra_derives = Vec::new();
-    for t in vec!["InnerObject", "Constrainable", "ConstrainableWithChildren"] {
-        let path = LitStr::new(t, Span::call_site())
-            .parse_with(Path::parse_mod_style)
-            .unwrap();
-        let derive = NestedMeta::Meta(Meta::Path(path));
-        extra_derives.push(derive);
-    }
-    let builder = ConceptBuilder::new();
-    builder.gen(args, input, extra_derives)
+    let builder = ConceptBuilder::new(vec!["InnerObject", "Constrainable", "ConstrainableWithChildren"]);
+    builder.gen(args, input)
 }
 #[proc_macro_attribute]
 pub fn aorist(args: TokenStream, input: TokenStream) -> TokenStream {
-    let builder = RawConceptBuilder::new();
-    builder.gen(args, input, vec![])
+    let builder = RawConceptBuilder::new(vec!["Constrainable"]);
+    builder.gen(args, input)
 }
