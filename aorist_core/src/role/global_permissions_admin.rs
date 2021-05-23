@@ -1,5 +1,5 @@
 use crate::role::role::TRole;
-use crate::concept::AoristConcept;
+use crate::concept::{AoristConcept, ConceptEnum};
 use aorist_concept::{aorist, Constrainable};
 use derivative::Derivative;
 use serde::{Deserialize, Serialize};

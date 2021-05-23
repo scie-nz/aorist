@@ -124,6 +124,7 @@ impl Builder for EnumBuilder {
     fn to_concept_token_stream(&self, enum_name: &Ident) -> TokenStream {
         let variant = &self.variant_idents;
         TokenStream::from(quote! {
+          impl <'a> ConceptEnum<'a> for #enum_name {}
           impl <'a> AoristConcept<'a> for #enum_name {
             type TChildrenEnum = #enum_name;
             fn get_tag(&self) -> Option<String> {

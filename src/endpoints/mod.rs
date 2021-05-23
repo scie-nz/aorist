@@ -9,7 +9,7 @@ pub mod ranger;
 
 use crate::concept::Concept;
 use crate::constraint::Constraint;
-use crate::{AoristConcept, AoristConceptChildren};
+use crate::{AoristConcept, AoristConceptChildren, ConceptEnum};
 pub use alluxio::{AlluxioConfig, InnerAlluxioConfig};
 use aorist_concept::{aorist_concept, Constrainable, ConstrainableWithChildren, InnerObject};
 pub use aws::*;

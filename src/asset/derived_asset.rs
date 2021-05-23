@@ -1,6 +1,6 @@
 #![allow(non_snake_case)]
 use crate::asset::asset::TAsset;
-use crate::concept::{AoristConcept, AoristConceptChildren, Concept};
+use crate::concept::{AoristConcept, AoristConceptChildren, ConceptEnum, Concept};
 use crate::constraint::Constraint;
 use crate::schema::*;
 use crate::storage_setup::*;

@@ -7,10 +7,9 @@ pub trait ConceptEnum<'a> {}
 pub trait Ancestry<'a> {
     type TConcept: ConceptEnum<'a>;
 }
-
 pub trait AoristConcept<'a> {
     
-    type TChildrenEnum;
+    type TChildrenEnum: ConceptEnum<'a>;
 
     fn get_uuid(&self) -> Uuid;
     fn get_children_uuid(&self) -> Vec<Uuid>;

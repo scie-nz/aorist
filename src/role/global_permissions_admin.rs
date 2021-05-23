@@ -1,4 +1,4 @@
-use crate::concept::{AoristConcept, AoristConceptChildren, Concept};
+use crate::concept::{AoristConcept, AoristConceptChildren, ConceptEnum, Concept};
 use crate::constraint::Constraint;
 use crate::role::role::TRole;
 use aorist_concept::{aorist_concept, Constrainable, ConstrainableWithChildren, InnerObject};

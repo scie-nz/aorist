@@ -1,5 +1,5 @@
 #![allow(non_snake_case)]
-use crate::concept::{AoristConcept, AoristConceptChildren, Concept};
+use crate::concept::{AoristConcept, AoristConceptChildren, ConceptEnum, Concept};
 use crate::encoding::*;
 use crate::storage::*;
 use crate::storage_setup::computed_from_local_data::*;

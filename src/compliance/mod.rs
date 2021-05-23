@@ -2,7 +2,7 @@
 See: https://www.cnil.fr/en/record-processing-activities */
 use crate::concept::Concept;
 use crate::constraint::Constraint;
-use crate::{AoristConcept, AoristConceptChildren};
+use crate::{AoristConcept, AoristConceptChildren, ConceptEnum};
 use aorist_concept::{aorist_concept, Constrainable, ConstrainableWithChildren, InnerObject};
 use aorist_primitives::gdpr_data_type;
 use derivative::Derivative;

@@ -4,7 +4,7 @@ use crate::role::*;
 use derivative::Derivative;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
-use crate::concept::{AoristConcept};
+use crate::concept::{AoristConcept, ConceptEnum};
 use aorist_concept::{aorist, Constrainable};
 use paste::paste;
 

@@ -1,4 +1,4 @@
-use crate::concept::{AoristConcept, AoristConceptChildren, Concept};
+use crate::concept::{AoristConcept, AoristConceptChildren, ConceptEnum, Concept};
 use crate::location::alluxio_location::*;
 use crate::location::minio_location::*;
 use crate::location::s3_location::*;
