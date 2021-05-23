@@ -63,7 +63,19 @@ pub struct StructBuilder {
     pub fields_with_default: syn::punctuated::Punctuated<syn::NestedMeta, syn::token::Comma>,
     pub unconstrainable: Vec<Field>,
 }
-
+impl StructBuilder {
+    pub fn get_all_types(&self) -> Vec<&Type> {
+        self.bare_types.iter().chain(
+            self.vec_types.iter()
+        ).chain(
+            self.option_types.iter()
+        ).chain(
+            self.option_vec_types.iter()
+        ).chain(
+            self.map_value_types.iter()
+        ).collect::<LinkedHashSet<_>>().into_iter().collect()
+    }
+}
 impl Builder for StructBuilder {
     type TInput = FieldsNamed;
     fn new(fields: &FieldsNamed) -> StructBuilder {
@@ -318,16 +330,7 @@ impl Builder for StructBuilder {
             &self.map_value_types,
         );
         
-        let types: Vec<_> = self.bare_types.iter().chain(
-            self.vec_types.iter()
-        ).chain(
-            self.option_types.iter()
-        ).chain(
-            self.option_vec_types.iter()
-        ).chain(
-            self.map_value_types.iter()
-        ).collect::<LinkedHashSet<_>>().into_iter().collect();
-
+        let types = self.get_all_types();
         TokenStream::from(quote! { paste! {
 
             pub enum [<#struct_name Children>]<'a> {
