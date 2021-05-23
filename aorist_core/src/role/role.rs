@@ -3,6 +3,7 @@ use crate::role::global_permissions_admin::*;
 use crate::concept::{AoristConcept, ConceptEnum};
 use aorist_concept::{aorist, Constrainable};
 use enum_dispatch::enum_dispatch;
+use paste::paste;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 

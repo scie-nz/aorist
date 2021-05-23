@@ -388,6 +388,14 @@ impl Builder for StructBuilder {
                 }
             }
             impl <'a> ConceptEnum<'a> for [<#struct_name Children>]<'a> {}
+            trait [<CanBe #struct_name>] {
+                fn construct(
+                    obj_ref: &#struct_name, 
+                    ix: usize, 
+                    id: Option<(Uuid, String)>
+                ) -> Self; 
+            }
+
 
             impl <'a> AoristConcept<'a> for #struct_name {
                 

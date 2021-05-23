@@ -123,8 +123,15 @@ impl Builder for EnumBuilder {
     }
     fn to_concept_token_stream(&self, enum_name: &Ident) -> TokenStream {
         let variant = &self.variant_idents;
-        TokenStream::from(quote! {
+        proc_macro::TokenStream::from(quote! { paste! {
           impl <'a> ConceptEnum<'a> for &'a #enum_name {}
+          trait [<CanBe #enum_name>] {
+              fn conenum(
+                  obj_ref: &#enum_name, 
+                  ix: usize, 
+                  id: Option<(Uuid, String)>
+              ) -> Self; 
+          }
           impl <'a> AoristConcept<'a> for #enum_name {
             type TChildrenEnum = &'a #enum_name;
             fn get_children(&'a self) -> Vec<(
@@ -176,6 +183,6 @@ impl Builder for EnumBuilder {
               }
             }
           }
-        })
+        }})
     }
 }
