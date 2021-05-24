@@ -1,0 +1,25 @@
+{% set name = "scie_eg_module" %}
+{% set version = "0.1" %}
+
+package:
+  name: "{{ name|lower }}"
+  version: "{{ version }}"
+
+source: 
+  path: src
+
+requirements:
+  host:
+    - python
+    - setuptools
+    - conda-build
+  run:
+    - python 
+
+test:
+  
+about:
+  home: "https://nvthoang.com"
+  summary: "Test Module"
+
+
