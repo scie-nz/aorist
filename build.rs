@@ -294,6 +294,7 @@ fn process_attributes(raw_objects: &Vec<HashMap<String, Value>>) {
     scope.import("std::sync", "Arc");
     scope.import("std::sync", "RwLock");
     scope.import("crate::concept", "AoristConcept");
+    scope.import("crate::concept", "WrappedConcept");
     scope.import("crate::concept", "Concept");
     scope.import("crate::constraint", "Constraint");
     scope.import("aorist_concept", "Constrainable");
@@ -501,8 +502,8 @@ fn process_concepts() {
     scope.import("std::convert", "TryFrom");
     scope.import("std::collections", "HashMap");
     scope.import("tracing", "debug");
-    for (x, y) in &concepts {
-        scope.import(x, y);
+    for (x, _y) in &concepts {
+        scope.import(x, "*");
     }
 
     let concept_names: Vec<String> = concepts.iter().map(|(_, x)| x.to_string()).collect();

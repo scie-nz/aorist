@@ -125,10 +125,10 @@ impl Builder for EnumBuilder {
         let variant = &self.variant_idents;
         proc_macro::TokenStream::from(quote! { paste! {
           impl <'a> ConceptEnum<'a> for &'a #enum_name {}
-          trait [<CanBe #enum_name>] {
-              fn conenum(
-                  obj_ref: &#enum_name, 
-                  ix: usize, 
+          pub trait [<CanBe #enum_name>]<'a> {
+              fn [<construct_ #enum_name:snake:lower>] (
+                  obj_ref: &'a #enum_name, 
+                  ix: Option<usize>, 
                   id: Option<(Uuid, String)>
               ) -> Self; 
           }

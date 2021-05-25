@@ -63,7 +63,7 @@ pub use models::*;
 pub use role::*;
 pub use role_binding::*;
 pub use schema::*;
-pub use sql_parser::*;
+pub use sql_parser::SQLParseError;
 pub use storage::*;
 pub use storage_setup::*;
 pub use template::*;

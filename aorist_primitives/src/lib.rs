@@ -939,6 +939,24 @@ macro_rules! register_concept {
                 $element((&'a $element, usize, Option<(Uuid, String)>)),
             )+
         }
+        $(
+            impl <'a> [<CanBe $element>]<'a> for $name<'a> {
+                fn [<construct_ $element:snake:lower>](
+                    obj_ref: &'a $element, 
+                    ix: Option<usize>, 
+                    id: Option<(Uuid, String)>
+                ) -> Self {
+                    $name::$element((
+                        obj_ref,
+                        match ix {
+                            Some(i) => i,
+                            None => 0,
+                        },
+                        id,
+                    ))
+               }
+            }
+        )+
         impl <'a> ConceptEnum<'a> for $name<'a> {}
         $(
             impl <'a> TryFrom<$name<'a>> for &'a $element {

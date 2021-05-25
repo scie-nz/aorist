@@ -2,7 +2,7 @@
 use crate::asset::derived_asset::*;
 use crate::asset::static_data_table::*;
 use crate::asset::supervised_model::*;
-use crate::concept::{AoristConcept, AoristConceptChildren, ConceptEnum, Concept};
+use crate::concept::{AoristConcept, AoristConceptChildren, WrappedConcept, ConceptEnum, Concept};
 use crate::encoding::*;
 use crate::schema::*;
 use crate::storage::*;

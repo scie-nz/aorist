@@ -9,9 +9,9 @@ mod storage;
 
 pub use bigquery_storage::*;
 pub use git_storage::*;
-pub use hive_table_storage::{HiveTableStorage, InnerHiveTableStorage};
+pub use hive_table_storage::*;
 pub use local_file_storage::*;
 pub use postgres_storage::*;
-pub use remote_storage::{InnerRemoteStorage, RemoteStorage};
+pub use remote_storage::*;
 pub use sqlite_storage::*;
-pub use storage::{InnerStorage, Storage};
+pub use storage::*;

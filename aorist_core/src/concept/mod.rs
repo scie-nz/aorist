@@ -8,10 +8,6 @@ pub trait ConceptEnum<'a> {}
 pub trait Ancestry<'a> {
     type TConcept: ConceptEnum<'a>;
 }
-pub struct WrappedConcept<'a, T> where T: ConceptEnum<'a> {
-    _phantom: PhantomData<T>,
-    _phantom_lt: PhantomData<&'a ()>,
-}
 pub trait AoristConcept<'a> {
     
     type TChildrenEnum: ConceptEnum<'a>;

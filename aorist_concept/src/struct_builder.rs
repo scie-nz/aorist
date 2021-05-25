@@ -252,7 +252,7 @@ impl Builder for StructBuilder {
 
         TokenStream::from(quote! { paste! {
 
-            impl <'a> std::convert::From<(
+            impl <'a, T> std::convert::From<(
                 // struct name
                 &str,
                 // field name
@@ -263,7 +263,11 @@ impl Builder for StructBuilder {
                 Uuid,
                 // wrapped reference
                 [<#struct_name Children>]<'a>
-            )> for Concept<'a> {
+            )> for WrappedConcept<'a, T> where 
+                T: AoristConcept<'a>,
+            #(
+                T: [<CanBe #types>]<'a>,
+            )* {
                 fn from(
                     tpl: (
                         &str,
@@ -276,14 +280,10 @@ impl Builder for StructBuilder {
                     let (name, field, ix, uuid, children_enum) = tpl;
                     match children_enum {
                         #(
-                            [<#struct_name Children>]::#types(x) => Concept::#types((
-                                x,
-                                match ix {
-                                    Some(i) => i,
-                                    None => 0,
-                                },
-                                Some((uuid, name.to_string())),
-                            )),
+                            [<#struct_name Children>]::#types(x) => WrappedConcept{
+                                inner: T::[<construct_ #types:snake:lower>](x, ix, Some((uuid, name.to_string()))),
+                                _phantom_lt: std::marker::PhantomData,
+                            },
                         )*
                         _ => panic!("_phantom arm should not be activated"),
                     }
@@ -388,10 +388,10 @@ impl Builder for StructBuilder {
                 }
             }
             impl <'a> ConceptEnum<'a> for [<#struct_name Children>]<'a> {}
-            trait [<CanBe #struct_name>] {
-                fn construct(
-                    obj_ref: &#struct_name, 
-                    ix: usize, 
+            pub trait [<CanBe #struct_name>]<'a> {
+                fn [<construct_ #struct_name:snake:lower>](
+                    obj_ref: &'a #struct_name, 
+                    ix: Option<usize>, 
                     id: Option<(Uuid, String)>
                 ) -> Self; 
             }

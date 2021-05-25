@@ -1,6 +1,6 @@
 #![allow(non_snake_case)]
 use crate::access_policy::approve_access_selector::*;
-use crate::concept::{AoristConcept, AoristConceptChildren, ConceptEnum, Concept};
+use crate::concept::{AoristConcept, AoristConceptChildren, WrappedConcept, ConceptEnum, Concept};
 use aorist_concept::{aorist_concept, Constrainable, ConstrainableWithChildren, InnerObject};
 use paste::paste;
 use pyo3::prelude::*;
