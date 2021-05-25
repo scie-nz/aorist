@@ -2,7 +2,6 @@ use siphasher::sip128::{Hasher128, SipHasher};
 use std::collections::BTreeSet;
 use std::hash::Hasher;
 use uuid::Uuid;
-use std::marker::PhantomData;
 
 pub trait ConceptEnum<'a> {}
 pub trait Ancestry<'a> {

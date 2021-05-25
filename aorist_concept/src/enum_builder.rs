@@ -99,7 +99,44 @@ impl Builder for EnumBuilder {
     }
     fn to_concept_children_token_stream(&self, enum_name: &Ident) -> TokenStream {
         let variant = &self.variant_idents;
-        TokenStream::from(quote! {
+        TokenStream::from(quote! { paste! {
+          impl <'a, T> std::convert::From<(
+              // enum name
+              &str,
+              // field name
+              Option<&str>,
+              // ix
+              Option<usize>,
+              // uuid
+              Uuid,
+              // wrapped reference
+              &'a #enum_name
+          )> for WrappedConcept<'a, T> where 
+              T: AoristConcept<'a>,
+          #(
+              T: [<CanBe #variant>]<'a>,
+          )* {
+              fn from(
+                  tpl: (
+                      &str,
+                      Option<&str>,
+                      Option<usize>,
+                      Uuid,
+                      &'a #enum_name,
+                  )
+              ) -> Self {
+                  let (name, field, ix, uuid, children_enum) = tpl;
+                  match children_enum {
+                      #(
+                          #enum_name::#variant(x) => WrappedConcept{
+                              inner: T::[<construct_ #variant:snake:lower>](x, ix, Some((uuid, name.to_string()))),
+                              _phantom_lt: std::marker::PhantomData,
+                          },
+                      )*
+                      _ => panic!("_phantom arm should not be activated"),
+                  }
+              }
+          }
           impl AoristConceptChildren for #enum_name {
             fn get_child_concepts<'a, 'b>(&'a self) -> Vec<Concept<'b>> where 'a : 'b {
               vec![
@@ -119,7 +156,7 @@ impl Builder for EnumBuilder {
               ]
             }
           }
-        })
+        }})
     }
     fn to_concept_token_stream(&self, enum_name: &Ident) -> TokenStream {
         let variant = &self.variant_idents;
