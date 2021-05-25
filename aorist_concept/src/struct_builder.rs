@@ -264,7 +264,6 @@ impl Builder for StructBuilder {
                 // wrapped reference
                 [<#struct_name Children>]<'a>
             )> for WrappedConcept<'a, T> where 
-                T: AoristConcept<'a>,
             #(
                 T: [<CanBe #types>]<'a>,
             )* {

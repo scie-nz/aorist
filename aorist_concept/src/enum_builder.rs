@@ -112,7 +112,6 @@ impl Builder for EnumBuilder {
               // wrapped reference
               &'a #enum_name
           )> for WrappedConcept<'a, T> where 
-              T: AoristConcept<'a>,
           #(
               T: [<CanBe #variant>]<'a>,
           )* {
