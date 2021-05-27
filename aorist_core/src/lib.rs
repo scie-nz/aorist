@@ -12,6 +12,7 @@ pub use object::*;
 pub use parameter_tuple::*;
 
 mod compression;
+mod encoding;
 mod endpoints;
 mod header;
 mod role;
