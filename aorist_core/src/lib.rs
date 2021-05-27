@@ -15,6 +15,7 @@ pub use parameter_tuple::*;
 
 mod role;
 mod user;
+mod user_group;
 
 //pub use constraint::*;
 //pub use user::User;
