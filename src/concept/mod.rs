@@ -7,10 +7,4 @@ pub struct WrappedConcept<'a, T> {
     pub _phantom_lt: std::marker::PhantomData<&'a ()>,
 }
 
-pub trait AoristConceptChildren {
-    fn get_child_concepts<'a, 'b>(&'a self) -> Vec<Concept<'b>>
-    where
-        'a: 'b;
-}
-
 include!(concat!(env!("OUT_DIR"), "/concepts.rs"));

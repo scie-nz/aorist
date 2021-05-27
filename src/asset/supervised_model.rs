@@ -1,7 +1,7 @@
 #![allow(non_snake_case)]
 use crate::algorithms::*;
 use crate::asset::asset::TAsset;
-use crate::concept::{AoristConcept, AoristConceptChildren, WrappedConcept, ConceptEnum, Concept};
+use crate::concept::{AoristConcept, WrappedConcept, ConceptEnum};
 use crate::constraint::Constraint;
 use crate::encoding::*;
 use crate::schema::*;

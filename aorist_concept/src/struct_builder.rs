@@ -225,29 +225,6 @@ impl Builder for StructBuilder {
         }
     }
     fn to_concept_children_token_stream(&self, struct_name: &Ident) -> TokenStream {
-        let (
-            bare_type,
-            vec_type,
-            option_type,
-            option_vec_type,
-            map_value_type,
-            bare_ident,
-            vec_ident,
-            option_ident,
-            option_vec_ident,
-            map_ident,
-        ) = (
-            &self.bare_types,
-            &self.vec_types,
-            &self.option_types,
-            &self.option_vec_types,
-            &self.map_value_types,
-            &self.bare_idents,
-            &self.vec_idents,
-            &self.option_idents,
-            &self.option_vec_idents,
-            &self.map_idents,
-        );
         let types = self.get_all_types();
 
         TokenStream::from(quote! { paste! {
@@ -286,58 +263,6 @@ impl Builder for StructBuilder {
                         )*
                         _ => panic!("_phantom arm should not be activated"),
                     }
-                }
-            }
-            impl AoristConceptChildren for #struct_name {
-                fn get_child_concepts<'a, 'b>(&'a self) -> Vec<Concept<'b>> where 'a : 'b {
-                    let id = Some((
-                        self.get_uuid(),
-                        stringify!(#struct_name).to_string()
-                    ));
-                    let mut concepts = vec![
-                        #(
-                          Concept::#bare_type((
-                              &self.#bare_ident,
-                              0,
-                              id.clone()
-                          )),
-                        )*
-                    ];
-                    #(
-                        if let Some(ref c) = self.#option_ident {
-                            concepts.push(
-                                Concept::#option_type((c, 0, id.clone()))
-                            );
-                        }
-                    )*
-                    #(
-                        for (i, x) in self.#vec_ident.iter().enumerate() {
-                            concepts.push(
-                                Concept::#vec_type((&x, i + 1, id.clone()))
-                            );
-                        }
-                    )*
-                    #(
-                        if let Some(ref v) = self.#option_vec_ident {
-                            for (i, x) in v.iter().enumerate() {
-                                concepts.push(
-                                    Concept::#option_vec_type(
-                                        (&x, i + 1, id.clone())
-                                    )
-                                );
-                            }
-                        }
-                    )*
-                    #(
-                        let mut i = 0;
-                        for v in self.#map_ident.values() {
-                            concepts.push(
-                                Concept::#map_value_type((&v, i + 1, id.clone()))
-                            );
-                            i += 1;
-                        }
-                    )*
-                    concepts
                 }
             }
         }})

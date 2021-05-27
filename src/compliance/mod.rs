@@ -1,8 +1,7 @@
 /* Following prescribed Record of Processing Activity by cnil.fr.
 See: https://www.cnil.fr/en/record-processing-activities */
-use crate::concept::Concept;
 use crate::constraint::Constraint;
-use crate::{AoristConcept, AoristConceptChildren, WrappedConcept, ConceptEnum};
+use crate::{AoristConcept, WrappedConcept, ConceptEnum};
 use aorist_concept::{aorist_concept, Constrainable, ConstrainableWithChildren, InnerObject};
 use aorist_primitives::gdpr_data_type;
 use derivative::Derivative;
