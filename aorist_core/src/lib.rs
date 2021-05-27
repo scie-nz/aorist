@@ -11,6 +11,7 @@ pub use dialect::*;
 pub use object::*;
 pub use parameter_tuple::*;
 
+mod compression;
 mod endpoints;
 mod role;
 mod role_binding;
