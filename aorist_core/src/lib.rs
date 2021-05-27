@@ -13,6 +13,7 @@ pub use parameter_tuple::*;
 
 mod compression;
 mod endpoints;
+mod header;
 mod role;
 mod role_binding;
 mod user;
