@@ -15,6 +15,7 @@ mod compression;
 mod encoding;
 mod endpoints;
 mod header;
+mod layout;
 mod location;
 mod role;
 mod role_binding;
