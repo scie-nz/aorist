@@ -19,5 +19,6 @@ mod layout;
 mod location;
 mod role;
 mod role_binding;
+mod storage;
 mod user;
 mod user_group;
