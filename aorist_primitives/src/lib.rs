@@ -957,6 +957,18 @@ macro_rules! register_concept {
                }
             }
         )+
+        $(
+            impl $element {
+                fn get_descendants<'a>(&'a self) -> Vec<$name<'a>> {
+                    let mut concepts = Vec::new();
+                    for tpl in self.get_children() {
+                        let wrapped_concept = WrappedConcept::from(tpl); 
+                        concepts.push(wrapped_concept.inner);
+                    }
+                    concepts
+                }
+            }
+        )+
         impl <'a> ConceptEnum<'a> for $name<'a> {}
         $(
             impl <'a> TryFrom<$name<'a>> for &'a $element {

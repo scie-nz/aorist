@@ -288,16 +288,6 @@ impl Builder for StructBuilder {
                     }
                 }
             }
-            impl #struct_name {
-                fn get_descendants<'a>(&'a self) -> Vec<Concept<'a>> {
-                    let mut concepts = Vec::new();
-                    for tpl in self.get_children() {
-                        let wrapped_concept = WrappedConcept::from(tpl); 
-                        concepts.push(wrapped_concept.inner);
-                    }
-                    concepts
-                }
-            }
             impl AoristConceptChildren for #struct_name {
                 fn get_child_concepts<'a, 'b>(&'a self) -> Vec<Concept<'b>> where 'a : 'b {
                     let id = Some((
