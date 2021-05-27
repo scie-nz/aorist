@@ -13,5 +13,6 @@ pub use parameter_tuple::*;
 
 mod endpoints;
 mod role;
+mod role_binding;
 mod user;
 mod user_group;
