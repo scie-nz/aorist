@@ -1,4 +1,5 @@
 include Cargo.toml
+recursive-include aorist *
 recursive-include src *
 recursive-include aorist_primitives *
 recursive-include aorist_derive *
