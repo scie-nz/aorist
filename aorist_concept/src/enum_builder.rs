@@ -136,25 +136,6 @@ impl Builder for EnumBuilder {
                   }
               }
           }
-          impl AoristConceptChildren for #enum_name {
-            fn get_child_concepts<'a, 'b>(&'a self) -> Vec<Concept<'b>> where 'a : 'b {
-              vec![
-                  match self {
-                    #(
-                      #enum_name::#variant(x) => Concept::#variant(
-                          (
-                              &x,
-                              0, Some((
-                                  self.get_uuid(),
-                                  stringify!(#enum_name).to_string()
-                              ))
-                          )
-                       ),
-                    )*
-                  }
-              ]
-            }
-          }
         }})
     }
     fn to_concept_token_stream(&self, enum_name: &Ident) -> TokenStream {

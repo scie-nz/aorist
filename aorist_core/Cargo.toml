@@ -10,6 +10,12 @@ edition = "2018"
 name = "aorist_core"
 path = "src/lib.rs"
 
+[profile.release]
+opt-level = 'z'     # Optimize for size.
+lto = true          # Enable Link Time Optimization
+codegen-units = 1   # Reduce number of codegen units to increase optimizations.
+panic = 'abort'     # Abort on panic
+
 [dependencies]
 Inflector = "0.11.4"
 anyhow = "1.0"
@@ -20,11 +26,8 @@ aorist_primitives = {path = "../aorist_primitives"}
 base64 = "0.13.0"
 derivative = "2.1.1"
 enum_dispatch = "0.3.5"
-hyphenation = "0.8.0"
-indoc = "1.0.3"
 linked-hash-map = "0.5.3"
 linked_hash_set = "0.1.4"
-maplit = "1.0.2"
 num = {version="0.4.0", features = ["std"]}
 ordered-float = "2.1.1"
 paste = {git = "https://github.com/scie-nz/paste", branch = "main"}
@@ -33,12 +36,5 @@ serde = { version = "1.0", features = ["derive"] }
 serde_json = "^1.0"
 serde_yaml = "0.8"
 siphasher = "0.3"
-sqlformat = "0.1.5"
-sqlparser = "0.9.0"
-textwrap = {version = "0.13.2", features = ["hyphenation"]}
-thiserror = "^1.0"
 tracing = "0.1"
-tracing-attributes = "0.1"
-tracing-futures = "0.2"
-tracing-subscriber = "0.2"
 uuid = {version = "0.8.1", features = ["v4", "serde"]}
