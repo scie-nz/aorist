@@ -237,10 +237,10 @@ impl Builder for StructBuilder {
                 // ix
                 Option<usize>,
                 // uuid
-                Uuid,
+                Option<Uuid>,
                 // wrapped reference
                 [<#struct_name Children>]<'a>
-            )> for WrappedConcept<'a, T> where 
+            )> for WrappedConcept<'a, T> where
             #(
                 T: [<CanBe #types>]<'a>,
             )* {
@@ -249,7 +249,7 @@ impl Builder for StructBuilder {
                         &str,
                         Option<&str>,
                         Option<usize>,
-                        Uuid,
+                        Option<Uuid>,
                         [<#struct_name Children>]<'a>
                     )
                 ) -> Self {
@@ -257,7 +257,7 @@ impl Builder for StructBuilder {
                     match children_enum {
                         #(
                             [<#struct_name Children>]::#types(x) => WrappedConcept{
-                                inner: T::[<construct_ #types:snake:lower>](x, ix, Some((uuid, name.to_string()))),
+                                inner: T::[<construct_ #types:snake:lower>](x, ix, Some((uuid.unwrap(), name.to_string()))),
                                 _phantom_lt: std::marker::PhantomData,
                             },
                         )*
@@ -291,7 +291,7 @@ impl Builder for StructBuilder {
             &self.option_vec_types,
             &self.map_value_types,
         );
-        
+
         let types = self.get_all_types();
         TokenStream::from(quote! { paste! {
 
@@ -314,15 +314,15 @@ impl Builder for StructBuilder {
             impl <'a> ConceptEnum<'a> for [<#struct_name Children>]<'a> {}
             pub trait [<CanBe #struct_name>]<'a> {
                 fn [<construct_ #struct_name:snake:lower>](
-                    obj_ref: &'a #struct_name, 
-                    ix: Option<usize>, 
+                    obj_ref: &'a #struct_name,
+                    ix: Option<usize>,
                     id: Option<(Uuid, String)>
-                ) -> Self; 
+                ) -> Self;
             }
 
 
             impl <'a> AoristConcept<'a> for #struct_name {
-                
+
                 type TChildrenEnum = [<#struct_name Children>]<'a>;
 
                 fn get_tag(&self) -> Option<String> {
@@ -336,7 +336,7 @@ impl Builder for StructBuilder {
                     // ix
                     Option<usize>,
                     // uuid
-                    Uuid,
+                    Option<Uuid>,
                     // wrapped reference
                     [<#struct_name Children>]<'a>,
                 )> {
@@ -346,7 +346,7 @@ impl Builder for StructBuilder {
                             stringify!(#struct_name),
                             Some(stringify!(#bare_ident)),
                             None,
-                            self.get_uuid(),
+                            self.uuid,
                             [<#struct_name Children>]::#bare_type(&self.#bare_ident)
                         ));
                     )*
@@ -356,7 +356,7 @@ impl Builder for StructBuilder {
                                 stringify!(#struct_name),
                                 Some(stringify!(#option_ident)),
                                 None,
-                                self.get_uuid(),
+                                self.uuid,
                                 [<#struct_name Children>]::#option_type(c)
                             ));
                         }
@@ -367,7 +367,7 @@ impl Builder for StructBuilder {
                                 stringify!(#struct_name),
                                 Some(stringify!(#vec_ident)),
                                 Some(ix),
-                                self.get_uuid(),
+                                self.uuid,
                                 [<#struct_name Children>]::#vec_type(elem)
                             ));
                         }
@@ -379,7 +379,7 @@ impl Builder for StructBuilder {
                                     stringify!(#struct_name),
                                     Some(stringify!(#option_vec_ident)),
                                     Some(ix),
-                                    self.get_uuid(),
+                                    self.uuid,
                                     [<#struct_name Children>]::#option_vec_type(elem)
                                 ));
                             }
@@ -391,7 +391,7 @@ impl Builder for StructBuilder {
                                 stringify!(#struct_name),
                                 Some(stringify!(#map_ident)),
                                 None,
-                                self.get_uuid(),
+                                self.uuid,
                                 [<#struct_name Children>]::#map_value_type(elem)
                             ));
                         }
@@ -402,7 +402,7 @@ impl Builder for StructBuilder {
                     if let Some(uuid) = self.uuid {
                         return uuid.clone();
                     }
-                    panic!("Uuid was not set on object.");
+                    panic!("Uuid was not set on object of type {}.", stringify!(#struct_name));
                 }
                 fn get_children_uuid(&self) -> Vec<Uuid> {
                     self.get_children().iter().map(|x| x.4.get_uuid()).collect()
