@@ -89,7 +89,7 @@ conda search -c ~/channel-name/ --override-channels
 # OR
 conda search aorist -c ~/channel-name/ --override-channels
 ```
-#### 4.3. Installing Conda package from local channel
+## 5. Installing Conda package from local channel
 ```python
 conda install -c ~/channel-name/linux-64/aorist-0.0.1-py38_1.tar.bz2
 ```
