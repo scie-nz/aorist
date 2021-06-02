@@ -1,4 +1,4 @@
-# BUILDING AORIST LIBRARY (Quick quide)
+# BUILDING CONDA PACKAGE (Quick quide)
 ## 1. Tools required
 - [*conda-build*](https://docs.conda.io/_/downloads/conda-build/en/latest/pdf/), [*wheel*](https://pypi.org/project/setuptools-rust/), [*setuptools*](https://pypi.org/project/setuptools/), [*setuptools-rust*](https://pypi.org/project/setuptools-rust/), [*maturin*](https://pypi.org/project/maturin/) 
 ```python
@@ -89,7 +89,7 @@ conda search -c ~/channel-name/ --override-channels
 # OR
 conda search aorist -c ~/channel-name/ --override-channels
 ```
-#### 4.3. Installing Conda package from local channel
+## 5. Installing Conda package from local channel
 ```python
 conda install -c ~/channel-name/linux-64/aorist-0.0.1-py38_1.tar.bz2
 ```
