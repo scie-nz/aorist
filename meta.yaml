@@ -14,8 +14,8 @@ requirements:
   host:
     - pip
     - python
-    - maturin
-    - toml
+    #- maturin # Use with maturin only
+    #- toml # Use with maturin only
     - setuptools-rust
     - setuptools
     - wheel
