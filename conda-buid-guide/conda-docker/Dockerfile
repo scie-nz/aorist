@@ -1,9 +1,7 @@
-FROM konstin2/maturin
+FROM quay.io/pypa/manylinux2014_x86_64
 RUN yum install -y R-core
 RUN yum install -y devtoolset-7 llvm-toolset-7
-#RUN scl enable devtoolset-7 llvm-toolset-7 bash
-RUN yum update scl-utils 
-RUN source scl_source enable devtoolset-7
+RUN scl enable devtoolset-7 llvm-toolset-7 bash
 RUN yum install -y epel-release
 RUN yum install -y clang
 ENV R_INCLUDE_DIR=/usr/lib64/R/lib
