@@ -77,3 +77,7 @@ or
 conda config --add channels channel-name/ # Add a new channel (containing aorist)
 conda install aorist
 ```
+Test Aorist library with the commands
+```python
+from aorist import DataSet
+```

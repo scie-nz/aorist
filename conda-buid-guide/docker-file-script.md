@@ -1,5 +1,5 @@
 # Docker File Script
-Orignal [manylinux2014_x86_64](quay.io/pypa/manylinux2014_x86_64) Docker image  doesn't 'work for the Aorist library, we rebuilt our Docker image for manylinux conversion named `docker-conda-image`. To create `docker-conda-image`, create `Dockerfile` and `build.sh` following the scripts and run the commands in the `quick-guide-conda-build.md` document.
+Since the orignal [manylinux2014_x86_64](quay.io/pypa/manylinux2014_x86_64) Docker image  doesn't 'work for the Aorist library, we rebuilt our Docker image for manylinux conversion named `docker-conda-image`. To build `docker-conda-image`, `Dockerfile` and `build.sh` must be scripted as below:
 
 ### `Dockerfile` 
 ```python

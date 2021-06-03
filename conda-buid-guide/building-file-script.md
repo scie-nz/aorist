@@ -1,4 +1,5 @@
 # Building File Script
+To build the wheel file, `setup.py`, `MANIFEST.in`, `pyproject.toml`, and `build-wheels.sh` must be scripted as below: 
 
 ### `setup.py` 
 ```python
@@ -57,6 +58,7 @@ for PYBIN in /opt/python/cp{36,37,38,39}*/bin; do
             auditwheel repair "$whl" -w dist/
             done
 ```
+To build the Conda packge, `meta.yaml` and `build.sh` must be scripted as below: 
 
 ### `meta.yaml`
 ```python
