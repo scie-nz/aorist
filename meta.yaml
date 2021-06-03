@@ -2,6 +2,9 @@ package:
   name: "aorist"
   version: "0.0.1"
 
+source:
+  path: .
+
 build:
   number: 1
   entry_points:
@@ -25,7 +28,7 @@ about:
   home: "https://github.com/giswqs/whitebox"
   license: MIT
   license_family: MIT
-  license_file: 
+  license_file:
   summary: "An advanced geospatial data analysis platform"
-  doc_url: 
-  dev_url: 
+  doc_url:
+  dev_url:
