@@ -19,10 +19,15 @@ requirements:
     - setuptools-rust
     - setuptools
     - wheel
+    - conda-build
+    - astor==0.8.1
+    - black
   run:
     - python
     - pip
     - wheel
+    - astor==0.8.1
+    - black
 
 about:
   home: "https://github.com/giswqs/whitebox"
