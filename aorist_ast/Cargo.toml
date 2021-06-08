@@ -10,8 +10,10 @@ edition = "2018"
 aorist_concept = {path = "../aorist_concept"}
 aorist_derive = {path = "../aorist_derive"}
 aorist_primitives = {path = "../aorist_primitives"}
-extendr-api = {git = "https://github.com/nickbp/extendr", branch = "master"}
+# workaround for failure to build on ARM on 0.2.0
+# switch back to upstream once a >0.2.0 release with this commit is published: https://github.com/extendr/extendr/commit/da8c95c
+extendr-api = {git = "https://github.com/extendr/extendr", rev = "da8c95c"}
 Inflector = "0.11.4"
 linked-hash-map = "0.5.3"
-pyo3 = {version = "0.13.2", features=["auto-initialize"]}
+pyo3 = {version = "0.13.2", features = ["auto-initialize"]}
 uuid = {version = "0.8.1", features = ["v4", "serde"]}

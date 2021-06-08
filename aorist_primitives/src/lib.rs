@@ -957,6 +957,19 @@ macro_rules! register_concept {
                }
             }
         )+
+        $(
+            impl $element {
+                fn get_descendants<'a>(&'a self) -> Vec<$name<'a>> {
+                    let mut concepts = Vec::new();
+                    for tpl in self.get_children() {
+                        let wrapped_concept = WrappedConcept::from(tpl); 
+                        concepts.push(wrapped_concept.inner);
+                    }
+                    concepts
+                }
+            }
+        )+
+
         impl <'a> ConceptEnum<'a> for $name<'a> {}
         $(
             impl <'a> TryFrom<$name<'a>> for &'a $element {
@@ -1050,7 +1063,7 @@ macro_rules! register_concept {
             pub fn get_child_concepts<'b>(&'a self) -> Vec<$name<'b>> where 'a : 'b {
                 match self {
                     $(
-                        $name::$element((x, _, _)) => x.get_child_concepts(),
+                        $name::$element((x, _, _)) => x.get_descendants(),
                     )*
                 }
             }
@@ -1059,7 +1072,7 @@ macro_rules! register_concept {
                     $(
                         $name::$element((ref x, idx, parent)) => {
                             debug!("Visiting concept {}: {}", stringify!($element), x.get_uuid());
-                            for child in x.get_child_concepts() {
+                            for child in x.get_descendants() {
                                 child.populate_child_concept_map(concept_map);
                             }
                             concept_map.insert(

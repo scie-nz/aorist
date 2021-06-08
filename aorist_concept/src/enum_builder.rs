@@ -108,10 +108,10 @@ impl Builder for EnumBuilder {
               // ix
               Option<usize>,
               // uuid
-              Uuid,
+              Option<Uuid>,
               // wrapped reference
               &'a #enum_name
-          )> for WrappedConcept<'a, T> where 
+          )> for WrappedConcept<'a, T> where
           #(
               T: [<CanBe #variant>]<'a>,
           )* {
@@ -120,7 +120,7 @@ impl Builder for EnumBuilder {
                       &str,
                       Option<&str>,
                       Option<usize>,
-                      Uuid,
+                      Option<Uuid>,
                       &'a #enum_name,
                   )
               ) -> Self {
@@ -128,32 +128,13 @@ impl Builder for EnumBuilder {
                   match children_enum {
                       #(
                           #enum_name::#variant(x) => WrappedConcept{
-                              inner: T::[<construct_ #variant:snake:lower>](x, ix, Some((uuid, name.to_string()))),
+                              inner: T::[<construct_ #variant:snake:lower>](x, ix, Some((uuid.unwrap(), name.to_string()))),
                               _phantom_lt: std::marker::PhantomData,
                           },
                       )*
                       _ => panic!("_phantom arm should not be activated"),
                   }
               }
-          }
-          impl AoristConceptChildren for #enum_name {
-            fn get_child_concepts<'a, 'b>(&'a self) -> Vec<Concept<'b>> where 'a : 'b {
-              vec![
-                  match self {
-                    #(
-                      #enum_name::#variant(x) => Concept::#variant(
-                          (
-                              &x,
-                              0, Some((
-                                  self.get_uuid(),
-                                  stringify!(#enum_name).to_string()
-                              ))
-                          )
-                       ),
-                    )*
-                  }
-              ]
-            }
           }
         }})
     }
@@ -163,10 +144,10 @@ impl Builder for EnumBuilder {
           impl <'a> ConceptEnum<'a> for &'a #enum_name {}
           pub trait [<CanBe #enum_name>]<'a> {
               fn [<construct_ #enum_name:snake:lower>] (
-                  obj_ref: &'a #enum_name, 
-                  ix: Option<usize>, 
+                  obj_ref: &'a #enum_name,
+                  ix: Option<usize>,
                   id: Option<(Uuid, String)>
-              ) -> Self; 
+              ) -> Self;
           }
           impl <'a> AoristConcept<'a> for #enum_name {
             type TChildrenEnum = &'a #enum_name;
@@ -178,14 +159,14 @@ impl Builder for EnumBuilder {
                 // ix
                 Option<usize>,
                 // uuid
-                Uuid,
+                Option<Uuid>,
                 &'a #enum_name
             )> {
                 vec![(
                     stringify!(#enum_name),
                     None,
                     None,
-                    self.get_uuid(),
+                    Some(self.get_uuid()),
                     &self
                 )]
             }

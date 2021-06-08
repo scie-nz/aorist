@@ -1,6 +1,6 @@
 #![allow(non_snake_case)]
 
-use crate::concept::{AoristConcept, AoristConceptChildren, WrappedConcept, ConceptEnum, Concept};
+use crate::concept::{AoristConcept, WrappedConcept, ConceptEnum};
 use crate::constraint::*;
 use crate::encoding::*;
 use crate::layout::*;

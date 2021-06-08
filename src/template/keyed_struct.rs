@@ -1,7 +1,7 @@
 #![allow(non_snake_case)]
 
 use crate::attributes::*;
-use crate::concept::{AoristConcept, AoristConceptChildren, WrappedConcept, ConceptEnum, Concept};
+use crate::concept::{AoristConcept, WrappedConcept, ConceptEnum};
 use crate::constraint::Constraint;
 use crate::template::datum_template::TDatumTemplate;
 
