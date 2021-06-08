@@ -269,11 +269,10 @@ spec:
   dialect: R
   preamble: |
     download.data.from.remote.web.location <- function(src_url, tmp_dir, dest_file_name, table_name, dataset_name) {
-        path <- paste(tmp_dir, dataset_name, table_name, sep='/')
-        if (!dir.exists(path)) {
-            dir.create(path, recursive=TRUE)
+        if (!dir.exists(tmp_dir)) {
+            dir.create(tmp_dir, recursive=TRUE)
         }
-        dest <- paste(path, dest_file_name, sep='/')
+        dest <- paste(tmp_dir, dest_file_name, sep='/')
         download.file(src_url, dest)
     }
   call: download.data.from.remote.web.location
