@@ -1,0 +1,39 @@
+package:
+  name: "aorist"
+  version: "0.0.1"
+
+source:
+  path: .
+
+build:
+  number: 1
+  entry_points:
+    - aorist=aorist:main
+
+requirements:
+  host:
+    - pip
+    - python
+    #- maturin # Use with maturin only
+    #- toml # Use with maturin only
+    - setuptools-rust
+    - setuptools
+    - wheel
+    - conda-build
+    - astor==0.8.1
+    - black
+  run:
+    - python
+    - pip
+    - wheel
+    - astor==0.8.1
+    - black
+
+about:
+  home: "https://github.com/giswqs/whitebox"
+  license: MIT
+  license_family: MIT
+  license_file:
+  summary: "An advanced geospatial data analysis platform"
+  doc_url:
+  dev_url:
