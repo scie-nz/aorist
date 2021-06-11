@@ -1,16 +1,13 @@
 /* Following prescribed Record of Processing Activity by cnil.fr.
 See: https://www.cnil.fr/en/record-processing-activities */
-use crate::constraint::Constraint;
-use crate::{AoristConcept, WrappedConcept, ConceptEnum};
-use aorist_concept::{aorist_concept, Constrainable, ConstrainableWithChildren, InnerObject};
+use crate::{AoristConcept, ConceptEnum};
+use aorist_concept::{aorist, Constrainable};
 use derivative::Derivative;
 use paste::paste;
-use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
-use std::sync::{Arc, RwLock};
 use uuid::Uuid;
 
-#[derive(PartialEq, Debug, Eq, Clone, Hash, Serialize, Deserialize, FromPyObject)]
+#[derive(PartialEq, Debug, Eq, Clone, Hash, Serialize, Deserialize)]
 pub struct GDPRStakeholder {
     name: String,
     street_address: String,
@@ -22,7 +19,7 @@ pub struct GDPRStakeholder {
     external_organization_name: Option<String>,
 }
 
-#[derive(PartialEq, Debug, Eq, Clone, Hash, Serialize, Deserialize, FromPyObject)]
+#[derive(PartialEq, Debug, Eq, Clone, Hash, Serialize, Deserialize)]
 pub struct GDPRDataProcessingPurpose {
     main_purpose: String,
     sub_purposes: Option<Vec<String>>,
@@ -32,7 +29,7 @@ pub struct GDPRDataProcessingPurpose {
 macro_rules! gdpr_data_type {
     ($name:ident
      $(, $field: ident : $field_type: ty)*) => {
-        #[derive(Hash, PartialEq, Eq, Clone, Debug, Serialize, Deserialize, FromPyObject)]
+        #[derive(Hash, PartialEq, Eq, Clone, Debug, Serialize, Deserialize)]
         pub struct $name {
             description: String,
             $(
@@ -72,7 +69,7 @@ gdpr_data_type! {SexLifeAndOrientationData}
 
 gdpr_data_type! {CriminalConvictionAndOffenceData}
 
-#[derive(PartialEq, Debug, Eq, Clone, Hash, Serialize, Deserialize, FromPyObject)]
+#[derive(PartialEq, Debug, Eq, Clone, Hash, Serialize, Deserialize)]
 pub enum GDPRPersonalDataCategory {
     PersonalIdentificationData(PersonalIdentificationData),
     PersonalLifeData(PersonalLifeData),
@@ -91,7 +88,7 @@ pub enum GDPRPersonalDataCategory {
     CriminalConvictionAndOffenceData(CriminalConvictionAndOffenceData),
 }
 
-#[derive(PartialEq, Debug, Eq, Clone, Hash, Serialize, Deserialize, FromPyObject)]
+#[derive(PartialEq, Debug, Eq, Clone, Hash, Serialize, Deserialize)]
 pub enum GDPRDataSubjectCategory {
     Employees(String),
     InternalServices(String),
@@ -103,7 +100,7 @@ pub enum GDPRDataSubjectCategory {
     Other(String),
 }
 
-#[derive(PartialEq, Debug, Eq, Clone, Hash, Serialize, Deserialize, FromPyObject)]
+#[derive(PartialEq, Debug, Eq, Clone, Hash, Serialize, Deserialize)]
 pub enum GDPRDataProcessingRecipient {
     InternalDepartment(String),
     Processor(String),
@@ -112,7 +109,7 @@ pub enum GDPRDataProcessingRecipient {
     Other(String),
 }
 
-#[derive(PartialEq, Debug, Eq, Clone, Hash, Serialize, Deserialize, FromPyObject)]
+#[derive(PartialEq, Debug, Eq, Clone, Hash, Serialize, Deserialize)]
 pub struct GDPRProcessorRecord {
     unique_short_name: String,
     name_of_processing_operation: String,
@@ -127,7 +124,7 @@ pub struct GDPRProcessorRecord {
     data_processing_recipients: Vec<GDPRDataProcessingRecipient>,
 }
 
-#[derive(PartialEq, Debug, Eq, Clone, Hash, Serialize, Deserialize, FromPyObject)]
+#[derive(PartialEq, Debug, Eq, Clone, Hash, Serialize, Deserialize)]
 pub struct GDPRSecurityMeasuresStatement {
     traceability: Vec<String>,
     software_protection: Vec<String>,
@@ -138,7 +135,7 @@ pub struct GDPRSecurityMeasuresStatement {
     other: Vec<String>,
 }
 
-#[derive(PartialEq, Debug, Eq, Clone, Hash, Serialize, Deserialize, FromPyObject)]
+#[derive(PartialEq, Debug, Eq, Clone, Hash, Serialize, Deserialize)]
 pub enum GDPRDataTransferGuarantee {
     StandardContractualClauses(String),
     BindingCorporateRules(String),
@@ -149,7 +146,7 @@ pub enum GDPRDataTransferGuarantee {
     DerogationsPerArticle49GDPR(String),
 }
 
-#[derive(PartialEq, Debug, Eq, Clone, Hash, Serialize, Deserialize, FromPyObject)]
+#[derive(PartialEq, Debug, Eq, Clone, Hash, Serialize, Deserialize)]
 pub struct GDPRThirdPartyCountryOrInternationalOrganizationTransferRecord {
     recipient_organization_name: String,
     iso_3166_2c_country_code: String,
@@ -157,7 +154,7 @@ pub struct GDPRThirdPartyCountryOrInternationalOrganizationTransferRecord {
     links_to_relevant_documents: Option<Vec<String>>,
 }
 
-#[aorist_concept]
+#[aorist]
 pub struct ComplianceConfig {
     description: String,
     data_about_human_subjects: bool,

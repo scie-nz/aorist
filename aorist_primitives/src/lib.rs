@@ -122,19 +122,6 @@ macro_rules! register_ast_nodes {
         }
     }
 }
-#[macro_export]
-macro_rules! gdpr_data_type {
-    ($name:ident
-     $(, $field: ident : $field_type: ty)*) => {
-        #[derive(Hash, PartialEq, Eq, Clone, Debug, Serialize, Deserialize, FromPyObject)]
-        pub struct $name {
-            description: String,
-            $(
-                $field: $field_type,
-            )*
-        }
-     };
-}
 
 #[macro_export]
 macro_rules! define_task_node {
@@ -182,6 +169,7 @@ macro_rules! define_task_node {
         }
     };
 }
+
 #[macro_export]
 macro_rules! register_task_nodes {
     ($name:ident, $import_type: ty, $($variant: ident,)+) => {
@@ -296,6 +284,7 @@ macro_rules! define_ast_node {
         }
     };
 }
+
 #[macro_export]
 macro_rules! define_program {
     ($name:ident, $root:ident, $constraint:ident, $satisfy_type:ident,
@@ -590,6 +579,7 @@ macro_rules! define_constraint {
         }
     };
 }
+
 #[macro_export]
 macro_rules! register_constraint {
     ( $name:ident, $lt: lifetime, $clt: lifetime, $($element: ident),+ ) => { paste::item! {
@@ -774,6 +764,7 @@ macro_rules! register_constraint {
         }}
     }
 }
+
 #[macro_export]
 macro_rules! register_attribute {
     ( $name:ident, $($element: ident),+ ) => { paste! {
