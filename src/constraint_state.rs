@@ -1,5 +1,5 @@
 use crate::concept::{Concept, ConceptAncestry};
-use crate::constraint::{SatisfiableOuterConstraint, Constraint, OuterConstraint};
+use crate::constraint::{Constraint, OuterConstraint, SatisfiableOuterConstraint};
 use crate::object::TAoristObject;
 use anyhow::{bail, Result};
 use aorist_ast::{AncestorRecord, Formatted, SimpleIdentifier, StringLiteral, AST};

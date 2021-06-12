@@ -1,7 +1,7 @@
 #![allow(non_snake_case)]
 use crate::compression::gzip_compression::*;
 use crate::compression::zip_compression::*;
-use crate::concept::{AoristConcept, WrappedConcept, ConceptEnum};
+use crate::concept::{AoristConcept, ConceptEnum, WrappedConcept};
 use aorist_concept::{aorist_concept, Constrainable, ConstrainableWithChildren, InnerObject};
 use paste::paste;
 use pyo3::prelude::*;
