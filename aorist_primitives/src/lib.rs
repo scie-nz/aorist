@@ -815,49 +815,49 @@ macro_rules! register_attribute {
                     )+
                 }
             }
-            fn get_sql_type(&self) -> DataType {
+            pub fn get_sql_type(&self) -> DataType {
                 match self {
                     $(
                         [<$name Enum>]::$element(x) => x.get_sql_type(),
                     )+
                 }
             }
-            fn get_presto_type(&self) -> String {
+            pub fn get_presto_type(&self) -> String {
                 match self {
                     $(
                         [<$name Enum>]::$element(x) => x.get_presto_type(),
                     )+
                 }
             }
-            fn get_sqlite_type(&self) -> String {
+            pub fn get_sqlite_type(&self) -> String {
                 match self {
                     $(
                         [<$name Enum>]::$element(x) => x.get_sqlite_type(),
                     )+
                 }
             }
-            fn get_postgres_type(&self) -> String {
+            pub fn get_postgres_type(&self) -> String {
                 match self {
                     $(
                         [<$name Enum>]::$element(x) => x.get_postgres_type(),
                     )+
                 }
             }
-            fn psycopg2_value_json_serializable(&self) -> bool {
+            pub fn psycopg2_value_json_serializable(&self) -> bool {
                 match self {
                     $(
                         [<$name Enum>]::$element(x) => x.psycopg2_value_json_serializable(),
                     )+
                 }
             }
-            fn get_bigquery_type(&self) -> String {
+            pub fn get_bigquery_type(&self) -> String {
                 match self {
                     $(
                         [<$name Enum>]::$element(x) => x.get_bigquery_type(),
                     )+
                 }
             }
-            fn get_orc_type(&self) -> String {
+            pub fn get_orc_type(&self) -> String {
                 match self {
                     $(
                         [<$name Enum>]::$element(x) => x.get_orc_type(),
@@ -891,22 +891,22 @@ macro_rules! register_attribute {
             pub fn get_comment(&self) -> &Option<String> {
                 self.inner.get_comment()
             }
-            fn get_sql_type(&self) -> DataType {
+            pub fn get_sql_type(&self) -> DataType {
                 self.inner.get_sql_type()
             }
-            fn get_presto_type(&self) -> String {
+            pub fn get_presto_type(&self) -> String {
                 self.inner.get_presto_type()
             }
-            fn get_sqlite_type(&self) -> String {
+            pub fn get_sqlite_type(&self) -> String {
                 self.inner.get_sqlite_type()
             }
-            fn get_postgres_type(&self) -> String {
+            pub fn get_postgres_type(&self) -> String {
                 self.inner.get_postgres_type()
             }
-            fn get_bigquery_type(&self) -> String {
+            pub fn get_bigquery_type(&self) -> String {
                 self.inner.get_bigquery_type()
             }
-            fn get_orc_type(&self) -> String {
+            pub fn get_orc_type(&self) -> String {
                 self.inner.get_orc_type()
             }
         }

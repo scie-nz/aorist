@@ -1,8 +1,8 @@
-#![allow(dead_code)]
 pub use crate::sql_parser::AttrMap;
 use indoc::formatdoc;
 use num::Float;
 use sqlparser::ast::{BinaryOperator, ColumnDef, DataType, Expr, Ident, Value};
+use aorist_core::ConceptEnum;
 pub trait TValue {}
 
 #[derive(Hash, PartialEq, Eq, Debug, Serialize, Deserialize, Clone, FromPyObject)]
@@ -10,13 +10,13 @@ pub struct IntegerValue {
     inner: i64,
 }
 impl IntegerValue {
-    fn try_from(x: String) -> Result<Self, String> {
+    pub fn try_from(x: String) -> Result<Self, String> {
         match x.parse::<i64>() {
             Ok(val) => Ok(Self { inner: val }),
             Err(_) => Err(format!("Could not parse {} as int.", &x).into()),
         }
     }
-    fn as_sql(&self) -> String {
+    pub fn as_sql(&self) -> String {
         format!("{}", self.inner).to_string()
     }
 }
@@ -25,10 +25,10 @@ pub struct StringValue {
     inner: String,
 }
 impl StringValue {
-    fn from(inner: String) -> Self {
+    pub fn from(inner: String) -> Self {
         Self { inner }
     }
-    fn as_sql(&self) -> String {
+    pub fn as_sql(&self) -> String {
         format!("\"{}\"", self.inner).to_string()
     }
 }
@@ -39,7 +39,7 @@ pub struct FloatValue {
     exponent: i16,
 }
 impl FloatValue {
-    fn try_from(x: String) -> Result<Self, String> {
+    pub fn try_from(x: String) -> Result<Self, String> {
         match x.parse::<f64>() {
             Ok(val) => {
                 let (mantissa, exponent, sign) = Float::integer_decode(val);
@@ -52,7 +52,7 @@ impl FloatValue {
             Err(_) => Err(format!("Could not parse {} as float.", &x).into()),
         }
     }
-    fn as_sql(&self) -> String {
+    pub fn as_sql(&self) -> String {
         let num = 2.0f64;
         let sign_f = self.sign as f64;
         let mantissa_f = self.mantissa as f64;
@@ -72,7 +72,7 @@ pub enum AttributeValue {
     FloatValue(FloatValue),
 }
 impl AttributeValue {
-    fn try_from(x: Expr) -> Result<Self, String> {
+    pub fn try_from(x: Expr) -> Result<Self, String> {
         match x {
             Expr::Value(val) => match val {
                 Value::Number(inner, _) => match inner.contains(".") {
@@ -85,7 +85,7 @@ impl AttributeValue {
             _ => Err("Only values supported as nodes".into()),
         }
     }
-    fn as_sql(&self) -> String {
+    pub fn as_sql(&self) -> String {
         match &self {
             AttributeValue::IntegerValue(x) => x.as_sql(),
             AttributeValue::StringValue(x) => x.as_sql(),
@@ -174,10 +174,9 @@ pub trait TBigQueryAttribute: TAttribute {
 }
 
 include!(concat!(env!("OUT_DIR"), "/attributes.rs"));
-include!(concat!(env!("OUT_DIR"), "/programs.rs"));
 
 impl Attribute {
-    fn try_from(x: Expr, attr: &AttrMap) -> Result<Self, String> {
+    pub fn try_from(x: Expr, attr: &AttrMap) -> Result<Self, String> {
         match x {
             Expr::Identifier(_) => Err(
                 "Simple identifiers not supported for now. Please prefix with table name".into(),
@@ -218,13 +217,13 @@ pub enum AttributeOrValue {
     Value(AttributeValue),
 }
 impl AttributeOrValue {
-    fn as_sql(&self) -> String {
+    pub fn as_sql(&self) -> String {
         match &self {
             AttributeOrValue::Attribute(x) => x.get_name().clone(),
             AttributeOrValue::Value(x) => x.as_sql(),
         }
     }
-    fn try_from(x: Expr, attr: &AttrMap) -> Result<Self, String> {
+    pub fn try_from(x: Expr, attr: &AttrMap) -> Result<Self, String> {
         match x {
             Expr::Identifier { .. } | Expr::CompoundIdentifier { .. } => {
                 Ok(Self::Attribute(Attribute::try_from(x, attr)?))
@@ -241,7 +240,7 @@ pub enum PredicateInnerOrTerminal {
     PredicateInner(Box<PredicateInner>),
 }
 impl PredicateInnerOrTerminal {
-    fn try_from(x: Expr, attr: &AttrMap) -> Result<Self, String> {
+    pub fn try_from(x: Expr, attr: &AttrMap) -> Result<Self, String> {
         match x {
             Expr::BinaryOp { .. } => Ok(Self::PredicateInner(Box::new(PredicateInner::try_from(
                 x, attr,
@@ -252,7 +251,7 @@ impl PredicateInnerOrTerminal {
             _ => Err("Only Binary operators, identifiers or values supported as nodes".into()),
         }
     }
-    fn as_sql(&self) -> String {
+    pub fn as_sql(&self) -> String {
         match &self {
             PredicateInnerOrTerminal::PredicateTerminal(x) => x.as_sql(),
             PredicateInnerOrTerminal::PredicateInner(x) => format!("({})", x.as_sql()).to_string(),
@@ -270,7 +269,7 @@ pub enum Operator {
     LtEq(String),
 }
 impl Operator {
-    fn as_sql(&self) -> String {
+    pub fn as_sql(&self) -> String {
         match &self {
             Operator::GtEq(_) => ">=".to_string(),
             Operator::Gt(_) => ">".to_string(),
@@ -343,7 +342,7 @@ impl Predicate {
             _ => Err("Only binary operators supported.".into()),
         }
     }
-    fn as_sql(&self) -> String {
+    pub fn as_sql(&self) -> String {
         self.root.as_sql()
     }
 }
@@ -497,7 +496,7 @@ impl AttributeOrTransform {
             AttributeOrTransform::Transform(x) => x.get_comment(),
         }
     }
-    fn get_sql_type(&self) -> DataType {
+    pub fn get_sql_type(&self) -> DataType {
         match &self {
             AttributeOrTransform::Attribute(x) => x.get_sql_type(),
             AttributeOrTransform::Transform(x) => x.get_sql_type(),
