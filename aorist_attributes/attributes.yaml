@@ -1,0 +1,693 @@
+---
+type: Attribute
+spec:
+  name: KeyStringIdentifier
+  orc: OrcString
+  presto: PrestoVarchar
+  sql: SQLVarchar
+  sqlite: SQLiteText
+  bigquery: BigQueryString
+  postgres: PostgresText
+  value: StringValue
+---
+type: Attribute
+spec:
+  name: KeyInt64Identifier
+  orc: OrcBigint
+  presto: PrestoBigint
+  sql: SQLBigint
+  sqlite: SQLiteInteger
+  bigquery: BigQueryInt64
+  postgres: PostgresBigInt
+  value: IntegerValue
+---
+type: Attribute
+spec:
+  name: Empty
+  orc: OrcString
+  presto: PrestoVarchar
+  sql: SQLVarchar
+  sqlite: SQLiteText
+  bigquery: BigQueryString
+  postgres: PostgresText
+  value: StringValue
+---
+type: Attribute
+spec:
+  name: NumericIdentifier
+  orc: OrcBigint
+  presto: PrestoBigint
+  sql: SQLBigint
+  sqlite: SQLiteInteger
+  bigquery: BigQueryInt64
+  postgres: PostgresBigInt
+  value: IntegerValue
+---
+type: Attribute
+spec:
+  name: StringIdentifier
+  orc: OrcString
+  presto: PrestoVarchar
+  sql: SQLVarchar
+  sqlite: SQLiteText
+  bigquery: BigQueryString
+  postgres: PostgresText
+  value: StringValue
+---
+type: Attribute
+spec:
+  name: POSIXTimestamp
+  orc: OrcBigint
+  presto: PrestoBigint
+  sql: SQLBigint
+  sqlite: SQLiteInteger
+  bigquery: BigQueryInt64
+  postgres: PostgresBigInt
+  value: IntegerValue
+---
+type: Attribute
+spec:
+  name: Int64
+  orc: OrcBigint
+  presto: PrestoBigint
+  sql: SQLBigint
+  sqlite: SQLiteInteger
+  bigquery: BigQueryInt64
+  postgres: PostgresBigInt
+  value: IntegerValue
+---
+type: Attribute
+spec:
+  name: Int64Identifier
+  orc: OrcBigint
+  presto: PrestoBigint
+  sql: SQLBigint
+  sqlite: SQLiteInteger
+  bigquery: BigQueryInt64
+  postgres: PostgresBigInt
+  value: IntegerValue
+---
+type: Attribute
+spec:
+  name: FloatLatitude
+  orc: OrcFloat
+  presto: PrestoDouble
+  sql: SQLReal
+  sqlite: SQLiteReal
+  bigquery: BigQueryFloat64
+  postgres: PostgresReal
+  value: FloatValue
+---
+type: Attribute
+spec:
+  name: FloatLongitude
+  orc: OrcFloat
+  presto: PrestoDouble
+  sql: SQLReal
+  sqlite: SQLiteReal
+  bigquery: BigQueryFloat64
+  postgres: PostgresReal
+  value: FloatValue
+---
+type: Attribute
+spec:
+  name: URI
+  orc: OrcString
+  presto: PrestoVarchar
+  sql: SQLVarchar
+  sqlite: SQLiteText
+  bigquery: BigQueryString
+  postgres: PostgresText
+  value: StringValue
+---
+type: Attribute
+spec:
+  name: Count
+  orc: OrcBigint
+  presto: PrestoBigint
+  sql: SQLBigint
+  sqlite: SQLiteInteger
+  bigquery: BigQueryInt64
+  postgres: PostgresBigInt
+  value: IntegerValue
+---
+type: Attribute
+spec:
+  name: PositiveFloat
+  orc: OrcFloat
+  presto: PrestoDouble
+  sql: SQLReal
+  sqlite: SQLiteReal
+  bigquery: BigQueryFloat64
+  postgres: PostgresReal
+  value: FloatValue
+---
+type: Attribute
+spec:
+  name: Categorical
+  orc: OrcBigint
+  presto: PrestoBigint
+  sql: SQLBigint
+  sqlite: SQLiteInteger
+  bigquery: BigQueryInt64
+  postgres: PostgresBigInt
+  value: StringValue
+---
+type: Attribute
+spec:
+  name: Factor
+  orc: OrcString
+  presto: PrestoVarchar
+  sql: SQLVarchar
+  sqlite: SQLiteText
+  bigquery: BigQueryString
+  postgres: PostgresText
+  value: StringValue
+---
+type: Attribute
+spec:
+  name: DateString
+  orc: OrcString
+  presto: PrestoVarchar
+  sql: SQLVarchar
+  sqlite: SQLiteText
+  bigquery: BigQueryString
+  postgres: PostgresText
+  value: StringValue
+---
+type: Attribute
+spec:
+  name: FloatPrediction
+  orc: OrcFloat
+  presto: PrestoDouble
+  sql: SQLReal
+  sqlite: SQLiteReal
+  bigquery: BigQueryFloat64
+  postgres: PostgresReal
+  value: FloatValue
+---
+type: Attribute
+spec:
+  name: Regressor
+  orc: OrcString
+  presto: PrestoVarchar
+  sql: SQLVarchar
+  sqlite: SQLiteText
+  bigquery: BigQueryString
+  postgres: PostgresText
+  value: StringValue
+---
+type: Attribute
+spec:
+  name: FreeText
+  orc: OrcString
+  presto: PrestoVarchar
+  sql: SQLVarchar
+  sqlite: SQLiteText
+  bigquery: BigQueryString
+  postgres: PostgresText
+  value: StringValue
+---
+type: Attribute
+spec:
+  name: ISO8601Timestamp
+  orc: OrcString
+  presto: PrestoVarchar
+  sql: SQLVarchar
+  sqlite: SQLiteText
+  bigquery: BigQueryString
+  postgres: PostgresText
+  value: StringValue
+---
+type: Attribute
+spec:
+  name: FromPostgresText
+  orc: OrcString
+  presto: PrestoVarchar
+  sql: SQLVarchar
+  sqlite: SQLiteText
+  bigquery: BigQueryString
+  postgres: PostgresText
+  value: StringValue
+---
+type: Attribute
+spec:
+  name: FromPostgresBigInt
+  orc: OrcBigint
+  presto: PrestoBigint
+  sql: SQLBigint
+  sqlite: SQLiteInteger
+  bigquery: BigQueryInt64
+  postgres: PostgresBigInt
+  value: IntegerValue
+---
+type: Attribute
+spec:
+  name: FromPostgresCharacterVarying
+  orc: OrcString
+  presto: PrestoVarchar
+  sql: SQLVarchar
+  sqlite: SQLiteText
+  bigquery: BigQueryString
+  postgres: PostgresCharacterVarying
+  value: StringValue
+---
+type: Attribute
+spec:
+  name: FromPostgresTimestampWithoutTimeZone
+  orc: OrcString
+  presto: PrestoVarchar
+  sql: SQLVarchar
+  sqlite: SQLiteText
+  bigquery: BigQueryString
+  postgres: PostgresTimestampWithoutTimeZone
+  value: StringValue
+---
+type: Attribute
+spec:
+  name: FromPostgresInteger
+  orc: OrcBigint
+  presto: PrestoBigint
+  sql: SQLBigint
+  sqlite: SQLiteInteger
+  bigquery: BigQueryInt64
+  postgres: PostgresInteger
+  value: IntegerValue
+---
+type: Attribute
+spec:
+  name: FromPostgresUuid
+  orc: OrcString
+  presto: PrestoVarchar
+  sql: SQLVarchar
+  sqlite: SQLiteText
+  bigquery: BigQueryString
+  postgres: PostgresUuid
+  value: StringValue
+---
+type: Attribute
+spec:
+  name: FromPostgresName
+  orc: OrcString
+  presto: PrestoVarchar
+  sql: SQLVarchar
+  sqlite: SQLiteText
+  bigquery: BigQueryString
+  postgres: PostgresName
+  value: StringValue
+---
+type: Attribute
+spec:
+  name: FromPostgresTimestampWithTimeZone
+  orc: OrcString
+  presto: PrestoVarchar
+  sql: SQLVarchar
+  sqlite: SQLiteText
+  bigquery: BigQueryString
+  postgres: PostgresTimestampWithTimeZone
+  value: StringValue
+---
+type: Attribute
+spec:
+  name: FromPostgresChar
+  orc: OrcString
+  presto: PrestoVarchar
+  sql: SQLVarchar
+  sqlite: SQLiteText
+  bigquery: BigQueryString
+  postgres: PostgresChar
+  value: StringValue
+---
+type: Attribute
+spec:
+  name: FromPostgresBoolean
+  orc: OrcString
+  presto: PrestoVarchar
+  sql: SQLVarchar
+  sqlite: SQLiteText
+  bigquery: BigQueryBool
+  postgres: PostgresBoolean
+  value: StringValue
+---
+type: Attribute
+spec:
+  name: FromPostgresJSONB
+  orc: OrcString
+  presto: PrestoVarchar
+  sql: SQLVarchar
+  sqlite: SQLiteText
+  bigquery: BigQueryString
+  postgres: PostgresJSONB
+  value: StringValue
+---
+type: Attribute
+spec:
+  name: FromPostgresArray
+  orc: OrcString
+  presto: PrestoVarchar
+  sql: SQLVarchar
+  sqlite: SQLiteText
+  bigquery: BigQueryString
+  postgres: PostgresArray
+  value: StringValue
+---
+type: Attribute
+spec:
+  name: FromPostgresUserDefined
+  orc: OrcString
+  presto: PrestoVarchar
+  sql: SQLVarchar
+  sqlite: SQLiteText
+  bigquery: BigQueryString
+  postgres: PostgresUserDefined
+  value: StringValue
+---
+type: Attribute
+spec:
+  name: FromPostgresRegProc
+  orc: OrcString
+  presto: PrestoVarchar
+  sql: SQLVarchar
+  sqlite: SQLiteText
+  bigquery: BigQueryString
+  postgres: PostgresRegProc
+  value: StringValue
+---
+type: Attribute
+spec:
+  name: FromPostgresSmallInt
+  orc: OrcBigint
+  presto: PrestoBigint
+  sql: SQLBigint
+  sqlite: SQLiteInteger
+  bigquery: BigQueryInt64
+  postgres: PostgresSmallInt
+  value: IntegerValue
+---
+type: Attribute
+spec:
+  name: FromPostgresReal
+  orc: OrcFloat
+  presto: PrestoDouble
+  sql: SQLReal
+  sqlite: SQLiteReal
+  bigquery: BigQueryFloat64
+  postgres: PostgresReal
+  value: FloatValue
+---
+type: Attribute
+spec:
+  name: FloatNumber
+  orc: OrcFloat
+  presto: PrestoDouble
+  sql: SQLReal
+  sqlite: SQLiteReal
+  bigquery: BigQueryFloat64
+  postgres: PostgresReal
+  value: FloatValue
+---
+type: Attribute
+spec:
+  name: FromPostgresDoublePrecision
+  orc: OrcFloat
+  presto: PrestoDouble
+  sql: SQLReal
+  sqlite: SQLiteReal
+  bigquery: BigQueryFloat64
+  postgres: PostgresDoublePrecision
+  value: FloatValue
+---
+type: Attribute
+spec:
+  name: FromPostgresPgNodeTree
+  orc: OrcString
+  presto: PrestoVarchar
+  sql: SQLVarchar
+  sqlite: SQLiteText
+  bigquery: BigQueryString
+  postgres: PostgresPgNodeTree
+  value: StringValue
+---
+type: Attribute
+spec:
+  name: FromPostgresPgLsn
+  orc: OrcString
+  presto: PrestoVarchar
+  sql: SQLVarchar
+  sqlite: SQLiteText
+  bigquery: BigQueryString
+  postgres: PostgresPgLsn
+  value: StringValue
+---
+type: Attribute
+spec:
+  name: FromPostgresXid
+  orc: OrcString
+  presto: PrestoVarchar
+  sql: SQLVarchar
+  sqlite: SQLiteText
+  bigquery: BigQueryString
+  postgres: PostgresXid
+  value: StringValue
+---
+type: Attribute
+spec:
+  name: FromPostgresInterval
+  orc: OrcString
+  presto: PrestoVarchar
+  sql: SQLVarchar
+  sqlite: SQLiteText
+  bigquery: BigQueryString
+  postgres: PostgresInterval
+  value: StringValue
+---
+type: Attribute
+spec:
+  name: FromPostgresAnyArray
+  orc: OrcString
+  presto: PrestoVarchar
+  sql: SQLVarchar
+  sqlite: SQLiteText
+  bigquery: BigQueryString
+  postgres: PostgresAnyArray
+  value: StringValue
+---
+type: Attribute
+spec:
+  name: FromPostgresBytea
+  orc: OrcString
+  presto: PrestoVarchar
+  sql: SQLVarchar
+  sqlite: SQLiteText
+  bigquery: BigQueryString
+  postgres: PostgresBytea
+  value: StringValue
+---
+type: Attribute
+spec:
+  name: FromPostgresRegType
+  orc: OrcString
+  presto: PrestoVarchar
+  sql: SQLVarchar
+  sqlite: SQLiteText
+  bigquery: BigQueryString
+  postgres: PostgresRegType
+  value: StringValue
+---
+type: Attribute
+spec:
+  name: FromPostgresPgNDistinct
+  orc: OrcString
+  presto: PrestoVarchar
+  sql: SQLVarchar
+  sqlite: SQLiteText
+  bigquery: BigQueryString
+  postgres: PostgresPgNDistinct
+  value: StringValue
+---
+type: Attribute
+spec:
+  name: FromPostgresPgDependencies
+  orc: OrcString
+  presto: PrestoVarchar
+  sql: SQLVarchar
+  sqlite: SQLiteText
+  bigquery: BigQueryString
+  postgres: PostgresPgDependencies
+  value: StringValue
+---
+type: Attribute
+spec:
+  name: FromPostgresInet
+  orc: OrcString
+  presto: PrestoVarchar
+  sql: SQLVarchar
+  sqlite: SQLiteText
+  bigquery: BigQueryString
+  postgres: PostgresInet
+  value: StringValue
+---
+type: Attribute
+spec:
+  name: FromPostgresNumeric
+  orc: OrcFloat
+  presto: PrestoDouble
+  sql: SQLReal
+  sqlite: SQLiteReal
+  bigquery: BigQueryFloat64
+  postgres: PostgresReal
+  value: FloatValue
+---
+type: Attribute
+spec:
+  name: FromPostgresOid
+  orc: OrcBigint
+  presto: PrestoBigint
+  sql: SQLBigint
+  sqlite: SQLiteInteger
+  bigquery: BigQueryInt64
+  postgres: PostgresOid
+  value: IntegerValue
+---
+type: Attribute
+spec:
+  name: NaturalNumber
+  orc: OrcBigint
+  presto: PrestoBigint
+  sql: SQLBigint
+  sqlite: SQLiteInteger
+  bigquery: BigQueryInt64
+  postgres: PostgresOid
+  value: IntegerValue
+---
+type: Attribute
+spec:
+  name: RegionName
+  orc: OrcString
+  presto: PrestoVarchar
+  sql: SQLVarchar
+  sqlite: SQLiteText
+  bigquery: BigQueryString
+  postgres: PostgresText
+  value: StringValue
+---
+type: Attribute
+spec:
+  name: FIPSStateCode
+  orc: OrcString
+  presto: PrestoVarchar
+  sql: SQLVarchar
+  sqlite: SQLiteText
+  bigquery: BigQueryString
+  postgres: PostgresText
+  value: StringValue
+---
+type: Attribute
+spec:
+  name: FIPSCountyCode
+  orc: OrcString
+  presto: PrestoVarchar
+  sql: SQLVarchar
+  sqlite: SQLiteText
+  bigquery: BigQueryString
+  postgres: PostgresText
+  value: StringValue
+---
+type: Attribute
+spec:
+  name: IPEDSID
+  orc: OrcString
+  presto: PrestoVarchar
+  sql: SQLVarchar
+  sqlite: SQLiteText
+  bigquery: BigQueryString
+  postgres: PostgresText
+  value: StringValue
+---
+type: Attribute
+spec:
+  name: USHigherEdName
+  orc: OrcString
+  presto: PrestoVarchar
+  sql: SQLVarchar
+  sqlite: SQLiteText
+  bigquery: BigQueryString
+  postgres: PostgresText
+  value: StringValue
+---
+type: Attribute
+spec:
+  name: Proportion
+  orc: OrcFloat
+  presto: PrestoDouble
+  sql: SQLReal
+  sqlite: SQLiteReal
+  bigquery: BigQueryFloat64
+  postgres: PostgresReal
+  value: FloatValue
+---
+type: Attribute
+spec:
+  name: Year
+  orc: OrcBigint
+  presto: PrestoBigint
+  sql: SQLBigint
+  sqlite: SQLiteInteger
+  bigquery: BigQueryInt64
+  postgres: PostgresBigInt
+  value: IntegerValue
+---
+type: Attribute
+spec:
+  name: Month
+  orc: OrcBigint
+  presto: PrestoBigint
+  sql: SQLBigint
+  sqlite: SQLiteInteger
+  bigquery: BigQueryInt64
+  postgres: PostgresBigInt
+  value: IntegerValue
+---
+type: Attribute
+spec:
+  name: Week
+  orc: OrcBigint
+  presto: PrestoBigint
+  sql: SQLBigint
+  sqlite: SQLiteInteger
+  bigquery: BigQueryInt64
+  postgres: PostgresBigInt
+  value: IntegerValue
+---
+type: Attribute
+spec:
+  name: IntegerNumber
+  orc: OrcBigint
+  presto: PrestoBigint
+  sql: SQLBigint
+  sqlite: SQLiteInteger
+  bigquery: BigQueryInt64
+  postgres: PostgresOid
+  value: IntegerValue
+---
+type: Attribute
+spec:
+  name: CountryName
+  orc: OrcString
+  presto: PrestoVarchar
+  sql: SQLVarchar
+  sqlite: SQLiteText
+  bigquery: BigQueryString
+  postgres: PostgresText
+  value: StringValue
+---
+type: Attribute
+spec:
+  name: WKTString
+  orc: OrcString
+  presto: PrestoVarchar
+  sql: SQLVarchar
+  sqlite: SQLiteText
+  bigquery: BigQueryString
+  postgres: PostgresText
+  value: StringValue
