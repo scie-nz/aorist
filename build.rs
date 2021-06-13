@@ -543,7 +543,7 @@ fn main() {
         .open("constrainables.txt")
         .unwrap();
 
-    let raw_objects = read_file("attributes.yaml");
+    let raw_objects = read_file("aorist_attributes/attributes.yaml");
     process_attributes(&raw_objects);
     process_concepts();
     let raw_objects = read_file("basic.yaml");
