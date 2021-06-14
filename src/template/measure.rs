@@ -1,11 +1,11 @@
 #![allow(non_snake_case)]
 
 use crate::attributes::*;
-use crate::concept::{AoristConcept, WrappedConcept, ConceptEnum};
+use crate::concept::{AoristConcept, ConceptEnum, WrappedConcept};
 use crate::constraint::Constraint;
 use crate::schema::*;
 use crate::template::datum_template::TDatumTemplate;
-
+use aorist_attributes::{Count, Regressor, FloatPrediction};
 use aorist_concept::{aorist_concept, Constrainable, ConstrainableWithChildren, InnerObject};
 use derivative::Derivative;
 use paste::paste;

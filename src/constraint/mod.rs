@@ -4,8 +4,8 @@ use anyhow::{Context, Result};
 use aorist_core::Dialect;
 use aorist_core::ParameterTuple;
 pub use aorist_core::{
-    ConstraintBuilder, ConstraintEnum, ConstraintSatisfactionBase, OuterConstraint, TConstraint,
-    SatisfiableConstraint, SatisfiableOuterConstraint,
+    ConstraintBuilder, ConstraintEnum, ConstraintSatisfactionBase, OuterConstraint,
+    SatisfiableConstraint, SatisfiableOuterConstraint, TConstraint,
 };
 use aorist_primitives::{define_constraint, register_constraint};
 use maplit::hashmap;
@@ -25,7 +25,7 @@ pub struct Constraint {
     pub root: String,
     pub requires: Option<Vec<String>>,
 }
-impl <'a> OuterConstraint<'a> for Constraint {
+impl<'a> OuterConstraint<'a> for Constraint {
     type TEnum = AoristConstraint;
     type TAncestry = ConceptAncestry<'a>;
 

@@ -1,9 +1,8 @@
 /* Following prescribed Record of Processing Activity by cnil.fr.
 See: https://www.cnil.fr/en/record-processing-activities */
 use crate::constraint::Constraint;
-use crate::{AoristConcept, WrappedConcept, ConceptEnum};
+use crate::{AoristConcept, ConceptEnum, WrappedConcept};
 use aorist_concept::{aorist_concept, Constrainable, ConstrainableWithChildren, InnerObject};
-use aorist_primitives::gdpr_data_type;
 use derivative::Derivative;
 use paste::paste;
 use pyo3::prelude::*;
@@ -27,6 +26,20 @@ pub struct GDPRStakeholder {
 pub struct GDPRDataProcessingPurpose {
     main_purpose: String,
     sub_purposes: Option<Vec<String>>,
+}
+
+#[macro_export]
+macro_rules! gdpr_data_type {
+    ($name:ident
+     $(, $field: ident : $field_type: ty)*) => {
+        #[derive(Hash, PartialEq, Eq, Clone, Debug, Serialize, Deserialize, FromPyObject)]
+        pub struct $name {
+            description: String,
+            $(
+                $field: $field_type,
+            )*
+        }
+     };
 }
 
 gdpr_data_type! {PersonalIdentificationData}

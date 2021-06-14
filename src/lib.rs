@@ -29,6 +29,7 @@ pub mod location;
 pub mod logging;
 pub mod models;
 pub mod object;
+pub mod programs;
 pub mod python;
 pub mod r;
 pub mod role;

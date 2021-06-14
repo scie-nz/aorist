@@ -287,7 +287,6 @@ fn process_constraints(raw_objects: &Vec<HashMap<String, Value>>) {
 fn process_attributes(raw_objects: &Vec<HashMap<String, Value>>) {
     let attributes = get_raw_objects_of_type(raw_objects, "Attribute".into());
     let mut scope = Scope::new();
-    scope.import("aorist_primitives", "define_attribute");
     scope.import("aorist_primitives", "register_attribute");
     scope.import("serde", "Serialize");
     scope.import("serde", "Deserialize");
@@ -295,8 +294,15 @@ fn process_attributes(raw_objects: &Vec<HashMap<String, Value>>) {
     scope.import("std::sync", "RwLock");
     scope.import("crate::concept", "AoristConcept");
     scope.import("crate::concept", "WrappedConcept");
-    scope.import("crate::concept", "Concept");
     scope.import("crate::constraint", "Constraint");
+    scope.import("aorist_attributes", "TAttribute");
+    scope.import("aorist_attributes", "TOrcAttribute");
+    scope.import("aorist_attributes", "TBigQueryAttribute");
+    scope.import("aorist_attributes", "TPrestoAttribute");
+    scope.import("aorist_attributes", "TPostgresAttribute");
+    scope.import("aorist_attributes", "TSQLiteAttribute");
+    scope.import("aorist_attributes", "TSQLAttribute");
+    scope.import("aorist_attributes", "AttributeValue");
     scope.import("aorist_concept", "Constrainable");
     scope.import("aorist_concept", "ConstrainableWithChildren");
     scope.import("aorist_concept", "aorist_concept");
@@ -306,7 +312,7 @@ fn process_attributes(raw_objects: &Vec<HashMap<String, Value>>) {
     scope.import("pyo3::prelude", "*");
     scope.import("paste", "paste");
 
-    let sql_derive_macros = attributes
+    /*let sql_derive_macros = attributes
         .iter()
         .map(|x| x.get("sql").unwrap().as_str().unwrap().to_string())
         .collect::<HashSet<_>>();
@@ -330,8 +336,8 @@ fn process_attributes(raw_objects: &Vec<HashMap<String, Value>>) {
         .iter()
         .map(|x| x.get("bigquery").unwrap().as_str().unwrap().to_string())
         .collect::<HashSet<_>>();
-
-    let derive_macros = sql_derive_macros
+    */
+    /*let derive_macros = sql_derive_macros
         .into_iter()
         .chain(orc_derive_macros.into_iter())
         .chain(presto_derive_macros.into_iter())
@@ -339,51 +345,14 @@ fn process_attributes(raw_objects: &Vec<HashMap<String, Value>>) {
         .chain(postgres_derive_macros.into_iter())
         .chain(bigquery_derive_macros.into_iter())
         .collect::<HashSet<_>>();
-
-    for item in derive_macros {
+    */
+    /*for item in derive_macros {
         scope.import("aorist_derive", &item);
-    }
+    }*/
     let mut attribute_names: Vec<String> = Vec::new();
     for attribute in attributes {
         let name = attribute.get("name").unwrap().as_str().unwrap().to_string();
-        let orc = attribute.get("orc").unwrap().as_str().unwrap().to_string();
-        let value = attribute
-            .get("value")
-            .unwrap()
-            .as_str()
-            .unwrap()
-            .to_string();
-        let presto = attribute
-            .get("presto")
-            .unwrap()
-            .as_str()
-            .unwrap()
-            .to_string();
-        let sql = attribute.get("sql").unwrap().as_str().unwrap().to_string();
-        let sqlite = attribute
-            .get("sqlite")
-            .unwrap()
-            .as_str()
-            .unwrap()
-            .to_string();
-        let postgres = attribute
-            .get("postgres")
-            .unwrap()
-            .as_str()
-            .unwrap()
-            .to_string();
-        let bigquery = attribute
-            .get("bigquery")
-            .unwrap()
-            .as_str()
-            .unwrap()
-            .to_string();
-
-        let define = format!(
-            "define_attribute!({}, {}, {}, {}, {}, {}, {}, {});",
-            name, orc, presto, sql, sqlite, postgres, bigquery, value
-        );
-        scope.raw(&define);
+        scope.import("aorist_attributes", &name);
         attribute_names.push(name.clone());
     }
     let register = format!(
@@ -431,9 +400,9 @@ fn process_concepts() {
         ("crate::compression", "DataCompression"),
         ("crate::compression", "ZipCompression"),
         ("crate::compliance", "ComplianceConfig"),
-        ("crate::features", "ContinuousRegressionObjective"),
-        ("crate::features", "ContinuousObjective"),
-        ("crate::features", "RegressionObjective"),
+        //("crate::features", "ContinuousRegressionObjective"),
+        //("crate::features", "ContinuousObjective"),
+        //("crate::features", "RegressionObjective"),
         ("crate::header", "CSVHeader"),
         ("crate::header", "FileHeader"),
         ("crate::location", "AlluxioLocation"),
@@ -543,7 +512,7 @@ fn main() {
         .open("constrainables.txt")
         .unwrap();
 
-    let raw_objects = read_file("attributes.yaml");
+    let raw_objects = read_file("aorist_attributes/attributes.yaml");
     process_attributes(&raw_objects);
     process_concepts();
     let raw_objects = read_file("basic.yaml");

@@ -8,7 +8,7 @@ pub mod presto;
 pub mod ranger;
 
 use crate::constraint::Constraint;
-use crate::{AoristConcept, WrappedConcept, ConceptEnum};
+use crate::{AoristConcept, ConceptEnum, WrappedConcept};
 pub use alluxio::*;
 use aorist_concept::{aorist_concept, Constrainable, ConstrainableWithChildren, InnerObject};
 pub use aws::*;

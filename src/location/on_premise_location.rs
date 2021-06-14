@@ -1,4 +1,4 @@
-use crate::concept::{AoristConcept, WrappedConcept, ConceptEnum};
+use crate::concept::{AoristConcept, ConceptEnum, WrappedConcept};
 use crate::location::alluxio_location::*;
 use crate::location::local_file_system_location::*;
 use crate::location::minio_location::*;

@@ -14,7 +14,7 @@ pub struct User {
     lastName: String,
     email: String,
     phone: String,
-    unixname: String,
+    pub unixname: String,
     #[constrainable]
     roles: Option<Vec<Role>>,
 }
