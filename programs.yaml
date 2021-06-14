@@ -433,25 +433,36 @@ spec:
         call: >
             format!(
                 "--suffix=downloaded -c {tmp_dir}/{archive_name}.downloaded > {tmp_dir}/{archive_name}.tmp && mv {tmp_dir}/{archive_name}.tmp {tmp_dir}/{archive_name}.downloaded",
-                tmp_dir=replication_storage_setup.tmp_dir,
+                tmp_dir=format!(
+                    "{}/{}/{}",
+                    replication_storage_setup.tmp_dir,
+                    data_set.name,
+                    static_data_table.name,
+                ),
                 archive_name=static_data_table.name,
             )
         attaches:
           - StaticDataTable
           - ReplicationStorageSetup
+          - DataSet
 ---
 type: Program
 spec:
   use: RemoveFileHeader
   root: FileHeader
   dialect: Bash
-  call: tail -n +{n} {tmp_dir}/{table_name}.downloaded > {tmp_dir}/{file_name}.tmp && mv {tmp_dir}/{file_name}.tmp {tmp_dir}/{file_name}
+  call: tail -n +{n} {tmp_dir}/{data_set}/{table_name}/{table_name}.downloaded > {tmp_dir}/{data_set}/{table_name}/{file_name}.tmp && mv {tmp_dir}/{data_set}/{table_name}/{file_name}.tmp {tmp_dir}/{data_set}/{table_name}/{file_name}
   kwargs:
     n:
       type: AncestorArgument
       spec:
         attaches: FileHeader
         call: format!("{}", file_header.get_num_lines() + 1)
+    data_set:
+      type: AncestorArgument
+      spec:
+        attaches: DataSet
+        call: data_set.name
     tmp_dir:
       type: AncestorArgument
       spec:
@@ -869,9 +880,10 @@ spec:
     def tsv_to_csv(tmp_dir, src_file_name, dest_file_name, dataset_name, table_name):
         source = os.path.join(tmp_dir, dataset_name, table_name, src_file_name)
         dest = os.path.join(tmp_dir, dataset_name, table_name, dest_file_name)
-        with open(source) as sourcef, open(dest, 'w') as destf:
+        with open(source, 'rb') as sourcef, open(dest, 'w') as destf:
                 while True:
                     chunk = sourcef.read(10240)
+                    chunk = chunk.decode('latin-1')
                     if not chunk:
                         destf.flush()
                         destf.close()
