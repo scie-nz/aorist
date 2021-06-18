@@ -1,4 +1,8 @@
 #![allow(non_snake_case)]
+use siphasher::sip128::{Hasher128, SipHasher};
+use std::collections::BTreeSet;
+use std::hash::Hasher;
+use uuid::Uuid;
 
 #[macro_export]
 macro_rules! register_ast_nodes {
@@ -767,6 +771,177 @@ macro_rules! register_constraint {
 }
 
 #[macro_export]
+macro_rules! register_attribute_new {
+    ( $name:ident, $($element: ident),+ ) => { paste! {
+        #[derive(Hash, PartialEq, Eq, Debug, Serialize, Deserialize, Clone)]
+        pub enum [<$name Enum>] {
+            $(
+                $element($element),
+            )+
+        }
+        #[cfg(feature = "python")]
+        impl <'a> FromPyObject<'a> for [<$name Enum>] {
+            fn extract(obj: &'a PyAny) -> PyResult<Self> {
+                $(
+                    if let Ok(x) = $element::extract(obj) {
+                        return Ok(Self::$element(x));    
+                    }
+                )+
+                Err(PyValueError::new_err("could not convert enum arm."))
+            } 
+        }
+        impl [<$name Enum>] {
+            pub fn get_name(&self) -> &String {
+                match self {
+                    $(
+                        [<$name Enum>]::$element(x) => x.get_name(),
+                    )+
+                }
+            }
+            pub fn get_type(&self) -> String {
+                match self {
+                    $(
+                        [<$name Enum>]::$element(x) => stringify!($element).to_string(),
+                    )+
+                }
+            }
+            pub fn is_nullable(&self) -> bool {
+                match self {
+                    $(
+                        [<$name Enum>]::$element(x) => x.is_nullable(),
+                    )+
+                }
+            }
+
+            pub fn as_predicted_objective(&self) -> Self {
+                match self {
+                    $(
+                        [<$name Enum>]::$element(x) => [<$name Enum>]::$element($element {
+                            name: format!("predicted_{}", x.get_name()).to_string(),
+                            comment: x.get_comment().clone(),
+                            nullable: false,
+                        }),
+                    )+
+                }
+            }
+            pub fn get_comment(&self) -> &Option<String> {
+                match self {
+                    $(
+                        [<$name Enum>]::$element(x) => x.get_comment(),
+                    )+
+                }
+            }
+            #[cfg(feature = "sql")]
+            pub fn get_sql_type(&self) -> sqlparser::ast::DataType {
+                match self {
+                    $(
+                        [<$name Enum>]::$element(x) => x.get_sql_type(),
+                    )+
+                }
+            }
+            pub fn get_presto_type(&self) -> String {
+                match self {
+                    $(
+                        [<$name Enum>]::$element(x) => x.get_presto_type(),
+                    )+
+                }
+            }
+            pub fn get_sqlite_type(&self) -> String {
+                match self {
+                    $(
+                        [<$name Enum>]::$element(x) => x.get_sqlite_type(),
+                    )+
+                }
+            }
+            pub fn get_postgres_type(&self) -> String {
+                match self {
+                    $(
+                        [<$name Enum>]::$element(x) => x.get_postgres_type(),
+                    )+
+                }
+            }
+            pub fn psycopg2_value_json_serializable(&self) -> bool {
+                match self {
+                    $(
+                        [<$name Enum>]::$element(x) => x.psycopg2_value_json_serializable(),
+                    )+
+                }
+            }
+            pub fn get_bigquery_type(&self) -> String {
+                match self {
+                    $(
+                        [<$name Enum>]::$element(x) => x.get_bigquery_type(),
+                    )+
+                }
+            }
+            pub fn get_orc_type(&self) -> String {
+                match self {
+                    $(
+                        [<$name Enum>]::$element(x) => x.get_orc_type(),
+                    )+
+                }
+            }
+        }
+        #[aorist(derivative(Hash))]
+        pub struct $name {
+            pub inner: AttributeOrTransform,
+        }
+        #[cfg(feature = "python")]
+        impl<'a> FromPyObject<'a> for $name {
+            fn extract(ob: &'a PyAny) -> PyResult<Self> {
+                let inner = AttributeOrTransform::extract(ob)?;
+                Ok(Self{ inner, tag: None, uuid: None })
+            }
+        }
+        impl $name {
+            pub fn get_name(&self) -> &String {
+                self.inner.get_name()
+            }
+            pub fn psycopg2_value_json_serializable(&self) -> bool {
+                self.inner.psycopg2_value_json_serializable()
+            }
+            pub fn get_type(&self) -> String {
+                self.inner.get_type()
+            }
+            pub fn is_nullable(&self) -> bool {
+                self.inner.is_nullable()
+            }
+            pub fn get_comment(&self) -> &Option<String> {
+                self.inner.get_comment()
+            }
+            #[cfg(feature = "sql")]
+            pub fn get_sql_type(&self) -> DataType {
+                self.inner.get_sql_type()
+            }
+            pub fn get_presto_type(&self) -> String {
+                self.inner.get_presto_type()
+            }
+            pub fn get_sqlite_type(&self) -> String {
+                self.inner.get_sqlite_type()
+            }
+            pub fn get_postgres_type(&self) -> String {
+                self.inner.get_postgres_type()
+            }
+            pub fn get_bigquery_type(&self) -> String {
+                self.inner.get_bigquery_type()
+            }
+            pub fn get_orc_type(&self) -> String {
+                self.inner.get_orc_type()
+            }
+        }
+        #[cfg(feature = "python")]
+        paste::item!(
+            pub fn [<$name:snake:lower>] (m: &PyModule) -> PyResult<()> {
+                $(
+                    m.add_class::<$element>()?;
+                )+
+                Ok(())
+            }
+        );
+    }}
+}
+
+#[macro_export]
 macro_rules! register_attribute {
     ( $name:ident, $($element: ident),+ ) => { paste! {
         #[derive(Hash, PartialEq, Eq, Debug, Serialize, Deserialize, Clone)]
@@ -1091,3 +1266,42 @@ macro_rules! register_concept {
     }
 }
 pub trait ConceptEnum<'a> {}
+pub trait AoristConcept<'a> {
+
+    type TChildrenEnum: ConceptEnum<'a>;
+
+    fn get_children(&'a self) -> Vec<(
+        // struct name
+        &str,
+        // field name
+        Option<&str>,
+        // ix
+        Option<usize>,
+        // uuid
+        Option<Uuid>,
+        // wrapped reference
+        Self::TChildrenEnum,
+    )>;
+    fn get_uuid(&self) -> Uuid;
+    fn get_children_uuid(&self) -> Vec<Uuid>;
+    fn get_tag(&self) -> Option<String>;
+
+    fn get_uuid_from_children_uuid(&self) -> Uuid {
+        let child_uuids = self.get_children_uuid();
+        if child_uuids.len() > 0 {
+            eprintln!("There are child uuids.");
+            let uuids = child_uuids.into_iter().collect::<BTreeSet<Uuid>>();
+            let mut hasher = SipHasher::new();
+            for uuid in uuids {
+                hasher.write(uuid.as_bytes());
+            }
+            let bytes: [u8; 16] = hasher.finish128().as_bytes();
+            Uuid::from_bytes(bytes)
+        } else {
+            eprintln!("There are no child uuids.");
+            // TODO: this should just be created from the hash
+            Uuid::new_v4()
+        }
+    }
+    fn compute_uuids(&mut self);
+}

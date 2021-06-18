@@ -11,6 +11,7 @@ fn process_attributes(raw_objects: &Vec<HashMap<String, Value>>) {
     let attributes = get_raw_objects_of_type(raw_objects, "Attribute".into());
     let mut scope = Scope::new();
     scope.import("aorist_primitives", "define_attribute");
+    scope.import("aorist_primitives", "register_attribute_new");
     scope.import("serde", "Serialize");
     scope.import("serde", "Deserialize");
 
@@ -103,6 +104,12 @@ fn process_attributes(raw_objects: &Vec<HashMap<String, Value>>) {
     }
     let out_dir = env::var_os("OUT_DIR").unwrap();
     let dest_path = Path::new(&out_dir).join("attributes.rs");
+    
+    let register = format!(
+        "register_attribute_new!(Attribute, {});",
+        attribute_names.join(", ")
+    );
+    scope.raw(&register);
 
     fs::write(&dest_path, scope.to_string()).unwrap();
 }
