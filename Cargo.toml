@@ -31,8 +31,8 @@ crate-type = ["cdylib"]
 Inflector = "0.11.4"
 anyhow = "1.0"
 aorist_ast = {path = "./aorist_ast"}
-aorist_attributes = {path = "./aorist_attributes"}
-aorist_core = {path = "./aorist_core", features=["python", "r"]}
+aorist_attributes = {path = "./aorist_attributes", features=["python", "r", "sql"]}
+aorist_core = {path = "./aorist_core", features=["python", "r", "sql"]}
 aorist_concept = {path = "./aorist_concept"}
 aorist_derive = {path = "./aorist_derive"}
 aorist_primitives = {path = "./aorist_primitives"}

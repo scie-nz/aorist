@@ -13,25 +13,8 @@ fn process_attributes(raw_objects: &Vec<HashMap<String, Value>>) {
     scope.import("aorist_primitives", "define_attribute");
     scope.import("serde", "Serialize");
     scope.import("serde", "Deserialize");
-    //scope.import("std::sync", "Arc");
-    //scope.import("std::sync", "RwLock");
-    //scope.import("crate::concept", "AoristConcept");
-    //scope.import("crate::concept", "WrappedConcept");
-    //scope.import("crate::concept", "Concept");
-    //scope.import("crate::constraint", "Constraint");
-    //scope.import("aorist_concept", "Constrainable");
-    //scope.import("aorist_concept", "ConstrainableWithChildren");
-    //scope.import("aorist_concept", "aorist_concept");
-    //scope.import("aorist_concept", "InnerObject");
-    //scope.import("uuid", "Uuid");
-    //scope.import("derivative", "Derivative");
-    scope.import("pyo3::prelude", "*");
-    //scope.import("paste", "paste");
 
-    let sql_derive_macros = attributes
-        .iter()
-        .map(|x| x.get("sql").unwrap().as_str().unwrap().to_string())
-        .collect::<HashSet<_>>();
+    let sql_derive_macros; 
     let orc_derive_macros = attributes
         .iter()
         .map(|x| x.get("orc").unwrap().as_str().unwrap().to_string())
@@ -53,7 +36,17 @@ fn process_attributes(raw_objects: &Vec<HashMap<String, Value>>) {
         .map(|x| x.get("bigquery").unwrap().as_str().unwrap().to_string())
         .collect::<HashSet<_>>();
 
-    let derive_macros = sql_derive_macros
+    cfg_if::cfg_if! {
+        if #[cfg(feature = "sql")] {
+            sql_derive_macros = attributes
+                .iter()
+                .map(|x| x.get("sql").unwrap().as_str().unwrap().to_string())
+                .collect::<HashSet<_>>();
+        } else {
+            sql_derive_macros = HashSet::new();
+        }
+    }
+    let derive_macros = sql_derive_macros 
         .into_iter()
         .chain(orc_derive_macros.into_iter())
         .chain(presto_derive_macros.into_iter())
@@ -115,6 +108,7 @@ fn process_attributes(raw_objects: &Vec<HashMap<String, Value>>) {
 }
 
 fn main() {
+    println!("cargo:rustc-cfg=feature=\"build-time\"");
     let _file = OpenOptions::new()
         .truncate(true)
         .write(true)

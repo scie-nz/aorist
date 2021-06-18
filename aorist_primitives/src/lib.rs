@@ -410,7 +410,7 @@ macro_rules! define_attribute {
       $value:ident
     ) => {
         paste::item! {
-            #[pyclass]
+            #[cfg_attr(feature = "python", pyclass)]
             #[derive(
                 Hash,
                 PartialEq,
@@ -421,11 +421,11 @@ macro_rules! define_attribute {
                 Clone,
                 $presto_type,
                 $orc_type,
-                $sql_type,
                 $sqlite_type,
                 $postgres_type,
                 $bigquery_type,
             )]
+            #[cfg_attr(feature = "sql", derive($sql_type))]
             pub struct $element {
                 pub name: String,
                 pub comment: Option<String>,
@@ -444,7 +444,8 @@ macro_rules! define_attribute {
                     self.nullable
                 }
             }
-            #[pymethods]
+            #[cfg_attr(feature = "python", pymethods)]
+            #[cfg(feature = "python")]
             impl $element {
                 #[new]
                 #[args(comment = "None")]

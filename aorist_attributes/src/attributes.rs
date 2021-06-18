@@ -1,11 +1,14 @@
 #![allow(dead_code)]
-//pub use crate::sql_parser::AttrMap;
 use num::Float;
+#[cfg(feature = "sql")]
 use sqlparser::ast::{ColumnDef, DataType, Expr, Ident, Value};
+#[cfg(feature = "python")]
+use pyo3::prelude::*;
 use indoc::formatdoc;
 pub trait TValue {}
 
-#[derive(Hash, PartialEq, Eq, Debug, Serialize, Deserialize, Clone, FromPyObject)]
+#[derive(Hash, PartialEq, Eq, Debug, Serialize, Deserialize, Clone)]
+#[cfg_attr(feature = "python", derive(FromPyObject))]
 pub struct IntegerValue {
     inner: i64,
 }
@@ -20,7 +23,8 @@ impl IntegerValue {
         format!("{}", self.inner).to_string()
     }
 }
-#[derive(Hash, PartialEq, Eq, Debug, Serialize, Deserialize, Clone, FromPyObject)]
+#[derive(Hash, PartialEq, Eq, Debug, Serialize, Deserialize, Clone)]
+#[cfg_attr(feature = "python", derive(FromPyObject))]
 pub struct StringValue {
     inner: String,
 }
@@ -32,7 +36,8 @@ impl StringValue {
         format!("\"{}\"", self.inner).to_string()
     }
 }
-#[derive(Hash, PartialEq, Eq, Debug, Serialize, Deserialize, Clone, FromPyObject)]
+#[derive(Hash, PartialEq, Eq, Debug, Serialize, Deserialize, Clone)]
+#[cfg_attr(feature = "python", derive(FromPyObject))]
 pub struct FloatValue {
     sign: i8,
     mantissa: u64,
@@ -65,13 +70,15 @@ impl TValue for IntegerValue {}
 impl TValue for StringValue {}
 impl TValue for FloatValue {}
 
-#[derive(Hash, PartialEq, Eq, Debug, Serialize, Deserialize, Clone, FromPyObject)]
+#[derive(Hash, PartialEq, Eq, Debug, Serialize, Deserialize, Clone)]
+#[cfg_attr(feature = "python", derive(FromPyObject))]
 pub enum AttributeValue {
     IntegerValue(IntegerValue),
     StringValue(StringValue),
     FloatValue(FloatValue),
 }
 impl AttributeValue {
+    #[cfg(feature = "sql")]
     pub fn try_from(x: Expr) -> Result<Self, String> {
         match x {
             Expr::Value(val) => match val {
@@ -129,6 +136,7 @@ pub trait TOrcAttribute: TAttribute {
         format!("{}:{}", self.get_name(), self.get_orc_type()).to_string()
     }
 }
+#[cfg(feature = "sql")]
 pub trait TSQLAttribute: TAttribute {
     fn get_sql_type(&self) -> DataType;
     fn get_coldef(&self) -> ColumnDef {

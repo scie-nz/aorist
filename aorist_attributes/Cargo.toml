@@ -7,6 +7,12 @@ build = "build.rs"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[features]
+python = ["pyo3"]
+r = ["extendr-api", "extendr-engine"]
+sql = ["sqlformat", "sqlparser"]
+default = ["python", "r", "sql"]
+
 [dependencies]
 aorist_derive = {path = "../aorist_derive"}
 aorist_primitives = {path = "../aorist_primitives"}
@@ -14,12 +20,17 @@ serde = { version = "1.0", features = ["derive"] }
 # uuid = {version = "0.8.1", features = ["v4", "serde"]}
 num = {version="0.4.0", features = ["std"]}
 paste = {git = "https://github.com/scie-nz/paste", branch = "main"}
-pyo3 = {version = "0.13.2", features=["auto-initialize"]}
-sqlparser = "0.9.0"
 indoc = "1.0.3"
+pyo3 = {version = "0.13.2", features=["auto-initialize"], optional = true}
+extendr-api = {git = "https://github.com/extendr/extendr", rev = "da8c95c", optional = true}
+extendr-engine = {git = "https://github.com/extendr/extendr", rev = "da8c95c", optional = true}
+sqlformat = {version = "0.1.5", optional = true}
+sqlparser = {version = "0.9.0", optional = true}
+
 
 [build-dependencies]
 aorist_util = {path = "../aorist_util"}
 codegen = "0.1.3"
 serde = { version = "1.0", features = ["derive"] }
 serde_yaml = "0.8"
+cfg-if = "1.0.0"
