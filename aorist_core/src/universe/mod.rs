@@ -54,7 +54,7 @@ pub trait TUniverse {
     fn get_user_unixname_map(&self) -> HashMap<String, User>;
     fn get_user_permissions(&self) -> Result<HashMap<String, HashSet<String>>, String>;
 }
-/*impl TUniverse for Universe {
+impl TUniverse for Universe {
     fn get_user_unixname_map(&self) -> HashMap<String, User> {
         self.users
             .as_ref()
@@ -80,4 +80,4 @@ pub trait TUniverse {
         }
         Ok(map)
     }
-}*/
+}
