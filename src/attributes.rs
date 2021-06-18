@@ -223,9 +223,18 @@ impl IdentityTransform {
     }
 }
 
-#[derive(Hash, PartialEq, Eq, Debug, Serialize, Deserialize, Clone, FromPyObject)]
+#[derive(Hash, PartialEq, Eq, Debug, Serialize, Deserialize, Clone)]
 pub enum Transform {
     IdentityTransform(IdentityTransform),
+}
+impl <'a> FromPyObject<'a> for Transform {
+    fn extract(ob: &'a PyAny) -> PyResult<Self> {
+        let res = IdentityTransform::extract(ob); 
+        match res {
+            Ok(x) => Ok(Self::IdentityTransform(x)),
+            Err(x) => Err(x), 
+        }        
+    }
 }
 impl Transform {
     pub fn get_name(&self) -> &String {
