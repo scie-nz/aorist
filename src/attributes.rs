@@ -6,7 +6,9 @@ use sqlparser::ast::{DataType, Expr};
 
 include!(concat!(env!("OUT_DIR"), "/attributes.rs"));
 
-impl Attribute {
+struct WrappedAttribute(Attribute);
+
+impl WrappedAttribute {
     pub fn try_from(x: Expr, attr: &AttrMap) -> Result<Self, String> {
         match x {
             Expr::Identifier(_) => Err(
@@ -24,7 +26,7 @@ impl Attribute {
                 match attr.get(&dataset_name) {
                     Some(assets) => match assets.get(&asset_name) {
                         Some(ref map) => match map.get(&attr_name) {
-                            Some(attr) => Ok(attr.clone()),
+                            Some(attr) => Ok(Self(attr.clone())),
                             None => Err(format!(
                                 "Could not find attribute {} in asset {} on {} ",
                                 &attr_name, &asset_name, &dataset_name,
@@ -67,7 +69,7 @@ impl AttributeOrValue {
     pub fn try_from(x: Expr, attr: &AttrMap) -> Result<Self, String> {
         match x {
             Expr::Identifier { .. } | Expr::CompoundIdentifier { .. } => {
-                Ok(Self::Attribute(Attribute::try_from(x, attr)?))
+                Ok(Self::Attribute(WrappedAttribute::try_from(x, attr)?.0))
             }
             Expr::Value { .. } => Ok(Self::Value(AttributeValue::try_from(x)?)),
             _ => Err("Only identifiers or values supported as nodes".into()),
