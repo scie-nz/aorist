@@ -3,6 +3,7 @@
 use crate::attributes::*;
 use crate::concept::{AoristConcept, ConceptEnum, WrappedConcept};
 use crate::constraint::Constraint;
+use crate::predicate::*;
 use crate::template::TDatumTemplate;
 use aorist_concept::{aorist_concept, Constrainable, ConstrainableWithChildren, InnerObject};
 use derivative::Derivative;

@@ -380,7 +380,7 @@ fn process_concepts() {
         ("crate::asset", "SupervisedModel"),
         ("crate::asset", "DerivedAsset"),
         ("crate::attributes", "Attribute"),
-        ("crate::attributes", "Predicate"),
+        ("crate::predicate", "Predicate"),
         ("crate::layout", "APILayout"),
         ("crate::layout", "APIOrFileLayout"),
         ("crate::layout", "FileBasedStorageLayout"),
