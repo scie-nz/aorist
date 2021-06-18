@@ -1,8 +1,8 @@
 #![allow(dead_code)]
 pub use crate::sql_parser::AttrMap;
-use sqlparser::ast::{BinaryOperator, DataType, Expr};
 use aorist_core::ConceptEnum;
 use pyo3::exceptions::PyValueError;
+use sqlparser::ast::{DataType, Expr};
 
 include!(concat!(env!("OUT_DIR"), "/attributes.rs"));
 
@@ -71,11 +71,11 @@ pub struct IdentityTransform {
     name: String,
 }
 
-impl <'a> FromPyObject<'a> for IdentityTransform {
+impl<'a> FromPyObject<'a> for IdentityTransform {
     fn extract(obj: &'a PyAny) -> PyResult<Self> {
         let attribute = obj.getattr("attribute")?;
         let name = obj.getattr("name")?;
-        Ok(Self{ 
+        Ok(Self {
             attribute: AttributeOrTransform::extract(attribute)?,
             name: String::extract(name)?,
         })
@@ -115,13 +115,13 @@ impl IdentityTransform {
 pub enum Transform {
     IdentityTransform(IdentityTransform),
 }
-impl <'a> FromPyObject<'a> for Transform {
+impl<'a> FromPyObject<'a> for Transform {
     fn extract(ob: &'a PyAny) -> PyResult<Self> {
-        let res = IdentityTransform::extract(ob); 
+        let res = IdentityTransform::extract(ob);
         match res {
             Ok(x) => Ok(Self::IdentityTransform(x)),
-            Err(x) => Err(x), 
-        }        
+            Err(x) => Err(x),
+        }
     }
 }
 impl Transform {
@@ -183,16 +183,15 @@ pub enum AttributeOrTransform {
     Transform(Box<Transform>),
 }
 
-impl <'a> FromPyObject<'a> for AttributeOrTransform {
+impl<'a> FromPyObject<'a> for AttributeOrTransform {
     fn extract(obj: &'a PyAny) -> PyResult<Self> {
         if let Ok(x) = AttributeEnum::extract(obj) {
-            return Ok(Self::Attribute(x));    
-        }
-        else if let Ok(x) = Box::<Transform>::extract(obj) {
-            return Ok(Self::Transform(x));    
+            return Ok(Self::Attribute(x));
+        } else if let Ok(x) = Box::<Transform>::extract(obj) {
+            return Ok(Self::Transform(x));
         }
         Err(PyValueError::new_err("could not convert enum arm."))
-    } 
+    }
 }
 impl<'a> FromPyObject<'a> for Box<Transform> {
     fn extract(ob: &'a PyAny) -> PyResult<Self> {

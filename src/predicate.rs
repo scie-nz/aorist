@@ -1,16 +1,15 @@
 use crate::attributes::AttributeOrValue;
 use crate::concept::{AoristConcept, ConceptEnum, WrappedConcept};
 use crate::constraint::*;
+pub use crate::sql_parser::AttrMap;
 use aorist_concept::{aorist_concept, Constrainable, ConstrainableWithChildren, InnerObject};
 use derivative::Derivative;
 use paste::paste;
 use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
+use sqlparser::ast::{BinaryOperator, Expr};
 use std::sync::{Arc, RwLock};
 use uuid::Uuid;
-pub use crate::sql_parser::AttrMap;
-use sqlparser::ast::{BinaryOperator, DataType, Expr};
-use pyo3::exceptions::PyValueError;
 
 #[derive(Hash, PartialEq, Eq, Debug, Serialize, Deserialize, Clone, FromPyObject)]
 pub enum PredicateInnerOrTerminal {
@@ -135,4 +134,3 @@ impl InnerPredicate {
         }
     }
 }
-

@@ -1,8 +1,8 @@
 use crate::asset::*;
 use crate::attributes::{Attribute, InnerAttribute};
-use crate::predicate::InnerPredicate;
 use crate::data_setup::InnerUniverse;
 use crate::default_tabular_schema;
+use crate::predicate::InnerPredicate;
 use crate::schema::*;
 use crate::storage::*;
 use crate::storage_setup::*;
