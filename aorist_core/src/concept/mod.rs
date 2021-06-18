@@ -2,8 +2,8 @@ use siphasher::sip128::{Hasher128, SipHasher};
 use std::collections::BTreeSet;
 use std::hash::Hasher;
 use uuid::Uuid;
+pub use aorist_primitives::ConceptEnum;
 
-pub trait ConceptEnum<'a> {}
 pub trait Ancestry<'a> {
     type TConcept: ConceptEnum<'a>;
 }

@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 pub use crate::sql_parser::AttrMap;
-use aorist_core::ConceptEnum;
+use aorist_primitives::ConceptEnum;
 use pyo3::exceptions::PyValueError;
 use sqlparser::ast::{DataType, Expr};
 

@@ -1090,3 +1090,4 @@ macro_rules! register_concept {
     }
     }
 }
+pub trait ConceptEnum<'a> {}
