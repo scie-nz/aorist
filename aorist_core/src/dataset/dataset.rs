@@ -5,9 +5,9 @@ use crate::concept::{AoristConcept, ConceptEnum};
 use crate::object::TAoristObject;
 use crate::storage_setup::ComputedFromLocalData;
 use crate::template::{DatumTemplate, TDatumTemplate};
-use linked_hash_map::LinkedHashMap;
 use aorist_concept::{aorist, Constrainable};
 use derivative::Derivative;
+use linked_hash_map::LinkedHashMap;
 use paste::paste;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
@@ -37,22 +37,22 @@ impl DataSet {
     }
 
     pub fn get_templates(&self) -> Vec<DatumTemplate> {
-            self.datum_templates.clone()
-        }
+        self.datum_templates.clone()
+    }
 
-        pub fn get_template_for_asset<T: TAsset>(&self, asset: &T) -> Result<DatumTemplate, String> {
-            let schema = asset.get_schema();
-            let template_name = schema.get_datum_template_name().unwrap();
-            let mapped_templates = self.get_mapped_datum_templates();
-            let template = mapped_templates.get(&template_name);
-            match template {
-                Some(template) => Ok(template.clone()),
-                None => Err(format!(
-                    "Could not find template for asset {} in dataset {}",
-                    asset.get_name(),
-                    self.name,
-                )),
-            }
+    pub fn get_template_for_asset<T: TAsset>(&self, asset: &T) -> Result<DatumTemplate, String> {
+        let schema = asset.get_schema();
+        let template_name = schema.get_datum_template_name().unwrap();
+        let mapped_templates = self.get_mapped_datum_templates();
+        let template = mapped_templates.get(&template_name);
+        match template {
+            Some(template) => Ok(template.clone()),
+            None => Err(format!(
+                "Could not find template for asset {} in dataset {}",
+                asset.get_name(),
+                self.name,
+            )),
+        }
     }
 
     pub fn get_asset(&self, name: String) -> Result<Asset, String> {

@@ -7,7 +7,7 @@ use aorist_concept::{aorist, Constrainable};
 use derivative::Derivative;
 use paste::paste;
 use serde::{Deserialize, Serialize};
-use std::collections::{HashSet};
+use std::collections::HashSet;
 use uuid::Uuid;
 
 #[aorist]

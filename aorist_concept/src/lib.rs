@@ -25,13 +25,13 @@ pub fn constrainable(input: TokenStream) -> TokenStream {
         }) => {
             let struct_name = &input.ident;
             let builder = StructBuilder::new(fields);
-            builder.to_file(struct_name, "constrainables.txt");
+            //builder.to_file(struct_name, "constrainables.txt");
             builder.to_concept_token_stream(struct_name)
         }
         Data::Enum(DataEnum { variants, .. }) => {
             let enum_name = &input.ident;
             let builder = EnumBuilder::new(variants);
-            builder.to_file(enum_name, "constraints.txt");
+            //builder.to_file(enum_name, "constraints.txt");
             builder.to_concept_token_stream(enum_name)
         }
         _ => panic!("expected a struct with named fields or an enum"),

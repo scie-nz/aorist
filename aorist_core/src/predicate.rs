@@ -1,14 +1,16 @@
-use aorist_attributes::{AttrMap, AttributeOrValue};
+#[cfg(feature = "sql")]
+use aorist_attributes::AttrMap;
+use aorist_attributes::AttributeOrValue;
 use aorist_concept::{aorist, Constrainable};
 use aorist_primitives::{AoristConcept, ConceptEnum};
 use derivative::Derivative;
 use paste::paste;
-use serde::{Deserialize, Serialize};
-use sqlparser::ast::{BinaryOperator, Expr};
-use uuid::Uuid;
-
 #[cfg(feature = "python")]
 use pyo3::prelude::*;
+use serde::{Deserialize, Serialize};
+#[cfg(feature = "sql")]
+use sqlparser::ast::{BinaryOperator, Expr};
+use uuid::Uuid;
 
 #[derive(Hash, PartialEq, Eq, Debug, Serialize, Deserialize, Clone)]
 #[cfg_attr(feature = "python", derive(FromPyObject))]
@@ -73,6 +75,7 @@ impl<'a> FromPyObject<'a> for Box<PredicateInner> {
     }
 }
 impl PredicateInner {
+    #[cfg(feature = "sql")]
     fn try_from(x: Expr, attr: &AttrMap) -> Result<Self, String> {
         match x {
             Expr::BinaryOp { left, op, right } => {
