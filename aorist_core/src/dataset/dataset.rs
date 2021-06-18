@@ -1,4 +1,5 @@
 #![allow(non_snake_case)]
+#![allow(dead_code)]
 use crate::access_policy::*;
 use crate::asset::*;
 use crate::concept::{AoristConcept, ConceptEnum};
@@ -10,7 +11,7 @@ use aorist_concept::{aorist, Constrainable};
 use derivative::Derivative;
 use paste::paste;
 use serde::{Deserialize, Serialize};
-use std::collections::{BTreeMap, HashMap};
+use std::collections::{BTreeMap};
 use uuid::Uuid;
 
 #[aorist]

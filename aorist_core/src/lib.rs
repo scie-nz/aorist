@@ -32,5 +32,6 @@ mod role_binding;
 mod schema;
 mod storage;
 mod storage_setup;
+mod template;
 mod user;
 mod user_group;
