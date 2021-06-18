@@ -5,6 +5,7 @@ pub use constraint::*;
 pub use dialect::*;
 pub use object::*;
 pub use parameter_tuple::*;
+pub use predicate::*;
 
 mod access_policy;
 mod algorithms;
@@ -25,6 +26,7 @@ mod location;
 mod models;
 mod object;
 mod parameter_tuple;
+mod predicate;
 mod role;
 mod role_binding;
 mod schema;

@@ -3,6 +3,7 @@ use crate::concept::{AoristConcept, ConceptEnum, WrappedConcept};
 use crate::constraint::*;
 pub use crate::sql_parser::AttrMap;
 use aorist_concept::{aorist_concept, Constrainable, ConstrainableWithChildren, InnerObject};
+pub use aorist_core::Operator;
 use derivative::Derivative;
 use paste::paste;
 use pyo3::prelude::*;
@@ -32,28 +33,6 @@ impl PredicateInnerOrTerminal {
         match &self {
             PredicateInnerOrTerminal::PredicateTerminal(x) => x.as_sql(),
             PredicateInnerOrTerminal::PredicateInner(x) => format!("({})", x.as_sql()).to_string(),
-        }
-    }
-}
-
-#[derive(Hash, PartialEq, Eq, Debug, Serialize, Deserialize, Clone, FromPyObject)]
-pub enum Operator {
-    GtEq(String),
-    Gt(String),
-    Eq(String),
-    NotEq(String),
-    Lt(String),
-    LtEq(String),
-}
-impl Operator {
-    pub fn as_sql(&self) -> String {
-        match &self {
-            Operator::GtEq(_) => ">=".to_string(),
-            Operator::Gt(_) => ">".to_string(),
-            Operator::Eq(_) => "=".to_string(),
-            Operator::NotEq(_) => "!=".to_string(),
-            Operator::Lt(_) => "<".to_string(),
-            Operator::LtEq(_) => "<=".to_string(),
         }
     }
 }
