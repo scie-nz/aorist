@@ -42,10 +42,20 @@ impl Attribute {
         }
     }
 }
-#[derive(Hash, PartialEq, Eq, Debug, Serialize, Deserialize, Clone, FromPyObject)]
+#[derive(Hash, PartialEq, Eq, Debug, Serialize, Deserialize, Clone)]
 pub enum AttributeOrValue {
     Attribute(Attribute),
     Value(AttributeValue),
+}
+impl<'a> FromPyObject<'a> for AttributeOrValue {
+    fn extract(obj: &'a PyAny) -> PyResult<Self> {
+        if let Ok(x) = Attribute::extract(obj) {
+            return Ok(Self::Attribute(x));
+        } else if let Ok(x) = AttributeValue::extract(obj) {
+            return Ok(Self::Value(x));
+        }
+        Err(PyValueError::new_err("could not convert enum arm."))
+    }
 }
 impl AttributeOrValue {
     pub fn as_sql(&self) -> String {
