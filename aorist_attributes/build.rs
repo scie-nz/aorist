@@ -1,6 +1,6 @@
 use aorist_util::{get_raw_objects_of_type, read_file};
 use codegen::Scope;
-use serde_yaml::{Value};
+use serde_yaml::Value;
 use std::collections::{HashMap, HashSet};
 use std::env;
 use std::fs;
@@ -15,7 +15,7 @@ fn process_attributes(raw_objects: &Vec<HashMap<String, Value>>) {
     scope.import("serde", "Serialize");
     scope.import("serde", "Deserialize");
 
-    let sql_derive_macros; 
+    let sql_derive_macros;
     let orc_derive_macros = attributes
         .iter()
         .map(|x| x.get("orc").unwrap().as_str().unwrap().to_string())
@@ -47,7 +47,7 @@ fn process_attributes(raw_objects: &Vec<HashMap<String, Value>>) {
             sql_derive_macros = HashSet::new();
         }
     }
-    let derive_macros = sql_derive_macros 
+    let derive_macros = sql_derive_macros
         .into_iter()
         .chain(orc_derive_macros.into_iter())
         .chain(presto_derive_macros.into_iter())
@@ -104,7 +104,7 @@ fn process_attributes(raw_objects: &Vec<HashMap<String, Value>>) {
     }
     let out_dir = env::var_os("OUT_DIR").unwrap();
     let dest_path = Path::new(&out_dir).join("attributes.rs");
-    
+
     let register = format!(
         "register_attribute_new!(Attribute, {});",
         attribute_names.join(", ")

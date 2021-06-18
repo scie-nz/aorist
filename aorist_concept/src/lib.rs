@@ -10,9 +10,7 @@ use crate::builder::Builder;
 use crate::concept_builder::{ConceptBuilder, RawConceptBuilder, TConceptBuilder};
 use crate::enum_builder::EnumBuilder;
 use crate::struct_builder::StructBuilder;
-use syn::{
-    parse_macro_input, Data, DataEnum, DataStruct, DeriveInput, Fields, 
-};
+use syn::{parse_macro_input, Data, DataEnum, DataStruct, DeriveInput, Fields};
 mod keyword {
     syn::custom_keyword!(path);
 }
@@ -91,7 +89,11 @@ pub fn constrain_object(input: TokenStream) -> TokenStream {
 }
 #[proc_macro_attribute]
 pub fn aorist_concept(args: TokenStream, input: TokenStream) -> TokenStream {
-    let builder = ConceptBuilder::new(vec!["InnerObject", "Constrainable", "ConstrainableWithChildren"]);
+    let builder = ConceptBuilder::new(vec![
+        "InnerObject",
+        "Constrainable",
+        "ConstrainableWithChildren",
+    ]);
     builder.gen(args, input)
 }
 #[proc_macro_attribute]

@@ -1,13 +1,15 @@
 #![allow(dead_code)]
-use aorist_attributes::{Attribute, AttributeEnum, AttributeOrTransform, Regressor, FloatPrediction, Count};
-use aorist_primitives::{AoristConcept, ConceptEnum};
 use crate::schema::TabularSchema;
+use crate::template::datum_template::TDatumTemplate;
+use aorist_attributes::{
+    Attribute, AttributeEnum, AttributeOrTransform, Count, FloatPrediction, Regressor,
+};
 use aorist_concept::{aorist, Constrainable};
+use aorist_primitives::{AoristConcept, ConceptEnum};
 use derivative::Derivative;
 use paste::paste;
-use uuid::Uuid;
 use serde::{Deserialize, Serialize};
-use crate::template::datum_template::TDatumTemplate;
+use uuid::Uuid;
 
 /// An integer-valued measure for the density of attribute
 /// combinations. For example, a count in a histogram.

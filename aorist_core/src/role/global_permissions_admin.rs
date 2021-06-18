@@ -1,10 +1,10 @@
-use crate::role::role::TRole;
 use crate::concept::{AoristConcept, ConceptEnum};
+use crate::role::role::TRole;
 use aorist_concept::{aorist, Constrainable};
 use derivative::Derivative;
+use paste::paste;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
-use paste::paste;
 
 #[aorist]
 pub struct GlobalPermissionsAdmin {}

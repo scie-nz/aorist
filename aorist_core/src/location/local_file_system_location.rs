@@ -1,9 +1,9 @@
+use crate::concept::{AoristConcept, ConceptEnum};
 use aorist_concept::{aorist, Constrainable};
 use derivative::Derivative;
 use paste::paste;
-use uuid::Uuid;
 use serde::{Deserialize, Serialize};
-use crate::concept::{AoristConcept, ConceptEnum};
+use uuid::Uuid;
 
 #[aorist]
 pub struct LocalFileSystemLocation {

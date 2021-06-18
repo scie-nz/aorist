@@ -1,10 +1,10 @@
-use aorist_concept::{aorist, Constrainable};
+use crate::compression::DataCompression;
 use crate::{AoristConcept, ConceptEnum};
+use aorist_concept::{aorist, Constrainable};
 use derivative::Derivative;
 use paste::paste;
-use uuid::Uuid;
 use serde::{Deserialize, Serialize};
-use crate::compression::DataCompression;
+use uuid::Uuid;
 
 #[aorist]
 pub struct GDBEncoding {

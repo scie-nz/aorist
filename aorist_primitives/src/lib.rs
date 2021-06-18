@@ -297,12 +297,17 @@ macro_rules! define_program {
      $preamble:expr, $call:expr, $tuple_call: expr, $dialect_call: expr) => {
         pub struct $name {}
         impl<$lt, $clt> ConstraintSatisfactionBase<$lt, $clt> for $name
-        where $lt : $clt {
+        where
+            $lt: $clt,
+        {
             type RootType = $root;
             type ConstraintType = $constraint;
             type Outer = Constraint;
         }
-        impl<$lt, $clt> $satisfy_type<$lt, $clt> for $name where $lt : $clt {
+        impl<$lt, $clt> $satisfy_type<$lt, $clt> for $name
+        where
+            $lt: $clt,
+        {
             type Dialect = $dialect;
             fn compute_parameter_tuple(
                 uuid: Uuid,
@@ -784,11 +789,11 @@ macro_rules! register_attribute_new {
             fn extract(obj: &'a PyAny) -> PyResult<Self> {
                 $(
                     if let Ok(x) = $element::extract(obj) {
-                        return Ok(Self::$element(x));    
+                        return Ok(Self::$element(x));
                     }
                 )+
                 Err(PyValueError::new_err("could not convert enum arm."))
-            } 
+            }
         }
         impl [<$name Enum>] {
             pub fn get_name(&self) -> &String {
@@ -954,11 +959,11 @@ macro_rules! register_attribute {
             fn extract(obj: &'a PyAny) -> PyResult<Self> {
                 $(
                     if let Ok(x) = $element::extract(obj) {
-                        return Ok(Self::$element(x));    
+                        return Ok(Self::$element(x));
                     }
                 )+
                 Err(PyValueError::new_err("could not convert enum arm."))
-            } 
+            }
         }
         impl [<$name Enum>] {
             pub fn get_name(&self) -> &String {
@@ -1119,8 +1124,8 @@ macro_rules! register_concept {
         $(
             impl <'a> [<CanBe $element>]<'a> for $name<'a> {
                 fn [<construct_ $element:snake:lower>](
-                    obj_ref: &'a $element, 
-                    ix: Option<usize>, 
+                    obj_ref: &'a $element,
+                    ix: Option<usize>,
                     id: Option<(Uuid, String)>
                 ) -> Self {
                     $name::$element((
@@ -1139,7 +1144,7 @@ macro_rules! register_concept {
                 fn get_descendants<'a>(&'a self) -> Vec<$name<'a>> {
                     let mut concepts = Vec::new();
                     for tpl in self.get_children() {
-                        let wrapped_concept = WrappedConcept::from(tpl); 
+                        let wrapped_concept = WrappedConcept::from(tpl);
                         concepts.push(wrapped_concept.inner);
                     }
                     concepts
@@ -1267,10 +1272,11 @@ macro_rules! register_concept {
 }
 pub trait ConceptEnum<'a> {}
 pub trait AoristConcept<'a> {
-
     type TChildrenEnum: ConceptEnum<'a>;
 
-    fn get_children(&'a self) -> Vec<(
+    fn get_children(
+        &'a self,
+    ) -> Vec<(
         // struct name
         &str,
         // field name

@@ -65,15 +65,15 @@ pub struct StructBuilder {
 }
 impl StructBuilder {
     pub fn get_all_types(&self) -> Vec<&Type> {
-        self.bare_types.iter().chain(
-            self.vec_types.iter()
-        ).chain(
-            self.option_types.iter()
-        ).chain(
-            self.option_vec_types.iter()
-        ).chain(
-            self.map_value_types.iter()
-        ).collect::<LinkedHashSet<_>>().into_iter().collect()
+        self.bare_types
+            .iter()
+            .chain(self.vec_types.iter())
+            .chain(self.option_types.iter())
+            .chain(self.option_vec_types.iter())
+            .chain(self.map_value_types.iter())
+            .collect::<LinkedHashSet<_>>()
+            .into_iter()
+            .collect()
     }
 }
 impl Builder for StructBuilder {

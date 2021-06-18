@@ -1,6 +1,6 @@
+use crate::storage::*;
 use crate::{AoristConcept, ConceptEnum};
 use aorist_concept::{aorist, Constrainable};
-use crate::storage::*;
 use derivative::Derivative;
 use paste::paste;
 use serde::{Deserialize, Serialize};

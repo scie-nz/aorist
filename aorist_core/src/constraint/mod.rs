@@ -1,12 +1,12 @@
 use crate::concept::{Ancestry, AoristConcept};
-use crate::object::TAoristObject;
 use crate::dialect::Dialect;
+use crate::object::TAoristObject;
 use crate::parameter_tuple::ParameterTuple;
 use anyhow::Result;
+use std::marker::PhantomData;
 use std::sync::{Arc, RwLock};
 use tracing::info;
 use uuid::Uuid;
-use std::marker::PhantomData;
 
 pub trait ConstraintEnum {}
 pub trait OuterConstraint<'a>: TAoristObject + std::fmt::Display {
@@ -45,7 +45,7 @@ pub trait OuterConstraint<'a>: TAoristObject + std::fmt::Display {
 pub trait TConstraint<'a, 'b>
 where
     Self::Root: AoristConcept<'a>,
-    Self::Outer: OuterConstraint<'a, TAncestry=Self::Ancestry>,
+    Self::Outer: OuterConstraint<'a, TAncestry = Self::Ancestry>,
     Self::Ancestry: Ancestry<'a>,
     'a: 'b,
 {
@@ -108,20 +108,20 @@ where
     type TAncestry: Ancestry<'a>;
     fn satisfy(
         &mut self,
-        c: <Self::TAncestry as Ancestry<'a>>::TConcept, 
+        c: <Self::TAncestry as Ancestry<'a>>::TConcept,
         d: &Dialect,
         ancestry: Arc<Self::TAncestry>,
     ) -> Result<Option<(String, String, ParameterTuple, Dialect)>>;
 
     fn satisfy_given_preference_ordering(
         &mut self,
-        r: <Self::TAncestry as Ancestry<'a>>::TConcept, 
+        r: <Self::TAncestry as Ancestry<'a>>::TConcept,
         preferences: &Vec<Dialect>,
         ancestry: Arc<Self::TAncestry>,
     ) -> Result<(String, String, ParameterTuple, Dialect)>;
 }
 // TODO: duplicate function, should be unified in trait
-pub trait SatisfiableOuterConstraint<'a> : OuterConstraint<'a> {
+pub trait SatisfiableOuterConstraint<'a>: OuterConstraint<'a> {
     fn satisfy_given_preference_ordering(
         &mut self,
         c: <<Self as OuterConstraint<'a>>::TAncestry as Ancestry<'a>>::TConcept,
@@ -129,4 +129,3 @@ pub trait SatisfiableOuterConstraint<'a> : OuterConstraint<'a> {
         ancestry: Arc<<Self as OuterConstraint<'a>>::TAncestry>,
     ) -> Result<(String, String, ParameterTuple, Dialect)>;
 }
-

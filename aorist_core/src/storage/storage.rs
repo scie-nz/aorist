@@ -1,8 +1,3 @@
-use crate::{AoristConcept, ConceptEnum};
-use aorist_concept::{aorist, Constrainable};
-use paste::paste;
-use uuid::Uuid;
-use serde::{Deserialize, Serialize};
 use crate::encoding::*;
 use crate::storage::bigquery_storage::*;
 use crate::storage::git_storage::*;
@@ -11,6 +6,11 @@ use crate::storage::local_file_storage::*;
 use crate::storage::postgres_storage::*;
 use crate::storage::remote_storage::*;
 use crate::storage::sqlite_storage::*;
+use crate::{AoristConcept, ConceptEnum};
+use aorist_concept::{aorist, Constrainable};
+use paste::paste;
+use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 #[aorist]
 pub enum Storage {

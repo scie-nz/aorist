@@ -1,6 +1,6 @@
-use aorist_attributes::{AttributeOrValue, AttrMap};
-use aorist_primitives::{AoristConcept, ConceptEnum};
+use aorist_attributes::{AttrMap, AttributeOrValue};
 use aorist_concept::{aorist, Constrainable};
+use aorist_primitives::{AoristConcept, ConceptEnum};
 use derivative::Derivative;
 use paste::paste;
 use serde::{Deserialize, Serialize};

@@ -1,11 +1,11 @@
-use crate::{AoristConcept, ConceptEnum};
-use aorist_concept::{aorist, Constrainable};
 use crate::encoding::*;
 use crate::storage::*;
 use crate::storage_setup::computed_from_local_data::*;
 use crate::storage_setup::local_storage_setup::*;
 use crate::storage_setup::remote_storage_setup::*;
 use crate::storage_setup::replication_storage_setup::*;
+use crate::{AoristConcept, ConceptEnum};
+use aorist_concept::{aorist, Constrainable};
 use paste::paste;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;

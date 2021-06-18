@@ -1,12 +1,11 @@
-use aorist_concept::{aorist, Constrainable};
-use crate::{AoristConcept, ConceptEnum};
 use crate::object::TAoristObject;
+use crate::role::*;
+use crate::{AoristConcept, ConceptEnum};
+use aorist_concept::{aorist, Constrainable};
 use derivative::Derivative;
 use paste::paste;
-use uuid::Uuid;
 use serde::{Deserialize, Serialize};
-use crate::role::*;
-
+use uuid::Uuid;
 
 #[aorist]
 pub struct RoleBinding {

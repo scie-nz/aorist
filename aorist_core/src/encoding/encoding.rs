@@ -1,9 +1,9 @@
-use aorist_concept::{aorist, Constrainable};
+use crate::compression::DataCompression;
+use crate::header::FileHeader;
 use crate::{AoristConcept, ConceptEnum};
+use aorist_concept::{aorist, Constrainable};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
-use crate::compression::DataCompression;
-use crate::header::FileHeader; 
 
 use crate::encoding::csv_encoding::*;
 use crate::encoding::gdb_encoding::*;

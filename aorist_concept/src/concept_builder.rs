@@ -4,8 +4,8 @@ use quote::quote;
 use syn::parse::Parser;
 use syn::punctuated::Punctuated;
 use syn::{
-    parse_macro_input, parse_quote, AttributeArgs, Data, DataEnum, DeriveInput, Field,
-    Fields, Meta, NestedMeta, Token, LitStr, Path,
+    parse_macro_input, parse_quote, AttributeArgs, Data, DataEnum, DeriveInput, Field, Fields,
+    LitStr, Meta, NestedMeta, Path, Token,
 };
 mod keyword {
     syn::custom_keyword!(path);
@@ -201,4 +201,3 @@ impl TConceptBuilder for RawConceptBuilder {
         }
     }
 }
-
