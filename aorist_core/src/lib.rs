@@ -19,6 +19,7 @@ mod data_setup;
 mod dataset;
 mod encoding;
 mod endpoints;
+mod error;
 mod features;
 mod header;
 mod layout;
