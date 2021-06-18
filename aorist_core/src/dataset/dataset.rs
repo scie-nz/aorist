@@ -1,12 +1,11 @@
-#![allow(non_snake_case)]
 #![allow(dead_code)]
 use crate::access_policy::*;
 use crate::asset::*;
 use crate::concept::{AoristConcept, ConceptEnum};
 use crate::object::TAoristObject;
 use crate::storage_setup::ComputedFromLocalData;
-// TODO uncomment
-//use crate::template::DatumTemplate;
+use crate::template::{DatumTemplate, TDatumTemplate};
+use linked_hash_map::LinkedHashMap;
 use aorist_concept::{aorist, Constrainable};
 use derivative::Derivative;
 use paste::paste;
@@ -18,12 +17,11 @@ use uuid::Uuid;
 pub struct DataSet {
     pub name: String,
     pub description: String,
-    pub sourcePath: String,
+    pub source_path: String,
     #[constrainable]
-    pub accessPolicies: Vec<AccessPolicy>,
-    // TODO uncomment
-    /*#[constrainable]
-    pub datumTemplates: Vec<DatumTemplate>,*/
+    pub access_policies: Vec<AccessPolicy>,
+    #[constrainable]
+    pub datum_templates: Vec<DatumTemplate>,
     #[constrainable]
     pub assets: BTreeMap<String, Asset>,
 }
@@ -38,9 +36,8 @@ impl DataSet {
             .collect()
     }
 
-    // TODO uncomment
-    /*pub fn get_templates(&self) -> Vec<DatumTemplate> {
-            self.datumTemplates.clone()
+    pub fn get_templates(&self) -> Vec<DatumTemplate> {
+            self.datum_templates.clone()
         }
 
         pub fn get_template_for_asset<T: TAsset>(&self, asset: &T) -> Result<DatumTemplate, String> {
@@ -56,7 +53,7 @@ impl DataSet {
                     self.name,
                 )),
             }
-    }*/
+    }
 
     pub fn get_asset(&self, name: String) -> Result<Asset, String> {
         if let Some(asset) = self.assets.get(&name) {
@@ -84,18 +81,15 @@ impl TAoristObject for DataSet {
     }
 }
 
-// TODO uncomment
-/*
 pub trait TDataSet {
-    fn get_mapped_datum_templates(&self) -> HashMap<String, DatumTemplate>;
+    fn get_mapped_datum_templates(&self) -> LinkedHashMap<String, DatumTemplate>;
 }
 
 impl TDataSet for DataSet {
-    fn get_mapped_datum_templates(&self) -> HashMap<String, DatumTemplate> {
-        self.datumTemplates
+    fn get_mapped_datum_templates(&self) -> LinkedHashMap<String, DatumTemplate> {
+        self.datum_templates
             .iter()
             .map(|x| (x.get_name().clone(), x.clone()))
             .collect()
     }
 }
-*/
