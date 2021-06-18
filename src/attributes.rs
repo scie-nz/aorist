@@ -188,10 +188,21 @@ impl InnerPredicate {
     }
 }
 
-#[derive(Hash, PartialEq, Eq, Debug, Serialize, Deserialize, Clone, FromPyObject)]
+#[derive(Hash, PartialEq, Eq, Debug, Serialize, Deserialize, Clone)]
 pub struct IdentityTransform {
     attribute: AttributeOrTransform,
     name: String,
+}
+
+impl <'a> FromPyObject<'a> for IdentityTransform {
+    fn extract(obj: &'a PyAny) -> PyResult<Self> {
+        let attribute = obj.getattr("attribute")?;
+        let name = obj.getattr("name")?;
+        Ok(Self{ 
+            attribute: AttributeOrTransform::extract(attribute)?,
+            name: String::extract(name)?,
+        })
+    }
 }
 impl IdentityTransform {
     pub fn get_name(&self) -> &String {
