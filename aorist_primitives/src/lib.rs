@@ -768,11 +768,21 @@ macro_rules! register_constraint {
 #[macro_export]
 macro_rules! register_attribute {
     ( $name:ident, $($element: ident),+ ) => { paste! {
-        #[derive(Hash, PartialEq, Eq, Debug, Serialize, Deserialize, Clone, FromPyObject)]
+        #[derive(Hash, PartialEq, Eq, Debug, Serialize, Deserialize, Clone)]
         pub enum [<$name Enum>] {
             $(
                 $element($element),
             )+
+        }
+        impl <'a> FromPyObject<'a> for [<$name Enum>] {
+            fn extract(obj: &'a PyAny) -> PyResult<Self> {
+                $(
+                    if let Ok(x) = $element::extract(obj) {
+                        return Ok(Self::$element(x));    
+                    }
+                )+
+                Err(PyValueError::new_err("could not convert enum arm."))
+            } 
         }
         impl [<$name Enum>] {
             pub fn get_name(&self) -> &String {
