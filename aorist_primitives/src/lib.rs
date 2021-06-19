@@ -1317,7 +1317,7 @@ pub trait TConceptEnum<'a>: Sized {
     fn get_uuid(&'a self) -> Uuid;
     fn get_tag(&'a self) -> Option<String>;
     fn get_index_as_child(&'a self) -> usize;
-    fn get_child_concepts<'b, T: TConceptEnum<'b>>(&'a self) -> Vec<T> where 'a : 'b;
+    fn get_child_concepts(&'a self) -> Vec<Self>;
     fn populate_child_concept_map(&self, concept_map: &mut HashMap<(Uuid, String), Self>);
 }
 #[macro_export]
