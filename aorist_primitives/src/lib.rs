@@ -1206,50 +1206,50 @@ macro_rules! register_concept {
                 }
             )+
         }
-        impl <'a> $name<'a> {
-            pub fn get_parent_id(&'a self) -> Option<(Uuid, String)> {
+        impl <'a> TConceptEnum<'a> for $name<'a> {
+            fn get_parent_id(&'a self) -> Option<(Uuid, String)> {
                 match self {
                     $(
                         $name::$element((_, _, id)) => id.clone(),
                     )+
                 }
             }
-            pub fn get_type(&'a self) -> String {
+            fn get_type(&'a self) -> String {
                 match self {
                     $(
                         $name::$element((x, _, _)) => stringify!($element).to_string(),
                     )*
                 }
             }
-            pub fn get_uuid(&'a self) -> Uuid {
+            fn get_uuid(&'a self) -> Uuid {
                 match self {
                     $(
                         $name::$element((x, _, _)) => x.get_uuid(),
                     )*
                 }
             }
-            pub fn get_tag(&'a self) -> Option<String> {
+            fn get_tag(&'a self) -> Option<String> {
                 match self {
                     $(
                         $name::$element((x, _, _)) => x.get_tag(),
                     )*
                 }
             }
-            pub fn get_index_as_child(&'a self) -> usize {
+            fn get_index_as_child(&'a self) -> usize {
                 match self {
                     $(
                         $name::$element((_, idx, _)) => *idx,
                     )*
                 }
             }
-            pub fn get_child_concepts<'b>(&'a self) -> Vec<$name<'b>> where 'a : 'b {
+            fn get_child_concepts(&'a self) -> Vec<$name<'a>> {
                 match self {
                     $(
                         $name::$element((x, _, _)) => x.get_descendants(),
                     )*
                 }
             }
-            pub fn populate_child_concept_map(&self, concept_map: &mut HashMap<(Uuid, String), Concept<'a>>) {
+            fn populate_child_concept_map(&self, concept_map: &mut HashMap<(Uuid, String), Concept<'a>>) {
                 match self {
                     $(
                         $name::$element((ref x, idx, parent)) => {
@@ -1317,7 +1317,7 @@ pub trait TConceptEnum<'a>: Sized {
     fn get_uuid(&'a self) -> Uuid;
     fn get_tag(&'a self) -> Option<String>;
     fn get_index_as_child(&'a self) -> usize;
-    fn get_child_concepts(&'a self) -> Vec<Self>;
+     fn get_child_concepts(&'a self) -> Vec<Self>;
     fn populate_child_concept_map(&self, concept_map: &mut HashMap<(Uuid, String), Self>);
 }
 #[macro_export]

@@ -14,6 +14,7 @@ use crate::python::{
 use crate::r::{RBasedConstraintBlock, RFlowBuilderInput, RImport, RPreamble};
 use anyhow::Result;
 use aorist_ast::{AncestorRecord, SimpleIdentifier, AST};
+use aorist_primitives::TConceptEnum;
 use aorist_core::ParameterTuple;
 use aorist_core::{Bash, Dialect, Presto, Python, R};
 use inflector::cases::snakecase::to_snake_case;

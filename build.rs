@@ -468,6 +468,7 @@ fn process_concepts() {
         ("crate::template", "PredictionsFromTrainedFloatMeasure"),
     ];
     scope.import("aorist_primitives", "register_concept");
+    scope.import("aorist_core", "TConceptEnum");
     scope.import("std::convert", "TryFrom");
     scope.import("std::collections", "HashMap");
     scope.import("tracing", "debug");
@@ -551,6 +552,7 @@ fn main() {
     scope.import("aorist_core", "Dialect");
     scope.import("aorist_primitives", "register_programs_for_constraint");
     scope.import("aorist_primitives", "register_satisfiable_constraints");
+    scope.import("aorist_primitives", "TConceptEnum");
     scope.import("crate::concept", "ConceptAncestry");
     scope.import("crate::constraint", "AoristConstraint");
     scope.import("crate::constraint", "ConstraintSatisfactionBase");

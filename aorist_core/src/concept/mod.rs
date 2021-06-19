@@ -1,4 +1,4 @@
-pub use aorist_primitives::{register_concept, AoristConcept, ConceptEnum};
+pub use aorist_primitives::{register_concept, AoristConcept, ConceptEnum, TConceptEnum};
 pub use crate::universe::*;
 use uuid::Uuid;
 use std::collections::HashMap;

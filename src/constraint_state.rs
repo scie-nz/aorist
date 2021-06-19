@@ -5,6 +5,7 @@ use anyhow::{bail, Result};
 use aorist_ast::{AncestorRecord, Formatted, SimpleIdentifier, StringLiteral, AST};
 use aorist_core::Dialect;
 use aorist_core::ParameterTuple;
+use aorist_core::TConceptEnum;
 use inflector::cases::snakecase::to_snake_case;
 use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
