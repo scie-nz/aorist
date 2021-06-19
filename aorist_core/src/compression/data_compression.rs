@@ -1,5 +1,5 @@
-use crate::compression::gzip_compression::GzipCompression;
-use crate::compression::zip_compression::ZipCompression;
+use crate::compression::gzip_compression::*;
+use crate::compression::zip_compression::*;
 use crate::{AoristConcept, ConceptEnum};
 use aorist_concept::{aorist, Constrainable};
 use paste::paste;

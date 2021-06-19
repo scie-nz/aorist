@@ -16,7 +16,6 @@ mod compliance;
 mod compression;
 mod concept;
 mod constraint;
-mod data_setup;
 mod dataset;
 mod encoding;
 mod endpoints;

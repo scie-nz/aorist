@@ -1,5 +1,5 @@
-use crate::attributes::Attribute;
-use crate::predicate::Predicate;
+use crate::attributes::*;
+use crate::predicate::*;
 use crate::template::datum_template::TDatumTemplate;
 use aorist_concept::{aorist, Constrainable};
 use aorist_primitives::{AoristConcept, ConceptEnum};

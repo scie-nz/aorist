@@ -1,4 +1,4 @@
-use crate::compression::DataCompression;
+use crate::compression::*;
 use crate::{AoristConcept, ConceptEnum};
 use aorist_concept::{aorist, Constrainable};
 use derivative::Derivative;

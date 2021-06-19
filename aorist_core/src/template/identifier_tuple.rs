@@ -1,4 +1,4 @@
-use crate::attributes::Attribute;
+use crate::attributes::*;
 use aorist_primitives::{AoristConcept, ConceptEnum};
 
 use crate::template::datum_template::TDatumTemplate;

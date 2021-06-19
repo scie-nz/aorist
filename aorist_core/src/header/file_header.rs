@@ -1,4 +1,4 @@
-use crate::header::CSVHeader;
+use crate::header::*;
 use crate::{AoristConcept, ConceptEnum};
 use aorist_concept::{aorist, Constrainable};
 use paste::paste;

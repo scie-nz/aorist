@@ -1,5 +1,5 @@
-use crate::compression::DataCompression;
-use crate::header::FileHeader;
+use crate::compression::*;
+use crate::header::*;
 use crate::{AoristConcept, ConceptEnum};
 use aorist_concept::{aorist, Constrainable};
 use derivative::Derivative;

@@ -111,7 +111,7 @@ impl Builder for EnumBuilder {
               Option<Uuid>,
               // wrapped reference
               &'a #enum_name
-          )> for WrappedConcept<'a, T> where
+          )> for crate::WrappedConcept<'a, T> where
           #(
               T: [<CanBe #variant>]<'a>,
           )* {
@@ -127,7 +127,7 @@ impl Builder for EnumBuilder {
                   let (name, field, ix, uuid, children_enum) = tpl;
                   match children_enum {
                       #(
-                          #enum_name::#variant(x) => WrappedConcept{
+                          #enum_name::#variant(x) => crate::WrappedConcept{
                               inner: T::[<construct_ #variant:snake:lower>](x, ix, Some((uuid.unwrap(), name.to_string()))),
                               _phantom_lt: std::marker::PhantomData,
                           },

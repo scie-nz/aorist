@@ -240,7 +240,7 @@ impl Builder for StructBuilder {
                 Option<Uuid>,
                 // wrapped reference
                 [<#struct_name Children>]<'a>
-            )> for WrappedConcept<'a, T> where
+            )> for crate::WrappedConcept<'a, T> where
             #(
                 T: [<CanBe #types>]<'a>,
             )* {
@@ -256,7 +256,7 @@ impl Builder for StructBuilder {
                     let (name, field, ix, uuid, children_enum) = tpl;
                     match children_enum {
                         #(
-                            [<#struct_name Children>]::#types(x) => WrappedConcept{
+                            [<#struct_name Children>]::#types(x) => crate::WrappedConcept{
                                 inner: T::[<construct_ #types:snake:lower>](x, ix, Some((uuid.unwrap(), name.to_string()))),
                                 _phantom_lt: std::marker::PhantomData,
                             },
