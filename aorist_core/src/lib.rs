@@ -10,6 +10,7 @@ pub use predicate::*;
 mod access_policy;
 mod algorithms;
 mod asset;
+mod attributes;
 mod code;
 mod compliance;
 mod compression;
