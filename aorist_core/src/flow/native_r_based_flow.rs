@@ -50,12 +50,18 @@ impl ETLFlow for NativeRBasedFlow {
     fn get_statements(&self) -> Vec<AST> {
         self.node.get_statements()
     }
-    #[cfg(all(feature = "r", feature = "python"))]
-    fn extract_preamble(
-        dialect: Option<Dialect>,
+    fn new(
+        task_id: AST,
+        task_val: AST,
+        call: Option<String>,
+        args: Vec<AST>,
+        kwargs: LinkedHashMap<String, AST>,
+        dep_list: Option<AST>,
         preamble: Option<String>,
-    ) -> Vec<RPreamble> {
-        match dialect {
+        dialect: Option<Dialect>,
+        endpoints: EndpointConfig,
+    ) -> Self {
+        let preambles = match dialect {
             Some(Dialect::R(_)) => match preamble {
                 Some(ref p) => vec![RPreamble::new(p.clone())],
                 None => Vec::new(),
@@ -68,33 +74,7 @@ impl ETLFlow for NativeRBasedFlow {
                 None => Vec::new(),
             },
             _ => Vec::new(),
-        }
-    }
-    #[cfg(all(feature = "r", not(feature = "python")))]
-    fn extract_preamble(
-        dialect: Option<Dialect>,
-        preamble: Option<String>,
-    ) -> Vec<RPreamble> {
-        match dialect {
-            Some(Dialect::R(_)) => match preamble {
-                Some(ref p) => vec![RPreamble::new(p.clone())],
-                None => Vec::new(),
-            },
-            _ => Vec::new(),
-        }
-    }
-    fn new(
-        task_id: AST,
-        task_val: AST,
-        call: Option<String>,
-        args: Vec<AST>,
-        kwargs: LinkedHashMap<String, AST>,
-        dep_list: Option<AST>,
-        preamble: Option<String>,
-        dialect: Option<Dialect>,
-        endpoints: EndpointConfig,
-    ) -> Self {
-        let preambles = Self::extract_preamble(dialect, preamble);
+        };
         let command = match &dialect {
             Some(Dialect::R(_)) => AST::Call(Call::new_wrapped(
                 AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(

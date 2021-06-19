@@ -56,6 +56,7 @@ impl<'a> RPreamble {
             body: body_no_imports.as_str().unwrap().to_string(),
         }
     }
+    #[cfg(feature = "python")]
     pub fn from_python(var_name: String, body: String) -> RPreamble {
         let python_preamble = PythonPreamble::new(body);
         let formatted = python_preamble.to_string().replace("'", "\\'");
