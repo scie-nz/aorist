@@ -11,5 +11,6 @@ pub trait Builder {
     fn to_concept_token_stream(&self, struct_name: &Ident) -> TokenStream;
     fn to_concept_children_token_stream(&self, struct_name: &Ident) -> TokenStream;
     fn to_python_token_stream(&self, struct_name: &Ident) -> TokenStream;
+    fn to_python_token_stream_new(&self, struct_name: &Ident) -> TokenStream;
     fn to_base_token_stream(&self, struct_name: &Ident) -> TokenStream;
 }

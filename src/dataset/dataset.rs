@@ -2,7 +2,7 @@
 use crate::access_policy::*;
 use crate::asset::*;
 use crate::attributes::*;
-use crate::concept::{AoristConcept, ConceptEnum, WrappedConcept};
+use crate::concept::{AoristConcept, ConceptEnum};
 use crate::constraint::Constraint;
 use crate::encoding::*;
 use crate::object::TAoristObject;

@@ -1,5 +1,5 @@
 #![allow(non_snake_case)]
-use crate::concept::{AoristConcept, ConceptEnum, WrappedConcept};
+use crate::concept::{AoristConcept, ConceptEnum};
 use crate::schema::tabular_schema::*;
 use crate::schema::time_ordered_tabular_schema::*;
 use crate::schema::undefined_tabular_schema::*;

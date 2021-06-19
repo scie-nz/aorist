@@ -1,5 +1,5 @@
 use crate::constraint::Constraint;
-use crate::{AoristConcept, ConceptEnum, WrappedConcept};
+use crate::{AoristConcept, ConceptEnum};
 use aorist_concept::{aorist_concept, Constrainable, ConstrainableWithChildren, InnerObject};
 use derivative::Derivative;
 use paste::paste;

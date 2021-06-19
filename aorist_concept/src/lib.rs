@@ -98,6 +98,34 @@ pub fn aorist_concept(args: TokenStream, input: TokenStream) -> TokenStream {
 }
 #[proc_macro_attribute]
 pub fn aorist(args: TokenStream, input: TokenStream) -> TokenStream {
-    let builder = RawConceptBuilder::new(vec!["Constrainable", "aorist_concept::ConstrainableWithChildren"]);
+    let builder = RawConceptBuilder::new(vec![
+        "Constrainable",
+        "aorist_concept::ConstrainableWithChildren",
+    ]);
     builder.gen(args, input)
+}
+#[proc_macro_derive(InnerObjectNew, attributes(py_default))]
+pub fn inner_object_new(input: TokenStream) -> TokenStream {
+    let ast = parse_macro_input!(input as DeriveInput);
+    match &ast.data {
+        Data::Enum(DataEnum { variants, .. }) => {
+            let enum_name = &ast.ident;
+            let builder = EnumBuilder::new(variants);
+            let _base_stream = builder.to_base_token_stream(enum_name);
+            let python_stream = builder.to_python_token_stream_new(enum_name);
+            python_stream
+        }
+        Data::Struct(DataStruct {
+            fields: Fields::Named(fields),
+            ..
+        }) => {
+            let struct_name = &ast.ident;
+            let builder = StructBuilder::new(&fields);
+            let _base_stream = builder.to_base_token_stream(struct_name);
+            let python_stream = builder.to_python_token_stream_new(struct_name);
+            python_stream
+        }
+
+        _ => panic!("expected a struct with named fields or an enum"),
+    }
 }

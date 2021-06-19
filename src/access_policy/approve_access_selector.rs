@@ -1,5 +1,5 @@
 #![allow(non_snake_case)]
-use crate::concept::{AoristConcept, ConceptEnum, WrappedConcept};
+use crate::concept::{AoristConcept, ConceptEnum};
 use crate::constraint::Constraint;
 use crate::user_group::{TUserGroup, UserGroup};
 use aorist_concept::{aorist_concept, Constrainable, ConstrainableWithChildren, InnerObject};

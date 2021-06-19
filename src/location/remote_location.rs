@@ -1,4 +1,4 @@
-use crate::concept::{AoristConcept, ConceptEnum, WrappedConcept};
+use crate::concept::{AoristConcept, ConceptEnum};
 use crate::location::bigquery_location::*;
 use crate::location::gcs_location::*;
 use crate::location::github_location::*;

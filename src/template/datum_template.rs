@@ -1,7 +1,7 @@
 #![allow(non_snake_case)]
 
 use crate::attributes::*;
-use crate::concept::{AoristConcept, ConceptEnum, WrappedConcept};
+use crate::concept::{AoristConcept, ConceptEnum};
 use crate::template::filter::*;
 use crate::template::identifier_tuple::*;
 use crate::template::keyed_struct::*;

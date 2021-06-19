@@ -1,7 +1,7 @@
 #![allow(non_snake_case)]
 
 use crate::compression::*;
-use crate::concept::{AoristConcept, ConceptEnum, WrappedConcept};
+use crate::concept::{AoristConcept, ConceptEnum};
 use crate::constraint::*;
 use aorist_concept::{aorist_concept, Constrainable, ConstrainableWithChildren, InnerObject};
 use derivative::Derivative;
