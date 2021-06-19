@@ -55,6 +55,64 @@ pub trait TConceptBuilder {
         self.extend_metas(ast, extra_derives, "derive");
     }
     fn get_extra_derives(&self) -> Vec<NestedMeta>;
+    fn gen_new(&self, args: TokenStream, input: TokenStream) -> TokenStream {
+        let input_attrs = parse_macro_input!(args as AttributeArgs);
+        let (mut extra_derives, extra_derivatives) = self.get_derives(input_attrs);
+        for derive in self.get_extra_derives() {
+            extra_derives.push(derive);
+        }
+        let mut ast = parse_macro_input!(input as DeriveInput);
+        let quoted2 = match &mut ast.data {
+            syn::Data::Struct(ref mut struct_data) => {
+                self.add_aorist_fields(struct_data);
+                let quoted = quote! {
+                    #[cfg_attr(feature = "python", pyo3::prelude::pyclass)]
+                    #[derive(
+                        Derivative, Serialize, Deserialize, Clone,
+                    )]
+                    #[derivative(PartialEq, Debug, Eq)]
+                    #ast
+                };
+                let mut final_ast: DeriveInput = syn::parse2(quoted).unwrap();
+
+                self.extend_derivatives(&mut final_ast, extra_derivatives);
+                self.extend_derives(&mut final_ast, extra_derives);
+
+                quote! { #final_ast }
+            }
+            Data::Enum(DataEnum { variants, .. }) => {
+                let enum_name = &ast.ident;
+                let variant = variants.iter().map(|x| (&x.ident)).collect::<Vec<_>>();
+                let quoted = quote! {
+                    #[cfg_attr(feature = "python", derive(pyo3::prelude::FromPyObject))]
+                    #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
+                    #[serde(tag = "type")]
+                    pub enum #enum_name {
+                        #(#variant(#variant)),*
+                    }
+                };
+                let mut final_ast: DeriveInput = syn::parse2(quoted).unwrap();
+                self.extend_derives(&mut final_ast, extra_derives);
+                self.extend_derives(&mut final_ast, extra_derivatives);
+
+                quote! {
+                    #final_ast
+                    impl #enum_name {
+                        pub fn is_same_variant_in_enum_as(&self, other: &Self) -> bool {
+                            match (self, other) {
+                                #(
+                                    (#enum_name::#variant(_), #enum_name::#variant(_)) => true,
+                                )*
+                                _ => false,
+                            }
+                        }
+                    }
+                }
+            }
+            _ => panic!("expected a struct with named fields or an enum"),
+        };
+        proc_macro::TokenStream::from(quoted2)
+    }
     fn gen(&self, args: TokenStream, input: TokenStream) -> TokenStream {
         let input_attrs = parse_macro_input!(args as AttributeArgs);
         let (mut extra_derives, extra_derivatives) = self.get_derives(input_attrs);

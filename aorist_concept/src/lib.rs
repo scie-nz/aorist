@@ -102,7 +102,7 @@ pub fn aorist(args: TokenStream, input: TokenStream) -> TokenStream {
         "Constrainable",
         "aorist_concept::ConstrainableWithChildren",
     ]);
-    builder.gen(args, input)
+    builder.gen_new(args, input)
 }
 #[proc_macro_derive(InnerObjectNew, attributes(py_default))]
 pub fn inner_object_new(input: TokenStream) -> TokenStream {

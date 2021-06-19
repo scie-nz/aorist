@@ -891,13 +891,13 @@ macro_rules! register_attribute_new {
         pub struct $name {
             pub inner: AttributeOrTransform,
         }
-        #[cfg(feature = "python")]
+        /*#[cfg(feature = "python")]
         impl<'a> FromPyObject<'a> for $name {
             fn extract(ob: &'a PyAny) -> PyResult<Self> {
                 let inner = AttributeOrTransform::extract(ob)?;
                 Ok(Self{ inner, tag: None, uuid: None })
             }
-        }
+        }*/
         impl $name {
             pub fn get_name(&self) -> &String {
                 self.inner.get_name()
