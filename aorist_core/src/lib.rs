@@ -68,3 +68,8 @@ pub use template::*;
 pub use universe::*;
 pub use user::*;
 pub use user_group::*;
+
+#[cfg(feature = "r")]
+mod r;
+#[cfg(feature = "r")]
+pub use r::*;
