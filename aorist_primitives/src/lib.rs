@@ -1207,35 +1207,35 @@ macro_rules! register_concept {
             )+
         }
         impl <'a> TConceptEnum<'a> for $name<'a> {
-            fn get_parent_id(&'a self) -> Option<(Uuid, String)> {
+            fn get_parent_id(&self) -> Option<(Uuid, String)> {
                 match self {
                     $(
                         $name::$element((_, _, id)) => id.clone(),
                     )+
                 }
             }
-            fn get_type(&'a self) -> String {
+            fn get_type(&self) -> String {
                 match self {
                     $(
                         $name::$element((x, _, _)) => stringify!($element).to_string(),
                     )*
                 }
             }
-            fn get_uuid(&'a self) -> Uuid {
+            fn get_uuid(&self) -> Uuid {
                 match self {
                     $(
                         $name::$element((x, _, _)) => x.get_uuid(),
                     )*
                 }
             }
-            fn get_tag(&'a self) -> Option<String> {
+            fn get_tag(&self) -> Option<String> {
                 match self {
                     $(
                         $name::$element((x, _, _)) => x.get_tag(),
                     )*
                 }
             }
-            fn get_index_as_child(&'a self) -> usize {
+            fn get_index_as_child(&self) -> usize {
                 match self {
                     $(
                         $name::$element((_, idx, _)) => *idx,
@@ -1312,11 +1312,11 @@ pub trait AoristConcept<'a> {
     fn compute_uuids(&mut self);
 }
 pub trait TConceptEnum<'a>: Sized {
-    fn get_parent_id(&'a self) -> Option<(Uuid, String)>;
-    fn get_type(&'a self) -> String;
-    fn get_uuid(&'a self) -> Uuid;
-    fn get_tag(&'a self) -> Option<String>;
-    fn get_index_as_child(&'a self) -> usize;
+    fn get_parent_id(&self) -> Option<(Uuid, String)>;
+    fn get_type(&self) -> String;
+    fn get_uuid(&self) -> Uuid;
+    fn get_tag(&self) -> Option<String>;
+    fn get_index_as_child(&self) -> usize;
      fn get_child_concepts(&'a self) -> Vec<Self>;
     fn populate_child_concept_map(&self, concept_map: &mut HashMap<(Uuid, String), Self>);
 }
