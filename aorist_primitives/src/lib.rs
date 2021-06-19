@@ -1113,51 +1113,6 @@ macro_rules! register_attribute {
 }
 
 #[macro_export]
-macro_rules! register_concept_new {
-    ( $name:ident, $ancestry:ident, $($element: ident ),* ) => { paste::item! {
-        #[derive(Clone)]
-        pub enum $name<'a> {
-            $(
-                $element((&'a $element, usize, Option<(Uuid, String)>)),
-            )+
-        }
-        $(
-            impl <'a> [<CanBe $element>]<'a> for $name<'a> {
-                fn [<construct_ $element:snake:lower>](
-                    obj_ref: &'a $element,
-                    ix: Option<usize>,
-                    id: Option<(Uuid, String)>
-                ) -> Self {
-                    $name::$element((
-                        obj_ref,
-                        match ix {
-                            Some(i) => i,
-                            None => 0,
-                        },
-                        id,
-                    ))
-               }
-            }
-        )+
-        $(
-            impl $element {
-                fn get_descendants<'a>(&'a self) -> Vec<$name<'a>> {
-                    let mut concepts = Vec::new();
-                    for tpl in self.get_children() {
-                        
-                        let wrapped_concept = WrappedConcept::from(tpl);
-                        concepts.push(wrapped_concept.inner);
-                    }
-                    concepts
-                }
-            }
-        )+
-        impl <'a> ConceptEnum<'a> for $name<'a> {}
-    }
-    }
-}
-
-#[macro_export]
 macro_rules! register_concept {
     ( $name:ident, $ancestry:ident, $($element: ident ),* ) => { paste::item! {
         #[derive(Clone)]

@@ -1,4 +1,4 @@
-pub use aorist_primitives::{register_concept_new, AoristConcept, ConceptEnum};
+pub use aorist_primitives::{register_concept, AoristConcept, ConceptEnum};
 pub use crate::universe::*;
 use uuid::Uuid;
 use std::collections::HashMap;
@@ -37,7 +37,7 @@ pub struct WrappedConcept<'a, T> {
     pub _phantom_lt: std::marker::PhantomData<&'a ()>,
 }
 
-register_concept_new!(
+register_concept!(
     Concept,
     ConceptAncestry,
     AccessPolicy, 
