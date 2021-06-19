@@ -2,9 +2,7 @@
 use crate::attributes::*;
 use crate::schema::TabularSchema;
 use crate::template::datum_template::TDatumTemplate;
-use aorist_attributes::{
-    Count, FloatPrediction, Regressor,
-};
+use aorist_attributes::{Count, FloatPrediction, Regressor};
 use aorist_concept::{aorist, Constrainable};
 use aorist_primitives::{AoristConcept, ConceptEnum};
 use derivative::Derivative;

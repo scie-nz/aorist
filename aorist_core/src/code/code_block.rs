@@ -121,8 +121,11 @@ pub trait CodeBlockWithDefaultConstructor<
         identifiers: &HashMap<Uuid, AST>,
     ) -> Result<Self>;
 }
-pub trait CodeBlockWithForLoopCompression<'a, T, C: OuterConstraint<'a> + SatisfiableOuterConstraint<'a>>
-where
+pub trait CodeBlockWithForLoopCompression<
+    'a,
+    T,
+    C: OuterConstraint<'a> + SatisfiableOuterConstraint<'a>,
+> where
     Self: CodeBlock<'a, T, C>,
     T: ETLFlow,
     Self: Sized,

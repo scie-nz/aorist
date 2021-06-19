@@ -14,9 +14,9 @@ use crate::python::{
 use crate::r::{RBasedConstraintBlock, RFlowBuilderInput, RImport, RPreamble};
 use anyhow::Result;
 use aorist_ast::{AncestorRecord, SimpleIdentifier, AST};
-use aorist_primitives::TConceptEnum;
 use aorist_core::ParameterTuple;
 use aorist_core::{Bash, Dialect, Presto, Python, R};
+use aorist_primitives::TConceptEnum;
 use inflector::cases::snakecase::to_snake_case;
 use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;

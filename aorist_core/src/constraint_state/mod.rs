@@ -1,10 +1,10 @@
-use crate::concept::{Ancestry};
+use crate::concept::Ancestry;
 use crate::constraint::{OuterConstraint, SatisfiableOuterConstraint};
+use crate::dialect::Dialect;
+use crate::parameter_tuple::ParameterTuple;
 use anyhow::{bail, Result};
 use aorist_ast::{AncestorRecord, Formatted, SimpleIdentifier, StringLiteral, AST};
-use crate::dialect::Dialect;
 use aorist_primitives::TConceptEnum;
-use crate::parameter_tuple::ParameterTuple;
 use inflector::cases::snakecase::to_snake_case;
 use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
@@ -153,8 +153,8 @@ impl<'a, T: OuterConstraint<'a> + SatisfiableOuterConstraint<'a>> ConstraintStat
         self.key.clone()
     }
     pub fn satisfy(
-        &mut self, 
-        preferences: &Vec<Dialect>, 
+        &mut self,
+        preferences: &Vec<Dialect>,
         ancestry: Arc<<T as OuterConstraint<'a>>::TAncestry>,
     ) {
         let root_clone = self.root.clone();
@@ -172,7 +172,14 @@ impl<'a, T: OuterConstraint<'a> + SatisfiableOuterConstraint<'a>> ConstraintStat
     }
     pub fn new(
         constraint: Arc<RwLock<T>>,
-        concepts: Arc<RwLock<HashMap<(Uuid, String), <<T as OuterConstraint<'a>>::TAncestry as Ancestry<'a>>::TConcept>>>,
+        concepts: Arc<
+            RwLock<
+                HashMap<
+                    (Uuid, String),
+                    <<T as OuterConstraint<'a>>::TAncestry as Ancestry<'a>>::TConcept,
+                >,
+            >,
+        >,
         concept_ancestors: &HashMap<(Uuid, String), Vec<AncestorRecord>>,
     ) -> Result<Self> {
         let arc = constraint.clone();

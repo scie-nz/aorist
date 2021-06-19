@@ -1,14 +1,15 @@
 use anyhow::{Context, Result};
 use aorist_core::{
-    Concept, ConceptAncestry, ConstraintSatisfactionBase, Dialect, OuterConstraint, ParameterTuple,
-    TAoristObject, TConstraint, ConstraintBuilder, ConstraintEnum, AoristConcept,
+    AoristConcept, Concept, ConceptAncestry, ConstraintBuilder, ConstraintEnum,
+    ConstraintSatisfactionBase, Dialect, OuterConstraint, ParameterTuple, TAoristObject,
+    TConstraint,
 };
 use aorist_primitives::{define_constraint, register_constraint_new};
 use maplit::hashmap;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use std::sync::{Arc, RwLock};
 use std::fmt;
+use std::sync::{Arc, RwLock};
 
 include!(concat!(env!("OUT_DIR"), "/constraints.rs"));
 impl ConstraintEnum for AoristConstraint {}

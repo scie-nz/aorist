@@ -1,16 +1,15 @@
 #[cfg(feature = "sql")]
 use aorist_attributes::TSQLAttribute;
 use aorist_attributes::{
-    TAttribute, TBigQueryAttribute, TOrcAttribute,
-    TPostgresAttribute, TPrestoAttribute, TSQLiteAttribute, AttributeValue,
+    AttributeValue, TAttribute, TBigQueryAttribute, TOrcAttribute, TPostgresAttribute,
+    TPrestoAttribute, TSQLiteAttribute,
 };
 use aorist_concept::{aorist, Constrainable};
 use aorist_primitives::{AoristConcept, ConceptEnum};
 use derivative::Derivative;
-use paste::paste;
-use uuid::Uuid;
 #[cfg(feature = "sql")]
 use linked_hash_map::LinkedHashMap;
+use paste::paste;
 #[cfg(feature = "python")]
 use pyo3::exceptions::PyValueError;
 #[cfg(feature = "python")]
@@ -19,6 +18,7 @@ use pyo3::prelude::*;
 use sqlparser::ast::{ColumnDef, DataType, Expr, Ident, Value};
 #[cfg(feature = "sql")]
 use std::collections::HashMap;
+use uuid::Uuid;
 include!(concat!(env!("OUT_DIR"), "/attributes.rs"));
 
 #[cfg(feature = "sql")]
@@ -325,4 +325,3 @@ impl AttributeOrTransform {
         }
     }
 }
-

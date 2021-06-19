@@ -12,8 +12,10 @@ where
     T: ETLFlow,
     C: OuterConstraint<'a> + SatisfiableOuterConstraint<'a>,
     Self::C: CodeBlockWithDefaultConstructor<'a, T, C>,
-    Self::BuilderInputType:
-        FlowBuilderInput<PreambleType = <Self::C as CodeBlock<'a, T, C>>::P, ImportType = T::ImportType>,
+    Self::BuilderInputType: FlowBuilderInput<
+        PreambleType = <Self::C as CodeBlock<'a, T, C>>::P,
+        ImportType = T::ImportType,
+    >,
 {
     type C: CodeBlock<'a, T, C>;
     type BuilderInputType;
