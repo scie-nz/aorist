@@ -1,6 +1,6 @@
 #![allow(non_snake_case)]
 use siphasher::sip128::{Hasher128, SipHasher};
-use std::collections::BTreeSet;
+use std::collections::{BTreeSet, HashMap};
 use std::hash::Hasher;
 use uuid::Uuid;
 
@@ -1311,7 +1311,15 @@ pub trait AoristConcept<'a> {
     }
     fn compute_uuids(&mut self);
 }
-
+pub trait TConceptEnum<'a>: Sized {
+    fn get_parent_id(&'a self) -> Option<(Uuid, String)>;
+    fn get_type(&'a self) -> String;
+    fn get_uuid(&'a self) -> Uuid;
+    fn get_tag(&'a self) -> Option<String>;
+    fn get_index_as_child(&'a self) -> usize;
+    fn get_child_concepts<'b, T: TConceptEnum<'b>>(&'a self) -> Vec<T> where 'a : 'b;
+    fn populate_child_concept_map(&self, concept_map: &mut HashMap<(Uuid, String), Self>);
+}
 #[macro_export]
 macro_rules! register_constraint_new {
     ( $name:ident, $lt: lifetime, $clt: lifetime, $($element: ident),+ ) => { paste::item! {
