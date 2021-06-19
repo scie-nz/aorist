@@ -2,7 +2,7 @@ use crate::template::filter::Filter;
 use crate::template::identifier_tuple::IdentifierTuple;
 use crate::template::measure::*;
 use crate::template::row_struct::RowStruct;
-use aorist_attributes::Attribute;
+use crate::attributes::Attribute;
 use aorist_concept::{aorist, Constrainable};
 use aorist_primitives::{AoristConcept, ConceptEnum};
 use paste::paste;

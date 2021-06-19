@@ -1,8 +1,9 @@
 #![allow(dead_code)]
+use crate::attributes::{Attribute, AttributeEnum, AttributeOrTransform};
 use crate::schema::TabularSchema;
 use crate::template::datum_template::TDatumTemplate;
 use aorist_attributes::{
-    Attribute, AttributeEnum, AttributeOrTransform, Count, FloatPrediction, Regressor,
+    Count, FloatPrediction, Regressor,
 };
 use aorist_concept::{aorist, Constrainable};
 use aorist_primitives::{AoristConcept, ConceptEnum};

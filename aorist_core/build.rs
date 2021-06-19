@@ -16,7 +16,9 @@ fn process_attributes(attribute_names: Vec<String>) {
     scope.import("aorist_primitives", "register_attribute_new");
     scope.import("serde", "Serialize");
     scope.import("serde", "Deserialize");
-
+    for attribute in &attribute_names {
+        scope.import("aorist_attributes", attribute);
+    }
     let register = format!(
         "register_attribute_new!(Attribute, {});",
         attribute_names.join(", ")

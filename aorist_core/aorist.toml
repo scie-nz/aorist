@@ -1,3 +1,4 @@
 attributes = [
-    "Count", "Regressor"
+    "Count", "Regressor", "FromPostgresTimestampWithTimeZone",
+    "FloatPrediction",
 ]
