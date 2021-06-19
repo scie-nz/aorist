@@ -117,7 +117,9 @@ impl PrestoPythonTask {
         );
         kwargs.insert(
             "port".to_string(),
-            AST::BigIntLiteral(BigIntLiteral::new_wrapped(presto_endpoints.http_port as i64)),
+            AST::BigIntLiteral(BigIntLiteral::new_wrapped(
+                presto_endpoints.http_port as i64,
+            )),
         );
         kwargs.insert(
             "catalog".to_string(),

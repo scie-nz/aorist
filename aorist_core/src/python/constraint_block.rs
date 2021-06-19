@@ -1,10 +1,10 @@
-use crate::constraint::{OuterConstraint, SatisfiableOuterConstraint};
 use crate::code::CodeBlock;
+use crate::constraint::{OuterConstraint, SatisfiableOuterConstraint};
 use crate::constraint_block::ConstraintBlock;
 use crate::flow::ETLFlow;
+use crate::parameter_tuple::ParameterTuple;
 use crate::python::PythonBasedCodeBlock;
 use crate::python::{Assignment, Dict, PythonFlowBuilderInput, PythonImport, PythonPreamble, AST};
-use crate::parameter_tuple::ParameterTuple;
 use linked_hash_map::LinkedHashMap;
 use std::collections::HashMap;
 use std::marker::PhantomData;
@@ -20,7 +20,7 @@ where
     body: Option<String>,
     members: Vec<PythonBasedCodeBlock<'a, T, C>>,
     tasks_dict: Option<AST>,
-    _lt: PhantomData<&'a (),>,
+    _lt: PhantomData<&'a ()>,
     _constraint: PhantomData<C>,
 }
 impl<'a, T, C> ConstraintBlock<'a, T, C> for PythonBasedConstraintBlock<'a, T, C>

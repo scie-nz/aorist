@@ -1,13 +1,13 @@
-use crate::constraint::{OuterConstraint, SatisfiableOuterConstraint};
 use crate::code::CodeBlock;
+use crate::constraint::{OuterConstraint, SatisfiableOuterConstraint};
 use crate::constraint_block::ConstraintBlock;
 use crate::flow::ETLFlow;
+use crate::parameter_tuple::ParameterTuple;
 use crate::r::code_block::RBasedCodeBlock;
 use crate::r::r_import::RImport;
 use crate::r::RFlowBuilderInput;
 use crate::r::RPreamble;
 use aorist_ast::{Assignment, Dict, AST};
-use crate::parameter_tuple::ParameterTuple;
 use linked_hash_map::LinkedHashMap;
 use std::collections::HashMap;
 use std::marker::PhantomData;
@@ -23,7 +23,7 @@ where
     body: Option<String>,
     members: Vec<RBasedCodeBlock<'a, T, C>>,
     tasks_dict: Option<AST>,
-    _lt: PhantomData<&'a (),>,
+    _lt: PhantomData<&'a ()>,
     _constraint: PhantomData<C>,
 }
 impl<'a, T, C> ConstraintBlock<'a, T, C> for RBasedConstraintBlock<'a, T, C>

@@ -1,12 +1,12 @@
-use crate::constraint::{OuterConstraint, SatisfiableOuterConstraint};
 use crate::code::{CodeBlock, CodeBlockWithForLoopCompression};
+use crate::constraint::{OuterConstraint, SatisfiableOuterConstraint};
 use crate::endpoints::EndpointConfig;
 use crate::flow::{CompressibleTask, ETLFlow, ETLTask, ForLoopCompressedTask};
+use crate::parameter_tuple::ParameterTuple;
 use crate::r::preamble::RPreamble;
 use crate::r::r_import::RImport;
 use crate::r::task::{ForLoopRBasedTask, RBasedTask};
 use aorist_ast::{Formatted, SimpleIdentifier, StringLiteral, Subscript, AST};
-use crate::parameter_tuple::ParameterTuple;
 use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
 use std::collections::{BTreeSet, HashMap, HashSet};
@@ -23,7 +23,7 @@ where
     task_identifiers: HashMap<Uuid, AST>,
     tasks: Vec<RBasedTask<T>>,
     params: HashMap<String, Option<ParameterTuple>>,
-    _lt: PhantomData<&'a (),>,
+    _lt: PhantomData<&'a ()>,
     _constraint: PhantomData<C>,
 }
 impl<'a, T, C> CodeBlock<'a, T, C> for RBasedCodeBlock<'a, T, C>

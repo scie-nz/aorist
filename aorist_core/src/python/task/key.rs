@@ -1,7 +1,7 @@
-use crate::flow::CompressionKey;
-use crate::python::AST;
 use crate::dialect::Dialect;
+use crate::flow::CompressionKey;
 use crate::parameter_tuple::ParameterTupleDedupKey;
+use crate::python::AST;
 use linked_hash_map::LinkedHashMap;
 use std::hash::Hash;
 

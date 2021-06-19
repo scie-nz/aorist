@@ -1,8 +1,8 @@
-use crate::flow::{ETLFlow, UncompressiblePart};
-use aorist_ast::{Dict, AST};
 use crate::dialect::Dialect;
-use linked_hash_map::LinkedHashMap;
+use crate::flow::{ETLFlow, UncompressiblePart};
 use crate::parameter_tuple::ParameterTuple;
+use aorist_ast::{Dict, AST};
+use linked_hash_map::LinkedHashMap;
 use std::hash::Hash;
 use std::marker::PhantomData;
 

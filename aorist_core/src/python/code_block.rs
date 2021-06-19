@@ -1,17 +1,17 @@
-use crate::constraint::{OuterConstraint, SatisfiableOuterConstraint};
 use crate::code::{CodeBlock, CodeBlockWithForLoopCompression};
+use crate::constraint::{OuterConstraint, SatisfiableOuterConstraint};
 use crate::endpoints::EndpointConfig;
 use crate::flow::{CompressibleTask, ETLFlow, ETLTask, ForLoopCompressedTask};
+use crate::parameter_tuple::ParameterTuple;
 use crate::python::{
     ForLoopPythonBasedTask, Formatted, PythonBasedTask, PythonImport, PythonPreamble,
     SimpleIdentifier, StringLiteral, Subscript, AST,
 };
-use crate::parameter_tuple::ParameterTuple;
 use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
 use std::collections::{BTreeSet, HashMap, HashSet};
-use tracing::trace;
 use std::marker::PhantomData;
+use tracing::trace;
 use uuid::Uuid;
 
 pub struct PythonBasedCodeBlock<'a, T, C>
@@ -23,7 +23,7 @@ where
     task_identifiers: HashMap<Uuid, AST>,
     python_based_tasks: Vec<PythonBasedTask<T>>,
     params: HashMap<String, Option<ParameterTuple>>,
-    _lt: PhantomData<&'a (),>,
+    _lt: PhantomData<&'a ()>,
     _constraint: PhantomData<C>,
 }
 impl<'a, T, C> CodeBlock<'a, T, C> for PythonBasedCodeBlock<'a, T, C>
