@@ -30,7 +30,7 @@ use crate::user_group::*;
 use crate::endpoints::*; 
 
 pub trait Ancestry<'a> {
-    type TConcept: ConceptEnum<'a>;
+    type TConcept: ConceptEnum<'a> + Clone + TConceptEnum<'a>;
 }
 pub struct WrappedConcept<'a, T> {
     pub inner: T,
