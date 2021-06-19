@@ -34,6 +34,7 @@ aorist_ast = {path = "./aorist_ast"}
 aorist_attributes = {path = "./aorist_attributes", features=["python", "r", "sql"]}
 aorist_core = {path = "./aorist_core", features=["python", "r", "sql"]}
 aorist_concept = {path = "./aorist_concept"}
+aorist_constraint = {path = "./aorist_constraint"}
 aorist_derive = {path = "./aorist_derive"}
 aorist_primitives = {path = "./aorist_primitives"}
 base64 = "0.13.0"

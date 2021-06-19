@@ -1311,3 +1311,188 @@ pub trait AoristConcept<'a> {
     }
     fn compute_uuids(&mut self);
 }
+
+#[macro_export]
+macro_rules! register_constraint_new {
+    ( $name:ident, $lt: lifetime, $clt: lifetime, $($element: ident),+ ) => { paste::item! {
+        pub enum $name {
+            $(
+                $element($element),
+            )+
+        }
+        pub enum [<$name Builder>]<$lt, $clt> where $lt: $clt {
+            $(
+                $element(ConstraintBuilder<$lt, $clt, $element>),
+            )+
+        }
+        impl <$lt, $clt> [<$name Builder>]<$lt, $clt>
+        where $lt : $clt {
+            pub fn get_root_type_name(&self) -> Result<String> {
+                match &self {
+                    $(
+                        [<$name Builder>]::$element(_) => $element::get_root_type_name(),
+                    )+
+                }
+            }
+            pub fn get_required(&$clt self, root: Concept<$lt>, ancestry:&ConceptAncestry<$lt>) -> Vec<Uuid> {
+                match &self {
+                    $(
+                        [<$name Builder>]::$element(_) =>
+                        $element::get_required(root, ancestry),
+                    )+
+                }
+            }
+            pub fn should_add(&$clt self, root: Concept<$lt>, ancestry:&ConceptAncestry<$lt>) -> bool {
+                match &self {
+                    $(
+                        [<$name Builder>]::$element(_) =>
+                        $element::should_add(root, ancestry),
+                    )+
+                }
+            }
+            pub fn build_constraint(
+                &self,
+                root_uuid: Uuid,
+                potential_child_constraints: Vec<Arc<RwLock<Constraint>>>,
+            ) -> Result<Constraint> {
+                match &self {
+                    $(
+                        [<$name Builder>]::$element(x) => Ok(Constraint {
+                            name: self.get_constraint_name(),
+                            root: self.get_root_type_name()?,
+                            requires: Some(self.get_required_constraint_names()),
+                            inner: Some(
+                                $name::$element(x.build_constraint(
+                                    root_uuid,
+                                    potential_child_constraints,
+                                )?)
+                            ),
+                        }),
+                    )+
+                }
+            }
+            pub fn get_required_constraint_names(&self) -> Vec<String> {
+                match &self {
+                    $(
+                        [<$name Builder>]::$element(_) => $element::get_required_constraint_names(),
+                    )+
+                }
+            }
+            pub fn get_constraint_name(&self) -> String {
+                match &self {
+                    $(
+                        [<$name Builder>]::$element(_) => stringify!($element).to_string(),
+                    )+
+                }
+            }
+        }
+        impl <$lt, $clt> $name where $lt : $clt {
+            pub fn builders() -> Vec<[<$name Builder>]<$lt, $clt>> {
+                vec![
+                    $(
+                        [<$name Builder>]::$element(
+                            ConstraintBuilder::<$lt, $clt, $element>{
+                                _phantom: std::marker::PhantomData,
+                                _phantom_lt: std::marker::PhantomData,
+                                _phantom_clt: std::marker::PhantomData
+                            }
+                        ),
+                    )+
+                ]
+            }
+            pub fn get_root_type_name(&self) -> Result<String> {
+                match self {
+                    $(
+                        Self::$element(_) => $element::get_root_type_name(),
+                    )+
+                }
+            }
+            pub fn get_downstream_constraints(&self) -> Result<Vec<Arc<RwLock<Constraint>>>> {
+                match self {
+                    $(
+                        Self::$element(x) => x.get_downstream_constraints(),
+                    )+
+                }
+            }
+            pub fn requires_program(&self) -> Result<bool> {
+                match self {
+                    $(
+                        Self::$element(x) => x.requires_program(),
+                    )+
+                }
+            }
+            pub fn get_uuid(&self) -> Result<Uuid> {
+                match self {
+                    $(
+                        Self::$element(x) => x.get_uuid(),
+                    )+
+                }
+            }
+            pub fn get_title(&self) -> Option<String> {
+                match self {
+                    $(
+                        Self::$element(_) => $element::get_title(),
+                    )+
+                }
+            }
+            pub fn get_body(&self) -> Option<String> {
+                match self {
+                    $(
+                        Self::$element(_) => $element::get_body(),
+                    )+
+                }
+            }
+            pub fn get_root_uuid(&self) -> Result<Uuid> {
+                match self {
+                    $(
+                        Self::$element(x) => x.get_root_uuid(),
+                    )+
+                }
+            }
+            fn get_root_type_names() -> Result<HashMap<String, String>> {
+                Ok(hashmap! {
+                    $(
+                        stringify!($element).to_string() => $element::get_root_type_name()?,
+                    )+
+                })
+            }
+            pub fn get_required_constraint_names() -> HashMap<String, Vec<String>> {
+                hashmap! {
+                    $(
+                        stringify!($element).to_string() => $element::get_required_constraint_names(),
+                    )+
+                }
+            }
+            pub fn get_explanations() -> HashMap<String, (Option<String>,
+            Option<String>)> {
+                hashmap! {
+                    $(
+                        stringify!($element).to_string() => (
+                            $element::get_title(),
+                            $element::get_body(),
+                        ),
+                    )+
+                }
+            }
+            pub fn get_name(&self) -> String {
+                match self {
+                    $(
+                        Self::$element(x) => stringify!($element).to_string(),
+                    )+
+                }
+            }
+            pub fn should_add(
+                &self,
+                root: Concept<$lt>,
+                ancestry: &ConceptAncestry<$lt>
+            ) -> bool {
+                match &self {
+                    $(
+                        Self::$element(_) => $element::should_add(root,
+                        ancestry),
+                    )+
+                }
+            }
+        }}
+    }
+}
