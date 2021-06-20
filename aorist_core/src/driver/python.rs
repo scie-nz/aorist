@@ -2,29 +2,25 @@
 use crate::concept::{Concept, ConceptAncestry};
 use crate::constraint::SatisfiableOuterConstraint;
 use crate::constraint_state::ConstraintState;
-use crate::dialect::{Bash, Dialect, Presto, Python, R};
+use crate::dialect::{Bash, Dialect, Presto, Python};
 use crate::driver::{ConstraintsBlockMap, Driver};
 use crate::endpoints::EndpointConfig;
 use crate::flow::{ETLFlow, FlowBuilderBase, FlowBuilderMaterialize};
-use crate::parameter_tuple::ParameterTuple;
 #[cfg(feature = "python")]
 use crate::python::{
     PythonBasedConstraintBlock, PythonFlowBuilderInput, PythonImport, PythonPreamble,
 };
 #[cfg(feature = "r")]
 use crate::r::{RBasedConstraintBlock, RFlowBuilderInput, RImport, RPreamble};
-use crate::universe::Universe;
 use anyhow::Result;
-use aorist_ast::{AncestorRecord, SimpleIdentifier, AST};
-use aorist_primitives::{OuterConstraint, TBuilder, Ancestry};
-use aorist_primitives::{TAoristObject, TConceptEnum, TConstraintEnum};
-use inflector::cases::snakecase::to_snake_case;
+use aorist_ast::AncestorRecord;
+use aorist_primitives::OuterConstraint;
+use aorist_primitives::TConstraintEnum;
 use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
-use std::collections::{BTreeSet, HashMap, HashSet, VecDeque};
+use std::collections::{BTreeSet, HashMap};
 use std::marker::PhantomData;
-use std::sync::{Arc, RwLock, RwLockReadGuard};
-use tracing::{debug, level_enabled, trace, Level};
+use std::sync::{Arc, RwLock};
 use uuid::Uuid;
 
 pub struct PythonBasedDriver<'a, 'b, D, C>
@@ -32,10 +28,12 @@ where
     D: FlowBuilderBase,
     <D as FlowBuilderBase>::T:
         ETLFlow<ImportType = PythonImport, PreambleType = PythonPreamble> + 'a,
-    C: OuterConstraint<'a, 'b, TAncestry=ConceptAncestry<'a>> + SatisfiableOuterConstraint<'a, 'b> + 'b,
-    'a : 'b,
+    C: OuterConstraint<'a, 'b, TAncestry = ConceptAncestry<'a>>
+        + SatisfiableOuterConstraint<'a, 'b>
+        + 'b,
+    'a: 'b,
 {
-    pub concepts: Arc<RwLock<HashMap<(Uuid, String), Concept<'a>>>>, 
+    pub concepts: Arc<RwLock<HashMap<(Uuid, String), Concept<'a>>>>,
     constraints: LinkedHashMap<(Uuid, String), Arc<RwLock<C>>>,
     satisfied_constraints: HashMap<(Uuid, String), Arc<RwLock<ConstraintState<'a, 'b, C>>>>,
     blocks: Vec<PythonBasedConstraintBlock<'a, 'b, D::T, C>>,
@@ -50,12 +48,14 @@ where
 
 impl<'a, 'b, D, C> Driver<'a, 'b, D, C> for PythonBasedDriver<'a, 'b, D, C>
 where
-    'a : 'b,
+    'a: 'b,
     D: FlowBuilderBase,
     D: FlowBuilderMaterialize<BuilderInputType = PythonFlowBuilderInput>,
     <D as FlowBuilderBase>::T:
         ETLFlow<ImportType = PythonImport, PreambleType = PythonPreamble> + 'a,
-    C: OuterConstraint<'a, 'b, TAncestry=ConceptAncestry<'a>> + SatisfiableOuterConstraint<'a, 'b> + 'b,
+    C: OuterConstraint<'a, 'b, TAncestry = ConceptAncestry<'a>>
+        + SatisfiableOuterConstraint<'a, 'b>
+        + 'b,
     //Self::CB: 'b,
 {
     type CB = PythonBasedConstraintBlock<'a, 'b, <D as FlowBuilderBase>::T, C>;
@@ -141,7 +141,10 @@ where
             ancestry,
             dag_type: PhantomData,
             endpoints,
-            constraint_explanations: <<C as OuterConstraint<'a, 'b>>::TEnum as TConstraintEnum<'a, 'b>>::get_explanations(),
+            constraint_explanations: <<C as OuterConstraint<'a, 'b>>::TEnum as TConstraintEnum<
+                'a,
+                'b,
+            >>::get_explanations(),
             ancestors,
             topline_constraint_names,
             _lt_phantom: PhantomData,

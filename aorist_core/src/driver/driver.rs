@@ -4,21 +4,16 @@ use crate::concept::{Concept, ConceptAncestry};
 use crate::constraint::SatisfiableOuterConstraint;
 use crate::constraint_block::ConstraintBlock;
 use crate::constraint_state::ConstraintState;
-use crate::dialect::{Bash, Dialect, Presto, Python, R};
+use crate::dialect::Dialect;
 use crate::endpoints::EndpointConfig;
 use crate::flow::{FlowBuilderBase, FlowBuilderMaterialize};
 use crate::parameter_tuple::ParameterTuple;
-#[cfg(feature = "python")]
-use crate::python::{
-    PythonBasedConstraintBlock, PythonFlowBuilderInput, PythonImport, PythonPreamble,
-};
 #[cfg(feature = "r")]
 use crate::r::{RBasedConstraintBlock, RFlowBuilderInput, RImport, RPreamble};
-use crate::universe::Universe;
 use anyhow::Result;
 use aorist_ast::{AncestorRecord, SimpleIdentifier, AST};
+use aorist_primitives::TConstraintEnum;
 use aorist_primitives::{Ancestry, OuterConstraint, TBuilder};
-use aorist_primitives::{TConceptEnum, TConstraintEnum};
 use inflector::cases::snakecase::to_snake_case;
 use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
@@ -49,7 +44,8 @@ where
         >,
     <D as FlowBuilderBase>::T: 'a,
     Self::CB: 'b,
-    C: OuterConstraint<'a, 'b> + SatisfiableOuterConstraint<'a, 'b>,
+    C: OuterConstraint<'a, 'b, TAncestry = ConceptAncestry<'a>>
+        + SatisfiableOuterConstraint<'a, 'b>,
     'a: 'b,
 {
     type CB: ConstraintBlock<'a, 'b, <D as FlowBuilderBase>::T, C>;

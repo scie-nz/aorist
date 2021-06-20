@@ -1,12 +1,8 @@
-use crate::concept::AoristConcept;
 use crate::dialect::Dialect;
 use crate::parameter_tuple::ParameterTuple;
 use anyhow::Result;
-use aorist_primitives::{Ancestry, ConstraintEnum, OuterConstraint, TAoristObject, TConstraint};
-use std::marker::PhantomData;
-use std::sync::{Arc, RwLock};
-use tracing::info;
-use uuid::Uuid;
+use aorist_primitives::{Ancestry, OuterConstraint, TConstraint};
+use std::sync::Arc;
 
 pub trait SatisfiableConstraint<'a, 'b>: TConstraint<'a, 'b>
 where
