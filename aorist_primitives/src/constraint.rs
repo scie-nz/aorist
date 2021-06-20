@@ -67,3 +67,14 @@ where
         ancestry: &<Self as TConstraint<'a, 'b>>::Ancestry,
     ) -> bool;
 }
+pub trait ConstraintSatisfactionBase<'a, 'b>
+where
+    Self::RootType: AoristConcept<'a>,
+    Self::Outer: OuterConstraint<'a>,
+    Self::ConstraintType: TConstraint<'a, 'b, Root = Self::RootType, Outer = Self::Outer>,
+    'a: 'b,
+{
+    type ConstraintType;
+    type RootType;
+    type Outer;
+}

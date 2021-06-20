@@ -8,17 +8,6 @@ use std::sync::{Arc, RwLock};
 use tracing::info;
 use uuid::Uuid;
 
-pub trait ConstraintSatisfactionBase<'a, 'b>
-where
-    Self::RootType: AoristConcept<'a>,
-    Self::Outer: OuterConstraint<'a>,
-    Self::ConstraintType: TConstraint<'a, 'b, Root = Self::RootType, Outer = Self::Outer>,
-    'a: 'b,
-{
-    type ConstraintType;
-    type RootType;
-    type Outer;
-}
 pub struct ConstraintBuilder<'a, 'b, T: TConstraint<'a, 'b>>
 where
     'a: 'b,
