@@ -63,6 +63,60 @@ where
                 .into_iter()
                 .map(|x| (x.get_constraint_name(), x))
                 .collect::<LinkedHashMap<String, _>>();
-        Vec::new()
+        let mut builder_q = topline_constraint_names
+            .clone()
+            .into_iter()
+            .map(|x| {
+                (
+                    x.clone(),
+                    builders
+                        .remove(&x)
+                        .expect(format!("Missing constraint named {}", x).as_str()),
+                )
+            })
+            .collect::<VecDeque<_>>();
+        let mut relevant_builders = LinkedHashMap::new();
+        let mut visited = HashSet::new();
+        let mut g: LinkedHashMap<String, LinkedHashSet<String>> = LinkedHashMap::new();
+        let mut rev: HashMap<String, Vec<String>> = HashMap::new();
+
+        while builder_q.len() > 0 {
+            let (key, builder) = builder_q.pop_front().unwrap();
+            let edges = g.entry(key.clone()).or_insert(LinkedHashSet::new());
+            debug!("Constraint {} requires:", key);
+            for req in builder.get_required_constraint_names() {
+                debug!("  - {}", req);
+                if !visited.contains(&req) {
+                    let another = builders.remove(&req).unwrap();
+                    builder_q.push_back((req.clone(), another));
+                    visited.insert(req.clone());
+                }
+                edges.insert(req.clone());
+                let rev_edges = rev.entry(req.clone()).or_insert(Vec::new());
+                rev_edges.push(key.clone());
+            }
+            relevant_builders.insert(key.clone(), builder);
+        }
+        let mut sorted_builders = Vec::new();
+        while g.len() > 0 {
+            let leaf = g
+                .iter()
+                .filter(|(_, v)| v.len() == 0)
+                .map(|(k, _)| k)
+                .next()
+                .unwrap()
+                .clone();
+
+            let builder = relevant_builders.remove(&leaf).unwrap();
+            if let Some(parents) = rev.remove(&leaf) {
+                for parent in parents {
+                    g.get_mut(&parent).unwrap().remove(&leaf);
+                }
+            }
+            sorted_builders.push(builder);
+            g.remove(&leaf);
+        }
+
+        sorted_builders
     }
 }

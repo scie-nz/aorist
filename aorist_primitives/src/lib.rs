@@ -1295,6 +1295,13 @@ macro_rules! register_constraint_new {
                     )+
                 }
             }
+            fn get_required_constraint_names(&self) -> Vec<String> {
+                match &self {
+                    $(
+                        [<$name Builder>]::$element(_) => $element::get_required_constraint_names(),
+                    )+
+                }
+            }
         }
         impl <$lt, $clt> [<$name Builder>]<$lt, $clt>
         where $lt : $clt {
@@ -1339,13 +1346,6 @@ macro_rules! register_constraint_new {
                                 )?)
                             ),
                         }),
-                    )+
-                }
-            }
-            pub fn get_required_constraint_names(&self) -> Vec<String> {
-                match &self {
-                    $(
-                        [<$name Builder>]::$element(_) => $element::get_required_constraint_names(),
                     )+
                 }
             }
