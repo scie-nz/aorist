@@ -1,5 +1,5 @@
 use anyhow::{Context, Result};
-use aorist_core::{AoristConcept, Concept, ConceptAncestry, Dialect, ParameterTuple};
+use aorist_core::{AoristConcept, Concept, ConceptAncestry, Dialect, ParameterTuple, Program};
 use aorist_primitives::{define_constraint, register_constraint_new};
 use aorist_primitives::{
     ConstraintBuilder, ConstraintEnum, ConstraintSatisfactionBase, OuterConstraint, TAoristObject,
@@ -12,6 +12,8 @@ use std::fmt;
 use std::sync::{Arc, RwLock};
 #[cfg(feature = "python")]
 use pyo3::prelude::*;
+#[cfg(feature = "python")]
+use pyo3::types::PyString;
 #[cfg(feature = "python")]
 use aorist_util::init_logging;
 

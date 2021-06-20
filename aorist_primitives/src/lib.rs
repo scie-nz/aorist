@@ -501,6 +501,22 @@ macro_rules! define_constraint {
                 fn get_call() -> String;
                 fn get_dialect() -> Dialect;
             }
+
+            #[cfg(feature = "python")]
+            #[pyclass]
+            pub struct [<$element Program>] {
+                pub code: String,
+            }
+            #[cfg(feature = "python")]
+            #[pymethods]
+            impl $element {
+                #[staticmethod]
+                pub fn register_program(
+                    code: &str,
+                ) -> PyResult<[<$element Program>]> {
+                    Ok([<$element Program>]{code: code.to_string()})
+                }
+            }
             impl $element {
                 // TODO: move any of these functions that should have public visibility
                 // into TConstraint
