@@ -9,10 +9,11 @@ pub trait TConstraintEnum {
     type BuilderT;
     fn builders() -> Vec<Self::BuilderT>; 
 }
-pub trait ConstraintEnum {}
+pub trait ConstraintEnum<'b> {}
 
-pub trait OuterConstraint<'a>: TAoristObject + std::fmt::Display {
-    type TEnum: ConstraintEnum;
+pub trait OuterConstraint<'a, 'b>: TAoristObject + std::fmt::Display 
+where 'a : 'b {
+    type TEnum: ConstraintEnum<'b>;
     type TAncestry: Ancestry<'a>;
 
     fn get_uuid(&self) -> Result<Uuid>;
@@ -47,7 +48,7 @@ pub trait OuterConstraint<'a>: TAoristObject + std::fmt::Display {
 pub trait TConstraint<'a, 'b>
 where
     Self::Root: AoristConcept<'a>,
-    Self::Outer: OuterConstraint<'a, TAncestry = Self::Ancestry>,
+    Self::Outer: OuterConstraint<'a, 'b, TAncestry = Self::Ancestry>,
     Self::Ancestry: Ancestry<'a>,
     'a: 'b,
 {
@@ -71,7 +72,7 @@ where
 pub trait ConstraintSatisfactionBase<'a, 'b>
 where
     Self::RootType: AoristConcept<'a>,
-    Self::Outer: OuterConstraint<'a>,
+    Self::Outer: OuterConstraint<'a, 'b>,
     Self::ConstraintType: TConstraint<'a, 'b, Root = Self::RootType, Outer = Self::Outer>,
     'a: 'b,
 {
