@@ -10,10 +10,11 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fmt;
 use std::sync::{Arc, RwLock};
+use linked_hash_map::LinkedHashMap;
 #[cfg(feature = "python")]
 use pyo3::prelude::*;
 #[cfg(feature = "python")]
-use pyo3::types::PyString;
+use pyo3::types::{PyString, PyFunction, PyDict};
 #[cfg(feature = "python")]
 use aorist_util::init_logging;
 

@@ -1,15 +1,19 @@
+import inspect
 from aorist.target.debug.libaorist import S3Location
 from aorist_constraint.target.debug.libaorist_constraint import UploadDataToS3
 
-program = UploadDataToS3.register_program("""
-    import foo
-""")
-print(program)
+def to_str(source):
+    funcString = "\n".join([str(x) for x in inspect.getsourcelines(source)])
+    return funcString
 
-def aorist(programs, constraint, *args, **kwargs):
+
+def aorist(programs, constraint, entrypoint, args):
+    args_str = {k : to_str(v) for k, v in args.items()}
     def inner(func):
-        programs[constraint] = constraint.register_program(str(func))
+        programs[constraint] = constraint.register_program(to_str(func), entrypoint, args_str)
     return inner
+
+print(to_str(aorist))
 
 programs = {}
 
@@ -45,4 +49,4 @@ def recipe():
         dest_path = schema + '/' + tablename + '/data.csv'
         response = client.upload_file(source_path, bucket, dest_path)
 
-
+print(programs)

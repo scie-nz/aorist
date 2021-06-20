@@ -506,6 +506,8 @@ macro_rules! define_constraint {
             #[pyclass]
             pub struct [<$element Program>] {
                 pub code: String,
+                pub entrypoint: String,
+                pub functions: LinkedHashMap<String, String>,
             }
             #[cfg(feature = "python")]
             #[pymethods]
@@ -513,8 +515,19 @@ macro_rules! define_constraint {
                 #[staticmethod]
                 pub fn register_program(
                     code: &str,
+                    entrypoint: &str,
+                    functions: HashMap<&str, &str>, 
                 ) -> PyResult<[<$element Program>]> {
-                    Ok([<$element Program>]{code: code.to_string()})
+                    
+                    let mut funs: LinkedHashMap<String, String> = LinkedHashMap::new();
+                    for (k, v) in functions.iter() {
+                        funs.insert(k.to_string(), v.to_string());
+                    }
+                    Ok([<$element Program>]{
+                        code: code.to_string(),
+                        entrypoint: entrypoint.to_string(),
+                        functions: funs,
+                    })
                 }
             }
             impl $element {
