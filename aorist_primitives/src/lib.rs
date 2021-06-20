@@ -608,14 +608,14 @@ macro_rules! register_constraint {
         }
         impl <$lt, $clt> [<$name Builder>]<$lt, $clt>
         where $lt : $clt {
-            pub fn get_root_type_name(&self) -> Result<String> {
+            fn get_root_type_name(&self) -> Result<String> {
                 match &self {
                     $(
                         [<$name Builder>]::$element(_) => $element::get_root_type_name(),
                     )+
                 }
             }
-            pub fn get_required(&$clt self, root: Concept<$lt>, ancestry:&ConceptAncestry<$lt>) -> Vec<Uuid> {
+            fn get_required(&$clt self, root: Concept<$lt>, ancestry:&ConceptAncestry<$lt>) -> Vec<Uuid> {
                 match &self {
                     $(
                         [<$name Builder>]::$element(_) =>
@@ -623,7 +623,7 @@ macro_rules! register_constraint {
                     )+
                 }
             }
-            pub fn should_add(&$clt self, root: Concept<$lt>, ancestry:&ConceptAncestry<$lt>) -> bool {
+            fn should_add(&$clt self, root: Concept<$lt>, ancestry:&ConceptAncestry<$lt>) -> bool {
                 match &self {
                     $(
                         [<$name Builder>]::$element(_) =>
@@ -631,7 +631,7 @@ macro_rules! register_constraint {
                     )+
                 }
             }
-            pub fn build_constraint(
+            fn build_constraint(
                 &self,
                 root_uuid: Uuid,
                 potential_child_constraints: Vec<Arc<RwLock<Constraint>>>,
@@ -652,14 +652,14 @@ macro_rules! register_constraint {
                     )+
                 }
             }
-            pub fn get_required_constraint_names(&self) -> Vec<String> {
+            fn get_required_constraint_names(&self) -> Vec<String> {
                 match &self {
                     $(
                         [<$name Builder>]::$element(_) => $element::get_required_constraint_names(),
                     )+
                 }
             }
-            pub fn get_constraint_name(&self) -> String {
+            fn get_constraint_name(&self) -> String {
                 match &self {
                     $(
                         [<$name Builder>]::$element(_) => stringify!($element).to_string(),
@@ -668,7 +668,7 @@ macro_rules! register_constraint {
             }
         }
         impl <$lt, $clt> $name where $lt : $clt {
-            pub fn builders() -> Vec<[<$name Builder>]<$lt, $clt>> {
+            fn builders() -> Vec<[<$name Builder>]<$lt, $clt>> {
                 vec![
                     $(
                         [<$name Builder>]::$element(
@@ -681,49 +681,49 @@ macro_rules! register_constraint {
                     )+
                 ]
             }
-            pub fn get_root_type_name(&self) -> Result<String> {
+            fn get_root_type_name(&self) -> Result<String> {
                 match self {
                     $(
                         Self::$element(_) => $element::get_root_type_name(),
                     )+
                 }
             }
-            pub fn get_downstream_constraints(&self) -> Result<Vec<Arc<RwLock<Constraint>>>> {
+            fn get_downstream_constraints(&self) -> Result<Vec<Arc<RwLock<Constraint>>>> {
                 match self {
                     $(
                         Self::$element(x) => x.get_downstream_constraints(),
                     )+
                 }
             }
-            pub fn requires_program(&self) -> Result<bool> {
+            fn requires_program(&self) -> Result<bool> {
                 match self {
                     $(
                         Self::$element(x) => x.requires_program(),
                     )+
                 }
             }
-            pub fn get_uuid(&self) -> Result<Uuid> {
+            fn get_uuid(&self) -> Result<Uuid> {
                 match self {
                     $(
                         Self::$element(x) => x.get_uuid(),
                     )+
                 }
             }
-            pub fn get_title(&self) -> Option<String> {
+            fn get_title(&self) -> Option<String> {
                 match self {
                     $(
                         Self::$element(_) => $element::get_title(),
                     )+
                 }
             }
-            pub fn get_body(&self) -> Option<String> {
+            fn get_body(&self) -> Option<String> {
                 match self {
                     $(
                         Self::$element(_) => $element::get_body(),
                     )+
                 }
             }
-            pub fn get_root_uuid(&self) -> Result<Uuid> {
+            fn get_root_uuid(&self) -> Result<Uuid> {
                 match self {
                     $(
                         Self::$element(x) => x.get_root_uuid(),
@@ -737,14 +737,14 @@ macro_rules! register_constraint {
                     )+
                 })
             }
-            pub fn get_required_constraint_names() -> HashMap<String, Vec<String>> {
+            fn get_required_constraint_names() -> HashMap<String, Vec<String>> {
                 hashmap! {
                     $(
                         stringify!($element).to_string() => $element::get_required_constraint_names(),
                     )+
                 }
             }
-            pub fn get_explanations() -> HashMap<String, (Option<String>,
+            fn get_explanations() -> HashMap<String, (Option<String>,
             Option<String>)> {
                 hashmap! {
                     $(
@@ -755,14 +755,14 @@ macro_rules! register_constraint {
                     )+
                 }
             }
-            pub fn get_name(&self) -> String {
+            fn get_name(&self) -> String {
                 match self {
                     $(
                         Self::$element(x) => stringify!($element).to_string(),
                     )+
                 }
             }
-            pub fn should_add(
+            fn should_add(
                 &self,
                 root: Concept<$lt>,
                 ancestry: &ConceptAncestry<$lt>
