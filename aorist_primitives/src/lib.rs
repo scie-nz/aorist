@@ -1394,8 +1394,9 @@ macro_rules! register_constraint_new {
                 }
             }
         }
-        impl <$lt, $clt> $name where $lt : $clt {
-            pub fn builders() -> Vec<[<$name Builder>]<$lt, $clt>> {
+        impl <$lt, $clt> TConstraintEnum for $name where $lt : $clt {
+            type BuilderT = [<$name Builder>]<$lt, $clt>;
+            fn builders() -> Vec<[<$name Builder>]<$lt, $clt>> {
                 vec![
                     $(
                         [<$name Builder>]::$element(
@@ -1408,6 +1409,8 @@ macro_rules! register_constraint_new {
                     )+
                 ]
             }
+        }
+        impl <$lt, $clt> $name where $lt : $clt {
             pub fn get_root_type_name(&self) -> Result<String> {
                 match self {
                     $(
@@ -1503,4 +1506,9 @@ macro_rules! register_constraint_new {
             }
         }}
     }
+}
+
+pub trait TConstraintEnum {
+    type BuilderT;
+    fn builders() -> Vec<Self::BuilderT>; 
 }
