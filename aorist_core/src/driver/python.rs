@@ -6,12 +6,9 @@ use crate::dialect::{Bash, Dialect, Presto, Python};
 use crate::driver::{ConstraintsBlockMap, Driver};
 use crate::endpoints::EndpointConfig;
 use crate::flow::{ETLFlow, FlowBuilderBase, FlowBuilderMaterialize};
-#[cfg(feature = "python")]
 use crate::python::{
     PythonBasedConstraintBlock, PythonFlowBuilderInput, PythonImport, PythonPreamble,
 };
-#[cfg(feature = "r")]
-use crate::r::{RBasedConstraintBlock, RFlowBuilderInput, RImport, RPreamble};
 use anyhow::Result;
 use aorist_ast::AncestorRecord;
 use aorist_primitives::OuterConstraint;
