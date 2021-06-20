@@ -1365,6 +1365,23 @@ macro_rules! register_constraint_new {
                     )+
                 ]
             }
+            fn get_required_constraint_names() -> HashMap<String, Vec<String>> {
+                hashmap! {
+                    $(
+                        stringify!($element).to_string() => $element::get_required_constraint_names(),
+                    )+
+                }
+            }
+            fn get_explanations() -> HashMap<String, (Option<String>, Option<String>)> {
+                hashmap! {
+                    $(
+                        stringify!($element).to_string() => (
+                            $element::get_title(),
+                            $element::get_body(),
+                        ),
+                    )+
+                }
+            }
         }
         impl <$lt, $clt> $name where $lt : $clt {
             pub fn get_root_type_name(&self) -> Result<String> {
@@ -1422,24 +1439,6 @@ macro_rules! register_constraint_new {
                         stringify!($element).to_string() => $element::get_root_type_name()?,
                     )+
                 })
-            }
-            pub fn get_required_constraint_names() -> HashMap<String, Vec<String>> {
-                hashmap! {
-                    $(
-                        stringify!($element).to_string() => $element::get_required_constraint_names(),
-                    )+
-                }
-            }
-            pub fn get_explanations() -> HashMap<String, (Option<String>,
-            Option<String>)> {
-                hashmap! {
-                    $(
-                        stringify!($element).to_string() => (
-                            $element::get_title(),
-                            $element::get_body(),
-                        ),
-                    )+
-                }
             }
             pub fn get_name(&self) -> String {
                 match self {

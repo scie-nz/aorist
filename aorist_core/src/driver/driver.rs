@@ -6,7 +6,7 @@ use crate::constraint_block::ConstraintBlock;
 use crate::constraint_state::ConstraintState;
 use crate::dialect::{Bash, Dialect, Presto, Python, R};
 use crate::endpoints::EndpointConfig;
-use crate::flow::{ETLFlow, FlowBuilderBase, FlowBuilderMaterialize};
+use crate::flow::{FlowBuilderBase, FlowBuilderMaterialize};
 use crate::parameter_tuple::ParameterTuple;
 #[cfg(feature = "python")]
 use crate::python::{
@@ -17,18 +17,17 @@ use crate::r::{RBasedConstraintBlock, RFlowBuilderInput, RImport, RPreamble};
 use crate::universe::Universe;
 use anyhow::Result;
 use aorist_ast::{AncestorRecord, SimpleIdentifier, AST};
-use aorist_primitives::{OuterConstraint, TConstraint, TBuilder};
-use aorist_primitives::{TAoristObject, TConceptEnum, TConstraintEnum};
+use aorist_primitives::{Ancestry, OuterConstraint, TBuilder};
+use aorist_primitives::{TConceptEnum, TConstraintEnum};
 use inflector::cases::snakecase::to_snake_case;
 use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
-use std::collections::{BTreeSet, HashMap, HashSet, VecDeque};
-use std::marker::PhantomData;
+use std::collections::{HashMap, HashSet, VecDeque};
 use std::sync::{Arc, RwLock, RwLockReadGuard};
-use tracing::{debug, level_enabled, trace, Level};
+use tracing::{debug, trace};
 use uuid::Uuid;
 
-type ConstraintsBlockMap<'a, 'b, C> = LinkedHashMap<
+pub type ConstraintsBlockMap<'a, 'b, C> = LinkedHashMap<
     String,
     (
         LinkedHashSet<String>,
@@ -49,7 +48,7 @@ where
             >>::BuilderInputType,
         >,
     <D as FlowBuilderBase>::T: 'a,
-    Self::CB: 'a,
+    Self::CB: 'b,
     C: OuterConstraint<'a, 'b> + SatisfiableOuterConstraint<'a, 'b>,
     'a: 'b,
 {
@@ -264,12 +263,13 @@ where
                 .push(state.clone());
         }
         for (_dialect, satisfied) in by_dialect.into_iter() {
-            let block = <Self::CB as ConstraintBlock<'a, 'b, <D as FlowBuilderBase>::T, C>>::C::new(
-                satisfied,
-                constraint_name.clone(),
-                tasks_dict.clone(),
-                identifiers,
-            )?;
+            let block =
+                <Self::CB as ConstraintBlock<'a, 'b, <D as FlowBuilderBase>::T, C>>::C::new(
+                    satisfied,
+                    constraint_name.clone(),
+                    tasks_dict.clone(),
+                    identifiers,
+                )?;
             blocks.push(block);
         }
 
@@ -347,4 +347,230 @@ where
         ))
     }
     fn get_blocks(&'b self) -> &'b Vec<Self::CB>;
+    fn _new(
+        concepts: Arc<RwLock<HashMap<(Uuid, String), Concept<'a>>>>,
+        constraints: LinkedHashMap<(Uuid, String), Arc<RwLock<C>>>,
+        ancestry: Arc<ConceptAncestry<'a>>,
+        endpoints: EndpointConfig,
+        ancestors: HashMap<(Uuid, String), Vec<AncestorRecord>>,
+        topline_constraint_names: LinkedHashSet<String>,
+    ) -> Self;
+
+    fn generate_constraint_states_map(
+        constraints: &LinkedHashMap<(Uuid, String), Arc<RwLock<C>>>,
+        concepts: Arc<
+            RwLock<
+                HashMap<
+                    (Uuid, String),
+                    <<C as OuterConstraint<'a, 'b>>::TAncestry as Ancestry<'a>>::TConcept,
+                >,
+            >,
+        >,
+        ancestors: &HashMap<(Uuid, String), Vec<AncestorRecord>>,
+    ) -> Result<LinkedHashMap<(Uuid, String), Arc<RwLock<ConstraintState<'a, 'b, C>>>>> {
+        let mut states_map = LinkedHashMap::new();
+        for (k, rw) in constraints {
+            states_map.insert(
+                k.clone(),
+                Arc::new(RwLock::new(ConstraintState::new(
+                    rw.clone(),
+                    concepts.clone(),
+                    ancestors,
+                )?)),
+            );
+        }
+        Ok(states_map)
+    }
+    fn remove_redundant_dependencies(
+        raw_unsatisfied_constraints: &mut LinkedHashMap<
+            (Uuid, String),
+            Arc<RwLock<ConstraintState<'a, 'b, C>>>,
+        >,
+    ) {
+        /* Remove redundant dependencies */
+        // constraint key => constraint key dependency on it
+        let mut changes_made = true;
+        while changes_made {
+            changes_made = false;
+            let mut reverse_dependencies: LinkedHashMap<(Uuid, String), Vec<(Uuid, String)>> =
+                LinkedHashMap::new();
+            for (k, v) in raw_unsatisfied_constraints.iter() {
+                for dep in v.read().unwrap().unsatisfied_dependencies.iter() {
+                    reverse_dependencies
+                        .entry(dep.clone())
+                        .or_insert(Vec::new())
+                        .push(k.clone());
+                }
+            }
+
+            let tips = raw_unsatisfied_constraints
+                .iter()
+                .filter(|(k, _v)| !reverse_dependencies.contains_key(k));
+            for tip in tips {
+                let mut visits: HashMap<(Uuid, String), (Uuid, String)> = HashMap::new();
+                let mut queue: VecDeque<((Uuid, String), Arc<RwLock<_>>)> = VecDeque::new();
+                queue.push_back((tip.0.clone(), tip.1.clone()));
+                while queue.len() > 0 {
+                    let (key, elem) = queue.pop_front().unwrap();
+                    let new_deps = elem.read().unwrap().unsatisfied_dependencies.clone();
+                    for dep in new_deps {
+                        let dep_constraint = raw_unsatisfied_constraints.get(&dep).unwrap().clone();
+                        // we have already visited this dependency
+                        if visits.contains_key(&dep) {
+                            // this is the key of the constraint through which we have already visited
+                            let prev = visits.remove(&dep).unwrap();
+                            if prev != key {
+                                let prev_constraint =
+                                    raw_unsatisfied_constraints.get(&prev).unwrap();
+                                let mut write = prev_constraint.write().unwrap();
+                                if write.get_name() != elem.read().unwrap().get_name() {
+                                    assert!(write.unsatisfied_dependencies.remove(&dep));
+                                    changes_made = true;
+                                }
+                            }
+                        }
+                        visits.insert(dep.clone(), key.clone());
+                        queue.push_back((dep, dep_constraint));
+                    }
+                }
+            }
+        }
+    }
+    fn remove_superfluous_dummy_tasks(
+        raw_unsatisfied_constraints: &mut LinkedHashMap<
+            (Uuid, String),
+            Arc<RwLock<ConstraintState<'a, 'b, C>>>,
+        >,
+    ) -> Result<()> {
+        /* Remove superfluous dummy tasks */
+        loop {
+            let mut superfluous = Vec::new();
+            for (k, v) in raw_unsatisfied_constraints.iter() {
+                let x = v.read().unwrap();
+                if x.unsatisfied_dependencies.len() == 1 && !(x.requires_program()?) {
+                    superfluous.push(k.clone());
+                }
+            }
+            if let Some(elem) = superfluous.into_iter().next() {
+                let mut reverse_dependencies: LinkedHashMap<(Uuid, String), Vec<(Uuid, String)>> =
+                    LinkedHashMap::new();
+                for (k, v) in raw_unsatisfied_constraints.iter() {
+                    for dep in v.read().unwrap().unsatisfied_dependencies.iter() {
+                        reverse_dependencies
+                            .entry(dep.clone())
+                            .or_insert(Vec::new())
+                            .push(k.clone());
+                    }
+                }
+                let arc = raw_unsatisfied_constraints.remove(&elem).unwrap();
+                let dep = arc
+                    .read()
+                    .unwrap()
+                    .unsatisfied_dependencies
+                    .iter()
+                    .next()
+                    .unwrap()
+                    .clone();
+
+                if let Some(rev_deps) = reverse_dependencies.get(&elem) {
+                    for rev in rev_deps.iter() {
+                        let mut write = raw_unsatisfied_constraints
+                            .get(rev)
+                            .unwrap()
+                            .write()
+                            .unwrap();
+                        assert!(write.unsatisfied_dependencies.remove(&elem));
+                        write.unsatisfied_dependencies.insert(dep.clone());
+                    }
+                }
+            } else {
+                break;
+            }
+        }
+        Ok(())
+    }
+    fn remove_dangling_dummy_tasks(
+        raw_unsatisfied_constraints: &mut LinkedHashMap<
+            (Uuid, String),
+            Arc<RwLock<ConstraintState<'a, 'b, C>>>,
+        >,
+    ) -> Result<()> {
+        /* Remove dangling dummy tasks */
+        let mut changes_made = true;
+        while changes_made {
+            changes_made = false;
+            let mut dangling = Vec::new();
+            let mut reverse_dependencies: LinkedHashMap<(Uuid, String), Vec<(Uuid, String)>> =
+                LinkedHashMap::new();
+            for (k, v) in raw_unsatisfied_constraints.iter() {
+                let x = v.read().unwrap();
+                if x.unsatisfied_dependencies.len() == 0 && !(x.requires_program()?) {
+                    dangling.push(k.clone());
+                }
+
+                trace!("Reverse dependencies for {:?}", k);
+                for dep in x.unsatisfied_dependencies.iter() {
+                    reverse_dependencies
+                        .entry(dep.clone())
+                        .or_insert(Vec::new())
+                        .push(k.clone());
+                    trace!("- {:?}", dep);
+                }
+            }
+            for k in dangling {
+                assert!(raw_unsatisfied_constraints.remove(&k).is_some());
+                trace!("Dangling: {:?}", k);
+                if let Some(v) = reverse_dependencies.get(&k) {
+                    for rev in v {
+                        assert!(raw_unsatisfied_constraints
+                            .get(rev)
+                            .unwrap()
+                            .write()
+                            .unwrap()
+                            .unsatisfied_dependencies
+                            .remove(&k));
+                    }
+                }
+                changes_made = true;
+            }
+        }
+        Ok(())
+    }
+    fn get_unsatisfied_constraints(
+        constraints: &LinkedHashMap<(Uuid, String), Arc<RwLock<C>>>,
+        concepts: Arc<
+            RwLock<
+                HashMap<
+                    (Uuid, String),
+                    <<C as OuterConstraint<'a, 'b>>::TAncestry as Ancestry<'a>>::TConcept,
+                >,
+            >,
+        >,
+        ancestors: &HashMap<(Uuid, String), Vec<AncestorRecord>>,
+        _topline_constraint_names: LinkedHashSet<String>,
+    ) -> Result<ConstraintsBlockMap<'a, 'b, C>> {
+        let mut raw_unsatisfied_constraints: LinkedHashMap<
+            (Uuid, String),
+            Arc<RwLock<ConstraintState<'a, 'b, C>>>,
+        > = Self::generate_constraint_states_map(constraints, concepts, ancestors)?;
+        Self::remove_redundant_dependencies(&mut raw_unsatisfied_constraints);
+        Self::remove_superfluous_dummy_tasks(&mut raw_unsatisfied_constraints)?;
+        Self::remove_dangling_dummy_tasks(&mut raw_unsatisfied_constraints)?;
+
+        let mut unsatisfied_constraints: LinkedHashMap<_, _> = <<C as OuterConstraint<'a, 'b>>::TEnum as TConstraintEnum<'a, 'b>>::get_required_constraint_names()
+            .into_iter()
+            .map(|(k, v)| (k, (v.into_iter().collect(), LinkedHashMap::new())))
+            .collect();
+
+        for ((uuid, root_type), rw) in raw_unsatisfied_constraints.into_iter() {
+            let constraint_name = rw.read().unwrap().get_name();
+            unsatisfied_constraints
+                .get_mut(&constraint_name)
+                .unwrap()
+                .1
+                .insert((uuid, root_type), rw);
+        }
+
+        Ok(unsatisfied_constraints)
+    }
 }

@@ -11,8 +11,6 @@ use derivative::Derivative;
 use paste::paste;
 #[cfg(feature = "python")]
 use pyo3::create_exception;
-#[cfg(feature = "python")]
-use pyo3::exceptions::PyException;
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
 use uuid::Uuid;

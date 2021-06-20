@@ -4,6 +4,7 @@ use std::marker::PhantomData;
 use std::sync::{Arc, RwLock};
 use tracing::info;
 use uuid::Uuid;
+use std::collections::HashMap;
 
 pub trait TBuilder<'a, 'b>
 where 'a: 'b {
@@ -17,6 +18,8 @@ where
 {
     type BuilderT: TBuilder<'a, 'b>;
     fn builders() -> Vec<Self::BuilderT>;
+    fn get_required_constraint_names() -> HashMap<String, Vec<String>>;
+    fn get_explanations() -> HashMap<String, (Option<String>, Option<String>)>;
 }
 pub trait ConstraintEnum<'b> {}
 
