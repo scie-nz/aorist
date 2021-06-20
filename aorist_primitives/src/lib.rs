@@ -501,23 +501,25 @@ macro_rules! define_constraint {
                 fn get_dialect() -> Dialect;
             }
             impl $element {
-                pub fn get_uuid(&self) -> Result<Uuid> {
+                // TODO: move any of these functions that should have public visibility
+                // into TConstraint
+                fn get_uuid(&self) -> Result<Uuid> {
                     Ok(self.id.clone())
                 }
-                pub fn _should_add<'a>(root: Concept<'a>, ancestry: &ConceptAncestry<'a>) -> bool {
+                fn _should_add<'a>(root: Concept<'a>, ancestry: &ConceptAncestry<'a>) -> bool {
                     $should_add(root, ancestry)
                 }
-                pub fn get_required<'a>(root: Concept<'a>, ancestry: &ConceptAncestry<'a>) -> Vec<Uuid> {
+                fn get_required<'a>(root: Concept<'a>, ancestry: &ConceptAncestry<'a>) -> Vec<Uuid> {
                     $get_required(root, ancestry)
                 }
-                pub fn get_root_uuid(&self) -> Result<Uuid> {
+                fn get_root_uuid(&self) -> Result<Uuid> {
                     Ok(self.root_uuid.clone())
                 }
-                pub fn requires_program(&self) -> Result<bool> {
+                fn requires_program(&self) -> Result<bool> {
                     Ok($requires_program)
                 }
                 // these are *all* downstream constraints
-                pub fn get_downstream_constraints(&self) -> Result<Vec<Arc<RwLock<Constraint>>>> {
+                fn get_downstream_constraints(&self) -> Result<Vec<Arc<RwLock<Constraint>>>> {
                     let mut downstream: Vec<Arc<RwLock<Constraint>>> = Vec::new();
                     $(
                         for arc in &self.[<$required:snake:lower>] {
@@ -526,10 +528,10 @@ macro_rules! define_constraint {
                     )*
                     Ok(downstream)
                 }
-                pub fn get_title() -> Option<String> {
+                fn get_title() -> Option<String> {
                     $title
                 }
-                pub fn get_body() -> Option<String> {
+                fn get_body() -> Option<String> {
                     $body
                 }
             }
