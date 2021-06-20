@@ -14,7 +14,7 @@ pub trait ConstraintEnum<'b> {}
 
 pub trait OuterConstraint<'a, 'b>: TAoristObject + std::fmt::Display 
 where 'a : 'b {
-    type TEnum: ConstraintEnum<'b>;
+    type TEnum: ConstraintEnum<'b> + TConstraintEnum<'a, 'b>;
     type TAncestry: Ancestry<'a>;
 
     fn get_uuid(&self) -> Result<Uuid>;

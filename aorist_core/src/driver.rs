@@ -18,7 +18,7 @@ use crate::r::{RBasedConstraintBlock, RFlowBuilderInput, RImport, RPreamble};
 use crate::universe::Universe;
 use anyhow::Result;
 use aorist_ast::{AncestorRecord, SimpleIdentifier, AST};
-use aorist_primitives::{TConceptEnum, TAoristObject};
+use aorist_primitives::{TConceptEnum, TAoristObject, TConstraintEnum};
 use inflector::cases::snakecase::to_snake_case;
 use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
@@ -51,4 +51,19 @@ where
     'a: 'b,
 {
     type CB: ConstraintBlock<'a, 'b, <D as FlowBuilderBase>::T, C>;
+ 
+    
+    fn get_relevant_builders(
+        topline_constraint_names: &LinkedHashSet<String>,
+    ) -> Vec<
+        <<C as OuterConstraint<'a, 'b>>::TEnum as TConstraintEnum<'a, 'b>>::BuilderT
+    > {
+        
+        let mut builders = <<C as OuterConstraint<'a, 'b>>::TEnum as TConstraintEnum<'a, 'b>>::builders()
+            .into_iter();
+            /*.map(|x| (x.get_constraint_name(), x))
+            .collect::<LinkedHashMap<String, _>>();*/
+        Vec::new()
+    }
+
 }
