@@ -481,6 +481,7 @@ macro_rules! define_constraint {
     ($element:ident, $requires_program:expr, $satisfy_type:ident, $root:ident, $outer:ident,
     $title:expr, $body:expr, $should_add:expr, $get_required:expr $(, $required:ident)*) => {
         paste::item! {
+            #[cfg_attr(feature = "python", pyclass)]
             pub struct $element {
                 id: Uuid,
                 root_uuid: Uuid,
@@ -1285,6 +1286,15 @@ macro_rules! register_constraint_new {
             $(
                 $element(ConstraintBuilder<$lt, $clt, $element>),
             )+
+        }
+        #[cfg(feature = "python")]
+        #[pymodule]
+        fn libaorist_constraint(py: Python, m: &PyModule) -> PyResult<()> {
+            init_logging();
+            $(
+                m.add_class::<$element>()?;
+            )+
+            Ok(())
         }
         impl <$lt, $clt> TBuilder<$lt, $clt> for [<$name Builder>]<$lt, $clt>
         where $lt : $clt {

@@ -9,3 +9,7 @@ edition = "2018"
 [dependencies]
 serde = { version = "1.0", features = ["derive"] }
 serde_yaml = "0.8"
+tracing = "0.1"
+tracing-attributes = "0.1"
+tracing-futures = "0.2"
+tracing-subscriber = "0.2"

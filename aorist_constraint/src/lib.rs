@@ -10,6 +10,10 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fmt;
 use std::sync::{Arc, RwLock};
+#[cfg(feature = "python")]
+use pyo3::prelude::*;
+#[cfg(feature = "python")]
+use aorist_util::init_logging;
 
 include!(concat!(env!("OUT_DIR"), "/constraints.rs"));
 impl<'b> ConstraintEnum<'b> for AoristConstraint {}
