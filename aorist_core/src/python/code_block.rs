@@ -15,22 +15,25 @@ use std::marker::PhantomData;
 use tracing::trace;
 use uuid::Uuid;
 
-pub struct PythonBasedCodeBlock<'a, T, C>
+pub struct PythonBasedCodeBlock<'a, 'b, T, C>
 where
     T: ETLFlow<ImportType = PythonImport, PreambleType = PythonPreamble>,
-    C: OuterConstraint<'a> + SatisfiableOuterConstraint<'a>,
+    C: OuterConstraint<'a, 'b> + SatisfiableOuterConstraint<'a, 'b>,
+    'a : 'b,
 {
     tasks_dict: Option<AST>,
     task_identifiers: HashMap<Uuid, AST>,
     python_based_tasks: Vec<PythonBasedTask<T>>,
     params: HashMap<String, Option<ParameterTuple>>,
     _lt: PhantomData<&'a ()>,
+    _lt2: PhantomData<&'b ()>,
     _constraint: PhantomData<C>,
 }
-impl<'a, T, C> CodeBlock<'a, T, C> for PythonBasedCodeBlock<'a, T, C>
+impl<'a, 'b, T, C> CodeBlock<'a, 'b, T, C> for PythonBasedCodeBlock<'a, 'b, T, C>
 where
     T: ETLFlow<ImportType = PythonImport, PreambleType = PythonPreamble>,
-    C: OuterConstraint<'a> + SatisfiableOuterConstraint<'a>,
+    C: OuterConstraint<'a, 'b> + SatisfiableOuterConstraint<'a, 'b>,
+    'a : 'b,
 {
     type P = PythonPreamble;
     type E = PythonBasedTask<T>;
@@ -47,6 +50,7 @@ where
             task_identifiers,
             params,
             _lt: PhantomData,
+            _lt2: PhantomData,
             _constraint: PhantomData,
         }
     }
@@ -93,10 +97,11 @@ where
         self.params.clone()
     }
 }
-impl<'a, T, C> CodeBlockWithForLoopCompression<'a, T, C> for PythonBasedCodeBlock<'a, T, C>
+impl<'a, 'b, T, C> CodeBlockWithForLoopCompression<'a, 'b, T, C> for PythonBasedCodeBlock<'a, 'b, T, C>
 where
     T: ETLFlow<ImportType = PythonImport, PreambleType = PythonPreamble>,
-    C: OuterConstraint<'a> + SatisfiableOuterConstraint<'a>,
+    C: OuterConstraint<'a, 'b> + SatisfiableOuterConstraint<'a, 'b>,
+    'a : 'b,
 {
     fn run_task_compressions(
         compressible: LinkedHashMap<

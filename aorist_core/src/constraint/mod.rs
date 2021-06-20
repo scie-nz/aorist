@@ -28,11 +28,11 @@ where
     ) -> Result<(String, String, ParameterTuple, Dialect)>;
 }
 // TODO: duplicate function, should be unified in trait
-pub trait SatisfiableOuterConstraint<'a>: OuterConstraint<'a> {
+pub trait SatisfiableOuterConstraint<'a, 'b>: OuterConstraint<'a, 'b> where 'a : 'b {
     fn satisfy_given_preference_ordering(
         &mut self,
-        c: <<Self as OuterConstraint<'a>>::TAncestry as Ancestry<'a>>::TConcept,
+        c: <<Self as OuterConstraint<'a, 'b>>::TAncestry as Ancestry<'a>>::TConcept,
         preferences: &Vec<Dialect>,
-        ancestry: Arc<<Self as OuterConstraint<'a>>::TAncestry>,
+        ancestry: Arc<<Self as OuterConstraint<'a, 'b>>::TAncestry>,
     ) -> Result<(String, String, ParameterTuple, Dialect)>;
 }

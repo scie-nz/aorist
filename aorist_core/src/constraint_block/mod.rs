@@ -8,28 +8,27 @@ use linked_hash_set::LinkedHashSet;
 use std::collections::{BTreeSet, HashMap};
 use uuid::Uuid;
 
-pub trait ConstraintBlock<'a, T, C>
+pub trait ConstraintBlock<'a, 'b, T, C>
 where
     T: ETLFlow,
-    C: OuterConstraint<'a> + SatisfiableOuterConstraint<'a>,
-    Self::C: CodeBlockWithDefaultConstructor<'a, T, C>,
+    C: OuterConstraint<'a, 'b> + SatisfiableOuterConstraint<'a, 'b>,
+    Self::C: CodeBlockWithDefaultConstructor<'a, 'b, T, C>,
     Self::BuilderInputType: FlowBuilderInput<
-        PreambleType = <Self::C as CodeBlock<'a, T, C>>::P,
+        PreambleType = <Self::C as CodeBlock<'a, 'b, T, C>>::P,
         ImportType = T::ImportType,
     >,
+    'a : 'b,
 {
-    type C: CodeBlock<'a, T, C>;
+    type C: CodeBlock<'a, 'b, T, C>;
     type BuilderInputType;
 
     fn get_constraint_name(&self) -> String;
     fn get_constraint_title(&self) -> Option<String>;
     fn get_constraint_body(&self) -> Option<String>;
-    fn get_code_blocks<'b>(&'a self) -> &'b Vec<Self::C>
-    where
-        'a: 'b;
-    fn get_task_val_assignments(&'a self) -> Vec<AST>;
+    fn get_code_blocks(&self) -> &Vec<Self::C>;
+    fn get_task_val_assignments(&self) -> Vec<AST>;
 
-    fn get_statements(&'a self, endpoints: &EndpointConfig) -> Self::BuilderInputType {
+    fn get_statements(&self, endpoints: &EndpointConfig) -> Self::BuilderInputType {
         let preambles_and_statements = self
             .get_code_blocks()
             .iter()

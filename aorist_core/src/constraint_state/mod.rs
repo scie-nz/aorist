@@ -14,15 +14,16 @@ use std::sync::{Arc, RwLock};
 use tracing::{level_enabled, trace, Level};
 use uuid::Uuid;
 
-pub struct ConstraintState<'a, T: OuterConstraint<'a> + SatisfiableOuterConstraint<'a>> {
+pub struct ConstraintState<'a, 'b, T: OuterConstraint<'a, 'b> + SatisfiableOuterConstraint<'a, 'b>> 
+where 'a : 'b {
     dialect: Option<Dialect>,
     pub key: Option<String>,
     name: String,
     pub satisfied: bool,
-    pub satisfied_dependencies: Vec<Arc<RwLock<ConstraintState<'a, T>>>>,
+    pub satisfied_dependencies: Vec<Arc<RwLock<ConstraintState<'a, 'b, T>>>>,
     pub unsatisfied_dependencies: LinkedHashSet<(Uuid, String)>,
     constraint: Arc<RwLock<T>>,
-    root: <<T as OuterConstraint<'a>>::TAncestry as Ancestry<'a>>::TConcept,
+    root: <<T as OuterConstraint<'a, 'b>>::TAncestry as Ancestry<'a>>::TConcept,
     // these are concept ancestors
     // TODO: change this to Vec<Concept<'a>>
     ancestors: Vec<AncestorRecord>,
@@ -31,7 +32,9 @@ pub struct ConstraintState<'a, T: OuterConstraint<'a> + SatisfiableOuterConstrai
     params: Option<ParameterTuple>,
     task_name: Option<String>,
 }
-impl<'a, T: OuterConstraint<'a> + SatisfiableOuterConstraint<'a>> ConstraintState<'a, T> {
+impl<'a, 'b, T: OuterConstraint<'a, 'b> + SatisfiableOuterConstraint<'a, 'b>> 
+ConstraintState<'a, 'b, T> 
+where 'a : 'b {
     pub fn requires_program(&self) -> Result<bool> {
         self.constraint.read().unwrap().requires_program()
     }
@@ -122,7 +125,7 @@ impl<'a, T: OuterConstraint<'a> + SatisfiableOuterConstraint<'a>> ConstraintStat
         self.name.clone()
     }
     #[allow(dead_code)]
-    pub fn get_root(&self) -> <<T as OuterConstraint<'a>>::TAncestry as Ancestry<'a>>::TConcept {
+    pub fn get_root(&self) -> <<T as OuterConstraint<'a, 'b>>::TAncestry as Ancestry<'a>>::TConcept {
         self.root.clone()
     }
     pub fn get_constraint_uuid(&self) -> Result<Uuid> {
@@ -156,7 +159,7 @@ impl<'a, T: OuterConstraint<'a> + SatisfiableOuterConstraint<'a>> ConstraintStat
     pub fn satisfy(
         &mut self,
         preferences: &Vec<Dialect>,
-        ancestry: Arc<<T as OuterConstraint<'a>>::TAncestry>,
+        ancestry: Arc<<T as OuterConstraint<'a, 'b>>::TAncestry>,
     ) {
         let root_clone = self.root.clone();
         let mut constraint = self.constraint.write().unwrap();
@@ -177,7 +180,7 @@ impl<'a, T: OuterConstraint<'a> + SatisfiableOuterConstraint<'a>> ConstraintStat
             RwLock<
                 HashMap<
                     (Uuid, String),
-                    <<T as OuterConstraint<'a>>::TAncestry as Ancestry<'a>>::TConcept,
+                    <<T as OuterConstraint<'a, 'b>>::TAncestry as Ancestry<'a>>::TConcept,
                 >,
             >,
         >,
@@ -247,10 +250,10 @@ impl<'a, T: OuterConstraint<'a> + SatisfiableOuterConstraint<'a>> ConstraintStat
         }
     }
     pub fn shorten_task_names(
-        constraints: &LinkedHashMap<(Uuid, String), Arc<RwLock<ConstraintState<'a, T>>>>,
+        constraints: &LinkedHashMap<(Uuid, String), Arc<RwLock<ConstraintState<'a, 'b, T>>>>,
         existing_names: &mut HashSet<String>,
     ) {
-        let mut task_names: Vec<(String, Arc<RwLock<ConstraintState<'a, T>>>)> = Vec::new();
+        let mut task_names: Vec<(String, Arc<RwLock<ConstraintState<'a, 'b, T>>>)> = Vec::new();
         for constraint in constraints.values() {
             let mut write = constraint.write().unwrap();
             write.compute_task_key();

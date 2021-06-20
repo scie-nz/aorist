@@ -15,22 +15,25 @@ use std::marker::PhantomData;
 use tracing::trace;
 use uuid::Uuid;
 
-pub struct RBasedCodeBlock<'a, T, C>
+pub struct RBasedCodeBlock<'a, 'b, T, C>
 where
     T: ETLFlow<ImportType = RImport, PreambleType = RPreamble>,
-    C: OuterConstraint<'a> + SatisfiableOuterConstraint<'a>,
+    C: OuterConstraint<'a, 'b> + SatisfiableOuterConstraint<'a, 'b>,
+    'a : 'b,
 {
     tasks_dict: Option<AST>,
     task_identifiers: HashMap<Uuid, AST>,
     tasks: Vec<RBasedTask<T>>,
     params: HashMap<String, Option<ParameterTuple>>,
     _lt: PhantomData<&'a ()>,
+    _lt2: PhantomData<&'b ()>,
     _constraint: PhantomData<C>,
 }
-impl<'a, T, C> CodeBlock<'a, T, C> for RBasedCodeBlock<'a, T, C>
+impl<'a, 'b, T, C> CodeBlock<'a, 'b, T, C> for RBasedCodeBlock<'a, 'b, T, C>
 where
     T: ETLFlow<ImportType = RImport, PreambleType = RPreamble>,
-    C: OuterConstraint<'a> + SatisfiableOuterConstraint<'a>,
+    C: OuterConstraint<'a, 'b> + SatisfiableOuterConstraint<'a, 'b>,
+    'a : 'b,
 {
     type P = RPreamble;
     type E = RBasedTask<T>;
@@ -47,6 +50,7 @@ where
             task_identifiers,
             params,
             _lt: PhantomData,
+            _lt2: PhantomData,
             _constraint: PhantomData,
         }
     }
@@ -90,10 +94,11 @@ where
         self.params.clone()
     }
 }
-impl<'a, T, C> CodeBlockWithForLoopCompression<'a, T, C> for RBasedCodeBlock<'a, T, C>
+impl<'a, 'b, T, C> CodeBlockWithForLoopCompression<'a, 'b, T, C> for RBasedCodeBlock<'a, 'b, T, C>
 where
     T: ETLFlow<ImportType = RImport, PreambleType = RPreamble>,
-    C: OuterConstraint<'a> + SatisfiableOuterConstraint<'a>,
+    C: OuterConstraint<'a, 'b> + SatisfiableOuterConstraint<'a, 'b>,
+    'a : 'b,
 {
     // TODO: push to trait
     fn run_task_compressions(

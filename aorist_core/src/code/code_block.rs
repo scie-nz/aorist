@@ -13,13 +13,14 @@ use std::collections::{BTreeSet, HashMap};
 use std::sync::{Arc, RwLock};
 use uuid::Uuid;
 
-pub trait CodeBlock<'a, T, C>
+pub trait CodeBlock<'a, 'b, T, C>
 where
-    C: OuterConstraint<'a> + SatisfiableOuterConstraint<'a>,
+    C: OuterConstraint<'a, 'b> + SatisfiableOuterConstraint<'a, 'b>,
     Self::P: Preamble,
     T: ETLFlow,
     Self: Sized,
     Self::E: ETLTask<T>,
+    'a : 'b
 {
     type P;
     type E;
@@ -34,10 +35,10 @@ where
     /// assigns task values (Python variables in which they will be stored)
     /// to each member of the code block.
     fn compute_task_vals(
-        constraints: Vec<Arc<RwLock<ConstraintState<'a, C>>>>,
+        constraints: Vec<Arc<RwLock<ConstraintState<'a, 'b, C>>>>,
         constraint_name: &String,
         tasks_dict: &Option<AST>,
-    ) -> Vec<(AST, Arc<RwLock<ConstraintState<'a, C>>>)> {
+    ) -> Vec<(AST, Arc<RwLock<ConstraintState<'a, 'b, C>>>)> {
         let mut out = Vec::new();
         for rw in constraints.into_iter() {
             let read = rw.read().unwrap();
@@ -71,7 +72,7 @@ where
     fn get_params(&self) -> HashMap<String, Option<ParameterTuple>>;
 
     fn create_standalone_tasks(
-        members: Vec<Arc<RwLock<ConstraintState<'a, C>>>>,
+        members: Vec<Arc<RwLock<ConstraintState<'a, 'b, C>>>>,
         constraint_name: String,
         tasks_dict: Option<AST>,
         identifiers: &HashMap<Uuid, AST>,
@@ -108,30 +109,32 @@ where
 }
 
 pub trait CodeBlockWithDefaultConstructor<
-    'a,
+    'a, 'b,
     T,
-    C: OuterConstraint<'a> + SatisfiableOuterConstraint<'a>,
+    C: OuterConstraint<'a, 'b> + SatisfiableOuterConstraint<'a, 'b>,
 > where
     T: ETLFlow,
-    Self: CodeBlock<'a, T, C>,
+    Self: CodeBlock<'a, 'b, T, C>,
+    'a : 'b,
 {
     fn new(
-        members: Vec<Arc<RwLock<ConstraintState<'a, C>>>>,
+        members: Vec<Arc<RwLock<ConstraintState<'a, 'b, C>>>>,
         constraint_name: String,
         tasks_dict: Option<AST>,
         identifiers: &HashMap<Uuid, AST>,
     ) -> Result<Self>;
 }
 pub trait CodeBlockWithForLoopCompression<
-    'a,
+    'a, 'b,
     T,
-    C: OuterConstraint<'a> + SatisfiableOuterConstraint<'a>,
+    C: OuterConstraint<'a, 'b> + SatisfiableOuterConstraint<'a, 'b>,
 > where
-    Self: CodeBlock<'a, T, C>,
+    Self: CodeBlock<'a, 'b, T, C>,
     T: ETLFlow,
     Self: Sized,
-    <Self as CodeBlock<'a, T, C>>::E: CompressibleETLTask<T>,
-    <<Self as CodeBlock<'a, T, C>>::E as ETLTask<T>>::S: CompressibleTask,
+    <Self as CodeBlock<'a, 'b, T, C>>::E: CompressibleETLTask<T>,
+    <<Self as CodeBlock<'a, 'b, T, C>>::E as ETLTask<T>>::S: CompressibleTask,
+    'a : 'b,
 {
     fn run_task_compressions(
         compressible: LinkedHashMap<
@@ -164,15 +167,16 @@ pub trait CodeBlockWithForLoopCompression<
         (compressible, uncompressible)
     }
 }
-impl<'a, C, T: ETLFlow, CType: OuterConstraint<'a> + SatisfiableOuterConstraint<'a>>
-    CodeBlockWithDefaultConstructor<'a, T, CType> for C
+impl<'a, 'b, C, T: ETLFlow, CType: OuterConstraint<'a, 'b> + SatisfiableOuterConstraint<'a, 'b>>
+    CodeBlockWithDefaultConstructor<'a, 'b, T, CType> for C
 where
-    Self: CodeBlockWithForLoopCompression<'a, T, CType>,
-    <Self as CodeBlock<'a, T, CType>>::E: CompressibleETLTask<T>,
-    <<Self as CodeBlock<'a, T, CType>>::E as ETLTask<T>>::S: CompressibleTask,
+    Self: CodeBlockWithForLoopCompression<'a, 'b, T, CType>,
+    <Self as CodeBlock<'a, 'b, T, CType>>::E: CompressibleETLTask<T>,
+    <<Self as CodeBlock<'a, 'b, T, CType>>::E as ETLTask<T>>::S: CompressibleTask,
+    'a : 'b,
 {
     fn new(
-        members: Vec<Arc<RwLock<ConstraintState<'a, CType>>>>,
+        members: Vec<Arc<RwLock<ConstraintState<'a, 'b, CType>>>>,
         constraint_name: String,
         tasks_dict: Option<AST>,
         identifiers: &HashMap<Uuid, AST>,

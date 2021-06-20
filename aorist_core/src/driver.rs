@@ -28,12 +28,12 @@ use std::sync::{Arc, RwLock, RwLockReadGuard};
 use tracing::{debug, level_enabled, trace, Level};
 use uuid::Uuid;
 
-type ConstraintsBlockMap<'a, C> =
+type ConstraintsBlockMap<'a, 'b, C> =
     LinkedHashMap<
         String,
         (
             LinkedHashSet<String>,
-            LinkedHashMap<(Uuid, String), Arc<RwLock<ConstraintState<'a, C>>>>,
+            LinkedHashMap<(Uuid, String), Arc<RwLock<ConstraintState<'a, 'b, C>>>>,
         ),
     >;
 
@@ -42,13 +42,13 @@ where
     D: FlowBuilderBase,
     D: FlowBuilderMaterialize<
         BuilderInputType=<Self::CB as ConstraintBlock<
-            'b, <D as FlowBuilderBase>::T, C
+            'a, 'b, <D as FlowBuilderBase>::T, C
         >>::BuilderInputType
     >,
     <D as FlowBuilderBase>::T: 'a,
     Self::CB: 'a,
-    C: OuterConstraint<'b> + SatisfiableOuterConstraint<'b>,
+    C: OuterConstraint<'a, 'b> + SatisfiableOuterConstraint<'a, 'b>,
     'a: 'b,
 {
-    type CB: ConstraintBlock<'b, <D as FlowBuilderBase>::T, C>;
+    type CB: ConstraintBlock<'a, 'b, <D as FlowBuilderBase>::T, C>;
 }
