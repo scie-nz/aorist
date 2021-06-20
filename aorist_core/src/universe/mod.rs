@@ -12,8 +12,11 @@ use paste::paste;
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
 use uuid::Uuid;
+
 #[cfg(all(feature = "sql", feature = "python"))]
-create_exception!(aorist, SQLParseError, PyException);
+use pyo3::create_exception;
+#[cfg(all(feature = "sql", feature = "python"))]
+create_exception!(aorist, SQLParseError, pyo3::exceptions::PyException);
 
 #[aorist]
 pub struct Universe {
