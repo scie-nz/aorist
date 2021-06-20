@@ -17,7 +17,7 @@ use crate::r::{RBasedConstraintBlock, RFlowBuilderInput, RImport, RPreamble};
 use crate::universe::Universe;
 use anyhow::Result;
 use aorist_ast::{AncestorRecord, SimpleIdentifier, AST};
-use aorist_primitives::{OuterConstraint, TConstraint};
+use aorist_primitives::{OuterConstraint, TConstraint, TBuilder};
 use aorist_primitives::{TAoristObject, TConceptEnum, TConstraintEnum};
 use inflector::cases::snakecase::to_snake_case;
 use linked_hash_map::LinkedHashMap;
@@ -60,9 +60,9 @@ where
     ) -> Vec<<<C as OuterConstraint<'a, 'b>>::TEnum as TConstraintEnum<'a, 'b>>::BuilderT> {
         let mut builders =
             <<C as OuterConstraint<'a, 'b>>::TEnum as TConstraintEnum<'a, 'b>>::builders()
-                .into_iter();
-        /*.map(|x| (x.get_constraint_name(), x))
-        .collect::<LinkedHashMap<String, _>>();*/
+                .into_iter()
+                .map(|x| (x.get_constraint_name(), x))
+                .collect::<LinkedHashMap<String, _>>();
         Vec::new()
     }
 }

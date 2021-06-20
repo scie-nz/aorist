@@ -1288,6 +1288,13 @@ macro_rules! register_constraint_new {
         }
         impl <$lt, $clt> TBuilder<$lt, $clt> for [<$name Builder>]<$lt, $clt>
         where $lt : $clt {
+            fn get_constraint_name(&self) -> String {
+                match &self {
+                    $(
+                        [<$name Builder>]::$element(_) => stringify!($element).to_string(),
+                    )+
+                }
+            }
         }
         impl <$lt, $clt> [<$name Builder>]<$lt, $clt>
         where $lt : $clt {
@@ -1339,13 +1346,6 @@ macro_rules! register_constraint_new {
                 match &self {
                     $(
                         [<$name Builder>]::$element(_) => $element::get_required_constraint_names(),
-                    )+
-                }
-            }
-            pub fn get_constraint_name(&self) -> String {
-                match &self {
-                    $(
-                        [<$name Builder>]::$element(_) => stringify!($element).to_string(),
                     )+
                 }
             }

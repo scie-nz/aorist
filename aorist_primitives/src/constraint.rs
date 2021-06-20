@@ -7,6 +7,7 @@ use uuid::Uuid;
 
 pub trait TBuilder<'a, 'b>
 where 'a: 'b {
+    fn get_constraint_name(&self) -> String;
 }
 
 pub trait TConstraintEnum<'a, 'b>
