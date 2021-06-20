@@ -5,11 +5,15 @@ use std::sync::{Arc, RwLock};
 use tracing::info;
 use uuid::Uuid;
 
+pub trait TBuilder<'a, 'b>
+where 'a: 'b {
+}
+
 pub trait TConstraintEnum<'a, 'b>
 where
     'a: 'b,
 {
-    type BuilderT;
+    type BuilderT: TBuilder<'a, 'b>;
     fn builders() -> Vec<Self::BuilderT>;
 }
 pub trait ConstraintEnum<'b> {}

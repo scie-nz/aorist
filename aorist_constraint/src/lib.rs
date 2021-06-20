@@ -3,7 +3,7 @@ use aorist_core::{AoristConcept, Concept, ConceptAncestry, Dialect, ParameterTup
 use aorist_primitives::{define_constraint, register_constraint_new};
 use aorist_primitives::{
     ConstraintBuilder, ConstraintEnum, ConstraintSatisfactionBase, OuterConstraint, TAoristObject,
-    TConstraint, TConstraintEnum,
+    TConstraint, TConstraintEnum, TBuilder,
 };
 use maplit::hashmap;
 use serde::{Deserialize, Serialize};

@@ -1286,6 +1286,9 @@ macro_rules! register_constraint_new {
                 $element(ConstraintBuilder<$lt, $clt, $element>),
             )+
         }
+        impl <$lt, $clt> TBuilder<$lt, $clt> for [<$name Builder>]<$lt, $clt>
+        where $lt : $clt {
+        }
         impl <$lt, $clt> [<$name Builder>]<$lt, $clt>
         where $lt : $clt {
             pub fn get_root_type_name(&self) -> Result<String> {
