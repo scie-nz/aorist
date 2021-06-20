@@ -1,6 +1,5 @@
 use crate::code::CodeBlock;
-use crate::constraint::{SatisfiableOuterConstraint};
-use aorist_primitives::OuterConstraint;
+use crate::constraint::SatisfiableOuterConstraint;
 use crate::constraint_block::ConstraintBlock;
 use crate::flow::ETLFlow;
 use crate::parameter_tuple::ParameterTuple;
@@ -9,6 +8,7 @@ use crate::r::r_import::RImport;
 use crate::r::RFlowBuilderInput;
 use crate::r::RPreamble;
 use aorist_ast::{Assignment, Dict, AST};
+use aorist_primitives::OuterConstraint;
 use linked_hash_map::LinkedHashMap;
 use std::collections::HashMap;
 use std::marker::PhantomData;
@@ -18,7 +18,7 @@ pub struct RBasedConstraintBlock<'a, 'b, T, C>
 where
     T: ETLFlow<ImportType = RImport, PreambleType = RPreamble>,
     C: OuterConstraint<'a, 'b> + SatisfiableOuterConstraint<'a, 'b>,
-    'a : 'b,
+    'a: 'b,
 {
     constraint_name: String,
     title: Option<String>,
@@ -32,7 +32,7 @@ impl<'a, 'b, T, C> ConstraintBlock<'a, 'b, T, C> for RBasedConstraintBlock<'a, '
 where
     T: ETLFlow<ImportType = RImport, PreambleType = RPreamble>,
     C: OuterConstraint<'a, 'b> + SatisfiableOuterConstraint<'a, 'b>,
-    'a : 'b
+    'a: 'b,
 {
     type C = RBasedCodeBlock<'a, 'b, T, C>;
     type BuilderInputType = RFlowBuilderInput;
@@ -46,8 +46,7 @@ where
     fn get_constraint_body(&self) -> Option<String> {
         self.body.clone()
     }
-    fn get_code_blocks(&self) -> &Vec<Self::C>
-    {
+    fn get_code_blocks(&self) -> &Vec<Self::C> {
         &self.members
     }
 
@@ -91,7 +90,7 @@ impl<'a, 'b, T, C> RBasedConstraintBlock<'a, 'b, T, C>
 where
     T: ETLFlow<ImportType = RImport, PreambleType = RPreamble>,
     C: OuterConstraint<'a, 'b> + SatisfiableOuterConstraint<'a, 'b>,
-    'a : 'b,
+    'a: 'b,
 {
     pub fn get_params(&self) -> HashMap<String, Option<ParameterTuple>> {
         self.members

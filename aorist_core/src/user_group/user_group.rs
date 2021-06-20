@@ -1,8 +1,8 @@
 #![allow(non_snake_case)]
 use crate::concept::{AoristConcept, ConceptEnum};
-use aorist_primitives::TAoristObject;
 use crate::user::*;
 use aorist_concept::{aorist, Constrainable};
+use aorist_primitives::TAoristObject;
 use derivative::Derivative;
 use paste::paste;
 use serde::{Deserialize, Serialize};

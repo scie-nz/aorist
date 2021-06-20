@@ -1,5 +1,5 @@
 pub use crate::universe::*;
-pub use aorist_primitives::{register_concept, AoristConcept, ConceptEnum, TConceptEnum, Ancestry};
+pub use aorist_primitives::{register_concept, Ancestry, AoristConcept, ConceptEnum, TConceptEnum};
 use std::collections::HashMap;
 use std::convert::TryFrom;
 use std::sync::{Arc, RwLock};

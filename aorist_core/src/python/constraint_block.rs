@@ -1,11 +1,11 @@
 use crate::code::CodeBlock;
-use crate::constraint::{SatisfiableOuterConstraint};
-use aorist_primitives::OuterConstraint;
+use crate::constraint::SatisfiableOuterConstraint;
 use crate::constraint_block::ConstraintBlock;
 use crate::flow::ETLFlow;
 use crate::parameter_tuple::ParameterTuple;
 use crate::python::PythonBasedCodeBlock;
 use crate::python::{Assignment, Dict, PythonFlowBuilderInput, PythonImport, PythonPreamble, AST};
+use aorist_primitives::OuterConstraint;
 use linked_hash_map::LinkedHashMap;
 use std::collections::HashMap;
 use std::marker::PhantomData;
@@ -15,7 +15,7 @@ pub struct PythonBasedConstraintBlock<'a, 'b, T, C>
 where
     T: ETLFlow<ImportType = PythonImport, PreambleType = PythonPreamble>,
     C: OuterConstraint<'a, 'b> + SatisfiableOuterConstraint<'a, 'b>,
-    'a : 'b,
+    'a: 'b,
 {
     constraint_name: String,
     title: Option<String>,
@@ -29,7 +29,7 @@ impl<'a, 'b, T, C> ConstraintBlock<'a, 'b, T, C> for PythonBasedConstraintBlock<
 where
     T: ETLFlow<ImportType = PythonImport, PreambleType = PythonPreamble>,
     C: OuterConstraint<'a, 'b> + SatisfiableOuterConstraint<'a, 'b>,
-    'a : 'b,
+    'a: 'b,
 {
     type C = PythonBasedCodeBlock<'a, 'b, T, C>;
     type BuilderInputType = PythonFlowBuilderInput;
@@ -43,8 +43,7 @@ where
     fn get_constraint_body(&self) -> Option<String> {
         self.body.clone()
     }
-    fn get_code_blocks(&self) -> &Vec<Self::C>
-    {
+    fn get_code_blocks(&self) -> &Vec<Self::C> {
         &self.members
     }
 
@@ -88,7 +87,7 @@ impl<'a, 'b, T, C> PythonBasedConstraintBlock<'a, 'b, T, C>
 where
     T: ETLFlow<ImportType = PythonImport, PreambleType = PythonPreamble>,
     C: OuterConstraint<'a, 'b> + SatisfiableOuterConstraint<'a, 'b>,
-    'a : 'b,
+    'a: 'b,
 {
     pub fn get_params(&self) -> HashMap<String, Option<ParameterTuple>> {
         self.members

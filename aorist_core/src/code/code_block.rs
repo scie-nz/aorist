@@ -1,12 +1,12 @@
 use crate::code::Preamble;
-use crate::constraint::{SatisfiableOuterConstraint};
+use crate::constraint::SatisfiableOuterConstraint;
 use crate::constraint_state::ConstraintState;
 use crate::endpoints::EndpointConfig;
 use crate::flow::{CompressibleETLTask, CompressibleTask, ETLFlow, ETLTask, StandaloneTask};
 use crate::parameter_tuple::ParameterTuple;
-use aorist_primitives::{OuterConstraint};
 use anyhow::Result;
 use aorist_ast::{SimpleIdentifier, StringLiteral, Subscript, AST};
+use aorist_primitives::OuterConstraint;
 use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
 use std::collections::{BTreeSet, HashMap};
@@ -20,7 +20,7 @@ where
     T: ETLFlow,
     Self: Sized,
     Self::E: ETLTask<T>,
-    'a : 'b
+    'a: 'b,
 {
     type P;
     type E;
@@ -109,13 +109,14 @@ where
 }
 
 pub trait CodeBlockWithDefaultConstructor<
-    'a, 'b,
+    'a,
+    'b,
     T,
     C: OuterConstraint<'a, 'b> + SatisfiableOuterConstraint<'a, 'b>,
 > where
     T: ETLFlow,
     Self: CodeBlock<'a, 'b, T, C>,
-    'a : 'b,
+    'a: 'b,
 {
     fn new(
         members: Vec<Arc<RwLock<ConstraintState<'a, 'b, C>>>>,
@@ -125,7 +126,8 @@ pub trait CodeBlockWithDefaultConstructor<
     ) -> Result<Self>;
 }
 pub trait CodeBlockWithForLoopCompression<
-    'a, 'b,
+    'a,
+    'b,
     T,
     C: OuterConstraint<'a, 'b> + SatisfiableOuterConstraint<'a, 'b>,
 > where
@@ -134,7 +136,7 @@ pub trait CodeBlockWithForLoopCompression<
     Self: Sized,
     <Self as CodeBlock<'a, 'b, T, C>>::E: CompressibleETLTask<T>,
     <<Self as CodeBlock<'a, 'b, T, C>>::E as ETLTask<T>>::S: CompressibleTask,
-    'a : 'b,
+    'a: 'b,
 {
     fn run_task_compressions(
         compressible: LinkedHashMap<
@@ -167,13 +169,18 @@ pub trait CodeBlockWithForLoopCompression<
         (compressible, uncompressible)
     }
 }
-impl<'a, 'b, C, T: ETLFlow, CType: OuterConstraint<'a, 'b> + SatisfiableOuterConstraint<'a, 'b>>
-    CodeBlockWithDefaultConstructor<'a, 'b, T, CType> for C
+impl<
+        'a,
+        'b,
+        C,
+        T: ETLFlow,
+        CType: OuterConstraint<'a, 'b> + SatisfiableOuterConstraint<'a, 'b>,
+    > CodeBlockWithDefaultConstructor<'a, 'b, T, CType> for C
 where
     Self: CodeBlockWithForLoopCompression<'a, 'b, T, CType>,
     <Self as CodeBlock<'a, 'b, T, CType>>::E: CompressibleETLTask<T>,
     <<Self as CodeBlock<'a, 'b, T, CType>>::E as ETLTask<T>>::S: CompressibleTask,
-    'a : 'b,
+    'a: 'b,
 {
     fn new(
         members: Vec<Arc<RwLock<ConstraintState<'a, 'b, CType>>>>,

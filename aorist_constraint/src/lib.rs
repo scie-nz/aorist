@@ -1,18 +1,10 @@
 use anyhow::{Context, Result};
-use aorist_core::{
-    AoristConcept, ConceptAncestry, Concept, 
-    Dialect, 
-    ParameterTuple, 
-};
-use aorist_primitives::{
-    ConstraintBuilder, ConstraintEnum,
-    TAoristObject,
-    TConstraint,
-    TConstraintEnum,
-    OuterConstraint, 
-    ConstraintSatisfactionBase, 
-};
+use aorist_core::{AoristConcept, Concept, ConceptAncestry, Dialect, ParameterTuple};
 use aorist_primitives::{define_constraint, register_constraint_new};
+use aorist_primitives::{
+    ConstraintBuilder, ConstraintEnum, ConstraintSatisfactionBase, OuterConstraint, TAoristObject,
+    TConstraint, TConstraintEnum,
+};
 use maplit::hashmap;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -20,7 +12,7 @@ use std::fmt;
 use std::sync::{Arc, RwLock};
 
 include!(concat!(env!("OUT_DIR"), "/constraints.rs"));
-impl <'b> ConstraintEnum<'b> for AoristConstraint {}
+impl<'b> ConstraintEnum<'b> for AoristConstraint {}
 
 #[derive(Serialize, Deserialize)]
 pub struct Constraint {
@@ -30,7 +22,10 @@ pub struct Constraint {
     pub root: String,
     pub requires: Option<Vec<String>>,
 }
-impl<'a, 'b> OuterConstraint<'a, 'b> for Constraint where 'a : 'b {
+impl<'a, 'b> OuterConstraint<'a, 'b> for Constraint
+where
+    'a: 'b,
+{
     type TEnum = AoristConstraint;
     type TAncestry = ConceptAncestry<'a>;
 

@@ -1,19 +1,23 @@
-use crate::concept::{Ancestry, TAoristObject, AoristConcept};
+use crate::concept::{Ancestry, AoristConcept, TAoristObject};
 use anyhow::Result;
-use uuid::Uuid;
+use std::marker::PhantomData;
 use std::sync::{Arc, RwLock};
 use tracing::info;
-use std::marker::PhantomData;
+use uuid::Uuid;
 
 pub trait TConstraintEnum<'a, 'b>
-where 'a : 'b {
+where
+    'a: 'b,
+{
     type BuilderT;
-    fn builders() -> Vec<Self::BuilderT>; 
+    fn builders() -> Vec<Self::BuilderT>;
 }
 pub trait ConstraintEnum<'b> {}
 
-pub trait OuterConstraint<'a, 'b>: TAoristObject + std::fmt::Display 
-where 'a : 'b {
+pub trait OuterConstraint<'a, 'b>: TAoristObject + std::fmt::Display
+where
+    'a: 'b,
+{
     type TEnum: ConstraintEnum<'b> + TConstraintEnum<'a, 'b>;
     type TAncestry: Ancestry<'a>;
 

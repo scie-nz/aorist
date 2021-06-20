@@ -1,10 +1,10 @@
 use crate::concept::Ancestry;
-use aorist_primitives::{OuterConstraint};
-use crate::constraint::{SatisfiableOuterConstraint};
+use crate::constraint::SatisfiableOuterConstraint;
 use crate::dialect::Dialect;
 use crate::parameter_tuple::ParameterTuple;
 use anyhow::{bail, Result};
 use aorist_ast::{AncestorRecord, Formatted, SimpleIdentifier, StringLiteral, AST};
+use aorist_primitives::OuterConstraint;
 use aorist_primitives::TConceptEnum;
 use inflector::cases::snakecase::to_snake_case;
 use linked_hash_map::LinkedHashMap;
@@ -14,8 +14,10 @@ use std::sync::{Arc, RwLock};
 use tracing::{level_enabled, trace, Level};
 use uuid::Uuid;
 
-pub struct ConstraintState<'a, 'b, T: OuterConstraint<'a, 'b> + SatisfiableOuterConstraint<'a, 'b>> 
-where 'a : 'b {
+pub struct ConstraintState<'a, 'b, T: OuterConstraint<'a, 'b> + SatisfiableOuterConstraint<'a, 'b>>
+where
+    'a: 'b,
+{
     dialect: Option<Dialect>,
     pub key: Option<String>,
     name: String,
@@ -32,9 +34,11 @@ where 'a : 'b {
     params: Option<ParameterTuple>,
     task_name: Option<String>,
 }
-impl<'a, 'b, T: OuterConstraint<'a, 'b> + SatisfiableOuterConstraint<'a, 'b>> 
-ConstraintState<'a, 'b, T> 
-where 'a : 'b {
+impl<'a, 'b, T: OuterConstraint<'a, 'b> + SatisfiableOuterConstraint<'a, 'b>>
+    ConstraintState<'a, 'b, T>
+where
+    'a: 'b,
+{
     pub fn requires_program(&self) -> Result<bool> {
         self.constraint.read().unwrap().requires_program()
     }
@@ -125,7 +129,9 @@ where 'a : 'b {
         self.name.clone()
     }
     #[allow(dead_code)]
-    pub fn get_root(&self) -> <<T as OuterConstraint<'a, 'b>>::TAncestry as Ancestry<'a>>::TConcept {
+    pub fn get_root(
+        &self,
+    ) -> <<T as OuterConstraint<'a, 'b>>::TAncestry as Ancestry<'a>>::TConcept {
         self.root.clone()
     }
     pub fn get_constraint_uuid(&self) -> Result<Uuid> {

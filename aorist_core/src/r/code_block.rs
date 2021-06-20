@@ -1,6 +1,5 @@
 use crate::code::{CodeBlock, CodeBlockWithForLoopCompression};
-use aorist_primitives::OuterConstraint;
-use crate::constraint::{SatisfiableOuterConstraint};
+use crate::constraint::SatisfiableOuterConstraint;
 use crate::endpoints::EndpointConfig;
 use crate::flow::{CompressibleTask, ETLFlow, ETLTask, ForLoopCompressedTask};
 use crate::parameter_tuple::ParameterTuple;
@@ -8,6 +7,7 @@ use crate::r::preamble::RPreamble;
 use crate::r::r_import::RImport;
 use crate::r::task::{ForLoopRBasedTask, RBasedTask};
 use aorist_ast::{Formatted, SimpleIdentifier, StringLiteral, Subscript, AST};
+use aorist_primitives::OuterConstraint;
 use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
 use std::collections::{BTreeSet, HashMap, HashSet};
@@ -19,7 +19,7 @@ pub struct RBasedCodeBlock<'a, 'b, T, C>
 where
     T: ETLFlow<ImportType = RImport, PreambleType = RPreamble>,
     C: OuterConstraint<'a, 'b> + SatisfiableOuterConstraint<'a, 'b>,
-    'a : 'b,
+    'a: 'b,
 {
     tasks_dict: Option<AST>,
     task_identifiers: HashMap<Uuid, AST>,
@@ -33,7 +33,7 @@ impl<'a, 'b, T, C> CodeBlock<'a, 'b, T, C> for RBasedCodeBlock<'a, 'b, T, C>
 where
     T: ETLFlow<ImportType = RImport, PreambleType = RPreamble>,
     C: OuterConstraint<'a, 'b> + SatisfiableOuterConstraint<'a, 'b>,
-    'a : 'b,
+    'a: 'b,
 {
     type P = RPreamble;
     type E = RBasedTask<T>;
@@ -98,7 +98,7 @@ impl<'a, 'b, T, C> CodeBlockWithForLoopCompression<'a, 'b, T, C> for RBasedCodeB
 where
     T: ETLFlow<ImportType = RImport, PreambleType = RPreamble>,
     C: OuterConstraint<'a, 'b> + SatisfiableOuterConstraint<'a, 'b>,
-    'a : 'b,
+    'a: 'b,
 {
     // TODO: push to trait
     fn run_task_compressions(

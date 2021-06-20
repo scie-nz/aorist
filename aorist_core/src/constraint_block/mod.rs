@@ -1,9 +1,9 @@
 use crate::code::{CodeBlock, CodeBlockWithDefaultConstructor};
-use aorist_primitives::{OuterConstraint};
-use crate::constraint::{SatisfiableOuterConstraint};
+use crate::constraint::SatisfiableOuterConstraint;
 use crate::endpoints::EndpointConfig;
 use crate::flow::{ETLFlow, FlowBuilderInput};
 use aorist_ast::AST;
+use aorist_primitives::OuterConstraint;
 use linked_hash_set::LinkedHashSet;
 use std::collections::{BTreeSet, HashMap};
 use uuid::Uuid;
@@ -17,7 +17,7 @@ where
         PreambleType = <Self::C as CodeBlock<'a, 'b, T, C>>::P,
         ImportType = T::ImportType,
     >,
-    'a : 'b,
+    'a: 'b,
 {
     type C: CodeBlock<'a, 'b, T, C>;
     type BuilderInputType;
