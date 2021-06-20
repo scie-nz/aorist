@@ -1512,3 +1512,7 @@ pub trait TConstraintEnum {
     type BuilderT;
     fn builders() -> Vec<Self::BuilderT>; 
 }
+
+pub trait Ancestry<'a> {
+    type TConcept: ConceptEnum<'a> + Clone + TConceptEnum<'a>;
+}

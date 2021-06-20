@@ -1,5 +1,5 @@
 pub use crate::universe::*;
-pub use aorist_primitives::{register_concept, AoristConcept, ConceptEnum, TConceptEnum};
+pub use aorist_primitives::{register_concept, AoristConcept, ConceptEnum, TConceptEnum, Ancestry};
 use std::collections::HashMap;
 use std::convert::TryFrom;
 use std::sync::{Arc, RwLock};
@@ -28,10 +28,6 @@ use crate::storage_setup::*;
 use crate::template::*;
 use crate::user::*;
 use crate::user_group::*;
-
-pub trait Ancestry<'a> {
-    type TConcept: ConceptEnum<'a> + Clone + TConceptEnum<'a>;
-}
 pub struct WrappedConcept<'a, T> {
     pub inner: T,
     pub _phantom_lt: std::marker::PhantomData<&'a ()>,

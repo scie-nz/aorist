@@ -1,4 +1,5 @@
-use crate::concept::{Ancestry, AoristConcept};
+use crate::concept::{AoristConcept};
+use aorist_primitives::Ancestry;
 use crate::dialect::Dialect;
 use crate::object::TAoristObject;
 use crate::parameter_tuple::ParameterTuple;
