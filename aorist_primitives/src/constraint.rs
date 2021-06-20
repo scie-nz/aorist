@@ -5,7 +5,8 @@ use std::sync::{Arc, RwLock};
 use tracing::info;
 use std::marker::PhantomData;
 
-pub trait TConstraintEnum {
+pub trait TConstraintEnum<'a, 'b>
+where 'a : 'b {
     type BuilderT;
     fn builders() -> Vec<Self::BuilderT>; 
 }

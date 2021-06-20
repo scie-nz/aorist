@@ -385,7 +385,7 @@ macro_rules! register_programs_for_constraint {
 macro_rules! register_satisfiable_constraints {
 
     ($outer: ident, $($constraint:ident),+)  => {
-        impl <'a> SatisfiableOuterConstraint<'a> for $outer {
+        impl <'a, 'b> SatisfiableOuterConstraint<'a, 'b> for $outer where 'a : 'b {
             fn satisfy_given_preference_ordering(
                 &mut self,
                 c: Concept<'a>,
@@ -1347,7 +1347,7 @@ macro_rules! register_constraint_new {
                 }
             }
         }
-        impl <$lt, $clt> TConstraintEnum for $name where $lt : $clt {
+        impl <$lt, $clt> TConstraintEnum<$lt, $clt> for $name where $lt : $clt {
             type BuilderT = [<$name Builder>]<$lt, $clt>;
             fn builders() -> Vec<[<$name Builder>]<$lt, $clt>> {
                 vec![

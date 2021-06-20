@@ -1,8 +1,16 @@
 use anyhow::{Context, Result};
 use aorist_core::{
-    AoristConcept, Concept, ConceptAncestry, ConstraintBuilder, ConstraintEnum,
-    ConstraintSatisfactionBase, Dialect, OuterConstraint, ParameterTuple, TAoristObject,
+    AoristConcept, ConceptAncestry, Concept, 
+    Dialect, 
+    ParameterTuple, 
+};
+use aorist_primitives::{
+    ConstraintBuilder, ConstraintEnum,
+    TAoristObject,
     TConstraint,
+    TConstraintEnum,
+    OuterConstraint, 
+    ConstraintSatisfactionBase, 
 };
 use aorist_primitives::{define_constraint, register_constraint_new};
 use maplit::hashmap;
@@ -12,7 +20,7 @@ use std::fmt;
 use std::sync::{Arc, RwLock};
 
 include!(concat!(env!("OUT_DIR"), "/constraints.rs"));
-impl ConstraintEnum for AoristConstraint {}
+impl <'b> ConstraintEnum<'b> for AoristConstraint {}
 
 #[derive(Serialize, Deserialize)]
 pub struct Constraint {
@@ -22,7 +30,7 @@ pub struct Constraint {
     pub root: String,
     pub requires: Option<Vec<String>>,
 }
-impl<'a> OuterConstraint<'a> for Constraint {
+impl<'a, 'b> OuterConstraint<'a, 'b> for Constraint where 'a : 'b {
     type TEnum = AoristConstraint;
     type TAncestry = ConceptAncestry<'a>;
 
