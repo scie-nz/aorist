@@ -1,4 +1,3 @@
-use crate::dialect::Dialect;
 use crate::flow::{ETLFlow, UncompressiblePart};
 use crate::parameter_tuple::ParameterTuple;
 use aorist_ast::{Dict, AST};
