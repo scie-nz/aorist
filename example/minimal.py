@@ -7,14 +7,11 @@ local = BigQueryStorage(
     location=BigQueryLocation(),
     layout=StaticTabularLayout(),
 )
+subreddits = subreddits.replicate_to_local(local, tmp_dir, CSVEncoding())
 universe = Universe(
     name="my_cluster",
     datasets=[subreddits],
     endpoints=DEFAULT_ENDPOINTS,
 )
-other_universe = Universe(
-    name="my_cluster",
-    datasets=[subreddits],
-    endpoints=DEFAULT_ENDPOINTS,
-)
-print(universe.r("RDataFrame"))
+print(universe.python("PandasData"))
+
