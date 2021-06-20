@@ -1,5 +1,6 @@
 use crate::concept::Ancestry;
-use crate::constraint::{OuterConstraint, SatisfiableOuterConstraint};
+use aorist_primitives::{OuterConstraint};
+use crate::constraint::{SatisfiableOuterConstraint};
 use crate::dialect::Dialect;
 use crate::parameter_tuple::ParameterTuple;
 use anyhow::{bail, Result};

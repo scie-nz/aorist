@@ -7,9 +7,11 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+anyhow = "1.0"
 aorist_derive = {path = "../aorist_derive"}
 paste = {git = "https://github.com/scie-nz/paste", branch = "main"}
 serde = { version = "1.0", features = ["derive"] }
 serde_yaml = "0.8"
 uuid = {version = "0.8.1", features = ["v4", "serde"]}
 siphasher = "0.3"
+tracing = "0.1"

@@ -1,9 +1,10 @@
 use crate::code::Preamble;
-use crate::constraint::{OuterConstraint, SatisfiableOuterConstraint};
+use crate::constraint::{SatisfiableOuterConstraint};
 use crate::constraint_state::ConstraintState;
 use crate::endpoints::EndpointConfig;
 use crate::flow::{CompressibleETLTask, CompressibleTask, ETLFlow, ETLTask, StandaloneTask};
 use crate::parameter_tuple::ParameterTuple;
+use aorist_primitives::{OuterConstraint};
 use anyhow::Result;
 use aorist_ast::{SimpleIdentifier, StringLiteral, Subscript, AST};
 use linked_hash_map::LinkedHashMap;

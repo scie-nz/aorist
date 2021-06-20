@@ -1,5 +1,6 @@
 use crate::code::{CodeBlock, CodeBlockWithDefaultConstructor};
-use crate::constraint::{OuterConstraint, SatisfiableOuterConstraint};
+use aorist_primitives::{OuterConstraint};
+use crate::constraint::{SatisfiableOuterConstraint};
 use crate::endpoints::EndpointConfig;
 use crate::flow::{ETLFlow, FlowBuilderInput};
 use aorist_ast::AST;

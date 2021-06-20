@@ -2,7 +2,8 @@
 use crate::code::CodeBlockWithDefaultConstructor;
 use crate::concept::{Concept, ConceptAncestry};
 use crate::constraint::TConstraint;
-use crate::constraint::{OuterConstraint, SatisfiableOuterConstraint};
+use aorist_primitives::{OuterConstraint};
+use crate::constraint::{SatisfiableOuterConstraint};
 use crate::constraint_block::ConstraintBlock;
 use crate::constraint_state::ConstraintState;
 use crate::dialect::{Bash, Dialect, Presto, Python, R};
