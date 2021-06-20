@@ -1,5 +1,6 @@
 use crate::code::CodeBlock;
-use crate::constraint::{OuterConstraint, SatisfiableOuterConstraint};
+use crate::constraint::{SatisfiableOuterConstraint};
+use aorist_primitives::OuterConstraint;
 use crate::constraint_block::ConstraintBlock;
 use crate::flow::ETLFlow;
 use crate::parameter_tuple::ParameterTuple;

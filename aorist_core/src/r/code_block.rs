@@ -1,5 +1,6 @@
 use crate::code::{CodeBlock, CodeBlockWithForLoopCompression};
-use crate::constraint::{OuterConstraint, SatisfiableOuterConstraint};
+use aorist_primitives::OuterConstraint;
+use crate::constraint::{SatisfiableOuterConstraint};
 use crate::endpoints::EndpointConfig;
 use crate::flow::{CompressibleTask, ETLFlow, ETLTask, ForLoopCompressedTask};
 use crate::parameter_tuple::ParameterTuple;

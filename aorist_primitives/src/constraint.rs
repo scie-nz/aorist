@@ -1,4 +1,4 @@
-use crate::concept::{Ancestry, TAoristObject};
+use crate::concept::{Ancestry, TAoristObject, AoristConcept};
 use anyhow::Result;
 use uuid::Uuid;
 use std::sync::{Arc, RwLock};
@@ -42,4 +42,28 @@ pub trait OuterConstraint<'a>: TAoristObject + std::fmt::Display {
         Ok(())
     }
     fn inner(&self, caller: &str) -> Result<&Self::TEnum>;
+}
+pub trait TConstraint<'a, 'b>
+where
+    Self::Root: AoristConcept<'a>,
+    Self::Outer: OuterConstraint<'a, TAncestry = Self::Ancestry>,
+    Self::Ancestry: Ancestry<'a>,
+    'a: 'b,
+{
+    type Root;
+    type Outer;
+    type Ancestry;
+
+    fn get_root_type_name() -> Result<String>;
+    fn get_required_constraint_names() -> Vec<String>;
+    fn new(
+        root_uuid: Uuid,
+        potential_child_constraints: Vec<Arc<RwLock<Self::Outer>>>,
+    ) -> Result<Self>
+    where
+        Self: Sized;
+    fn should_add(
+        root: <<Self as TConstraint<'a, 'b>>::Ancestry as Ancestry<'a>>::TConcept,
+        ancestry: &<Self as TConstraint<'a, 'b>>::Ancestry,
+    ) -> bool;
 }

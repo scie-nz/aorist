@@ -1,5 +1,5 @@
 use crate::concept::{AoristConcept};
-use aorist_primitives::{Ancestry, ConstraintEnum, TAoristObject, OuterConstraint};
+use aorist_primitives::{Ancestry, ConstraintEnum, TAoristObject, OuterConstraint, TConstraint};
 use crate::dialect::Dialect;
 use crate::parameter_tuple::ParameterTuple;
 use anyhow::Result;
@@ -7,31 +7,6 @@ use std::marker::PhantomData;
 use std::sync::{Arc, RwLock};
 use tracing::info;
 use uuid::Uuid;
-
-pub trait TConstraint<'a, 'b>
-where
-    Self::Root: AoristConcept<'a>,
-    Self::Outer: OuterConstraint<'a, TAncestry = Self::Ancestry>,
-    Self::Ancestry: Ancestry<'a>,
-    'a: 'b,
-{
-    type Root;
-    type Outer;
-    type Ancestry;
-
-    fn get_root_type_name() -> Result<String>;
-    fn get_required_constraint_names() -> Vec<String>;
-    fn new(
-        root_uuid: Uuid,
-        potential_child_constraints: Vec<Arc<RwLock<Self::Outer>>>,
-    ) -> Result<Self>
-    where
-        Self: Sized;
-    fn should_add(
-        root: <<Self as TConstraint<'a, 'b>>::Ancestry as Ancestry<'a>>::TConcept,
-        ancestry: &<Self as TConstraint<'a, 'b>>::Ancestry,
-    ) -> bool;
-}
 
 pub trait ConstraintSatisfactionBase<'a, 'b>
 where
