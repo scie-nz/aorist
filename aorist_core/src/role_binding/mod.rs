@@ -1,6 +1,6 @@
-use crate::object::TAoristObject;
 use crate::role::*;
 use crate::{AoristConcept, ConceptEnum};
+use aorist_primitives::TAoristObject;
 use aorist_concept::{aorist, Constrainable};
 use derivative::Derivative;
 use paste::paste;

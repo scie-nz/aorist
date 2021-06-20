@@ -1,7 +1,7 @@
 #![allow(non_snake_case)]
 use crate::concept::{AoristConcept, ConceptEnum};
 use crate::error::AoristError;
-use crate::object::TAoristObject;
+use aorist_primitives::TAoristObject;
 use crate::role::*;
 use aorist_concept::{aorist, Constrainable};
 use derivative::Derivative;

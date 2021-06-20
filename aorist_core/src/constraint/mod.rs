@@ -1,7 +1,6 @@
 use crate::concept::{AoristConcept};
-use aorist_primitives::Ancestry;
+use aorist_primitives::{Ancestry, ConstraintEnum, TAoristObject};
 use crate::dialect::Dialect;
-use crate::object::TAoristObject;
 use crate::parameter_tuple::ParameterTuple;
 use anyhow::Result;
 use std::marker::PhantomData;
@@ -9,7 +8,6 @@ use std::sync::{Arc, RwLock};
 use tracing::info;
 use uuid::Uuid;
 
-pub trait ConstraintEnum {}
 pub trait OuterConstraint<'a>: TAoristObject + std::fmt::Display {
     type TEnum: ConstraintEnum;
     type TAncestry: Ancestry<'a>;

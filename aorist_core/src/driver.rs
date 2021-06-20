@@ -8,7 +8,6 @@ use crate::constraint_state::ConstraintState;
 use crate::dialect::{Bash, Dialect, Presto, Python, R};
 use crate::endpoints::EndpointConfig;
 use crate::flow::{ETLFlow, FlowBuilderBase, FlowBuilderMaterialize};
-use crate::object::TAoristObject;
 use crate::parameter_tuple::ParameterTuple;
 #[cfg(feature = "python")]
 use crate::python::{
@@ -19,7 +18,7 @@ use crate::r::{RBasedConstraintBlock, RFlowBuilderInput, RImport, RPreamble};
 use crate::universe::Universe;
 use anyhow::Result;
 use aorist_ast::{AncestorRecord, SimpleIdentifier, AST};
-use aorist_primitives::TConceptEnum;
+use aorist_primitives::{TConceptEnum, TAoristObject};
 use inflector::cases::snakecase::to_snake_case;
 use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;

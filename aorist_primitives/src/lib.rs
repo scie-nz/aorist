@@ -1516,3 +1516,7 @@ pub trait TConstraintEnum {
 pub trait Ancestry<'a> {
     type TConcept: ConceptEnum<'a> + Clone + TConceptEnum<'a>;
 }
+pub trait ConstraintEnum {}
+pub trait TAoristObject {
+    fn get_name(&self) -> &String;
+}
