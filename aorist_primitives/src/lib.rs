@@ -2,6 +2,8 @@
 
 mod concept;
 pub use concept::*;
+mod constraint;
+pub use constraint::*;
 
 #[macro_export]
 macro_rules! register_ast_nodes {
@@ -1455,17 +1457,4 @@ macro_rules! register_constraint_new {
             }
         }}
     }
-}
-
-pub trait TConstraintEnum {
-    type BuilderT;
-    fn builders() -> Vec<Self::BuilderT>; 
-}
-
-pub trait Ancestry<'a> {
-    type TConcept: ConceptEnum<'a> + Clone + TConceptEnum<'a>;
-}
-pub trait ConstraintEnum {}
-pub trait TAoristObject {
-    fn get_name(&self) -> &String;
 }

@@ -53,3 +53,10 @@ pub trait TConceptEnum<'a>: Sized {
     fn get_child_concepts(&'a self) -> Vec<Self>;
     fn populate_child_concept_map(&self, concept_map: &mut HashMap<(Uuid, String), Self>);
 }
+
+pub trait Ancestry<'a> {
+    type TConcept: ConceptEnum<'a> + Clone + TConceptEnum<'a>;
+}
+pub trait TAoristObject {
+    fn get_name(&self) -> &String;
+}
