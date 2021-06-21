@@ -14,7 +14,7 @@ mod concept;
 // mod dataset;
 // mod driver;
 mod encoding;
-// mod endpoints;
+mod endpoints;
 mod error;
 // mod features;
 // mod flow;
