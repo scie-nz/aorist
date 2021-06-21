@@ -1154,26 +1154,25 @@ macro_rules! register_concept {
                 $element((Arc<$element>, usize, Option<(Uuid, String)>)),
             )+
         }
-        /*
         $(
-            impl <'a> [<CanBe $element>]<'a> for $name<'a> {
+            impl [<CanBe $element>] for Arc<$name> {
                 fn [<construct_ $element:snake:lower>](
-                    obj_ref: &'a $element,
+                    obj_ref: Arc<$element>,
                     ix: Option<usize>,
                     id: Option<(Uuid, String)>
                 ) -> Self {
-                    $name::$element((
+                    Arc::new($name::$element((
                         obj_ref,
                         match ix {
                             Some(i) => i,
                             None => 0,
                         },
                         id,
-                    ))
+                    )))
                }
             }
         )+
-        $(
+        /*$(
             impl $element {
                 fn get_descendants<'a>(&'a self) -> Vec<$name<'a>> {
                     let mut concepts = Vec::new();
