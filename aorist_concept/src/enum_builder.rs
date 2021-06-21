@@ -276,7 +276,7 @@ impl Builder for EnumBuilder {
                   }
               }
           }
-          impl AoristConceptNew for AoristRef<#enum_name> {
+          impl AoristConcept for AoristRef<#enum_name> {
               type TChildrenEnum = AoristRef<#enum_name>;
               fn get_children(&self) -> Vec<(
                   // enum name
@@ -323,9 +323,6 @@ impl Builder for EnumBuilder {
                   }
               }
           }
-          /*impl <'a> AoristConcept<'a> for #enum_name {
-
-          }*/
         }})
     }
 }

@@ -986,7 +986,7 @@ impl Builder for StructBuilder {
                 ) -> Self;
             }
 
-            impl AoristConceptNew for AoristRef<#struct_name> {
+            impl AoristConcept for AoristRef<#struct_name> {
                 type TChildrenEnum = [<#struct_name Children>];
                 fn get_uuid(&self) -> Option<Uuid> {
                     let read_lock = self.0.read().unwrap();
@@ -996,10 +996,10 @@ impl Builder for StructBuilder {
                     panic!("Could not open object {} for reading.", stringify!(#struct_name));
                 }
                 fn compute_uuids(&self) {
-                    if let Ok(ref x) = self.0.write() {
-                        //x.compute_uuids();
-                        //let uuid = self.get_uuid_from_children_uuid();
-                        //x.set_uuid(uuid);
+                    if let Ok(ref mut x) = self.0.write() {
+                        x.compute_uuids();
+                        let uuid = self.get_uuid_from_children_uuid();
+                        x.set_uuid(uuid);
                     }
                     panic!("Could not open object {} for writing.", stringify!(#struct_name));
                 }
@@ -1085,8 +1085,6 @@ impl Builder for StructBuilder {
                     children
                 }
             }
-            /*impl <'a> AoristConcept<'a> for #struct_name {
-            }*/
         }})
     }
 }

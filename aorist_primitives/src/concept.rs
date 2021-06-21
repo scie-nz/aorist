@@ -5,45 +5,12 @@ use uuid::Uuid;
 
 pub trait ConceptEnum<'a> {}
 pub trait ConceptEnumNew {}
-/*pub trait AoristConceptNew {
-    type TChildrenEnum: ConceptEnum<'a>;
-
-    fn get_children(
-        &'a self,
-    ) -> Vec<(
-        // struct name
-        &str,
-        // field name
-        Option<&str>,
-        // ix
-        Option<usize>,
-        // uuid
-        Option<Uuid>,
-        // wrapped reference
-        Self::TChildrenEnum,
-    )>;
-}*/
-pub trait AoristConcept<'a> {
-    type TChildrenEnum: ConceptEnum<'a>;
-
-    fn get_children(
-        &'a self,
-    ) -> Vec<(
-        // struct name
-        &str,
-        // field name
-        Option<&str>,
-        // ix
-        Option<usize>,
-        // uuid
-        Option<Uuid>,
-        // wrapped reference
-        Self::TChildrenEnum,
-    )>;
-    fn get_uuid(&self) -> Uuid;
-    fn get_children_uuid(&self) -> Vec<Uuid>;
+pub trait AoristConcept {
+    type TChildrenEnum: ConceptEnumNew;
+    fn get_uuid(&self) -> Option<Uuid>;
     fn get_tag(&self) -> Option<String>;
-
+    fn compute_uuids(&self);
+    fn get_children_uuid(&self) -> Vec<Uuid>;
     fn get_uuid_from_children_uuid(&self) -> Uuid {
         let child_uuids = self.get_children_uuid();
         if child_uuids.len() > 0 {
@@ -61,8 +28,22 @@ pub trait AoristConcept<'a> {
             Uuid::new_v4()
         }
     }
-    fn compute_uuids(&mut self);
+    fn get_children(
+        &self,
+    ) -> Vec<(
+        // struct name
+        &str,
+        // field name
+        Option<&str>,
+        // ix
+        Option<usize>,
+        // uuid
+        Option<Uuid>,
+        // wrapped reference
+        Self::TChildrenEnum,
+    )>;
 }
+
 pub trait TConceptEnum<'a>: Sized {
     fn get_parent_id(&self) -> Option<(Uuid, String)>;
     fn get_type(&self) -> String;

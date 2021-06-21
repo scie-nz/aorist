@@ -61,7 +61,7 @@ where
 }
 pub trait TConstraint<'a, 'b>
 where
-    Self::Root: AoristConcept<'a>,
+    Self::Root: AoristConcept,
     Self::Outer: OuterConstraint<'a, 'b, TAncestry = Self::Ancestry>,
     Self::Ancestry: Ancestry<'a>,
     'a: 'b,
@@ -85,7 +85,7 @@ where
 }
 pub trait ConstraintSatisfactionBase<'a, 'b>
 where
-    Self::RootType: AoristConcept<'a>,
+    Self::RootType: AoristConcept,
     Self::Outer: OuterConstraint<'a, 'b>,
     Self::ConstraintType: TConstraint<'a, 'b, Root = Self::RootType, Outer = Self::Outer>,
     'a: 'b,
