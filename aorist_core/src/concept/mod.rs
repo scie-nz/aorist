@@ -1,5 +1,5 @@
 // pub use crate::universe::*;
-use aorist_concept::{aorist2, Constrainable};
+use aorist_concept::{aorist, Constrainable};
 pub use aorist_primitives::{
     register_concept, Ancestry, AoristConcept, ConceptEnum, TConceptEnum,
 };
@@ -51,20 +51,20 @@ impl<T: Debug + Clone + Serialize + PartialEq> Debug for AoristRef<T> {
         self.0.read().unwrap().fmt(f)
     }
 }
-#[aorist2]
+#[aorist]
 pub struct GlobalPermissionsAdmin {}
-#[aorist2]
+#[aorist]
 pub enum Role {
     GlobalPermissionsAdmin(AoristRef<GlobalPermissionsAdmin>),
 }
-#[aorist2]
+#[aorist]
 pub struct User {
     firstName: String,
     lastName: String,
     email: String,
     phone: String,
     pub unixname: String,
-    #[constrainable2]
+    #[constrainable]
     roles: Option<Vec<AoristRef<Role>>>,
 }
 // pub struct WrappedConcept<'a, T> {
