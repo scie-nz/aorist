@@ -1194,32 +1194,36 @@ macro_rules! register_concept {
         impl ConceptEnum for $name {}
         
         $(
-            impl TryFrom<$name> for AoristRef<$element> {
+            impl TryFrom<AoristRef<$name>> for AoristRef<$element> {
                 type Error = String;
-                fn try_from(x: $name) -> Result<Self, String> {
-                    match x {
-                        $name::$element((ref y, _, _)) => Ok(y.clone()),
-                        _ => Err("Cannot convert.".into()),
+                fn try_from(x: AoristRef<$name>) -> Result<Self, String> {
+                    let read = x.0.read();
+                    match read {
+                        Ok(elem) => match *elem {
+                            $name::$element((ref y, _, _)) => Ok(y.clone()),
+                            _ => Err("Cannot convert.".into()),
+                        },
+                        _ => Err("Cannot read.".into()),
                     }
                 }
             }
         )+
         
         pub struct $ancestry {
-            pub parents: Arc<RwLock<HashMap<(Uuid, String), $name>>>,
+            pub parents: Arc<RwLock<HashMap<(Uuid, String), AoristRef<$name>>>>,
         }
         impl Ancestry for $ancestry {
             type TConcept = $name;
         }
-        /*
-        impl <'a> $ancestry<'a> {
+        impl $ancestry {
             $(
                 pub fn [<$element:snake:lower>](
                     &self,
-                    root: $name<'a>,
-                ) -> Result<&'a $element, String> {
+                    root_lock: AoristRef<$name>,
+                ) -> Result<AoristRef<$element>, String> {
+                    let root = root_lock.0.read().unwrap();
                     if root.get_type() == stringify!($element).to_string(){
-                        return(Ok(<&'a $element>::try_from(root).unwrap()));
+                        return(Ok(AoristRef::<$element>::try_from(root_lock.clone()).unwrap()));
                     }
                     let parent_id = root.get_parent_id();
                     match parent_id {
@@ -1238,7 +1242,7 @@ macro_rules! register_concept {
                     }
                 }
             )+
-        }*/
+        }
         impl TConceptEnum for $name {
             fn get_parent_id(&self) -> Option<(Uuid, String)> {
                 match self {
