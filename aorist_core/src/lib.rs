@@ -26,7 +26,7 @@ mod layout;
 // mod predicate;
 mod role;
 mod role_binding;
-// mod schema;
+mod schema;
 // mod storage;
 // mod storage_setup;
 // mod template;
