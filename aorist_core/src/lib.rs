@@ -20,7 +20,7 @@ mod error;
 // mod flow;
 mod header;
 mod layout;
-// mod location;
+mod location;
 // mod models;
 // mod parameter_tuple;
 mod predicate;
