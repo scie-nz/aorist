@@ -14,7 +14,6 @@ use syn::{parse_macro_input, Data, DataEnum, DataStruct, DeriveInput, Fields};
 mod keyword {
     syn::custom_keyword!(path);
 }
-use std::sync::Arc;
 
 #[proc_macro_derive(ConstrainableWithChildren)]
 pub fn constrainable_with_children(input: TokenStream) -> TokenStream {
@@ -103,7 +102,7 @@ pub fn inner_object_new(input: TokenStream) -> TokenStream {
 #[proc_macro_attribute]
 pub fn aorist(args: TokenStream, input: TokenStream) -> TokenStream {
     let builder = RawConceptBuilder::new(vec![
-        "aorist_concept::Constrainable",
+        "Constrainable",
         "aorist_concept::ConstrainableWithChildren",
     ]);
     builder.gen_new(args, input)

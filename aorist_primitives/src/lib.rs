@@ -4,7 +4,6 @@ mod concept;
 pub use concept::*;
 mod constraint;
 pub use constraint::*;
-use std::sync::{Arc};
 
 #[macro_export]
 macro_rules! register_ast_nodes {
@@ -1173,9 +1172,14 @@ macro_rules! register_concept {
                }
             }
         )+
-        /*$(
-            impl $element {
-                fn get_descendants<'a>(&'a self) -> Vec<$name<'a>> {
+        
+        pub trait [<$name Descendants>] {
+            fn get_descendants(&self) -> Vec<AoristRef<$name>>;
+        }
+
+        $(
+            impl [<$name Descendants>] for AoristRef<$element> {
+                fn get_descendants(&self) -> Vec<AoristRef<$name>> {
                     let mut concepts = Vec::new();
                     for tpl in self.get_children() {
                         let wrapped_concept = WrappedConcept::from(tpl);
@@ -1185,7 +1189,8 @@ macro_rules! register_concept {
                 }
             }
         )+
-
+        
+        /*
         impl <'a> ConceptEnum<'a> for $name<'a> {}
         $(
             impl <'a> TryFrom<$name<'a>> for &'a $element {

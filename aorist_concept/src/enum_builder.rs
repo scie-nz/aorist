@@ -129,11 +129,54 @@ impl Builder for EnumBuilder {
                   let (name, field, ix, uuid, children_enum) = tpl;
                   match children_enum {
                       #(
-                          #enum_name::#variant(x) => WrappedConcept{
-                              inner: T::[<construct_ #variant:snake:lower>](x, ix, Some((uuid.unwrap(), name.to_string()))),
+                          #enum_name::#variant(ref x) => WrappedConcept{
+                              inner: T::[<construct_ #variant:snake:lower>](x.clone(), ix, Some((uuid.unwrap(), name.to_string()))),
                           },
                       )*
                       _ => panic!("_phantom arm should not be activated"),
+                  }
+              }
+          }
+          impl <T> std::convert::From<(
+              // enum name
+              &str,
+              // field name
+              Option<&str>,
+              // ix
+              Option<usize>,
+              // uuid
+              Option<Uuid>,
+              // wrapped reference
+              AoristRef<#enum_name>,
+          )> for WrappedConcept<T> where
+          #(
+              T: [<CanBe #variant>],
+          )* 
+              T: Debug + Clone + Serialize + PartialEq,
+          {
+              fn from(
+                  tpl: (
+                      &str,
+                      Option<&str>,
+                      Option<usize>,
+                      Option<Uuid>,
+                      AoristRef<#enum_name>,
+                  )
+              ) -> Self {
+                  let (name, field, ix, uuid, children_enum) = tpl;
+                  let read = children_enum.0.read();
+                  match read {
+                      Ok(y) => match *y {
+                          #(
+                              #enum_name::#variant(ref x) => WrappedConcept{
+                                  inner: T::[<construct_ #variant:snake:lower>](
+                                      x.clone(), ix, Some((uuid.unwrap(), name.to_string()))
+                                  ),
+                              },
+                          )*
+                          _ => panic!("_phantom arm should not be activated"),
+                      },
+                      _ => panic!("problem reading."),
                   }
               }
           }
