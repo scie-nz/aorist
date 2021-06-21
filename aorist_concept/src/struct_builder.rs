@@ -901,13 +901,13 @@ impl Builder for StructBuilder {
                         }
                     )*
                     #(
-                        for elem in self.#map_ident().values() {
+                        for elem in read.#map_ident().values() {
                             children.push((
                                 stringify!(#struct_name),
                                 Some(stringify!(#map_ident)),
                                 None,
                                 read.get_uuid(),
-                                [<#struct_name Children>]::#map_value_type_deref(elem)
+                                [<#struct_name Children>]::#map_value_type_deref(elem.clone())
                             ));
                         }
                     )*
