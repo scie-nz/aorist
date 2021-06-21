@@ -24,7 +24,7 @@ mod concept;
 // mod models;
 // mod parameter_tuple;
 // mod predicate;
-// mod role;
+mod role;
 // mod role_binding;
 // mod schema;
 // mod storage;

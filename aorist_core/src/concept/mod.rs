@@ -16,7 +16,7 @@ use siphasher::sip128::SipHasher;
 use std::hash::Hasher;
 use siphasher::sip128::Hasher128;
 
-pub struct AoristRef<T: PartialEq + Serialize + Debug + Clone>(Arc<RwLock<T>>);
+pub struct AoristRef<T: PartialEq + Serialize + Debug + Clone>(pub Arc<RwLock<T>>);
 impl<T: PartialEq + Serialize + Debug + Clone> PartialEq for AoristRef<T> {
     fn eq(&self, other: &Self) -> bool {
         self.0.read().unwrap().eq(&other.0.read().unwrap())
@@ -51,6 +51,7 @@ impl<T: Debug + Clone + Serialize + PartialEq> Debug for AoristRef<T> {
         self.0.read().unwrap().fmt(f)
     }
 }
+/*
 #[aorist]
 pub struct GlobalPermissionsAdmin {}
 #[aorist]
@@ -66,12 +67,12 @@ pub struct User {
     pub unixname: String,
     #[constrainable]
     roles: Option<Vec<AoristRef<Role>>>,
-}
+}*/
 pub struct WrappedConcept<T> 
 where T: Debug + Clone + Serialize + PartialEq {
      pub inner: AoristRef<T>,
 }
-register_concept!(Concept, ConceptAncestry, GlobalPermissionsAdmin, Role, User);
+//register_concept!(Concept, ConceptAncestry, GlobalPermissionsAdmin, Role, User);
 
 // use crate::access_policy::*;
 // use crate::algorithms::*;
