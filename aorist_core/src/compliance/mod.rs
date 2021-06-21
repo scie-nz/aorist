@@ -1,6 +1,7 @@
 /* Following prescribed Record of Processing Activity by cnil.fr.
 See: https://www.cnil.fr/en/record-processing-activities */
-use crate::{AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
+use crate::concept::{AoristRef, WrappedConcept};
+use aorist_primitives::{AoristConcept, ConceptEnum};
 use aorist_concept::{aorist, Constrainable};
 use derivative::Derivative;
 use paste::paste;

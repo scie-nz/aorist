@@ -1,6 +1,7 @@
 #![allow(unused_parens)]
 use crate::header::*;
-use crate::{AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
+use crate::concept::{AoristRef, WrappedConcept};
+use aorist_primitives::{AoristConcept, ConceptEnum};
 use aorist_concept::{aorist, Constrainable};
 use paste::paste;
 use serde::{Deserialize, Serialize};

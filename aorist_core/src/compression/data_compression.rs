@@ -1,6 +1,7 @@
 use crate::compression::gzip_compression::*;
 use crate::compression::zip_compression::*;
-use crate::{AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
+use crate::concept::{AoristRef, WrappedConcept};
+use aorist_primitives::{AoristConcept, ConceptEnum};
 use aorist_concept::{aorist, Constrainable};
 use paste::paste;
 use serde::{Deserialize, Serialize};

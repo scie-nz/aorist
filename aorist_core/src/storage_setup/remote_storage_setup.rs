@@ -1,7 +1,8 @@
 use crate::encoding::Encoding;
 use crate::storage::*;
 use crate::storage_setup::replication_storage_setup::*;
-use crate::{AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
+use crate::concept::{AoristRef, WrappedConcept};
+use aorist_primitives::{AoristConcept, ConceptEnum};
 use aorist_concept::{aorist, Constrainable};
 use derivative::Derivative;
 use paste::paste;

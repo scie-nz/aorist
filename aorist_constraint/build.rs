@@ -218,7 +218,7 @@ fn process_constraints(raw_objects: &Vec<HashMap<String, Value>>) {
     let out_dir = env::var_os("OUT_DIR").unwrap();
     let dest_path = Path::new(&out_dir).join("constraints.rs");
     scope.raw(&format!(
-        "register_constraint_new!(AoristConstraint, 'a, 'b, {});",
+        "register_constraint_new!(AoristConstraint, 'a, {});",
         order
             .iter()
             .map(|x| x.0.clone())

@@ -487,15 +487,15 @@ macro_rules! define_constraint {
                 root_uuid: Uuid,
                 $([<$required:snake:lower>] : Vec<Arc<RwLock<$outer>>>,)*
             }
-            pub trait $satisfy_type<'a, 'b> : ConstraintSatisfactionBase<'a, 'b, ConstraintType=$element, RootType=$root> where 'a : 'b {
+            pub trait $satisfy_type<'a> : ConstraintSatisfactionBase<'a, ConstraintType=$element, RootType=$root> {
                 type Dialect;
 
                 // computes a parameter tuple as a string, e.g. to be called from
                 // Python
                 fn compute_parameter_tuple(
                     uuid: Uuid,
-                    root: Concept<'a>,
-                    ancestry: Arc<ConceptAncestry<'a>>,
+                    root: Concept,
+                    ancestry: Arc<ConceptAncestry>,
                 ) -> ParameterTuple;
                 fn get_preamble() -> String;
                 fn get_call() -> String;
@@ -536,10 +536,10 @@ macro_rules! define_constraint {
                 fn get_uuid(&self) -> Result<Uuid> {
                     Ok(self.id.clone())
                 }
-                fn _should_add<'a>(root: Concept<'a>, ancestry: &ConceptAncestry<'a>) -> bool {
+                fn _should_add(root: Concept, ancestry: &ConceptAncestry) -> bool {
                     $should_add(root, ancestry)
                 }
-                fn get_required<'a>(root: Concept<'a>, ancestry: &ConceptAncestry<'a>) -> Vec<Uuid> {
+                fn get_required(root: Concept, ancestry: &ConceptAncestry) -> Vec<Uuid> {
                     $get_required(root, ancestry)
                 }
                 fn get_root_uuid(&self) -> Result<Uuid> {
@@ -565,10 +565,10 @@ macro_rules! define_constraint {
                     $body
                 }
             }
-            impl <'a, 'b> TConstraint<'a, 'b> for $element where 'a : 'b {
-                type Root = $root;
+            impl <'a> TConstraint<'a> for $element {
+                type Root = AoristRef<$root>;
                 type Outer = $outer;
-                type Ancestry = ConceptAncestry<'a>;
+                type Ancestry = ConceptAncestry;
 
                 fn get_root_type_name() -> Result<String> {
                     Ok(stringify!($root).into())
@@ -578,7 +578,7 @@ macro_rules! define_constraint {
                         stringify!($required).into()
                     ),*]
                 }
-                fn should_add(root: Concept<'a>, ancestry: &ConceptAncestry<'a>) -> bool {
+                fn should_add(root: Concept, ancestry: &ConceptAncestry) -> bool {
                     match &root {
                         Concept::$root(x) => Self::_should_add(root, ancestry),
                         _ => panic!("should_add called with unexpected concept."),
@@ -621,191 +621,6 @@ macro_rules! define_constraint {
             }
         }
     };
-}
-
-#[macro_export]
-macro_rules! register_constraint {
-    ( $name:ident, $lt: lifetime, $clt: lifetime, $($element: ident),+ ) => { paste::item! {
-        pub enum $name {
-            $(
-                $element($element),
-            )+
-        }
-        pub enum [<$name Builder>]<$lt, $clt> where $lt: $clt {
-            $(
-                $element(crate::constraint::ConstraintBuilder<$lt, $clt, $element>),
-            )+
-        }
-        impl <$lt, $clt> [<$name Builder>]<$lt, $clt>
-        where $lt : $clt {
-            fn get_root_type_name(&self) -> Result<String> {
-                match &self {
-                    $(
-                        [<$name Builder>]::$element(_) => $element::get_root_type_name(),
-                    )+
-                }
-            }
-            fn get_required(&$clt self, root: Concept<$lt>, ancestry:&ConceptAncestry<$lt>) -> Vec<Uuid> {
-                match &self {
-                    $(
-                        [<$name Builder>]::$element(_) =>
-                        $element::get_required(root, ancestry),
-                    )+
-                }
-            }
-            fn should_add(&$clt self, root: Concept<$lt>, ancestry:&ConceptAncestry<$lt>) -> bool {
-                match &self {
-                    $(
-                        [<$name Builder>]::$element(_) =>
-                        $element::should_add(root, ancestry),
-                    )+
-                }
-            }
-            fn build_constraint(
-                &self,
-                root_uuid: Uuid,
-                potential_child_constraints: Vec<Arc<RwLock<Constraint>>>,
-            ) -> Result<Constraint> {
-                match &self {
-                    $(
-                        [<$name Builder>]::$element(x) => Ok(Constraint {
-                            name: self.get_constraint_name(),
-                            root: self.get_root_type_name()?,
-                            requires: Some(self.get_required_constraint_names()),
-                            inner: Some(
-                                $name::$element(x.build_constraint(
-                                    root_uuid,
-                                    potential_child_constraints,
-                                )?)
-                            ),
-                        }),
-                    )+
-                }
-            }
-            fn get_required_constraint_names(&self) -> Vec<String> {
-                match &self {
-                    $(
-                        [<$name Builder>]::$element(_) => $element::get_required_constraint_names(),
-                    )+
-                }
-            }
-            fn get_constraint_name(&self) -> String {
-                match &self {
-                    $(
-                        [<$name Builder>]::$element(_) => stringify!($element).to_string(),
-                    )+
-                }
-            }
-        }
-        impl <$lt, $clt> $name where $lt : $clt {
-            fn builders() -> Vec<[<$name Builder>]<$lt, $clt>> {
-                vec![
-                    $(
-                        [<$name Builder>]::$element(
-                            crate::constraint::ConstraintBuilder::<$lt, $clt, $element>{
-                                _phantom: std::marker::PhantomData,
-                                _phantom_lt: std::marker::PhantomData,
-                                _phantom_clt: std::marker::PhantomData
-                            }
-                        ),
-                    )+
-                ]
-            }
-            fn get_root_type_name(&self) -> Result<String> {
-                match self {
-                    $(
-                        Self::$element(_) => $element::get_root_type_name(),
-                    )+
-                }
-            }
-            fn get_downstream_constraints(&self) -> Result<Vec<Arc<RwLock<Constraint>>>> {
-                match self {
-                    $(
-                        Self::$element(x) => x.get_downstream_constraints(),
-                    )+
-                }
-            }
-            fn requires_program(&self) -> Result<bool> {
-                match self {
-                    $(
-                        Self::$element(x) => x.requires_program(),
-                    )+
-                }
-            }
-            fn get_uuid(&self) -> Result<Uuid> {
-                match self {
-                    $(
-                        Self::$element(x) => x.get_uuid(),
-                    )+
-                }
-            }
-            fn get_title(&self) -> Option<String> {
-                match self {
-                    $(
-                        Self::$element(_) => $element::get_title(),
-                    )+
-                }
-            }
-            fn get_body(&self) -> Option<String> {
-                match self {
-                    $(
-                        Self::$element(_) => $element::get_body(),
-                    )+
-                }
-            }
-            fn get_root_uuid(&self) -> Result<Uuid> {
-                match self {
-                    $(
-                        Self::$element(x) => x.get_root_uuid(),
-                    )+
-                }
-            }
-            fn get_root_type_names() -> Result<HashMap<String, String>> {
-                Ok(hashmap! {
-                    $(
-                        stringify!($element).to_string() => $element::get_root_type_name()?,
-                    )+
-                })
-            }
-            fn get_required_constraint_names() -> HashMap<String, Vec<String>> {
-                hashmap! {
-                    $(
-                        stringify!($element).to_string() => $element::get_required_constraint_names(),
-                    )+
-                }
-            }
-            fn get_explanations() -> HashMap<String, (Option<String>,
-            Option<String>)> {
-                hashmap! {
-                    $(
-                        stringify!($element).to_string() => (
-                            $element::get_title(),
-                            $element::get_body(),
-                        ),
-                    )+
-                }
-            }
-            fn get_name(&self) -> String {
-                match self {
-                    $(
-                        Self::$element(x) => stringify!($element).to_string(),
-                    )+
-                }
-            }
-            fn should_add(
-                &self,
-                root: Concept<$lt>,
-                ancestry: &ConceptAncestry<$lt>
-            ) -> bool {
-                match &self {
-                    $(
-                        Self::$element(_) => $element::should_add(root,
-                        ancestry),
-                    )+
-                }
-            }
-        }}
-    }
 }
 
 #[macro_export]
@@ -1310,15 +1125,15 @@ macro_rules! register_concept {
 }
 #[macro_export]
 macro_rules! register_constraint_new {
-    ( $name:ident, $lt: lifetime, $clt: lifetime, $($element: ident),+ ) => { paste::item! {
+    ( $name:ident, $lt: lifetime, $($element: ident),+ ) => { paste::item! {
         pub enum $name {
             $(
                 $element($element),
             )+
         }
-        pub enum [<$name Builder>]<$lt, $clt> where $lt: $clt {
+        pub enum [<$name Builder>]<$lt> {
             $(
-                $element(ConstraintBuilder<$lt, $clt, $element>),
+                $element(ConstraintBuilder<$lt, $element>),
             )+
         }
         #[cfg(feature = "python")]
@@ -1330,8 +1145,7 @@ macro_rules! register_constraint_new {
             )+
             Ok(())
         }
-        impl <$lt, $clt> TBuilder<$lt, $clt> for [<$name Builder>]<$lt, $clt>
-        where $lt : $clt {
+        impl <$lt> TBuilder<$lt> for [<$name Builder>]<$lt> {
             fn get_constraint_name(&self) -> String {
                 match &self {
                     $(
@@ -1347,8 +1161,8 @@ macro_rules! register_constraint_new {
                 }
             }
         }
-        impl <$lt, $clt> [<$name Builder>]<$lt, $clt>
-        where $lt : $clt {
+        impl <$lt> [<$name Builder>]<$lt>
+        {
             pub fn get_root_type_name(&self) -> Result<String> {
                 match &self {
                     $(
@@ -1356,7 +1170,7 @@ macro_rules! register_constraint_new {
                     )+
                 }
             }
-            pub fn get_required(&$clt self, root: Concept<$lt>, ancestry:&ConceptAncestry<$lt>) -> Vec<Uuid> {
+            pub fn get_required(&$lt self, root: Concept, ancestry:&ConceptAncestry) -> Vec<Uuid> {
                 match &self {
                     $(
                         [<$name Builder>]::$element(_) =>
@@ -1364,7 +1178,7 @@ macro_rules! register_constraint_new {
                     )+
                 }
             }
-            pub fn should_add(&$clt self, root: Concept<$lt>, ancestry:&ConceptAncestry<$lt>) -> bool {
+            pub fn should_add(&$lt self, root: Concept, ancestry:&ConceptAncestry) -> bool {
                 match &self {
                     $(
                         [<$name Builder>]::$element(_) =>
@@ -1394,16 +1208,15 @@ macro_rules! register_constraint_new {
                 }
             }
         }
-        impl <$lt, $clt> TConstraintEnum<$lt, $clt> for $name where $lt : $clt {
-            type BuilderT = [<$name Builder>]<$lt, $clt>;
-            fn builders() -> Vec<[<$name Builder>]<$lt, $clt>> {
+        impl <$lt> TConstraintEnum<$lt> for $name {
+            type BuilderT = [<$name Builder>]<$lt>;
+            fn builders() -> Vec<[<$name Builder>]<$lt>> {
                 vec![
                     $(
                         [<$name Builder>]::$element(
-                            ConstraintBuilder::<$lt, $clt, $element>{
+                            ConstraintBuilder::<$lt, $element>{
                                 _phantom: std::marker::PhantomData,
                                 _phantom_lt: std::marker::PhantomData,
-                                _phantom_clt: std::marker::PhantomData
                             }
                         ),
                     )+
@@ -1427,7 +1240,7 @@ macro_rules! register_constraint_new {
                 }
             }
         }
-        impl <$lt, $clt> $name where $lt : $clt {
+        impl <$lt> $name {
             pub fn get_root_type_name(&self) -> Result<String> {
                 match self {
                     $(
@@ -1493,8 +1306,8 @@ macro_rules! register_constraint_new {
             }
             pub fn should_add(
                 &self,
-                root: Concept<$lt>,
-                ancestry: &ConceptAncestry<$lt>
+                root: Concept,
+                ancestry: &ConceptAncestry,
             ) -> bool {
                 match &self {
                     $(
