@@ -22,7 +22,7 @@ mod features;
 mod header;
 mod layout;
 mod location;
-// mod models;
+mod models;
 // mod parameter_tuple;
 mod predicate;
 mod role;
