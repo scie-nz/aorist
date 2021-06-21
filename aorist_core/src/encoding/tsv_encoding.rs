@@ -1,16 +1,17 @@
 use crate::compression::*;
 use crate::header::*;
-use crate::{AoristConcept, ConceptEnum};
+use crate::{AoristConcept, AoristRef, WrappedConcept, ConceptEnum};
 use aorist_concept::{aorist, Constrainable};
 use derivative::Derivative;
 use paste::paste;
+use std::fmt::Debug;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 #[aorist]
 pub struct TSVEncoding {
     #[constrainable]
-    pub compression: DataCompression,
+    pub compression: AoristRef<DataCompression>,
     #[constrainable]
-    pub header: FileHeader,
+    pub header: AoristRef<FileHeader>,
 }

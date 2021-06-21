@@ -13,7 +13,7 @@ mod concept;
 // mod constraint_state;
 // mod dataset;
 // mod driver;
-// mod encoding;
+mod encoding;
 // mod endpoints;
 mod error;
 // mod features;

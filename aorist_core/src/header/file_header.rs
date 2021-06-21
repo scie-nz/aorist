@@ -1,3 +1,4 @@
+#![allow(unused_parens)]
 use crate::header::*;
 use crate::{AoristConcept, AoristRef, WrappedConcept, ConceptEnum};
 use aorist_concept::{aorist, Constrainable};

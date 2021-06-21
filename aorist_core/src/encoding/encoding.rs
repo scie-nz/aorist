@@ -1,6 +1,7 @@
+#![allow(unused_parens)]
 use crate::compression::DataCompression;
 use crate::header::FileHeader;
-use crate::{AoristConcept, ConceptEnum};
+use crate::{AoristConcept, AoristRef, WrappedConcept, ConceptEnum};
 use aorist_concept::{aorist, Constrainable};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -12,24 +13,25 @@ use crate::encoding::onnx_encoding::*;
 use crate::encoding::orc_encoding::*;
 use crate::encoding::tsv_encoding::*;
 use paste::paste;
+use std::fmt::Debug;
 
 #[aorist]
 pub enum Encoding {
-    CSVEncoding(CSVEncoding),
-    JSONEncoding(JSONEncoding),
-    NewlineDelimitedJSONEncoding(JSONEncoding),
-    ORCEncoding(ORCEncoding),
-    TSVEncoding(TSVEncoding),
-    ONNXEncoding(TSVEncoding),
-    GDBEncoding(TSVEncoding),
+    CSVEncoding(AoristRef<CSVEncoding>),
+    JSONEncoding(AoristRef<JSONEncoding>),
+    NewlineDelimitedJSONEncoding(AoristRef<NewlineDelimitedJSONEncoding>),
+    ORCEncoding(AoristRef<ORCEncoding>),
+    TSVEncoding(AoristRef<TSVEncoding>),
+    ONNXEncoding(AoristRef<ONNXEncoding>),
+    GDBEncoding(AoristRef<GDBEncoding>),
 }
 
 impl Encoding {
-    pub fn get_header(&self) -> Option<FileHeader> {
+    pub fn get_header(&self) -> Option<AoristRef<FileHeader>> {
         match &self {
-            Self::CSVEncoding(x) => x.header.clone(),
+            Self::CSVEncoding(x) => x.0.read().unwrap().header.clone(),
             // TODO: need to change this to also be optional
-            Self::TSVEncoding(x) => Some(x.header.clone()),
+            Self::TSVEncoding(x) => Some(x.0.read().unwrap().header.clone()),
             Self::JSONEncoding(_) => None,
             Self::ORCEncoding(_) => None,
             Self::ONNXEncoding(_) => None,
@@ -37,12 +39,12 @@ impl Encoding {
             Self::NewlineDelimitedJSONEncoding(_) => None,
         }
     }
-    pub fn get_compression(&self) -> Option<DataCompression> {
+    pub fn get_compression(&self) -> Option<AoristRef<DataCompression>> {
         match &self {
-            Self::CSVEncoding(x) => x.compression.clone(),
+            Self::CSVEncoding(x) => x.0.read().unwrap().compression.clone(),
             // TODO: need to change this to also be optional
-            Self::TSVEncoding(x) => Some(x.compression.clone()),
-            Self::GDBEncoding(x) => x.compression.clone(),
+            Self::TSVEncoding(x) => Some(x.0.read().unwrap().compression.clone()),
+            Self::GDBEncoding(x) => x.0.read().unwrap().compression.clone(),
             Self::JSONEncoding(_) => None,
             Self::ORCEncoding(_) => None,
             Self::ONNXEncoding(_) => None,
