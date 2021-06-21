@@ -3,7 +3,7 @@ pub mod dialect;
 
 mod access_policy;
 mod algorithms;
-// mod asset;
+mod asset;
 mod attributes;
 // mod code;
 mod compliance;

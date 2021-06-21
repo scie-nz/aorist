@@ -1,11 +1,12 @@
 #![allow(non_snake_case)]
 use crate::asset::asset::TAsset;
-use crate::concept::{AoristConcept, ConceptEnum};
+use crate::concept::{AoristConcept, AoristRef, WrappedConcept, ConceptEnum};
 use crate::schema::*;
 use crate::storage_setup::*;
 use aorist_concept::{aorist, Constrainable};
 use derivative::Derivative;
 use paste::paste;
+use std::fmt::Debug;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -13,19 +14,19 @@ use uuid::Uuid;
 pub struct DerivedAsset {
     pub name: String,
     #[constrainable]
-    pub setup: StorageSetup,
+    pub setup: AoristRef<StorageSetup>,
     #[constrainable]
-    pub schema: DataSchema,
+    pub schema: AoristRef<DataSchema>,
 }
 
 impl TAsset for DerivedAsset {
     fn get_name(&self) -> String {
         self.name.clone()
     }
-    fn get_schema(&self) -> DataSchema {
+    fn get_schema(&self) -> AoristRef<DataSchema> {
         self.schema.clone()
     }
-    fn get_storage_setup(&self) -> StorageSetup {
+    fn get_storage_setup(&self) -> AoristRef<StorageSetup> {
         self.setup.clone()
     }
 }
