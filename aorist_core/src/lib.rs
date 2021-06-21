@@ -9,7 +9,7 @@ mod attributes;
 mod compliance;
 mod compression;
 mod concept;
-// mod constraint;
+mod constraint;
 // mod constraint_block;
 // mod constraint_state;
 mod dataset;

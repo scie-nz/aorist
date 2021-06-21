@@ -3,7 +3,7 @@ use crate::parameter_tuple::ParameterTuple;
 use anyhow::Result;
 use aorist_primitives::{Ancestry, OuterConstraint, TConstraint};
 use std::sync::Arc;
-
+/*
 pub trait SatisfiableConstraint<'a, 'b>: TConstraint<'a, 'b>
 where
     'a: 'b,
@@ -34,4 +34,4 @@ where
         preferences: &Vec<Dialect>,
         ancestry: Arc<<Self as OuterConstraint<'a, 'b>>::TAncestry>,
     ) -> Result<(String, String, ParameterTuple, Dialect)>;
-}
+}*/
