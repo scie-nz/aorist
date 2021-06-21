@@ -3,23 +3,22 @@ use crate::constraint::SatisfiableOuterConstraint;
 use crate::endpoints::EndpointConfig;
 use crate::flow::{ETLFlow, FlowBuilderInput};
 use aorist_ast::AST;
-use aorist_primitives::OuterConstraint;
+use crate::constraint::OuterConstraint;
 use linked_hash_set::LinkedHashSet;
 use std::collections::{BTreeSet, HashMap};
 use uuid::Uuid;
 
-pub trait ConstraintBlock<'a, 'b, T, C>
+pub trait ConstraintBlock<'a, T, C>
 where
     T: ETLFlow,
-    C: OuterConstraint<'a, 'b> + SatisfiableOuterConstraint<'a, 'b>,
-    Self::C: CodeBlockWithDefaultConstructor<'a, 'b, T, C>,
+    C: OuterConstraint<'a> + SatisfiableOuterConstraint<'a>,
+    Self::C: CodeBlockWithDefaultConstructor<'a, T, C>,
     Self::BuilderInputType: FlowBuilderInput<
-        PreambleType = <Self::C as CodeBlock<'a, 'b, T, C>>::P,
+        PreambleType = <Self::C as CodeBlock<'a, T, C>>::P,
         ImportType = T::ImportType,
     >,
-    'a: 'b,
 {
-    type C: CodeBlock<'a, 'b, T, C>;
+    type C: CodeBlock<'a, T, C>;
     type BuilderInputType;
 
     fn get_constraint_name(&self) -> String;
