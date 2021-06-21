@@ -4,7 +4,7 @@ use crate::dialect::Dialect;
 use crate::parameter_tuple::ParameterTuple;
 use anyhow::{bail, Result};
 use aorist_ast::{AncestorRecord, Formatted, SimpleIdentifier, StringLiteral, AST};
-use aorist_primitives::OuterConstraint;
+use crate::constraint::OuterConstraint;
 use aorist_primitives::TConceptEnum;
 use inflector::cases::snakecase::to_snake_case;
 use linked_hash_map::LinkedHashMap;
@@ -14,18 +14,16 @@ use std::sync::{Arc, RwLock};
 use tracing::{level_enabled, trace, Level};
 use uuid::Uuid;
 
-pub struct ConstraintState<'a, 'b, T: OuterConstraint<'a, 'b> + SatisfiableOuterConstraint<'a, 'b>>
-where
-    'a: 'b,
+pub struct ConstraintState<'a, T: OuterConstraint<'a> + SatisfiableOuterConstraint<'a>>
 {
     dialect: Option<Dialect>,
     pub key: Option<String>,
     name: String,
     pub satisfied: bool,
-    pub satisfied_dependencies: Vec<Arc<RwLock<ConstraintState<'a, 'b, T>>>>,
+    pub satisfied_dependencies: Vec<Arc<RwLock<ConstraintState<'a, T>>>>,
     pub unsatisfied_dependencies: LinkedHashSet<(Uuid, String)>,
     constraint: Arc<RwLock<T>>,
-    root: <<T as OuterConstraint<'a, 'b>>::TAncestry as Ancestry<'a>>::TConcept,
+    root: <<T as OuterConstraint<'a>>::TAncestry as Ancestry>::TConcept,
     // these are concept ancestors
     // TODO: change this to Vec<Concept<'a>>
     ancestors: Vec<AncestorRecord>,
@@ -34,10 +32,8 @@ where
     params: Option<ParameterTuple>,
     task_name: Option<String>,
 }
-impl<'a, 'b, T: OuterConstraint<'a, 'b> + SatisfiableOuterConstraint<'a, 'b>>
-    ConstraintState<'a, 'b, T>
-where
-    'a: 'b,
+impl<'a, T: OuterConstraint<'a> + SatisfiableOuterConstraint<'a>>
+    ConstraintState<'a, T>
 {
     pub fn requires_program(&self) -> Result<bool> {
         self.constraint.read().unwrap().requires_program()
@@ -131,7 +127,7 @@ where
     #[allow(dead_code)]
     pub fn get_root(
         &self,
-    ) -> <<T as OuterConstraint<'a, 'b>>::TAncestry as Ancestry<'a>>::TConcept {
+    ) -> <<T as OuterConstraint<'a>>::TAncestry as Ancestry>::TConcept {
         self.root.clone()
     }
     pub fn get_constraint_uuid(&self) -> Result<Uuid> {
@@ -165,7 +161,7 @@ where
     pub fn satisfy(
         &mut self,
         preferences: &Vec<Dialect>,
-        ancestry: Arc<<T as OuterConstraint<'a, 'b>>::TAncestry>,
+        ancestry: Arc<<T as OuterConstraint<'a>>::TAncestry>,
     ) {
         let root_clone = self.root.clone();
         let mut constraint = self.constraint.write().unwrap();
@@ -186,7 +182,7 @@ where
             RwLock<
                 HashMap<
                     (Uuid, String),
-                    <<T as OuterConstraint<'a, 'b>>::TAncestry as Ancestry<'a>>::TConcept,
+                    <<T as OuterConstraint<'a>>::TAncestry as Ancestry>::TConcept,
                 >,
             >,
         >,
@@ -256,10 +252,10 @@ where
         }
     }
     pub fn shorten_task_names(
-        constraints: &LinkedHashMap<(Uuid, String), Arc<RwLock<ConstraintState<'a, 'b, T>>>>,
+        constraints: &LinkedHashMap<(Uuid, String), Arc<RwLock<ConstraintState<'a, T>>>>,
         existing_names: &mut HashSet<String>,
     ) {
-        let mut task_names: Vec<(String, Arc<RwLock<ConstraintState<'a, 'b, T>>>)> = Vec::new();
+        let mut task_names: Vec<(String, Arc<RwLock<ConstraintState<'a, T>>>)> = Vec::new();
         for constraint in constraints.values() {
             let mut write = constraint.write().unwrap();
             write.compute_task_key();
