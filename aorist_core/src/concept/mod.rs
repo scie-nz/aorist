@@ -11,8 +11,18 @@ use std::hash::{Hash, Hasher};
 use std::sync::{Arc, RwLock};
 use tracing::debug;
 use uuid::Uuid;
+#[cfg(feature = "python")]
+use pyo3::prelude::*;
 
 pub struct AoristRef<T: PartialEq + Serialize + Debug + Clone>(pub Arc<RwLock<T>>);
+
+#[cfg(feature = "python")]
+impl <'a, T: PartialEq + Serialize + Debug + Clone + FromPyObject<'a>> FromPyObject<'a> for AoristRef<T> {
+    fn extract(ob: &'a PyAny) -> PyResult<Self> {
+        Ok(AoristRef(Arc::new(RwLock::new(T::extract(ob)?))))
+    }
+}
+
 impl<T: PartialEq + Serialize + Debug + Clone> PartialEq for AoristRef<T> {
     fn eq(&self, other: &Self) -> bool {
         self.0.read().unwrap().eq(&other.0.read().unwrap())
