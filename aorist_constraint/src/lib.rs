@@ -1,8 +1,9 @@
 use anyhow::{Context, Result};
 use aorist_core::{AoristConcept, Concept, ConceptAncestry, Dialect, ParameterTuple, Program, AoristRef};
-use aorist_primitives::{define_constraint, register_constraint_new};
-use aorist_primitives::{
-    ConstraintBuilder, ConstraintEnum, ConstraintSatisfactionBase, OuterConstraint, TAoristObject,
+use aorist_primitives::{define_constraint, register_constraint_new, TAoristObject,
+};
+use aorist_core::{
+    ConstraintBuilder, ConstraintEnum, ConstraintSatisfactionBase, OuterConstraint, 
     TConstraint, TConstraintEnum, TBuilder,
 };
 use maplit::hashmap;

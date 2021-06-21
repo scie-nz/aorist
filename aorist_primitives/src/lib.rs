@@ -536,10 +536,10 @@ macro_rules! define_constraint {
                 fn get_uuid(&self) -> Result<Uuid> {
                     Ok(self.id.clone())
                 }
-                fn _should_add(root: Concept, ancestry: &ConceptAncestry) -> bool {
+                fn _should_add(root: AoristRef<Concept>, ancestry: &ConceptAncestry) -> bool {
                     $should_add(root, ancestry)
                 }
-                fn get_required(root: Concept, ancestry: &ConceptAncestry) -> Vec<Uuid> {
+                fn get_required(root: AoristRef<Concept>, ancestry: &ConceptAncestry) -> Vec<Uuid> {
                     $get_required(root, ancestry)
                 }
                 fn get_root_uuid(&self) -> Result<Uuid> {
@@ -578,9 +578,10 @@ macro_rules! define_constraint {
                         stringify!($required).into()
                     ),*]
                 }
-                fn should_add(root: Concept, ancestry: &ConceptAncestry) -> bool {
-                    match &root {
-                        Concept::$root(x) => Self::_should_add(root, ancestry),
+                fn should_add(root: AoristRef<Concept>, ancestry: &ConceptAncestry) -> bool {
+                    let read = root.0.read().unwrap();
+                    match *read {
+                        Concept::$root((_, _, _)) => Self::_should_add(root.clone(), ancestry),
                         _ => panic!("should_add called with unexpected concept."),
                     }
                 }
@@ -1007,6 +1008,7 @@ macro_rules! register_concept {
         
         
         impl ConceptEnum for $name {}
+        impl ConceptEnum for AoristRef<$name> {}
         
         $(
             impl TryFrom<AoristRef<$name>> for AoristRef<$element> {
@@ -1028,17 +1030,16 @@ macro_rules! register_concept {
             pub parents: Arc<RwLock<HashMap<(Uuid, String), AoristRef<$name>>>>,
         }
         impl Ancestry for $ancestry {
-            type TConcept = $name;
+            type TConcept = AoristRef<$name>;
         }
         impl $ancestry {
             $(
                 pub fn [<$element:snake:lower>](
                     &self,
-                    root_lock: AoristRef<$name>,
+                    root: AoristRef<$name>,
                 ) -> Result<AoristRef<$element>, String> {
-                    let root = root_lock.0.read().unwrap();
                     if root.get_type() == stringify!($element).to_string(){
-                        return(Ok(AoristRef::<$element>::try_from(root_lock.clone()).unwrap()));
+                        return(Ok(AoristRef::<$element>::try_from(root.clone()).unwrap()));
                     }
                     let parent_id = root.get_parent_id();
                     match parent_id {
@@ -1058,62 +1059,72 @@ macro_rules! register_concept {
                 }
             )+
         }
-        impl TConceptEnum for $name {
+        impl TConceptEnum for AoristRef<$name> {
             fn get_parent_id(&self) -> Option<(Uuid, String)> {
-                match self {
+                let read = self.0.read().unwrap();
+                match *read {
                     $(
-                        $name::$element((_, _, id)) => id.clone(),
+                        $name::$element((_, _, ref id)) => id.clone(),
                     )+
                 }
             }
             fn get_type(&self) -> String {
-                match self {
+                let read = self.0.read().unwrap();
+                match *read {
                     $(
-                        $name::$element((x, _, _)) => stringify!($element).to_string(),
+                        $name::$element((ref x, _, _)) => stringify!($element).to_string(),
                     )*
                 }
             }
             fn get_uuid(&self) -> Uuid {
-                match self {
+                let read = self.0.read().unwrap();
+                match *read {
                     $(
-                        $name::$element((x, _, _)) => x.get_uuid().unwrap(),
+                        $name::$element((ref x, _, _)) => x.get_uuid().unwrap(),
                     )*
                 }
             }
             fn get_tag(&self) -> Option<String> {
-                match self {
+                let read = self.0.read().unwrap();
+                match *read {
                     $(
-                        $name::$element((x, _, _)) => x.get_tag(),
+                        $name::$element((ref x, _, _)) => x.get_tag(),
                     )*
                 }
             }
             fn get_index_as_child(&self) -> usize {
-                match self {
+                let read = self.0.read().unwrap();
+                match *read {
                     $(
-                        $name::$element((_, idx, _)) => *idx,
+                        $name::$element((_, idx, _)) => idx,
                     )*
                 }
             }
-            fn get_child_concepts(&self) -> Vec<Arc<RwLock<$name>>> {
-                match self {
+            fn get_child_concepts(&self) -> Vec<Self> {
+                let read = self.0.read().unwrap();
+                match *read {
                     $(
-                        $name::$element((x, _, _)) => x.get_descendants().into_iter().map(|x| x.0).collect(),
+                        $name::$element((ref x, _, _)) => x.get_descendants(),
                     )*
                 }
             }
-            fn populate_child_concept_map(&self, concept_map: &mut HashMap<(Uuid, String), Concept>) {
-                match self {
+            fn populate_child_concept_map(&self, concept_map: &mut HashMap<(Uuid, String), Self>) {
+                let read = self.0.read().unwrap();
+                match *read {
                     $(
-                        $name::$element((ref x, idx, parent)) => {
+                        $name::$element((ref x, idx, ref parent)) => {
                             debug!("Visiting concept {}: {}", stringify!($element), x.get_uuid().unwrap());
                             for child in x.get_descendants() {
-                                let read = child.0.read().unwrap();
-                                read.populate_child_concept_map(concept_map);
+                                child.populate_child_concept_map(concept_map);
                             }
                             concept_map.insert(
-                                (x.get_uuid().unwrap(),
-                                 stringify!($element).to_string()),
-                                 $name::$element((x.clone(), *idx, parent.clone())),
+                                (
+                                    x.get_uuid().unwrap(),
+                                    stringify!($element).to_string()
+                                 ),
+                                 AoristRef(Arc::new(RwLock::new(
+                                    $name::$element((x.clone(), idx, parent.clone()))
+                                 ))),
                             );
                         }
                     )*
@@ -1170,7 +1181,7 @@ macro_rules! register_constraint_new {
                     )+
                 }
             }
-            pub fn get_required(&$lt self, root: Concept, ancestry:&ConceptAncestry) -> Vec<Uuid> {
+            pub fn get_required(&$lt self, root: AoristRef<Concept>, ancestry:&ConceptAncestry) -> Vec<Uuid> {
                 match &self {
                     $(
                         [<$name Builder>]::$element(_) =>
@@ -1178,7 +1189,7 @@ macro_rules! register_constraint_new {
                     )+
                 }
             }
-            pub fn should_add(&$lt self, root: Concept, ancestry:&ConceptAncestry) -> bool {
+            pub fn should_add(&$lt self, root: AoristRef<Concept>, ancestry:&ConceptAncestry) -> bool {
                 match &self {
                     $(
                         [<$name Builder>]::$element(_) =>
@@ -1306,7 +1317,7 @@ macro_rules! register_constraint_new {
             }
             pub fn should_add(
                 &self,
-                root: Concept,
+                root: AoristRef<Concept>,
                 ancestry: &ConceptAncestry,
             ) -> bool {
                 match &self {

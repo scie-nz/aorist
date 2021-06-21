@@ -1,6 +1,51 @@
 ---
 type: Constraint
 spec:
+  name: Replicated
+  root: Universe
+  requires:
+    - ReplicatedDataSets
+---
+type: Constraint
+spec:
+  name: ReplicatedDataSets
+  root: DataSet
+  requires:
+    - ReplicatedAssets
+---
+type: Constraint
+spec:
+  name: ReplicatedAssets
+  root: Asset
+  requires:
+    - ReplicatedSchema
+    - DroppedCSVTable
+    - TableSchemasCreated
+    - UploadDataToLocal
+  attachIf: |
+      |root: Concept, ancestry: &ConceptAncestry| {
+        use aorist_core::*;
+        if let StorageSetup::ReplicationStorageSetup(_) = ancestry.asset(root.clone()).unwrap().get_storage_setup() {
+          return true;
+        }
+        false
+      }
+---
+type: Constraint
+spec:
+  name: ReplicatedSchema
+  root: StaticDataTable
+  requires:
+      - TableSchemasCreated
+  attachIf: |
+      |root: Concept, ancestry: &ConceptAncestry|
+      match ancestry.static_data_table(root.clone()).unwrap().setup {
+          aorist_core::StorageSetup::ReplicationStorageSetup(_) => true,
+          _ => false,
+      }
+---
+type: Constraint
+spec:
   name: AllAssetsComputed
   root: Universe
   requires:
@@ -445,6 +490,43 @@ spec:
           },
           _ => false,
       }
+---
+type: Constraint
+spec:
+  name: ConvertCSVTableToORCTable
+  root: HiveTableStorage
+  requires:
+    - CSVTableSchemasCreated
+    - UploadDataToLocal
+  requiresProgram: true
+  title: Convert CSV Table to ORC Table
+  body: |
+      Hive tables can be stored in external CSV format, but this is inefficient.
+      We can convert them to ORC (the native Hive format) to speed up access.
+  attachIf: |
+      |root: Concept, ancestry: &ConceptAncestry|
+      match ancestry.static_data_table(root.clone()) {
+          Ok(sdt) => match &sdt.setup {
+              aorist_core::StorageSetup::ReplicationStorageSetup(_) => true,
+              _ => false,
+          },
+          _ => false,
+      }
+---
+type: Constraint
+spec:
+  name: DroppedCSVTable
+  root: HiveTableStorage
+  requires:
+    - ConvertCSVTableToORCTable
+  requiresProgram: true
+  title: Drop CSV Table
+  body: |
+      After we've converted a CSV table to ORC the CSV table is no longer needed,
+      so it can be dropped.
+  attachIf: |
+      |root: Concept, ancestry: &ConceptAncestry|
+      ancestry.replication_storage_setup(root.clone()).is_ok()
 ---
 type: Constraint
 spec:

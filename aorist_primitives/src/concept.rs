@@ -50,7 +50,7 @@ pub trait TConceptEnum: Sized {
     fn get_uuid(&self) -> Uuid;
     fn get_tag(&self) -> Option<String>;
     fn get_index_as_child(&self) -> usize;
-    fn get_child_concepts(&self) -> Vec<Arc<RwLock<Self>>>;
+    fn get_child_concepts(&self) -> Vec<Self>;
     fn populate_child_concept_map(&self, concept_map: &mut HashMap<(Uuid, String), Self>);
 }
 
