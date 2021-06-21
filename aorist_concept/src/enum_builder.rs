@@ -233,8 +233,7 @@ impl Builder for EnumBuilder {
     fn to_concept_token_stream2(&self, enum_name: &Ident) -> TokenStream {
         let variant = &self.variant_idents;
         proc_macro::TokenStream::from(quote! { paste! {
-          //impl <'a> ConceptEnum<'a> for &'a #enum_name {}
-          impl ConceptEnumNew for AoristRef<#enum_name> {}
+          impl ConceptEnum for AoristRef<#enum_name> {}
           pub trait [<CanBe #enum_name>] {
               fn [<construct_ #enum_name:snake:lower>] (
                   obj_ref: AoristRef<#enum_name>,

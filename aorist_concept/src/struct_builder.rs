@@ -976,8 +976,7 @@ impl Builder for StructBuilder {
                     }
                 }
             }
-            //impl <'a> ConceptEnum<'a> for [<#struct_name Children>]<'a> {}
-            impl ConceptEnumNew for [<#struct_name Children>] {}
+            impl ConceptEnum for [<#struct_name Children>] {}
             pub trait [<CanBe #struct_name>] {
                 fn [<construct_ #struct_name:snake:lower>](
                     obj_ref: AoristRef<#struct_name>,

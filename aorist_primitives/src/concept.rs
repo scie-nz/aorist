@@ -3,10 +3,9 @@ use std::collections::{BTreeSet, HashMap};
 use std::hash::Hasher;
 use uuid::Uuid;
 
-pub trait ConceptEnum<'a> {}
-pub trait ConceptEnumNew {}
+pub trait ConceptEnum {}
 pub trait AoristConcept {
-    type TChildrenEnum: ConceptEnumNew;
+    type TChildrenEnum: ConceptEnum;
     fn get_uuid(&self) -> Option<Uuid>;
     fn get_tag(&self) -> Option<String>;
     fn compute_uuids(&self);
@@ -55,7 +54,7 @@ pub trait TConceptEnum<'a>: Sized {
 }
 
 pub trait Ancestry<'a> {
-    type TConcept: ConceptEnum<'a> + Clone + TConceptEnum<'a>;
+    type TConcept: ConceptEnum + Clone + TConceptEnum<'a>;
 }
 pub trait TAoristObject {
     fn get_name(&self) -> &String;

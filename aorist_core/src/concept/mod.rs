@@ -1,7 +1,7 @@
 // pub use crate::universe::*;
 use aorist_concept::{aorist2, Constrainable};
 pub use aorist_primitives::{
-    register_concept, Ancestry, AoristConcept, ConceptEnum, ConceptEnumNew, TConceptEnum,
+    register_concept, Ancestry, AoristConcept, ConceptEnum, TConceptEnum,
 };
 use derivative::Derivative;
 use paste::paste;
