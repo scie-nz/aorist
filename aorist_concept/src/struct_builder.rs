@@ -8,6 +8,7 @@ use std::io::prelude::*;
 use syn::{Field, FieldsNamed, Meta, Type};
 use type_macro_helpers::{
     extract_type_from_map, extract_type_from_option, extract_type_from_vector,
+    extract_type_from_aorist_ref,
 };
 mod keyword {
     syn::custom_keyword!(path);
@@ -27,7 +28,7 @@ fn extract_names_and_types(fields: &Vec<Field>) -> (Vec<Ident>, Vec<Type>) {
 fn field_is_constrainable(field: &Field) -> bool {
     for a in &field.attrs {
         if let Ok(Meta::Path(x)) = a.parse_meta() {
-            if x.is_ident("constrainable") {
+            if x.is_ident("constrainable2") {
                 return true;
             }
         }
@@ -71,6 +72,7 @@ impl StructBuilder {
             .chain(self.option_types.iter())
             .chain(self.option_vec_types.iter())
             .chain(self.map_value_types.iter())
+            .map(|x| extract_type_from_aorist_ref(x).unwrap()) 
             .collect::<LinkedHashSet<_>>()
             .into_iter()
             .collect()
@@ -889,7 +891,11 @@ impl Builder for StructBuilder {
             &self.option_vec_types,
             &self.map_value_types,
         );
-
+        let bare_type_deref = bare_type.iter().map(|x| extract_type_from_aorist_ref(x)).collect::<Vec<_>>(); 
+        let vec_type_deref = vec_type.iter().map(|x| extract_type_from_aorist_ref(x)).collect::<Vec<_>>(); 
+        let option_vec_type_deref = option_vec_type.iter().map(|x| extract_type_from_aorist_ref(x)).collect::<Vec<_>>(); 
+        let option_type_deref = option_type.iter().map(|x| extract_type_from_aorist_ref(x)).collect::<Vec<_>>(); 
+        let map_value_type_deref = map_value_type.iter().map(|x| extract_type_from_aorist_ref(x)).collect::<Vec<_>>(); 
         let types = self.get_all_types();
         TokenStream::from(quote! { paste! {
             pub enum [<#struct_name Children>] {
@@ -898,11 +904,8 @@ impl Builder for StructBuilder {
                 )*
             }
             impl #struct_name {
-                pub fn get_uuid(&self) -> Uuid {
-                    if let Some(uuid) = self.uuid {
-                        return uuid.clone();
-                    }
-                    panic!("Uuid was not set on object of type {}.", stringify!(#struct_name));
+                pub fn get_uuid(&self) -> Option<Uuid> {
+                    self.uuid.clone()
                 }
                 #(
                     pub fn #bare_ident(&self) -> #bare_type {
@@ -952,7 +955,7 @@ impl Builder for StructBuilder {
 
             impl AoristConceptNew for AoristRef<#struct_name> {
                 type TChildrenEnum = [<#struct_name Children>];
-                fn get_uuid(&self) -> Uuid {
+                fn get_uuid(&self) -> Option<Uuid> {
                     let read_lock = self.0.read().unwrap();
                     if let Ok(ref x) = self.0.read() {
                         return x.get_uuid();
@@ -979,7 +982,7 @@ impl Builder for StructBuilder {
                             Some(stringify!(#bare_ident)),
                             None,
                             self.get_uuid(),
-                            [<#struct_name Children>]::#bare_type(read.#bare_ident())
+                            [<#struct_name Children>]::#bare_type_deref(read.#bare_ident())
                         ));
                     )*
                     #(
@@ -989,7 +992,7 @@ impl Builder for StructBuilder {
                                 Some(stringify!(#option_ident)),
                                 None,
                                 self.get_uuid(),
-                                [<#struct_name Children>]::#option_type(c)
+                                [<#struct_name Children>]::#option_type_deref(c)
                             ));
                         }
                     )*
@@ -1000,19 +1003,19 @@ impl Builder for StructBuilder {
                                 Some(stringify!(#vec_ident)),
                                 Some(ix),
                                 self.get_uuid(),
-                                [<#struct_name Children>]::#vec_type(elem)
+                                [<#struct_name Children>]::#vec_type_deref(elem)
                             ));
                         }
                     )*
                     #(
-                        if let Some(v) = self.#option_vec_ident() {
-                            for (ix, elem) in v.iter().enumerate() {
+                        if let Some(v) = read.#option_vec_ident() {
+                            for (ix, elem) in v.into_iter().enumerate() {
                                 children.push((
                                     stringify!(#struct_name),
                                     Some(stringify!(#option_vec_ident)),
                                     Some(ix),
                                     read.get_uuid(),
-                                    [<#struct_name Children>]::#option_vec_type(elem)
+                                    [<#struct_name Children>]::#option_vec_type_deref(elem)
                                 ));
                             }
                         }
@@ -1024,7 +1027,7 @@ impl Builder for StructBuilder {
                                 Some(stringify!(#map_ident)),
                                 None,
                                 read.get_uuid(),
-                                [<#struct_name Children>]::#map_value_type(elem)
+                                [<#struct_name Children>]::#map_value_type_deref(elem)
                             ));
                         }
                     )*

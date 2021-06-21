@@ -14,7 +14,7 @@ use tracing::debug;
 use uuid::Uuid;
 pub trait AoristConceptNew {
     type TChildrenEnum: ConceptEnumNew;
-    fn get_uuid(&self) -> Uuid;
+    fn get_uuid(&self) -> Option<Uuid>;
     fn get_children(
         &self,
     ) -> Vec<(

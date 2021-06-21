@@ -244,7 +244,7 @@ impl Builder for EnumBuilder {
           }
           impl #enum_name {
               
-              pub fn get_uuid(&self) -> Uuid {
+              pub fn get_uuid(&self) -> Option<Uuid> {
                   match &self {
                       #(
                         #enum_name::#variant(x) => x.get_uuid(), 
@@ -269,12 +269,12 @@ impl Builder for EnumBuilder {
                       stringify!(#enum_name),
                       None,
                       None,
-                      Some(self.get_uuid()),
+                      self.get_uuid(),
                       // clone of Arc<RwLock
                       Self(self.0.clone()),
                   )]
               }
-              fn get_uuid(&self) -> Uuid {
+              fn get_uuid(&self) -> Option<Uuid> {
                 match self.0.read() {
                    Ok(x) => x.get_uuid(),
                   _ => panic!("Could not open for reading.")
