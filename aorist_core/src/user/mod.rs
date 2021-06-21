@@ -19,7 +19,7 @@ pub struct User {
     phone: String,
     pub unixname: String,
     #[constrainable]
-    roles: Option<Vec<Role>>,
+    roles: Option<Vec<AoristRef<Role>>>,
 }
 
 impl TAoristObject for User {
@@ -31,8 +31,8 @@ impl TAoristObject for User {
 pub trait TUser {
     fn to_yaml(&self) -> String;
     fn get_unixname(&self) -> String;
-    fn set_roles(&mut self, roles: Vec<Role>) -> Result<(), AoristError>;
-    fn get_roles(&self) -> Result<Vec<Role>, AoristError>;
+    fn set_roles(&mut self, roles: Vec<AoristRef<Role>>) -> Result<(), AoristError>;
+    fn get_roles(&self) -> Result<Vec<AoristRef<Role>>, AoristError>;
     fn get_permissions(&self) -> Result<HashSet<String>, AoristError>;
 }
 impl TUser for User {
@@ -42,7 +42,7 @@ impl TUser for User {
     fn get_unixname(&self) -> String {
         self.unixname.clone()
     }
-    fn set_roles(&mut self, roles: Vec<Role>) -> Result<(), AoristError> {
+    fn set_roles(&mut self, roles: Vec<AoristRef<Role>>) -> Result<(), AoristError> {
         if let Some(_) = self.roles {
             return Err(AoristError::OtherError(
                 "Tried to set roles more than once.".to_string(),
@@ -51,7 +51,7 @@ impl TUser for User {
         self.roles = Some(roles);
         Ok(())
     }
-    fn get_roles(&self) -> Result<Vec<Role>, AoristError> {
+    fn get_roles(&self) -> Result<Vec<AoristRef<Role>>, AoristError> {
         match &self.roles {
             Some(x) => Ok(x.clone()),
             None => Err(AoristError::OtherError(
@@ -62,7 +62,7 @@ impl TUser for User {
     fn get_permissions(&self) -> Result<HashSet<String>, AoristError> {
         let mut perms: HashSet<String> = HashSet::new();
         for role in self.get_roles()? {
-            for perm in role.get_permissions() {
+            for perm in role.0.read().unwrap().get_permissions() {
                 perms.insert(perm);
             }
         }

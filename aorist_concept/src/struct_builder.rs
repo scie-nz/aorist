@@ -28,7 +28,7 @@ fn extract_names_and_types(fields: &Vec<Field>) -> (Vec<Ident>, Vec<Type>) {
 fn field_is_constrainable(field: &Field) -> bool {
     for a in &field.attrs {
         if let Ok(Meta::Path(x)) = a.parse_meta() {
-            if x.is_ident("constrainable2") {
+            if x.is_ident("constrainable") {
                 return true;
             }
         }
@@ -791,7 +791,7 @@ impl Builder for StructBuilder {
                     }
                 )*
                 #(
-                    pub fn #map_ident(&self) -> LinkedHashMap<String, #map_value_type> {
+                    pub fn #map_ident(&self) -> BTreeMap<String, #map_value_type> {
                         self.#map_ident.clone()
                     }
                 )*

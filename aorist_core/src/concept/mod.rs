@@ -11,6 +11,7 @@ use std::convert::TryFrom;
 use std::fmt::{Debug, Formatter};
 use std::sync::{Arc, RwLock};
 use tracing::debug;
+use std::hash::{Hash, Hasher};
 use uuid::Uuid;
 
 pub struct AoristRef<T: PartialEq + Serialize + Debug + Clone>(pub Arc<RwLock<T>>);
@@ -51,6 +52,11 @@ impl<T: Debug + Clone + Serialize + PartialEq> Debug for AoristRef<T> {
 pub struct WrappedConcept<T> 
 where T: Debug + Clone + Serialize + PartialEq {
      pub inner: AoristRef<T>,
+}
+impl <T: Debug + Clone + Serialize + PartialEq> Hash for AoristRef<T> where T: Hash {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.0.read().unwrap().hash(state);
+    }
 }
 
 // use crate::access_policy::*;

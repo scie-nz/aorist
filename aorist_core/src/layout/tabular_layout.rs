@@ -21,7 +21,7 @@ pub enum Granularity {
 #[aorist]
 pub struct DynamicTabularLayout {
     #[constrainable]
-    granularity: Granularity,
+    granularity: AoristRef<Granularity>,
 }
 
 #[aorist]
