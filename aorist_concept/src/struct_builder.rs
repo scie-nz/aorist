@@ -897,6 +897,14 @@ impl Builder for StructBuilder {
                     #types(AoristRef<#types>),
                 )*
             }
+            impl #struct_name {
+                pub fn get_uuid(&self) -> Uuid {
+                    if let Some(uuid) = self.uuid {
+                        return uuid.clone();
+                    }
+                    panic!("Uuid was not set on object of type {}.", stringify!(#struct_name));
+                }
+            }
             /*impl [<#struct_name Children>] {
                 pub fn get_uuid(&self) -> Uuid {
                     match &self {
@@ -919,6 +927,25 @@ impl Builder for StructBuilder {
 
             impl AoristConceptNew for AoristRef<#struct_name> {
                 type TChildrenEnum = [<#struct_name Children>];
+                fn get_uuid(&self) -> Uuid {
+                    let read_lock = self.0.read().unwrap();
+                    if let Ok(ref x) = self.0.read() {
+                        return x.get_uuid();
+                    }
+                    panic!("Could not open object {} for reading.", stringify!(#struct_name));
+                }
+                /*fn get_children(&self) -> Vec<(
+                    // struct name
+                    &str,
+                    // field name
+                    Option<&str>,
+                    // ix
+                    Option<usize>,
+                    // uuid
+                    Option<Uuid>,
+                    // wrapped reference
+                    [<#struct_name Children>],
+                )> {vec![]}*/
             }
             /*impl <'a> AoristConcept<'a> for #struct_name {
 

@@ -12,14 +12,23 @@ use std::fmt::{Debug, Formatter};
 use std::sync::{Arc, RwLock};
 use tracing::debug;
 use uuid::Uuid;
-#[aorist2]
-pub struct GlobalPermissionsAdmin {}
-#[aorist2]
-pub enum Role {
-    GlobalPermissionsAdmin(GlobalPermissionsAdmin),
-}
 pub trait AoristConceptNew {
     type TChildrenEnum: ConceptEnumNew;
+    fn get_uuid(&self) -> Uuid;
+    /*fn get_children(
+        &self,
+    ) -> Vec<(
+        // struct name
+        &str,
+        // field name
+        Option<&str>,
+        // ix
+        Option<usize>,
+        // uuid
+        Option<Uuid>,
+        // wrapped reference
+        Self::TChildrenEnum,
+    )>;*/
 }
 pub struct AoristRef<T: PartialEq + Serialize + Debug + Clone>(Arc<RwLock<T>>);
 impl<T: PartialEq + Serialize + Debug + Clone> PartialEq for AoristRef<T> {
@@ -57,6 +66,12 @@ impl<T: Debug + Clone + Serialize + PartialEq> Debug for AoristRef<T> {
     }
 }
 #[aorist2]
+pub struct GlobalPermissionsAdmin {}
+#[aorist2]
+pub enum Role {
+    GlobalPermissionsAdmin(AoristRef<GlobalPermissionsAdmin>),
+}
+/*#[aorist2]
 pub struct User {
     firstName: String,
     lastName: String,
@@ -65,12 +80,12 @@ pub struct User {
     pub unixname: String,
     #[constrainable2]
     roles: Option<Vec<AoristRef<Role>>>,
-}
+}*/
 // pub struct WrappedConcept<'a, T> {
 //     pub inner: T,
 //     pub _phantom_lt: std::marker::PhantomData<&'a ()>,
 // }
-register_concept!(Concept, ConceptAncestry, GlobalPermissionsAdmin, Role, User);
+//register_concept!(Concept, ConceptAncestry, GlobalPermissionsAdmin, Role, User);
 
 // use crate::access_policy::*;
 // use crate::algorithms::*;

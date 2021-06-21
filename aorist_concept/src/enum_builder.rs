@@ -242,8 +242,43 @@ impl Builder for EnumBuilder {
                   id: Option<(Uuid, String)>
               ) -> Self;
           }
+          impl #enum_name {
+              
+              pub fn get_uuid(&self) -> Uuid {
+                  match &self {
+                      #(
+                        #enum_name::#variant(x) => x.get_uuid(), 
+                      )*
+                  }
+              }
+          }
           impl AoristConceptNew for AoristRef<#enum_name> {
               type TChildrenEnum = AoristRef<#enum_name>;
+              /*fn get_children(&self) -> Vec<(
+                  // enum name
+                  &str,
+                  // field name
+                  Option<&str>,
+                  // ix
+                  Option<usize>,
+                  // uuid
+                  Option<Uuid>,
+                  AoristRef<#enum_name>,
+              )> {
+                  vec![(
+                      stringify!(#enum_name),
+                      None,
+                      None,
+                      Some(self.get_uuid()),
+                      &self
+                  )]
+              }*/
+              fn get_uuid(&self) -> Uuid {
+                match self.0.read() {
+                   Ok(x) => x.get_uuid(),
+                  _ => panic!("Could not open for reading.")
+                }
+              }
           }
           /*impl <'a> AoristConcept<'a> for #enum_name {
             type TChildrenEnum = &'a #enum_name;
@@ -274,13 +309,6 @@ impl Builder for EnumBuilder {
                 }
             }
 
-            fn get_uuid(&self) -> Uuid {
-              match self {
-                #(
-                  #enum_name::#variant(x) => x.get_uuid(),
-                )*
-              }
-            }
             fn get_children_uuid(&self) -> Vec<Uuid> {
               match self {
                 #(
