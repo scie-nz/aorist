@@ -29,7 +29,7 @@ mod role;
 mod role_binding;
 mod schema;
 mod storage;
-// mod storage_setup;
+mod storage_setup;
 mod template;
 // mod universe;
 mod user;

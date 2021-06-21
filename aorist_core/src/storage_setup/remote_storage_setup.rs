@@ -1,24 +1,25 @@
 use crate::encoding::Encoding;
 use crate::storage::*;
 use crate::storage_setup::replication_storage_setup::*;
-use crate::{AoristConcept, ConceptEnum};
+use crate::{AoristConcept, AoristRef, WrappedConcept, ConceptEnum};
 use aorist_concept::{aorist, Constrainable};
 use derivative::Derivative;
 use paste::paste;
+use std::fmt::Debug;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 #[aorist]
 pub struct RemoteStorageSetup {
     #[constrainable]
-    pub remote: Storage,
+    pub remote: AoristRef<Storage>,
 }
 impl RemoteStorageSetup {
     pub fn replicate_to_local(
         &self,
-        t: Storage,
+        t: AoristRef<Storage>,
         tmp_dir: String,
-        tmp_encoding: Encoding,
+        tmp_encoding: AoristRef<Encoding>,
     ) -> ReplicationStorageSetup {
         ReplicationStorageSetup {
             source: self.remote.clone(),
