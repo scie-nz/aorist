@@ -1,7 +1,8 @@
-use crate::concept::{AoristConcept, ConceptEnum};
+use crate::concept::{AoristConcept, AoristRef, WrappedConcept, ConceptEnum};
 use aorist_concept::{aorist, Constrainable};
 use derivative::Derivative;
 use paste::paste;
+use std::fmt::Debug;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -12,6 +13,6 @@ pub struct SVMRegressionAlgorithm {}
 
 #[aorist]
 pub enum RegressionAlgorithm {
-    RandomForestRegressionAlgorithm(RandomForestRegressionAlgorithm),
-    SVMRegressionAlgorithm(SVMRegressionAlgorithm),
+    RandomForestRegressionAlgorithm(AoristRef<RandomForestRegressionAlgorithm>),
+    SVMRegressionAlgorithm(AoristRef<SVMRegressionAlgorithm>),
 }

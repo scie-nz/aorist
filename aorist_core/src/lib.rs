@@ -1,7 +1,7 @@
 pub mod dialect;
 
 mod access_policy;
-// mod algorithms;
+mod algorithms;
 // mod asset;
 // mod attributes;
 // mod code;
@@ -18,7 +18,7 @@ mod concept;
 mod error;
 // mod features;
 // mod flow;
-// mod header;
+mod header;
 // mod layout;
 // mod location;
 // mod models;
@@ -34,7 +34,7 @@ mod role;
 mod user;
 mod user_group;
 
-// pub use access_policy::*;
+pub use access_policy::*;
 // pub use algorithms::*;
 // pub use asset::*;
 // pub use attributes::*;
