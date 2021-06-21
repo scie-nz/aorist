@@ -1,11 +1,11 @@
 use crate::location::alluxio_location::*;
 use crate::location::minio_location::*;
 use crate::location::s3_location::*;
-use crate::{AoristConcept, AoristRef, WrappedConcept, ConceptEnum};
+use crate::{AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
 use aorist_concept::{aorist, Constrainable};
 use paste::paste;
-use std::fmt::Debug;
 use serde::{Deserialize, Serialize};
+use std::fmt::Debug;
 use uuid::Uuid;
 
 #[aorist]

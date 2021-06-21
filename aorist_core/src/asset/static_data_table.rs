@@ -1,6 +1,6 @@
 #![allow(non_snake_case)]
 use crate::asset::asset::TAsset;
-use crate::concept::{AoristConcept, AoristRef, WrappedConcept, ConceptEnum};
+use crate::concept::{AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
 use crate::encoding::*;
 use crate::schema::*;
 use crate::storage::*;
@@ -8,10 +8,10 @@ use crate::storage_setup::*;
 use aorist_concept::{aorist, Constrainable};
 use derivative::Derivative;
 use paste::paste;
-use std::fmt::Debug;
 use serde::{Deserialize, Serialize};
-use uuid::Uuid;
+use std::fmt::Debug;
 use std::sync::{Arc, RwLock};
+use uuid::Uuid;
 
 #[aorist]
 pub struct StaticDataTable {
@@ -35,10 +35,21 @@ impl TAsset for StaticDataTable {
 }
 
 impl StaticDataTable {
-    pub fn replicate_to_local(&self, t: AoristRef<Storage>, tmp_dir: String, tmp_encoding: AoristRef<Encoding>) -> Self {
+    pub fn replicate_to_local(
+        &self,
+        t: AoristRef<Storage>,
+        tmp_dir: String,
+        tmp_encoding: AoristRef<Encoding>,
+    ) -> Self {
         Self {
             name: self.name.clone(),
-            setup: AoristRef(Arc::new(RwLock::new(self.setup.0.read().unwrap().replicate_to_local(t, tmp_dir, tmp_encoding)))),
+            setup: AoristRef(Arc::new(RwLock::new(
+                self.setup
+                    .0
+                    .read()
+                    .unwrap()
+                    .replicate_to_local(t, tmp_dir, tmp_encoding),
+            ))),
             schema: self.schema.clone(),
             tag: self.tag.clone(),
             uuid: None,

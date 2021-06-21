@@ -1,17 +1,15 @@
 pub use crate::universe::*;
 use aorist_concept::{aorist, Constrainable};
-pub use aorist_primitives::{
-    register_concept, Ancestry, AoristConcept, ConceptEnum, TConceptEnum,
-};
+pub use aorist_primitives::{register_concept, Ancestry, AoristConcept, ConceptEnum, TConceptEnum};
 use derivative::Derivative;
 use paste::paste;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::collections::{BTreeSet, HashMap};
 use std::convert::TryFrom;
 use std::fmt::{Debug, Formatter};
+use std::hash::{Hash, Hasher};
 use std::sync::{Arc, RwLock};
 use tracing::debug;
-use std::hash::{Hash, Hasher};
 use uuid::Uuid;
 
 pub struct AoristRef<T: PartialEq + Serialize + Debug + Clone>(pub Arc<RwLock<T>>);
@@ -49,11 +47,16 @@ impl<T: Debug + Clone + Serialize + PartialEq> Debug for AoristRef<T> {
         self.0.read().unwrap().fmt(f)
     }
 }
-pub struct WrappedConcept<T> 
-where T: Debug + Clone + Serialize + PartialEq {
-     pub inner: AoristRef<T>,
+pub struct WrappedConcept<T>
+where
+    T: Debug + Clone + Serialize + PartialEq,
+{
+    pub inner: AoristRef<T>,
 }
-impl <T: Debug + Clone + Serialize + PartialEq> Hash for AoristRef<T> where T: Hash {
+impl<T: Debug + Clone + Serialize + PartialEq> Hash for AoristRef<T>
+where
+    T: Hash,
+{
     fn hash<H: Hasher>(&self, state: &mut H) {
         self.0.read().unwrap().hash(state);
     }

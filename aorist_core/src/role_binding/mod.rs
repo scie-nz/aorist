@@ -1,11 +1,11 @@
 use crate::role::*;
-use crate::{AoristConcept, AoristRef, WrappedConcept, ConceptEnum};
+use crate::{AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
 use aorist_concept::{aorist, Constrainable};
 use aorist_primitives::TAoristObject;
 use derivative::Derivative;
 use paste::paste;
-use std::fmt::Debug;
 use serde::{Deserialize, Serialize};
+use std::fmt::Debug;
 use uuid::Uuid;
 
 #[aorist]

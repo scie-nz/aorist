@@ -1,14 +1,14 @@
 #![allow(non_snake_case)]
 use crate::algorithms::*;
 use crate::asset::asset::TAsset;
-use crate::concept::{AoristConcept, AoristRef, WrappedConcept, ConceptEnum};
+use crate::concept::{AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
 use crate::schema::*;
 use crate::storage_setup::*;
 use aorist_concept::{aorist, Constrainable};
 use derivative::Derivative;
 use paste::paste;
-use std::fmt::Debug;
 use serde::{Deserialize, Serialize};
+use std::fmt::Debug;
 use uuid::Uuid;
 
 #[aorist]

@@ -3,11 +3,11 @@ use crate::location::local_file_system_location::*;
 use crate::location::minio_location::*;
 use crate::location::postgres_location::*;
 use crate::location::sqlite_location::*;
-use crate::{AoristConcept, AoristRef, WrappedConcept, ConceptEnum};
+use crate::{AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
 use aorist_concept::{aorist, Constrainable};
 use paste::paste;
-use std::fmt::Debug;
 use serde::{Deserialize, Serialize};
+use std::fmt::Debug;
 use uuid::Uuid;
 
 #[aorist]

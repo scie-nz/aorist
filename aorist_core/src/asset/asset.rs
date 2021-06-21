@@ -2,13 +2,13 @@
 use crate::asset::derived_asset::*;
 use crate::asset::static_data_table::*;
 use crate::asset::supervised_model::*;
-use crate::concept::{AoristConcept, AoristRef, WrappedConcept, ConceptEnum};
+use crate::concept::{AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
 use crate::schema::*;
 use crate::storage_setup::*;
 use aorist_concept::{aorist, Constrainable};
 use paste::paste;
-use std::fmt::Debug;
 use serde::{Deserialize, Serialize};
+use std::fmt::Debug;
 use uuid::Uuid;
 
 #[aorist]
@@ -26,7 +26,12 @@ pub trait TAsset {
     fn get_schema(&self) -> AoristRef<DataSchema>;
     fn get_storage_setup(&self) -> AoristRef<StorageSetup>;
     fn get_template_name(&self) -> String {
-        self.get_schema().0.read().unwrap().get_datum_template_name().unwrap()
+        self.get_schema()
+            .0
+            .read()
+            .unwrap()
+            .get_datum_template_name()
+            .unwrap()
     }
 }
 

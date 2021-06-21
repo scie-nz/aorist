@@ -1,10 +1,10 @@
 #![allow(unused_parens)]
 use crate::header::*;
-use crate::{AoristConcept, AoristRef, WrappedConcept, ConceptEnum};
+use crate::{AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
 use aorist_concept::{aorist, Constrainable};
 use paste::paste;
-use std::fmt::Debug;
 use serde::{Deserialize, Serialize};
+use std::fmt::Debug;
 use uuid::Uuid;
 
 #[aorist]

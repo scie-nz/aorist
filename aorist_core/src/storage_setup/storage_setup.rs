@@ -4,13 +4,13 @@ use crate::storage_setup::computed_from_local_data::*;
 use crate::storage_setup::local_storage_setup::*;
 use crate::storage_setup::remote_storage_setup::*;
 use crate::storage_setup::replication_storage_setup::*;
-use crate::{AoristConcept, AoristRef, WrappedConcept, ConceptEnum};
+use crate::{AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
 use aorist_concept::{aorist, Constrainable};
 use paste::paste;
-use std::fmt::Debug;
 use serde::{Deserialize, Serialize};
-use uuid::Uuid;
+use std::fmt::Debug;
 use std::sync::{Arc, RwLock};
+use uuid::Uuid;
 
 #[aorist]
 pub enum StorageSetup {
@@ -41,10 +41,19 @@ impl StorageSetup {
             Self::LocalStorageSetup(x) => x.0.read().unwrap().tmp_dir.clone(),
         }
     }
-    pub fn replicate_to_local(&self, t: AoristRef<Storage>, tmp_dir: String, tmp_encoding: AoristRef<Encoding>) -> Self {
+    pub fn replicate_to_local(
+        &self,
+        t: AoristRef<Storage>,
+        tmp_dir: String,
+        tmp_encoding: AoristRef<Encoding>,
+    ) -> Self {
         match self {
             Self::RemoteStorageSetup(x) => {
-                Self::ReplicationStorageSetup(AoristRef(Arc::new(RwLock::new(x.0.read().unwrap().replicate_to_local(t, tmp_dir, tmp_encoding)))))
+                Self::ReplicationStorageSetup(AoristRef(Arc::new(RwLock::new(
+                    x.0.read()
+                        .unwrap()
+                        .replicate_to_local(t, tmp_dir, tmp_encoding),
+                ))))
             }
             _ => panic!("Only assets with RemoteStorageSetup can be replicated"),
         }

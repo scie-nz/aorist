@@ -1,14 +1,14 @@
 use crate::attributes::*;
+use crate::concept::{AoristRef, WrappedConcept};
 use crate::template::filter::*;
 use crate::template::identifier_tuple::*;
 use crate::template::measure::*;
 use crate::template::row_struct::*;
 use aorist_concept::{aorist, Constrainable};
-use crate::concept::{AoristRef, WrappedConcept};
 use aorist_primitives::{AoristConcept, ConceptEnum};
 use paste::paste;
-use std::fmt::Debug;
 use serde::{Deserialize, Serialize};
+use std::fmt::Debug;
 use uuid::Uuid;
 
 pub trait TDatumTemplate {
@@ -57,7 +57,9 @@ impl TDatumTemplate for DatumTemplate {
             DatumTemplate::IdentifierTuple(x) => x.0.read().unwrap().get_attributes(),
             DatumTemplate::IntegerMeasure(x) => x.0.read().unwrap().get_attributes(),
             DatumTemplate::TrainedFloatMeasure(x) => x.0.read().unwrap().get_attributes(),
-            DatumTemplate::PredictionsFromTrainedFloatMeasure(x) => x.0.read().unwrap().get_attributes(),
+            DatumTemplate::PredictionsFromTrainedFloatMeasure(x) => {
+                x.0.read().unwrap().get_attributes()
+            }
             DatumTemplate::Filter(x) => x.0.read().unwrap().get_attributes(),
         }
     }

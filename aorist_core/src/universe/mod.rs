@@ -1,4 +1,5 @@
 use crate::compliance::*;
+use crate::concept::{AoristRef, WrappedConcept};
 use crate::dataset::*;
 use crate::endpoints::*;
 use crate::role::*;
@@ -7,12 +8,11 @@ use crate::user::*;
 use crate::user_group::*;
 use aorist_concept::{aorist, Constrainable};
 use aorist_primitives::{AoristConcept, ConceptEnum};
-use crate::concept::{AoristRef, WrappedConcept};
 use derivative::Derivative;
 use paste::paste;
-use std::fmt::Debug;
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
+use std::fmt::Debug;
 use uuid::Uuid;
 
 #[cfg(all(feature = "sql", feature = "python"))]
@@ -58,7 +58,16 @@ impl TUniverse for Universe {
                 return Err(format!("Cannot find user with name {}.", name));
             }
             let user = umap.get(&name).unwrap().clone();
-            for perm in binding.0.read().unwrap().get_role().0.read().unwrap().get_permissions() {
+            for perm in binding
+                .0
+                .read()
+                .unwrap()
+                .get_role()
+                .0
+                .read()
+                .unwrap()
+                .get_permissions()
+            {
                 map.entry(user.0.read().unwrap().get_unixname().clone())
                     .or_insert_with(HashSet::new)
                     .insert(perm.clone());

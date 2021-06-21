@@ -1,7 +1,7 @@
 #![allow(unused_parens)]
 use crate::compression::DataCompression;
 use crate::header::FileHeader;
-use crate::{AoristConcept, AoristRef, WrappedConcept, ConceptEnum};
+use crate::{AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
 use aorist_concept::{aorist, Constrainable};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;

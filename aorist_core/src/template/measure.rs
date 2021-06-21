@@ -1,17 +1,17 @@
 #![allow(dead_code)]
 use crate::attributes::*;
+use crate::concept::{AoristRef, WrappedConcept};
 use crate::schema::TabularSchema;
 use crate::template::datum_template::TDatumTemplate;
 use aorist_attributes::{Count, FloatPrediction, Regressor};
 use aorist_concept::{aorist, Constrainable};
-use crate::concept::{AoristRef, WrappedConcept};
 use aorist_primitives::{AoristConcept, ConceptEnum};
 use derivative::Derivative;
 use paste::paste;
-use std::fmt::Debug;
 use serde::{Deserialize, Serialize};
-use uuid::Uuid;
+use std::fmt::Debug;
 use std::sync::{Arc, RwLock};
+use uuid::Uuid;
 
 /// An integer-valued measure for the density of attribute
 /// combinations. For example, a count in a histogram.

@@ -1,17 +1,17 @@
 #[cfg(feature = "sql")]
 use crate::attributes::AttrMap;
 use crate::attributes::AttributeOrValue;
-use aorist_concept::{aorist, Constrainable};
 use crate::concept::{AoristRef, WrappedConcept};
+use aorist_concept::{aorist, Constrainable};
 use aorist_primitives::{AoristConcept, ConceptEnum};
 use derivative::Derivative;
 use paste::paste;
-use std::fmt::Debug;
 #[cfg(feature = "python")]
 use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
 #[cfg(feature = "sql")]
 use sqlparser::ast::{BinaryOperator, Expr};
+use std::fmt::Debug;
 use uuid::Uuid;
 
 #[derive(Hash, PartialEq, Eq, Debug, Serialize, Deserialize, Clone)]
