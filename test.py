@@ -1,6 +1,7 @@
 import inspect
-from aorist import *
-from aorist.target.debug.libaorist import PushhiftAPILocation
+from aorist.target.debug.libaorist import (
+    PushshiftAPILocation, ConceptAncestry
+)
 from aorist_constraint.target.debug.libaorist_constraint import (
     DownloadDataFromRemotePushshiftAPILocationToNewlineDelimitedJSON
 )
@@ -15,8 +16,6 @@ def aorist(programs, constraint, entrypoint, args):
     def inner(func):
         programs[constraint] = constraint.register_program(to_str(func), entrypoint, args_str)
     return inner
-
-print(to_str(aorist))
 
 programs = {}
 
@@ -52,4 +51,5 @@ def recipe():
         dest_path = schema + '/' + tablename + '/data.csv'
         response = client.upload_file(source_path, bucket, dest_path)
 
+print(ConceptAncestry)
 print(programs)
