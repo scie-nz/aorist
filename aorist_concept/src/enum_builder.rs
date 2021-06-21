@@ -236,7 +236,7 @@ impl Builder for EnumBuilder {
           impl <'a> ConceptEnum<'a> for &'a #enum_name {}
           pub trait [<CanBe #enum_name>] {
               fn [<construct_ #enum_name:snake:lower>] (
-                  obj_ref: Arc<#enum_name>,
+                  obj_ref: AoristRef<#enum_name>,
                   ix: Option<usize>,
                   id: Option<(Uuid, String)>
               ) -> Self;

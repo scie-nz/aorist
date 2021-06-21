@@ -911,7 +911,7 @@ impl Builder for StructBuilder {
             impl <'a> ConceptEnum<'a> for [<#struct_name Children>]<'a> {}
             pub trait [<CanBe #struct_name>] {
                 fn [<construct_ #struct_name:snake:lower>](
-                    obj_ref: Arc<#struct_name>,
+                    obj_ref: AoristRef<#struct_name>,
                     ix: Option<usize>,
                     id: Option<(Uuid, String)>
                 ) -> Self;

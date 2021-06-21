@@ -1152,24 +1152,24 @@ macro_rules! register_concept {
         #[derive(Clone)]
         pub enum $name {
             $(
-                $element((Arc<$element>, usize, Option<(Uuid, String)>)),
+                $element((AoristRef<$element>, usize, Option<(Uuid, String)>)),
             )+
         }
         $(
-            impl [<CanBe $element>] for Arc<$name> {
+            impl [<CanBe $element>] for $name {
                 fn [<construct_ $element:snake:lower>](
-                    obj_ref: Arc<$element>,
+                    obj_ref: AoristRef<$element>,
                     ix: Option<usize>,
                     id: Option<(Uuid, String)>
                 ) -> Self {
-                    Arc::new($name::$element((
-                        obj_ref,
+                    $name::$element((
+                        obj_ref.clone(),
                         match ix {
                             Some(i) => i,
                             None => 0,
                         },
                         id,
-                    )))
+                    ))
                }
             }
         )+
