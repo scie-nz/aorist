@@ -907,6 +907,36 @@ impl Builder for StructBuilder {
                 pub fn get_uuid(&self) -> Option<Uuid> {
                     self.uuid.clone()
                 }
+                fn compute_uuids(&mut self) {
+                    #(
+                        self.#bare_ident.compute_uuids();
+                    )*
+                    #(
+                        if let Some(ref c) = self.#option_ident {
+                            c.compute_uuids();
+                        }
+                    )*
+                    #(
+                        for elem in self.#vec_ident.iter() {
+                            elem.compute_uuids();
+                        }
+                    )*
+                    #(
+                        if let Some(ref mut v) = self.#option_vec_ident {
+                            for elem in v.iter() {
+                                elem.compute_uuids();
+                            }
+                        }
+                    )*
+                    #(
+                        for elem in self.#map_ident.values() {
+                            elem.compute_uuids();
+                        }
+                    )*
+                }
+                fn set_uuid(&mut self, uuid: Uuid) {
+                    self.uuid = Some(uuid);
+                }
                 fn get_tag(&self) -> Option<String> {
                     self.tag.clone()
                 }
@@ -936,16 +966,16 @@ impl Builder for StructBuilder {
                     }
                 )*
             }
-            /*impl [<#struct_name Children>] {
-                pub fn get_uuid(&self) -> Uuid {
+            impl [<#struct_name Children>] {
+                pub fn get_uuid(&self) -> Option<Uuid> {
                     match &self {
                         #(
                             Self::#types(x) => x.get_uuid(),
                         )*
-                        //Self::_phantom(_) => panic!("_phantom arm was activated.")
+                        _ => panic!("phantom arm was activated.")
                     }
                 }
-            }*/
+            }
             //impl <'a> ConceptEnum<'a> for [<#struct_name Children>]<'a> {}
             impl ConceptEnumNew for [<#struct_name Children>] {}
             pub trait [<CanBe #struct_name>] {
@@ -964,6 +994,17 @@ impl Builder for StructBuilder {
                         return x.get_uuid();
                     }
                     panic!("Could not open object {} for reading.", stringify!(#struct_name));
+                }
+                fn compute_uuids(&self) {
+                    if let Ok(ref x) = self.0.write() {
+                        //x.compute_uuids();
+                        //let uuid = self.get_uuid_from_children_uuid();
+                        //x.set_uuid(uuid);
+                    }
+                    panic!("Could not open object {} for writing.", stringify!(#struct_name));
+                }
+                fn get_children_uuid(&self) -> Vec<Uuid> {
+                    self.get_children().iter().map(|x| x.4.get_uuid().unwrap()).collect()
                 }
                 fn get_tag(&self) -> Option<String> {
                     let read_lock = self.0.read().unwrap();
@@ -1045,37 +1086,6 @@ impl Builder for StructBuilder {
                 }
             }
             /*impl <'a> AoristConcept<'a> for #struct_name {
-                fn get_children_uuid(&self) -> Vec<Uuid> {
-                    self.get_children().iter().map(|x| x.4.get_uuid()).collect()
-                }
-                fn compute_uuids(&mut self) {
-                    #(
-                        self.#bare_ident.compute_uuids();
-                    )*
-                    #(
-                        if let Some(ref mut c) = self.#option_ident {
-                            c.compute_uuids();
-                        }
-                    )*
-                    #(
-                        for elem in self.#vec_ident.iter_mut() {
-                            elem.compute_uuids();
-                        }
-                    )*
-                    #(
-                        if let Some(ref mut v) = self.#option_vec_ident {
-                            for elem in v.iter_mut() {
-                                elem.compute_uuids();
-                            }
-                        }
-                    )*
-                    #(
-                        for elem in self.#map_ident.values_mut() {
-                            elem.compute_uuids();
-                        }
-                    )*
-                    self.uuid = Some(self.get_uuid_from_children_uuid());
-                }
             }*/
         }})
     }

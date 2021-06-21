@@ -258,6 +258,23 @@ impl Builder for EnumBuilder {
                       )*
                   }
               }
+              fn compute_uuids(&self) {
+                  match self {
+                      #(
+                        #enum_name::#variant(x) => x.compute_uuids(),
+                      )*
+                  }
+              }
+              fn get_children_uuid(&self) -> Vec<Uuid> {
+                  match self {
+                      #(
+                          #enum_name::#variant(x) => {
+                              let t: AoristRef<#variant> = x.clone();
+                              t.get_children_uuid()
+                          },
+                      )*
+                  }
+              }
           }
           impl AoristConceptNew for AoristRef<#enum_name> {
               type TChildrenEnum = AoristRef<#enum_name>;
@@ -293,23 +310,21 @@ impl Builder for EnumBuilder {
                     _ => panic!("Could not open for reading.")
                   }
               }
+              fn get_children_uuid(&self) -> Vec<Uuid> {
+                  match self.0.read() {
+                     Ok(x) => x.get_children_uuid(),
+                    _ => panic!("Could not open for reading.")
+                  }
+              }
+              fn compute_uuids(&self) {
+                  match self.0.read() {
+                    Ok(mut x) => x.compute_uuids(),
+                    _ => panic!("Could not open for reading.")
+                  }
+              }
           }
           /*impl <'a> AoristConcept<'a> for #enum_name {
 
-            fn get_children_uuid(&self) -> Vec<Uuid> {
-              match self {
-                #(
-                  #enum_name::#variant(x) => x.get_children_uuid(),
-                )*
-              }
-            }
-            fn compute_uuids(&mut self) {
-              match self {
-                #(
-                  #enum_name::#variant(x) => x.compute_uuids(),
-                )*
-              }
-            }
           }*/
         }})
     }

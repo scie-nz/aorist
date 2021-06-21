@@ -83,12 +83,13 @@ pub trait TConceptBuilder {
             Data::Enum(DataEnum { variants, .. }) => {
                 let enum_name = &ast.ident;
                 let variant = variants.iter().map(|x| (&x.ident)).collect::<Vec<_>>();
+                let variant_type = variants.iter().map(|x| (&x.fields)).collect::<Vec<_>>();
                 let quoted = quote! {
                     #[cfg_attr(feature = "python", derive(pyo3::prelude::FromPyObject))]
                     #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
                     #[serde(tag = "type")]
                     pub enum #enum_name {
-                        #(#variant(#variant)),*
+                        #(#variant(#variant_type)),*
                     }
                 };
                 let mut final_ast: DeriveInput = syn::parse2(quoted).unwrap();

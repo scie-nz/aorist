@@ -6,16 +6,39 @@ pub use aorist_primitives::{
 use derivative::Derivative;
 use paste::paste;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
-use std::collections::HashMap;
+use std::collections::{BTreeSet, HashMap};
 use std::convert::TryFrom;
 use std::fmt::{Debug, Formatter};
 use std::sync::{Arc, RwLock};
 use tracing::debug;
 use uuid::Uuid;
+use siphasher::sip128::SipHasher;
+use std::hash::Hasher;
+use siphasher::sip128::Hasher128;
+
 pub trait AoristConceptNew {
     type TChildrenEnum: ConceptEnumNew;
     fn get_uuid(&self) -> Option<Uuid>;
     fn get_tag(&self) -> Option<String>;
+    fn compute_uuids(&self);
+    fn get_children_uuid(&self) -> Vec<Uuid>;
+    fn get_uuid_from_children_uuid(&self) -> Uuid {
+        let child_uuids = self.get_children_uuid();
+        if child_uuids.len() > 0 {
+            eprintln!("There are child uuids.");
+            let uuids = child_uuids.into_iter().collect::<BTreeSet<Uuid>>();
+            let mut hasher = SipHasher::new();
+            for uuid in uuids {
+                hasher.write(uuid.as_bytes());
+            }
+            let bytes: [u8; 16] = hasher.finish128().as_bytes();
+            Uuid::from_bytes(bytes)
+        } else {
+            eprintln!("There are no child uuids.");
+            // TODO: this should just be created from the hash
+            Uuid::new_v4()
+        }
+    }
     fn get_children(
         &self,
     ) -> Vec<(
