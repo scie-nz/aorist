@@ -36,3 +36,24 @@ spec:
   attachIf: |
       |root: AoristRef<Concept>, ancestry: &ConceptAncestry|
           ancestry.hive_table_storage(root.clone()).is_ok()
+---
+type: Constraint
+spec:
+  name: DownloadDataFromRemotePushshiftAPILocationToNewlineDelimitedJSON
+  root: PushshiftAPILocation
+  requiresProgram: true
+  title: Downloading data from the Pushshift API
+  body: |
+      Data for this particular asset(s) is located in the Pushshift API.
+      We need to download it to a local directory first, before we can
+      do anything with it.
+  attachIf: |
+      |root: AoristRef<Concept>, ancestry: &ConceptAncestry|
+      match ancestry.replication_storage_setup(root.clone()) {
+          Ok(x) => match *x.0.read().unwrap().tmp_encoding.0.read().unwrap() {
+              aorist_core::Encoding::NewlineDelimitedJSONEncoding(_) => true,
+              aorist_core::Encoding::CSVEncoding(_) => true,
+              _ => false,
+          }
+          _ => false,
+      }

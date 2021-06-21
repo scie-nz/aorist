@@ -1025,7 +1025,8 @@ macro_rules! register_concept {
                 }
             }
         )+
-        
+       
+        #[cfg_attr(feature = "python", pyclass)]
         pub struct $ancestry {
             pub parents: Arc<RwLock<HashMap<(Uuid, String), AoristRef<$name>>>>,
         }

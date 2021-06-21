@@ -44,7 +44,7 @@ pub use compliance::*;
 pub use compression::*;
 pub use concept::*;
 pub use constraint::*;
-// pub use constraint_block::*;
+pub use constraint_block::*;
 pub use constraint_state::*;
 pub use dataset::*;
 pub use dialect::*;

@@ -1,6 +1,9 @@
 import inspect
-from aorist.target.debug.libaorist import S3Location
-from aorist_constraint.target.debug.libaorist_constraint import UploadDataToS3
+from aorist import *
+from aorist.target.debug.libaorist import PushhiftAPILocation
+from aorist_constraint.target.debug.libaorist_constraint import (
+    DownloadDataFromRemotePushshiftAPILocationToNewlineDelimitedJSON
+)
 
 def to_str(source):
     funcString = "\n".join([str(x) for x in inspect.getsourcelines(source)])
@@ -19,7 +22,7 @@ programs = {}
 
 @aorist(
     programs,
-    UploadDataToS3,
+    DownloadDataFromRemotePushshiftAPILocationToNewlineDelimitedJSON,
     entrypoint="upload_to_s3",
     args={
         "access_key": lambda ancestry : ancestry.universe.endpoints.access_key_id, 
