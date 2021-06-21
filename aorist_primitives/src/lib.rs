@@ -1208,9 +1208,9 @@ macro_rules! register_concept {
         pub struct $ancestry {
             pub parents: Arc<RwLock<HashMap<(Uuid, String), $name>>>,
         }
-        /*impl Ancestry for $ancestry {
+        impl Ancestry for $ancestry {
             type TConcept = $name;
-        }*/
+        }
         /*
         impl <'a> $ancestry<'a> {
             $(
