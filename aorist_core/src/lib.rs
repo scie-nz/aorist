@@ -13,7 +13,7 @@ mod constraint;
 mod constraint_block;
 mod constraint_state;
 mod dataset;
-// mod driver;
+mod driver;
 mod encoding;
 mod endpoints;
 mod error;

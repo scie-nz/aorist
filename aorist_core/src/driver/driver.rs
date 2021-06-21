@@ -10,8 +10,9 @@ use crate::flow::{FlowBuilderBase, FlowBuilderMaterialize};
 use crate::parameter_tuple::ParameterTuple;
 use anyhow::Result;
 use aorist_ast::{AncestorRecord, SimpleIdentifier, AST};
-use aorist_primitives::TConstraintEnum;
-use aorist_primitives::{Ancestry, OuterConstraint, TBuilder};
+use crate::constraint::TConstraintEnum;
+use crate::constraint::{OuterConstraint, TBuilder};
+use aorist_primitives::Ancestry;
 use inflector::cases::snakecase::to_snake_case;
 use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
@@ -20,39 +21,36 @@ use std::sync::{Arc, RwLock, RwLockReadGuard};
 use tracing::{debug, trace};
 use uuid::Uuid;
 
-pub type ConstraintsBlockMap<'a, 'b, C> = LinkedHashMap<
+pub type ConstraintsBlockMap<'a, C> = LinkedHashMap<
     String,
     (
         LinkedHashSet<String>,
-        LinkedHashMap<(Uuid, String), Arc<RwLock<ConstraintState<'a, 'b, C>>>>,
+        LinkedHashMap<(Uuid, String), Arc<RwLock<ConstraintState<'a, C>>>>,
     ),
 >;
 
-pub trait Driver<'a, 'b, D, C>
+pub trait Driver<'a, D, C>
 where
     D: FlowBuilderBase,
     D:
         FlowBuilderMaterialize<
             BuilderInputType = <Self::CB as ConstraintBlock<
                 'a,
-                'b,
                 <D as FlowBuilderBase>::T,
                 C,
             >>::BuilderInputType,
         >,
     <D as FlowBuilderBase>::T: 'a,
-    Self::CB: 'b,
-    C: OuterConstraint<'a, 'b, TAncestry = ConceptAncestry<'a>>
-        + SatisfiableOuterConstraint<'a, 'b>,
-    'a: 'b,
+    C: OuterConstraint<'a, TAncestry = ConceptAncestry>
+        + SatisfiableOuterConstraint<'a>,
 {
-    type CB: ConstraintBlock<'a, 'b, <D as FlowBuilderBase>::T, C>;
+    type CB: ConstraintBlock<'a, <D as FlowBuilderBase>::T, C>;
 
     fn get_relevant_builders(
         topline_constraint_names: &LinkedHashSet<String>,
-    ) -> Vec<<<C as OuterConstraint<'a, 'b>>::TEnum as TConstraintEnum<'a, 'b>>::BuilderT> {
+    ) -> Vec<<<C as OuterConstraint<'a>>::TEnum as TConstraintEnum<'a>>::BuilderT> {
         let mut builders =
-            <<C as OuterConstraint<'a, 'b>>::TEnum as TConstraintEnum<'a, 'b>>::builders()
+            <<C as OuterConstraint<'a>>::TEnum as TConstraintEnum<'a>>::builders()
                 .into_iter()
                 .map(|x| (x.get_constraint_name(), x))
                 .collect::<LinkedHashMap<String, _>>();
@@ -112,13 +110,13 @@ where
 
         sorted_builders
     }
-    fn init_unsatisfied_constraints(&self) -> Result<ConstraintsBlockMap<'a, 'b, C>>;
+    fn init_unsatisfied_constraints(&self) -> Result<ConstraintsBlockMap<'a, C>>;
 
     fn find_satisfiable_constraint_block(
         &self,
-        unsatisfied_constraints: &mut ConstraintsBlockMap<'a, 'b, C>,
+        unsatisfied_constraints: &mut ConstraintsBlockMap<'a, C>,
     ) -> Option<(
-        LinkedHashMap<(Uuid, String), Arc<RwLock<ConstraintState<'a, 'b, C>>>>,
+        LinkedHashMap<(Uuid, String), Arc<RwLock<ConstraintState<'a, C>>>>,
         String,
     )> {
         let constraint_block_name = unsatisfied_constraints
@@ -139,7 +137,7 @@ where
         }
     }
     fn init_tasks_dict(
-        block: &LinkedHashMap<(Uuid, String), Arc<RwLock<ConstraintState<'a, 'b, C>>>>,
+        block: &LinkedHashMap<(Uuid, String), Arc<RwLock<ConstraintState<'a, C>>>>,
         constraint_name: String,
     ) -> Option<AST> {
         match block.len() == 1 {
@@ -151,13 +149,13 @@ where
     }
     fn get_constraint_rwlock(&self, uuid: &(Uuid, String)) -> Arc<RwLock<C>>;
     fn get_preferences(&self) -> Vec<Dialect>;
-    fn get_ancestry(&self) -> Arc<<C as OuterConstraint<'a, 'b>>::TAncestry>;
+    fn get_ancestry(&self) -> Arc<<C as OuterConstraint<'a>>::TAncestry>;
     fn process_constraint_with_program(
         &mut self,
         constraint: RwLockReadGuard<'_, C>,
         uuid: (Uuid, String),
         calls: &mut HashMap<(String, String, String), Vec<(String, ParameterTuple)>>,
-        state: Arc<RwLock<ConstraintState<'a, 'b, C>>>,
+        state: Arc<RwLock<ConstraintState<'a, C>>>,
     ) {
         let name = constraint.get_name().clone();
         drop(constraint);
@@ -182,10 +180,10 @@ where
     fn process_constraint_state(
         &mut self,
         uuid: (Uuid, String),
-        state: Arc<RwLock<ConstraintState<'a, 'b, C>>>,
+        state: Arc<RwLock<ConstraintState<'a, C>>>,
         calls: &mut HashMap<(String, String, String), Vec<(String, ParameterTuple)>>,
         reverse_dependencies: &HashMap<(Uuid, String), HashSet<(String, Uuid, String)>>,
-        unsatisfied_constraints: &ConstraintsBlockMap<'a, 'b, C>,
+        unsatisfied_constraints: &ConstraintsBlockMap<'a, C>,
     ) -> Result<()> {
         let read = state.read().unwrap();
         assert!(!read.satisfied);
@@ -222,17 +220,17 @@ where
     fn mark_constraint_state_as_satisfied(
         &mut self,
         id: (Uuid, String),
-        state: Arc<RwLock<ConstraintState<'a, 'b, C>>>,
+        state: Arc<RwLock<ConstraintState<'a, C>>>,
     );
     fn process_constraint_block(
         &mut self,
-        block: &mut LinkedHashMap<(Uuid, String), Arc<RwLock<ConstraintState<'a, 'b, C>>>>,
+        block: &mut LinkedHashMap<(Uuid, String), Arc<RwLock<ConstraintState<'a, C>>>>,
         reverse_dependencies: &HashMap<(Uuid, String), HashSet<(String, Uuid, String)>>,
         constraint_name: String,
-        unsatisfied_constraints: &ConstraintsBlockMap<'a, 'b, C>,
+        unsatisfied_constraints: &ConstraintsBlockMap<'a, C>,
         identifiers: &HashMap<Uuid, AST>,
     ) -> Result<(
-        Vec<<Self::CB as ConstraintBlock<'a, 'b, <D as FlowBuilderBase>::T, C>>::C>,
+        Vec<<Self::CB as ConstraintBlock<'a, <D as FlowBuilderBase>::T, C>>::C>,
         Option<AST>,
     )> {
         let tasks_dict = Self::init_tasks_dict(block, constraint_name.clone());
@@ -240,7 +238,7 @@ where
         let mut calls: HashMap<(String, String, String), Vec<(String, ParameterTuple)>> =
             HashMap::new();
         let mut blocks = Vec::new();
-        let mut by_dialect: HashMap<Option<Dialect>, Vec<Arc<RwLock<ConstraintState<'a, 'b, C>>>>> =
+        let mut by_dialect: HashMap<Option<Dialect>, Vec<Arc<RwLock<ConstraintState<'a, C>>>>> =
             HashMap::new();
         for (id, state) in block.clone() {
             self.process_constraint_state(
@@ -258,7 +256,7 @@ where
         }
         for (_dialect, satisfied) in by_dialect.into_iter() {
             let block =
-                <Self::CB as ConstraintBlock<'a, 'b, <D as FlowBuilderBase>::T, C>>::C::new(
+                <Self::CB as ConstraintBlock<'a, <D as FlowBuilderBase>::T, C>>::C::new(
                     satisfied,
                     constraint_name.clone(),
                     tasks_dict.clone(),
@@ -323,9 +321,9 @@ where
             }
         }
     }
-    fn get_endpoints(&'b self) -> &'b EndpointConfig;
+    fn get_endpoints(&self) -> &EndpointConfig;
     fn get_dependencies(&self) -> Vec<String>;
-    fn run(&'b mut self) -> Result<(String, Vec<String>)> {
+    fn run(&mut self) -> Result<(String, Vec<String>)> {
         self.satisfy_constraints()?;
         let etl = D::new();
         let endpoints = self.get_endpoints().clone();
@@ -340,11 +338,11 @@ where
             self.get_dependencies(),
         ))
     }
-    fn get_blocks(&'b self) -> &'b Vec<Self::CB>;
+    fn get_blocks(&self) -> &Vec<Self::CB>;
     fn _new(
-        concepts: Arc<RwLock<HashMap<(Uuid, String), Concept<'a>>>>,
+        concepts: Arc<RwLock<HashMap<(Uuid, String), Concept>>>,
         constraints: LinkedHashMap<(Uuid, String), Arc<RwLock<C>>>,
-        ancestry: Arc<ConceptAncestry<'a>>,
+        ancestry: Arc<ConceptAncestry>,
         endpoints: EndpointConfig,
         ancestors: HashMap<(Uuid, String), Vec<AncestorRecord>>,
         topline_constraint_names: LinkedHashSet<String>,
@@ -356,12 +354,12 @@ where
             RwLock<
                 HashMap<
                     (Uuid, String),
-                    <<C as OuterConstraint<'a, 'b>>::TAncestry as Ancestry<'a>>::TConcept,
+                    <<C as OuterConstraint<'a>>::TAncestry as Ancestry>::TConcept,
                 >,
             >,
         >,
         ancestors: &HashMap<(Uuid, String), Vec<AncestorRecord>>,
-    ) -> Result<LinkedHashMap<(Uuid, String), Arc<RwLock<ConstraintState<'a, 'b, C>>>>> {
+    ) -> Result<LinkedHashMap<(Uuid, String), Arc<RwLock<ConstraintState<'a, C>>>>> {
         let mut states_map = LinkedHashMap::new();
         for (k, rw) in constraints {
             states_map.insert(
@@ -378,7 +376,7 @@ where
     fn remove_redundant_dependencies(
         raw_unsatisfied_constraints: &mut LinkedHashMap<
             (Uuid, String),
-            Arc<RwLock<ConstraintState<'a, 'b, C>>>,
+            Arc<RwLock<ConstraintState<'a, C>>>,
         >,
     ) {
         /* Remove redundant dependencies */
@@ -433,7 +431,7 @@ where
     fn remove_superfluous_dummy_tasks(
         raw_unsatisfied_constraints: &mut LinkedHashMap<
             (Uuid, String),
-            Arc<RwLock<ConstraintState<'a, 'b, C>>>,
+            Arc<RwLock<ConstraintState<'a, C>>>,
         >,
     ) -> Result<()> {
         /* Remove superfluous dummy tasks */
@@ -486,7 +484,7 @@ where
     fn remove_dangling_dummy_tasks(
         raw_unsatisfied_constraints: &mut LinkedHashMap<
             (Uuid, String),
-            Arc<RwLock<ConstraintState<'a, 'b, C>>>,
+            Arc<RwLock<ConstraintState<'a, C>>>,
         >,
     ) -> Result<()> {
         /* Remove dangling dummy tasks */
@@ -536,22 +534,22 @@ where
             RwLock<
                 HashMap<
                     (Uuid, String),
-                    <<C as OuterConstraint<'a, 'b>>::TAncestry as Ancestry<'a>>::TConcept,
+                    <<C as OuterConstraint<'a>>::TAncestry as Ancestry>::TConcept,
                 >,
             >,
         >,
         ancestors: &HashMap<(Uuid, String), Vec<AncestorRecord>>,
         _topline_constraint_names: LinkedHashSet<String>,
-    ) -> Result<ConstraintsBlockMap<'a, 'b, C>> {
+    ) -> Result<ConstraintsBlockMap<'a, C>> {
         let mut raw_unsatisfied_constraints: LinkedHashMap<
             (Uuid, String),
-            Arc<RwLock<ConstraintState<'a, 'b, C>>>,
+            Arc<RwLock<ConstraintState<'a, C>>>,
         > = Self::generate_constraint_states_map(constraints, concepts, ancestors)?;
         Self::remove_redundant_dependencies(&mut raw_unsatisfied_constraints);
         Self::remove_superfluous_dummy_tasks(&mut raw_unsatisfied_constraints)?;
         Self::remove_dangling_dummy_tasks(&mut raw_unsatisfied_constraints)?;
 
-        let mut unsatisfied_constraints: LinkedHashMap<_, _> = <<C as OuterConstraint<'a, 'b>>::TEnum as TConstraintEnum<'a, 'b>>::get_required_constraint_names()
+        let mut unsatisfied_constraints: LinkedHashMap<_, _> = <<C as OuterConstraint<'a>>::TEnum as TConstraintEnum<'a>>::get_required_constraint_names()
             .into_iter()
             .map(|(k, v)| (k, (v.into_iter().collect(), LinkedHashMap::new())))
             .collect();
