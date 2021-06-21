@@ -15,7 +15,7 @@ mod concept;
 // mod driver;
 // mod encoding;
 // mod endpoints;
-// mod error;
+mod error;
 // mod features;
 // mod flow;
 // mod header;
@@ -31,7 +31,7 @@ mod role;
 // mod storage_setup;
 // mod template;
 // mod universe;
-// mod user;
+mod user;
 // mod user_group;
 
 // pub use access_policy::*;
