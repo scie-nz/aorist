@@ -17,10 +17,10 @@ pub enum Role {
     GlobalPermissionsAdmin(GlobalPermissionsAdmin),
 }
 pub trait AoristConceptNew: PartialEq + Serialize + Debug {}
-pub struct AoristRef<T: AoristConceptNew>(Arc<T>);
+pub struct AoristRef<T: AoristConceptNew>(Arc<RwLock<T>>);
 impl<T: AoristConceptNew> PartialEq for AoristRef<T> {
     fn eq(&self, other: &Self) -> bool {
-        self.0.eq(&other.0)
+        self.0.read().unwrap().eq(&other.0.read().unwrap())
     }
 }
 impl<T: AoristConceptNew> Serialize for AoristRef<T> {
@@ -28,7 +28,7 @@ impl<T: AoristConceptNew> Serialize for AoristRef<T> {
     where
         S: Serializer,
     {
-        self.0.serialize(serializer)
+        self.0.read().unwrap().serialize(serializer)
     }
 }
 impl<'de, T: AoristConceptNew> Deserialize<'de> for AoristRef<T> 
@@ -36,7 +36,7 @@ where T: Deserialize<'de> {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where
         D: Deserializer<'de> {
         let d = T::deserialize(deserializer)?;
-        Ok(Self(Arc::new(d)))
+        Ok(Self(Arc::new(RwLock::new(d))))
     }
 }
 impl<T: AoristConceptNew> Clone for AoristRef<T> {
@@ -46,7 +46,7 @@ impl<T: AoristConceptNew> Clone for AoristRef<T> {
 }
 impl<T: AoristConceptNew> Debug for AoristRef<T> {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), std::fmt::Error> {
-        self.0.fmt(f)
+        self.0.read().unwrap().fmt(f)
     }
 }
 #[aorist2]
