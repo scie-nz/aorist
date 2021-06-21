@@ -26,6 +26,17 @@ pub struct User {
     #[constrainable2]
     roles: Option<Vec<Arc<Role>>>,
 }
+// pub struct WrappedConcept<'a, T> {
+//     pub inner: T,
+//     pub _phantom_lt: std::marker::PhantomData<&'a ()>,
+// }
+register_concept!(
+     Concept,
+     ConceptAncestry,
+     GlobalPermissionsAdmin,
+     Role,
+     User
+);
 
 // use crate::access_policy::*;
 // use crate::algorithms::*;

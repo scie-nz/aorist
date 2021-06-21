@@ -1149,11 +1149,12 @@ macro_rules! register_attribute {
 macro_rules! register_concept {
     ( $name:ident, $ancestry:ident, $($element: ident ),* ) => { paste::item! {
         #[derive(Clone)]
-        pub enum $name<'a> {
+        pub enum $name {
             $(
-                $element((&'a $element, usize, Option<(Uuid, String)>)),
+                $element((Arc<$element>, usize, Option<(Uuid, String)>)),
             )+
         }
+        /*
         $(
             impl <'a> [<CanBe $element>]<'a> for $name<'a> {
                 fn [<construct_ $element:snake:lower>](
@@ -1299,7 +1300,7 @@ macro_rules! register_concept {
                     )*
                 }
             }
-        }
+        }*/
     }
     }
 }
