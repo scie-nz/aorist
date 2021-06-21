@@ -231,7 +231,7 @@ impl Builder for StructBuilder {
 
         TokenStream::from(quote! { paste! {
 
-            impl <'a, T> std::convert::From<(
+            impl <T> std::convert::From<(
                 // struct name
                 &str,
                 // field name
@@ -241,26 +241,27 @@ impl Builder for StructBuilder {
                 // uuid
                 Option<Uuid>,
                 // wrapped reference
-                [<#struct_name Children>]<'a>
-            )> for crate::WrappedConcept<'a, T> where
+                [<#struct_name Children>]
+            )> for WrappedConcept<T> where
             #(
-                T: [<CanBe #types>]<'a>,
-            )* {
+                T: [<CanBe #types>],
+            )* 
+                T: Debug + Clone + Serialize + PartialEq,
+            {
                 fn from(
                     tpl: (
                         &str,
                         Option<&str>,
                         Option<usize>,
                         Option<Uuid>,
-                        [<#struct_name Children>]<'a>
+                        [<#struct_name Children>]
                     )
                 ) -> Self {
                     let (name, field, ix, uuid, children_enum) = tpl;
                     match children_enum {
                         #(
-                            [<#struct_name Children>]::#types(x) => crate::WrappedConcept{
+                            [<#struct_name Children>]::#types(x) => WrappedConcept{
                                 inner: T::[<construct_ #types:snake:lower>](x, ix, Some((uuid.unwrap(), name.to_string()))),
-                                _phantom_lt: std::marker::PhantomData,
                             },
                         )*
                         _ => panic!("_phantom arm should not be activated"),
@@ -806,12 +807,12 @@ impl Builder for StructBuilder {
                 }
             }
             impl ConceptEnum for [<#struct_name Children>] {}
-            pub trait [<CanBe #struct_name>] {
+            pub trait [<CanBe #struct_name>]: Debug + Clone + Serialize + PartialEq {
                 fn [<construct_ #struct_name:snake:lower>](
                     obj_ref: AoristRef<#struct_name>,
                     ix: Option<usize>,
                     id: Option<(Uuid, String)>
-                ) -> Self;
+                ) -> AoristRef<Self>;
             }
 
             impl AoristConcept for AoristRef<#struct_name> {

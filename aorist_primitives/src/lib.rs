@@ -1149,7 +1149,7 @@ macro_rules! register_attribute {
 #[macro_export]
 macro_rules! register_concept {
     ( $name:ident, $ancestry:ident, $($element: ident ),* ) => { paste::item! {
-        #[derive(Clone)]
+        #[derive(Clone, Debug, Serialize, PartialEq)]
         pub enum $name {
             $(
                 $element((AoristRef<$element>, usize, Option<(Uuid, String)>)),
@@ -1161,15 +1161,15 @@ macro_rules! register_concept {
                     obj_ref: AoristRef<$element>,
                     ix: Option<usize>,
                     id: Option<(Uuid, String)>
-                ) -> Self {
-                    $name::$element((
+                ) -> AoristRef<Self> {
+                    AoristRef(Arc::new(RwLock::new($name::$element((
                         obj_ref.clone(),
                         match ix {
                             Some(i) => i,
                             None => 0,
                         },
                         id,
-                    ))
+                    )))))
                }
             }
         )+

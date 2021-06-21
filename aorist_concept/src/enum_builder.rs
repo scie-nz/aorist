@@ -100,7 +100,7 @@ impl Builder for EnumBuilder {
     fn to_concept_children_token_stream(&self, enum_name: &Ident) -> TokenStream {
         let variant = &self.variant_idents;
         TokenStream::from(quote! { paste! {
-          impl <'a, T> std::convert::From<(
+          impl <T> std::convert::From<(
               // enum name
               &str,
               // field name
@@ -110,26 +110,27 @@ impl Builder for EnumBuilder {
               // uuid
               Option<Uuid>,
               // wrapped reference
-              &'a #enum_name
-          )> for crate::WrappedConcept<'a, T> where
+              #enum_name,
+          )> for WrappedConcept<T> where
           #(
-              T: [<CanBe #variant>]<'a>,
-          )* {
+              T: [<CanBe #variant>],
+          )* 
+              T: Debug + Clone + Serialize + PartialEq,
+          {
               fn from(
                   tpl: (
                       &str,
                       Option<&str>,
                       Option<usize>,
                       Option<Uuid>,
-                      &'a #enum_name,
+                      #enum_name,
                   )
               ) -> Self {
                   let (name, field, ix, uuid, children_enum) = tpl;
                   match children_enum {
                       #(
-                          #enum_name::#variant(x) => crate::WrappedConcept{
+                          #enum_name::#variant(x) => WrappedConcept{
                               inner: T::[<construct_ #variant:snake:lower>](x, ix, Some((uuid.unwrap(), name.to_string()))),
-                              _phantom_lt: std::marker::PhantomData,
                           },
                       )*
                       _ => panic!("_phantom arm should not be activated"),
@@ -170,12 +171,12 @@ impl Builder for EnumBuilder {
         let variant = &self.variant_idents;
         proc_macro::TokenStream::from(quote! { paste! {
           impl ConceptEnum for AoristRef<#enum_name> {}
-          pub trait [<CanBe #enum_name>] {
+          pub trait [<CanBe #enum_name>]: Debug + Clone + Serialize + PartialEq {
               fn [<construct_ #enum_name:snake:lower>] (
                   obj_ref: AoristRef<#enum_name>,
                   ix: Option<usize>,
                   id: Option<(Uuid, String)>
-              ) -> Self;
+              ) -> AoristRef<Self>;
           }
           impl #enum_name {
               

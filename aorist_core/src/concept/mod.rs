@@ -67,10 +67,10 @@ pub struct User {
     #[constrainable]
     roles: Option<Vec<AoristRef<Role>>>,
 }
-// pub struct WrappedConcept<'a, T> {
-//     pub inner: T,
-//     pub _phantom_lt: std::marker::PhantomData<&'a ()>,
-// }
+pub struct WrappedConcept<T> 
+where T: Debug + Clone + Serialize + PartialEq {
+     pub inner: AoristRef<T>,
+}
 register_concept!(Concept, ConceptAncestry, GlobalPermissionsAdmin, Role, User);
 
 // use crate::access_policy::*;
