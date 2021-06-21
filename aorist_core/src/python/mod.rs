@@ -1,6 +1,6 @@
 mod ast;
 mod code_block;
-mod constraint_block;
+//mod constraint_block;
 mod preamble;
 mod python_import;
 mod task;
@@ -18,8 +18,8 @@ use aorist_ast::{
 pub use ast::{
     BashPythonTask, ConstantPythonTask, NativePythonTask, PrestoPythonTask, RPythonTask,
 };
-pub use code_block::PythonBasedCodeBlock;
-pub use constraint_block::PythonBasedConstraintBlock;
+//pub use code_block::PythonBasedCodeBlock;
+//pub use constraint_block::PythonBasedConstraintBlock;
 pub use preamble::PythonPreamble;
 pub use python_import::PythonImport;
 pub use task::{ForLoopPythonBasedTask, PythonBasedTask, StandalonePythonBasedTask};

@@ -20,7 +20,7 @@ impl Preamble for PythonPreamble {
             .collect()
     }
 }
-impl<'a> PythonPreamble {
+impl PythonPreamble {
     pub fn new(body: String) -> PythonPreamble {
         let gil = Python::acquire_gil();
         let py = gil.python();
