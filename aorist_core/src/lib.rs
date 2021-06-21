@@ -17,7 +17,7 @@ mod concept;
 mod encoding;
 mod endpoints;
 mod error;
-// mod features;
+mod features;
 // mod flow;
 mod header;
 mod layout;
