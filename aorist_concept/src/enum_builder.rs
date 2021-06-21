@@ -230,4 +230,68 @@ impl Builder for EnumBuilder {
         }};
         return proc_macro::TokenStream::from(quoted);
     }
+    fn to_concept_token_stream2(&self, enum_name: &Ident) -> TokenStream {
+        let variant = &self.variant_idents;
+        proc_macro::TokenStream::from(quote! { paste! {
+          impl <'a> ConceptEnum<'a> for &'a #enum_name {}
+          pub trait [<CanBe #enum_name>]<'a> {
+              fn [<construct_ #enum_name:snake:lower>] (
+                  obj_ref: &'a #enum_name,
+                  ix: Option<usize>,
+                  id: Option<(Uuid, String)>
+              ) -> Self;
+          }
+          impl <'a> AoristConcept<'a> for #enum_name {
+            type TChildrenEnum = &'a #enum_name;
+            fn get_children(&'a self) -> Vec<(
+                // enum name
+                &str,
+                // field name
+                Option<&str>,
+                // ix
+                Option<usize>,
+                // uuid
+                Option<Uuid>,
+                &'a #enum_name
+            )> {
+                vec![(
+                    stringify!(#enum_name),
+                    None,
+                    None,
+                    Some(self.get_uuid()),
+                    &self
+                )]
+            }
+            fn get_tag(&self) -> Option<String> {
+                match self {
+                    #(
+                      #enum_name::#variant(x) => x.get_tag(),
+                    )*
+                }
+            }
+
+            fn get_uuid(&self) -> Uuid {
+              match self {
+                #(
+                  #enum_name::#variant(x) => x.get_uuid(),
+                )*
+              }
+            }
+            fn get_children_uuid(&self) -> Vec<Uuid> {
+              match self {
+                #(
+                  #enum_name::#variant(x) => x.get_children_uuid(),
+                )*
+              }
+            }
+            fn compute_uuids(&mut self) {
+              match self {
+                #(
+                  #enum_name::#variant(x) => x.compute_uuids(),
+                )*
+              }
+            }
+          }
+        }})
+    }
 }

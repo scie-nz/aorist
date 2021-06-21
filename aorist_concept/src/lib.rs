@@ -129,3 +129,32 @@ pub fn inner_object_new(input: TokenStream) -> TokenStream {
         _ => panic!("expected a struct with named fields or an enum"),
     }
 }
+#[proc_macro_attribute]
+pub fn aorist2(args: TokenStream, input: TokenStream) -> TokenStream {
+    let builder = RawConceptBuilder::new(vec![
+        "Constrainable",
+    ]);
+    builder.gen_new(args, input)
+}
+#[proc_macro_derive(Constrainable2, attributes(constrainable))]
+pub fn constrainable2(input: TokenStream) -> TokenStream {
+    let input = parse_macro_input!(input as DeriveInput);
+    match &input.data {
+        Data::Struct(DataStruct {
+            fields: Fields::Named(ref fields),
+            ..
+        }) => {
+            let struct_name = &input.ident;
+            let builder = StructBuilder::new(fields);
+            //builder.to_file(struct_name, "constrainables.txt");
+            builder.to_concept_token_stream(struct_name)
+        }
+        Data::Enum(DataEnum { variants, .. }) => {
+            let enum_name = &input.ident;
+            let builder = EnumBuilder::new(variants);
+            //builder.to_file(enum_name, "constraints.txt");
+            builder.to_concept_token_stream(enum_name)
+        }
+        _ => panic!("expected a struct with named fields or an enum"),
+    }
+}
