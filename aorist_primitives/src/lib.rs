@@ -4,6 +4,7 @@ mod concept;
 pub use concept::*;
 mod constraint;
 pub use constraint::*;
+use std::sync::{Arc};
 
 #[macro_export]
 macro_rules! register_ast_nodes {

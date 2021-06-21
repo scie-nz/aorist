@@ -917,7 +917,7 @@ impl Builder for StructBuilder {
                 ) -> Self;
             }
 
-
+            impl AoristConceptNew for #struct_name {}
             impl <'a> AoristConcept<'a> for #struct_name {
 
                 type TChildrenEnum = [<#struct_name Children>]<'a>;

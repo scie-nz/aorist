@@ -241,6 +241,7 @@ impl Builder for EnumBuilder {
                   id: Option<(Uuid, String)>
               ) -> Self;
           }
+          impl AoristConceptNew for #enum_name {}
           impl <'a> AoristConcept<'a> for #enum_name {
             type TChildrenEnum = &'a #enum_name;
             fn get_children(&'a self) -> Vec<(

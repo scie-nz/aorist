@@ -5,16 +5,49 @@ use std::convert::TryFrom;
 use std::sync::{Arc, RwLock};
 use tracing::debug;
 use uuid::Uuid;
-
-use serde::{Serialize, Deserialize};
+use std::fmt::{Debug, Formatter}; 
 use aorist_concept::{aorist2, Constrainable};
 use derivative::Derivative;
 use paste::paste;
+use serde::{Deserialize, Serialize, Serializer, Deserializer};
 #[aorist2]
 pub struct GlobalPermissionsAdmin {}
 #[aorist2]
 pub enum Role {
     GlobalPermissionsAdmin(GlobalPermissionsAdmin),
+}
+pub trait AoristConceptNew: PartialEq + Serialize + Debug {}
+pub struct AoristRef<T: AoristConceptNew>(Arc<T>);
+impl<T: AoristConceptNew> PartialEq for AoristRef<T> {
+    fn eq(&self, other: &Self) -> bool {
+        self.0.eq(&other.0)
+    }
+}
+impl<T: AoristConceptNew> Serialize for AoristRef<T> {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.0.serialize(serializer)
+    }
+}
+impl<'de, T: AoristConceptNew> Deserialize<'de> for AoristRef<T> 
+where T: Deserialize<'de> {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where
+        D: Deserializer<'de> {
+        let d = T::deserialize(deserializer)?;
+        Ok(Self(Arc::new(d)))
+    }
+}
+impl<T: AoristConceptNew> Clone for AoristRef<T> {
+    fn clone(&self) -> Self {
+        Self(self.0.clone())
+    }
+}
+impl<T: AoristConceptNew> Debug for AoristRef<T> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), std::fmt::Error> {
+        self.0.fmt(f)
+    }
 }
 #[aorist2]
 pub struct User {
@@ -24,19 +57,13 @@ pub struct User {
     phone: String,
     pub unixname: String,
     #[constrainable2]
-    roles: Option<Vec<Arc<Role>>>,
+    roles: Option<Vec<AoristRef<Role>>>,
 }
 // pub struct WrappedConcept<'a, T> {
 //     pub inner: T,
 //     pub _phantom_lt: std::marker::PhantomData<&'a ()>,
 // }
-register_concept!(
-     Concept,
-     ConceptAncestry,
-     GlobalPermissionsAdmin,
-     Role,
-     User
-);
+register_concept!(Concept, ConceptAncestry, GlobalPermissionsAdmin, Role, User);
 
 // use crate::access_policy::*;
 // use crate::algorithms::*;
@@ -64,7 +91,7 @@ register_concept!(
 //     pub inner: T,
 //     pub _phantom_lt: std::marker::PhantomData<&'a ()>,
 // }
-// 
+//
 // register_concept!(
 //     Concept,
 //     ConceptAncestry,

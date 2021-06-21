@@ -14,6 +14,7 @@ use syn::{parse_macro_input, Data, DataEnum, DataStruct, DeriveInput, Fields};
 mod keyword {
     syn::custom_keyword!(path);
 }
+use std::sync::Arc;
 
 #[proc_macro_derive(Constrainable, attributes(constrainable))]
 pub fn constrainable(input: TokenStream) -> TokenStream {
