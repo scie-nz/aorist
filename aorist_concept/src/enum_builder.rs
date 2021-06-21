@@ -254,7 +254,7 @@ impl Builder for EnumBuilder {
           }
           impl AoristConceptNew for AoristRef<#enum_name> {
               type TChildrenEnum = AoristRef<#enum_name>;
-              /*fn get_children(&self) -> Vec<(
+              fn get_children(&self) -> Vec<(
                   // enum name
                   &str,
                   // field name
@@ -270,9 +270,10 @@ impl Builder for EnumBuilder {
                       None,
                       None,
                       Some(self.get_uuid()),
-                      &self
+                      // clone of Arc<RwLock
+                      Self(self.0.clone()),
                   )]
-              }*/
+              }
               fn get_uuid(&self) -> Uuid {
                 match self.0.read() {
                    Ok(x) => x.get_uuid(),

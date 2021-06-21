@@ -15,7 +15,7 @@ use uuid::Uuid;
 pub trait AoristConceptNew {
     type TChildrenEnum: ConceptEnumNew;
     fn get_uuid(&self) -> Uuid;
-    /*fn get_children(
+    fn get_children(
         &self,
     ) -> Vec<(
         // struct name
@@ -28,7 +28,7 @@ pub trait AoristConceptNew {
         Option<Uuid>,
         // wrapped reference
         Self::TChildrenEnum,
-    )>;*/
+    )>;
 }
 pub struct AoristRef<T: PartialEq + Serialize + Debug + Clone>(Arc<RwLock<T>>);
 impl<T: PartialEq + Serialize + Debug + Clone> PartialEq for AoristRef<T> {
@@ -71,7 +71,7 @@ pub struct GlobalPermissionsAdmin {}
 pub enum Role {
     GlobalPermissionsAdmin(AoristRef<GlobalPermissionsAdmin>),
 }
-/*#[aorist2]
+#[aorist2]
 pub struct User {
     firstName: String,
     lastName: String,
@@ -80,12 +80,12 @@ pub struct User {
     pub unixname: String,
     #[constrainable2]
     roles: Option<Vec<AoristRef<Role>>>,
-}*/
+}
 // pub struct WrappedConcept<'a, T> {
 //     pub inner: T,
 //     pub _phantom_lt: std::marker::PhantomData<&'a ()>,
 // }
-//register_concept!(Concept, ConceptAncestry, GlobalPermissionsAdmin, Role, User);
+register_concept!(Concept, ConceptAncestry, GlobalPermissionsAdmin, Role, User);
 
 // use crate::access_policy::*;
 // use crate::algorithms::*;

@@ -934,7 +934,7 @@ impl Builder for StructBuilder {
                     }
                     panic!("Could not open object {} for reading.", stringify!(#struct_name));
                 }
-                /*fn get_children(&self) -> Vec<(
+                fn get_children(&self) -> Vec<(
                     // struct name
                     &str,
                     // field name
@@ -945,7 +945,7 @@ impl Builder for StructBuilder {
                     Option<Uuid>,
                     // wrapped reference
                     [<#struct_name Children>],
-                )> {vec![]}*/
+                )> {vec![]}
             }
             /*impl <'a> AoristConcept<'a> for #struct_name {
 
