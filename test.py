@@ -1,6 +1,6 @@
 import inspect
 from aorist.target.debug.libaorist import (
-    PushshiftAPILocation, ConceptAncestry
+    PushshiftAPILocation, ConceptAncestry, S3Location,
 )
 from aorist_constraint.target.debug.libaorist_constraint import (
     DownloadDataFromRemotePushshiftAPILocationToNewlineDelimitedJSON
@@ -18,6 +18,8 @@ def aorist(programs, constraint, entrypoint, args):
     return inner
 
 programs = {}
+
+print(S3Location)
 
 @aorist(
     programs,

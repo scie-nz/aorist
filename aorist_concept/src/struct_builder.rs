@@ -721,6 +721,8 @@ impl Builder for StructBuilder {
             &self.option_vec_types,
             &self.map_value_types,
         );
+        let (unconstrainable_name, unconstrainable_type) =
+            extract_names_and_types(&self.unconstrainable);
         let bare_type_deref = bare_type.iter().map(|x| extract_type_from_aorist_ref(x)).collect::<Vec<_>>(); 
         let vec_type_deref = vec_type.iter().map(|x| extract_type_from_aorist_ref(x)).collect::<Vec<_>>(); 
         let option_vec_type_deref = option_vec_type.iter().map(|x| extract_type_from_aorist_ref(x)).collect::<Vec<_>>(); 
@@ -739,8 +741,62 @@ impl Builder for StructBuilder {
             #[pyo3::prelude::pyclass(name=#py_class_name)]
             #[derive(Clone, PartialEq)]
             pub struct [<Py #struct_name>] {
-                inner: AoristRef<#struct_name>,
+                pub inner: AoristRef<#struct_name>,
             }
+            #[cfg(feature = "python")]
+            #[pyo3::prelude::pymethods]
+            impl [<Py #struct_name>] {
+                pub fn new(
+                    #(#bare_ident: [<Py #bare_type_deref>] ,)*
+                    #(#vec_ident: Vec<[<Py #vec_type_deref>]> ,)*
+                    #(#option_ident: Option<[<Py #option_type_deref>]> ,)*
+                    #(#option_vec_ident: Option<Vec<[<Py #option_vec_type_deref>]>> ,)*
+                    #(
+                      #map_ident: std::collections::BTreeMap<
+                        String, [<Py #map_value_type_deref>]
+                      >,
+                    )*
+                    #(#unconstrainable_name: #unconstrainable_type,)*
+                    tag: Option<String>,
+                ) -> Self {
+                    let obj = #struct_name {
+                        #(
+                            #bare_ident: #bare_ident.inner.clone(),
+                        )*
+                        #(
+                            #vec_ident: #vec_ident.iter().map(
+                                |x| x.inner.clone()
+                            ).collect(),
+                        )*
+                        #(
+                            #option_ident: #option_ident.and_then(
+                                |x| Some(x.inner.clone())
+                            ),
+                        )*
+                        #(
+                            #option_vec_ident: #option_vec_ident.and_then(
+                                |x| Some(x.iter().map(
+                                    |y| y.inner.clone()
+                                ).collect())
+                            ),
+                        )*
+                        #(
+                            #map_ident: #map_ident.iter().map(
+                                |(k, v)| (k.clone(), v.inner.clone())
+                            ).collect(),
+                        )*
+                        #(
+                            #unconstrainable_name,
+                        )*
+                        tag
+                    };
+                    let inner = AoristRef(Arc::new(RwLock::new(
+                        obj
+                    )));
+                    Self { inner }
+                }
+            }
+
             impl #struct_name {
                 pub fn get_uuid(&self) -> Option<Uuid> {
                     self.uuid.clone()
