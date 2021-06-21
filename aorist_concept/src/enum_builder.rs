@@ -251,6 +251,13 @@ impl Builder for EnumBuilder {
                       )*
                   }
               }
+              fn get_tag(&self) -> Option<String> {
+                  match self {
+                      #(
+                        #enum_name::#variant(x) => x.get_tag(),
+                      )*
+                  }
+              }
           }
           impl AoristConceptNew for AoristRef<#enum_name> {
               type TChildrenEnum = AoristRef<#enum_name>;
@@ -280,35 +287,14 @@ impl Builder for EnumBuilder {
                   _ => panic!("Could not open for reading.")
                 }
               }
+              fn get_tag(&self) -> Option<String> {
+                  match self.0.read() {
+                     Ok(x) => x.get_tag(),
+                    _ => panic!("Could not open for reading.")
+                  }
+              }
           }
           /*impl <'a> AoristConcept<'a> for #enum_name {
-            type TChildrenEnum = &'a #enum_name;
-            fn get_children(&'a self) -> Vec<(
-                // enum name
-                &str,
-                // field name
-                Option<&str>,
-                // ix
-                Option<usize>,
-                // uuid
-                Option<Uuid>,
-                &'a #enum_name
-            )> {
-                vec![(
-                    stringify!(#enum_name),
-                    None,
-                    None,
-                    Some(self.get_uuid()),
-                    &self
-                )]
-            }
-            fn get_tag(&self) -> Option<String> {
-                match self {
-                    #(
-                      #enum_name::#variant(x) => x.get_tag(),
-                    )*
-                }
-            }
 
             fn get_children_uuid(&self) -> Vec<Uuid> {
               match self {

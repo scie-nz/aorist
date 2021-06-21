@@ -15,6 +15,7 @@ use uuid::Uuid;
 pub trait AoristConceptNew {
     type TChildrenEnum: ConceptEnumNew;
     fn get_uuid(&self) -> Option<Uuid>;
+    fn get_tag(&self) -> Option<String>;
     fn get_children(
         &self,
     ) -> Vec<(

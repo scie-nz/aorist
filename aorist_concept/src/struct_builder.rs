@@ -907,6 +907,9 @@ impl Builder for StructBuilder {
                 pub fn get_uuid(&self) -> Option<Uuid> {
                     self.uuid.clone()
                 }
+                fn get_tag(&self) -> Option<String> {
+                    self.tag.clone()
+                }
                 #(
                     pub fn #bare_ident(&self) -> #bare_type {
                         self.#bare_ident.clone()
@@ -959,6 +962,13 @@ impl Builder for StructBuilder {
                     let read_lock = self.0.read().unwrap();
                     if let Ok(ref x) = self.0.read() {
                         return x.get_uuid();
+                    }
+                    panic!("Could not open object {} for reading.", stringify!(#struct_name));
+                }
+                fn get_tag(&self) -> Option<String> {
+                    let read_lock = self.0.read().unwrap();
+                    if let Ok(ref x) = self.0.read() {
+                        return x.get_tag();
                     }
                     panic!("Could not open object {} for reading.", stringify!(#struct_name));
                 }
@@ -1035,88 +1045,6 @@ impl Builder for StructBuilder {
                 }
             }
             /*impl <'a> AoristConcept<'a> for #struct_name {
-
-                type TChildrenEnum = [<#struct_name Children>]<'a>;
-
-                fn get_tag(&self) -> Option<String> {
-                    self.tag.clone()
-                }
-                fn get_children(&'a self) -> Vec<(
-                    // struct name
-                    &str,
-                    // field name
-                    Option<&str>,
-                    // ix
-                    Option<usize>,
-                    // uuid
-                    Option<Uuid>,
-                    // wrapped reference
-                    [<#struct_name Children>]<'a>,
-                )> {
-                    let mut children: Vec<_> = Vec::new();
-                    #(
-                        children.push((
-                            stringify!(#struct_name),
-                            Some(stringify!(#bare_ident)),
-                            None,
-                            self.uuid,
-                            [<#struct_name Children>]::#bare_type(&self.#bare_ident)
-                        ));
-                    )*
-                    #(
-                        if let Some(ref c) = self.#option_ident {
-                            children.push((
-                                stringify!(#struct_name),
-                                Some(stringify!(#option_ident)),
-                                None,
-                                self.uuid,
-                                [<#struct_name Children>]::#option_type(c)
-                            ));
-                        }
-                    )*
-                    #(
-                        for (ix, elem) in self.#vec_ident.iter().enumerate() {
-                            children.push((
-                                stringify!(#struct_name),
-                                Some(stringify!(#vec_ident)),
-                                Some(ix),
-                                self.uuid,
-                                [<#struct_name Children>]::#vec_type(elem)
-                            ));
-                        }
-                    )*
-                    #(
-                        if let Some(ref v) = self.#option_vec_ident {
-                            for (ix, elem) in v.iter().enumerate() {
-                                children.push((
-                                    stringify!(#struct_name),
-                                    Some(stringify!(#option_vec_ident)),
-                                    Some(ix),
-                                    self.uuid,
-                                    [<#struct_name Children>]::#option_vec_type(elem)
-                                ));
-                            }
-                        }
-                    )*
-                    #(
-                        for elem in self.#map_ident.values() {
-                            children.push((
-                                stringify!(#struct_name),
-                                Some(stringify!(#map_ident)),
-                                None,
-                                self.uuid,
-                                [<#struct_name Children>]::#map_value_type(elem)
-                            ));
-                        }
-                    )*
-                    children
-                }
-                fn get_uuid(&self) -> Uuid {
-                    if let Some(uuid) = self.uuid {
-                        return uuid.clone();
-                    }
-                    panic!("Uuid was not set on object of type {}.", stringify!(#struct_name));
-                }
                 fn get_children_uuid(&self) -> Vec<Uuid> {
                     self.get_children().iter().map(|x| x.4.get_uuid()).collect()
                 }
