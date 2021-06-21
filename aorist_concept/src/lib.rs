@@ -15,28 +15,6 @@ mod keyword {
     syn::custom_keyword!(path);
 }
 
-#[proc_macro_derive(Constrainable, attributes(constrainable))]
-pub fn constrainable(input: TokenStream) -> TokenStream {
-    let input = parse_macro_input!(input as DeriveInput);
-    match &input.data {
-        Data::Struct(DataStruct {
-            fields: Fields::Named(ref fields),
-            ..
-        }) => {
-            let struct_name = &input.ident;
-            let builder = StructBuilder::new(fields);
-            //builder.to_file(struct_name, "constrainables.txt");
-            builder.to_concept_token_stream(struct_name)
-        }
-        Data::Enum(DataEnum { variants, .. }) => {
-            let enum_name = &input.ident;
-            let builder = EnumBuilder::new(variants);
-            //builder.to_file(enum_name, "constraints.txt");
-            builder.to_concept_token_stream(enum_name)
-        }
-        _ => panic!("expected a struct with named fields or an enum"),
-    }
-}
 #[proc_macro_derive(ConstrainableWithChildren)]
 pub fn constrainable_with_children(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
@@ -96,14 +74,6 @@ pub fn aorist_concept(args: TokenStream, input: TokenStream) -> TokenStream {
     ]);
     builder.gen(args, input)
 }
-#[proc_macro_attribute]
-pub fn aorist(args: TokenStream, input: TokenStream) -> TokenStream {
-    let builder = RawConceptBuilder::new(vec![
-        "Constrainable",
-        "aorist_concept::ConstrainableWithChildren",
-    ]);
-    builder.gen_new(args, input)
-}
 #[proc_macro_derive(InnerObjectNew, attributes(py_default))]
 pub fn inner_object_new(input: TokenStream) -> TokenStream {
     let ast = parse_macro_input!(input as DeriveInput);
@@ -126,6 +96,37 @@ pub fn inner_object_new(input: TokenStream) -> TokenStream {
             python_stream
         }
 
+        _ => panic!("expected a struct with named fields or an enum"),
+    }
+}
+#[proc_macro_attribute]
+pub fn aorist(args: TokenStream, input: TokenStream) -> TokenStream {
+    let builder = RawConceptBuilder::new(vec![
+        "Constrainable",
+        "aorist_concept::ConstrainableWithChildren",
+    ]);
+    builder.gen_new(args, input)
+}
+
+#[proc_macro_derive(Constrainable, attributes(constrainable))]
+pub fn constrainable(input: TokenStream) -> TokenStream {
+    let input = parse_macro_input!(input as DeriveInput);
+    match &input.data {
+        Data::Struct(DataStruct {
+            fields: Fields::Named(ref fields),
+            ..
+        }) => {
+            let struct_name = &input.ident;
+            let builder = StructBuilder::new(fields);
+            //builder.to_file(struct_name, "constrainables.txt");
+            builder.to_concept_token_stream(struct_name)
+        }
+        Data::Enum(DataEnum { variants, .. }) => {
+            let enum_name = &input.ident;
+            let builder = EnumBuilder::new(variants);
+            //builder.to_file(enum_name, "constraints.txt");
+            builder.to_concept_token_stream(enum_name)
+        }
         _ => panic!("expected a struct with named fields or an enum"),
     }
 }

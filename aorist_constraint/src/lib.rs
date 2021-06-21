@@ -1,8 +1,9 @@
 use anyhow::{Context, Result};
-use aorist_core::{AoristConcept, Concept, ConceptAncestry, Dialect, ParameterTuple, Program};
-use aorist_primitives::{define_constraint, register_constraint_new};
-use aorist_primitives::{
-    ConstraintBuilder, ConstraintEnum, ConstraintSatisfactionBase, OuterConstraint, TAoristObject,
+use aorist_core::{AoristConcept, Concept, ConceptAncestry, Dialect, ParameterTuple, Program, AoristRef};
+use aorist_primitives::{define_constraint, register_constraint_new, TAoristObject,
+};
+use aorist_core::{
+    ConstraintBuilder, ConstraintEnum, ConstraintSatisfactionBase, OuterConstraint, 
     TConstraint, TConstraintEnum, TBuilder,
 };
 use maplit::hashmap;
@@ -19,7 +20,7 @@ use pyo3::types::{PyString, PyFunction, PyDict};
 use aorist_util::init_logging;
 
 include!(concat!(env!("OUT_DIR"), "/constraints.rs"));
-impl<'b> ConstraintEnum<'b> for AoristConstraint {}
+impl<'a> ConstraintEnum<'a> for AoristConstraint {}
 
 #[derive(Serialize, Deserialize)]
 pub struct Constraint {
@@ -29,12 +30,10 @@ pub struct Constraint {
     pub root: String,
     pub requires: Option<Vec<String>>,
 }
-impl<'a, 'b> OuterConstraint<'a, 'b> for Constraint
-where
-    'a: 'b,
+impl<'a> OuterConstraint<'a> for Constraint
 {
     type TEnum = AoristConstraint;
-    type TAncestry = ConceptAncestry<'a>;
+    type TAncestry = ConceptAncestry;
 
     fn get_uuid(&self) -> Result<Uuid> {
         self.inner("get_uuid()")?.get_uuid()

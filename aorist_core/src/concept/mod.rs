@@ -1,10 +1,76 @@
 pub use crate::universe::*;
+use aorist_concept::{aorist, Constrainable};
 pub use aorist_primitives::{register_concept, Ancestry, AoristConcept, ConceptEnum, TConceptEnum};
-use std::collections::HashMap;
+use derivative::Derivative;
+use paste::paste;
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use std::collections::{BTreeSet, HashMap};
 use std::convert::TryFrom;
+use std::fmt::{Debug, Formatter};
+use std::hash::{Hash, Hasher};
 use std::sync::{Arc, RwLock};
 use tracing::debug;
 use uuid::Uuid;
+#[cfg(feature = "python")]
+use pyo3::prelude::*;
+
+pub struct AoristRef<T: PartialEq + Serialize + Debug + Clone>(pub Arc<RwLock<T>>);
+
+#[cfg(feature = "python")]
+impl <'a, T: PartialEq + Serialize + Debug + Clone + FromPyObject<'a>> FromPyObject<'a> for AoristRef<T> {
+    fn extract(ob: &'a PyAny) -> PyResult<Self> {
+        Ok(AoristRef(Arc::new(RwLock::new(T::extract(ob)?))))
+    }
+}
+
+impl<T: PartialEq + Serialize + Debug + Clone> PartialEq for AoristRef<T> {
+    fn eq(&self, other: &Self) -> bool {
+        self.0.read().unwrap().eq(&other.0.read().unwrap())
+    }
+}
+impl<T: PartialEq + Serialize + Debug + Clone> Serialize for AoristRef<T> {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.0.read().unwrap().serialize(serializer)
+    }
+}
+impl<'de, T: Deserialize<'de> + PartialEq + Serialize + Debug + Clone> Deserialize<'de>
+    for AoristRef<T>
+{
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let d = T::deserialize(deserializer)?;
+        Ok(Self(Arc::new(RwLock::new(d))))
+    }
+}
+impl<T: Clone + Debug + Serialize + PartialEq> Clone for AoristRef<T> {
+    fn clone(&self) -> Self {
+        Self(self.0.clone())
+    }
+}
+impl<T: Debug + Clone + Serialize + PartialEq> Debug for AoristRef<T> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), std::fmt::Error> {
+        self.0.read().unwrap().fmt(f)
+    }
+}
+pub struct WrappedConcept<T>
+where
+    T: Debug + Clone + Serialize + PartialEq,
+{
+    pub inner: AoristRef<T>,
+}
+impl<T: Debug + Clone + Serialize + PartialEq> Hash for AoristRef<T>
+where
+    T: Hash,
+{
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.0.read().unwrap().hash(state);
+    }
+}
 
 use crate::access_policy::*;
 use crate::algorithms::*;
@@ -28,11 +94,11 @@ use crate::storage_setup::*;
 use crate::template::*;
 use crate::user::*;
 use crate::user_group::*;
-pub struct WrappedConcept<'a, T> {
-    pub inner: T,
-    pub _phantom_lt: std::marker::PhantomData<&'a ()>,
-}
-
+// pub struct WrappedConcept<'a, T> {
+//     pub inner: T,
+//     pub _phantom_lt: std::marker::PhantomData<&'a ()>,
+// }
+//
 register_concept!(
     Concept,
     ConceptAncestry,

@@ -16,29 +16,31 @@ pub use postgres::*;
 pub use presto::*;
 pub use ranger::*;
 
-use crate::{AoristConcept, ConceptEnum};
+use crate::concept::{AoristRef, WrappedConcept};
+use aorist_primitives::{AoristConcept, ConceptEnum};
 use aorist_concept::{aorist, Constrainable};
 use derivative::Derivative;
 use paste::paste;
 use serde::{Deserialize, Serialize};
+use std::fmt::Debug;
 use uuid::Uuid;
 
 #[aorist(derivative(Hash))]
 pub struct EndpointConfig {
     #[constrainable]
-    pub presto: Option<PrestoConfig>,
+    pub presto: Option<AoristRef<PrestoConfig>>,
     #[constrainable]
-    pub alluxio: Option<AlluxioConfig>,
+    pub alluxio: Option<AoristRef<AlluxioConfig>>,
     #[constrainable]
-    pub ranger: Option<RangerConfig>,
+    pub ranger: Option<AoristRef<RangerConfig>>,
     #[constrainable]
-    pub gitea: Option<GiteaConfig>,
+    pub gitea: Option<AoristRef<GiteaConfig>>,
     #[constrainable]
-    pub minio: Option<MinioConfig>,
+    pub minio: Option<AoristRef<MinioConfig>>,
     #[constrainable]
-    pub postgres: Option<PostgresConfig>,
+    pub postgres: Option<AoristRef<PostgresConfig>>,
     #[constrainable]
-    pub gcp: Option<GCPConfig>,
+    pub gcp: Option<AoristRef<GCPConfig>>,
     #[constrainable]
-    pub aws: Option<AWSConfig>,
+    pub aws: Option<AoristRef<AWSConfig>>,
 }

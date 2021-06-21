@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 use crate::access_policy::*;
 use crate::asset::*;
-use crate::concept::{AoristConcept, ConceptEnum};
+use crate::concept::{AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
 use crate::storage_setup::*;
 use crate::template::*;
 use aorist_concept::{aorist, Constrainable};
@@ -11,6 +11,7 @@ use linked_hash_map::LinkedHashMap;
 use paste::paste;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
+use std::fmt::Debug;
 use uuid::Uuid;
 
 #[aorist]
@@ -19,15 +20,15 @@ pub struct DataSet {
     pub description: String,
     pub source_path: String,
     #[constrainable]
-    pub access_policies: Vec<AccessPolicy>,
+    pub access_policies: Vec<AoristRef<AccessPolicy>>,
     #[constrainable]
-    pub datum_templates: Vec<DatumTemplate>,
+    pub datum_templates: Vec<AoristRef<DatumTemplate>>,
     #[constrainable]
-    pub assets: BTreeMap<String, Asset>,
+    pub assets: BTreeMap<String, AoristRef<Asset>>,
 }
 
 impl DataSet {
-    pub fn get_assets(&self) -> Vec<Asset> {
+    pub fn get_assets(&self) -> Vec<AoristRef<Asset>> {
         self.assets
             .values()
             .collect::<Vec<_>>()
@@ -36,13 +37,16 @@ impl DataSet {
             .collect()
     }
 
-    pub fn get_templates(&self) -> Vec<DatumTemplate> {
+    pub fn get_templates(&self) -> Vec<AoristRef<DatumTemplate>> {
         self.datum_templates.clone()
     }
 
-    pub fn get_template_for_asset<T: TAsset>(&self, asset: &T) -> Result<DatumTemplate, String> {
+    pub fn get_template_for_asset<T: TAsset>(
+        &self,
+        asset: &T,
+    ) -> Result<AoristRef<DatumTemplate>, String> {
         let schema = asset.get_schema();
-        let template_name = schema.get_datum_template_name().unwrap();
+        let template_name = schema.0.read().unwrap().get_datum_template_name().unwrap();
         let mapped_templates = self.get_mapped_datum_templates();
         let template = mapped_templates.get(&template_name);
         match template {
@@ -55,7 +59,7 @@ impl DataSet {
         }
     }
 
-    pub fn get_asset(&self, name: String) -> Result<Asset, String> {
+    pub fn get_asset(&self, name: String) -> Result<AoristRef<Asset>, String> {
         if let Some(asset) = self.assets.get(&name) {
             return Ok(asset.clone());
         }
@@ -65,10 +69,10 @@ impl DataSet {
     // TODO: should reference identifier tuple
     pub fn get_source_assets(
         &self,
-        setup: &ComputedFromLocalData,
-    ) -> Result<BTreeMap<String, Asset>, String> {
+        setup: AoristRef<ComputedFromLocalData>,
+    ) -> Result<BTreeMap<String, AoristRef<Asset>>, String> {
         let mut assets = BTreeMap::new();
-        for name in setup.source_asset_names.values() {
+        for name in setup.0.read().unwrap().source_asset_names.values() {
             assets.insert(name.clone(), self.get_asset(name.clone())?);
         }
         Ok(assets)
@@ -82,14 +86,14 @@ impl TAoristObject for DataSet {
 }
 
 pub trait TDataSet {
-    fn get_mapped_datum_templates(&self) -> LinkedHashMap<String, DatumTemplate>;
+    fn get_mapped_datum_templates(&self) -> LinkedHashMap<String, AoristRef<DatumTemplate>>;
 }
 
 impl TDataSet for DataSet {
-    fn get_mapped_datum_templates(&self) -> LinkedHashMap<String, DatumTemplate> {
+    fn get_mapped_datum_templates(&self) -> LinkedHashMap<String, AoristRef<DatumTemplate>> {
         self.datum_templates
             .iter()
-            .map(|x| (x.get_name().clone(), x.clone()))
+            .map(|x| (x.0.read().unwrap().get_name().clone(), x.clone()))
             .collect()
     }
 }

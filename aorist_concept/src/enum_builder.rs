@@ -100,7 +100,7 @@ impl Builder for EnumBuilder {
     fn to_concept_children_token_stream(&self, enum_name: &Ident) -> TokenStream {
         let variant = &self.variant_idents;
         TokenStream::from(quote! { paste! {
-          impl <'a, T> std::convert::From<(
+          impl <T> std::convert::From<(
               // enum name
               &str,
               // field name
@@ -110,95 +110,75 @@ impl Builder for EnumBuilder {
               // uuid
               Option<Uuid>,
               // wrapped reference
-              &'a #enum_name
-          )> for crate::WrappedConcept<'a, T> where
+              #enum_name,
+          )> for WrappedConcept<T> where
           #(
-              T: [<CanBe #variant>]<'a>,
-          )* {
+              T: [<CanBe #variant>],
+          )* 
+              T: Debug + Clone + Serialize + PartialEq,
+          {
               fn from(
                   tpl: (
                       &str,
                       Option<&str>,
                       Option<usize>,
                       Option<Uuid>,
-                      &'a #enum_name,
+                      #enum_name,
                   )
               ) -> Self {
                   let (name, field, ix, uuid, children_enum) = tpl;
                   match children_enum {
                       #(
-                          #enum_name::#variant(x) => crate::WrappedConcept{
-                              inner: T::[<construct_ #variant:snake:lower>](x, ix, Some((uuid.unwrap(), name.to_string()))),
-                              _phantom_lt: std::marker::PhantomData,
+                          #enum_name::#variant(ref x) => WrappedConcept{
+                              inner: T::[<construct_ #variant:snake:lower>](x.clone(), ix, Some((uuid.unwrap(), name.to_string()))),
                           },
                       )*
                       _ => panic!("_phantom arm should not be activated"),
                   }
               }
           }
-        }})
-    }
-    fn to_concept_token_stream(&self, enum_name: &Ident) -> TokenStream {
-        let variant = &self.variant_idents;
-        proc_macro::TokenStream::from(quote! { paste! {
-          impl <'a> ConceptEnum<'a> for &'a #enum_name {}
-          pub trait [<CanBe #enum_name>]<'a> {
-              fn [<construct_ #enum_name:snake:lower>] (
-                  obj_ref: &'a #enum_name,
-                  ix: Option<usize>,
-                  id: Option<(Uuid, String)>
-              ) -> Self;
-          }
-          impl <'a> AoristConcept<'a> for #enum_name {
-            type TChildrenEnum = &'a #enum_name;
-            fn get_children(&'a self) -> Vec<(
-                // enum name
-                &str,
-                // field name
-                Option<&str>,
-                // ix
-                Option<usize>,
-                // uuid
-                Option<Uuid>,
-                &'a #enum_name
-            )> {
-                vec![(
-                    stringify!(#enum_name),
-                    None,
-                    None,
-                    Some(self.get_uuid()),
-                    &self
-                )]
-            }
-            fn get_tag(&self) -> Option<String> {
-                match self {
-                    #(
-                      #enum_name::#variant(x) => x.get_tag(),
-                    )*
-                }
-            }
-
-            fn get_uuid(&self) -> Uuid {
-              match self {
-                #(
-                  #enum_name::#variant(x) => x.get_uuid(),
-                )*
+          impl <T> std::convert::From<(
+              // enum name
+              &str,
+              // field name
+              Option<&str>,
+              // ix
+              Option<usize>,
+              // uuid
+              Option<Uuid>,
+              // wrapped reference
+              AoristRef<#enum_name>,
+          )> for WrappedConcept<T> where
+          #(
+              T: [<CanBe #variant>],
+          )* 
+              T: Debug + Clone + Serialize + PartialEq,
+          {
+              fn from(
+                  tpl: (
+                      &str,
+                      Option<&str>,
+                      Option<usize>,
+                      Option<Uuid>,
+                      AoristRef<#enum_name>,
+                  )
+              ) -> Self {
+                  let (name, field, ix, uuid, children_enum) = tpl;
+                  let read = children_enum.0.read();
+                  match read {
+                      Ok(y) => match *y {
+                          #(
+                              #enum_name::#variant(ref x) => WrappedConcept{
+                                  inner: T::[<construct_ #variant:snake:lower>](
+                                      x.clone(), ix, Some((uuid.unwrap(), name.to_string()))
+                                  ),
+                              },
+                          )*
+                          _ => panic!("_phantom arm should not be activated"),
+                      },
+                      _ => panic!("problem reading."),
+                  }
               }
-            }
-            fn get_children_uuid(&self) -> Vec<Uuid> {
-              match self {
-                #(
-                  #enum_name::#variant(x) => x.get_children_uuid(),
-                )*
-              }
-            }
-            fn compute_uuids(&mut self) {
-              match self {
-                #(
-                  #enum_name::#variant(x) => x.compute_uuids(),
-                )*
-              }
-            }
           }
         }})
     }
@@ -229,5 +209,99 @@ impl Builder for EnumBuilder {
             }
         }};
         return proc_macro::TokenStream::from(quoted);
+    }
+    fn to_concept_token_stream(&self, enum_name: &Ident) -> TokenStream {
+        let variant = &self.variant_idents;
+        proc_macro::TokenStream::from(quote! { paste! {
+          impl ConceptEnum for AoristRef<#enum_name> {}
+          pub trait [<CanBe #enum_name>]: Debug + Clone + Serialize + PartialEq {
+              fn [<construct_ #enum_name:snake:lower>] (
+                  obj_ref: AoristRef<#enum_name>,
+                  ix: Option<usize>,
+                  id: Option<(Uuid, String)>
+              ) -> AoristRef<Self>;
+          }
+          impl #enum_name {
+              
+              pub fn get_uuid(&self) -> Option<Uuid> {
+                  match &self {
+                      #(
+                        #enum_name::#variant(x) => x.get_uuid(), 
+                      )*
+                  }
+              }
+              fn get_tag(&self) -> Option<String> {
+                  match self {
+                      #(
+                        #enum_name::#variant(x) => x.get_tag(),
+                      )*
+                  }
+              }
+              fn compute_uuids(&self) {
+                  match self {
+                      #(
+                        #enum_name::#variant(x) => x.compute_uuids(),
+                      )*
+                  }
+              }
+              fn get_children_uuid(&self) -> Vec<Uuid> {
+                  match self {
+                      #(
+                          #enum_name::#variant(x) => {
+                              let t: AoristRef<#variant> = x.clone();
+                              t.get_children_uuid()
+                          },
+                      )*
+                  }
+              }
+          }
+          impl AoristConcept for AoristRef<#enum_name> {
+              type TChildrenEnum = AoristRef<#enum_name>;
+              fn get_children(&self) -> Vec<(
+                  // enum name
+                  &str,
+                  // field name
+                  Option<&str>,
+                  // ix
+                  Option<usize>,
+                  // uuid
+                  Option<Uuid>,
+                  AoristRef<#enum_name>,
+              )> {
+                  vec![(
+                      stringify!(#enum_name),
+                      None,
+                      None,
+                      self.get_uuid(),
+                      // clone of Arc<RwLock
+                      Self(self.0.clone()),
+                  )]
+              }
+              fn get_uuid(&self) -> Option<Uuid> {
+                match self.0.read() {
+                   Ok(x) => x.get_uuid(),
+                  _ => panic!("Could not open for reading.")
+                }
+              }
+              fn get_tag(&self) -> Option<String> {
+                  match self.0.read() {
+                     Ok(x) => x.get_tag(),
+                    _ => panic!("Could not open for reading.")
+                  }
+              }
+              fn get_children_uuid(&self) -> Vec<Uuid> {
+                  match self.0.read() {
+                     Ok(x) => x.get_children_uuid(),
+                    _ => panic!("Could not open for reading.")
+                  }
+              }
+              fn compute_uuids(&self) {
+                  match self.0.read() {
+                    Ok(mut x) => x.compute_uuids(),
+                    _ => panic!("Could not open for reading.")
+                  }
+              }
+          }
+        }})
     }
 }

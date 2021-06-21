@@ -8,6 +8,7 @@ use std::io::prelude::*;
 use syn::{Field, FieldsNamed, Meta, Type};
 use type_macro_helpers::{
     extract_type_from_map, extract_type_from_option, extract_type_from_vector,
+    extract_type_from_aorist_ref,
 };
 mod keyword {
     syn::custom_keyword!(path);
@@ -71,6 +72,7 @@ impl StructBuilder {
             .chain(self.option_types.iter())
             .chain(self.option_vec_types.iter())
             .chain(self.map_value_types.iter())
+            .map(|x| extract_type_from_aorist_ref(x).unwrap()) 
             .collect::<LinkedHashSet<_>>()
             .into_iter()
             .collect()
@@ -229,7 +231,7 @@ impl Builder for StructBuilder {
 
         TokenStream::from(quote! { paste! {
 
-            impl <'a, T> std::convert::From<(
+            impl <T> std::convert::From<(
                 // struct name
                 &str,
                 // field name
@@ -239,201 +241,31 @@ impl Builder for StructBuilder {
                 // uuid
                 Option<Uuid>,
                 // wrapped reference
-                [<#struct_name Children>]<'a>
-            )> for crate::WrappedConcept<'a, T> where
+                [<#struct_name Children>]
+            )> for WrappedConcept<T> where
             #(
-                T: [<CanBe #types>]<'a>,
-            )* {
+                T: [<CanBe #types>],
+            )* 
+                T: Debug + Clone + Serialize + PartialEq,
+            {
                 fn from(
                     tpl: (
                         &str,
                         Option<&str>,
                         Option<usize>,
                         Option<Uuid>,
-                        [<#struct_name Children>]<'a>
+                        [<#struct_name Children>]
                     )
                 ) -> Self {
                     let (name, field, ix, uuid, children_enum) = tpl;
                     match children_enum {
                         #(
-                            [<#struct_name Children>]::#types(x) => crate::WrappedConcept{
+                            [<#struct_name Children>]::#types(x) => WrappedConcept{
                                 inner: T::[<construct_ #types:snake:lower>](x, ix, Some((uuid.unwrap(), name.to_string()))),
-                                _phantom_lt: std::marker::PhantomData,
                             },
                         )*
                         _ => panic!("_phantom arm should not be activated"),
                     }
-                }
-            }
-        }})
-    }
-    fn to_concept_token_stream(&self, struct_name: &Ident) -> TokenStream {
-        let (
-            bare_ident,
-            vec_ident,
-            option_ident,
-            option_vec_ident,
-            map_ident,
-            bare_type,
-            vec_type,
-            option_type,
-            option_vec_type,
-            map_value_type,
-        ) = (
-            &self.bare_idents,
-            &self.vec_idents,
-            &self.option_idents,
-            &self.option_vec_idents,
-            &self.map_idents,
-            &self.bare_types,
-            &self.vec_types,
-            &self.option_types,
-            &self.option_vec_types,
-            &self.map_value_types,
-        );
-
-        let types = self.get_all_types();
-        TokenStream::from(quote! { paste! {
-
-            pub enum [<#struct_name Children>]<'a> {
-                #(
-                    #types(&'a #types),
-                )*
-                _phantom(&'a ()),
-            }
-            impl <'a> [<#struct_name Children>]<'a> {
-                pub fn get_uuid(&self) -> Uuid {
-                    match &self {
-                        #(
-                            Self::#types(x) => x.get_uuid(),
-                        )*
-                        Self::_phantom(_) => panic!("_phantom arm was activated.")
-                    }
-                }
-            }
-            impl <'a> ConceptEnum<'a> for [<#struct_name Children>]<'a> {}
-            pub trait [<CanBe #struct_name>]<'a> {
-                fn [<construct_ #struct_name:snake:lower>](
-                    obj_ref: &'a #struct_name,
-                    ix: Option<usize>,
-                    id: Option<(Uuid, String)>
-                ) -> Self;
-            }
-
-
-            impl <'a> AoristConcept<'a> for #struct_name {
-
-                type TChildrenEnum = [<#struct_name Children>]<'a>;
-
-                fn get_tag(&self) -> Option<String> {
-                    self.tag.clone()
-                }
-                fn get_children(&'a self) -> Vec<(
-                    // struct name
-                    &str,
-                    // field name
-                    Option<&str>,
-                    // ix
-                    Option<usize>,
-                    // uuid
-                    Option<Uuid>,
-                    // wrapped reference
-                    [<#struct_name Children>]<'a>,
-                )> {
-                    let mut children: Vec<_> = Vec::new();
-                    #(
-                        children.push((
-                            stringify!(#struct_name),
-                            Some(stringify!(#bare_ident)),
-                            None,
-                            self.uuid,
-                            [<#struct_name Children>]::#bare_type(&self.#bare_ident)
-                        ));
-                    )*
-                    #(
-                        if let Some(ref c) = self.#option_ident {
-                            children.push((
-                                stringify!(#struct_name),
-                                Some(stringify!(#option_ident)),
-                                None,
-                                self.uuid,
-                                [<#struct_name Children>]::#option_type(c)
-                            ));
-                        }
-                    )*
-                    #(
-                        for (ix, elem) in self.#vec_ident.iter().enumerate() {
-                            children.push((
-                                stringify!(#struct_name),
-                                Some(stringify!(#vec_ident)),
-                                Some(ix),
-                                self.uuid,
-                                [<#struct_name Children>]::#vec_type(elem)
-                            ));
-                        }
-                    )*
-                    #(
-                        if let Some(ref v) = self.#option_vec_ident {
-                            for (ix, elem) in v.iter().enumerate() {
-                                children.push((
-                                    stringify!(#struct_name),
-                                    Some(stringify!(#option_vec_ident)),
-                                    Some(ix),
-                                    self.uuid,
-                                    [<#struct_name Children>]::#option_vec_type(elem)
-                                ));
-                            }
-                        }
-                    )*
-                    #(
-                        for elem in self.#map_ident.values() {
-                            children.push((
-                                stringify!(#struct_name),
-                                Some(stringify!(#map_ident)),
-                                None,
-                                self.uuid,
-                                [<#struct_name Children>]::#map_value_type(elem)
-                            ));
-                        }
-                    )*
-                    children
-                }
-                fn get_uuid(&self) -> Uuid {
-                    if let Some(uuid) = self.uuid {
-                        return uuid.clone();
-                    }
-                    panic!("Uuid was not set on object of type {}.", stringify!(#struct_name));
-                }
-                fn get_children_uuid(&self) -> Vec<Uuid> {
-                    self.get_children().iter().map(|x| x.4.get_uuid()).collect()
-                }
-                fn compute_uuids(&mut self) {
-                    #(
-                        self.#bare_ident.compute_uuids();
-                    )*
-                    #(
-                        if let Some(ref mut c) = self.#option_ident {
-                            c.compute_uuids();
-                        }
-                    )*
-                    #(
-                        for elem in self.#vec_ident.iter_mut() {
-                            elem.compute_uuids();
-                        }
-                    )*
-                    #(
-                        if let Some(ref mut v) = self.#option_vec_ident {
-                            for elem in v.iter_mut() {
-                                elem.compute_uuids();
-                            }
-                        }
-                    )*
-                    #(
-                        for elem in self.#map_ident.values_mut() {
-                            elem.compute_uuids();
-                        }
-                    )*
-                    self.uuid = Some(self.get_uuid_from_children_uuid());
                 }
             }
         }})
@@ -863,6 +695,225 @@ impl Builder for StructBuilder {
                 }
             }
 
+        }})
+    }
+    fn to_concept_token_stream(&self, struct_name: &Ident) -> TokenStream {
+        let (
+            bare_ident,
+            vec_ident,
+            option_ident,
+            option_vec_ident,
+            map_ident,
+            bare_type,
+            vec_type,
+            option_type,
+            option_vec_type,
+            map_value_type,
+        ) = (
+            &self.bare_idents,
+            &self.vec_idents,
+            &self.option_idents,
+            &self.option_vec_idents,
+            &self.map_idents,
+            &self.bare_types,
+            &self.vec_types,
+            &self.option_types,
+            &self.option_vec_types,
+            &self.map_value_types,
+        );
+        let bare_type_deref = bare_type.iter().map(|x| extract_type_from_aorist_ref(x)).collect::<Vec<_>>(); 
+        let vec_type_deref = vec_type.iter().map(|x| extract_type_from_aorist_ref(x)).collect::<Vec<_>>(); 
+        let option_vec_type_deref = option_vec_type.iter().map(|x| extract_type_from_aorist_ref(x)).collect::<Vec<_>>(); 
+        let option_type_deref = option_type.iter().map(|x| extract_type_from_aorist_ref(x)).collect::<Vec<_>>(); 
+        let map_value_type_deref = map_value_type.iter().map(|x| extract_type_from_aorist_ref(x)).collect::<Vec<_>>(); 
+        let types = self.get_all_types();
+        TokenStream::from(quote! { paste! {
+            pub enum [<#struct_name Children>] {
+                #(
+                    #types(AoristRef<#types>),
+                )*
+            }
+            impl #struct_name {
+                pub fn get_uuid(&self) -> Option<Uuid> {
+                    self.uuid.clone()
+                }
+                fn compute_uuids(&mut self) {
+                    #(
+                        self.#bare_ident.compute_uuids();
+                    )*
+                    #(
+                        if let Some(ref c) = self.#option_ident {
+                            c.compute_uuids();
+                        }
+                    )*
+                    #(
+                        for elem in self.#vec_ident.iter() {
+                            elem.compute_uuids();
+                        }
+                    )*
+                    #(
+                        if let Some(ref mut v) = self.#option_vec_ident {
+                            for elem in v.iter() {
+                                elem.compute_uuids();
+                            }
+                        }
+                    )*
+                    #(
+                        for elem in self.#map_ident.values() {
+                            elem.compute_uuids();
+                        }
+                    )*
+                }
+                fn set_uuid(&mut self, uuid: Uuid) {
+                    self.uuid = Some(uuid);
+                }
+                fn get_tag(&self) -> Option<String> {
+                    self.tag.clone()
+                }
+                #(
+                    pub fn #bare_ident(&self) -> #bare_type {
+                        self.#bare_ident.clone()
+                    }
+                )*
+                #(
+                    pub fn #option_ident(&self) -> Option<#option_type> {
+                        self.#option_ident.clone()
+                    }
+                )*
+                #(
+                    pub fn #vec_ident(&self) -> Vec<#vec_type> {
+                        self.#vec_ident.clone()
+                    }
+                )*
+                #(
+                    pub fn #option_vec_ident(&self) -> Option<Vec<#option_vec_type>> {
+                        self.#option_vec_ident.clone()
+                    }
+                )*
+                #(
+                    pub fn #map_ident(&self) -> BTreeMap<String, #map_value_type> {
+                        self.#map_ident.clone()
+                    }
+                )*
+            }
+            impl [<#struct_name Children>] {
+                pub fn get_uuid(&self) -> Option<Uuid> {
+                    match &self {
+                        #(
+                            Self::#types(x) => x.get_uuid(),
+                        )*
+                        _ => panic!("phantom arm was activated.")
+                    }
+                }
+            }
+            impl ConceptEnum for [<#struct_name Children>] {}
+            pub trait [<CanBe #struct_name>]: Debug + Clone + Serialize + PartialEq {
+                fn [<construct_ #struct_name:snake:lower>](
+                    obj_ref: AoristRef<#struct_name>,
+                    ix: Option<usize>,
+                    id: Option<(Uuid, String)>
+                ) -> AoristRef<Self>;
+            }
+
+            impl AoristConcept for AoristRef<#struct_name> {
+                type TChildrenEnum = [<#struct_name Children>];
+                fn get_uuid(&self) -> Option<Uuid> {
+                    let read_lock = self.0.read().unwrap();
+                    if let Ok(ref x) = self.0.read() {
+                        return x.get_uuid();
+                    }
+                    panic!("Could not open object {} for reading.", stringify!(#struct_name));
+                }
+                fn compute_uuids(&self) {
+                    if let Ok(ref mut x) = self.0.write() {
+                        x.compute_uuids();
+                        let uuid = self.get_uuid_from_children_uuid();
+                        x.set_uuid(uuid);
+                    }
+                    panic!("Could not open object {} for writing.", stringify!(#struct_name));
+                }
+                fn get_children_uuid(&self) -> Vec<Uuid> {
+                    self.get_children().iter().map(|x| x.4.get_uuid().unwrap()).collect()
+                }
+                fn get_tag(&self) -> Option<String> {
+                    let read_lock = self.0.read().unwrap();
+                    if let Ok(ref x) = self.0.read() {
+                        return x.get_tag();
+                    }
+                    panic!("Could not open object {} for reading.", stringify!(#struct_name));
+                }
+                fn get_children(&self) -> Vec<(
+                    // struct name
+                    &str,
+                    // field name
+                    Option<&str>,
+                    // ix
+                    Option<usize>,
+                    // uuid
+                    Option<Uuid>,
+                    // wrapped reference
+                    [<#struct_name Children>],
+                )> {
+                    let mut children: Vec<_> = Vec::new();
+                    let read = self.0.read().unwrap();
+                    #(
+                        children.push((
+                            stringify!(#struct_name),
+                            Some(stringify!(#bare_ident)),
+                            None,
+                            self.get_uuid(),
+                            [<#struct_name Children>]::#bare_type_deref(read.#bare_ident())
+                        ));
+                    )*
+                    #(
+                        if let Some(c) = read.#option_ident() {
+                            children.push((
+                                stringify!(#struct_name),
+                                Some(stringify!(#option_ident)),
+                                None,
+                                self.get_uuid(),
+                                [<#struct_name Children>]::#option_type_deref(c)
+                            ));
+                        }
+                    )*
+                    #(
+                        for (ix, elem) in read.#vec_ident().into_iter().enumerate() {
+                            children.push((
+                                stringify!(#struct_name),
+                                Some(stringify!(#vec_ident)),
+                                Some(ix),
+                                self.get_uuid(),
+                                [<#struct_name Children>]::#vec_type_deref(elem)
+                            ));
+                        }
+                    )*
+                    #(
+                        if let Some(v) = read.#option_vec_ident() {
+                            for (ix, elem) in v.into_iter().enumerate() {
+                                children.push((
+                                    stringify!(#struct_name),
+                                    Some(stringify!(#option_vec_ident)),
+                                    Some(ix),
+                                    read.get_uuid(),
+                                    [<#struct_name Children>]::#option_vec_type_deref(elem)
+                                ));
+                            }
+                        }
+                    )*
+                    #(
+                        for elem in read.#map_ident().values() {
+                            children.push((
+                                stringify!(#struct_name),
+                                Some(stringify!(#map_ident)),
+                                None,
+                                read.get_uuid(),
+                                [<#struct_name Children>]::#map_value_type_deref(elem.clone())
+                            ));
+                        }
+                    )*
+                    children
+                }
+            }
         }})
     }
 }

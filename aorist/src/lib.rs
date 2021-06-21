@@ -75,5 +75,6 @@ fn libaorist(_py: pyo3::prelude::Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<MinioConfig>()?;
     m.add_class::<TrainedFloatMeasure>()?;
     m.add_class::<PredictionsFromTrainedFloatMeasure>()?;
+    m.add_class::<ConceptAncestry>()?;
     Ok(())
 }

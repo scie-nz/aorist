@@ -1,6 +1,10 @@
 import inspect
-from aorist.target.debug.libaorist import S3Location
-from aorist_constraint.target.debug.libaorist_constraint import UploadDataToS3
+from aorist.target.debug.libaorist import (
+    PushshiftAPILocation, ConceptAncestry
+)
+from aorist_constraint.target.debug.libaorist_constraint import (
+    DownloadDataFromRemotePushshiftAPILocationToNewlineDelimitedJSON
+)
 
 def to_str(source):
     funcString = "\n".join([str(x) for x in inspect.getsourcelines(source)])
@@ -13,13 +17,11 @@ def aorist(programs, constraint, entrypoint, args):
         programs[constraint] = constraint.register_program(to_str(func), entrypoint, args_str)
     return inner
 
-print(to_str(aorist))
-
 programs = {}
 
 @aorist(
     programs,
-    UploadDataToS3,
+    DownloadDataFromRemotePushshiftAPILocationToNewlineDelimitedJSON,
     entrypoint="upload_to_s3",
     args={
         "access_key": lambda ancestry : ancestry.universe.endpoints.access_key_id, 
@@ -49,4 +51,5 @@ def recipe():
         dest_path = schema + '/' + tablename + '/data.csv'
         response = client.upload_file(source_path, bucket, dest_path)
 
+print(ConceptAncestry)
 print(programs)

@@ -2,29 +2,15 @@ use siphasher::sip128::{Hasher128, SipHasher};
 use std::collections::{BTreeSet, HashMap};
 use std::hash::Hasher;
 use uuid::Uuid;
+use std::sync::{Arc, RwLock};
 
-pub trait ConceptEnum<'a> {}
-pub trait AoristConcept<'a> {
-    type TChildrenEnum: ConceptEnum<'a>;
-
-    fn get_children(
-        &'a self,
-    ) -> Vec<(
-        // struct name
-        &str,
-        // field name
-        Option<&str>,
-        // ix
-        Option<usize>,
-        // uuid
-        Option<Uuid>,
-        // wrapped reference
-        Self::TChildrenEnum,
-    )>;
-    fn get_uuid(&self) -> Uuid;
-    fn get_children_uuid(&self) -> Vec<Uuid>;
+pub trait ConceptEnum {}
+pub trait AoristConcept {
+    type TChildrenEnum: ConceptEnum;
+    fn get_uuid(&self) -> Option<Uuid>;
     fn get_tag(&self) -> Option<String>;
-
+    fn compute_uuids(&self);
+    fn get_children_uuid(&self) -> Vec<Uuid>;
     fn get_uuid_from_children_uuid(&self) -> Uuid {
         let child_uuids = self.get_children_uuid();
         if child_uuids.len() > 0 {
@@ -42,20 +28,34 @@ pub trait AoristConcept<'a> {
             Uuid::new_v4()
         }
     }
-    fn compute_uuids(&mut self);
+    fn get_children(
+        &self,
+    ) -> Vec<(
+        // struct name
+        &str,
+        // field name
+        Option<&str>,
+        // ix
+        Option<usize>,
+        // uuid
+        Option<Uuid>,
+        // wrapped reference
+        Self::TChildrenEnum,
+    )>;
 }
-pub trait TConceptEnum<'a>: Sized {
+
+pub trait TConceptEnum: Sized {
     fn get_parent_id(&self) -> Option<(Uuid, String)>;
     fn get_type(&self) -> String;
     fn get_uuid(&self) -> Uuid;
     fn get_tag(&self) -> Option<String>;
     fn get_index_as_child(&self) -> usize;
-    fn get_child_concepts(&'a self) -> Vec<Self>;
+    fn get_child_concepts(&self) -> Vec<Self>;
     fn populate_child_concept_map(&self, concept_map: &mut HashMap<(Uuid, String), Self>);
 }
 
-pub trait Ancestry<'a> {
-    type TConcept: ConceptEnum<'a> + Clone + TConceptEnum<'a>;
+pub trait Ancestry {
+    type TConcept: ConceptEnum + Clone + TConceptEnum;
 }
 pub trait TAoristObject {
     fn get_name(&self) -> &String;

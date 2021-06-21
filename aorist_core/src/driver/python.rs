@@ -20,42 +20,36 @@ use std::marker::PhantomData;
 use std::sync::{Arc, RwLock};
 use uuid::Uuid;
 
-pub struct PythonBasedDriver<'a, 'b, D, C>
+pub struct PythonBasedDriver<'a, D, C>
 where
     D: FlowBuilderBase,
     <D as FlowBuilderBase>::T:
         ETLFlow<ImportType = PythonImport, PreambleType = PythonPreamble> + 'a,
-    C: OuterConstraint<'a, 'b, TAncestry = ConceptAncestry<'a>>
-        + SatisfiableOuterConstraint<'a, 'b>
-        + 'b,
-    'a: 'b,
+    C: OuterConstraint<'a, TAncestry = ConceptAncestry>
+        + SatisfiableOuterConstraint<'a>
 {
-    pub concepts: Arc<RwLock<HashMap<(Uuid, String), Concept<'a>>>>,
+    pub concepts: Arc<RwLock<HashMap<(Uuid, String), Concept>>>,
     constraints: LinkedHashMap<(Uuid, String), Arc<RwLock<C>>>,
-    satisfied_constraints: HashMap<(Uuid, String), Arc<RwLock<ConstraintState<'a, 'b, C>>>>,
-    blocks: Vec<PythonBasedConstraintBlock<'a, 'b, D::T, C>>,
-    ancestry: Arc<ConceptAncestry<'a>>,
+    satisfied_constraints: HashMap<(Uuid, String), Arc<RwLock<ConstraintState<'a, C>>>>,
+    blocks: Vec<PythonBasedConstraintBlock<'a, D::T, C>>,
+    ancestry: Arc<ConceptAncestry>,
     dag_type: PhantomData<D>,
     endpoints: EndpointConfig,
     constraint_explanations: HashMap<String, (Option<String>, Option<String>)>,
     ancestors: HashMap<(Uuid, String), Vec<AncestorRecord>>,
     topline_constraint_names: LinkedHashSet<String>,
-    _lt_phantom: PhantomData<&'b ()>,
 }
 
-impl<'a, 'b, D, C> Driver<'a, 'b, D, C> for PythonBasedDriver<'a, 'b, D, C>
+impl<'a, D, C> Driver<'a, D, C> for PythonBasedDriver<'a, D, C>
 where
-    'a: 'b,
     D: FlowBuilderBase,
     D: FlowBuilderMaterialize<BuilderInputType = PythonFlowBuilderInput>,
     <D as FlowBuilderBase>::T:
         ETLFlow<ImportType = PythonImport, PreambleType = PythonPreamble> + 'a,
-    C: OuterConstraint<'a, 'b, TAncestry = ConceptAncestry<'a>>
-        + SatisfiableOuterConstraint<'a, 'b>
-        + 'b,
-    //Self::CB: 'b,
+    C: OuterConstraint<'a, TAncestry = ConceptAncestry>
+        + SatisfiableOuterConstraint<'a>
 {
-    type CB = PythonBasedConstraintBlock<'a, 'b, <D as FlowBuilderBase>::T, C>;
+    type CB = PythonBasedConstraintBlock<'a, <D as FlowBuilderBase>::T, C>;
 
     fn get_preferences(&self) -> Vec<Dialect> {
         vec![
@@ -68,21 +62,21 @@ where
         self.constraints.get(uuid).unwrap().clone()
     }
 
-    fn get_endpoints(&'b self) -> &'b EndpointConfig {
+    fn get_endpoints(&self) -> &EndpointConfig {
         &self.endpoints
     }
 
-    fn get_ancestry(&self) -> Arc<ConceptAncestry<'a>> {
+    fn get_ancestry(&self) -> Arc<ConceptAncestry> {
         self.ancestry.clone()
     }
     fn mark_constraint_state_as_satisfied(
         &mut self,
         id: (Uuid, String),
-        state: Arc<RwLock<ConstraintState<'a, 'b, C>>>,
+        state: Arc<RwLock<ConstraintState<'a, C>>>,
     ) {
         self.satisfied_constraints.insert(id, state.clone());
     }
-    fn init_unsatisfied_constraints(&self) -> Result<ConstraintsBlockMap<'a, 'b, C>> {
+    fn init_unsatisfied_constraints(&self) -> Result<ConstraintsBlockMap<'a, C>> {
         Self::get_unsatisfied_constraints(
             &self.constraints,
             self.concepts.clone(),
@@ -92,7 +86,7 @@ where
     }
     fn add_block(
         &mut self,
-        constraint_block: PythonBasedConstraintBlock<'a, 'b, <D as FlowBuilderBase>::T, C>,
+        constraint_block: PythonBasedConstraintBlock<'a, <D as FlowBuilderBase>::T, C>,
     ) {
         self.blocks.push(constraint_block);
     }
@@ -105,7 +99,7 @@ where
             .unwrap()
             .clone()
     }
-    fn get_blocks(&'b self) -> &'b Vec<Self::CB> {
+    fn get_blocks(&self) -> &Vec<Self::CB> {
         &self.blocks
     }
     fn get_dependencies(&self) -> Vec<String> {
@@ -123,9 +117,9 @@ where
             .collect()
     }
     fn _new(
-        concepts: Arc<RwLock<HashMap<(Uuid, String), Concept<'a>>>>,
+        concepts: Arc<RwLock<HashMap<(Uuid, String), Concept>>>,
         constraints: LinkedHashMap<(Uuid, String), Arc<RwLock<C>>>,
-        ancestry: Arc<ConceptAncestry<'a>>,
+        ancestry: Arc<ConceptAncestry>,
         endpoints: EndpointConfig,
         ancestors: HashMap<(Uuid, String), Vec<AncestorRecord>>,
         topline_constraint_names: LinkedHashSet<String>,
@@ -138,13 +132,11 @@ where
             ancestry,
             dag_type: PhantomData,
             endpoints,
-            constraint_explanations: <<C as OuterConstraint<'a, 'b>>::TEnum as TConstraintEnum<
+            constraint_explanations: <<C as OuterConstraint<'a>>::TEnum as TConstraintEnum<
                 'a,
-                'b,
             >>::get_explanations(),
             ancestors,
             topline_constraint_names,
-            _lt_phantom: PhantomData,
         }
     }
 }

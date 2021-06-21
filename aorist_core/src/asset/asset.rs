@@ -2,30 +2,36 @@
 use crate::asset::derived_asset::*;
 use crate::asset::static_data_table::*;
 use crate::asset::supervised_model::*;
-use crate::concept::{AoristConcept, ConceptEnum};
+use crate::concept::{AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
 use crate::schema::*;
 use crate::storage_setup::*;
 use aorist_concept::{aorist, Constrainable};
 use paste::paste;
 use serde::{Deserialize, Serialize};
+use std::fmt::Debug;
 use uuid::Uuid;
 
 #[aorist]
 pub enum Asset {
     #[constrainable]
-    DerivedAsset(DerivedAsset),
+    DerivedAsset(AoristRef<DerivedAsset>),
     #[constrainable]
-    StaticDataTable(StaticDataTable),
+    StaticDataTable(AoristRef<StaticDataTable>),
     #[constrainable]
-    SupervisedModel(SupervisedModel),
+    SupervisedModel(AoristRef<SupervisedModel>),
 }
 
 pub trait TAsset {
     fn get_name(&self) -> String;
-    fn get_schema(&self) -> DataSchema;
-    fn get_storage_setup(&self) -> StorageSetup;
+    fn get_schema(&self) -> AoristRef<DataSchema>;
+    fn get_storage_setup(&self) -> AoristRef<StorageSetup>;
     fn get_template_name(&self) -> String {
-        self.get_schema().get_datum_template_name().unwrap()
+        self.get_schema()
+            .0
+            .read()
+            .unwrap()
+            .get_datum_template_name()
+            .unwrap()
     }
 }
 
@@ -40,23 +46,23 @@ impl Asset {
     }
     pub fn get_name(&self) -> String {
         match self {
-            Asset::StaticDataTable(x) => x.name.clone(),
-            Asset::SupervisedModel(x) => x.name.clone(),
-            Asset::DerivedAsset(x) => x.name.clone(),
+            Asset::StaticDataTable(x) => x.0.read().unwrap().name.clone(),
+            Asset::SupervisedModel(x) => x.0.read().unwrap().name.clone(),
+            Asset::DerivedAsset(x) => x.0.read().unwrap().name.clone(),
         }
     }
-    pub fn get_schema(&self) -> DataSchema {
+    pub fn get_schema(&self) -> AoristRef<DataSchema> {
         match self {
-            Asset::StaticDataTable(x) => x.schema.clone(),
-            Asset::SupervisedModel(x) => x.schema.clone(),
-            Asset::DerivedAsset(x) => x.schema.clone(),
+            Asset::StaticDataTable(x) => x.0.read().unwrap().schema.clone(),
+            Asset::SupervisedModel(x) => x.0.read().unwrap().schema.clone(),
+            Asset::DerivedAsset(x) => x.0.read().unwrap().schema.clone(),
         }
     }
-    pub fn get_storage_setup(&self) -> StorageSetup {
+    pub fn get_storage_setup(&self) -> AoristRef<StorageSetup> {
         match self {
-            Asset::StaticDataTable(x) => x.setup.clone(),
-            Asset::SupervisedModel(x) => x.setup.clone(),
-            Asset::DerivedAsset(x) => x.setup.clone(),
+            Asset::StaticDataTable(x) => x.0.read().unwrap().setup.clone(),
+            Asset::SupervisedModel(x) => x.0.read().unwrap().setup.clone(),
+            Asset::DerivedAsset(x) => x.0.read().unwrap().setup.clone(),
         }
     }
 }

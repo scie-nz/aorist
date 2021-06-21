@@ -7,7 +7,7 @@ use crate::python::{
     ForLoopPythonBasedTask, Formatted, PythonBasedTask, PythonImport, PythonPreamble,
     SimpleIdentifier, StringLiteral, Subscript, AST,
 };
-use aorist_primitives::OuterConstraint;
+use crate::constraint::OuterConstraint;
 use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
 use std::collections::{BTreeSet, HashMap, HashSet};
@@ -15,25 +15,22 @@ use std::marker::PhantomData;
 use tracing::trace;
 use uuid::Uuid;
 
-pub struct PythonBasedCodeBlock<'a, 'b, T, C>
+pub struct PythonBasedCodeBlock<'a, T, C>
 where
     T: ETLFlow<ImportType = PythonImport, PreambleType = PythonPreamble>,
-    C: OuterConstraint<'a, 'b> + SatisfiableOuterConstraint<'a, 'b>,
-    'a: 'b,
+    C: OuterConstraint<'a> + SatisfiableOuterConstraint<'a>,
 {
     tasks_dict: Option<AST>,
     task_identifiers: HashMap<Uuid, AST>,
     python_based_tasks: Vec<PythonBasedTask<T>>,
     params: HashMap<String, Option<ParameterTuple>>,
     _lt: PhantomData<&'a ()>,
-    _lt2: PhantomData<&'b ()>,
     _constraint: PhantomData<C>,
 }
-impl<'a, 'b, T, C> CodeBlock<'a, 'b, T, C> for PythonBasedCodeBlock<'a, 'b, T, C>
+impl<'a, T, C> CodeBlock<'a, T, C> for PythonBasedCodeBlock<'a, T, C>
 where
     T: ETLFlow<ImportType = PythonImport, PreambleType = PythonPreamble>,
-    C: OuterConstraint<'a, 'b> + SatisfiableOuterConstraint<'a, 'b>,
-    'a: 'b,
+    C: OuterConstraint<'a> + SatisfiableOuterConstraint<'a>,
 {
     type P = PythonPreamble;
     type E = PythonBasedTask<T>;
@@ -50,7 +47,6 @@ where
             task_identifiers,
             params,
             _lt: PhantomData,
-            _lt2: PhantomData,
             _constraint: PhantomData,
         }
     }
@@ -97,12 +93,11 @@ where
         self.params.clone()
     }
 }
-impl<'a, 'b, T, C> CodeBlockWithForLoopCompression<'a, 'b, T, C>
-    for PythonBasedCodeBlock<'a, 'b, T, C>
+impl<'a, T, C> CodeBlockWithForLoopCompression<'a, T, C>
+    for PythonBasedCodeBlock<'a, T, C>
 where
     T: ETLFlow<ImportType = PythonImport, PreambleType = PythonPreamble>,
-    C: OuterConstraint<'a, 'b> + SatisfiableOuterConstraint<'a, 'b>,
-    'a: 'b,
+    C: OuterConstraint<'a> + SatisfiableOuterConstraint<'a>,
 {
     fn run_task_compressions(
         compressible: LinkedHashMap<
