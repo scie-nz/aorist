@@ -6,6 +6,27 @@ use std::sync::{Arc, RwLock};
 use tracing::debug;
 use uuid::Uuid;
 
+use serde::{Serialize, Deserialize};
+use aorist_concept::{aorist2, Constrainable};
+use derivative::Derivative;
+use paste::paste;
+#[aorist2]
+pub struct GlobalPermissionsAdmin {}
+#[aorist2]
+pub enum Role {
+    GlobalPermissionsAdmin(GlobalPermissionsAdmin),
+}
+#[aorist2]
+pub struct User {
+    firstName: String,
+    lastName: String,
+    email: String,
+    phone: String,
+    pub unixname: String,
+    #[constrainable2]
+    roles: Option<Vec<Role>>,
+}
+
 // use crate::access_policy::*;
 // use crate::algorithms::*;
 // use crate::asset::*;

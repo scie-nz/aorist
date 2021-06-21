@@ -892,7 +892,6 @@ impl Builder for StructBuilder {
 
         let types = self.get_all_types();
         TokenStream::from(quote! { paste! {
-            /*
             pub enum [<#struct_name Children>]<'a> {
                 #(
                     #types(&'a #types),
@@ -1033,7 +1032,7 @@ impl Builder for StructBuilder {
                     )*
                     self.uuid = Some(self.get_uuid_from_children_uuid());
                 }
-            }*/
+            }
         }})
     }
 }
