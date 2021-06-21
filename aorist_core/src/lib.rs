@@ -1,6 +1,6 @@
 pub mod dialect;
 
-// mod access_policy;
+mod access_policy;
 // mod algorithms;
 // mod asset;
 // mod attributes;
@@ -32,7 +32,7 @@ mod role;
 // mod template;
 // mod universe;
 mod user;
-// mod user_group;
+mod user_group;
 
 // pub use access_policy::*;
 // pub use algorithms::*;
@@ -65,8 +65,8 @@ pub use concept::*;
 // pub use storage_setup::*;
 // pub use template::*;
 // pub use universe::*;
-// pub use user::*;
-// pub use user_group::*;
+pub use user::*;
+pub use user_group::*;
 //
 // #[cfg(feature = "r")]
 // mod r;
