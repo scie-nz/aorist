@@ -1204,13 +1204,14 @@ macro_rules! register_concept {
                 }
             }
         )+
+        
+        pub struct $ancestry {
+            pub parents: Arc<RwLock<HashMap<(Uuid, String), $name>>>,
+        }
+        /*impl Ancestry for $ancestry {
+            type TConcept = $name;
+        }*/
         /*
-        pub struct $ancestry<'a> {
-            pub parents: Arc<RwLock<HashMap<(Uuid, String), $name<'a>>>>,
-        }
-        impl <'a> Ancestry<'a> for $ancestry<'a> {
-            type TConcept = $name<'a>;
-        }
         impl <'a> $ancestry<'a> {
             $(
                 pub fn [<$element:snake:lower>](
