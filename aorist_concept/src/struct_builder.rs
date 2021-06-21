@@ -746,6 +746,7 @@ impl Builder for StructBuilder {
             #[cfg(feature = "python")]
             #[pyo3::prelude::pymethods]
             impl [<Py #struct_name>] {
+                #[new]
                 pub fn new(
                     #(#bare_ident: [<Py #bare_type_deref>] ,)*
                     #(#vec_ident: Vec<[<Py #vec_type_deref>]> ,)*
@@ -788,9 +789,10 @@ impl Builder for StructBuilder {
                         #(
                             #unconstrainable_name,
                         )*
-                        tag
+                        tag,
+                        uuid: None,
                     };
-                    let inner = AoristRef(Arc::new(RwLock::new(
+                    let inner = AoristRef(std::sync::Arc::new(std::sync::RwLock::new(
                         obj
                     )));
                     Self { inner }

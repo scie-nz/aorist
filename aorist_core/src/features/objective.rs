@@ -19,19 +19,3 @@ pub enum ContinuousRegressionObjective {
 pub enum RegressionObjective {
     ContinuousRegressionObjective(AoristRef<ContinuousRegressionObjective>),
 }
-
-#[aorist]
-pub struct Foo {
-    bar: SomeRef,
-}
-
-#[aorist]
-pub enum Bar {
-    Foo(AoristRef<Foo>),
-}
-impl Eq for Bar {}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct SomeRef {
-    bar: Box<Bar>,
-}

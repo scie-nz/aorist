@@ -226,7 +226,7 @@ impl Builder for EnumBuilder {
           #[pyo3::prelude::pyclass(name=#py_class_name)]
           #[derive(Clone, PartialEq)]
           pub struct [<Py #enum_name>] {
-              inner: AoristRef<#enum_name>,
+              pub inner: AoristRef<#enum_name>,
           }
           impl #enum_name {
               

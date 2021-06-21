@@ -9,6 +9,7 @@ use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
 use uuid::Uuid;
 
+#[cfg_attr(feature = "python", pyo3::prelude::pyclass)]
 #[derive(PartialEq, Debug, Eq, Clone, Hash, Serialize, Deserialize)]
 pub struct GDPRStakeholder {
     name: String,
@@ -21,6 +22,7 @@ pub struct GDPRStakeholder {
     external_organization_name: Option<String>,
 }
 
+#[cfg_attr(feature = "python", pyo3::prelude::pyclass)]
 #[derive(PartialEq, Debug, Eq, Clone, Hash, Serialize, Deserialize)]
 pub struct GDPRDataProcessingPurpose {
     main_purpose: String,
@@ -31,6 +33,7 @@ pub struct GDPRDataProcessingPurpose {
 macro_rules! gdpr_data_type {
     ($name:ident
      $(, $field: ident : $field_type: ty)*) => {
+        #[cfg_attr(feature = "python", pyo3::prelude::pyclass)]
         #[derive(Hash, PartialEq, Eq, Clone, Debug, Serialize, Deserialize)]
         pub struct $name {
             description: String,
@@ -111,6 +114,7 @@ pub enum GDPRDataProcessingRecipient {
     Other(String),
 }
 
+#[cfg_attr(feature = "python", pyo3::prelude::pyclass)]
 #[derive(PartialEq, Debug, Eq, Clone, Hash, Serialize, Deserialize)]
 pub struct GDPRProcessorRecord {
     unique_short_name: String,
@@ -126,6 +130,7 @@ pub struct GDPRProcessorRecord {
     data_processing_recipients: Vec<GDPRDataProcessingRecipient>,
 }
 
+#[cfg_attr(feature = "python", pyo3::prelude::pyclass)]
 #[derive(PartialEq, Debug, Eq, Clone, Hash, Serialize, Deserialize)]
 pub struct GDPRSecurityMeasuresStatement {
     traceability: Vec<String>,
@@ -148,6 +153,7 @@ pub enum GDPRDataTransferGuarantee {
     DerogationsPerArticle49GDPR(String),
 }
 
+#[cfg_attr(feature = "python", pyo3::prelude::pyclass)]
 #[derive(PartialEq, Debug, Eq, Clone, Hash, Serialize, Deserialize)]
 pub struct GDPRThirdPartyCountryOrInternationalOrganizationTransferRecord {
     recipient_organization_name: String,
