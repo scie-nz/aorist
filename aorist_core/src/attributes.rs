@@ -4,6 +4,8 @@ use aorist_attributes::{
     AttributeValue, TAttribute, TBigQueryAttribute, TOrcAttribute, TPostgresAttribute,
     TPrestoAttribute, TSQLiteAttribute,
 };
+use crate::concept::{WrappedConcept, AoristRef};
+use std::fmt::Debug;
 use aorist_concept::{aorist, Constrainable};
 use aorist_primitives::{AoristConcept, ConceptEnum};
 use derivative::Derivative;
