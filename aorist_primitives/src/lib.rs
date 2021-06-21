@@ -1190,28 +1190,21 @@ macro_rules! register_concept {
             }
         )+
         
-        /*
-        impl <'a> ConceptEnum<'a> for $name<'a> {}
+        
+        impl ConceptEnum for $name {}
+        
         $(
-            impl <'a> TryFrom<$name<'a>> for &'a $element {
+            impl TryFrom<$name> for AoristRef<$element> {
                 type Error = String;
-                fn try_from(x: $name<'a>) -> Result<Self, String> {
+                fn try_from(x: $name) -> Result<Self, String> {
                     match x {
-                        $name::$element((y, _, _)) => Ok(y),
-                        _ => Err("Cannot convert.".into()),
-                    }
-                }
-            }
-            impl <'a> TryFrom<&'a $name<'a>> for &'a $element {
-                type Error = String;
-                fn try_from(x: &'a $name<'a>) -> Result<Self, String> {
-                    match x {
-                        &$name::$element((y, _, _)) => Ok(y),
+                        $name::$element((ref y, _, _)) => Ok(y.clone()),
                         _ => Err("Cannot convert.".into()),
                     }
                 }
             }
         )+
+        /*
         pub struct $ancestry<'a> {
             pub parents: Arc<RwLock<HashMap<(Uuid, String), $name<'a>>>>,
         }
