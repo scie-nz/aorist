@@ -892,23 +892,23 @@ impl Builder for StructBuilder {
 
         let types = self.get_all_types();
         TokenStream::from(quote! { paste! {
-            pub enum [<#struct_name Children>]<'a> {
+            pub enum [<#struct_name Children>] {
                 #(
-                    #types(&'a #types),
+                    #types(AoristRef<#types>),
                 )*
-                _phantom(&'a ()),
             }
-            impl <'a> [<#struct_name Children>]<'a> {
+            /*impl [<#struct_name Children>] {
                 pub fn get_uuid(&self) -> Uuid {
                     match &self {
                         #(
                             Self::#types(x) => x.get_uuid(),
                         )*
-                        Self::_phantom(_) => panic!("_phantom arm was activated.")
+                        //Self::_phantom(_) => panic!("_phantom arm was activated.")
                     }
                 }
-            }
-            impl <'a> ConceptEnum<'a> for [<#struct_name Children>]<'a> {}
+            }*/
+            //impl <'a> ConceptEnum<'a> for [<#struct_name Children>]<'a> {}
+            impl ConceptEnumNew for [<#struct_name Children>] {}
             pub trait [<CanBe #struct_name>] {
                 fn [<construct_ #struct_name:snake:lower>](
                     obj_ref: AoristRef<#struct_name>,
@@ -918,7 +918,7 @@ impl Builder for StructBuilder {
             }
 
             impl AoristConceptNew for #struct_name {}
-            impl <'a> AoristConcept<'a> for #struct_name {
+            /*impl <'a> AoristConcept<'a> for #struct_name {
 
                 type TChildrenEnum = [<#struct_name Children>]<'a>;
 
@@ -1032,7 +1032,7 @@ impl Builder for StructBuilder {
                     )*
                     self.uuid = Some(self.get_uuid_from_children_uuid());
                 }
-            }
+            }*/
         }})
     }
 }

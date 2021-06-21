@@ -4,6 +4,25 @@ use std::hash::Hasher;
 use uuid::Uuid;
 
 pub trait ConceptEnum<'a> {}
+pub trait ConceptEnumNew {}
+/*pub trait AoristConceptNew {
+    type TChildrenEnum: ConceptEnum<'a>;
+
+    fn get_children(
+        &'a self,
+    ) -> Vec<(
+        // struct name
+        &str,
+        // field name
+        Option<&str>,
+        // ix
+        Option<usize>,
+        // uuid
+        Option<Uuid>,
+        // wrapped reference
+        Self::TChildrenEnum,
+    )>;
+}*/
 pub trait AoristConcept<'a> {
     type TChildrenEnum: ConceptEnum<'a>;
 
