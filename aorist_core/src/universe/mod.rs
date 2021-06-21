@@ -7,8 +7,10 @@ use crate::user::*;
 use crate::user_group::*;
 use aorist_concept::{aorist, Constrainable};
 use aorist_primitives::{AoristConcept, ConceptEnum};
+use crate::concept::{AoristRef, WrappedConcept};
 use derivative::Derivative;
 use paste::paste;
+use std::fmt::Debug;
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
 use uuid::Uuid;
@@ -22,42 +24,42 @@ create_exception!(aorist, SQLParseError, pyo3::exceptions::PyException);
 pub struct Universe {
     pub name: String,
     #[constrainable]
-    pub users: Option<Vec<User>>,
+    pub users: Option<Vec<AoristRef<User>>>,
     #[constrainable]
-    pub groups: Option<Vec<UserGroup>>,
+    pub groups: Option<Vec<AoristRef<UserGroup>>>,
     #[constrainable]
-    pub datasets: Option<Vec<DataSet>>,
+    pub datasets: Option<Vec<AoristRef<DataSet>>>,
     #[constrainable]
-    pub role_bindings: Option<Vec<RoleBinding>>,
+    pub role_bindings: Option<Vec<AoristRef<RoleBinding>>>,
     #[constrainable]
-    pub endpoints: EndpointConfig,
+    pub endpoints: AoristRef<EndpointConfig>,
     #[constrainable]
-    pub compliance: Option<ComplianceConfig>,
+    pub compliance: Option<AoristRef<ComplianceConfig>>,
 }
 pub trait TUniverse {
-    fn get_user_unixname_map(&self) -> HashMap<String, User>;
+    fn get_user_unixname_map(&self) -> HashMap<String, AoristRef<User>>;
     fn get_user_permissions(&self) -> Result<HashMap<String, HashSet<String>>, String>;
 }
 impl TUniverse for Universe {
-    fn get_user_unixname_map(&self) -> HashMap<String, User> {
+    fn get_user_unixname_map(&self) -> HashMap<String, AoristRef<User>> {
         self.users
             .as_ref()
             .unwrap()
             .iter()
-            .map(|x| (x.get_unixname().clone(), x.clone()))
+            .map(|x| (x.0.read().unwrap().get_unixname().clone(), x.clone()))
             .collect()
     }
     fn get_user_permissions(&self) -> Result<HashMap<String, HashSet<String>>, String> {
         let umap = self.get_user_unixname_map();
         let mut map: HashMap<_, HashSet<String>> = HashMap::new();
         for binding in self.role_bindings.as_ref().unwrap() {
-            let name = binding.get_user_name();
-            if !umap.contains_key(name) {
+            let name = binding.0.read().unwrap().get_user_name().clone();
+            if !umap.contains_key(&name) {
                 return Err(format!("Cannot find user with name {}.", name));
             }
-            let user = umap.get(name).unwrap().clone();
-            for perm in binding.get_role().get_permissions() {
-                map.entry(user.get_unixname().clone())
+            let user = umap.get(&name).unwrap().clone();
+            for perm in binding.0.read().unwrap().get_role().0.read().unwrap().get_permissions() {
+                map.entry(user.0.read().unwrap().get_unixname().clone())
                     .or_insert_with(HashSet::new)
                     .insert(perm.clone());
             }
