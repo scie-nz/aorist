@@ -5,33 +5,31 @@ use crate::flow::ETLFlow;
 use crate::parameter_tuple::ParameterTuple;
 use crate::python::PythonBasedCodeBlock;
 use crate::python::{Assignment, Dict, PythonFlowBuilderInput, PythonImport, PythonPreamble, AST};
-use aorist_primitives::OuterConstraint;
+use crate::constraint::OuterConstraint;
 use linked_hash_map::LinkedHashMap;
 use std::collections::HashMap;
 use std::marker::PhantomData;
 use uuid::Uuid;
 
-pub struct PythonBasedConstraintBlock<'a, 'b, T, C>
+pub struct PythonBasedConstraintBlock<'a, T, C>
 where
     T: ETLFlow<ImportType = PythonImport, PreambleType = PythonPreamble>,
-    C: OuterConstraint<'a, 'b> + SatisfiableOuterConstraint<'a, 'b>,
-    'a: 'b,
+    C: OuterConstraint<'a> + SatisfiableOuterConstraint<'a>,
 {
     constraint_name: String,
     title: Option<String>,
     body: Option<String>,
-    members: Vec<PythonBasedCodeBlock<'a, 'b, T, C>>,
+    members: Vec<PythonBasedCodeBlock<'a, T, C>>,
     tasks_dict: Option<AST>,
     _lt: PhantomData<&'a ()>,
     _constraint: PhantomData<C>,
 }
-impl<'a, 'b, T, C> ConstraintBlock<'a, 'b, T, C> for PythonBasedConstraintBlock<'a, 'b, T, C>
+impl<'a, T, C> ConstraintBlock<'a, T, C> for PythonBasedConstraintBlock<'a, T, C>
 where
     T: ETLFlow<ImportType = PythonImport, PreambleType = PythonPreamble>,
-    C: OuterConstraint<'a, 'b> + SatisfiableOuterConstraint<'a, 'b>,
-    'a: 'b,
+    C: OuterConstraint<'a> + SatisfiableOuterConstraint<'a>,
 {
-    type C = PythonBasedCodeBlock<'a, 'b, T, C>;
+    type C = PythonBasedCodeBlock<'a, T, C>;
     type BuilderInputType = PythonFlowBuilderInput;
 
     fn get_constraint_name(&self) -> String {
@@ -51,7 +49,7 @@ where
         constraint_name: String,
         title: Option<String>,
         body: Option<String>,
-        members: Vec<PythonBasedCodeBlock<'a, 'b, T, C>>,
+        members: Vec<PythonBasedCodeBlock<'a, T, C>>,
         tasks_dict: Option<AST>,
     ) -> Self {
         Self {
@@ -83,11 +81,10 @@ where
     }
 }
 
-impl<'a, 'b, T, C> PythonBasedConstraintBlock<'a, 'b, T, C>
+impl<'a, T, C> PythonBasedConstraintBlock<'a, T, C>
 where
     T: ETLFlow<ImportType = PythonImport, PreambleType = PythonPreamble>,
-    C: OuterConstraint<'a, 'b> + SatisfiableOuterConstraint<'a, 'b>,
-    'a: 'b,
+    C: OuterConstraint<'a> + SatisfiableOuterConstraint<'a>,
 {
     pub fn get_params(&self) -> HashMap<String, Option<ParameterTuple>> {
         self.members
