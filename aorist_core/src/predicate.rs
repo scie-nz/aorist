@@ -2,9 +2,11 @@
 use crate::attributes::AttrMap;
 use crate::attributes::AttributeOrValue;
 use aorist_concept::{aorist, Constrainable};
+use crate::concept::{AoristRef, WrappedConcept};
 use aorist_primitives::{AoristConcept, ConceptEnum};
 use derivative::Derivative;
 use paste::paste;
+use std::fmt::Debug;
 #[cfg(feature = "python")]
 use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};

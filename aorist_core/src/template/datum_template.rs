@@ -4,24 +4,26 @@ use crate::template::identifier_tuple::*;
 use crate::template::measure::*;
 use crate::template::row_struct::*;
 use aorist_concept::{aorist, Constrainable};
+use crate::concept::{AoristRef, WrappedConcept};
 use aorist_primitives::{AoristConcept, ConceptEnum};
 use paste::paste;
+use std::fmt::Debug;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 pub trait TDatumTemplate {
-    fn get_attributes(&self) -> Vec<Attribute>;
+    fn get_attributes(&self) -> Vec<AoristRef<Attribute>>;
     fn get_name(&self) -> String;
 }
 
 #[aorist]
 pub enum DatumTemplate {
-    TrainedFloatMeasure(TrainedFloatMeasure),
-    PredictionsFromTrainedFloatMeasure(PredictionsFromTrainedFloatMeasure),
-    RowStruct(RowStruct),
-    IdentifierTuple(IdentifierTuple),
-    IntegerMeasure(IntegerMeasure),
-    Filter(Filter),
+    TrainedFloatMeasure(AoristRef<TrainedFloatMeasure>),
+    PredictionsFromTrainedFloatMeasure(AoristRef<PredictionsFromTrainedFloatMeasure>),
+    RowStruct(AoristRef<RowStruct>),
+    IdentifierTuple(AoristRef<IdentifierTuple>),
+    IntegerMeasure(AoristRef<IntegerMeasure>),
+    Filter(AoristRef<Filter>),
 }
 impl DatumTemplate {
     pub fn get_type(&self) -> String {
@@ -41,22 +43,22 @@ impl DatumTemplate {
 impl TDatumTemplate for DatumTemplate {
     fn get_name(&self) -> String {
         match self {
-            DatumTemplate::RowStruct(x) => x.get_name(),
-            DatumTemplate::IdentifierTuple(x) => x.get_name(),
-            DatumTemplate::IntegerMeasure(x) => x.get_name(),
-            DatumTemplate::TrainedFloatMeasure(x) => x.get_name(),
-            DatumTemplate::PredictionsFromTrainedFloatMeasure(x) => x.get_name(),
-            DatumTemplate::Filter(x) => x.get_name(),
+            DatumTemplate::RowStruct(x) => x.0.read().unwrap().get_name(),
+            DatumTemplate::IdentifierTuple(x) => x.0.read().unwrap().get_name(),
+            DatumTemplate::IntegerMeasure(x) => x.0.read().unwrap().get_name(),
+            DatumTemplate::TrainedFloatMeasure(x) => x.0.read().unwrap().get_name(),
+            DatumTemplate::PredictionsFromTrainedFloatMeasure(x) => x.0.read().unwrap().get_name(),
+            DatumTemplate::Filter(x) => x.0.read().unwrap().get_name(),
         }
     }
-    fn get_attributes(&self) -> Vec<Attribute> {
+    fn get_attributes(&self) -> Vec<AoristRef<Attribute>> {
         match self {
-            DatumTemplate::RowStruct(x) => x.get_attributes(),
-            DatumTemplate::IdentifierTuple(x) => x.get_attributes(),
-            DatumTemplate::IntegerMeasure(x) => x.get_attributes(),
-            DatumTemplate::TrainedFloatMeasure(x) => x.get_attributes(),
-            DatumTemplate::PredictionsFromTrainedFloatMeasure(x) => x.get_attributes(),
-            DatumTemplate::Filter(x) => x.get_attributes(),
+            DatumTemplate::RowStruct(x) => x.0.read().unwrap().get_attributes(),
+            DatumTemplate::IdentifierTuple(x) => x.0.read().unwrap().get_attributes(),
+            DatumTemplate::IntegerMeasure(x) => x.0.read().unwrap().get_attributes(),
+            DatumTemplate::TrainedFloatMeasure(x) => x.0.read().unwrap().get_attributes(),
+            DatumTemplate::PredictionsFromTrainedFloatMeasure(x) => x.0.read().unwrap().get_attributes(),
+            DatumTemplate::Filter(x) => x.0.read().unwrap().get_attributes(),
         }
     }
 }
