@@ -726,12 +726,20 @@ impl Builder for StructBuilder {
         let option_vec_type_deref = option_vec_type.iter().map(|x| extract_type_from_aorist_ref(x)).collect::<Vec<_>>(); 
         let option_type_deref = option_type.iter().map(|x| extract_type_from_aorist_ref(x)).collect::<Vec<_>>(); 
         let map_value_type_deref = map_value_type.iter().map(|x| extract_type_from_aorist_ref(x)).collect::<Vec<_>>(); 
+        let py_class_name = format!("{}", struct_name);
         let types = self.get_all_types();
         TokenStream::from(quote! { paste! {
             pub enum [<#struct_name Children>] {
                 #(
                     #types(AoristRef<#types>),
                 )*
+            }
+
+            #[cfg(feature = "python")]
+            #[pyo3::prelude::pyclass(name=#py_class_name)]
+            #[derive(Clone, PartialEq)]
+            pub struct [<Py #struct_name>] {
+                inner: AoristRef<#struct_name>,
             }
             impl #struct_name {
                 pub fn get_uuid(&self) -> Option<Uuid> {

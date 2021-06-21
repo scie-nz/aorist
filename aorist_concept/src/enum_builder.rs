@@ -212,6 +212,7 @@ impl Builder for EnumBuilder {
     }
     fn to_concept_token_stream(&self, enum_name: &Ident) -> TokenStream {
         let variant = &self.variant_idents;
+        let py_class_name = format!("{}", enum_name);
         proc_macro::TokenStream::from(quote! { paste! {
           impl ConceptEnum for AoristRef<#enum_name> {}
           pub trait [<CanBe #enum_name>]: Debug + Clone + Serialize + PartialEq {
@@ -220,6 +221,12 @@ impl Builder for EnumBuilder {
                   ix: Option<usize>,
                   id: Option<(Uuid, String)>
               ) -> AoristRef<Self>;
+          }
+          #[cfg(feature = "python")]
+          #[pyo3::prelude::pyclass(name=#py_class_name)]
+          #[derive(Clone, PartialEq)]
+          pub struct [<Py #enum_name>] {
+              inner: AoristRef<#enum_name>,
           }
           impl #enum_name {
               
