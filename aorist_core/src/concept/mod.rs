@@ -24,7 +24,7 @@ pub struct User {
     phone: String,
     pub unixname: String,
     #[constrainable2]
-    roles: Option<Vec<Role>>,
+    roles: Option<Vec<Arc<Role>>>,
 }
 
 // use crate::access_policy::*;
