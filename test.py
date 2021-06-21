@@ -1,11 +1,14 @@
 import inspect
 from aorist.target.debug.libaorist import (
     PushshiftAPILocation, ConceptAncestry, S3Location,
+    RemoteLocation,
 )
 
-location = PushshiftAPILocation(
+pushshift = PushshiftAPILocation(
     subreddit="newzealand",
 )
+location = RemoteLocation(pushshift)
+
 print(location)
 
 from aorist_constraint.target.debug.libaorist_constraint import (

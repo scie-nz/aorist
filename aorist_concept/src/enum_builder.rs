@@ -228,6 +228,31 @@ impl Builder for EnumBuilder {
           pub struct [<Py #enum_name>] {
               pub inner: AoristRef<#enum_name>,
           }
+          #[cfg(feature = "python")]
+          #[derive(Clone, PartialEq, pyo3::prelude::FromPyObject)]
+          pub enum [<Py #enum_name Input>] {
+              #(
+                  #variant([<Py #variant>]),
+              )*
+          }
+          #[cfg(feature = "python")]
+          #[pyo3::prelude::pymethods]
+          impl [<Py #enum_name>] {
+              #[new]
+              pub fn new(
+                  input: [<Py #enum_name Input>],
+              ) -> Self {
+                  match input {
+                      #(
+                          [<Py #enum_name Input>]::#variant(x) => {
+                              let obj = #enum_name::#variant(x.inner.clone());
+                              let inner = AoristRef(std::sync::Arc::new(std::sync::RwLock::new(obj)));
+                              Self { inner }
+                          }
+                      )*
+                  }
+              }
+          }
           impl #enum_name {
               
               pub fn get_uuid(&self) -> Option<Uuid> {
