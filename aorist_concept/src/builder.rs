@@ -9,7 +9,6 @@ pub trait Builder {
     fn new(fields: &Self::TInput) -> Self;
     fn to_file(&self, struct_name: &Ident, file_name: &str);
     fn to_concept_token_stream(&self, struct_name: &Ident) -> TokenStream;
-    fn to_concept_token_stream2(&self, struct_name: &Ident) -> TokenStream;
     fn to_concept_children_token_stream(&self, struct_name: &Ident) -> TokenStream;
     fn to_python_token_stream(&self, struct_name: &Ident) -> TokenStream;
     fn to_python_token_stream_new(&self, struct_name: &Ident) -> TokenStream;
