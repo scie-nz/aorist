@@ -970,7 +970,66 @@ impl Builder for StructBuilder {
                     Option<Uuid>,
                     // wrapped reference
                     [<#struct_name Children>],
-                )> {vec![]}
+                )> {
+                    let mut children: Vec<_> = Vec::new();
+                    let read = self.0.read().unwrap();
+                    #(
+                        children.push((
+                            stringify!(#struct_name),
+                            Some(stringify!(#bare_ident)),
+                            None,
+                            self.get_uuid(),
+                            [<#struct_name Children>]::#bare_type(read.#bare_ident())
+                        ));
+                    )*
+                    #(
+                        if let Some(c) = read.#option_ident() {
+                            children.push((
+                                stringify!(#struct_name),
+                                Some(stringify!(#option_ident)),
+                                None,
+                                self.get_uuid(),
+                                [<#struct_name Children>]::#option_type(c)
+                            ));
+                        }
+                    )*
+                    #(
+                        for (ix, elem) in read.#vec_ident().into_iter().enumerate() {
+                            children.push((
+                                stringify!(#struct_name),
+                                Some(stringify!(#vec_ident)),
+                                Some(ix),
+                                self.get_uuid(),
+                                [<#struct_name Children>]::#vec_type(elem)
+                            ));
+                        }
+                    )*
+                    #(
+                        if let Some(v) = self.#option_vec_ident() {
+                            for (ix, elem) in v.iter().enumerate() {
+                                children.push((
+                                    stringify!(#struct_name),
+                                    Some(stringify!(#option_vec_ident)),
+                                    Some(ix),
+                                    read.get_uuid(),
+                                    [<#struct_name Children>]::#option_vec_type(elem)
+                                ));
+                            }
+                        }
+                    )*
+                    #(
+                        for elem in self.#map_ident().values() {
+                            children.push((
+                                stringify!(#struct_name),
+                                Some(stringify!(#map_ident)),
+                                None,
+                                read.get_uuid(),
+                                [<#struct_name Children>]::#map_value_type(elem)
+                            ));
+                        }
+                    )*
+                    children
+                }
             }
             /*impl <'a> AoristConcept<'a> for #struct_name {
 
