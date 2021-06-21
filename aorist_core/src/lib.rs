@@ -1,3 +1,4 @@
+#![allow(unused_parens)]
 pub mod dialect;
 
 mod access_policy;
@@ -27,7 +28,7 @@ mod predicate;
 mod role;
 mod role_binding;
 mod schema;
-// mod storage;
+mod storage;
 // mod storage_setup;
 mod template;
 // mod universe;

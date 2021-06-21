@@ -1,19 +1,20 @@
 use crate::encoding::*;
 use crate::layout::*;
 use crate::location::*;
-use crate::{AoristConcept, ConceptEnum};
+use crate::{AoristConcept, AoristRef, WrappedConcept, ConceptEnum};
 use aorist_concept::{aorist, Constrainable};
 use derivative::Derivative;
 use paste::paste;
+use std::fmt::Debug;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 #[aorist]
 pub struct RemoteStorage {
     #[constrainable]
-    pub location: RemoteLocation,
+    pub location: AoristRef<RemoteLocation>,
     #[constrainable]
-    pub layout: APIOrFileLayout,
+    pub layout: AoristRef<APIOrFileLayout>,
     #[constrainable]
-    pub encoding: Encoding,
+    pub encoding: AoristRef<Encoding>,
 }

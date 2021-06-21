@@ -1,19 +1,20 @@
 use crate::encoding::*;
 use crate::layout::*;
 use crate::location::*;
-use crate::{AoristConcept, ConceptEnum};
+use crate::{AoristConcept, AoristRef, WrappedConcept, ConceptEnum};
 use aorist_concept::{aorist, Constrainable};
 use derivative::Derivative;
 use paste::paste;
+use std::fmt::Debug;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 #[aorist]
 pub struct GitStorage {
     #[constrainable]
-    pub location: GithubLocation,
+    pub location: AoristRef<GithubLocation>,
     #[constrainable]
-    layout: FileBasedStorageLayout,
+    layout: AoristRef<FileBasedStorageLayout>,
     #[constrainable]
-    pub encoding: Encoding,
+    pub encoding: AoristRef<Encoding>,
 }
