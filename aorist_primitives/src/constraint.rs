@@ -28,7 +28,7 @@ where
     'a: 'b,
 {
     type TEnum: ConstraintEnum<'b> + TConstraintEnum<'a, 'b>;
-    type TAncestry: Ancestry<'a>;
+    type TAncestry: Ancestry;
 
     fn get_uuid(&self) -> Result<Uuid>;
     fn get_root(&self) -> String;
@@ -63,7 +63,7 @@ pub trait TConstraint<'a, 'b>
 where
     Self::Root: AoristConcept,
     Self::Outer: OuterConstraint<'a, 'b, TAncestry = Self::Ancestry>,
-    Self::Ancestry: Ancestry<'a>,
+    Self::Ancestry: Ancestry,
     'a: 'b,
 {
     type Root;
@@ -79,7 +79,7 @@ where
     where
         Self: Sized;
     fn should_add(
-        root: <<Self as TConstraint<'a, 'b>>::Ancestry as Ancestry<'a>>::TConcept,
+        root: <<Self as TConstraint<'a, 'b>>::Ancestry as Ancestry>::TConcept,
         ancestry: &<Self as TConstraint<'a, 'b>>::Ancestry,
     ) -> bool;
 }

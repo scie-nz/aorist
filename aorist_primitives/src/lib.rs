@@ -1238,8 +1238,8 @@ macro_rules! register_concept {
                     }
                 }
             )+
-        }
-        impl <'a> TConceptEnum<'a> for $name<'a> {
+        }*/
+        impl TConceptEnum for $name {
             fn get_parent_id(&self) -> Option<(Uuid, String)> {
                 match self {
                     $(
@@ -1257,7 +1257,7 @@ macro_rules! register_concept {
             fn get_uuid(&self) -> Uuid {
                 match self {
                     $(
-                        $name::$element((x, _, _)) => x.get_uuid(),
+                        $name::$element((x, _, _)) => x.get_uuid().unwrap(),
                     )*
                 }
             }
@@ -1275,31 +1275,32 @@ macro_rules! register_concept {
                     )*
                 }
             }
-            fn get_child_concepts(&'a self) -> Vec<$name<'a>> {
+            fn get_child_concepts(&self) -> Vec<Arc<RwLock<$name>>> {
                 match self {
                     $(
-                        $name::$element((x, _, _)) => x.get_descendants(),
+                        $name::$element((x, _, _)) => x.get_descendants().into_iter().map(|x| x.0).collect(),
                     )*
                 }
             }
-            fn populate_child_concept_map(&self, concept_map: &mut HashMap<(Uuid, String), Concept<'a>>) {
+            fn populate_child_concept_map(&self, concept_map: &mut HashMap<(Uuid, String), Concept>) {
                 match self {
                     $(
                         $name::$element((ref x, idx, parent)) => {
-                            debug!("Visiting concept {}: {}", stringify!($element), x.get_uuid());
+                            debug!("Visiting concept {}: {}", stringify!($element), x.get_uuid().unwrap());
                             for child in x.get_descendants() {
-                                child.populate_child_concept_map(concept_map);
+                                let read = child.0.read().unwrap();
+                                read.populate_child_concept_map(concept_map);
                             }
                             concept_map.insert(
-                                (x.get_uuid(),
+                                (x.get_uuid().unwrap(),
                                  stringify!($element).to_string()),
-                                 $name::$element((&x, *idx, parent.clone())),
+                                 $name::$element((x.clone(), *idx, parent.clone())),
                             );
                         }
                     )*
                 }
             }
-        }*/
+        }
     }
     }
 }

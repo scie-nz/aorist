@@ -2,6 +2,7 @@ use siphasher::sip128::{Hasher128, SipHasher};
 use std::collections::{BTreeSet, HashMap};
 use std::hash::Hasher;
 use uuid::Uuid;
+use std::sync::{Arc, RwLock};
 
 pub trait ConceptEnum {}
 pub trait AoristConcept {
@@ -43,18 +44,18 @@ pub trait AoristConcept {
     )>;
 }
 
-pub trait TConceptEnum<'a>: Sized {
+pub trait TConceptEnum: Sized {
     fn get_parent_id(&self) -> Option<(Uuid, String)>;
     fn get_type(&self) -> String;
     fn get_uuid(&self) -> Uuid;
     fn get_tag(&self) -> Option<String>;
     fn get_index_as_child(&self) -> usize;
-    fn get_child_concepts(&'a self) -> Vec<Self>;
+    fn get_child_concepts(&self) -> Vec<Arc<RwLock<Self>>>;
     fn populate_child_concept_map(&self, concept_map: &mut HashMap<(Uuid, String), Self>);
 }
 
-pub trait Ancestry<'a> {
-    type TConcept: ConceptEnum + Clone + TConceptEnum<'a>;
+pub trait Ancestry {
+    type TConcept: ConceptEnum + Clone + TConceptEnum;
 }
 pub trait TAoristObject {
     fn get_name(&self) -> &String;
