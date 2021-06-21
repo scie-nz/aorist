@@ -904,6 +904,31 @@ impl Builder for StructBuilder {
                     }
                     panic!("Uuid was not set on object of type {}.", stringify!(#struct_name));
                 }
+                #(
+                    pub fn #bare_ident(&self) -> #bare_type {
+                        self.#bare_ident.clone()
+                    }
+                )*
+                #(
+                    pub fn #option_ident(&self) -> Option<#option_type> {
+                        self.#option_ident.clone()
+                    }
+                )*
+                #(
+                    pub fn #vec_ident(&self) -> Vec<#vec_type> {
+                        self.#vec_ident.clone()
+                    }
+                )*
+                #(
+                    pub fn #option_vec_ident(&self) -> Option<Vec<#option_vec_type>> {
+                        self.#option_vec_ident.clone()
+                    }
+                )*
+                #(
+                    pub fn #map_ident(&self) -> LinkedHashMap<String, #map_value_type> {
+                        self.#map_ident.clone()
+                    }
+                )*
             }
             /*impl [<#struct_name Children>] {
                 pub fn get_uuid(&self) -> Uuid {
