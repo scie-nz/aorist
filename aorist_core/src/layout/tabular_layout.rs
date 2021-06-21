@@ -1,7 +1,8 @@
-use crate::{AoristConcept, ConceptEnum};
+use crate::{AoristConcept, AoristRef, WrappedConcept, ConceptEnum};
 use aorist_concept::{aorist, Constrainable};
 use derivative::Derivative;
 use paste::paste;
+use std::fmt::Debug;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -14,7 +15,7 @@ pub struct DailyGranularity {}
 #[aorist]
 pub enum Granularity {
     #[constrainable]
-    DailyGranularity(DailyGranularity),
+    DailyGranularity(AoristRef<DailyGranularity>),
 }
 
 #[aorist]
@@ -25,6 +26,6 @@ pub struct DynamicTabularLayout {
 
 #[aorist]
 pub enum TabularLayout {
-    StaticTabularLayout(StaticTabularLayout),
-    DynamicTabularLayout(DynamicTabularLayout),
+    StaticTabularLayout(AoristRef<StaticTabularLayout>),
+    DynamicTabularLayout(AoristRef<DynamicTabularLayout>),
 }
