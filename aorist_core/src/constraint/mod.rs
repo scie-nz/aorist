@@ -42,11 +42,11 @@ pub trait TBuilder<'a> {
     type EnumType: TConstraintEnum<'a, BuilderT=Self>;
     fn get_constraint_name(&self) -> String;
     fn get_required_constraint_names(&self) -> Vec<String>;
-    /*fn build_constraint(
+    fn build_constraint(
         &self,
         root_uuid: Uuid,
-        potential_child_constraints: Vec<Arc<RwLock<ConstraintType>>>,
-    ) -> Result<ConstraintType>;*/
+        potential_child_constraints: Vec<Arc<RwLock<Self::OuterType>>>,
+    ) -> Result<Self::OuterType>;
 }
 
 pub trait TConstraintEnum<'a>

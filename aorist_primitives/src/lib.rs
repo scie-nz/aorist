@@ -1239,6 +1239,27 @@ macro_rules! register_constraint_new {
                     )+
                 }
             }
+            fn build_constraint(
+                &self,
+                root_uuid: Uuid,
+                potential_child_constraints: Vec<Arc<RwLock<Self::OuterType>>>,
+            ) -> Result<Self::OuterType> {
+                match &self {
+                    $(
+                        [<$name Builder>]::$element(x) => Ok(Constraint {
+                            name: self.get_constraint_name(),
+                            root: self.get_root_type_name()?,
+                            requires: Some(self.get_required_constraint_names()),
+                            inner: Some(
+                                $name::$element(x.build_constraint(
+                                    root_uuid,
+                                    potential_child_constraints,
+                                )?)
+                            ),
+                        }),
+                    )+
+                }
+            }
         }
         impl <$lt> [<$name Builder>]<$lt>
         {
@@ -1262,27 +1283,6 @@ macro_rules! register_constraint_new {
                     $(
                         [<$name Builder>]::$element(_) =>
                         $element::should_add(root, ancestry),
-                    )+
-                }
-            }
-            pub fn build_constraint(
-                &self,
-                root_uuid: Uuid,
-                potential_child_constraints: Vec<Arc<RwLock<Constraint>>>,
-            ) -> Result<Constraint> {
-                match &self {
-                    $(
-                        [<$name Builder>]::$element(x) => Ok(Constraint {
-                            name: self.get_constraint_name(),
-                            root: self.get_root_type_name()?,
-                            requires: Some(self.get_required_constraint_names()),
-                            inner: Some(
-                                $name::$element(x.build_constraint(
-                                    root_uuid,
-                                    potential_child_constraints,
-                                )?)
-                            ),
-                        }),
                     )+
                 }
             }
