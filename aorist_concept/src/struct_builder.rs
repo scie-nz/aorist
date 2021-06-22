@@ -746,6 +746,9 @@ impl Builder for StructBuilder {
             #[cfg(feature = "python")]
             #[pyo3::prelude::pymethods]
             impl [<Py #struct_name>] {
+                pub fn compute_uuids(&self) {
+                    self.inner.compute_uuids()
+                }
                 #[new]
                 pub fn new(
                     #(
@@ -1040,10 +1043,20 @@ impl Builder for StructBuilder {
                 fn compute_uuids(&self) {
                     if let Ok(ref mut x) = self.0.write() {
                         x.compute_uuids();
-                        let uuid = self.get_uuid_from_children_uuid();
-                        x.set_uuid(uuid);
+                    } else {
+                        panic!("Could not open object {} for writing.", stringify!(#struct_name));
                     }
-                    panic!("Could not open object {} for writing.", stringify!(#struct_name));
+                    let uuid;
+                    if let Ok(ref x) = self.0.read() {
+                        uuid = self.get_uuid_from_children_uuid();
+                    } else {
+                        panic!("Could not open object {} for reading.", stringify!(#struct_name));
+                    }
+                    if let Ok(ref mut x) = self.0.write() {
+                        x.set_uuid(uuid);
+                    } else {
+                        panic!("Could not open object {} for writing.", stringify!(#struct_name));
+                    }
                 }
                 fn get_children_uuid(&self) -> Vec<Uuid> {
                     self.get_children().iter().map(|x| x.4.get_uuid().unwrap()).collect()

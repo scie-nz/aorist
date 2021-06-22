@@ -112,6 +112,7 @@ universe = Universe(
     datasets=[subreddits],
     endpoints=endpoints,
 )
+universe.compute_uuids()
 print(universe)
 
 
@@ -126,19 +127,15 @@ location = RemoteLocation(pushshift)
 
 print(location)
 
-from aorist import (
-    DownloadDataFromRemotePushshiftAPILocationToNewlineDelimitedJSON
-)
+from aorist import *
 from recipes import programs
 
 
 
-
-programs = {}
-
 @aorist(
     programs,
-    DownloadDataFromRemotePushshiftAPILocationToNewlineDelimitedJSON,
+    # DUMMY
+    TableSchemasDroppedIfExisting,
     entrypoint="upload_to_s3",
     args={
         "access_key": lambda ancestry : ancestry.universe.endpoints.access_key_id, 
@@ -168,5 +165,4 @@ def recipe():
         dest_path = schema + '/' + tablename + '/data.csv'
         response = client.upload_file(source_path, bucket, dest_path)
 
-print(ConceptAncestry)
 print(programs)
