@@ -805,6 +805,26 @@ impl Builder for StructBuilder {
                 fn tag(&self) -> pyo3::prelude::PyResult<Option<String>> {
                     Ok(self.inner.0.read().unwrap().tag.clone())
                 }
+                #(
+                    #[getter]
+                    fn #bare_ident(&self) -> pyo3::prelude::PyResult<[<Py #bare_type_deref>]> {
+                        Ok(
+                            [<Py #bare_type_deref>] {
+                                inner: self.inner.0.read().unwrap().#bare_ident.clone(),
+                            }
+                        )
+                    }
+                    #[getter]
+                    fn #option_ident(&self) -> pyo3::prelude::PyResult<Option<[<Py #option_type_deref>]>> {
+                        Ok(
+                            self.inner.0.read().unwrap().#option_ident.as_ref().and_then(|x|
+                                Some([<Py #option_type_deref>] {
+                                    inner: x.clone()
+                                })
+                            )
+                        )
+                    }
+                )*
             }
 
             impl #struct_name {
