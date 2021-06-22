@@ -1,4 +1,5 @@
-from aorist import aorist, DownloadDataFromRemotePushshiftAPILocationToNewlineDelimitedJSON
+from aorist import aorist
+from aorist import DownloadDataFromRemotePushshiftAPILocationToNewlineDelimitedJSON
 
 programs = {}
 
