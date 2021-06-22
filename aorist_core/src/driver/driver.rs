@@ -321,7 +321,7 @@ where
             }
         }
     }
-    fn get_endpoints(&self) -> &EndpointConfig;
+    fn get_endpoints(&self) -> AoristRef<EndpointConfig>;
     fn get_dependencies(&self) -> Vec<String>;
     fn run(&mut self) -> Result<(String, Vec<String>)> {
         self.satisfy_constraints()?;
@@ -330,7 +330,7 @@ where
         let statements_and_preambles = self
             .get_blocks()
             .iter()
-            .map(|x| x.get_statements(&endpoints))
+            .map(|x| x.get_statements(endpoints.clone()))
             .collect::<Vec<_>>();
 
         Ok((

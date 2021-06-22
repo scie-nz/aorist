@@ -136,7 +136,7 @@ macro_rules! define_task_node {
      $import_closure:expr,
      $import_type:ty,
      $($field: ident : $field_type: ty,)*) => {
-        #[derive(Hash, PartialEq, Eq, Clone)]
+        #[derive(Hash, PartialEq, Clone)]
         pub struct $name {
             $(
                 $field: $field_type,

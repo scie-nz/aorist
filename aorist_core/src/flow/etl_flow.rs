@@ -1,3 +1,4 @@
+use crate::concept::AoristRef;
 use crate::code::{Import, Preamble};
 use crate::dialect::Dialect;
 use crate::endpoints::EndpointConfig;
@@ -23,7 +24,7 @@ pub trait ETLFlow {
         dep_list: Option<AST>,
         preamble: Option<String>,
         dialect: Option<Dialect>,
-        endpoints: EndpointConfig,
+        endpoints: AoristRef<EndpointConfig>,
     ) -> Self;
     fn get_statements(&self) -> Vec<AST>;
     fn get_type() -> String;

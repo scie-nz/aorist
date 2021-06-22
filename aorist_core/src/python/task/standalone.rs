@@ -10,6 +10,7 @@ use crate::python::{List, PythonImport, PythonPreamble, StringLiteral, AST};
 use linked_hash_map::LinkedHashMap;
 use std::hash::Hash;
 use std::marker::PhantomData;
+use crate::concept::AoristRef;
 
 #[derive(Clone, Hash, PartialEq, Eq)]
 pub struct StandalonePythonBasedTask<T>
@@ -135,7 +136,7 @@ where
     }
     pub fn get_statements(
         &self,
-        endpoints: &EndpointConfig,
+        endpoints: AoristRef<EndpointConfig>,
     ) -> (Vec<AST>, Vec<PythonPreamble>, Vec<PythonImport>) {
         let args;
         let kwargs;

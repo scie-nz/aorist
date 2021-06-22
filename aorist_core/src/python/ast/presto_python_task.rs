@@ -9,6 +9,7 @@ use aorist_primitives::define_task_node;
 use linked_hash_map::LinkedHashMap;
 use std::hash::Hash;
 use std::sync::{Arc, RwLock};
+use crate::concept::AoristRef;
 
 define_task_node!(
     PrestoPythonTask,
@@ -37,7 +38,7 @@ define_task_node!(
 
         command_map.insert("command".to_string(), command_ident.clone());
         vec![
-            task.presto_connection_statement(&task.endpoint),
+            task.presto_connection_statement(task.endpoint.clone()),
             task.presto_cursor_statement(),
             AST::Assignment(Assignment::new_wrapped(
                 command_ident.clone(),
@@ -88,7 +89,7 @@ define_task_node!(
     PythonImport,
     sql: AST,
     task_val: AST,
-    endpoint: PrestoConfig,
+    endpoint: AoristRef<PrestoConfig>,
 );
 
 impl PrestoPythonTask {
@@ -98,9 +99,9 @@ impl PrestoPythonTask {
     fn connection_ident(&self) -> AST {
         AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("conn".to_string()))
     }
-    fn presto_connection_statement(&self, presto_endpoints: &PrestoConfig) -> AST {
+    fn presto_connection_statement(&self, presto_endpoints_rw: AoristRef<PrestoConfig>) -> AST {
         let mut kwargs = LinkedHashMap::new();
-
+        let presto_endpoints = &*presto_endpoints_rw.0.read().unwrap();
         kwargs.insert(
             "host".to_string(),
             AST::StringLiteral(StringLiteral::new_wrapped(

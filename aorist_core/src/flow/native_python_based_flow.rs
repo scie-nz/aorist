@@ -1,3 +1,4 @@
+use crate::concept::AoristRef;
 use crate::endpoints::EndpointConfig;
 use crate::flow::etl_flow::ETLFlow;
 use crate::flow::flow_builder::FlowBuilderBase;
@@ -7,7 +8,7 @@ use crate::python::{
     PythonPreamble, RPythonTask,
 };
 use aorist_ast::{Call, Expression, Formatted, SimpleIdentifier, StringLiteral, AST};
-use aorist_core::Dialect;
+use crate::dialect::Dialect;
 use aorist_primitives::register_task_nodes;
 use linked_hash_map::LinkedHashMap;
 use pyo3::prelude::*;
@@ -25,7 +26,7 @@ register_task_nodes! {
     PrestoPythonTask,
 }
 
-#[derive(Clone, Hash, PartialEq, Eq)]
+#[derive(Clone, Hash, PartialEq)]
 pub struct NativePythonBasedFlow {
     task_id: AST,
     task_val: AST,
@@ -36,7 +37,7 @@ pub struct NativePythonBasedFlow {
     preamble: Option<String>,
     dialect: Option<Dialect>,
 
-    endpoints: EndpointConfig,
+    endpoints: AoristRef<EndpointConfig>,
     node: PythonTask,
 }
 impl ETLFlow for NativePythonBasedFlow {
@@ -74,7 +75,7 @@ impl ETLFlow for NativePythonBasedFlow {
         dep_list: Option<AST>,
         preamble: Option<String>,
         dialect: Option<Dialect>,
-        endpoints: EndpointConfig,
+        endpoints: AoristRef<EndpointConfig>,
     ) -> Self {
         let command = match &dialect {
             Some(Dialect::Bash(_)) | Some(Dialect::R(_)) => AST::Formatted(Formatted::new_wrapped(
@@ -102,7 +103,7 @@ impl ETLFlow for NativePythonBasedFlow {
         };
         let node = match &dialect {
             Some(Dialect::Presto(_)) => {
-                let presto_endpoints = endpoints.presto.as_ref().unwrap().clone();
+                let presto_endpoints = endpoints.0.read().unwrap().presto.as_ref().unwrap().clone();
                 PythonTask::PrestoPythonTask(PrestoPythonTask::new_wrapped(
                     command,
                     task_val.clone(),

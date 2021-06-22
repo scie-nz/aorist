@@ -11,6 +11,7 @@ use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
 use std::collections::{BTreeSet, HashMap};
 use std::sync::{Arc, RwLock};
+use crate::concept::AoristRef;
 use uuid::Uuid;
 
 pub trait CodeBlock<'a, T, C>
@@ -63,7 +64,7 @@ where
     }
     fn get_statements(
         &self,
-        endpoints: &EndpointConfig,
+        endpoints: AoristRef<EndpointConfig>,
     ) -> (Vec<AST>, LinkedHashSet<Self::P>, BTreeSet<T::ImportType>);
 
     fn get_tasks_dict(&self) -> Option<AST>;

@@ -14,6 +14,7 @@ use std::collections::{BTreeSet, HashMap, HashSet};
 use std::marker::PhantomData;
 use tracing::trace;
 use uuid::Uuid;
+use crate::concept::AoristRef;
 
 pub struct PythonBasedCodeBlock<'a, T, C>
 where
@@ -53,7 +54,7 @@ where
 
     fn get_statements(
         &self,
-        endpoints: &EndpointConfig,
+        endpoints: AoristRef<EndpointConfig>,
     ) -> (
         Vec<AST>,
         LinkedHashSet<PythonPreamble>,
@@ -62,7 +63,7 @@ where
         let preambles_and_statements = self
             .python_based_tasks
             .iter()
-            .map(|x| x.get_statements(endpoints))
+            .map(|x| x.get_statements(endpoints.clone()))
             .collect::<Vec<_>>();
         let preambles = preambles_and_statements
             .iter()

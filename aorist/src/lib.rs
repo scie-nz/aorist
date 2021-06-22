@@ -2,6 +2,46 @@ use pyo3::prelude::*;
 use aorist_util::init_logging;
 use aorist_core::*;
 use aorist_attributes::attributes_module;
+use aorist_constraints::*;
+
+#[pyfunction]
+pub fn dag(universe: AoristRef<Universe>, constraints: Vec<String>, mode: &str) -> PyResult<String> {
+    //extendr_engine::start_r();
+    //let mut universe = Universe::from(inner);
+    //universe.compute_uuids();
+    let (output, _requirements) = match mode {
+        "airflow" => PythonBasedDriver::<ConstraintBuilder, AirflowFlowBuilder>::new(
+            &universe,
+            constraints.into_iter().collect(),
+        )
+        .map_err(|e| pyo3::exceptions::PyException::new_err(e.to_string()))?
+        .run(),
+        "prefect" => PythonBasedDriver::<ConstraintBuilder, PrefectFlowBuilder>::new(
+            &universe,
+            constraints.into_iter().collect(),
+        )
+        .map_err(|e| pyo3::exceptions::PyException::new_err(e.to_string()))?
+        .run(),
+        "python" => PythonBasedDriver::<ConstraintBuilder, PythonFlowBuilder>::new(
+            &universe,
+            constraints.into_iter().collect(),
+        )
+        .map_err(|e| pyo3::exceptions::PyException::new_err(e.to_string()))?
+        .run(),
+        "jupyter" => PythonBasedDriver::<ConstraintBuilder, JupyterFlowBuilder>::new(
+            &universe,
+            constraints.into_iter().collect(),
+        )
+        .map_err(|e| pyo3::exceptions::PyException::new_err(e.to_string()))?
+        .run(),
+        /*"r" => RBasedDriver::<ConstraintBuilder, RBasedFlowBuilder>::new(&universe, constraints.into_iter().collect())
+            .map_err(|e| pyo3::exceptions::PyException::new_err(e.to_string()))?
+            .run(),*/
+        _ => panic!("Unknown mode provided: {}", mode),
+    }
+    .map_err(|e| pyo3::exceptions::PyException::new_err(e.to_string()))?;
+    Ok(output.replace("\\\\", "\\"))
+}
 
 #[pymodule]
 fn libaorist(py: pyo3::prelude::Python, m: &PyModule) -> PyResult<()> {

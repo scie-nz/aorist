@@ -9,6 +9,7 @@ pub use standalone::*;
 use crate::endpoints::EndpointConfig;
 use crate::flow::{CompressibleETLTask, ETLFlow, ETLTask, TaskBase};
 use crate::python::{PythonImport, PythonPreamble, AST};
+use crate::concept::AoristRef;
 
 pub enum PythonBasedTask<T>
 where
@@ -38,7 +39,7 @@ where
 {
     pub fn get_statements(
         &self,
-        endpoints: &EndpointConfig,
+        endpoints: AoristRef<EndpointConfig>,
     ) -> (Vec<AST>, Vec<PythonPreamble>, Vec<PythonImport>) {
         match &self {
             PythonBasedTask::StandalonePythonBasedTask(x) => x.get_statements(endpoints),

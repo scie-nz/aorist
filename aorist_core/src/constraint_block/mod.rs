@@ -7,6 +7,7 @@ use crate::constraint::OuterConstraint;
 use linked_hash_set::LinkedHashSet;
 use std::collections::{BTreeSet, HashMap};
 use uuid::Uuid;
+use crate::concept::AoristRef;
 
 pub trait ConstraintBlock<'a, T, C>
 where
@@ -27,11 +28,11 @@ where
     fn get_code_blocks(&self) -> &Vec<Self::C>;
     fn get_task_val_assignments(&self) -> Vec<AST>;
 
-    fn get_statements(&self, endpoints: &EndpointConfig) -> Self::BuilderInputType {
+    fn get_statements(&self, endpoints: AoristRef<EndpointConfig>) -> Self::BuilderInputType {
         let preambles_and_statements = self
             .get_code_blocks()
             .iter()
-            .map(|x| x.get_statements(endpoints))
+            .map(|x| x.get_statements(endpoints.clone()))
             .collect::<Vec<_>>();
         let preambles = preambles_and_statements
             .iter()
