@@ -471,6 +471,25 @@ macro_rules! define_attribute {
                 pub fn name(&self) -> PyResult<String> {
                     Ok(self.name.clone())
                 }
+
+            }
+            #[cfg(feature = "python")]
+            #[pyo3::prelude::pyproto]
+            impl pyo3::PyObjectProtocol for $element {
+                fn __repr__(&self) -> pyo3::PyResult<String> {
+                    Ok(format!(
+                        "{} {}",
+                        stringify!($element),
+                        serde_json::to_string_pretty(self).unwrap()
+                    ))
+                }
+                fn __str__(&self) -> pyo3::PyResult<String> {
+                    Ok(format!(
+                        "{} {}",
+                        stringify!($element),
+                        serde_json::to_string_pretty(self).unwrap()
+                    ))
+                }
             }
         }
     };
