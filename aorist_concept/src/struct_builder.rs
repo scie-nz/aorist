@@ -802,20 +802,22 @@ impl Builder for StructBuilder {
                     Self { inner }
                 }
                 #[getter]
-                fn tag(&self) -> pyo3::prelude::PyResult<Option<String>> {
+                pub fn tag(&self) -> pyo3::prelude::PyResult<Option<String>> {
                     Ok(self.inner.0.read().unwrap().tag.clone())
                 }
                 #(
                     #[getter]
-                    fn #bare_ident(&self) -> pyo3::prelude::PyResult<[<Py #bare_type_deref>]> {
+                    pub fn #bare_ident(&self) -> pyo3::prelude::PyResult<[<Py #bare_type_deref>]> {
                         Ok(
                             [<Py #bare_type_deref>] {
                                 inner: self.inner.0.read().unwrap().#bare_ident.clone(),
                             }
                         )
                     }
+                )*
+                #(
                     #[getter]
-                    fn #option_ident(&self) -> pyo3::prelude::PyResult<Option<[<Py #option_type_deref>]>> {
+                    pub fn #option_ident(&self) -> pyo3::prelude::PyResult<Option<[<Py #option_type_deref>]>> {
                         Ok(
                             self.inner.0.read().unwrap().#option_ident.as_ref().and_then(|x|
                                 Some([<Py #option_type_deref>] {
@@ -825,6 +827,59 @@ impl Builder for StructBuilder {
                         )
                     }
                 )*
+                #(
+                    #[getter]
+                    pub fn #vec_ident(&self) -> pyo3::prelude::PyResult<Vec<[<Py #vec_type_deref>]>> {
+                        Ok(
+                            self.inner.0.read().unwrap().#vec_ident.iter().map(|x| {
+                                [<Py #vec_type_deref>] {
+                                    inner: x.clone(),
+                                }
+                            }).collect::<Vec<_>>()
+                        )
+                    }
+                )*
+                #(
+                    #[getter]
+                    pub fn #option_vec_ident(&self) -> pyo3::prelude::PyResult<Option<
+                        Vec<[<Py #option_vec_type_deref>]>
+                    >> {
+                        Ok(
+                            self.inner.0.read().unwrap().#option_vec_ident.as_ref().and_then(|x|
+                                Some(
+                                    x.iter().map(|y| {
+                                        [<Py #option_vec_type_deref>] {
+                                            inner: y.clone()
+                                        }
+                                    }).collect()
+                                )
+                            )
+                        )
+                    }
+                )*
+                #(
+                    #[getter]
+                    pub fn #map_ident(&self) -> pyo3::prelude::PyResult<BTreeMap<
+                        String, [<Py #map_value_type_deref>]>
+                    > {
+                        Ok(
+                            self.inner.0.read().unwrap().#map_ident.iter().map(|(k, v)| {(
+                                k.clone(),
+                                [<Py #map_value_type_deref>] {
+                                    inner: v.clone(),
+                                }
+                            )}).collect()
+                        )
+                    }
+                )*
+                /*
+                #(
+                    #[getter]
+                    pub fn #unconstrainable_name(&self) -> pyo3::prelude::PyResult<#unconstrainable_type> {
+                        Ok(self.#unconstrainable_name.clone())
+                    }
+                )*
+                  */
             }
 
             impl #struct_name {
