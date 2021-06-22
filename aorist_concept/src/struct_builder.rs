@@ -748,7 +748,9 @@ impl Builder for StructBuilder {
             impl [<Py #struct_name>] {
                 #[new]
                 pub fn new(
-                    #(#bare_ident: [<Py #bare_type_deref>] ,)*
+                    #(
+                        #bare_ident: [<Py #bare_type_deref>],
+                    )*
                     #(#vec_ident: Vec<[<Py #vec_type_deref>]> ,)*
                     #(#option_ident: Option<[<Py #option_type_deref>]> ,)*
                     #(#option_vec_ident: Option<Vec<[<Py #option_vec_type_deref>]>> ,)*
@@ -757,7 +759,9 @@ impl Builder for StructBuilder {
                         String, [<Py #map_value_type_deref>]
                       >,
                     )*
-                    #(#unconstrainable_name: #unconstrainable_type,)*
+                    #(
+                        #unconstrainable_name: #unconstrainable_type,
+                    )*
                     tag: Option<String>,
                 ) -> Self {
                     let obj = #struct_name {
@@ -796,6 +800,10 @@ impl Builder for StructBuilder {
                         obj
                     )));
                     Self { inner }
+                }
+                #[getter]
+                fn tag(&self) -> pyo3::prelude::PyResult<Option<String>> {
+                    Ok(self.inner.0.read().unwrap().tag.clone())
                 }
             }
 
