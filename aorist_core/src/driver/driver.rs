@@ -1,6 +1,7 @@
 #![allow(dead_code)]
 use crate::code::CodeBlockWithDefaultConstructor;
-use crate::concept::{Concept, ConceptAncestry};
+use crate::concept::{Concept, ConceptAncestry, AoristRef};
+use crate::universe::Universe;
 use crate::constraint::SatisfiableOuterConstraint;
 use crate::constraint_block::ConstraintBlock;
 use crate::constraint_state::ConstraintState;
@@ -12,7 +13,7 @@ use anyhow::Result;
 use aorist_ast::{AncestorRecord, SimpleIdentifier, AST};
 use crate::constraint::TConstraintEnum;
 use crate::constraint::{OuterConstraint, TBuilder};
-use aorist_primitives::Ancestry;
+use aorist_primitives::{Ancestry, TConceptEnum};
 use inflector::cases::snakecase::to_snake_case;
 use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
@@ -340,7 +341,7 @@ where
     }
     fn get_blocks(&self) -> &Vec<Self::CB>;
     fn _new(
-        concepts: Arc<RwLock<HashMap<(Uuid, String), Concept>>>,
+        concepts: Arc<RwLock<HashMap<(Uuid, String), AoristRef<Concept>>>>,
         constraints: LinkedHashMap<(Uuid, String), Arc<RwLock<C>>>,
         ancestry: Arc<ConceptAncestry>,
         endpoints: EndpointConfig,
@@ -564,5 +565,158 @@ where
         }
 
         Ok(unsatisfied_constraints)
+    }
+    fn get_concept_map_by_object_type(
+        concept_map: HashMap<(Uuid, String), AoristRef<Concept>>,
+    ) -> HashMap<String, Vec<AoristRef<Concept>>> {
+        let mut by_object_type: HashMap<String, Vec<AoristRef<Concept>>> = HashMap::new();
+        debug!("Found the following concepts:");
+        for ((uuid, object_type), concept) in concept_map {
+            debug!("- {}: {}", &object_type, &uuid);
+            by_object_type
+                .entry(object_type)
+                .or_insert(Vec::new())
+                .push(concept.clone());
+        }
+        by_object_type
+    }
+    fn compute_all_ancestors(
+        universe: AoristRef<Concept>,
+        concept_map: &HashMap<(Uuid, String), AoristRef<Concept>>,
+    ) -> HashMap<(Uuid, String), Vec<AncestorRecord>> {
+        let mut ancestors: HashMap<(Uuid, String), Vec<AncestorRecord>> = HashMap::new();
+        let mut frontier: Vec<AncestorRecord> = Vec::new();
+        frontier.push(AncestorRecord::new(
+            universe.get_uuid(),
+            universe.get_type(),
+            universe.get_tag(),
+            universe.get_index_as_child(),
+        ));
+        ancestors.insert(
+            (universe.get_uuid(), universe.get_type()),
+            vec![AncestorRecord::new(
+                universe.get_uuid(),
+                universe.get_type(),
+                None,
+                0,
+            )],
+        );
+        while frontier.len() > 0 {
+            let mut new_frontier: Vec<AncestorRecord> = Vec::new();
+            for child in frontier.drain(0..) {
+                let key = child.get_key();
+                let concept = concept_map.get(&key).unwrap();
+                let child_ancestors = ancestors.get(&key).unwrap().clone();
+                for grandchild in concept.get_child_concepts() {
+                    let t = AncestorRecord::new(
+                        grandchild.get_uuid(),
+                        grandchild.get_type(),
+                        grandchild.get_tag(),
+                        grandchild.get_index_as_child(),
+                    );
+                    new_frontier.push(t.clone());
+                    let mut grandchild_ancestors = child_ancestors.clone();
+                    grandchild_ancestors.push(t);
+                    ancestors.insert(
+                        (grandchild.get_uuid(), grandchild.get_type()),
+                        grandchild_ancestors,
+                    );
+                }
+            }
+            frontier = new_frontier;
+        }
+        ancestors
+    }
+    fn new(
+        universe: AoristRef<Universe>,
+        topline_constraint_names: LinkedHashSet<String>
+    )// -> Result<Self>
+    //where
+    //    Self: Sized,
+    {
+        let sorted_builders = Self::get_relevant_builders(&topline_constraint_names);
+        let mut concept_map: HashMap<(Uuid, String), AoristRef<Concept>> = HashMap::new();
+        let concept = AoristRef(Arc::new(RwLock::new(Concept::Universe((universe.clone(), 0, None)))));
+        concept.populate_child_concept_map(&mut concept_map);
+        let by_object_type = Self::get_concept_map_by_object_type(concept_map.clone());
+
+        let ancestors = Self::compute_all_ancestors(concept, &concept_map);
+        let mut visited_constraint_names: LinkedHashSet<String> = LinkedHashSet::new();
+        // constraint_name => root_id => constraint_object
+        let mut generated_constraints: LinkedHashMap<
+            String,
+            LinkedHashMap<(Uuid, String), Arc<RwLock<C>>>,
+        > = LinkedHashMap::new();
+
+        let concepts = Arc::new(RwLock::new(concept_map));
+        let ancestry: ConceptAncestry = ConceptAncestry {
+            parents: concepts.clone(),
+        };
+        let family_trees = Self::generate_family_trees(&ancestors);
+
+        /*
+        for builder in sorted_builders {
+            Self::attach_constraints(
+                &builder,
+                &by_object_type,
+                &family_trees,
+                &ancestry,
+                &mut generated_constraints,
+                &mut visited_constraint_names,
+            )?;
+        }
+
+        let mut constraints = LinkedHashMap::new();
+        for (_k, v) in generated_constraints {
+            for ((_root_id, root_type), rw) in v.into_iter() {
+                constraints.insert(
+                    (rw.read().unwrap().get_uuid()?.clone(), root_type),
+                    rw.clone(),
+                );
+            }
+        }
+
+        Ok(Self::_new(
+            concepts,
+            constraints,
+            Arc::new(ancestry),
+            universe.endpoints.clone(),
+            ancestors,
+            topline_constraint_names,
+        ))*/
+    }
+    fn generate_family_trees(
+        ancestors: &HashMap<(Uuid, String), Vec<AncestorRecord>>,
+    ) -> HashMap<(Uuid, String), HashMap<String, HashSet<Uuid>>> {
+        let mut family_trees: HashMap<(Uuid, String), HashMap<String, HashSet<Uuid>>> =
+            HashMap::new();
+        for (key, ancestor_v) in ancestors.iter() {
+            for record in ancestor_v {
+                family_trees
+                    .entry(key.clone())
+                    .or_insert(HashMap::new())
+                    .entry(record.object_type.clone())
+                    .or_insert(HashSet::new())
+                    .insert(record.uuid);
+            }
+            for record in ancestor_v {
+                let (uuid, object_type) = key;
+                let ancestor_key = record.get_key();
+                family_trees
+                    .entry(ancestor_key)
+                    .or_insert(HashMap::new())
+                    .entry(object_type.clone())
+                    .or_insert(HashSet::new())
+                    .insert(uuid.clone());
+            }
+            let (uuid, object_type) = key;
+            family_trees
+                .entry(key.clone())
+                .or_insert(HashMap::new())
+                .entry(object_type.clone())
+                .or_insert(HashSet::new())
+                .insert(uuid.clone());
+        }
+        family_trees
     }
 }
