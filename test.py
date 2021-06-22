@@ -106,13 +106,13 @@ subreddits = DataSet(
     },
     access_policies=[],
 )
-subreddits = subreddits.replicate_to_local(local, tmp_dir, CSVEncoding())
+subreddits.replicate_to_local(Storage(local), tmp_dir, Encoding(CSVEncoding()))
 universe = Universe(
     name="my_cluster",
     datasets=[subreddits],
-    endpoints=DEFAULT_ENDPOINTS,
+    endpoints=endpoints,
 )
-print(endpoints)
+print(universe)
 
 
 pushshift = PushshiftAPILocation(
