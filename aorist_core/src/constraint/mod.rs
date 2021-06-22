@@ -38,8 +38,15 @@ pub trait SatisfiableOuterConstraint<'a>: OuterConstraint<'a>
     ) -> Result<(String, String, ParameterTuple, Dialect)>;
 }
 pub trait TBuilder<'a> {
+    type OuterType: OuterConstraint<'a, TEnum=Self::EnumType>;
+    type EnumType: TConstraintEnum<'a, BuilderT=Self>;
     fn get_constraint_name(&self) -> String;
     fn get_required_constraint_names(&self) -> Vec<String>;
+    /*fn build_constraint(
+        &self,
+        root_uuid: Uuid,
+        potential_child_constraints: Vec<Arc<RwLock<ConstraintType>>>,
+    ) -> Result<ConstraintType>;*/
 }
 
 pub trait TConstraintEnum<'a>

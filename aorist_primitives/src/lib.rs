@@ -1223,6 +1223,8 @@ macro_rules! register_constraint_new {
             Ok(())
         }
         impl <$lt> TBuilder<$lt> for [<$name Builder>]<$lt> {
+            type OuterType = Constraint;
+            type EnumType = $name;
             fn get_constraint_name(&self) -> String {
                 match &self {
                     $(
