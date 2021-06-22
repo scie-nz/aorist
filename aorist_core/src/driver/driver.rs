@@ -34,7 +34,6 @@ pub type ConstraintsBlockMap<'a, C> = LinkedHashMap<
 pub trait Driver<'a, B, D>
 where
     B: TBuilder<'a>,
-    B: 'a,
     D: FlowBuilderBase,
     D:
         FlowBuilderMaterialize<
@@ -344,7 +343,7 @@ where
         concepts: Arc<RwLock<HashMap<(Uuid, String), AoristRef<Concept>>>>,
         constraints: LinkedHashMap<(Uuid, String), Arc<RwLock<B::OuterType>>>,
         ancestry: Arc<ConceptAncestry>,
-        endpoints: EndpointConfig,
+        endpoints: AoristRef<EndpointConfig>,
         ancestors: HashMap<(Uuid, String), Vec<AncestorRecord>>,
         topline_constraint_names: LinkedHashSet<String>,
     ) -> Self;
@@ -630,9 +629,9 @@ where
     fn new(
         universe: AoristRef<Universe>,
         topline_constraint_names: LinkedHashSet<String>
-    )// -> Result<Self>
-    //where
-    //    Self: Sized,
+    ) -> Result<Self>
+    where
+        Self: Sized,
     {
         let sorted_builders = Self::get_relevant_builders(&topline_constraint_names);
         let mut concept_map: HashMap<(Uuid, String), AoristRef<Concept>> = HashMap::new();
@@ -654,10 +653,9 @@ where
         };
         let family_trees = Self::generate_family_trees(&ancestors);
 
-        /*
-        for builder in sorted_builders {
+        for builder in &sorted_builders {
             Self::attach_constraints(
-                &builder,
+                builder,
                 &by_object_type,
                 &family_trees,
                 &ancestry,
@@ -675,15 +673,14 @@ where
                 );
             }
         }
-
         Ok(Self::_new(
             concepts,
             constraints,
             Arc::new(ancestry),
-            universe.endpoints.clone(),
+            universe.0.read().unwrap().endpoints.clone(),
             ancestors,
             topline_constraint_names,
-        ))*/
+        ))
     }
     fn generate_family_trees(
         ancestors: &HashMap<(Uuid, String), Vec<AncestorRecord>>,
@@ -720,7 +717,7 @@ where
         family_trees
     }
     fn attach_constraints(
-        builder: &'a B,
+        builder: &B,
         by_object_type: &HashMap<String, Vec<AoristRef<Concept>>>,
         family_trees: &HashMap<(Uuid, String), HashMap<String, HashSet<Uuid>>>,
         ancestry: &ConceptAncestry,

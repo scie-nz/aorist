@@ -1279,7 +1279,7 @@ macro_rules! register_constraint_new {
                     )+
                 }
             }
-            fn get_required(&$lt self, root: AoristRef<Concept>, ancestry:&ConceptAncestry) -> Vec<Uuid> {
+            fn get_required(&self, root: AoristRef<Concept>, ancestry:&ConceptAncestry) -> Vec<Uuid> {
                 match &self {
                     $(
                         [<$name Builder>]::$element(_) =>
@@ -1287,7 +1287,7 @@ macro_rules! register_constraint_new {
                     )+
                 }
             }
-            fn should_add(&$lt self, root: AoristRef<Concept>, ancestry:&ConceptAncestry) -> bool {
+            fn should_add(&self, root: AoristRef<Concept>, ancestry:&ConceptAncestry) -> bool {
                 match &self {
                     $(
                         [<$name Builder>]::$element(_) =>
