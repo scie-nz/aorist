@@ -1224,7 +1224,19 @@ macro_rules! register_constraint_new {
         }
         impl <$lt> TBuilder<$lt> for [<$name Builder>]<$lt> {
             type OuterType = Constraint;
-            type EnumType = $name;
+            //type EnumType = $name;
+            fn builders() -> Vec<[<$name Builder>]<$lt>> where Self : Sized {
+                vec![
+                    $(
+                        [<$name Builder>]::$element(
+                            ConstraintBuilder::<$lt, $element>{
+                                _phantom: std::marker::PhantomData,
+                                _phantom_lt: std::marker::PhantomData,
+                            }
+                        ),
+                    )+
+                ]
+            }
             fn get_constraint_name(&self) -> String {
                 match &self {
                     $(
@@ -1260,17 +1272,14 @@ macro_rules! register_constraint_new {
                     )+
                 }
             }
-        }
-        impl <$lt> [<$name Builder>]<$lt>
-        {
-            pub fn get_root_type_name(&self) -> Result<String> {
+            fn get_root_type_name(&self) -> Result<String> {
                 match &self {
                     $(
                         [<$name Builder>]::$element(_) => $element::get_root_type_name(),
                     )+
                 }
             }
-            pub fn get_required(&$lt self, root: AoristRef<Concept>, ancestry:&ConceptAncestry) -> Vec<Uuid> {
+            fn get_required(&$lt self, root: AoristRef<Concept>, ancestry:&ConceptAncestry) -> Vec<Uuid> {
                 match &self {
                     $(
                         [<$name Builder>]::$element(_) =>
@@ -1278,7 +1287,7 @@ macro_rules! register_constraint_new {
                     )+
                 }
             }
-            pub fn should_add(&$lt self, root: AoristRef<Concept>, ancestry:&ConceptAncestry) -> bool {
+            fn should_add(&$lt self, root: AoristRef<Concept>, ancestry:&ConceptAncestry) -> bool {
                 match &self {
                     $(
                         [<$name Builder>]::$element(_) =>
@@ -1288,19 +1297,6 @@ macro_rules! register_constraint_new {
             }
         }
         impl <$lt> TConstraintEnum<$lt> for $name {
-            type BuilderT = [<$name Builder>]<$lt>;
-            fn builders() -> Vec<[<$name Builder>]<$lt>> {
-                vec![
-                    $(
-                        [<$name Builder>]::$element(
-                            ConstraintBuilder::<$lt, $element>{
-                                _phantom: std::marker::PhantomData,
-                                _phantom_lt: std::marker::PhantomData,
-                            }
-                        ),
-                    )+
-                ]
-            }
             fn get_required_constraint_names() -> HashMap<String, Vec<String>> {
                 hashmap! {
                     $(

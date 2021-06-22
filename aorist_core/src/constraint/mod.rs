@@ -1,5 +1,6 @@
 use crate::dialect::Dialect;
 use crate::parameter_tuple::ParameterTuple;
+use crate::concept::{Concept, ConceptAncestry};
 use anyhow::Result;
 use aorist_primitives::{Ancestry, TAoristObject};
 use std::sync::{Arc, RwLock};
@@ -38,8 +39,9 @@ pub trait SatisfiableOuterConstraint<'a>: OuterConstraint<'a>
     ) -> Result<(String, String, ParameterTuple, Dialect)>;
 }
 pub trait TBuilder<'a> {
-    type OuterType: OuterConstraint<'a, TEnum=Self::EnumType>;
-    type EnumType: TConstraintEnum<'a, BuilderT=Self>;
+    type OuterType: SatisfiableOuterConstraint<'a>;//, TEnum=Self::EnumType>;
+    //type EnumType: TConstraintEnum<'a, BuilderT=Self>;
+    fn builders() -> Vec<Self> where Self : Sized;
     fn get_constraint_name(&self) -> String;
     fn get_required_constraint_names(&self) -> Vec<String>;
     fn build_constraint(
@@ -47,12 +49,13 @@ pub trait TBuilder<'a> {
         root_uuid: Uuid,
         potential_child_constraints: Vec<Arc<RwLock<Self::OuterType>>>,
     ) -> Result<Self::OuterType>;
+    fn get_root_type_name(&self) -> Result<String>;
+    fn get_required(&'a self, root: AoristRef<Concept>, ancestry:&ConceptAncestry) -> Vec<Uuid>;
+    fn should_add(&'a self, root: AoristRef<Concept>, ancestry:&ConceptAncestry) -> bool;
 }
 
-pub trait TConstraintEnum<'a>
+pub trait TConstraintEnum<'a> : Sized
 {
-    type BuilderT: TBuilder<'a>;
-    fn builders() -> Vec<Self::BuilderT>;
     fn get_required_constraint_names() -> HashMap<String, Vec<String>>;
     fn get_explanations() -> HashMap<String, (Option<String>, Option<String>)>;
 }
@@ -60,7 +63,7 @@ pub trait ConstraintEnum<'a> {}
 
 pub trait OuterConstraint<'a>: TAoristObject + std::fmt::Display
 {
-    type TEnum: ConstraintEnum<'a> + TConstraintEnum<'a>;
+    type TEnum: Sized + ConstraintEnum<'a> + TConstraintEnum<'a>;
     type TAncestry: Ancestry;
 
     fn get_uuid(&self) -> Result<Uuid>;
