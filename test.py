@@ -7,8 +7,7 @@ from aorist.target.debug.libaorist import (
 pushshift = PushshiftAPILocation(
     subreddit="newzealand",
 )
-print(dir(pushshift))
-print(pushshift.subreddit())
+print(pushshift.subreddit)
 location = RemoteLocation(pushshift)
 
 print(location)

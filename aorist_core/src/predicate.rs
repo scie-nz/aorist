@@ -62,8 +62,8 @@ impl PredicateInnerOrTerminal {
         }
     }
 }
+#[cfg_attr(feature = "python", pyclass)]
 #[derive(Hash, PartialEq, Eq, Debug, Serialize, Deserialize, Clone)]
-#[cfg_attr(feature = "python", derive(FromPyObject))]
 pub struct PredicateInner {
     operator: Operator,
     left: PredicateInnerOrTerminal,

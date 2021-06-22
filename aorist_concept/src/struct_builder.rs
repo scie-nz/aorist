@@ -872,14 +872,12 @@ impl Builder for StructBuilder {
                         )
                     }
                 )*
-                /*
                 #(
                     #[getter]
                     pub fn #unconstrainable_name(&self) -> pyo3::prelude::PyResult<#unconstrainable_type> {
-                        Ok(self.#unconstrainable_name.clone())
+                        Ok(self.inner.0.read().unwrap().#unconstrainable_name.clone())
                     }
                 )*
-                  */
             }
 
             impl #struct_name {

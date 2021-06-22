@@ -100,12 +100,13 @@ impl AttributeOrValue {
     }
 }
 
+#[cfg_attr(feature = "python", pyclass)]
 #[derive(Hash, PartialEq, Eq, Debug, Serialize, Deserialize, Clone)]
 pub struct IdentityTransform {
     attribute: AttributeOrTransform,
     name: String,
 }
-
+/*
 #[cfg(feature = "python")]
 impl<'a> FromPyObject<'a> for IdentityTransform {
     fn extract(obj: &'a PyAny) -> PyResult<Self> {
@@ -116,7 +117,7 @@ impl<'a> FromPyObject<'a> for IdentityTransform {
             name: String::extract(name)?,
         })
     }
-}
+}*/
 impl IdentityTransform {
     pub fn get_name(&self) -> &String {
         &self.name
@@ -151,6 +152,14 @@ impl IdentityTransform {
 #[derive(Hash, PartialEq, Eq, Debug, Serialize, Deserialize, Clone)]
 pub enum Transform {
     IdentityTransform(IdentityTransform),
+}
+#[cfg(feature = "python")]
+impl IntoPy<PyObject> for Transform {
+    fn into_py(self, py: Python) -> PyObject {
+        match self {
+            Self::IdentityTransform(x) => x.into_py(py),
+        }
+    }
 }
 #[cfg(feature = "python")]
 impl<'a> FromPyObject<'a> for Transform {
@@ -231,6 +240,15 @@ impl<'a> FromPyObject<'a> for AttributeOrTransform {
             return Ok(Self::Transform(x));
         }
         Err(PyValueError::new_err("could not convert enum arm."))
+    }
+}
+#[cfg(feature = "python")]
+impl IntoPy<PyObject> for AttributeOrTransform {
+    fn into_py(self, py: Python) -> PyObject {
+        match self {
+            Self::Attribute(x) => x.into_py(py),
+            Self::Transform(x) => x.into_py(py),
+        }
     }
 }
 #[cfg(feature = "python")]

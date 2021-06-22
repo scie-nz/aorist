@@ -454,8 +454,8 @@ macro_rules! define_attribute {
                     self.nullable
                 }
             }
-            #[cfg_attr(feature = "python", pymethods)]
             #[cfg(feature = "python")]
+            #[pymethods]
             impl $element {
                 #[new]
                 #[args(comment = "None")]
@@ -642,6 +642,16 @@ macro_rules! register_attribute_new {
                     }
                 )+
                 Err(PyValueError::new_err("could not convert enum arm."))
+            }
+        }
+        #[cfg(feature = "python")]
+        impl IntoPy<PyObject> for [<$name Enum>] {
+            fn into_py(self, py: Python) -> PyObject {
+                match self {
+                    $(
+                        [<$name Enum>]::$element(x) => x.into_py(py),
+                    )+
+                }
             }
         }
         impl [<$name Enum>] {

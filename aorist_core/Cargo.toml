@@ -18,7 +18,7 @@ codegen-units = 1   # Reduce number of codegen units to increase optimizations.
 panic = 'abort'     # Abort on panic
 
 [features]
-python = ["pyo3"]
+python = ["pyo3", "aorist_attributes/python"]
 r = ["extendr-api", "extendr-engine"]
 sql = ["sqlformat", "sqlparser"]
 
@@ -26,7 +26,7 @@ sql = ["sqlformat", "sqlparser"]
 Inflector = "0.11.4"
 anyhow = "1.0"
 aorist_ast = {path = "../aorist_ast"}
-aorist_attributes = {path = "../aorist_attributes", features = []}
+aorist_attributes = {path = "../aorist_attributes", features = ["python"]}
 aorist_concept = {path = "../aorist_concept"}
 aorist_derive = {path = "../aorist_derive"}
 aorist_primitives = {path = "../aorist_primitives"}
