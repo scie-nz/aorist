@@ -927,6 +927,24 @@ impl Builder for StructBuilder {
                     }
                 )*
             }
+            #[cfg(feature = "python")]
+            #[pyo3::prelude::pyproto]
+            impl pyo3::PyObjectProtocol for [<Py #struct_name>] {
+                fn __repr__(&self) -> pyo3::PyResult<String> {
+                    Ok(format!(
+                        "{} {}",
+                        stringify!(#struct_name),
+                        serde_json::to_string_pretty(&*self.inner.0.read().unwrap()).unwrap()
+                    ))
+                }
+                fn __str__(&self) -> pyo3::PyResult<String> {
+                    Ok(format!(
+                        "{} {}",
+                        stringify!(#struct_name),
+                        serde_json::to_string_pretty(&*self.inner.0.read().unwrap()).unwrap()
+                    ))
+                }
+            }
 
             impl #struct_name {
                 pub fn get_uuid(&self) -> Option<Uuid> {

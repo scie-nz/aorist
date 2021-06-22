@@ -7,6 +7,7 @@ from aorist.target.debug.libaorist import (
 pushshift = PushshiftAPILocation(
     subreddit="newzealand",
 )
+print(pushshift)
 print(pushshift.subreddit)
 pushshift.subreddit = "wellington"
 print(pushshift.subreddit)
