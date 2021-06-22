@@ -814,6 +814,12 @@ impl Builder for StructBuilder {
                             }
                         )
                     }
+                    #[setter]
+                    pub fn [<set_#bare_ident>](&self, val: [<Py #bare_type_deref>]) -> pyo3::prelude::PyResult<()> {
+                        Ok(
+                            (*self.inner.0.write().unwrap()).#bare_ident = val.inner.clone()
+                        )
+                    }
                 )*
                 #(
                     #[getter]
@@ -826,6 +832,12 @@ impl Builder for StructBuilder {
                             )
                         )
                     }
+                    #[setter]
+                    pub fn [<set_#option_ident>](&self, val: Option<[<Py #option_type_deref>]>) -> pyo3::prelude::PyResult<()> {
+                        Ok(
+                            (*self.inner.0.write().unwrap()).#option_ident = val.and_then(|x| Some(x.inner.clone()))
+                        )
+                    }
                 )*
                 #(
                     #[getter]
@@ -836,6 +848,12 @@ impl Builder for StructBuilder {
                                     inner: x.clone(),
                                 }
                             }).collect::<Vec<_>>()
+                        )
+                    }
+                    #[setter]
+                    pub fn [<set_#vec_ident>](&self, val: Vec<[<Py #vec_type_deref>]>) -> pyo3::prelude::PyResult<()> {
+                        Ok(
+                            (*self.inner.0.write().unwrap()).#vec_ident = val.iter().map(|x| x.inner.clone()).collect()
                         )
                     }
                 )*
@@ -856,6 +874,19 @@ impl Builder for StructBuilder {
                             )
                         )
                     }
+                    #[setter]
+                    pub fn [<set_#option_vec_ident>](
+                        &self, 
+                        val: Option<Vec<[<Py #option_vec_type_deref>]>>
+                    ) -> pyo3::prelude::PyResult<()> {
+                        Ok(
+                            (*self.inner.0.write().unwrap()).#option_vec_ident = val.and_then(
+                                |x| Some(
+                                    x.iter().map(|y| y.inner.clone()).collect()
+                                )
+                            )
+                        )
+                    }
                 )*
                 #(
                     #[getter]
@@ -869,6 +900,17 @@ impl Builder for StructBuilder {
                                     inner: v.clone(),
                                 }
                             )}).collect()
+                        )
+                    }
+                    #[setter]
+                    pub fn [<set_#map_ident>](
+                        &self, 
+                        val: BTreeMap<String, [<Py #map_value_type_deref>]>
+                    ) -> pyo3::prelude::PyResult<()> {
+                        Ok(
+                            (*self.inner.0.write().unwrap()).#map_ident = val.iter().map(
+                                |(k, v)| (k.clone(), v.inner.clone())
+                            ).collect()
                         )
                     }
                 )*
