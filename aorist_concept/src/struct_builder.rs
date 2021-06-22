@@ -878,6 +878,12 @@ impl Builder for StructBuilder {
                         Ok(self.inner.0.read().unwrap().#unconstrainable_name.clone())
                     }
                 )*
+                #(
+                    #[setter]
+                    pub fn [<set_#unconstrainable_name>](&mut self, val: #unconstrainable_type) -> pyo3::prelude::PyResult<()> {
+                        Ok((*self.inner.0.write().unwrap()).#unconstrainable_name = val)
+                    }
+                )*
             }
 
             impl #struct_name {

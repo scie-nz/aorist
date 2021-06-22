@@ -8,6 +8,8 @@ pushshift = PushshiftAPILocation(
     subreddit="newzealand",
 )
 print(pushshift.subreddit)
+pushshift.subreddit = "wellington"
+print(pushshift.subreddit)
 location = RemoteLocation(pushshift)
 
 print(location)
