@@ -1,5 +1,10 @@
 import inspect
 from aorist.target.debug.libaorist import *
+
+def default_tabular_schema(datum):
+    for attribute in datum.attributes:
+        print(attribute.name)
+
 """
 Defining endpoints.
 """
@@ -48,18 +53,52 @@ endpoints = EndpointConfig(
     ),
 )
 attributes = [
-    KeyStringIdentifier("id"),
-    StringIdentifier("author"),
-    StringIdentifier("subreddit"),
-    POSIXTimestamp("created_utc"),
-    FreeText("title"),
-    FreeText("selftext", nullable=True),
+    Attribute(KeyStringIdentifier("id")),
+    Attribute(StringIdentifier("author")),
+    Attribute(StringIdentifier("subreddit")),
+    Attribute(POSIXTimestamp("created_utc")),
+    Attribute(FreeText("title")),
+    Attribute(FreeText("selftext", nullable=True)),
 ]
+subreddit_datum = RowStruct(
+    name="subreddit",
+    attributes=attributes,
+)
 print(attributes)
 tmp_dir = "tmp/subreddits"
 local = BigQueryStorage(
     location=BigQueryLocation(),
     layout=TabularLayout(StaticTabularLayout()),
+)
+subreddits = ['wairarapa', 'marton', 'marlborough']
+assets = {x: StaticDataTable(
+    name=x,
+    schema=default_tabular_schema(subreddit_datum),
+    setup=StorageSetup(RemoteStorageSetup(
+        remote=Storage(RemoteStorage(
+            location=RemoteLocation(
+                PushshiftAPILocation(
+                    subreddit=x
+                )
+            ),
+            layout=APIOrFileLayout(
+                APILayout(
+                    PushshiftSubredditPostsAPILayout()
+                ),
+            ),
+            encoding=Encoding(
+                NewlineDelimitedJSONEncoding()
+            ),
+        )),
+    )),
+    tag=x,
+    ) for x in subreddits[:1]}
+subreddits = DataSet(
+    name="subreddits",
+    description="A selection of small region-based Subreddits to demonstrate collecting Reddit data via [Pushshift](https://pushshift.io/).",
+    sourcePath=__file__,
+    datumTemplates=[subreddit_datum],
+    assets=assets,
 )
 subreddits = subreddits.replicate_to_local(local, tmp_dir, CSVEncoding())
 universe = Universe(

@@ -106,18 +106,6 @@ pub struct IdentityTransform {
     attribute: AttributeOrTransform,
     name: String,
 }
-/*
-#[cfg(feature = "python")]
-impl<'a> FromPyObject<'a> for IdentityTransform {
-    fn extract(obj: &'a PyAny) -> PyResult<Self> {
-        let attribute = obj.getattr("attribute")?;
-        let name = obj.getattr("name")?;
-        Ok(Self {
-            attribute: AttributeOrTransform::extract(attribute)?,
-            name: String::extract(name)?,
-        })
-    }
-}*/
 impl IdentityTransform {
     pub fn get_name(&self) -> &String {
         &self.name
