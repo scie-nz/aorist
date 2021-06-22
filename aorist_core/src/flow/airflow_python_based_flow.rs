@@ -7,12 +7,13 @@ use aorist_ast::{
     Assignment, Attribute, BigIntLiteral, BooleanLiteral, Call, Dict, Expression, Formatted, List,
     None, SimpleIdentifier, StringLiteral, AST,
 };
-use aorist_core::Dialect;
+use crate::dialect::Dialect;
+use crate::concept::AoristRef;
 use linked_hash_map::LinkedHashMap;
 use pyo3::prelude::*;
 use pyo3::types::PyModule;
 
-#[derive(Clone, Hash, PartialEq, Eq)]
+#[derive(Clone, Hash, PartialEq)]
 pub struct AirflowPythonBasedFlow {
     task_id: AST,
     task_val: AST,
@@ -22,7 +23,7 @@ pub struct AirflowPythonBasedFlow {
     dep_list: Option<AST>,
     preamble: Option<String>,
     dialect: Option<Dialect>,
-    endpoints: EndpointConfig,
+    endpoints: AoristRef<EndpointConfig>,
 }
 impl AirflowPythonBasedFlow {
     fn compute_task_args(&self) -> Vec<AST> {
@@ -183,7 +184,7 @@ impl ETLFlow for AirflowPythonBasedFlow {
         dep_list: Option<AST>,
         preamble: Option<String>,
         dialect: Option<Dialect>,
-        endpoints: EndpointConfig,
+        endpoints: AoristRef<EndpointConfig>,
     ) -> Self {
         Self {
             task_id,

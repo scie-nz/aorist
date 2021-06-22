@@ -7,13 +7,14 @@ use aorist_ast::{
     Assignment, Attribute, Call, Expression, ForLoop, Formatted, SimpleIdentifier, StringLiteral,
     AST,
 };
-use aorist_core::Dialect;
 use aorist_primitives::register_task_nodes;
 use linked_hash_map::LinkedHashMap;
 use pyo3::prelude::*;
 use pyo3::types::PyModule;
 use std::hash::{Hash, Hasher};
 use std::sync::{Arc, RwLock};
+use crate::dialect::Dialect;
+use crate::concept::AoristRef;
 
 register_task_nodes! {
     PrefectTask,
@@ -22,7 +23,7 @@ register_task_nodes! {
     RPythonTask,
 }
 
-#[derive(Clone, Hash, PartialEq, Eq)]
+#[derive(Clone, Hash, PartialEq)]
 pub struct PrefectPythonBasedFlow {
     task_id: AST,
     task_val: AST,
@@ -33,7 +34,7 @@ pub struct PrefectPythonBasedFlow {
     preamble: Option<String>,
     dialect: Option<Dialect>,
     flow_identifier: AST,
-    endpoints: EndpointConfig,
+    endpoints: AoristRef<EndpointConfig>,
 }
 
 impl ETLFlow for PrefectPythonBasedFlow {
@@ -79,7 +80,7 @@ impl ETLFlow for PrefectPythonBasedFlow {
         dep_list: Option<AST>,
         preamble: Option<String>,
         dialect: Option<Dialect>,
-        endpoints: EndpointConfig,
+        endpoints: AoristRef<EndpointConfig>,
     ) -> Self {
         Self {
             task_id,
