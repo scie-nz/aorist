@@ -1,9 +1,11 @@
 import inspect
 from aorist.target.debug.libaorist import *
 
-def default_tabular_schema(datum):
-    for attribute in datum.attributes:
-        print(attribute.name)
+def default_tabular_schema(datum, template_name):
+    return DataSchema(TabularSchema(
+        datumTemplateName=template_name,
+        attributes=[a.name for a in attributes],
+    ))
 
 """
 Defining endpoints.
@@ -73,7 +75,7 @@ local = BigQueryStorage(
 subreddits = ['wairarapa', 'marton', 'marlborough']
 assets = {x: StaticDataTable(
     name=x,
-    schema=default_tabular_schema(subreddit_datum),
+    schema=default_tabular_schema(subreddit_datum, x),
     setup=StorageSetup(RemoteStorageSetup(
         remote=Storage(RemoteStorage(
             location=RemoteLocation(
@@ -93,12 +95,16 @@ assets = {x: StaticDataTable(
     )),
     tag=x,
     ) for x in subreddits[:1]}
+
 subreddits = DataSet(
     name="subreddits",
     description="A selection of small region-based Subreddits to demonstrate collecting Reddit data via [Pushshift](https://pushshift.io/).",
-    sourcePath=__file__,
-    datumTemplates=[subreddit_datum],
-    assets=assets,
+    source_path=__file__,
+    datum_templates=[DatumTemplate(subreddit_datum)],
+    assets={
+        k: Asset(v) for (k, v) in assets.items()
+    },
+    access_policies=[],
 )
 subreddits = subreddits.replicate_to_local(local, tmp_dir, CSVEncoding())
 universe = Universe(
