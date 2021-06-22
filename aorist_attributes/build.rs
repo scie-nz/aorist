@@ -1,5 +1,5 @@
 use aorist_util::{get_raw_objects_of_type, read_file};
-use codegen::Scope;
+use codegen::{Scope, Function};
 use serde_yaml::Value;
 use std::collections::{HashMap, HashSet};
 use std::env;
@@ -7,9 +7,40 @@ use std::fs;
 use std::fs::OpenOptions;
 use std::path::Path;
 
+#[cfg(feature = "python")]
+use pyo3::prelude::*;
+
+fn process_attributes_py(raw_objects: &Vec<HashMap<String, Value>>) {
+    let attributes = get_raw_objects_of_type(raw_objects, "Attribute".into());
+    let mut scope_py = Scope::new();
+    scope_py.import("pyo3::prelude", "*");
+    scope_py.import("crate::attributes", "*");
+    let mut fun = scope_py.new_fn("attributes_module")
+        .vis("pub")
+        .ret(
+            "PyResult<()>"
+        ).arg(
+            "_py", 
+            "Python",
+        ).arg(
+            "m", "&PyModule",
+        );
+    for attribute in attributes {
+        let name = attribute.get("name").unwrap().as_str().unwrap().to_string();
+        let export = format!(
+            "m.add_class::<{}>().unwrap();", name,
+        );
+        fun.line(&export);
+    }
+    let out_dir = env::var_os("OUT_DIR").unwrap();
+    let dest_path_py = Path::new(&out_dir).join("python.rs");
+    fun.line("Ok(())");
+    fs::write(&dest_path_py, scope_py.to_string()).unwrap();
+}
 fn process_attributes(raw_objects: &Vec<HashMap<String, Value>>) {
     let attributes = get_raw_objects_of_type(raw_objects, "Attribute".into());
     let mut scope = Scope::new();
+    #[cfg(feature = "python")]
     scope.import("aorist_primitives", "define_attribute");
     scope.import("serde", "Serialize");
     scope.import("serde", "Deserialize");
@@ -117,4 +148,6 @@ fn main() {
 
     let raw_objects = read_file("attributes.yaml");
     process_attributes(&raw_objects);
+    #[cfg(feature = "python")]
+    process_attributes_py(&raw_objects);
 }

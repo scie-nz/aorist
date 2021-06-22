@@ -17,6 +17,7 @@ default = ["extension-module"]
 
 [dependencies]
 serde = { version = "1.0", features = ["derive"] }
+aorist_attributes = {path = "../aorist_attributes", features=["python"]}
 aorist_primitives = {path = "../aorist_primitives", features=[]}
 aorist_core = {path = "../aorist_core", features=["python"]}
 aorist_util = {path = "../aorist_util"}

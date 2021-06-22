@@ -1,10 +1,12 @@
 use pyo3::prelude::*;
 use aorist_util::init_logging;
 use aorist_core::*;
+use aorist_attributes::attributes_module;
 
 #[pymodule]
-fn libaorist(_py: pyo3::prelude::Python, m: &PyModule) -> PyResult<()> {
+fn libaorist(py: pyo3::prelude::Python, m: &PyModule) -> PyResult<()> {
     init_logging();
+    attributes_module(py, m)?;
     m.add_class::<PyAccessPolicy>()?;
     m.add_class::<PyApproveAccessSelector>()?;
     m.add_class::<PyRegressionAlgorithm>()?;
