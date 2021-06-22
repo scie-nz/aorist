@@ -821,6 +821,42 @@ macro_rules! register_attribute_new {
                 Ok(())
             }
         );
+        #[cfg(feature = "python")]
+        #[pyo3::prelude::pymethods]
+        impl [<Py $name>] {
+            #[getter]
+            pub fn name(&self) -> pyo3::prelude::PyResult<String> {
+                Ok(self.inner.0.read().unwrap().get_name().clone())
+            }
+            #[getter]
+            pub fn aorist_type(&self) -> pyo3::prelude::PyResult<String> {
+                Ok(self.inner.0.read().unwrap().get_type().clone())
+            }
+            #[getter]
+            pub fn comment(&self) -> pyo3::prelude::PyResult<Option<String>> {
+                Ok(self.inner.0.read().unwrap().get_comment().clone())
+            }
+            #[getter]
+            pub fn orc_type(&self) -> pyo3::prelude::PyResult<String> {
+                Ok(self.inner.0.read().unwrap().get_orc_type().clone())
+            }
+            #[getter]
+            pub fn bigquery_type(&self) -> pyo3::prelude::PyResult<String> {
+                Ok(self.inner.0.read().unwrap().get_bigquery_type().clone())
+            }
+            #[getter]
+            pub fn is_nullable(&self) -> pyo3::prelude::PyResult<bool> {
+                Ok(self.inner.0.read().unwrap().is_nullable().clone())
+            }
+            #[getter]
+            pub fn psycopg2_value_json_serializable(&self) -> pyo3::prelude::PyResult<bool> {
+                Ok(self.inner.0.read().unwrap().psycopg2_value_json_serializable().clone())
+            }
+            #[getter]
+            pub fn postgres_type(&self) -> pyo3::prelude::PyResult<String> {
+                Ok(self.inner.0.read().unwrap().get_postgres_type().clone())
+            }
+        }
     }}
 }
 
