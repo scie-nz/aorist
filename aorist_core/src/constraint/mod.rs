@@ -1,18 +1,17 @@
+use crate::concept::AoristRef;
+use crate::concept::{Concept, ConceptAncestry};
 use crate::dialect::Dialect;
 use crate::parameter_tuple::ParameterTuple;
-use crate::concept::{Concept, ConceptAncestry};
 use anyhow::Result;
-use aorist_primitives::{Ancestry, TAoristObject};
-use std::sync::{Arc, RwLock};
-use uuid::Uuid;
-use std::marker::PhantomData;
 use aorist_primitives::AoristConcept;
-use crate::concept::AoristRef;
+use aorist_primitives::{Ancestry, TAoristObject};
 use std::collections::HashMap;
+use std::marker::PhantomData;
+use std::sync::{Arc, RwLock};
 use tracing::info;
+use uuid::Uuid;
 
-pub trait SatisfiableConstraint<'a>: TConstraint<'a>
-{
+pub trait SatisfiableConstraint<'a>: TConstraint<'a> {
     type TAncestry: Ancestry;
     fn satisfy(
         &mut self,
@@ -29,8 +28,7 @@ pub trait SatisfiableConstraint<'a>: TConstraint<'a>
     ) -> Result<(String, String, ParameterTuple, Dialect)>;
 }
 // TODO: duplicate function, should be unified in trait
-pub trait SatisfiableOuterConstraint<'a>: OuterConstraint<'a>
-{
+pub trait SatisfiableOuterConstraint<'a>: OuterConstraint<'a> {
     fn satisfy_given_preference_ordering(
         &mut self,
         c: <<Self as OuterConstraint<'a>>::TAncestry as Ancestry>::TConcept,
@@ -39,9 +37,11 @@ pub trait SatisfiableOuterConstraint<'a>: OuterConstraint<'a>
     ) -> Result<(String, String, ParameterTuple, Dialect)>;
 }
 pub trait TBuilder<'a> {
-    type OuterType: SatisfiableOuterConstraint<'a>;//, TEnum=Self::EnumType>;
-    //type EnumType: TConstraintEnum<'a, BuilderT=Self>;
-    fn builders() -> Vec<Self> where Self : Sized;
+    type OuterType: SatisfiableOuterConstraint<'a>; //, TEnum=Self::EnumType>;
+                                                    //type EnumType: TConstraintEnum<'a, BuilderT=Self>;
+    fn builders() -> Vec<Self>
+    where
+        Self: Sized;
     fn get_constraint_name(&self) -> String;
     fn get_required_constraint_names(&self) -> Vec<String>;
     fn build_constraint(
@@ -50,19 +50,17 @@ pub trait TBuilder<'a> {
         potential_child_constraints: Vec<Arc<RwLock<Self::OuterType>>>,
     ) -> Result<Self::OuterType>;
     fn get_root_type_name(&self) -> Result<String>;
-    fn get_required(&self, root: AoristRef<Concept>, ancestry:&ConceptAncestry) -> Vec<Uuid>;
-    fn should_add(&self, root: AoristRef<Concept>, ancestry:&ConceptAncestry) -> bool;
+    fn get_required(&self, root: AoristRef<Concept>, ancestry: &ConceptAncestry) -> Vec<Uuid>;
+    fn should_add(&self, root: AoristRef<Concept>, ancestry: &ConceptAncestry) -> bool;
 }
 
-pub trait TConstraintEnum<'a> : Sized
-{
+pub trait TConstraintEnum<'a>: Sized {
     fn get_required_constraint_names() -> HashMap<String, Vec<String>>;
     fn get_explanations() -> HashMap<String, (Option<String>, Option<String>)>;
 }
 pub trait ConstraintEnum<'a> {}
 
-pub trait OuterConstraint<'a>: TAoristObject + std::fmt::Display
-{
+pub trait OuterConstraint<'a>: TAoristObject + std::fmt::Display {
     type TEnum: Sized + ConstraintEnum<'a> + TConstraintEnum<'a>;
     type TAncestry: Ancestry;
 
@@ -128,13 +126,11 @@ where
     type RootType;
     type Outer;
 }
-pub struct ConstraintBuilder<'a, T: TConstraint<'a>>
-{
+pub struct ConstraintBuilder<'a, T: TConstraint<'a>> {
     pub _phantom: PhantomData<T>,
     pub _phantom_lt: PhantomData<&'a ()>,
 }
-impl<'a, T: TConstraint<'a>> ConstraintBuilder<'a, T>
-{
+impl<'a, T: TConstraint<'a>> ConstraintBuilder<'a, T> {
     pub fn build_constraint(
         &self,
         root_uuid: Uuid,

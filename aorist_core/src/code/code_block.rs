@@ -1,4 +1,6 @@
 use crate::code::Preamble;
+use crate::concept::AoristRef;
+use crate::constraint::OuterConstraint;
 use crate::constraint::SatisfiableOuterConstraint;
 use crate::constraint_state::ConstraintState;
 use crate::endpoints::EndpointConfig;
@@ -6,12 +8,10 @@ use crate::flow::{CompressibleETLTask, CompressibleTask, ETLFlow, ETLTask, Stand
 use crate::parameter_tuple::ParameterTuple;
 use anyhow::Result;
 use aorist_ast::{SimpleIdentifier, StringLiteral, Subscript, AST};
-use crate::constraint::OuterConstraint;
 use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
 use std::collections::{BTreeSet, HashMap};
 use std::sync::{Arc, RwLock};
-use crate::concept::AoristRef;
 use uuid::Uuid;
 
 pub trait CodeBlock<'a, T, C>
@@ -165,12 +165,8 @@ pub trait CodeBlockWithForLoopCompression<
         (compressible, uncompressible)
     }
 }
-impl<
-        'a,
-        C,
-        T: ETLFlow,
-        CType: OuterConstraint<'a> + SatisfiableOuterConstraint<'a>,
-    > CodeBlockWithDefaultConstructor<'a, T, CType> for C
+impl<'a, C, T: ETLFlow, CType: OuterConstraint<'a> + SatisfiableOuterConstraint<'a>>
+    CodeBlockWithDefaultConstructor<'a, T, CType> for C
 where
     Self: CodeBlockWithForLoopCompression<'a, T, CType>,
     <Self as CodeBlock<'a, T, CType>>::E: CompressibleETLTask<T>,

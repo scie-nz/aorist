@@ -1,13 +1,13 @@
 use crate::code::{CodeBlock, CodeBlockWithDefaultConstructor};
+use crate::concept::AoristRef;
+use crate::constraint::OuterConstraint;
 use crate::constraint::SatisfiableOuterConstraint;
 use crate::endpoints::EndpointConfig;
 use crate::flow::{ETLFlow, FlowBuilderInput};
 use aorist_ast::AST;
-use crate::constraint::OuterConstraint;
 use linked_hash_set::LinkedHashSet;
 use std::collections::{BTreeSet, HashMap};
 use uuid::Uuid;
-use crate::concept::AoristRef;
 
 pub trait ConstraintBlock<'a, T, C>
 where

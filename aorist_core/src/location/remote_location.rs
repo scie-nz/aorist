@@ -1,12 +1,12 @@
+use crate::concept::{AoristRef, WrappedConcept};
 use crate::location::bigquery_location::*;
 use crate::location::gcs_location::*;
 use crate::location::github_location::*;
 use crate::location::pushshift_api_location::*;
 use crate::location::s3_location::*;
 use crate::location::web_location::*;
-use crate::concept::{AoristRef, WrappedConcept};
-use aorist_primitives::{AoristConcept, ConceptEnum};
 use aorist_concept::{aorist, Constrainable};
+use aorist_primitives::{AoristConcept, ConceptEnum};
 use paste::paste;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;

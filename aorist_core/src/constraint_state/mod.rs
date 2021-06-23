@@ -1,10 +1,10 @@
 use crate::concept::Ancestry;
+use crate::constraint::OuterConstraint;
 use crate::constraint::SatisfiableOuterConstraint;
 use crate::dialect::Dialect;
 use crate::parameter_tuple::ParameterTuple;
 use anyhow::{bail, Result};
 use aorist_ast::{AncestorRecord, Formatted, SimpleIdentifier, StringLiteral, AST};
-use crate::constraint::OuterConstraint;
 use aorist_primitives::TConceptEnum;
 use inflector::cases::snakecase::to_snake_case;
 use linked_hash_map::LinkedHashMap;
@@ -14,8 +14,7 @@ use std::sync::{Arc, RwLock};
 use tracing::{level_enabled, trace, Level};
 use uuid::Uuid;
 
-pub struct ConstraintState<'a, T: OuterConstraint<'a> + SatisfiableOuterConstraint<'a>>
-{
+pub struct ConstraintState<'a, T: OuterConstraint<'a> + SatisfiableOuterConstraint<'a>> {
     dialect: Option<Dialect>,
     pub key: Option<String>,
     name: String,
@@ -32,9 +31,7 @@ pub struct ConstraintState<'a, T: OuterConstraint<'a> + SatisfiableOuterConstrai
     params: Option<ParameterTuple>,
     task_name: Option<String>,
 }
-impl<'a, T: OuterConstraint<'a> + SatisfiableOuterConstraint<'a>>
-    ConstraintState<'a, T>
-{
+impl<'a, T: OuterConstraint<'a> + SatisfiableOuterConstraint<'a>> ConstraintState<'a, T> {
     pub fn requires_program(&self) -> Result<bool> {
         self.constraint.read().unwrap().requires_program()
     }
@@ -125,9 +122,7 @@ impl<'a, T: OuterConstraint<'a> + SatisfiableOuterConstraint<'a>>
         self.name.clone()
     }
     #[allow(dead_code)]
-    pub fn get_root(
-        &self,
-    ) -> <<T as OuterConstraint<'a>>::TAncestry as Ancestry>::TConcept {
+    pub fn get_root(&self) -> <<T as OuterConstraint<'a>>::TAncestry as Ancestry>::TConcept {
         self.root.clone()
     }
     pub fn get_constraint_uuid(&self) -> Result<Uuid> {

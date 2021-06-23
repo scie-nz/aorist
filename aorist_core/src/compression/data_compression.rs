@@ -1,8 +1,8 @@
 use crate::compression::gzip_compression::*;
 use crate::compression::zip_compression::*;
 use crate::concept::{AoristRef, WrappedConcept};
-use aorist_primitives::{AoristConcept, ConceptEnum};
 use aorist_concept::{aorist, Constrainable};
+use aorist_primitives::{AoristConcept, ConceptEnum};
 use paste::paste;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;

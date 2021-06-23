@@ -1,3 +1,5 @@
+use crate::concept::AoristRef;
+use crate::dialect::Dialect;
 use crate::endpoints::EndpointConfig;
 use crate::flow::etl_flow::ETLFlow;
 use crate::flow::flow_builder::FlowBuilderBase;
@@ -13,8 +15,6 @@ use pyo3::prelude::*;
 use pyo3::types::PyModule;
 use std::hash::{Hash, Hasher};
 use std::sync::{Arc, RwLock};
-use crate::dialect::Dialect;
-use crate::concept::AoristRef;
 
 register_task_nodes! {
     PrefectTask,

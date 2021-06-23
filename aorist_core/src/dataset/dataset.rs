@@ -2,21 +2,21 @@
 use crate::access_policy::*;
 use crate::asset::*;
 use crate::concept::{AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
-use crate::storage_setup::*;
-use crate::template::*;
 use crate::encoding::*;
 use crate::storage::*;
+use crate::storage_setup::*;
+use crate::template::*;
 use aorist_concept::{aorist, Constrainable};
 use aorist_primitives::TAoristObject;
 use derivative::Derivative;
 use linked_hash_map::LinkedHashMap;
 use paste::paste;
+#[cfg(feature = "python")]
+use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use std::fmt::Debug;
 use uuid::Uuid;
-#[cfg(feature = "python")]
-use pyo3::prelude::*;
 
 #[aorist]
 pub struct DataSet {
@@ -114,11 +114,16 @@ impl PyDataSet {
         let dt = &*self.inner.0.read().unwrap();
         for asset_rw in dt.assets.values() {
             let asset = &*asset_rw.0.read().unwrap();
-            asset.get_storage_setup().0.write().unwrap().replicate_to_local(
-                storage.inner.clone(),
-                tmp_dir.clone(),
-                tmp_encoding.inner.clone(),
-            );
+            asset
+                .get_storage_setup()
+                .0
+                .write()
+                .unwrap()
+                .replicate_to_local(
+                    storage.inner.clone(),
+                    tmp_dir.clone(),
+                    tmp_encoding.inner.clone(),
+                );
         }
         Ok(())
     }

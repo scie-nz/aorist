@@ -3,6 +3,8 @@ use aorist_concept::{aorist, Constrainable};
 pub use aorist_primitives::{register_concept, Ancestry, AoristConcept, ConceptEnum, TConceptEnum};
 use derivative::Derivative;
 use paste::paste;
+#[cfg(feature = "python")]
+use pyo3::prelude::*;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::collections::{BTreeSet, HashMap};
 use std::convert::TryFrom;
@@ -11,13 +13,13 @@ use std::hash::{Hash, Hasher};
 use std::sync::{Arc, RwLock};
 use tracing::debug;
 use uuid::Uuid;
-#[cfg(feature = "python")]
-use pyo3::prelude::*;
 
 pub struct AoristRef<T: PartialEq + Serialize + Debug + Clone>(pub Arc<RwLock<T>>);
 
 #[cfg(feature = "python")]
-impl <'a, T: PartialEq + Serialize + Debug + Clone + FromPyObject<'a>> FromPyObject<'a> for AoristRef<T> {
+impl<'a, T: PartialEq + Serialize + Debug + Clone + FromPyObject<'a>> FromPyObject<'a>
+    for AoristRef<T>
+{
     fn extract(ob: &'a PyAny) -> PyResult<Self> {
         Ok(AoristRef(Arc::new(RwLock::new(T::extract(ob)?))))
     }

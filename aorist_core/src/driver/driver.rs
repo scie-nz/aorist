@@ -1,27 +1,27 @@
 #![allow(dead_code)]
 use crate::code::CodeBlockWithDefaultConstructor;
-use crate::concept::{Concept, ConceptAncestry, AoristRef};
-use crate::universe::Universe;
+use crate::concept::{AoristRef, Concept, ConceptAncestry};
 use crate::constraint::SatisfiableOuterConstraint;
+use crate::constraint::TConstraintEnum;
+use crate::constraint::{OuterConstraint, TBuilder};
 use crate::constraint_block::ConstraintBlock;
 use crate::constraint_state::ConstraintState;
 use crate::dialect::Dialect;
 use crate::endpoints::EndpointConfig;
 use crate::flow::{FlowBuilderBase, FlowBuilderMaterialize};
 use crate::parameter_tuple::ParameterTuple;
+use crate::universe::Universe;
 use anyhow::Result;
 use aorist_ast::{AncestorRecord, SimpleIdentifier, AST};
-use crate::constraint::TConstraintEnum;
-use crate::constraint::{OuterConstraint, TBuilder};
+use aorist_primitives::TAoristObject;
 use aorist_primitives::{Ancestry, TConceptEnum};
 use inflector::cases::snakecase::to_snake_case;
 use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
 use std::collections::{HashMap, HashSet, VecDeque};
 use std::sync::{Arc, RwLock, RwLockReadGuard};
-use tracing::{debug, trace, level_enabled, Level};
+use tracing::{debug, level_enabled, trace, Level};
 use uuid::Uuid;
-use aorist_primitives::TAoristObject;
 
 pub type ConstraintsBlockMap<'a, C> = LinkedHashMap<
     String,
@@ -31,30 +31,32 @@ pub type ConstraintsBlockMap<'a, C> = LinkedHashMap<
     ),
 >;
 
-pub trait Driver<'a, B, D, U>
+pub trait Driver<'a, B, D, U, C, A>
 where
     B: TBuilder<'a>,
     D: FlowBuilderBase,
-    D:
-        FlowBuilderMaterialize<
-            BuilderInputType = <Self::CB as ConstraintBlock<
-                'a,
-                <D as FlowBuilderBase>::T,
-                B::OuterType,
-            >>::BuilderInputType,
-        >,
+    D: FlowBuilderMaterialize<
+        BuilderInputType = <Self::CB as ConstraintBlock<
+            'a,
+            <D as FlowBuilderBase>::T,
+            B::OuterType,
+        >>::BuilderInputType,
+    >,
     <D as FlowBuilderBase>::T: 'a,
-    <<<B as TBuilder<'a>>::OuterType as OuterConstraint<'a>>::TAncestry as Ancestry>::TConcept: TConceptEnum<TUniverse=U>
+    A: Ancestry,
+    C: TConceptEnum<TUniverse = U>,
+    <B as TBuilder<'a>>::OuterType: OuterConstraint<'a, TAncestry = A>,
+    <<B as TBuilder<'a>>::OuterType as OuterConstraint<'a>>::TAncestry: Ancestry<TConcept = C>,
+    <<<B as TBuilder<'a>>::OuterType as OuterConstraint<'a>>::TAncestry as Ancestry>::TConcept:
+        TConceptEnum<TUniverse = U>,
 {
     type CB: ConstraintBlock<'a, <D as FlowBuilderBase>::T, B::OuterType>;
 
-    fn get_relevant_builders(
-        topline_constraint_names: &LinkedHashSet<String>,
-    ) -> Vec<B> {
+    fn get_relevant_builders(topline_constraint_names: &LinkedHashSet<String>) -> Vec<B> {
         let mut builders = B::builders()
-                .into_iter()
-                .map(|x| (x.get_constraint_name(), x))
-                .collect::<LinkedHashMap<String, _>>();
+            .into_iter()
+            .map(|x| (x.get_constraint_name(), x))
+            .collect::<LinkedHashMap<String, _>>();
         let mut builder_q = topline_constraint_names
             .clone()
             .into_iter()
@@ -239,8 +241,10 @@ where
         let mut calls: HashMap<(String, String, String), Vec<(String, ParameterTuple)>> =
             HashMap::new();
         let mut blocks = Vec::new();
-        let mut by_dialect: HashMap<Option<Dialect>, Vec<Arc<RwLock<ConstraintState<'a, B::OuterType>>>>> =
-            HashMap::new();
+        let mut by_dialect: HashMap<
+            Option<Dialect>,
+            Vec<Arc<RwLock<ConstraintState<'a, B::OuterType>>>>,
+        > = HashMap::new();
         for (id, state) in block.clone() {
             self.process_constraint_state(
                 id.clone(),
@@ -550,10 +554,13 @@ where
         Self::remove_superfluous_dummy_tasks(&mut raw_unsatisfied_constraints)?;
         Self::remove_dangling_dummy_tasks(&mut raw_unsatisfied_constraints)?;
 
-        let mut unsatisfied_constraints: LinkedHashMap<_, _> = <<B::OuterType as OuterConstraint<'a>>::TEnum as TConstraintEnum<'a>>::get_required_constraint_names()
-            .into_iter()
-            .map(|(k, v)| (k, (v.into_iter().collect(), LinkedHashMap::new())))
-            .collect();
+        let mut unsatisfied_constraints: LinkedHashMap<_, _> = <<B::OuterType as OuterConstraint<
+            'a,
+        >>::TEnum as TConstraintEnum<'a>>::get_required_constraint_names(
+        )
+        .into_iter()
+        .map(|(k, v)| (k, (v.into_iter().collect(), LinkedHashMap::new())))
+        .collect();
 
         for ((uuid, root_type), rw) in raw_unsatisfied_constraints.into_iter() {
             let constraint_name = rw.read().unwrap().get_name();
@@ -629,14 +636,18 @@ where
     }
     fn new(
         universe: AoristRef<Universe>,
-        topline_constraint_names: LinkedHashSet<String>
+        topline_constraint_names: LinkedHashSet<String>,
     ) -> Result<Self>
     where
         Self: Sized,
     {
         let sorted_builders = Self::get_relevant_builders(&topline_constraint_names);
         let mut concept_map: HashMap<(Uuid, String), AoristRef<Concept>> = HashMap::new();
-        let concept = AoristRef(Arc::new(RwLock::new(Concept::Universe((universe.clone(), 0, None)))));
+        let concept = AoristRef(Arc::new(RwLock::new(Concept::Universe((
+            universe.clone(),
+            0,
+            None,
+        )))));
         concept.populate_child_concept_map(&mut concept_map);
         let by_object_type = Self::get_concept_map_by_object_type(concept_map.clone());
 

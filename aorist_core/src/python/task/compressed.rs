@@ -1,3 +1,4 @@
+use crate::concept::AoristRef;
 use crate::endpoints::EndpointConfig;
 use crate::flow::{CompressionKey, ETLFlow, ForLoopCompressedTask, TaskBase, UncompressiblePart};
 use crate::python::task::key::PythonBasedTaskCompressionKey;
@@ -9,7 +10,6 @@ use crate::python::{
 use linked_hash_map::LinkedHashMap;
 use std::hash::Hash;
 use std::marker::PhantomData;
-use crate::concept::AoristRef;
 
 #[derive(Clone, Hash, PartialEq, Eq)]
 pub struct ForLoopPythonBasedTask<T>

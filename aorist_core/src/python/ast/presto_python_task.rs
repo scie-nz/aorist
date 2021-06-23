@@ -1,4 +1,5 @@
 #![allow(dead_code)]
+use crate::concept::AoristRef;
 use crate::endpoints::PrestoConfig;
 use crate::python::PythonImport;
 use aorist_ast::{
@@ -9,7 +10,6 @@ use aorist_primitives::define_task_node;
 use linked_hash_map::LinkedHashMap;
 use std::hash::Hash;
 use std::sync::{Arc, RwLock};
-use crate::concept::AoristRef;
 
 define_task_node!(
     PrestoPythonTask,

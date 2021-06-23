@@ -1,4 +1,6 @@
 use crate::code::{CodeBlock, CodeBlockWithForLoopCompression};
+use crate::concept::AoristRef;
+use crate::constraint::OuterConstraint;
 use crate::constraint::SatisfiableOuterConstraint;
 use crate::endpoints::EndpointConfig;
 use crate::flow::{CompressibleTask, ETLFlow, ETLTask, ForLoopCompressedTask};
@@ -7,14 +9,12 @@ use crate::python::{
     ForLoopPythonBasedTask, Formatted, PythonBasedTask, PythonImport, PythonPreamble,
     SimpleIdentifier, StringLiteral, Subscript, AST,
 };
-use crate::constraint::OuterConstraint;
 use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
 use std::collections::{BTreeSet, HashMap, HashSet};
 use std::marker::PhantomData;
 use tracing::trace;
 use uuid::Uuid;
-use crate::concept::AoristRef;
 
 pub struct PythonBasedCodeBlock<'a, T, C>
 where
@@ -94,8 +94,7 @@ where
         self.params.clone()
     }
 }
-impl<'a, T, C> CodeBlockWithForLoopCompression<'a, T, C>
-    for PythonBasedCodeBlock<'a, T, C>
+impl<'a, T, C> CodeBlockWithForLoopCompression<'a, T, C> for PythonBasedCodeBlock<'a, T, C>
 where
     T: ETLFlow<ImportType = PythonImport, PreambleType = PythonPreamble>,
     C: OuterConstraint<'a> + SatisfiableOuterConstraint<'a>,

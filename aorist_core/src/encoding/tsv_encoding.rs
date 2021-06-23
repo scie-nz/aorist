@@ -1,8 +1,8 @@
 use crate::compression::*;
-use crate::header::*;
 use crate::concept::{AoristRef, WrappedConcept};
-use aorist_primitives::{AoristConcept, ConceptEnum};
+use crate::header::*;
 use aorist_concept::{aorist, Constrainable};
+use aorist_primitives::{AoristConcept, ConceptEnum};
 use derivative::Derivative;
 use paste::paste;
 use serde::{Deserialize, Serialize};

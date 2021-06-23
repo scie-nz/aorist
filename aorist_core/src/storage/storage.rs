@@ -1,3 +1,4 @@
+use crate::concept::{AoristRef, WrappedConcept};
 use crate::encoding::*;
 use crate::storage::bigquery_storage::*;
 use crate::storage::git_storage::*;
@@ -6,9 +7,8 @@ use crate::storage::local_file_storage::*;
 use crate::storage::postgres_storage::*;
 use crate::storage::remote_storage::*;
 use crate::storage::sqlite_storage::*;
-use crate::concept::{AoristRef, WrappedConcept};
-use aorist_primitives::{AoristConcept, ConceptEnum};
 use aorist_concept::{aorist, Constrainable};
+use aorist_primitives::{AoristConcept, ConceptEnum};
 use paste::paste;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;

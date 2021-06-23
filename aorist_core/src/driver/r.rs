@@ -13,7 +13,7 @@ use aorist_primitives::OuterConstraint;
 use aorist_primitives::TConstraintEnum;
 use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
-use std::collections::{HashMap};
+use std::collections::HashMap;
 use std::marker::PhantomData;
 use std::sync::{Arc, RwLock};
 use uuid::Uuid;
@@ -21,8 +21,7 @@ use uuid::Uuid;
 pub struct RBasedDriver<'a, 'b, D, C>
 where
     D: FlowBuilderBase,
-    <D as FlowBuilderBase>::T:
-        ETLFlow<ImportType = RImport, PreambleType = RPreamble> + 'a,
+    <D as FlowBuilderBase>::T: ETLFlow<ImportType = RImport, PreambleType = RPreamble> + 'a,
     C: OuterConstraint<'a, 'b, TAncestry = ConceptAncestry<'a>>
         + SatisfiableOuterConstraint<'a, 'b>
         + 'b,
@@ -45,8 +44,7 @@ where
     'a: 'b,
     D: FlowBuilderBase,
     D: FlowBuilderMaterialize<BuilderInputType = RFlowBuilderInput>,
-    <D as FlowBuilderBase>::T:
-        ETLFlow<ImportType = RImport, PreambleType = RPreamble> + 'a,
+    <D as FlowBuilderBase>::T: ETLFlow<ImportType = RImport, PreambleType = RPreamble> + 'a,
     C: OuterConstraint<'a, 'b, TAncestry = ConceptAncestry<'a>>
         + SatisfiableOuterConstraint<'a, 'b>
         + 'b,
@@ -86,7 +84,10 @@ where
             self.topline_constraint_names.clone(),
         )
     }
-    fn add_block(&mut self, constraint_block: RBasedConstraintBlock<'a, 'b, <D as FlowBuilderBase>::T, C>) {
+    fn add_block(
+        &mut self,
+        constraint_block: RBasedConstraintBlock<'a, 'b, <D as FlowBuilderBase>::T, C>,
+    ) {
         self.blocks.push(constraint_block);
     }
     fn get_constraint_explanation(

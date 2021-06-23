@@ -1,8 +1,8 @@
-use crate::role::*;
 use crate::concept::{AoristRef, WrappedConcept};
-use aorist_primitives::{AoristConcept, ConceptEnum};
+use crate::role::*;
 use aorist_concept::{aorist, Constrainable};
 use aorist_primitives::TAoristObject;
+use aorist_primitives::{AoristConcept, ConceptEnum};
 use derivative::Derivative;
 use paste::paste;
 use serde::{Deserialize, Serialize};
