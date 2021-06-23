@@ -32,7 +32,7 @@ pub type ConstraintsBlockMap<'a, C> = LinkedHashMap<
 
 pub trait Driver<'a, B, D, U, C, A>
 where
-    B: TBuilder<'a, TEnum = C>,
+    B: TBuilder<'a, TEnum = C, TAncestry = A>,
     D: FlowBuilderBase,
     D: FlowBuilderMaterialize<
         BuilderInputType = <Self::CB as ConstraintBlock<

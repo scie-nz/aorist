@@ -1229,6 +1229,7 @@ macro_rules! register_constraint_new {
         impl <$lt> TBuilder<$lt> for [<$name Builder>]<$lt> {
             type OuterType = Constraint;
             type TEnum = AoristRef<Concept>;
+            type TAncestry = ConceptAncestry;
             fn builders() -> Vec<[<$name Builder>]<$lt>> where Self : Sized {
                 vec![
                     $(

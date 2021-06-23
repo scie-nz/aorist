@@ -38,6 +38,7 @@ pub trait SatisfiableOuterConstraint<'a>: OuterConstraint<'a> {
 }
 pub trait TBuilder<'a> {
     type TEnum: TConceptEnum;
+    type TAncestry: Ancestry;
     type OuterType: OuterConstraint<'a>; //, TEnum=Self::EnumType>;
                                                     //type EnumType: TConstraintEnum<'a, BuilderT=Self>;
     fn builders() -> Vec<Self>
