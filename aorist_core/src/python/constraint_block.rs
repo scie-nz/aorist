@@ -1,6 +1,5 @@
 use crate::code::CodeBlock;
 use crate::constraint::OuterConstraint;
-use crate::constraint::SatisfiableOuterConstraint;
 use crate::constraint_block::ConstraintBlock;
 use crate::flow::ETLFlow;
 use crate::parameter_tuple::ParameterTuple;
@@ -14,7 +13,7 @@ use uuid::Uuid;
 pub struct PythonBasedConstraintBlock<'a, T, C>
 where
     T: ETLFlow<ImportType = PythonImport, PreambleType = PythonPreamble>,
-    C: OuterConstraint<'a> + SatisfiableOuterConstraint<'a>,
+    C: OuterConstraint<'a> 
 {
     constraint_name: String,
     title: Option<String>,
@@ -27,7 +26,7 @@ where
 impl<'a, T, C> ConstraintBlock<'a, T, C> for PythonBasedConstraintBlock<'a, T, C>
 where
     T: ETLFlow<ImportType = PythonImport, PreambleType = PythonPreamble>,
-    C: OuterConstraint<'a> + SatisfiableOuterConstraint<'a>,
+    C: OuterConstraint<'a>, 
 {
     type C = PythonBasedCodeBlock<'a, T, C>;
     type BuilderInputType = PythonFlowBuilderInput;
@@ -84,7 +83,7 @@ where
 impl<'a, T, C> PythonBasedConstraintBlock<'a, T, C>
 where
     T: ETLFlow<ImportType = PythonImport, PreambleType = PythonPreamble>,
-    C: OuterConstraint<'a> + SatisfiableOuterConstraint<'a>,
+    C: OuterConstraint<'a>,
 {
     pub fn get_params(&self) -> HashMap<String, Option<ParameterTuple>> {
         self.members

@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 use crate::concept::{Concept, ConceptAncestry};
-use crate::constraint::SatisfiableOuterConstraint;
+use crate::constraint_block::ConstraintBlock;
 use crate::constraint_state::ConstraintState;
 use crate::dialect::{Bash, Dialect, Presto, Python};
 use crate::driver::{ConstraintsBlockMap, Driver};
@@ -11,8 +11,9 @@ use crate::python::{
 };
 use anyhow::Result;
 use aorist_ast::AncestorRecord;
-use aorist_primitives::OuterConstraint;
-use aorist_primitives::TConstraintEnum;
+use crate::constraint::TConstraintEnum;
+use crate::constraint::{OuterConstraint, TBuilder};
+use aorist_primitives::{Ancestry, TConceptEnum, AoristConcept, AoristUniverse};
 use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
 use std::collections::{BTreeSet, HashMap};
@@ -20,47 +21,52 @@ use std::marker::PhantomData;
 use std::sync::{Arc, RwLock};
 use uuid::Uuid;
 
-pub struct PythonBasedDriver<'a, B, D>
+pub struct PythonBasedDriver<'a, B, D, U, C, A>
 where
-    B: TBuilder<'a>,
+    U: AoristConcept + AoristUniverse,
+    B: TBuilder<'a, TEnum = C, TAncestry = A>,
+    D: FlowBuilderBase,
+    <D as FlowBuilderBase>::T: 'a,
     <D as FlowBuilderBase>::T:
         ETLFlow<ImportType = PythonImport, PreambleType = PythonPreamble> + 'a,
-    D:
-        FlowBuilderMaterialize<
-            BuilderInputType = <Self::CB as ConstraintBlock<
-                'a,
-                <D as FlowBuilderBase>::T,
-                B::OuterType,
-            >>::BuilderInputType,
-        >,
-    <D as FlowBuilderBase>::T: 'a,
+    A: Ancestry,
+    C: TConceptEnum<TUniverse = U>,
+    <B as TBuilder<'a>>::OuterType: OuterConstraint<'a, TAncestry = A>,
+    <<B as TBuilder<'a>>::OuterType as OuterConstraint<'a>>::TAncestry: Ancestry<TConcept = C>,
+    <<<B as TBuilder<'a>>::OuterType as OuterConstraint<'a>>::TAncestry as Ancestry>::TConcept:
+        TConceptEnum<TUniverse = U>,
 {
-    pub concepts: Arc<RwLock<HashMap<(Uuid, String), Concept>>>,
+    pub concepts: Arc<RwLock<HashMap<(Uuid, String), C>>>,
     constraints: LinkedHashMap<(Uuid, String), Arc<RwLock<B::OuterType>>>,
     satisfied_constraints: HashMap<(Uuid, String), Arc<RwLock<ConstraintState<'a, B::OuterType>>>>,
     blocks: Vec<PythonBasedConstraintBlock<'a, D::T, B::OuterType>>,
-    ancestry: Arc<ConceptAncestry>,
+    ancestry: Arc<A>,
     dag_type: PhantomData<D>,
-    endpoints: EndpointConfig,
+    endpoints: <U as AoristUniverse>::TEndpoints,
     constraint_explanations: HashMap<String, (Option<String>, Option<String>)>,
     ancestors: HashMap<(Uuid, String), Vec<AncestorRecord>>,
     topline_constraint_names: LinkedHashSet<String>,
 }
-
+/*
 impl<'a, D, B> Driver<'a, D, B> for PythonBasedDriver<'a, D, B>
 where
-    B: TBuilder<'a>,
-    <D as FlowBuilderBase>::T:
-        ETLFlow<ImportType = PythonImport, PreambleType = PythonPreamble> + 'a,
-    D:
-        FlowBuilderMaterialize<
-            BuilderInputType = <Self::CB as ConstraintBlock<
-                'a,
-                <D as FlowBuilderBase>::T,
-                B::OuterType,
-            >>::BuilderInputType,
-        >,
+    U: AoristConcept + AoristUniverse,
+    B: TBuilder<'a, TEnum = C, TAncestry = A>,
+    D: FlowBuilderBase,
+    D: FlowBuilderMaterialize<
+        BuilderInputType = <Self::CB as ConstraintBlock<
+            'a,
+            <D as FlowBuilderBase>::T,
+            B::OuterType,
+        >>::BuilderInputType,
+    >,
     <D as FlowBuilderBase>::T: 'a,
+    A: Ancestry,
+    C: TConceptEnum<TUniverse = U>,
+    <B as TBuilder<'a>>::OuterType: OuterConstraint<'a, TAncestry = A>,
+    <<B as TBuilder<'a>>::OuterType as OuterConstraint<'a>>::TAncestry: Ancestry<TConcept = C>,
+    <<<B as TBuilder<'a>>::OuterType as OuterConstraint<'a>>::TAncestry as Ancestry>::TConcept:
+        TConceptEnum<TUniverse = U>,
 {
     type CB = PythonBasedConstraintBlock<'a, <D as FlowBuilderBase>::T, B::OuterType>;
 
@@ -152,4 +158,4 @@ where
             topline_constraint_names,
         }
     }
-}
+}*/

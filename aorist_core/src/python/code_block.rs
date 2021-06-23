@@ -1,7 +1,6 @@
 use crate::code::{CodeBlock, CodeBlockWithForLoopCompression};
 use crate::concept::AoristRef;
 use crate::constraint::OuterConstraint;
-use crate::constraint::SatisfiableOuterConstraint;
 use crate::endpoints::EndpointConfig;
 use crate::flow::{CompressibleTask, ETLFlow, ETLTask, ForLoopCompressedTask};
 use crate::parameter_tuple::ParameterTuple;
@@ -19,7 +18,7 @@ use uuid::Uuid;
 pub struct PythonBasedCodeBlock<'a, T, C>
 where
     T: ETLFlow<ImportType = PythonImport, PreambleType = PythonPreamble>,
-    C: OuterConstraint<'a> + SatisfiableOuterConstraint<'a>,
+    C: OuterConstraint<'a> 
 {
     tasks_dict: Option<AST>,
     task_identifiers: HashMap<Uuid, AST>,
@@ -31,7 +30,7 @@ where
 impl<'a, T, C> CodeBlock<'a, T, C> for PythonBasedCodeBlock<'a, T, C>
 where
     T: ETLFlow<ImportType = PythonImport, PreambleType = PythonPreamble>,
-    C: OuterConstraint<'a> + SatisfiableOuterConstraint<'a>,
+    C: OuterConstraint<'a>
 {
     type P = PythonPreamble;
     type E = PythonBasedTask<T>;
@@ -97,7 +96,7 @@ where
 impl<'a, T, C> CodeBlockWithForLoopCompression<'a, T, C> for PythonBasedCodeBlock<'a, T, C>
 where
     T: ETLFlow<ImportType = PythonImport, PreambleType = PythonPreamble>,
-    C: OuterConstraint<'a> + SatisfiableOuterConstraint<'a>,
+    C: OuterConstraint<'a>
 {
     fn run_task_compressions(
         compressible: LinkedHashMap<
