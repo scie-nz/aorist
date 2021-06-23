@@ -4,11 +4,13 @@ use aorist_ast::{Dict, List, StringLiteral, AST};
 use linked_hash_map::LinkedHashMap;
 use std::hash::Hash;
 use std::marker::PhantomData;
+use aorist_primitives::AoristUniverse;
 
 #[derive(Clone, Hash, PartialEq, Eq)]
-pub struct PythonBasedTaskUncompressiblePart<T>
+pub struct PythonBasedTaskUncompressiblePart<T, U>
 where
-    T: ETLFlow,
+    T: ETLFlow<U>,
+    U: AoristUniverse,
 {
     // unique task_id
     pub task_id: String,
@@ -19,10 +21,11 @@ where
     // dep list
     pub deps: Vec<AST>,
     singleton_type: PhantomData<T>,
+    _universe: PhantomData<U>,
 }
-impl<T> UncompressiblePart<T> for PythonBasedTaskUncompressiblePart<T>
+impl<T, U> UncompressiblePart<T, U> for PythonBasedTaskUncompressiblePart<T, U>
 where
-    T: ETLFlow,
+    T: ETLFlow<U>, U: AoristUniverse,
 {
     fn new(task_id: String, dict: String, params: Option<ParameterTuple>, deps: Vec<AST>) -> Self {
         Self {
@@ -31,6 +34,7 @@ where
             params,
             deps,
             singleton_type: PhantomData,
+            _universe: PhantomData,
         }
     }
     fn as_dict(&self, dependencies_as_list: bool, insert_task_name: bool) -> AST {

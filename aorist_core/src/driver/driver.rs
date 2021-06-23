@@ -34,16 +34,17 @@ pub trait Driver<'a, B, D, U, C, A>
 where
     U: AoristConcept + AoristUniverse,
     B: TBuilder<'a, TEnum = C, TAncestry = A>,
-    D: FlowBuilderBase,
+    D: FlowBuilderBase<U>,
     D: FlowBuilderMaterialize<
+        U,
         BuilderInputType = <Self::CB as ConstraintBlock<
             'a,
-            <D as FlowBuilderBase>::T,
+            <D as FlowBuilderBase<U>>::T,
             B::OuterType,
             U,
         >>::BuilderInputType,
     >,
-    <D as FlowBuilderBase>::T: 'a,
+    <D as FlowBuilderBase<U>>::T: 'a,
     A: Ancestry,
     C: TConceptEnum<TUniverse = U>,
     <B as TBuilder<'a>>::OuterType: OuterConstraint<'a, TAncestry = A>,
@@ -51,7 +52,7 @@ where
     <<<B as TBuilder<'a>>::OuterType as OuterConstraint<'a>>::TAncestry as Ancestry>::TConcept:
         TConceptEnum<TUniverse = U>,
 {
-    type CB: ConstraintBlock<'a, <D as FlowBuilderBase>::T, B::OuterType, U>;
+    type CB: ConstraintBlock<'a, <D as FlowBuilderBase<U>>::T, B::OuterType, U>;
 
     fn get_relevant_builders(topline_constraint_names: &LinkedHashSet<String>) -> Vec<B> {
         let mut builders = B::builders()
@@ -234,7 +235,7 @@ where
         unsatisfied_constraints: &ConstraintsBlockMap<'a, B::OuterType>,
         identifiers: &HashMap<Uuid, AST>,
     ) -> Result<(
-        Vec<<Self::CB as ConstraintBlock<'a, <D as FlowBuilderBase>::T, B::OuterType, U>>::C>,
+        Vec<<Self::CB as ConstraintBlock<'a, <D as FlowBuilderBase<U>>::T, B::OuterType, U>>::C>,
         Option<AST>,
     )> {
         let tasks_dict = Self::init_tasks_dict(block, constraint_name.clone());
@@ -262,7 +263,7 @@ where
         }
         for (_dialect, satisfied) in by_dialect.into_iter() {
             let block =
-                <Self::CB as ConstraintBlock<'a, <D as FlowBuilderBase>::T, B::OuterType, U>>::C::new(
+                <Self::CB as ConstraintBlock<'a, <D as FlowBuilderBase<U>>::T, B::OuterType, U>>::C::new(
                     satisfied,
                     constraint_name.clone(),
                     tasks_dict.clone(),

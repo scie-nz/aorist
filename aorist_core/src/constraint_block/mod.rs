@@ -11,7 +11,7 @@ use uuid::Uuid;
 
 pub trait ConstraintBlock<'a, T, C, U>
 where
-    T: ETLFlow,
+    T: ETLFlow<U>,
     U: AoristUniverse,
     C: OuterConstraint<'a>, 
     Self::C: CodeBlockWithDefaultConstructor<'a, T, C, U>,

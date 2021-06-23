@@ -8,12 +8,14 @@ use linked_hash_set::LinkedHashSet;
 use pyo3::prelude::*;
 use pyo3::types::{PyModule, PyString};
 use std::collections::BTreeSet;
+use aorist_primitives::AoristUniverse;
 
-impl<C> FlowBuilderMaterialize for C
+impl<C, U> FlowBuilderMaterialize<U> for C
 where
     Self: Sized,
-    C: PythonBasedFlowBuilder,
-    <C as FlowBuilderBase>::T: ETLFlow<ImportType = PythonImport, PreambleType = PythonPreamble>,
+    C: PythonBasedFlowBuilder<U>,
+    <C as FlowBuilderBase<U>>::T: ETLFlow<U, ImportType = PythonImport, PreambleType = PythonPreamble>,
+    U: AoristUniverse,
 {
     type BuilderInputType = PythonFlowBuilderInput;
     type ErrorType = PyErr;
@@ -142,9 +144,10 @@ where
 
 /// Encapsulates all the necessary bits for the construction of a Flow written in
 /// Python.
-pub trait PythonBasedFlowBuilder: FlowBuilderBase
+pub trait PythonBasedFlowBuilder<U>: FlowBuilderBase<U>
 where
     Self: Sized,
+    U: AoristUniverse,
 {
     fn build_flow<'a>(
         &self,

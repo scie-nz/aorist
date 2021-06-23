@@ -15,7 +15,8 @@ use pyo3::prelude::*;
 use pyo3::types::PyModule;
 use std::hash::{Hash, Hasher};
 use std::sync::{Arc, RwLock};
-
+use aorist_primitives::AoristUniverse;
+use std::marker::PhantomData;
 register_task_nodes! {
     PrefectTask,
     PythonImport,
@@ -24,7 +25,7 @@ register_task_nodes! {
 }
 
 #[derive(Clone, Hash, PartialEq)]
-pub struct PrefectPythonBasedFlow {
+pub struct PrefectPythonBasedFlow<U: AoristUniverse> {
     task_id: AST,
     task_val: AST,
     command: Option<String>,
@@ -35,9 +36,10 @@ pub struct PrefectPythonBasedFlow {
     dialect: Option<Dialect>,
     flow_identifier: AST,
     endpoints: AoristRef<EndpointConfig>,
+    _universe: PhantomData<U>,    
 }
 
-impl ETLFlow for PrefectPythonBasedFlow {
+impl <U: AoristUniverse> ETLFlow<U> for PrefectPythonBasedFlow<U> {
     type ImportType = PythonImport;
     type PreambleType = PythonPreamble;
     fn get_preamble(&self) -> Vec<PythonPreamble> {
@@ -95,6 +97,7 @@ impl ETLFlow for PrefectPythonBasedFlow {
                 "flow".to_string(),
             )),
             endpoints,
+            _universe: PhantomData,
         }
     }
     fn get_type() -> String {
@@ -122,7 +125,7 @@ impl ETLFlow for PrefectPythonBasedFlow {
         }
     }
 }
-impl PrefectPythonBasedFlow {
+impl <U: AoristUniverse> PrefectPythonBasedFlow<U> {
     fn compute_task_args(&self) -> Vec<AST> {
         if let Some(Dialect::Python(_)) = self.dialect {
             return self.args.clone();
@@ -226,20 +229,22 @@ impl PrefectPythonBasedFlow {
         AST::Expression(Expression::new_wrapped(add_expr))
     }
 }
-pub struct PrefectFlowBuilder {
+pub struct PrefectFlowBuilder<U: AoristUniverse> {
     flow_identifier: AST,
+    universe: PhantomData<U>,
 }
-impl FlowBuilderBase for PrefectFlowBuilder {
-    type T = PrefectPythonBasedFlow;
+impl <U: AoristUniverse> FlowBuilderBase<U> for PrefectFlowBuilder<U> {
+    type T = PrefectPythonBasedFlow<U>;
     fn new() -> Self {
         Self {
             flow_identifier: AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
                 "flow".to_string(),
             )),
+            universe: PhantomData,
         }
     }
 }
-impl PythonBasedFlowBuilder for PrefectFlowBuilder {
+impl <U: AoristUniverse> PythonBasedFlowBuilder<U> for PrefectFlowBuilder<U> {
     fn get_flow_imports(&self) -> Vec<PythonImport> {
         Vec::new()
     }

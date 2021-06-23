@@ -13,7 +13,7 @@ use aorist_primitives::AoristUniverse;
 
 pub struct PythonBasedConstraintBlock<'a, T, C, U>
 where
-    T: ETLFlow<ImportType = PythonImport, PreambleType = PythonPreamble>,
+    T: ETLFlow<U, ImportType = PythonImport, PreambleType = PythonPreamble>,
     C: OuterConstraint<'a>,
     U: AoristUniverse,
 {
@@ -27,7 +27,7 @@ where
 }
 impl<'a, T, C, U> ConstraintBlock<'a, T, C, U> for PythonBasedConstraintBlock<'a, T, C, U>
 where
-    T: ETLFlow<ImportType = PythonImport, PreambleType = PythonPreamble>,
+    T: ETLFlow<U, ImportType = PythonImport, PreambleType = PythonPreamble>,
     C: OuterConstraint<'a>, 
     U: AoristUniverse,
 {
@@ -85,7 +85,7 @@ where
 
 impl<'a, T, C, U> PythonBasedConstraintBlock<'a, T, C, U>
 where
-    T: ETLFlow<ImportType = PythonImport, PreambleType = PythonPreamble>,
+    T: ETLFlow<U, ImportType = PythonImport, PreambleType = PythonPreamble>,
     C: OuterConstraint<'a>,
     U: AoristUniverse,
 {

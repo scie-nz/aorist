@@ -3,11 +3,12 @@ use crate::concept::AoristRef;
 use crate::dialect::Dialect;
 use crate::endpoints::EndpointConfig;
 use aorist_ast::AST;
-
+use aorist_primitives::AoristUniverse;
 use linked_hash_map::LinkedHashMap;
 
 /// Encapsulates the abstract bits necessary for the creation of an ETL Flow
-pub trait ETLFlow {
+pub trait ETLFlow<U> 
+where U: AoristUniverse {
     type ImportType: Import;
     type PreambleType: Preamble<ImportType = Self::ImportType>;
 

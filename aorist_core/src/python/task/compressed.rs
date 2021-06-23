@@ -15,28 +15,28 @@ use aorist_primitives::AoristUniverse;
 #[derive(Clone, Hash, PartialEq, Eq)]
 pub struct ForLoopPythonBasedTask<T, U>
 where
-    T: ETLFlow<ImportType = PythonImport>,
+    T: ETLFlow<U, ImportType = PythonImport>,
     U: AoristUniverse,
 {
     params_dict_name: AST,
     key: PythonBasedTaskCompressionKey,
-    values: Vec<PythonBasedTaskUncompressiblePart<T>>,
+    values: Vec<PythonBasedTaskUncompressiblePart<T, U>>,
     singleton_type: PhantomData<T>,
     task_id: AST,
     insert_task_name: bool,
     _universe: PhantomData<U>,
 }
-impl<T, U> ForLoopCompressedTask<T> for ForLoopPythonBasedTask<T, U>
+impl<T, U> ForLoopCompressedTask<T, U> for ForLoopPythonBasedTask<T, U>
 where
-    T: ETLFlow<ImportType = PythonImport, PreambleType = PythonPreamble>,
+    T: ETLFlow<U, ImportType = PythonImport, PreambleType = PythonPreamble>,
     U: AoristUniverse,
 {
     type KeyType = PythonBasedTaskCompressionKey;
-    type UncompressiblePartType = PythonBasedTaskUncompressiblePart<T>;
+    type UncompressiblePartType = PythonBasedTaskUncompressiblePart<T, U>;
     fn new(
         params_dict_name: AST,
         key: PythonBasedTaskCompressionKey,
-        values: Vec<PythonBasedTaskUncompressiblePart<T>>,
+        values: Vec<PythonBasedTaskUncompressiblePart<T, U>>,
         task_id: AST,
         insert_task_name: bool,
     ) -> Self {
@@ -51,15 +51,15 @@ where
         }
     }
 }
-impl<T, U> TaskBase<T> for ForLoopPythonBasedTask<T, U> where
-    T: ETLFlow<ImportType = PythonImport, PreambleType = PythonPreamble>,
+impl<T, U> TaskBase<T, U> for ForLoopPythonBasedTask<T, U> where
+    T: ETLFlow<U, ImportType = PythonImport, PreambleType = PythonPreamble>,
     U: AoristUniverse,
 {
 }
 
 impl<T, U> ForLoopPythonBasedTask<T, U>
 where
-    T: ETLFlow<ImportType = PythonImport, PreambleType = PythonPreamble>,
+    T: ETLFlow<U, ImportType = PythonImport, PreambleType = PythonPreamble>,
     U: AoristUniverse,
 {
     fn get_dict_assign(&self) -> AST {

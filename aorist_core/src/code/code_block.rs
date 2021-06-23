@@ -18,9 +18,9 @@ pub trait CodeBlock<'a, T, C, U>
 where
     C: OuterConstraint<'a>,
     Self::P: Preamble,
-    T: ETLFlow,
+    T: ETLFlow<U>,
     Self: Sized,
-    Self::E: ETLTask<T>,
+    Self::E: ETLTask<T, U>,
     U: AoristUniverse,
 {
     type P;
@@ -78,7 +78,7 @@ where
         tasks_dict: Option<AST>,
         identifiers: &HashMap<Uuid, AST>,
     ) -> Result<(
-        Vec<<Self::E as ETLTask<T>>::S>,
+        Vec<<Self::E as ETLTask<T, U>>::S>,
         HashMap<Uuid, AST>,
         HashMap<String, Option<ParameterTuple>>,
     )> {
@@ -95,7 +95,7 @@ where
                 .iter()
                 .map(|x| identifiers.get(x).unwrap().clone())
                 .collect();
-            tasks.push(<Self::E as ETLTask<T>>::S::new(
+            tasks.push(<Self::E as ETLTask<T, U>>::S::new(
                 x.get_task_name(),
                 ast.clone(),
                 x.get_call(),
@@ -115,7 +115,7 @@ pub trait CodeBlockWithDefaultConstructor<
     C: OuterConstraint<'a> ,
     U: AoristUniverse,
 > where
-    T: ETLFlow,
+    T: ETLFlow<U>,
     Self: CodeBlock<'a, T, C, U>,
 {
     fn new(
@@ -132,25 +132,25 @@ pub trait CodeBlockWithForLoopCompression<
     U: AoristUniverse,
 > where
     Self: CodeBlock<'a, T, C, U>,
-    T: ETLFlow,
+    T: ETLFlow<U>,
     Self: Sized,
-    <Self as CodeBlock<'a, T, C, U>>::E: CompressibleETLTask<T>,
-    <<Self as CodeBlock<'a, T, C, U>>::E as ETLTask<T>>::S: CompressibleTask,
+    <Self as CodeBlock<'a, T, C, U>>::E: CompressibleETLTask<T, U>,
+    <<Self as CodeBlock<'a, T, C, U>>::E as ETLTask<T, U>>::S: CompressibleTask,
 {
     fn run_task_compressions(
         compressible: LinkedHashMap<
-            <<Self::E as ETLTask<T>>::S as CompressibleTask>::KeyType,
-            Vec<<Self::E as ETLTask<T>>::S>,
+            <<Self::E as ETLTask<T, U>>::S as CompressibleTask>::KeyType,
+            Vec<<Self::E as ETLTask<T, U>>::S>,
         >,
         tasks: &mut Vec<Self::E>,
         constraint_name: String,
     );
     fn separate_compressible_tasks(
-        tasks: Vec<<Self::E as ETLTask<T>>::S>,
+        tasks: Vec<<Self::E as ETLTask<T, U>>::S>,
     ) -> (
         LinkedHashMap<
-            <<Self::E as ETLTask<T>>::S as CompressibleTask>::KeyType,
-            Vec<<Self::E as ETLTask<T>>::S>,
+            <<Self::E as ETLTask<T, U>>::S as CompressibleTask>::KeyType,
+            Vec<<Self::E as ETLTask<T, U>>::S>,
         >,
         Vec<Self::E>,
     ) {
@@ -162,18 +162,18 @@ pub trait CodeBlockWithForLoopCompression<
                 let key = task.get_compression_key().unwrap();
                 compressible.entry(key).or_insert(Vec::new()).push(task);
             } else {
-                uncompressible.push(<Self::E as ETLTask<T>>::standalone_task(task));
+                uncompressible.push(<Self::E as ETLTask<T, U>>::standalone_task(task));
             }
         }
         (compressible, uncompressible)
     }
 }
-impl<'a, C, T: ETLFlow, CType: OuterConstraint<'a>, U: AoristUniverse> 
+impl<'a, C, T: ETLFlow<U>, CType: OuterConstraint<'a>, U: AoristUniverse> 
     CodeBlockWithDefaultConstructor<'a, T, CType, U> for C
 where
     Self: CodeBlockWithForLoopCompression<'a, T, CType, U>,
-    <Self as CodeBlock<'a, T, CType, U>>::E: CompressibleETLTask<T>,
-    <<Self as CodeBlock<'a, T, CType, U>>::E as ETLTask<T>>::S: CompressibleTask,
+    <Self as CodeBlock<'a, T, CType, U>>::E: CompressibleETLTask<T, U>,
+    <<Self as CodeBlock<'a, T, CType, U>>::E as ETLTask<T, U>>::S: CompressibleTask,
 {
     fn new(
         members: Vec<Arc<RwLock<ConstraintState<'a, CType>>>>,

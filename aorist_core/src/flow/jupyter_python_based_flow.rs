@@ -5,15 +5,21 @@ use crate::python::PythonImport;
 use pyo3::prelude::*;
 use pyo3::types::PyModule;
 use serde_json::json;
+use aorist_primitives::AoristUniverse;
+use std::marker::PhantomData;
 
-pub struct JupyterFlowBuilder {}
-impl FlowBuilderBase for JupyterFlowBuilder {
-    type T = NativePythonBasedFlow;
+pub struct JupyterFlowBuilder<U: AoristUniverse> {
+    _universe: PhantomData<U>,
+}
+impl <U: AoristUniverse> FlowBuilderBase<U> for JupyterFlowBuilder<U> {
+    type T = NativePythonBasedFlow<U>;
     fn new() -> Self {
-        Self {}
+        Self {
+            _universe: PhantomData
+        }
     }
 }
-impl PythonBasedFlowBuilder for JupyterFlowBuilder {
+impl <U: AoristUniverse> PythonBasedFlowBuilder<U> for JupyterFlowBuilder<U> {
     fn get_flow_imports(&self) -> Vec<PythonImport> {
         Vec::new()
     }

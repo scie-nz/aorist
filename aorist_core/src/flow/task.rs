@@ -3,16 +3,17 @@ use crate::flow::etl_flow::ETLFlow;
 use crate::parameter_tuple::{ParameterTuple, ParameterTupleDedupKey};
 use aorist_ast::AST;
 use std::hash::Hash;
+use aorist_primitives::AoristUniverse;
 
-pub trait TaskBase<T>
+pub trait TaskBase<T, U: AoristUniverse>
 where
-    T: ETLFlow,
+    T: ETLFlow<U>,
 {
 }
 
-pub trait StandaloneTask<T>: TaskBase<T>
+pub trait StandaloneTask<T, U>: TaskBase<T, U>
 where
-    T: ETLFlow,
+    T: ETLFlow<U>, U: AoristUniverse,
 {
     fn new(
         task_id: String,
@@ -52,37 +53,37 @@ where
     fn get_dialect(&self) -> Option<Dialect>;
     fn get_task_val(&self) -> AST;
 }
-pub trait ETLTask<T>: TaskBase<T>
+pub trait ETLTask<T, U: AoristUniverse>: TaskBase<T, U>
 where
-    T: ETLFlow,
-    Self::S: StandaloneTask<T>,
-    Self::S: TaskBase<T>,
+    T: ETLFlow<U>,
+    Self::S: StandaloneTask<T, U>,
+    Self::S: TaskBase<T, U>,
 {
     type S;
 
     fn standalone_task(task: Self::S) -> Self;
 }
-pub trait CompressibleETLTask<T>
+pub trait CompressibleETLTask<T, U: AoristUniverse>
 where
-    T: ETLFlow,
-    Self: ETLTask<T>,
+    T: ETLFlow<U>,
+    Self: ETLTask<T, U>,
     Self::S: CompressibleTask,
 {
     type F;
 }
-pub trait UncompressiblePart<T>
+pub trait UncompressiblePart<T, U: AoristUniverse>
 where
-    T: ETLFlow,
+    T: ETLFlow<U>,
 {
     fn new(task_id: String, dict: String, params: Option<ParameterTuple>, deps: Vec<AST>) -> Self;
     fn as_dict(&self, dependencies_as_list: bool, insert_task_name: bool) -> AST;
 }
-pub trait ForLoopCompressedTask<T>
+pub trait ForLoopCompressedTask<T, U: AoristUniverse>
 where
-    T: ETLFlow,
+    T: ETLFlow<U>,
 {
     type KeyType: CompressionKey;
-    type UncompressiblePartType: UncompressiblePart<T>;
+    type UncompressiblePartType: UncompressiblePart<T, U>;
     fn new(
         params_dict_name: AST,
         key: Self::KeyType,

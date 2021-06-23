@@ -15,6 +15,8 @@ use pyo3::prelude::*;
 use pyo3::types::PyModule;
 use std::hash::{Hash, Hasher};
 use std::sync::{Arc, RwLock};
+use aorist_primitives::AoristUniverse;
+use std::marker::PhantomData;
 
 register_task_nodes! {
     PythonTask,
@@ -27,7 +29,7 @@ register_task_nodes! {
 }
 
 #[derive(Clone, Hash, PartialEq)]
-pub struct NativePythonBasedFlow {
+pub struct NativePythonBasedFlow<U: AoristUniverse> {
     task_id: AST,
     task_val: AST,
     command: Option<String>,
@@ -39,8 +41,9 @@ pub struct NativePythonBasedFlow {
 
     endpoints: AoristRef<EndpointConfig>,
     node: PythonTask,
+    _universe: PhantomData<U>,    
 }
-impl ETLFlow for NativePythonBasedFlow {
+impl <U: AoristUniverse> ETLFlow<U> for NativePythonBasedFlow<U> {
     type ImportType = PythonImport;
     type PreambleType = PythonPreamble;
 
@@ -141,20 +144,25 @@ impl ETLFlow for NativePythonBasedFlow {
             dialect: dialect.clone(),
             endpoints,
             node,
+            _universe: PhantomData,
         }
     }
     fn get_type() -> String {
         "python".to_string()
     }
 }
-pub struct PythonFlowBuilder {}
-impl FlowBuilderBase for PythonFlowBuilder {
-    type T = NativePythonBasedFlow;
+pub struct PythonFlowBuilder<U: AoristUniverse> {
+    universe: PhantomData<U>,
+}
+impl <U: AoristUniverse> FlowBuilderBase<U> for PythonFlowBuilder<U> {
+    type T = NativePythonBasedFlow<U>;
     fn new() -> Self {
-        Self {}
+        Self {
+            universe: PhantomData,
+        }
     }
 }
-impl PythonBasedFlowBuilder for PythonFlowBuilder {
+impl <U: AoristUniverse> PythonBasedFlowBuilder<U> for PythonFlowBuilder<U> {
     fn get_flow_imports(&self) -> Vec<PythonImport> {
         Vec::new()
     }

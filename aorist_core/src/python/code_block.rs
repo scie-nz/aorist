@@ -18,7 +18,7 @@ use aorist_primitives::AoristUniverse;
 
 pub struct PythonBasedCodeBlock<'a, T, C, U>
 where
-    T: ETLFlow<ImportType = PythonImport, PreambleType = PythonPreamble>,
+    T: ETLFlow<U, ImportType = PythonImport, PreambleType = PythonPreamble>,
     C: OuterConstraint<'a>,
     U: AoristUniverse,
 {
@@ -31,7 +31,7 @@ where
 }
 impl<'a, T, C, U> CodeBlock<'a, T, C, U> for PythonBasedCodeBlock<'a, T, C, U>
 where
-    T: ETLFlow<ImportType = PythonImport, PreambleType = PythonPreamble>,
+    T: ETLFlow<U, ImportType = PythonImport, PreambleType = PythonPreamble>,
     C: OuterConstraint<'a>,
     U: AoristUniverse,
 {
@@ -98,14 +98,14 @@ where
 }
 impl<'a, T, C, U> CodeBlockWithForLoopCompression<'a, T, C, U> for PythonBasedCodeBlock<'a, T, C, U>
 where
-    T: ETLFlow<ImportType = PythonImport, PreambleType = PythonPreamble>,
+    T: ETLFlow<U, ImportType = PythonImport, PreambleType = PythonPreamble>,
     C: OuterConstraint<'a>,
     U: AoristUniverse,
 {
     fn run_task_compressions(
         compressible: LinkedHashMap<
-            <<Self::E as ETLTask<T>>::S as CompressibleTask>::KeyType,
-            Vec<<Self::E as ETLTask<T>>::S>,
+            <<Self::E as ETLTask<T, U>>::S as CompressibleTask>::KeyType,
+            Vec<<Self::E as ETLTask<T, U>>::S>,
         >,
         python_based_tasks: &mut Vec<Self::E>,
         constraint_name: String,

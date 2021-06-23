@@ -25,10 +25,10 @@ pub struct PythonBasedDriver<'a, B, D, U, C, A>
 where
     U: AoristConcept + AoristUniverse,
     B: TBuilder<'a, TEnum = C, TAncestry = A>,
-    D: FlowBuilderBase,
-    <D as FlowBuilderBase>::T: 'a,
-    <D as FlowBuilderBase>::T:
-        ETLFlow<ImportType = PythonImport, PreambleType = PythonPreamble> + 'a,
+    D: FlowBuilderBase<U>,
+    <D as FlowBuilderBase<U>>::T: 'a,
+    <D as FlowBuilderBase<U>>::T:
+        ETLFlow<U, ImportType = PythonImport, PreambleType = PythonPreamble> + 'a,
     A: Ancestry,
     C: TConceptEnum<TUniverse = U>,
     <B as TBuilder<'a>>::OuterType: OuterConstraint<'a, TAncestry = A>,

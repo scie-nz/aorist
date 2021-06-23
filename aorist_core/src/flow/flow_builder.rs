@@ -7,18 +7,19 @@ use linked_hash_set::LinkedHashSet;
 use std::collections::BTreeMap;
 use std::error::Error;
 use std::sync::{Arc, RwLock};
+use aorist_primitives::AoristUniverse;
 
-pub trait FlowBuilderBase
+pub trait FlowBuilderBase<U: AoristUniverse>
 where
     Self: Sized,
 {
-    type T: ETLFlow;
+    type T: ETLFlow<U>;
     fn new() -> Self;
 }
-pub trait FlowBuilderMaterialize
+pub trait FlowBuilderMaterialize<U: AoristUniverse>
 where
     Self: Sized,
-    Self: FlowBuilderBase,
+    Self: FlowBuilderBase<U>,
     Self::BuilderInputType: FlowBuilderInput,
     Self::ErrorType: Error + Send + Sync + 'static,
 {
@@ -112,8 +113,8 @@ where
         assignments_ast
     }
     fn get_preamble_imports(
-        preambles: &LinkedHashSet<<<Self as FlowBuilderBase>::T as ETLFlow>::PreambleType>,
-    ) -> Vec<<<Self as FlowBuilderBase>::T as ETLFlow>::ImportType> {
+        preambles: &LinkedHashSet<<<Self as FlowBuilderBase<U>>::T as ETLFlow<U>>::PreambleType>,
+    ) -> Vec<<<Self as FlowBuilderBase<U>>::T as ETLFlow<U>>::ImportType> {
         preambles
             .iter()
             .map(|x| x.get_imports().into_iter())

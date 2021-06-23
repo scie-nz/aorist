@@ -16,7 +16,7 @@ use aorist_primitives::AoristUniverse;
 #[derive(Clone, Hash, PartialEq, Eq)]
 pub struct StandalonePythonBasedTask<T, U>
 where
-    T: ETLFlow,
+    T: ETLFlow<U>,
     U: AoristUniverse,
 {
     /// where the task creation call should be stored.
@@ -39,11 +39,11 @@ where
     singleton_type: PhantomData<T>,
     _universe: PhantomData<U>,
 }
-impl<T, U> TaskBase<T> for StandalonePythonBasedTask<T, U> where T: ETLFlow, U: AoristUniverse {}
+impl<T, U> TaskBase<T, U> for StandalonePythonBasedTask<T, U> where T: ETLFlow<U>, U: AoristUniverse {}
 
-impl<T, U> StandaloneTask<T> for StandalonePythonBasedTask<T, U>
+impl<T, U> StandaloneTask<T, U> for StandalonePythonBasedTask<T, U>
 where
-    T: ETLFlow,
+    T: ETLFlow<U>,
     U: AoristUniverse,
 {
     fn new(
@@ -70,7 +70,7 @@ where
 }
 impl<T, U> CompressibleTask for StandalonePythonBasedTask<T, U>
 where
-    T: ETLFlow,
+    T: ETLFlow<U>,
     U: AoristUniverse,
 {
     type KeyType = PythonBasedTaskCompressionKey;
@@ -130,10 +130,10 @@ where
 
 impl<T, U> StandalonePythonBasedTask<T, U>
 where
-    T: ETLFlow<ImportType = PythonImport, PreambleType = PythonPreamble>,
+    T: ETLFlow<U, ImportType = PythonImport, PreambleType = PythonPreamble>,
     U: AoristUniverse,
 {
-    pub fn get_uncompressible_part(&self) -> Result<PythonBasedTaskUncompressiblePart<T>, String> {
+    pub fn get_uncompressible_part(&self) -> Result<PythonBasedTaskUncompressiblePart<T, U>, String> {
         Ok(PythonBasedTaskUncompressiblePart::new(
             self.task_id.clone(),
             self.get_right_of_task_val()?,

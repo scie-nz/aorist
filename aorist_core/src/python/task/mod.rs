@@ -14,15 +14,15 @@ use aorist_primitives::AoristUniverse;
 
 pub enum PythonBasedTask<T, U>
 where
-    T: ETLFlow<ImportType = PythonImport, PreambleType = PythonPreamble>,
+    T: ETLFlow<U, ImportType = PythonImport, PreambleType = PythonPreamble>,
     U: AoristUniverse,
 {
     StandalonePythonBasedTask(StandalonePythonBasedTask<T, U>),
     ForLoopPythonBasedTask(ForLoopPythonBasedTask<T, U>),
 }
-impl<T, U> ETLTask<T> for PythonBasedTask<T, U>
+impl<T, U> ETLTask<T, U> for PythonBasedTask<T, U>
 where
-    T: ETLFlow<ImportType = PythonImport, PreambleType = PythonPreamble>,
+    T: ETLFlow<U, ImportType = PythonImport, PreambleType = PythonPreamble>,
     U: AoristUniverse,
 {
     type S = StandalonePythonBasedTask<T, U>;
@@ -30,16 +30,16 @@ where
         Self::StandalonePythonBasedTask(task)
     }
 }
-impl<T, U> CompressibleETLTask<T> for PythonBasedTask<T, U>
+impl<T, U> CompressibleETLTask<T, U> for PythonBasedTask<T, U>
 where
-    T: ETLFlow<ImportType = PythonImport, PreambleType = PythonPreamble>,
+    T: ETLFlow<U, ImportType = PythonImport, PreambleType = PythonPreamble>,
     U: AoristUniverse,
 {
     type F = ForLoopPythonBasedTask<T, U>;
 }
 impl<T, U> PythonBasedTask<T, U>
 where
-    T: ETLFlow<ImportType = PythonImport, PreambleType = PythonPreamble>,
+    T: ETLFlow<U, ImportType = PythonImport, PreambleType = PythonPreamble>,
     U: AoristUniverse,
 {
     pub fn get_statements(
@@ -56,8 +56,8 @@ where
         Self::ForLoopPythonBasedTask(task)
     }
 }
-impl<T, U> TaskBase<T> for PythonBasedTask<T, U> where
-    T: ETLFlow<ImportType = PythonImport, PreambleType = PythonPreamble>,
+impl<T, U> TaskBase<T, U> for PythonBasedTask<T, U> where
+    T: ETLFlow<U, ImportType = PythonImport, PreambleType = PythonPreamble>,
     U: AoristUniverse,
 {
 }
