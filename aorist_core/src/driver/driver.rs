@@ -31,7 +31,7 @@ pub type ConstraintsBlockMap<'a, C> = LinkedHashMap<
     ),
 >;
 
-pub trait Driver<'a, B, D>
+pub trait Driver<'a, B, D, U>
 where
     B: TBuilder<'a>,
     D: FlowBuilderBase,
@@ -44,6 +44,7 @@ where
             >>::BuilderInputType,
         >,
     <D as FlowBuilderBase>::T: 'a,
+    <<<B as TBuilder<'a>>::OuterType as OuterConstraint<'a>>::TAncestry as Ancestry>::TConcept: TConceptEnum<TUniverse=U>
 {
     type CB: ConstraintBlock<'a, <D as FlowBuilderBase>::T, B::OuterType>;
 
