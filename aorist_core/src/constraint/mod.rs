@@ -4,7 +4,7 @@ use crate::dialect::Dialect;
 use crate::parameter_tuple::ParameterTuple;
 use anyhow::Result;
 use aorist_primitives::AoristConcept;
-use aorist_primitives::{Ancestry, TAoristObject};
+use aorist_primitives::{Ancestry, TAoristObject, TConceptEnum};
 use std::collections::HashMap;
 use std::marker::PhantomData;
 use std::sync::{Arc, RwLock};
@@ -37,6 +37,7 @@ pub trait SatisfiableOuterConstraint<'a>: OuterConstraint<'a> {
     ) -> Result<(String, String, ParameterTuple, Dialect)>;
 }
 pub trait TBuilder<'a> {
+    type TEnum: TConceptEnum;
     type OuterType: SatisfiableOuterConstraint<'a>; //, TEnum=Self::EnumType>;
                                                     //type EnumType: TConstraintEnum<'a, BuilderT=Self>;
     fn builders() -> Vec<Self>

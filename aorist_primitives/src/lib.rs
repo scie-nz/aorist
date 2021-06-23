@@ -1228,7 +1228,7 @@ macro_rules! register_constraint_new {
         }
         impl <$lt> TBuilder<$lt> for [<$name Builder>]<$lt> {
             type OuterType = Constraint;
-            //type EnumType = $name;
+            type EnumType = AoristRef<$name>;
             fn builders() -> Vec<[<$name Builder>]<$lt>> where Self : Sized {
                 vec![
                     $(
