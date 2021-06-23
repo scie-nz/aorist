@@ -1,5 +1,6 @@
 use crate::code::{CodeBlock, CodeBlockWithDefaultConstructor};
 use crate::concept::AoristRef;
+use aorist_primitives::AoristUniverse;
 use crate::constraint::OuterConstraint;
 use crate::endpoints::EndpointConfig;
 use crate::flow::{ETLFlow, FlowBuilderInput};
@@ -8,9 +9,10 @@ use linked_hash_set::LinkedHashSet;
 use std::collections::{BTreeSet, HashMap};
 use uuid::Uuid;
 
-pub trait ConstraintBlock<'a, T, C>
+pub trait ConstraintBlock<'a, T, C, U>
 where
     T: ETLFlow,
+    U: AoristUniverse,
     C: OuterConstraint<'a>, 
     Self::C: CodeBlockWithDefaultConstructor<'a, T, C>,
     Self::BuilderInputType: FlowBuilderInput<

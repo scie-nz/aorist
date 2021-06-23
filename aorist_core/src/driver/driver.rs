@@ -40,6 +40,7 @@ where
             'a,
             <D as FlowBuilderBase>::T,
             B::OuterType,
+            U,
         >>::BuilderInputType,
     >,
     <D as FlowBuilderBase>::T: 'a,
@@ -50,7 +51,7 @@ where
     <<<B as TBuilder<'a>>::OuterType as OuterConstraint<'a>>::TAncestry as Ancestry>::TConcept:
         TConceptEnum<TUniverse = U>,
 {
-    type CB: ConstraintBlock<'a, <D as FlowBuilderBase>::T, B::OuterType>;
+    type CB: ConstraintBlock<'a, <D as FlowBuilderBase>::T, B::OuterType, U>;
 
     fn get_relevant_builders(topline_constraint_names: &LinkedHashSet<String>) -> Vec<B> {
         let mut builders = B::builders()
@@ -233,7 +234,7 @@ where
         unsatisfied_constraints: &ConstraintsBlockMap<'a, B::OuterType>,
         identifiers: &HashMap<Uuid, AST>,
     ) -> Result<(
-        Vec<<Self::CB as ConstraintBlock<'a, <D as FlowBuilderBase>::T, B::OuterType>>::C>,
+        Vec<<Self::CB as ConstraintBlock<'a, <D as FlowBuilderBase>::T, B::OuterType, U>>::C>,
         Option<AST>,
     )> {
         let tasks_dict = Self::init_tasks_dict(block, constraint_name.clone());
@@ -261,7 +262,7 @@ where
         }
         for (_dialect, satisfied) in by_dialect.into_iter() {
             let block =
-                <Self::CB as ConstraintBlock<'a, <D as FlowBuilderBase>::T, B::OuterType>>::C::new(
+                <Self::CB as ConstraintBlock<'a, <D as FlowBuilderBase>::T, B::OuterType, U>>::C::new(
                     satisfied,
                     constraint_name.clone(),
                     tasks_dict.clone(),

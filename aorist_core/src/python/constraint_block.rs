@@ -9,6 +9,7 @@ use linked_hash_map::LinkedHashMap;
 use std::collections::HashMap;
 use std::marker::PhantomData;
 use uuid::Uuid;
+use aorist_primitives::AoristUniverse;
 
 pub struct PythonBasedConstraintBlock<'a, T, C>
 where
@@ -23,10 +24,11 @@ where
     _lt: PhantomData<&'a ()>,
     _constraint: PhantomData<C>,
 }
-impl<'a, T, C> ConstraintBlock<'a, T, C> for PythonBasedConstraintBlock<'a, T, C>
+impl<'a, T, C, U> ConstraintBlock<'a, T, C, U> for PythonBasedConstraintBlock<'a, T, C>
 where
     T: ETLFlow<ImportType = PythonImport, PreambleType = PythonPreamble>,
     C: OuterConstraint<'a>, 
+    U: AoristUniverse,
 {
     type C = PythonBasedCodeBlock<'a, T, C>;
     type BuilderInputType = PythonFlowBuilderInput;
