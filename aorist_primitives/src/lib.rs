@@ -4,6 +4,8 @@ mod concept;
 pub use concept::*;
 mod constraint;
 pub use constraint::*;
+mod endpoints;
+pub use endpoints::*;
 
 #[macro_export]
 macro_rules! register_ast_nodes {
