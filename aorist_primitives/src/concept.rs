@@ -44,8 +44,8 @@ pub trait AoristConcept {
     )>;
 }
 
-pub trait TConceptEnum: Sized {
-    type TUniverse: AoristConcept;
+pub trait TConceptEnum: Sized + Clone {
+    type TUniverse: AoristConcept + AoristUniverse;
     fn get_parent_id(&self) -> Option<(Uuid, String)>;
     fn get_type(&self) -> String;
     fn get_uuid(&self) -> Uuid;
@@ -56,8 +56,14 @@ pub trait TConceptEnum: Sized {
     fn from_universe(universe: Self::TUniverse) -> Self;
 }
 
+pub trait AoristUniverse {
+    type TEndpoints: AoristConcept;
+    fn get_endpoints(&self) -> Self::TEndpoints;
+}
+
 pub trait Ancestry {
     type TConcept: ConceptEnum + Clone + TConceptEnum;
+    fn new(parents: Arc<RwLock<HashMap<(Uuid, String), Self::TConcept>>>) -> Self;
 }
 pub trait TAoristObject {
     fn get_name(&self) -> &String;

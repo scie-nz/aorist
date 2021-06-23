@@ -13,7 +13,7 @@ use crate::universe::Universe;
 use anyhow::Result;
 use aorist_ast::{AncestorRecord, SimpleIdentifier, AST};
 use aorist_primitives::TAoristObject;
-use aorist_primitives::{Ancestry, TConceptEnum};
+use aorist_primitives::{Ancestry, TConceptEnum, AoristConcept, AoristUniverse};
 use inflector::cases::snakecase::to_snake_case;
 use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
@@ -32,6 +32,7 @@ pub type ConstraintsBlockMap<'a, C> = LinkedHashMap<
 
 pub trait Driver<'a, B, D, U, C, A>
 where
+    U: AoristConcept + AoristUniverse,
     B: TBuilder<'a, TEnum = C, TAncestry = A>,
     D: FlowBuilderBase,
     D: FlowBuilderMaterialize<
@@ -344,10 +345,10 @@ where
     }
     fn get_blocks(&self) -> &Vec<Self::CB>;
     fn _new(
-        concepts: Arc<RwLock<HashMap<(Uuid, String), AoristRef<Concept>>>>,
+        concepts: Arc<RwLock<HashMap<(Uuid, String), C>>>,
         constraints: LinkedHashMap<(Uuid, String), Arc<RwLock<B::OuterType>>>,
-        ancestry: Arc<ConceptAncestry>,
-        endpoints: AoristRef<EndpointConfig>,
+        ancestry: Arc<A>,
+        endpoints: <U as AoristUniverse>::TEndpoints,
         ancestors: HashMap<(Uuid, String), Vec<AncestorRecord>>,
         topline_constraint_names: LinkedHashSet<String>,
     ) -> Self;
@@ -573,9 +574,9 @@ where
         Ok(unsatisfied_constraints)
     }
     fn get_concept_map_by_object_type(
-        concept_map: HashMap<(Uuid, String), AoristRef<Concept>>,
-    ) -> HashMap<String, Vec<AoristRef<Concept>>> {
-        let mut by_object_type: HashMap<String, Vec<AoristRef<Concept>>> = HashMap::new();
+        concept_map: HashMap<(Uuid, String), C>,
+    ) -> HashMap<String, Vec<C>> {
+        let mut by_object_type: HashMap<String, Vec<C>> = HashMap::new();
         debug!("Found the following concepts:");
         for ((uuid, object_type), concept) in concept_map {
             debug!("- {}: {}", &object_type, &uuid);
@@ -587,8 +588,8 @@ where
         by_object_type
     }
     fn compute_all_ancestors(
-        universe: AoristRef<Concept>,
-        concept_map: &HashMap<(Uuid, String), AoristRef<Concept>>,
+        universe: C,
+        concept_map: &HashMap<(Uuid, String), C>,
     ) -> HashMap<(Uuid, String), Vec<AncestorRecord>> {
         let mut ancestors: HashMap<(Uuid, String), Vec<AncestorRecord>> = HashMap::new();
         let mut frontier: Vec<AncestorRecord> = Vec::new();
@@ -634,19 +635,16 @@ where
         ancestors
     }
     fn new(
-        universe: AoristRef<Universe>,
+        universe: U,
         topline_constraint_names: LinkedHashSet<String>,
     ) -> Result<Self>
     where
         Self: Sized,
     {
+        let endpoints = universe.get_endpoints();
         let sorted_builders = Self::get_relevant_builders(&topline_constraint_names);
-        let mut concept_map: HashMap<(Uuid, String), AoristRef<Concept>> = HashMap::new();
-        let concept = AoristRef(Arc::new(RwLock::new(Concept::Universe((
-            universe.clone(),
-            0,
-            None,
-        )))));
+        let mut concept_map: HashMap<(Uuid, String), C> = HashMap::new();
+        let concept = C::from_universe(universe);
         concept.populate_child_concept_map(&mut concept_map);
         let by_object_type = Self::get_concept_map_by_object_type(concept_map.clone());
 
@@ -659,9 +657,7 @@ where
         > = LinkedHashMap::new();
 
         let concepts = Arc::new(RwLock::new(concept_map));
-        let ancestry: ConceptAncestry = ConceptAncestry {
-            parents: concepts.clone(),
-        };
+        let ancestry: A = A::new(concepts.clone());
         let family_trees = Self::generate_family_trees(&ancestors);
 
         for builder in &sorted_builders {
@@ -688,7 +684,7 @@ where
             concepts,
             constraints,
             Arc::new(ancestry),
-            universe.0.read().unwrap().endpoints.clone(),
+            endpoints,
             ancestors,
             topline_constraint_names,
         ))
@@ -729,9 +725,9 @@ where
     }
     fn attach_constraints(
         builder: &B,
-        by_object_type: &HashMap<String, Vec<AoristRef<Concept>>>,
+        by_object_type: &HashMap<String, Vec<C>>,
         family_trees: &HashMap<(Uuid, String), HashMap<String, HashSet<Uuid>>>,
-        ancestry: &ConceptAncestry,
+        ancestry: &A,
         generated_constraints: &mut LinkedHashMap<
             String,
             LinkedHashMap<(Uuid, String), Arc<RwLock<B::OuterType>>>,

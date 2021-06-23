@@ -1035,6 +1035,13 @@ macro_rules! register_concept {
                 $element((AoristRef<$element>, usize, Option<(Uuid, String)>)),
             )+
         }
+        // note: both Universe and EndpointConfig must exist
+        impl AoristUniverse for AoristRef<Universe> {
+            type TEndpoints = AoristRef<EndpointConfig>;
+            fn get_endpoints(&self) -> Self::TEndpoints {
+                (*self.0.read().unwrap()).endpoints.clone()
+            }
+        }
         $(
             impl [<CanBe $element>] for $name {
                 fn [<construct_ $element:snake:lower>](
@@ -1097,6 +1104,10 @@ macro_rules! register_concept {
         }
         impl Ancestry for $ancestry {
             type TConcept = AoristRef<$name>;
+            fn new(parents: Arc<RwLock<HashMap<(Uuid, String), AoristRef<$name>>>>) -> Self {
+                 Self { parents }
+            }
+
         }
         impl $ancestry {
             $(

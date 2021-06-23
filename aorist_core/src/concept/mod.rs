@@ -1,6 +1,6 @@
 pub use crate::universe::*;
 use aorist_concept::{aorist, Constrainable};
-pub use aorist_primitives::{register_concept, Ancestry, AoristConcept, ConceptEnum, TConceptEnum};
+pub use aorist_primitives::{register_concept, Ancestry, AoristConcept, ConceptEnum, TConceptEnum, AoristUniverse};
 use derivative::Derivative;
 use paste::paste;
 #[cfg(feature = "python")]

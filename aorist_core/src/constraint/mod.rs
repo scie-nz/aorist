@@ -52,8 +52,8 @@ pub trait TBuilder<'a> {
         potential_child_constraints: Vec<Arc<RwLock<Self::OuterType>>>,
     ) -> Result<Self::OuterType>;
     fn get_root_type_name(&self) -> Result<String>;
-    fn get_required(&self, root: AoristRef<Concept>, ancestry: &ConceptAncestry) -> Vec<Uuid>;
-    fn should_add(&self, root: AoristRef<Concept>, ancestry: &ConceptAncestry) -> bool;
+    fn get_required(&self, root: Self::TEnum, ancestry: &Self::TAncestry) -> Vec<Uuid>;
+    fn should_add(&self, root: Self::TEnum, ancestry: &Self::TAncestry) -> bool;
 }
 
 pub trait TConstraintEnum<'a>: Sized {
