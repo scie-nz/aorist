@@ -10,11 +10,13 @@ use crate::python::{
 use linked_hash_map::LinkedHashMap;
 use std::hash::Hash;
 use std::marker::PhantomData;
+use aorist_primitives::AoristUniverse;
 
 #[derive(Clone, Hash, PartialEq, Eq)]
-pub struct ForLoopPythonBasedTask<T>
+pub struct ForLoopPythonBasedTask<T, U>
 where
     T: ETLFlow<ImportType = PythonImport>,
+    U: AoristUniverse,
 {
     params_dict_name: AST,
     key: PythonBasedTaskCompressionKey,
@@ -22,10 +24,12 @@ where
     singleton_type: PhantomData<T>,
     task_id: AST,
     insert_task_name: bool,
+    _universe: PhantomData<U>,
 }
-impl<T> ForLoopCompressedTask<T> for ForLoopPythonBasedTask<T>
+impl<T, U> ForLoopCompressedTask<T> for ForLoopPythonBasedTask<T, U>
 where
     T: ETLFlow<ImportType = PythonImport, PreambleType = PythonPreamble>,
+    U: AoristUniverse,
 {
     type KeyType = PythonBasedTaskCompressionKey;
     type UncompressiblePartType = PythonBasedTaskUncompressiblePart<T>;
@@ -43,17 +47,20 @@ where
             task_id,
             insert_task_name,
             singleton_type: PhantomData,
+            _universe: PhantomData,
         }
     }
 }
-impl<T> TaskBase<T> for ForLoopPythonBasedTask<T> where
-    T: ETLFlow<ImportType = PythonImport, PreambleType = PythonPreamble>
+impl<T, U> TaskBase<T> for ForLoopPythonBasedTask<T, U> where
+    T: ETLFlow<ImportType = PythonImport, PreambleType = PythonPreamble>,
+    U: AoristUniverse,
 {
 }
 
-impl<T> ForLoopPythonBasedTask<T>
+impl<T, U> ForLoopPythonBasedTask<T, U>
 where
     T: ETLFlow<ImportType = PythonImport, PreambleType = PythonPreamble>,
+    U: AoristUniverse,
 {
     fn get_dict_assign(&self) -> AST {
         let dependencies_as_list = self

@@ -10,32 +10,37 @@ use crate::concept::AoristRef;
 use crate::endpoints::EndpointConfig;
 use crate::flow::{CompressibleETLTask, ETLFlow, ETLTask, TaskBase};
 use crate::python::{PythonImport, PythonPreamble, AST};
+use aorist_primitives::AoristUniverse;
 
-pub enum PythonBasedTask<T>
+pub enum PythonBasedTask<T, U>
 where
     T: ETLFlow<ImportType = PythonImport, PreambleType = PythonPreamble>,
+    U: AoristUniverse,
 {
-    StandalonePythonBasedTask(StandalonePythonBasedTask<T>),
-    ForLoopPythonBasedTask(ForLoopPythonBasedTask<T>),
+    StandalonePythonBasedTask(StandalonePythonBasedTask<T, U>),
+    ForLoopPythonBasedTask(ForLoopPythonBasedTask<T, U>),
 }
-impl<T> ETLTask<T> for PythonBasedTask<T>
+impl<T, U> ETLTask<T> for PythonBasedTask<T, U>
 where
     T: ETLFlow<ImportType = PythonImport, PreambleType = PythonPreamble>,
+    U: AoristUniverse,
 {
-    type S = StandalonePythonBasedTask<T>;
+    type S = StandalonePythonBasedTask<T, U>;
     fn standalone_task(task: Self::S) -> Self {
         Self::StandalonePythonBasedTask(task)
     }
 }
-impl<T> CompressibleETLTask<T> for PythonBasedTask<T>
+impl<T, U> CompressibleETLTask<T> for PythonBasedTask<T, U>
 where
     T: ETLFlow<ImportType = PythonImport, PreambleType = PythonPreamble>,
+    U: AoristUniverse,
 {
-    type F = ForLoopPythonBasedTask<T>;
+    type F = ForLoopPythonBasedTask<T, U>;
 }
-impl<T> PythonBasedTask<T>
+impl<T, U> PythonBasedTask<T, U>
 where
     T: ETLFlow<ImportType = PythonImport, PreambleType = PythonPreamble>,
+    U: AoristUniverse,
 {
     pub fn get_statements(
         &self,
@@ -47,11 +52,12 @@ where
         }
     }
     #[allow(dead_code)]
-    fn for_loop_task(task: ForLoopPythonBasedTask<T>) -> Self {
+    fn for_loop_task(task: ForLoopPythonBasedTask<T, U>) -> Self {
         Self::ForLoopPythonBasedTask(task)
     }
 }
-impl<T> TaskBase<T> for PythonBasedTask<T> where
-    T: ETLFlow<ImportType = PythonImport, PreambleType = PythonPreamble>
+impl<T, U> TaskBase<T> for PythonBasedTask<T, U> where
+    T: ETLFlow<ImportType = PythonImport, PreambleType = PythonPreamble>,
+    U: AoristUniverse,
 {
 }

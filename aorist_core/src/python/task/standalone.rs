@@ -11,11 +11,13 @@ use crate::python::{List, PythonImport, PythonPreamble, StringLiteral, AST};
 use linked_hash_map::LinkedHashMap;
 use std::hash::Hash;
 use std::marker::PhantomData;
+use aorist_primitives::AoristUniverse;
 
 #[derive(Clone, Hash, PartialEq, Eq)]
-pub struct StandalonePythonBasedTask<T>
+pub struct StandalonePythonBasedTask<T, U>
 where
     T: ETLFlow,
+    U: AoristUniverse,
 {
     /// where the task creation call should be stored.
     task_val: AST,
@@ -35,12 +37,14 @@ where
     /// by render.
     dialect: Option<Dialect>,
     singleton_type: PhantomData<T>,
+    _universe: PhantomData<U>,
 }
-impl<T> TaskBase<T> for StandalonePythonBasedTask<T> where T: ETLFlow {}
+impl<T, U> TaskBase<T> for StandalonePythonBasedTask<T, U> where T: ETLFlow, U: AoristUniverse {}
 
-impl<T> StandaloneTask<T> for StandalonePythonBasedTask<T>
+impl<T, U> StandaloneTask<T> for StandalonePythonBasedTask<T, U>
 where
     T: ETLFlow,
+    U: AoristUniverse,
 {
     fn new(
         task_id: String,
@@ -60,12 +64,14 @@ where
             preamble,
             dialect,
             singleton_type: PhantomData,
+            _universe: PhantomData,
         }
     }
 }
-impl<T> CompressibleTask for StandalonePythonBasedTask<T>
+impl<T, U> CompressibleTask for StandalonePythonBasedTask<T, U>
 where
     T: ETLFlow,
+    U: AoristUniverse,
 {
     type KeyType = PythonBasedTaskCompressionKey;
     /// only return true for compressible tasks, i.e. those that have a
@@ -122,9 +128,10 @@ where
     }
 }
 
-impl<T> StandalonePythonBasedTask<T>
+impl<T, U> StandalonePythonBasedTask<T, U>
 where
     T: ETLFlow<ImportType = PythonImport, PreambleType = PythonPreamble>,
+    U: AoristUniverse,
 {
     pub fn get_uncompressible_part(&self) -> Result<PythonBasedTaskUncompressiblePart<T>, String> {
         Ok(PythonBasedTaskUncompressiblePart::new(

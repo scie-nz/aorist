@@ -24,11 +24,10 @@ where
 {
     tasks_dict: Option<AST>,
     task_identifiers: HashMap<Uuid, AST>,
-    python_based_tasks: Vec<PythonBasedTask<T>>,
+    python_based_tasks: Vec<PythonBasedTask<T, U>>,
     params: HashMap<String, Option<ParameterTuple>>,
     _lt: PhantomData<&'a ()>,
     _constraint: PhantomData<C>,
-    _universe: PhantomData<U>,
 }
 impl<'a, T, C, U> CodeBlock<'a, T, C, U> for PythonBasedCodeBlock<'a, T, C, U>
 where
@@ -37,7 +36,7 @@ where
     U: AoristUniverse,
 {
     type P = PythonPreamble;
-    type E = PythonBasedTask<T>;
+    type E = PythonBasedTask<T, U>;
 
     fn construct(
         tasks_dict: Option<AST>,
@@ -52,7 +51,6 @@ where
             params,
             _lt: PhantomData,
             _constraint: PhantomData,
-            _universe: PhantomData,
         }
     }
 
