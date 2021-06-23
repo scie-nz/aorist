@@ -154,7 +154,7 @@ where
     }
     fn get_constraint_rwlock(&self, uuid: &(Uuid, String)) -> Arc<RwLock<B::OuterType>>;
     fn get_preferences(&self) -> Vec<Dialect>;
-    fn get_ancestry(&self) -> Arc<<B::OuterType as OuterConstraint<'a>>::TAncestry>;
+    fn get_ancestry(&self) -> &A;
     fn process_constraint_with_program(
         &mut self,
         constraint: RwLockReadGuard<'_, B::OuterType>,
@@ -349,7 +349,7 @@ where
     fn _new(
         concepts: Arc<RwLock<HashMap<(Uuid, String), C>>>,
         constraints: LinkedHashMap<(Uuid, String), Arc<RwLock<B::OuterType>>>,
-        ancestry: Arc<A>,
+        ancestry: A,
         endpoints: <U as AoristUniverse>::TEndpoints,
         ancestors: HashMap<(Uuid, String), Vec<AncestorRecord>>,
         topline_constraint_names: LinkedHashSet<String>,
@@ -685,7 +685,7 @@ where
         Ok(Self::_new(
             concepts,
             constraints,
-            Arc::new(ancestry),
+            ancestry,
             endpoints,
             ancestors,
             topline_constraint_names,

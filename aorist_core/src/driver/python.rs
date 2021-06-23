@@ -5,7 +5,7 @@ use crate::constraint_state::ConstraintState;
 use crate::dialect::{Bash, Dialect, Presto, Python};
 use crate::driver::{ConstraintsBlockMap, Driver};
 use crate::endpoints::EndpointConfig;
-use crate::flow::{ETLFlow, FlowBuilderBase, FlowBuilderMaterialize};
+use crate::flow::{ETLFlow, FlowBuilderBase, FlowBuilderMaterialize, PythonBasedFlowBuilder};
 use crate::python::{
     PythonBasedConstraintBlock, PythonFlowBuilderInput, PythonImport, PythonPreamble,
 };
@@ -25,7 +25,7 @@ pub struct PythonBasedDriver<'a, B, D, U, C, A>
 where
     U: AoristConcept + AoristUniverse,
     B: TBuilder<'a, TEnum = C, TAncestry = A>,
-    D: FlowBuilderBase<U>,
+    D: FlowBuilderBase<U> + PythonBasedFlowBuilder<U>,
     <D as FlowBuilderBase<U>>::T: 'a,
     <D as FlowBuilderBase<U>>::T:
         ETLFlow<U, ImportType = PythonImport, PreambleType = PythonPreamble> + 'a,
@@ -40,27 +40,21 @@ where
     constraints: LinkedHashMap<(Uuid, String), Arc<RwLock<B::OuterType>>>,
     satisfied_constraints: HashMap<(Uuid, String), Arc<RwLock<ConstraintState<'a, B::OuterType>>>>,
     blocks: Vec<PythonBasedConstraintBlock<'a, D::T, B::OuterType, U>>,
-    ancestry: Arc<A>,
+    ancestry: A,
     dag_type: PhantomData<D>,
     endpoints: <U as AoristUniverse>::TEndpoints,
     constraint_explanations: HashMap<String, (Option<String>, Option<String>)>,
     ancestors: HashMap<(Uuid, String), Vec<AncestorRecord>>,
     topline_constraint_names: LinkedHashSet<String>,
 }
-/*
-impl<'a, D, B> Driver<'a, D, B> for PythonBasedDriver<'a, D, B>
+impl<'a, B, D, U, C, A> Driver<'a, B, D, U, C, A> for PythonBasedDriver<'a, B, D, U, C, A>
 where
     U: AoristConcept + AoristUniverse,
     B: TBuilder<'a, TEnum = C, TAncestry = A>,
-    D: FlowBuilderBase,
-    D: FlowBuilderMaterialize<
-        BuilderInputType = <Self::CB as ConstraintBlock<
-            'a,
-            <D as FlowBuilderBase>::T,
-            B::OuterType,
-        >>::BuilderInputType,
-    >,
-    <D as FlowBuilderBase>::T: 'a,
+    D: FlowBuilderBase<U> + PythonBasedFlowBuilder<U>,
+    <D as FlowBuilderBase<U>>::T: 'a,
+    <D as FlowBuilderBase<U>>::T:
+        ETLFlow<U, ImportType = PythonImport, PreambleType = PythonPreamble> + 'a,
     A: Ancestry,
     C: TConceptEnum<TUniverse = U>,
     <B as TBuilder<'a>>::OuterType: OuterConstraint<'a, TAncestry = A>,
@@ -68,7 +62,7 @@ where
     <<<B as TBuilder<'a>>::OuterType as OuterConstraint<'a>>::TAncestry as Ancestry>::TConcept:
         TConceptEnum<TUniverse = U>,
 {
-    type CB = PythonBasedConstraintBlock<'a, <D as FlowBuilderBase>::T, B::OuterType>;
+    type CB = PythonBasedConstraintBlock<'a, <D as FlowBuilderBase<U>>::T, B::OuterType, U>;
 
     fn get_preferences(&self) -> Vec<Dialect> {
         vec![
@@ -81,12 +75,12 @@ where
         self.constraints.get(uuid).unwrap().clone()
     }
 
-    fn get_endpoints(&self) -> &EndpointConfig {
-        &self.endpoints
+    fn get_endpoints(&self) -> <U as AoristUniverse>::TEndpoints {
+        self.endpoints.clone()
     }
 
-    fn get_ancestry(&self) -> Arc<ConceptAncestry> {
-        self.ancestry.clone()
+    fn get_ancestry(&self) -> &A {
+        &self.ancestry
     }
     fn mark_constraint_state_as_satisfied(
         &mut self,
@@ -105,7 +99,7 @@ where
     }
     fn add_block(
         &mut self,
-        constraint_block: PythonBasedConstraintBlock<'a, <D as FlowBuilderBase>::T, B::OuterType>,
+        constraint_block: PythonBasedConstraintBlock<'a, <D as FlowBuilderBase<U>>::T, B::OuterType, U>,
     ) {
         self.blocks.push(constraint_block);
     }
@@ -136,10 +130,10 @@ where
             .collect()
     }
     fn _new(
-        concepts: Arc<RwLock<HashMap<(Uuid, String), Concept>>>,
+        concepts: Arc<RwLock<HashMap<(Uuid, String), C>>>,
         constraints: LinkedHashMap<(Uuid, String), Arc<RwLock<B::OuterType>>>,
-        ancestry: Arc<ConceptAncestry>,
-        endpoints: EndpointConfig,
+        ancestry: A,
+        endpoints: U::TEndpoints,
         ancestors: HashMap<(Uuid, String), Vec<AncestorRecord>>,
         topline_constraint_names: LinkedHashSet<String>,
     ) -> Self {
@@ -158,4 +152,4 @@ where
             topline_constraint_names,
         }
     }
-}*/
+}

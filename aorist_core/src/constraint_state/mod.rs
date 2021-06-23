@@ -155,7 +155,7 @@ impl<'a, T: OuterConstraint<'a>> ConstraintState<'a, T> {
     pub fn satisfy(
         &mut self,
         preferences: &Vec<Dialect>,
-        ancestry: Arc<<T as OuterConstraint<'a>>::TAncestry>,
+        ancestry: &<T as OuterConstraint<'a>>::TAncestry,
     ) {
         let root_clone = self.root.clone();
         let mut constraint = self.constraint.write().unwrap();
