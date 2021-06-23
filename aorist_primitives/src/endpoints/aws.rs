@@ -1,6 +1,8 @@
 #[cfg(feature = "python")]
 use pyo3::prelude::*;
+use serde::{Serialize, Deserialize};
 #[cfg_attr(feature = "python", pyclass)]
+#[derive(PartialEq, Deserialize, Serialize, Debug, Clone, Hash)]
 pub struct AWSConfig {
     pub access_key_id: String,
     pub access_key_secret: String,

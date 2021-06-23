@@ -185,14 +185,6 @@ register_concept!(
     User,
     UserGroup,
     EndpointConfig,
-    AWSConfig,
-    GCPConfig,
-    GiteaConfig,
-    PostgresConfig,
-    AlluxioConfig,
-    RangerConfig,
-    PrestoConfig,
-    MinioConfig,
     TrainedFloatMeasure,
     PredictionsFromTrainedFloatMeasure
 );

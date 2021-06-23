@@ -3,6 +3,7 @@ use std::collections::{BTreeSet, HashMap};
 use std::hash::Hasher;
 use uuid::Uuid;
 use std::sync::{Arc, RwLock};
+use crate::endpoints::*;
 
 pub trait ConceptEnum {}
 pub trait AoristConcept {
@@ -57,10 +58,12 @@ pub trait TConceptEnum: Sized + Clone {
 }
 
 pub trait AoristUniverse {
-    type TEndpoints: AoristConcept;
+    type TEndpoints: Clone;
     fn get_endpoints(&self) -> Self::TEndpoints;
 }
-
+pub trait TPrestoEndpoints: {
+    fn presto_config(&self) -> PrestoConfig;
+}
 pub trait Ancestry {
     type TConcept: ConceptEnum + Clone + TConceptEnum;
     fn new(parents: Arc<RwLock<HashMap<(Uuid, String), Self::TConcept>>>) -> Self;

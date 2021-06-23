@@ -25,7 +25,7 @@ where U: AoristUniverse {
         dep_list: Option<AST>,
         preamble: Option<String>,
         dialect: Option<Dialect>,
-        endpoints: AoristRef<EndpointConfig>,
+        endpoints: U::TEndpoints,
     ) -> Self;
     fn get_statements(&self) -> Vec<AST>;
     fn get_type() -> String;

@@ -44,7 +44,7 @@ where
 {
     pub fn get_statements(
         &self,
-        endpoints: AoristRef<EndpointConfig>,
+        endpoints: U::TEndpoints,
     ) -> (Vec<AST>, Vec<PythonPreamble>, Vec<PythonImport>) {
         match &self {
             PythonBasedTask::StandalonePythonBasedTask(x) => x.get_statements(endpoints),

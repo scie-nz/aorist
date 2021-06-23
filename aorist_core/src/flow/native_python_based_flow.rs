@@ -9,7 +9,7 @@ use crate::python::{
     PythonPreamble, RPythonTask,
 };
 use aorist_ast::{Call, Expression, Formatted, SimpleIdentifier, StringLiteral, AST};
-use aorist_primitives::register_task_nodes;
+use aorist_primitives::{register_task_nodes, TPrestoEndpoints};
 use linked_hash_map::LinkedHashMap;
 use pyo3::prelude::*;
 use pyo3::types::PyModule;
@@ -29,7 +29,8 @@ register_task_nodes! {
 }
 
 #[derive(Clone, Hash, PartialEq)]
-pub struct NativePythonBasedFlow<U: AoristUniverse> {
+pub struct NativePythonBasedFlow<U: AoristUniverse> 
+where U::TEndpoints: TPrestoEndpoints {
     task_id: AST,
     task_val: AST,
     command: Option<String>,
@@ -38,12 +39,12 @@ pub struct NativePythonBasedFlow<U: AoristUniverse> {
     dep_list: Option<AST>,
     preamble: Option<String>,
     dialect: Option<Dialect>,
-
-    endpoints: AoristRef<EndpointConfig>,
+    endpoints: U::TEndpoints,
     node: PythonTask,
     _universe: PhantomData<U>,    
 }
-impl <U: AoristUniverse> ETLFlow<U> for NativePythonBasedFlow<U> {
+impl <U: AoristUniverse> ETLFlow<U> for NativePythonBasedFlow<U>
+where U::TEndpoints: TPrestoEndpoints {
     type ImportType = PythonImport;
     type PreambleType = PythonPreamble;
 
@@ -78,7 +79,7 @@ impl <U: AoristUniverse> ETLFlow<U> for NativePythonBasedFlow<U> {
         dep_list: Option<AST>,
         preamble: Option<String>,
         dialect: Option<Dialect>,
-        endpoints: AoristRef<EndpointConfig>,
+        endpoints: U::TEndpoints,
     ) -> Self {
         let command = match &dialect {
             Some(Dialect::Bash(_)) | Some(Dialect::R(_)) => AST::Formatted(Formatted::new_wrapped(
@@ -106,7 +107,7 @@ impl <U: AoristUniverse> ETLFlow<U> for NativePythonBasedFlow<U> {
         };
         let node = match &dialect {
             Some(Dialect::Presto(_)) => {
-                let presto_endpoints = endpoints.0.read().unwrap().presto.as_ref().unwrap().clone();
+                let presto_endpoints = endpoints.presto_config();
                 PythonTask::PrestoPythonTask(PrestoPythonTask::new_wrapped(
                     command,
                     task_val.clone(),
@@ -151,10 +152,12 @@ impl <U: AoristUniverse> ETLFlow<U> for NativePythonBasedFlow<U> {
         "python".to_string()
     }
 }
-pub struct PythonFlowBuilder<U: AoristUniverse> {
+pub struct PythonFlowBuilder<U: AoristUniverse> 
+where U::TEndpoints: TPrestoEndpoints {
     universe: PhantomData<U>,
 }
-impl <U: AoristUniverse> FlowBuilderBase<U> for PythonFlowBuilder<U> {
+impl <U: AoristUniverse> FlowBuilderBase<U> for PythonFlowBuilder<U> 
+where U::TEndpoints: TPrestoEndpoints {
     type T = NativePythonBasedFlow<U>;
     fn new() -> Self {
         Self {
@@ -162,7 +165,9 @@ impl <U: AoristUniverse> FlowBuilderBase<U> for PythonFlowBuilder<U> {
         }
     }
 }
-impl <U: AoristUniverse> PythonBasedFlowBuilder<U> for PythonFlowBuilder<U> {
+impl <U: AoristUniverse> PythonBasedFlowBuilder<U> for PythonFlowBuilder<U> 
+where U::TEndpoints: TPrestoEndpoints {
+
     fn get_flow_imports(&self) -> Vec<PythonImport> {
         Vec::new()
     }

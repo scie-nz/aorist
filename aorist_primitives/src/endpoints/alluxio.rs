@@ -1,6 +1,8 @@
 #[cfg(feature = "python")]
 use pyo3::prelude::*;
-#[cfg_attr(feature = "python", pyclass)]
+use serde::{Serialize, Deserialize};
+#[cfg_attr(feature = "python", pyclass(dict))]
+#[derive(PartialEq, Deserialize, Serialize, Debug, Clone, Hash)]
 pub struct AlluxioConfig {
     pub server: String,
     pub server_cli: String,

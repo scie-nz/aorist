@@ -56,7 +56,7 @@ where
 
     fn get_statements(
         &self,
-        endpoints: AoristRef<EndpointConfig>,
+        endpoints: U::TEndpoints,
     ) -> (
         Vec<AST>,
         LinkedHashSet<PythonPreamble>,

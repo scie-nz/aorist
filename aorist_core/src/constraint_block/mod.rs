@@ -29,7 +29,7 @@ where
     fn get_code_blocks(&self) -> &Vec<Self::C>;
     fn get_task_val_assignments(&self) -> Vec<AST>;
 
-    fn get_statements(&self, endpoints: AoristRef<EndpointConfig>) -> Self::BuilderInputType {
+    fn get_statements(&self, endpoints: U::TEndpoints) -> Self::BuilderInputType {
         let preambles_and_statements = self
             .get_code_blocks()
             .iter()

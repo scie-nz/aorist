@@ -65,7 +65,7 @@ where
     }
     fn get_statements(
         &self,
-        endpoints: AoristRef<EndpointConfig>,
+        endpoints: U::TEndpoints,
     ) -> (Vec<AST>, LinkedHashSet<Self::P>, BTreeSet<T::ImportType>);
 
     fn get_tasks_dict(&self) -> Option<AST>;

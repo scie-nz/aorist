@@ -328,7 +328,7 @@ where
             }
         }
     }
-    fn get_endpoints(&self) -> AoristRef<EndpointConfig>;
+    fn get_endpoints(&self) -> U::TEndpoints;
     fn get_dependencies(&self) -> Vec<String>;
     fn run(&mut self) -> Result<(String, Vec<String>)> {
         self.satisfy_constraints()?;

@@ -1,6 +1,8 @@
 #[cfg(feature = "python")]
 use pyo3::prelude::*;
+use serde::{Serialize, Deserialize};
 #[cfg_attr(feature = "python", pyclass)]
+#[derive(PartialEq, Deserialize, Serialize, Debug, Clone, Hash)]
 pub struct GCPConfig {
     pub use_default_credentials: bool,
     pub service_account_file: Option<String>,

@@ -100,7 +100,7 @@ where
     }
     pub fn get_statements(
         &self,
-        endpoints: AoristRef<EndpointConfig>,
+        endpoints: U::TEndpoints,
     ) -> (Vec<AST>, Vec<PythonPreamble>, Vec<PythonImport>) {
         let any_dependencies = self
             .values

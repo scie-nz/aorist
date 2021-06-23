@@ -25,7 +25,7 @@ pub struct AirflowPythonBasedFlow<U: AoristUniverse> {
     dep_list: Option<AST>,
     preamble: Option<String>,
     dialect: Option<Dialect>,
-    endpoints: AoristRef<EndpointConfig>,
+    endpoints: U::TEndpoints,
     _universe: PhantomData<U>,    
 }
 impl <U: AoristUniverse> AirflowPythonBasedFlow<U> {
@@ -187,7 +187,7 @@ impl <U: AoristUniverse> ETLFlow<U> for AirflowPythonBasedFlow<U> {
         dep_list: Option<AST>,
         preamble: Option<String>,
         dialect: Option<Dialect>,
-        endpoints: AoristRef<EndpointConfig>,
+        endpoints: U::TEndpoints,
     ) -> Self {
         Self {
             task_id,

@@ -35,7 +35,7 @@ pub struct PrefectPythonBasedFlow<U: AoristUniverse> {
     preamble: Option<String>,
     dialect: Option<Dialect>,
     flow_identifier: AST,
-    endpoints: AoristRef<EndpointConfig>,
+    endpoints: U::TEndpoints,
     _universe: PhantomData<U>,    
 }
 
@@ -82,7 +82,7 @@ impl <U: AoristUniverse> ETLFlow<U> for PrefectPythonBasedFlow<U> {
         dep_list: Option<AST>,
         preamble: Option<String>,
         dialect: Option<Dialect>,
-        endpoints: AoristRef<EndpointConfig>,
+        endpoints: U::TEndpoints,
     ) -> Self {
         Self {
             task_id,

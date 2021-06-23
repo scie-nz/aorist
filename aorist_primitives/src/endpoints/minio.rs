@@ -1,6 +1,8 @@
 #[cfg(feature = "python")]
+use serde::{Serialize, Deserialize};
 use pyo3::prelude::*;
 #[cfg_attr(feature = "python", pyclass)]
+#[derive(PartialEq, Deserialize, Serialize, Debug, Clone, Hash)]
 pub struct MinioConfig {
     pub server: String,
     pub port: usize,

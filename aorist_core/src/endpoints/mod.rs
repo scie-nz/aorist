@@ -1,46 +1,27 @@
-mod alluxio;
-mod aws;
-mod gcp;
-mod gitea;
-mod minio;
-mod postgres;
-mod presto;
-mod ranger;
-
-pub use alluxio::*;
-pub use aws::*;
-pub use gcp::*;
-pub use gitea::*;
-pub use minio::*;
-pub use postgres::*;
-pub use presto::*;
-pub use ranger::*;
-
 use crate::concept::{AoristRef, WrappedConcept};
 use aorist_concept::{aorist, Constrainable};
-use aorist_primitives::{AoristConcept, ConceptEnum};
+use aorist_primitives::{
+    AoristConcept, ConceptEnum,
+    PrestoConfig, AlluxioConfig, RangerConfig,
+    GiteaConfig, MinioConfig, PostgresConfig,
+    GCPConfig, AWSConfig,
+};
 use derivative::Derivative;
 use paste::paste;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
 use uuid::Uuid;
+#[cfg(feature = "python")]
+use pyo3::prelude::*;
 
 #[aorist(derivative(Hash))]
 pub struct EndpointConfig {
-    #[constrainable]
-    pub presto: Option<AoristRef<PrestoConfig>>,
-    #[constrainable]
-    pub alluxio: Option<AoristRef<AlluxioConfig>>,
-    #[constrainable]
-    pub ranger: Option<AoristRef<RangerConfig>>,
-    #[constrainable]
-    pub gitea: Option<AoristRef<GiteaConfig>>,
-    #[constrainable]
-    pub minio: Option<AoristRef<MinioConfig>>,
-    #[constrainable]
-    pub postgres: Option<AoristRef<PostgresConfig>>,
-    #[constrainable]
-    pub gcp: Option<AoristRef<GCPConfig>>,
-    #[constrainable]
-    pub aws: Option<AoristRef<AWSConfig>>,
+    pub presto: Option<PrestoConfig>,
+    pub alluxio: Option<AlluxioConfig>,
+    pub ranger: Option<RangerConfig>,
+    pub gitea: Option<GiteaConfig>,
+    pub minio: Option<MinioConfig>,
+    pub postgres: Option<PostgresConfig>,
+    pub gcp: Option<GCPConfig>,
+    pub aws: Option<AWSConfig>,
 }

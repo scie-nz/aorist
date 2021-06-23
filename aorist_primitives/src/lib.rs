@@ -1039,9 +1039,9 @@ macro_rules! register_concept {
         }
         // note: both Universe and EndpointConfig must exist
         impl AoristUniverse for AoristRef<Universe> {
-            type TEndpoints = AoristRef<EndpointConfig>;
+            type TEndpoints = EndpointConfig;
             fn get_endpoints(&self) -> Self::TEndpoints {
-                (*self.0.read().unwrap()).endpoints.clone()
+                (*self.0.read().unwrap()).endpoints.0.read().unwrap().clone()
             }
         }
         $(

@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 use crate::concept::AoristRef;
-use crate::endpoints::PrestoConfig;
+use aorist_primitives::PrestoConfig;
 use crate::python::PythonImport;
 use aorist_ast::{
     Assignment, Attribute, BigIntLiteral, BooleanLiteral, Call, Dict, Expression, Formatted,
@@ -89,7 +89,7 @@ define_task_node!(
     PythonImport,
     sql: AST,
     task_val: AST,
-    endpoint: AoristRef<PrestoConfig>,
+    endpoint: PrestoConfig,
 );
 
 impl PrestoPythonTask {
@@ -99,9 +99,8 @@ impl PrestoPythonTask {
     fn connection_ident(&self) -> AST {
         AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("conn".to_string()))
     }
-    fn presto_connection_statement(&self, presto_endpoints_rw: AoristRef<PrestoConfig>) -> AST {
+    fn presto_connection_statement(&self, presto_endpoints: PrestoConfig) -> AST {
         let mut kwargs = LinkedHashMap::new();
-        let presto_endpoints = &*presto_endpoints_rw.0.read().unwrap();
         kwargs.insert(
             "host".to_string(),
             AST::StringLiteral(StringLiteral::new_wrapped(
