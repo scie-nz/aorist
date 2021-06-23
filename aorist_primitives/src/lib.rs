@@ -385,12 +385,12 @@ macro_rules! register_programs_for_constraint {
 macro_rules! register_satisfiable_constraints {
 
     ($outer: ident, $($constraint:ident),+)  => {
-        impl <'a, 'b> SatisfiableOuterConstraint<'a, 'b> for $outer where 'a : 'b {
+        impl <'a> SatisfiableOuterConstraint<'a> for $outer {
             fn satisfy_given_preference_ordering(
                 &mut self,
-                c: Concept<'a>,
+                c: AoristRef<Concept>,
                 preferences: &Vec<Dialect>,
-                ancestry: Arc<ConceptAncestry<'a>>,
+                ancestry: Arc<ConceptAncestry>,
             ) -> Result<(String, String, ParameterTuple, Dialect)> {
                 match &mut self.inner {
                     $(
@@ -1228,7 +1228,7 @@ macro_rules! register_constraint_new {
         }
         impl <$lt> TBuilder<$lt> for [<$name Builder>]<$lt> {
             type OuterType = Constraint;
-            type EnumType = AoristRef<$name>;
+            type TEnum = AoristRef<Concept>;
             fn builders() -> Vec<[<$name Builder>]<$lt>> where Self : Sized {
                 vec![
                     $(

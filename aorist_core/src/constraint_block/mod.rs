@@ -1,7 +1,6 @@
 use crate::code::{CodeBlock, CodeBlockWithDefaultConstructor};
 use crate::concept::AoristRef;
 use crate::constraint::OuterConstraint;
-use crate::constraint::SatisfiableOuterConstraint;
 use crate::endpoints::EndpointConfig;
 use crate::flow::{ETLFlow, FlowBuilderInput};
 use aorist_ast::AST;
@@ -12,7 +11,7 @@ use uuid::Uuid;
 pub trait ConstraintBlock<'a, T, C>
 where
     T: ETLFlow,
-    C: OuterConstraint<'a> + SatisfiableOuterConstraint<'a>,
+    C: OuterConstraint<'a>, 
     Self::C: CodeBlockWithDefaultConstructor<'a, T, C>,
     Self::BuilderInputType: FlowBuilderInput<
         PreambleType = <Self::C as CodeBlock<'a, T, C>>::P,

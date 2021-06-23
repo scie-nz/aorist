@@ -1,6 +1,6 @@
 use anyhow::{Context, Result};
-use aorist_core::{AoristConcept, Concept, ConceptAncestry, Dialect, ParameterTuple, Program, AoristRef};
-use aorist_primitives::{define_constraint, register_constraint_new, TAoristObject,
+use aorist_core::{AoristConcept, Concept, ConceptAncestry, Dialect, ParameterTuple, Program, AoristRef, SatisfiableOuterConstraint};
+use aorist_primitives::{define_constraint, register_constraint_new, TAoristObject, register_satisfiable_constraints
 };
 use aorist_core::{
     ConstraintBuilder, ConstraintEnum, ConstraintSatisfactionBase, OuterConstraint, 
@@ -12,6 +12,7 @@ use std::collections::HashMap;
 use std::fmt;
 use std::sync::{Arc, RwLock};
 use linked_hash_map::LinkedHashMap;
+use anyhow::bail;
 #[cfg(feature = "python")]
 use pyo3::prelude::*;
 #[cfg(feature = "python")]

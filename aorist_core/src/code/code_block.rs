@@ -1,7 +1,6 @@
 use crate::code::Preamble;
 use crate::concept::AoristRef;
 use crate::constraint::OuterConstraint;
-use crate::constraint::SatisfiableOuterConstraint;
 use crate::constraint_state::ConstraintState;
 use crate::endpoints::EndpointConfig;
 use crate::flow::{CompressibleETLTask, CompressibleTask, ETLFlow, ETLTask, StandaloneTask};
@@ -16,7 +15,7 @@ use uuid::Uuid;
 
 pub trait CodeBlock<'a, T, C>
 where
-    C: OuterConstraint<'a> + SatisfiableOuterConstraint<'a>,
+    C: OuterConstraint<'a>,
     Self::P: Preamble,
     T: ETLFlow,
     Self: Sized,
@@ -111,7 +110,7 @@ where
 pub trait CodeBlockWithDefaultConstructor<
     'a,
     T,
-    C: OuterConstraint<'a> + SatisfiableOuterConstraint<'a>,
+    C: OuterConstraint<'a> 
 > where
     T: ETLFlow,
     Self: CodeBlock<'a, T, C>,
@@ -126,7 +125,7 @@ pub trait CodeBlockWithDefaultConstructor<
 pub trait CodeBlockWithForLoopCompression<
     'a,
     T,
-    C: OuterConstraint<'a> + SatisfiableOuterConstraint<'a>,
+    C: OuterConstraint<'a> 
 > where
     Self: CodeBlock<'a, T, C>,
     T: ETLFlow,
@@ -165,7 +164,7 @@ pub trait CodeBlockWithForLoopCompression<
         (compressible, uncompressible)
     }
 }
-impl<'a, C, T: ETLFlow, CType: OuterConstraint<'a> + SatisfiableOuterConstraint<'a>>
+impl<'a, C, T: ETLFlow, CType: OuterConstraint<'a>> 
     CodeBlockWithDefaultConstructor<'a, T, CType> for C
 where
     Self: CodeBlockWithForLoopCompression<'a, T, CType>,

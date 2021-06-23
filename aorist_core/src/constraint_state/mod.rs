@@ -1,6 +1,5 @@
 use crate::concept::Ancestry;
 use crate::constraint::OuterConstraint;
-use crate::constraint::SatisfiableOuterConstraint;
 use crate::dialect::Dialect;
 use crate::parameter_tuple::ParameterTuple;
 use anyhow::{bail, Result};
@@ -14,7 +13,7 @@ use std::sync::{Arc, RwLock};
 use tracing::{level_enabled, trace, Level};
 use uuid::Uuid;
 
-pub struct ConstraintState<'a, T: OuterConstraint<'a> + SatisfiableOuterConstraint<'a>> {
+pub struct ConstraintState<'a, T: OuterConstraint<'a>> {
     dialect: Option<Dialect>,
     pub key: Option<String>,
     name: String,
@@ -31,7 +30,7 @@ pub struct ConstraintState<'a, T: OuterConstraint<'a> + SatisfiableOuterConstrai
     params: Option<ParameterTuple>,
     task_name: Option<String>,
 }
-impl<'a, T: OuterConstraint<'a> + SatisfiableOuterConstraint<'a>> ConstraintState<'a, T> {
+impl<'a, T: OuterConstraint<'a>> ConstraintState<'a, T> {
     pub fn requires_program(&self) -> Result<bool> {
         self.constraint.read().unwrap().requires_program()
     }
@@ -160,7 +159,8 @@ impl<'a, T: OuterConstraint<'a> + SatisfiableOuterConstraint<'a>> ConstraintStat
     ) {
         let root_clone = self.root.clone();
         let mut constraint = self.constraint.write().unwrap();
-        let (preamble, call, params, dialect) = constraint
+        // TODO: change
+        /*let (preamble, call, params, dialect) = constraint
             .satisfy_given_preference_ordering(root_clone, preferences, ancestry)
             .unwrap();
         assert!(self.ancestors.len() > 0);
@@ -169,7 +169,7 @@ impl<'a, T: OuterConstraint<'a> + SatisfiableOuterConstraint<'a>> ConstraintStat
         self.preamble = Some(preamble);
         self.call = Some(call);
         self.params = Some(params);
-        self.dialect = Some(dialect);
+        self.dialect = Some(dialect);*/
     }
     pub fn new(
         constraint: Arc<RwLock<T>>,

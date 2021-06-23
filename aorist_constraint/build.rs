@@ -7,6 +7,7 @@ use std::fs;
 use std::fs::OpenOptions;
 use std::io::Write;
 use std::path::Path;
+use indoc::formatdoc;
 
 type ConstraintTuple = (String, String, Option<String>, Option<String>);
 
@@ -164,11 +165,15 @@ fn process_constraints(raw_objects: &Vec<HashMap<String, Value>>) {
             )
         })
         .collect::<HashMap<String, Option<String>>>();
+    let mut satisfiable = Vec::new();
     for (name, root, title, body) in &order {
         let required = dependencies
             .get(&(name.clone(), root.clone(), title.clone(), body.clone()))
             .unwrap();
         let requires_program = program_required.get(name).unwrap();
+        if *requires_program {
+            satisfiable.push(name.clone());
+        }
         let should_add = attach_if.get(name).unwrap();
         let get_required = constraint_closures.get(name).unwrap();
         let formatted_title = match title {
@@ -215,6 +220,11 @@ fn process_constraints(raw_objects: &Vec<HashMap<String, Value>>) {
         };
         scope.raw(&define);
     }
+    let register = formatdoc! {
+        "register_satisfiable_constraints!(Constraint, {constraints});",
+        constraints=satisfiable.join(", "),
+    };
+    //scope.raw(&register);
     let out_dir = env::var_os("OUT_DIR").unwrap();
     let dest_path = Path::new(&out_dir).join("constraints.rs");
     scope.raw(&format!(

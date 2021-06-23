@@ -1,7 +1,6 @@
 #![allow(dead_code)]
 use crate::code::CodeBlockWithDefaultConstructor;
 use crate::concept::{AoristRef, Concept, ConceptAncestry};
-use crate::constraint::SatisfiableOuterConstraint;
 use crate::constraint::TConstraintEnum;
 use crate::constraint::{OuterConstraint, TBuilder};
 use crate::constraint_block::ConstraintBlock;
