@@ -14,11 +14,13 @@ use std::collections::{BTreeSet, HashMap, HashSet};
 use std::marker::PhantomData;
 use tracing::trace;
 use uuid::Uuid;
+use aorist_primitives::AoristUniverse;
 
-pub struct PythonBasedCodeBlock<'a, T, C>
+pub struct PythonBasedCodeBlock<'a, T, C, U>
 where
     T: ETLFlow<ImportType = PythonImport, PreambleType = PythonPreamble>,
-    C: OuterConstraint<'a> 
+    C: OuterConstraint<'a>,
+    U: AoristUniverse,
 {
     tasks_dict: Option<AST>,
     task_identifiers: HashMap<Uuid, AST>,
@@ -26,11 +28,13 @@ where
     params: HashMap<String, Option<ParameterTuple>>,
     _lt: PhantomData<&'a ()>,
     _constraint: PhantomData<C>,
+    _universe: PhantomData<U>,
 }
-impl<'a, T, C> CodeBlock<'a, T, C> for PythonBasedCodeBlock<'a, T, C>
+impl<'a, T, C, U> CodeBlock<'a, T, C, U> for PythonBasedCodeBlock<'a, T, C, U>
 where
     T: ETLFlow<ImportType = PythonImport, PreambleType = PythonPreamble>,
-    C: OuterConstraint<'a>
+    C: OuterConstraint<'a>,
+    U: AoristUniverse,
 {
     type P = PythonPreamble;
     type E = PythonBasedTask<T>;
@@ -48,6 +52,7 @@ where
             params,
             _lt: PhantomData,
             _constraint: PhantomData,
+            _universe: PhantomData,
         }
     }
 
@@ -93,10 +98,11 @@ where
         self.params.clone()
     }
 }
-impl<'a, T, C> CodeBlockWithForLoopCompression<'a, T, C> for PythonBasedCodeBlock<'a, T, C>
+impl<'a, T, C, U> CodeBlockWithForLoopCompression<'a, T, C, U> for PythonBasedCodeBlock<'a, T, C, U>
 where
     T: ETLFlow<ImportType = PythonImport, PreambleType = PythonPreamble>,
-    C: OuterConstraint<'a>
+    C: OuterConstraint<'a>,
+    U: AoristUniverse,
 {
     fn run_task_compressions(
         compressible: LinkedHashMap<

@@ -14,13 +14,13 @@ where
     T: ETLFlow,
     U: AoristUniverse,
     C: OuterConstraint<'a>, 
-    Self::C: CodeBlockWithDefaultConstructor<'a, T, C>,
+    Self::C: CodeBlockWithDefaultConstructor<'a, T, C, U>,
     Self::BuilderInputType: FlowBuilderInput<
-        PreambleType = <Self::C as CodeBlock<'a, T, C>>::P,
+        PreambleType = <Self::C as CodeBlock<'a, T, C, U>>::P,
         ImportType = T::ImportType,
     >,
 {
-    type C: CodeBlock<'a, T, C>;
+    type C: CodeBlock<'a, T, C, U>;
     type BuilderInputType;
 
     fn get_constraint_name(&self) -> String;

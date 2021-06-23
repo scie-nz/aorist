@@ -39,7 +39,7 @@ where
     pub concepts: Arc<RwLock<HashMap<(Uuid, String), C>>>,
     constraints: LinkedHashMap<(Uuid, String), Arc<RwLock<B::OuterType>>>,
     satisfied_constraints: HashMap<(Uuid, String), Arc<RwLock<ConstraintState<'a, B::OuterType>>>>,
-    blocks: Vec<PythonBasedConstraintBlock<'a, D::T, B::OuterType>>,
+    blocks: Vec<PythonBasedConstraintBlock<'a, D::T, B::OuterType, U>>,
     ancestry: Arc<A>,
     dag_type: PhantomData<D>,
     endpoints: <U as AoristUniverse>::TEndpoints,

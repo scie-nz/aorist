@@ -11,26 +11,27 @@ use std::marker::PhantomData;
 use uuid::Uuid;
 use aorist_primitives::AoristUniverse;
 
-pub struct PythonBasedConstraintBlock<'a, T, C>
+pub struct PythonBasedConstraintBlock<'a, T, C, U>
 where
     T: ETLFlow<ImportType = PythonImport, PreambleType = PythonPreamble>,
-    C: OuterConstraint<'a> 
+    C: OuterConstraint<'a>,
+    U: AoristUniverse,
 {
     constraint_name: String,
     title: Option<String>,
     body: Option<String>,
-    members: Vec<PythonBasedCodeBlock<'a, T, C>>,
+    members: Vec<PythonBasedCodeBlock<'a, T, C, U>>,
     tasks_dict: Option<AST>,
     _lt: PhantomData<&'a ()>,
     _constraint: PhantomData<C>,
 }
-impl<'a, T, C, U> ConstraintBlock<'a, T, C, U> for PythonBasedConstraintBlock<'a, T, C>
+impl<'a, T, C, U> ConstraintBlock<'a, T, C, U> for PythonBasedConstraintBlock<'a, T, C, U>
 where
     T: ETLFlow<ImportType = PythonImport, PreambleType = PythonPreamble>,
     C: OuterConstraint<'a>, 
     U: AoristUniverse,
 {
-    type C = PythonBasedCodeBlock<'a, T, C>;
+    type C = PythonBasedCodeBlock<'a, T, C, U>;
     type BuilderInputType = PythonFlowBuilderInput;
 
     fn get_constraint_name(&self) -> String {
@@ -50,7 +51,7 @@ where
         constraint_name: String,
         title: Option<String>,
         body: Option<String>,
-        members: Vec<PythonBasedCodeBlock<'a, T, C>>,
+        members: Vec<PythonBasedCodeBlock<'a, T, C, U>>,
         tasks_dict: Option<AST>,
     ) -> Self {
         Self {
@@ -82,10 +83,11 @@ where
     }
 }
 
-impl<'a, T, C> PythonBasedConstraintBlock<'a, T, C>
+impl<'a, T, C, U> PythonBasedConstraintBlock<'a, T, C, U>
 where
     T: ETLFlow<ImportType = PythonImport, PreambleType = PythonPreamble>,
     C: OuterConstraint<'a>,
+    U: AoristUniverse,
 {
     pub fn get_params(&self) -> HashMap<String, Option<ParameterTuple>> {
         self.members

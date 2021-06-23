@@ -12,14 +12,16 @@ use linked_hash_set::LinkedHashSet;
 use std::collections::{BTreeSet, HashMap};
 use std::sync::{Arc, RwLock};
 use uuid::Uuid;
+use aorist_primitives::AoristUniverse;
 
-pub trait CodeBlock<'a, T, C>
+pub trait CodeBlock<'a, T, C, U>
 where
     C: OuterConstraint<'a>,
     Self::P: Preamble,
     T: ETLFlow,
     Self: Sized,
     Self::E: ETLTask<T>,
+    U: AoristUniverse,
 {
     type P;
     type E;
@@ -110,10 +112,11 @@ where
 pub trait CodeBlockWithDefaultConstructor<
     'a,
     T,
-    C: OuterConstraint<'a> 
+    C: OuterConstraint<'a> ,
+    U: AoristUniverse,
 > where
     T: ETLFlow,
-    Self: CodeBlock<'a, T, C>,
+    Self: CodeBlock<'a, T, C, U>,
 {
     fn new(
         members: Vec<Arc<RwLock<ConstraintState<'a, C>>>>,
@@ -125,13 +128,14 @@ pub trait CodeBlockWithDefaultConstructor<
 pub trait CodeBlockWithForLoopCompression<
     'a,
     T,
-    C: OuterConstraint<'a> 
+    C: OuterConstraint<'a>,
+    U: AoristUniverse,
 > where
-    Self: CodeBlock<'a, T, C>,
+    Self: CodeBlock<'a, T, C, U>,
     T: ETLFlow,
     Self: Sized,
-    <Self as CodeBlock<'a, T, C>>::E: CompressibleETLTask<T>,
-    <<Self as CodeBlock<'a, T, C>>::E as ETLTask<T>>::S: CompressibleTask,
+    <Self as CodeBlock<'a, T, C, U>>::E: CompressibleETLTask<T>,
+    <<Self as CodeBlock<'a, T, C, U>>::E as ETLTask<T>>::S: CompressibleTask,
 {
     fn run_task_compressions(
         compressible: LinkedHashMap<
@@ -164,12 +168,12 @@ pub trait CodeBlockWithForLoopCompression<
         (compressible, uncompressible)
     }
 }
-impl<'a, C, T: ETLFlow, CType: OuterConstraint<'a>> 
-    CodeBlockWithDefaultConstructor<'a, T, CType> for C
+impl<'a, C, T: ETLFlow, CType: OuterConstraint<'a>, U: AoristUniverse> 
+    CodeBlockWithDefaultConstructor<'a, T, CType, U> for C
 where
-    Self: CodeBlockWithForLoopCompression<'a, T, CType>,
-    <Self as CodeBlock<'a, T, CType>>::E: CompressibleETLTask<T>,
-    <<Self as CodeBlock<'a, T, CType>>::E as ETLTask<T>>::S: CompressibleTask,
+    Self: CodeBlockWithForLoopCompression<'a, T, CType, U>,
+    <Self as CodeBlock<'a, T, CType, U>>::E: CompressibleETLTask<T>,
+    <<Self as CodeBlock<'a, T, CType, U>>::E as ETLTask<T>>::S: CompressibleTask,
 {
     fn new(
         members: Vec<Arc<RwLock<ConstraintState<'a, CType>>>>,
