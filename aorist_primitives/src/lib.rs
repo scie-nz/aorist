@@ -1126,6 +1126,7 @@ macro_rules! register_concept {
             )+
         }
         impl TConceptEnum for AoristRef<$name> {
+            type TUniverse = AoristRef<Universe>;
             fn get_parent_id(&self) -> Option<(Uuid, String)> {
                 let read = self.0.read().unwrap();
                 match *read {
@@ -1133,6 +1134,9 @@ macro_rules! register_concept {
                         $name::$element((_, _, ref id)) => id.clone(),
                     )+
                 }
+            }
+            fn from_universe(universe: AoristRef<Universe>) -> Self {
+                AoristRef(Arc::new(RwLock::new($name::Universe((universe, 0, None)))))
             }
             fn get_type(&self) -> String {
                 let read = self.0.read().unwrap();

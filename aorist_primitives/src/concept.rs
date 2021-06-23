@@ -45,6 +45,7 @@ pub trait AoristConcept {
 }
 
 pub trait TConceptEnum: Sized {
+    type TUniverse: AoristConcept;
     fn get_parent_id(&self) -> Option<(Uuid, String)>;
     fn get_type(&self) -> String;
     fn get_uuid(&self) -> Uuid;
@@ -52,6 +53,7 @@ pub trait TConceptEnum: Sized {
     fn get_index_as_child(&self) -> usize;
     fn get_child_concepts(&self) -> Vec<Self>;
     fn populate_child_concept_map(&self, concept_map: &mut HashMap<(Uuid, String), Self>);
+    fn from_universe(universe: Self::TUniverse) -> Self;
 }
 
 pub trait Ancestry {
