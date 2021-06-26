@@ -56,7 +56,7 @@ pub trait TBuilder<'a> {
     fn should_add(&self, root: Self::TEnum, ancestry: &Self::TAncestry) -> bool;
 }
 
-pub trait TConstraintEnum<'a>: Sized {
+pub trait TConstraintEnum<'a>: Sized + Clone {
     fn get_required_constraint_names() -> HashMap<String, Vec<String>>;
     fn get_explanations() -> HashMap<String, (Option<String>, Option<String>)>;
 }

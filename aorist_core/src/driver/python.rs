@@ -20,6 +20,7 @@ use std::collections::{BTreeSet, HashMap};
 use std::marker::PhantomData;
 use std::sync::{Arc, RwLock};
 use uuid::Uuid;
+use crate::program::Program;
 
 pub struct PythonBasedDriver<'a, B, D, U, C, A>
 where
@@ -46,6 +47,7 @@ where
     constraint_explanations: HashMap<String, (Option<String>, Option<String>)>,
     ancestors: HashMap<(Uuid, String), Vec<AncestorRecord>>,
     topline_constraint_names: LinkedHashSet<String>,
+    programs: LinkedHashMap<String, Vec<Program<'a, <B::OuterType as OuterConstraint<'a>>::TEnum>>>,
 }
 impl<'a, B, D, U, C, A> Driver<'a, B, D, U, C, A> for PythonBasedDriver<'a, B, D, U, C, A>
 where
@@ -64,6 +66,9 @@ where
 {
     type CB = PythonBasedConstraintBlock<'a, <D as FlowBuilderBase<U>>::T, B::OuterType, U>;
 
+    fn get_programs_for(&self, constraint_name: &String) -> Vec<Program<'a, <B::OuterType as OuterConstraint<'a>>::TEnum>> {
+        self.programs.get(constraint_name).unwrap().iter().map(|x| (*x).clone()).collect()
+    }
     fn get_preferences(&self) -> Vec<Dialect> {
         vec![
             Dialect::Python(Python::new(vec![])),
@@ -136,6 +141,7 @@ where
         endpoints: U::TEndpoints,
         ancestors: HashMap<(Uuid, String), Vec<AncestorRecord>>,
         topline_constraint_names: LinkedHashSet<String>,
+        programs: LinkedHashMap<String, Vec<Program<'a, <B::OuterType as OuterConstraint<'a>>::TEnum>>>,
     ) -> Self {
         Self {
             concepts,
@@ -150,6 +156,7 @@ where
             >>::get_explanations(),
             ancestors,
             topline_constraint_names,
+            programs,
         }
     }
 }

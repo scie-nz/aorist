@@ -237,7 +237,7 @@ where
         constraint_name: String,
         unsatisfied_constraints: &ConstraintsBlockMap<'a, B::OuterType>,
         identifiers: &HashMap<Uuid, AST>,
-        programs: Vec<Program<'a, <B::OuterType as OuterConstraint<'a>>::TEnum>>,
+        programs: &Vec<Program<'a, <B::OuterType as OuterConstraint<'a>>::TEnum>>,
     ) -> Result<(
         Vec<<Self::CB as ConstraintBlock<'a, <D as FlowBuilderBase<U>>::T, B::OuterType, U>>::C>,
         Option<AST>,
@@ -258,7 +258,7 @@ where
                 &mut calls,
                 reverse_dependencies,
                 unsatisfied_constraints,
-                &programs,
+                programs,
             )?;
             self.mark_constraint_state_as_satisfied(id, state.clone());
             by_dialect
@@ -309,6 +309,7 @@ where
                 self.find_satisfiable_constraint_block(&mut unsatisfied_constraints);
             if let Some((ref mut block, ref constraint_name)) = satisfiable {
                 ConstraintState::shorten_task_names(block, &mut existing_names);
+                let programs = self.get_programs_for(&constraint_name);
                 let snake_case_name = to_snake_case(constraint_name);
                 if block.len() > 0 {
                     let (members, tasks_dict) = self.process_constraint_block(
@@ -317,7 +318,7 @@ where
                         snake_case_name.clone(),
                         &unsatisfied_constraints,
                         &identifiers,
-                        self.get_programs_for(&constraint_name),
+                        &programs,
                     )?;
 
                     let (title, body) = self.get_constraint_explanation(constraint_name);
@@ -360,6 +361,7 @@ where
         endpoints: <U as AoristUniverse>::TEndpoints,
         ancestors: HashMap<(Uuid, String), Vec<AncestorRecord>>,
         topline_constraint_names: LinkedHashSet<String>,
+        programs: LinkedHashMap<String, Vec<Program<'a, <B::OuterType as OuterConstraint<'a>>::TEnum>>>,
     ) -> Self;
 
     fn generate_constraint_states_map(
@@ -646,6 +648,7 @@ where
     fn new(
         universe: U,
         topline_constraint_names: LinkedHashSet<String>,
+        programs: LinkedHashMap<String, Vec<Program<'a, <B::OuterType as OuterConstraint<'a>>::TEnum>>>,
     ) -> Result<Self>
     where
         Self: Sized,
@@ -696,6 +699,7 @@ where
             endpoints,
             ancestors,
             topline_constraint_names,
+            programs,
         ))
     }
     fn generate_family_trees(
