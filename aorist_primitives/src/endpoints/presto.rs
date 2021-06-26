@@ -10,7 +10,7 @@ pub struct PrestoConfig {
 }
 #[cfg_attr(feature = "python", pymethods)]
 impl PrestoConfig {
-    #[new]
+    #[cfg_attr(feature = "python", new)]
     fn new(
         server: String,
         http_port: usize,

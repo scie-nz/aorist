@@ -10,7 +10,7 @@ pub struct GiteaConfig {
 }
 #[cfg_attr(feature = "python", pymethods)]
 impl GiteaConfig {
-    #[new]
+    #[cfg_attr(feature = "python", new)]
     fn new(
         server: String,
         port: usize,

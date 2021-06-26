@@ -11,7 +11,7 @@ pub struct PostgresConfig {
 }
 #[cfg_attr(feature = "python", pymethods)]
 impl PostgresConfig {
-    #[new]
+    #[cfg_attr(feature = "python", new)]
     fn new(
         server: String,
         port: usize,

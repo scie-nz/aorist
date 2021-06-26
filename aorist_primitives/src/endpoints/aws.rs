@@ -11,7 +11,7 @@ pub struct AWSConfig {
 }
 #[cfg_attr(feature = "python", pymethods)]
 impl AWSConfig {
-    #[new]
+    #[cfg_attr(feature = "python", new)]
     fn new(
         access_key_id: String,
         access_key_secret: String,

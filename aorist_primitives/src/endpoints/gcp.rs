@@ -11,7 +11,7 @@ pub struct GCPConfig {
 }
 #[cfg_attr(feature = "python", pymethods)]
 impl GCPConfig {
-    #[new]
+    #[cfg_attr(feature = "python", new)]
     fn new(
         use_default_credentials: bool,
         service_account_file: Option<String>,

@@ -12,7 +12,7 @@ pub struct RangerConfig {
 
 #[cfg_attr(feature = "python", pymethods)]
 impl RangerConfig {
-    #[new]
+    #[cfg_attr(feature = "python", new)]
     fn new(
         server: String,
         port: usize,

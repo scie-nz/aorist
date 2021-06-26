@@ -12,7 +12,7 @@ pub struct AlluxioConfig {
 }
 #[cfg_attr(feature = "python", pymethods)]
 impl AlluxioConfig {
-    #[new]
+    #[cfg_attr(feature = "python", new)]
     fn new(
         server: String,
         server_cli: String,

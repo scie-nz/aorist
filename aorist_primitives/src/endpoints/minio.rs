@@ -1,5 +1,5 @@
-#[cfg(feature = "python")]
 use serde::{Serialize, Deserialize};
+#[cfg(feature = "python")]
 use pyo3::prelude::*;
 #[cfg_attr(feature = "python", pyclass)]
 #[derive(PartialEq, Deserialize, Serialize, Debug, Clone, Hash)]
@@ -12,7 +12,7 @@ pub struct MinioConfig {
 }
 #[cfg_attr(feature = "python", pymethods)]
 impl MinioConfig {
-    #[new]
+    #[cfg_attr(feature = "python", new)]
     fn new(
         server: String,
         port: usize,
