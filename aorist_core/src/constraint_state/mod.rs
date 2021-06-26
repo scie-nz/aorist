@@ -12,6 +12,7 @@ use std::collections::{HashMap, HashSet};
 use std::sync::{Arc, RwLock};
 use tracing::{level_enabled, trace, Level};
 use uuid::Uuid;
+use crate::program::Program;
 
 pub struct ConstraintState<'a, T: OuterConstraint<'a>> {
     dialect: Option<Dialect>,
@@ -156,6 +157,7 @@ impl<'a, T: OuterConstraint<'a>> ConstraintState<'a, T> {
         &mut self,
         preferences: &Vec<Dialect>,
         ancestry: &<T as OuterConstraint<'a>>::TAncestry,
+        programs: &Vec<Program<'a, T::TEnum>>,
     ) {
         let root_clone = self.root.clone();
         let mut constraint = self.constraint.write().unwrap();

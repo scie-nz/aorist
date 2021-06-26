@@ -135,7 +135,7 @@ from recipes import programs
 @aorist(
     programs,
     # DUMMY
-    TableSchemasDroppedIfExisting,
+    UploadDataToS3,
     entrypoint="upload_to_s3",
     args={
         "access_key": lambda ancestry : ancestry.universe.endpoints.access_key_id, 

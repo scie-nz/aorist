@@ -21,6 +21,7 @@ use std::collections::{HashMap, HashSet, VecDeque};
 use std::sync::{Arc, RwLock, RwLockReadGuard};
 use tracing::{debug, level_enabled, trace, Level};
 use uuid::Uuid;
+use crate::program::Program;
 
 pub type ConstraintsBlockMap<'a, C> = LinkedHashMap<
     String,
@@ -161,6 +162,7 @@ where
         uuid: (Uuid, String),
         calls: &mut HashMap<(String, String, String), Vec<(String, ParameterTuple)>>,
         state: Arc<RwLock<ConstraintState<'a, B::OuterType>>>,
+        programs: &Vec<Program<'a, <B::OuterType as OuterConstraint<'a>>::TEnum>>,
     ) {
         let name = constraint.get_name().clone();
         drop(constraint);
@@ -168,7 +170,7 @@ where
         let preferences = self.get_preferences();
         let mut write = state.write().unwrap();
         // TODO: remove dummy hash map
-        write.satisfy(&preferences, self.get_ancestry());
+        write.satisfy(&preferences, self.get_ancestry(), programs);
         drop(write);
 
         // TODO: preambles and calls are superflous
@@ -189,6 +191,7 @@ where
         calls: &mut HashMap<(String, String, String), Vec<(String, ParameterTuple)>>,
         reverse_dependencies: &HashMap<(Uuid, String), HashSet<(String, Uuid, String)>>,
         unsatisfied_constraints: &ConstraintsBlockMap<'a, B::OuterType>,
+        programs: &Vec<Program<'a, <B::OuterType as OuterConstraint<'a>>::TEnum>>,
     ) -> Result<()> {
         let read = state.read().unwrap();
         assert!(!read.satisfied);
@@ -199,7 +202,7 @@ where
         let constraint = rw.read().unwrap();
 
         if constraint.requires_program()? {
-            self.process_constraint_with_program(constraint, uuid.clone(), calls, state.clone());
+            self.process_constraint_with_program(constraint, uuid.clone(), calls, state.clone(), programs);
         }
 
         if let Some(v) = reverse_dependencies.get(&uuid) {
@@ -234,6 +237,7 @@ where
         constraint_name: String,
         unsatisfied_constraints: &ConstraintsBlockMap<'a, B::OuterType>,
         identifiers: &HashMap<Uuid, AST>,
+        programs: Vec<Program<'a, <B::OuterType as OuterConstraint<'a>>::TEnum>>,
     ) -> Result<(
         Vec<<Self::CB as ConstraintBlock<'a, <D as FlowBuilderBase<U>>::T, B::OuterType, U>>::C>,
         Option<AST>,
@@ -254,6 +258,7 @@ where
                 &mut calls,
                 reverse_dependencies,
                 unsatisfied_constraints,
+                &programs,
             )?;
             self.mark_constraint_state_as_satisfied(id, state.clone());
             by_dialect
@@ -312,6 +317,7 @@ where
                         snake_case_name.clone(),
                         &unsatisfied_constraints,
                         &identifiers,
+                        self.get_programs_for(&constraint_name),
                     )?;
 
                     let (title, body) = self.get_constraint_explanation(constraint_name);
@@ -328,6 +334,7 @@ where
             }
         }
     }
+    fn get_programs_for(&self, constraint_name: &String) -> Vec<Program<'a, <B::OuterType as OuterConstraint<'a>>::TEnum>>;
     fn get_endpoints(&self) -> U::TEndpoints;
     fn get_dependencies(&self) -> Vec<String>;
     fn run(&mut self) -> Result<(String, Vec<String>)> {
