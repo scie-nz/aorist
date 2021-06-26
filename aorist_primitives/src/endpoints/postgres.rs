@@ -9,9 +9,10 @@ pub struct PostgresConfig {
     pub username: String,
     pub password: String,
 }
-#[cfg_attr(feature = "python", pymethods)]
+#[cfg(feature = "python")]
+#[pymethods]
 impl PostgresConfig {
-    #[cfg_attr(feature = "python", new)]
+    #[new]
     fn new(
         server: String,
         port: usize,

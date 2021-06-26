@@ -9,9 +9,10 @@ pub struct AWSConfig {
     pub region: Option<String>,
     pub project_name: Option<String>,
 }
-#[cfg_attr(feature = "python", pymethods)]
+#[cfg(feature = "python")]
+#[pymethods]
 impl AWSConfig {
-    #[cfg_attr(feature = "python", new)]
+    #[new]
     fn new(
         access_key_id: String,
         access_key_secret: String,

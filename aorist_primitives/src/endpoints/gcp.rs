@@ -9,9 +9,10 @@ pub struct GCPConfig {
     pub project_name: String,
     pub data_location: String,
 }
-#[cfg_attr(feature = "python", pymethods)]
+#[cfg(feature = "python")]
+#[pymethods]
 impl GCPConfig {
-    #[cfg_attr(feature = "python", new)]
+    #[new]
     fn new(
         use_default_credentials: bool,
         service_account_file: Option<String>,

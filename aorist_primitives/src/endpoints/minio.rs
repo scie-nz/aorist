@@ -10,9 +10,10 @@ pub struct MinioConfig {
     pub access_key: String,
     pub secret_key: String,
 }
-#[cfg_attr(feature = "python", pymethods)]
+#[cfg(feature = "python")]
+#[pymethods]
 impl MinioConfig {
-    #[cfg_attr(feature = "python", new)]
+    #[new]
     fn new(
         server: String,
         port: usize,

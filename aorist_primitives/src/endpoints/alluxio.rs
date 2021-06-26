@@ -1,7 +1,8 @@
 #[cfg(feature = "python")]
 use pyo3::prelude::*;
 use serde::{Serialize, Deserialize};
-#[cfg_attr(feature = "python", pyclass(dict))]
+
+#[cfg_attr(feature = "python", pyclass)]
 #[derive(PartialEq, Deserialize, Serialize, Debug, Clone, Hash)]
 pub struct AlluxioConfig {
     pub server: String,
@@ -10,9 +11,11 @@ pub struct AlluxioConfig {
     pub api_port: usize,
     pub directory: String,
 }
-#[cfg_attr(feature = "python", pymethods)]
+
+#[cfg(feature = "python")]
+#[pymethods]
 impl AlluxioConfig {
-    #[cfg_attr(feature = "python", new)]
+    #[new]
     fn new(
         server: String,
         server_cli: String,
@@ -20,6 +23,12 @@ impl AlluxioConfig {
         api_port: usize,
         directory: String,
     ) -> Self {
-        AlluxioConfig { server, server_cli, rpc_port, api_port, directory }
+        AlluxioConfig { 
+            server: server,
+            server_cli: server_cli,
+            rpc_port,
+            api_port, 
+            directory: directory, 
+        }
     }
 }
