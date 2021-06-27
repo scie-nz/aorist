@@ -80,4 +80,4 @@ mod python;
 pub use python::*;
 
 mod program;
-pub use program::Program;
+pub use program::*;

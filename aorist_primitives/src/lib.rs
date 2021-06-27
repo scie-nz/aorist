@@ -529,7 +529,8 @@ macro_rules! define_constraint {
             pub struct [<$element Program>] {
                 pub code: String,
                 pub entrypoint: String,
-                pub functions: LinkedHashMap<String, String>,
+                pub arg_functions: Vec<String>,
+                pub kwarg_functions: LinkedHashMap<String, String>,
             }
             #[cfg(feature = "python")]
             #[pymethods]
@@ -538,18 +539,31 @@ macro_rules! define_constraint {
                 pub fn register_program(
                     code: &str,
                     entrypoint: &str,
-                    functions: HashMap<&str, &str>, 
+                    arg_functions: Vec<&str>,
+                    kwarg_functions: HashMap<&str, &str>, 
                 ) -> PyResult<[<$element Program>]> {
                     
                     let mut funs: LinkedHashMap<String, String> = LinkedHashMap::new();
-                    for (k, v) in functions.iter() {
+                    for (k, v) in kwarg_functions.iter() {
                         funs.insert(k.to_string(), v.to_string());
                     }
                     Ok([<$element Program>]{
                         code: code.to_string(),
                         entrypoint: entrypoint.to_string(),
-                        functions: funs,
+                        arg_functions: arg_functions.iter().map(|x| x.to_string()).collect(),
+                        kwarg_functions: funs,
                     })
+                }
+            }
+            #[cfg(feature = "python")]
+            impl <'a> TProgram<'a, $element> for [<$element Program>] {
+                fn new(
+                    code: String,
+                    entrypoint: String,
+                    arg_functions: Vec<String>,
+                    kwarg_functions: LinkedHashMap<String, String>
+                ) -> Self {
+                    Self { code, entrypoint, arg_functions, kwarg_functions }
                 }
             }
             impl $element {

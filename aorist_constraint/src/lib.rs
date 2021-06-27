@@ -4,7 +4,7 @@ use aorist_primitives::{define_constraint, register_constraint_new, TAoristObjec
 };
 use aorist_core::{
     ConstraintBuilder, ConstraintEnum, ConstraintSatisfactionBase, OuterConstraint, 
-    TConstraint, TConstraintEnum, TBuilder,
+    TConstraint, TConstraintEnum, TBuilder, TProgram,
 };
 use maplit::hashmap;
 use serde::{Deserialize, Serialize};
