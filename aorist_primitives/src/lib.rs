@@ -526,6 +526,7 @@ macro_rules! define_constraint {
 
             #[cfg(feature = "python")]
             #[pyclass]
+            #[derive(Clone)]
             pub struct [<$element Program>] {
                 pub code: String,
                 pub entrypoint: String,
@@ -566,6 +567,20 @@ macro_rules! define_constraint {
                     Self { code, entrypoint, arg_functions, kwarg_functions }
                 }
             }
+            /*impl [<$element Program>] {
+                #[cfg(feature = "python")]
+                fn compute_args(&self, obj: &$root) {
+                    let gil = Python::acquire_gil();
+                    let py = gil.python();
+                    let mut args = Vec::new();
+                    let dill: &PyModule = PyModule::import(py, "dill").unwrap();
+                    for serialized in &self.arg_functions {
+                        let py_arg = PyString::new(py, &serialized);
+                        let deserialized = dill.call1("loads", (py_arg,)).unwrap();
+                        deserialized.call1((obj,)).unwrap();
+                    }
+                }
+            }*/
             impl $element {
                 // TODO: move any of these functions that should have public visibility
                 // into TConstraint
@@ -1241,6 +1256,17 @@ macro_rules! register_constraint_new {
                 $element($element),
             )+
         }
+        #[pyclass]
+        pub struct [<$name Program>] {
+            inner: [<$name ProgramEnum>],
+        }
+        #[cfg(feature = "python")]
+        #[derive(Clone, pyo3::prelude::FromPyObject)]
+        pub enum [<$name ProgramEnum>] {
+            $(
+                $element([<$element Program>]),
+            )+
+        }
         pub enum [<$name Builder>]<$lt> {
             $(
                 $element(ConstraintBuilder<$lt, $element>),
@@ -1252,6 +1278,7 @@ macro_rules! register_constraint_new {
             init_logging();
             $(
                 m.add_class::<$element>()?;
+                m.add_class::<[<$name Program>]>()?;
             )+
             Ok(())
         }
