@@ -162,7 +162,7 @@ where
         uuid: (Uuid, String),
         calls: &mut HashMap<(String, String, String), Vec<(String, ParameterTuple)>>,
         state: Arc<RwLock<ConstraintState<'a, B::OuterType>>>,
-        programs: &Vec<Program<'a, <B::OuterType as OuterConstraint<'a>>::TEnum>>,
+        programs: &Vec<Program<'a, B::OuterType>>,
     ) {
         let name = constraint.get_name().clone();
         drop(constraint);
@@ -191,7 +191,7 @@ where
         calls: &mut HashMap<(String, String, String), Vec<(String, ParameterTuple)>>,
         reverse_dependencies: &HashMap<(Uuid, String), HashSet<(String, Uuid, String)>>,
         unsatisfied_constraints: &ConstraintsBlockMap<'a, B::OuterType>,
-        programs: &Vec<Program<'a, <B::OuterType as OuterConstraint<'a>>::TEnum>>,
+        programs: &Vec<Program<'a, B::OuterType>>,
     ) -> Result<()> {
         let read = state.read().unwrap();
         assert!(!read.satisfied);
@@ -237,7 +237,7 @@ where
         constraint_name: String,
         unsatisfied_constraints: &ConstraintsBlockMap<'a, B::OuterType>,
         identifiers: &HashMap<Uuid, AST>,
-        programs: &Vec<Program<'a, <B::OuterType as OuterConstraint<'a>>::TEnum>>,
+        programs: &Vec<Program<'a, B::OuterType>>,
     ) -> Result<(
         Vec<<Self::CB as ConstraintBlock<'a, <D as FlowBuilderBase<U>>::T, B::OuterType, U>>::C>,
         Option<AST>,
@@ -335,7 +335,7 @@ where
             }
         }
     }
-    fn get_programs_for(&self, constraint_name: &String) -> Vec<Program<'a, <B::OuterType as OuterConstraint<'a>>::TEnum>>;
+    fn get_programs_for(&self, constraint_name: &String) -> Vec<Program<'a, B::OuterType>>;
     fn get_endpoints(&self) -> U::TEndpoints;
     fn get_dependencies(&self) -> Vec<String>;
     fn run(&mut self) -> Result<(String, Vec<String>)> {
@@ -361,7 +361,7 @@ where
         endpoints: <U as AoristUniverse>::TEndpoints,
         ancestors: HashMap<(Uuid, String), Vec<AncestorRecord>>,
         topline_constraint_names: LinkedHashSet<String>,
-        programs: LinkedHashMap<String, Vec<Program<'a, <B::OuterType as OuterConstraint<'a>>::TEnum>>>,
+        programs: LinkedHashMap<String, Vec<Program<'a, B::OuterType>>>,
     ) -> Self;
 
     fn generate_constraint_states_map(
@@ -648,7 +648,7 @@ where
     fn new(
         universe: U,
         topline_constraint_names: LinkedHashSet<String>,
-        programs: LinkedHashMap<String, Vec<Program<'a, <B::OuterType as OuterConstraint<'a>>::TEnum>>>,
+        programs: LinkedHashMap<String, Vec<Program<'a, B::OuterType>>>,
     ) -> Result<Self>
     where
         Self: Sized,

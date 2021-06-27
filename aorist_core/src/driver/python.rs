@@ -47,7 +47,7 @@ where
     constraint_explanations: HashMap<String, (Option<String>, Option<String>)>,
     ancestors: HashMap<(Uuid, String), Vec<AncestorRecord>>,
     topline_constraint_names: LinkedHashSet<String>,
-    programs: LinkedHashMap<String, Vec<Program<'a, <B::OuterType as OuterConstraint<'a>>::TEnum>>>,
+    programs: LinkedHashMap<String, Vec<Program<'a, B::OuterType>>>,
 }
 impl<'a, B, D, U, C, A> Driver<'a, B, D, U, C, A> for PythonBasedDriver<'a, B, D, U, C, A>
 where
@@ -66,7 +66,7 @@ where
 {
     type CB = PythonBasedConstraintBlock<'a, <D as FlowBuilderBase<U>>::T, B::OuterType, U>;
 
-    fn get_programs_for(&self, constraint_name: &String) -> Vec<Program<'a, <B::OuterType as OuterConstraint<'a>>::TEnum>> {
+    fn get_programs_for(&self, constraint_name: &String) -> Vec<Program<'a, B::OuterType>> {
         self.programs.get(constraint_name).unwrap().iter().map(|x| (*x).clone()).collect()
     }
     fn get_preferences(&self) -> Vec<Dialect> {
@@ -141,7 +141,7 @@ where
         endpoints: U::TEndpoints,
         ancestors: HashMap<(Uuid, String), Vec<AncestorRecord>>,
         topline_constraint_names: LinkedHashSet<String>,
-        programs: LinkedHashMap<String, Vec<Program<'a, <B::OuterType as OuterConstraint<'a>>::TEnum>>>,
+        programs: LinkedHashMap<String, Vec<Program<'a, B::OuterType>>>,
     ) -> Self {
         Self {
             concepts,

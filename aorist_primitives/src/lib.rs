@@ -503,6 +503,7 @@ macro_rules! define_constraint {
     $title:expr, $body:expr, $should_add:expr, $get_required:expr $(, $required:ident)*) => {
         paste::item! {
             #[cfg_attr(feature = "python", pyclass)]
+            #[derive(Clone)]
             pub struct $element {
                 id: Uuid,
                 root_uuid: Uuid,
@@ -1220,6 +1221,7 @@ macro_rules! register_concept {
 #[macro_export]
 macro_rules! register_constraint_new {
     ( $name:ident, $lt: lifetime, $($element: ident),+ ) => { paste::item! {
+        #[derive(Clone)]
         pub enum $name {
             $(
                 $element($element),

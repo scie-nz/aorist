@@ -23,7 +23,7 @@ use aorist_util::init_logging;
 include!(concat!(env!("OUT_DIR"), "/constraints.rs"));
 impl<'a> ConstraintEnum<'a> for AoristConstraint {}
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct Constraint {
     #[serde(skip)]
     pub inner: Option<AoristConstraint>,

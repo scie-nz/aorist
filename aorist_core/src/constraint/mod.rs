@@ -62,7 +62,7 @@ pub trait TConstraintEnum<'a>: Sized + Clone {
 }
 pub trait ConstraintEnum<'a> {}
 
-pub trait OuterConstraint<'a>: TAoristObject + std::fmt::Display {
+pub trait OuterConstraint<'a>: TAoristObject + std::fmt::Display + Clone {
     type TEnum: Sized + ConstraintEnum<'a> + TConstraintEnum<'a>;
     type TAncestry: Ancestry;
 
