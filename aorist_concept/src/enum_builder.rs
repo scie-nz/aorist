@@ -229,6 +229,14 @@ impl Builder for EnumBuilder {
               pub inner: AoristRef<#enum_name>,
           }
           #[cfg(feature = "python")]
+          impl AoristRef<#enum_name> {
+              pub fn py_object(&self, py: pyo3::Python) -> pyo3::PyResult<pyo3::PyObject> {
+                  Ok(pyo3::PyObject::from(pyo3::PyCell::new(py, [<Py #enum_name>]{
+                      inner: self.clone(),
+                  })?))
+              }
+          }
+          #[cfg(feature = "python")]
           #[derive(Clone, PartialEq, pyo3::prelude::FromPyObject)]
           pub enum [<Py #enum_name Input>] {
               #(

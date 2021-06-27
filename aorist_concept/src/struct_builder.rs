@@ -948,7 +948,14 @@ impl Builder for StructBuilder {
                     ))
                 }
             }
-
+            #[cfg(feature = "python")]
+            impl AoristRef<#struct_name> {
+                pub fn py_object(&self, py: pyo3::Python) -> pyo3::PyResult<pyo3::PyObject> {
+                    Ok(pyo3::PyObject::from(pyo3::PyCell::new(py, [<Py #struct_name>]{
+                        inner: self.clone(),
+                    })?))
+                }
+            }
             impl #struct_name {
                 pub fn get_uuid(&self) -> Option<Uuid> {
                     self.uuid.clone()

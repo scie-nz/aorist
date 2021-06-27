@@ -1161,6 +1161,17 @@ macro_rules! register_concept {
             )+
         }
         #[cfg(feature = "python")]
+        impl $ancestry {
+            pub fn py_object(&self, ancestor: &str, root: AoristRef<$name>, py: Python) -> PyResult<PyObject> {
+                match ancestor {
+                    $(
+                        stringify!([<$element:snake:lower>]) => self.[<$element:snake:lower>](root).unwrap().py_object(py),
+                    )+
+                    _ => panic!("Unknown ancestor type: {}", ancestor),
+                }
+            }
+        }
+        #[cfg(feature = "python")]
         impl $name {
             pub fn py_object(&self, py: Python) -> PyObject {
                 let object = match self {
