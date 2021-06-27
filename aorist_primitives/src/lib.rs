@@ -1281,18 +1281,18 @@ macro_rules! register_constraint_new {
             type TAncestry = ConceptAncestry;
             fn compute_args(
                 &self,
-                root: &Concept,
+                root: AoristRef<Concept>,
                 ancestry: &ConceptAncestry,
             ) {
                 let gil = Python::acquire_gil();
                 let py = gil.python();
                 //let mut args = Vec::new();
                 let dill: &PyModule = PyModule::import(py, "dill").unwrap();
-                let root_py = root.py_object(py);
-                for serialized in &self.inner.get_arg_functions() {
-                    //let py_arg = PyString::new(py, &serialized);
-                    //let deserialized = dill.call1("loads", (py_arg,)).unwrap();
-                    //deserialized.call1((root, ancestry)).unwrap();
+                for (input_types, serialized) in &self.inner.get_arg_functions() {
+                    let py_arg = PyString::new(py, &serialized);
+                    let deserialized = dill.call1("loads", (py_arg,)).unwrap();
+                    let objects = input_types.iter().map(|x| ancestry.py_object(x, root.clone(), py).unwrap()).collect::<Vec<_>>().to_object(py);
+                    deserialized.call1((objects,)).unwrap();
                 }
             }
         }
