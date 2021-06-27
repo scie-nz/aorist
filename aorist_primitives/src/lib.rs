@@ -530,8 +530,8 @@ macro_rules! define_constraint {
             pub struct [<$element Program>] {
                 pub code: String,
                 pub entrypoint: String,
-                pub arg_functions: Vec<String>,
-                pub kwarg_functions: LinkedHashMap<String, String>,
+                pub arg_functions: Vec<(Vec<String>, String)>,
+                pub kwarg_functions: LinkedHashMap<String, (Vec<String>, String)>,
             }
             #[cfg(feature = "python")]
             #[pymethods]
@@ -540,18 +540,18 @@ macro_rules! define_constraint {
                 pub fn register_program(
                     code: &str,
                     entrypoint: &str,
-                    arg_functions: Vec<&str>,
-                    kwarg_functions: HashMap<&str, &str>, 
+                    arg_functions: Vec<(Vec<&str>, &str)>,
+                    kwarg_functions: HashMap<&str, (Vec<&str>, &str)>, 
                 ) -> PyResult<[<$element Program>]> {
                     
-                    let mut funs: LinkedHashMap<String, String> = LinkedHashMap::new();
-                    for (k, v) in kwarg_functions.iter() {
-                        funs.insert(k.to_string(), v.to_string());
+                    let mut funs: LinkedHashMap<String, (Vec<String>, String)> = LinkedHashMap::new();
+                    for (k, (v1, v2)) in kwarg_functions.iter() {
+                        funs.insert(k.to_string(), (v1.iter().map(|x| x.to_string()).collect(), v2.to_string()));
                     }
                     Ok([<$element Program>]{
                         code: code.to_string(),
                         entrypoint: entrypoint.to_string(),
-                        arg_functions: arg_functions.iter().map(|x| x.to_string()).collect(),
+                        arg_functions: arg_functions.iter().map(|(x, y)| (x.iter().map(|x| x.to_string()).collect(), y.to_string())).collect(),
                         kwarg_functions: funs,
                     })
                 }
@@ -561,15 +561,15 @@ macro_rules! define_constraint {
                 fn new(
                     code: String,
                     entrypoint: String,
-                    arg_functions: Vec<String>,
-                    kwarg_functions: LinkedHashMap<String, String>
+                    arg_functions: Vec<(Vec<String>, String)>,
+                    kwarg_functions: LinkedHashMap<String, (Vec<String>, String)>
                 ) -> Self {
                     Self { code, entrypoint, arg_functions, kwarg_functions }
                 }
-                fn get_arg_functions(&self) -> Vec<String> {
+                fn get_arg_functions(&self) -> Vec<(Vec<String>, String)> {
                     self.arg_functions.clone()
                 }
-                fn get_kwarg_functions(&self) -> LinkedHashMap<String, String> {
+                fn get_kwarg_functions(&self) -> LinkedHashMap<String, (Vec<String>, String)> {
                     self.kwarg_functions.clone()
                 }
             }
@@ -1304,7 +1304,7 @@ macro_rules! register_constraint_new {
             )+
         }
         impl [<$name ProgramEnum>] {
-            pub fn get_arg_functions(&self) -> Vec<String> {
+            pub fn get_arg_functions(&self) -> Vec<(Vec<String>, String)> {
                 match self {
                     $(
                         [<$name ProgramEnum>]::$element(x) => x.get_arg_functions(),
