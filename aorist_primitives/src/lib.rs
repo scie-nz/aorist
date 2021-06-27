@@ -566,21 +566,13 @@ macro_rules! define_constraint {
                 ) -> Self {
                     Self { code, entrypoint, arg_functions, kwarg_functions }
                 }
-            }
-            /*impl [<$element Program>] {
-                #[cfg(feature = "python")]
-                fn compute_args(&self, obj: &$root) {
-                    let gil = Python::acquire_gil();
-                    let py = gil.python();
-                    let mut args = Vec::new();
-                    let dill: &PyModule = PyModule::import(py, "dill").unwrap();
-                    for serialized in &self.arg_functions {
-                        let py_arg = PyString::new(py, &serialized);
-                        let deserialized = dill.call1("loads", (py_arg,)).unwrap();
-                        deserialized.call1((obj,)).unwrap();
-                    }
+                fn get_arg_functions(&self) -> Vec<String> {
+                    self.arg_functions.clone()
                 }
-            }*/
+                fn get_kwarg_functions(&self) -> LinkedHashMap<String, String> {
+                    self.kwarg_functions.clone()
+                }
+            }
             impl $element {
                 // TODO: move any of these functions that should have public visibility
                 // into TConstraint
@@ -1261,11 +1253,39 @@ macro_rules! register_constraint_new {
             inner: [<$name ProgramEnum>],
         }
         #[cfg(feature = "python")]
+        impl TOuterProgram for [<$name Program>] {
+            type TAncestry = ConceptAncestry;
+            fn compute_args(
+                &self,
+                root: &Concept,
+                ancestry: &ConceptAncestry,
+            ) {
+                let gil = Python::acquire_gil();
+                let py = gil.python();
+                //let mut args = Vec::new();
+                let dill: &PyModule = PyModule::import(py, "dill").unwrap();
+                for serialized in &self.inner.get_arg_functions() {
+                    //let py_arg = PyString::new(py, &serialized);
+                    //let deserialized = dill.call1("loads", (py_arg,)).unwrap();
+                    //deserialized.call1((root, ancestry)).unwrap();
+                }
+            }
+        }
+        #[cfg(feature = "python")]
         #[derive(Clone, pyo3::prelude::FromPyObject)]
         pub enum [<$name ProgramEnum>] {
             $(
                 $element([<$element Program>]),
             )+
+        }
+        impl [<$name ProgramEnum>] {
+            pub fn get_arg_functions(&self) -> Vec<String> {
+                match self {
+                    $(
+                        [<$name ProgramEnum>]::$element(x) => x.get_arg_functions(),
+                    )+
+                }
+            }
         }
         pub enum [<$name Builder>]<$lt> {
             $(

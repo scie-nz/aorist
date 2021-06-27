@@ -138,13 +138,13 @@ from recipes import programs
     UploadDataToS3,
     entrypoint="upload_to_s3",
     args={
-        "access_key": lambda ancestry : ancestry.universe.endpoints.access_key_id, 
-        "secret_key": lambda ancestry : ancestry.universe.endpoints.access_key_secret, 
-        "table_name": lambda ancestry : ancestry.data_set.name + ".csv",
-        "bucket": lambda ancestry: ancestry.s3location.bucket,
-        "schema": lambda ancestry: ancestry.data_set.name,
-        "tmp_dir": lambda ancestry: ancestry.replication_storage_setup.tmp_dir,
-        "source_file": lambda ancestry: "%s_%s" % (
+        "access_key": lambda universe : universe.endpoints.access_key_id, 
+        "secret_key": lambda universe : universe.endpoints.access_key_secret, 
+        "table_name": lambda data_set : data_set.name + ".csv",
+        "bucket": lambda s3location : s3location.bucket,
+        "schema": lambda data_set : data_set.name,
+        "tmp_dir": lambda replication_storage_setup : replication_storage_setup.tmp_dir,
+        "source_file": lambda (data_set, static_data_table) : "%s_%s" % (
             ancestry.data_set.name,
             ancestry.static_data_table.name,
         )

@@ -4,7 +4,7 @@ use aorist_primitives::{define_constraint, register_constraint_new, TAoristObjec
 };
 use aorist_core::{
     ConstraintBuilder, ConstraintEnum, ConstraintSatisfactionBase, OuterConstraint, 
-    TConstraint, TConstraintEnum, TBuilder, TProgram,
+    TConstraint, TConstraintEnum, TBuilder, TProgram, TOuterProgram,
 };
 use maplit::hashmap;
 use serde::{Deserialize, Serialize};
@@ -19,6 +19,8 @@ use pyo3::prelude::*;
 use pyo3::types::{PyString, PyFunction, PyDict};
 #[cfg(feature = "python")]
 use aorist_util::init_logging;
+#[cfg(feature = "python")]
+use pyo3::pycell::PyCell;
 
 include!(concat!(env!("OUT_DIR"), "/constraints.rs"));
 impl<'a> ConstraintEnum<'a> for AoristConstraint {}
