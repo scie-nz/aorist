@@ -1160,6 +1160,19 @@ macro_rules! register_concept {
                 }
             )+
         }
+        #[cfg(feature = "python")]
+        impl $name {
+            pub fn py_object(&self, py: Python) -> PyObject {
+                let object = match self {
+                    $(
+                        $name::$element((x, _, _)) => PyObject::from(PyCell::new(py, [<Py $element>] {
+                            inner: x.clone(),
+                        }).unwrap()),
+                    )+
+                };
+                object
+            }
+        }
         impl TConceptEnum for AoristRef<$name> {
             type TUniverse = AoristRef<Universe>;
             fn get_parent_id(&self) -> Option<(Uuid, String)> {
@@ -1264,6 +1277,7 @@ macro_rules! register_constraint_new {
                 let py = gil.python();
                 //let mut args = Vec::new();
                 let dill: &PyModule = PyModule::import(py, "dill").unwrap();
+                let root_py = root.py_object(py);
                 for serialized in &self.inner.get_arg_functions() {
                     //let py_arg = PyString::new(py, &serialized);
                     //let deserialized = dill.call1("loads", (py_arg,)).unwrap();

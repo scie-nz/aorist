@@ -7,7 +7,7 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [features]
-python = ["pyo3", "pyo3/extension-module"]
+python = ["pyo3", "pyo3/extension-module", "aorist_core/python"]
 r = ["extendr-api", "extendr-engine"]
 sql = ["sqlformat", "sqlparser"]
 
