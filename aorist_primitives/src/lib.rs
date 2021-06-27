@@ -1283,17 +1283,34 @@ macro_rules! register_constraint_new {
                 &self,
                 root: AoristRef<Concept>,
                 ancestry: &ConceptAncestry,
-            ) {
+            ) -> ParameterTuple {
                 let gil = Python::acquire_gil();
                 let py = gil.python();
                 //let mut args = Vec::new();
                 let dill: &PyModule = PyModule::import(py, "dill").unwrap();
+                let mut args = Vec::new();
+                let mut kwargs = LinkedHashMap::new();
                 for (input_types, serialized) in &self.inner.get_arg_functions() {
                     let py_arg = PyString::new(py, &serialized);
                     let deserialized = dill.call1("loads", (py_arg,)).unwrap();
                     let objects = input_types.iter().map(|x| ancestry.py_object(x, root.clone(), py).unwrap()).collect::<Vec<_>>().to_object(py);
-                    deserialized.call1((objects,)).unwrap();
+                    let arg = deserialized.call1((objects,)).unwrap();
+                    // TODO: add more return types here
+                    let extracted: String = arg.extract().unwrap();
+                    let ast = AST::StringLiteral(StringLiteral::new_wrapped(extracted, false));
+                    args.push(ast);
                 }
+                for (key, (input_types, serialized)) in &self.inner.get_kwarg_functions() {
+                    let py_arg = PyString::new(py, &serialized);
+                    let deserialized = dill.call1("loads", (py_arg,)).unwrap();
+                    let objects = input_types.iter().map(|x| ancestry.py_object(x, root.clone(), py).unwrap()).collect::<Vec<_>>().to_object(py);
+                    let arg = deserialized.call1((objects,)).unwrap();
+                    // TODO: add more return types here
+                    let extracted: String = arg.extract().unwrap();
+                    let ast = AST::StringLiteral(StringLiteral::new_wrapped(extracted, false));
+                    kwargs.insert(key.to_string(), ast);
+                }
+                ParameterTuple { args, kwargs }
             }
         }
         #[cfg(feature = "python")]
@@ -1308,6 +1325,13 @@ macro_rules! register_constraint_new {
                 match self {
                     $(
                         [<$name ProgramEnum>]::$element(x) => x.get_arg_functions(),
+                    )+
+                }
+            }
+            pub fn get_kwarg_functions(&self) -> LinkedHashMap<String, (Vec<String>, String)> {
+                match self {
+                    $(
+                        [<$name ProgramEnum>]::$element(x) => x.get_kwarg_functions(),
                     )+
                 }
             }

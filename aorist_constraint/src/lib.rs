@@ -6,6 +6,7 @@ use aorist_core::{
     ConstraintBuilder, ConstraintEnum, ConstraintSatisfactionBase, OuterConstraint, 
     TConstraint, TConstraintEnum, TBuilder, TProgram, TOuterProgram,
 };
+use aorist_ast::{AST, StringLiteral};
 use maplit::hashmap;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;

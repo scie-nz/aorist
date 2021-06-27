@@ -5,7 +5,7 @@ use uuid::Uuid;
 
 #[derive(Clone, PartialEq, Eq, Hash)]
 pub struct ParameterTuple {
-    args: Vec<AST>,
+    pub args: Vec<AST>,
     pub kwargs: LinkedHashMap<String, AST>,
 }
 pub type ParameterTupleDedupKey = (usize, Vec<String>);

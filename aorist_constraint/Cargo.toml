@@ -19,6 +19,7 @@ crate-type = ["cdylib"]
 [dependencies]
 serde = { version = "1.0", features = ["derive"] }
 aorist_primitives = {path = "../aorist_primitives", features=[]}
+aorist_ast = {path = "../aorist_ast", features=[]}
 aorist_core = {path = "../aorist_core", features=[]}
 aorist_util = {path = "../aorist_util"}
 maplit = "1.0.2"
