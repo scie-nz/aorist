@@ -10,28 +10,31 @@ use std::collections::HashMap;
 use std::marker::PhantomData;
 use uuid::Uuid;
 use aorist_primitives::AoristUniverse;
+use crate::program::{Program, TOuterProgram};
 
-pub struct PythonBasedConstraintBlock<'a, T, C, U>
+pub struct PythonBasedConstraintBlock<'a, T, C, U, P>
 where
     T: ETLFlow<U, ImportType = PythonImport, PreambleType = PythonPreamble>,
     C: OuterConstraint<'a>,
     U: AoristUniverse,
+    P: TOuterProgram<TAncestry=C::TAncestry>,
 {
     constraint_name: String,
     title: Option<String>,
     body: Option<String>,
-    members: Vec<PythonBasedCodeBlock<'a, T, C, U>>,
+    members: Vec<PythonBasedCodeBlock<'a, T, C, U, P>>,
     tasks_dict: Option<AST>,
     _lt: PhantomData<&'a ()>,
     _constraint: PhantomData<C>,
 }
-impl<'a, T, C, U> ConstraintBlock<'a, T, C, U> for PythonBasedConstraintBlock<'a, T, C, U>
+impl<'a, T, C, U, P> ConstraintBlock<'a, T, C, U, P> for PythonBasedConstraintBlock<'a, T, C, U, P>
 where
     T: ETLFlow<U, ImportType = PythonImport, PreambleType = PythonPreamble>,
     C: OuterConstraint<'a>, 
     U: AoristUniverse,
+    P: TOuterProgram<TAncestry=C::TAncestry>,
 {
-    type C = PythonBasedCodeBlock<'a, T, C, U>;
+    type C = PythonBasedCodeBlock<'a, T, C, U, P>;
     type BuilderInputType = PythonFlowBuilderInput;
 
     fn get_constraint_name(&self) -> String {
@@ -51,7 +54,7 @@ where
         constraint_name: String,
         title: Option<String>,
         body: Option<String>,
-        members: Vec<PythonBasedCodeBlock<'a, T, C, U>>,
+        members: Vec<PythonBasedCodeBlock<'a, T, C, U, P>>,
         tasks_dict: Option<AST>,
     ) -> Self {
         Self {
@@ -83,11 +86,12 @@ where
     }
 }
 
-impl<'a, T, C, U> PythonBasedConstraintBlock<'a, T, C, U>
+impl<'a, T, C, U, P> PythonBasedConstraintBlock<'a, T, C, U, P>
 where
     T: ETLFlow<U, ImportType = PythonImport, PreambleType = PythonPreamble>,
     C: OuterConstraint<'a>,
     U: AoristUniverse,
+    P: TOuterProgram<TAncestry=C::TAncestry>,
 {
     pub fn get_params(&self) -> HashMap<String, Option<ParameterTuple>> {
         self.members

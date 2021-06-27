@@ -40,15 +40,15 @@ where
 {
     pub concepts: Arc<RwLock<HashMap<(Uuid, String), C>>>,
     constraints: LinkedHashMap<(Uuid, String), Arc<RwLock<B::OuterType>>>,
-    satisfied_constraints: HashMap<(Uuid, String), Arc<RwLock<ConstraintState<'a, B::OuterType>>>>,
-    blocks: Vec<PythonBasedConstraintBlock<'a, D::T, B::OuterType, U>>,
+    satisfied_constraints: HashMap<(Uuid, String), Arc<RwLock<ConstraintState<'a, B::OuterType, P>>>>,
+    blocks: Vec<PythonBasedConstraintBlock<'a, D::T, B::OuterType, U, P>>,
     ancestry: A,
     dag_type: PhantomData<D>,
     endpoints: <U as AoristUniverse>::TEndpoints,
     constraint_explanations: HashMap<String, (Option<String>, Option<String>)>,
     ancestors: HashMap<(Uuid, String), Vec<AncestorRecord>>,
     topline_constraint_names: LinkedHashSet<String>,
-    programs: LinkedHashMap<String, Vec<P>>>,
+    programs: LinkedHashMap<String, Vec<P>>,
 }
 impl<'a, B, D, U, C, A, P> Driver<'a, B, D, U, C, A, P> for PythonBasedDriver<'a, B, D, U, C, A, P>
 where
@@ -66,7 +66,7 @@ where
         TConceptEnum<TUniverse = U>,
     P: TOuterProgram<TAncestry = A>,
 {
-    type CB = PythonBasedConstraintBlock<'a, <D as FlowBuilderBase<U>>::T, B::OuterType, U>;
+    type CB = PythonBasedConstraintBlock<'a, <D as FlowBuilderBase<U>>::T, B::OuterType, U, P>;
 
     fn get_programs_for(&self, constraint_name: &String) -> Vec<P> {
         self.programs.get(constraint_name).unwrap().iter().map(|x| (*x).clone()).collect()
@@ -92,11 +92,11 @@ where
     fn mark_constraint_state_as_satisfied(
         &mut self,
         id: (Uuid, String),
-        state: Arc<RwLock<ConstraintState<'a, B::OuterType>>>,
+        state: Arc<RwLock<ConstraintState<'a, B::OuterType, P>>>,
     ) {
         self.satisfied_constraints.insert(id, state.clone());
     }
-    fn init_unsatisfied_constraints(&self) -> Result<ConstraintsBlockMap<'a, B::OuterType>> {
+    fn init_unsatisfied_constraints(&self) -> Result<ConstraintsBlockMap<'a, B::OuterType, P>> {
         Self::get_unsatisfied_constraints(
             &self.constraints,
             self.concepts.clone(),
@@ -106,7 +106,7 @@ where
     }
     fn add_block(
         &mut self,
-        constraint_block: PythonBasedConstraintBlock<'a, <D as FlowBuilderBase<U>>::T, B::OuterType, U>,
+        constraint_block: PythonBasedConstraintBlock<'a, <D as FlowBuilderBase<U>>::T, B::OuterType, U, P>,
     ) {
         self.blocks.push(constraint_block);
     }
@@ -143,7 +143,7 @@ where
         endpoints: U::TEndpoints,
         ancestors: HashMap<(Uuid, String), Vec<AncestorRecord>>,
         topline_constraint_names: LinkedHashSet<String>,
-        programs: LinkedHashMap<String, Vec<P>>>,
+        programs: LinkedHashMap<String, Vec<P>>,
     ) -> Self {
         Self {
             concepts,

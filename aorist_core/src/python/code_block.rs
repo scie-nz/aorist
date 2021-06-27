@@ -15,12 +15,14 @@ use std::marker::PhantomData;
 use tracing::trace;
 use uuid::Uuid;
 use aorist_primitives::AoristUniverse;
+use crate::program::{Program, TOuterProgram};
 
-pub struct PythonBasedCodeBlock<'a, T, C, U>
+pub struct PythonBasedCodeBlock<'a, T, C, U, P>
 where
     T: ETLFlow<U, ImportType = PythonImport, PreambleType = PythonPreamble>,
     C: OuterConstraint<'a>,
     U: AoristUniverse,
+    P: TOuterProgram<TAncestry=C::TAncestry>,
 {
     tasks_dict: Option<AST>,
     task_identifiers: HashMap<Uuid, AST>,
@@ -28,12 +30,14 @@ where
     params: HashMap<String, Option<ParameterTuple>>,
     _lt: PhantomData<&'a ()>,
     _constraint: PhantomData<C>,
+    _program: PhantomData<P>,
 }
-impl<'a, T, C, U> CodeBlock<'a, T, C, U> for PythonBasedCodeBlock<'a, T, C, U>
+impl<'a, T, C, U, P> CodeBlock<'a, T, C, U, P> for PythonBasedCodeBlock<'a, T, C, U, P>
 where
     T: ETLFlow<U, ImportType = PythonImport, PreambleType = PythonPreamble>,
     C: OuterConstraint<'a>,
     U: AoristUniverse,
+    P: TOuterProgram<TAncestry=C::TAncestry>,
 {
     type P = PythonPreamble;
     type E = PythonBasedTask<T, U>;
@@ -51,6 +55,7 @@ where
             params,
             _lt: PhantomData,
             _constraint: PhantomData,
+            _program: PhantomData,
         }
     }
 
@@ -96,11 +101,12 @@ where
         self.params.clone()
     }
 }
-impl<'a, T, C, U> CodeBlockWithForLoopCompression<'a, T, C, U> for PythonBasedCodeBlock<'a, T, C, U>
+impl<'a, T, C, U, P> CodeBlockWithForLoopCompression<'a, T, C, U, P> for PythonBasedCodeBlock<'a, T, C, U, P>
 where
     T: ETLFlow<U, ImportType = PythonImport, PreambleType = PythonPreamble>,
     C: OuterConstraint<'a>,
     U: AoristUniverse,
+    P: TOuterProgram<TAncestry=C::TAncestry>,
 {
     fn run_task_compressions(
         compressible: LinkedHashMap<
