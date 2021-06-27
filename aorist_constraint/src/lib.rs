@@ -1,5 +1,5 @@
 use anyhow::{Context, Result};
-use aorist_core::{AoristConcept, Concept, ConceptAncestry, Dialect, ParameterTuple, Program, AoristRef, SatisfiableOuterConstraint};
+use aorist_core::{AoristConcept, Concept, ConceptAncestry, Dialect, ParameterTuple, Program, AoristRef, SatisfiableOuterConstraint, Ancestry};
 use aorist_primitives::{define_constraint, register_constraint_new, TAoristObject, register_satisfiable_constraints
 };
 use aorist_core::{

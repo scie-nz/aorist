@@ -153,6 +153,20 @@ impl<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry=T::TAncestry>> Const
     pub fn get_key(&self) -> Option<String> {
         self.key.clone()
     }
+    pub fn find_best_program<'b>(
+        preferences: &Vec<Dialect>,
+        programs: &'b Vec<P>,
+    ) -> Option<&'b P> {
+        for dialect in preferences {
+            for program in programs {
+                if program.get_dialect() == dialect.clone() {
+                    return Some(&program);
+                }
+            }
+        }
+        None
+    }
+
     pub fn satisfy(
         &mut self,
         preferences: &Vec<Dialect>,
@@ -161,17 +175,17 @@ impl<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry=T::TAncestry>> Const
     ) {
         let root_clone = self.root.clone();
         let mut constraint = self.constraint.write().unwrap();
-        // TODO: change
-        /*let (preamble, call, params, dialect) = constraint
-            .satisfy_given_preference_ordering(root_clone, preferences, ancestry)
-            .unwrap();
-        assert!(self.ancestors.len() > 0);
-        params.set_ancestors(self.ancestors.clone());
-        drop(constraint);
-        self.preamble = Some(preamble);
-        self.call = Some(call);
-        self.params = Some(params);
-        self.dialect = Some(dialect);*/
+        let best_program = Self::find_best_program(preferences, programs);
+        if let Some(program) = best_program {
+            let (preamble, call, params, dialect) = program.compute_args(self.root.clone(), ancestry);
+            self.preamble = Some(preamble);
+            self.call = Some(call);
+            self.params = Some(params);
+            self.dialect = Some(dialect);
+        } else {
+            panic!("Could not find any program for constraint.");
+        }
+        
     }
     pub fn new(
         constraint: Arc<RwLock<T>>,

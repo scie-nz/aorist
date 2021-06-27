@@ -555,7 +555,7 @@ macro_rules! define_constraint {
                         entrypoint: entrypoint.to_string(),
                         arg_functions: arg_functions.iter().map(|(x, y)| (x.iter().map(|x| x.to_string()).collect(), y.to_string())).collect(),
                         kwarg_functions: funs,
-                        dialect: Dialect::Python(Python::new(pip_requirements))
+                        dialect: Dialect::Python(aorist_core::Python::new(pip_requirements))
                     })
                 }
             }
@@ -565,9 +565,10 @@ macro_rules! define_constraint {
                     code: String,
                     entrypoint: String,
                     arg_functions: Vec<(Vec<String>, String)>,
-                    kwarg_functions: LinkedHashMap<String, (Vec<String>, String)>
+                    kwarg_functions: LinkedHashMap<String, (Vec<String>, String)>,
+                    dialect: Dialect,
                 ) -> Self {
-                    Self { code, entrypoint, arg_functions, kwarg_functions }
+                    Self { code, entrypoint, arg_functions, kwarg_functions, dialect }
                 }
                 fn get_arg_functions(&self) -> Vec<(Vec<String>, String)> {
                     self.arg_functions.clone()
@@ -1297,8 +1298,8 @@ macro_rules! register_constraint_new {
             }
             fn compute_args(
                 &self,
-                root: AoristRef<Concept>,
-                ancestry: &ConceptAncestry,
+                root: <Self::TAncestry as Ancestry>::TConcept,
+                ancestry: &Self::TAncestry,
             ) -> (String, String, ParameterTuple, Dialect) {
                 let gil = Python::acquire_gil();
                 let py = gil.python();

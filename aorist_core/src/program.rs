@@ -18,6 +18,7 @@ pub trait TProgram<'a, T: TConstraint<'a>> {
         entrypoint: String,
         arg_functions: Vec<(Vec<String>, String)>,
         kwarg_functions: LinkedHashMap<String, (Vec<String>, String)>,
+        dialect: Dialect,
     ) -> Self;
     fn get_arg_functions(&self) -> Vec<(Vec<String>, String)>;
     fn get_code(&self) -> String;
@@ -30,8 +31,8 @@ pub trait TOuterProgram: Clone {
     fn get_dialect(&self) -> Dialect;
     fn compute_args(
         &self,
-        root: AoristRef<Concept>,
-        ancestry: &ConceptAncestry,
+        root: <Self::TAncestry as Ancestry>::TConcept,
+        ancestry: &Self::TAncestry,
     ) -> (String, String, ParameterTuple, Dialect);
 }
 #[derive(Clone)]
