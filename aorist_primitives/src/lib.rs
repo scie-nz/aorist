@@ -569,6 +569,12 @@ macro_rules! define_constraint {
                 fn get_arg_functions(&self) -> Vec<(Vec<String>, String)> {
                     self.arg_functions.clone()
                 }
+                fn get_code(&self) -> String {
+                    self.code.clone()
+                }
+                fn get_entrypoint(&self) -> String {
+                    self.entrypoint.clone()
+                }
                 fn get_kwarg_functions(&self) -> LinkedHashMap<String, (Vec<String>, String)> {
                     self.kwarg_functions.clone()
                 }
@@ -1283,7 +1289,7 @@ macro_rules! register_constraint_new {
                 &self,
                 root: AoristRef<Concept>,
                 ancestry: &ConceptAncestry,
-            ) -> ParameterTuple {
+            ) -> (String, String, ParameterTuple, Dialect) {
                 let gil = Python::acquire_gil();
                 let py = gil.python();
                 //let mut args = Vec::new();
@@ -1310,7 +1316,13 @@ macro_rules! register_constraint_new {
                     let ast = AST::StringLiteral(StringLiteral::new_wrapped(extracted, false));
                     kwargs.insert(key.to_string(), ast);
                 }
-                ParameterTuple { args, kwargs }
+                (
+                    self.inner.get_code(),
+                    self.inner.get_entrypoint(), 
+                    ParameterTuple { args, kwargs }, 
+                    // TODO: this should be handled by self.inner.get_dialect()
+                    Dialect::Python(aorist_core::dialect::Python::new(vec![]))
+                )
             }
         }
         #[cfg(feature = "python")]
@@ -1325,6 +1337,20 @@ macro_rules! register_constraint_new {
                 match self {
                     $(
                         [<$name ProgramEnum>]::$element(x) => x.get_arg_functions(),
+                    )+
+                }
+            }
+            pub fn get_code(&self) -> String {
+                match self {
+                    $(
+                        [<$name ProgramEnum>]::$element(x) => x.get_code(),
+                    )+
+                }
+            }
+            pub fn get_entrypoint(&self) -> String {
+                match self {
+                    $(
+                        [<$name ProgramEnum>]::$element(x) => x.get_entrypoint(),
                     )+
                 }
             }
