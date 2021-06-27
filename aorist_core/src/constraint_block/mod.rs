@@ -8,19 +8,21 @@ use aorist_ast::AST;
 use linked_hash_set::LinkedHashSet;
 use std::collections::{BTreeSet, HashMap};
 use uuid::Uuid;
+use crate::program::{Program, TOuterProgram};
 
-pub trait ConstraintBlock<'a, T, C, U>
+pub trait ConstraintBlock<'a, T, C, U, P>
 where
     T: ETLFlow<U>,
     U: AoristUniverse,
     C: OuterConstraint<'a>, 
-    Self::C: CodeBlockWithDefaultConstructor<'a, T, C, U>,
+    P: TOuterProgram<TAncestry=C::TAncestry>,
+    Self::C: CodeBlockWithDefaultConstructor<'a, T, C, U, P>,
     Self::BuilderInputType: FlowBuilderInput<
-        PreambleType = <Self::C as CodeBlock<'a, T, C, U>>::P,
+        PreambleType = <Self::C as CodeBlock<'a, T, C, U, P>>::P,
         ImportType = T::ImportType,
     >,
 {
-    type C: CodeBlock<'a, T, C, U>;
+    type C: CodeBlock<'a, T, C, U, P>;
     type BuilderInputType;
 
     fn get_constraint_name(&self) -> String;

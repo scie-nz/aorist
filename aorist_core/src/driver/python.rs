@@ -20,9 +20,9 @@ use std::collections::{BTreeSet, HashMap};
 use std::marker::PhantomData;
 use std::sync::{Arc, RwLock};
 use uuid::Uuid;
-use crate::program::Program;
+use crate::program::{Program, TOuterProgram};
 
-pub struct PythonBasedDriver<'a, B, D, U, C, A>
+pub struct PythonBasedDriver<'a, B, D, U, C, A, P>
 where
     U: AoristConcept + AoristUniverse,
     B: TBuilder<'a, TEnum = C, TAncestry = A>,
@@ -36,6 +36,7 @@ where
     <<B as TBuilder<'a>>::OuterType as OuterConstraint<'a>>::TAncestry: Ancestry<TConcept = C>,
     <<<B as TBuilder<'a>>::OuterType as OuterConstraint<'a>>::TAncestry as Ancestry>::TConcept:
         TConceptEnum<TUniverse = U>,
+    P: TOuterProgram<TAncestry = A>,
 {
     pub concepts: Arc<RwLock<HashMap<(Uuid, String), C>>>,
     constraints: LinkedHashMap<(Uuid, String), Arc<RwLock<B::OuterType>>>,
@@ -47,9 +48,9 @@ where
     constraint_explanations: HashMap<String, (Option<String>, Option<String>)>,
     ancestors: HashMap<(Uuid, String), Vec<AncestorRecord>>,
     topline_constraint_names: LinkedHashSet<String>,
-    programs: LinkedHashMap<String, Vec<Program<'a, B::OuterType>>>,
+    programs: LinkedHashMap<String, Vec<P>>>,
 }
-impl<'a, B, D, U, C, A> Driver<'a, B, D, U, C, A> for PythonBasedDriver<'a, B, D, U, C, A>
+impl<'a, B, D, U, C, A, P> Driver<'a, B, D, U, C, A, P> for PythonBasedDriver<'a, B, D, U, C, A, P>
 where
     U: AoristConcept + AoristUniverse,
     B: TBuilder<'a, TEnum = C, TAncestry = A>,
@@ -63,10 +64,11 @@ where
     <<B as TBuilder<'a>>::OuterType as OuterConstraint<'a>>::TAncestry: Ancestry<TConcept = C>,
     <<<B as TBuilder<'a>>::OuterType as OuterConstraint<'a>>::TAncestry as Ancestry>::TConcept:
         TConceptEnum<TUniverse = U>,
+    P: TOuterProgram<TAncestry = A>,
 {
     type CB = PythonBasedConstraintBlock<'a, <D as FlowBuilderBase<U>>::T, B::OuterType, U>;
 
-    fn get_programs_for(&self, constraint_name: &String) -> Vec<Program<'a, B::OuterType>> {
+    fn get_programs_for(&self, constraint_name: &String) -> Vec<P> {
         self.programs.get(constraint_name).unwrap().iter().map(|x| (*x).clone()).collect()
     }
     fn get_preferences(&self) -> Vec<Dialect> {
@@ -141,7 +143,7 @@ where
         endpoints: U::TEndpoints,
         ancestors: HashMap<(Uuid, String), Vec<AncestorRecord>>,
         topline_constraint_names: LinkedHashSet<String>,
-        programs: LinkedHashMap<String, Vec<Program<'a, B::OuterType>>>,
+        programs: LinkedHashMap<String, Vec<P>>>,
     ) -> Self {
         Self {
             concepts,

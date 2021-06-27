@@ -12,14 +12,14 @@ use std::collections::{HashMap, HashSet};
 use std::sync::{Arc, RwLock};
 use tracing::{level_enabled, trace, Level};
 use uuid::Uuid;
-use crate::program::Program;
+use crate::program::{Program, TOuterProgram};
 
-pub struct ConstraintState<'a, T: OuterConstraint<'a>> {
+pub struct ConstraintState<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry=T::TAncestry>> {
     dialect: Option<Dialect>,
     pub key: Option<String>,
     name: String,
     pub satisfied: bool,
-    pub satisfied_dependencies: Vec<Arc<RwLock<ConstraintState<'a, T>>>>,
+    pub satisfied_dependencies: Vec<Arc<RwLock<ConstraintState<'a, T, P>>>>,
     pub unsatisfied_dependencies: LinkedHashSet<(Uuid, String)>,
     constraint: Arc<RwLock<T>>,
     root: <<T as OuterConstraint<'a>>::TAncestry as Ancestry>::TConcept,
@@ -31,7 +31,7 @@ pub struct ConstraintState<'a, T: OuterConstraint<'a>> {
     params: Option<ParameterTuple>,
     task_name: Option<String>,
 }
-impl<'a, T: OuterConstraint<'a>> ConstraintState<'a, T> {
+impl<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry=T::TAncestry>> ConstraintState<'a, T, P> {
     pub fn requires_program(&self) -> Result<bool> {
         self.constraint.read().unwrap().requires_program()
     }
@@ -157,7 +157,7 @@ impl<'a, T: OuterConstraint<'a>> ConstraintState<'a, T> {
         &mut self,
         preferences: &Vec<Dialect>,
         ancestry: &<T as OuterConstraint<'a>>::TAncestry,
-        programs: &Vec<Program<'a, T>>,
+        programs: &Vec<P>,
     ) {
         let root_clone = self.root.clone();
         let mut constraint = self.constraint.write().unwrap();
@@ -249,10 +249,10 @@ impl<'a, T: OuterConstraint<'a>> ConstraintState<'a, T> {
         }
     }
     pub fn shorten_task_names(
-        constraints: &LinkedHashMap<(Uuid, String), Arc<RwLock<ConstraintState<'a, T>>>>,
+        constraints: &LinkedHashMap<(Uuid, String), Arc<RwLock<ConstraintState<'a, T, P>>>>,
         existing_names: &mut HashSet<String>,
     ) {
-        let mut task_names: Vec<(String, Arc<RwLock<ConstraintState<'a, T>>>)> = Vec::new();
+        let mut task_names: Vec<(String, Arc<RwLock<ConstraintState<'a, T, P>>>)> = Vec::new();
         for constraint in constraints.values() {
             let mut write = constraint.write().unwrap();
             write.compute_task_key();

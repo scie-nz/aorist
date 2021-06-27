@@ -1279,6 +1279,7 @@ macro_rules! register_constraint_new {
             )+
         }
         #[pyclass]
+        #[derive(Clone)]
         pub struct [<$name Program>] {
             inner: [<$name ProgramEnum>],
         }

@@ -13,8 +13,9 @@ use std::collections::{BTreeSet, HashMap};
 use std::sync::{Arc, RwLock};
 use uuid::Uuid;
 use aorist_primitives::AoristUniverse;
+use crate::program::{Program, TOuterProgram};
 
-pub trait CodeBlock<'a, T, C, U>
+pub trait CodeBlock<'a, T, C, U, P>
 where
     C: OuterConstraint<'a>,
     Self::P: Preamble,
@@ -22,6 +23,7 @@ where
     Self: Sized,
     Self::E: ETLTask<T, U>,
     U: AoristUniverse,
+    P: TOuterProgram<TAncestry=C::TAncestry>,
 {
     type P;
     type E;
@@ -36,10 +38,10 @@ where
     /// assigns task values (Python variables in which they will be stored)
     /// to each member of the code block.
     fn compute_task_vals(
-        constraints: Vec<Arc<RwLock<ConstraintState<'a, C>>>>,
+        constraints: Vec<Arc<RwLock<ConstraintState<'a, C, P>>>>,
         constraint_name: &String,
         tasks_dict: &Option<AST>,
-    ) -> Vec<(AST, Arc<RwLock<ConstraintState<'a, C>>>)> {
+    ) -> Vec<(AST, Arc<RwLock<ConstraintState<'a, C, P>>>)> {
         let mut out = Vec::new();
         for rw in constraints.into_iter() {
             let read = rw.read().unwrap();
@@ -73,7 +75,7 @@ where
     fn get_params(&self) -> HashMap<String, Option<ParameterTuple>>;
 
     fn create_standalone_tasks(
-        members: Vec<Arc<RwLock<ConstraintState<'a, C>>>>,
+        members: Vec<Arc<RwLock<ConstraintState<'a, C, P>>>>,
         constraint_name: String,
         tasks_dict: Option<AST>,
         identifiers: &HashMap<Uuid, AST>,
@@ -114,12 +116,13 @@ pub trait CodeBlockWithDefaultConstructor<
     T,
     C: OuterConstraint<'a> ,
     U: AoristUniverse,
+    P: TOuterProgram<TAncestry=C::TAncestry>,
 > where
     T: ETLFlow<U>,
-    Self: CodeBlock<'a, T, C, U>,
+    Self: CodeBlock<'a, T, C, U, P>,
 {
     fn new(
-        members: Vec<Arc<RwLock<ConstraintState<'a, C>>>>,
+        members: Vec<Arc<RwLock<ConstraintState<'a, C, P>>>>,
         constraint_name: String,
         tasks_dict: Option<AST>,
         identifiers: &HashMap<Uuid, AST>,
@@ -130,12 +133,13 @@ pub trait CodeBlockWithForLoopCompression<
     T,
     C: OuterConstraint<'a>,
     U: AoristUniverse,
+    P: TOuterProgram<TAncestry=C::TAncestry>,
 > where
-    Self: CodeBlock<'a, T, C, U>,
+    Self: CodeBlock<'a, T, C, U, P>,
     T: ETLFlow<U>,
     Self: Sized,
-    <Self as CodeBlock<'a, T, C, U>>::E: CompressibleETLTask<T, U>,
-    <<Self as CodeBlock<'a, T, C, U>>::E as ETLTask<T, U>>::S: CompressibleTask,
+    <Self as CodeBlock<'a, T, C, U, P>>::E: CompressibleETLTask<T, U>,
+    <<Self as CodeBlock<'a, T, C, U, P>>::E as ETLTask<T, U>>::S: CompressibleTask,
 {
     fn run_task_compressions(
         compressible: LinkedHashMap<
@@ -168,15 +172,15 @@ pub trait CodeBlockWithForLoopCompression<
         (compressible, uncompressible)
     }
 }
-impl<'a, C, T: ETLFlow<U>, CType: OuterConstraint<'a>, U: AoristUniverse> 
-    CodeBlockWithDefaultConstructor<'a, T, CType, U> for C
+impl<'a, C, T: ETLFlow<U>, CType: OuterConstraint<'a>, U: AoristUniverse, P: TOuterProgram<TAncestry=CType::TAncestry>> 
+    CodeBlockWithDefaultConstructor<'a, T, CType, U, P> for C
 where
-    Self: CodeBlockWithForLoopCompression<'a, T, CType, U>,
-    <Self as CodeBlock<'a, T, CType, U>>::E: CompressibleETLTask<T, U>,
-    <<Self as CodeBlock<'a, T, CType, U>>::E as ETLTask<T, U>>::S: CompressibleTask,
+    Self: CodeBlockWithForLoopCompression<'a, T, CType, U, P>,
+    <Self as CodeBlock<'a, T, CType, U, P>>::E: CompressibleETLTask<T, U>,
+    <<Self as CodeBlock<'a, T, CType, U, P>>::E as ETLTask<T, U>>::S: CompressibleTask,
 {
     fn new(
-        members: Vec<Arc<RwLock<ConstraintState<'a, CType>>>>,
+        members: Vec<Arc<RwLock<ConstraintState<'a, CType, P>>>>,
         constraint_name: String,
         tasks_dict: Option<AST>,
         identifiers: &HashMap<Uuid, AST>,
