@@ -528,6 +528,7 @@ macro_rules! define_constraint {
             #[pyclass]
             #[derive(Clone)]
             pub struct [<$element Program>] {
+                pub dialect: Dialect,
                 pub code: String,
                 pub entrypoint: String,
                 pub arg_functions: Vec<(Vec<String>, String)>,
@@ -537,11 +538,12 @@ macro_rules! define_constraint {
             #[pymethods]
             impl $element {
                 #[staticmethod]
-                pub fn register_program(
+                pub fn register_python_program(
                     code: &str,
                     entrypoint: &str,
                     arg_functions: Vec<(Vec<&str>, &str)>,
                     kwarg_functions: HashMap<&str, (Vec<&str>, &str)>, 
+                    pip_requirements: Vec<String>,
                 ) -> PyResult<[<$element Program>]> {
                     
                     let mut funs: LinkedHashMap<String, (Vec<String>, String)> = LinkedHashMap::new();
@@ -553,6 +555,7 @@ macro_rules! define_constraint {
                         entrypoint: entrypoint.to_string(),
                         arg_functions: arg_functions.iter().map(|(x, y)| (x.iter().map(|x| x.to_string()).collect(), y.to_string())).collect(),
                         kwarg_functions: funs,
+                        dialect: Dialect::Python(Python::new(pip_requirements))
                     })
                 }
             }
@@ -571,6 +574,9 @@ macro_rules! define_constraint {
                 }
                 fn get_code(&self) -> String {
                     self.code.clone()
+                }
+                fn get_dialect(&self) -> Dialect {
+                    self.dialect.clone()
                 }
                 fn get_entrypoint(&self) -> String {
                     self.entrypoint.clone()
@@ -1286,6 +1292,9 @@ macro_rules! register_constraint_new {
         #[cfg(feature = "python")]
         impl TOuterProgram for [<$name Program>] {
             type TAncestry = ConceptAncestry;
+            fn get_dialect(&self) -> Dialect {
+                self.inner.get_dialect()
+            }
             fn compute_args(
                 &self,
                 root: AoristRef<Concept>,
@@ -1338,6 +1347,13 @@ macro_rules! register_constraint_new {
                 match self {
                     $(
                         [<$name ProgramEnum>]::$element(x) => x.get_arg_functions(),
+                    )+
+                }
+            }
+            pub fn get_dialect(&self) -> Dialect {
+                match self {
+                    $(
+                        [<$name ProgramEnum>]::$element(x) => x.get_dialect(),
                     )+
                 }
             }
