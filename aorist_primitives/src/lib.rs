@@ -509,6 +509,14 @@ macro_rules! define_constraint {
                 root_uuid: Uuid,
                 $([<$required:snake:lower>] : Vec<Arc<RwLock<$outer>>>,)*
             }
+            #[cfg(feature = "python")]
+            #[pymethods]
+            impl $element {
+                #[classattr]
+                pub fn name() -> String {
+                    stringify!($element).to_string()
+                }
+            }
             pub trait $satisfy_type<'a> : ConstraintSatisfactionBase<'a, ConstraintType=$element, RootType=$root> {
                 type Dialect;
 

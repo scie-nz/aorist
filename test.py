@@ -130,6 +130,8 @@ print(location)
 from aorist import *
 from recipes import programs
 
+print(programs)
+
 dag(
     universe, 
     ["DownloadDataFromRemotePushshiftAPILocationToNewlineDelimitedJSON"], 

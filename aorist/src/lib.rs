@@ -10,7 +10,7 @@ use pyo3::wrap_pyfunction;
 
 #[pyfunction]
 pub fn dag<'a>(
-    universe: AoristRef<Universe>,
+    universe: PyUniverse,
     constraints: Vec<String>,
     mode: &str,
     programs: BTreeMap<String, Vec<AoristConstraintProgram>>,
@@ -27,7 +27,7 @@ pub fn dag<'a>(
             ConceptAncestry,
             AoristConstraintProgram,
         >::new(
-            universe,
+            universe.inner.clone(),
             constraints.into_iter().collect(),
             programs.into_iter().collect(),
         )
@@ -41,7 +41,7 @@ pub fn dag<'a>(
             ConceptAncestry,
             AoristConstraintProgram,
         >::new(
-            universe,
+            universe.inner.clone(),
             constraints.into_iter().collect(),
             programs.into_iter().collect(),
         )
@@ -55,7 +55,7 @@ pub fn dag<'a>(
             ConceptAncestry,
             AoristConstraintProgram,
         >::new(
-            universe,
+            universe.inner.clone(),
             constraints.into_iter().collect(),
             programs.into_iter().collect(),
         )
@@ -69,7 +69,7 @@ pub fn dag<'a>(
             ConceptAncestry,
             AoristConstraintProgram,
         >::new(
-            universe,
+            universe.inner.clone(),
             constraints.into_iter().collect(),
             programs.into_iter().collect(),
         )
@@ -181,6 +181,7 @@ fn libaorist(py: pyo3::prelude::Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<PyTrainedFloatMeasure>()?;
     m.add_class::<PyPredictionsFromTrainedFloatMeasure>()?;
     m.add_class::<ConceptAncestry>()?;
+    m.add_class::<AoristConstraintProgram>()?;
     m.add_wrapped(wrap_pyfunction!(dag))?;
     Ok(())
 }
