@@ -14,7 +14,6 @@ sql = ["sqlformat", "sqlparser"]
 [lib]
 name = "aorist_constraint"
 path = "src/lib.rs"
-crate-type = ["cdylib"]
 
 [dependencies]
 serde = { version = "1.0", features = ["derive"] }

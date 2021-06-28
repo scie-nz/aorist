@@ -2,21 +2,35 @@ use pyo3::prelude::*;
 use aorist_util::init_logging;
 use aorist_core::*;
 use aorist_attributes::attributes_module;
-use aorist_constraints::*;
+use aorist_constraint::*;
+use std::collections::BTreeMap;
 
 #[pyfunction]
-pub fn dag(universe: AoristRef<Universe>, constraints: Vec<String>, mode: &str) -> PyResult<String> {
+pub fn dag<'a>(
+    universe: AoristRef<Universe>,
+    constraints: Vec<String>,
+    mode: &str,
+    programs: BTreeMap<String, Vec<AoristConstraintProgram>>,
+) -> PyResult<String> {
     //extendr_engine::start_r();
     //let mut universe = Universe::from(inner);
     //universe.compute_uuids();
     let (output, _requirements) = match mode {
-        "airflow" => PythonBasedDriver::<ConstraintBuilder, AirflowFlowBuilder>::new(
-            &universe,
+        "airflow" => PythonBasedDriver::<
+            AoristConstraintBuilder<'a>,
+            AirflowFlowBuilder<AoristRef<Universe>>,
+            AoristRef<Universe>,
+            AoristRef<Concept>,
+            ConceptAncestry,
+            AoristConstraintProgram,
+        >::new(
+            universe,
             constraints.into_iter().collect(),
+            programs.into_iter().collect(),
         )
         .map_err(|e| pyo3::exceptions::PyException::new_err(e.to_string()))?
         .run(),
-        "prefect" => PythonBasedDriver::<ConstraintBuilder, PrefectFlowBuilder>::new(
+        /*"prefect" => PythonBasedDriver::<ConstraintBuilder, PrefectFlowBuilder>::new(
             &universe,
             constraints.into_iter().collect(),
         )
@@ -34,7 +48,7 @@ pub fn dag(universe: AoristRef<Universe>, constraints: Vec<String>, mode: &str) 
         )
         .map_err(|e| pyo3::exceptions::PyException::new_err(e.to_string()))?
         .run(),
-        /*"r" => RBasedDriver::<ConstraintBuilder, RBasedFlowBuilder>::new(&universe, constraints.into_iter().collect())
+        "r" => RBasedDriver::<ConstraintBuilder, RBasedFlowBuilder>::new(&universe, constraints.into_iter().collect())
             .map_err(|e| pyo3::exceptions::PyException::new_err(e.to_string()))?
             .run(),*/
         _ => panic!("Unknown mode provided: {}", mode),
@@ -128,14 +142,6 @@ fn libaorist(py: pyo3::prelude::Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<PyUser>()?;
     m.add_class::<PyUserGroup>()?;
     m.add_class::<PyEndpointConfig>()?;
-    m.add_class::<PyAWSConfig>()?;
-    m.add_class::<PyGCPConfig>()?;
-    m.add_class::<PyGiteaConfig>()?;
-    m.add_class::<PyPostgresConfig>()?;
-    m.add_class::<PyAlluxioConfig>()?;
-    m.add_class::<PyRangerConfig>()?;
-    m.add_class::<PyPrestoConfig>()?;
-    m.add_class::<PyMinioConfig>()?;
     m.add_class::<PyTrainedFloatMeasure>()?;
     m.add_class::<PyPredictionsFromTrainedFloatMeasure>()?;
     m.add_class::<ConceptAncestry>()?;
