@@ -4,6 +4,7 @@ use aorist_core::*;
 use aorist_attributes::attributes_module;
 use aorist_constraint::*;
 use std::collections::BTreeMap;
+use aorist_primitives::*;
 
 #[pyfunction]
 pub fn dag<'a>(
@@ -85,6 +86,14 @@ pub fn dag<'a>(
 fn libaorist(py: pyo3::prelude::Python, m: &PyModule) -> PyResult<()> {
     init_logging();
     attributes_module(py, m)?;
+    m.add_class::<AlluxioConfig>()?;
+    m.add_class::<AWSConfig>()?;
+    m.add_class::<GCPConfig>()?;
+    m.add_class::<GiteaConfig>()?;
+    m.add_class::<RangerConfig>()?;
+    m.add_class::<PrestoConfig>()?;
+    m.add_class::<PostgresConfig>()?;
+    m.add_class::<MinioConfig>()?;
     m.add_class::<PyAccessPolicy>()?;
     m.add_class::<PyApproveAccessSelector>()?;
     m.add_class::<PyRegressionAlgorithm>()?;

@@ -144,7 +144,7 @@ from recipes import programs
         "bucket": lambda s3location : s3location.bucket,
         "schema": lambda data_set : data_set.name,
         "tmp_dir": lambda replication_storage_setup : replication_storage_setup.tmp_dir,
-        "source_file": lambda (data_set, static_data_table) : "%s_%s" % (
+        "source_file": lambda data_set, static_data_table : "%s_%s" % (
             ancestry.data_set.name,
             ancestry.static_data_table.name,
         )
