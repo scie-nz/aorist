@@ -30,25 +30,49 @@ pub fn dag<'a>(
         )
         .map_err(|e| pyo3::exceptions::PyException::new_err(e.to_string()))?
         .run(),
-        /*"prefect" => PythonBasedDriver::<ConstraintBuilder, PrefectFlowBuilder>::new(
-            &universe,
+        "prefect" => PythonBasedDriver::<
+            AoristConstraintBuilder<'a>,
+            PrefectFlowBuilder<AoristRef<Universe>>,
+            AoristRef<Universe>,
+            AoristRef<Concept>,
+            ConceptAncestry,
+            AoristConstraintProgram,
+        >::new(
+            universe,
             constraints.into_iter().collect(),
+            programs.into_iter().collect(),
         )
         .map_err(|e| pyo3::exceptions::PyException::new_err(e.to_string()))?
         .run(),
-        "python" => PythonBasedDriver::<ConstraintBuilder, PythonFlowBuilder>::new(
-            &universe,
+        "python" => PythonBasedDriver::<
+            AoristConstraintBuilder<'a>,
+            PythonFlowBuilder<AoristRef<Universe>>,
+            AoristRef<Universe>,
+            AoristRef<Concept>,
+            ConceptAncestry,
+            AoristConstraintProgram,
+        >::new(
+            universe,
             constraints.into_iter().collect(),
+            programs.into_iter().collect(),
         )
         .map_err(|e| pyo3::exceptions::PyException::new_err(e.to_string()))?
         .run(),
-        "jupyter" => PythonBasedDriver::<ConstraintBuilder, JupyterFlowBuilder>::new(
-            &universe,
+        "jupyter" => PythonBasedDriver::<
+            AoristConstraintBuilder<'a>,
+            JupyterFlowBuilder<AoristRef<Universe>>,
+            AoristRef<Universe>,
+            AoristRef<Concept>,
+            ConceptAncestry,
+            AoristConstraintProgram,
+        >::new(
+            universe,
             constraints.into_iter().collect(),
+            programs.into_iter().collect(),
         )
         .map_err(|e| pyo3::exceptions::PyException::new_err(e.to_string()))?
         .run(),
-        "r" => RBasedDriver::<ConstraintBuilder, RBasedFlowBuilder>::new(&universe, constraints.into_iter().collect())
+        /*"r" => RBasedDriver::<ConstraintBuilder, RBasedFlowBuilder>::new(&universe, constraints.into_iter().collect())
             .map_err(|e| pyo3::exceptions::PyException::new_err(e.to_string()))?
             .run(),*/
         _ => panic!("Unknown mode provided: {}", mode),

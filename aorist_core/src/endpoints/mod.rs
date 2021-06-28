@@ -4,7 +4,7 @@ use aorist_primitives::{
     AoristConcept, ConceptEnum,
     PrestoConfig, AlluxioConfig, RangerConfig,
     GiteaConfig, MinioConfig, PostgresConfig,
-    GCPConfig, AWSConfig,
+    GCPConfig, AWSConfig, TPrestoEndpoints,
 };
 use derivative::Derivative;
 use paste::paste;
@@ -24,4 +24,10 @@ pub struct EndpointConfig {
     pub postgres: Option<PostgresConfig>,
     pub gcp: Option<GCPConfig>,
     pub aws: Option<AWSConfig>,
+}
+
+impl TPrestoEndpoints for EndpointConfig {
+    fn presto_config(&self) -> PrestoConfig {
+        self.presto.as_ref().unwrap().clone()
+    }
 }
