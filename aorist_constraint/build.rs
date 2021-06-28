@@ -11,6 +11,33 @@ use indoc::formatdoc;
 
 type ConstraintTuple = (String, String, Option<String>, Option<String>);
 
+fn process_constraints_py(raw_objects: &Vec<HashMap<String, Value>>) {
+    let constraints = get_raw_objects_of_type(raw_objects, "Constraint".into());
+    let mut scope_py = Scope::new();
+    scope_py.import("pyo3::prelude", "*");
+    scope_py.import("crate::constraint", "*");
+    let mut fun = scope_py.new_fn("constraints_module")
+        .vis("pub")
+        .ret(
+            "PyResult<()>"
+        ).arg(
+            "_py", 
+            "Python",
+        ).arg(
+            "m", "&PyModule",
+        );
+    for attribute in constraints {
+        let name = attribute.get("name").unwrap().as_str().unwrap().to_string();
+        let export = format!(
+            "m.add_class::<{}>().unwrap();", name,
+        );
+        fun.line(&export);
+    }
+    let out_dir = env::var_os("OUT_DIR").unwrap();
+    let dest_path_py = Path::new(&out_dir).join("python.rs");
+    fun.line("Ok(())");
+    fs::write(&dest_path_py, scope_py.to_string()).unwrap();
+}
 fn get_constraint_dependencies(
     constraints: &Vec<HashMap<String, Value>>,
 ) -> HashMap<ConstraintTuple, Vec<String>> {
@@ -258,4 +285,5 @@ fn process_constraints(raw_objects: &Vec<HashMap<String, Value>>) {
 fn main() {
     let raw_objects = read_file("constraints.yaml");
     process_constraints(&raw_objects);
+    process_constraints_py(&raw_objects);
 }

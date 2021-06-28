@@ -7,13 +7,13 @@ programs = {}
     UploadDataToS3,
     entrypoint="upload_to_s3",
     args={
-        "access_key": lambda lng: lng.universe.endpoints.aws.access_key_id,
-        "secret_key": lambda lng: lng.universe.endpoints.aws.access_key_secret,
-        "bucket": lambda lng: lng.s3_location.bucket,
-        "schema": lambda lng: lng.data_set.name,
-        "tablename": lambda lng: lng.format!("{}_csv", static_data_table.name),
-        "tmp_dir": lambda lng: lng.replication_storage_setup.tmp_dir,
-        "source_file": lambda lng: lng.format!("{}/{}/data.csv", data_set.name, static_data_table.name),
+        "access_key": lambda universe: universe.endpoints.aws.access_key_id,
+        "secret_key": lambda universe: universe.endpoints.aws.access_key_secret,
+        "bucket": lambda s3_location: s3_location.bucket,
+        "schema": lambda data_set: data_set.name,
+        "tablename": lambda static_data_table: "{}_csv".format(static_data_table.name),
+        "tmp_dir": lambda replication_storage_setup: replication_storage_setup.tmp_dir,
+        "source_file": lambda data_set, static_data_table: "{}/{}/data.csv".format(data_set.name, static_data_table.name),
     },
 )
 def recipe(access_key, secret_key, bucket, schema, tablename, tmp_dir, source_file):

@@ -8,8 +8,8 @@ programs = {}
     DownloadDataFromRemotePushshiftAPILocationToNewlineDelimitedJSON,
     entrypoint="download_subreddit",
     args={
-        "subreddit": lambda lng: lng.pushshift_api_location.subreddit,
-        "tmp_dir": lambda lng: lng.replication_storage_setup.tmp_dir,
+        "subreddit": lambda pushshift_api_location: pushshift_api_location.subreddit,
+        "tmp_dir": lambda replication_storage_setup: replication_storage_setup.tmp_dir,
     },
 )
 def recipe(subreddit, tmp_dir):

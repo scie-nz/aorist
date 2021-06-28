@@ -130,39 +130,44 @@ print(location)
 from aorist import *
 from recipes import programs
 
-
-
-@aorist(
-    programs,
-    # DUMMY
-    UploadDataToS3,
-    entrypoint="upload_to_s3",
-    args={
-        "access_key": lambda universe : universe.endpoints.access_key_id, 
-        "secret_key": lambda universe : universe.endpoints.access_key_secret, 
-        "table_name": lambda data_set : data_set.name + ".csv",
-        "bucket": lambda s3location : s3location.bucket,
-        "schema": lambda data_set : data_set.name,
-        "tmp_dir": lambda replication_storage_setup : replication_storage_setup.tmp_dir,
-        "source_file": lambda data_set, static_data_table : "%s_%s" % (
-            ancestry.data_set.name,
-            ancestry.static_data_table.name,
-        )
-    }
+dag(
+    universe, 
+    ["DownloadDataFromRemotePushshiftAPILocationToNewlineDelimitedJSON"], 
+    "python", 
+    programs
 )
-def recipe():
-    import logging
-    import boto3
-    from botocore.exceptions import ClientError
 
-    def upload_to_s3(access_key, secret_key, bucket, schema, tablename, tmp_dir, source_file):
-        client = boto3.client(
-            's3',
-            aws_access_key_id=access_key,
-            aws_secret_access_key=secret_key,
-        )
-        source_path = tmp_dir + "/" + source_file
-        dest_path = schema + '/' + tablename + '/data.csv'
-        response = client.upload_file(source_path, bucket, dest_path)
-
-print(programs)
+# @aorist(
+#     programs,
+#     # DUMMY
+#     UploadDataToS3,
+#     entrypoint="upload_to_s3",
+#     args={
+#         "access_key": lambda universe : universe.endpoints.access_key_id, 
+#         "secret_key": lambda universe : universe.endpoints.access_key_secret, 
+#         "table_name": lambda data_set : data_set.name + ".csv",
+#         "bucket": lambda s3location : s3location.bucket,
+#         "schema": lambda data_set : data_set.name,
+#         "tmp_dir": lambda replication_storage_setup : replication_storage_setup.tmp_dir,
+#         "source_file": lambda data_set, static_data_table : "%s_%s" % (
+#             ancestry.data_set.name,
+#             ancestry.static_data_table.name,
+#         )
+#     }
+# )
+# def recipe():
+#     import logging
+#     import boto3
+#     from botocore.exceptions import ClientError
+# 
+#     def upload_to_s3(access_key, secret_key, bucket, schema, tablename, tmp_dir, source_file):
+#         client = boto3.client(
+#             's3',
+#             aws_access_key_id=access_key,
+#             aws_secret_access_key=secret_key,
+#         )
+#         source_path = tmp_dir + "/" + source_file
+#         dest_path = schema + '/' + tablename + '/data.csv'
+#         response = client.upload_file(source_path, bucket, dest_path)
+# 
+# print(programs)

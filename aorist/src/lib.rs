@@ -2,9 +2,11 @@ use pyo3::prelude::*;
 use aorist_util::init_logging;
 use aorist_core::*;
 use aorist_attributes::attributes_module;
+use aorist_constraint::constraints_module;
 use aorist_constraint::*;
 use std::collections::BTreeMap;
 use aorist_primitives::*;
+use pyo3::wrap_pyfunction;
 
 #[pyfunction]
 pub fn dag<'a>(
@@ -86,6 +88,7 @@ pub fn dag<'a>(
 fn libaorist(py: pyo3::prelude::Python, m: &PyModule) -> PyResult<()> {
     init_logging();
     attributes_module(py, m)?;
+    constraints_module(py, m)?;
     m.add_class::<AlluxioConfig>()?;
     m.add_class::<AWSConfig>()?;
     m.add_class::<GCPConfig>()?;
@@ -178,5 +181,6 @@ fn libaorist(py: pyo3::prelude::Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<PyTrainedFloatMeasure>()?;
     m.add_class::<PyPredictionsFromTrainedFloatMeasure>()?;
     m.add_class::<ConceptAncestry>()?;
+    m.add_wrapped(wrap_pyfunction!(dag))?;
     Ok(())
 }
