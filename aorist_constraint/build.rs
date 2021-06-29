@@ -15,7 +15,6 @@ fn process_constraints_py(raw_objects: &Vec<HashMap<String, Value>>) {
     let constraints = get_raw_objects_of_type(raw_objects, "Constraint".into());
     let mut scope_py = Scope::new();
     scope_py.import("pyo3::prelude", "*");
-    scope_py.import("crate::constraint", "*");
     let mut fun = scope_py.new_fn("constraints_module")
         .vis("pub")
         .ret(

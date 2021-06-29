@@ -10,6 +10,9 @@ use paste::paste;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
 use uuid::Uuid;
+use std::sync::{Arc, RwLock};
+use crate::storage::Storage;
+use crate::encoding::Encoding;
 
 #[aorist]
 pub struct SupervisedModel {
@@ -31,5 +34,28 @@ impl TAsset for SupervisedModel {
     }
     fn get_storage_setup(&self) -> AoristRef<StorageSetup> {
         self.setup.clone()
+    }
+}
+impl SupervisedModel {
+    pub fn replicate_to_local(
+        &self,
+        t: AoristRef<Storage>,
+        tmp_dir: String,
+        tmp_encoding: AoristRef<Encoding>,
+    ) -> Self {
+        Self {
+            name: self.name.clone(),
+            setup: AoristRef(Arc::new(RwLock::new(
+                self.setup
+                    .0
+                    .read()
+                    .unwrap()
+                    .replicate_to_local(t, tmp_dir, tmp_encoding),
+            ))),
+            schema: self.schema.clone(),
+            algorithm: self.algorithm.clone(),
+            tag: self.tag.clone(),
+            uuid: None,
+        }
     }
 }

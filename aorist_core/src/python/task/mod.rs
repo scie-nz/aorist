@@ -6,8 +6,6 @@ mod uncompressible;
 pub use compressed::*;
 pub use standalone::*;
 
-use crate::concept::AoristRef;
-use crate::endpoints::EndpointConfig;
 use crate::flow::{CompressibleETLTask, ETLFlow, ETLTask, TaskBase};
 use crate::python::{PythonImport, PythonPreamble, AST};
 use aorist_primitives::AoristUniverse;

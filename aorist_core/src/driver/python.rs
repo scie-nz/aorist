@@ -1,13 +1,10 @@
 #![allow(dead_code)]
-use crate::concept::{Concept, ConceptAncestry};
-use crate::constraint_block::ConstraintBlock;
 use crate::constraint_state::ConstraintState;
 use crate::dialect::{Bash, Dialect, Presto, Python};
 use crate::driver::{ConstraintsBlockMap, Driver};
-use crate::endpoints::EndpointConfig;
-use crate::flow::{ETLFlow, FlowBuilderBase, FlowBuilderMaterialize, PythonBasedFlowBuilder};
+use crate::flow::{ETLFlow, FlowBuilderBase, PythonBasedFlowBuilder};
 use crate::python::{
-    PythonBasedConstraintBlock, PythonFlowBuilderInput, PythonImport, PythonPreamble,
+    PythonBasedConstraintBlock, PythonImport, PythonPreamble,
 };
 use anyhow::Result;
 use aorist_ast::AncestorRecord;
@@ -20,7 +17,7 @@ use std::collections::{BTreeSet, HashMap};
 use std::marker::PhantomData;
 use std::sync::{Arc, RwLock};
 use uuid::Uuid;
-use crate::program::{Program, TOuterProgram};
+use crate::program::{TOuterProgram};
 
 pub struct PythonBasedDriver<'a, B, D, U, C, A, P>
 where
@@ -69,7 +66,10 @@ where
     type CB = PythonBasedConstraintBlock<'a, <D as FlowBuilderBase<U>>::T, B::OuterType, U, P>;
 
     fn get_programs_for(&self, constraint_name: &String) -> Vec<P> {
-        self.programs.get(constraint_name).unwrap().iter().map(|x| (*x).clone()).collect()
+        match self.programs.get(constraint_name) {
+            Some(ref programs) => programs.iter().map(|x| (*x).clone()).collect(),
+            None => panic!("Cannot find program for {}", constraint_name),
+        }
     }
     fn get_preferences(&self) -> Vec<Dialect> {
         vec![

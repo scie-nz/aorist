@@ -1,12 +1,9 @@
 pub use crate::universe::*;
-use aorist_concept::{aorist, Constrainable};
 pub use aorist_primitives::{register_concept, Ancestry, AoristConcept, ConceptEnum, TConceptEnum, AoristUniverse};
-use derivative::Derivative;
-use paste::paste;
 #[cfg(feature = "python")]
 use pyo3::prelude::*;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
-use std::collections::{BTreeSet, HashMap};
+use std::collections::{HashMap};
 use std::convert::TryFrom;
 use std::fmt::{Debug, Formatter};
 use std::hash::{Hash, Hasher};

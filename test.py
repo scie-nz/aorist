@@ -1,5 +1,8 @@
 import inspect
 from aorist.target.debug.libaorist import *
+from recipes import programs
+
+print(programs)
 
 def default_tabular_schema(datum, template_name):
     return DataSchema(TabularSchema(
@@ -66,7 +69,6 @@ subreddit_datum = RowStruct(
     name="subreddit",
     attributes=attributes,
 )
-print(attributes)
 tmp_dir = "tmp/subreddits"
 local = BigQueryStorage(
     location=BigQueryLocation(),
@@ -94,7 +96,7 @@ assets = {x: StaticDataTable(
         )),
     )),
     tag=x,
-    ) for x in subreddits[:1]}
+    ) for x in subreddits}
 
 subreddits = DataSet(
     name="subreddits",
@@ -106,7 +108,8 @@ subreddits = DataSet(
     },
     access_policies=[],
 )
-subreddits.replicate_to_local(Storage(local), tmp_dir, Encoding(CSVEncoding()))
+subreddits = subreddits.replicate_to_local(Storage(local), tmp_dir, Encoding(CSVEncoding()))
+print(subreddits)
 universe = Universe(
     name="my_cluster",
     datasets=[subreddits],
@@ -128,16 +131,14 @@ location = RemoteLocation(pushshift)
 print(location)
 
 from aorist import *
-from recipes import programs
 
-print(programs)
-
-dag(
+result = dag(
     universe, 
     ["DownloadDataFromRemotePushshiftAPILocationToNewlineDelimitedJSON"], 
     "python", 
     programs
 )
+print(result)
 
 # @aorist(
 #     programs,

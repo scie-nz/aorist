@@ -1,7 +1,5 @@
 use crate::code::{CodeBlock, CodeBlockWithForLoopCompression};
-use crate::concept::AoristRef;
 use crate::constraint::OuterConstraint;
-use crate::endpoints::EndpointConfig;
 use crate::flow::{CompressibleTask, ETLFlow, ETLTask, ForLoopCompressedTask};
 use crate::parameter_tuple::ParameterTuple;
 use crate::python::{
@@ -15,7 +13,7 @@ use std::marker::PhantomData;
 use tracing::trace;
 use uuid::Uuid;
 use aorist_primitives::AoristUniverse;
-use crate::program::{Program, TOuterProgram};
+use crate::program::{TOuterProgram};
 
 pub struct PythonBasedCodeBlock<'a, T, C, U, P>
 where

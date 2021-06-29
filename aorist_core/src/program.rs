@@ -1,16 +1,9 @@
 use aorist_primitives::Ancestry;
 use crate::dialect::Dialect;
-use crate::concept::{ConceptAncestry, Concept, AoristRef};
 use crate::constraint::{OuterConstraint, TConstraint};
 use std::marker::PhantomData;
 use linked_hash_map::LinkedHashMap;  
 use crate::parameter_tuple::ParameterTuple;
-#[cfg(feature = "python")]
-use pyo3::prelude::*;
-#[cfg(feature = "python")]
-use pyo3::types::PyString; 
-#[cfg(feature = "python")]
-use pyo3::pycell::PyCell;
 
 pub trait TProgram<'a, T: TConstraint<'a>> {
     fn new(

@@ -12,7 +12,7 @@ use std::collections::{HashMap, HashSet};
 use std::sync::{Arc, RwLock};
 use tracing::{level_enabled, trace, Level};
 use uuid::Uuid;
-use crate::program::{Program, TOuterProgram};
+use crate::program::{TOuterProgram};
 
 pub struct ConstraintState<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry=T::TAncestry>> {
     dialect: Option<Dialect>,
@@ -173,8 +173,6 @@ impl<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry=T::TAncestry>> Const
         ancestry: &<T as OuterConstraint<'a>>::TAncestry,
         programs: &Vec<P>,
     ) {
-        let root_clone = self.root.clone();
-        let mut constraint = self.constraint.write().unwrap();
         let best_program = Self::find_best_program(preferences, programs);
         if let Some(program) = best_program {
             let (preamble, call, params, dialect) = program.compute_args(self.root.clone(), ancestry);

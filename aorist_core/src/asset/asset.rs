@@ -10,6 +10,9 @@ use paste::paste;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
 use uuid::Uuid;
+use std::sync::{Arc, RwLock};
+use crate::encoding::Encoding;
+use crate::storage::Storage;
 
 #[aorist]
 pub enum Asset {
@@ -63,6 +66,32 @@ impl Asset {
             Asset::StaticDataTable(x) => x.0.read().unwrap().setup.clone(),
             Asset::SupervisedModel(x) => x.0.read().unwrap().setup.clone(),
             Asset::DerivedAsset(x) => x.0.read().unwrap().setup.clone(),
+        }
+    }
+    pub fn replicate_to_local(
+        &self,
+        t: AoristRef<Storage>,
+        tmp_dir: String,
+        tmp_encoding: AoristRef<Encoding>,
+    ) -> Self {
+        match self {
+            Asset::StaticDataTable(x) => {
+                Asset::StaticDataTable(AoristRef(Arc::new(RwLock::new(
+                    x.0.read().unwrap().replicate_to_local(
+                        t, 
+                        tmp_dir, 
+                        tmp_encoding
+                    )
+                ))))
+            }
+            Asset::SupervisedModel(x) => {
+                Asset::SupervisedModel(AoristRef(Arc::new(RwLock::new(
+                    x.0.read().unwrap().replicate_to_local(t, tmp_dir, tmp_encoding)
+                ))))
+            }
+            Asset::DerivedAsset(_) => panic!(
+                "DerivedAssets are already stored locally, they cannot be replicated to local"
+            ),
         }
     }
 }

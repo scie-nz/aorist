@@ -2,8 +2,6 @@
 
 mod concept;
 pub use concept::*;
-mod constraint;
-pub use constraint::*;
 mod endpoints;
 pub use endpoints::*;
 
@@ -1299,6 +1297,14 @@ macro_rules! register_constraint_new {
             inner: [<$name ProgramEnum>],
         }
         #[cfg(feature = "python")]
+        #[pymethods]
+        impl [<$name Program>] {
+            #[new]
+            fn new(inner: [<$name ProgramEnum>]) -> Self {
+                Self { inner }
+            }
+        }
+        #[cfg(feature = "python")]
         impl TOuterProgram for [<$name Program>] {
             type TAncestry = ConceptAncestry;
             fn get_dialect(&self) -> Dialect {
@@ -1327,6 +1333,7 @@ macro_rules! register_constraint_new {
                 }
                 for (key, (input_types, serialized)) in &self.inner.get_kwarg_functions() {
                     let py_arg = PyString::new(py, &serialized);
+                    let py_arg = py_arg.call_method1("encode", ("latin-1",)).unwrap();
                     let deserialized = dill.call1("loads", (py_arg,)).unwrap();
                     let objects = input_types.iter().map(|x| ancestry.py_object(x, root.clone(), py).unwrap()).collect::<Vec<_>>().to_object(py);
                     let arg = deserialized.call1((objects,)).unwrap();

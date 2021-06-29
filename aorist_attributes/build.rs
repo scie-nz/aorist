@@ -1,5 +1,5 @@
 use aorist_util::{get_raw_objects_of_type, read_file};
-use codegen::{Scope, Function};
+use codegen::{Scope};
 use serde_yaml::Value;
 use std::collections::{HashMap, HashSet};
 use std::env;
@@ -7,15 +7,10 @@ use std::fs;
 use std::fs::OpenOptions;
 use std::path::Path;
 
-#[cfg(feature = "python")]
-use pyo3::prelude::*;
-
 fn process_attributes_py(raw_objects: &Vec<HashMap<String, Value>>) {
     let attributes = get_raw_objects_of_type(raw_objects, "Attribute".into());
     let mut scope_py = Scope::new();
-    scope_py.import("pyo3::prelude", "*");
-    scope_py.import("crate::attributes", "*");
-    let mut fun = scope_py.new_fn("attributes_module")
+    let fun = scope_py.new_fn("attributes_module")
         .vis("pub")
         .ret(
             "PyResult<()>"

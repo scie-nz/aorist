@@ -10,7 +10,7 @@ use std::collections::HashMap;
 use std::marker::PhantomData;
 use uuid::Uuid;
 use aorist_primitives::AoristUniverse;
-use crate::program::{Program, TOuterProgram};
+use crate::program::{TOuterProgram};
 
 pub struct PythonBasedConstraintBlock<'a, T, C, U, P>
 where

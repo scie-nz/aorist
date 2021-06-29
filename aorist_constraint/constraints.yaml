@@ -1,42 +1,3 @@
----
-type: Constraint
-spec:
-  name: TableSchemasCreated
-  root: HiveTableStorage
-  requiresProgram: true
-  requires:
-    - TableSchemasDroppedIfExisting
-  title: Creating Table Schemas
-  body: |
-      We will be uploading tabular data into our warehouse. Before we upload
-      data files we need to create schemas for the tables which will refer
-      to these files.
----
-type: Constraint
-spec:
-  name: TableSchemasDroppedIfExisting
-  root: HiveTableStorage
-  requiresProgram: true
-  requires:
-    - HiveDirectoriesCreated
-  title: Drop table schemas if they already exist.
-  body: |
-      Beware! Our workflow will overwrite any existing table schemas with the same
-      name as our data.
----
-type: Constraint
-spec:
-  name: HiveDirectoriesCreated
-  root: HiveLocation
-  requiresProgram: true
-  title: Created hive directories.
-  body: |
-      We need to create directories or buckets (depending on file system / storage
-      solution) in which we will store our Hive data.
-  attachIf: |
-      |root: AoristRef<Concept>, ancestry: &ConceptAncestry|
-          ancestry.hive_table_storage(root.clone()).is_ok()
----
 type: Constraint
 spec:
   name: DownloadDataFromRemotePushshiftAPILocationToNewlineDelimitedJSON
@@ -50,10 +11,13 @@ spec:
   attachIf: |
       |root: AoristRef<Concept>, ancestry: &ConceptAncestry|
       match ancestry.replication_storage_setup(root.clone()) {
-          Ok(x) => match *x.0.read().unwrap().tmp_encoding.0.read().unwrap() {
-              aorist_core::Encoding::NewlineDelimitedJSONEncoding(_) => true,
-              aorist_core::Encoding::CSVEncoding(_) => true,
-              _ => false,
+          Ok(x) => {
+            debug!("Root has ReplicationStorageSetup.");
+            match *x.0.read().unwrap().tmp_encoding.0.read().unwrap() {
+                aorist_core::Encoding::NewlineDelimitedJSONEncoding(_) => true,
+                aorist_core::Encoding::CSVEncoding(_) => true,
+                _ => false,
+            }
           }
           _ => false,
       }

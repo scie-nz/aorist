@@ -11,8 +11,6 @@ use paste::paste;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
 use uuid::Uuid;
-#[cfg(feature = "python")]
-use pyo3::prelude::*;
 
 #[aorist(derivative(Hash))]
 pub struct EndpointConfig {
