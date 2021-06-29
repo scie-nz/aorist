@@ -261,7 +261,19 @@ where
         Option<AST>,
     )> {
         debug!("Processing constraint block: {}", constraint_name);
-        let tasks_dict = Self::init_tasks_dict(block, constraint_name.clone());
+
+        // TODO: this could be done once for the entire set of blocks
+        let to_shorten_constraint_block_names = self
+            .get_blocks()
+            .iter()
+            .map(|x| x.get_constraint_name())
+            .chain(vec![constraint_name.clone()].into_iter())
+            .collect();
+        let shortened_names = TaskNameShortener::new(to_shorten_constraint_block_names, "_".to_string()).run();
+        let shortened_name = shortened_names.into_iter().last().unwrap();
+        debug!("Shortened constraint block name: {}", shortened_name);
+        
+        let tasks_dict = Self::init_tasks_dict(block, shortened_name.clone());
         // (call, constraint_name, root_name) => (uuid, call parameters)
         let mut calls: HashMap<(String, String, String), Vec<(String, ParameterTuple)>> =
             HashMap::new();
@@ -285,17 +297,6 @@ where
                 .or_insert(Vec::new())
                 .push(state.clone());
         }
-
-        // TODO: this could be done once for the entire set of blocks
-        let to_shorten_constraint_block_names = self
-            .get_blocks()
-            .iter()
-            .map(|x| x.get_constraint_name())
-            .chain(vec![constraint_name.clone()].into_iter())
-            .collect();
-        let shortened_names = TaskNameShortener::new(to_shorten_constraint_block_names, "_".to_string()).run();
-        let shortened_name = shortened_names.into_iter().last().unwrap();
-        debug!("Shortened constraint block name: {}", shortened_name);
 
         for (_dialect, satisfied) in by_dialect.into_iter() {
             let block = <Self::CB as ConstraintBlock<

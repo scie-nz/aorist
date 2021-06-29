@@ -252,6 +252,9 @@ impl Dict {
     pub fn replace_elem(&mut self, key: String, elem: AST) {
         self.elems.insert(key, elem);
     }
+    pub fn len(&self) -> usize {
+        self.elems.len()
+    }
 }
 define_ast_node!(
     Tuple,

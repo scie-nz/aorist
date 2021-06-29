@@ -61,28 +61,43 @@ where
     T: ETLFlow<U, ImportType = PythonImport, PreambleType = PythonPreamble>,
     U: AoristUniverse,
 {
-    fn get_dict_assign(&self) -> AST {
+    fn get_dict_assign(&self) -> (AST, bool) {
         let dependencies_as_list = self
             .values
             .iter()
             .filter(|x| x.deps.len() > 1)
             .next()
             .is_some();
-        let dict_content = AST::Dict(Dict::new_wrapped(
-            self.values
-                .iter()
-                .map(|x| {
-                    (
-                        x.dict.clone(),
-                        x.as_dict(dependencies_as_list, self.insert_task_name),
-                    )
-                })
-                .collect(),
-        ));
-        AST::Assignment(Assignment::new_wrapped(
+        let dict_pairs = self.values
+            .iter()
+            .map(|x| {
+                (
+                    x.dict.clone(),
+                    x.as_dict(dependencies_as_list, self.insert_task_name),
+                )
+            })
+            .collect::<LinkedHashMap<_, _>>();
+        let has_params_dict = dict_pairs.iter().filter(|x| {
+            if let AST::Dict(ref dict) = x.1 {
+                dict.read().unwrap().len() > 0
+            } else {
+                panic!("This should be a dictionary.");
+            }
+        }).next().is_some();
+
+        let dict_content = match has_params_dict {
+            true => AST::Dict(Dict::new_wrapped(dict_pairs)),
+            false => AST::List(List::new_wrapped(
+                dict_pairs.into_iter().map(
+                    |x| AST::StringLiteral(StringLiteral::new_wrapped(x.0, false))
+                ).collect(), 
+                false
+            )),
+        };
+        (AST::Assignment(Assignment::new_wrapped(
             self.params_dict_name.clone(),
             dict_content,
-        ))
+        )), has_params_dict)
     }
     fn get_for_loop_tuple(&self, ident: &AST, params: &AST) -> AST {
         AST::Tuple(Tuple::new_wrapped(
@@ -108,7 +123,7 @@ where
             .next()
             .is_some();
 
-        let dict_assign = self.get_dict_assign();
+        let (dict_assign, has_params_dict) = self.get_dict_assign();
 
         let params = AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("params".to_string()));
         let ident = AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("t".to_string()));
@@ -190,15 +205,18 @@ where
             endpoints.clone(),
         );
         let statements = singleton.get_statements();
-        let items_call = AST::Call(Call::new_wrapped(
-            AST::Attribute(Attribute::new_wrapped(
-                self.params_dict_name.clone(),
-                "items".to_string(),
-                false,
+        let items_call = match has_params_dict {
+             true => AST::Call(Call::new_wrapped(
+                AST::Attribute(Attribute::new_wrapped(
+                    self.params_dict_name.clone(),
+                    "items".to_string(),
+                    false,
+                )),
+                Vec::new(),
+                LinkedHashMap::new(),
             )),
-            Vec::new(),
-            LinkedHashMap::new(),
-        ));
+            false => self.params_dict_name.clone(),
+        };
         let for_loop = AST::ForLoop(ForLoop::new_wrapped(
             tpl.clone(),
             items_call,

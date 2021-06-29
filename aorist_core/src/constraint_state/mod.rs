@@ -276,7 +276,7 @@ impl<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry = T::TAncestry>>
             task_names.push((fqn, constraint.clone()));
         }
         let to_shorten_task_names = task_names.iter().map(|(x, _)| x.clone()).collect();
-        let shortened_task_names_1 = TaskNameShortener::new(to_shorten_task_names, "__".to_string()).run();
+        let shortened_task_names_1 = TaskNameShortener::new(to_shorten_task_names, "____".to_string()).run();
         let shortened_task_names_2 = TaskNameShortener::new(shortened_task_names_1, "_".to_string()).run();
         /*loop {
             let mut should_continue = false;
