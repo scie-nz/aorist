@@ -19,6 +19,7 @@ use std::collections::{HashMap, HashSet, VecDeque};
 use std::sync::{Arc, RwLock, RwLockReadGuard};
 use tracing::{debug, level_enabled, trace, Level};
 use uuid::Uuid;
+use crate::task_name_shortener::TaskNameShortener;
 
 pub type ConstraintsBlockMap<'a, C, P> = LinkedHashMap<
     String,
@@ -284,6 +285,18 @@ where
                 .or_insert(Vec::new())
                 .push(state.clone());
         }
+
+        // TODO: this could be done once for the entire set of blocks
+        let to_shorten_constraint_block_names = self
+            .get_blocks()
+            .iter()
+            .map(|x| x.get_constraint_name())
+            .chain(vec![constraint_name.clone()].into_iter())
+            .collect();
+        let shortened_names = TaskNameShortener::new(to_shorten_constraint_block_names, "_".to_string()).run();
+        let shortened_name = shortened_names.into_iter().last().unwrap();
+        debug!("Shortened constraint block name: {}", shortened_name);
+
         for (_dialect, satisfied) in by_dialect.into_iter() {
             let block = <Self::CB as ConstraintBlock<
                 'a,
@@ -293,7 +306,7 @@ where
                 P,
             >>::C::new(
                 satisfied,
-                constraint_name.clone(),
+                shortened_name.clone(),
                 tasks_dict.clone(),
                 identifiers,
             )?;
