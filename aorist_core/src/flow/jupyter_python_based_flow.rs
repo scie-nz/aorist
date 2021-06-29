@@ -2,27 +2,33 @@ use crate::flow::flow_builder::FlowBuilderBase;
 use crate::flow::native_python_based_flow::NativePythonBasedFlow;
 use crate::flow::python_based_flow_builder::PythonBasedFlowBuilder;
 use crate::python::PythonImport;
+use aorist_primitives::{AoristUniverse, TPrestoEndpoints};
 use pyo3::prelude::*;
 use pyo3::types::PyModule;
 use serde_json::json;
-use aorist_primitives::{AoristUniverse, TPrestoEndpoints};
 use std::marker::PhantomData;
 
 pub struct JupyterFlowBuilder<U: AoristUniverse>
-where U::TEndpoints: TPrestoEndpoints {
+where
+    U::TEndpoints: TPrestoEndpoints,
+{
     _universe: PhantomData<U>,
 }
-impl <U: AoristUniverse> FlowBuilderBase<U> for JupyterFlowBuilder<U>
-where U::TEndpoints: TPrestoEndpoints {
+impl<U: AoristUniverse> FlowBuilderBase<U> for JupyterFlowBuilder<U>
+where
+    U::TEndpoints: TPrestoEndpoints,
+{
     type T = NativePythonBasedFlow<U>;
     fn new() -> Self {
         Self {
-            _universe: PhantomData
+            _universe: PhantomData,
         }
     }
 }
-impl <U: AoristUniverse> PythonBasedFlowBuilder<U> for JupyterFlowBuilder<U>
-where U::TEndpoints: TPrestoEndpoints {
+impl<U: AoristUniverse> PythonBasedFlowBuilder<U> for JupyterFlowBuilder<U>
+where
+    U::TEndpoints: TPrestoEndpoints,
+{
     fn get_flow_imports(&self) -> Vec<PythonImport> {
         Vec::new()
     }

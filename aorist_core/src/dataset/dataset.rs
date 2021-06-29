@@ -16,8 +16,8 @@ use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use std::fmt::Debug;
-use uuid::Uuid;
 use std::sync::{Arc, RwLock};
+use uuid::Uuid;
 
 #[aorist]
 pub struct DataSet {
@@ -117,15 +117,15 @@ impl PyDataSet {
         for (key, asset_rw) in dt.assets.iter() {
             let asset = &*asset_rw.0.read().unwrap();
             replicated_assets.insert(
-                key.clone(), 
+                key.clone(),
                 AoristRef(Arc::new(RwLock::new(asset.replicate_to_local(
                     storage.inner.clone(),
                     tmp_dir.clone(),
                     tmp_encoding.inner.clone(),
-                ))))
+                )))),
             );
         }
-        let inner = AoristRef(Arc::new(RwLock::new(DataSet{
+        let inner = AoristRef(Arc::new(RwLock::new(DataSet {
             name: dt.name.clone(),
             description: dt.description.clone(),
             source_path: dt.source_path.clone(),
@@ -135,6 +135,6 @@ impl PyDataSet {
             tag: dt.tag.clone(),
             uuid: dt.uuid.clone(),
         })));
-        Ok(PyDataSet{ inner })
+        Ok(PyDataSet { inner })
     }
 }

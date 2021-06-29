@@ -3,16 +3,16 @@ use crate::asset::derived_asset::*;
 use crate::asset::static_data_table::*;
 use crate::asset::supervised_model::*;
 use crate::concept::{AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
+use crate::encoding::Encoding;
 use crate::schema::*;
+use crate::storage::Storage;
 use crate::storage_setup::*;
 use aorist_concept::{aorist, Constrainable};
 use paste::paste;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
-use uuid::Uuid;
 use std::sync::{Arc, RwLock};
-use crate::encoding::Encoding;
-use crate::storage::Storage;
+use uuid::Uuid;
 
 #[aorist]
 pub enum Asset {
@@ -75,20 +75,16 @@ impl Asset {
         tmp_encoding: AoristRef<Encoding>,
     ) -> Self {
         match self {
-            Asset::StaticDataTable(x) => {
-                Asset::StaticDataTable(AoristRef(Arc::new(RwLock::new(
-                    x.0.read().unwrap().replicate_to_local(
-                        t, 
-                        tmp_dir, 
-                        tmp_encoding
-                    )
-                ))))
-            }
-            Asset::SupervisedModel(x) => {
-                Asset::SupervisedModel(AoristRef(Arc::new(RwLock::new(
-                    x.0.read().unwrap().replicate_to_local(t, tmp_dir, tmp_encoding)
-                ))))
-            }
+            Asset::StaticDataTable(x) => Asset::StaticDataTable(AoristRef(Arc::new(RwLock::new(
+                x.0.read()
+                    .unwrap()
+                    .replicate_to_local(t, tmp_dir, tmp_encoding),
+            )))),
+            Asset::SupervisedModel(x) => Asset::SupervisedModel(AoristRef(Arc::new(RwLock::new(
+                x.0.read()
+                    .unwrap()
+                    .replicate_to_local(t, tmp_dir, tmp_encoding),
+            )))),
             Asset::DerivedAsset(_) => panic!(
                 "DerivedAssets are already stored locally, they cannot be replicated to local"
             ),

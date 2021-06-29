@@ -2,8 +2,8 @@ use crate::dialect::Dialect;
 use crate::flow::etl_flow::ETLFlow;
 use crate::parameter_tuple::{ParameterTuple, ParameterTupleDedupKey};
 use aorist_ast::AST;
-use std::hash::Hash;
 use aorist_primitives::AoristUniverse;
+use std::hash::Hash;
 
 pub trait TaskBase<T, U: AoristUniverse>
 where
@@ -13,7 +13,8 @@ where
 
 pub trait StandaloneTask<T, U>: TaskBase<T, U>
 where
-    T: ETLFlow<U>, U: AoristUniverse,
+    T: ETLFlow<U>,
+    U: AoristUniverse,
 {
     fn new(
         task_id: String,

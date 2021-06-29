@@ -7,14 +7,14 @@ use crate::python::{
     PythonPreamble, RPythonTask,
 };
 use aorist_ast::{Call, Expression, Formatted, SimpleIdentifier, StringLiteral, AST};
+use aorist_primitives::AoristUniverse;
 use aorist_primitives::{register_task_nodes, TPrestoEndpoints};
 use linked_hash_map::LinkedHashMap;
 use pyo3::prelude::*;
 use pyo3::types::PyModule;
 use std::hash::{Hash, Hasher};
-use std::sync::{Arc, RwLock};
-use aorist_primitives::AoristUniverse;
 use std::marker::PhantomData;
+use std::sync::{Arc, RwLock};
 
 register_task_nodes! {
     PythonTask,
@@ -27,8 +27,10 @@ register_task_nodes! {
 }
 
 #[derive(Clone, Hash, PartialEq)]
-pub struct NativePythonBasedFlow<U: AoristUniverse> 
-where U::TEndpoints: TPrestoEndpoints {
+pub struct NativePythonBasedFlow<U: AoristUniverse>
+where
+    U::TEndpoints: TPrestoEndpoints,
+{
     task_id: AST,
     task_val: AST,
     command: Option<String>,
@@ -39,10 +41,12 @@ where U::TEndpoints: TPrestoEndpoints {
     dialect: Option<Dialect>,
     endpoints: U::TEndpoints,
     node: PythonTask,
-    _universe: PhantomData<U>,    
+    _universe: PhantomData<U>,
 }
-impl <U: AoristUniverse> ETLFlow<U> for NativePythonBasedFlow<U>
-where U::TEndpoints: TPrestoEndpoints {
+impl<U: AoristUniverse> ETLFlow<U> for NativePythonBasedFlow<U>
+where
+    U::TEndpoints: TPrestoEndpoints,
+{
     type ImportType = PythonImport;
     type PreambleType = PythonPreamble;
 
@@ -150,12 +154,16 @@ where U::TEndpoints: TPrestoEndpoints {
         "python".to_string()
     }
 }
-pub struct PythonFlowBuilder<U: AoristUniverse> 
-where U::TEndpoints: TPrestoEndpoints {
+pub struct PythonFlowBuilder<U: AoristUniverse>
+where
+    U::TEndpoints: TPrestoEndpoints,
+{
     universe: PhantomData<U>,
 }
-impl <U: AoristUniverse> FlowBuilderBase<U> for PythonFlowBuilder<U> 
-where U::TEndpoints: TPrestoEndpoints {
+impl<U: AoristUniverse> FlowBuilderBase<U> for PythonFlowBuilder<U>
+where
+    U::TEndpoints: TPrestoEndpoints,
+{
     type T = NativePythonBasedFlow<U>;
     fn new() -> Self {
         Self {
@@ -163,9 +171,10 @@ where U::TEndpoints: TPrestoEndpoints {
         }
     }
 }
-impl <U: AoristUniverse> PythonBasedFlowBuilder<U> for PythonFlowBuilder<U> 
-where U::TEndpoints: TPrestoEndpoints {
-
+impl<U: AoristUniverse> PythonBasedFlowBuilder<U> for PythonFlowBuilder<U>
+where
+    U::TEndpoints: TPrestoEndpoints,
+{
     fn get_flow_imports(&self) -> Vec<PythonImport> {
         Vec::new()
     }

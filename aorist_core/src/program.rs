@@ -1,9 +1,9 @@
-use aorist_primitives::Ancestry;
-use crate::dialect::Dialect;
 use crate::constraint::{OuterConstraint, TConstraint};
-use std::marker::PhantomData;
-use linked_hash_map::LinkedHashMap;  
+use crate::dialect::Dialect;
 use crate::parameter_tuple::ParameterTuple;
+use aorist_primitives::Ancestry;
+use linked_hash_map::LinkedHashMap;
+use std::marker::PhantomData;
 
 pub trait TProgram<'a, T: TConstraint<'a>> {
     fn new(
@@ -40,7 +40,11 @@ impl<'a, C> Program<'a, C>
 where
     C: OuterConstraint<'a>,
 {
-    pub fn new(code: String, arg_functions: Vec<String>, kwarg_functions: LinkedHashMap<String, String>) -> Self {
+    pub fn new(
+        code: String,
+        arg_functions: Vec<String>,
+        kwarg_functions: LinkedHashMap<String, String>,
+    ) -> Self {
         Self {
             _lta: PhantomData,
             _ltc: PhantomData,

@@ -1,11 +1,11 @@
 #![allow(dead_code)]
-use aorist_primitives::PrestoConfig;
 use crate::python::PythonImport;
 use aorist_ast::{
     Assignment, Attribute, BigIntLiteral, BooleanLiteral, Call, Dict, Expression, Formatted,
     SimpleIdentifier, StringLiteral, AST,
 };
 use aorist_primitives::define_task_node;
+use aorist_primitives::PrestoConfig;
 use linked_hash_map::LinkedHashMap;
 use std::hash::Hash;
 use std::sync::{Arc, RwLock};

@@ -15,7 +15,6 @@ pub trait AoristConcept {
     fn get_uuid_from_children_uuid(&self) -> Uuid {
         let child_uuids = self.get_children_uuid();
         if child_uuids.len() > 0 {
-            eprintln!("There are child uuids.");
             let uuids = child_uuids.into_iter().collect::<BTreeSet<Uuid>>();
             let mut hasher = SipHasher::new();
             for uuid in uuids {
@@ -24,7 +23,6 @@ pub trait AoristConcept {
             let bytes: [u8; 16] = hasher.finish128().as_bytes();
             Uuid::from_bytes(bytes)
         } else {
-            eprintln!("There are no child uuids.");
             // TODO: this should just be created from the hash
             Uuid::new_v4()
         }

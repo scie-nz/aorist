@@ -7,10 +7,11 @@ use crate::constraint_state::ConstraintState;
 use crate::dialect::Dialect;
 use crate::flow::{FlowBuilderBase, FlowBuilderMaterialize};
 use crate::parameter_tuple::ParameterTuple;
+use crate::program::TOuterProgram;
 use anyhow::Result;
 use aorist_ast::{AncestorRecord, SimpleIdentifier, AST};
 use aorist_primitives::TAoristObject;
-use aorist_primitives::{Ancestry, TConceptEnum, AoristConcept, AoristUniverse};
+use aorist_primitives::{Ancestry, AoristConcept, AoristUniverse, TConceptEnum};
 use inflector::cases::snakecase::to_snake_case;
 use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
@@ -18,7 +19,6 @@ use std::collections::{HashMap, HashSet, VecDeque};
 use std::sync::{Arc, RwLock, RwLockReadGuard};
 use tracing::{debug, level_enabled, trace, Level};
 use uuid::Uuid;
-use crate::program::{TOuterProgram};
 
 pub type ConstraintsBlockMap<'a, C, P> = LinkedHashMap<
     String,
@@ -124,7 +124,10 @@ where
         LinkedHashMap<(Uuid, String), Arc<RwLock<ConstraintState<'a, B::OuterType, P>>>>,
         String,
     )> {
-        debug!("There are {} unsatisfied constraints.", unsatisfied_constraints.len());
+        debug!(
+            "There are {} unsatisfied constraints.",
+            unsatisfied_constraints.len()
+        );
         let constraint_block_name = unsatisfied_constraints
             .iter()
             .filter(|(_, v)| v.0.len() == 0)
@@ -134,7 +137,11 @@ where
             Some(name) => {
                 let (_dependency_names, constraints) =
                     unsatisfied_constraints.remove(&name).unwrap();
-                debug!("Found satisfiable constraint block with name {} and size {}", name, constraints.len());
+                debug!(
+                    "Found satisfiable constraint block with name {} and size {}",
+                    name,
+                    constraints.len()
+                );
                 for (_, (v, _)) in unsatisfied_constraints.iter_mut() {
                     v.remove(&name);
                 }
@@ -203,7 +210,13 @@ where
         let constraint = rw.read().unwrap();
 
         if constraint.requires_program()? {
-            self.process_constraint_with_program(constraint, uuid.clone(), calls, state.clone(), programs);
+            self.process_constraint_with_program(
+                constraint,
+                uuid.clone(),
+                calls,
+                state.clone(),
+                programs,
+            );
         }
 
         if let Some(v) = reverse_dependencies.get(&uuid) {
@@ -233,7 +246,10 @@ where
     );
     fn process_constraint_block(
         &mut self,
-        block: &mut LinkedHashMap<(Uuid, String), Arc<RwLock<ConstraintState<'a, B::OuterType, P>>>>,
+        block: &mut LinkedHashMap<
+            (Uuid, String),
+            Arc<RwLock<ConstraintState<'a, B::OuterType, P>>>,
+        >,
         reverse_dependencies: &HashMap<(Uuid, String), HashSet<(String, Uuid, String)>>,
         constraint_name: String,
         unsatisfied_constraints: &ConstraintsBlockMap<'a, B::OuterType, P>,
@@ -269,13 +285,18 @@ where
                 .push(state.clone());
         }
         for (_dialect, satisfied) in by_dialect.into_iter() {
-            let block =
-                <Self::CB as ConstraintBlock<'a, <D as FlowBuilderBase<U>>::T, B::OuterType, U, P>>::C::new(
-                    satisfied,
-                    constraint_name.clone(),
-                    tasks_dict.clone(),
-                    identifiers,
-                )?;
+            let block = <Self::CB as ConstraintBlock<
+                'a,
+                <D as FlowBuilderBase<U>>::T,
+                B::OuterType,
+                U,
+                P,
+            >>::C::new(
+                satisfied,
+                constraint_name.clone(),
+                tasks_dict.clone(),
+                identifiers,
+            )?;
             blocks.push(block);
         }
 
@@ -310,7 +331,11 @@ where
             let mut satisfiable =
                 self.find_satisfiable_constraint_block(&mut unsatisfied_constraints);
             if let Some((ref mut block, ref constraint_name)) = satisfiable {
-                debug!("Processing constraint {} with block size {}.", constraint_name, block.len());
+                debug!(
+                    "Processing constraint {} with block size {}.",
+                    constraint_name,
+                    block.len()
+                );
                 ConstraintState::shorten_task_names(block, &mut existing_names);
                 let programs = self.get_programs_for(&constraint_name);
                 let snake_case_name = to_snake_case(constraint_name);
@@ -378,11 +403,18 @@ where
             >,
         >,
         ancestors: &HashMap<(Uuid, String), Vec<AncestorRecord>>,
-    ) -> Result<LinkedHashMap<(Uuid, String), Arc<RwLock<ConstraintState<'a, B::OuterType, P>>>>> {
+    ) -> Result<LinkedHashMap<(Uuid, String), Arc<RwLock<ConstraintState<'a, B::OuterType, P>>>>>
+    {
         let mut states_map = LinkedHashMap::new();
-        debug!("Generating constraint states map from constraints with size: {}.", constraints.len());
+        debug!(
+            "Generating constraint states map from constraints with size: {}.",
+            constraints.len()
+        );
         for (k, rw) in constraints {
-            debug!("Inserted constraint {} in constraint states map.", rw.read().unwrap().get_name());
+            debug!(
+                "Inserted constraint {} in constraint states map.",
+                rw.read().unwrap().get_name()
+            );
             states_map.insert(
                 k.clone(),
                 Arc::new(RwLock::new(ConstraintState::new(

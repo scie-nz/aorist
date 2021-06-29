@@ -2,17 +2,17 @@
 use crate::algorithms::*;
 use crate::asset::asset::TAsset;
 use crate::concept::{AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
+use crate::encoding::Encoding;
 use crate::schema::*;
+use crate::storage::Storage;
 use crate::storage_setup::*;
 use aorist_concept::{aorist, Constrainable};
 use derivative::Derivative;
 use paste::paste;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
-use uuid::Uuid;
 use std::sync::{Arc, RwLock};
-use crate::storage::Storage;
-use crate::encoding::Encoding;
+use uuid::Uuid;
 
 #[aorist]
 pub struct SupervisedModel {

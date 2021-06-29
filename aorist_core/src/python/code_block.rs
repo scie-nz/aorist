@@ -2,25 +2,25 @@ use crate::code::{CodeBlock, CodeBlockWithForLoopCompression};
 use crate::constraint::OuterConstraint;
 use crate::flow::{CompressibleTask, ETLFlow, ETLTask, ForLoopCompressedTask};
 use crate::parameter_tuple::ParameterTuple;
+use crate::program::TOuterProgram;
 use crate::python::{
     ForLoopPythonBasedTask, Formatted, PythonBasedTask, PythonImport, PythonPreamble,
     SimpleIdentifier, StringLiteral, Subscript, AST,
 };
+use aorist_primitives::AoristUniverse;
 use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
 use std::collections::{BTreeSet, HashMap, HashSet};
 use std::marker::PhantomData;
 use tracing::trace;
 use uuid::Uuid;
-use aorist_primitives::AoristUniverse;
-use crate::program::{TOuterProgram};
 
 pub struct PythonBasedCodeBlock<'a, T, C, U, P>
 where
     T: ETLFlow<U, ImportType = PythonImport, PreambleType = PythonPreamble>,
     C: OuterConstraint<'a>,
     U: AoristUniverse,
-    P: TOuterProgram<TAncestry=C::TAncestry>,
+    P: TOuterProgram<TAncestry = C::TAncestry>,
 {
     tasks_dict: Option<AST>,
     task_identifiers: HashMap<Uuid, AST>,
@@ -35,7 +35,7 @@ where
     T: ETLFlow<U, ImportType = PythonImport, PreambleType = PythonPreamble>,
     C: OuterConstraint<'a>,
     U: AoristUniverse,
-    P: TOuterProgram<TAncestry=C::TAncestry>,
+    P: TOuterProgram<TAncestry = C::TAncestry>,
 {
     type P = PythonPreamble;
     type E = PythonBasedTask<T, U>;
@@ -99,12 +99,13 @@ where
         self.params.clone()
     }
 }
-impl<'a, T, C, U, P> CodeBlockWithForLoopCompression<'a, T, C, U, P> for PythonBasedCodeBlock<'a, T, C, U, P>
+impl<'a, T, C, U, P> CodeBlockWithForLoopCompression<'a, T, C, U, P>
+    for PythonBasedCodeBlock<'a, T, C, U, P>
 where
     T: ETLFlow<U, ImportType = PythonImport, PreambleType = PythonPreamble>,
     C: OuterConstraint<'a>,
     U: AoristUniverse,
-    P: TOuterProgram<TAncestry=C::TAncestry>,
+    P: TOuterProgram<TAncestry = C::TAncestry>,
 {
     fn run_task_compressions(
         compressible: LinkedHashMap<

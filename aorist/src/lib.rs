@@ -1,12 +1,12 @@
-use pyo3::prelude::*;
-use aorist_util::init_logging;
-use aorist_core::*;
 use aorist_attributes::attributes_module;
 use aorist_constraint::constraints_module;
 use aorist_constraint::*;
-use std::collections::BTreeMap;
+use aorist_core::*;
 use aorist_primitives::*;
+use aorist_util::init_logging;
+use pyo3::prelude::*;
 use pyo3::wrap_pyfunction;
+use std::collections::BTreeMap;
 
 #[pyfunction]
 pub fn dag<'a>(
@@ -76,8 +76,8 @@ pub fn dag<'a>(
         .map_err(|e| pyo3::exceptions::PyException::new_err(e.to_string()))?
         .run(),
         /*"r" => RBasedDriver::<ConstraintBuilder, RBasedFlowBuilder>::new(&universe, constraints.into_iter().collect())
-            .map_err(|e| pyo3::exceptions::PyException::new_err(e.to_string()))?
-            .run(),*/
+        .map_err(|e| pyo3::exceptions::PyException::new_err(e.to_string()))?
+        .run(),*/
         _ => panic!("Unknown mode provided: {}", mode),
     }
     .map_err(|e| pyo3::exceptions::PyException::new_err(e.to_string()))?;

@@ -38,7 +38,7 @@ pub trait TBuilder<'a> {
     type TEnum: TConceptEnum;
     type TAncestry: Ancestry;
     type OuterType: OuterConstraint<'a>; //, TEnum=Self::EnumType>;
-                                                    //type EnumType: TConstraintEnum<'a, BuilderT=Self>;
+                                         //type EnumType: TConstraintEnum<'a, BuilderT=Self>;
     fn builders() -> Vec<Self>
     where
         Self: Sized;

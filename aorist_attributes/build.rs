@@ -1,5 +1,5 @@
 use aorist_util::{get_raw_objects_of_type, read_file};
-use codegen::{Scope};
+use codegen::Scope;
 use serde_yaml::Value;
 use std::collections::{HashMap, HashSet};
 use std::env;
@@ -10,21 +10,15 @@ use std::path::Path;
 fn process_attributes_py(raw_objects: &Vec<HashMap<String, Value>>) {
     let attributes = get_raw_objects_of_type(raw_objects, "Attribute".into());
     let mut scope_py = Scope::new();
-    let fun = scope_py.new_fn("attributes_module")
+    let fun = scope_py
+        .new_fn("attributes_module")
         .vis("pub")
-        .ret(
-            "PyResult<()>"
-        ).arg(
-            "_py", 
-            "Python",
-        ).arg(
-            "m", "&PyModule",
-        );
+        .ret("PyResult<()>")
+        .arg("_py", "Python")
+        .arg("m", "&PyModule");
     for attribute in attributes {
         let name = attribute.get("name").unwrap().as_str().unwrap().to_string();
-        let export = format!(
-            "m.add_class::<{}>().unwrap();", name,
-        );
+        let export = format!("m.add_class::<{}>().unwrap();", name,);
         fun.line(&export);
     }
     let out_dir = env::var_os("OUT_DIR").unwrap();

@@ -2,6 +2,7 @@ use crate::concept::Ancestry;
 use crate::constraint::OuterConstraint;
 use crate::dialect::Dialect;
 use crate::parameter_tuple::ParameterTuple;
+use crate::program::TOuterProgram;
 use anyhow::{bail, Result};
 use aorist_ast::{AncestorRecord, Formatted, SimpleIdentifier, StringLiteral, AST};
 use aorist_primitives::TConceptEnum;
@@ -12,9 +13,8 @@ use std::collections::{HashMap, HashSet};
 use std::sync::{Arc, RwLock};
 use tracing::{level_enabled, trace, Level};
 use uuid::Uuid;
-use crate::program::{TOuterProgram};
 
-pub struct ConstraintState<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry=T::TAncestry>> {
+pub struct ConstraintState<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry = T::TAncestry>> {
     dialect: Option<Dialect>,
     pub key: Option<String>,
     name: String,
@@ -31,7 +31,9 @@ pub struct ConstraintState<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestr
     params: Option<ParameterTuple>,
     task_name: Option<String>,
 }
-impl<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry=T::TAncestry>> ConstraintState<'a, T, P> {
+impl<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry = T::TAncestry>>
+    ConstraintState<'a, T, P>
+{
     pub fn requires_program(&self) -> Result<bool> {
         self.constraint.read().unwrap().requires_program()
     }
@@ -175,7 +177,8 @@ impl<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry=T::TAncestry>> Const
     ) {
         let best_program = Self::find_best_program(preferences, programs);
         if let Some(program) = best_program {
-            let (preamble, call, params, dialect) = program.compute_args(self.root.clone(), ancestry);
+            let (preamble, call, params, dialect) =
+                program.compute_args(self.root.clone(), ancestry);
             self.preamble = Some(preamble);
             self.call = Some(call);
             self.params = Some(params);
@@ -183,7 +186,6 @@ impl<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry=T::TAncestry>> Const
         } else {
             panic!("Could not find any program for constraint.");
         }
-        
     }
     pub fn new(
         constraint: Arc<RwLock<T>>,

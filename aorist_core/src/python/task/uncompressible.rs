@@ -1,10 +1,10 @@
 use crate::flow::{ETLFlow, UncompressiblePart};
 use crate::parameter_tuple::ParameterTuple;
 use aorist_ast::{Dict, List, StringLiteral, AST};
+use aorist_primitives::AoristUniverse;
 use linked_hash_map::LinkedHashMap;
 use std::hash::Hash;
 use std::marker::PhantomData;
-use aorist_primitives::AoristUniverse;
 
 #[derive(Clone, Hash, PartialEq, Eq)]
 pub struct PythonBasedTaskUncompressiblePart<T, U>
@@ -25,7 +25,8 @@ where
 }
 impl<T, U> UncompressiblePart<T, U> for PythonBasedTaskUncompressiblePart<T, U>
 where
-    T: ETLFlow<U>, U: AoristUniverse,
+    T: ETLFlow<U>,
+    U: AoristUniverse,
 {
     fn new(task_id: String, dict: String, params: Option<ParameterTuple>, deps: Vec<AST>) -> Self {
         Self {

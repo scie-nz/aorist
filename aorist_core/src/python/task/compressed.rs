@@ -5,10 +5,10 @@ use crate::python::{
     Add, Assignment, Attribute, BigIntLiteral, BinOp, Call, Dict, ForLoop, List, PythonImport,
     PythonPreamble, SimpleIdentifier, StringLiteral, Subscript, Tuple, AST,
 };
+use aorist_primitives::AoristUniverse;
 use linked_hash_map::LinkedHashMap;
 use std::hash::Hash;
 use std::marker::PhantomData;
-use aorist_primitives::AoristUniverse;
 
 #[derive(Clone, Hash, PartialEq, Eq)]
 pub struct ForLoopPythonBasedTask<T, U>
@@ -49,7 +49,8 @@ where
         }
     }
 }
-impl<T, U> TaskBase<T, U> for ForLoopPythonBasedTask<T, U> where
+impl<T, U> TaskBase<T, U> for ForLoopPythonBasedTask<T, U>
+where
     T: ETLFlow<U, ImportType = PythonImport, PreambleType = PythonPreamble>,
     U: AoristUniverse,
 {

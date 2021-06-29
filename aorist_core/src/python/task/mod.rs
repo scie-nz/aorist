@@ -54,7 +54,8 @@ where
         Self::ForLoopPythonBasedTask(task)
     }
 }
-impl<T, U> TaskBase<T, U> for PythonBasedTask<T, U> where
+impl<T, U> TaskBase<T, U> for PythonBasedTask<T, U>
+where
     T: ETLFlow<U, ImportType = PythonImport, PreambleType = PythonPreamble>,
     U: AoristUniverse,
 {

@@ -1,10 +1,8 @@
 use crate::concept::{AoristRef, WrappedConcept};
 use aorist_concept::{aorist, Constrainable};
 use aorist_primitives::{
-    AoristConcept, ConceptEnum,
-    PrestoConfig, AlluxioConfig, RangerConfig,
-    GiteaConfig, MinioConfig, PostgresConfig,
-    GCPConfig, AWSConfig, TPrestoEndpoints,
+    AWSConfig, AlluxioConfig, AoristConcept, ConceptEnum, GCPConfig, GiteaConfig, MinioConfig,
+    PostgresConfig, PrestoConfig, RangerConfig, TPrestoEndpoints,
 };
 use derivative::Derivative;
 use paste::paste;

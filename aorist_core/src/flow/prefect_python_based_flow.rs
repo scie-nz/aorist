@@ -8,13 +8,13 @@ use aorist_ast::{
     AST,
 };
 use aorist_primitives::register_task_nodes;
+use aorist_primitives::AoristUniverse;
 use linked_hash_map::LinkedHashMap;
 use pyo3::prelude::*;
 use pyo3::types::PyModule;
 use std::hash::{Hash, Hasher};
-use std::sync::{Arc, RwLock};
-use aorist_primitives::AoristUniverse;
 use std::marker::PhantomData;
+use std::sync::{Arc, RwLock};
 register_task_nodes! {
     PrefectTask,
     PythonImport,
@@ -34,10 +34,10 @@ pub struct PrefectPythonBasedFlow<U: AoristUniverse> {
     dialect: Option<Dialect>,
     flow_identifier: AST,
     endpoints: U::TEndpoints,
-    _universe: PhantomData<U>,    
+    _universe: PhantomData<U>,
 }
 
-impl <U: AoristUniverse> ETLFlow<U> for PrefectPythonBasedFlow<U> {
+impl<U: AoristUniverse> ETLFlow<U> for PrefectPythonBasedFlow<U> {
     type ImportType = PythonImport;
     type PreambleType = PythonPreamble;
     fn get_preamble(&self) -> Vec<PythonPreamble> {
@@ -123,7 +123,7 @@ impl <U: AoristUniverse> ETLFlow<U> for PrefectPythonBasedFlow<U> {
         }
     }
 }
-impl <U: AoristUniverse> PrefectPythonBasedFlow<U> {
+impl<U: AoristUniverse> PrefectPythonBasedFlow<U> {
     fn compute_task_args(&self) -> Vec<AST> {
         if let Some(Dialect::Python(_)) = self.dialect {
             return self.args.clone();
@@ -231,7 +231,7 @@ pub struct PrefectFlowBuilder<U: AoristUniverse> {
     flow_identifier: AST,
     universe: PhantomData<U>,
 }
-impl <U: AoristUniverse> FlowBuilderBase<U> for PrefectFlowBuilder<U> {
+impl<U: AoristUniverse> FlowBuilderBase<U> for PrefectFlowBuilder<U> {
     type T = PrefectPythonBasedFlow<U>;
     fn new() -> Self {
         Self {
@@ -242,7 +242,7 @@ impl <U: AoristUniverse> FlowBuilderBase<U> for PrefectFlowBuilder<U> {
         }
     }
 }
-impl <U: AoristUniverse> PythonBasedFlowBuilder<U> for PrefectFlowBuilder<U> {
+impl<U: AoristUniverse> PythonBasedFlowBuilder<U> for PrefectFlowBuilder<U> {
     fn get_flow_imports(&self) -> Vec<PythonImport> {
         Vec::new()
     }

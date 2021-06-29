@@ -5,8 +5,10 @@ use aorist_primitives::AoristUniverse;
 use linked_hash_map::LinkedHashMap;
 
 /// Encapsulates the abstract bits necessary for the creation of an ETL Flow
-pub trait ETLFlow<U> 
-where U: AoristUniverse {
+pub trait ETLFlow<U>
+where
+    U: AoristUniverse,
+{
     type ImportType: Import;
     type PreambleType: Preamble<ImportType = Self::ImportType>;
 

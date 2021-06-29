@@ -1,10 +1,13 @@
 import inspect
 import dill
+import ast
+import astor
 from aorist.target.debug.libaorist import *
 
 def to_str(source):
-    funcString = "\n".join(inspect.getsourcelines(source)[0])
-    print(funcString)
+    raw = "\n".join(inspect.getsourcelines(source)[0])
+    parsed = ast.parse(raw)
+    funcString = astor.to_source(ast.Module(parsed.body[0].body))
     return funcString
 
 
@@ -15,7 +18,6 @@ def aorist(programs, constraint, entrypoint, args, pip_requirements=[]):
             dill.dumps(lambda x: v(*x)).decode('latin-1')
         ) for k, v in args.items()
     }
-    print(args_str)
     def inner(func):
         programs[constraint] = constraint.register_python_program(
             to_str(func), 

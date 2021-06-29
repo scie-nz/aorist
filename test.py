@@ -2,8 +2,6 @@ import inspect
 from aorist.target.debug.libaorist import *
 from recipes import programs
 
-print(programs)
-
 def default_tabular_schema(datum, template_name):
     return DataSchema(TabularSchema(
         datumTemplateName=template_name,
@@ -109,26 +107,19 @@ subreddits = DataSet(
     access_policies=[],
 )
 subreddits = subreddits.replicate_to_local(Storage(local), tmp_dir, Encoding(CSVEncoding()))
-print(subreddits)
 universe = Universe(
     name="my_cluster",
     datasets=[subreddits],
     endpoints=endpoints,
 )
 universe.compute_uuids()
-print(universe)
 
 
 pushshift = PushshiftAPILocation(
     subreddit="newzealand",
 )
-print(pushshift)
-print(pushshift.subreddit)
 pushshift.subreddit = "wellington"
-print(pushshift.subreddit)
 location = RemoteLocation(pushshift)
-
-print(location)
 
 from aorist import *
 
@@ -173,4 +164,3 @@ print(result)
 #         dest_path = schema + '/' + tablename + '/data.csv'
 #         response = client.upload_file(source_path, bucket, dest_path)
 # 
-# print(programs)

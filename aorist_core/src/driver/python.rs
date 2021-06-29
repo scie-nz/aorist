@@ -1,23 +1,21 @@
 #![allow(dead_code)]
+use crate::constraint::TConstraintEnum;
+use crate::constraint::{OuterConstraint, TBuilder};
 use crate::constraint_state::ConstraintState;
 use crate::dialect::{Bash, Dialect, Presto, Python};
 use crate::driver::{ConstraintsBlockMap, Driver};
 use crate::flow::{ETLFlow, FlowBuilderBase, PythonBasedFlowBuilder};
-use crate::python::{
-    PythonBasedConstraintBlock, PythonImport, PythonPreamble,
-};
+use crate::program::TOuterProgram;
+use crate::python::{PythonBasedConstraintBlock, PythonImport, PythonPreamble};
 use anyhow::Result;
 use aorist_ast::AncestorRecord;
-use crate::constraint::TConstraintEnum;
-use crate::constraint::{OuterConstraint, TBuilder};
-use aorist_primitives::{Ancestry, TConceptEnum, AoristConcept, AoristUniverse};
+use aorist_primitives::{Ancestry, AoristConcept, AoristUniverse, TConceptEnum};
 use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
 use std::collections::{BTreeSet, HashMap};
 use std::marker::PhantomData;
 use std::sync::{Arc, RwLock};
 use uuid::Uuid;
-use crate::program::{TOuterProgram};
 
 pub struct PythonBasedDriver<'a, B, D, U, C, A, P>
 where
@@ -37,7 +35,8 @@ where
 {
     pub concepts: Arc<RwLock<HashMap<(Uuid, String), C>>>,
     constraints: LinkedHashMap<(Uuid, String), Arc<RwLock<B::OuterType>>>,
-    satisfied_constraints: HashMap<(Uuid, String), Arc<RwLock<ConstraintState<'a, B::OuterType, P>>>>,
+    satisfied_constraints:
+        HashMap<(Uuid, String), Arc<RwLock<ConstraintState<'a, B::OuterType, P>>>>,
     blocks: Vec<PythonBasedConstraintBlock<'a, D::T, B::OuterType, U, P>>,
     ancestry: A,
     dag_type: PhantomData<D>,
@@ -106,7 +105,13 @@ where
     }
     fn add_block(
         &mut self,
-        constraint_block: PythonBasedConstraintBlock<'a, <D as FlowBuilderBase<U>>::T, B::OuterType, U, P>,
+        constraint_block: PythonBasedConstraintBlock<
+            'a,
+            <D as FlowBuilderBase<U>>::T,
+            B::OuterType,
+            U,
+            P,
+        >,
     ) {
         self.blocks.push(constraint_block);
     }

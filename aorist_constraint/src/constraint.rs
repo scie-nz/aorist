@@ -1,28 +1,24 @@
 use anyhow::{Context, Result};
-use aorist_core::{Concept, ConceptAncestry, Dialect, ParameterTuple, Program, AoristRef, SatisfiableOuterConstraint, Ancestry};
-use aorist_primitives::{define_constraint, register_constraint_new, TAoristObject, register_satisfiable_constraints
-};
+use aorist_ast::{StringLiteral, AST};
+use aorist_core::{Ancestry, AoristRef, Concept, ConceptAncestry, Dialect, ParameterTuple};
 use aorist_core::{
-    ConstraintBuilder, ConstraintEnum, ConstraintSatisfactionBase, OuterConstraint, 
-    TConstraint, TConstraintEnum, TBuilder, TProgram, TOuterProgram,
+    ConstraintBuilder, ConstraintEnum, ConstraintSatisfactionBase, OuterConstraint, TBuilder,
+    TConstraint, TConstraintEnum, TOuterProgram, TProgram,
 };
-use aorist_ast::{AST, StringLiteral};
+use aorist_primitives::{define_constraint, register_constraint_new, TAoristObject};
+#[cfg(feature = "python")]
+use aorist_util::init_logging;
+use linked_hash_map::LinkedHashMap;
 use maplit::hashmap;
+#[cfg(feature = "python")]
+use pyo3::prelude::*;
+#[cfg(feature = "python")]
+use pyo3::types::PyString;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fmt;
 use std::sync::{Arc, RwLock};
-use linked_hash_map::LinkedHashMap;
-use anyhow::bail;
-use tracing::{debug, level_enabled, trace, Level};
-#[cfg(feature = "python")]
-use pyo3::prelude::*;
-#[cfg(feature = "python")]
-use pyo3::types::{PyString, PyFunction, PyDict};
-#[cfg(feature = "python")]
-use aorist_util::init_logging;
-#[cfg(feature = "python")]
-use pyo3::pycell::PyCell;
+use tracing::debug;
 
 include!(concat!(env!("OUT_DIR"), "/constraints.rs"));
 impl<'a> ConstraintEnum<'a> for AoristConstraint {}
@@ -35,8 +31,7 @@ pub struct Constraint {
     pub root: String,
     pub requires: Option<Vec<String>>,
 }
-impl<'a> OuterConstraint<'a> for Constraint
-{
+impl<'a> OuterConstraint<'a> for Constraint {
     type TEnum = AoristConstraint;
     type TAncestry = ConceptAncestry;
 

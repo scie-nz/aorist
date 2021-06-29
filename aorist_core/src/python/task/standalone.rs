@@ -6,10 +6,10 @@ use crate::parameter_tuple::ParameterTuple;
 use crate::python::task::key::PythonBasedTaskCompressionKey;
 use crate::python::task::uncompressible::PythonBasedTaskUncompressiblePart;
 use crate::python::{List, PythonImport, PythonPreamble, StringLiteral, AST};
+use aorist_primitives::AoristUniverse;
 use linked_hash_map::LinkedHashMap;
 use std::hash::Hash;
 use std::marker::PhantomData;
-use aorist_primitives::AoristUniverse;
 
 #[derive(Clone, Hash, PartialEq, Eq)]
 pub struct StandalonePythonBasedTask<T, U>
@@ -37,7 +37,12 @@ where
     singleton_type: PhantomData<T>,
     _universe: PhantomData<U>,
 }
-impl<T, U> TaskBase<T, U> for StandalonePythonBasedTask<T, U> where T: ETLFlow<U>, U: AoristUniverse {}
+impl<T, U> TaskBase<T, U> for StandalonePythonBasedTask<T, U>
+where
+    T: ETLFlow<U>,
+    U: AoristUniverse,
+{
+}
 
 impl<T, U> StandaloneTask<T, U> for StandalonePythonBasedTask<T, U>
 where
@@ -131,7 +136,9 @@ where
     T: ETLFlow<U, ImportType = PythonImport, PreambleType = PythonPreamble>,
     U: AoristUniverse,
 {
-    pub fn get_uncompressible_part(&self) -> Result<PythonBasedTaskUncompressiblePart<T, U>, String> {
+    pub fn get_uncompressible_part(
+        &self,
+    ) -> Result<PythonBasedTaskUncompressiblePart<T, U>, String> {
         Ok(PythonBasedTaskUncompressiblePart::new(
             self.task_id.clone(),
             self.get_right_of_task_val()?,

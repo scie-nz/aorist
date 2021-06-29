@@ -7,10 +7,10 @@ use aorist_ast::{
     Assignment, Attribute, BigIntLiteral, BooleanLiteral, Call, Dict, Expression, Formatted, List,
     None, SimpleIdentifier, StringLiteral, AST,
 };
+use aorist_primitives::AoristUniverse;
 use linked_hash_map::LinkedHashMap;
 use pyo3::prelude::*;
 use pyo3::types::PyModule;
-use aorist_primitives::AoristUniverse;
 use std::marker::PhantomData;
 
 #[derive(Clone, Hash, PartialEq)]
@@ -24,9 +24,9 @@ pub struct AirflowPythonBasedFlow<U: AoristUniverse> {
     preamble: Option<String>,
     dialect: Option<Dialect>,
     endpoints: U::TEndpoints,
-    _universe: PhantomData<U>,    
+    _universe: PhantomData<U>,
 }
-impl <U: AoristUniverse> AirflowPythonBasedFlow<U> {
+impl<U: AoristUniverse> AirflowPythonBasedFlow<U> {
     fn compute_task_args(&self) -> Vec<AST> {
         Vec::new()
     }
@@ -111,7 +111,7 @@ impl <U: AoristUniverse> AirflowPythonBasedFlow<U> {
         .unwrap()
     }
 }
-impl <U: AoristUniverse> ETLFlow<U> for AirflowPythonBasedFlow<U> {
+impl<U: AoristUniverse> ETLFlow<U> for AirflowPythonBasedFlow<U> {
     type ImportType = PythonImport;
     type PreambleType = PythonPreamble;
     fn get_imports(&self) -> Vec<PythonImport> {
@@ -208,13 +208,15 @@ impl <U: AoristUniverse> ETLFlow<U> for AirflowPythonBasedFlow<U> {
 pub struct AirflowFlowBuilder<U: AoristUniverse> {
     universe: PhantomData<U>,
 }
-impl <U: AoristUniverse> FlowBuilderBase<U> for AirflowFlowBuilder<U> {
+impl<U: AoristUniverse> FlowBuilderBase<U> for AirflowFlowBuilder<U> {
     type T = AirflowPythonBasedFlow<U>;
     fn new() -> Self {
-        Self {universe: PhantomData}
+        Self {
+            universe: PhantomData,
+        }
     }
 }
-impl <U: AoristUniverse> PythonBasedFlowBuilder<U> for AirflowFlowBuilder<U> {
+impl<U: AoristUniverse> PythonBasedFlowBuilder<U> for AirflowFlowBuilder<U> {
     /// Takes a set of statements and mutates them so as make a valid ETL flow
     fn build_flow<'a>(
         &self,

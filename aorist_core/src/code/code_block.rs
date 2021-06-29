@@ -3,15 +3,15 @@ use crate::constraint::OuterConstraint;
 use crate::constraint_state::ConstraintState;
 use crate::flow::{CompressibleETLTask, CompressibleTask, ETLFlow, ETLTask, StandaloneTask};
 use crate::parameter_tuple::ParameterTuple;
+use crate::program::TOuterProgram;
 use anyhow::Result;
 use aorist_ast::{SimpleIdentifier, StringLiteral, Subscript, AST};
+use aorist_primitives::AoristUniverse;
 use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
 use std::collections::{BTreeSet, HashMap};
 use std::sync::{Arc, RwLock};
 use uuid::Uuid;
-use aorist_primitives::AoristUniverse;
-use crate::program::{TOuterProgram};
 
 pub trait CodeBlock<'a, T, C, U, P>
 where
@@ -21,7 +21,7 @@ where
     Self: Sized,
     Self::E: ETLTask<T, U>,
     U: AoristUniverse,
-    P: TOuterProgram<TAncestry=C::TAncestry>,
+    P: TOuterProgram<TAncestry = C::TAncestry>,
 {
     type P;
     type E;
@@ -112,9 +112,9 @@ where
 pub trait CodeBlockWithDefaultConstructor<
     'a,
     T,
-    C: OuterConstraint<'a> ,
+    C: OuterConstraint<'a>,
     U: AoristUniverse,
-    P: TOuterProgram<TAncestry=C::TAncestry>,
+    P: TOuterProgram<TAncestry = C::TAncestry>,
 > where
     T: ETLFlow<U>,
     Self: CodeBlock<'a, T, C, U, P>,
@@ -131,7 +131,7 @@ pub trait CodeBlockWithForLoopCompression<
     T,
     C: OuterConstraint<'a>,
     U: AoristUniverse,
-    P: TOuterProgram<TAncestry=C::TAncestry>,
+    P: TOuterProgram<TAncestry = C::TAncestry>,
 > where
     Self: CodeBlock<'a, T, C, U, P>,
     T: ETLFlow<U>,
@@ -170,8 +170,14 @@ pub trait CodeBlockWithForLoopCompression<
         (compressible, uncompressible)
     }
 }
-impl<'a, C, T: ETLFlow<U>, CType: OuterConstraint<'a>, U: AoristUniverse, P: TOuterProgram<TAncestry=CType::TAncestry>> 
-    CodeBlockWithDefaultConstructor<'a, T, CType, U, P> for C
+impl<
+        'a,
+        C,
+        T: ETLFlow<U>,
+        CType: OuterConstraint<'a>,
+        U: AoristUniverse,
+        P: TOuterProgram<TAncestry = CType::TAncestry>,
+    > CodeBlockWithDefaultConstructor<'a, T, CType, U, P> for C
 where
     Self: CodeBlockWithForLoopCompression<'a, T, CType, U, P>,
     <Self as CodeBlock<'a, T, CType, U, P>>::E: CompressibleETLTask<T, U>,

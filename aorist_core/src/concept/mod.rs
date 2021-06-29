@@ -1,9 +1,11 @@
 pub use crate::universe::*;
-pub use aorist_primitives::{register_concept, Ancestry, AoristConcept, ConceptEnum, TConceptEnum, AoristUniverse};
+pub use aorist_primitives::{
+    register_concept, Ancestry, AoristConcept, AoristUniverse, ConceptEnum, TConceptEnum,
+};
 #[cfg(feature = "python")]
 use pyo3::prelude::*;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
-use std::collections::{HashMap};
+use std::collections::HashMap;
 use std::convert::TryFrom;
 use std::fmt::{Debug, Formatter};
 use std::hash::{Hash, Hasher};

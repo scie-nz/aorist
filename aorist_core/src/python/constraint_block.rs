@@ -3,21 +3,21 @@ use crate::constraint::OuterConstraint;
 use crate::constraint_block::ConstraintBlock;
 use crate::flow::ETLFlow;
 use crate::parameter_tuple::ParameterTuple;
+use crate::program::TOuterProgram;
 use crate::python::PythonBasedCodeBlock;
 use crate::python::{Assignment, Dict, PythonFlowBuilderInput, PythonImport, PythonPreamble, AST};
+use aorist_primitives::AoristUniverse;
 use linked_hash_map::LinkedHashMap;
 use std::collections::HashMap;
 use std::marker::PhantomData;
 use uuid::Uuid;
-use aorist_primitives::AoristUniverse;
-use crate::program::{TOuterProgram};
 
 pub struct PythonBasedConstraintBlock<'a, T, C, U, P>
 where
     T: ETLFlow<U, ImportType = PythonImport, PreambleType = PythonPreamble>,
     C: OuterConstraint<'a>,
     U: AoristUniverse,
-    P: TOuterProgram<TAncestry=C::TAncestry>,
+    P: TOuterProgram<TAncestry = C::TAncestry>,
 {
     constraint_name: String,
     title: Option<String>,
@@ -30,9 +30,9 @@ where
 impl<'a, T, C, U, P> ConstraintBlock<'a, T, C, U, P> for PythonBasedConstraintBlock<'a, T, C, U, P>
 where
     T: ETLFlow<U, ImportType = PythonImport, PreambleType = PythonPreamble>,
-    C: OuterConstraint<'a>, 
+    C: OuterConstraint<'a>,
     U: AoristUniverse,
-    P: TOuterProgram<TAncestry=C::TAncestry>,
+    P: TOuterProgram<TAncestry = C::TAncestry>,
 {
     type C = PythonBasedCodeBlock<'a, T, C, U, P>;
     type BuilderInputType = PythonFlowBuilderInput;
@@ -91,7 +91,7 @@ where
     T: ETLFlow<U, ImportType = PythonImport, PreambleType = PythonPreamble>,
     C: OuterConstraint<'a>,
     U: AoristUniverse,
-    P: TOuterProgram<TAncestry=C::TAncestry>,
+    P: TOuterProgram<TAncestry = C::TAncestry>,
 {
     pub fn get_params(&self) -> HashMap<String, Option<ParameterTuple>> {
         self.members

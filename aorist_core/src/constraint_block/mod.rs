@@ -1,19 +1,19 @@
 use crate::code::{CodeBlock, CodeBlockWithDefaultConstructor};
-use aorist_primitives::AoristUniverse;
 use crate::constraint::OuterConstraint;
 use crate::flow::{ETLFlow, FlowBuilderInput};
+use crate::program::TOuterProgram;
 use aorist_ast::AST;
+use aorist_primitives::AoristUniverse;
 use linked_hash_set::LinkedHashSet;
 use std::collections::{BTreeSet, HashMap};
 use uuid::Uuid;
-use crate::program::{TOuterProgram};
 
 pub trait ConstraintBlock<'a, T, C, U, P>
 where
     T: ETLFlow<U>,
     U: AoristUniverse,
-    C: OuterConstraint<'a>, 
-    P: TOuterProgram<TAncestry=C::TAncestry>,
+    C: OuterConstraint<'a>,
+    P: TOuterProgram<TAncestry = C::TAncestry>,
     Self::C: CodeBlockWithDefaultConstructor<'a, T, C, U, P>,
     Self::BuilderInputType: FlowBuilderInput<
         PreambleType = <Self::C as CodeBlock<'a, T, C, U, P>>::P,

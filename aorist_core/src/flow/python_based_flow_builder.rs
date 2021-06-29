@@ -3,18 +3,19 @@ use crate::flow::flow_builder::{FlowBuilderBase, FlowBuilderMaterialize};
 use crate::flow::flow_builder_input::FlowBuilderInput;
 use crate::python::{format_code, PythonFlowBuilderInput, PythonImport, PythonPreamble};
 use aorist_ast::AST;
+use aorist_primitives::AoristUniverse;
 use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
 use pyo3::prelude::*;
 use pyo3::types::{PyModule, PyString};
 use std::collections::BTreeSet;
-use aorist_primitives::AoristUniverse;
 
 impl<C, U> FlowBuilderMaterialize<U> for C
 where
     Self: Sized,
     C: PythonBasedFlowBuilder<U>,
-    <C as FlowBuilderBase<U>>::T: ETLFlow<U, ImportType = PythonImport, PreambleType = PythonPreamble>,
+    <C as FlowBuilderBase<U>>::T:
+        ETLFlow<U, ImportType = PythonImport, PreambleType = PythonPreamble>,
     U: AoristUniverse,
 {
     type BuilderInputType = PythonFlowBuilderInput;
