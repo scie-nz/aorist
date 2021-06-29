@@ -82,3 +82,5 @@ pub use python::*;
 mod program;
 pub use driver::*;
 pub use program::*;
+
+mod task_name_shortener;

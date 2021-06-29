@@ -3,6 +3,7 @@ use crate::constraint::OuterConstraint;
 use crate::dialect::Dialect;
 use crate::parameter_tuple::ParameterTuple;
 use crate::program::TOuterProgram;
+use crate::task_name_shortener::TaskNameShortener;
 use anyhow::{bail, Result};
 use aorist_ast::{AncestorRecord, Formatted, SimpleIdentifier, StringLiteral, AST};
 use aorist_primitives::TConceptEnum;
@@ -11,7 +12,7 @@ use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
 use std::collections::{HashMap, HashSet};
 use std::sync::{Arc, RwLock};
-use tracing::{level_enabled, trace, Level};
+use tracing::{level_enabled, trace, Level, debug};
 use uuid::Uuid;
 
 pub struct ConstraintState<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry = T::TAncestry>> {
@@ -274,7 +275,10 @@ impl<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry = T::TAncestry>>
             drop(write);
             task_names.push((fqn, constraint.clone()));
         }
-        loop {
+        let to_shorten_task_names = task_names.iter().map(|(x, _)| x.clone()).collect();
+        let shortened_task_names_1 = TaskNameShortener::new(to_shorten_task_names, "__".to_string()).run();
+        let shortened_task_names_2 = TaskNameShortener::new(shortened_task_names_1, "_".to_string()).run();
+        /*loop {
             let mut should_continue = false;
 
             let mut proposed_names: Vec<String> = task_names.iter().map(|x| x.0.clone()).collect();
@@ -290,7 +294,7 @@ impl<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry = T::TAncestry>>
             for i in 0..task_names.len() {
                 let task_name = proposed_names.get(i).unwrap().clone();
                 let new_name = Self::get_shorter_task_name(task_name.clone());
-
+                debug!("Proposed name: {}", new_name);
                 if new_task_names.contains(&new_name) || existing_names.contains(&new_name) {
                     should_continue = false;
                     break;
@@ -307,8 +311,9 @@ impl<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry = T::TAncestry>>
             for i in 0..task_names.len() {
                 task_names[i].0 = proposed_names[i].clone();
             }
-        }
-        for (name, rw) in task_names {
+        }*/
+        for (i, (_, rw)) in task_names.iter().enumerate() {
+            let name = shortened_task_names_2.get(i).unwrap().clone();
             let mut write = rw.write().unwrap();
             existing_names.insert(name.clone());
             write.set_task_name(name.replace("____", "__"));
@@ -321,6 +326,7 @@ impl<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry = T::TAncestry>>
             .filter(|x| x.len() > 0)
             .collect::<Vec<String>>();
         let mut new_name = task_name.to_string();
+        debug!("splits: {:?}", splits);
         if splits.len() > 2 {
             new_name = format!(
                 "{}__{}",
@@ -339,6 +345,7 @@ impl<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry = T::TAncestry>>
                 .split("_")
                 .map(|x| x.to_string())
                 .collect::<Vec<String>>();
+            debug!("splits_inner: {:?}", splits_inner);
             if splits_inner.len() > 2 {
                 new_name = format!(
                     "{}_{}",
