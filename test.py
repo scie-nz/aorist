@@ -1,13 +1,7 @@
 import inspect
 import copy
-from aorist.target.debug.libaorist import *
+from aorist import *
 from recipes import programs
-
-def default_tabular_schema(datum, template_name):
-    return DataSchema(TabularSchema(
-        datumTemplateName=template_name,
-        attributes=[a.name for a in attributes],
-    ))
 
 """
 Defining endpoints.
@@ -90,7 +84,7 @@ Declaring where our subreddits live, i.e. in PushShift
 subreddits = ['france']
 assets = {x: StaticDataTable(
     name=x,
-    schema=default_tabular_schema(subreddit_datum, x),
+    schema=default_tabular_schema(subreddit_datum, x, attributes),
     setup=StorageSetup(RemoteStorageSetup(
         remote=Storage(RemoteStorage(
             location=RemoteLocation(
@@ -148,3 +142,4 @@ result = dag(
     "python",
     programs
 )
+print(result)

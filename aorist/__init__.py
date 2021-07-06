@@ -7,6 +7,13 @@ import re
 import imp
 import builtins
 
+def default_tabular_schema(datum, template_name, attributes):
+    return DataSchema(TabularSchema(
+        datumTemplateName=template_name,
+        attributes=[a.name for a in attributes],
+    ))
+
+
 def to_str(source):
     raw = "\n".join(inspect.getsourcelines(source)[0])
     parsed = ast.parse(raw)
