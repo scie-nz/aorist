@@ -36,3 +36,23 @@ spec:
   attachIf: |
       |root: AoristRef<Concept>, ancestry: &ConceptAncestry|
           ancestry.hive_table_storage(root.clone()).is_ok()
+---
+type: Constraint
+spec:
+  name: ConvertJSONToCSV
+  root: RemoteStorage
+  requiresProgram: true
+  requires:
+    - DownloadDataFromRemotePushshiftAPILocationToNewlineDelimitedJSON
+  title: Convert JSON data to CSV
+  body: |
+      We need to convert the JSON data to CSV format to process it further.
+  attachIf: |
+      |root: AoristRef<Concept>, ancestry: &ConceptAncestry| {
+          match *ancestry.remote_storage(root.clone()).unwrap().0.read().unwrap().encoding.0.read().unwrap() {
+              aorist_core::Encoding::NewlineDelimitedJSONEncoding(_) => {
+                  ancestry.replication_storage_setup(root.clone()).is_ok()
+              },
+              _ => false,
+          }
+      }

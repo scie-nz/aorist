@@ -1,5 +1,5 @@
 #![allow(unused_parens)]
-use crate::compression::DataCompression;
+use crate::compression::*;
 use crate::concept::{AoristRef, WrappedConcept};
 use crate::header::FileHeader;
 use aorist_concept::{aorist, Constrainable};
@@ -15,6 +15,7 @@ use crate::encoding::orc_encoding::*;
 use crate::encoding::tsv_encoding::*;
 use paste::paste;
 use std::fmt::Debug;
+use pyo3::prelude::*;
 
 #[aorist]
 pub enum Encoding {
@@ -63,5 +64,28 @@ impl Encoding {
             Self::ONNXEncoding(_) => "onnx".to_string(),
             Self::NewlineDelimitedJSONEncoding(_) => "json".to_string(),
         }
+    }
+}
+
+#[cfg(feature = "python")]
+#[pymethods]
+impl PyEncoding {
+
+    pub fn get_compression(&self) -> PyResult<Option<PyDataCompression>> {
+        Ok(match &*self.inner.0.read().unwrap() {
+            Encoding::CSVEncoding(x) => match &x.0.read().unwrap().compression {
+                Some(y) => Some(PyDataCompression{ inner: y.clone()}),
+                None => None,
+            },
+            Encoding::GDBEncoding(x) => match &x.0.read().unwrap().compression {
+                Some(y) => Some(PyDataCompression{ inner: y.clone()}),
+                None => None,
+            },
+            Encoding::TSVEncoding(x) => Some(PyDataCompression{ inner: x.0.read().unwrap().compression.clone()}),
+            Encoding::JSONEncoding(_) => None,
+            Encoding::ORCEncoding(_) => None,
+            Encoding::ONNXEncoding(_) => None,
+            Encoding::NewlineDelimitedJSONEncoding(_) => None,
+        })
     }
 }
