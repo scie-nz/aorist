@@ -127,7 +127,7 @@ from aorist import *
 
 result = dag(
     universe,
-    ["UploadDataToMinio"],
+    ["UploadDataToMinio", "CSVTableSchemasCreated"],
     "python",
     programs
 )

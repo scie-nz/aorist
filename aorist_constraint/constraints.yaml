@@ -80,3 +80,15 @@ spec:
       |root: AoristRef<Concept>, ancestry: &ConceptAncestry| {
         ancestry.replication_storage_setup(root.clone()).is_ok()
       }
+---
+type: Constraint
+spec:
+  name: CSVTableSchemasCreated
+  root: HiveTableStorage
+  requiresProgram: true
+  requires:
+    - HiveDirectoriesCreated
+  title: Create schemas for temporary CSV tables.
+  body: |
+      We will use Hive tables with external storage as a staging location for our
+      data. We need to create these schemas to be able to write data to them.
