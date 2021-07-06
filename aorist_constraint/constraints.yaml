@@ -3,6 +3,8 @@ spec:
   name: DownloadDataFromRemotePushshiftAPILocationToNewlineDelimitedJSON
   root: PushshiftAPILocation
   requiresProgram: true
+  requires:
+    - HiveDirectoriesCreated
   title: Downloading data from the Pushshift API
   body: |
       Data for this particular asset(s) is located in the Pushshift API.
@@ -21,3 +23,16 @@ spec:
           }
           _ => false,
       }
+---
+type: Constraint
+spec:
+  name: HiveDirectoriesCreated
+  root: HiveLocation
+  requiresProgram: true
+  title: Created hive directories.
+  body: |
+      We need to create directories or buckets (depending on file system / storage
+      solution) in which we will store our Hive data.
+  attachIf: |
+      |root: AoristRef<Concept>, ancestry: &ConceptAncestry|
+          ancestry.hive_table_storage(root.clone()).is_ok()

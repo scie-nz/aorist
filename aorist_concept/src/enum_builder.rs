@@ -114,7 +114,7 @@ impl Builder for EnumBuilder {
           )> for WrappedConcept<T> where
           #(
               T: [<CanBe #variant>],
-          )* 
+          )*
               T: Debug + Clone + Serialize + PartialEq,
           {
               fn from(
@@ -151,7 +151,7 @@ impl Builder for EnumBuilder {
           )> for WrappedConcept<T> where
           #(
               T: [<CanBe #variant>],
-          )* 
+          )*
               T: Debug + Clone + Serialize + PartialEq,
           {
               fn from(
@@ -260,13 +260,24 @@ impl Builder for EnumBuilder {
                       )*
                   }
               }
+                #(
+                    #[getter]
+                    pub fn [<#variant:snake:lower>](&self) -> pyo3::prelude::PyResult<Option<[<Py #variant>]>> {
+                        Ok(
+                            match &*self.inner.0.read().unwrap() {
+                                #enum_name::#variant(x) => Some([<Py #variant>]{ inner: x.clone() }),
+                                _ => None,
+                            }
+                        )
+                    }
+                )*
           }
           impl #enum_name {
-              
+
               pub fn get_uuid(&self) -> Option<Uuid> {
                   match &self {
                       #(
-                        #enum_name::#variant(x) => x.get_uuid(), 
+                        #enum_name::#variant(x) => x.get_uuid(),
                       )*
                   }
               }

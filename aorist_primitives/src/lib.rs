@@ -1387,7 +1387,7 @@ macro_rules! register_constraint_new {
                     self.inner.get_entrypoint(),
                     ParameterTuple { args, kwargs },
                     // TODO: this should be handled by self.inner.get_dialect()
-                    Dialect::Python(aorist_core::dialect::Python::new(vec![]))
+                    self.inner.get_dialect(),
                 )
             }
         }

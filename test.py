@@ -68,8 +68,9 @@ subreddit_datum = RowStruct(
     attributes=attributes,
 )
 tmp_dir = "tmp/subreddits"
-local = BigQueryStorage(
-    location=BigQueryLocation(),
+local = HiveTableStorage(
+    location=HiveLocation(MinioLocation(name='reddit')),
+    encoding=Encoding(CSVEncoding()),
     layout=TabularLayout(StaticTabularLayout()),
 )
 subreddits = ['wairarapa', 'marton', 'marlborough']
@@ -124,9 +125,9 @@ location = RemoteLocation(pushshift)
 from aorist import *
 
 result = dag(
-    universe, 
-    ["DownloadDataFromRemotePushshiftAPILocationToNewlineDelimitedJSON"], 
-    "python", 
+    universe,
+    ["DownloadDataFromRemotePushshiftAPILocationToNewlineDelimitedJSON"],
+    "python",
     programs
 )
 print(result)
@@ -137,8 +138,8 @@ print(result)
 #     UploadDataToS3,
 #     entrypoint="upload_to_s3",
 #     args={
-#         "access_key": lambda universe : universe.endpoints.access_key_id, 
-#         "secret_key": lambda universe : universe.endpoints.access_key_secret, 
+#         "access_key": lambda universe : universe.endpoints.access_key_id,
+#         "secret_key": lambda universe : universe.endpoints.access_key_secret,
 #         "table_name": lambda data_set : data_set.name + ".csv",
 #         "bucket": lambda s3location : s3location.bucket,
 #         "schema": lambda data_set : data_set.name,
@@ -153,7 +154,7 @@ print(result)
 #     import logging
 #     import boto3
 #     from botocore.exceptions import ClientError
-# 
+#
 #     def upload_to_s3(access_key, secret_key, bucket, schema, tablename, tmp_dir, source_file):
 #         client = boto3.client(
 #             's3',
@@ -163,4 +164,4 @@ print(result)
 #         source_path = tmp_dir + "/" + source_file
 #         dest_path = schema + '/' + tablename + '/data.csv'
 #         response = client.upload_file(source_path, bucket, dest_path)
-# 
+#

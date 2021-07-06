@@ -23,7 +23,7 @@
             )
         ) if hive_table_storage.location.s3_location is not None else (
             panic("Only Alluxio, MinIO or S3 locations supported.")
-        )
+        ))
     },
 )
 ***/
