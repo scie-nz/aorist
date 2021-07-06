@@ -20,11 +20,27 @@ def aorist(programs, constraint, entrypoint, args, pip_requirements=[]):
     }
     def inner(func):
         programs[constraint] = constraint.register_python_program(
-            to_str(func), 
-            entrypoint, 
-            [], 
-            args_str, 
+            to_str(func),
+            entrypoint,
+            [],
+            args_str,
             pip_requirements
         )
     return inner
 
+def aorist_presto(programs, constraint, entrypoint, args):
+    args_str = {
+        k : (
+            list(inspect.signature(v).parameters.keys()),
+            dill.dumps(lambda x: v(*x)).decode('latin-1')
+        ) for k, v in args.items()
+    }
+    def inner(func):
+        programs[constraint] = constraint.register_python_program(
+            to_str(func),
+            entrypoint,
+            [],
+            args_str,
+            pip_requirements
+        )
+    return inner

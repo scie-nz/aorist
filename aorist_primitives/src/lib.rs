@@ -548,10 +548,10 @@ macro_rules! define_constraint {
                     code: &str,
                     entrypoint: &str,
                     arg_functions: Vec<(Vec<&str>, &str)>,
-                    kwarg_functions: HashMap<&str, (Vec<&str>, &str)>, 
+                    kwarg_functions: HashMap<&str, (Vec<&str>, &str)>,
                     pip_requirements: Vec<String>,
                 ) -> PyResult<[<$element Program>]> {
-                    
+
                     let mut funs: LinkedHashMap<String, (Vec<String>, String)> = LinkedHashMap::new();
                     for (k, (v1, v2)) in kwarg_functions.iter() {
                         funs.insert(k.to_string(), (v1.iter().map(|x| x.to_string()).collect(), v2.to_string()));
@@ -562,6 +562,46 @@ macro_rules! define_constraint {
                         arg_functions: arg_functions.iter().map(|(x, y)| (x.iter().map(|x| x.to_string()).collect(), y.to_string())).collect(),
                         kwarg_functions: funs,
                         dialect: Dialect::Python(aorist_core::Python::new(pip_requirements))
+                    })
+                }
+                #[staticmethod]
+                pub fn register_presto_program(
+                    code: &str,
+                    entrypoint: &str,
+                    arg_functions: Vec<(Vec<&str>, &str)>,
+                    kwarg_functions: HashMap<&str, (Vec<&str>, &str)>,
+                ) -> PyResult<[<$element Program>]> {
+
+                    let mut funs: LinkedHashMap<String, (Vec<String>, String)> = LinkedHashMap::new();
+                    for (k, (v1, v2)) in kwarg_functions.iter() {
+                        funs.insert(k.to_string(), (v1.iter().map(|x| x.to_string()).collect(), v2.to_string()));
+                    }
+                    Ok([<$element Program>]{
+                        code: code.to_string(),
+                        entrypoint: entrypoint.to_string(),
+                        arg_functions: arg_functions.iter().map(|(x, y)| (x.iter().map(|x| x.to_string()).collect(), y.to_string())).collect(),
+                        kwarg_functions: funs,
+                        dialect: Dialect::Presto(aorist_core::Presto::new())
+                    })
+                }
+                #[staticmethod]
+                pub fn register_bash_program(
+                    code: &str,
+                    entrypoint: &str,
+                    arg_functions: Vec<(Vec<&str>, &str)>,
+                    kwarg_functions: HashMap<&str, (Vec<&str>, &str)>,
+                ) -> PyResult<[<$element Program>]> {
+
+                    let mut funs: LinkedHashMap<String, (Vec<String>, String)> = LinkedHashMap::new();
+                    for (k, (v1, v2)) in kwarg_functions.iter() {
+                        funs.insert(k.to_string(), (v1.iter().map(|x| x.to_string()).collect(), v2.to_string()));
+                    }
+                    Ok([<$element Program>]{
+                        code: code.to_string(),
+                        entrypoint: entrypoint.to_string(),
+                        arg_functions: arg_functions.iter().map(|(x, y)| (x.iter().map(|x| x.to_string()).collect(), y.to_string())).collect(),
+                        kwarg_functions: funs,
+                        dialect: Dialect::Bash(aorist_core::Bash::new())
                     })
                 }
             }
@@ -1103,7 +1143,7 @@ macro_rules! register_concept {
                }
             }
         )+
-        
+
         pub trait [<$name Descendants>] {
             fn get_descendants(&self) -> Vec<AoristRef<$name>>;
         }
@@ -1120,11 +1160,11 @@ macro_rules! register_concept {
                 }
             }
         )+
-        
-        
+
+
         impl ConceptEnum for $name {}
         impl ConceptEnum for AoristRef<$name> {}
-        
+
         $(
             impl TryFrom<AoristRef<$name>> for AoristRef<$element> {
                 type Error = String;
@@ -1140,7 +1180,7 @@ macro_rules! register_concept {
                 }
             }
         )+
-       
+
         #[cfg_attr(feature = "python", pyclass)]
         pub struct $ancestry {
             pub parents: Arc<RwLock<HashMap<(Uuid, String), AoristRef<$name>>>>,
@@ -1344,8 +1384,8 @@ macro_rules! register_constraint_new {
                 }
                 (
                     self.inner.get_code(),
-                    self.inner.get_entrypoint(), 
-                    ParameterTuple { args, kwargs }, 
+                    self.inner.get_entrypoint(),
+                    ParameterTuple { args, kwargs },
                     // TODO: this should be handled by self.inner.get_dialect()
                     Dialect::Python(aorist_core::dialect::Python::new(vec![]))
                 )

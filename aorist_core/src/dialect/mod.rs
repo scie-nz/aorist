@@ -16,10 +16,26 @@ impl Python {
 }
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct R {}
+
+impl R {
+    pub fn new() -> Self {
+        Self {}
+    }
+}
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Bash {}
+impl Bash {
+    pub fn new() -> Self {
+        Self {}
+    }
+}
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Presto {}
+impl Presto {
+    pub fn new() -> Self {
+        Self {}
+    }
+}
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Dialect {
