@@ -1,4 +1,5 @@
 import inspect
+import copy
 from aorist.target.debug.libaorist import *
 from recipes import programs
 
@@ -73,7 +74,7 @@ local = HiveTableStorage(
     encoding=Encoding(CSVEncoding()),
     layout=TabularLayout(StaticTabularLayout()),
 )
-subreddits = ['wairarapa', 'marton', 'marlborough']
+subreddits = ['france']
 assets = {x: StaticDataTable(
     name=x,
     schema=default_tabular_schema(subreddit_datum, x),
@@ -126,7 +127,7 @@ from aorist import *
 
 result = dag(
     universe,
-    ["ConvertJSONToCSV"],
+    ["UploadDataToMinio"],
     "python",
     programs
 )

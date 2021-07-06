@@ -67,7 +67,7 @@ where
     fn get_programs_for(&self, constraint_name: &String) -> Vec<P> {
         match self.programs.get(constraint_name) {
             Some(ref programs) => programs.iter().map(|x| (*x).clone()).collect(),
-            None => panic!("Cannot find program for {}", constraint_name),
+            None => Vec::new(), //panic!("Cannot find program for {}", constraint_name),
         }
     }
     fn get_preferences(&self) -> Vec<Dialect> {
