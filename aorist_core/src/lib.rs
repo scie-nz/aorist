@@ -12,6 +12,7 @@ mod concept;
 mod constraint;
 mod constraint_block;
 mod constraint_state;
+mod context;
 mod dataset;
 mod driver;
 mod encoding;

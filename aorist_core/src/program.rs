@@ -1,4 +1,5 @@
 use crate::constraint::{OuterConstraint, TConstraint};
+use crate::context::Context;
 use crate::dialect::Dialect;
 use crate::parameter_tuple::ParameterTuple;
 use aorist_primitives::Ancestry;
@@ -27,7 +28,7 @@ pub trait TOuterProgram: Clone {
         &self,
         root: <Self::TAncestry as Ancestry>::TConcept,
         ancestry: &Self::TAncestry,
-        context: &mut HashMap<String, String>,
+        context: &mut Context,
     ) -> (String, String, ParameterTuple, Dialect);
 }
 #[derive(Clone)]

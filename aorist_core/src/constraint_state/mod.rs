@@ -1,5 +1,6 @@
 use crate::concept::Ancestry;
 use crate::constraint::OuterConstraint;
+use crate::context::Context;
 use crate::dialect::Dialect;
 use crate::parameter_tuple::ParameterTuple;
 use crate::program::TOuterProgram;
@@ -31,7 +32,7 @@ pub struct ConstraintState<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestr
     call: Option<String>,
     params: Option<ParameterTuple>,
     task_name: Option<String>,
-    context: HashMap<String, String>,
+    context: Context,
 }
 impl<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry = T::TAncestry>>
     ConstraintState<'a, T, P>
@@ -255,7 +256,7 @@ impl<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry = T::TAncestry>>
             params: None,
             task_name: None,
             // will accumulate dependencies' contexts as they are satisfied
-            context: HashMap::new(),
+            context: Context::new(),
         })
     }
     fn compute_task_key(&mut self) -> String {
