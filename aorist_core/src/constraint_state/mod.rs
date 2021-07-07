@@ -45,6 +45,7 @@ impl<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry = T::TAncestry>>
     ) {
         let dependency_context = &(*dependency.read().unwrap()).context;
         self.satisfied_dependencies.push(dependency.clone());
+        self.context.insert(dependency_context);
         assert!(self.unsatisfied_dependencies.remove(uuid));
     }
     pub fn requires_program(&self) -> Result<bool> {
