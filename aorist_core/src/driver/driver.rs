@@ -229,8 +229,7 @@ where
                     .get(&(*dependency_uuid, dependency_root_type.clone()))
                     .unwrap();
                 let mut write = rw.write().unwrap();
-                write.satisfied_dependencies.push(state.clone());
-                assert!(write.unsatisfied_dependencies.remove(&uuid));
+                write.mark_dependency_as_satisfied(&state, &uuid);
                 drop(write);
             }
         }

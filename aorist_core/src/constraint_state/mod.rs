@@ -36,6 +36,16 @@ pub struct ConstraintState<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestr
 impl<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry = T::TAncestry>>
     ConstraintState<'a, T, P>
 {
+
+    pub fn mark_dependency_as_satisfied(
+        &mut self,
+        dependency: &Arc<RwLock<ConstraintState<'a, T, P>>>,
+        uuid: &(Uuid, String),
+    ) {
+        let dependency_context = &(*dependency.read().unwrap()).context;
+        self.satisfied_dependencies.push(dependency.clone());
+        assert!(self.unsatisfied_dependencies.remove(uuid));
+    }
     pub fn requires_program(&self) -> Result<bool> {
         self.constraint.read().unwrap().requires_program()
     }
