@@ -83,12 +83,19 @@ spec:
 ---
 type: Constraint
 spec:
-  name: CSVTableSchemasCreated
+  name: JSONTableSchemasCreated
   root: HiveTableStorage
   requiresProgram: true
   requires:
     - HiveDirectoriesCreated
-  title: Create schemas for temporary CSV tables.
+  title: Create schemas for temporary JSON tables.
   body: |
       We will use Hive tables with external storage as a staging location for our
       data. We need to create these schemas to be able to write data to them.
+  attachIf: |
+      |root: AoristRef<Concept>, ancestry: &ConceptAncestry| {
+         match &*ancestry.hive_table_storage(root.clone()).unwrap().0.read().unwrap().encoding.0.read().unwrap() {
+            aorist_core::Encoding::NewlineDelimitedJSONEncoding(_) => true,
+            _ => false,
+         }
+      }

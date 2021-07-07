@@ -129,16 +129,9 @@ universe = Universe(
 )
 universe.compute_uuids()
 
-
-pushshift = PushshiftAPILocation(
-    subreddit="newzealand",
-)
-pushshift.subreddit = "wellington"
-location = RemoteLocation(pushshift)
-
 result = dag(
     universe,
-    ["UploadDataToMinio", "CSVTableSchemasCreated"],
+    ["UploadDataToMinio", "JSONTableSchemasCreated"],
     "python",
     programs
 )
