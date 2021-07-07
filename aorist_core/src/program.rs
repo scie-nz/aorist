@@ -4,6 +4,7 @@ use crate::parameter_tuple::ParameterTuple;
 use aorist_primitives::Ancestry;
 use linked_hash_map::LinkedHashMap;
 use std::marker::PhantomData;
+use std::collections::HashMap;
 
 pub trait TProgram<'a, T: TConstraint<'a>> {
     fn new(
@@ -26,6 +27,7 @@ pub trait TOuterProgram: Clone {
         &self,
         root: <Self::TAncestry as Ancestry>::TConcept,
         ancestry: &Self::TAncestry,
+        context: &mut HashMap<String, String>,
     ) -> (String, String, ParameterTuple, Dialect);
 }
 #[derive(Clone)]
@@ -53,19 +55,4 @@ where
             kwarg_functions,
         }
     }
-
-    /*
-    #[cfg(feature = "python")]
-    pub fn compute_arg_lambdas(&self, obj: ) -> Vec<PyObject> {
-        let gil = Python::acquire_gil();
-        let py = gil.python();
-        let mut result = Vec::new();
-        let dill: &PyModule = PyModule::import(py, "dill").unwrap();
-        for serialized in &self.arg_functions {
-            let py_arg = PyString::new(py, &serialized);
-            let deserialized = dill.call1("loads", (py_arg,)).unwrap();
-            result.push(deserialized.into_ref(py));
-        }
-        result
-    }*/
 }

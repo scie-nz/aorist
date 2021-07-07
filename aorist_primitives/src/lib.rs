@@ -1354,6 +1354,7 @@ macro_rules! register_constraint_new {
                 &self,
                 root: <Self::TAncestry as Ancestry>::TConcept,
                 ancestry: &Self::TAncestry,
+                context: &mut HashMap<String, String>,
             ) -> (String, String, ParameterTuple, Dialect) {
                 let gil = Python::acquire_gil();
                 let py = gil.python();

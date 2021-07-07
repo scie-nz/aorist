@@ -59,10 +59,10 @@ spec:
 ---
 type: Constraint
 spec:
-  name: Converted
+  name: ReadyForUpload
   root: DataSet
   requires:
-    - ConvertJSONToCSV
+    - DownloadDataFromRemotePushshiftAPILocationToNewlineDelimitedJSON
   title: Convert data
 ---
 type: Constraint
@@ -71,7 +71,7 @@ spec:
   root: MinioLocation
   requiresProgram: true
   requires:
-    - Converted
+    - ReadyForUpload
   title: Upload data to Min.IO
   body: |
       Now that data has been pre-processed we can upload it to the underlying

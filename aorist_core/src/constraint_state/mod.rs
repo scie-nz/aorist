@@ -31,6 +31,7 @@ pub struct ConstraintState<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestr
     call: Option<String>,
     params: Option<ParameterTuple>,
     task_name: Option<String>,
+    context: HashMap<String, String>,
 }
 impl<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry = T::TAncestry>>
     ConstraintState<'a, T, P>
@@ -179,7 +180,7 @@ impl<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry = T::TAncestry>>
         let best_program = Self::find_best_program(preferences, programs);
         if let Some(program) = best_program {
             let (preamble, call, params, dialect) =
-                program.compute_args(self.root.clone(), ancestry);
+                program.compute_args(self.root.clone(), ancestry, &mut self.context);
             self.preamble = Some(preamble);
             self.call = Some(call);
             self.params = Some(params);
@@ -243,6 +244,8 @@ impl<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry = T::TAncestry>>
             call: None,
             params: None,
             task_name: None,
+            // will accumulate dependencies' contexts as they are satisfied
+            context: HashMap::new(),
         })
     }
     fn compute_task_key(&mut self) -> String {
