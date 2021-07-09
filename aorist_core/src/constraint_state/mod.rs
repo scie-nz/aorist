@@ -182,7 +182,6 @@ impl<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry = T::TAncestry>>
         }
         None
     }
-
     pub fn satisfy(
         &mut self,
         preferences: &Vec<Dialect>,

@@ -5,7 +5,6 @@ use crate::parameter_tuple::ParameterTuple;
 use aorist_primitives::Ancestry;
 use linked_hash_map::LinkedHashMap;
 use std::marker::PhantomData;
-use std::collections::HashMap;
 
 pub trait TProgram<'a, T: TConstraint<'a>> {
     fn new(

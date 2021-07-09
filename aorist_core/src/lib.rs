@@ -47,6 +47,7 @@ pub use concept::*;
 pub use constraint::*;
 pub use constraint_block::*;
 pub use constraint_state::*;
+pub use context::*;
 pub use dataset::*;
 pub use dialect::*;
 pub use encoding::*;

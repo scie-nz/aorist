@@ -1354,7 +1354,7 @@ macro_rules! register_constraint_new {
                 &self,
                 root: <Self::TAncestry as Ancestry>::TConcept,
                 ancestry: &Self::TAncestry,
-                context: &mut HashMap<String, String>,
+                context: &mut aorist_core::Context,
             ) -> (String, String, ParameterTuple, Dialect) {
                 let gil = Python::acquire_gil();
                 let py = gil.python();
@@ -1365,10 +1365,33 @@ macro_rules! register_constraint_new {
                 for (input_types, serialized) in &self.inner.get_arg_functions() {
                     let py_arg = PyString::new(py, &serialized);
                     let deserialized = dill.call1("loads", (py_arg,)).unwrap();
-                    let objects = input_types.iter().map(|x| ancestry.py_object(x, root.clone(), py).unwrap()).collect::<Vec<_>>().to_object(py);
-                    let arg = deserialized.call1((objects,)).unwrap();
-                    // TODO: add more return types here
-                    let extracted: String = arg.extract().unwrap();
+                    let mut objects = Vec::new();
+                    let mut context_pos = None;
+                    for (i, x) in input_types.iter().enumerate() {
+                        if x == "context" {
+                            assert!(context_pos.is_none());
+                            context_pos = Some(i);
+                        } else {
+                            objects.push(
+                                ancestry.py_object(x, root.clone(), py).unwrap().to_object(py)
+                            );
+                        }
+                    }
+                    let extracted;
+                    if let Some(pos) = context_pos {
+                        let obj = PyObject::from(PyCell::new(py, context.clone()).unwrap());
+                        objects.insert(pos, obj.to_object(py));
+                        let returned = deserialized.call1((objects,)).unwrap();
+                        let (
+                            extracted_string, extracted_context
+                        ) : (String, aorist_core::Context) = returned.extract().unwrap();
+                        context.insert(&extracted_context);
+                        extracted = extracted_string;
+                    } else {
+                        let arg = deserialized.call1((objects,)).unwrap();
+                        // TODO: add more return types here
+                        extracted = arg.extract().unwrap();
+                    }
                     let ast = AST::StringLiteral(StringLiteral::new_wrapped(extracted, false));
                     args.push(ast);
                 }
