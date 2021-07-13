@@ -9,6 +9,8 @@ use aorist_primitives::PrestoConfig;
 use linked_hash_map::LinkedHashMap;
 use std::hash::Hash;
 use std::sync::{Arc, RwLock};
+use crate::python::ast::PythonTaskBase;
+use crate::python::ast::AirflowTaskBase;
 
 define_task_node!(
     PrestoPythonTask,
@@ -89,8 +91,19 @@ define_task_node!(
     sql: AST,
     task_val: AST,
     endpoint: PrestoConfig,
+    dependencies: Option<AST>,
 );
 
+impl PythonTaskBase for PrestoPythonTask {
+    fn get_task_val(&self) -> AST {
+        self.task_val.clone()
+    }
+}
+impl AirflowTaskBase for PrestoPythonTask {
+    fn get_dependencies(&self) -> Option<AST> {
+        self.dependencies.clone()        
+    }
+}
 impl PrestoPythonTask {
     fn cursor_ident(&self) -> AST {
         AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("cursor".to_string()))

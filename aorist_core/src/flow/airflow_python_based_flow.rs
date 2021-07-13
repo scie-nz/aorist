@@ -272,6 +272,7 @@ where U::TEndpoints: TPrestoEndpoints {
                     command,
                     task_val.clone(),
                     presto_endpoints,
+                    dep_list.clone(),
                 ))
             }
             Some(Dialect::Bash(_)) => {
