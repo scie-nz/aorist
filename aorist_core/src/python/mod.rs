@@ -17,6 +17,7 @@ use aorist_ast::{
 };
 pub use ast::{
     BashPythonTask, ConstantPythonTask, NativePythonTask, PrestoPythonTask, RPythonTask,
+    PythonTask,
 };
 pub use code_block::PythonBasedCodeBlock;
 pub use constraint_block::PythonBasedConstraintBlock;

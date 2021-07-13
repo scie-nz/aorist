@@ -4,28 +4,17 @@ use crate::flow::flow_builder::FlowBuilderBase;
 use crate::flow::python_based_flow_builder::PythonBasedFlowBuilder;
 use crate::python::{
     BashPythonTask, ConstantPythonTask, NativePythonTask, PrestoPythonTask, PythonImport,
-    PythonPreamble, RPythonTask, 
+    PythonPreamble, RPythonTask, PythonTask,
 };
 use aorist_ast::{Call, Expression, Formatted, SimpleIdentifier, StringLiteral, AST, Attribute};
 use aorist_primitives::AoristUniverse;
-use aorist_primitives::{register_task_nodes, TPrestoEndpoints};
+use aorist_primitives::{TPrestoEndpoints};
 use linked_hash_map::LinkedHashMap;
 use pyo3::prelude::*;
 use pyo3::types::PyModule;
-use std::hash::{Hash, Hasher};
+use std::hash::{Hash};
 use std::marker::PhantomData;
-use std::sync::{Arc, RwLock};
 use crate::flow::python_based_flow::PythonBasedFlow;
-
-register_task_nodes! {
-    PythonTask,
-    PythonImport,
-    BashPythonTask,
-    RPythonTask,
-    NativePythonTask,
-    ConstantPythonTask,
-    PrestoPythonTask,
-}
 
 #[derive(Clone, Hash, PartialEq)]
 pub struct NativePythonBasedFlow<U: AoristUniverse>

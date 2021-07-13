@@ -1,3 +1,9 @@
+use crate::python::PythonImport;
+use aorist_ast::AST;
+use aorist_primitives::{register_task_nodes};
+use std::hash::{Hash, Hasher};
+use std::sync::{Arc, RwLock};
+
 mod bash_python_task;
 mod constant_python_task;
 mod native_python_task;
@@ -10,3 +16,13 @@ pub use constant_python_task::ConstantPythonTask;
 pub use native_python_task::NativePythonTask;
 pub use presto_python_task::PrestoPythonTask;
 pub use r_python_task::RPythonTask;
+
+register_task_nodes! {
+    PythonTask,
+    PythonImport,
+    BashPythonTask,
+    RPythonTask,
+    NativePythonTask,
+    ConstantPythonTask,
+    PrestoPythonTask,
+}

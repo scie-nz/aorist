@@ -2,7 +2,10 @@ use crate::dialect::Dialect;
 use crate::flow::etl_flow::ETLFlow;
 use crate::flow::flow_builder::FlowBuilderBase;
 use crate::flow::python_based_flow_builder::PythonBasedFlowBuilder;
-use crate::python::{PythonImport, PythonPreamble, NativePythonPreamble, RPythonPreamble};
+use crate::python::{
+    BashPythonTask, ConstantPythonTask, NativePythonTask, PrestoPythonTask, PythonImport,
+    PythonPreamble, RPythonTask, PythonTask, RPythonPreamble, NativePythonPreamble,
+};
 use aorist_ast::{
     Assignment, Attribute, BigIntLiteral, BooleanLiteral, Call, Dict, Expression, Formatted, List,
     None, SimpleIdentifier, StringLiteral, AST,
@@ -16,7 +19,8 @@ use std::marker::PhantomData;
 use crate::flow::python_based_flow::PythonBasedFlow;
 
 #[derive(Clone, Hash, PartialEq)]
-pub struct AirflowPythonBasedFlow<U: AoristUniverse> {
+pub struct AirflowPythonBasedFlow<U: AoristUniverse> 
+where U::TEndpoints: TPrestoEndpoints {
     task_id: AST,
     task_val: AST,
     command: Option<String>,
@@ -26,6 +30,7 @@ pub struct AirflowPythonBasedFlow<U: AoristUniverse> {
     preamble: Option<String>,
     dialect: Option<Dialect>,
     endpoints: U::TEndpoints,
+    node: PythonTask,
     _universe: PhantomData<U>,
 }
 impl<U: AoristUniverse> PythonBasedFlow<U> for AirflowPythonBasedFlow<U> 
@@ -35,7 +40,8 @@ where
         self.preamble.clone()
     }
 }
-impl<U: AoristUniverse> AirflowPythonBasedFlow<U> {
+impl<U: AoristUniverse> AirflowPythonBasedFlow<U> 
+where U::TEndpoints: TPrestoEndpoints {
     fn compute_task_args(&self) -> Vec<AST> {
         Vec::new()
     }
@@ -132,7 +138,8 @@ impl<U: AoristUniverse> AirflowPythonBasedFlow<U> {
         }
     }
 }
-impl<U: AoristUniverse> ETLFlow<U> for AirflowPythonBasedFlow<U> {
+impl<U: AoristUniverse> ETLFlow<U> for AirflowPythonBasedFlow<U> 
+where U::TEndpoints: TPrestoEndpoints {
     type ImportType = PythonImport;
     type PreambleType = PythonPreamble;
     fn get_imports(&self) -> Vec<PythonImport> {
@@ -216,6 +223,86 @@ impl<U: AoristUniverse> ETLFlow<U> for AirflowPythonBasedFlow<U> {
         dialect: Option<Dialect>,
         endpoints: U::TEndpoints,
     ) -> Self {
+        let command = match &dialect {
+            Some(Dialect::Bash(_)) => AST::Formatted(Formatted::new_wrapped(
+                AST::StringLiteral(StringLiteral::new_wrapped(
+                    call.as_ref().unwrap().to_string(),
+                    false,
+                )),
+                kwargs.clone(),
+            )),
+            Some(Dialect::Presto(_)) => AST::Formatted(Formatted::new_wrapped(
+                AST::StringLiteral(StringLiteral::new_wrapped(
+                    call.as_ref().unwrap().to_string(),
+                    true,
+                )),
+                kwargs.clone(),
+            )),
+            Some(Dialect::Python(_)) => AST::Call(Call::new_wrapped(
+                AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
+                    call.as_ref().unwrap().clone(),
+                )),
+                args.clone(),
+                kwargs.clone(),
+            )),
+            Some(Dialect::R(_)) => {
+                AST::Call(Call::new_wrapped(
+                    AST::Call(Call::new_wrapped(
+                        AST::Attribute(Attribute::new_wrapped(
+                            AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("robjects".to_string())),
+                            "r".to_string(),
+                            false,
+                        )),
+                        vec![AST::StringLiteral(StringLiteral::new_wrapped(
+                            call.as_ref().unwrap().clone(),
+                            false,
+                        ))],
+                        LinkedHashMap::new(),
+                    )),
+                    args.clone(),
+                    kwargs.clone(),
+                ))
+            },
+            None => AST::StringLiteral(StringLiteral::new_wrapped("Done".to_string(), false)),
+        };
+        let node = match &dialect {
+            Some(Dialect::Presto(_)) => {
+                let presto_endpoints = endpoints.presto_config();
+                PythonTask::PrestoPythonTask(PrestoPythonTask::new_wrapped(
+                    command,
+                    task_val.clone(),
+                    presto_endpoints,
+                ))
+            }
+            Some(Dialect::Bash(_)) => {
+                PythonTask::BashPythonTask(BashPythonTask::new_wrapped(command, task_val.clone()))
+            }
+            Some(Dialect::R(_)) => {
+                PythonTask::RPythonTask(RPythonTask::new_wrapped(
+                    match preamble {
+                        Some(ref p) => Some(AST::StringLiteral(StringLiteral::new_wrapped(
+                            p.clone(),
+                            false,
+                        ))),
+                        None => None,
+                    },
+                    command, 
+                    task_val.clone(),
+                ))
+            }
+            Some(Dialect::Python(_)) => {
+                PythonTask::NativePythonTask(NativePythonTask::new_wrapped(
+                    vec![AST::Expression(Expression::new_wrapped(command))],
+                    // TODO: add imports from preamble
+                    Vec::new(),
+                    task_val.clone(),
+                ))
+            }
+            None => PythonTask::ConstantPythonTask(ConstantPythonTask::new_wrapped(
+                command,
+                task_val.clone(),
+            )),
+        };
         Self {
             task_id,
             task_val,
@@ -226,6 +313,7 @@ impl<U: AoristUniverse> ETLFlow<U> for AirflowPythonBasedFlow<U> {
             preamble,
             dialect,
             endpoints,
+            node,
             _universe: PhantomData,
         }
     }
@@ -237,7 +325,8 @@ impl<U: AoristUniverse> ETLFlow<U> for AirflowPythonBasedFlow<U> {
 pub struct AirflowFlowBuilder<U: AoristUniverse> {
     universe: PhantomData<U>,
 }
-impl<U: AoristUniverse> FlowBuilderBase<U> for AirflowFlowBuilder<U> {
+impl<U: AoristUniverse> FlowBuilderBase<U> for AirflowFlowBuilder<U> 
+where <U as AoristUniverse>::TEndpoints: TPrestoEndpoints {
     type T = AirflowPythonBasedFlow<U>;
     fn new() -> Self {
         Self {
@@ -245,7 +334,8 @@ impl<U: AoristUniverse> FlowBuilderBase<U> for AirflowFlowBuilder<U> {
         }
     }
 }
-impl<U: AoristUniverse> PythonBasedFlowBuilder<U> for AirflowFlowBuilder<U> {
+impl<U: AoristUniverse> PythonBasedFlowBuilder<U> for AirflowFlowBuilder<U> 
+where <U as AoristUniverse>::TEndpoints: TPrestoEndpoints {
     /// Takes a set of statements and mutates them so as make a valid ETL flow
     fn build_flow<'a>(
         &self,
