@@ -4,7 +4,7 @@ use crate::flow::flow_builder::FlowBuilderBase;
 use crate::flow::python_based_flow_builder::PythonBasedFlowBuilder;
 use crate::python::{
     BashPythonTask, ConstantPythonTask, NativePythonTask, PrestoPythonTask, PythonImport,
-    PythonPreamble, RPythonTask, NativePythonPreamble, RPythonPreamble,
+    PythonPreamble, RPythonTask, 
 };
 use aorist_ast::{Call, Expression, Formatted, SimpleIdentifier, StringLiteral, AST, Attribute};
 use aorist_primitives::AoristUniverse;
@@ -15,6 +15,7 @@ use pyo3::types::PyModule;
 use std::hash::{Hash, Hasher};
 use std::marker::PhantomData;
 use std::sync::{Arc, RwLock};
+use crate::flow::python_based_flow::PythonBasedFlow;
 
 register_task_nodes! {
     PythonTask,
@@ -43,6 +44,14 @@ where
     node: PythonTask,
     _universe: PhantomData<U>,
 }
+impl<U: AoristUniverse> PythonBasedFlow<U> for NativePythonBasedFlow<U> 
+where
+    U::TEndpoints: TPrestoEndpoints {
+    fn get_preamble_string(&self) -> Option<String> {
+        self.preamble.clone()
+    }
+}
+
 impl<U: AoristUniverse> ETLFlow<U> for NativePythonBasedFlow<U>
 where
     U::TEndpoints: TPrestoEndpoints,
@@ -51,22 +60,7 @@ where
     type PreambleType = PythonPreamble;
 
     fn get_preamble(&self) -> Vec<PythonPreamble> {
-        let preambles = match self.dialect {
-            Some(Dialect::Python(_)) => match self.preamble {
-                Some(ref p) => vec![PythonPreamble::NativePythonPreamble(
-                    NativePythonPreamble::new(p.clone())
-                )],
-                None => Vec::new(),
-            },
-            Some(Dialect::R(_)) => match self.preamble {
-                Some(ref p) => vec![PythonPreamble::RPythonPreamble(
-                    RPythonPreamble::new(p.clone())
-                )],
-                None => Vec::new(),
-            },
-            _ => Vec::new(),
-        };
-        preambles
+        self.get_python_preamble()
     }
     fn get_imports(&self) -> Vec<PythonImport> {
         self.node.get_imports()

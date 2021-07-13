@@ -2,16 +2,18 @@ use crate::dialect::Dialect;
 use crate::flow::etl_flow::ETLFlow;
 use crate::flow::flow_builder::FlowBuilderBase;
 use crate::flow::python_based_flow_builder::PythonBasedFlowBuilder;
-use crate::python::{PythonImport, PythonPreamble, NativePythonPreamble};
+use crate::python::{PythonImport, PythonPreamble, NativePythonPreamble, RPythonPreamble};
 use aorist_ast::{
     Assignment, Attribute, BigIntLiteral, BooleanLiteral, Call, Dict, Expression, Formatted, List,
     None, SimpleIdentifier, StringLiteral, AST,
 };
 use aorist_primitives::AoristUniverse;
+use aorist_primitives::{TPrestoEndpoints};
 use linked_hash_map::LinkedHashMap;
 use pyo3::prelude::*;
 use pyo3::types::PyModule;
 use std::marker::PhantomData;
+use crate::flow::python_based_flow::PythonBasedFlow;
 
 #[derive(Clone, Hash, PartialEq)]
 pub struct AirflowPythonBasedFlow<U: AoristUniverse> {
@@ -26,6 +28,13 @@ pub struct AirflowPythonBasedFlow<U: AoristUniverse> {
     endpoints: U::TEndpoints,
     _universe: PhantomData<U>,
 }
+impl<U: AoristUniverse> PythonBasedFlow<U> for AirflowPythonBasedFlow<U> 
+where
+    U::TEndpoints: TPrestoEndpoints {
+    fn get_preamble_string(&self) -> Option<String> {
+        self.preamble.clone()
+    }
+}
 impl<U: AoristUniverse> AirflowPythonBasedFlow<U> {
     fn compute_task_args(&self) -> Vec<AST> {
         Vec::new()
@@ -37,12 +46,15 @@ impl<U: AoristUniverse> AirflowPythonBasedFlow<U> {
         } else {
             kwargs = LinkedHashMap::new();
             let call_param_name = match self.dialect {
-                Some(Dialect::Python(_)) => "python_callable".to_string(),
+                Some(Dialect::Python(_)) | Some(Dialect::R(_)) => "python_callable".to_string(),
                 Some(Dialect::Bash(_)) | Some(Dialect::Presto(_)) => "bash_command".to_string(),
                 _ => panic!("Dialect not supported"),
             };
             let call_param_value = match self.dialect {
                 Some(Dialect::Python(_)) => AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
+                    self.command.as_ref().unwrap().clone(),
+                )),
+                Some(Dialect::R(_)) => AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
                     self.command.as_ref().unwrap().clone(),
                 )),
                 Some(Dialect::Bash(_)) => AST::Formatted(Formatted::new_wrapped(
@@ -84,6 +96,14 @@ impl<U: AoristUniverse> AirflowPythonBasedFlow<U> {
                     );
                 }
             }
+            if let Some(Dialect::R(_)) = self.dialect {
+                if self.kwargs.len() > 0 {
+                    kwargs.insert(
+                        "op_kwargs".to_string(),
+                        AST::Dict(Dict::new_wrapped(self.kwargs.clone())),
+                    );
+                }
+            }
         }
         kwargs.insert(
             "dag".to_string(),
@@ -94,21 +114,22 @@ impl<U: AoristUniverse> AirflowPythonBasedFlow<U> {
     }
     fn compute_task_call(&self) -> AST {
         match self.dialect {
-            Some(Dialect::Python(_)) => Ok(AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
+            Some(Dialect::Python(_)) => AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
                 "PythonOperator".to_string(),
-            ))),
-            Some(Dialect::Bash(_)) => Ok(AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
+            )),
+            Some(Dialect::Bash(_)) => AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
                 "BashOperator".to_string(),
-            ))),
-            Some(Dialect::Presto(_)) => Ok(AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
+            )),
+            Some(Dialect::Presto(_)) => AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
                 "BashOperator".to_string(),
-            ))),
-            None => Ok(AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
+            )),
+            Some(Dialect::R(_)) => AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
+                "PythonOperator".to_string(),
+            )),
+            None => AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
                 "DummyOperator".to_string(),
-            ))),
-            _ => Err("Dialect not supported".to_string()),
+            )),
         }
-        .unwrap()
     }
 }
 impl<U: AoristUniverse> ETLFlow<U> for AirflowPythonBasedFlow<U> {
@@ -116,12 +137,12 @@ impl<U: AoristUniverse> ETLFlow<U> for AirflowPythonBasedFlow<U> {
     type PreambleType = PythonPreamble;
     fn get_imports(&self) -> Vec<PythonImport> {
         match self.dialect {
-            Some(Dialect::Python(_)) => vec![PythonImport::PythonFromImport(
+            Some(Dialect::Python(_)) | Some(Dialect::R(_)) => vec![PythonImport::PythonFromImport(
                 "airflow.operators.python_operator".to_string(),
                 "PythonOperator".to_string(),
                 None,
             )],
-            Some(Dialect::Bash(_)) | Some(Dialect::Presto(_)) | Some(Dialect::R(_)) => {
+            Some(Dialect::Bash(_)) | Some(Dialect::Presto(_)) => {
                 vec![PythonImport::PythonFromImport(
                     "airflow.operators.bash_operator".to_string(),
                     "BashOperator".to_string(),
@@ -140,6 +161,12 @@ impl<U: AoristUniverse> ETLFlow<U> for AirflowPythonBasedFlow<U> {
             Some(Dialect::Python(_)) => match self.preamble {
                 Some(ref p) => vec![PythonPreamble::NativePythonPreamble(
                     NativePythonPreamble::new(p.clone())
+                )],
+                None => Vec::new(),
+            },
+            Some(Dialect::R(_)) => match self.preamble {
+                Some(ref p) => vec![PythonPreamble::RPythonPreamble(
+                    RPythonPreamble::new(p.clone())
                 )],
                 None => Vec::new(),
             },

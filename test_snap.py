@@ -90,7 +90,7 @@ universe.compute_uuids()
 result = dag(
     universe,
     ["DownloadDataFromRemoteWebLocation"],
-    "python",
+    "airflow",
     programs,
     dialect_preferences=[
         R(),

@@ -15,6 +15,9 @@ use pyo3::types::PyModule;
 use std::hash::{Hash, Hasher};
 use std::marker::PhantomData;
 use std::sync::{Arc, RwLock};
+use crate::flow::python_based_flow::PythonBasedFlow;
+use aorist_primitives::{TPrestoEndpoints};
+
 register_task_nodes! {
     PrefectTask,
     PythonImport,
@@ -35,6 +38,14 @@ pub struct PrefectPythonBasedFlow<U: AoristUniverse> {
     flow_identifier: AST,
     endpoints: U::TEndpoints,
     _universe: PhantomData<U>,
+}
+
+impl<U: AoristUniverse> PythonBasedFlow<U> for PrefectPythonBasedFlow<U> 
+where
+    U::TEndpoints: TPrestoEndpoints {
+    fn get_preamble_string(&self) -> Option<String> {
+        self.preamble.clone()
+    }
 }
 
 impl<U: AoristUniverse> ETLFlow<U> for PrefectPythonBasedFlow<U> {
