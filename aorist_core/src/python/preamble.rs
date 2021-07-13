@@ -4,13 +4,22 @@ use pyo3::prelude::*;
 use pyo3::types::{PyList, PyModule, PyString, PyTuple};
 use std::hash::Hash;
 
+pub trait TPythonPreamble {
+    fn get_body_ast<'b>(&self, py: Python<'b>) -> Vec<&'b PyAny>;
+}
+
 #[derive(Clone, PartialEq, Hash, Eq)]
-pub struct PythonPreamble {
+pub enum PythonPreamble {
+    NativePythonPreamble(NativePythonPreamble),
+}
+
+#[derive(Clone, PartialEq, Hash, Eq)]
+pub struct NativePythonPreamble {
     pub imports: Vec<PythonImport>,
     pub from_imports: Vec<PythonImport>,
     pub body: String,
 }
-impl Preamble for PythonPreamble {
+impl Preamble for NativePythonPreamble {
     type ImportType = PythonImport;
     fn get_imports(&self) -> Vec<Self::ImportType> {
         self.imports
@@ -20,8 +29,48 @@ impl Preamble for PythonPreamble {
             .collect()
     }
 }
-impl PythonPreamble {
-    pub fn new(body: String) -> PythonPreamble {
+impl TPythonPreamble for NativePythonPreamble {
+    fn get_body_ast<'b>(&self, py: Python<'b>) -> Vec<&'b PyAny> {
+        let helpers = PyModule::from_code(
+            py,
+            r#"
+import ast
+
+def to_nodes(body):
+    module = ast.parse(body)
+    return module.body
+        "#,
+            "helpers.py",
+            "helpers",
+        )
+        .unwrap();
+
+        let out: &PyList = helpers
+            .call1("to_nodes", (self.body.clone(),))
+            .unwrap()
+            .downcast()
+            .unwrap();
+
+        out.into_iter().collect()
+    }
+}
+impl Preamble for PythonPreamble {
+    type ImportType = PythonImport;
+    fn get_imports(&self) -> Vec<Self::ImportType> {
+        match &self {
+            PythonPreamble::NativePythonPreamble(x) => x.get_imports(),
+        }
+    }
+}
+impl TPythonPreamble for PythonPreamble {
+    fn get_body_ast<'b>(&self, py: Python<'b>) -> Vec<&'b PyAny> {
+        match &self {
+            PythonPreamble::NativePythonPreamble(x) => x.get_body_ast(py),
+        }
+    }
+}
+impl NativePythonPreamble {
+    pub fn new(body: String) -> Self {
         let gil = Python::acquire_gil();
         let py = gil.python();
         let helpers = PyModule::from_code(
@@ -139,29 +188,6 @@ def build_preamble(body):
                 .collect::<Vec<String>>()
                 .join("\n"),
         }
-    }
-    pub fn get_body_ast<'b>(&self, py: Python<'b>) -> Vec<&'b PyAny> {
-        let helpers = PyModule::from_code(
-            py,
-            r#"
-import ast
-
-def to_nodes(body):
-    module = ast.parse(body)
-    return module.body
-        "#,
-            "helpers.py",
-            "helpers",
-        )
-        .unwrap();
-
-        let out: &PyList = helpers
-            .call1("to_nodes", (self.body.clone(),))
-            .unwrap()
-            .downcast()
-            .unwrap();
-
-        out.into_iter().collect()
     }
     pub fn to_string(&self) -> String {
         self.from_imports

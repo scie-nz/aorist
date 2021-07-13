@@ -20,7 +20,7 @@ pub use ast::{
 };
 pub use code_block::PythonBasedCodeBlock;
 pub use constraint_block::PythonBasedConstraintBlock;
-pub use preamble::PythonPreamble;
+pub use preamble::*;
 pub use python_import::PythonImport;
 pub use task::{ForLoopPythonBasedTask, PythonBasedTask, StandalonePythonBasedTask};
 

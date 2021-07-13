@@ -4,7 +4,7 @@ use crate::flow::flow_builder::FlowBuilderBase;
 use crate::flow::python_based_flow_builder::PythonBasedFlowBuilder;
 use crate::python::{
     BashPythonTask, ConstantPythonTask, NativePythonTask, PrestoPythonTask, PythonImport,
-    PythonPreamble, RPythonTask,
+    PythonPreamble, RPythonTask, NativePythonPreamble,
 };
 use aorist_ast::{Call, Expression, Formatted, SimpleIdentifier, StringLiteral, AST, Attribute};
 use aorist_primitives::AoristUniverse;
@@ -53,7 +53,9 @@ where
     fn get_preamble(&self) -> Vec<PythonPreamble> {
         let preambles = match self.dialect {
             Some(Dialect::Python(_)) => match self.preamble {
-                Some(ref p) => vec![PythonPreamble::new(p.clone())],
+                Some(ref p) => vec![PythonPreamble::NativePythonPreamble(
+                    NativePythonPreamble::new(p.clone())
+                )],
                 None => Vec::new(),
             },
             _ => Vec::new(),

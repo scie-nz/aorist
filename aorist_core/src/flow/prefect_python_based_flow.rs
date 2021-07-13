@@ -2,7 +2,7 @@ use crate::dialect::Dialect;
 use crate::flow::etl_flow::ETLFlow;
 use crate::flow::flow_builder::FlowBuilderBase;
 use crate::flow::python_based_flow_builder::PythonBasedFlowBuilder;
-use crate::python::{PythonImport, PythonPreamble, RPythonTask};
+use crate::python::{PythonImport, PythonPreamble, RPythonTask, NativePythonPreamble};
 use aorist_ast::{
     Assignment, Attribute, Call, Expression, ForLoop, Formatted, SimpleIdentifier, StringLiteral,
     AST,
@@ -43,7 +43,9 @@ impl<U: AoristUniverse> ETLFlow<U> for PrefectPythonBasedFlow<U> {
     fn get_preamble(&self) -> Vec<PythonPreamble> {
         let preambles = match self.dialect {
             Some(Dialect::Python(_)) => match self.preamble {
-                Some(ref p) => vec![PythonPreamble::new(p.clone())],
+                Some(ref p) => vec![PythonPreamble::NativePythonPreamble(
+                    NativePythonPreamble::new(p.clone())
+                )],
                 None => Vec::new(),
             },
             _ => Vec::new(),

@@ -1,7 +1,7 @@
 use crate::flow::etl_flow::ETLFlow;
 use crate::flow::flow_builder::{FlowBuilderBase, FlowBuilderMaterialize};
 use crate::flow::flow_builder_input::FlowBuilderInput;
-use crate::python::{format_code, PythonFlowBuilderInput, PythonImport, PythonPreamble};
+use crate::python::{format_code, PythonFlowBuilderInput, PythonImport, PythonPreamble, TPythonPreamble};
 use aorist_ast::AST;
 use aorist_primitives::AoristUniverse;
 use linked_hash_map::LinkedHashMap;
