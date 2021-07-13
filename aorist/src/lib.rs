@@ -14,6 +14,7 @@ pub fn dag<'a>(
     constraints: Vec<String>,
     mode: &str,
     programs: BTreeMap<String, Vec<AoristConstraintProgram>>,
+    dialect_preferences: Vec<Dialect>,
 ) -> PyResult<String> {
     //extendr_engine::start_r();
     //let mut universe = Universe::from(inner);
@@ -30,6 +31,7 @@ pub fn dag<'a>(
             universe.inner.clone(),
             constraints.into_iter().collect(),
             programs.into_iter().collect(),
+            dialect_preferences,
         )
         .map_err(|e| pyo3::exceptions::PyException::new_err(e.to_string()))?
         .run(),
@@ -44,6 +46,7 @@ pub fn dag<'a>(
             universe.inner.clone(),
             constraints.into_iter().collect(),
             programs.into_iter().collect(),
+            dialect_preferences,
         )
         .map_err(|e| pyo3::exceptions::PyException::new_err(e.to_string()))?
         .run(),
@@ -58,6 +61,7 @@ pub fn dag<'a>(
             universe.inner.clone(),
             constraints.into_iter().collect(),
             programs.into_iter().collect(),
+            dialect_preferences,
         )
         .map_err(|e| pyo3::exceptions::PyException::new_err(e.to_string()))?
         .run(),
@@ -72,6 +76,7 @@ pub fn dag<'a>(
             universe.inner.clone(),
             constraints.into_iter().collect(),
             programs.into_iter().collect(),
+            dialect_preferences,
         )
         .map_err(|e| pyo3::exceptions::PyException::new_err(e.to_string()))?
         .run(),
@@ -182,6 +187,10 @@ fn libaorist(py: pyo3::prelude::Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<PyPredictionsFromTrainedFloatMeasure>()?;
     m.add_class::<ConceptAncestry>()?;
     m.add_class::<AoristConstraintProgram>()?;
+    m.add_class::<aorist_core::Python>()?;
+    m.add_class::<aorist_core::Bash>()?;
+    m.add_class::<aorist_core::Presto>()?;
+    m.add_class::<aorist_core::R>()?;
     m.add_wrapped(wrap_pyfunction!(dag))?;
     Ok(())
 }

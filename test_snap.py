@@ -92,6 +92,12 @@ result = dag(
     universe,
     ["DownloadDataFromRemoteWebLocation"],
     "python",
-    programs
+    programs,
+    dialect_preferences=[
+        R(),
+        Python([]),
+        Bash(),
+        Presto(),
+    ],
 )
 print(result)

@@ -2,7 +2,7 @@
 use crate::constraint::TConstraintEnum;
 use crate::constraint::{OuterConstraint, TBuilder};
 use crate::constraint_state::ConstraintState;
-use crate::dialect::{Bash, Dialect, Presto, Python};
+use crate::dialect::Dialect;
 use crate::driver::{ConstraintsBlockMap, Driver};
 use crate::flow::{ETLFlow, FlowBuilderBase, PythonBasedFlowBuilder};
 use crate::program::TOuterProgram;
@@ -45,6 +45,7 @@ where
     ancestors: HashMap<(Uuid, String), Vec<AncestorRecord>>,
     topline_constraint_names: LinkedHashSet<String>,
     programs: LinkedHashMap<String, Vec<P>>,
+    preferences: Vec<Dialect>,
 }
 impl<'a, B, D, U, C, A, P> Driver<'a, B, D, U, C, A, P> for PythonBasedDriver<'a, B, D, U, C, A, P>
 where
@@ -71,11 +72,7 @@ where
         }
     }
     fn get_preferences(&self) -> Vec<Dialect> {
-        vec![
-            Dialect::Python(Python::new(vec![])),
-            Dialect::Presto(Presto {}),
-            Dialect::Bash(Bash {}),
-        ]
+        self.preferences.clone()
     }
     fn get_constraint_rwlock(&self, uuid: &(Uuid, String)) -> Arc<RwLock<B::OuterType>> {
         self.constraints.get(uuid).unwrap().clone()
@@ -149,6 +146,7 @@ where
         ancestors: HashMap<(Uuid, String), Vec<AncestorRecord>>,
         topline_constraint_names: LinkedHashSet<String>,
         programs: LinkedHashMap<String, Vec<P>>,
+        preferences: Vec<Dialect>,
     ) -> Self {
         Self {
             concepts,
@@ -164,6 +162,7 @@ where
             ancestors,
             topline_constraint_names,
             programs,
+            preferences,
         }
     }
 }

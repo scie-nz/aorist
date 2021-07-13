@@ -403,6 +403,7 @@ where
         ancestors: HashMap<(Uuid, String), Vec<AncestorRecord>>,
         topline_constraint_names: LinkedHashSet<String>,
         programs: LinkedHashMap<String, Vec<P>>,
+        preferences: Vec<Dialect>,
     ) -> Self;
 
     fn generate_constraint_states_map(
@@ -699,6 +700,7 @@ where
         universe: U,
         topline_constraint_names: LinkedHashSet<String>,
         programs: LinkedHashMap<String, Vec<P>>,
+        preferences: Vec<Dialect>,
     ) -> Result<Self>
     where
         Self: Sized,
@@ -751,6 +753,7 @@ where
             ancestors,
             topline_constraint_names,
             programs,
+            preferences,
         ))
     }
     fn generate_family_trees(
