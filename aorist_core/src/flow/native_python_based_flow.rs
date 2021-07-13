@@ -126,7 +126,7 @@ where
                 ))
             }
             Some(Dialect::Bash(_)) => {
-                PythonTask::BashPythonTask(BashPythonTask::new_wrapped(command, task_val.clone()))
+                PythonTask::BashPythonTask(BashPythonTask::new_wrapped(command, task_val.clone(), dep_list.clone()))
             }
             Some(Dialect::R(_)) => {
                 PythonTask::RPythonTask(RPythonTask::new_wrapped(

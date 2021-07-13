@@ -10,7 +10,7 @@ pub trait PythonSubprocessTask {
             false,
         ))
     }
-    fn get_python_imports(&self) -> Vec<PythonImport> {
+    fn get_python_subprocess_imports(&self) -> Vec<PythonImport> {
         vec![PythonImport::PythonModuleImport(
             "subprocess".to_string(),
             None,

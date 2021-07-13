@@ -7,7 +7,7 @@ pub trait AirflowBashOperatorTask {
          AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("BashOperator".to_string()))
     }
     fn get_call_param_value(&self) -> AST;
-    fn get_python_imports(&self) -> Vec<PythonImport> {
+    fn get_python_bash_operator_imports(&self) -> Vec<PythonImport> {
         vec![PythonImport::PythonFromImport(
             "airflow.operators.bash_operator".to_string(),
             "BashOperator".to_string(),
@@ -21,7 +21,7 @@ pub trait AirflowBashOperatorTask {
         kwargs
     }
     fn get_task_val(&self) -> AST;
-    fn get_dependencies(&self) -> Option<Vec<AST>>;
+    fn get_dependencies(&self) -> Option<AST>;
     fn get_operator_statements(&self) -> Vec<AST> {
         let creation_expr = AST::Call(Call::new_wrapped(
             self.compute_task_call(),
@@ -40,7 +40,7 @@ pub trait AirflowBashOperatorTask {
                         "set_upstream".to_string(),
                         false,
                     )),
-                    dependencies,
+                    vec![dependencies],
                     LinkedHashMap::new(),
                 ),
             ))));
