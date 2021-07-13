@@ -565,6 +565,26 @@ macro_rules! define_constraint {
                     })
                 }
                 #[staticmethod]
+                pub fn register_r_program(
+                    code: &str,
+                    entrypoint: &str,
+                    arg_functions: Vec<(Vec<&str>, &str)>,
+                    kwarg_functions: HashMap<&str, (Vec<&str>, &str)>,
+                ) -> PyResult<[<$element Program>]> {
+
+                    let mut funs: LinkedHashMap<String, (Vec<String>, String)> = LinkedHashMap::new();
+                    for (k, (v1, v2)) in kwarg_functions.iter() {
+                        funs.insert(k.to_string(), (v1.iter().map(|x| x.to_string()).collect(), v2.to_string()));
+                    }
+                    Ok([<$element Program>]{
+                        code: code.to_string(),
+                        entrypoint: entrypoint.to_string(),
+                        arg_functions: arg_functions.iter().map(|(x, y)| (x.iter().map(|x| x.to_string()).collect(), y.to_string())).collect(),
+                        kwarg_functions: funs,
+                        dialect: Dialect::R(aorist_core::R::new())
+                    })
+                }
+                #[staticmethod]
                 pub fn register_presto_program(
                     code: &str,
                     entrypoint: &str,

@@ -17,5 +17,8 @@ programs = register_recipes(
     bash_modules=[
         "recipes/download_data_from_remote_web_location.sh",
     ],
+    r_modules=[
+        "recipes/download_data_from_remote_web_location.R",
+    ],
 )
 
