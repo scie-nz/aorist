@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use tracing::debug;
 #[cfg(feature = "python")]
 use pyo3::prelude::*;
 
@@ -19,6 +20,7 @@ impl Context {
                     panic!("Tried to insert non-identical value for {}: {} != {}.", k, v, existing_val);
                 }
             } else {
+                debug!("Inserted from dependent constraint ({}, {})", &k, &v);
                 self.inner.insert(k.clone(), v.clone());
             }
         }
@@ -28,7 +30,8 @@ impl Context {
 #[cfg_attr(feature = "python", pymethods)]
 impl Context {
     pub fn capture(&mut self, key: String, value: String) -> String {
-        self.inner.insert(key, value.clone());
+        self.inner.insert(key.clone(), value.clone());
+        debug!("Captured ({}, {})", &key, &value);
         value
     }
     pub fn get(&self, key: String) -> Option<String> {

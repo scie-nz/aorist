@@ -72,6 +72,7 @@ spec:
   requiresProgram: true
   requires:
     - ReadyForUpload
+    - HiveDirectoriesCreated
   title: Upload data to Min.IO
   body: |
       Now that data has been pre-processed we can upload it to the underlying
