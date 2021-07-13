@@ -4,6 +4,7 @@ use aorist_primitives::{register_task_nodes};
 use std::hash::{Hash, Hasher};
 use std::sync::{Arc, RwLock};
 
+mod airflow_bash_operator_task;
 mod bash_python_task;
 mod constant_python_task;
 mod native_python_task;
