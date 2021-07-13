@@ -6,7 +6,7 @@ use crate::python::{
     BashPythonTask, ConstantPythonTask, NativePythonTask, PrestoPythonTask, PythonImport,
     PythonPreamble, RPythonTask,
 };
-use aorist_ast::{Call, Expression, Formatted, SimpleIdentifier, StringLiteral, AST};
+use aorist_ast::{Call, Expression, Formatted, SimpleIdentifier, StringLiteral, AST, Attribute};
 use aorist_primitives::AoristUniverse;
 use aorist_primitives::{register_task_nodes, TPrestoEndpoints};
 use linked_hash_map::LinkedHashMap;
@@ -84,7 +84,7 @@ where
         endpoints: U::TEndpoints,
     ) -> Self {
         let command = match &dialect {
-            Some(Dialect::Bash(_)) | Some(Dialect::R(_)) => AST::Formatted(Formatted::new_wrapped(
+            Some(Dialect::Bash(_)) => AST::Formatted(Formatted::new_wrapped(
                 AST::StringLiteral(StringLiteral::new_wrapped(
                     call.as_ref().unwrap().to_string(),
                     false,
@@ -105,6 +105,24 @@ where
                 args.clone(),
                 kwargs.clone(),
             )),
+            Some(Dialect::R(_)) => {
+                AST::Call(Call::new_wrapped(
+                    AST::Call(Call::new_wrapped(
+                        AST::Attribute(Attribute::new_wrapped(
+                            AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("robjects".to_string())),
+                            "r".to_string(),
+                            false,
+                        )),
+                        vec![AST::StringLiteral(StringLiteral::new_wrapped(
+                            call.as_ref().unwrap().clone(),
+                            false,
+                        ))],
+                        LinkedHashMap::new(),
+                    )),
+                    args.clone(),
+                    kwargs.clone(),
+                ))
+            },
             None => AST::StringLiteral(StringLiteral::new_wrapped("Done".to_string(), false)),
         };
         let node = match &dialect {
@@ -120,7 +138,17 @@ where
                 PythonTask::BashPythonTask(BashPythonTask::new_wrapped(command, task_val.clone()))
             }
             Some(Dialect::R(_)) => {
-                PythonTask::RPythonTask(RPythonTask::new_wrapped(command, task_val.clone()))
+                PythonTask::RPythonTask(RPythonTask::new_wrapped(
+                    match preamble {
+                        Some(ref p) => Some(AST::StringLiteral(StringLiteral::new_wrapped(
+                            p.clone(),
+                            false,
+                        ))),
+                        None => None,
+                    },
+                    command, 
+                    task_val.clone(),
+                ))
             }
             Some(Dialect::Python(_)) => {
                 PythonTask::NativePythonTask(NativePythonTask::new_wrapped(
