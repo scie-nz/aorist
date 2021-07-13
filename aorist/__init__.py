@@ -8,6 +8,9 @@ import imp
 import builtins
 from functools import wraps
 import linecache
+import collections
+import os
+
 
 def default_tabular_schema(datum, template_name, attributes):
     return DataSchema(TabularSchema(
@@ -164,3 +167,21 @@ def bash_module(filename):
     module = imp.new_module(module_name)
     exec(code, module.__dict__)
     return module
+
+
+def register_recipes(py_modules=[], bash_modules=[], sql_modules=[]):
+    programs = collections.defaultdict(lambda: [])
+    for module in py_modules:
+        for k, v in module.programs.items():
+            programs[k.name] += [AoristConstraintProgram(v)]
+    for bash_module_name in bash_modules:
+        module = bash_module(bash_module_name)
+        for k, v in module.programs.items():
+            programs[k.name] += [AoristConstraintProgram(v)]
+    for sql_module_name in sql_modules:
+        module = sql_module(sql_module_name)
+        for k, v in module.programs.items():
+            programs[k.name] += [AoristConstraintProgram(v)]
+    return dict(programs)
+
+
