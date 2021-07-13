@@ -1,8 +1,9 @@
 use crate::python::PythonImport;
 use aorist_ast::{Assignment, Attribute, BooleanLiteral, Call, SimpleIdentifier, Tuple, AST};
 use linked_hash_map::LinkedHashMap;
+use crate::python::ast::PythonTaskBase;
 
-pub trait PythonSubprocessTask {
+pub trait PythonSubprocessTask: PythonTaskBase {
     fn compute_task_call(&self) -> AST {
         AST::Attribute(Attribute::new_wrapped(
             AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("subprocess".to_string())),
@@ -33,7 +34,6 @@ pub trait PythonSubprocessTask {
         kwargs
     }
     fn get_command(&self) -> AST;
-    fn get_task_val(&self) -> AST;
     fn get_subprocess_statements(&self) -> Vec<AST> {
         let creation_expr = AST::Call(Call::new_wrapped(
             self.compute_task_call(),
