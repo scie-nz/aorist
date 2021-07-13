@@ -12,7 +12,7 @@ programs = {}
         "access_key": lambda universe: universe.endpoints.minio.access_key,
         "secret_key": lambda universe: universe.endpoints.minio.secret_key,
         "bucket": lambda universe: universe.endpoints.minio.bucket,
-        "schema": lambda data_set: data_set.name,
+        "schema": lambda data_set, context: (context.get("schema"), context),
         "tablename": lambda static_data_table: "%s_csv" % static_data_table.name,
         "tmp_dir": lambda replication_storage_setup: replication_storage_setup.tmp_dir,
         "source_file": lambda static_data_table: "%s.csv" % static_data_table.name,

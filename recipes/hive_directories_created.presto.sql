@@ -3,8 +3,12 @@
     programs,
     HiveDirectoriesCreated,
     args={
-        "presto_schema": lambda data_set: data_set.name,
-        "location": lambda hive_table_storage, universe, data_set: (
+        "presto_schema": lambda data_set, context: (
+            context.capture("schema", data_set.name),
+            context,
+        ),
+        "location": lambda hive_table_storage, universe, data_set, context: (
+        context.capture("location",
             "WITH (location='alluxio://{server}:{port}/{directory}/{dataset}/{path}')".format(
                 server=universe.endpoints.alluxio.server,
                 port=universe.endpoints.alluxio.rpc_port,
@@ -23,7 +27,7 @@
             )
         ) if hive_table_storage.location.s3_location is not None else (
             panic("Only Alluxio, MinIO or S3 locations supported.")
-        ))
+        )), context)
     },
 )
 ***/

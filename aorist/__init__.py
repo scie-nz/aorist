@@ -6,6 +6,8 @@ from aorist.target.debug.libaorist import *
 import re
 import imp
 import builtins
+from functools import wraps
+import linecache
 
 def default_tabular_schema(datum, template_name, attributes):
     return DataSchema(TabularSchema(
@@ -15,7 +17,27 @@ def default_tabular_schema(datum, template_name, attributes):
 
 
 def to_str(source):
-    raw = "\n".join(inspect.getsourcelines(source)[0])
+    source_lines, _ = inspect.getsourcelines(source)
+    
+    f = inspect.getsourcefile(source)
+    linecache.checkcache(f)
+    module = inspect.getmodule(source, f)
+    lines = linecache.getlines(f, module.__dict__)
+    func = source.__code__
+    lnum = func.co_firstlineno - 1
+    pat_decorator = re.compile(
+        r'^(\s*@aorist)'
+    )
+    pat_recipe = re.compile(
+        r'^(\s*def recipe)'
+    )
+    decorator_pos = [i for (i, l) in enumerate(lines) if re.match(pat_decorator, l)]
+    recipe_pos = [i for (i, l) in enumerate(lines) if re.match(pat_recipe, l)]
+    if len(decorator_pos) != 1 or len(recipe_pos) != 1:  
+        raise ValueError("recipe function must be unique and last in file")
+    source_lines = lines[decorator_pos[0]:]
+
+    raw = "\n".join(source_lines)
     parsed = ast.parse(raw)
     funcString = astor.to_source(ast.Module(parsed.body[0].body))
     return funcString
@@ -29,13 +51,16 @@ def aorist(programs, constraint, entrypoint, args, pip_requirements=[]):
         ) for k, v in args.items()
     }
     def inner(func):
-        programs[constraint] = constraint.register_python_program(
-            to_str(func),
-            entrypoint,
-            [],
-            args_str,
-            pip_requirements
-        )
+        @wraps(func)
+        def inner_func(func):
+            programs[constraint] = constraint.register_python_program(
+                to_str(func),
+                entrypoint,
+                [],
+                args_str,
+                pip_requirements
+            )
+        return inner_func(func)
     return inner
 
 def aorist_presto(programs, constraint, entrypoint, args):
