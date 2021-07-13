@@ -4,6 +4,7 @@ use aorist_primitives::{register_task_nodes};
 use std::hash::{Hash, Hasher};
 use std::sync::{Arc, RwLock};
 
+mod airflow_task_base;
 mod airflow_bash_operator_task;
 mod bash_python_task;
 mod constant_python_task;
@@ -13,6 +14,7 @@ mod python_subprocess_task;
 mod python_task_base;
 mod r_python_task;
 
+pub use airflow_task_base::AirflowTaskBase;
 pub use bash_python_task::BashPythonTask;
 pub use constant_python_task::ConstantPythonTask;
 pub use native_python_task::NativePythonTask;

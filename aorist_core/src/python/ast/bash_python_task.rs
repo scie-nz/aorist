@@ -7,6 +7,7 @@ use aorist_primitives::define_task_node;
 use std::hash::Hash;
 use std::sync::{Arc, RwLock};
 use crate::python::ast::PythonTaskBase;
+use crate::python::ast::AirflowTaskBase;
 
 define_task_node!(
     BashPythonTask,
@@ -23,15 +24,17 @@ impl PythonTaskBase for BashPythonTask {
         self.task_val.clone()
     }
 }
+impl AirflowTaskBase for BashPythonTask {
+    fn get_dependencies(&self) -> Option<AST> {
+        self.dependencies.clone()        
+    }
+}
 impl PythonSubprocessTask for BashPythonTask {
     fn get_command(&self) -> AST {
         self.command.clone()
     }
 }
 impl AirflowBashOperatorTask for BashPythonTask {
-    fn get_dependencies(&self) -> Option<AST> {
-        self.dependencies.clone()        
-    }
     fn get_call_param_value(&self) -> AST {
         self.command.clone()
     }
