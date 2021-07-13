@@ -7,21 +7,22 @@ programs = {}
     DownloadDataFromRemoteWebLocation,
     entrypoint="download_data_from_remote_web_location",
     args={
-        "dataset_name": lambda lng: lng.data_set.name,
-        "table_name": lambda lng: lng.static_data_table.name,
-        "src_url": lambda lng: lng.web_location.address,
-        "tmp_dir": lambda lng: lng.replication_storage_setup.tmp_dir,
-        "dest_file_name": lambda lng: lng.{
-  format!(
-      "{}.{}",
-      static_data_table.name,
-      match static_data_table.setup {
-           StorageSetup::ReplicationStorageSetup(ref x) => x.get_download_extension(),
-           _ => panic!("Storage setup must be ReplicationStorageSetup"),
-      }
-  )
-}
-,
+        "dataset_name": lambda data_set: data_set.name,
+        "table_name": lambda static_data_table: static_data_table.name,
+        "src_url": lambda web_location: web_location.address,
+        "tmp_dir": lambda replication_storage_setup, context: (
+            context.capture(
+                "downloaded_tmp_dir",
+                replication_storage_setup.tmp_dir,
+            ),
+            context,
+        ),
+        "dest_file_name": lambda static_data_table: (
+            "{file_name}.{extension}"
+        ).format(
+            file_name=static_data_table.name,
+            extension=static_data_table.setup.replication_storage_setup.download_extension,
+        )
     },
 )
 def recipe(dataset_name, table_name, src_url, tmp_dir, dest_file_name):

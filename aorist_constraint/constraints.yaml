@@ -100,3 +100,14 @@ spec:
             _ => false,
          }
       }
+---
+type: Constraint
+spec:
+  name: DownloadDataFromRemoteWebLocation
+  root: WebLocation
+  requiresProgram: true
+  title: Downloading data from remote web location
+  body: |
+      Data for this particular asset(s) is located somewhere on the web.
+      We need to download it to a local directory first, before we can
+      do anything with it.
