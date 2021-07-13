@@ -3,33 +3,9 @@ use crate::python::PythonImport;
 use pyo3::prelude::*;
 use pyo3::types::{PyList, PyModule, PyString, PyTuple};
 use std::hash::Hash;
+use tracing::debug;
 
 pub trait TPythonPreamble {
-    fn get_body_ast<'b>(&self, py: Python<'b>) -> Vec<&'b PyAny>;
-}
-
-#[derive(Clone, PartialEq, Hash, Eq)]
-pub enum PythonPreamble {
-    NativePythonPreamble(NativePythonPreamble),
-}
-
-#[derive(Clone, PartialEq, Hash, Eq)]
-pub struct NativePythonPreamble {
-    pub imports: Vec<PythonImport>,
-    pub from_imports: Vec<PythonImport>,
-    pub body: String,
-}
-impl Preamble for NativePythonPreamble {
-    type ImportType = PythonImport;
-    fn get_imports(&self) -> Vec<Self::ImportType> {
-        self.imports
-            .clone()
-            .into_iter()
-            .chain(self.from_imports.clone().into_iter())
-            .collect()
-    }
-}
-impl TPythonPreamble for NativePythonPreamble {
     fn get_body_ast<'b>(&self, py: Python<'b>) -> Vec<&'b PyAny> {
         let helpers = PyModule::from_code(
             py,
@@ -44,14 +20,60 @@ def to_nodes(body):
             "helpers",
         )
         .unwrap();
-
+        debug!("Import body: {}", self.get_body());         
         let out: &PyList = helpers
-            .call1("to_nodes", (self.body.clone(),))
+            .call1("to_nodes", (self.get_body(),))
             .unwrap()
             .downcast()
             .unwrap();
 
         out.into_iter().collect()
+    }
+    fn get_body(&self) -> String;
+}
+
+#[derive(Clone, PartialEq, Hash, Eq)]
+pub enum PythonPreamble {
+    NativePythonPreamble(NativePythonPreamble),
+    RPythonPreamble(RPythonPreamble),
+}
+
+#[derive(Clone, PartialEq, Hash, Eq)]
+pub struct NativePythonPreamble {
+    pub imports: Vec<PythonImport>,
+    pub from_imports: Vec<PythonImport>,
+    pub body: String,
+}
+#[derive(Clone, PartialEq, Hash, Eq)]
+pub struct RPythonPreamble {
+    pub body: String,
+}
+impl Preamble for RPythonPreamble {
+    type ImportType = PythonImport;
+    fn get_imports(&self) -> Vec<Self::ImportType> {
+        vec![
+            PythonImport::PythonModuleImport("rpy2.objects".to_string(), Some("robjects".to_string())),
+        ]
+    }
+}
+impl Preamble for NativePythonPreamble {
+    type ImportType = PythonImport;
+    fn get_imports(&self) -> Vec<Self::ImportType> {
+        self.imports
+            .clone()
+            .into_iter()
+            .chain(self.from_imports.clone().into_iter())
+            .collect()
+    }
+}
+impl TPythonPreamble for RPythonPreamble {
+    fn get_body(&self) -> String {
+        format!("robjects.r(\"\"\"{}\"\"\")", self.body.clone().replace("'", "\\'")).to_string()
+    }
+}
+impl TPythonPreamble for NativePythonPreamble {
+    fn get_body(&self) -> String {
+        self.body.clone()
     }
 }
 impl Preamble for PythonPreamble {
@@ -59,14 +81,21 @@ impl Preamble for PythonPreamble {
     fn get_imports(&self) -> Vec<Self::ImportType> {
         match &self {
             PythonPreamble::NativePythonPreamble(x) => x.get_imports(),
+            PythonPreamble::RPythonPreamble(x) => x.get_imports(),
         }
     }
 }
 impl TPythonPreamble for PythonPreamble {
-    fn get_body_ast<'b>(&self, py: Python<'b>) -> Vec<&'b PyAny> {
+    fn get_body(&self) -> String {
         match &self {
-            PythonPreamble::NativePythonPreamble(x) => x.get_body_ast(py),
+            PythonPreamble::NativePythonPreamble(x) => x.get_body(),
+            PythonPreamble::RPythonPreamble(x) => x.get_body(),
         }
+    }
+}
+impl RPythonPreamble {
+    pub fn new(body: String) -> Self {
+        Self { body }
     }
 }
 impl NativePythonPreamble {

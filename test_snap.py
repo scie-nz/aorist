@@ -2,8 +2,7 @@ import inspect
 import copy
 from aorist import *
 from recipes import programs
-
-from test import endpoints
+from common import endpoints
 
 tmp_dir = "tmp/snap"
 
@@ -18,17 +17,17 @@ edge_tuple = IdentifierTuple(
 names = [
     "ca-AstroPh",
     "ca-CondMat",
-    #"ca-GrQc",
-    #"ca-HepPh",
-    #"ca-HepTh",
-    #"web-BerkStan",
-    #"web-Google",
-    #"web-NotreDame",
-    #"web-Stanford",
-    #"amazon0302",
-    #"amazon0312",
-    #"amazon0505",
-    #"amazon0601",
+    "ca-GrQc",
+    "ca-HepPh",
+    "ca-HepTh",
+    "web-BerkStan",
+    "web-Google",
+    "web-NotreDame",
+    "web-Stanford",
+    "amazon0302",
+    "amazon0312",
+    "amazon0505",
+    "amazon0601",
 ]
 tables = {}
 for name in names:
