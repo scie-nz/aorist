@@ -1,32 +1,10 @@
 use crate::python::PythonImport;
-use aorist_ast::{Assignment, Call, Expression, SimpleIdentifier, AST};
+use aorist_ast::{Call, SimpleIdentifier, AST};
 use aorist_primitives::define_task_node;
 use linked_hash_map::LinkedHashMap;
 use std::hash::Hash;
 use std::sync::{Arc, RwLock};
-
-pub trait PythonStatementsTask {
-    fn python_statements(&self) -> Vec<AST>;
-    fn get_task_val(&self) -> AST;
-    fn get_native_python_statements(&self) -> Vec<AST> {
-        let mut statements = self.python_statements();
-        let l = statements.len();
-        
-        let last = statements.remove(l - 1);
-        let mut out = Vec::new();
-        for elem in statements.into_iter() {
-            out.push(
-                AST::Expression(Expression::new_wrapped(elem))
-            );
-        }
-        let assignment = AST::Assignment(Assignment::new_wrapped(
-            self.get_task_val(),
-            last
-        ));
-        out.push(assignment);
-        out
-    }
-}
+use crate::python::ast::{PythonTaskBase, PythonStatementsTask};
 
 define_task_node!(
     ConstantPythonTask,
@@ -37,10 +15,12 @@ define_task_node!(
     name: AST,
     task_val: AST,
 );
-impl PythonStatementsTask for ConstantPythonTask {
+impl PythonTaskBase for ConstantPythonTask {
    fn get_task_val(&self) -> AST {
       self.task_val.clone()
    }
+}
+impl PythonStatementsTask for ConstantPythonTask {
    fn python_statements(&self) -> Vec<AST> {
         let call = AST::Call(Call::new_wrapped(
             AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("print".to_string())),
