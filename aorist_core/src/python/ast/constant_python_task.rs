@@ -8,23 +8,26 @@ use std::sync::{Arc, RwLock};
 define_task_node!(
     ConstantPythonTask,
     |task: &ConstantPythonTask| vec![task.name.clone()],
-    |task: &ConstantPythonTask| {
+    |task: &ConstantPythonTask| { task.get_print_statements() },
+    |_task: &ConstantPythonTask| { vec![] },
+    PythonImport,
+    name: AST,
+    task_val: AST,
+);
+impl ConstantPythonTask {
+   pub fn get_print_statements(&self) -> Vec<AST> {
         let call = AST::Call(Call::new_wrapped(
             AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("print".to_string())),
-            vec![task.name.clone()],
+            vec![self.name.clone()],
             LinkedHashMap::new(),
         ));
 
         vec![
             AST::Expression(Expression::new_wrapped(call)),
             AST::Assignment(Assignment::new_wrapped(
-                task.task_val.clone(),
-                task.name.clone(),
+                self.task_val.clone(),
+                self.name.clone(),
             )),
         ]
-    },
-    |_task: &ConstantPythonTask| { vec![] },
-    PythonImport,
-    name: AST,
-    task_val: AST,
-);
+   }
+}
