@@ -9,13 +9,34 @@ use aorist_primitives::PrestoConfig;
 use linked_hash_map::LinkedHashMap;
 use std::hash::Hash;
 use std::sync::{Arc, RwLock};
-use crate::python::ast::PythonTaskBase;
+use crate::python::ast::{PythonTaskBase, PythonStatementsTask};
 use crate::python::ast::AirflowTaskBase;
 
 define_task_node!(
     PrestoPythonTask,
     |task: &PrestoPythonTask| vec![task.sql.clone()],
-    |task: &PrestoPythonTask| {
+    |task: &PrestoPythonTask| { task.get_native_python_statements() },
+    |_task: &PrestoPythonTask| {
+        vec![
+            PythonImport::PythonModuleImport("subprocess".to_string(), None),
+            PythonImport::PythonModuleImport("trino".to_string(), None),
+            PythonImport::PythonModuleImport("re".to_string(), None),
+        ]
+    },
+    PythonImport,
+    sql: AST,
+    task_val: AST,
+    endpoint: PrestoConfig,
+    dependencies: Option<AST>,
+);
+
+impl PythonTaskBase for PrestoPythonTask {
+    fn get_task_val(&self) -> AST {
+        self.task_val.clone()
+    }
+}
+impl PythonStatementsTask for PrestoPythonTask {
+   fn python_statements(&self) -> Vec<AST> {
         let rows = AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("rows".to_string()));
         let mut command_map = LinkedHashMap::new();
         let command_ident =
@@ -39,15 +60,15 @@ define_task_node!(
 
         command_map.insert("command".to_string(), command_ident.clone());
         vec![
-            task.presto_connection_statement(task.endpoint.clone()),
-            task.presto_cursor_statement(),
+            self.presto_connection_statement(self.endpoint.clone()),
+            self.presto_cursor_statement(),
             AST::Assignment(Assignment::new_wrapped(
                 command_ident.clone(),
-                task.sql.clone(),
+                self.sql.clone(),
             )),
             AST::Expression(Expression::new_wrapped(AST::Call(Call::new_wrapped(
                 AST::Attribute(Attribute::new_wrapped(
-                    task.cursor_ident(),
+                    self.cursor_ident(),
                     "execute".to_string(),
                     false,
                 )),
@@ -58,7 +79,7 @@ define_task_node!(
                 AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("rows".to_string())),
                 AST::Call(Call::new_wrapped(
                     AST::Attribute(Attribute::new_wrapped(
-                        task.cursor_ident(),
+                        self.cursor_ident(),
                         "fetchall".to_string(),
                         false,
                     )),
@@ -77,27 +98,9 @@ define_task_node!(
                 ))],
                 LinkedHashMap::new(),
             )))),
-            AST::Assignment(Assignment::new_wrapped(task.task_val.clone(), rows)),
+            AST::Expression(Expression::new_wrapped(rows)),
         ]
-    },
-    |_task: &PrestoPythonTask| {
-        vec![
-            PythonImport::PythonModuleImport("subprocess".to_string(), None),
-            PythonImport::PythonModuleImport("trino".to_string(), None),
-            PythonImport::PythonModuleImport("re".to_string(), None),
-        ]
-    },
-    PythonImport,
-    sql: AST,
-    task_val: AST,
-    endpoint: PrestoConfig,
-    dependencies: Option<AST>,
-);
-
-impl PythonTaskBase for PrestoPythonTask {
-    fn get_task_val(&self) -> AST {
-        self.task_val.clone()
-    }
+   }
 }
 impl AirflowTaskBase for PrestoPythonTask {
     fn get_dependencies(&self) -> Option<AST> {
