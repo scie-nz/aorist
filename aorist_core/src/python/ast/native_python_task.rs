@@ -1,46 +1,15 @@
 use crate::python::PythonImport;
-use aorist_ast::{Assignment, StringLiteral, AST};
+use aorist_ast::AST;
 use aorist_primitives::define_task_node;
 use std::hash::Hash;
 use std::sync::{Arc, RwLock};
+use crate::python::ast::{PythonTaskBase, PythonStatementsTask};
 
 define_task_node!(
     NativePythonTask,
     |task: &NativePythonTask| task.statements.clone(),
     |task: &NativePythonTask| {
-        let mut statements: Vec<AST> = Vec::new();
-
-        let mut it = task.statements.iter();
-
-        let mut maybe_statement = it.next();
-        let mut task_val_assigned = false;
-        while let Some(statement) = maybe_statement {
-            maybe_statement = it.next();
-            statements.push(match statement {
-                AST::Assignment(_) => statement.clone(),
-                AST::Expression(expr) => match maybe_statement {
-                    Some(_) => statement.clone(),
-                    None => {
-                        task_val_assigned = true;
-                        AST::Assignment(Assignment::new_wrapped(
-                            task.task_val.clone(),
-                            expr.read().unwrap().inner().clone(),
-                        ))
-                    }
-                },
-                _ => panic!(
-                    "AST node of type {} found in NativePythonTask body",
-                    statement.name()
-                ),
-            });
-        }
-        if !task_val_assigned {
-            statements.push(AST::Assignment(Assignment::new_wrapped(
-                task.task_val.clone(),
-                AST::StringLiteral(StringLiteral::new_wrapped("Done".to_string(), false)),
-            )));
-        }
-        statements
+        task.get_native_python_statements()
     },
     |task: &NativePythonTask| task.imports.clone(),
     PythonImport,
@@ -48,3 +17,13 @@ define_task_node!(
     imports: Vec<PythonImport>,
     task_val: AST,
 );
+impl PythonTaskBase for NativePythonTask {
+   fn get_task_val(&self) -> AST {
+      self.task_val.clone()
+   }
+}
+impl PythonStatementsTask for NativePythonTask {
+   fn python_statements(&self) -> Vec<AST> {
+        self.statements.clone()
+   }
+}
