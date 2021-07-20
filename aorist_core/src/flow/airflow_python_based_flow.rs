@@ -280,17 +280,20 @@ where U::TEndpoints: TPrestoEndpoints {
             }
             Some(Dialect::R(_)) => {
                 PythonTask::RPythonTask(RPythonTask::new_wrapped(
+                    task_val.clone(),
+                    AST::StringLiteral(StringLiteral::new_wrapped(
+                        call.as_ref().unwrap().clone(),
+                        false,
+                    )),
+                    args.clone(),
+                    kwargs.clone(),
+                    dep_list.clone(),
                     match preamble {
-                        Some(ref p) => Some(AST::StringLiteral(StringLiteral::new_wrapped(
-                            p.clone(),
-                            false,
-                        ))),
+                        Some(ref p) => Some(p.clone()),
                         None => None,
                     },
-                    command, 
-                    task_val.clone(),
                 ))
-            }
+            },
             Some(Dialect::Python(_)) => {
                 PythonTask::NativePythonTask(NativePythonTask::new_wrapped(
                     vec![AST::Expression(Expression::new_wrapped(command))],

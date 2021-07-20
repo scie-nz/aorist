@@ -34,7 +34,7 @@ local = HiveTableStorage(
 """
 Declaring where our subreddits live, i.e. in PushShift
 """
-subreddits = ['france']
+subreddits = ['france', 'newzealand']
 assets = {x: StaticDataTable(
     name=x,
     schema=default_tabular_schema(subreddit_datum, x, attributes),
@@ -85,7 +85,7 @@ universe.compute_uuids()
 result = dag(
     universe,
     ["UploadDataToMinio", "JSONTableSchemasCreated"],
-    "python",
+    "jupyter",
     programs,
     dialect_preferences=[
         R(),
