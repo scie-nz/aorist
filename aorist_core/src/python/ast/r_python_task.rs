@@ -29,13 +29,13 @@ impl PythonStatementsTask for RPythonTask {
         let mut statements = Vec::new();
         // TODO: push this to a preamble
         let attr = AST::Attribute(Attribute::new_wrapped(
-            AST::StringLiteral(StringLiteral::new_wrapped("rpy2".into(), false)),
+            AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("rpy2".into())),
             "r".into(),
             false,
         ));
         if let Some(ref p) = self.preamble {
             let literal = AST::StringLiteral(StringLiteral::new_wrapped(
-                p.clone(),
+                format!("\n{}\n", p).to_string(),
                 false,
             ));
             let call = AST::Call(Call::new_wrapped(

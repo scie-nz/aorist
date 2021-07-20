@@ -276,11 +276,13 @@ where U::TEndpoints: TPrestoEndpoints {
                     // TODO: add imports from preamble
                     Vec::new(),
                     task_val.clone(),
+                    dep_list.clone(),
                 ))
             },
             None => PythonTask::ConstantPythonTask(ConstantPythonTask::new_wrapped(
                 command,
                 task_val.clone(),
+                dep_list.clone(),
             )),
         };
         Self {

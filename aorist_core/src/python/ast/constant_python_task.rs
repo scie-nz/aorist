@@ -1,10 +1,10 @@
 use crate::python::PythonImport;
-use aorist_ast::{Call, SimpleIdentifier, AST};
+use aorist_ast::{Call, SimpleIdentifier, AST, Expression};
 use aorist_primitives::define_task_node;
 use linked_hash_map::LinkedHashMap;
 use std::hash::Hash;
 use std::sync::{Arc, RwLock};
-use crate::python::ast::{PythonTaskBase, PythonStatementsTask};
+use crate::python::ast::{PythonTaskBase, PythonStatementsTask, AirflowTaskBase};
 
 define_task_node!(
     ConstantPythonTask,
@@ -14,7 +14,13 @@ define_task_node!(
     PythonImport,
     name: AST,
     task_val: AST,
+    dep_list: Option<AST>,
 );
+impl AirflowTaskBase for ConstantPythonTask {
+    fn get_dependencies(&self) -> Option<AST> {
+        self.dep_list.clone()        
+    }
+}
 impl PythonTaskBase for ConstantPythonTask {
    fn get_task_val(&self) -> AST {
       self.task_val.clone()
@@ -29,8 +35,8 @@ impl PythonStatementsTask for ConstantPythonTask {
         ));
 
         vec![
-            call,
-            self.name.clone(),
+            AST::Expression(Expression::new_wrapped(call)),
+            AST::Expression(Expression::new_wrapped(self.name.clone())),
         ]
    }
 }
