@@ -6,7 +6,7 @@ use crate::python::{
     BashPythonTask, ConstantPythonTask, NativePythonTask, PrestoPythonTask, PythonImport,
     PythonPreamble, RPythonTask, PythonTask,
 };
-use aorist_ast::{Call, Expression, Formatted, SimpleIdentifier, StringLiteral, AST};
+use aorist_ast::{Call, Expression, SimpleIdentifier, StringLiteral, AST};
 use aorist_primitives::AoristUniverse;
 use aorist_primitives::{TPrestoEndpoints};
 use linked_hash_map::LinkedHashMap;
@@ -75,33 +75,10 @@ where
         endpoints: U::TEndpoints,
     ) -> Self {
         let command = match &dialect {
-            Some(Dialect::Bash(_)) => AST::Formatted(Formatted::new_wrapped(
-                AST::StringLiteral(StringLiteral::new_wrapped(
-                    call.as_ref().unwrap().to_string(),
-                    false,
-                )),
-                kwargs.clone(),
+            Some(_) => AST::StringLiteral(StringLiteral::new_wrapped(
+                call.as_ref().unwrap().to_string(),
+                false,
             )),
-            Some(Dialect::Presto(_)) => AST::Formatted(Formatted::new_wrapped(
-                AST::StringLiteral(StringLiteral::new_wrapped(
-                    call.as_ref().unwrap().to_string(),
-                    true,
-                )),
-                kwargs.clone(),
-            )),
-            Some(Dialect::Python(_)) => AST::Call(Call::new_wrapped(
-                AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
-                    call.as_ref().unwrap().clone(),
-                )),
-                args.clone(),
-                kwargs.clone(),
-            )),
-            Some(Dialect::R(_)) => {
-                AST::StringLiteral(StringLiteral::new_wrapped(
-                    call.as_ref().unwrap().clone(),
-                    false,
-                ))
-            },
             None => AST::StringLiteral(StringLiteral::new_wrapped("Done".to_string(), false)),
         };
         let node = match &dialect {
@@ -109,13 +86,19 @@ where
                 let presto_endpoints = endpoints.presto_config();
                 PythonTask::PrestoPythonTask(PrestoPythonTask::new_wrapped(
                     command,
+                    kwargs.clone(),
                     task_val.clone(),
                     presto_endpoints,
                     dep_list.clone(),
                 ))
             }
             Some(Dialect::Bash(_)) => {
-                PythonTask::BashPythonTask(BashPythonTask::new_wrapped(command, task_val.clone(), dep_list.clone()))
+                PythonTask::BashPythonTask(BashPythonTask::new_wrapped(
+                    command,
+                    kwargs.clone(),
+                    task_val.clone(),
+                    dep_list.clone()
+                ))
             }
             Some(Dialect::R(_)) => {
                 PythonTask::RPythonTask(RPythonTask::new_wrapped(
@@ -129,7 +112,15 @@ where
             }
             Some(Dialect::Python(_)) => {
                 PythonTask::NativePythonTask(NativePythonTask::new_wrapped(
-                    vec![AST::Expression(Expression::new_wrapped(command))],
+                    vec![AST::Expression(Expression::new_wrapped(
+                        AST::Call(Call::new_wrapped(
+                            AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
+                                call.as_ref().unwrap().clone(),
+                            )),
+                            args.clone(),
+                            kwargs.clone(),
+                        ))
+                    ))],
                     // TODO: add imports from preamble
                     Vec::new(),
                     task_val.clone(),

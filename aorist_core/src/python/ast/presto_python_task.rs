@@ -25,6 +25,7 @@ define_task_node!(
     },
     PythonImport,
     sql: AST,
+    kwargs: LinkedHashMap<String, AST>,
     task_val: AST,
     endpoint: PrestoConfig,
     dependencies: Option<AST>,
@@ -64,7 +65,10 @@ impl PythonStatementsTask for PrestoPythonTask {
             self.presto_cursor_statement(),
             AST::Assignment(Assignment::new_wrapped(
                 command_ident.clone(),
-                self.sql.clone(),
+                AST::Formatted(Formatted::new_wrapped(
+                    self.sql.clone(),
+                    self.kwargs.clone(),
+                )),
             )),
             AST::Expression(Expression::new_wrapped(AST::Call(Call::new_wrapped(
                 AST::Attribute(Attribute::new_wrapped(

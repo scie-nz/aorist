@@ -224,45 +224,10 @@ where U::TEndpoints: TPrestoEndpoints {
         endpoints: U::TEndpoints,
     ) -> Self {
         let command = match &dialect {
-            Some(Dialect::Bash(_)) => AST::Formatted(Formatted::new_wrapped(
-                AST::StringLiteral(StringLiteral::new_wrapped(
-                    call.as_ref().unwrap().to_string(),
-                    false,
-                )),
-                kwargs.clone(),
+            Some(_) => AST::StringLiteral(StringLiteral::new_wrapped(
+                call.as_ref().unwrap().to_string(),
+                false,
             )),
-            Some(Dialect::Presto(_)) => AST::Formatted(Formatted::new_wrapped(
-                AST::StringLiteral(StringLiteral::new_wrapped(
-                    call.as_ref().unwrap().to_string(),
-                    true,
-                )),
-                kwargs.clone(),
-            )),
-            Some(Dialect::Python(_)) => AST::Call(Call::new_wrapped(
-                AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
-                    call.as_ref().unwrap().clone(),
-                )),
-                args.clone(),
-                kwargs.clone(),
-            )),
-            Some(Dialect::R(_)) => {
-                AST::Call(Call::new_wrapped(
-                    AST::Call(Call::new_wrapped(
-                        AST::Attribute(Attribute::new_wrapped(
-                            AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("robjects".to_string())),
-                            "r".to_string(),
-                            false,
-                        )),
-                        vec![AST::StringLiteral(StringLiteral::new_wrapped(
-                            call.as_ref().unwrap().clone(),
-                            false,
-                        ))],
-                        LinkedHashMap::new(),
-                    )),
-                    args.clone(),
-                    kwargs.clone(),
-                ))
-            },
             None => AST::StringLiteral(StringLiteral::new_wrapped("Done".to_string(), false)),
         };
         let node = match &dialect {
@@ -270,21 +235,24 @@ where U::TEndpoints: TPrestoEndpoints {
                 let presto_endpoints = endpoints.presto_config();
                 PythonTask::PrestoPythonTask(PrestoPythonTask::new_wrapped(
                     command,
+                    kwargs.clone(),
                     task_val.clone(),
                     presto_endpoints,
                     dep_list.clone(),
                 ))
             }
             Some(Dialect::Bash(_)) => {
-                PythonTask::BashPythonTask(BashPythonTask::new_wrapped(command, task_val.clone(), dep_list.clone()))
+                PythonTask::BashPythonTask(BashPythonTask::new_wrapped(
+                    command,
+                    kwargs.clone(),
+                    task_val.clone(),
+                    dep_list.clone()
+                ))
             }
             Some(Dialect::R(_)) => {
                 PythonTask::RPythonTask(RPythonTask::new_wrapped(
                     task_val.clone(),
-                    AST::StringLiteral(StringLiteral::new_wrapped(
-                        call.as_ref().unwrap().clone(),
-                        false,
-                    )),
+                    command,
                     args.clone(),
                     kwargs.clone(),
                     dep_list.clone(),
@@ -296,12 +264,20 @@ where U::TEndpoints: TPrestoEndpoints {
             },
             Some(Dialect::Python(_)) => {
                 PythonTask::NativePythonTask(NativePythonTask::new_wrapped(
-                    vec![AST::Expression(Expression::new_wrapped(command))],
+                    vec![AST::Expression(Expression::new_wrapped(
+                        AST::Call(Call::new_wrapped(
+                            AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
+                                call.as_ref().unwrap().clone(),
+                            )),
+                            args.clone(),
+                            kwargs.clone(),
+                        ))
+                    ))],
                     // TODO: add imports from preamble
                     Vec::new(),
                     task_val.clone(),
                 ))
-            }
+            },
             None => PythonTask::ConstantPythonTask(ConstantPythonTask::new_wrapped(
                 command,
                 task_val.clone(),

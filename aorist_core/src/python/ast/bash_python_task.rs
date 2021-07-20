@@ -2,20 +2,22 @@
 use super::airflow_bash_operator_task::AirflowBashOperatorTask;
 use super::python_subprocess_task::PythonSubprocessTask;
 use crate::python::PythonImport;
-use aorist_ast::AST;
+use aorist_ast::{AST, Formatted};
 use aorist_primitives::define_task_node;
 use std::hash::Hash;
 use std::sync::{Arc, RwLock};
 use crate::python::ast::PythonTaskBase;
 use crate::python::ast::AirflowTaskBase;
+use linked_hash_map::LinkedHashMap;
 
 define_task_node!(
     BashPythonTask,
-    |task: &BashPythonTask| vec![task.command.clone()],
+    |task: &BashPythonTask| vec![task.call.clone()],
     |task: &BashPythonTask| { task.get_subprocess_statements() },
     |task: &BashPythonTask| { task.get_python_subprocess_imports() },
     PythonImport,
-    command: AST,
+    call: AST,
+    kwargs: LinkedHashMap<String, AST>,
     task_val: AST,
     dependencies: Option<AST>,
 );
@@ -31,11 +33,14 @@ impl AirflowTaskBase for BashPythonTask {
 }
 impl PythonSubprocessTask for BashPythonTask {
     fn get_command(&self) -> AST {
-        self.command.clone()
+        AST::Formatted(Formatted::new_wrapped(
+            self.call.clone(),
+            self.kwargs.clone(),
+        ))
     }
 }
 impl AirflowBashOperatorTask for BashPythonTask {
     fn get_call_param_value(&self) -> AST {
-        self.command.clone()
+        self.get_command()
     }
 }
