@@ -9,7 +9,7 @@ edition = "2018"
 [dependencies]
 aorist_concept = {path = "../aorist_concept"}
 aorist_derive = {path = "../aorist_derive"}
-aorist_primitives = {path = "../aorist_primitives"}
+aorist_primitives = {path = "../aorist_primitives", features = ["python"]}
 # workaround for failure to build on ARM on 0.2.0
 # switch back to upstream once a >0.2.0 release with this commit is published: https://github.com/extendr/extendr/commit/da8c95c
 extendr-api = {git = "https://github.com/extendr/extendr", rev = "da8c95c"}

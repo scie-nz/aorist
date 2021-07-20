@@ -1,10 +1,10 @@
+mod ancestor_record;
 mod assignment_target;
 mod string_literal;
-mod ancestor_record;
 
-pub use string_literal::*;
-pub use assignment_target::*;
 pub use ancestor_record::*;
+pub use assignment_target::*;
+pub use string_literal::*;
 
 use aorist_derive::Optimizable;
 use aorist_primitives::{define_ast_node, register_ast_nodes};
@@ -550,6 +550,61 @@ define_ast_node!(
     },
     |_none, _depth| { r!(NULL) },
 );
+define_ast_node!(
+    FunctionDef,
+    |_fun: &FunctionDef| vec![],
+    |fun: &FunctionDef, py: Python, ast_module: &'a PyModule, depth: usize| {
+        let mut args_py = Vec::new();
+        let mut kwargs_py = Vec::new();
+        let mut kwargs_defaults = Vec::new();
+        for arg in &fun.args {
+            let arg_py = ast_module.call1(
+                "arg",
+                (
+                    arg.to_python_ast_node(py, ast_module, depth).unwrap(),
+                    py.None().as_ref(py),
+                ),
+            ).unwrap();
+            args_py.push(arg_py);
+        }
+        for (k, v) in &fun.kwargs {
+            let arg_py = ast_module.call1(
+                "arg",
+                (
+                    v.to_python_ast_node(py, ast_module, depth).unwrap(),
+                    py.None().as_ref(py),
+                ),
+            ).unwrap();
+            kwargs_py.push(arg_py);
+            let default_py = AST::StringLiteral(StringLiteral::new_wrapped(k.clone(), false))
+                .to_python_ast_node(py, ast_module, depth)
+                .unwrap();
+            kwargs_defaults.push(default_py);
+        }
+        let arguments = ast_module.call1(
+            "arguments",
+            (
+                args_py,
+                py.None().as_ref(py),
+                kwargs_py,
+                py.None().as_ref(py),
+                py.None().as_ref(py),
+                kwargs_defaults,
+            ),
+        ).unwrap();
+        let body_py = fun
+            .body
+            .iter()
+            .map(|x| x.to_python_ast_node(py, ast_module, depth).unwrap())
+            .collect::<Vec<_>>();
+        ast_module.call1("FunctionDef", (&fun.name, arguments, body_py))
+    },
+    |_fun: &FunctionDef, _depth: usize| { panic!("Function defs not supported in R") },
+    name: String,
+    args: Vec<AST>,
+    kwargs: LinkedHashMap<String, AST>,
+    body: Vec<AST>,
+);
 
 register_ast_nodes!(
     AST,
@@ -571,6 +626,7 @@ register_ast_nodes!(
     ImportNode,
     Add,
     BinOp,
+    FunctionDef,
 );
 
 impl Formatted {

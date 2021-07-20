@@ -39,4 +39,3 @@ impl AncestorRecord {
         relative_path
     }
 }
-
