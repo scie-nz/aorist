@@ -257,7 +257,7 @@ macro_rules! define_ast_node {
             pub fn to_r_ast_node(&self, depth: usize) -> Robj {
                 ($r_ast_closure)(self, depth)
             }
-            fn new($(
+            pub fn new($(
                 $field: $field_type,
             )*) -> Self {
                 Self {
