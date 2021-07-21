@@ -1,18 +1,15 @@
 use crate::dialect::Dialect;
 use crate::flow::etl_flow::ETLFlow;
 use crate::flow::flow_builder::FlowBuilderBase;
-use crate::flow::flow_builder_input::FlowBuilderInput;
 use crate::flow::python_based_flow_builder::PythonBasedFlowBuilder;
 use crate::python::{
     BashPythonTask, ConstantPythonTask, NativePythonTask, PrestoPythonTask, PythonImport,
-    PythonPreamble, RPythonTask, PythonTask, PythonFlowBuilderInput,
+    PythonPreamble, RPythonTask, PythonTask,
 };
 use aorist_ast::{Call, Expression, SimpleIdentifier, StringLiteral, AST};
 use aorist_primitives::AoristUniverse;
 use aorist_primitives::{TPrestoEndpoints};
 use linked_hash_map::LinkedHashMap;
-use pyo3::prelude::*;
-use pyo3::types::PyModule;
 use std::hash::{Hash};
 use std::marker::PhantomData;
 use crate::flow::python_based_flow::PythonBasedFlow;
@@ -176,22 +173,5 @@ where
 {
     fn get_flow_imports(&self) -> Vec<PythonImport> {
         Vec::new()
-    }
-    /// Takes a set of statements and mutates them so as make a valid ETL flow
-    fn build_flow<'a>(
-        &self,
-        py: Python<'a>,
-        statements: Vec<PythonFlowBuilderInput>,
-        ast_module: &'a PyModule,
-    ) -> Vec<(String, Vec<&'a PyAny>)> {
-        statements
-            .into_iter()
-            .map(|statement| {
-                (
-                    statement.get_block_comment(),
-                    statement.to_python_ast_nodes(py, ast_module, 0).unwrap(),
-                )
-            })
-            .collect()
     }
 }

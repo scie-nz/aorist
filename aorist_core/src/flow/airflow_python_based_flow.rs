@@ -1,7 +1,6 @@
 use crate::dialect::Dialect;
 use crate::flow::etl_flow::ETLFlow;
 use crate::flow::flow_builder::FlowBuilderBase;
-use crate::flow::flow_builder_input::FlowBuilderInput;
 use crate::flow::python_based_flow_builder::PythonBasedFlowBuilder;
 use crate::python::{
     BashPythonTask, ConstantPythonTask, NativePythonTask, PrestoPythonTask, PythonImport,
@@ -15,8 +14,6 @@ use aorist_ast::{
 use aorist_primitives::AoristUniverse;
 use aorist_primitives::{TPrestoEndpoints};
 use linked_hash_map::LinkedHashMap;
-use pyo3::prelude::*;
-use pyo3::types::PyModule;
 use std::marker::PhantomData;
 use crate::flow::python_based_flow::PythonBasedFlow;
 
@@ -321,13 +318,10 @@ where <U as AoristUniverse>::TEndpoints: TPrestoEndpoints {
 impl<U: AoristUniverse> PythonBasedFlowBuilder<U> for AirflowFlowBuilder<U> 
 where <U as AoristUniverse>::TEndpoints: TPrestoEndpoints {
     /// Takes a set of statements and mutates them so as make a valid ETL flow
-    fn build_flow<'a>(
+    fn augment_statements(
         &self,
-        py: Python<'a>,
         mut statements: Vec<PythonFlowBuilderInput>,
-        //mut statements: Vec<(String, Option<String>, Option<String>, Vec<&'a PyAny>)>,
-        ast_module: &'a PyModule,
-    ) -> Vec<(String, Vec<&'a PyAny>)> {
+    ) -> Vec<PythonFlowBuilderInput> {
         let default_args =
             AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("default_args".to_string()));
         let mut default_args_map: LinkedHashMap<String, AST> = LinkedHashMap::new();
@@ -431,14 +425,6 @@ where <U as AoristUniverse>::TEndpoints: TPrestoEndpoints {
             ),
         );
         statements
-            .into_iter()
-            .map(|statement| {
-                (
-                    statement.get_block_comment(),
-                    statement.to_python_ast_nodes(py, ast_module, 0).unwrap(),
-                )
-            })
-            .collect()
     }
     fn get_flow_imports(&self) -> Vec<PythonImport> {
         vec![

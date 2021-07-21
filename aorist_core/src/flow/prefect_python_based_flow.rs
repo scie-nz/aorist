@@ -2,7 +2,6 @@ use crate::dialect::Dialect;
 use crate::flow::etl_flow::ETLFlow;
 use crate::flow::flow_builder::FlowBuilderBase;
 use crate::flow::python_based_flow_builder::PythonBasedFlowBuilder;
-use crate::flow::flow_builder_input::FlowBuilderInput;
 use crate::python::{PythonImport, PythonPreamble, RPythonTask, NativePythonPreamble, PythonFlowBuilderInput};
 use aorist_ast::{
     Assignment, Attribute, Call, Expression, ForLoop, Formatted, SimpleIdentifier, StringLiteral,
@@ -11,8 +10,6 @@ use aorist_ast::{
 use aorist_primitives::register_task_nodes;
 use aorist_primitives::AoristUniverse;
 use linked_hash_map::LinkedHashMap;
-use pyo3::prelude::*;
-use pyo3::types::PyModule;
 use std::hash::{Hash, Hasher};
 use std::marker::PhantomData;
 use std::sync::{Arc, RwLock};
@@ -261,12 +258,10 @@ impl<U: AoristUniverse> PythonBasedFlowBuilder<U> for PrefectFlowBuilder<U> {
         Vec::new()
     }
     /// Takes a set of statements and mutates them so as make a valid ETL flow
-    fn build_flow<'a>(
+    fn augment_statements(
         &self,
-        py: Python<'a>,
         statements: Vec<PythonFlowBuilderInput>,
-        ast_module: &'a PyModule,
-    ) -> Vec<(String, Vec<&'a PyAny>)> {
+    ) -> Vec<PythonFlowBuilderInput> {
         // TODO: add flow definition
         statements
             .into_iter()
@@ -289,12 +284,6 @@ impl<U: AoristUniverse> PythonBasedFlowBuilder<U> for PrefectFlowBuilder<U> {
                 )]
                 .into_iter(),
             )
-            .map(|statement| {
-                (
-                    statement.get_block_comment(),
-                    statement.to_python_ast_nodes(py, ast_module, 0).unwrap(),
-                )
-            })
             .collect()
     }
 }

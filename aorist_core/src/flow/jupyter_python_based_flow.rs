@@ -1,13 +1,11 @@
 use crate::flow::flow_builder::FlowBuilderBase;
 use crate::flow::native_python_based_flow::NativePythonBasedFlow;
 use crate::flow::python_based_flow_builder::PythonBasedFlowBuilder;
-use crate::flow::flow_builder_input::FlowBuilderInput;
-use crate::python::{PythonImport, PythonFlowBuilderInput};
+use crate::python::PythonImport;
 use aorist_primitives::{AoristUniverse, TPrestoEndpoints};
-use pyo3::prelude::*;
-use pyo3::types::PyModule;
 use serde_json::json;
 use std::marker::PhantomData;
+use pyo3::PyResult;
 
 pub struct JupyterFlowBuilder<U: AoristUniverse>
 where
@@ -32,23 +30,6 @@ where
 {
     fn get_flow_imports(&self) -> Vec<PythonImport> {
         Vec::new()
-    }
-    /// Takes a set of statements and mutates them so as make a valid ETL flow
-    fn build_flow<'a>(
-        &self,
-        py: Python<'a>,
-        statements: Vec<PythonFlowBuilderInput>,
-        ast_module: &'a PyModule,
-    ) -> Vec<(String, Vec<&'a PyAny>)> {
-        statements
-            .into_iter()
-            .map(|statement| {
-                (
-                    statement.get_block_comment(),
-                    statement.to_python_ast_nodes(py, ast_module, 0).unwrap(),
-                )
-            })
-            .collect()
     }
     fn build_file(&self, sources: Vec<(Option<String>, String)>) -> PyResult<String> {
         let cells = json!(sources

@@ -80,27 +80,17 @@ where
                 ),
             );
         }
-        /*let statements_ast = statements_with_ast
-            .into_iter()
-            .map(|x| {
-                (
-                    x.get_constraint_name(),
-                    x.get_constraint_title(),
-                    x.get_constraint_body(),
-                    x.get_statements().into_iter()
-                        .map(|y| y.to_python_ast_node(py, ast, 0).unwrap())
-                        .collect(),
-                )
-            })
-            .collect();*/
 
-        let flow = self.build_flow(py, statements_with_ast, ast);
-
+        let augmented_statements = self.augment_statements(statements_with_ast);
         let content: Vec<(Option<String>, Vec<&PyAny>)> =
             vec![(Some("Python Imports".to_string()), imports_ast)]
                 .into_iter()
                 .chain(preambles.into_iter().map(|x| (None, x.get_body_ast(py))))
-                .chain(flow.into_iter().map(|(x, y)| (Some(x), y)))
+                .chain(
+                    augmented_statements.into_iter().map(
+                        |x| (Some(x.get_block_comment()), x.to_python_ast_nodes(py, ast, 0).unwrap())
+                    )
+                )
                 .collect();
 
         let mut sources: Vec<(Option<String>, String)> = Vec::new();
@@ -138,13 +128,13 @@ where
     Self: Sized,
     U: AoristUniverse,
 {
-    fn build_flow<'a>(
+    /// Takes a set of statements and mutates them so as make a valid ETL flow
+    fn augment_statements(
         &self,
-        py: Python<'a>,
         statements: Vec<PythonFlowBuilderInput>,
-        //statements: Vec<(String, Option<String>, Option<String>, Vec<&'a PyAny>)>,
-        ast_module: &'a PyModule,
-    ) -> Vec<(String, Vec<&'a PyAny>)>;
+    ) -> Vec<PythonFlowBuilderInput> {
+        statements
+    }
     fn get_flow_imports(&self) -> Vec<PythonImport>;
 
     fn build_file(&self, sources: Vec<(Option<String>, String)>) -> PyResult<String> {
