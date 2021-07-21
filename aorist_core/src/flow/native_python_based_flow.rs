@@ -47,7 +47,12 @@ where
     type PreambleType = PythonPreamble;
 
     fn get_preamble(&self) -> Vec<PythonPreamble> {
-        self.get_python_preamble()
+        // TODO: this should be deprecated
+        let mut preambles = self.get_python_preamble();
+        if let Some(p) = self.node.get_preamble() {
+            preambles.push(p)
+        }
+        preambles
     }
     fn get_imports(&self) -> Vec<PythonImport> {
         self.node.get_imports()

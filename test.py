@@ -84,8 +84,8 @@ universe.compute_uuids()
 
 result = dag(
     universe,
-    ["UploadDataToMinio", "JSONTableSchemasCreated"],
-    "jupyter",
+    ["UploadDataToMinio"],
+    "airflow",
     programs,
     dialect_preferences=[
         R(),

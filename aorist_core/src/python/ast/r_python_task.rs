@@ -31,10 +31,13 @@ impl PythonFunctionCallTask for RPythonTask {
         let rpy2 = PythonImport::PythonModuleImport("rpy2".to_string(), None);
         let rpy2o = PythonImport::PythonModuleImport("rpy2.objects".to_string(), Some("robjects".to_string()));
         let body = "
-def execute_r(call, preamble=None):
+def execute_r(call, preamble=None, **kwargs):
     if preamble is not None:
         rpy2.r(preamble)
-    return rpy2.r(call)
+    return rpy2.r('%s(%s)' % (
+        call,
+        ', '.join(['%s = \"%s\"' % (k, v) for k, v in kwargs.items()]) 
+    ))
 ";
         Some(NativePythonPreamble {
             imports: vec![rpy2],
@@ -43,25 +46,23 @@ def execute_r(call, preamble=None):
         })
     }
     fn get_call(&self) -> AST {
-        let mut args = vec![];
-        let expr = AST::Formatted(Formatted::new_wrapped(
-            self.call.clone(),
-            self.kwargs.clone(),
-        ));
-        args.push(expr);
+        let mut inner_kwargs = LinkedHashMap::new();
+        inner_kwargs.insert("call".to_string(), self.call.clone());
         if let Some(ref p) = self.preamble {
-            let literal = AST::StringLiteral(StringLiteral::new_wrapped(
-                format!("\n{}\n", p).to_string(),
-                false,
-            ));
-            args.push(literal);
+            inner_kwargs.insert(
+                "preamble".to_string(),
+                AST::StringLiteral(StringLiteral::new_wrapped(format!("\n{}\n", p).to_string(), false))
+            );
+        }
+        for (k, v) in self.kwargs.clone() {
+            inner_kwargs.insert(k, v);
         }
         AST::Call(Call::new_wrapped(
             AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("execute_r".to_string())),
-            args,
-            LinkedHashMap::new(),
+            vec![],
+            inner_kwargs,
         ))
-     }
+    }
 }
 impl PythonTaskBase for RPythonTask {
     fn get_task_val(&self) -> AST {

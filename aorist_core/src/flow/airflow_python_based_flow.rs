@@ -4,7 +4,7 @@ use crate::flow::flow_builder::FlowBuilderBase;
 use crate::flow::python_based_flow_builder::PythonBasedFlowBuilder;
 use crate::python::{
     BashPythonTask, ConstantPythonTask, NativePythonTask, PrestoPythonTask, PythonImport,
-    PythonPreamble, RPythonTask, PythonTask, RPythonPreamble, NativePythonPreamble,
+    PythonPreamble, RPythonTask, PythonTask, NativePythonPreamble,
     PythonFlowBuilderInput,
 };
 use aorist_ast::{
@@ -51,17 +51,11 @@ where U::TEndpoints: TPrestoEndpoints {
         } else {
             kwargs = LinkedHashMap::new();
             let call_param_name = match self.dialect {
-                Some(Dialect::Python(_)) | Some(Dialect::R(_)) => "python_callable".to_string(),
-                Some(Dialect::Bash(_)) | Some(Dialect::Presto(_)) => "bash_command".to_string(),
-                _ => panic!("Dialect not supported"),
+                Some(Dialect::Python(_)) | Some(Dialect::R(_)) | Some(Dialect::Presto(_)) | None => "python_callable".to_string(),
+                Some(Dialect::Bash(_)) => "bash_command".to_string(),
             };
+            // TODO: deprecate this once Bash tasks also migrate
             let call_param_value = match self.dialect {
-                Some(Dialect::Python(_)) => AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
-                    self.command.as_ref().unwrap().clone(),
-                )),
-                Some(Dialect::R(_)) => AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
-                    self.command.as_ref().unwrap().clone(),
-                )),
                 Some(Dialect::Bash(_)) => AST::Formatted(Formatted::new_wrapped(
                     AST::StringLiteral(StringLiteral::new_wrapped(
                         self.command.as_ref().unwrap().clone(),
@@ -69,44 +63,31 @@ where U::TEndpoints: TPrestoEndpoints {
                     )),
                     self.kwargs.clone(),
                 )),
-                Some(Dialect::Presto(_)) => {
-                    let mut fmt_args = LinkedHashMap::new();
-                    fmt_args.insert(
-                        "query".to_string(),
-                        AST::Formatted(Formatted::new_wrapped(
-                            AST::StringLiteral(StringLiteral::new_wrapped(
-                                self.command.as_ref().unwrap().clone(),
-                                true,
-                            )),
-                            self.kwargs.clone(),
-                        )),
-                    );
-
-                    AST::Formatted(Formatted::new_wrapped(
-                        AST::StringLiteral(StringLiteral::new_wrapped(
-                            "presto -e \"{query}\"".to_string(),
-                            false,
-                        )),
-                        fmt_args,
-                    ))
+                _ => {
+                    let call = self.node.get_call().unwrap();
+                    match call {
+                        AST::Call(call_rw) => call_rw.read().unwrap().function(),
+                        _ => panic!("AST object should be call")
+                    }
                 }
-                _ => panic!("Dialect not supported"),
             };
             kwargs.insert(call_param_name, call_param_value);
-            if let Some(Dialect::Python(_)) = self.dialect {
-                if self.kwargs.len() > 0 {
-                    kwargs.insert(
-                        "op_kwargs".to_string(),
-                        AST::Dict(Dict::new_wrapped(self.kwargs.clone())),
-                    );
-                }
-            }
-            if let Some(Dialect::R(_)) = self.dialect {
-                if self.kwargs.len() > 0 {
-                    kwargs.insert(
-                        "op_kwargs".to_string(),
-                        AST::Dict(Dict::new_wrapped(self.kwargs.clone())),
-                    );
+            if let Some(Dialect::Python(_)) | Some(Dialect::R(_)) | Some(Dialect::Presto(_)) | None = self.dialect {
+                let call = self.node.get_call().unwrap();
+                if let AST::Call(call_rw) = call {
+                    let x = call_rw.read().unwrap();
+                    if x.args().len() > 0 {
+                        panic!("Call should not have any arguments");
+                    }
+                    let inner_kwargs = x.keywords();
+                    if inner_kwargs.len() > 0 {
+                        kwargs.insert(
+                            "op_kwargs".to_string(),
+                            AST::Dict(Dict::new_wrapped(inner_kwargs)),
+                        );
+                    }
+                } else {
+                    panic!("AST object should be call");
                 }
             }
         }
@@ -126,7 +107,7 @@ where U::TEndpoints: TPrestoEndpoints {
                 "BashOperator".to_string(),
             )),
             Some(Dialect::Presto(_)) => AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
-                "BashOperator".to_string(),
+                "PythonOperator".to_string(),
             )),
             Some(Dialect::R(_)) => AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
                 "PythonOperator".to_string(),
@@ -163,21 +144,19 @@ where U::TEndpoints: TPrestoEndpoints {
         }
     }
     fn get_preamble(&self) -> Vec<PythonPreamble> {
-        let preambles = match self.dialect {
+        // TODO: this should be deprecated
+        let mut preambles = match self.dialect {
             Some(Dialect::Python(_)) => match self.preamble {
                 Some(ref p) => vec![PythonPreamble::NativePythonPreamble(
                     NativePythonPreamble::new(p.clone())
                 )],
                 None => Vec::new(),
             },
-            Some(Dialect::R(_)) => match self.preamble {
-                Some(ref p) => vec![PythonPreamble::RPythonPreamble(
-                    RPythonPreamble::new(p.clone())
-                )],
-                None => Vec::new(),
-            },
             _ => Vec::new(),
         };
+        if let Some(p) = self.node.get_preamble() {
+            preambles.push(p)
+        }
         preambles
     }
     fn get_dialect(&self) -> Option<Dialect> {

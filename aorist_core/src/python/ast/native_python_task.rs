@@ -2,7 +2,7 @@ use crate::python::PythonImport;
 use aorist_primitives::define_task_node;
 use std::hash::Hash;
 use std::sync::{Arc, RwLock};
-use crate::python::ast::{PythonTaskBase, PythonFunctionCallTask, AirflowTaskBase, AirflowPythonOperatorTask};
+use crate::python::ast::{PythonTaskBase, PythonFunctionCallTask, AirflowTaskBase};
 use aorist_ast::AST;
 
 define_task_node!(

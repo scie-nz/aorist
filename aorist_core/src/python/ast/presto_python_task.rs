@@ -65,18 +65,15 @@ def execute_trino_sql(query):
         })
     }
     fn get_call(&self) -> AST {
-        let command_ident =
-            AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("execute_trino_sql".to_string()));
-
             AST::Call(Call::new_wrapped(
-                command_ident,
-                vec![AST::Formatted(Formatted::new_wrapped(
+                AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("execute_trino_sql".to_string())),
+                vec![],
+                vec![("query".to_string(), AST::Formatted(Formatted::new_wrapped(
                     self.sql.clone(),
                     self.kwargs.clone(),
-                ))],
-                LinkedHashMap::new(),
+                )))].into_iter().collect(),
             ))
-   }
+    }
 }
 impl AirflowTaskBase for PrestoPythonTask {
     fn get_dependencies(&self) -> Option<AST> {

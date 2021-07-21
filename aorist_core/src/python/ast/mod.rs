@@ -26,6 +26,8 @@ pub use r_python_task::RPythonTask;
 pub use python_function_call_task::PythonFunctionCallTask;
 pub use python_task_base::PythonTaskBase;
 
+use crate::python::PythonPreamble;
+
 register_task_nodes! {
     PythonTask,
     PythonImport,
@@ -34,4 +36,29 @@ register_task_nodes! {
     NativePythonTask,
     ConstantPythonTask,
     PrestoPythonTask,
+}
+
+impl PythonTask {
+    pub fn get_preamble(&self) -> Option<PythonPreamble> {
+        let inner = match &self {
+            PythonTask::BashPythonTask(_) => None,
+            PythonTask::RPythonTask(x) => x.read().unwrap().get_preamble(),
+            PythonTask::NativePythonTask(x) => x.read().unwrap().get_preamble(),
+            PythonTask::ConstantPythonTask(x) => x.read().unwrap().get_preamble(),
+            PythonTask::PrestoPythonTask(x) => x.read().unwrap().get_preamble(),
+        };
+        if let Some(p) = inner {
+            return Some(PythonPreamble::NativePythonPreamble(p));
+        }
+        return None
+    }
+    pub fn get_call(&self) -> Option<AST> {
+        match &self {
+            PythonTask::BashPythonTask(_) => None,
+            PythonTask::RPythonTask(x) => Some(x.read().unwrap().get_call()),
+            PythonTask::NativePythonTask(x) => Some(x.read().unwrap().get_call()),
+            PythonTask::ConstantPythonTask(x) => Some(x.read().unwrap().get_call()),
+            PythonTask::PrestoPythonTask(x) => Some(x.read().unwrap().get_call()),
+        }
+    }
 }
