@@ -2,7 +2,8 @@ use crate::dialect::Dialect;
 use crate::flow::etl_flow::ETLFlow;
 use crate::flow::flow_builder::FlowBuilderBase;
 use crate::flow::python_based_flow_builder::PythonBasedFlowBuilder;
-use crate::python::{PythonImport, PythonPreamble, RPythonTask, NativePythonPreamble};
+use crate::flow::flow_builder_input::FlowBuilderInput;
+use crate::python::{PythonImport, PythonPreamble, RPythonTask, NativePythonPreamble, PythonFlowBuilderInput};
 use aorist_ast::{
     Assignment, Attribute, Call, Expression, ForLoop, Formatted, SimpleIdentifier, StringLiteral,
     AST,
@@ -263,17 +264,14 @@ impl<U: AoristUniverse> PythonBasedFlowBuilder<U> for PrefectFlowBuilder<U> {
     fn build_flow<'a>(
         &self,
         py: Python<'a>,
-        statements: Vec<(String, Option<String>, Option<String>, Vec<&'a PyAny>)>,
+        statements: Vec<PythonFlowBuilderInput>,
         ast_module: &'a PyModule,
     ) -> Vec<(String, Vec<&'a PyAny>)> {
         // TODO: add flow definition
         statements
             .into_iter()
             .chain(
-                vec![(
-                    "Run Prefect flow".to_string(),
-                    None,
-                    None,
+                vec![PythonFlowBuilderInput::statements_only(
                     vec![
                         AST::Expression(Expression::new_wrapped(AST::Call(Call::new_wrapped(
                             AST::Attribute(Attribute::new_wrapped(
@@ -284,30 +282,17 @@ impl<U: AoristUniverse> PythonBasedFlowBuilder<U> for PrefectFlowBuilder<U> {
                             Vec::new(),
                             LinkedHashMap::new(),
                         ))))
-                        .to_python_ast_node(py, ast_module, 0)
-                        .unwrap(),
                     ],
+                    "Run Prefect flow".to_string(),
+                    None,
+                    None,
                 )]
                 .into_iter(),
             )
-            .map(|(name, title, body, code)| {
+            .map(|statement| {
                 (
-                    match title {
-                        Some(t) => match body {
-                            Some(b) => format!(
-                                "## {}\n{}",
-                                t,
-                                b.split("\n")
-                                    .map(|x| format!("# {}", x).to_string())
-                                    .collect::<Vec<String>>()
-                                    .join("\n")
-                            )
-                            .to_string(),
-                            None => format!("## {}", t).to_string(),
-                        },
-                        None => format!("## {}", name).to_string(),
-                    },
-                    code,
+                    statement.get_block_comment(),
+                    statement.to_python_ast_nodes(py, ast_module, 0).unwrap(),
                 )
             })
             .collect()

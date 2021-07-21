@@ -1,7 +1,8 @@
 use crate::flow::flow_builder::FlowBuilderBase;
 use crate::flow::native_python_based_flow::NativePythonBasedFlow;
 use crate::flow::python_based_flow_builder::PythonBasedFlowBuilder;
-use crate::python::PythonImport;
+use crate::flow::flow_builder_input::FlowBuilderInput;
+use crate::python::{PythonImport, PythonFlowBuilderInput};
 use aorist_primitives::{AoristUniverse, TPrestoEndpoints};
 use pyo3::prelude::*;
 use pyo3::types::PyModule;
@@ -35,30 +36,16 @@ where
     /// Takes a set of statements and mutates them so as make a valid ETL flow
     fn build_flow<'a>(
         &self,
-        _py: Python<'a>,
-        statements: Vec<(String, Option<String>, Option<String>, Vec<&'a PyAny>)>,
-        _ast_module: &'a PyModule,
+        py: Python<'a>,
+        statements: Vec<PythonFlowBuilderInput>,
+        ast_module: &'a PyModule,
     ) -> Vec<(String, Vec<&'a PyAny>)> {
         statements
             .into_iter()
-            .map(|(name, title, body, code)| {
+            .map(|statement| {
                 (
-                    match title {
-                        Some(t) => match body {
-                            Some(b) => format!(
-                                "### {}\n\n{}",
-                                t,
-                                b.split("\n")
-                                    .map(|x| format!("{}", x).to_string())
-                                    .collect::<Vec<String>>()
-                                    .join("\n")
-                            )
-                            .to_string(),
-                            None => format!("### {}", t).to_string(),
-                        },
-                        None => format!("### {}", name).to_string(),
-                    },
-                    code,
+                    statement.get_block_comment(),
+                    statement.to_python_ast_nodes(py, ast_module, 0).unwrap(),
                 )
             })
             .collect()

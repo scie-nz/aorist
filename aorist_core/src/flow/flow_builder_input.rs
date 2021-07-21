@@ -27,6 +27,23 @@ where
     fn get_constraint_name(&self) -> String;
     fn get_constraint_title(&self) -> Option<String>;
     fn get_constraint_body(&self) -> Option<String>;
+    fn get_block_comment(&self) -> String {
+        match self.get_constraint_title() {
+            Some(t) => match self.get_constraint_body() {
+                Some(b) => format!(
+                    "## {}\n{}",
+                    t,
+                    b.split("\n")
+                        .map(|x| format!("# {}", x).to_string())
+                        .collect::<Vec<String>>()
+                        .join("\n")
+                )
+                .to_string(),
+                None => format!("## {}", t).to_string(),
+            },
+            None => format!("## {}", self.get_constraint_name()).to_string(),
+        }
+    }
     
     fn extract_literals(
         &self,

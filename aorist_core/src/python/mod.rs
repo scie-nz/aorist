@@ -43,6 +43,33 @@ impl PythonFlowBuilderInput {
     pub fn has_statements(&self) -> bool {
         self.statements.len() > 0
     }
+    pub fn statements_only(
+        statements: Vec<AST>,
+        constraint_name: String,
+        constraint_title: Option<String>,
+        constraint_body: Option<String>,
+    ) -> Self {
+        Self::new(
+            statements,
+            LinkedHashSet::new(),
+            BTreeSet::new(),
+            constraint_name,
+            constraint_title,
+            constraint_body,
+        )
+    }
+    pub fn to_python_ast_nodes<'a>(
+        &self,
+        py: Python,
+        ast_module: &'a PyModule,
+        depth: usize,
+    ) -> PyResult<Vec<&'a PyAny>> {
+        let mut v = Vec::new();
+        for statement in self.get_statements() {
+            v.push(statement.to_python_ast_node(py, ast_module, depth)?);
+        }
+        Ok(v)
+    }
 }
 impl FlowBuilderInput for PythonFlowBuilderInput {
     type ImportType = PythonImport;

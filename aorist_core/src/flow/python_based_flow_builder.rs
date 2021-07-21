@@ -80,7 +80,7 @@ where
                 ),
             );
         }
-        let statements_ast = statements_with_ast
+        /*let statements_ast = statements_with_ast
             .into_iter()
             .map(|x| {
                 (
@@ -92,9 +92,9 @@ where
                         .collect(),
                 )
             })
-            .collect();
+            .collect();*/
 
-        let flow = self.build_flow(py, statements_ast, ast);
+        let flow = self.build_flow(py, statements_with_ast, ast);
 
         let content: Vec<(Option<String>, Vec<&PyAny>)> =
             vec![(Some("Python Imports".to_string()), imports_ast)]
@@ -141,7 +141,8 @@ where
     fn build_flow<'a>(
         &self,
         py: Python<'a>,
-        statements: Vec<(String, Option<String>, Option<String>, Vec<&'a PyAny>)>,
+        statements: Vec<PythonFlowBuilderInput>,
+        //statements: Vec<(String, Option<String>, Option<String>, Vec<&'a PyAny>)>,
         ast_module: &'a PyModule,
     ) -> Vec<(String, Vec<&'a PyAny>)>;
     fn get_flow_imports(&self) -> Vec<PythonImport>;
