@@ -7,13 +7,13 @@ use aorist_ast::AST;
 
 define_task_node!(
     NativePythonTask,
-    |task: &NativePythonTask| task.statements.clone(),
+    |task: &NativePythonTask| vec![task.call.clone()],
     |task: &NativePythonTask| {
         task.get_native_python_statements()
     },
     |task: &NativePythonTask| task.imports.clone(),
     PythonImport,
-    statements: Vec<AST>,
+    call: AST,
     imports: Vec<PythonImport>,
     task_val: AST,
     dep_list: Option<AST>,
@@ -24,8 +24,8 @@ impl PythonTaskBase for NativePythonTask {
    }
 }
 impl PythonFunctionCallTask for NativePythonTask {
-   fn python_statements(&self) -> Vec<AST> {
-        self.statements.clone()
+   fn get_call(&self) -> AST {
+        self.call.clone()
    }
 }
 impl AirflowTaskBase for NativePythonTask {

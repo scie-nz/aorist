@@ -1,5 +1,5 @@
 use crate::python::PythonImport;
-use aorist_ast::{AST, Call, Expression, StringLiteral, SimpleIdentifier, Formatted};
+use aorist_ast::{AST, Call, StringLiteral, SimpleIdentifier, Formatted};
 use aorist_primitives::define_task_node;
 use std::hash::Hash;
 use std::sync::{Arc, RwLock};
@@ -42,7 +42,7 @@ def execute_r(call, preamble=None):
             body: body.to_string(),
         })
     }
-    fn python_statements(&self) -> Vec<AST> {
+    fn get_call(&self) -> AST {
         let mut args = vec![];
         let expr = AST::Formatted(Formatted::new_wrapped(
             self.call.clone(),
@@ -56,15 +56,11 @@ def execute_r(call, preamble=None):
             ));
             args.push(literal);
         }
-        vec![
-            AST::Expression(Expression::new_wrapped(
-                AST::Call(Call::new_wrapped(
-                    AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("execute_r".to_string())),
-                    args,
-                    LinkedHashMap::new(),
-                ))
-            ))
-        ]
+        AST::Call(Call::new_wrapped(
+            AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("execute_r".to_string())),
+            args,
+            LinkedHashMap::new(),
+        ))
      }
 }
 impl PythonTaskBase for RPythonTask {

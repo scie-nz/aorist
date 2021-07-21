@@ -263,15 +263,13 @@ where U::TEndpoints: TPrestoEndpoints {
             },
             Some(Dialect::Python(_)) => {
                 PythonTask::NativePythonTask(NativePythonTask::new_wrapped(
-                    vec![AST::Expression(Expression::new_wrapped(
-                        AST::Call(Call::new_wrapped(
-                            AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
-                                call.as_ref().unwrap().clone(),
-                            )),
-                            args.clone(),
-                            kwargs.clone(),
-                        ))
-                    ))],
+                    AST::Call(Call::new_wrapped(
+                        AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
+                            call.as_ref().unwrap().clone(),
+                        )),
+                        args.clone(),
+                        kwargs.clone(),
+                    )),
                     // TODO: add imports from preamble
                     Vec::new(),
                     task_val.clone(),

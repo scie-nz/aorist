@@ -1,5 +1,5 @@
 use crate::python::PythonImport;
-use aorist_ast::{Call, SimpleIdentifier, AST, Expression};
+use aorist_ast::{Call, SimpleIdentifier, AST};
 use aorist_primitives::define_task_node;
 use linked_hash_map::LinkedHashMap;
 use std::hash::Hash;
@@ -27,16 +27,11 @@ impl PythonTaskBase for ConstantPythonTask {
    }
 }
 impl PythonFunctionCallTask for ConstantPythonTask {
-   fn python_statements(&self) -> Vec<AST> {
-        let call = AST::Call(Call::new_wrapped(
-            AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("print".to_string())),
-            vec![self.name.clone()],
-            LinkedHashMap::new(),
-        ));
-
-        vec![
-            AST::Expression(Expression::new_wrapped(call)),
-            AST::Expression(Expression::new_wrapped(self.name.clone())),
-        ]
+   fn get_call(&self) -> AST {
+      AST::Call(Call::new_wrapped(
+          AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("print".to_string())),
+          vec![self.name.clone()],
+          LinkedHashMap::new(),
+      ))
    }
 }

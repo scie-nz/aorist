@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 use crate::python::PythonImport;
 use aorist_ast::{
-    Expression, Formatted, Call,
+    Formatted, Call,
     SimpleIdentifier, AST,
 };
 use aorist_primitives::define_task_node;
@@ -64,22 +64,18 @@ def execute_trino_sql(query):
             body: body.to_string(),
         })
     }
-    fn python_statements(&self) -> Vec<AST> {
+    fn get_call(&self) -> AST {
         let command_ident =
             AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("execute_trino_sql".to_string()));
 
-        vec![
-            AST::Expression(Expression::new_wrapped(
-                AST::Call(Call::new_wrapped(
-                    command_ident,
-                    vec![AST::Formatted(Formatted::new_wrapped(
-                        self.sql.clone(),
-                        self.kwargs.clone(),
-                    ))],
-                    LinkedHashMap::new(),
-                ))
-            )),
-        ]
+            AST::Call(Call::new_wrapped(
+                command_ident,
+                vec![AST::Formatted(Formatted::new_wrapped(
+                    self.sql.clone(),
+                    self.kwargs.clone(),
+                ))],
+                LinkedHashMap::new(),
+            ))
    }
 }
 impl AirflowTaskBase for PrestoPythonTask {

@@ -6,7 +6,7 @@ use crate::python::{
     BashPythonTask, ConstantPythonTask, NativePythonTask, PrestoPythonTask, PythonImport,
     PythonPreamble, RPythonTask, PythonTask,
 };
-use aorist_ast::{Call, Expression, SimpleIdentifier, StringLiteral, AST};
+use aorist_ast::{Call, SimpleIdentifier, StringLiteral, AST};
 use aorist_primitives::AoristUniverse;
 use aorist_primitives::{TPrestoEndpoints};
 use linked_hash_map::LinkedHashMap;
@@ -110,15 +110,13 @@ where
             }
             Some(Dialect::Python(_)) => {
                 PythonTask::NativePythonTask(NativePythonTask::new_wrapped(
-                    vec![AST::Expression(Expression::new_wrapped(
-                        AST::Call(Call::new_wrapped(
-                            AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
-                                call.as_ref().unwrap().clone(),
-                            )),
-                            args.clone(),
-                            kwargs.clone(),
-                        ))
-                    ))],
+                    AST::Call(Call::new_wrapped(
+                        AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
+                            call.as_ref().unwrap().clone(),
+                        )),
+                        args.clone(),
+                        kwargs.clone(),
+                    )),
                     // TODO: add imports from preamble
                     Vec::new(),
                     task_val.clone(),
