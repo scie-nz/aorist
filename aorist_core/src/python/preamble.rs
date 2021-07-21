@@ -4,9 +4,15 @@ use pyo3::prelude::*;
 use pyo3::types::{PyList, PyModule, PyString, PyTuple};
 use std::hash::Hash;
 use tracing::debug;
+use aorist_ast::FunctionDef;
 
 pub trait TPythonPreamble {
-    fn get_body_ast<'b>(&self, py: Python<'b>) -> Vec<&'b PyAny> {
+    fn to_python_ast_nodes<'b>(
+        &self,
+        py: Python<'b>,
+        _ast_module: &'b PyModule,
+        _depth: usize,
+    ) -> Vec<&'b PyAny> {
         let helpers = PyModule::from_code(
             py,
             r#"
@@ -35,6 +41,7 @@ def to_nodes(body):
 #[derive(Clone, PartialEq, Hash, Eq)]
 pub enum PythonPreamble {
     NativePythonPreamble(NativePythonPreamble),
+    PythonStatementsPreamble(PythonStatementsPreamble),
     RPythonPreamble(RPythonPreamble),
 }
 
@@ -47,6 +54,17 @@ pub struct NativePythonPreamble {
 #[derive(Clone, PartialEq, Hash, Eq)]
 pub struct RPythonPreamble {
     pub body: String,
+}
+#[derive(Clone, PartialEq, Hash, Eq)]
+pub struct PythonStatementsPreamble {
+    pub function: FunctionDef,
+    pub imports: Vec<PythonImport>,
+}
+impl Preamble for PythonStatementsPreamble {
+    type ImportType = PythonImport;
+    fn get_imports(&self) -> Vec<Self::ImportType> {
+        self.imports.clone()
+    }
 }
 impl Preamble for RPythonPreamble {
     type ImportType = PythonImport;
@@ -78,18 +96,27 @@ impl TPythonPreamble for NativePythonPreamble {
 }
 impl Preamble for PythonPreamble {
     type ImportType = PythonImport;
-    fn get_imports(&self) -> Vec<Self::ImportType> {
+    fn get_imports(&self) -> Vec<PythonImport> {
         match &self {
             PythonPreamble::NativePythonPreamble(x) => x.get_imports(),
             PythonPreamble::RPythonPreamble(x) => x.get_imports(),
+            PythonPreamble::PythonStatementsPreamble(x) => x.get_imports(),
         }
     }
 }
-impl TPythonPreamble for PythonPreamble {
-    fn get_body(&self) -> String {
+impl PythonPreamble {
+    pub fn to_python_ast_nodes<'b>(
+        &self,
+        py: Python<'b>,
+        ast_module: &'b PyModule,
+        depth: usize,
+    ) -> Vec<&'b PyAny> {
         match &self {
-            PythonPreamble::NativePythonPreamble(x) => x.get_body(),
-            PythonPreamble::RPythonPreamble(x) => x.get_body(),
+            PythonPreamble::NativePythonPreamble(x) => x.to_python_ast_nodes(py, ast_module, depth),
+            PythonPreamble::RPythonPreamble(x) => x.to_python_ast_nodes(py, ast_module, depth),
+            PythonPreamble::PythonStatementsPreamble(x) => vec![
+                x.function.to_python_ast_node(py, ast_module, depth).unwrap()
+            ],
         }
     }
 }

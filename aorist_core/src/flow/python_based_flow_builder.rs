@@ -1,7 +1,7 @@
 use crate::flow::etl_flow::ETLFlow;
 use crate::flow::flow_builder::{FlowBuilderBase, FlowBuilderMaterialize};
 use crate::flow::flow_builder_input::FlowBuilderInput;
-use crate::python::{format_code, PythonFlowBuilderInput, PythonImport, PythonPreamble, TPythonPreamble};
+use crate::python::{format_code, PythonFlowBuilderInput, PythonImport, PythonPreamble};
 use aorist_ast::AST;
 use aorist_primitives::AoristUniverse;
 use linked_hash_map::LinkedHashMap;
@@ -85,7 +85,12 @@ where
         let content: Vec<(Option<String>, Vec<&PyAny>)> =
             vec![(Some("Python Imports".to_string()), imports_ast)]
                 .into_iter()
-                .chain(preambles.into_iter().map(|x| (None, x.get_body_ast(py))))
+                .chain(
+                    preambles.into_iter().map(|x| (
+                        None, 
+                        x.to_python_ast_nodes(py, ast, 0)
+                    ))
+                )
                 .chain(
                     augmented_statements.into_iter().map(
                         |x| (Some(x.get_block_comment()), x.to_python_ast_nodes(py, ast, 0).unwrap())
