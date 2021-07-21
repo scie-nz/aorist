@@ -9,7 +9,7 @@ pub trait AirflowPythonOperatorTask: PythonTaskBase + AirflowTaskBase {
          AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("PythonOperator".to_string()))
     }
     fn get_call_param_value(&self) -> AST;
-    fn get_python_bash_operator_imports(&self) -> Vec<PythonImport> {
+    fn get_python_operator_imports(&self) -> Vec<PythonImport> {
         vec![PythonImport::PythonFromImport(
             "airflow.operators.python_operator".to_string(),
             "PythonOperator".to_string(),

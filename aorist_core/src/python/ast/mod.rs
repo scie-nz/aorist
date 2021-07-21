@@ -17,6 +17,7 @@ mod python_task_base;
 mod r_python_task;
 
 pub use airflow_task_base::AirflowTaskBase;
+pub use airflow_python_operator_task::AirflowPythonOperatorTask;
 pub use bash_python_task::BashPythonTask;
 pub use constant_python_task::ConstantPythonTask;
 pub use native_python_task::NativePythonTask;

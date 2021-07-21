@@ -1,8 +1,22 @@
-use aorist_ast::{Assignment, AST, StringLiteral};
+use aorist_ast::{Assignment, AST, StringLiteral, FunctionDef};
 use crate::python::ast::PythonTaskBase;
+use linked_hash_map::LinkedHashMap;
 
 pub trait PythonStatementsTask: PythonTaskBase {
     fn python_statements(&self) -> Vec<AST>;
+    fn statements_as_function(
+        &self,
+        name: String,
+        args: Vec<AST>,
+        kwargs: LinkedHashMap<String, AST>,
+    ) -> FunctionDef {
+        FunctionDef::new(
+            name,
+            args,
+            kwargs,
+            self.python_statements(),
+        )
+    }
     fn get_native_python_statements(&self) -> Vec<AST> {
         let mut statements: Vec<AST> = Vec::new();
 
