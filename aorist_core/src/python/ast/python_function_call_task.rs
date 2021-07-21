@@ -2,7 +2,7 @@ use aorist_ast::{Assignment, AST, StringLiteral, FunctionDef};
 use crate::python::ast::PythonTaskBase;
 use linked_hash_map::LinkedHashMap;
 
-pub trait PythonStatementsTask: PythonTaskBase {
+pub trait PythonFunctionCallTask: PythonTaskBase {
     fn python_statements(&self) -> Vec<AST>;
     fn statements_as_function(
         &self,

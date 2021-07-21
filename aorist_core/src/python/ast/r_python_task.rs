@@ -3,7 +3,7 @@ use aorist_ast::{AST, Call, Expression, StringLiteral, Attribute, SimpleIdentifi
 use aorist_primitives::define_task_node;
 use std::hash::Hash;
 use std::sync::{Arc, RwLock};
-use crate::python::ast::{PythonTaskBase, PythonStatementsTask};
+use crate::python::ast::{PythonTaskBase, PythonFunctionCallTask};
 use linked_hash_map::LinkedHashMap;
 
 define_task_node!(
@@ -24,7 +24,7 @@ define_task_node!(
     dep_list: Option<AST>,
     preamble: Option<String>,
 );
-impl PythonStatementsTask for RPythonTask {
+impl PythonFunctionCallTask for RPythonTask {
     fn python_statements(&self) -> Vec<AST> {
         let mut statements = Vec::new();
         // TODO: push this to a preamble

@@ -2,7 +2,7 @@ use crate::python::PythonImport;
 use aorist_primitives::define_task_node;
 use std::hash::Hash;
 use std::sync::{Arc, RwLock};
-use crate::python::ast::{PythonTaskBase, PythonStatementsTask, AirflowTaskBase, AirflowPythonOperatorTask};
+use crate::python::ast::{PythonTaskBase, PythonFunctionCallTask, AirflowTaskBase, AirflowPythonOperatorTask};
 use aorist_ast::AST;
 
 define_task_node!(
@@ -23,7 +23,7 @@ impl PythonTaskBase for NativePythonTask {
       self.task_val.clone()
    }
 }
-impl PythonStatementsTask for NativePythonTask {
+impl PythonFunctionCallTask for NativePythonTask {
    fn python_statements(&self) -> Vec<AST> {
         self.statements.clone()
    }

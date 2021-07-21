@@ -4,7 +4,7 @@ use aorist_primitives::define_task_node;
 use linked_hash_map::LinkedHashMap;
 use std::hash::Hash;
 use std::sync::{Arc, RwLock};
-use crate::python::ast::{PythonTaskBase, PythonStatementsTask, AirflowTaskBase};
+use crate::python::ast::{PythonTaskBase, PythonFunctionCallTask, AirflowTaskBase};
 
 define_task_node!(
     ConstantPythonTask,
@@ -26,7 +26,7 @@ impl PythonTaskBase for ConstantPythonTask {
       self.task_val.clone()
    }
 }
-impl PythonStatementsTask for ConstantPythonTask {
+impl PythonFunctionCallTask for ConstantPythonTask {
    fn python_statements(&self) -> Vec<AST> {
         let call = AST::Call(Call::new_wrapped(
             AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("print".to_string())),

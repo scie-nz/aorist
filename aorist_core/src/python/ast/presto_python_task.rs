@@ -9,7 +9,7 @@ use aorist_primitives::PrestoConfig;
 use linked_hash_map::LinkedHashMap;
 use std::hash::Hash;
 use std::sync::{Arc, RwLock};
-use crate::python::ast::{PythonTaskBase, PythonStatementsTask};
+use crate::python::ast::{PythonTaskBase, PythonFunctionCallTask};
 use crate::python::ast::AirflowTaskBase;
 
 define_task_node!(
@@ -36,7 +36,7 @@ impl PythonTaskBase for PrestoPythonTask {
         self.task_val.clone()
     }
 }
-impl PythonStatementsTask for PrestoPythonTask {
+impl PythonFunctionCallTask for PrestoPythonTask {
    fn python_statements(&self) -> Vec<AST> {
         let rows = AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("rows".to_string()));
         let mut command_map = LinkedHashMap::new();
