@@ -1,10 +1,11 @@
 use crate::python::PythonImport;
-use aorist_ast::{AST, Call, Expression, StringLiteral, Attribute, SimpleIdentifier};
+use aorist_ast::{AST, Call, Expression, StringLiteral, SimpleIdentifier, Formatted};
 use aorist_primitives::define_task_node;
 use std::hash::Hash;
 use std::sync::{Arc, RwLock};
 use crate::python::ast::{PythonTaskBase, PythonFunctionCallTask};
 use linked_hash_map::LinkedHashMap;
+use crate::python::NativePythonPreamble;
 
 define_task_node!(
     RPythonTask,
@@ -25,44 +26,45 @@ define_task_node!(
     preamble: Option<String>,
 );
 impl PythonFunctionCallTask for RPythonTask {
+    
+    fn get_preamble(&self) -> Option<NativePythonPreamble> {
+        let rpy2 = PythonImport::PythonModuleImport("rpy2".to_string(), None);
+        let rpy2o = PythonImport::PythonModuleImport("rpy2.objects".to_string(), Some("robjects".to_string()));
+        let body = "
+def execute_r(call, preamble=None):
+    if preamble is not None:
+        rpy2.r(preamble)
+    return rpy2.r(call)
+";
+        Some(NativePythonPreamble {
+            imports: vec![rpy2],
+            from_imports: vec![rpy2o],
+            body: body.to_string(),
+        })
+    }
     fn python_statements(&self) -> Vec<AST> {
-        let mut statements = Vec::new();
-        // TODO: push this to a preamble
-        let attr = AST::Attribute(Attribute::new_wrapped(
-            AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("rpy2".into())),
-            "r".into(),
-            false,
+        let mut args = vec![];
+        let expr = AST::Formatted(Formatted::new_wrapped(
+            self.call.clone(),
+            self.kwargs.clone(),
         ));
+        args.push(expr);
         if let Some(ref p) = self.preamble {
             let literal = AST::StringLiteral(StringLiteral::new_wrapped(
                 format!("\n{}\n", p).to_string(),
                 false,
             ));
-            let call = AST::Call(Call::new_wrapped(
-                attr,
-                vec![literal],
-                LinkedHashMap::new(),
-            ));
-            let expr = AST::Expression(Expression::new_wrapped(call));
-            statements.push(expr);
+            args.push(literal);
         }
-        let expr = AST::Expression(Expression::new_wrapped(
-            AST::Call(Call::new_wrapped(
+        vec![
+            AST::Expression(Expression::new_wrapped(
                 AST::Call(Call::new_wrapped(
-                    AST::Attribute(Attribute::new_wrapped(
-                        AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("robjects".to_string())),
-                        "r".to_string(),
-                        false,
-                    )),
-                    vec![self.call.clone()],
+                    AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("execute_r".to_string())),
+                    args,
                     LinkedHashMap::new(),
-                )),
-                self.args.clone(),
-                self.kwargs.clone(),
+                ))
             ))
-        ));
-        statements.push(expr);
-        statements
+        ]
      }
 }
 impl PythonTaskBase for RPythonTask {
