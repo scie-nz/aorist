@@ -54,52 +54,40 @@ where
             .map(|x| x.to_python_ast_node(py, ast, 0).unwrap())
             .collect();
 
-        let statements: Vec<(String, Option<String>, Option<String>, Vec<AST>)> =
-            statements_and_preambles
-                .into_iter()
-                .map(|x| {
-                    (
-                        x.get_constraint_name(),
-                        x.get_constraint_title(),
-                        x.get_constraint_body(),
-                        x.get_statements(),
-                    )
-                })
-                .collect();
-        let mut statements_with_ast: Vec<_> = statements
+        let mut statements_with_ast: Vec<_> = statements_and_preambles
             .into_iter()
-            .filter(|x| x.3.len() > 0)
+            .filter(|x| x.has_statements())
             .collect::<Vec<_>>();
 
         // ast_value without ancestry => short_name => keys
         let mut literals: LinkedHashMap<AST, LinkedHashMap<String, Vec<_>>> = LinkedHashMap::new();
 
-        for (short_name, _, _, asts) in statements_with_ast.iter() {
-            for ast in asts {
-                Self::extract_literals(ast, &short_name, &mut literals);
-            }
+        for pfbi in statements_with_ast.iter() {
+            pfbi.extract_literals(&mut literals);
         }
         let assignments_ast = Self::literals_to_assignments(literals);
 
         if assignments_ast.len() > 0 {
             statements_with_ast.insert(
                 0,
-                (
+                PythonFlowBuilderInput::new(
+                    assignments_ast,
+                    LinkedHashSet::new(),
+                    BTreeSet::new(),
                     "assignments".to_string(),
                     Some("Common string literals".to_string()),
                     None,
-                    assignments_ast,
                 ),
             );
         }
         let statements_ast = statements_with_ast
             .into_iter()
-            .map(|(name, title, body, x)| {
+            .map(|x| {
                 (
-                    name,
-                    title,
-                    body,
-                    x.into_iter()
+                    x.get_constraint_name(),
+                    x.get_constraint_title(),
+                    x.get_constraint_body(),
+                    x.get_statements().into_iter()
                         .map(|y| y.to_python_ast_node(py, ast, 0).unwrap())
                         .collect(),
                 )
@@ -109,7 +97,7 @@ where
         let flow = self.build_flow(py, statements_ast, ast);
 
         let content: Vec<(Option<String>, Vec<&PyAny>)> =
-            vec![(Some("PythonImports".to_string()), imports_ast)]
+            vec![(Some("Python Imports".to_string()), imports_ast)]
                 .into_iter()
                 .chain(preambles.into_iter().map(|x| (None, x.get_body_ast(py))))
                 .chain(flow.into_iter().map(|(x, y)| (Some(x), y)))

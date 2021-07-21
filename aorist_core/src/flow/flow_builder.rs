@@ -31,42 +31,6 @@ where
         statements_and_preambles: Vec<Self::BuilderInputType>,
     ) -> Result<String, Self::ErrorType>;
 
-    fn extract_literals(
-        ast: &AST,
-        short_name: &String,
-        literals: &mut LinkedHashMap<AST, LinkedHashMap<String, Vec<(String, Arc<RwLock<Dict>>)>>>,
-    ) {
-        if let AST::Assignment(rw) = ast {
-            let assign = rw.read().unwrap();
-            if let AST::Dict(dict_rw) = assign.call() {
-                let dict = dict_rw.read().unwrap();
-                for (_task_key, task_val) in dict.elems() {
-                    if let AST::Dict(param_dict_rw) = task_val {
-                        let param_dict = param_dict_rw.read().unwrap();
-                        for (key, val) in param_dict.elems() {
-                            if let Some(_ancestors) = val.get_ancestors() {
-                                let is_long_literal = match val {
-                                    AST::StringLiteral(ref x) => {
-                                        x.read().unwrap().value().len()
-                                            > short_name.len() + key.len() + 2
-                                    }
-                                    _ => true,
-                                };
-                                if is_long_literal {
-                                    literals
-                                        .entry(val.clone_without_ancestors())
-                                        .or_insert(LinkedHashMap::new())
-                                        .entry(short_name.to_string())
-                                        .or_insert(Vec::new())
-                                        .push((key.to_string(), param_dict_rw.clone()));
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
     fn literals_to_assignments(
         literals: LinkedHashMap<AST, LinkedHashMap<String, Vec<(String, Arc<RwLock<Dict>>)>>>,
     ) -> Vec<AST> {

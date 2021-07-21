@@ -39,6 +39,11 @@ pub struct PythonFlowBuilderInput {
     constraint_title: Option<String>,
     constraint_body: Option<String>,
 }
+impl PythonFlowBuilderInput {
+    pub fn has_statements(&self) -> bool {
+        self.statements.len() > 0
+    }
+}
 impl FlowBuilderInput for PythonFlowBuilderInput {
     type ImportType = PythonImport;
     type PreambleType = PythonPreamble;
