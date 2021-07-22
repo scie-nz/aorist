@@ -8,6 +8,10 @@ use paste::paste;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
 use uuid::Uuid;
+#[cfg(feature = "python")]
+use pyo3::prelude::*;
+#[cfg(feature = "python")]
+use pyo3::exceptions::PyValueError;
 
 #[aorist]
 pub enum DataSchema {
@@ -36,6 +40,14 @@ impl DataSchema {
             DataSchema::TabularSchema(x) => x.0.read().unwrap().attributes.clone(),
             DataSchema::TimeOrderedTabularSchema(x) => x.0.read().unwrap().attributes.clone(),
             DataSchema::UndefinedTabularSchema(_) => vec![],
+        }
+    }
+}
+impl PyDataSchema {
+    pub fn get_datum_template_name(&self) -> PyResult<String> {
+        match self.inner.0.read().unwrap().get_datum_template_name() {
+            Ok(s) => Ok(s),
+            Err(err) => Err(PyValueError::new_err(err)),
         }
     }
 }

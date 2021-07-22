@@ -18,6 +18,8 @@ use std::collections::BTreeMap;
 use std::fmt::Debug;
 use std::sync::{Arc, RwLock};
 use uuid::Uuid;
+#[cfg(feature = "python")]
+use pyo3::exceptions::PyValueError;
 
 #[aorist]
 pub struct DataSet {
@@ -102,7 +104,12 @@ impl TDataSet for DataSet {
             .collect()
     }
 }
-
+#[cfg(feature = "python")]
+impl PyDataSet {
+    fn get_mapped_datum_templates(&self) -> LinkedHashMap<String, PyDatumTemplate> {
+        self.inner.0.read().unwrap().get_mapped_datum_templates().into_iter().map(|(k, v)| (k.clone(), PyDatumTemplate{ inner: v.clone() })).collect()
+    }
+}
 #[cfg(feature = "python")]
 #[pymethods]
 impl PyDataSet {
@@ -136,5 +143,24 @@ impl PyDataSet {
             uuid: dt.uuid.clone(),
         })));
         Ok(PyDataSet { inner })
+    }
+    pub fn get_template(
+        &self,
+        asset: PyAsset,
+    ) -> PyResult<PyDatumTemplate> {
+        let schema = asset.schema()?;
+        let template_name = schema.get_datum_template_name()?;
+        let mapped_templates = self.get_mapped_datum_templates();
+        let template = mapped_templates.get(&template_name);
+        match template {
+            Some(template) => Ok(template.clone()),
+            None => Err(PyValueError::new_err(format!(
+                "Could not find template {} for asset {} in dataset {}.\nTemplate names: {}",
+                template_name,
+                asset.name()?,
+                self.name()?,
+                mapped_templates.keys().map(|x| x.clone()).collect::<Vec<String>>().join(", "),
+            ))),
+        }
     }
 }

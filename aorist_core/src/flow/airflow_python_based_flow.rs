@@ -18,7 +18,7 @@ use std::marker::PhantomData;
 use crate::flow::python_based_flow::PythonBasedFlow;
 
 #[derive(Clone, Hash, PartialEq)]
-pub struct AirflowPythonBasedFlow<U: AoristUniverse> 
+pub struct AirflowPythonBasedFlow<U: AoristUniverse>
 where U::TEndpoints: TPrestoEndpoints {
     task_id: AST,
     task_val: AST,
@@ -32,14 +32,14 @@ where U::TEndpoints: TPrestoEndpoints {
     node: PythonTask,
     _universe: PhantomData<U>,
 }
-impl<U: AoristUniverse> PythonBasedFlow<U> for AirflowPythonBasedFlow<U> 
+impl<U: AoristUniverse> PythonBasedFlow<U> for AirflowPythonBasedFlow<U>
 where
     U::TEndpoints: TPrestoEndpoints {
     fn get_preamble_string(&self) -> Option<String> {
         self.preamble.clone()
     }
 }
-impl<U: AoristUniverse> AirflowPythonBasedFlow<U> 
+impl<U: AoristUniverse> AirflowPythonBasedFlow<U>
 where U::TEndpoints: TPrestoEndpoints {
     fn compute_task_args(&self) -> Vec<AST> {
         Vec::new()
@@ -118,7 +118,7 @@ where U::TEndpoints: TPrestoEndpoints {
         }
     }
 }
-impl<U: AoristUniverse> ETLFlow<U> for AirflowPythonBasedFlow<U> 
+impl<U: AoristUniverse> ETLFlow<U> for AirflowPythonBasedFlow<U>
 where U::TEndpoints: TPrestoEndpoints {
     type ImportType = PythonImport;
     type PreambleType = PythonPreamble;
@@ -217,7 +217,13 @@ where U::TEndpoints: TPrestoEndpoints {
                 let presto_endpoints = endpoints.presto_config();
                 PythonTask::PrestoPythonTask(PrestoPythonTask::new_wrapped(
                     command,
-                    kwargs.clone(),
+                    kwargs.iter().map(|(k, v)| (k.clone(), match *v {
+                        AST::StringLiteral(ref x) => AST::StringLiteral(StringLiteral::new_wrapped(
+                            x.read().unwrap().value().clone(),
+                            true,
+                        )),
+                        _ => v.clone(),
+                    })).collect(),
                     task_val.clone(),
                     presto_endpoints,
                     dep_list.clone(),
@@ -287,7 +293,7 @@ where U::TEndpoints: TPrestoEndpoints {
 pub struct AirflowFlowBuilder<U: AoristUniverse> {
     universe: PhantomData<U>,
 }
-impl<U: AoristUniverse> FlowBuilderBase<U> for AirflowFlowBuilder<U> 
+impl<U: AoristUniverse> FlowBuilderBase<U> for AirflowFlowBuilder<U>
 where <U as AoristUniverse>::TEndpoints: TPrestoEndpoints {
     type T = AirflowPythonBasedFlow<U>;
     fn new() -> Self {
@@ -296,7 +302,7 @@ where <U as AoristUniverse>::TEndpoints: TPrestoEndpoints {
         }
     }
 }
-impl<U: AoristUniverse> PythonBasedFlowBuilder<U> for AirflowFlowBuilder<U> 
+impl<U: AoristUniverse> PythonBasedFlowBuilder<U> for AirflowFlowBuilder<U>
 where <U as AoristUniverse>::TEndpoints: TPrestoEndpoints {
     /// Takes a set of statements and mutates them so as make a valid ETL flow
     fn augment_statements(

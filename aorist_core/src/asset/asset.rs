@@ -13,6 +13,8 @@ use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
 use std::sync::{Arc, RwLock};
 use uuid::Uuid;
+#[cfg(feature = "python")]
+use pyo3::prelude::*;
 
 #[aorist]
 pub enum Asset {
@@ -89,5 +91,15 @@ impl Asset {
                 "DerivedAssets are already stored locally, they cannot be replicated to local"
             ),
         }
+    }
+}
+#[cfg(feature = "python")]
+#[pymethods]
+impl PyAsset {
+    pub fn name(&self) -> PyResult<String> {
+        Ok(self.inner.0.read().unwrap().get_name())
+    }
+    pub fn schema(&self) -> PyResult<PyDataSchema> {
+        Ok(PyDataSchema{ inner: self.inner.0.read().unwrap().get_schema().clone() })
     }
 }

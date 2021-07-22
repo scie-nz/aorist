@@ -944,6 +944,10 @@ macro_rules! register_attribute_new {
                 Ok(self.inner.0.read().unwrap().get_orc_type().clone())
             }
             #[getter]
+            pub fn presto_type(&self) -> pyo3::prelude::PyResult<String> {
+                Ok(self.inner.0.read().unwrap().get_presto_type().clone())
+            }
+            #[getter]
             pub fn bigquery_type(&self) -> pyo3::prelude::PyResult<String> {
                 Ok(self.inner.0.read().unwrap().get_bigquery_type().clone())
             }
@@ -1419,7 +1423,7 @@ macro_rules! register_constraint_new {
                     let py_arg = PyString::new(py, &serialized);
                     let py_arg = py_arg.call_method1("encode", ("latin-1",)).unwrap();
                     let deserialized = dill.call1("loads", (py_arg,)).unwrap();
-                    
+
 
                     let mut objects = Vec::new();
                     let mut context_pos = None;
@@ -1444,11 +1448,15 @@ macro_rules! register_constraint_new {
                         context.insert(&extracted_context);
                         extracted = extracted_string;
                     } else {
-                        let arg = deserialized.call1((objects,)).unwrap();
-                        // TODO: add more return types here
-                        extracted = arg.extract().unwrap();
+                        extracted = match deserialized.call1((objects,)) {
+                            Ok(arg) => arg.extract().unwrap(),
+                            Err(err) => {
+                                err.print(py);
+                                panic!("Problem when extracting object. See traceback above");
+                            }
+                        };
                     }
-                    
+
                     let ast = AST::StringLiteral(StringLiteral::new_wrapped(extracted, false));
                     kwargs.insert(key.to_string(), ast);
                 }

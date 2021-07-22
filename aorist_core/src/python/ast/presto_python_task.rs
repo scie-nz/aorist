@@ -38,7 +38,7 @@ impl PythonTaskBase for PrestoPythonTask {
     }
 }
 impl PythonFunctionCallTask for PrestoPythonTask {
-    
+
     fn get_preamble(&self) -> Option<NativePythonPreamble> {
         let re = PythonImport::PythonModuleImport("re".to_string(), None);
         let trino = PythonImport::PythonModuleImport("trino".to_string(), None);
@@ -50,7 +50,7 @@ def execute_trino_sql(query):
         port={port},
         catalog='hive',
         session_properties={{
-            'redistribute_writes': false,
+            'redistribute_writes': False,
         }}
     )
     cursor = connection.cursor()
@@ -77,6 +77,6 @@ def execute_trino_sql(query):
 }
 impl AirflowTaskBase for PrestoPythonTask {
     fn get_dependencies(&self) -> Option<AST> {
-        self.dependencies.clone()        
+        self.dependencies.clone()
     }
 }

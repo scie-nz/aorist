@@ -10,6 +10,8 @@ use paste::paste;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
 use uuid::Uuid;
+#[cfg(feature = "python")]
+use pyo3::prelude::*;
 
 pub trait TDatumTemplate {
     fn get_attributes(&self) -> Vec<AoristRef<Attribute>>;
@@ -62,5 +64,12 @@ impl TDatumTemplate for DatumTemplate {
             }
             DatumTemplate::Filter(x) => x.0.read().unwrap().get_attributes(),
         }
+    }
+}
+#[cfg(feature = "python")]
+#[pymethods]
+impl PyDatumTemplate {
+    pub fn attributes(&self) -> PyResult<Vec<PyAttribute>> {
+        Ok(self.inner.0.read().unwrap().get_attributes().into_iter().map(|x| PyAttribute{ inner: x }).collect())
     }
 }

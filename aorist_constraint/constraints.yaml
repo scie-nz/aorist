@@ -111,3 +111,47 @@ spec:
       Data for this particular asset(s) is located somewhere on the web.
       We need to download it to a local directory first, before we can
       do anything with it.
+---
+type: Constraint
+spec:
+  name: ConvertJSONTableToORCTable
+  root: HiveTableStorage
+  requires:
+    - JSONTableSchemasCreated
+    - UploadDataToLocal
+    - ORCTableSchemasCreated
+  requiresProgram: true
+  title: Convert JSON Table to ORC Table
+  body: |
+      Hive tables can be stored in external JSON format, but this is inefficient.
+      We can convert them to ORC (the native Hive format) to speed up access.
+  attachIf: |
+      |root: AoristRef<Concept>, ancestry: &ConceptAncestry|
+      match ancestry.static_data_table(root.clone()) {
+          Ok(sdt) => match &*sdt.0.read().unwrap().setup.0.read().unwrap() {
+              aorist_core::StorageSetup::ReplicationStorageSetup(_) => true,
+              _ => false,
+          },
+          _ => false,
+      }
+---
+type: Constraint
+spec:
+  name: UploadDataToLocal
+  root: OnPremiseLocation
+  requires:
+      - UploadDataToMinio
+  attachIf: |
+      |root: AoristRef<Concept>, ancestry: &ConceptAncestry|
+      ancestry.replication_storage_setup(root.clone()).is_ok()
+---
+type: Constraint
+spec:
+  name: ORCTableSchemasCreated
+  root: HiveTableStorage
+  requiresProgram: true
+  title: Creating Table Schemas
+  body: |
+      We will be uploading tabular data into our warehouse. Before we upload
+      data files we need to create schemas for the tables which will refer
+      to these files.

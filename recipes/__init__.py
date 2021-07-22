@@ -13,6 +13,8 @@ programs = register_recipes(
     sql_modules=[
         "recipes/hive_directories_created.presto.sql",
         "recipes/json_table_schemas_created.presto.sql",
+        "recipes/convert_json_table_to_orc_table.presto.sql",
+        "recipes/orc_table_schemas_created.presto.sql",
     ],
     bash_modules=[
         "recipes/download_data_from_remote_web_location.sh",

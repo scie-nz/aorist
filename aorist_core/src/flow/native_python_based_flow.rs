@@ -31,7 +31,7 @@ where
     node: PythonTask,
     _universe: PhantomData<U>,
 }
-impl<U: AoristUniverse> PythonBasedFlow<U> for NativePythonBasedFlow<U> 
+impl<U: AoristUniverse> PythonBasedFlow<U> for NativePythonBasedFlow<U>
 where
     U::TEndpoints: TPrestoEndpoints {
     fn get_preamble_string(&self) -> Option<String> {
@@ -78,6 +78,10 @@ where
         endpoints: U::TEndpoints,
     ) -> Self {
         let command = match &dialect {
+            Some(Dialect::Presto(_)) => AST::StringLiteral(StringLiteral::new_wrapped(
+                call.as_ref().unwrap().to_string(),
+                true,
+            )),
             Some(_) => AST::StringLiteral(StringLiteral::new_wrapped(
                 call.as_ref().unwrap().to_string(),
                 false,
@@ -89,7 +93,13 @@ where
                 let presto_endpoints = endpoints.presto_config();
                 PythonTask::PrestoPythonTask(PrestoPythonTask::new_wrapped(
                     command,
-                    kwargs.clone(),
+                    kwargs.iter().map(|(k, v)| (k.clone(), match *v {
+                        AST::StringLiteral(ref x) => AST::StringLiteral(StringLiteral::new_wrapped(
+                            x.read().unwrap().value().clone(),
+                            true,
+                        )),
+                        _ => v.clone(),
+                    })).collect(),
                     task_val.clone(),
                     presto_endpoints,
                     dep_list.clone(),

@@ -37,7 +37,7 @@ Declaring where our subreddits live, i.e. in PushShift
 subreddits = ['france', 'newzealand']
 assets = {x: StaticDataTable(
     name=x,
-    schema=default_tabular_schema(subreddit_datum, x, attributes),
+    schema=default_tabular_schema(subreddit_datum, subreddit_datum.name, attributes),
     setup=StorageSetup(RemoteStorageSetup(
         remote=Storage(RemoteStorage(
             location=RemoteLocation(
@@ -84,8 +84,8 @@ universe.compute_uuids()
 
 result = dag(
     universe,
-    ["UploadDataToMinio", "JSONTableSchemasCreated"],
-    "airflow",
+    ["ConvertJSONTableToORCTable"],
+    "python",
     programs,
     dialect_preferences=[
         R(),
