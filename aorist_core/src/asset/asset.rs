@@ -1,5 +1,6 @@
 #![allow(non_snake_case)]
 use crate::asset::derived_asset::*;
+use crate::asset::fasttext_embedding::*;
 use crate::asset::static_data_table::*;
 use crate::asset::supervised_model::*;
 use crate::concept::{AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
@@ -18,6 +19,8 @@ use pyo3::prelude::*;
 
 #[aorist]
 pub enum Asset {
+    #[constrainable]
+    FasttextEmbedding(AoristRef<FasttextEmbedding>),
     #[constrainable]
     DerivedAsset(AoristRef<DerivedAsset>),
     #[constrainable]
@@ -46,6 +49,7 @@ impl Asset {
             Asset::StaticDataTable(_) => "StaticDataTable",
             Asset::SupervisedModel(_) => "SupervisedModel",
             Asset::DerivedAsset(_) => "DerivedAsset",
+            Asset::FasttextEmbedding(_) => "FasttextEmbedding",
         }
         .to_string()
     }
@@ -54,6 +58,7 @@ impl Asset {
             Asset::StaticDataTable(x) => x.0.read().unwrap().name.clone(),
             Asset::SupervisedModel(x) => x.0.read().unwrap().name.clone(),
             Asset::DerivedAsset(x) => x.0.read().unwrap().name.clone(),
+            Asset::FasttextEmbedding(x) => x.0.read().unwrap().name.clone(),
         }
     }
     pub fn get_schema(&self) -> AoristRef<DataSchema> {
@@ -61,6 +66,7 @@ impl Asset {
             Asset::StaticDataTable(x) => x.0.read().unwrap().schema.clone(),
             Asset::SupervisedModel(x) => x.0.read().unwrap().schema.clone(),
             Asset::DerivedAsset(x) => x.0.read().unwrap().schema.clone(),
+            Asset::FasttextEmbedding(x) => x.0.read().unwrap().schema.clone(),
         }
     }
     pub fn get_storage_setup(&self) -> AoristRef<StorageSetup> {
@@ -68,6 +74,7 @@ impl Asset {
             Asset::StaticDataTable(x) => x.0.read().unwrap().setup.clone(),
             Asset::SupervisedModel(x) => x.0.read().unwrap().setup.clone(),
             Asset::DerivedAsset(x) => x.0.read().unwrap().setup.clone(),
+            Asset::FasttextEmbedding(x) => x.0.read().unwrap().setup.clone(),
         }
     }
     pub fn replicate_to_local(
@@ -87,9 +94,7 @@ impl Asset {
                     .unwrap()
                     .replicate_to_local(t, tmp_dir, tmp_encoding),
             )))),
-            Asset::DerivedAsset(_) => panic!(
-                "DerivedAssets are already stored locally, they cannot be replicated to local"
-            ),
+            _ => self.clone(),
         }
     }
 }

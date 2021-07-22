@@ -1248,7 +1248,10 @@ macro_rules! register_concept {
             pub fn py_object(&self, ancestor: &str, root: AoristRef<$name>, py: Python) -> PyResult<PyObject> {
                 match ancestor {
                     $(
-                        stringify!([<$element:snake:lower>]) => self.[<$element:snake:lower>](root).unwrap().py_object(py),
+                        stringify!([<$element:snake:lower>]) => match self.[<$element:snake:lower>](root) {
+                            Ok(x) => x.py_object(py),
+                            Err(err) => Err(pyo3::exceptions::PyTypeError::new_err(err.clone())),
+                        }
                     )+
                     _ => panic!("Unknown ancestor type: {}", ancestor),
                 }
@@ -1432,9 +1435,13 @@ macro_rules! register_constraint_new {
                             assert!(context_pos.is_none());
                             context_pos = Some(i);
                         } else {
-                            objects.push(
-                                ancestry.py_object(x, root.clone(), py).unwrap().to_object(py)
-                            );
+                            match ancestry.py_object(x, root.clone(), py) {
+                                Ok(x) => objects.push(x.to_object(py)),
+                                Err(err) => panic!(
+                                    "Error when running program for key {} input_type {} # {}:\n{}",
+                                    key, i, x, err,
+                                ),
+                            }
                         }
                     }
                     let extracted;

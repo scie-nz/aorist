@@ -181,5 +181,6 @@ register_concept!(
     EndpointConfig,
     TrainedFloatMeasure,
     PredictionsFromTrainedFloatMeasure,
-    FasttextEmbeddingSchema
+    FasttextEmbeddingSchema,
+    FasttextEmbedding
 );

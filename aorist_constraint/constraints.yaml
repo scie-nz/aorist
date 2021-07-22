@@ -35,7 +35,8 @@ spec:
       solution) in which we will store our Hive data.
   attachIf: |
       |root: AoristRef<Concept>, ancestry: &ConceptAncestry|
-          ancestry.hive_table_storage(root.clone()).is_ok()
+          ancestry.hive_table_storage(root.clone()).is_ok() &&
+          ancestry.replication_storage_setup(root.clone()).is_ok()
 ---
 type: Constraint
 spec:
@@ -95,6 +96,7 @@ spec:
       data. We need to create these schemas to be able to write data to them.
   attachIf: |
       |root: AoristRef<Concept>, ancestry: &ConceptAncestry| {
+         ancestry.replication_storage_setup(root.clone()).is_ok() &&
          match &*ancestry.hive_table_storage(root.clone()).unwrap().0.read().unwrap().encoding.0.read().unwrap() {
             aorist_core::Encoding::NewlineDelimitedJSONEncoding(_) => true,
             _ => false,
@@ -155,6 +157,9 @@ spec:
       We will be uploading tabular data into our warehouse. Before we upload
       data files we need to create schemas for the tables which will refer
       to these files.
+  attachIf: |
+      |root: AoristRef<Concept>, ancestry: &ConceptAncestry|
+      ancestry.replication_storage_setup(root.clone()).is_ok()
 ---
 type: Constraint
 spec:
