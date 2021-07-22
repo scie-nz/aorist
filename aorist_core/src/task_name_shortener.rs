@@ -15,7 +15,9 @@ impl TaskNameShortener {
     ) -> BTreeMap<(usize, String), BTreeSet<usize>> {
         let mut substrings = BTreeMap::new();
         for (i, name) in names.iter().enumerate() {
+            debug!("Adding name: ({}, {})", i, name);
             for (j, split) in name.split(separator).enumerate() {
+                debug!("Adding split: ({}, {})", j, split);
                 (
                     *substrings
                     .entry((j, split.to_string()))
@@ -47,12 +49,14 @@ impl TaskNameShortener {
         return false;
     }
     pub fn run(mut self) -> Vec<String> {
+        self.substrings = Self::init_substrings(&self.names, &self.separator);
         if self.names.len() == 1 {
+            debug!("Short-circuited task shortening.");
             return vec![self.names.get(0).unwrap().split("_").next().unwrap().to_string()];
         }
         loop {
              let max_val = self.substrings.iter().filter(
-                |(_k, v)| v.len() > 1
+                |(k, v)| v.len() > 1 || k.0 > 0
              ).max_by_key(
                 |((_i, k), v)| k.len() * v.len()
              ).map(|((i, k), v)| (i.clone(), k.clone(), v.clone()));
@@ -69,6 +73,7 @@ impl TaskNameShortener {
                     break;
                 }
              } else {
+                debug!("Could not find max_key.");
                 break;
              }
         }
