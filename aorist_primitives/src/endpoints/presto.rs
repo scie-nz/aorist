@@ -19,4 +19,16 @@ impl PrestoConfig {
     ) -> Self {
         PrestoConfig { server, http_port, user }
     }
+    #[getter]
+    fn user(&self) -> String {
+        self.user.clone()
+    }
+    #[getter]
+    fn http_port(&self) -> usize {
+        self.http_port
+    }
+    #[getter]
+    fn server(&self) -> String {
+        self.server.clone()
+    }
 }

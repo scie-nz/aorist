@@ -101,7 +101,7 @@ universe.compute_uuids()
 
 result = dag(
     universe,
-    ["ConvertJSONTableToORCTable"],
+    ["FasttextTrainingData"],
     "python",
     programs,
     dialect_preferences=[
