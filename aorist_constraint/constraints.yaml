@@ -171,3 +171,16 @@ spec:
   title: Creating Fasttext Training Dataset
   body: |
       We download Fasttext data from a Hive table.
+---
+type: Constraint
+spec:
+  name: TrainFasttextModel
+  root: FasttextEmbeddingSchema
+  requires:
+      - FasttextTrainingData
+  requiresProgram: true
+  title: Training Fasttext Model
+  body: |
+      This operation trains the Fasttext model and saves
+      a dataset mapping words to their embeddings to a local
+      file.

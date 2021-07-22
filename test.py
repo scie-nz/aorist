@@ -101,7 +101,7 @@ universe.compute_uuids()
 
 result = dag(
     universe,
-    ["FasttextTrainingData"],
+    ["TrainFasttextModel"],
     "python",
     programs,
     dialect_preferences=[
