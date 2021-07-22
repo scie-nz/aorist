@@ -96,7 +96,6 @@ spec:
       data. We need to create these schemas to be able to write data to them.
   attachIf: |
       |root: AoristRef<Concept>, ancestry: &ConceptAncestry| {
-         ancestry.replication_storage_setup(root.clone()).is_ok() &&
          match &*ancestry.hive_table_storage(root.clone()).unwrap().0.read().unwrap().encoding.0.read().unwrap() {
             aorist_core::Encoding::NewlineDelimitedJSONEncoding(_) => true,
             _ => false,

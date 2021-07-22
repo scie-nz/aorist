@@ -4,7 +4,7 @@
     JSONTableSchemasCreated,
     args={
         "presto_schema": lambda data_set: data_set.name,
-        "table_name": lambda static_data_table: static_data_table.name,
+        "table_name": lambda asset: asset.name(),
     },
 )
 ***/
