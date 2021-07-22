@@ -84,6 +84,7 @@ embedding = FasttextEmbedding(
         source_schema=tabular_schema,
         text_attribute_name="selftext",
     ),
+    storage=Storage(local),
     source_assets=list(subreddits.assets.values()),
 )
 universe = Universe(

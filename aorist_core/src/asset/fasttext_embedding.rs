@@ -2,8 +2,9 @@
 use crate::attributes::*;
 use crate::asset::*;
 use crate::schema::*;
+use crate::storage::*;
 use crate::concept::{AoristRef, WrappedConcept};
-use crate::template::datum_template::TDatumTemplate;
+use crate::template::TDatumTemplate;
 use aorist_concept::{aorist, Constrainable};
 use aorist_primitives::{AoristConcept, ConceptEnum};
 use derivative::Derivative;
@@ -22,6 +23,8 @@ pub struct FasttextEmbedding {
     pub schema: AoristRef<FasttextEmbeddingSchema>, 
     #[constrainable]
     pub source_assets: Vec<AoristRef<Asset>>,
+    #[constrainable]
+    pub storage: AoristRef<Storage>,
 }
 impl TDatumTemplate for FasttextEmbedding {
     fn get_attributes(&self) -> Vec<AoristRef<Attribute>> {
