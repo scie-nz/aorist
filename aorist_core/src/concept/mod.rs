@@ -95,11 +95,6 @@ use crate::storage_setup::*;
 use crate::template::*;
 use crate::user::*;
 use crate::user_group::*;
-// pub struct WrappedConcept<'a, T> {
-//     pub inner: T,
-//     pub _phantom_lt: std::marker::PhantomData<&'a ()>,
-// }
-//
 register_concept!(
     Concept,
     ConceptAncestry,
@@ -185,5 +180,6 @@ register_concept!(
     UserGroup,
     EndpointConfig,
     TrainedFloatMeasure,
-    PredictionsFromTrainedFloatMeasure
+    PredictionsFromTrainedFloatMeasure,
+    FasttextEmbeddingSchema
 );

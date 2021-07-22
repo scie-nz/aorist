@@ -62,4 +62,5 @@ attributes = [
     "IntegerNumber",
     "CountryName",
     "WKTString",
+    "VectorEmbedding",
 ]

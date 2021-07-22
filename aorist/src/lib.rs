@@ -187,6 +187,8 @@ fn libaorist(py: pyo3::prelude::Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<PyPredictionsFromTrainedFloatMeasure>()?;
     m.add_class::<ConceptAncestry>()?;
     m.add_class::<AoristConstraintProgram>()?;
+    m.add_class::<PyFasttextEmbedding>()?;
+    m.add_class::<PyFasttextEmbeddingSchema>()?;
     m.add_class::<aorist_core::Python>()?;
     m.add_class::<aorist_core::Bash>()?;
     m.add_class::<aorist_core::Presto>()?;

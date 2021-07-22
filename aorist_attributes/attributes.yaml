@@ -691,3 +691,14 @@ spec:
   bigquery: BigQueryString
   postgres: PostgresText
   value: StringValue
+---
+type: Attribute
+spec:
+  name: VectorEmbedding
+  orc: OrcString
+  presto: PrestoVarchar
+  sql: SQLVarchar
+  sqlite: SQLiteText
+  bigquery: BigQueryString
+  postgres: PostgresText
+  value: StringValue

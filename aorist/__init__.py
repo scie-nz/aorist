@@ -13,10 +13,10 @@ import os
 
 
 def default_tabular_schema(datum, template_name, attributes):
-    return DataSchema(TabularSchema(
+    return TabularSchema(
         datumTemplateName=template_name,
         attributes=[a.name for a in attributes],
-    ))
+    )
 
 
 def to_str(source):
