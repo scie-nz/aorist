@@ -14,8 +14,8 @@ use crate::encoding::onnx_encoding::*;
 use crate::encoding::orc_encoding::*;
 use crate::encoding::tsv_encoding::*;
 use paste::paste;
-use std::fmt::Debug;
 use pyo3::prelude::*;
+use std::fmt::Debug;
 
 #[aorist]
 pub enum Encoding {
@@ -70,18 +70,19 @@ impl Encoding {
 #[cfg(feature = "python")]
 #[pymethods]
 impl PyEncoding {
-
     pub fn get_compression(&self) -> PyResult<Option<PyDataCompression>> {
         Ok(match &*self.inner.0.read().unwrap() {
             Encoding::CSVEncoding(x) => match &x.0.read().unwrap().compression {
-                Some(y) => Some(PyDataCompression{ inner: y.clone()}),
+                Some(y) => Some(PyDataCompression { inner: y.clone() }),
                 None => None,
             },
             Encoding::GDBEncoding(x) => match &x.0.read().unwrap().compression {
-                Some(y) => Some(PyDataCompression{ inner: y.clone()}),
+                Some(y) => Some(PyDataCompression { inner: y.clone() }),
                 None => None,
             },
-            Encoding::TSVEncoding(x) => Some(PyDataCompression{ inner: x.0.read().unwrap().compression.clone()}),
+            Encoding::TSVEncoding(x) => Some(PyDataCompression {
+                inner: x.0.read().unwrap().compression.clone(),
+            }),
             Encoding::JSONEncoding(_) => None,
             Encoding::ORCEncoding(_) => None,
             Encoding::ONNXEncoding(_) => None,

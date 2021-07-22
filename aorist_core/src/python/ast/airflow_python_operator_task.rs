@@ -1,12 +1,12 @@
-use crate::python::PythonImport;
-use aorist_ast::{Assignment, Attribute, Call, SimpleIdentifier, AST, Expression, Dict};
-use linked_hash_map::LinkedHashMap;
-use crate::python::ast::PythonTaskBase;
 use crate::python::ast::AirflowTaskBase;
+use crate::python::ast::PythonTaskBase;
+use crate::python::PythonImport;
+use aorist_ast::{Assignment, Attribute, Call, Dict, Expression, SimpleIdentifier, AST};
+use linked_hash_map::LinkedHashMap;
 
 pub trait AirflowPythonOperatorTask: PythonTaskBase + AirflowTaskBase {
     fn compute_task_call(&self) -> AST {
-         AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("PythonOperator".to_string()))
+        AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("PythonOperator".to_string()))
     }
     fn get_call_param_value(&self) -> AST;
     fn get_python_operator_imports(&self) -> Vec<PythonImport> {

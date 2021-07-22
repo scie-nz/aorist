@@ -1,18 +1,18 @@
 use crate::dialect::Dialect;
 use crate::flow::etl_flow::ETLFlow;
 use crate::flow::flow_builder::FlowBuilderBase;
+use crate::flow::python_based_flow::PythonBasedFlow;
 use crate::flow::python_based_flow_builder::PythonBasedFlowBuilder;
 use crate::python::{
     BashPythonTask, ConstantPythonTask, NativePythonTask, PrestoPythonTask, PythonImport,
-    PythonPreamble, RPythonTask, PythonTask,
+    PythonPreamble, PythonTask, RPythonTask,
 };
 use aorist_ast::{Call, SimpleIdentifier, StringLiteral, AST};
 use aorist_primitives::AoristUniverse;
-use aorist_primitives::{TPrestoEndpoints};
+use aorist_primitives::TPrestoEndpoints;
 use linked_hash_map::LinkedHashMap;
-use std::hash::{Hash};
+use std::hash::Hash;
 use std::marker::PhantomData;
-use crate::flow::python_based_flow::PythonBasedFlow;
 
 #[derive(Clone, Hash, PartialEq)]
 pub struct NativePythonBasedFlow<U: AoristUniverse>
@@ -33,7 +33,8 @@ where
 }
 impl<U: AoristUniverse> PythonBasedFlow<U> for NativePythonBasedFlow<U>
 where
-    U::TEndpoints: TPrestoEndpoints {
+    U::TEndpoints: TPrestoEndpoints,
+{
     fn get_preamble_string(&self) -> Option<String> {
         self.preamble.clone()
     }
@@ -93,36 +94,42 @@ where
                 let presto_endpoints = endpoints.presto_config();
                 PythonTask::PrestoPythonTask(PrestoPythonTask::new_wrapped(
                     command,
-                    kwargs.iter().map(|(k, v)| (k.clone(), match *v {
-                        AST::StringLiteral(ref x) => AST::StringLiteral(StringLiteral::new_wrapped(
-                            x.read().unwrap().value().clone(),
-                            true,
-                        )),
-                        _ => v.clone(),
-                    })).collect(),
+                    kwargs
+                        .iter()
+                        .map(|(k, v)| {
+                            (
+                                k.clone(),
+                                match *v {
+                                    AST::StringLiteral(ref x) => {
+                                        AST::StringLiteral(StringLiteral::new_wrapped(
+                                            x.read().unwrap().value().clone(),
+                                            true,
+                                        ))
+                                    }
+                                    _ => v.clone(),
+                                },
+                            )
+                        })
+                        .collect(),
                     task_val.clone(),
                     presto_endpoints,
                     dep_list.clone(),
                 ))
             }
-            Some(Dialect::Bash(_)) => {
-                PythonTask::BashPythonTask(BashPythonTask::new_wrapped(
-                    command,
-                    kwargs.clone(),
-                    task_val.clone(),
-                    dep_list.clone()
-                ))
-            }
-            Some(Dialect::R(_)) => {
-                PythonTask::RPythonTask(RPythonTask::new_wrapped(
-                    task_val.clone(),
-                    command,
-                    args.clone(),
-                    kwargs.clone(),
-                    dep_list.clone(),
-                    preamble.clone(),
-                ))
-            }
+            Some(Dialect::Bash(_)) => PythonTask::BashPythonTask(BashPythonTask::new_wrapped(
+                command,
+                kwargs.clone(),
+                task_val.clone(),
+                dep_list.clone(),
+            )),
+            Some(Dialect::R(_)) => PythonTask::RPythonTask(RPythonTask::new_wrapped(
+                task_val.clone(),
+                command,
+                args.clone(),
+                kwargs.clone(),
+                dep_list.clone(),
+                preamble.clone(),
+            )),
             Some(Dialect::Python(_)) => {
                 PythonTask::NativePythonTask(NativePythonTask::new_wrapped(
                     AST::Call(Call::new_wrapped(

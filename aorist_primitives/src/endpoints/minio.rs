@@ -1,6 +1,6 @@
-use serde::{Serialize, Deserialize};
 #[cfg(feature = "python")]
 use pyo3::prelude::*;
+use serde::{Deserialize, Serialize};
 #[cfg_attr(feature = "python", pyclass)]
 #[derive(PartialEq, Deserialize, Serialize, Debug, Clone, Hash)]
 pub struct MinioConfig {
@@ -26,6 +26,12 @@ impl MinioConfig {
         access_key: String,
         secret_key: String,
     ) -> Self {
-        MinioConfig { server, port, bucket, access_key, secret_key }
+        MinioConfig {
+            server,
+            port,
+            bucket,
+            access_key,
+            secret_key,
+        }
     }
 }

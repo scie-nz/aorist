@@ -1,6 +1,6 @@
 #[cfg(feature = "python")]
 use pyo3::prelude::*;
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 #[cfg_attr(feature = "python", pyclass)]
 #[derive(PartialEq, Deserialize, Serialize, Debug, Clone, Hash)]
 pub struct GCPConfig {
@@ -19,6 +19,11 @@ impl GCPConfig {
         project_name: String,
         data_location: String,
     ) -> Self {
-        GCPConfig { use_default_credentials, service_account_file, project_name, data_location}  
+        GCPConfig {
+            use_default_credentials,
+            service_account_file,
+            project_name,
+            data_location,
+        }
     }
 }

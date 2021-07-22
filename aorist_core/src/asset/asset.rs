@@ -10,12 +10,12 @@ use crate::storage::Storage;
 use crate::storage_setup::*;
 use aorist_concept::{aorist, Constrainable};
 use paste::paste;
+#[cfg(feature = "python")]
+use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
 use std::sync::{Arc, RwLock};
 use uuid::Uuid;
-#[cfg(feature = "python")]
-use pyo3::prelude::*;
 
 #[aorist]
 pub enum Asset {
@@ -105,6 +105,8 @@ impl PyAsset {
         Ok(self.inner.0.read().unwrap().get_name())
     }
     pub fn schema(&self) -> PyResult<PyDataSchema> {
-        Ok(PyDataSchema{ inner: self.inner.0.read().unwrap().get_schema().clone() })
+        Ok(PyDataSchema {
+            inner: self.inner.0.read().unwrap().get_schema().clone(),
+        })
     }
 }

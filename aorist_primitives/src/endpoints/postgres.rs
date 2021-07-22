@@ -1,6 +1,6 @@
 #[cfg(feature = "python")]
 use pyo3::prelude::*;
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 #[cfg_attr(feature = "python", pyclass)]
 #[derive(PartialEq, Deserialize, Serialize, Debug, Clone, Hash)]
 pub struct PostgresConfig {
@@ -13,12 +13,12 @@ pub struct PostgresConfig {
 #[pymethods]
 impl PostgresConfig {
     #[new]
-    fn new(
-        server: String,
-        port: usize,
-        username: String,
-        password: String,
-    ) -> Self {
-        PostgresConfig { server, port, username, password }
+    fn new(server: String, port: usize, username: String, password: String) -> Self {
+        PostgresConfig {
+            server,
+            port,
+            username,
+            password,
+        }
     }
 }

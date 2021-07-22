@@ -11,25 +11,28 @@ pub struct TaskNameShortener {
 impl TaskNameShortener {
     fn init_substrings(
         names: &Vec<String>,
-        separator: &String
+        separator: &String,
     ) -> BTreeMap<(usize, String), BTreeSet<usize>> {
         let mut substrings = BTreeMap::new();
         for (i, name) in names.iter().enumerate() {
             debug!("Adding name: ({}, {})", i, name);
             for (j, split) in name.split(separator).enumerate() {
                 debug!("Adding split: ({}, {})", j, split);
-                (
-                    *substrings
+                (*substrings
                     .entry((j, split.to_string()))
-                    .or_insert(BTreeSet::new())
-                ).insert(i);
+                    .or_insert(BTreeSet::new()))
+                .insert(i);
             }
         }
         substrings
     }
     pub fn new(names: Vec<String>, separator: String) -> Self {
         let substrings = Self::init_substrings(&names, &separator);
-        Self{ names, separator, substrings}
+        Self {
+            names,
+            separator,
+            substrings,
+        }
     }
     fn try_shorten(&mut self, substring: &str) -> bool {
         let mut shorter_names = LinkedHashSet::new();
@@ -52,15 +55,23 @@ impl TaskNameShortener {
         self.substrings = Self::init_substrings(&self.names, &self.separator);
         if self.names.len() == 1 {
             debug!("Short-circuited task shortening.");
-            return vec![self.names.get(0).unwrap().split("_").next().unwrap().to_string()];
+            return vec![self
+                .names
+                .get(0)
+                .unwrap()
+                .split("_")
+                .next()
+                .unwrap()
+                .to_string()];
         }
         loop {
-             let max_val = self.substrings.iter().filter(
-                |(k, v)| v.len() > 1 || k.0 > 0
-             ).max_by_key(
-                |((_i, k), v)| k.len() * v.len()
-             ).map(|((i, k), v)| (i.clone(), k.clone(), v.clone()));
-             if let Some((i, max_key, _)) = max_val {
+            let max_val = self
+                .substrings
+                .iter()
+                .filter(|(k, v)| v.len() > 1 || k.0 > 0)
+                .max_by_key(|((_i, k), v)| k.len() * v.len())
+                .map(|((i, k), v)| (i.clone(), k.clone(), v.clone()));
+            if let Some((i, max_key, _)) = max_val {
                 if max_key.len() == 0 {
                     break;
                 }
@@ -72,10 +83,10 @@ impl TaskNameShortener {
                 if !&self.try_shorten(&key) {
                     break;
                 }
-             } else {
+            } else {
                 debug!("Could not find max_key.");
                 break;
-             }
+            }
         }
         self.names
     }

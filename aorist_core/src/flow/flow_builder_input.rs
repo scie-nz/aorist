@@ -1,8 +1,8 @@
 use crate::code::{Import, Preamble};
-use aorist_ast::{AST, Dict};
+use aorist_ast::{Dict, AST};
+use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
 use std::collections::BTreeSet;
-use linked_hash_map::LinkedHashMap;
 use std::sync::{Arc, RwLock};
 
 pub trait FlowBuilderInput
@@ -44,7 +44,7 @@ where
             None => format!("## {}", self.get_constraint_name()).to_string(),
         }
     }
-    
+
     fn extract_literals(
         &self,
         literals: &mut LinkedHashMap<AST, LinkedHashMap<String, Vec<(String, Arc<RwLock<Dict>>)>>>,

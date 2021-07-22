@@ -1,11 +1,11 @@
+use crate::python::ast::{PythonFunctionCallTask, PythonTaskBase};
+use crate::python::NativePythonPreamble;
 use crate::python::PythonImport;
-use aorist_ast::{AST, Call, StringLiteral, SimpleIdentifier};
+use aorist_ast::{Call, SimpleIdentifier, StringLiteral, AST};
 use aorist_primitives::define_task_node;
+use linked_hash_map::LinkedHashMap;
 use std::hash::Hash;
 use std::sync::{Arc, RwLock};
-use crate::python::ast::{PythonTaskBase, PythonFunctionCallTask};
-use linked_hash_map::LinkedHashMap;
-use crate::python::NativePythonPreamble;
 
 define_task_node!(
     RPythonTask,
@@ -14,7 +14,10 @@ define_task_node!(
     |_task: &RPythonTask| {
         vec![
             PythonImport::PythonModuleImport("rpy2".to_string(), None),
-            PythonImport::PythonModuleImport("rpy2.objects".to_string(), Some("robjects".to_string())),
+            PythonImport::PythonModuleImport(
+                "rpy2.objects".to_string(),
+                Some("robjects".to_string()),
+            ),
         ]
     },
     PythonImport,
@@ -26,10 +29,12 @@ define_task_node!(
     preamble: Option<String>,
 );
 impl PythonFunctionCallTask for RPythonTask {
-    
     fn get_preamble(&self) -> Option<NativePythonPreamble> {
         let rpy2 = PythonImport::PythonModuleImport("rpy2".to_string(), None);
-        let rpy2o = PythonImport::PythonModuleImport("rpy2.objects".to_string(), Some("robjects".to_string()));
+        let rpy2o = PythonImport::PythonModuleImport(
+            "rpy2.objects".to_string(),
+            Some("robjects".to_string()),
+        );
         let body = "
 def execute_r(call, preamble=None, **kwargs):
     if preamble is not None:
@@ -51,7 +56,10 @@ def execute_r(call, preamble=None, **kwargs):
         if let Some(ref p) = self.preamble {
             inner_kwargs.insert(
                 "preamble".to_string(),
-                AST::StringLiteral(StringLiteral::new_wrapped(format!("\n{}\n", p).to_string(), false))
+                AST::StringLiteral(StringLiteral::new_wrapped(
+                    format!("\n{}\n", p).to_string(),
+                    false,
+                )),
             );
         }
         for (k, v) in self.kwargs.clone() {
@@ -69,4 +77,3 @@ impl PythonTaskBase for RPythonTask {
         self.task_val.clone()
     }
 }
-      

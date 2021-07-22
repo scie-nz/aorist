@@ -16,8 +16,7 @@ use aorist_ast::{
     SimpleIdentifier, StringLiteral, Subscript, Tuple, AST,
 };
 pub use ast::{
-    BashPythonTask, ConstantPythonTask, NativePythonTask, PrestoPythonTask, RPythonTask,
-    PythonTask,
+    BashPythonTask, ConstantPythonTask, NativePythonTask, PrestoPythonTask, PythonTask, RPythonTask,
 };
 pub use code_block::PythonBasedCodeBlock;
 pub use constraint_block::PythonBasedConstraintBlock;

@@ -558,40 +558,46 @@ define_ast_node!(
         let mut kwargs_py = Vec::new();
         let mut kwargs_defaults = Vec::new();
         for arg in &fun.args {
-            let arg_py = ast_module.call1(
-                "arg",
-                (
-                    arg.to_python_ast_node(py, ast_module, depth).unwrap(),
-                    py.None().as_ref(py),
-                ),
-            ).unwrap();
+            let arg_py = ast_module
+                .call1(
+                    "arg",
+                    (
+                        arg.to_python_ast_node(py, ast_module, depth).unwrap(),
+                        py.None().as_ref(py),
+                    ),
+                )
+                .unwrap();
             args_py.push(arg_py);
         }
         for (k, v) in &fun.kwargs {
-            let arg_py = ast_module.call1(
-                "arg",
-                (
-                    v.to_python_ast_node(py, ast_module, depth).unwrap(),
-                    py.None().as_ref(py),
-                ),
-            ).unwrap();
+            let arg_py = ast_module
+                .call1(
+                    "arg",
+                    (
+                        v.to_python_ast_node(py, ast_module, depth).unwrap(),
+                        py.None().as_ref(py),
+                    ),
+                )
+                .unwrap();
             kwargs_py.push(arg_py);
             let default_py = AST::StringLiteral(StringLiteral::new_wrapped(k.clone(), false))
                 .to_python_ast_node(py, ast_module, depth)
                 .unwrap();
             kwargs_defaults.push(default_py);
         }
-        let arguments = ast_module.call1(
-            "arguments",
-            (
-                args_py,
-                py.None().as_ref(py),
-                kwargs_py,
-                py.None().as_ref(py),
-                py.None().as_ref(py),
-                kwargs_defaults,
-            ),
-        ).unwrap();
+        let arguments = ast_module
+            .call1(
+                "arguments",
+                (
+                    args_py,
+                    py.None().as_ref(py),
+                    kwargs_py,
+                    py.None().as_ref(py),
+                    py.None().as_ref(py),
+                    kwargs_defaults,
+                ),
+            )
+            .unwrap();
         let body_py = fun
             .body
             .iter()

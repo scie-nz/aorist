@@ -37,7 +37,6 @@ pub struct ConstraintState<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestr
 impl<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry = T::TAncestry>>
     ConstraintState<'a, T, P>
 {
-
     pub fn mark_dependency_as_satisfied(
         &mut self,
         dependency: &Arc<RwLock<ConstraintState<'a, T, P>>>,
@@ -290,8 +289,10 @@ impl<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry = T::TAncestry>>
             task_names.push((fqn, constraint.clone()));
         }
         let to_shorten_task_names = task_names.iter().map(|(x, _)| x.clone()).collect();
-        let shortened_task_names_1 = TaskNameShortener::new(to_shorten_task_names, "____".to_string()).run();
-        let shortened_task_names_2 = TaskNameShortener::new(shortened_task_names_1, "_".to_string()).run();
+        let shortened_task_names_1 =
+            TaskNameShortener::new(to_shorten_task_names, "____".to_string()).run();
+        let shortened_task_names_2 =
+            TaskNameShortener::new(shortened_task_names_1, "_".to_string()).run();
         for (i, (_, rw)) in task_names.iter().enumerate() {
             let name = shortened_task_names_2.get(i).unwrap().clone();
             let mut write = rw.write().unwrap();

@@ -1,6 +1,6 @@
 #[cfg(feature = "python")]
 use pyo3::prelude::*;
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 #[cfg_attr(feature = "python", pyclass)]
 #[derive(PartialEq, Deserialize, Serialize, Debug, Clone, Hash)]
 pub struct GiteaConfig {
@@ -12,11 +12,11 @@ pub struct GiteaConfig {
 #[pymethods]
 impl GiteaConfig {
     #[new]
-    fn new(
-        server: String,
-        port: usize,
-        token: String,
-    ) -> Self {
-        GiteaConfig { server, port, token }
+    fn new(server: String, port: usize, token: String) -> Self {
+        GiteaConfig {
+            server,
+            port,
+            token,
+        }
     }
 }

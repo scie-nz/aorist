@@ -1,6 +1,6 @@
 #[cfg(feature = "python")]
 use pyo3::prelude::*;
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 #[cfg_attr(feature = "python", pyclass)]
 #[derive(PartialEq, Deserialize, Serialize, Debug, Clone, Hash)]
 pub struct PrestoConfig {
@@ -12,12 +12,12 @@ pub struct PrestoConfig {
 #[pymethods]
 impl PrestoConfig {
     #[new]
-    fn new(
-        server: String,
-        http_port: usize,
-        user: String,
-    ) -> Self {
-        PrestoConfig { server, http_port, user }
+    fn new(server: String, http_port: usize, user: String) -> Self {
+        PrestoConfig {
+            server,
+            http_port,
+            user,
+        }
     }
     #[getter]
     fn user(&self) -> String {

@@ -1,17 +1,14 @@
 #![allow(dead_code)]
+use crate::python::ast::AirflowTaskBase;
+use crate::python::ast::{PythonFunctionCallTask, PythonTaskBase};
+use crate::python::NativePythonPreamble;
 use crate::python::PythonImport;
-use aorist_ast::{
-    Formatted, Call,
-    SimpleIdentifier, AST,
-};
+use aorist_ast::{Call, Formatted, SimpleIdentifier, AST};
 use aorist_primitives::define_task_node;
 use aorist_primitives::PrestoConfig;
 use linked_hash_map::LinkedHashMap;
 use std::hash::Hash;
 use std::sync::{Arc, RwLock};
-use crate::python::ast::{PythonTaskBase, PythonFunctionCallTask};
-use crate::python::ast::AirflowTaskBase;
-use crate::python::NativePythonPreamble;
 
 define_task_node!(
     PrestoPythonTask,
@@ -38,11 +35,11 @@ impl PythonTaskBase for PrestoPythonTask {
     }
 }
 impl PythonFunctionCallTask for PrestoPythonTask {
-
     fn get_preamble(&self) -> Option<NativePythonPreamble> {
         let re = PythonImport::PythonModuleImport("re".to_string(), None);
         let trino = PythonImport::PythonModuleImport("trino".to_string(), None);
-        let body = format!("
+        let body = format!(
+            "
 def execute_trino_sql(query):
     connection = trino.dbapi.connect(
         host='{host}',
@@ -57,7 +54,11 @@ def execute_trino_sql(query):
     cursor.execute(query)
     print('Ran query:\\n %s' % query)
     return cursor.fetchall()
-", host=self.endpoint.server, user=self.endpoint.user, port=self.endpoint.http_port);
+",
+            host = self.endpoint.server,
+            user = self.endpoint.user,
+            port = self.endpoint.http_port
+        );
         Some(NativePythonPreamble {
             imports: vec![re, trino],
             from_imports: Vec::new(),
@@ -65,14 +66,21 @@ def execute_trino_sql(query):
         })
     }
     fn get_call(&self) -> AST {
-            AST::Call(Call::new_wrapped(
-                AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("execute_trino_sql".to_string())),
-                vec![],
-                vec![("query".to_string(), AST::Formatted(Formatted::new_wrapped(
+        AST::Call(Call::new_wrapped(
+            AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
+                "execute_trino_sql".to_string(),
+            )),
+            vec![],
+            vec![(
+                "query".to_string(),
+                AST::Formatted(Formatted::new_wrapped(
                     self.sql.clone(),
                     self.kwargs.clone(),
-                )))].into_iter().collect(),
-            ))
+                )),
+            )]
+            .into_iter()
+            .collect(),
+        ))
     }
 }
 impl AirflowTaskBase for PrestoPythonTask {

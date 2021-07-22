@@ -1,26 +1,26 @@
 #![allow(non_snake_case)]
-use crate::attributes::*;
 use crate::asset::*;
+use crate::attributes::*;
+use crate::concept::{AoristRef, WrappedConcept};
 use crate::schema::*;
 use crate::storage_setup::*;
-use crate::concept::{AoristRef, WrappedConcept};
 use crate::template::TDatumTemplate;
+use aorist_attributes::*;
 use aorist_concept::{aorist, Constrainable};
 use aorist_primitives::{AoristConcept, ConceptEnum};
 use derivative::Derivative;
 use paste::paste;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
-use uuid::Uuid;
 use std::sync::{Arc, RwLock};
-use aorist_attributes::*;
+use uuid::Uuid;
 
 #[aorist]
 pub struct FasttextEmbedding {
     pub name: String,
     pub comment: Option<String>,
     #[constrainable]
-    pub schema: AoristRef<DataSchema>, 
+    pub schema: AoristRef<DataSchema>,
     #[constrainable]
     pub source_assets: Vec<AoristRef<Asset>>,
     #[constrainable]

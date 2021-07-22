@@ -1,10 +1,10 @@
+use crate::python::ast::{AirflowTaskBase, PythonFunctionCallTask, PythonTaskBase};
 use crate::python::PythonImport;
 use aorist_ast::{Call, SimpleIdentifier, AST};
 use aorist_primitives::define_task_node;
 use linked_hash_map::LinkedHashMap;
 use std::hash::Hash;
 use std::sync::{Arc, RwLock};
-use crate::python::ast::{PythonTaskBase, PythonFunctionCallTask, AirflowTaskBase};
 
 define_task_node!(
     ConstantPythonTask,
@@ -18,20 +18,20 @@ define_task_node!(
 );
 impl AirflowTaskBase for ConstantPythonTask {
     fn get_dependencies(&self) -> Option<AST> {
-        self.dep_list.clone()        
+        self.dep_list.clone()
     }
 }
 impl PythonTaskBase for ConstantPythonTask {
-   fn get_task_val(&self) -> AST {
-      self.task_val.clone()
-   }
+    fn get_task_val(&self) -> AST {
+        self.task_val.clone()
+    }
 }
 impl PythonFunctionCallTask for ConstantPythonTask {
-   fn get_call(&self) -> AST {
-      AST::Call(Call::new_wrapped(
-          AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("print".to_string())),
-          vec![self.name.clone()],
-          LinkedHashMap::new(),
-      ))
-   }
+    fn get_call(&self) -> AST {
+        AST::Call(Call::new_wrapped(
+            AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("print".to_string())),
+            vec![self.name.clone()],
+            LinkedHashMap::new(),
+        ))
+    }
 }

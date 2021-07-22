@@ -8,6 +8,7 @@ use crate::dialect::Dialect;
 use crate::flow::{FlowBuilderBase, FlowBuilderMaterialize};
 use crate::parameter_tuple::ParameterTuple;
 use crate::program::TOuterProgram;
+use crate::task_name_shortener::TaskNameShortener;
 use anyhow::Result;
 use aorist_ast::{AncestorRecord, SimpleIdentifier, AST};
 use aorist_primitives::TAoristObject;
@@ -19,7 +20,6 @@ use std::collections::{HashMap, HashSet, VecDeque};
 use std::sync::{Arc, RwLock, RwLockReadGuard};
 use tracing::{debug, level_enabled, trace, Level};
 use uuid::Uuid;
-use crate::task_name_shortener::TaskNameShortener;
 
 pub type ConstraintsBlockMap<'a, C, P> = LinkedHashMap<
     String,
@@ -268,10 +268,11 @@ where
             .map(|x| x.get_constraint_name())
             .chain(vec![constraint_name.clone()].into_iter())
             .collect();
-        let shortened_names = TaskNameShortener::new(to_shorten_constraint_block_names, "_".to_string()).run();
+        let shortened_names =
+            TaskNameShortener::new(to_shorten_constraint_block_names, "_".to_string()).run();
         let shortened_name = shortened_names.into_iter().last().unwrap();
         debug!("Shortened constraint block name: {}", shortened_name);
-        
+
         let tasks_dict = Self::init_tasks_dict(block, shortened_name.clone());
         // (call, constraint_name, root_name) => (uuid, call parameters)
         let mut calls: HashMap<(String, String, String), Vec<(String, ParameterTuple)>> =

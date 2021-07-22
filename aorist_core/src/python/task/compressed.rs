@@ -68,7 +68,8 @@ where
             .filter(|x| x.deps.len() > 1)
             .next()
             .is_some();
-        let dict_pairs = self.values
+        let dict_pairs = self
+            .values
             .iter()
             .map(|x| {
                 (
@@ -77,27 +78,35 @@ where
                 )
             })
             .collect::<LinkedHashMap<_, _>>();
-        let has_params_dict = dict_pairs.iter().filter(|x| {
-            if let AST::Dict(ref dict) = x.1 {
-                dict.read().unwrap().len() > 0
-            } else {
-                panic!("This should be a dictionary.");
-            }
-        }).next().is_some();
+        let has_params_dict = dict_pairs
+            .iter()
+            .filter(|x| {
+                if let AST::Dict(ref dict) = x.1 {
+                    dict.read().unwrap().len() > 0
+                } else {
+                    panic!("This should be a dictionary.");
+                }
+            })
+            .next()
+            .is_some();
 
         let dict_content = match has_params_dict {
             true => AST::Dict(Dict::new_wrapped(dict_pairs)),
             false => AST::List(List::new_wrapped(
-                dict_pairs.into_iter().map(
-                    |x| AST::StringLiteral(StringLiteral::new_wrapped(x.0, false))
-                ).collect(), 
-                false
+                dict_pairs
+                    .into_iter()
+                    .map(|x| AST::StringLiteral(StringLiteral::new_wrapped(x.0, false)))
+                    .collect(),
+                false,
             )),
         };
-        (AST::Assignment(Assignment::new_wrapped(
-            self.params_dict_name.clone(),
-            dict_content,
-        )), has_params_dict)
+        (
+            AST::Assignment(Assignment::new_wrapped(
+                self.params_dict_name.clone(),
+                dict_content,
+            )),
+            has_params_dict,
+        )
     }
     fn get_for_loop_tuple(&self, ident: &AST, params: &AST) -> AST {
         AST::Tuple(Tuple::new_wrapped(
@@ -206,7 +215,7 @@ where
         );
         let statements = singleton.get_statements();
         let items_call = match has_params_dict {
-             true => AST::Call(Call::new_wrapped(
+            true => AST::Call(Call::new_wrapped(
                 AST::Attribute(Attribute::new_wrapped(
                     self.params_dict_name.clone(),
                     "items".to_string(),

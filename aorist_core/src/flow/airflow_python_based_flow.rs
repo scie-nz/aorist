@@ -1,25 +1,26 @@
 use crate::dialect::Dialect;
 use crate::flow::etl_flow::ETLFlow;
 use crate::flow::flow_builder::FlowBuilderBase;
+use crate::flow::python_based_flow::PythonBasedFlow;
 use crate::flow::python_based_flow_builder::PythonBasedFlowBuilder;
 use crate::python::{
-    BashPythonTask, ConstantPythonTask, NativePythonTask, PrestoPythonTask, PythonImport,
-    PythonPreamble, RPythonTask, PythonTask, NativePythonPreamble,
-    PythonFlowBuilderInput,
+    BashPythonTask, ConstantPythonTask, NativePythonPreamble, NativePythonTask, PrestoPythonTask,
+    PythonFlowBuilderInput, PythonImport, PythonPreamble, PythonTask, RPythonTask,
 };
 use aorist_ast::{
     Assignment, Attribute, BigIntLiteral, BooleanLiteral, Call, Dict, Expression, Formatted, List,
     None, SimpleIdentifier, StringLiteral, AST,
 };
 use aorist_primitives::AoristUniverse;
-use aorist_primitives::{TPrestoEndpoints};
+use aorist_primitives::TPrestoEndpoints;
 use linked_hash_map::LinkedHashMap;
 use std::marker::PhantomData;
-use crate::flow::python_based_flow::PythonBasedFlow;
 
 #[derive(Clone, Hash, PartialEq)]
 pub struct AirflowPythonBasedFlow<U: AoristUniverse>
-where U::TEndpoints: TPrestoEndpoints {
+where
+    U::TEndpoints: TPrestoEndpoints,
+{
     task_id: AST,
     task_val: AST,
     command: Option<String>,
@@ -34,13 +35,16 @@ where U::TEndpoints: TPrestoEndpoints {
 }
 impl<U: AoristUniverse> PythonBasedFlow<U> for AirflowPythonBasedFlow<U>
 where
-    U::TEndpoints: TPrestoEndpoints {
+    U::TEndpoints: TPrestoEndpoints,
+{
     fn get_preamble_string(&self) -> Option<String> {
         self.preamble.clone()
     }
 }
 impl<U: AoristUniverse> AirflowPythonBasedFlow<U>
-where U::TEndpoints: TPrestoEndpoints {
+where
+    U::TEndpoints: TPrestoEndpoints,
+{
     fn compute_task_args(&self) -> Vec<AST> {
         Vec::new()
     }
@@ -51,7 +55,10 @@ where U::TEndpoints: TPrestoEndpoints {
         } else {
             kwargs = LinkedHashMap::new();
             let call_param_name = match self.dialect {
-                Some(Dialect::Python(_)) | Some(Dialect::R(_)) | Some(Dialect::Presto(_)) | None => "python_callable".to_string(),
+                Some(Dialect::Python(_))
+                | Some(Dialect::R(_))
+                | Some(Dialect::Presto(_))
+                | None => "python_callable".to_string(),
                 Some(Dialect::Bash(_)) => "bash_command".to_string(),
             };
             // TODO: deprecate this once Bash tasks also migrate
@@ -67,12 +74,16 @@ where U::TEndpoints: TPrestoEndpoints {
                     let call = self.node.get_call().unwrap();
                     match call {
                         AST::Call(call_rw) => call_rw.read().unwrap().function(),
-                        _ => panic!("AST object should be call")
+                        _ => panic!("AST object should be call"),
                     }
                 }
             };
             kwargs.insert(call_param_name, call_param_value);
-            if let Some(Dialect::Python(_)) | Some(Dialect::R(_)) | Some(Dialect::Presto(_)) | None = self.dialect {
+            if let Some(Dialect::Python(_))
+            | Some(Dialect::R(_))
+            | Some(Dialect::Presto(_))
+            | None = self.dialect
+            {
                 let call = self.node.get_call().unwrap();
                 if let AST::Call(call_rw) = call {
                     let x = call_rw.read().unwrap();
@@ -100,26 +111,28 @@ where U::TEndpoints: TPrestoEndpoints {
     }
     fn compute_task_call(&self) -> AST {
         match self.dialect {
-            Some(Dialect::Python(_)) => AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
-                "PythonOperator".to_string(),
-            )),
-            Some(Dialect::Bash(_)) => AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
-                "BashOperator".to_string(),
-            )),
-            Some(Dialect::Presto(_)) => AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
-                "PythonOperator".to_string(),
-            )),
-            Some(Dialect::R(_)) => AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
-                "PythonOperator".to_string(),
-            )),
-            None => AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
-                "DummyOperator".to_string(),
-            )),
+            Some(Dialect::Python(_)) => {
+                AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("PythonOperator".to_string()))
+            }
+            Some(Dialect::Bash(_)) => {
+                AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("BashOperator".to_string()))
+            }
+            Some(Dialect::Presto(_)) => {
+                AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("PythonOperator".to_string()))
+            }
+            Some(Dialect::R(_)) => {
+                AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("PythonOperator".to_string()))
+            }
+            None => {
+                AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("DummyOperator".to_string()))
+            }
         }
     }
 }
 impl<U: AoristUniverse> ETLFlow<U> for AirflowPythonBasedFlow<U>
-where U::TEndpoints: TPrestoEndpoints {
+where
+    U::TEndpoints: TPrestoEndpoints,
+{
     type ImportType = PythonImport;
     type PreambleType = PythonPreamble;
     fn get_imports(&self) -> Vec<PythonImport> {
@@ -148,7 +161,7 @@ where U::TEndpoints: TPrestoEndpoints {
         let mut preambles = match self.dialect {
             Some(Dialect::Python(_)) => match self.preamble {
                 Some(ref p) => vec![PythonPreamble::NativePythonPreamble(
-                    NativePythonPreamble::new(p.clone())
+                    NativePythonPreamble::new(p.clone()),
                 )],
                 None => Vec::new(),
             },
@@ -217,39 +230,45 @@ where U::TEndpoints: TPrestoEndpoints {
                 let presto_endpoints = endpoints.presto_config();
                 PythonTask::PrestoPythonTask(PrestoPythonTask::new_wrapped(
                     command,
-                    kwargs.iter().map(|(k, v)| (k.clone(), match *v {
-                        AST::StringLiteral(ref x) => AST::StringLiteral(StringLiteral::new_wrapped(
-                            x.read().unwrap().value().clone(),
-                            true,
-                        )),
-                        _ => v.clone(),
-                    })).collect(),
+                    kwargs
+                        .iter()
+                        .map(|(k, v)| {
+                            (
+                                k.clone(),
+                                match *v {
+                                    AST::StringLiteral(ref x) => {
+                                        AST::StringLiteral(StringLiteral::new_wrapped(
+                                            x.read().unwrap().value().clone(),
+                                            true,
+                                        ))
+                                    }
+                                    _ => v.clone(),
+                                },
+                            )
+                        })
+                        .collect(),
                     task_val.clone(),
                     presto_endpoints,
                     dep_list.clone(),
                 ))
             }
-            Some(Dialect::Bash(_)) => {
-                PythonTask::BashPythonTask(BashPythonTask::new_wrapped(
-                    command,
-                    kwargs.clone(),
-                    task_val.clone(),
-                    dep_list.clone()
-                ))
-            }
-            Some(Dialect::R(_)) => {
-                PythonTask::RPythonTask(RPythonTask::new_wrapped(
-                    task_val.clone(),
-                    command,
-                    args.clone(),
-                    kwargs.clone(),
-                    dep_list.clone(),
-                    match preamble {
-                        Some(ref p) => Some(p.clone()),
-                        None => None,
-                    },
-                ))
-            },
+            Some(Dialect::Bash(_)) => PythonTask::BashPythonTask(BashPythonTask::new_wrapped(
+                command,
+                kwargs.clone(),
+                task_val.clone(),
+                dep_list.clone(),
+            )),
+            Some(Dialect::R(_)) => PythonTask::RPythonTask(RPythonTask::new_wrapped(
+                task_val.clone(),
+                command,
+                args.clone(),
+                kwargs.clone(),
+                dep_list.clone(),
+                match preamble {
+                    Some(ref p) => Some(p.clone()),
+                    None => None,
+                },
+            )),
             Some(Dialect::Python(_)) => {
                 PythonTask::NativePythonTask(NativePythonTask::new_wrapped(
                     AST::Call(Call::new_wrapped(
@@ -264,7 +283,7 @@ where U::TEndpoints: TPrestoEndpoints {
                     task_val.clone(),
                     dep_list.clone(),
                 ))
-            },
+            }
             None => PythonTask::ConstantPythonTask(ConstantPythonTask::new_wrapped(
                 command,
                 task_val.clone(),
@@ -294,7 +313,9 @@ pub struct AirflowFlowBuilder<U: AoristUniverse> {
     universe: PhantomData<U>,
 }
 impl<U: AoristUniverse> FlowBuilderBase<U> for AirflowFlowBuilder<U>
-where <U as AoristUniverse>::TEndpoints: TPrestoEndpoints {
+where
+    <U as AoristUniverse>::TEndpoints: TPrestoEndpoints,
+{
     type T = AirflowPythonBasedFlow<U>;
     fn new() -> Self {
         Self {
@@ -303,7 +324,9 @@ where <U as AoristUniverse>::TEndpoints: TPrestoEndpoints {
     }
 }
 impl<U: AoristUniverse> PythonBasedFlowBuilder<U> for AirflowFlowBuilder<U>
-where <U as AoristUniverse>::TEndpoints: TPrestoEndpoints {
+where
+    <U as AoristUniverse>::TEndpoints: TPrestoEndpoints,
+{
     /// Takes a set of statements and mutates them so as make a valid ETL flow
     fn augment_statements(
         &self,
@@ -402,10 +425,7 @@ where <U as AoristUniverse>::TEndpoints: TPrestoEndpoints {
         statements.insert(
             0,
             PythonFlowBuilderInput::statements_only(
-                vec![
-                    default_args_assign,
-                    dag_call_assign,
-                ],
+                vec![default_args_assign, dag_call_assign],
                 "Setting up Airflow FlowBuilder".to_string(),
                 None,
                 None,

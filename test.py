@@ -35,7 +35,9 @@ local = HiveTableStorage(
 Declaring where our subreddits live, i.e. in PushShift
 """
 subreddits = ['france', 'newzealand']
-tabular_schema = default_tabular_schema(subreddit_datum, subreddit_datum.name, attributes)
+tabular_schema = default_tabular_schema(
+    subreddit_datum, subreddit_datum.name, attributes
+)
 assets = {x: StaticDataTable(
     name=x,
     schema=DataSchema(tabular_schema),
@@ -94,7 +96,9 @@ subreddits = DataSet(
 """
 Dataset will be replicated.
 """
-subreddits = subreddits.replicate_to_local(Storage(local), tmp_dir, Encoding(CSVEncoding()))
+subreddits = subreddits.replicate_to_local(
+    Storage(local), tmp_dir, Encoding(CSVEncoding())
+)
 universe = Universe(
     name="my_cluster",
     datasets=[subreddits],

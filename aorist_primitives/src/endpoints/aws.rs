@@ -1,6 +1,6 @@
 #[cfg(feature = "python")]
 use pyo3::prelude::*;
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 #[cfg_attr(feature = "python", pyclass)]
 #[derive(PartialEq, Deserialize, Serialize, Debug, Clone, Hash)]
 pub struct AWSConfig {
@@ -19,6 +19,11 @@ impl AWSConfig {
         region: Option<String>,
         project_name: Option<String>,
     ) -> Self {
-        AWSConfig { access_key_id, access_key_secret, region, project_name }
+        AWSConfig {
+            access_key_id,
+            access_key_secret,
+            region,
+            project_name,
+        }
     }
 }

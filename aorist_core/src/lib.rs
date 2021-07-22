@@ -49,7 +49,7 @@ pub use constraint_block::*;
 pub use constraint_state::*;
 pub use context::*;
 pub use dataset::*;
-pub use dialect::{Dialect, R, Bash, Python, Presto};
+pub use dialect::{Bash, Dialect, Presto, Python, R};
 pub use encoding::*;
 pub use endpoints::*;
 pub use error::*;

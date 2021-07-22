@@ -7,8 +7,8 @@ use std::fs::OpenOptions;
 use std::io::prelude::*;
 use syn::{Field, FieldsNamed, Meta, Type};
 use type_macro_helpers::{
-    extract_type_from_map, extract_type_from_option, extract_type_from_vector,
-    extract_type_from_aorist_ref,
+    extract_type_from_aorist_ref, extract_type_from_map, extract_type_from_option,
+    extract_type_from_vector,
 };
 mod keyword {
     syn::custom_keyword!(path);
@@ -72,7 +72,7 @@ impl StructBuilder {
             .chain(self.option_types.iter())
             .chain(self.option_vec_types.iter())
             .chain(self.map_value_types.iter())
-            .map(|x| extract_type_from_aorist_ref(x).unwrap()) 
+            .map(|x| extract_type_from_aorist_ref(x).unwrap())
             .collect::<LinkedHashSet<_>>()
             .into_iter()
             .collect()
@@ -245,7 +245,7 @@ impl Builder for StructBuilder {
             )> for WrappedConcept<T> where
             #(
                 T: [<CanBe #types>],
-            )* 
+            )*
                 T: Debug + Clone + Serialize + PartialEq,
             {
                 fn from(
@@ -723,11 +723,26 @@ impl Builder for StructBuilder {
         );
         let (unconstrainable_name, unconstrainable_type) =
             extract_names_and_types(&self.unconstrainable);
-        let bare_type_deref = bare_type.iter().map(|x| extract_type_from_aorist_ref(x)).collect::<Vec<_>>(); 
-        let vec_type_deref = vec_type.iter().map(|x| extract_type_from_aorist_ref(x)).collect::<Vec<_>>(); 
-        let option_vec_type_deref = option_vec_type.iter().map(|x| extract_type_from_aorist_ref(x)).collect::<Vec<_>>(); 
-        let option_type_deref = option_type.iter().map(|x| extract_type_from_aorist_ref(x)).collect::<Vec<_>>(); 
-        let map_value_type_deref = map_value_type.iter().map(|x| extract_type_from_aorist_ref(x)).collect::<Vec<_>>(); 
+        let bare_type_deref = bare_type
+            .iter()
+            .map(|x| extract_type_from_aorist_ref(x))
+            .collect::<Vec<_>>();
+        let vec_type_deref = vec_type
+            .iter()
+            .map(|x| extract_type_from_aorist_ref(x))
+            .collect::<Vec<_>>();
+        let option_vec_type_deref = option_vec_type
+            .iter()
+            .map(|x| extract_type_from_aorist_ref(x))
+            .collect::<Vec<_>>();
+        let option_type_deref = option_type
+            .iter()
+            .map(|x| extract_type_from_aorist_ref(x))
+            .collect::<Vec<_>>();
+        let map_value_type_deref = map_value_type
+            .iter()
+            .map(|x| extract_type_from_aorist_ref(x))
+            .collect::<Vec<_>>();
         let py_class_name = format!("{}", struct_name);
         let types = self.get_all_types();
         TokenStream::from(quote! { paste! {
@@ -879,7 +894,7 @@ impl Builder for StructBuilder {
                     }
                     #[setter]
                     pub fn [<set_#option_vec_ident>](
-                        &self, 
+                        &self,
                         val: Option<Vec<[<Py #option_vec_type_deref>]>>
                     ) -> pyo3::prelude::PyResult<()> {
                         Ok(
@@ -907,7 +922,7 @@ impl Builder for StructBuilder {
                     }
                     #[setter]
                     pub fn [<set_#map_ident>](
-                        &self, 
+                        &self,
                         val: BTreeMap<String, [<Py #map_value_type_deref>]>
                     ) -> pyo3::prelude::PyResult<()> {
                         Ok(

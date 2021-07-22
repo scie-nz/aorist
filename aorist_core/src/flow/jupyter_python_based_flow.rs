@@ -3,9 +3,9 @@ use crate::flow::native_python_based_flow::NativePythonBasedFlow;
 use crate::flow::python_based_flow_builder::PythonBasedFlowBuilder;
 use crate::python::PythonImport;
 use aorist_primitives::{AoristUniverse, TPrestoEndpoints};
+use pyo3::PyResult;
 use serde_json::json;
 use std::marker::PhantomData;
-use pyo3::PyResult;
 
 pub struct JupyterFlowBuilder<U: AoristUniverse>
 where

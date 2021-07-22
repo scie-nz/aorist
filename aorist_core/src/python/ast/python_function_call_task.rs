@@ -1,6 +1,6 @@
-use aorist_ast::{Assignment, AST};
 use crate::python::ast::PythonTaskBase;
 use crate::python::NativePythonPreamble;
+use aorist_ast::{Assignment, AST};
 
 pub trait PythonFunctionCallTask: PythonTaskBase {
     fn get_call(&self) -> AST;

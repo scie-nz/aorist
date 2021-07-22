@@ -1,7 +1,7 @@
+use crate::python::ast::PythonTaskBase;
 use crate::python::PythonImport;
 use aorist_ast::{Assignment, Attribute, BooleanLiteral, Call, SimpleIdentifier, Tuple, AST};
 use linked_hash_map::LinkedHashMap;
-use crate::python::ast::PythonTaskBase;
 
 pub trait PythonSubprocessTask: PythonTaskBase {
     fn compute_task_call(&self) -> AST {

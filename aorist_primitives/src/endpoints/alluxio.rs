@@ -1,6 +1,6 @@
 #[cfg(feature = "python")]
 use pyo3::prelude::*;
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 #[cfg_attr(feature = "python", pyclass)]
 #[derive(PartialEq, Deserialize, Serialize, Debug, Clone, Hash)]
@@ -23,12 +23,12 @@ impl AlluxioConfig {
         api_port: usize,
         directory: String,
     ) -> Self {
-        AlluxioConfig { 
+        AlluxioConfig {
             server: server,
             server_cli: server_cli,
             rpc_port,
-            api_port, 
-            directory: directory, 
+            api_port,
+            directory: directory,
         }
     }
 }

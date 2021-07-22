@@ -12,14 +12,14 @@ use derivative::Derivative;
 use linked_hash_map::LinkedHashMap;
 use paste::paste;
 #[cfg(feature = "python")]
+use pyo3::exceptions::PyValueError;
+#[cfg(feature = "python")]
 use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use std::fmt::Debug;
 use std::sync::{Arc, RwLock};
 use uuid::Uuid;
-#[cfg(feature = "python")]
-use pyo3::exceptions::PyValueError;
 
 #[aorist]
 pub struct DataSet {
@@ -107,7 +107,14 @@ impl TDataSet for DataSet {
 #[cfg(feature = "python")]
 impl PyDataSet {
     fn get_mapped_datum_templates(&self) -> LinkedHashMap<String, PyDatumTemplate> {
-        self.inner.0.read().unwrap().get_mapped_datum_templates().into_iter().map(|(k, v)| (k.clone(), PyDatumTemplate{ inner: v.clone() })).collect()
+        self.inner
+            .0
+            .read()
+            .unwrap()
+            .get_mapped_datum_templates()
+            .into_iter()
+            .map(|(k, v)| (k.clone(), PyDatumTemplate { inner: v.clone() }))
+            .collect()
     }
 }
 #[cfg(feature = "python")]
@@ -144,10 +151,7 @@ impl PyDataSet {
         })));
         Ok(PyDataSet { inner })
     }
-    pub fn get_template(
-        &self,
-        asset: PyAsset,
-    ) -> PyResult<PyDatumTemplate> {
+    pub fn get_template(&self, asset: PyAsset) -> PyResult<PyDatumTemplate> {
         let schema = asset.schema()?;
         let template_name = schema.get_datum_template_name()?;
         let mapped_templates = self.get_mapped_datum_templates();
@@ -159,7 +163,11 @@ impl PyDataSet {
                 template_name,
                 asset.name()?,
                 self.name()?,
-                mapped_templates.keys().map(|x| x.clone()).collect::<Vec<String>>().join(", "),
+                mapped_templates
+                    .keys()
+                    .map(|x| x.clone())
+                    .collect::<Vec<String>>()
+                    .join(", "),
             ))),
         }
     }

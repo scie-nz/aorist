@@ -1,9 +1,9 @@
+use crate::endpoints::*;
 use siphasher::sip128::{Hasher128, SipHasher};
 use std::collections::{BTreeSet, HashMap};
 use std::hash::Hasher;
-use uuid::Uuid;
 use std::sync::{Arc, RwLock};
-use crate::endpoints::*;
+use uuid::Uuid;
 
 pub trait ConceptEnum {}
 pub trait AoristConcept {
@@ -59,7 +59,7 @@ pub trait AoristUniverse {
     type TEndpoints: Clone;
     fn get_endpoints(&self) -> Self::TEndpoints;
 }
-pub trait TPrestoEndpoints: {
+pub trait TPrestoEndpoints {
     fn presto_config(&self) -> PrestoConfig;
 }
 pub trait Ancestry {

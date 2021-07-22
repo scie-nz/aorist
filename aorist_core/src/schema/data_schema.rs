@@ -6,13 +6,13 @@ use crate::schema::time_ordered_tabular_schema::*;
 use crate::schema::undefined_tabular_schema::*;
 use aorist_concept::{aorist, Constrainable};
 use paste::paste;
+#[cfg(feature = "python")]
+use pyo3::exceptions::PyValueError;
+#[cfg(feature = "python")]
+use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
 use uuid::Uuid;
-#[cfg(feature = "python")]
-use pyo3::prelude::*;
-#[cfg(feature = "python")]
-use pyo3::exceptions::PyValueError;
 
 #[aorist]
 pub enum DataSchema {
@@ -29,7 +29,16 @@ pub enum DataSchema {
 impl DataSchema {
     pub fn get_datum_template_name(&self) -> Result<String, String> {
         match self {
-            DataSchema::FasttextEmbeddingSchema(x) => Ok(x.0.read().unwrap().source_schema().0.read().unwrap().datumTemplateName.clone()),
+            DataSchema::FasttextEmbeddingSchema(x) => Ok(x
+                .0
+                .read()
+                .unwrap()
+                .source_schema()
+                .0
+                .read()
+                .unwrap()
+                .datumTemplateName
+                .clone()),
             DataSchema::TabularSchema(x) => Ok(x.0.read().unwrap().datumTemplateName.clone()),
             DataSchema::TimeOrderedTabularSchema(x) => {
                 Ok(x.0.read().unwrap().datumTemplateName.clone())
@@ -41,7 +50,16 @@ impl DataSchema {
     }
     pub fn get_attribute_names(&self) -> Vec<String> {
         match self {
-            DataSchema::FasttextEmbeddingSchema(x) => x.0.read().unwrap().source_schema().0.read().unwrap().attributes.clone(),
+            DataSchema::FasttextEmbeddingSchema(x) => {
+                x.0.read()
+                    .unwrap()
+                    .source_schema()
+                    .0
+                    .read()
+                    .unwrap()
+                    .attributes
+                    .clone()
+            }
             DataSchema::TabularSchema(x) => x.0.read().unwrap().attributes.clone(),
             DataSchema::TimeOrderedTabularSchema(x) => x.0.read().unwrap().attributes.clone(),
             DataSchema::UndefinedTabularSchema(_) => vec![],

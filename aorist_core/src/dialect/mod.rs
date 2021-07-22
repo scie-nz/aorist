@@ -1,6 +1,6 @@
-use std::collections::BTreeSet;
 #[cfg(feature = "python")]
 use pyo3::prelude::*;
+use std::collections::BTreeSet;
 
 #[cfg_attr(feature = "python", pyclass)]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]

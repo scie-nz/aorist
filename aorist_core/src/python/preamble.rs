@@ -1,10 +1,10 @@
 use crate::code::Preamble;
 use crate::python::PythonImport;
+use aorist_ast::FunctionDef;
 use pyo3::prelude::*;
 use pyo3::types::{PyList, PyModule, PyString, PyTuple};
 use std::hash::Hash;
 use tracing::debug;
-use aorist_ast::FunctionDef;
 
 pub trait TPythonPreamble {
     fn to_python_ast_nodes<'b>(
@@ -26,7 +26,7 @@ def to_nodes(body):
             "helpers",
         )
         .unwrap();
-        debug!("Import body: {}", self.get_body());         
+        debug!("Import body: {}", self.get_body());
         let out: &PyList = helpers
             .call1("to_nodes", (self.get_body(),))
             .unwrap()
@@ -69,9 +69,10 @@ impl Preamble for PythonStatementsPreamble {
 impl Preamble for RPythonPreamble {
     type ImportType = PythonImport;
     fn get_imports(&self) -> Vec<Self::ImportType> {
-        vec![
-            PythonImport::PythonModuleImport("rpy2.objects".to_string(), Some("robjects".to_string())),
-        ]
+        vec![PythonImport::PythonModuleImport(
+            "rpy2.objects".to_string(),
+            Some("robjects".to_string()),
+        )]
     }
 }
 impl Preamble for NativePythonPreamble {
@@ -86,7 +87,11 @@ impl Preamble for NativePythonPreamble {
 }
 impl TPythonPreamble for RPythonPreamble {
     fn get_body(&self) -> String {
-        format!("robjects.r(\"\"\"{}\"\"\")", self.body.clone().replace("'", "\\'")).to_string()
+        format!(
+            "robjects.r(\"\"\"{}\"\"\")",
+            self.body.clone().replace("'", "\\'")
+        )
+        .to_string()
     }
 }
 impl TPythonPreamble for NativePythonPreamble {
@@ -114,9 +119,10 @@ impl PythonPreamble {
         match &self {
             PythonPreamble::NativePythonPreamble(x) => x.to_python_ast_nodes(py, ast_module, depth),
             PythonPreamble::RPythonPreamble(x) => x.to_python_ast_nodes(py, ast_module, depth),
-            PythonPreamble::PythonStatementsPreamble(x) => vec![
-                x.function.to_python_ast_node(py, ast_module, depth).unwrap()
-            ],
+            PythonPreamble::PythonStatementsPreamble(x) => vec![x
+                .function
+                .to_python_ast_node(py, ast_module, depth)
+                .unwrap()],
         }
     }
 }

@@ -1,14 +1,14 @@
 #![allow(dead_code)]
 use super::airflow_bash_operator_task::AirflowBashOperatorTask;
 use super::python_subprocess_task::PythonSubprocessTask;
+use crate::python::ast::AirflowTaskBase;
+use crate::python::ast::PythonTaskBase;
 use crate::python::PythonImport;
-use aorist_ast::{AST, Formatted};
+use aorist_ast::{Formatted, AST};
 use aorist_primitives::define_task_node;
+use linked_hash_map::LinkedHashMap;
 use std::hash::Hash;
 use std::sync::{Arc, RwLock};
-use crate::python::ast::PythonTaskBase;
-use crate::python::ast::AirflowTaskBase;
-use linked_hash_map::LinkedHashMap;
 
 define_task_node!(
     BashPythonTask,
@@ -28,7 +28,7 @@ impl PythonTaskBase for BashPythonTask {
 }
 impl AirflowTaskBase for BashPythonTask {
     fn get_dependencies(&self) -> Option<AST> {
-        self.dependencies.clone()        
+        self.dependencies.clone()
     }
 }
 impl PythonSubprocessTask for BashPythonTask {

@@ -1,20 +1,22 @@
 use crate::dialect::Dialect;
 use crate::flow::etl_flow::ETLFlow;
 use crate::flow::flow_builder::FlowBuilderBase;
+use crate::flow::python_based_flow::PythonBasedFlow;
 use crate::flow::python_based_flow_builder::PythonBasedFlowBuilder;
-use crate::python::{PythonImport, PythonPreamble, RPythonTask, NativePythonPreamble, PythonFlowBuilderInput};
+use crate::python::{
+    NativePythonPreamble, PythonFlowBuilderInput, PythonImport, PythonPreamble, RPythonTask,
+};
 use aorist_ast::{
     Assignment, Attribute, Call, Expression, ForLoop, Formatted, SimpleIdentifier, StringLiteral,
     AST,
 };
 use aorist_primitives::register_task_nodes;
 use aorist_primitives::AoristUniverse;
+use aorist_primitives::TPrestoEndpoints;
 use linked_hash_map::LinkedHashMap;
 use std::hash::{Hash, Hasher};
 use std::marker::PhantomData;
 use std::sync::{Arc, RwLock};
-use crate::flow::python_based_flow::PythonBasedFlow;
-use aorist_primitives::{TPrestoEndpoints};
 
 register_task_nodes! {
     PrefectTask,
@@ -38,9 +40,10 @@ pub struct PrefectPythonBasedFlow<U: AoristUniverse> {
     _universe: PhantomData<U>,
 }
 
-impl<U: AoristUniverse> PythonBasedFlow<U> for PrefectPythonBasedFlow<U> 
+impl<U: AoristUniverse> PythonBasedFlow<U> for PrefectPythonBasedFlow<U>
 where
-    U::TEndpoints: TPrestoEndpoints {
+    U::TEndpoints: TPrestoEndpoints,
+{
     fn get_preamble_string(&self) -> Option<String> {
         self.preamble.clone()
     }
@@ -53,7 +56,7 @@ impl<U: AoristUniverse> ETLFlow<U> for PrefectPythonBasedFlow<U> {
         let preambles = match self.dialect {
             Some(Dialect::Python(_)) => match self.preamble {
                 Some(ref p) => vec![PythonPreamble::NativePythonPreamble(
-                    NativePythonPreamble::new(p.clone())
+                    NativePythonPreamble::new(p.clone()),
                 )],
                 None => Vec::new(),
             },
@@ -267,8 +270,8 @@ impl<U: AoristUniverse> PythonBasedFlowBuilder<U> for PrefectFlowBuilder<U> {
             .into_iter()
             .chain(
                 vec![PythonFlowBuilderInput::statements_only(
-                    vec![
-                        AST::Expression(Expression::new_wrapped(AST::Call(Call::new_wrapped(
+                    vec![AST::Expression(Expression::new_wrapped(AST::Call(
+                        Call::new_wrapped(
                             AST::Attribute(Attribute::new_wrapped(
                                 self.flow_identifier.clone(),
                                 "run".into(),
@@ -276,8 +279,8 @@ impl<U: AoristUniverse> PythonBasedFlowBuilder<U> for PrefectFlowBuilder<U> {
                             )),
                             Vec::new(),
                             LinkedHashMap::new(),
-                        ))))
-                    ],
+                        ),
+                    )))],
                     "Run Prefect flow".to_string(),
                     None,
                     None,
