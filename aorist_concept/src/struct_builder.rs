@@ -956,9 +956,41 @@ impl Builder for StructBuilder {
                     })?))
                 }
             }
+            impl AoristRef<#struct_name> {
+                pub fn deep_clone(&self) -> Self {
+                    AoristRef(std::sync::Arc::new(std::sync::RwLock::new(self.0.read().unwrap().deep_clone())))
+                }
+            }
             impl #struct_name {
                 pub fn get_uuid(&self) -> Option<Uuid> {
                     self.uuid.clone()
+                }
+                fn deep_clone(&self) -> Self {
+                    assert!(self.uuid.is_none());
+                    Self {
+                        #(
+                            #bare_ident: self.#bare_ident.deep_clone(),
+                        )*
+                        #(
+                            #option_ident: self.#option_ident.as_ref().and_then(|x| Some(x.deep_clone())),
+                        )*
+                        #(
+                            #vec_ident: self.#vec_ident.iter().map(|x| x.deep_clone()).collect(),
+                        )*
+                        #(
+                            #option_vec_ident: self.#option_vec_ident.as_ref().and_then(|x| Some(
+                                x.iter().map(|x| x.deep_clone()).collect()
+                            )),
+                        )*
+                        #(
+                            #map_ident: self.#map_ident.iter().map(|(k, v)| (k.clone(), v.deep_clone())).collect(),
+                        )*
+                        #(
+                            #unconstrainable_name: self.#unconstrainable_name.clone(),
+                        )*
+                        tag: self.tag.clone(),
+                        uuid: None,
+                    }
                 }
                 fn compute_uuids(&mut self) {
                     #(

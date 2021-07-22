@@ -1,5 +1,5 @@
 use crate::python::PythonImport;
-use aorist_ast::{AST, Call, StringLiteral, SimpleIdentifier, Formatted};
+use aorist_ast::{AST, Call, StringLiteral, SimpleIdentifier};
 use aorist_primitives::define_task_node;
 use std::hash::Hash;
 use std::sync::{Arc, RwLock};

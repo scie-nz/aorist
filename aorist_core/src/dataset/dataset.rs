@@ -119,9 +119,9 @@ impl PyDataSet {
             replicated_assets.insert(
                 key.clone(),
                 AoristRef(Arc::new(RwLock::new(asset.replicate_to_local(
-                    storage.inner.clone(),
+                    storage.inner.deep_clone(),
                     tmp_dir.clone(),
-                    tmp_encoding.inner.clone(),
+                    tmp_encoding.inner.deep_clone(),
                 )))),
             );
         }

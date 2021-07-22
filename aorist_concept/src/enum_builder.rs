@@ -281,6 +281,13 @@ impl Builder for EnumBuilder {
                       )*
                   }
               }
+              pub fn deep_clone(&self) -> Self {
+                  match &self {
+                      #(
+                        #enum_name::#variant(x) => #enum_name::#variant(x.deep_clone()),
+                      )*
+                  }
+              }
               fn get_tag(&self) -> Option<String> {
                   match self {
                       #(
@@ -304,6 +311,11 @@ impl Builder for EnumBuilder {
                           },
                       )*
                   }
+              }
+          }
+          impl AoristRef<#enum_name> {
+              pub fn deep_clone(&self) -> Self {
+                  AoristRef(std::sync::Arc::new(std::sync::RwLock::new(self.0.read().unwrap().deep_clone())))
               }
           }
           impl AoristConcept for AoristRef<#enum_name> {
