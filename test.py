@@ -28,7 +28,7 @@ Data will be replicated to Hive
 """
 local = HiveTableStorage(
     location=HiveLocation(MinioLocation(name='reddit')),
-    encoding=Encoding(CSVEncoding()),
+    encoding=Encoding(NewlineDelimitedJSONEncoding()),
     layout=TabularLayout(StaticTabularLayout()),
 )
 """
@@ -84,7 +84,7 @@ universe.compute_uuids()
 
 result = dag(
     universe,
-    ["UploadDataToMinio"],
+    ["UploadDataToMinio", "JSONTableSchemasCreated"],
     "airflow",
     programs,
     dialect_preferences=[

@@ -202,6 +202,10 @@ where U::TEndpoints: TPrestoEndpoints {
         endpoints: U::TEndpoints,
     ) -> Self {
         let command = match &dialect {
+            Some(Dialect::Presto(_)) => AST::StringLiteral(StringLiteral::new_wrapped(
+                call.as_ref().unwrap().to_string(),
+                true,
+            )),
             Some(_) => AST::StringLiteral(StringLiteral::new_wrapped(
                 call.as_ref().unwrap().to_string(),
                 false,
