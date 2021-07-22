@@ -4,6 +4,7 @@ import convert_json_to_csv
 import fasttext_training_data
 import train_fasttext_model
 import upload_data_to_minio
+import upload_fasttext_to_minio
 from aorist import register_recipes
 
 programs = register_recipes(
@@ -13,6 +14,7 @@ programs = register_recipes(
         convert_json_to_csv,
         fasttext_training_data,
         train_fasttext_model,
+        upload_fasttext_to_minio,
     ],
     sql_modules=[
         "recipes/hive_directories_created.presto.sql",

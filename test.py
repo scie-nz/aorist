@@ -82,7 +82,10 @@ Creating the dataset
 """
 subreddits = DataSet(
     name="subreddits",
-    description="A selection of small region-based Subreddits to demonstrate collecting Reddit data via [Pushshift](https://pushshift.io/).",
+    description="""
+    A selection of small region-based Subreddits to demonstrate 
+    collecting Reddit data via [Pushshift](https://pushshift.io/).
+    """,
     source_path=__file__,
     datum_templates=[DatumTemplate(subreddit_datum)],
     assets=assets,
@@ -101,8 +104,8 @@ universe.compute_uuids()
 
 result = dag(
     universe,
-    ["TrainFasttextModel"],
-    "python",
+    ["UploadFasttextToMinio"],
+    "airflow",
     programs,
     dialect_preferences=[
         R(),
