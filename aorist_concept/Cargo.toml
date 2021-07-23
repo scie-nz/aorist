@@ -1,24 +1,25 @@
 [package]
 name = "aorist_concept"
-description = """
-aorist_concept macro.
-"""
+description = "This crate provides the aorist macro, which creates a conceptual hierarchy in the aorist project"
+license = "MIT"
 version = "0.0.1"
 authors = ["Bogdan State <bogdan@scie.nz>"]
-license = "MIT"
 edition = "2018"
+homepage = "https://aorist.io"
+readme = false
+repository = "https://github.com/scie-nz/aorist"
 
 [lib]
 proc-macro = true
 
 [dependencies]
+aorist_util = "0.0.1"
 linked_hash_set = "0.1.4"
 proc-macro2 = "1.0.25"
 quote = "1"
 serde = { version = "1.0", features = ["derive"] }
 serde_yaml = "0.8"
 syn = {version = "1.0.52", features = ["full", "extra-traits", "printing"]}
-type_macro_helpers = { path = "../type_macro_helpers" }
 
 [features]
 log_syntax = []

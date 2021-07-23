@@ -6,7 +6,7 @@ use quote::quote;
 use std::fs::OpenOptions;
 use std::io::prelude::*;
 use syn::{Field, FieldsNamed, Meta, Type};
-use type_macro_helpers::{
+use aorist_util::{
     extract_type_from_aorist_ref, extract_type_from_map, extract_type_from_option,
     extract_type_from_vector,
 };
