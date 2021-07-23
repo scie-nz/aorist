@@ -1,12 +1,17 @@
 [package]
 name = "aorist_primitives"
-version = "0.1.0"
+description = "Primitive macros for the aorist project."
+license = "MIT"
+version = "0.0.1"
 authors = ["Bogdan State <bogdan@scie.nz>"]
 edition = "2018"
+homepage = "https://aorist.io"
+readme = false
+repository = "https://github.com/scie-nz/aorist"
 
 [dependencies]
 anyhow = "1.0"
-aorist_derive = {path = "../aorist_derive"}
+aorist_derive = "0.0.1"
 paste = {git = "https://github.com/scie-nz/paste", branch = "main"}
 serde = { version = "1.0", features = ["derive"] }
 serde_yaml = "0.8"
