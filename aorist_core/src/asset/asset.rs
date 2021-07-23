@@ -9,7 +9,7 @@ use crate::schema::*;
 use crate::storage::Storage;
 use crate::storage_setup::*;
 use aorist_concept::{aorist, Constrainable};
-use paste::paste;
+use aorist_paste::paste;
 #[cfg(feature = "python")]
 use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};

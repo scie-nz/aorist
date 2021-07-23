@@ -9,7 +9,7 @@ use crate::storage::remote_storage::*;
 use crate::storage::sqlite_storage::*;
 use aorist_concept::{aorist, Constrainable};
 use aorist_primitives::{AoristConcept, ConceptEnum};
-use paste::paste;
+use aorist_paste::paste;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
 use uuid::Uuid;

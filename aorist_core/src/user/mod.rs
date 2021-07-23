@@ -5,7 +5,7 @@ use crate::role::*;
 use aorist_concept::{aorist, Constrainable};
 use aorist_primitives::TAoristObject;
 use derivative::Derivative;
-use paste::paste;
+use aorist_paste::paste;
 use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
 use std::fmt::Debug;

@@ -5,7 +5,7 @@ use crate::schema::*;
 use crate::storage_setup::*;
 use aorist_concept::{aorist, Constrainable};
 use derivative::Derivative;
-use paste::paste;
+use aorist_paste::paste;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
 use uuid::Uuid;

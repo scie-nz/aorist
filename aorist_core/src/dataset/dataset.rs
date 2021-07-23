@@ -2,7 +2,9 @@
 use crate::access_policy::*;
 use crate::asset::*;
 use crate::concept::{AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
+#[cfg(feature = "python")]
 use crate::encoding::*;
+#[cfg(feature = "python")]
 use crate::storage::*;
 use crate::storage_setup::*;
 use crate::template::*;
@@ -10,7 +12,7 @@ use aorist_concept::{aorist, Constrainable};
 use aorist_primitives::TAoristObject;
 use derivative::Derivative;
 use linked_hash_map::LinkedHashMap;
-use paste::paste;
+use aorist_paste::paste;
 #[cfg(feature = "python")]
 use pyo3::exceptions::PyValueError;
 #[cfg(feature = "python")]
@@ -18,6 +20,7 @@ use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use std::fmt::Debug;
+#[cfg(feature = "python")]
 use std::sync::{Arc, RwLock};
 use uuid::Uuid;
 

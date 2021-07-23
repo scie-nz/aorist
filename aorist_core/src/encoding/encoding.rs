@@ -13,7 +13,8 @@ use crate::encoding::json_encoding::*;
 use crate::encoding::onnx_encoding::*;
 use crate::encoding::orc_encoding::*;
 use crate::encoding::tsv_encoding::*;
-use paste::paste;
+use aorist_paste::paste;
+#[cfg(feature = "python")]
 use pyo3::prelude::*;
 use std::fmt::Debug;
 

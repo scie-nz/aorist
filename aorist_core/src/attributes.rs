@@ -10,13 +10,13 @@ use aorist_primitives::{AoristConcept, ConceptEnum};
 use derivative::Derivative;
 #[cfg(feature = "sql")]
 use linked_hash_map::LinkedHashMap;
-use paste::paste;
+use aorist_paste::paste;
 #[cfg(feature = "python")]
 use pyo3::exceptions::PyValueError;
 #[cfg(feature = "python")]
 use pyo3::prelude::*;
 #[cfg(feature = "sql")]
-use sqlparser::ast::{ColumnDef, DataType, Expr, Ident, Value};
+use sqlparser::ast::{DataType, Expr};
 #[cfg(feature = "sql")]
 use std::collections::HashMap;
 use std::fmt::Debug;

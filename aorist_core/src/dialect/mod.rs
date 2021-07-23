@@ -7,7 +7,8 @@ use std::collections::BTreeSet;
 pub struct Python {
     pip_requirements: BTreeSet<String>,
 }
-#[cfg_attr(feature = "python", pymethods)]
+#[cfg(feature = "python")]
+#[pymethods]
 impl Python {
     #[new]
     pub fn new(pip_requirements: Vec<String>) -> Self {
@@ -23,7 +24,8 @@ impl Python {
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct R {}
 
-#[cfg_attr(feature = "python", pymethods)]
+#[cfg(feature = "python")]
+#[pymethods]
 impl R {
     #[new]
     pub fn new() -> Self {
@@ -34,7 +36,8 @@ impl R {
 #[cfg_attr(feature = "python", pyclass)]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Bash {}
-#[cfg_attr(feature = "python", pymethods)]
+#[cfg(feature = "python")]
+#[pymethods]
 impl Bash {
     #[new]
     pub fn new() -> Self {
@@ -45,7 +48,8 @@ impl Bash {
 #[cfg_attr(feature = "python", pyclass)]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Presto {}
-#[cfg_attr(feature = "python", pymethods)]
+#[cfg(feature = "python")]
+#[pymethods]
 impl Presto {
     #[new]
     pub fn new() -> Self {

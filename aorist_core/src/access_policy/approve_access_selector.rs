@@ -3,7 +3,7 @@ use crate::concept::{AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
 use crate::user_group::{TUserGroup, UserGroup};
 use aorist_concept::{aorist, Constrainable};
 use derivative::Derivative;
-use paste::paste;
+use aorist_paste::paste;
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
 use std::fmt::Debug;

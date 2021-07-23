@@ -5,7 +5,7 @@ use crate::schema::tabular_schema::*;
 use crate::schema::time_ordered_tabular_schema::*;
 use crate::schema::undefined_tabular_schema::*;
 use aorist_concept::{aorist, Constrainable};
-use paste::paste;
+use aorist_paste::paste;
 #[cfg(feature = "python")]
 use pyo3::exceptions::PyValueError;
 #[cfg(feature = "python")]
@@ -66,6 +66,7 @@ impl DataSchema {
         }
     }
 }
+#[cfg(feature = "python")]
 impl PyDataSchema {
     pub fn get_datum_template_name(&self) -> PyResult<String> {
         match self.inner.0.read().unwrap().get_datum_template_name() {

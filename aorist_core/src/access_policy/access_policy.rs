@@ -3,7 +3,7 @@
 use crate::access_policy::approve_access_selector::*;
 use crate::concept::{AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
 use aorist_concept::{aorist, Constrainable};
-use paste::paste;
+use aorist_paste::paste;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
 use uuid::Uuid;
