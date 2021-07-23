@@ -8,7 +8,7 @@ pub use string_literal::*;
 
 use aorist_derive::Optimizable;
 use aorist_primitives::{define_ast_node, register_ast_nodes};
-use extendr_api::prelude::*;
+use aorist_extendr_api::prelude::*;
 use linked_hash_map::LinkedHashMap;
 use pyo3::prelude::*;
 use pyo3::types::{PyList, PyModule, PyString, PyTuple};
@@ -242,7 +242,7 @@ define_ast_node!(
             .values()
             .map(|x| x.to_r_ast_node(depth))
             .collect::<Vec<_>>();
-        let obj = r!(extendr_api::List::from_values(&elems));
+        let obj = r!(aorist_extendr_api::List::from_values(&elems));
         obj.set_names(dict.elems.keys()).unwrap();
         obj
     },
@@ -358,26 +358,6 @@ define_ast_node!(
         ast_module.call1("Call", (function, args, kwargs))
     },
     |call: &Call, depth: usize| {
-        /*let elems = vec![
-            //AST::StringLiteral(StringLiteral::new_wrapped("call".to_string(), false)),
-            //call.function.clone(),
-        ]
-        .iter()
-        .chain(call.args.iter())
-        .chain(call.keywords.values())
-        .map(|x| x.to_r_ast_node(depth))
-        .collect::<Vec<_>>();
-        let mut names = vec![];
-        for _ in 0..(call.args.len()) {
-            names.push("".to_string());
-        }
-        for name in call.keywords.keys() {
-            names.push(name.to_string());
-        }
-        assert_eq!(names.len(), elems.len());
-        let obj = r!(List::from_values(&elems));
-        obj.set_names(names).unwrap();
-        call!("call", "call", "do.call", call.function.to_r_ast_node(depth), obj, quote = TRUE).unwrap()*/
         unsafe {
             let fn_name = match call.function {
                 AST::SimpleIdentifier(ref x) => x.read().unwrap().name(),
@@ -690,7 +670,7 @@ impl AST {
 #[allow(unused_imports)]
 mod r_ast_tests {
     use crate::*;
-    use extendr_api::prelude::*;
+    use aorist_extendr_api::prelude::*;
 
     #[test]
     fn test_string_literal() {

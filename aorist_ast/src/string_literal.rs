@@ -1,5 +1,5 @@
 use crate::{AncestorRecord, AST};
-use extendr_api::prelude::*;
+use aorist_extendr_api::prelude::*;
 use pyo3::prelude::*;
 use pyo3::types::PyModule;
 use std::hash::Hash;
