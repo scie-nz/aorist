@@ -5,7 +5,7 @@ use syn;
 use syn::punctuated::Punctuated;
 use syn::token::Comma;
 use syn::{Data, DataStruct, DeriveInput, Field, Fields};
-use type_macro_helpers::{extract_type_from_linked_hash_map, extract_type_from_vector};
+use aorist_util::{extract_type_from_linked_hash_map, extract_type_from_vector};
 
 #[proc_macro_derive(PrestoVarchar)]
 pub fn derive_presto_varchar(input: TokenStream) -> TokenStream {

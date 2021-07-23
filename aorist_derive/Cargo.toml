@@ -1,10 +1,14 @@
 [package]
 name = "aorist_derive"
-version = "0.1.0"
-authors = ["Bogdan State <bogdanstate@gmail.com>"]
+description = "derive macros for the aorist project"
+license = "MIT"
+version = "0.0.1"
+authors = ["Bogdan State <bogdan@scie.nz>"]
 edition = "2018"
+homepage = "https://aorist.io"
+readme = false
+repository = "https://github.com/scie-nz/aorist"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [lib]
 name = "aorist_derive"
 path = "src/lib.rs"
@@ -14,4 +18,4 @@ proc-macro = true
 quote = "1.0.7"
 sqlparser = "0.9.0"
 syn = "1.0.48"
-type_macro_helpers = { path = "../type_macro_helpers" }
+aorist_util = "0.0.1"
