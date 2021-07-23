@@ -4,7 +4,6 @@ use serde_yaml::Value;
 use std::collections::{HashMap, HashSet};
 use std::env;
 use std::fs;
-use std::fs::OpenOptions;
 use std::path::Path;
 
 fn process_attributes_py(raw_objects: &Vec<HashMap<String, Value>>) {
@@ -128,13 +127,6 @@ fn process_attributes(raw_objects: &Vec<HashMap<String, Value>>) {
 
 fn main() {
     println!("cargo:rustc-cfg=feature=\"build-time\"");
-    let _file = OpenOptions::new()
-        .truncate(true)
-        .write(true)
-        .create(true)
-        .open("constrainables.txt")
-        .unwrap();
-
     let raw_objects = read_file("attributes.yaml");
     process_attributes(&raw_objects);
     #[cfg(feature = "python")]
