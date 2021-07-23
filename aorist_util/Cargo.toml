@@ -1,14 +1,22 @@
 [package]
 name = "aorist_util"
-version = "0.1.0"
+description = "Utility functions for the aorist project"
+license = "MIT"
+version = "0.0.1"
 authors = ["Bogdan State <bogdan@scie.nz>"]
 edition = "2018"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+homepage = "https://aorist.io"
+readme = false
+repository = "https://github.com/scie-nz/aorist"
 
 [dependencies]
+proc-macro-error = "1.0"
+proc-macro2 = { version = "1", default-features = false }
+quote = "1"
 serde = { version = "1.0", features = ["derive"] }
 serde_yaml = "0.8"
+syn = {version = "1", features = ["full"]}
+thiserror = "^1.0"
 tracing = "0.1"
 tracing-attributes = "0.1"
 tracing-futures = "0.2"
