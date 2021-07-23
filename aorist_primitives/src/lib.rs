@@ -419,7 +419,7 @@ macro_rules! define_attribute {
       $bigquery_type:ident,
       $value:ident
     ) => {
-        paste::item! {
+        aorist_paste::item! {
             #[cfg_attr(feature = "python", pyclass)]
             #[derive(
                 Hash,
@@ -499,7 +499,7 @@ macro_rules! define_attribute {
 macro_rules! define_constraint {
     ($element:ident, $requires_program:expr, $satisfy_type:ident, $root:ident, $outer:ident,
     $title:expr, $body:expr, $should_add:expr, $get_required:expr $(, $required:ident)*) => {
-        paste::item! {
+        aorist_paste::item! {
             #[cfg_attr(feature = "python", pyclass)]
             #[derive(Clone)]
             pub struct $element {
@@ -916,7 +916,7 @@ macro_rules! register_attribute_new {
             }
         }
         #[cfg(feature = "python")]
-        paste::item!(
+        aorist_paste::item!(
             pub fn [<$name:snake:lower>] (m: &PyModule) -> PyResult<()> {
                 $(
                     m.add_class::<$element>()?;
@@ -1122,7 +1122,7 @@ macro_rules! register_attribute {
                 self.inner.get_orc_type()
             }
         }
-        paste::item!(
+        aorist_paste::item!(
             pub fn [<$name:snake:lower>] (m: &PyModule) -> PyResult<()> {
                 $(
                     m.add_class::<$element>()?;
@@ -1135,7 +1135,7 @@ macro_rules! register_attribute {
 
 #[macro_export]
 macro_rules! register_concept {
-    ( $name:ident, $ancestry:ident, $($element: ident ),* ) => { paste::item! {
+    ( $name:ident, $ancestry:ident, $($element: ident ),* ) => { aorist_paste::item! {
         #[derive(Clone, Debug, Serialize, PartialEq)]
         pub enum $name {
             $(
@@ -1351,7 +1351,7 @@ macro_rules! register_concept {
 }
 #[macro_export]
 macro_rules! register_constraint_new {
-    ( $name:ident, $lt: lifetime, $($element: ident),+ ) => { paste::item! {
+    ( $name:ident, $lt: lifetime, $($element: ident),+ ) => { aorist_paste::item! {
         #[derive(Clone)]
         pub enum $name {
             $(
