@@ -4,8 +4,6 @@ use serde_yaml::Value;
 use std::collections::{HashMap, HashSet};
 use std::env;
 use std::fs;
-use std::fs::OpenOptions;
-use std::io::Write;
 use std::path::Path;
 
 type ConstraintTuple = (String, String, Option<String>, Option<String>);
@@ -125,12 +123,6 @@ fn compute_topological_sort(
 }
 
 fn process_constraints(raw_objects: &Vec<HashMap<String, Value>>) {
-    let mut file = OpenOptions::new()
-        .truncate(true)
-        .write(true)
-        .create(true)
-        .open("constraints.txt")
-        .unwrap();
     let constraints = get_raw_objects_of_type(raw_objects, "Constraint".into());
     let mut scope = Scope::new();
     scope.import("uuid", "Uuid");
@@ -249,23 +241,6 @@ fn process_constraints(raw_objects: &Vec<HashMap<String, Value>>) {
             .join("\n,    ")
     ));
     fs::write(&dest_path, scope.to_string()).unwrap();
-    for (name, _, _, _) in &order {
-        writeln!(
-            file,
-            "node [shape = box, color=red, fontname = Helvetica, fontcolor=red] '{}';",
-            name
-        )
-        .unwrap();
-    }
-    for (name, root, title, body) in &order {
-        writeln!(file, "'{}'->'{}'[color=red];", name, root,).unwrap();
-        let required = dependencies
-            .get(&(name.clone(), root.clone(), title.clone(), body.clone()))
-            .unwrap();
-        for req in required {
-            writeln!(file, "'{}'->'{}'[color=red];", name, req).unwrap();
-        }
-    }
 }
 
 fn main() {
