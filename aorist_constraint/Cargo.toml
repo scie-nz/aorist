@@ -24,8 +24,8 @@ path = "src/lib.rs"
 [dependencies]
 serde = { version = "1.0", features = ["derive"] }
 aorist_primitives = {path = "../aorist_primitives", features=[], version = "0.0.11"}
-aorist_ast = {path = "../aorist_ast", features=[], version = "0.0.1"}
-aorist_core = {path = "../aorist_core", features=[], version = "0.0.1"}
+aorist_ast = {path = "../aorist_ast", features=[], version = "0.0.11"}
+aorist_core = {path = "../aorist_core", features=[], version = "0.0.11"}
 aorist_util = {path = "../aorist_util", version = "0.0.1"}
 maplit = "1.0.2"
 aorist_paste = "0.0.1"
