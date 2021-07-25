@@ -530,8 +530,7 @@ macro_rules! define_constraint {
                 fn get_dialect() -> Dialect;
             }
 
-            #[cfg(feature = "python")]
-            #[pyclass]
+            #[cfg_attr(feature = "python", pyclass)]
             #[derive(Clone)]
             pub struct [<$element Program>] {
                 pub dialect: Dialect,
@@ -625,7 +624,6 @@ macro_rules! define_constraint {
                     })
                 }
             }
-            #[cfg(feature = "python")]
             impl <'a> TProgram<'a, $element> for [<$element Program>] {
                 fn new(
                     code: String,
@@ -1358,11 +1356,12 @@ macro_rules! register_constraint_new {
                 $element($element),
             )+
         }
-        #[pyclass]
+        #[cfg_attr(feature = "python", pyclass)]
         #[derive(Clone)]
         pub struct [<$name Program>] {
             inner: [<$name ProgramEnum>],
         }
+
         #[cfg(feature = "python")]
         #[pymethods]
         impl [<$name Program>] {
@@ -1476,14 +1475,15 @@ macro_rules! register_constraint_new {
                 )
             }
         }
-        #[cfg(feature = "python")]
-        #[derive(Clone, pyo3::prelude::FromPyObject)]
+        #[cfg_attr(feature = "python", derive(pyo3::prelude::FromPyObject))]
+        #[derive(Clone)]
         pub enum [<$name ProgramEnum>] {
             $(
                 $element([<$element Program>]),
             )+
         }
         impl [<$name ProgramEnum>] {
+            #[cfg(feature = "python")]
             pub fn get_arg_functions(&self) -> Vec<(Vec<String>, String)> {
                 match self {
                     $(
