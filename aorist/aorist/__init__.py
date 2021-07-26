@@ -2,7 +2,7 @@ import inspect
 import dill
 import ast
 import astor
-from aorist.target.debug.libaorist import *
+from .aorist import *
 import re
 import imp
 import builtins
@@ -21,7 +21,7 @@ def default_tabular_schema(datum, template_name, attributes):
 
 def to_str(source):
     source_lines, _ = inspect.getsourcelines(source)
-    
+
     f = inspect.getsourcefile(source)
     linecache.checkcache(f)
     module = inspect.getmodule(source, f)
@@ -36,7 +36,7 @@ def to_str(source):
     )
     decorator_pos = [i for (i, l) in enumerate(lines) if re.match(pat_decorator, l)]
     recipe_pos = [i for (i, l) in enumerate(lines) if re.match(pat_recipe, l)]
-    if len(decorator_pos) != 1 or len(recipe_pos) != 1:  
+    if len(decorator_pos) != 1 or len(recipe_pos) != 1:
         raise ValueError("recipe function must be unique and last in file")
     source_lines = lines[decorator_pos[0]:]
 

@@ -90,7 +90,7 @@ pub fn dag<'a>(
 }
 
 #[pymodule]
-fn libaorist(py: pyo3::prelude::Python, m: &PyModule) -> PyResult<()> {
+fn aorist(py: pyo3::prelude::Python, m: &PyModule) -> PyResult<()> {
     init_logging();
     attributes_module(py, m)?;
     constraints_module(py, m)?;

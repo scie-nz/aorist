@@ -6,7 +6,7 @@ version = "0.0.1"
 authors = ["Bogdan State <bogdan@scie.nz>"]
 edition = "2018"
 homepage = "https://aorist.io"
-readme = false
+readme = "../README.md"
 repository = "https://github.com/scie-nz/aorist"
 
 [lib]
