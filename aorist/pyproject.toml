@@ -1,12 +1,6 @@
-[build-system]
-requires = ["maturin>=0.10,<0.11"]
-build-backend = "maturin"
-
 [project]
 name = "Aorist"
 dependencies = ["astor==0.8.1", "ast", "black", "dill", "rpy2"]
 
-[tool.maturin]
-bindings = "pyo3"
-compatibility = "linux"
-
+[build-system]
+requires = ["setuptools", "wheel", "setuptools-rust"]
