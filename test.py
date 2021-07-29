@@ -34,7 +34,7 @@ local = HiveTableStorage(
 """
 Declaring where our subreddits live, i.e. in PushShift
 """
-subreddits = ['france', 'newzealand']
+subreddits = ['france']#, 'newzealand']
 tabular_schema = default_tabular_schema(
     subreddit_datum, subreddit_datum.name, attributes
 )
@@ -85,7 +85,7 @@ Creating the dataset
 subreddits = DataSet(
     name="subreddits",
     description="""
-    A selection of small region-based Subreddits to demonstrate 
+    A selection of small region-based Subreddits to demonstrate
     collecting Reddit data via [Pushshift](https://pushshift.io/).
     """,
     source_path=__file__,

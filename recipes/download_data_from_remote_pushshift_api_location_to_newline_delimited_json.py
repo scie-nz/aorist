@@ -16,14 +16,14 @@ def recipe(subreddit, tmp_dir):
     from pmaw import PushshiftAPI
     import json
     import os
-    
+
     def download_subreddit(subreddit, tmp_dir):
-    
+
         if not os.path.exists(tmp_dir):
             os.makedirs(tmp_dir)
-    
+
         output_file = '%s/data.json' % tmp_dir
-    
+
         if not os.path.exists(output_file) or os.stat(output_file).st_size == 0:
             api = PushshiftAPI(
                 num_workers=16,
@@ -39,5 +39,5 @@ def recipe(subreddit, tmp_dir):
               for post in posts:
                   line = json.dumps(post) + chr(10)
                   f.write(line)
-    
-    
+
+

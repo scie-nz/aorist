@@ -4,7 +4,7 @@ build-backend = "maturin"
 
 [project]
 name = "Aorist"
-dependencies = ["astor==0.8.1", "ast", "black", "dill"]
+dependencies = ["astor==0.8.1", "ast", "black", "dill", "rpy2"]
 
 [tool.maturin]
 bindings = "pyo3"
