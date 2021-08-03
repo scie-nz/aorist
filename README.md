@@ -4,6 +4,16 @@ Aorist is a code-generation tool for MLOps. Its aim is to generate legible
 code for common repetitive tasks in data science, such as data replication,
 common transformations, as well as machine learning operations.
 
+## Installation instructions
+
+```
+conda create --name aorist python=3.8
+conda activate aorist
+conda install aorist -c scienz
+PYTHONPATH=recipes/ python test.py
+```
+
+
 ## How to build
 
 Make sure you have Rust [installed](https://www.rust-lang.org/tools/install), following the instructions there, then run:

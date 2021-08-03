@@ -1,0 +1,32 @@
+package:
+  name: "aorist"
+  version: "0.0.1"
+
+source:
+  path: .
+
+build:
+  number: 1
+  entry_points:
+    - aorist=aorist:main
+
+requirements:
+  host:
+    - python
+    - setuptools-rust
+    - setuptools
+    - conda-build
+  run:
+    - python
+    - astor==0.8.1
+    - black
+    - dill
+    - rpy2
+
+about:
+  home: "https://github.com/scie-nz/aorist"
+  license: MIT
+  license_family: MIT
+  license_file:
+  summary: "Aorist is a code-generation tool for MLOps. Its aim is to generate legible code for common repetitive tasks in data science, such as data replication, common transformations, as well as machine learning operations."
+
