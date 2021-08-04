@@ -140,7 +140,7 @@ def sql_module(filename):
         ast.Dict([],[]),
     ))
     code = astor.to_source(tree)
-    module_name = filename.replace('presto.sql', '').replace('recipes/', '')
+    module_name = filename.replace('presto.sql', '').split('/')[-1]
     module = imp.new_module(module_name)
     exec(code, module.__dict__)
     return module
