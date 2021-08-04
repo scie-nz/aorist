@@ -1,10 +1,10 @@
-import download_data_from_remote_web_location
-import download_data_from_remote_pushshift_api_location_to_newline_delimited_json
-import convert_json_to_csv
-import fasttext_training_data
-import train_fasttext_model
-import upload_data_to_minio
-import upload_fasttext_to_minio
+from . import download_data_from_remote_web_location
+from . import download_data_from_remote_pushshift_api_location_to_newline_delimited_json
+from . import convert_json_to_csv
+from . import fasttext_training_data
+from . import train_fasttext_model
+from . import upload_data_to_minio
+from . import upload_fasttext_to_minio
 import pathlib
 from aorist import register_recipes
 

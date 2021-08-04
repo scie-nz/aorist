@@ -420,7 +420,7 @@ macro_rules! define_attribute {
       $value:ident
     ) => {
         aorist_paste::item! {
-            #[cfg_attr(feature = "python", pyclass)]
+            #[cfg_attr(feature = "python", pyclass(module = "aorist"))]
             #[derive(
                 Hash,
                 PartialEq,
@@ -500,7 +500,7 @@ macro_rules! define_constraint {
     ($element:ident, $requires_program:expr, $satisfy_type:ident, $root:ident, $outer:ident,
     $title:expr, $body:expr, $should_add:expr, $get_required:expr $(, $required:ident)*) => {
         aorist_paste::item! {
-            #[cfg_attr(feature = "python", pyclass)]
+            #[cfg_attr(feature = "python", pyclass(module = "aorist"))]
             #[derive(Clone)]
             pub struct $element {
                 id: Uuid,
@@ -530,7 +530,7 @@ macro_rules! define_constraint {
                 fn get_dialect() -> Dialect;
             }
 
-            #[cfg_attr(feature = "python", pyclass)]
+            #[cfg_attr(feature = "python", pyclass(module = "aorist"))]
             #[derive(Clone)]
             pub struct [<$element Program>] {
                 pub dialect: Dialect,
@@ -1203,7 +1203,7 @@ macro_rules! register_concept {
             }
         )+
 
-        #[cfg_attr(feature = "python", pyclass)]
+        #[cfg_attr(feature = "python", pyclass(module = "aorist"))]
         pub struct $ancestry {
             pub parents: Arc<RwLock<HashMap<(Uuid, String), AoristRef<$name>>>>,
         }
@@ -1356,7 +1356,7 @@ macro_rules! register_constraint_new {
                 $element($element),
             )+
         }
-        #[cfg_attr(feature = "python", pyclass)]
+        #[cfg_attr(feature = "python", pyclass(module = "aorist"))]
         #[derive(Clone)]
         pub struct [<$name Program>] {
             inner: [<$name ProgramEnum>],

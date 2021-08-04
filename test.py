@@ -1,7 +1,7 @@
 import inspect
 import copy
 from aorist import *
-from recipes import programs
+from aorist_recipes import programs
 from common import endpoints
 
 """

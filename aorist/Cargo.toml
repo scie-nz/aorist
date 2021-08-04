@@ -2,7 +2,7 @@
 name = "aorist"
 description = "Cdylib for aorist project. Can be accessed from Python."
 license = "MIT"
-version = "0.0.1"
+version = "0.0.12"
 authors = ["Bogdan State <bogdan@scie.nz>"]
 edition = "2018"
 homepage = "https://aorist.io"
@@ -20,16 +20,11 @@ default = ["extension-module"]
 
 [dependencies]
 serde = { version = "1.0", features = ["derive"] }
-# aorist_constraint = {path = "../aorist_constraint", features=["python"], version = "0.0.1"}
-# aorist_attributes = {path = "../aorist_attributes", features=["python"], version = "0.0.11"}
-# aorist_primitives = {path = "../aorist_primitives", features=[], version = "0.0.11"}
-# aorist_core = {path = "../aorist_core", features=["python"], version = "0.0.11"}
-# aorist_util = {path = "../aorist_util", version = "0.0.1"}
-aorist_constraint = {features=["python"], version = "0.0.1"}
-aorist_attributes = {features=["python"], version = "0.0.11"}
-aorist_primitives = {features=[], version = "0.0.11"}
-aorist_core = {features=["python"], version = "0.0.11"}
-aorist_util = {version = "0.0.1"}
+aorist_constraint = {path = "../aorist_constraint", features=["python"], version = "0.0.12"}
+aorist_attributes = {path = "../aorist_attributes", features=["python"], version = "0.0.12"}
+aorist_primitives = {path = "../aorist_primitives", features=[], version = "0.0.12"}
+aorist_core = {path = "../aorist_core", features=["python"], version = "0.0.12"}
+aorist_util = {path = "../aorist_util", version = "0.0.1"}
 maplit = "1.0.2"
 aorist_paste = {version = "0.0.1"}
 uuid = {version = "0.8.1", features = ["v4", "serde"]}
