@@ -9,8 +9,8 @@ common transformations, as well as machine learning operations.
 ```
 conda create --name aorist python=3.8
 conda activate aorist
-conda install aorist -c scienz
-PYTHONPATH=recipes/ python test.py
+conda install aorist aorist_recipes scienz -c scienz
+python test.py
 ```
 
 

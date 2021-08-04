@@ -1,0 +1,22 @@
+package:
+  name: "scienz"
+  version: "0.0.1"
+
+source:
+  path: .
+
+requirements:
+  host:
+    - python
+    - setuptools
+  run:
+    - python
+    - aorist
+
+about:
+  home: "https://github.com/scie-nz/aorist"
+  license: MIT
+  license_family: MIT
+  license_file:
+  summary: "Common dataset definitions for aorist package."
+
