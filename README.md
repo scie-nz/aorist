@@ -6,10 +6,19 @@ common transformations, as well as machine learning operations.
 
 ## Installation instructions
 
+Aorist currently only works on 64-bit Linux.
+
+1. Install [Anaconda](https://www.anaconda.com/products/individual#linux).
+
+2. Run:
+
 ```
-conda create --name aorist python=3.8
+conda create -n aorist -c scienz -c conda-forge aorist aorist_recipes scienz
 conda activate aorist
-conda install aorist aorist_recipes scienz -c scienz
+```
+
+You can test aorist by running:
+```
 python test.py
 ```
 

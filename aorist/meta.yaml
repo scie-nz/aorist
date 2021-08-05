@@ -13,11 +13,13 @@ build:
 requirements:
   host:
     - python
+    - __glibc==2.31=0
     - setuptools-rust
     - setuptools
     - conda-build
   run:
     - python
+    - __glibc==2.31=0
     - astor==0.8.1
     - black
     - dill
