@@ -2,7 +2,7 @@
 name = "aorist_constraint"
 description = "Example constraint crate for the aorist project"
 license = "MIT"
-version = "0.0.12"
+version = "0.0.13"
 authors = ["Bogdan State <bogdan@scie.nz>"]
 edition = "2018"
 homepage = "https://aorist.io"
@@ -25,7 +25,7 @@ path = "src/lib.rs"
 serde = { version = "1.0", features = ["derive"] }
 aorist_primitives = {path = "../aorist_primitives", features=[], version = "0.0.12"}
 aorist_ast = {path = "../aorist_ast", features=[], version = "0.0.12"}
-aorist_core = {path = "../aorist_core", features=[], version = "0.0.12"}
+aorist_core = {path = "../aorist_core", features=[], version = "0.0.13"}
 aorist_util = {path = "../aorist_util", version = "0.0.1"}
 maplit = "1.0.2"
 aorist_paste = "0.0.1"

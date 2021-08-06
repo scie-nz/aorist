@@ -38,6 +38,9 @@ pub struct DataSet {
 }
 
 impl DataSet {
+    pub fn add_asset(&mut self, asset_name: String, asset: AoristRef<Asset>) {
+        self.assets.insert(asset_name, asset);
+    }
     pub fn get_assets(&self) -> Vec<AoristRef<Asset>> {
         self.assets
             .values()
@@ -123,6 +126,16 @@ impl PyDataSet {
 #[cfg(feature = "python")]
 #[pymethods]
 impl PyDataSet {
+    pub fn add_asset(
+        &self,
+        asset_name: String,
+        asset: PyAsset,
+    ) {
+        self.inner.0.write().unwrap().add_asset(
+            asset_name,
+            asset.inner.clone(),
+        );
+    }
     pub fn replicate_to_local(
         &self,
         storage: PyStorage,
