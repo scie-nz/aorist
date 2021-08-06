@@ -27,7 +27,7 @@ embedding = FasttextEmbedding(
     )),
     source_assets=list(subreddits.assets.values()),
 )
-subreddits.assets['embedding'] = Asset(embedding)
+subreddits.add_asset('embedding', Asset(embedding))
 universe = Universe(
     name="my_cluster",
     datasets=[subreddits],
