@@ -6,16 +6,61 @@ common transformations, as well as machine learning operations.
 
 ## Installation instructions
 
-Aorist currently only works on 64-bit Linux.
+### Requirements:
 
-1. Install [Anaconda](https://www.anaconda.com/products/individual#linux).
+- [Anaconda](https://www.anaconda.com/products/individual#linux).
+- a working R install.
+- aorist currently only works on 64-bit Linux.
 
-2. Run:
+## Steps
 
+1. Create Anaconda environment
 ```
 conda create -n aorist -c scienz -c conda-forge aorist aorist_recipes scienz
+
+
+2. Activate the environment
+```
 conda activate aorist
 ```
+
+3. Try it on a test script
+
+```python:test.py
+from aorist import *
+from aorist_recipes import programs
+from scienz import us_subreddits
+from common import endpoints
+
+local = HiveTableStorage(
+    location=HiveLocation(MinioLocation(name='reddit')),
+    encoding=Encoding(NewlineDelimitedJSONEncoding()),
+    layout=TabularLayout(StaticTabularLayout()),
+)
+subreddits = us_subreddits.replicate_to_local(
+    Storage(local), "/tmp/us_subreddits", Encoding(CSVEncoding())
+)
+universe = Universe(
+    name="my_cluster",
+    datasets=[subreddits],
+    endpoints=endpoints,
+)
+universe.compute_uuids()
+result = dag(
+    universe,
+    ["UploadDataToMinio"],
+    "airflow",
+    programs,
+    dialect_preferences=[
+        R(),
+        Python([]),
+        Bash(),
+        Presto(),
+    ],
+)
+print(result)
+```
+
 
 You can test aorist by running:
 ```

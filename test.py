@@ -1,6 +1,8 @@
 from aorist import *
 from aorist_recipes import programs
-from scienz import us_subreddits
+from scienz import (
+    us_subreddits, subreddit_schema
+)
 from common import endpoints
 
 local = HiveTableStorage(
@@ -11,15 +13,31 @@ local = HiveTableStorage(
 subreddits = us_subreddits.replicate_to_local(
     Storage(local), "/tmp/us_subreddits", Encoding(CSVEncoding())
 )
+embedding = FasttextEmbedding(
+    name="embedding",
+    comment="Fasttext embedding of size 128",
+    schema=DataSchema(FasttextEmbeddingSchema(
+        dim=128,
+        source_schema=subreddit_schema,
+        text_attribute_name="selftext",
+    )),
+    setup=StorageSetup(LocalStorageSetup(
+        Storage(local),
+        '/tmp/fasttext_embedding',
+    )),
+    source_assets=list(subreddits.assets.values()),
+)
+subreddits.assets['embedding'] = Asset(embedding)
 universe = Universe(
     name="my_cluster",
     datasets=[subreddits],
     endpoints=endpoints,
 )
+
 universe.compute_uuids()
 result = dag(
     universe,
-    ["UploadDataToMinio"],
+    ["UploadFasttextToMinio"],
     "airflow",
     programs,
     dialect_preferences=[
@@ -30,19 +48,3 @@ result = dag(
     ],
 )
 print(result)
-
-#embedding = FasttextEmbedding(
-#    name="embedding",
-#    comment="Fasttext embedding of size 128",
-#    schema=DataSchema(FasttextEmbeddingSchema(
-#        dim=128,
-#        source_schema=tabular_schema,
-#        text_attribute_name="selftext",
-#    )),
-#    setup=StorageSetup(LocalStorageSetup(
-#        Storage(local),
-#        '/tmp/fasttext_embedding',
-#    )),
-#    source_assets=list(local_subreddits.assets.values()),
-#)
-# subreddits.assets['embedding'] = Asset(embedding)

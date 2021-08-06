@@ -38,7 +38,7 @@ subreddit_datum = RowStruct(
     name="subreddit",
     attributes=attributes,
 )
-tabular_schema = default_tabular_schema(
+subreddit_schema = default_tabular_schema(
     subreddit_datum, subreddit_datum.name, attributes
 )
 
@@ -55,7 +55,7 @@ us_subreddits = ["newyork", "sanfrancisco", "chicago",
 
 assets = {x: Asset(StaticDataTable(
     name=x,
-    schema=DataSchema(tabular_schema),
+    schema=DataSchema(subreddit_schema),
     setup=StorageSetup(RemoteStorageSetup(
         remote=Storage(RemoteStorage(
             location=RemoteLocation(
@@ -78,7 +78,7 @@ assets = {x: Asset(StaticDataTable(
 
 us_assets = {x: Asset(StaticDataTable(
     name=x,
-    schema=DataSchema(tabular_schema),
+    schema=DataSchema(subreddit_schema),
     setup=StorageSetup(RemoteStorageSetup(
         remote=Storage(RemoteStorage(
             location=RemoteLocation(
