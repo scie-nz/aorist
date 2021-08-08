@@ -3,37 +3,48 @@ package:
   version: "0.0.1"
 
 source:
-  path: .
+  - path: aorist_util
+    folder: aorist_util
+  - path: aorist_derive
+    folder: aorist_derive
+  - path: aorist_primitives
+    folder: aorist_primitives
+  - path: aorist_concept
+    folder: aorist_concept
+  - path: aorist_ast
+    folder: aorist_ast
+  - path: aorist_attributes
+    folder: aorist_attributes
+  - path: aorist_core
+    folder: aorist_core
+  - path: aorist_constraint
+    folder: aorist_constraint
+  - path: aorist
+    folder: aorist
 
 build:
   number: 1
   entry_points:
     - aorist=aorist:main
+  script: cd aorist && python setup.py install
 
 requirements:
   host:
-    - pip
     - python
-    #- maturin # Use with maturin only
-    #- toml # Use with maturin only
     - setuptools-rust
     - setuptools
-    - wheel
     - conda-build
-    - astor==0.8.1
-    - black
   run:
     - python
-    - pip
-    - wheel
     - astor==0.8.1
     - black
+    - dill
+    - rpy2
 
 about:
-  home: "https://github.com/giswqs/whitebox"
+  home: "https://github.com/scie-nz/aorist"
   license: MIT
   license_family: MIT
   license_file:
-  summary: "An advanced geospatial data analysis platform"
-  doc_url:
-  dev_url:
+  summary: "Aorist is a code-generation tool for MLOps. Its aim is to generate legible code for common repetitive tasks in data science, such as data replication, common transformations, as well as machine learning operations."
+
