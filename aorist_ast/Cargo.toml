@@ -20,5 +20,5 @@ aorist_primitives = {path = "../aorist_primitives", features = ["python"], versi
 aorist_extendr-api = "0.0.1"
 Inflector = "0.11.4"
 linked-hash-map = "0.5.3"
-pyo3 = {version = "0.13.2", features = ["auto-initialize"]}
+pyo3 = {version = "0.14.1", features = []}
 uuid = {version = "0.8.1", features = ["v4", "serde"]}

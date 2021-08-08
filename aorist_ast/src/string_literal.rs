@@ -87,7 +87,7 @@ impl StringLiteral {
             false => self.value.clone(),
             true => self.pretty_sql_value(depth),
         };
-        ast_module.call1("Constant", (&value,))
+        ast_module.getattr("Constant")?.call1((&value,))
     }
 
     pub fn to_r_ast_node(&self, depth: usize) -> Robj {

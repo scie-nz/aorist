@@ -45,13 +45,12 @@ define_ast_node!(
                 AST::Assignment(_) | AST::Expression(_) => x,
                 _ => panic!("AST node of type {} found in for loop body", x.name()),
             })
-            .map(|x| x.to_python_ast_node(py, ast_module, depth + 1).unwrap())
-            .collect::<Vec<_>>();
+            .map(|x| x.to_python_ast_node(py, ast_module, depth + 1))
+            .collect::<PyResult<Vec<_>>>()?;
         let body_list = PyList::new(py, body_ast);
         let empty_vec: Vec<String> = Vec::new();
         let empty_list = PyList::new(py, empty_vec);
-        ast_module.call1(
-            "For",
+        ast_module.getattr("For")?.call1(
             (
                 for_loop.target.to_python_ast_node(py, ast_module, depth)?,
                 for_loop.iter.to_python_ast_node(py, ast_module, depth)?,
@@ -106,8 +105,7 @@ define_ast_node!(
             py,
             vec![assign_target.to_python_ast_node(py, ast_module, depth)?],
         );
-        ast_module.call1(
-            "Assign",
+        ast_module.getattr("Assign")?.call1(
             (
                 targets,
                 assign.call.to_python_ast_node(py, ast_module, depth)?,
@@ -132,8 +130,7 @@ define_ast_node!(
     Expression,
     |expr: &Expression| vec![expr.inner.clone()],
     |expr: &Expression, py: Python, ast_module: &'a PyModule, depth: usize| {
-        ast_module.call1(
-            "Expr",
+        ast_module.getattr("Expr")?.call1(
             (expr.inner.to_python_ast_node(py, ast_module, depth)?,),
         )
     },
@@ -143,15 +140,16 @@ define_ast_node!(
 define_ast_node!(
     Add,
     |_node: &Add| vec![],
-    |_node: &Add, _py: Python, ast_module: &'a PyModule, _depth: usize| { ast_module.call0("Add") },
+    |_node: &Add, _py: Python, ast_module: &'a PyModule, _depth: usize| { 
+        ast_module.getattr("Add")?.call0() 
+    },
     |_add: &Add, _depth: usize| { panic!("Should not call to_r_ast_node on Add objects directly") },
 );
 define_ast_node!(
     BinOp,
     |node: &BinOp| vec![node.left.clone(), node.right.clone()],
     |node: &BinOp, py: Python, ast_module: &'a PyModule, depth: usize| {
-        ast_module.call1(
-            "BinOp",
+        ast_module.getattr("BinOp")?.call1(
             (
                 node.left.to_python_ast_node(py, ast_module, depth)?,
                 node.op.to_python_ast_node(py, ast_module, depth)?,
@@ -178,19 +176,17 @@ define_ast_node!(
     List,
     |list: &List| list.elems().clone(),
     |list: &List, py: Python, ast_module: &'a PyModule, depth: usize| {
-        let mode = ast_module
-            .call0(match list.store {
+        let mode = ast_module.getattr(match list.store {
                 true => "Store",
                 false => "Load",
-            })
-            .unwrap();
+            })?.call0()?;
         let children = list
             .elems
             .iter()
-            .map(|x| x.to_python_ast_node(py, ast_module, depth).unwrap())
-            .collect::<Vec<_>>();
+            .map(|x| x.to_python_ast_node(py, ast_module, depth))
+            .collect::<PyResult<Vec<_>>>()?;
         let children_list = PyList::new(py, children);
-        ast_module.call1("List", (children_list.as_ref(), mode))
+        ast_module.getattr("List")?.call1((children_list.as_ref(), mode))
     },
     |list: &List, depth: usize| {
         let mut elems = list
@@ -224,17 +220,16 @@ define_ast_node!(
             .map(|x| {
                 StringLiteral::new(x.clone(), false)
                     .to_python_ast_node(py, ast_module, depth + 1)
-                    .unwrap()
             })
-            .collect::<Vec<_>>();
+            .collect::<PyResult<Vec<_>>>()?;
         let values = dict
             .elems
             .values()
-            .map(|x| x.to_python_ast_node(py, ast_module, depth + 1).unwrap())
-            .collect::<Vec<_>>();
+            .map(|x| x.to_python_ast_node(py, ast_module, depth + 1))
+            .collect::<PyResult<Vec<_>>>()?;
         let keys_list = PyList::new(py, keys);
         let values_list = PyList::new(py, values);
-        ast_module.call1("Dict", (keys_list.as_ref(), values_list.as_ref()))
+        ast_module.getattr("Dict")?.call1((keys_list.as_ref(), values_list.as_ref()))
     },
     |dict: &Dict, depth: usize| {
         let elems = dict
@@ -261,18 +256,17 @@ define_ast_node!(
     |tuple: &Tuple| tuple.elems().iter().cloned().collect::<Vec<AST>>(),
     |tuple: &Tuple, py: Python, ast_module: &'a PyModule, depth: usize| {
         let mode = ast_module
-            .call0(match tuple.store {
+            .getattr(match tuple.store {
                 true => "Store",
                 false => "Load",
-            })
-            .unwrap();
+            })?.call0()?;
         let children = tuple
             .elems
             .iter()
-            .map(|x| x.to_python_ast_node(py, ast_module, depth + 1).unwrap())
-            .collect::<Vec<_>>();
+            .map(|x| x.to_python_ast_node(py, ast_module, depth + 1))
+            .collect::<PyResult<Vec<_>>>()?;
         let children_list = PyList::new(py, children);
-        ast_module.call1("Tuple", (children_list.as_ref(), mode))
+        ast_module.getattr("Tuple")?.call1((children_list.as_ref(), mode))
     },
     |_tuple: &Tuple, _depth: usize| { panic!("No R correspondent for Tuple nodes") },
     elems: Vec<AST>,
@@ -293,14 +287,13 @@ define_ast_node!(
     |attribute: &Attribute| vec![attribute.value().clone()],
     |attribute: &Attribute, py: Python, ast_module: &'a PyModule, depth: usize| {
         let mode = ast_module
-            .call0(match attribute.store {
+            .getattr(match attribute.store {
                 true => "Store",
                 false => "Load",
-            })
-            .unwrap();
+            })?.call0()?;
         let val_ast = attribute.value.to_python_ast_node(py, ast_module, depth)?;
         let name_ast = PyString::new(py, &attribute.name);
-        ast_module.call1("Attribute", (val_ast, name_ast.as_ref(), mode))
+        ast_module.getattr("Attribute")?.call1((val_ast, name_ast.as_ref(), mode))
     },
     |_attribute: &Attribute, _depth: usize| { panic!("No R correspondent for Attribute nodes") },
     value: AST,
@@ -334,28 +327,26 @@ define_ast_node!(
         let args = call
             .args
             .iter()
-            .map(|x| x.to_python_ast_node(py, ast_module, depth + 1).unwrap())
-            .collect::<Vec<_>>();
+            .map(|x| x.to_python_ast_node(py, ast_module, depth + 1))
+            .collect::<PyResult<Vec<_>>>()?;
         let kwargs = call
             .keywords
             .iter()
             .map(|(k, v)| {
                 ast_module
-                    .call1(
-                        "keyword",
+                    .getattr("keyword")?.call1(
                         PyTuple::new(
                             py,
                             &vec![
                                 PyString::new(py, k).as_ref(),
-                                v.to_python_ast_node(py, ast_module, depth + 1).unwrap(),
+                                v.to_python_ast_node(py, ast_module, depth + 1)?,
                             ],
                         ),
                     )
-                    .unwrap()
             })
-            .collect::<Vec<_>>();
+            .collect::<PyResult<Vec<_>>>()?;
         let function = call.function.to_python_ast_node(py, ast_module, depth)?;
-        ast_module.call1("Call", (function, args, kwargs))
+        ast_module.getattr("Call")?.call1((function, args, kwargs))
     },
     |call: &Call, depth: usize| {
         unsafe {
@@ -391,8 +382,7 @@ define_ast_node!(
         v
     },
     |formatted: &Formatted, py: Python, ast_module: &'a PyModule, depth: usize| {
-        let format_fn = ast_module.call1(
-            "Attribute",
+        let format_fn = ast_module.getattr("Attribute")?.call1(
             (
                 formatted.fmt.to_python_ast_node(py, ast_module, depth)?,
                 PyString::new(py, "format").as_ref(),
@@ -403,22 +393,20 @@ define_ast_node!(
             .iter()
             .map(|(k, v)| {
                 ast_module
+                    .getattr("keyword")?
                     .call1(
-                        "keyword",
                         PyTuple::new(
                             py,
                             &vec![
                                 PyString::new(py, k).as_ref(),
-                                v.to_python_ast_node(py, ast_module, depth + 1).unwrap(),
+                                v.to_python_ast_node(py, ast_module, depth + 1)?,
                             ],
                         ),
                     )
-                    .unwrap()
             })
-            .collect::<Vec<_>>();
+            .collect::<PyResult<Vec<_>>>()?;
         let args: Vec<String> = Vec::new();
-        ast_module.call1(
-            "Call",
+        ast_module.getattr("Call")?.call1(
             (
                 format_fn,
                 PyList::new(py, args).as_ref(),
@@ -451,15 +439,14 @@ define_ast_node!(
     |subscript: &Subscript| vec![subscript.a().clone(), subscript.b().clone()],
     |subscript: &Subscript, py: Python, ast_module: &'a PyModule, depth: usize| {
         let mode = ast_module
-            .call0(match subscript.store {
+            .getattr(match subscript.store {
                 true => "Store",
                 false => "Load",
-            })
-            .unwrap();
+            })?.call0()?;
         let b_node = subscript.b.to_python_ast_node(py, ast_module, depth + 1)?;
-        let idx = ast_module.call1("Index", (b_node,))?;
+        let idx = ast_module.getattr("Index")?.call1((b_node,))?;
         let value = subscript.a.to_python_ast_node(py, ast_module, depth + 1)?;
-        ast_module.call1("Subscript", (value, idx, mode))
+        ast_module.getattr("Subscript")?.call1((value, idx, mode))
     },
     |subscript: &Subscript, depth: usize| {
         let a_node = subscript.a.to_r_ast_node(depth);
@@ -492,8 +479,7 @@ define_ast_node!(
     SimpleIdentifier,
     |_| Vec::new(),
     |simple_identifier: &SimpleIdentifier, py: Python, ast_module: &'a PyModule, _depth: usize| {
-        ast_module.call1(
-            "Name",
+        ast_module.getattr("Name")?.call1(
             (PyString::new(py, &simple_identifier.name).as_ref(),),
         )
     },
@@ -507,7 +493,7 @@ define_ast_node!(
     BooleanLiteral,
     |_| Vec::new(),
     |lit: &BooleanLiteral, _py: Python, ast_module: &'a PyModule, _depth: usize| {
-        ast_module.call1("Constant", (lit.val,))
+        ast_module.getattr("Constant")?.call1((lit.val,))
     },
     |lit: &BooleanLiteral, _depth: usize| { Robj::from(lit.val) },
     val: bool,
@@ -516,7 +502,7 @@ define_ast_node!(
     BigIntLiteral,
     |_| Vec::new(),
     |lit: &BigIntLiteral, _py: Python, ast_module: &'a PyModule, _depth: usize| {
-        ast_module.call1("Constant", (lit.val,))
+        ast_module.getattr("Constant")?.call1((lit.val,))
     },
     |lit: &BigIntLiteral, _depth: usize| { r!(lit.val) },
     // TODO: deprecate use of BigInt when removing rustpython
@@ -526,7 +512,7 @@ define_ast_node!(
     None,
     |_| Vec::new(),
     |_, py: Python, ast_module: &'a PyModule, _depth: usize| {
-        ast_module.call1("Constant", (py.None().as_ref(py),))
+        ast_module.getattr("Constant")?.call1((py.None().as_ref(py),))
     },
     |_none, _depth| { r!(NULL) },
 );
@@ -539,35 +525,32 @@ define_ast_node!(
         let mut kwargs_defaults = Vec::new();
         for arg in &fun.args {
             let arg_py = ast_module
+                .getattr("arg")?
                 .call1(
-                    "arg",
                     (
-                        arg.to_python_ast_node(py, ast_module, depth).unwrap(),
+                        arg.to_python_ast_node(py, ast_module, depth)?,
                         py.None().as_ref(py),
                     ),
-                )
-                .unwrap();
+                )?;
             args_py.push(arg_py);
         }
         for (k, v) in &fun.kwargs {
             let arg_py = ast_module
+                .getattr("arg")?
                 .call1(
-                    "arg",
                     (
-                        v.to_python_ast_node(py, ast_module, depth).unwrap(),
+                        v.to_python_ast_node(py, ast_module, depth)?,
                         py.None().as_ref(py),
                     ),
-                )
-                .unwrap();
+                )?;
             kwargs_py.push(arg_py);
             let default_py = AST::StringLiteral(StringLiteral::new_wrapped(k.clone(), false))
-                .to_python_ast_node(py, ast_module, depth)
-                .unwrap();
+                .to_python_ast_node(py, ast_module, depth)?;
             kwargs_defaults.push(default_py);
         }
         let arguments = ast_module
+            .getattr("arguments")?
             .call1(
-                "arguments",
                 (
                     args_py,
                     py.None().as_ref(py),
@@ -576,14 +559,13 @@ define_ast_node!(
                     py.None().as_ref(py),
                     kwargs_defaults,
                 ),
-            )
-            .unwrap();
+            )?;
         let body_py = fun
             .body
             .iter()
-            .map(|x| x.to_python_ast_node(py, ast_module, depth).unwrap())
-            .collect::<Vec<_>>();
-        ast_module.call1("FunctionDef", (&fun.name, arguments, body_py))
+            .map(|x| x.to_python_ast_node(py, ast_module, depth))
+            .collect::<PyResult<Vec<_>>>()?;
+        ast_module.getattr("FunctionDef")?.call1((&fun.name, arguments, body_py))
     },
     |_fun: &FunctionDef, _depth: usize| { panic!("Function defs not supported in R") },
     name: String,
@@ -646,15 +628,15 @@ impl AST {
         }
     }
 
-    pub fn to_python_source(&self) -> String {
+    pub fn to_python_source(&self) -> PyResult<String> {
         let gil = Python::acquire_gil();
         let py = gil.python();
         let ast = PyModule::import(py, "ast").unwrap();
-        let node = self.to_python_ast_node(py, ast, 0).unwrap();
-        let module = ast.call1("Expression", (node,)).unwrap();
+        let node = self.to_python_ast_node(py, ast, 0)?;
+        let module = ast.getattr("Expression")?.call1((node,))?;
         let astor = PyModule::import(py, "astor").unwrap();
-        let source: PyResult<_> = astor.call1("to_source", (module,));
-        source.unwrap().to_string()
+        let source = astor.getattr("to_source")?.call1((module,));
+        source.and_then(|x| Ok(x.to_string()))
     }
     pub fn optimize(&self) -> Option<AST> {
         match self {
