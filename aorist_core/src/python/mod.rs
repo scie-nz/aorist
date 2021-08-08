@@ -118,14 +118,15 @@ pub fn format_code(code: String) -> PyResult<String> {
     let black: &PyModule = PyModule::import(py, "black").unwrap();
     let mut kwargs = HashMap::<&str, usize>::new();
     kwargs.insert("line_length", 80);
-    let mode = black.call("FileMode", (), Some(kwargs.into_py_dict(py)))?;
+    let mode = black.getattr("FileMode")?.call((), Some(kwargs.into_py_dict(py)))?;
 
     let py_code = PyString::new(py, &code);
 
     let mut kwargs = HashMap::<&str, &PyAny>::new();
     kwargs.insert("mode", mode);
-    if let Ok(res) = black.call(
-        "format_str",
+    if let Ok(res) = black.getattr(
+        "format_str"
+    )?.call(
         PyTuple::new(py, &[py_code]),
         Some(kwargs.into_py_dict(py)),
     ) {

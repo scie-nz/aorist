@@ -233,7 +233,8 @@ where
         ));
         (
             vec![dict_assign, for_loop],
-            singleton.get_preamble(),
+            // TODO: propagate erorr type here
+            singleton.get_preamble().unwrap(),
             singleton.get_imports(),
         )
     }

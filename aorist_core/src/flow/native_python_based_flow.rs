@@ -46,14 +46,15 @@ where
 {
     type ImportType = PythonImport;
     type PreambleType = PythonPreamble;
+    type ErrorType = pyo3::PyErr;
 
-    fn get_preamble(&self) -> Vec<PythonPreamble> {
+    fn get_preamble(&self) -> pyo3::PyResult<Vec<PythonPreamble>> {
         // TODO: this should be deprecated
-        let mut preambles = self.get_python_preamble();
+        let mut preambles = self.get_python_preamble()?;
         if let Some(p) = self.node.get_preamble() {
             preambles.push(p)
         }
-        preambles
+        Ok(preambles)
     }
     fn get_imports(&self) -> Vec<PythonImport> {
         self.node.get_imports()

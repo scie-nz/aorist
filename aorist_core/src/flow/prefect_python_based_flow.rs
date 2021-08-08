@@ -17,6 +17,7 @@ use linked_hash_map::LinkedHashMap;
 use std::hash::{Hash, Hasher};
 use std::marker::PhantomData;
 use std::sync::{Arc, RwLock};
+use pyo3::PyResult;
 
 register_task_nodes! {
     PrefectTask,
@@ -52,17 +53,19 @@ where
 impl<U: AoristUniverse> ETLFlow<U> for PrefectPythonBasedFlow<U> {
     type ImportType = PythonImport;
     type PreambleType = PythonPreamble;
-    fn get_preamble(&self) -> Vec<PythonPreamble> {
+    type ErrorType = pyo3::PyErr;
+
+    fn get_preamble(&self) -> PyResult<Vec<PythonPreamble>> {
         let preambles = match self.dialect {
             Some(Dialect::Python(_)) => match self.preamble {
                 Some(ref p) => vec![PythonPreamble::NativePythonPreamble(
-                    NativePythonPreamble::new(p.clone()),
+                    NativePythonPreamble::new(p.clone())?,
                 )],
                 None => Vec::new(),
             },
             _ => Vec::new(),
         };
-        preambles
+        Ok(preambles)
     }
     fn get_dialect(&self) -> Option<Dialect> {
         self.dialect.clone()

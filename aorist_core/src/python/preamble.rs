@@ -27,8 +27,8 @@ def to_nodes(body):
         )
         .unwrap();
         debug!("Import body: {}", self.get_body());
-        let out: &PyList = helpers
-            .call1("to_nodes", (self.get_body(),))
+        let out: &PyList = helpers.getattr("to_nodes").unwrap()
+            .call1((self.get_body(),))
             .unwrap()
             .downcast()
             .unwrap();
@@ -127,12 +127,12 @@ impl PythonPreamble {
     }
 }
 impl RPythonPreamble {
-    pub fn new(body: String) -> Self {
-        Self { body }
+    pub fn new(body: String) -> PyResult<Self> {
+        Ok(Self { body })
     }
 }
 impl NativePythonPreamble {
-    pub fn new(body: String) -> Self {
+    pub fn new(body: String) -> PyResult<Self> {
         let gil = Python::acquire_gil();
         let py = gil.python();
         let helpers = PyModule::from_code(
@@ -166,76 +166,66 @@ def build_preamble(body):
         .unwrap();
 
         let tpl: &PyTuple = helpers
-            .call1("build_preamble", (body,))
-            .unwrap()
+            .getattr("build_preamble")?
+            .call1((body,))?
             .downcast()
             .unwrap();
 
-        let imports_list: &PyList = tpl.get_item(0).extract().unwrap();
+        let imports_list: &PyList = tpl.get_item(0).extract()?;
         let imports: Vec<PythonImport> = imports_list
             .iter()
             .map(|x| {
                 let tpl: &PyTuple = x.extract().unwrap();
                 let name: String = tpl
                     .get_item(0)
-                    .extract::<&PyString>()
-                    .unwrap()
-                    .to_str()
-                    .unwrap()
+                    .extract::<&PyString>()?
+                    .to_str()?
                     .to_string();
                 let alias = tpl.get_item(1);
                 let asname: Option<String> = match alias.is_none() {
                     true => None,
                     false => Some(
                         alias
-                            .extract::<&PyString>()
-                            .unwrap()
-                            .to_str()
-                            .unwrap()
+                            .extract::<&PyString>()?
+                            .to_str()?
                             .to_string(),
                     ),
                 };
-                PythonImport::PythonModuleImport(name, asname)
+                Ok(PythonImport::PythonModuleImport(name, asname))
             })
-            .collect();
+            .collect::<PyResult<_>>()?;
 
-        let from_imports_list: &PyList = tpl.get_item(1).extract().unwrap();
+        let from_imports_list: &PyList = tpl.get_item(1).extract()?;
         let from_imports: Vec<PythonImport> = from_imports_list
             .iter()
             .map(|x| {
-                let tpl: &PyTuple = x.extract().unwrap();
+                let tpl: &PyTuple = x.extract()?;
                 let module: String = tpl
                     .get_item(0)
-                    .extract::<&PyString>()
-                    .unwrap()
-                    .to_str()
-                    .unwrap()
+                    .extract::<&PyString>()?
+                    .to_str()?
                     .to_string();
                 let name: String = tpl
                     .get_item(1)
-                    .extract::<&PyString>()
-                    .unwrap()
-                    .to_str()
-                    .unwrap()
+                    .extract::<&PyString>()?
+                    .to_str()?
                     .to_string();
                 let alias = tpl.get_item(2);
                 let asname: Option<String> = match alias.is_none() {
                     true => None,
                     false => Some(
                         alias
-                            .extract::<&PyString>()
-                            .unwrap()
-                            .to_str()
-                            .unwrap()
+                            .extract::<&PyString>()?
+                            .to_str()?
                             .to_string(),
                     ),
                 };
-                PythonImport::PythonFromImport(module, name, asname)
+                Ok(PythonImport::PythonFromImport(module, name, asname))
             })
-            .collect();
+            .collect::<PyResult<_>>()?;
 
-        let body_no_imports: &PyList = tpl.get_item(2).extract().unwrap();
-        Self {
+        let body_no_imports: &PyList = tpl.get_item(2).extract()?;
+        Ok(Self {
             imports,
             from_imports,
             body: body_no_imports
@@ -249,7 +239,7 @@ def build_preamble(body):
                 })
                 .collect::<Vec<String>>()
                 .join("\n"),
-        }
+        })
     }
     pub fn to_string(&self) -> String {
         self.from_imports

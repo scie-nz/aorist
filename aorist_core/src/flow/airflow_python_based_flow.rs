@@ -135,6 +135,7 @@ where
 {
     type ImportType = PythonImport;
     type PreambleType = PythonPreamble;
+    type ErrorType = pyo3::PyErr;
     fn get_imports(&self) -> Vec<PythonImport> {
         match self.dialect {
             Some(Dialect::Python(_)) | Some(Dialect::R(_)) => vec![PythonImport::PythonFromImport(
@@ -156,12 +157,12 @@ where
             )],
         }
     }
-    fn get_preamble(&self) -> Vec<PythonPreamble> {
+    fn get_preamble(&self) -> pyo3::PyResult<Vec<PythonPreamble>> {
         // TODO: this should be deprecated
         let mut preambles = match self.dialect {
             Some(Dialect::Python(_)) => match self.preamble {
                 Some(ref p) => vec![PythonPreamble::NativePythonPreamble(
-                    NativePythonPreamble::new(p.clone()),
+                    NativePythonPreamble::new(p.clone())?,
                 )],
                 None => Vec::new(),
             },
@@ -170,7 +171,7 @@ where
         if let Some(p) = self.node.get_preamble() {
             preambles.push(p)
         }
-        preambles
+        Ok(preambles)
     }
     fn get_dialect(&self) -> Option<Dialect> {
         self.dialect.clone()

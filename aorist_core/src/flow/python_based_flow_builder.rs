@@ -104,9 +104,8 @@ where
         for (comment, block) in content {
             let mut lines: Vec<String> = Vec::new();
             for item in block {
-                //let statements_list = PyList::new(py, vec![item]);
-                let module = ast.call1("Expression", (item,))?;
-                let source: PyResult<_> = astor.call1("to_source", (module,));
+                let module = ast.getattr("Expression")?.call1((item,))?;
+                let source: PyResult<_> = astor.getattr("to_source")?.call1((module,));
                 if let Err(err) = source {
                     err.print(py);
                     panic!("Exception occurred when running to_source.",);

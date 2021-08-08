@@ -37,8 +37,7 @@ impl PythonImport {
                 let alias_list = PyList::new(
                     py,
                     vec![match alias {
-                        Some(ref x) => ast_module.call1(
-                            "alias",
+                        Some(ref x) => ast_module.getattr("alias")?.call1(
                             (
                                 AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
                                     module.clone(),
@@ -54,14 +53,13 @@ impl PythonImport {
                         }
                     }],
                 );
-                ast_module.call1("Import", (alias_list,))
+                ast_module.getattr("Import")?.call1((alias_list,))
             }
             Self::PythonFromImport(ref module, ref name, ref alias) => {
                 let alias = PyList::new(
                     py,
                     vec![match alias {
-                        Some(ref x) => ast_module.call1(
-                            "alias",
+                        Some(ref x) => ast_module.getattr("alias")?.call1(
                             (
                                 AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(name.clone()))
                                     .to_python_ast_node(py, ast_module, depth)?,
@@ -73,7 +71,7 @@ impl PythonImport {
                             .to_python_ast_node(py, ast_module, depth)?,
                     }],
                 );
-                ast_module.call1("ImportFrom", (module, alias.as_ref(), 0))
+                ast_module.getattr("ImportFrom")?.call1((module, alias.as_ref(), 0))
             }
         }
     }

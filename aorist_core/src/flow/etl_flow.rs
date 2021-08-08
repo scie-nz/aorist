@@ -3,6 +3,7 @@ use crate::dialect::Dialect;
 use aorist_ast::AST;
 use aorist_primitives::AoristUniverse;
 use linked_hash_map::LinkedHashMap;
+use std::error::Error;
 
 /// Encapsulates the abstract bits necessary for the creation of an ETL Flow
 pub trait ETLFlow<U>
@@ -10,9 +11,10 @@ where
     U: AoristUniverse,
 {
     type ImportType: Import;
+    type ErrorType: Error;
     type PreambleType: Preamble<ImportType = Self::ImportType>;
 
-    fn get_preamble(&self) -> Vec<Self::PreambleType>;
+    fn get_preamble(&self) -> Result<Vec<Self::PreambleType>, Self::ErrorType>;
     fn get_dialect(&self) -> Option<Dialect>;
     fn get_task_val(&self) -> AST;
     fn new(
