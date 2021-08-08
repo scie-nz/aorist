@@ -5,11 +5,11 @@ from scienz import (
 )
 from common import endpoints
 
-# local = HiveTableStorage(
-#     location=HiveLocation(MinioLocation(name='reddit')),
-#     encoding=Encoding(NewlineDelimitedJSONEncoding()),
-#     layout=TabularLayout(StaticTabularLayout()),
-# )
+local = HiveTableStorage(
+    location=HiveLocation(MinioLocation(name='reddit')),
+    encoding=Encoding(NewlineDelimitedJSONEncoding()),
+    layout=TabularLayout(StaticTabularLayout()),
+)
 subreddits = us_subreddits.replicate_to_local(
     Storage(local), "/tmp/us_subreddits", Encoding(CSVEncoding())
 )

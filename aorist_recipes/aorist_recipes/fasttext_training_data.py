@@ -1,11 +1,11 @@
-from aorist import aorist, FasttextTrainingData
+from aorist import aorist, FasttextTrainingDataFromHive
 import json
 
 programs = {}
 
 @aorist(
     programs,
-    FasttextTrainingData,
+    FasttextTrainingDataFromHive,
     entrypoint="download_fasttext_training_data",
     args={
         "host": lambda universe: universe.endpoints.presto.server, 

@@ -3,23 +3,23 @@ package:
   version: "0.0.1"
 
 source:
-  - path: aorist_util
+  - path: ../aorist_util
     folder: aorist_util
-  - path: aorist_derive
+  - path: ../aorist_derive
     folder: aorist_derive
-  - path: aorist_primitives
+  - path: ../aorist_primitives
     folder: aorist_primitives
-  - path: aorist_concept
+  - path: ../aorist_concept
     folder: aorist_concept
-  - path: aorist_ast
+  - path: ../aorist_ast
     folder: aorist_ast
-  - path: aorist_attributes
+  - path: ../aorist_attributes
     folder: aorist_attributes
-  - path: aorist_core
+  - path: ../aorist_core
     folder: aorist_core
-  - path: aorist_constraint
+  - path: ../aorist_constraint
     folder: aorist_constraint
-  - path: aorist
+  - path: ../aorist
     folder: aorist
 
 build:

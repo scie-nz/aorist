@@ -87,7 +87,6 @@ type: Constraint
 spec:
   name: UploadDataToSQLite
   root: SQLiteLocation
-  requiresProgram: true
   requires:
     - ReadyForUpload
   title: Upload data to SQLite
