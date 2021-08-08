@@ -39,7 +39,7 @@ universe.compute_uuids()
 result = dag(
     universe,
     ["UploadFasttextToMinio"],
-    "airflow",
+    "python",
     programs,
     dialect_preferences=[
         R(),

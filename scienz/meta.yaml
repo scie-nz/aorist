@@ -2,6 +2,9 @@ package:
   name: "scienz"
   version: "0.0.1"
 
+build:
+  noarch: python
+
 source:
   path: .
 

@@ -6,11 +6,17 @@ common transformations, as well as machine learning operations.
 
 ## Installation instructions
 
+Aorist currently works on 64-bit Linux and OSX. Note that currently the OSX
+implementation uses x64 emulation via Rosetta2. As such running aorist for
+the first time will take a few extra seconds.
+
 ### Requirements:
 
-- [Anaconda](https://www.anaconda.com/products/individual#linux).
-- a working R install.
-- aorist currently only works on 64-bit Linux.
+- [Anaconda](https://www.anaconda.com/products/individual#linux). If using an
+M1 processor you can use the x64 MacOS version. Ignore any warning about the
+system not being 64-bit.  
+- a working R install. Aorist was tested with R 4.1.0, but most modern R
+installations should work.
 
 ## Steps
 
@@ -49,7 +55,7 @@ universe.compute_uuids()
 result = dag(
     universe,
     ["UploadDataToMinio"],
-    "airflow",
+    "python",
     programs,
     dialect_preferences=[
         R(),
@@ -64,11 +70,30 @@ print(result)
 
 You can test aorist by running:
 ```
-python test.py
+python test.py > example.py
 ```
 
 
 ## How to build
+
+### Pre-requisites
+
+1. Install Anaconda.
+
+2. Make sure you use conda-forge, rather than the default conda channel.
+
+```
+conda config --add channels conda-forge
+conda config --set channel_priority strict
+```
+
+3. Build packages
+
+```
+cd aorist && conda build .
+``` 
+
+
 
 Make sure you have Rust [installed](https://www.rust-lang.org/tools/install), following the instructions there, then run:
 
