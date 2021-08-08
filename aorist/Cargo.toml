@@ -20,18 +20,18 @@ default = ["extension-module"]
 
 [dependencies]
 serde = { version = "1.0", features = ["derive"] }
-# aorist_constraint = {path = "../aorist_constraint", features=["python"], version = "0.0.12"}
-# aorist_attributes = {path = "../aorist_attributes", features=["python"], version = "0.0.12"}
-# aorist_primitives = {path = "../aorist_primitives", features=[], version = "0.0.12"}
-# aorist_core = {path = "../aorist_core", features=["python"], version = "0.0.12"}
-# aorist_util = {path = "../aorist_util", version = "0.0.1"}
-aorist_constraint = {version="0.0.13", features=["python"]}
-aorist_attributes = {version="0.0.12", features=["python"]}
-aorist_primitives = "0.0.12"
-aorist_core = {version="0.0.13", features=["python"]}
-aorist_util = "0.0.1"
+aorist_constraint = {path = "../aorist_constraint", features=["python"], version = "0.0.13"}
+aorist_attributes = {path = "../aorist_attributes", features=["python"], version = "0.0.12"}
+aorist_primitives = {path = "../aorist_primitives", features=[], version = "0.0.12"}
+aorist_core = {path = "../aorist_core", features=["python"], version = "0.0.13"}
+aorist_util = {path = "../aorist_util", version = "0.0.1"}
+# aorist_constraint = {version="0.0.13", features=["python"]}
+# aorist_attributes = {version="0.0.12", features=["python"]}
+# aorist_primitives = "0.0.12"
+# aorist_core = {version="0.0.13", features=["python"]}
+# aorist_util = "0.0.1"
 maplit = "1.0.2"
 aorist_paste = {version = "0.0.1"}
 uuid = {version = "0.8.1", features = ["v4", "serde"]}
 anyhow = "1.0"
-pyo3 = {version = "0.13.2", features=["auto-initialize"]}
+pyo3 = {version = "0.14.1", features=["auto-initialize", "multiple-pymethods"], optional = true}

@@ -1390,7 +1390,7 @@ macro_rules! register_constraint_new {
                 let mut kwargs = LinkedHashMap::new();
                 for (input_types, serialized) in &self.inner.get_arg_functions() {
                     let py_arg = PyString::new(py, &serialized);
-                    let deserialized = dill.call1("loads", (py_arg,)).unwrap();
+                    let deserialized = dill.getattr("loads").unwrap().call1((py_arg,)).unwrap();
                     let mut objects = Vec::new();
                     let mut context_pos = None;
                     for (i, x) in input_types.iter().enumerate() {
@@ -1424,7 +1424,7 @@ macro_rules! register_constraint_new {
                 for (key, (input_types, serialized)) in &self.inner.get_kwarg_functions() {
                     let py_arg = PyString::new(py, &serialized);
                     let py_arg = py_arg.call_method1("encode", ("latin-1",)).unwrap();
-                    let deserialized = dill.call1("loads", (py_arg,)).unwrap();
+                    let deserialized = dill.getattr("loads").unwrap().call1((py_arg,)).unwrap();
 
 
                     let mut objects = Vec::new();
