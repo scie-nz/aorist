@@ -85,6 +85,20 @@ spec:
 ---
 type: Constraint
 spec:
+  name: UploadDataToSQLite
+  root: SQLiteLocation
+  requiresProgram: true
+  requires:
+    - ReadyForUpload
+  title: Upload data to SQLite
+  body: |
+      Now that data has been converted to a CSV we can upload it to SQLite.
+  attachIf: |
+      |root: AoristRef<Concept>, ancestry: &ConceptAncestry|
+      ancestry.replication_storage_setup(root.clone()).is_ok()
+---
+type: Constraint
+spec:
   name: JSONTableSchemasCreated
   root: HiveTableStorage
   requiresProgram: true
@@ -142,6 +156,7 @@ spec:
   root: OnPremiseLocation
   requires:
       - UploadDataToMinio
+      - UploadDataToSQLite
   attachIf: |
       |root: AoristRef<Concept>, ancestry: &ConceptAncestry|
       ancestry.replication_storage_setup(root.clone()).is_ok()
@@ -165,6 +180,14 @@ spec:
   name: FasttextTrainingData
   root: FasttextEmbeddingSchema
   requires:
+      - FasttextTrainingDataFromHive
+  title: Creating Fasttext Training Dataset
+---
+type: Constraint
+spec:
+  name: FasttextTrainingDataFromHive
+  root: FasttextEmbeddingSchema
+  requires:
       - ConvertJSONTableToORCTable
   requiresProgram: true
   title: Creating Fasttext Training Dataset
@@ -176,7 +199,7 @@ spec:
   name: TrainFasttextModel
   root: FasttextEmbeddingSchema
   requires:
-      - FasttextTrainingData
+      - FasttextTrainingDataFromHive
   requiresProgram: true
   title: Training Fasttext Model
   body: |
