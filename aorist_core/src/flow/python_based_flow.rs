@@ -20,7 +20,9 @@ where
                 None => Ok(Vec::new()),
             },
             Some(Dialect::R(_)) => match self.get_preamble_string() {
-                Some(p) => Ok(vec![PythonPreamble::RPythonPreamble(RPythonPreamble::new(p)?)]),
+                Some(p) => Ok(vec![PythonPreamble::RPythonPreamble(RPythonPreamble::new(
+                    p,
+                )?)]),
                 None => Ok(Vec::new()),
             },
             _ => Ok(Vec::new()),

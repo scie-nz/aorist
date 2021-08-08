@@ -1,11 +1,11 @@
 use crate::concept::{AoristRef, WrappedConcept};
 use aorist_concept::{aorist, Constrainable};
+use aorist_paste::paste;
 use aorist_primitives::{
     AWSConfig, AlluxioConfig, AoristConcept, ConceptEnum, GCPConfig, GiteaConfig, MinioConfig,
     PostgresConfig, PrestoConfig, RangerConfig, TPrestoEndpoints,
 };
 use derivative::Derivative;
-use aorist_paste::paste;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
 use uuid::Uuid;

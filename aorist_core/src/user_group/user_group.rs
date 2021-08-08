@@ -2,9 +2,9 @@
 use crate::concept::{AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
 use crate::user::*;
 use aorist_concept::{aorist, Constrainable};
+use aorist_paste::paste;
 use aorist_primitives::TAoristObject;
 use derivative::Derivative;
-use aorist_paste::paste;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fmt::Debug;

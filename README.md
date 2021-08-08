@@ -17,7 +17,7 @@ common transformations, as well as machine learning operations.
 1. Create Anaconda environment
 ```
 conda create -n aorist -c scienz -c conda-forge aorist aorist_recipes scienz
-
+```
 
 2. Activate the environment
 ```

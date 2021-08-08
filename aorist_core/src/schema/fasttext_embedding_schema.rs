@@ -2,8 +2,8 @@
 use crate::concept::{AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
 use crate::schema::tabular_schema::*;
 use aorist_concept::{aorist, Constrainable};
-use derivative::Derivative;
 use aorist_paste::paste;
+use derivative::Derivative;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
 use uuid::Uuid;

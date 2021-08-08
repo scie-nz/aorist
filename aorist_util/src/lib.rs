@@ -1,13 +1,12 @@
 use serde_yaml::{from_str, Value};
+use std::collections::HashMap;
+use std::fs;
 use syn::punctuated::Pair;
 use syn::token::Colon2;
 use syn::{GenericArgument, Path, PathArguments, PathSegment};
-use std::collections::HashMap;
-use std::fs;
 use tracing;
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::{fmt, EnvFilter};
-
 
 pub fn read_file(filename: &str) -> Vec<HashMap<String, Value>> {
     let s = fs::read_to_string(filename).unwrap();
@@ -154,10 +153,7 @@ pub fn extract_type_from_vector(ty: &syn::Type) -> Option<&syn::Type> {
 pub fn extract_type_from_map(ty: &syn::Type) -> Option<(&syn::Type, &syn::Type)> {
     extract_inner_from_double_bracketed_type(
         ty,
-        vec![
-            "BTreeMap|".to_string(),
-            "std|collections|BTreeMap|".into(),
-        ],
+        vec!["BTreeMap|".to_string(), "std|collections|BTreeMap|".into()],
     )
 }
 
@@ -171,11 +167,5 @@ pub fn extract_type_from_linked_hash_map(ty: &syn::Type) -> Option<(&syn::Type, 
     )
 }
 pub fn extract_type_from_aorist_ref(ty: &syn::Type) -> Option<&syn::Type> {
-    extract_inner_from_bracketed_type(
-        ty,
-        vec![
-            "Arc|".to_string(),
-            "AoristRef|".to_string(),
-        ],
-    )
+    extract_inner_from_bracketed_type(ty, vec!["Arc|".to_string(), "AoristRef|".to_string()])
 }

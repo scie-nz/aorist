@@ -32,6 +32,7 @@ universe = Universe(
     name="my_cluster",
     datasets=[subreddits],
     endpoints=endpoints,
+    compliance=None,
 )
 
 universe.compute_uuids()

@@ -1,9 +1,9 @@
 use anyhow::{Context, Result};
 #[cfg(feature = "python")]
 use aorist_ast::{StringLiteral, AST};
-use aorist_core::{AoristRef, Concept, ConceptAncestry, Dialect, ParameterTuple};
 #[cfg(feature = "python")]
 use aorist_core::{Ancestry, TOuterProgram};
+use aorist_core::{AoristRef, Concept, ConceptAncestry, Dialect, ParameterTuple};
 use aorist_core::{
     ConstraintBuilder, ConstraintEnum, ConstraintSatisfactionBase, OuterConstraint, TBuilder,
     TConstraint, TConstraintEnum, TProgram,

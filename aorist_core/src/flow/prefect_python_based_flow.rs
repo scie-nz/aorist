@@ -14,10 +14,10 @@ use aorist_primitives::register_task_nodes;
 use aorist_primitives::AoristUniverse;
 use aorist_primitives::TPrestoEndpoints;
 use linked_hash_map::LinkedHashMap;
+use pyo3::PyResult;
 use std::hash::{Hash, Hasher};
 use std::marker::PhantomData;
 use std::sync::{Arc, RwLock};
-use pyo3::PyResult;
 
 register_task_nodes! {
     PrefectTask,

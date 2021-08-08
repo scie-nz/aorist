@@ -1,15 +1,15 @@
 extern crate proc_macro;
 use self::proc_macro::TokenStream;
 use crate::builder::Builder;
+use aorist_util::{
+    extract_type_from_aorist_ref, extract_type_from_map, extract_type_from_option,
+    extract_type_from_vector,
+};
 use proc_macro2::Ident;
 use quote::quote;
 use std::fs::OpenOptions;
 use std::io::prelude::*;
 use syn::{Field, FieldsNamed, Meta, Type};
-use aorist_util::{
-    extract_type_from_aorist_ref, extract_type_from_map, extract_type_from_option,
-    extract_type_from_vector,
-};
 mod keyword {
     syn::custom_keyword!(path);
 }

@@ -9,10 +9,10 @@ use crate::storage::*;
 use crate::storage_setup::*;
 use crate::template::*;
 use aorist_concept::{aorist, Constrainable};
+use aorist_paste::paste;
 use aorist_primitives::TAoristObject;
 use derivative::Derivative;
 use linked_hash_map::LinkedHashMap;
-use aorist_paste::paste;
 #[cfg(feature = "python")]
 use pyo3::exceptions::PyValueError;
 #[cfg(feature = "python")]
@@ -126,15 +126,12 @@ impl PyDataSet {
 #[cfg(feature = "python")]
 #[pymethods]
 impl PyDataSet {
-    pub fn add_asset(
-        &self,
-        asset_name: String,
-        asset: PyAsset,
-    ) {
-        self.inner.0.write().unwrap().add_asset(
-            asset_name,
-            asset.inner.clone(),
-        );
+    pub fn add_asset(&self, asset_name: String, asset: PyAsset) {
+        self.inner
+            .0
+            .write()
+            .unwrap()
+            .add_asset(asset_name, asset.inner.clone());
     }
     pub fn replicate_to_local(
         &self,

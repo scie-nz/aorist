@@ -6,11 +6,11 @@ use aorist_attributes::{
     TPrestoAttribute, TSQLiteAttribute,
 };
 use aorist_concept::{aorist, Constrainable};
+use aorist_paste::paste;
 use aorist_primitives::{AoristConcept, ConceptEnum};
 use derivative::Derivative;
 #[cfg(feature = "sql")]
 use linked_hash_map::LinkedHashMap;
-use aorist_paste::paste;
 #[cfg(feature = "python")]
 use pyo3::exceptions::PyValueError;
 #[cfg(feature = "python")]

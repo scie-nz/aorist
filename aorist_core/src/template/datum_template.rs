@@ -5,8 +5,8 @@ use crate::template::identifier_tuple::*;
 use crate::template::measure::*;
 use crate::template::row_struct::*;
 use aorist_concept::{aorist, Constrainable};
-use aorist_primitives::{AoristConcept, ConceptEnum};
 use aorist_paste::paste;
+use aorist_primitives::{AoristConcept, ConceptEnum};
 #[cfg(feature = "python")]
 use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};

@@ -27,7 +27,9 @@ def to_nodes(body):
         )
         .unwrap();
         debug!("Import body: {}", self.get_body());
-        let out: &PyList = helpers.getattr("to_nodes").unwrap()
+        let out: &PyList = helpers
+            .getattr("to_nodes")
+            .unwrap()
             .call1((self.get_body(),))
             .unwrap()
             .downcast()
@@ -184,12 +186,7 @@ def build_preamble(body):
                 let alias = tpl.get_item(1);
                 let asname: Option<String> = match alias.is_none() {
                     true => None,
-                    false => Some(
-                        alias
-                            .extract::<&PyString>()?
-                            .to_str()?
-                            .to_string(),
-                    ),
+                    false => Some(alias.extract::<&PyString>()?.to_str()?.to_string()),
                 };
                 Ok(PythonImport::PythonModuleImport(name, asname))
             })
@@ -213,12 +210,7 @@ def build_preamble(body):
                 let alias = tpl.get_item(2);
                 let asname: Option<String> = match alias.is_none() {
                     true => None,
-                    false => Some(
-                        alias
-                            .extract::<&PyString>()?
-                            .to_str()?
-                            .to_string(),
-                    ),
+                    false => Some(alias.extract::<&PyString>()?.to_str()?.to_string()),
                 };
                 Ok(PythonImport::PythonFromImport(module, name, asname))
             })
