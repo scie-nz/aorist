@@ -2,7 +2,7 @@
 name = "aorist_core"
 description = "Core abstractions the aorist project"
 license = "MIT"
-version = "0.0.13"
+version = "0.0.14"
 authors = ["Bogdan State <bogdan@scie.nz>"]
 edition = "2018"
 homepage = "https://aorist.io"
@@ -28,11 +28,11 @@ sql = ["sqlformat", "sqlparser"]
 [dependencies]
 Inflector = "0.11.4"
 anyhow = "1.0"
-aorist_ast = {path = "../aorist_ast", version = "0.0.12"}
-aorist_attributes = {path = "../aorist_attributes", features = ["python"], version = "0.0.12"}
+aorist_ast = {path = "../aorist_ast", version = "0.0.14"}
+aorist_attributes = {path = "../aorist_attributes", features = ["python"], version = "0.0.14"}
 aorist_concept = {path = "../aorist_concept", version = "0.0.1"}
 aorist_derive = {path = "../aorist_derive", version = "0.0.1"}
-aorist_primitives = {path = "../aorist_primitives", version = "0.0.12"}
+aorist_primitives = {path = "../aorist_primitives", version = "0.0.14"}
 base64 = "0.13.0"
 derivative = "2.1.1"
 enum_dispatch = "0.3.5"

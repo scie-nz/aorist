@@ -2,7 +2,7 @@
 name = "aorist_attributes"
 description = "Definitions for various kinds of data attributes in the aorist project."
 license = "MIT"
-version = "0.0.12"
+version = "0.0.14"
 authors = ["Bogdan State <bogdan@scie.nz>"]
 edition = "2018"
 homepage = "https://aorist.io"
@@ -22,7 +22,7 @@ default = ["python", "r", "sql"]
 aorist_concept = {path = "../aorist_concept", version = "0.0.1"}
 aorist_derive = {path = "../aorist_derive", version = "0.0.1"}
 aorist_util = {path = "../aorist_util", version = "0.0.1"}
-aorist_primitives = {path = "../aorist_primitives", version = "0.0.12"}
+aorist_primitives = {path = "../aorist_primitives", version = "0.0.14"}
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "^1.0"
 num = {version="0.4.0", features = ["std"]}
