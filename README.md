@@ -73,6 +73,22 @@ You can test aorist by running:
 python test.py > example.py
 ```
 
+# Developer Guide
+
+## Package organization
+
+Aorist has a Rust core and a Python interface. The project relies on the following sub-projects:
+- `aorist_util` -- a Rust crate containing small utility functions used across the project.
+- `aorist_derive` -- Rust crate exporting `derive` macros (and only those macros) used across the project.
+- `aorist_primitives` -- Rust crate exporting "primitive" macros (such as `register_constraint`, `define_attribute`, etc.) used to abstract away boiler-plate code inside the Rust code base.
+- `aorist_concept` -- a Rust crate dedicated to the `aorist` macro. This macro "decorates" structs and enums to make them "constrainable" in the aorist sense.
+- `aorist_ast` -- a Rust crate implementing a cross-language Abstract Syntax Tree (AST), used for generating code in both Python and R. Aorist AST nodes get compiled into native Python or R AST nodes. More languages can be supported here.
+- `aorist_attributes` -- this Rust crate exports a taxonomy of data attributes (e.g. `KeyStringIdentifier`, `POSIXTimestamp`), which can be used to impose data quality and compliance constraints across table schemas.
+- `aorist_core` -- This is the core Rust crate for the Aorist project. The main object taxonomy is defined here. New structs and enums can be added here.
+- `aorist_constraint` -- This Rust crate lists constraints that can be applied to Aorist universes made up of concepts as listed in `aorist_core`. Multiple `aorist_constraint` crates can be compiled against the `aorist_core` crate.
+- `aorist` -- This Rust crate exports a Python library via a PyO3 binding. This directory also contains the conda recipe used for creating the `aorist` conda package (which includes the compiled Rust library, as well as a number of Python helpers).
+- `aorist_recipes` -- This Python package contains recipes (using Python, TrinoSQL, R, or Bash) that can be used to satisfy constraints as defined in `aorist_constraint`. Multiple `aorist_recipes` packages can be provided at runtime. 
+- `scienz` -- This Python package contains a set of pre-defined datasets which can be used out-of-the box with the `aorist` package.
 
 ## How to build
 
