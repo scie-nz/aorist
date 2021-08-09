@@ -1,3 +1,0 @@
-node.environment=production
-node.id=$(uuidgen -N $HOSTNAME --namespace @dns --md5)
-node.data-dir=/var/presto/data
