@@ -24,34 +24,6 @@ impl Builder for EnumBuilder {
             .collect::<Vec<Ident>>();
         Self { variant_idents }
     }
-    fn to_python_token_stream(&self, enum_name: &Ident) -> TokenStream {
-        let variant = &self.variant_idents;
-        let quoted = quote! { paste! {
-            #[derive(Clone, FromPyObject, PartialEq)]
-            pub enum [<Inner #enum_name>] {
-                #(#variant([<Inner #variant>])),*
-            }
-            impl From<[<Inner #enum_name>]> for #enum_name {
-                fn from(inner: [<Inner #enum_name>]) -> Self {
-                    match inner {
-                         #(
-                             [<Inner #enum_name>]::#variant(x) => Self::#variant(#variant::from(x)),
-                         )*
-                    }
-                }
-            }
-            impl From<#enum_name> for [<Inner #enum_name>] {
-                fn from(outer: #enum_name) -> Self {
-                    match outer {
-                         #(
-                             #enum_name::#variant(x) => Self::#variant([<Inner #variant>]::from(x)),
-                         )*
-                    }
-                }
-            }
-        }};
-        return proc_macro::TokenStream::from(quoted);
-    }
     fn to_file(&self, enum_name: &Ident, file_name: &str) {
         let mut file = OpenOptions::new()
             .write(true)
@@ -68,34 +40,6 @@ impl Builder for EnumBuilder {
         for v in &self.variant_idents {
             writeln!(file, "'{}'->'{}';", enum_name, v).unwrap();
         }
-    }
-    fn to_base_token_stream(&self, enum_name: &Ident) -> TokenStream {
-        let variant = &self.variant_idents;
-        let quoted = quote! { paste! {
-            #[derive(Clone, FromPyObject, PartialEq)]
-            pub enum [<Base #enum_name>] {
-                #(#variant([<Base #variant>])),*
-            }
-            impl From<[<Base #enum_name>]> for #enum_name {
-                fn from(inner: [<Base #enum_name>]) -> Self {
-                    match inner {
-                         #(
-                             [<Base #enum_name>]::#variant(x) => Self::#variant(#variant::from(x)),
-                         )*
-                    }
-                }
-            }
-            impl From<#enum_name> for [<Base #enum_name>] {
-                fn from(outer: #enum_name) -> Self {
-                    match outer {
-                         #(
-                             #enum_name::#variant(x) => Self::#variant([<Base #variant>]::from(x)),
-                         )*
-                    }
-                }
-            }
-        }};
-        return proc_macro::TokenStream::from(quoted);
     }
     fn to_concept_children_token_stream(&self, enum_name: &Ident) -> TokenStream {
         let variant = &self.variant_idents;
@@ -181,34 +125,6 @@ impl Builder for EnumBuilder {
               }
           }
         }})
-    }
-    fn to_python_token_stream_new(&self, enum_name: &Ident) -> TokenStream {
-        let variant = &self.variant_idents;
-        let quoted = quote! { paste! {
-            #[derive(Clone, FromPyObject, PartialEq)]
-            pub enum [<Inner #enum_name>] {
-                #(#variant([<Inner #variant>])),*
-            }
-            impl From<[<Inner #enum_name>]> for #enum_name {
-                fn from(inner: [<Inner #enum_name>]) -> Self {
-                    match inner {
-                         #(
-                             [<Inner #enum_name>]::#variant(x) => Self::#variant(#variant::from(x)),
-                         )*
-                    }
-                }
-            }
-            impl From<#enum_name> for [<Inner #enum_name>] {
-                fn from(outer: #enum_name) -> Self {
-                    match outer {
-                         #(
-                             #enum_name::#variant(x) => Self::#variant([<Inner #variant>]::from(x)),
-                         )*
-                    }
-                }
-            }
-        }};
-        return proc_macro::TokenStream::from(quoted);
     }
     fn to_concept_token_stream(&self, enum_name: &Ident) -> TokenStream {
         let variant = &self.variant_idents;

@@ -183,49 +183,6 @@ pub trait TConceptBuilder {
         extra_derives
     }
 }
-pub struct ConceptBuilder {
-    extra_derives: Vec<NestedMeta>,
-}
-impl TConceptBuilder for ConceptBuilder {
-    fn new(extra_derives_v: Vec<&str>) -> Self {
-        Self {
-            extra_derives: Self::parse_extra_derives(extra_derives_v),
-        }
-    }
-    fn get_extra_derives(&self) -> Vec<NestedMeta> {
-        self.extra_derives.clone()
-    }
-    fn add_aorist_fields(&self, struct_data: &mut syn::DataStruct) {
-        match &mut struct_data.fields {
-            Fields::Named(fields) => {
-                fields.named.push(
-                    Field::parse_named
-                        .parse2(quote! {
-                        pub uuid: Option<Uuid>
-                        })
-                        .unwrap(),
-                );
-                fields.named.push(
-                    Field::parse_named
-                        .parse2(quote! {
-                        pub tag: Option<String>
-                        })
-                        .unwrap(),
-                );
-                fields.named.push(
-                    Field::parse_named
-                        .parse2(quote! {
-                            #[serde(skip)]
-                            #[derivative(PartialEq = "ignore", Debug = "ignore", Hash = "ignore")]
-                            pub constraints: Vec<Arc<RwLock<Constraint>>>
-                        })
-                        .unwrap(),
-                );
-            }
-            _ => (),
-        }
-    }
-}
 pub struct RawConceptBuilder {
     extra_derives: Vec<NestedMeta>,
 }
