@@ -130,6 +130,16 @@ cd aorist_recipes && conda build . && cd .. && \
 cd scienz && conda build . && cd ..
 ``` 
 
+### Adding new datasets
+
+You can add new canonical datasets to the `scienz` package. Once accepted for publication metadata associated with these datasets can be distributed painlessly. To do so, please follow the steps described below: 
+
+1. specify your datasets in a new Python file in the `scienz/scienz` directory. (You can look at other files in that directory for examples)
+2. make sure to import the datasets in `scienz/__init__.py`.
+3. Run `conda build .` from within the `scienz` subdirectory. The build step will also trigger a test, which ensures that your dataset is correctly specified.
+4. If `conda build .` succeeds, submit a Pull Request against scienz/aorist.
+5. Once the PR is accepted, the `scienz` package will be rebuilt and your dataset will be accessible via Anaconda. 
+
 ## Overview of an Aorist universe
 
 Let's say we are starting a new project which involves analyzing a number of
