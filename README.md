@@ -649,7 +649,7 @@ Abstract concepts have the following hierarchy:
 
 Here is the current hierarchy of Aorist concepts:
 
-![Hierarchy of Aorist Concepts](./aorist_constrainables.svg)
+![Hierarchy of Aorist Concepts](./docs/aorist_constrainables.svg)
 
 ## Constraints
 
@@ -670,7 +670,7 @@ depends on A.
 This is quite dry stuff. Here is a diagram of an example set of constraints to
 help better visualize what's going on:
 
-![Hierarchy of Aorist Concepts and Constraints](./aorist_constrainables_with_constraints.svg)
+![Hierarchy of Aorist Concepts and Constraints](./docs/aorist_constrainables_with_constraints.svg)
 
 
 When dependent constraints are defined on lower-order concepts, we will consider
@@ -709,7 +709,7 @@ DAG into the prototype of an ETL pipeline by "walking" both the concept
 
 Here's what the Constraint DAG looks like
 
-![Constraint DAG](./aorist_dag.svg)
+![Constraint DAG](./docs/aorist_dag.svg)
 
 [1] (NOTE: in the future we will support filters on constraints, but for now
 assume that all constraints must hold for all instances).
