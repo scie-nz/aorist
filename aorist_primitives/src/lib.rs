@@ -437,6 +437,22 @@ macro_rules! define_constraint {
                 pub fn name() -> String {
                     stringify!($element).to_string()
                 }
+                #[classattr]
+                pub fn required() -> Vec<String> {
+                    vec![
+                        $(
+                            stringify!($required).into(),
+                        )*
+                    ]
+                }
+                #[classattr]
+                pub fn root() -> String {
+                    stringify!($root).into()
+                }
+                #[classattr]
+                pub fn program_required() -> bool {
+                    $requires_program
+                }
             }
             pub trait $satisfy_type<'a> : ConstraintSatisfactionBase<'a, ConstraintType=$element, RootType=$root> {
                 type Dialect;
