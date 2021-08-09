@@ -337,36 +337,36 @@ impl Builder for StructBuilder {
                 pub fn compute_uuids(&self) {
                     self.inner.compute_uuids()
                 }
-                #[getter]
-                pub fn is_enum_type(&self) -> bool {
+                #[staticmethod]
+                pub fn is_enum_type() -> bool {
                     false
                 }
-                #[getter]
-                pub fn required_unique_children_type_names(&self) -> Vec<String> {
+                #[staticmethod]
+                pub fn required_unique_children_type_names() -> Vec<String> {
                     vec![#(
                         stringify!(#bare_type_deref).into(),
                     )*]
                 }
-                #[getter]
-                pub fn optional_unique_children_type_names(&self) -> Vec<String> {
+                #[staticmethod]
+                pub fn optional_unique_children_type_names() -> Vec<String> {
                     vec![#(
                         stringify!(#option_type_deref).into(),
                     )*]
                 }
-                #[getter]
-                pub fn required_list_children_type_names(&self) -> Vec<String> {
+                #[staticmethod]
+                pub fn required_list_children_type_names() -> Vec<String> {
                     vec![#(
                         stringify!(#vec_type_deref).into(),
                     )*]
                 }
-                #[getter]
-                pub fn optional_list_children_type_names(&self) -> Vec<String> {
+                #[staticmethod]
+                pub fn optional_list_children_type_names() -> Vec<String> {
                     vec![#(
                         stringify!(#option_vec_type_deref).into(),
                     )*]
                 }
-                #[getter]
-                pub fn children_dict_type_names(&self) -> Vec<String> {
+                #[staticmethod]
+                pub fn children_dict_type_names() -> Vec<String> {
                     vec![#(
                         stringify!(#map_value_type_deref).into(),
                     )*]

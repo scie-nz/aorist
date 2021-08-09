@@ -1,13 +1,12 @@
 library('DiagrammeR')
 library('DiagrammeRsvg')
+library("data.table")
 
-file.name <- "constrainables.txt"
-data <- readChar(file.name, file.info(file.name)$size)
-split <- unlist(strsplit(data, ";\n"))
-nodes <- split[which(sapply(split, function(x) grepl("^node", x)))]
-edges <- split[which(!sapply(split, function(x) grepl("^node", x)))]
-nodes <- paste0(nodes, collapse=";\n")
-edges <- paste0(edges, collapse=";\n")
+nodes.file <- "constrainables_nodes.txt"
+nodes <- readChar(nodes.file, file.info(nodes.file)$size)
+edges.file <- "constrainables_edges.txt"
+edges <- readChar(edges.file, file.info(edges.file)$size)
+
 sink("aorist_constrainables.svg")
 g <- grViz(sprintf("
 digraph boxes_and_circles {
@@ -20,18 +19,18 @@ svg <- export_svg(g)
 cat(svg)
 sink()
 
-constraints.file.name <- "constraints.txt"
-data <- readChar(constraints.file.name, file.info(file.name)$size)
-print(data)
-sink("aorist_constrainables_with_constraints.svg")
-g <- grViz(sprintf("
-digraph boxes_and_circles {
-# a 'graph' statement
-  graph [overlap = false, fontsize = 10]
-  %s
-  %s
-  %s
-}", nodes, edges, data))
-svg <- export_svg(g)
-cat(svg)
-sink()
+# constraints.file.name <- "constraints.txt"
+# data <- readChar(constraints.file.name, file.info(file.name)$size)
+# print(data)
+# sink("aorist_constrainables_with_constraints.svg")
+# g <- grViz(sprintf("
+# digraph boxes_and_circles {
+# # a 'graph' statement
+#   graph [overlap = false, fontsize = 10]
+#   %s
+#   %s
+#   %s
+# }", nodes, edges, data))
+# svg <- export_svg(g)
+# cat(svg)
+# sink()
