@@ -92,7 +92,24 @@ Aorist has a Rust core and a Python interface. The project relies on the followi
 
 ## How to build
 
-### Pre-requisites
+Because Aorist is a mixed Rust / Python project, building involves two stages:
+- first a set of Rust libraries is built via `cargo`.
+- then, a Python library is built bia `conda`.
+
+### Rust library
+
+#### Pre-requisites
+You will need to [install Rust](https://www.rust-lang.org/tools/install) in order to compile Aorist.
+
+#### Building
+You can build individual Rust libraries directly by running `cargo build` from within the respective directory listed in the
+[Package Organization](https://github.com/scie-nz/aorist#package-organization) section.
+
+To build the entire project run `cargo build` from the root directory.
+
+### Conda library
+
+#### Pre-requisites
 
 1. Install Anaconda.
 
@@ -103,39 +120,15 @@ conda config --add channels conda-forge
 conda config --set channel_priority strict
 ```
 
-3. Build packages
+#### Building
+
+Build the packages by running:
 
 ```
-cd aorist && conda build .
+cd aorist && conda build . && cd .. && \
+cd aorist_recipes && conda build . && cd .. && \
+cd scienz && conda build . && cd ..
 ``` 
-
-
-
-Make sure you have Rust [installed](https://www.rust-lang.org/tools/install), following the instructions there, then run:
-
-```
-cargo build
-cp target/debug/libaorist.so example/aorist.so
-```
-
-To try it out:
-```
-./run.sh
-python example/minimal.py
-```
-
-The command above generates Python code or R code -- you can pipe the code to a
-file.
-
-## Anaconda install (broken)
-These instructions require [Anaconda](https://anaconda.org) and were tested
-against Ubuntu Linux 20.04 LTS.
-
-```
-conda create -n aorist python=3.8 anaconda
-conda activate aorist
-pip3 install https://storage.googleapis.com/scienz-artifacts/aorist-0.0.1-cp38-cp38-linux_x86_64.whl
-```
 
 ## Overview of an Aorist universe
 
