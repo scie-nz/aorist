@@ -20,3 +20,6 @@ env/
 .vscode/*
 /constrainables.txt
 /constraints.txt
+docs/*nodes.txt
+docs/*edges.txt
+.DS_Store

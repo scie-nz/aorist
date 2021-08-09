@@ -670,6 +670,8 @@ depends on A.
 This is quite dry stuff. Here is a diagram of an example set of constraints to
 help better visualize what's going on:
 
+![](./docs/aorist_constraint_dag.svg)
+
 ![Hierarchy of Aorist Concepts and Constraints](./docs/aorist_constrainables_with_constraints.svg)
 
 
