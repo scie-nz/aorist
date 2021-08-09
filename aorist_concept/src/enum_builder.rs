@@ -162,6 +162,17 @@ impl Builder for EnumBuilder {
           #[cfg(feature = "python")]
           #[pyo3::prelude::pymethods]
           impl [<Py #enum_name>] {
+              #[getter]
+              pub fn is_enum_type(&self) -> bool {
+                  true
+              }
+              #[getter]
+              pub fn concrete_type_names(&self) -> Vec<String> {
+                  vec![#(
+                      stringify!(#variant).into(),
+                  )*]
+              }
+
               #[new]
               pub fn new(
                   input: [<Py #enum_name Input>],
