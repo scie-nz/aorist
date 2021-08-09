@@ -1,9 +1,0 @@
-#Used for wheel distribution
-#[build-system]
-#requires = ["setuptools", "wheel", "setuptools-rust"]
-
-#Used for source distribution
-[build-system]
-requires = ["maturin>=0.10,<0.11"]
-build-backend = "maturin"
-
