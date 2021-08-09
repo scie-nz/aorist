@@ -1,0 +1,12 @@
+[workspace]
+
+members = [
+    "aorist_util",
+    "aorist_primitives",
+    "aorist_derive",
+    "aorist_concept",
+    "aorist_ast",
+    "aorist_attributes",
+    "aorist_core",
+    "aorist"
+]
