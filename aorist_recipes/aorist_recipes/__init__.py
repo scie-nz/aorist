@@ -5,6 +5,7 @@ from . import fasttext_training_data
 from . import train_fasttext_model
 from . import upload_data_to_minio
 from . import upload_fasttext_to_minio
+from . import upload_data_to_sqlite
 import pathlib
 from aorist import register_recipes
 
@@ -57,6 +58,7 @@ programs = register_recipes(
         fasttext_training_data,
         train_fasttext_model,
         upload_fasttext_to_minio,
+        upload_data_to_sqlite,
     ],
     sql_modules=[
         "%s/hive_directories_created.presto.sql" % path,

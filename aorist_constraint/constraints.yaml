@@ -89,6 +89,7 @@ spec:
   root: SQLiteLocation
   requires:
     - ReadyForUpload
+  requiresProgram: true
   title: Upload data to SQLite
   body: |
       Now that data has been converted to a CSV we can upload it to SQLite.
