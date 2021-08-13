@@ -1,4 +1,5 @@
 from aorist import aorist, UploadDataToSQLite
+from json import dumps
 
 programs = {}
 
@@ -9,11 +10,11 @@ programs = {}
     args={
         "db_filename": lambda sq_lite_location: sq_lite_location.file_name,
         "table_name": lambda static_data_table: static_data_table.name,
-        "tmp_dir": lambda static_data_table: static_data_table.setup.local_storage_setup.tmp_dir,
+        "tmp_dir": lambda replication_storage_setup: replication_storage_setup.tmp_dir,
         "source_file": lambda static_data_table: static_data_table.name + ".csv",
-        "columns": lambda data_set, asset: json.dumps([
-            (x.get_name(), x.get_sqlite_type(), x.is_nullable())
-            for x in data_set.get_template(asset).get_attributes()
+        "columns": lambda data_set, asset: dumps([
+            (x.name, x.sqlite_type, x.is_nullable)
+            for x in data_set.get_template(asset).attributes()
         ]),
     }
 )

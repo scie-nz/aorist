@@ -889,6 +889,10 @@ macro_rules! register_attribute_new {
                 Ok(self.inner.0.read().unwrap().get_bigquery_type().clone())
             }
             #[getter]
+            pub fn sqlite_type(&self) -> pyo3::prelude::PyResult<String> {
+                Ok(self.inner.0.read().unwrap().get_sqlite_type().clone())
+            }
+            #[getter]
             pub fn is_nullable(&self) -> pyo3::prelude::PyResult<bool> {
                 Ok(self.inner.0.read().unwrap().is_nullable().clone())
             }
