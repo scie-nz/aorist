@@ -6,7 +6,7 @@ programs = {}
 @aorist(
     programs,
     FasttextTrainingDataFromHive,
-    entrypoint="download_fasttext_training_data",
+    entrypoint="download_text_data_from_trino",
     args={
         "host": lambda universe: universe.endpoints.presto.server, 
         "user": lambda universe: universe.endpoints.presto.user, 

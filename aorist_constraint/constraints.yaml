@@ -193,6 +193,24 @@ spec:
   title: Creating Fasttext Training Dataset
   body: |
       We download Fasttext data from a Hive table.
+  attachIf: |
+      |root: AoristRef<Concept>, ancestry: &ConceptAncestry| {
+          let source_assets = ancestry.fasttext_embedding(root.clone()).unwrap().0.read().unwrap().source_assets.clone(); 
+          for asset in source_assets {
+              let storage_setup = asset.0.read().unwrap().get_storage_setup();
+              let local_storages = storage_setup.0.read().unwrap().get_local_storage();
+              let mut hive_storage = false;
+              for storage in &local_storages {
+                  if let aorist_core::Storage::HiveTableStorage(_) = *storage.0.read().unwrap() {
+                      hive_storage = true;
+                  }
+              }
+              if !hive_storage {
+                  return false;
+              }
+          }
+          return true;
+      }
 ---
 type: Constraint
 spec:
