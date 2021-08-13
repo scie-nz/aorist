@@ -47,6 +47,11 @@ def to_str(source):
 
 
 def aorist(programs, constraint, entrypoint, args, pip_requirements=[]):
+    for k, v in args.items():
+        print(k)
+        print(v)
+        print(dill.dumps(v))
+        print(dill.dumps(lambda x: v(*x)))
     args_str = {
         k : (
             list(inspect.signature(v).parameters.keys()),

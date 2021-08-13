@@ -1,5 +1,5 @@
 from aorist import aorist, FasttextTrainingDataFromHive
-import json
+from json import dumps
 
 programs = {}
 
@@ -12,7 +12,7 @@ programs = {}
         "user": lambda universe: universe.endpoints.presto.user, 
         "port": lambda universe: str(universe.endpoints.presto.http_port), 
         "text_attribute_name": lambda fasttext_embedding_schema: fasttext_embedding_schema.text_attribute_name,
-        "source_tables": lambda fasttext_embedding: json.dumps([
+        "source_tables": lambda fasttext_embedding: dumps([
             x.name() for x in fasttext_embedding.source_assets
         ]),
         "tmp_dir": lambda fasttext_embedding: fasttext_embedding.setup.local_storage_setup.tmp_dir

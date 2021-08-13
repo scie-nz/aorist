@@ -234,3 +234,31 @@ spec:
               Err(_) => false,
           }
       }
+---
+type: Constraint
+spec:
+  name: UploadFasttextToSQLite
+  root: FasttextEmbeddingSchema
+  requiresProgram: true
+  requires:
+      - TrainFasttextModel
+  title: Upload data to Min.IO
+  body: |
+      Now that data has been pre-processed we can upload it to the underlying
+      Min.IO storage.
+  attachIf: |
+      |root: AoristRef<Concept>, ancestry: &ConceptAncestry| {
+          match ancestry.fasttext_embedding(root.clone()) {
+              Ok(x) => match *x.0.read().unwrap().setup.0.read().unwrap() {
+                  aorist_core::StorageSetup::LocalStorageSetup(ref s) => match *s.0.read().unwrap().local.0.read().unwrap() {
+                      aorist_core::Storage::LocalFileStorage(ref l) => match *l.0.read().unwrap().location.0.read().unwrap() {
+                          aorist_core::OnPremiseLocation::SQLiteLocation(_) => true,
+                          _ => false,
+                      },
+                      _ => false,
+                  },
+                  _ => false,
+              }
+              Err(_) => false,
+          }
+      }

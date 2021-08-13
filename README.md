@@ -760,3 +760,23 @@ Note: make sure that libpython is in your `LD_LIBRARY_PATH`. E.g.:
 ```
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/home/bogdan/anaconda3/lib/
 ```
+
+# Developing a new recipe
+
+## Testing the recipe:
+
+1. Compile using cargo and create the required symlinks:
+
+```
+python build_for_testing.py
+```
+
+2. To check everything still compiles, run:
+
+```
+cd tests
+PYTHONPATH=$PYTHONPATH:../aorist/:../aorist_recipes/:../scienz/ python test.py
+```
+
+Note: if you get a "different mach-o architecture" issue, it's because of a conflict
+between python versions. Make sure you compile and run aorist against the same Python!

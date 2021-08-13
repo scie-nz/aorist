@@ -1,5 +1,5 @@
 from aorist import aorist, TrainFasttextModel
-import json
+from json import dumps
 
 programs = {}
 
@@ -24,7 +24,7 @@ def recipe(
         
         with open(tmp_dir + 'words.txt', 'w') as f: 
             for (i, word) in words.enumerate():
-                f.write(json.dumps(
+                f.write(dumps(
                     {
                         "id": i,
                         "word": word,
