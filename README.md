@@ -78,7 +78,7 @@ You can add new canonical datasets to the `scienz` package. Once accepted for pu
 
 ## Overview of an Aorist universe
 
-*(note that the code examples below are deprecated, but they illustrate the logic of aorist quite well)*
+*(note that the code examples below are provided for illustrative purposes and may have occasional bugs)*
 
 Let's say we are starting a new project which involves analyzing a number of
 large graph datasets, such as the ones provided by the
