@@ -1,3 +1,6 @@
+# Note: example secrets provided here are not live. Secrets should not be stored in code, but
+# retrieved from environment variables.
+
 from aorist import (
     User,
     EndpointConfig,
