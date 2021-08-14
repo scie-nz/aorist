@@ -8,19 +8,19 @@ programs = {}
     entrypoint="upload_fasttext_to_sqlite",
     args={
         "db_filename": lambda fasttext_embedding: fasttext_embedding.setup.local_storage_setup.local.sq_lite_storage.location.file_name,
-        "tmp_dir": lambda fasttext_embedding: fasttext_embedding.setup.local_storage_setup.tmp_dir,
         "table_name": lambda fasttext_embedding: fasttext_embedding.name,
+        "fasttext_word_embeddings_file": lambda context: (context.get("fasttext_word_embeddings_file"), context),
     },
 )
 def recipe(
-    db_filename, table_name, tmp_dir, 
+    db_filename, table_name, fasttext_word_embeddings_file, 
 ):
     
     import sqlite3
     import json
     
     def upload_fasttext_to_sqlite(
-        db_filename, table_name, tmp_dir,
+        db_filename, table_name, fasttext_word_embeddings_file,
     ):
         con = sqlite3.connect(db_filename)
         con.execute("""
@@ -29,22 +29,21 @@ def recipe(
             table_name=table_name,
         ))
         con.execute("""
-        CREATE TABLE {table_name}(word TEXT, embedding TEXT)
+        CREATE TABLE {table_name}(word_id INTEGER, word TEXT, embedding TEXT)
         """.format(
             table_name=table_name,
         ))
 
         values = []
-        with open(tmp_dir + '/words.txt', 'r') as f:
+        with open(fasttext_word_embeddings_file, 'r') as f:
             for line in f.readlines():
-                splits = line.strip().split("\t")
-                assert len(splits) == 2
-                tpl = tuple(splits)
+                obj = json.loads(line)
+                tpl = (obj["id"], obj["word"], json.dumps(obj["embedding"]))
                 values += [tpl]
                 if len(values) % 100 == 0:
                     con.executemany(
                         """
-                        INSERT INTO {table_name}(word, embedding) VALUES ("?", "?")
+                        INSERT INTO {table_name}(word_id, word, embedding) VALUES (?, ?, ?)
                         """.format(
                             table_name=table_name,
                         ),
@@ -56,7 +55,7 @@ def recipe(
         if len(values) > 0:
             con.executemany(
                 """
-                INSERT INTO {table_name}(word, embedding) VALUES ("?", "?")
+                INSERT INTO {table_name}(word_id, word, embedding) VALUES (?, ?, ?)
                 """.format(
                     table_name=table_name,
                 ),

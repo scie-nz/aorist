@@ -53,52 +53,35 @@ us_subreddits = ["newyork", "sanfrancisco", "chicago",
                  "charlotte", "detroit", "pittsburgh", "stlouis",
                  "kansascity"]
 
-assets = {x: Asset(StaticDataTable(
-    name=x,
-    schema=DataSchema(subreddit_schema),
-    setup=StorageSetup(RemoteStorageSetup(
-        remote=Storage(RemoteStorage(
-            location=RemoteLocation(
-                PushshiftAPILocation(
-                    subreddit=x
-                )
-            ),
-            layout=APIOrFileLayout(
-                APILayout(
-                    PushshiftSubredditPostsAPILayout()
+def build_assets(subreddit_names):
+    return {x: Asset(StaticDataTable(
+        name=x,
+        schema=DataSchema(subreddit_schema),
+        setup=StorageSetup(RemoteStorageSetup(
+            remote=Storage(RemoteStorage(
+                location=RemoteLocation(
+                    PushshiftAPILocation(
+                        subreddit=x
+                    )
                 ),
-            ),
-            encoding=Encoding(
-                NewlineDelimitedJSONEncoding()
-            ),
-        )),
-    )),
-    tag=x,
-    )) for x in local_subreddits}
-
-us_assets = {x: Asset(StaticDataTable(
-    name=x,
-    schema=DataSchema(subreddit_schema),
-    setup=StorageSetup(RemoteStorageSetup(
-        remote=Storage(RemoteStorage(
-            location=RemoteLocation(
-                PushshiftAPILocation(
-                    subreddit=x
-                )
-            ),
-            layout=APIOrFileLayout(
-                APILayout(
-                    PushshiftSubredditPostsAPILayout()
+                layout=APIOrFileLayout(
+                    APILayout(
+                        PushshiftSubredditPostsAPILayout()
+                    ),
                 ),
-            ),
-            encoding=Encoding(
-                NewlineDelimitedJSONEncoding()
-            ),
+                encoding=Encoding(
+                    NewlineDelimitedJSONEncoding()
+                ),
+            )),
         )),
-    )),
-    tag=x,
-    )) for x in us_subreddits}
+        tag=x,
+        )) for x in subreddit_names}
 
+assets = build_assets(local_subreddits)
+us_assets = build_assets(us_subreddits)
+nz_assets = build_assets(["wellington", "auckland", "chch", "thetron", "dunedin", "tauranga",
+                          "gisborne", "napier", "nelson", "palmy", "queenstown", "newplymouth"])
+nz_assets = build_assets(["marton"])
 place_based_subreddits = DataSet(
     name="subreddits",
     description="""
@@ -119,5 +102,16 @@ us_subreddits = DataSet(
     source_path=__file__,
     datum_templates=[DatumTemplate(subreddit_datum)],
     assets=us_assets,
+    access_policies=[],
+)
+nz_subreddits = DataSet(
+    name="nz_subreddits",
+    description="""
+    A selection of small region-based Subreddits in New Zealand to demonstrate
+    collecting Reddit data via [Pushshift](https://pushshift.io/).
+    """,
+    source_path=__file__,
+    datum_templates=[DatumTemplate(subreddit_datum)],
+    assets=nz_assets,
     access_policies=[],
 )

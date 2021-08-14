@@ -10,19 +10,23 @@ programs = {}
     args={
         "subreddit": lambda pushshift_api_location: pushshift_api_location.subreddit,
         "tmp_dir": lambda replication_storage_setup: replication_storage_setup.tmp_dir,
+        "output_file": lambda replication_storage_setup, pushshift_api_location, context: (
+            context.capture(
+                "json_file", replication_storage_setup.tmp_dir + "/" + pushshift_api_location.subreddit + ".json"
+            ),
+            context
+        )
     },
 )
-def recipe(subreddit, tmp_dir):
+def recipe(subreddit, tmp_dir, output_file):
     from pmaw import PushshiftAPI
     import json
     import os
 
-    def download_subreddit(subreddit, tmp_dir):
+    def download_subreddit(subreddit, tmp_dir, output_file):
 
         if not os.path.exists(tmp_dir):
             os.makedirs(tmp_dir)
-
-        output_file = '%s/data.json' % tmp_dir
 
         if not os.path.exists(output_file) or os.stat(output_file).st_size == 0:
             api = PushshiftAPI(

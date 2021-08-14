@@ -1,34 +1,41 @@
 from aorist import aorist, TrainFasttextModel
-from json import dumps
 
 programs = {}
 
 @aorist(
     programs,
     TrainFasttextModel,
-    entrypoint="training_fasttext_model",
+    entrypoint="train_fasttext_model",
     args={
-        "tmp_dir": lambda fasttext_embedding: fasttext_embedding.setup.local_storage_setup.tmp_dir,
         "dim": lambda fasttext_embedding_schema: str(fasttext_embedding_schema.dim),
+        "fasttext_training_data_file": lambda context: (context.get("fasttext_training_data_file"), context),
+        "fasttext_word_embeddings_file": lambda fasttext_embedding, context: (
+            context.capture(
+                "fasttext_word_embeddings_file",
+                fasttext_embedding.setup.local_storage_setup.tmp_dir + "/word_embeddings.txt",
+            ),
+            context
+        )
     },
 )
 def recipe(
-    tmp_dir, dim,
+    fasttext_training_data_file, dim, fasttext_word_embeddings_file,
 ):
-    import fasttext
+    from fasttext import train_unsupervised
+    import json
 
-    def training_fasttext_model(tmp_dir, dim):
+    def train_fasttext_model(fasttext_training_data_file, dim, fasttext_word_embeddings_file):
      
-        model = fasttext.train_unsupervised('tmp_dir' + 'data.txt', dim=int(dim))
+        model = train_unsupervised(fasttext_training_data_file, dim=int(dim))
         words = model.get_words()
         
-        with open(tmp_dir + 'words.txt', 'w') as f: 
-            for (i, word) in words.enumerate():
-                f.write(dumps(
+        with open(fasttext_word_embeddings_file, 'w') as f: 
+            for (i, word) in enumerate(words):
+                f.write(json.dumps(
                     {
                         "id": i,
                         "word": word,
-                        "embedding": model.get_word_vector(word),
+                        "embedding": model.get_word_vector(word).tolist(),
                     }
-                ))
+                ) + "\n")
             

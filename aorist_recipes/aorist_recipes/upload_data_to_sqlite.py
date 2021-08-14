@@ -10,8 +10,7 @@ programs = {}
     args={
         "db_filename": lambda sq_lite_location: sq_lite_location.file_name,
         "table_name": lambda static_data_table: static_data_table.name,
-        "tmp_dir": lambda replication_storage_setup: replication_storage_setup.tmp_dir,
-        "source_file": lambda static_data_table: static_data_table.name + ".csv",
+        "source_file": lambda context: (context.get("json_file"), context),
         "columns": lambda data_set, asset: dumps([
             (x.name, x.sqlite_type, x.is_nullable)
             for x in data_set.get_template(asset).attributes()
@@ -19,18 +18,14 @@ programs = {}
     }
 )
 def recipe(
-    db_filename, table_name, tmp_dir, source_file,
-    # insertion order matters if we are dealing with a csv
-    columns,
+    db_filename, table_name, source_file, columns,
 ):
     
     import sqlite3
     import json
     
     def upload_to_sqlite(
-        db_filename, table_name, tmp_dir, source_file,
-        # insertion order matters if we are dealing with a csv
-        columns,
+        db_filename, table_name, source_file, columns,
     ):
         columns = json.loads(columns)
 
@@ -61,11 +56,13 @@ def recipe(
             else:
                 type_fn += [lambda _: None]
 
-        with open(tmp_dir + '/' + source_file, 'r') as f:
+        attr_names = [x[0] for x in columns]
+        with open(source_file, 'r') as f:
             for line in f.readlines():
-                splits = line.strip().split(",")
-                assert len(splits) == len(type_fn)
-                tpl = tuple(fn(arg) for fn, arg in zip(type_fn, splits))
+                x = json.loads(line)
+                obj = [x[name] if name in x else None for name in attr_names]
+                assert len(obj) == len(type_fn)
+                tpl = tuple(fn(arg) for fn, arg in zip(type_fn, obj))
                 values += [tpl]
 
         con.executemany(

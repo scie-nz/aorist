@@ -1,15 +1,15 @@
 from aorist import *
 from aorist_recipes import programs
 from scienz import (
-    us_subreddits, subreddit_schema
+    nz_subreddits, subreddit_schema
 )
 
 local = SQLiteStorage(
     location=SQLiteLocation(file_name='subreddits.sqlite'),
     layout=TabularLayout(StaticTabularLayout()),
 )
-subreddits = us_subreddits.replicate_to_local(
-    Storage(local), "/tmp/us_subreddits", Encoding(CSVEncoding())
+subreddits = nz_subreddits.replicate_to_local(
+    Storage(local), "/tmp/nz_subreddits", Encoding(CSVEncoding())
 )
 embedding = FasttextEmbedding(
     name="embedding",
