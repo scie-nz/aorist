@@ -83,7 +83,7 @@ where
 
         let augmented_statements = self.augment_statements(statements_with_ast);
         let content: Vec<(Option<String>, Vec<&PyAny>)> =
-            vec![(Some("Python Imports".to_string()), imports_ast)]
+            vec![(None, imports_ast)]
                 .into_iter()
                 .chain(
                     preambles

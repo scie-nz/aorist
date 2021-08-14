@@ -1,7 +1,7 @@
 use crate::flow::flow_builder::FlowBuilderBase;
 use crate::flow::native_python_based_flow::NativePythonBasedFlow;
 use crate::flow::python_based_flow_builder::PythonBasedFlowBuilder;
-use crate::python::PythonImport;
+use crate::python::{PythonImport, format_code};
 use aorist_primitives::{AoristUniverse, TPrestoEndpoints};
 use pyo3::PyResult;
 use serde_json::json;
@@ -39,13 +39,13 @@ where
                     json!({
                         "cell_type": "markdown",
                         "metadata": json!({}),
-                        "source": comment,
+                        "source": comment.replace("# ", "").replace("#", "# ").replace("\\n", "\r"),
                     }),
                     json!({
                         "cell_type": "code",
                         "execution_count": None as Option<usize>,
                         "metadata": json!({}),
-                        "source": block,
+                        "source": format_code(block).unwrap().replace("\\n", "\n"),
                         "outputs": Vec::<String>::new(),
                     })
                 ],
@@ -53,9 +53,8 @@ where
                     "cell_type": "code",
                     "execution_count": None as Option<usize>,
                     "metadata": json!({}),
-                    "source": block,
+                    "source": format_code(block).unwrap().replace("\\n", "\n"),
                     "outputs": Vec::<String>::new(),
-
                 })],
             })
             .into_iter()

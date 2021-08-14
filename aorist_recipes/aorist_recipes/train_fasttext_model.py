@@ -37,5 +37,5 @@ def recipe(
                         "word": word,
                         "embedding": model.get_word_vector(word).tolist(),
                     }
-                ) + "\n")
+                ) + chr(10))
             

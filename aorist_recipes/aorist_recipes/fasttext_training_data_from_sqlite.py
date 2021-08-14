@@ -34,7 +34,7 @@ def recipe(
         if not os.path.exists(tmp_dir):
             os.makedirs(tmp_dir)
         con = sqlite3.connect(db_filename)
-        cursor = con.execute("\nUNION ALL\n".join([
+        cursor = con.execute((chr(10) + "UNION ALL" + chr(10)).join([
             "SELECT {text_attribute_name} FROM {source_table}".format(
                 text_attribute_name=text_attribute_name,
                 source_table=source_table,
@@ -43,5 +43,6 @@ def recipe(
         ]))
         with open(fasttext_training_data_file, 'w') as f: 
             for (text) in cursor:
-                f.write('%s\n' % text)
+                f.write('%s' % text)
+                f.write(chr(10))
             
