@@ -8,7 +8,12 @@ use pyo3::prelude::*;
 use pyo3::wrap_pyfunction;
 use std::collections::BTreeMap;
 
-#[pyfunction]
+#[pyfunction(dialect_preferences="vec![
+    Dialect::R(R::new()),
+    Dialect::Python(aorist_core::Python::new(vec![])), 
+    Dialect::Bash(Bash::new()), 
+    Dialect::Presto(Presto::new())
+]")]
 pub fn dag<'a>(
     universe: PyUniverse,
     constraints: Vec<String>,
@@ -16,6 +21,7 @@ pub fn dag<'a>(
     programs: BTreeMap<String, Vec<AoristConstraintProgram>>,
     dialect_preferences: Vec<Dialect>,
 ) -> PyResult<String> {
+    universe.compute_uuids();
     //extendr_engine::start_r();
     //let mut universe = Universe::from(inner);
     //universe.compute_uuids();

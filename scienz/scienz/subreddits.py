@@ -81,7 +81,7 @@ assets = build_assets(local_subreddits)
 us_assets = build_assets(us_subreddits)
 nz_assets = build_assets(["wellington", "auckland", "chch", "thetron", "dunedin", "tauranga",
                           "gisborne", "napier", "nelson", "palmy", "queenstown", "newplymouth"])
-nz_assets = build_assets(["marton"])
+datascience = build_assets(["datascience"])
 place_based_subreddits = DataSet(
     name="subreddits",
     description="""
@@ -113,5 +113,35 @@ nz_subreddits = DataSet(
     source_path=__file__,
     datum_templates=[DatumTemplate(subreddit_datum)],
     assets=nz_assets,
+    access_policies=[],
+)
+datascience = DataSet(
+    name="datascience",
+    description="""
+    r/datascience
+    """,
+    source_path=__file__,
+    datum_templates=[DatumTemplate(subreddit_datum)],
+    assets=datascience,
+    access_policies=[],
+)
+datamining = DataSet(
+    name="datamining",
+    description="""
+    r/datamining
+    """,
+    source_path=__file__,
+    datum_templates=[DatumTemplate(subreddit_datum)],
+    assets=build_assets(["datamining"]),
+    access_policies=[],
+)
+probprog = DataSet(
+    name="probprog",
+    description="""
+    r/probprog
+    """,
+    source_path=__file__,
+    datum_templates=[DatumTemplate(subreddit_datum)],
+    assets=build_assets(["probprog"]),
     access_policies=[],
 )

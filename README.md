@@ -18,7 +18,7 @@ system not being 64-bit.
 - a working R install. Aorist was tested with R 4.1.0, but most modern R
 installations should work.
 
-## Steps
+## Minimal Example
 
 1. Create Anaconda environment
 ```
@@ -30,47 +30,203 @@ conda create -n aorist -c scienz -c conda-forge aorist aorist_recipes scienz
 conda activate aorist
 ```
 
-3. Try it on a test script
+3. Try it on a test script:
 
 ```python:test.py
 from aorist import *
 from aorist_recipes import programs
-from scienz import us_subreddits
-from common import endpoints
+from scienz import (probprog, subreddit_schema)
 
-local = HiveTableStorage(
-    location=HiveLocation(MinioLocation(name='reddit')),
-    encoding=Encoding(NewlineDelimitedJSONEncoding()),
+local = SQLiteStorage(
+    location=SQLiteLocation(file_name='subreddits.sqlite'),
     layout=TabularLayout(StaticTabularLayout()),
 )
-subreddits = us_subreddits.replicate_to_local(
-    Storage(local), "/tmp/us_subreddits", Encoding(CSVEncoding())
+subreddits = probprog.replicate_to_local(
+    Storage(local), "/tmp/probprog", Encoding(CSVEncoding())
 )
+result = dag(universe, ["ReplicateToLocal"],
+             "python", programs)
+universe = Universe(name="local_data", datasets=[subreddits],
+                    endpoints=EndpointConfig(), compliance=None)
+with open('generated_script.py', 'w') as f:
+    f.write(result)
+```
+
+4. Run generated script:
+```
+python generated_script.py
+```
+
+The generated script should be something like:
+```
+Inserted 292 records into probprog
+Example record:
+id: 7tgerv
+author: pinouchon
+subreddit: probprog
+created_utc: 1517095003
+title: Any probabilistic programming people in Paris
+selftext: I live in Paris, and I have a feeling that the Probabilistic Programming community here is quite small. I have yet to meet someone already familiar with it.
+
+So if you are in Paris and you are interested in the subject (not necessarily an expert, I'm not an expert myself), please de-lurk :)
+
+I would love to see if I can find *any*one in Paris and possibly start a meetup group.
+```
+
+## Machine Learning Example
+
+What if we want to train a Machine Learning model? This is where aorist is quite expressive.
+For instance, let's say we want to train an unsupervised Fasttext model and upload the generated
+word embeddings to SQLite.
+
+We run the following script to generate the code:
+```python:test_ml.py
+from aorist import *
+from aorist_recipes import programs
+from scienz import (
+    probprog, subreddit_schema
+)
+
+local = SQLiteStorage(
+    location=SQLiteLocation(file_name='subreddits.sqlite'),
+    layout=TabularLayout(StaticTabularLayout()),
+)
+subreddits = probprog.replicate_to_local(
+    Storage(local), "/tmp/probprog", Encoding(CSVEncoding())
+)
+embedding = FasttextEmbedding(
+    name="embedding",
+    comment="Fasttext embedding of size 16",
+    schema=DataSchema(FasttextEmbeddingSchema(
+        dim=16,
+        source_schema=subreddit_schema,
+        text_attribute_name="selftext",
+    )),
+    setup=StorageSetup(LocalStorageSetup(
+        Storage(local),
+        '/tmp/fasttext_embedding',
+    )),
+    source_assets=list(subreddits.assets.values()),
+)
+subreddits.add_asset('embedding', Asset(embedding))
 universe = Universe(
     name="my_cluster",
     datasets=[subreddits],
-    endpoints=endpoints,
+    endpoints=EndpointConfig(),
+    compliance=None,
 )
-universe.compute_uuids()
-result = dag(
-    universe,
-    ["UploadDataToMinio"],
-    "python",
-    programs,
-    dialect_preferences=[
-        R(),
-        Python([]),
-        Bash(),
-        Presto(),
-    ],
-)
-print(result)
+result = dag(universe, ["UploadFasttextToSQLite"], 
+             "python", programs)
+with open('generated_script_ml.py', 'w') as f:
+    f.write(result)
 ```
 
-
-You can test aorist by running:
+2. Then we run the generated code:
 ```
-python test.py > example.py
+python generated_script_ml.py
+```
+
+3. The result should look something like:
+```
+Inserted 292 records into probprog
+Example record:
+id: 395o9e
+author: pfumbi
+subreddit: probprog
+created_utc: 1433854717
+title: Model-based machine learning (introductory article with a section on probabilistic programming)[2012]
+selftext:
+Read 0M words
+Number of words:  15
+Number of labels: 0
+Progress: 100.0% words/sec/thread:    5441 lr:  0.000000 avg.loss:  4.123732 ETA:   0h 0m 0s
+Inserted 15 records into embedding
+Example record:
+word_id: 9
+word: practice
+embedding: [-0.012267977930605412, -0.0007697424734942615, -0.00519704120233655, 0.007255943492054939, -0.004335511475801468, -0.013080609031021595, 0.007123162969946861, -0.0029513954650610685, 0.0031337994150817394, 0.007843499071896076, 0.000649303081445396, 0.0026010186411440372, -0.010062061250209808, 0.010018683038651943, -0.013150793500244617, -0.015687717124819756]
+```
+
+## Adding a new dataset
+
+Let's say we don't just want to embed the `probprog` subreddit. Maybe we also want to add the `mlops` subreddit to our training data. To do so we can create a new dataset.
+
+```python:test_ml2.py
+from aorist import *
+from aorist_recipes import programs
+from scienz import build_subreddit_assets, subreddit_schema, subreddit_datum
+
+local = SQLiteStorage(
+    location=SQLiteLocation(file_name='subreddits.sqlite'),
+    layout=TabularLayout(StaticTabularLayout()),
+)
+subreddits = DataSet(
+    name="subreddits",
+    description="""
+    r/probprog and r/mlops
+    """,
+    source_path=__file__,
+    datum_templates=[DatumTemplate(subreddit_datum)],
+    assets=build_subreddit_assets(["probprog", "mlops"]),
+    access_policies=[],
+)
+subreddits = subreddits.replicate_to_local(
+    Storage(local), "/tmp/subreddits", Encoding(CSVEncoding())
+)
+embedding = FasttextEmbedding(
+    name="embedding",
+    comment="Fasttext embedding of size 16",
+    schema=DataSchema(FasttextEmbeddingSchema(
+        dim=16,
+        source_schema=subreddit_schema,
+        text_attribute_name="selftext",
+    )),
+    setup=StorageSetup(LocalStorageSetup(
+        Storage(local),
+        '/tmp/fasttext_embedding',
+    )),
+    source_assets=list(subreddits.assets.values()),
+)
+subreddits.add_asset('embedding', Asset(embedding))
+universe = Universe(
+    name="my_cluster",
+    datasets=[subreddits],
+    endpoints=EndpointConfig(),
+    compliance=None,
+)
+result = dag(universe, ["UploadFasttextToSQLite"], 
+             "python", programs)
+with open('generated_script_ml2.py', 'w') as f:
+    f.write(result)
+```
+
+The output now should look like this:
+```
+Inserted 162 records into mlops
+Example record:
+id: oilgyt
+author: LSTMeow
+subreddit: mlops
+created_utc: 1626070517
+title: Don't be swayed by the clickbait, it's worth reading!
+selftext:
+Inserted 292 records into probprog
+Example record:
+id: 3cqt3q
+author: pfumbi
+subreddit: probprog
+created_utc: 1436490165
+title: Horizons in Probabilistic Programming and Bayesian Analysis (SciPy 2015 notes)
+selftext:
+Read 0M words
+Number of words:  153
+Number of labels: 0
+Progress: 100.0% words/sec/thread:   39881 lr:  0.000000 avg.loss:  3.526413 ETA:   0h 0m 0s
+Inserted 153 records into embedding
+Example record:
+word_id: 50
+word: The
+embedding: [-0.15435373783111572, -0.3686341941356659, -0.34006866812705994, -0.008660915307700634, 0.09429445117712021, 0.08011642098426819, 0.014333870261907578, -0.015342476777732372, 0.21049700677394867, -0.0027332764584571123, -0.10574445128440857, 0.09784656018018723, -0.4542456567287445, 0.14526918530464172, -0.29748550057411194, -0.10125137865543365]
 ```
 
 # Developer Guide

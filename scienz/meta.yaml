@@ -15,6 +15,9 @@ requirements:
   run:
     - python
     - aorist
+    - pmaw
+    - sqlite3
+    - fasttext
 
 about:
   home: "https://github.com/scie-nz/aorist"

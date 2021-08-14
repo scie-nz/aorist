@@ -61,10 +61,10 @@ spec:
 type: Constraint
 spec:
   name: ReadyForUpload
-  root: DataSet
+  root: StaticDataTable
   requires:
     - DownloadDataFromRemotePushshiftAPILocationToNewlineDelimitedJSON
-  title: Convert data
+  title: Data has now been downloaded
 ---
 type: Constraint
 spec:
@@ -133,7 +133,7 @@ spec:
   root: HiveTableStorage
   requires:
     - JSONTableSchemasCreated
-    - UploadDataToLocal
+    - ReplicateToLocal
     - ORCTableSchemasCreated
   requiresProgram: true
   title: Convert JSON Table to ORC Table
@@ -152,7 +152,7 @@ spec:
 ---
 type: Constraint
 spec:
-  name: UploadDataToLocal
+  name: ReplicateToLocal
   root: OnPremiseLocation
   requires:
       - UploadDataToMinio

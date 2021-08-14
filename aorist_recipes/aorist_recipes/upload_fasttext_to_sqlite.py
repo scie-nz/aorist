@@ -23,14 +23,11 @@ def recipe(
         db_filename, table_name, fasttext_word_embeddings_file,
     ):
         con = sqlite3.connect(db_filename)
-        con.execute("""
-        DROP TABLE IF EXISTS {table_name}
-        """.format(
+        con.execute("DROP TABLE IF EXISTS {table_name}".format(
             table_name=table_name,
         ))
-        con.execute("""
-        CREATE TABLE {table_name}(word_id INTEGER, word TEXT, embedding TEXT)
-        """.format(
+        con.execute(
+        "CREATE TABLE {table_name}(word_id INTEGER, word TEXT, embedding TEXT)".format(
             table_name=table_name,
         ))
 
@@ -42,9 +39,7 @@ def recipe(
                 values += [tpl]
                 if len(values) % 100 == 0:
                     con.executemany(
-                        """
-                        INSERT INTO {table_name}(word_id, word, embedding) VALUES (?, ?, ?)
-                        """.format(
+                        "INSERT INTO {table_name}(word_id, word, embedding) VALUES (?, ?, ?)".format(
                             table_name=table_name,
                         ),
                         values
@@ -54,9 +49,7 @@ def recipe(
         
         if len(values) > 0:
             con.executemany(
-                """
-                INSERT INTO {table_name}(word_id, word, embedding) VALUES (?, ?, ?)
-                """.format(
+                "INSERT INTO {table_name}(word_id, word, embedding) VALUES (?, ?, ?)".format(
                     table_name=table_name,
                 ),
                 values
@@ -64,4 +57,6 @@ def recipe(
             con.commit()
         count = list(con.execute("SELECT COUNT(*) FROM " + table_name))[0][0]
         print("Inserted %d records into %s" % (count, table_name))
+        row = list(con.execute("SELECT * FROM " + table_name + " ORDER BY RANDOM() LIMIT 1"))[0]
+        print("Example record:\n" + "\n".join(["%s: %s" % x for x in zip(["word_id", "word", "embedding"], row)]))
         con.close()
