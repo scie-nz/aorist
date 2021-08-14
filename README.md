@@ -20,12 +20,6 @@ installations should work.
 
 ## Minimal Example
 
-0. Install a few required pip packages for the demo.
-
-```
-pip install pmaw sqlite3 fasttext
-```
-
 1. Create Anaconda environment
 ```
 conda create -n aorist -c scienz -c conda-forge aorist aorist_recipes scienz
@@ -36,7 +30,13 @@ conda create -n aorist -c scienz -c conda-forge aorist aorist_recipes scienz
 conda activate aorist
 ```
 
-3. Try it on a test script:
+3. Install a few required pip packages for the demo.
+
+```
+pip install pmaw fasttext
+```
+
+4. Try it on a test script:
 
 ```python:test.py
 from aorist import *
@@ -50,15 +50,15 @@ local = SQLiteStorage(
 subreddits = probprog.replicate_to_local(
     Storage(local), "/tmp/probprog", Encoding(CSVEncoding())
 )
-result = dag(universe, ["ReplicateToLocal"],
-             "python", programs)
 universe = Universe(name="local_data", datasets=[subreddits],
                     endpoints=EndpointConfig(), compliance=None)
+result = dag(universe, ["ReplicateToLocal"],
+             "python", programs)
 with open('generated_script.py', 'w') as f:
     f.write(result)
 ```
 
-4. Run generated script:
+5. Run the generated script:
 ```
 python generated_script.py
 ```
