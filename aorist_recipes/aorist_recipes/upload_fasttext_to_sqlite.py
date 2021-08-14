@@ -59,6 +59,6 @@ def recipe(
         print("Inserted %d records into %s" % (count, table_name))
         row = list(con.execute("SELECT * FROM " + table_name + " ORDER BY RANDOM() LIMIT 1"))[0]
         print("Example record:")
-        for x in zip(["word_id", "word", "embnedding"], row):
+        for x in zip(["word_id", "word", "embedding"], row):
             print("%s: %s" % x)
         con.close()
