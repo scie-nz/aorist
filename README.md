@@ -20,6 +20,12 @@ installations should work.
 
 ## Minimal Example
 
+0. Install a few required pip packages for the demo.
+
+```
+pip install pmaw sqlite3 fasttext
+```
+
 1. Create Anaconda environment
 ```
 conda create -n aorist -c scienz -c conda-forge aorist aorist_recipes scienz
@@ -57,7 +63,7 @@ with open('generated_script.py', 'w') as f:
 python generated_script.py
 ```
 
-The generated script should be something like:
+Running the generated script should result in something like:
 ```
 Inserted 292 records into probprog
 Example record:
@@ -228,6 +234,29 @@ word_id: 50
 word: The
 embedding: [-0.15435373783111572, -0.3686341941356659, -0.34006866812705994, -0.008660915307700634, 0.09429445117712021, 0.08011642098426819, 0.014333870261907578, -0.015342476777732372, 0.21049700677394867, -0.0027332764584571123, -0.10574445128440857, 0.09784656018018723, -0.4542456567287445, 0.14526918530464172, -0.29748550057411194, -0.10125137865543365]
 ```
+
+## Generating a Jupyter notebook
+
+Simply add the following lines at the end of `test_ml2.py`:
+
+```python
+result = dag(universe, ["UploadFasttextToSQLite"], 
+             "jupyter", programs)
+with open('generated_notebook.ipynb', 'w') as f:
+    f.write(result)
+```
+
+## Generating an Airflow pipeline
+
+Add the following lines, changing the 3rd argument of `dag` to `"airflow"`:
+
+```python
+result = dag(universe, ["UploadFasttextToSQLite"], 
+             "airflow", programs)
+with open('generated_script_airflow.py', 'w') as f:
+    f.write(result)
+```
+
 
 # Developer Guide
 
