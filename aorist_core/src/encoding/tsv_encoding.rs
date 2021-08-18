@@ -12,7 +12,7 @@ use uuid::Uuid;
 #[aorist]
 pub struct TSVEncoding {
     #[constrainable]
-    pub compression: AoristRef<DataCompression>,
+    pub compression: Option<AoristRef<DataCompression>>,
     #[constrainable]
     pub header: AoristRef<FileHeader>,
 }

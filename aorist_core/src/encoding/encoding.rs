@@ -46,7 +46,7 @@ impl Encoding {
         match &self {
             Self::CSVEncoding(x) => x.0.read().unwrap().compression.clone(),
             // TODO: need to change this to also be optional
-            Self::TSVEncoding(x) => Some(x.0.read().unwrap().compression.clone()),
+            Self::TSVEncoding(x) => x.0.read().unwrap().compression.clone(),
             Self::GDBEncoding(x) => x.0.read().unwrap().compression.clone(),
             Self::JSONEncoding(_) => None,
             Self::ORCEncoding(_) => None,
@@ -81,9 +81,10 @@ impl PyEncoding {
                 Some(y) => Some(PyDataCompression { inner: y.clone() }),
                 None => None,
             },
-            Encoding::TSVEncoding(x) => Some(PyDataCompression {
-                inner: x.0.read().unwrap().compression.clone(),
-            }),
+            Encoding::TSVEncoding(x) => match &x.0.read().unwrap().compression {
+                Some(y) => Some(PyDataCompression { inner: y.clone() }),
+                None => None,
+            },
             Encoding::JSONEncoding(_) => None,
             Encoding::ORCEncoding(_) => None,
             Encoding::ONNXEncoding(_) => None,
