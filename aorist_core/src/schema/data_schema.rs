@@ -1,6 +1,7 @@
 #![allow(non_snake_case)]
 use crate::concept::{AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
 use crate::schema::fasttext_embedding_schema::*;
+use crate::schema::long_tabular_schema::*;
 use crate::schema::tabular_schema::*;
 use crate::schema::time_ordered_tabular_schema::*;
 use crate::schema::undefined_tabular_schema::*;
@@ -18,6 +19,8 @@ use uuid::Uuid;
 pub enum DataSchema {
     #[constrainable]
     FasttextEmbeddingSchema(AoristRef<FasttextEmbeddingSchema>),
+    #[constrainable]
+    LongTabularSchema(AoristRef<LongTabularSchema>),
     #[constrainable]
     TabularSchema(AoristRef<TabularSchema>),
     #[constrainable]
@@ -40,6 +43,7 @@ impl DataSchema {
                 .datumTemplateName
                 .clone()),
             DataSchema::TabularSchema(x) => Ok(x.0.read().unwrap().datumTemplateName.clone()),
+            DataSchema::LongTabularSchema(x) => Ok(x.0.read().unwrap().datumTemplateName.clone()),
             DataSchema::TimeOrderedTabularSchema(x) => {
                 Ok(x.0.read().unwrap().datumTemplateName.clone())
             }
@@ -61,6 +65,7 @@ impl DataSchema {
                     .clone()
             }
             DataSchema::TabularSchema(x) => x.0.read().unwrap().attributes.clone(),
+            DataSchema::LongTabularSchema(x) => x.0.read().unwrap().get_attribute_names(),
             DataSchema::TimeOrderedTabularSchema(x) => x.0.read().unwrap().attributes.clone(),
             DataSchema::UndefinedTabularSchema(_) => vec![],
         }

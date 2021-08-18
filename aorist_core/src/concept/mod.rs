@@ -182,5 +182,6 @@ register_concept!(
     TrainedFloatMeasure,
     PredictionsFromTrainedFloatMeasure,
     FasttextEmbeddingSchema,
-    FasttextEmbedding
+    FasttextEmbedding,
+    LongTabularSchema
 );
