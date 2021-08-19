@@ -26,4 +26,20 @@ impl GCPConfig {
             data_location,
         }
     }
+    #[getter]
+    fn project_name(&self) -> String {
+        self.project_name.clone()
+    }
+    #[getter]
+    fn data_location(&self) -> String {
+        self.data_location.clone()
+    }
+    #[getter]
+    fn service_account_file(&self) -> Option<String> {
+        self.service_account_file.clone()
+    }
+    #[getter]
+    fn use_default_credentials(&self) -> bool {
+        self.use_default_credentials
+    }
 }

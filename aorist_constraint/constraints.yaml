@@ -307,3 +307,48 @@ spec:
               Err(_) => false,
           }
       }
+---
+type: Constraint
+spec:
+  name: DownloadDataFromRemoteGCSLocation
+  root: GCSLocation
+  requiresProgram: true
+  title: Downloading data from GCS
+  body: |
+      Data for this particular asset(s) is located in Google Cloud Storage.
+      We need to download it to a local directory first, before we can
+      do anything with it.
+  attachIf: |
+      |root: AoristRef<Concept>, ancestry: &ConceptAncestry|
+      match ancestry.replication_storage_setup(root.clone()) {
+          Ok(x) => {
+            debug!("Root has ReplicationStorageSetup.");
+            match *x.0.read().unwrap().tmp_encoding.0.read().unwrap() {
+                aorist_core::Encoding::NewlineDelimitedJSONEncoding(_) => true,
+                aorist_core::Encoding::CSVEncoding(_) => true,
+                _ => false,
+            }
+          }
+          _ => false,
+      }
+---
+type: Constraint
+spec:
+  name: DownloadDataFromRemote
+  root: RemoteStorage
+  requires:
+    - DownloadDataFromRemoteGCSLocation
+    - DownloadDataFromRemotePushshiftAPILocationToNewlineDelimitedJSON
+  attachIf: |
+      |root: AoristRef<Concept>, ancestry: &ConceptAncestry|
+      match ancestry.replication_storage_setup(root.clone()) {
+          Ok(x) => {
+            debug!("Root has ReplicationStorageSetup.");
+            match *x.0.read().unwrap().tmp_encoding.0.read().unwrap() {
+                aorist_core::Encoding::NewlineDelimitedJSONEncoding(_) => true,
+                aorist_core::Encoding::CSVEncoding(_) => true,
+                _ => false,
+            }
+          }
+          _ => false,
+      }
