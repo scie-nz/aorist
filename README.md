@@ -76,6 +76,16 @@ You can add new canonical datasets to the `scienz` package. Once accepted for pu
 4. If `conda build .` succeeds, submit a Pull Request against scienz/aorist.
 5. Once the PR is accepted, the `scienz` package will be rebuilt and your dataset will be accessible via Anaconda. 
 
+### How to test
+
+Run the following commands:
+
+```
+python build_for_testing.py
+pip install astor black dill
+PYTHONPATH=$PYTHONPATH:../aorist_recipes:../scienz:../aorist python minimal.py
+``` 
+
 ## Overview of an Aorist universe
 
 *(note that the code examples below are provided for illustrative purposes and may have occasional bugs)*
