@@ -6,7 +6,7 @@ use aorist_concept::{aorist, Constrainable};
 use aorist_primitives::{AoristConcept, ConceptEnum};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
-
+use crate::header::*;
 use crate::encoding::csv_encoding::*;
 use crate::encoding::gdb_encoding::*;
 use crate::encoding::json_encoding::*;
@@ -96,5 +96,9 @@ impl PyEncoding {
             Encoding::SQLiteEncoding(_) => None,
             Encoding::NewlineDelimitedJSONEncoding(_) => None,
         })
+    }
+    #[getter]
+    pub fn header(&self) -> Option<PyFileHeader> {
+        self.inner.0.read().unwrap().get_header().and_then(|x| Some(PyFileHeader{ inner: x.clone() }))
     }
 }

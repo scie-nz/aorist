@@ -10,8 +10,9 @@ programs = {}
     args={
         "db_filename": lambda sq_lite_location: sq_lite_location.file_name,
         "table_name": lambda static_data_table: static_data_table.name,
-        #"is_json": lambda context: (context.get("is_json"), context),
-        #"delimiter": lambda context: (context.get("delimiter"), context),
+        "header_num_lines": lambda context: (context.get("header_num_lines"), context),
+        "is_json": lambda context: (context.get("is_json"), context),
+        "delimiter": lambda context: (context.get("delimiter"), context),
         "source_file": lambda context: (context.get("file_to_replicate"), context),
         "columns": lambda data_set, asset: dumps([
             (x.name, x.sqlite_type, x.is_nullable)
@@ -21,7 +22,7 @@ programs = {}
 )
 def recipe(
     db_filename, table_name, source_file, columns,
-    is_json, delimiter,
+    is_json, delimiter, header_num_lines,
 ):
     
     import sqlite3
@@ -29,11 +30,12 @@ def recipe(
     
     def upload_to_sqlite(
         db_filename, table_name, source_file, columns,
-        is_json, delimiter,
+        is_json, delimiter, header_num_lines,
     ):
         columns = json.loads(columns)
         is_json = json.loads(is_json)
         delimiter = json.loads(delimiter)
+        header_num_lines = json.loads(header_num_lines)
 
         con = sqlite3.connect(db_filename)
         con.execute("DROP TABLE IF EXISTS {table_name}".format(
@@ -62,7 +64,7 @@ def recipe(
 
         attr_names = [x[0] for x in columns]
         with open(source_file, 'r') as f:
-            for line in f.readlines():
+            for line in f.readlines()[header_num_lines:]:
                 if is_json:
                     x = json.loads(line)
                     obj = [x[name] if name in x else None for name in attr_names]
