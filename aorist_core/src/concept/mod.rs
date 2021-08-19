@@ -184,7 +184,7 @@ register_concept!(
     FasttextEmbeddingSchema,
     FasttextEmbedding,
     LongTabularSchema,
-    FasttextEmbeddingSourceSchema,
+    TextCorpusSchema,
     SQLiteEncoding,
     SpacyNamedEntities
 );

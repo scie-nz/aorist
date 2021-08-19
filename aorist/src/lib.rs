@@ -195,9 +195,10 @@ fn aorist(py: pyo3::prelude::Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<AoristConstraintProgram>()?;
     m.add_class::<PyFasttextEmbedding>()?;
     m.add_class::<PyFasttextEmbeddingSchema>()?;
-    m.add_class::<PyFasttextEmbeddingSourceSchema>()?;
+    m.add_class::<PyTextCorpusSchema>()?;
     m.add_class::<PyLongTabularSchema>()?;
     m.add_class::<PySQLiteEncoding>()?;
+    m.add_class::<PySpacyNamedEntities>()?;
     m.add_class::<aorist_core::Python>()?;
     m.add_class::<aorist_core::Bash>()?;
     m.add_class::<aorist_core::Presto>()?;
