@@ -1,5 +1,6 @@
 from aorist import aorist
 from aorist import DownloadDataFromRemoteGCSLocation
+from json import dumps
 
 programs = {}
 
@@ -18,18 +19,37 @@ programs = {}
             ),
             context,
         ),
-        "dest_file_name": lambda static_data_table: (
-            "{file_name}.{extension}"
-        ).format(
-            file_name=static_data_table.name,
-            extension=static_data_table.setup.replication_storage_setup.download_extension,
-        )
+        "_is_json": lambda replication_storage_setup, context: (
+            context.capture(
+                "is_json",
+                dumps(replication_storage_setup.source.encoding.newline_delimited_json_encoding is not None),
+            ),
+            context,
+        ),
+        "_delimiter": lambda replication_storage_setup, context: (
+            context.capture(
+                "delimiter",
+                dumps(
+                    "\t" if replication_storage_setup.source.encoding.tsv_encoding is not None
+                    else "," if replication_storage_setup.source.encoding.csv_encoding is not None 
+                    else None
+                ),
+            ),
+            context,
+        ),
+        "file_to_replicate": lambda static_data_table, context: (context.capture(
+            "file_to_replicate",
+            ("{file_name}.{extension}").format(
+                file_name=static_data_table.name,
+                extension=static_data_table.setup.replication_storage_setup.download_extension,
+            )
+        ), context)
     },
 )
-def recipe(bucket_name, blob_name, tmp_dir, dest_file_name, credentials):
+def recipe(bucket_name, blob_name, tmp_dir, file_to_replicate, credentials, _is_json, _delimiter):
     from google.cloud import storage
     import os
-    def download_blob_to_file(bucket_name, blob_name, tmp_dir, dest_file_name, credentials):
+    def download_blob_to_file(bucket_name, blob_name, tmp_dir, file_to_replicate, credentials, _is_json, _delimiter):
       if credentials != "":
           client = storage.Client.from_service_account_json(credentials)
       else:

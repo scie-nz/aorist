@@ -33,6 +33,6 @@ universe = Universe(
     compliance=None,
 )
 result = dag(universe, ["UploadFasttextToSQLite"], 
-             "jupyter", programs)
-with open('generated_script_ml.ipynb', 'w') as f:
+             "python", programs)
+with open('generated_script_ml.py', 'w') as f:
     f.write(result)

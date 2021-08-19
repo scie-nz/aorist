@@ -13,6 +13,8 @@ use aorist_primitives::{AoristConcept, ConceptEnum};
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
 use uuid::Uuid;
+#[cfg(feature = "python")]
+use pyo3::prelude::*;
 
 #[aorist]
 pub enum Storage {
@@ -43,5 +45,14 @@ impl Storage {
             Self::PostgresStorage(_) => None,
             Self::BigQueryStorage(_) => None,
         }
+    }
+}
+
+#[cfg(feature = "python")]
+#[pymethods]
+impl PyStorage {
+    #[getter]
+    pub fn encoding(&self) -> Option<PyEncoding> {
+        self.inner.0.read().unwrap().get_encoding().and_then(|x| Some(PyEncoding{ inner: x }))
     }
 }

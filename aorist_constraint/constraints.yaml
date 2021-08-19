@@ -64,6 +64,7 @@ spec:
   root: StaticDataTable
   requires:
     - DownloadDataFromRemotePushshiftAPILocationToNewlineDelimitedJSON
+    - DownloadDataFromRemoteGCSLocation
   title: Data has now been downloaded
 ---
 type: Constraint

@@ -1,5 +1,6 @@
 from aorist import aorist
 from aorist import DownloadDataFromRemotePushshiftAPILocationToNewlineDelimitedJSON
+from json import dumps
 
 programs = {}
 
@@ -12,18 +13,20 @@ programs = {}
         "tmp_dir": lambda replication_storage_setup: replication_storage_setup.tmp_dir,
         "output_file": lambda replication_storage_setup, pushshift_api_location, context: (
             context.capture(
-                "json_file", replication_storage_setup.tmp_dir + "/" + pushshift_api_location.subreddit + ".json"
+                "file_to_replicate", replication_storage_setup.tmp_dir + "/" + pushshift_api_location.subreddit + ".json"
             ),
             context
-        )
+        ),
+        "_is_json": lambda context: (context.capture("is_json", dumps(True)), context),
+        "_delimiter": lambda context: (context.capture("delimiter", dumps(None)), context),
     },
 )
-def recipe(subreddit, tmp_dir, output_file):
+def recipe(subreddit, tmp_dir, output_file, _is_json, _delimiter):
     from pmaw import PushshiftAPI
     import json
     import os
 
-    def download_subreddit(subreddit, tmp_dir, output_file):
+    def download_subreddit(subreddit, tmp_dir, output_file, _is_json, _delimiter):
 
         if not os.path.exists(tmp_dir):
             os.makedirs(tmp_dir)
