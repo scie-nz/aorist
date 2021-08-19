@@ -322,14 +322,15 @@ spec:
   attachIf: |
       |root: AoristRef<Concept>, ancestry: &ConceptAncestry|
       match ancestry.replication_storage_setup(root.clone()) {
-          Ok(x) => {
+          Ok(_) => true, 
+          /*{
             debug!("Root has ReplicationStorageSetup.");
             match *x.0.read().unwrap().tmp_encoding.0.read().unwrap() {
                 aorist_core::Encoding::NewlineDelimitedJSONEncoding(_) => true,
                 aorist_core::Encoding::CSVEncoding(_) => true,
                 _ => false,
             }
-          }
+          }*/
           _ => false,
       }
 ---

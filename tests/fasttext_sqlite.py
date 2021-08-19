@@ -16,7 +16,7 @@ embedding = FasttextEmbedding(
     comment="Fasttext embedding of size 128",
     schema=DataSchema(FasttextEmbeddingSchema(
         dim=16,
-        source_schema=subreddit_schema,
+        source_schema=FasttextEmbeddingSourceSchema(subreddit_schema),
         text_attribute_name="selftext",
     )),
     setup=StorageSetup(LocalStorageSetup(

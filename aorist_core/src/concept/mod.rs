@@ -183,5 +183,7 @@ register_concept!(
     PredictionsFromTrainedFloatMeasure,
     FasttextEmbeddingSchema,
     FasttextEmbedding,
-    LongTabularSchema
+    LongTabularSchema,
+    FasttextEmbeddingSourceSchema,
+    SQLiteEncoding
 );

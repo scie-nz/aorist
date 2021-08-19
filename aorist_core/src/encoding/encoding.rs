@@ -12,6 +12,7 @@ use crate::encoding::gdb_encoding::*;
 use crate::encoding::json_encoding::*;
 use crate::encoding::onnx_encoding::*;
 use crate::encoding::orc_encoding::*;
+use crate::encoding::sqlite_encoding::*;
 use crate::encoding::tsv_encoding::*;
 use aorist_paste::paste;
 #[cfg(feature = "python")]
@@ -27,6 +28,7 @@ pub enum Encoding {
     TSVEncoding(AoristRef<TSVEncoding>),
     ONNXEncoding(AoristRef<ONNXEncoding>),
     GDBEncoding(AoristRef<GDBEncoding>),
+    SQLiteEncoding(AoristRef<SQLiteEncoding>),
 }
 
 impl Encoding {
@@ -34,11 +36,12 @@ impl Encoding {
         match &self {
             Self::CSVEncoding(x) => x.0.read().unwrap().header.clone(),
             // TODO: need to change this to also be optional
-            Self::TSVEncoding(x) => Some(x.0.read().unwrap().header.clone()),
+            Self::TSVEncoding(x) => x.0.read().unwrap().header.clone(),
             Self::JSONEncoding(_) => None,
             Self::ORCEncoding(_) => None,
             Self::ONNXEncoding(_) => None,
             Self::GDBEncoding(_) => None,
+            Self::SQLiteEncoding(_) => None,
             Self::NewlineDelimitedJSONEncoding(_) => None,
         }
     }
@@ -51,6 +54,7 @@ impl Encoding {
             Self::JSONEncoding(_) => None,
             Self::ORCEncoding(_) => None,
             Self::ONNXEncoding(_) => None,
+            Self::SQLiteEncoding(_) => None,
             Self::NewlineDelimitedJSONEncoding(_) => None,
         }
     }
@@ -63,6 +67,7 @@ impl Encoding {
             Self::JSONEncoding(_) => "json".to_string(),
             Self::ORCEncoding(_) => "orc".to_string(),
             Self::ONNXEncoding(_) => "onnx".to_string(),
+            Self::SQLiteEncoding(_) => "sqlite".to_string(),
             Self::NewlineDelimitedJSONEncoding(_) => "json".to_string(),
         }
     }
@@ -88,6 +93,7 @@ impl PyEncoding {
             Encoding::JSONEncoding(_) => None,
             Encoding::ORCEncoding(_) => None,
             Encoding::ONNXEncoding(_) => None,
+            Encoding::SQLiteEncoding(_) => None,
             Encoding::NewlineDelimitedJSONEncoding(_) => None,
         })
     }
