@@ -222,7 +222,7 @@ spec:
   requiresProgram: true
   title: Creating Fasttext Training Dataset
   body: |
-      We download Fasttext data from a Hive table.
+      We download Fasttext data from a SQLite table.
   attachIf: |
       |root: AoristRef<Concept>, ancestry: &ConceptAncestry| {
           let source_assets = ancestry.fasttext_embedding(root.clone()).unwrap().0.read().unwrap().source_assets.clone(); 
