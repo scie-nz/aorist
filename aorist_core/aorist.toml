@@ -63,4 +63,5 @@ attributes = [
     "CountryName",
     "WKTString",
     "VectorEmbedding",
+    "CharacterPosition",
 ]

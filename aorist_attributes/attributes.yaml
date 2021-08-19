@@ -702,3 +702,14 @@ spec:
   bigquery: BigQueryString
   postgres: PostgresText
   value: StringValue
+---
+type: Attribute
+spec:
+  name: CharacterPosition
+  orc: OrcBigint
+  presto: PrestoBigint
+  sql: SQLBigint
+  sqlite: SQLiteInteger
+  bigquery: BigQueryInt64
+  postgres: PostgresBigInt
+  value: IntegerValue
