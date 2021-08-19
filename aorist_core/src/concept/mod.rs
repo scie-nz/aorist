@@ -186,5 +186,7 @@ register_concept!(
     LongTabularSchema,
     TextCorpusSchema,
     SQLiteEncoding,
-    SpacyNamedEntities
+    NamedEntities,
+    SpacyNamedEntitySchema,
+    NamedEntitySchema
 );

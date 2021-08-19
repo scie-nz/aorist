@@ -2,6 +2,7 @@
 use crate::concept::{AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
 use crate::schema::fasttext_embedding_schema::*;
 use crate::schema::long_tabular_schema::*;
+use crate::schema::named_entity_schema::*;
 use crate::schema::tabular_schema::*;
 use crate::schema::time_ordered_tabular_schema::*;
 use crate::schema::undefined_tabular_schema::*;
@@ -22,6 +23,8 @@ pub enum DataSchema {
     #[constrainable]
     LongTabularSchema(AoristRef<LongTabularSchema>),
     #[constrainable]
+    NamedEntitySchema(AoristRef<NamedEntitySchema>),
+    #[constrainable]
     TabularSchema(AoristRef<TabularSchema>),
     #[constrainable]
     TimeOrderedTabularSchema(AoristRef<TimeOrderedTabularSchema>),
@@ -33,6 +36,16 @@ impl DataSchema {
     pub fn get_datum_template_name(&self) -> Result<String, String> {
         match self {
             DataSchema::FasttextEmbeddingSchema(x) => x
+                .0
+                .read()
+                .unwrap()
+                .source_schema()
+                .0
+                .read()
+                .unwrap()
+                .get_datum_template_name()
+                .clone(),
+            DataSchema::NamedEntitySchema(x) => x
                 .0
                 .read()
                 .unwrap()
@@ -55,6 +68,15 @@ impl DataSchema {
     pub fn get_attribute_names(&self) -> Vec<String> {
         match self {
             DataSchema::FasttextEmbeddingSchema(x) => {
+                x.0.read()
+                    .unwrap()
+                    .source_schema()
+                    .0
+                    .read()
+                    .unwrap()
+                    .get_attribute_names()
+            }
+            DataSchema::NamedEntitySchema(x) => {
                 x.0.read()
                     .unwrap()
                     .source_schema()

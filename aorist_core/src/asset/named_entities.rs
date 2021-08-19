@@ -16,32 +16,24 @@ use std::sync::{Arc, RwLock};
 use uuid::Uuid;
 
 #[aorist]
-pub struct SpacyNamedEntities {
+pub struct NamedEntities {
     pub name: String,
     pub comment: Option<String>,
-    pub spacy_model_name: String,
     #[constrainable]
     pub source_assets: Vec<AoristRef<Asset>>,
     #[constrainable]
     pub setup: AoristRef<StorageSetup>,
     #[constrainable]
-    pub schema: AoristRef<DataSchema>,
+    pub schema: AoristRef<NamedEntitySchema>,
 }
-impl SpacyNamedEntities {
+impl NamedEntities {
     pub fn get_schema(&self) -> AoristRef<DataSchema> {
-        AoristRef(Arc::new(RwLock::new(DataSchema::TabularSchema(
-            AoristRef(Arc::new(RwLock::new(
-                TabularSchema{
-                    datumTemplateName: self.name.clone(),
-                    attributes: self.get_attributes().iter().map(|x| x.0.read().unwrap().get_name().clone()).collect(),
-                    tag: None,
-                    uuid: None,
-                }
-            )))
-        ))))
+        AoristRef(Arc::new(RwLock::new(
+            DataSchema::NamedEntitySchema(self.schema.clone())
+        )))
     }
 }
-impl TDatumTemplate for SpacyNamedEntities {
+impl TDatumTemplate for NamedEntities {
     fn get_attributes(&self) -> Vec<AoristRef<Attribute>> {
         vec![
             AoristRef(Arc::new(RwLock::new(Attribute {

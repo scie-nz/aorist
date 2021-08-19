@@ -1,7 +1,7 @@
 #![allow(non_snake_case)]
 use crate::asset::derived_asset::*;
 use crate::asset::fasttext_embedding::*;
-use crate::asset::spacy_named_entities::*;
+use crate::asset::named_entities::*;
 use crate::asset::static_data_table::*;
 use crate::asset::supervised_model::*;
 use crate::concept::{AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
@@ -25,7 +25,7 @@ pub enum Asset {
     #[constrainable]
     DerivedAsset(AoristRef<DerivedAsset>),
     #[constrainable]
-    SpacyNamedEntities(AoristRef<SpacyNamedEntities>),
+    NamedEntities(AoristRef<NamedEntities>),
     #[constrainable]
     StaticDataTable(AoristRef<StaticDataTable>),
     #[constrainable]
@@ -49,7 +49,7 @@ pub trait TAsset {
 impl Asset {
     pub fn get_type(&self) -> String {
         match self {
-            Asset::SpacyNamedEntities(_) => "SpacyNamedEntities",
+            Asset::NamedEntities(_) => "NamedEntities",
             Asset::StaticDataTable(_) => "StaticDataTable",
             Asset::SupervisedModel(_) => "SupervisedModel",
             Asset::DerivedAsset(_) => "DerivedAsset",
@@ -59,7 +59,7 @@ impl Asset {
     }
     pub fn get_name(&self) -> String {
         match self {
-            Asset::SpacyNamedEntities(x) => x.0.read().unwrap().name.clone(),
+            Asset::NamedEntities(x) => x.0.read().unwrap().name.clone(),
             Asset::StaticDataTable(x) => x.0.read().unwrap().name.clone(),
             Asset::SupervisedModel(x) => x.0.read().unwrap().name.clone(),
             Asset::DerivedAsset(x) => x.0.read().unwrap().name.clone(),
@@ -68,7 +68,7 @@ impl Asset {
     }
     pub fn get_schema(&self) -> AoristRef<DataSchema> {
         match self {
-            Asset::SpacyNamedEntities(x) => x.0.read().unwrap().get_schema(),
+            Asset::NamedEntities(x) => x.0.read().unwrap().get_schema(),
             Asset::StaticDataTable(x) => x.0.read().unwrap().schema.clone(),
             Asset::SupervisedModel(x) => x.0.read().unwrap().schema.clone(),
             Asset::DerivedAsset(x) => x.0.read().unwrap().schema.clone(),
@@ -77,7 +77,7 @@ impl Asset {
     }
     pub fn get_storage_setup(&self) -> AoristRef<StorageSetup> {
         match self {
-            Asset::SpacyNamedEntities(x) => x.0.read().unwrap().setup.clone(),
+            Asset::NamedEntities(x) => x.0.read().unwrap().setup.clone(),
             Asset::StaticDataTable(x) => x.0.read().unwrap().setup.clone(),
             Asset::SupervisedModel(x) => x.0.read().unwrap().setup.clone(),
             Asset::DerivedAsset(x) => x.0.read().unwrap().setup.clone(),

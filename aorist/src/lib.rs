@@ -198,7 +198,9 @@ fn aorist(py: pyo3::prelude::Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<PyTextCorpusSchema>()?;
     m.add_class::<PyLongTabularSchema>()?;
     m.add_class::<PySQLiteEncoding>()?;
-    m.add_class::<PySpacyNamedEntities>()?;
+    m.add_class::<PyNamedEntities>()?;
+    m.add_class::<PyNamedEntitySchema>()?;
+    m.add_class::<PySpacyNamedEntitySchema>()?;
     m.add_class::<aorist_core::Python>()?;
     m.add_class::<aorist_core::Bash>()?;
     m.add_class::<aorist_core::Presto>()?;
