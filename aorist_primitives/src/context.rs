@@ -2,11 +2,45 @@
 use pyo3::prelude::*;
 use std::collections::HashMap;
 use tracing::debug;
+use pyo3::exceptions::PyValueError;
+
+#[derive(Clone, PartialEq, Eq, Debug)]
+pub enum ContextStoredValue {
+    String(String),
+    Integer(i64),
+    Boolean(bool),
+}
+
+impl std::fmt::Display for ContextStoredValue {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            ContextStoredValue::String(x) => x.fmt(f),
+            ContextStoredValue::Integer(x) => x.fmt(f),
+            ContextStoredValue::Boolean(x) => x.fmt(f),
+        }
+    }
+}
+
+#[cfg(feature = "python")]
+impl ContextStoredValue {
+    pub fn string(&self) -> PyResult<String> {
+        match self {
+            ContextStoredValue::String(x) => Ok(x.clone()),
+            _ => Err(PyValueError::new_err("value is not string")),
+        }
+    }
+    pub fn integer(&self) -> PyResult<i64> {
+        match self {
+            ContextStoredValue::Integer(x) => Ok(*x),
+            _ => Err(PyValueError::new_err("value is not integer")),
+        }
+    }
+}
 
 #[cfg_attr(feature = "python", pyclass)]
 #[derive(Clone)]
 pub struct Context {
-    inner: HashMap<String, String>,
+    inner: HashMap<String, ContextStoredValue>,
 }
 
 impl Context {
@@ -17,11 +51,12 @@ impl Context {
     }
     pub fn insert(&mut self, other: &Self) {
         for (k, v) in other.inner.iter() {
-            let existing: Option<String> = self.inner.get(k).and_then(|x| Some(x.clone()));
+            let existing: Option<_> = self.inner.get(k).and_then(|x| Some(x.clone()));
             if let Some(existing_val) = existing {
                 if existing_val != *v {
-                    self.inner
-                        .insert(k.clone(), format!("{};{}", existing_val, v).to_string());
+                    panic!("Key {} already populated", k);
+                    //self.inner
+                    //    .insert(k.clone(), format!("{};{}", existing_val, v).to_string());
                 }
             } else {
                 debug!("Inserted from dependent constraint ({}, {})", &k, &v);
@@ -34,11 +69,14 @@ impl Context {
 #[cfg_attr(feature = "python", pymethods)]
 impl Context {
     pub fn capture(&mut self, key: String, value: String) -> String {
-        self.inner.insert(key.clone(), value.clone());
+        self.inner.insert(key.clone(), ContextStoredValue::String(value.clone()));
         debug!("Captured ({}, {})", &key, &value);
         value
     }
-    pub fn get(&self, key: String) -> Option<String> {
-        self.inner.get(&key).and_then(|x| Some(x.clone()))
+    pub fn get(&self, key: String) -> PyResult<String> {
+        match self.inner.get(&key) {
+            Some(x) => x.string(),
+            None => Err(PyValueError::new_err(format!("Could not find key {} in context", key))),
+        }
     }
 }

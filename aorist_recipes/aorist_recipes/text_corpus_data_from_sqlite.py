@@ -34,8 +34,6 @@ def recipe(
         text_attribute_name, source_tables, fasttext_training_data_file, db_filename, tmp_dir, dedup_text_attribute,
     ):
      
-        dedup_text_attribute = json.loads(dedup_text_attribute)
-
         if not os.path.exists(tmp_dir):
             os.makedirs(tmp_dir)
         con = sqlite3.connect(db_filename)
