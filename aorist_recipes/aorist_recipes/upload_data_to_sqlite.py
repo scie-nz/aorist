@@ -10,8 +10,8 @@ programs = {}
     args={
         "db_filename": lambda sq_lite_location: sq_lite_location.file_name,
         "table_name": lambda static_data_table: static_data_table.name,
-        "header_num_lines": lambda context: (context.get("header_num_lines"), context),
-        "is_json": lambda context: (context.get("is_json"), context),
+        "header_num_lines": lambda context: (context.get_int("header_num_lines"), context),
+        "is_json": lambda context: (context.get_bool("is_json"), context),
         "delimiter": lambda context: (context.get("delimiter"), context),
         "source_file": lambda context: (context.get("file_to_replicate"), context),
         "columns": lambda data_set, asset: dumps([

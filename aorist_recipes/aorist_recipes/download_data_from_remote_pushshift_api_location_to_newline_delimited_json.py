@@ -17,9 +17,9 @@ programs = {}
             ),
             context
         ),
-        "_is_json": lambda context: (context.capture("is_json", dumps(True)), context),
+        "_is_json": lambda context: (context.capture_bool("is_json", True), context),
         "_delimiter": lambda context: (context.capture("delimiter", dumps(None)), context),
-        "_header_num_lines": lambda context: (context.capture("header_num_lines", dumps(0)), context),
+        "_header_num_lines": lambda context: (context.capture_int("header_num_lines", 0), context),
     },
 )
 def recipe(subreddit, tmp_dir, output_file):

@@ -1222,35 +1222,29 @@ macro_rules! register_constraint_new {
                             }
                         }
                     }
-                    let extracted;
                     if let Some(pos) = context_pos {
                         let obj = PyObject::from(PyCell::new(py, context.clone()).unwrap());
                         objects.insert(pos, obj.to_object(py));
-                        let returned = deserialized.call1((objects,)).unwrap();
-                        let (
-                            extracted_string, extracted_context
-                        ) : (String, aorist_primitives::Context) = returned.extract().unwrap();
-                        context.insert(&extracted_context);
-                        extracted = AST::StringLiteral(StringLiteral::new_wrapped(
-                            extracted_string, false
-                        ));
-                    } else {
-                        extracted = match deserialized.call1((objects,)) {
-                            Ok(arg) => {
-                                match aorist_ast::extract_arg(arg) {
-                                    Ok(x) => x,
-                                    Err(err) => {
-                                        err.print(py);
-                                        panic!("Problem when extracting key {}", key);
-                                    }
+                    };
+                    let extracted: AST = match deserialized.call1((objects,)) {
+                        Ok(arg) => {
+                            let result = match context_pos {
+                                Some(_) => aorist_ast::extract_arg_with_context(arg, context),
+                                None => aorist_ast::extract_arg(arg),
+                            };
+                            match result {
+                                Ok(x) => x,
+                                Err(err) => {
+                                    err.print(py);
+                                    panic!("Problem when extracting key {}", key);
                                 }
                             }
-                            Err(err) => {
-                                err.print(py);
-                                panic!("Problem when extracting object. See traceback above");
-                            }
-                        };
-                    }
+                        }
+                        Err(err) => {
+                            err.print(py);
+                            panic!("Problem when extracting object. See traceback above");
+                        }
+                    };
 
                     if key.as_bytes()[0] != '_' as u8 {
                         kwargs.insert(key.to_string(), extracted);
