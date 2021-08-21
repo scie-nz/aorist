@@ -35,6 +35,12 @@ impl ContextStoredValue {
             _ => Err(PyValueError::new_err("value is not integer")),
         }
     }
+    pub fn boolean(&self) -> PyResult<bool> {
+        match self {
+            ContextStoredValue::Boolean(x) => Ok(*x),
+            _ => Err(PyValueError::new_err("value is not boolean")),
+        }
+    }
 }
 
 #[cfg_attr(feature = "python", pyclass)]
@@ -73,9 +79,31 @@ impl Context {
         debug!("Captured ({}, {})", &key, &value);
         value
     }
+    pub fn capture_int(&mut self, key: String, value: i64) -> i64 {
+        self.inner.insert(key.clone(), ContextStoredValue::Integer(value));
+        debug!("Captured ({}, {})", &key, &value);
+        value
+    }
+    pub fn capture_bool(&mut self, key: String, value: bool) -> bool {
+        self.inner.insert(key.clone(), ContextStoredValue::Boolean(value));
+        debug!("Captured ({}, {})", &key, &value);
+        value
+    }
     pub fn get(&self, key: String) -> PyResult<String> {
         match self.inner.get(&key) {
             Some(x) => x.string(),
+            None => Err(PyValueError::new_err(format!("Could not find key {} in context", key))),
+        }
+    }
+    pub fn get_int(&self, key: String) -> PyResult<i64> {
+        match self.inner.get(&key) {
+            Some(x) => x.integer(),
+            None => Err(PyValueError::new_err(format!("Could not find key {} in context", key))),
+        }
+    }
+    pub fn get_bool(&self, key: String) -> PyResult<bool> {
+        match self.inner.get(&key) {
+            Some(x) => x.boolean(),
             None => Err(PyValueError::new_err(format!("Could not find key {} in context", key))),
         }
     }
