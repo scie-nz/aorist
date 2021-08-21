@@ -1,8 +1,7 @@
 use crate::constraint::{OuterConstraint, TConstraint};
-use crate::context::Context;
 use crate::dialect::Dialect;
 use crate::parameter_tuple::ParameterTuple;
-use aorist_primitives::Ancestry;
+use aorist_primitives::{Ancestry, Context};
 use linked_hash_map::LinkedHashMap;
 use std::marker::PhantomData;
 

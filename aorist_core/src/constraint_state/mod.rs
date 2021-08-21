@@ -1,6 +1,6 @@
 use crate::concept::Ancestry;
 use crate::constraint::OuterConstraint;
-use crate::context::Context;
+use aorist_primitives::Context;
 use crate::dialect::Dialect;
 use crate::parameter_tuple::ParameterTuple;
 use crate::program::TOuterProgram;

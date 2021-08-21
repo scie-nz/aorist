@@ -4,6 +4,8 @@ mod concept;
 pub use concept::*;
 mod endpoints;
 pub use endpoints::*;
+mod context;
+pub use context::*;
 
 #[macro_export]
 macro_rules! register_ast_nodes {
@@ -1157,7 +1159,7 @@ macro_rules! register_constraint_new {
                 &self,
                 root: <Self::TAncestry as Ancestry>::TConcept,
                 ancestry: &Self::TAncestry,
-                context: &mut aorist_core::Context,
+                context: &mut aorist_primitives::Context,
             ) -> (String, String, ParameterTuple, Dialect) {
                 let gil = Python::acquire_gil();
                 let py = gil.python();
@@ -1187,7 +1189,7 @@ macro_rules! register_constraint_new {
                         let returned = deserialized.call1((objects,)).unwrap();
                         let (
                             extracted_string, extracted_context
-                        ) : (String, aorist_core::Context) = returned.extract().unwrap();
+                        ) : (String, aorist_primitives::Context) = returned.extract().unwrap();
                         context.insert(&extracted_context);
                         extracted = extracted_string;
                     } else {
@@ -1227,7 +1229,7 @@ macro_rules! register_constraint_new {
                         let returned = deserialized.call1((objects,)).unwrap();
                         let (
                             extracted_string, extracted_context
-                        ) : (String, aorist_core::Context) = returned.extract().unwrap();
+                        ) : (String, aorist_primitives::Context) = returned.extract().unwrap();
                         context.insert(&extracted_context);
                         extracted = AST::StringLiteral(StringLiteral::new_wrapped(
                             extracted_string, false
