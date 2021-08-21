@@ -22,4 +22,12 @@ impl LongTabularSchema {
             .chain(self.value_attributes.clone().into_iter())
             .collect()
     }
+    pub fn should_dedup_text_attribute(&self, attr: &String) -> bool {
+        for attribute in &self.key_attributes {
+            if attr == attribute {
+                return true;
+            }
+        }
+        false
+    }
 }

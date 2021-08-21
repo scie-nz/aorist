@@ -7,28 +7,64 @@ use aorist_paste::paste;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
 use uuid::Uuid;
+use derivative::Derivative;
+#[cfg(feature = "python")]
+use pyo3::prelude::*;
 
 #[aorist]
-pub enum TextCorpusSchema {
+pub enum TextCorpusSource {
     #[constrainable]
     TabularSchema(AoristRef<TabularSchema>),
     #[constrainable]
     LongTabularSchema(AoristRef<LongTabularSchema>),
 }
 
-impl TextCorpusSchema {
+impl TextCorpusSource {
+    pub fn should_dedup_text_attribute(&self, attr: &String) -> bool {
+        match self {
+            TextCorpusSource::TabularSchema(_) => false,
+            TextCorpusSource::LongTabularSchema(x) => x.0.read().unwrap().should_dedup_text_attribute(attr),
+        }
+    }
     pub fn get_datum_template_name(&self) -> Result<String, String> {
         match self {
-            TextCorpusSchema::TabularSchema(x) => Ok(x.0.read().unwrap().datumTemplateName.clone()),
-            TextCorpusSchema::LongTabularSchema(x) => {
+            TextCorpusSource::TabularSchema(x) => Ok(x.0.read().unwrap().datumTemplateName.clone()),
+            TextCorpusSource::LongTabularSchema(x) => {
                 Ok(x.0.read().unwrap().datumTemplateName.clone())
             }
         }
     }
     pub fn get_attribute_names(&self) -> Vec<String> {
         match self {
-            TextCorpusSchema::TabularSchema(x) => x.0.read().unwrap().attributes.clone(),
-            TextCorpusSchema::LongTabularSchema(x) => x.0.read().unwrap().get_attribute_names(),
+            TextCorpusSource::TabularSchema(x) => x.0.read().unwrap().attributes.clone(),
+            TextCorpusSource::LongTabularSchema(x) => x.0.read().unwrap().get_attribute_names(),
         }
+    }
+}
+
+
+#[aorist]
+pub struct TextCorpusSchema {
+    text_attribute_name: String,
+    #[constrainable]
+    source: AoristRef<TextCorpusSource>,
+}
+
+impl TextCorpusSchema {
+    pub fn get_datum_template_name(&self) -> Result<String, String> {
+        self.source.0.read().unwrap().get_datum_template_name()
+    }
+    pub fn get_attribute_names(&self) -> Vec<String> {
+        self.source.0.read().unwrap().get_attribute_names()
+    }
+    pub fn should_dedup_text_attribute(&self) -> bool {
+        self.source.0.read().unwrap().should_dedup_text_attribute(&self.text_attribute_name)
+    }
+}
+#[cfg(feature = "python")]
+#[pymethods]
+impl PyTextCorpusSchema {
+    pub fn should_dedup_text_attribute(&self) -> String {
+        serde_json::json!(self.inner.0.read().unwrap().should_dedup_text_attribute()).to_string()
     }
 }

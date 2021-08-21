@@ -11,13 +11,16 @@ local = SQLiteStorage(
 subreddits = probprog.replicate_to_local(
     Storage(local), "/tmp/probprog", Encoding(CSVEncoding())
 )
+text_source_schema = TextCorpusSchema(
+    source=TextCorpusSource(subreddit_schema),
+    text_attribute_name="selftext",
+)
 embedding = FasttextEmbedding(
     name="embedding",
     comment="Fasttext embedding of size 128",
     schema=DataSchema(FasttextEmbeddingSchema(
         dim=16,
-        source_schema=TextCorpusSchema(subreddit_schema),
-        text_attribute_name="selftext",
+        source_schema=text_source_schema
     )),
     setup=StorageSetup(LocalStorageSetup(
         Storage(local),
@@ -31,8 +34,7 @@ named_entities = NamedEntities(
     comment="Spacy Named Entities",
     schema=DataSchema(NamedEntitySchema(SpacyNamedEntitySchema(
         spacy_model_name="en_core_web_sm",
-        source_schema=TextCorpusSchema(subreddit_schema),
-        text_attribute_name="TEXT",
+        source_schema=text_source_schema,
     ))),
     setup=StorageSetup(LocalStorageSetup(
         Storage(local),

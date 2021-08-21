@@ -27,7 +27,6 @@ impl NamedEntitySchema {
 #[aorist]
 pub struct SpacyNamedEntitySchema {
     pub spacy_model_name: String,
-    pub text_attribute_name: String,
     #[constrainable]
     pub source_schema: AoristRef<TextCorpusSchema>,
 }

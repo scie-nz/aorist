@@ -11,7 +11,6 @@ use uuid::Uuid;
 #[aorist]
 pub struct FasttextEmbeddingSchema {
     pub dim: usize,
-    pub text_attribute_name: String,
     #[constrainable]
     pub source_schema: AoristRef<TextCorpusSchema>,
 }
