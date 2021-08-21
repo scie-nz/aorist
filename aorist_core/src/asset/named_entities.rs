@@ -24,13 +24,11 @@ pub struct NamedEntities {
     #[constrainable]
     pub setup: AoristRef<StorageSetup>,
     #[constrainable]
-    pub schema: AoristRef<NamedEntitySchema>,
+    pub schema: AoristRef<DataSchema>,
 }
 impl NamedEntities {
     pub fn get_schema(&self) -> AoristRef<DataSchema> {
-        AoristRef(Arc::new(RwLock::new(
-            DataSchema::NamedEntitySchema(self.schema.clone())
-        )))
+        self.schema.clone()
     }
 }
 impl TDatumTemplate for NamedEntities {

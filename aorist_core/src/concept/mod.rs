@@ -188,5 +188,6 @@ register_concept!(
     SQLiteEncoding,
     NamedEntities,
     SpacyNamedEntitySchema,
-    NamedEntitySchema
+    NamedEntitySchema,
+    LanguageAsset
 );

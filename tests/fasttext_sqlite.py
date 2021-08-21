@@ -25,22 +25,22 @@ embedding = FasttextEmbedding(
     )),
     source_assets=list(subreddits.assets.values()),
 )
-subreddits.add_asset('embedding', Asset(embedding))
+subreddits.add_asset('embedding', Asset(LanguageAsset(embedding)))
 named_entities = NamedEntities(
     name="named_entities",
     comment="Spacy Named Entities",
-    schema=NamedEntitySchema(SpacyNamedEntitySchema(
+    schema=DataSchema(NamedEntitySchema(SpacyNamedEntitySchema(
         spacy_model_name="en_core_web_sm",
         source_schema=TextCorpusSchema(subreddit_schema),
         text_attribute_name="TEXT",
-    )),
+    ))),
     setup=StorageSetup(LocalStorageSetup(
         Storage(local),
         '/tmp/named_entities',
     )),
     source_assets=list(subreddits.assets.values()),
 )
-subreddits.add_asset('named_entities', Asset(named_entities))
+subreddits.add_asset('named_entities', Asset(LanguageAsset(named_entities)))
     
 universe = Universe(
     name="my_cluster",
