@@ -1240,8 +1240,10 @@ macro_rules! register_constraint_new {
                         };
                     }
 
-                    let ast = AST::StringLiteral(StringLiteral::new_wrapped(extracted, false));
-                    kwargs.insert(key.to_string(), ast);
+                    if key.as_bytes()[0] != '_' as u8 {
+                        let ast = AST::StringLiteral(StringLiteral::new_wrapped(extracted, false));
+                        kwargs.insert(key.to_string(), ast);
+                    }
                 }
                 (
                     self.inner.get_code(),

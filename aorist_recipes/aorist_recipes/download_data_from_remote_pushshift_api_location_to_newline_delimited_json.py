@@ -22,12 +22,12 @@ programs = {}
         "_header_num_lines": lambda context: (context.capture("header_num_lines", dumps(0)), context),
     },
 )
-def recipe(subreddit, tmp_dir, output_file, _is_json, _delimiter):
+def recipe(subreddit, tmp_dir, output_file):
     from pmaw import PushshiftAPI
     import json
     import os
 
-    def download_subreddit(subreddit, tmp_dir, output_file, _is_json, _delimiter, _header_num_lines):
+    def download_subreddit(subreddit, tmp_dir, output_file):
 
         if not os.path.exists(tmp_dir):
             os.makedirs(tmp_dir)
