@@ -1229,10 +1229,20 @@ macro_rules! register_constraint_new {
                             extracted_string, extracted_context
                         ) : (String, aorist_core::Context) = returned.extract().unwrap();
                         context.insert(&extracted_context);
-                        extracted = extracted_string;
+                        extracted = AST::StringLiteral(StringLiteral::new_wrapped(
+                            extracted_string, false
+                        ));
                     } else {
                         extracted = match deserialized.call1((objects,)) {
-                            Ok(arg) => arg.extract().unwrap(),
+                            Ok(arg) => {
+                                if let Ok(extracted_val) = arg.extract::<String>() {
+                                    AST::StringLiteral(StringLiteral::new_wrapped(extracted_val, false))
+                                } else if let Ok(extracted_val) = arg.extract::<bool>() {
+                                    AST::BooleanLiteral(aorist_ast::BooleanLiteral::new_wrapped(extracted_val))
+                                } else {
+                                    panic!("Object for key {} can be either string or boolean", key); 
+                                }
+                            }
                             Err(err) => {
                                 err.print(py);
                                 panic!("Problem when extracting object. See traceback above");
@@ -1241,8 +1251,7 @@ macro_rules! register_constraint_new {
                     }
 
                     if key.as_bytes()[0] != '_' as u8 {
-                        let ast = AST::StringLiteral(StringLiteral::new_wrapped(extracted, false));
-                        kwargs.insert(key.to_string(), ast);
+                        kwargs.insert(key.to_string(), extracted);
                     }
                 }
                 (

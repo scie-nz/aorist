@@ -64,7 +64,7 @@ impl TextCorpusSchema {
 #[cfg(feature = "python")]
 #[pymethods]
 impl PyTextCorpusSchema {
-    pub fn should_dedup_text_attribute(&self) -> String {
-        serde_json::json!(self.inner.0.read().unwrap().should_dedup_text_attribute()).to_string()
+    pub fn should_dedup_text_attribute(&self) -> bool {
+        self.inner.0.read().unwrap().should_dedup_text_attribute()
     }
 }
