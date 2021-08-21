@@ -9,6 +9,7 @@ pub enum ContextStoredValue {
     String(String),
     Integer(i64),
     Boolean(bool),
+    List(Vec<Box<ContextStoredValue>>),
 }
 
 impl std::fmt::Display for ContextStoredValue {
@@ -17,6 +18,7 @@ impl std::fmt::Display for ContextStoredValue {
             ContextStoredValue::String(x) => x.fmt(f),
             ContextStoredValue::Integer(x) => x.fmt(f),
             ContextStoredValue::Boolean(x) => x.fmt(f),
+            ContextStoredValue::List(x) => x.iter().map(|y| y.fmt(f)).collect(),
         }
     }
 }

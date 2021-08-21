@@ -14,10 +14,10 @@ programs = {}
         "is_json": lambda context: (context.get_bool("is_json"), context),
         "delimiter": lambda context: (context.get("delimiter"), context),
         "source_file": lambda context: (context.get("file_to_replicate"), context),
-        "columns": lambda data_set, asset: dumps([
+        "columns": lambda data_set, asset: [
             (x.name, x.sqlite_type, x.is_nullable)
             for x in data_set.get_template(asset).attributes()
-        ]),
+        ],
     }
 )
 def recipe(
@@ -32,11 +32,6 @@ def recipe(
         db_filename, table_name, source_file, columns,
         is_json, delimiter, header_num_lines,
     ):
-        columns = json.loads(columns)
-        is_json = json.loads(is_json)
-        delimiter = json.loads(delimiter)
-        header_num_lines = json.loads(header_num_lines)
-
         con = sqlite3.connect(db_filename)
         con.execute("DROP TABLE IF EXISTS {table_name}".format(
             table_name=table_name,

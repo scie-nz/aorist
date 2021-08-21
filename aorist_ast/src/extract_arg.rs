@@ -1,6 +1,7 @@
 use pyo3::prelude::*;
 use pyo3::exceptions::PyValueError;
-use crate::{AST, BooleanLiteral, BigIntLiteral, StringLiteral};
+use pyo3::types::{PyList, PyTuple};
+use crate::{AST, BooleanLiteral, BigIntLiteral, StringLiteral, List, Tuple};
 use aorist_primitives::Context;
 
 pub fn extract_arg(arg: &PyAny) -> PyResult<AST> {
@@ -10,8 +11,14 @@ pub fn extract_arg(arg: &PyAny) -> PyResult<AST> {
         Ok(AST::BooleanLiteral(BooleanLiteral::new_wrapped(extracted_val)))
     } else if let Ok(extracted_val) = arg.extract::<i64>() {
         Ok(AST::BigIntLiteral(BigIntLiteral::new_wrapped(extracted_val)))
+    } else if let Ok(extracted_list) = arg.downcast::<PyList>() {
+        let v = extracted_list.iter().map(|x| extract_arg(x)).collect::<PyResult<Vec<AST>>>()?;
+        Ok(AST::List(List::new_wrapped(v, false)))
+    } else if let Ok(extracted_tuple) = arg.downcast::<PyTuple>() {
+        let v = extracted_tuple.iter().map(|x| extract_arg(x)).collect::<PyResult<Vec<AST>>>()?;
+        Ok(AST::Tuple(Tuple::new_wrapped(v, false)))
     } else {
-        Err(PyValueError::new_err("Object can be either string, boolean, or int"))
+        Err(PyValueError::new_err("Object can be either string, boolean, int, or a list"))
     }
 }
 pub fn extract_arg_with_context(arg: &PyAny, context: &mut Context) -> PyResult<AST> {
