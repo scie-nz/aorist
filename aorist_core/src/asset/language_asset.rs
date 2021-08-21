@@ -21,6 +21,12 @@ pub enum LanguageAsset {
 }
 
 impl LanguageAsset {
+    pub fn get_source_assets(&self) -> Vec<AoristRef<Asset>> {
+        match self {
+            LanguageAsset::NamedEntities(x) => x.0.read().unwrap().get_source_assets(),
+            LanguageAsset::FasttextEmbedding(x) => x.0.read().unwrap().get_source_assets(),
+        }
+    }
     pub fn get_type(&self) -> String {
         match self {
             LanguageAsset::NamedEntities(_) => "LanguageAsset",

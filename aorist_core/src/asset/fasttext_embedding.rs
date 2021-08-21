@@ -26,6 +26,11 @@ pub struct FasttextEmbedding {
     #[constrainable]
     pub setup: AoristRef<StorageSetup>,
 }
+impl FasttextEmbedding {
+    pub fn get_source_assets(&self) -> Vec<AoristRef<Asset>> {
+        self.source_assets.clone()
+    }
+}
 impl TDatumTemplate for FasttextEmbedding {
     fn get_attributes(&self) -> Vec<AoristRef<Attribute>> {
         vec![AoristRef(Arc::new(RwLock::new(Attribute {

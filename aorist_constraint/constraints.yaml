@@ -179,7 +179,7 @@ spec:
 type: Constraint
 spec:
   name: TextCorpusData
-  root: FasttextEmbeddingSchema
+  root: TextCorpusSchema
   requires:
       - TextCorpusDataFromHive
       - TextCorpusDataFromSQLite
@@ -188,16 +188,17 @@ spec:
 type: Constraint
 spec:
   name: TextCorpusDataFromHive
-  root: FasttextEmbeddingSchema
+  root: TextCorpusSchema
   requires:
       - ConvertJSONTableToORCTable
   requiresProgram: true
-  title: Creating Fasttext Training Dataset
+  title: Creating corpus-based dataset
   body: |
-      We download Fasttext data from a Hive table.
+      We download text corpus data data from a Hive table.
   attachIf: |
       |root: AoristRef<Concept>, ancestry: &ConceptAncestry| {
-          let source_assets = ancestry.fasttext_embedding(root.clone()).unwrap().0.read().unwrap().source_assets.clone(); 
+          let source_assets = ancestry.language_asset(root.clone()).unwrap().0.read().unwrap().get_source_assets();
+
           for asset in source_assets {
               let storage_setup = asset.0.read().unwrap().get_storage_setup();
               let local_storages = storage_setup.0.read().unwrap().get_local_storage();
@@ -217,16 +218,16 @@ spec:
 type: Constraint
 spec:
   name: TextCorpusDataFromSQLite
-  root: FasttextEmbeddingSchema
+  root: TextCorpusSchema
   requires:
       - UploadDataToSQLite
   requiresProgram: true
-  title: Creating Fasttext Training Dataset
+  title: Creating corpus-based dataset
   body: |
-      We download Fasttext data from a SQLite table.
+      We download corpus data from a SQLite table.
   attachIf: |
       |root: AoristRef<Concept>, ancestry: &ConceptAncestry| {
-          let source_assets = ancestry.fasttext_embedding(root.clone()).unwrap().0.read().unwrap().source_assets.clone(); 
+          let source_assets = ancestry.language_asset(root.clone()).unwrap().0.read().unwrap().get_source_assets();
           for asset in source_assets {
               let storage_setup = asset.0.read().unwrap().get_storage_setup();
               let local_storages = storage_setup.0.read().unwrap().get_local_storage();
