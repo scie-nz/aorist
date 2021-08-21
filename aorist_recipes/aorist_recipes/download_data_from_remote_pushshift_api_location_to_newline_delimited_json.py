@@ -27,7 +27,7 @@ def recipe(subreddit, tmp_dir, output_file, _is_json, _delimiter):
     import json
     import os
 
-    def download_subreddit(subreddit, tmp_dir, output_file, _is_json, _delimiter):
+    def download_subreddit(subreddit, tmp_dir, output_file, _is_json, _delimiter, _header_num_lines):
 
         if not os.path.exists(tmp_dir):
             os.makedirs(tmp_dir)

@@ -2,8 +2,8 @@ from . import download_data_from_remote_gcs_location
 from . import download_data_from_remote_web_location
 from . import download_data_from_remote_pushshift_api_location_to_newline_delimited_json
 from . import convert_json_to_csv
-from . import fasttext_training_data_from_hive
-from . import fasttext_training_data_from_sqlite
+from . import text_corpus_data_from_hive
+from . import text_corpus_data_from_sqlite
 from . import train_fasttext_model
 from . import upload_data_to_minio
 from . import upload_fasttext_to_minio
@@ -59,8 +59,8 @@ programs = register_recipes(
         download_data_from_remote_gcs_location,
         upload_data_to_minio,
         convert_json_to_csv,
-        fasttext_training_data_from_hive,
-        fasttext_training_data_from_sqlite,
+        text_corpus_data_from_hive,
+        text_corpus_data_from_sqlite,
         train_fasttext_model,
         upload_fasttext_to_minio,
         upload_fasttext_to_sqlite,

@@ -1,11 +1,11 @@
-from aorist import aorist, FasttextTrainingDataFromHive
+from aorist import aorist, TextCorpusDataFromHive
 from json import dumps
 
 programs = {}
 
 @aorist(
     programs,
-    FasttextTrainingDataFromHive,
+    TextCorpusDataFromHive,
     entrypoint="download_text_data_from_trino",
     args={
         "host": lambda universe: universe.endpoints.presto.server, 

@@ -178,15 +178,16 @@ spec:
 ---
 type: Constraint
 spec:
-  name: FasttextTrainingData
+  name: TextCorpusData
   root: FasttextEmbeddingSchema
   requires:
-      - FasttextTrainingDataFromHive
+      - TextCorpusDataFromHive
+      - TextCorpusDataFromSQLite
   title: Creating Fasttext Training Dataset
 ---
 type: Constraint
 spec:
-  name: FasttextTrainingDataFromHive
+  name: TextCorpusDataFromHive
   root: FasttextEmbeddingSchema
   requires:
       - ConvertJSONTableToORCTable
@@ -215,7 +216,7 @@ spec:
 ---
 type: Constraint
 spec:
-  name: FasttextTrainingDataFromSQLite
+  name: TextCorpusDataFromSQLite
   root: FasttextEmbeddingSchema
   requires:
       - UploadDataToSQLite
@@ -247,8 +248,8 @@ spec:
   name: TrainFasttextModel
   root: FasttextEmbeddingSchema
   requires:
-      - FasttextTrainingDataFromHive
-      - FasttextTrainingDataFromSQLite
+      - TextCorpusDataFromHive
+      - TextCorpusDataFromSQLite
   requiresProgram: true
   title: Training Fasttext Model
   body: |

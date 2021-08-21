@@ -1,11 +1,11 @@
-from aorist import aorist, FasttextTrainingDataFromSQLite
+from aorist import aorist, TextCorpusDataFromSQLite
 from json import dumps
 
 programs = {}
 
 @aorist(
     programs,
-    FasttextTrainingDataFromSQLite,
+    TextCorpusDataFromSQLite,
     entrypoint="download_text_data_from_sqlite",
     args={
         "text_attribute_name": lambda fasttext_embedding_schema: fasttext_embedding_schema.text_attribute_name,

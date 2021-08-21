@@ -16,7 +16,7 @@ embedding = FasttextEmbedding(
     comment="Fasttext embedding of size 128",
     schema=DataSchema(FasttextEmbeddingSchema(
         dim=16,
-        source_schema=FasttextEmbeddingSourceSchema(subreddit_schema),
+        source_schema=TextCorpusSchema(subreddit_schema),
         text_attribute_name="selftext",
     )),
     setup=StorageSetup(LocalStorageSetup(
@@ -26,13 +26,29 @@ embedding = FasttextEmbedding(
     source_assets=list(subreddits.assets.values()),
 )
 subreddits.add_asset('embedding', Asset(embedding))
+named_entities = NamedEntities(
+    name="named_entities",
+    comment="Spacy Named Entities",
+    schema=NamedEntitySchema(SpacyNamedEntitySchema(
+        spacy_model_name="en_core_web_sm",
+        source_schema=TextCorpusSchema(subreddit_schema),
+        text_attribute_name="TEXT",
+    )),
+    setup=StorageSetup(LocalStorageSetup(
+        Storage(local),
+        '/tmp/named_entities',
+    )),
+    source_assets=list(subreddits.assets.values()),
+)
+subreddits.add_asset('named_entities', Asset(named_entities))
+    
 universe = Universe(
     name="my_cluster",
     datasets=[subreddits],
     endpoints=EndpointConfig(),
     compliance=None,
 )
-result = dag(universe, ["UploadFasttextToSQLite"], 
+result = dag(universe, ["TextCorpusDataFromSQLite"], 
              "python", programs)
 with open('generated_script_ml.py', 'w') as f:
     f.write(result)
