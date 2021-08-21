@@ -1,10 +1,12 @@
 mod ancestor_record;
 mod assignment_target;
 mod string_literal;
+mod extract_arg;
 
 pub use ancestor_record::*;
 pub use assignment_target::*;
 pub use string_literal::*;
+pub use extract_arg::*;
 
 use aorist_derive::Optimizable;
 use aorist_extendr_api::prelude::*;

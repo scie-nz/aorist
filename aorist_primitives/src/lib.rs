@@ -1235,12 +1235,12 @@ macro_rules! register_constraint_new {
                     } else {
                         extracted = match deserialized.call1((objects,)) {
                             Ok(arg) => {
-                                if let Ok(extracted_val) = arg.extract::<String>() {
-                                    AST::StringLiteral(StringLiteral::new_wrapped(extracted_val, false))
-                                } else if let Ok(extracted_val) = arg.extract::<bool>() {
-                                    AST::BooleanLiteral(aorist_ast::BooleanLiteral::new_wrapped(extracted_val))
-                                } else {
-                                    panic!("Object for key {} can be either string or boolean", key); 
+                                match aorist_ast::extract_arg(arg) {
+                                    Ok(x) => x,
+                                    Err(err) => {
+                                        err.print(py);
+                                        panic!("Problem when extracting key {}", key);
+                                    }
                                 }
                             }
                             Err(err) => {
