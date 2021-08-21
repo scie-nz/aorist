@@ -8,7 +8,7 @@ use pyo3::prelude::*;
 use pyo3::wrap_pyfunction;
 use std::collections::BTreeMap;
 
-#[pyfunction(dialect_preferences="vec![
+#[pyfunction(dialect_preferences = "vec![
     Dialect::R(R::new()),
     Dialect::Python(aorist_core::Python::new(vec![])), 
     Dialect::Bash(Bash::new()), 

@@ -1,12 +1,6 @@
 #![allow(unused_parens)]
 use crate::compression::*;
 use crate::concept::{AoristRef, WrappedConcept};
-use crate::header::FileHeader;
-use aorist_concept::{aorist, Constrainable};
-use aorist_primitives::{AoristConcept, ConceptEnum};
-use serde::{Deserialize, Serialize};
-use uuid::Uuid;
-use crate::header::*;
 use crate::encoding::csv_encoding::*;
 use crate::encoding::gdb_encoding::*;
 use crate::encoding::json_encoding::*;
@@ -14,10 +8,16 @@ use crate::encoding::onnx_encoding::*;
 use crate::encoding::orc_encoding::*;
 use crate::encoding::sqlite_encoding::*;
 use crate::encoding::tsv_encoding::*;
+use crate::header::FileHeader;
+use crate::header::*;
+use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
+use aorist_primitives::{AoristConcept, ConceptEnum};
 #[cfg(feature = "python")]
 use pyo3::prelude::*;
+use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
+use uuid::Uuid;
 
 #[aorist]
 pub enum Encoding {
@@ -99,6 +99,11 @@ impl PyEncoding {
     }
     #[getter]
     pub fn header(&self) -> Option<PyFileHeader> {
-        self.inner.0.read().unwrap().get_header().and_then(|x| Some(PyFileHeader{ inner: x.clone() }))
+        self.inner
+            .0
+            .read()
+            .unwrap()
+            .get_header()
+            .and_then(|x| Some(PyFileHeader { inner: x.clone() }))
     }
 }

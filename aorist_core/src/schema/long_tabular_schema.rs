@@ -16,8 +16,10 @@ pub struct LongTabularSchema {
 
 impl LongTabularSchema {
     pub fn get_attribute_names(&self) -> Vec<String> {
-        self.key_attributes.clone().into_iter().chain(
-            self.value_attributes.clone().into_iter()
-        ).collect()
+        self.key_attributes
+            .clone()
+            .into_iter()
+            .chain(self.value_attributes.clone().into_iter())
+            .collect()
     }
 }

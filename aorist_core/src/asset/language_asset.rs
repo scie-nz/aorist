@@ -1,10 +1,10 @@
 #![allow(non_snake_case)]
 use crate::asset::*;
 use crate::concept::{AoristRef, WrappedConcept};
-use crate::schema::*;
-use crate::storage_setup::*;
 use crate::encoding::Encoding;
+use crate::schema::*;
 use crate::storage::Storage;
+use crate::storage_setup::*;
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
 use aorist_primitives::{AoristConcept, ConceptEnum};
@@ -58,7 +58,7 @@ impl LanguageAsset {
         _tmp_dir: String,
         _tmp_encoding: AoristRef<Encoding>,
     ) -> Self {
-        panic!("Cannot replicate to local"); 
+        panic!("Cannot replicate to local");
         // TODO: this should be implemented via a macro
         /*
         match self {

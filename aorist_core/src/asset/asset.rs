@@ -93,7 +93,11 @@ impl Asset {
                     .unwrap()
                     .replicate_to_local(t, tmp_dir, tmp_encoding),
             )))),
-            Asset::LanguageAsset(x) => Asset::LanguageAsset(AoristRef(Arc::new(RwLock::new(x.0.read().unwrap().replicate_to_local(t, tmp_dir, tmp_encoding))))),
+            Asset::LanguageAsset(x) => Asset::LanguageAsset(AoristRef(Arc::new(RwLock::new(
+                x.0.read()
+                    .unwrap()
+                    .replicate_to_local(t, tmp_dir, tmp_encoding),
+            )))),
             _ => self.clone(),
         }
     }

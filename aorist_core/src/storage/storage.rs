@@ -10,11 +10,11 @@ use crate::storage::sqlite_storage::*;
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
 use aorist_primitives::{AoristConcept, ConceptEnum};
+#[cfg(feature = "python")]
+use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
 use uuid::Uuid;
-#[cfg(feature = "python")]
-use pyo3::prelude::*;
 
 #[aorist]
 pub enum Storage {
@@ -53,6 +53,11 @@ impl Storage {
 impl PyStorage {
     #[getter]
     pub fn encoding(&self) -> Option<PyEncoding> {
-        self.inner.0.read().unwrap().get_encoding().and_then(|x| Some(PyEncoding{ inner: x }))
+        self.inner
+            .0
+            .read()
+            .unwrap()
+            .get_encoding()
+            .and_then(|x| Some(PyEncoding { inner: x }))
     }
 }

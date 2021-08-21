@@ -196,7 +196,10 @@ impl<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry = T::TAncestry>>
             self.params = Some(params);
             self.dialect = Some(dialect);
         } else {
-            panic!("Could not find any program for constraint {}.", self.constraint.read().unwrap().get_name());
+            panic!(
+                "Could not find any program for constraint {}.",
+                self.constraint.read().unwrap().get_name()
+            );
         }
     }
     pub fn new(

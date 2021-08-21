@@ -20,7 +20,8 @@ impl Context {
             let existing: Option<String> = self.inner.get(k).and_then(|x| Some(x.clone()));
             if let Some(existing_val) = existing {
                 if existing_val != *v {
-                    self.inner.insert(k.clone(), format!("{};{}", existing_val, v).to_string());
+                    self.inner
+                        .insert(k.clone(), format!("{};{}", existing_val, v).to_string());
                 }
             } else {
                 debug!("Inserted from dependent constraint ({}, {})", &k, &v);

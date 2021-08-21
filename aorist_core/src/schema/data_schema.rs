@@ -35,26 +35,26 @@ pub enum DataSchema {
 impl DataSchema {
     pub fn get_datum_template_name(&self) -> Result<String, String> {
         match self {
-            DataSchema::FasttextEmbeddingSchema(x) => x
-                .0
-                .read()
-                .unwrap()
-                .source_schema()
-                .0
-                .read()
-                .unwrap()
-                .get_datum_template_name()
-                .clone(),
-            DataSchema::NamedEntitySchema(x) => x
-                .0
-                .read()
-                .unwrap()
-                .source_schema()
-                .0
-                .read()
-                .unwrap()
-                .get_datum_template_name()
-                .clone(),
+            DataSchema::FasttextEmbeddingSchema(x) => {
+                x.0.read()
+                    .unwrap()
+                    .source_schema()
+                    .0
+                    .read()
+                    .unwrap()
+                    .get_datum_template_name()
+                    .clone()
+            }
+            DataSchema::NamedEntitySchema(x) => {
+                x.0.read()
+                    .unwrap()
+                    .source_schema()
+                    .0
+                    .read()
+                    .unwrap()
+                    .get_datum_template_name()
+                    .clone()
+            }
             DataSchema::TabularSchema(x) => Ok(x.0.read().unwrap().datumTemplateName.clone()),
             DataSchema::LongTabularSchema(x) => Ok(x.0.read().unwrap().datumTemplateName.clone()),
             DataSchema::TimeOrderedTabularSchema(x) => {

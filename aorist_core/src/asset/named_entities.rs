@@ -38,13 +38,11 @@ impl TDatumTemplate for NamedEntities {
     fn get_attributes(&self) -> Vec<AoristRef<Attribute>> {
         vec![
             AoristRef(Arc::new(RwLock::new(Attribute {
-                inner: AttributeOrTransform::Attribute(AttributeEnum::FreeText(
-                    FreeText {
-                        name: "text".to_string(),
-                        comment: Some("Named Entity Text".to_string()),
-                        nullable: false,
-                    },
-                )),
+                inner: AttributeOrTransform::Attribute(AttributeEnum::FreeText(FreeText {
+                    name: "text".to_string(),
+                    comment: Some("Named Entity Text".to_string()),
+                    nullable: false,
+                })),
                 tag: None,
                 uuid: None,
             }))),
@@ -71,24 +69,20 @@ impl TDatumTemplate for NamedEntities {
                 uuid: None,
             }))),
             AoristRef(Arc::new(RwLock::new(Attribute {
-                inner: AttributeOrTransform::Attribute(AttributeEnum::Factor(
-                    Factor {
-                        name: "label".to_string(),
-                        comment: Some("named entity label".to_string()),
-                        nullable: false,
-                    },
-                )),
+                inner: AttributeOrTransform::Attribute(AttributeEnum::Factor(Factor {
+                    name: "label".to_string(),
+                    comment: Some("named entity label".to_string()),
+                    nullable: false,
+                })),
                 tag: None,
                 uuid: None,
             }))),
             AoristRef(Arc::new(RwLock::new(Attribute {
-                inner: AttributeOrTransform::Attribute(AttributeEnum::Factor(
-                    Factor {
-                        name: "description".to_string(),
-                        comment: Some("Named Entity Description".to_string()),
-                        nullable: false,
-                    },
-                )),
+                inner: AttributeOrTransform::Attribute(AttributeEnum::Factor(Factor {
+                    name: "description".to_string(),
+                    comment: Some("Named Entity Description".to_string()),
+                    nullable: false,
+                })),
                 tag: None,
                 uuid: None,
             }))),

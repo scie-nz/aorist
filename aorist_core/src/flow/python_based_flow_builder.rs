@@ -82,21 +82,20 @@ where
         }
 
         let augmented_statements = self.augment_statements(statements_with_ast);
-        let content: Vec<(Option<String>, Vec<&PyAny>)> =
-            vec![(None, imports_ast)]
-                .into_iter()
-                .chain(
-                    preambles
-                        .into_iter()
-                        .map(|x| (None, x.to_python_ast_nodes(py, ast, 0))),
+        let content: Vec<(Option<String>, Vec<&PyAny>)> = vec![(None, imports_ast)]
+            .into_iter()
+            .chain(
+                preambles
+                    .into_iter()
+                    .map(|x| (None, x.to_python_ast_nodes(py, ast, 0))),
+            )
+            .chain(augmented_statements.into_iter().map(|x| {
+                (
+                    Some(x.get_block_comment()),
+                    x.to_python_ast_nodes(py, ast, 0).unwrap(),
                 )
-                .chain(augmented_statements.into_iter().map(|x| {
-                    (
-                        Some(x.get_block_comment()),
-                        x.to_python_ast_nodes(py, ast, 0).unwrap(),
-                    )
-                }))
-                .collect();
+            }))
+            .collect();
 
         let mut sources: Vec<(Option<String>, String)> = Vec::new();
 
