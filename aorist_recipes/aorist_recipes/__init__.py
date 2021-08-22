@@ -10,6 +10,7 @@ from . import upload_data_to_minio
 from . import upload_fasttext_to_minio
 from . import upload_fasttext_to_sqlite
 from . import upload_data_to_sqlite
+from . import upload_spacy_ner_to_sqlite
 import pathlib
 from aorist import register_recipes
 
@@ -66,6 +67,7 @@ programs = register_recipes(
         upload_fasttext_to_minio,
         upload_fasttext_to_sqlite,
         upload_data_to_sqlite,
+        upload_spacy_ner_to_sqlite,
         extract_named_entities_using_spacy,
     ],
     sql_modules=[
