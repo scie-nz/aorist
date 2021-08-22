@@ -269,7 +269,7 @@ impl<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry = T::TAncestry>>
             context: Context::new(),
         })
     }
-    fn compute_task_key(&mut self) -> String {
+    pub fn compute_task_key(&mut self) -> String {
         self.key = Some(match self.root.get_tag() {
             None => AncestorRecord::compute_relative_path(&self.ancestors),
             Some(t) => t,

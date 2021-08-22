@@ -9,7 +9,7 @@ local = SQLiteStorage(
     layout=TabularLayout(StaticTabularLayout()),
 )
 subreddits = probprog.replicate_to_local(
-    Storage(local), "/tmp/probprog", Encoding(CSVEncoding())
+    Storage(local), "/tmp/subreddits", Encoding(CSVEncoding())
 )
 text_source_schema = TextCorpusSchema(
     source=TextCorpusSource(subreddit_schema),
@@ -27,8 +27,7 @@ embedding = FasttextEmbedding(
     ))),
     setup=StorageSetup(LocalStorageSetup(
         Storage(local),
-        '/tmp/named_entities',
-        #'/tmp/fasttext_embedding',
+        '/tmp/subreddits',
     )),
     source_assets=source_assets,
 )
@@ -43,7 +42,7 @@ named_entities = NamedEntities(
     )))),
     setup=StorageSetup(LocalStorageSetup(
         Storage(local),
-        '/tmp/named_entities',
+        '/tmp/subreddits',
     )),
     source_assets=source_assets,
 )

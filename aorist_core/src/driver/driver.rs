@@ -184,15 +184,18 @@ where
         drop(write);
 
         // TODO: preambles and calls are superflous
-        let key = state.read().unwrap().key.as_ref().unwrap().clone();
-        calls
-            .entry((
-                state.read().unwrap().get_call().unwrap(),
-                name,
-                uuid.1.clone(),
-            ))
-            .or_insert(Vec::new())
-            .push((key, state.read().unwrap().get_params().unwrap()));
+        if let Some(key) = state.read().unwrap().key.as_ref() {
+            calls
+                .entry((
+                    state.read().unwrap().get_call().unwrap(),
+                    name,
+                    uuid.1.clone(),
+                ))
+                .or_insert(Vec::new())
+                .push((key.clone(), state.read().unwrap().get_params().unwrap()))
+        } else {
+            panic!("No key found for constraint state: {:?}", uuid);
+        };
     }
     fn process_constraint_state(
         &mut self,
@@ -261,7 +264,6 @@ where
         Vec<<Self::CB as ConstraintBlock<'a, <D as FlowBuilderBase<U>>::T, B::OuterType, U, P>>::C>,
         Option<AST>,
     )> {
-        ConstraintState::shorten_task_names(block, existing_names);
         debug!("Processing constraint block: {}", constraint_name);
 
         // TODO: this could be done once for the entire set of blocks
@@ -282,9 +284,14 @@ where
         let mut blocks = Vec::new();
         let mut by_dialect: HashMap<
             Option<Dialect>,
-            Vec<Arc<RwLock<ConstraintState<'a, B::OuterType, P>>>>,
+            Vec<_>
         > = HashMap::new();
         for (id, state) in block.clone() {
+            let mut write = state.write().unwrap();
+            
+            write.compute_task_key();
+            drop(write);
+
             self.process_constraint_state(
                 id.clone(),
                 state.clone(),
@@ -293,29 +300,31 @@ where
                 unsatisfied_constraints,
                 programs,
             )?;
-            self.mark_constraint_state_as_satisfied(id, state.clone());
+            self.mark_constraint_state_as_satisfied(id.clone(), state.clone());
             by_dialect
                 .entry(state.read().unwrap().get_dialect())
                 .or_insert(Vec::new())
-                .push(state.clone());
+                .push((state.clone(), id));
         }
         let mut processed = HashMap::new();
+        let mut reduced_block = LinkedHashMap::new();
         for (dialect, satisfied) in by_dialect.into_iter() {
             let mut unique: HashMap<_, Vec<_>> = HashMap::new();
-            for c in satisfied.into_iter() {
+            for (c, id) in satisfied.into_iter() {
                 let key = c.read().unwrap().get_dedup_key();
                 trace!("Dedup key: {:?}", key);
-                unique.entry(key).or_insert(Vec::new()).push(c);
+                unique.entry(key).or_insert(Vec::new()).push((c, id));
             }
             let mut unique_constraints = Vec::new();
             let mut uuid_mappings: HashMap<Uuid, Vec<Uuid>> = HashMap::new();
             for (_, v) in unique {
                 let mut it = v.into_iter();
                 let first = it.next().unwrap();
-                let uuid = first.read().unwrap().get_constraint_uuid().unwrap();
-                unique_constraints.push(first);
+                let uuid = first.0.read().unwrap().get_constraint_uuid().unwrap();
+                reduced_block.insert(first.1.clone(), first.0.clone());
+                unique_constraints.push(first.0);
                 uuid_mappings.insert(uuid, Vec::new());
-                while let Some(elem) = it.next() {
+                while let Some((elem, _)) = it.next() {
                     let elem_uuid = elem.read().unwrap().get_constraint_uuid().unwrap();
                     trace!("Inserted Uuid mapping: {} -> {}", &uuid, &elem_uuid);
                     uuid_mappings.get_mut(&uuid).unwrap().push(elem_uuid);
@@ -323,6 +332,7 @@ where
             }
             processed.insert(dialect, (unique_constraints, uuid_mappings)); 
         }
+        ConstraintState::shorten_task_names(&reduced_block, existing_names);
         let tasks_dict = match processed.values().map(|x| x.0.len()).sum::<usize>() == 1 {
             true => None,
             false => Some(AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
