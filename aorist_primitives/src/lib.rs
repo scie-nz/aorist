@@ -11,7 +11,7 @@ pub use context::*;
 macro_rules! register_ast_nodes {
     ($name:ident, $($variant: ident,)+) => {
 
-        #[derive(Clone)]
+        #[derive(Clone, Debug)]
         pub enum $name {
             $(
                 $variant(Arc<RwLock<$variant>>),
@@ -235,7 +235,7 @@ macro_rules! define_ast_node {
      $py_ast_closure:expr,
      $r_ast_closure:expr,
      $($field: ident : $field_type: ty,)*) => {
-        #[derive(Hash, PartialEq, Eq, Clone, Optimizable)]
+        #[derive(Hash, PartialEq, Eq, Clone, Optimizable, Debug)]
         pub struct $name {
             $(
                 $field: $field_type,

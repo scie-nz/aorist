@@ -9,6 +9,7 @@ use aorist_primitives::AoristUniverse;
 use linked_hash_map::LinkedHashMap;
 use std::hash::Hash;
 use std::marker::PhantomData;
+use tracing::trace;
 
 #[derive(Clone, Hash, PartialEq, Eq)]
 pub struct ForLoopPythonBasedTask<T, U>
@@ -38,6 +39,15 @@ where
         task_id: AST,
         insert_task_name: bool,
     ) -> Self {
+        trace!("New compressed task with key: {:?}", key);
+        trace!("uncompressible:");
+        for v in &values {
+            trace!("-- {:?} : {:?}", v.dict, v.params);
+        }
+        let distinct_keys = values.iter().map(|x| x.dict.clone()).collect::<std::collections::HashSet<_>>();
+        if distinct_keys.len() < values.len() {
+            panic!("Tasks with same keys in for loop compression.");
+        }
         Self {
             params_dict_name,
             key,

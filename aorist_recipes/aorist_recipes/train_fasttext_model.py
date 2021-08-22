@@ -8,7 +8,7 @@ programs = {}
     entrypoint="train_fasttext_model",
     args={
         "dim": lambda fasttext_embedding_schema: str(fasttext_embedding_schema.dim),
-        "fasttext_training_data_file": lambda context: (context.get("fasttext_training_data_file"), context),
+        "text_data_file": lambda context: (context.get("text_data_file"), context),
         "fasttext_word_embeddings_file": lambda fasttext_embedding, context: (
             context.capture(
                 "fasttext_word_embeddings_file",
@@ -19,14 +19,14 @@ programs = {}
     },
 )
 def recipe(
-    fasttext_training_data_file, dim, fasttext_word_embeddings_file,
+    text_data_file, dim, fasttext_word_embeddings_file,
 ):
     from fasttext import train_unsupervised
     import json
 
-    def train_fasttext_model(fasttext_training_data_file, dim, fasttext_word_embeddings_file):
+    def train_fasttext_model(text_data_file, dim, fasttext_word_embeddings_file):
      
-        model = train_unsupervised(fasttext_training_data_file, dim=int(dim))
+        model = train_unsupervised(text_data_file, dim=int(dim))
         words = model.get_words()
         
         with open(fasttext_word_embeddings_file, 'w') as f: 

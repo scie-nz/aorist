@@ -270,14 +270,15 @@ impl<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry = T::TAncestry>>
     }
     pub fn get_fully_qualified_task_name(&self) -> String {
         let key = self.key.as_ref().unwrap();
-        match key.len() {
+        let name = match key.len() {
             0 => to_snake_case(&self.get_name()),
             _ => format!(
                 "{}__{}",
                 to_snake_case(&self.get_name()),
                 self.key.as_ref().unwrap()
             ),
-        }
+        };
+        format!("{}__{}", name, self.constraint.read().unwrap().get_uuid().unwrap()).to_string()
     }
     pub fn shorten_task_names(
         constraints: &LinkedHashMap<(Uuid, String), Arc<RwLock<ConstraintState<'a, T, P>>>>,

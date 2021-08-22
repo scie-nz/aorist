@@ -13,7 +13,7 @@ use std::hash::Hash;
 ///   - names of kwargs
 /// - preamble
 /// - dialect
-#[derive(Clone, Hash, PartialEq, Eq)]
+#[derive(Clone, Hash, PartialEq, Eq, Debug)]
 pub struct PythonBasedTaskCompressionKey {
     // dict name
     dict_name: AST,

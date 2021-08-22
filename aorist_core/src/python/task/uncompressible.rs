@@ -6,7 +6,7 @@ use linked_hash_map::LinkedHashMap;
 use std::hash::Hash;
 use std::marker::PhantomData;
 
-#[derive(Clone, Hash, PartialEq, Eq)]
+#[derive(Clone, Hash, PartialEq, Eq, Debug)]
 pub struct PythonBasedTaskUncompressiblePart<T, U>
 where
     T: ETLFlow<U>,

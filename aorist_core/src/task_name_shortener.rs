@@ -1,6 +1,6 @@
 use linked_hash_set::LinkedHashSet;
 use std::collections::{BTreeMap, BTreeSet};
-use tracing::debug;
+use tracing::{debug, trace};
 
 pub struct TaskNameShortener {
     names: Vec<String>,
@@ -27,6 +27,14 @@ impl TaskNameShortener {
         substrings
     }
     pub fn new(names: Vec<String>, separator: String) -> Self {
+        let unique_names = names.iter().map(|x| x.clone()).collect::<BTreeSet<_>>();
+        if unique_names.len() < names.len() {
+            trace!("Names:");
+            for name in &names {
+                trace!("- {}", name);
+            }
+            panic!("Non unique names supplied to task shortener");
+        }
         let substrings = Self::init_substrings(&names, &separator);
         Self {
             names,

@@ -18,6 +18,7 @@ programs = {}
         "text_data_file": lambda language_asset, context: (
             context.capture(
                 "text_data_file",
+                
                 language_asset.storage_setup.local_storage_setup.tmp_dir + "/training_data.txt",
             ),
             context

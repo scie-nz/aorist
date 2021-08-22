@@ -5,7 +5,7 @@ use pyo3::types::PyModule;
 use std::hash::Hash;
 use std::sync::{Arc, RwLock};
 
-#[derive(Hash, PartialEq, Eq, Clone)]
+#[derive(Hash, PartialEq, Eq, Clone, Debug)]
 pub struct StringLiteral {
     value: String,
     is_sql: bool,

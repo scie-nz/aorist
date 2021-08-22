@@ -3,7 +3,7 @@ use linked_hash_map::LinkedHashMap;
 use std::hash::Hash;
 use uuid::Uuid;
 
-#[derive(Clone, PartialEq, Eq, Hash)]
+#[derive(Clone, PartialEq, Eq, Hash, Debug)]
 pub struct ParameterTuple {
     pub args: Vec<AST>,
     pub kwargs: LinkedHashMap<String, AST>,

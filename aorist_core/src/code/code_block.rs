@@ -9,10 +9,10 @@ use aorist_ast::{SimpleIdentifier, StringLiteral, Subscript, AST};
 use aorist_primitives::AoristUniverse;
 use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
-use std::collections::{BTreeSet, HashMap};
+use std::collections::{BTreeSet, HashMap, HashSet};
 use std::sync::{Arc, RwLock};
 use uuid::Uuid;
-use tracing::debug;
+use tracing::{debug, trace};
 
 pub trait CodeBlock<'a, T, C, U, P>
 where
@@ -50,12 +50,12 @@ where
             let task_val = match tasks_dict {
                 None => AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(name)),
                 Some(ref dict) => {
-                    let shorter_name =
-                        name.replace(&format!("{}__", constraint_name).to_string(), "");
+                    /*let shorter_name =
+                        name.replace(&format!("{}__", constraint_name).to_string(), "");*/
 
                     AST::Subscript(Subscript::new_wrapped(
                         dict.clone(),
-                        AST::StringLiteral(StringLiteral::new_wrapped(shorter_name, false)),
+                        AST::StringLiteral(StringLiteral::new_wrapped(name, false)),
                         false,
                     ))
                 }
@@ -86,7 +86,12 @@ where
         let mut task_identifiers: HashMap<Uuid, AST> = HashMap::new();
         let mut params: HashMap<String, Option<ParameterTuple>> = HashMap::new();
         let mut tasks = Vec::new();
+        let mut asts: HashSet<AST> = HashSet::new();
         for (ast, state) in Self::compute_task_vals(members, &constraint_name, &tasks_dict) {
+            if asts.contains(&ast) {
+                panic!("Duplicated task val: {:?}", ast);
+            }
+            asts.insert(ast.clone());
             let x = state.read().unwrap();
             task_identifiers.insert(x.get_constraint_uuid()?, ast.clone());
             params.insert(x.get_task_name(), x.get_params());
