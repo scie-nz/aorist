@@ -158,9 +158,6 @@ spec:
   requires:
       - UploadDataToMinio
       - UploadDataToSQLite
-  attachIf: |
-      |root: AoristRef<Concept>, ancestry: &ConceptAncestry|
-      ancestry.replication_storage_setup(root.clone()).is_ok()
 ---
 type: Constraint
 spec:
@@ -183,7 +180,7 @@ spec:
   requires:
       - TextCorpusDataFromHive
       - TextCorpusDataFromSQLite
-  title: Creating Fasttext Training Dataset
+  title: Downloading TextCorpusData
 ---
 type: Constraint
 spec:
@@ -220,7 +217,7 @@ spec:
   name: TextCorpusDataFromSQLite
   root: LanguageAsset
   requires:
-      - UploadDataToSQLite
+      - ReplicatedAsset
   requiresProgram: true
   title: Creating corpus-based dataset
   body: |
@@ -243,14 +240,20 @@ spec:
           }
           return true;
       }
+  requiredConstraintsClosure: |
+      |root: AoristRef<Concept>, ancestry: &ConceptAncestry| {
+          let language_asset = ancestry.language_asset(root.clone()).unwrap();
+          let uuids = language_asset.0.read().unwrap().get_source_assets()
+              .iter().map(|x| x.0.read().unwrap().get_uuid().unwrap()).collect::<Vec<_>>();
+          uuids
+      }
 ---
 type: Constraint
 spec:
   name: TrainFasttextModel
   root: FasttextEmbeddingSchema
   requires:
-      - TextCorpusDataFromHive
-      - TextCorpusDataFromSQLite
+      - TextCorpusData
   requiresProgram: true
   title: Training Fasttext Model
   body: |
@@ -362,6 +365,14 @@ spec:
   name: ExtractNamedEntitiesUsingSpacy
   root: SpacyNamedEntitySchema
   requires:
-      - TextCorpusDataFromSQLite
+      - TextCorpusData
   requiresProgram: true
   title: Extracting named entities using SpaCy
+---
+type: Constraint
+spec:
+  name: ReplicatedAsset
+  root: Asset
+  requires:
+    - UploadDataToMinio
+    - UploadDataToSQLite

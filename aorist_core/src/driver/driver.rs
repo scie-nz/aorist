@@ -849,6 +849,10 @@ where
                     .get_required(root.clone(), &ancestry)
                     .into_iter()
                     .collect::<HashSet<_>>();
+                if other_required_concept_uuids.len() > 0 {
+                    trace!("Found {} other required concept uuids for root {:?}",
+                           other_required_concept_uuids.len(), root.get_uuid());
+                }
                 let potential_child_constraints = raw_potential_child_constraints
                     .into_iter()
                     .map(|(_req, x)| {
