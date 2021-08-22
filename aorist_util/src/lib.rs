@@ -7,6 +7,8 @@ use syn::{GenericArgument, Path, PathArguments, PathSegment};
 use tracing;
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::{fmt, EnvFilter};
+mod constraint;
+pub use constraint::*;
 
 pub fn read_file(filename: &str) -> Vec<HashMap<String, Value>> {
     let s = fs::read_to_string(filename).unwrap();
