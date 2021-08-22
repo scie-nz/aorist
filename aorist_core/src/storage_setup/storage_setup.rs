@@ -12,6 +12,8 @@ use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
 use std::sync::{Arc, RwLock};
 use uuid::Uuid;
+#[cfg(feature = "python")]
+use pyo3::prelude::*;
 
 #[aorist]
 pub enum StorageSetup {
@@ -58,5 +60,15 @@ impl StorageSetup {
             }
             _ => panic!("Only assets with RemoteStorageSetup can be replicated"),
         }
+    }
+}
+#[cfg(feature = "python")]
+#[pymethods]
+impl PyStorageSetup {
+    #[getter]
+    pub fn local(&self) -> Vec<PyStorage> {
+        self.inner.0.read().unwrap().get_local_storage().into_iter().map(|x| PyStorage {
+            inner: x,
+        }).collect()
     }
 }

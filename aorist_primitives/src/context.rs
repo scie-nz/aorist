@@ -62,7 +62,8 @@ impl Context {
             let existing: Option<_> = self.inner.get(k).and_then(|x| Some(x.clone()));
             if let Some(existing_val) = existing {
                 if existing_val != *v {
-                    panic!("Key {} already populated", k);
+                    self.inner.insert(k.clone(), v.clone());
+                    //panic!("Key {} already populated", k);
                     //self.inner
                     //    .insert(k.clone(), format!("{};{}", existing_val, v).to_string());
                 }

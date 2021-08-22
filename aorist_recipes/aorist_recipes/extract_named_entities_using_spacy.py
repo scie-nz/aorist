@@ -11,7 +11,7 @@ programs = {}
         "text_data_file": lambda context: (context.get("text_data_file"), context),
         "ner_file": lambda named_entities, context: (
             context.capture(
-                "ner_file",
+                "file_to_replicate",
                 named_entities.setup.local_storage_setup.tmp_dir + "/named_entities.txt",
             ),
             context

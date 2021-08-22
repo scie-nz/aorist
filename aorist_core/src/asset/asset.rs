@@ -115,4 +115,10 @@ impl PyAsset {
             inner: self.inner.0.read().unwrap().get_schema().clone(),
         })
     }
+    #[getter]
+    pub fn storage_setup(&self) -> PyResult<PyStorageSetup> {
+        Ok(PyStorageSetup {
+            inner: self.inner.0.read().unwrap().get_storage_setup().clone(),
+        })
+    }
 }

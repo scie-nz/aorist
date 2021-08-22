@@ -11,7 +11,7 @@ programs = {}
         "text_data_file": lambda context: (context.get("text_data_file"), context),
         "fasttext_word_embeddings_file": lambda fasttext_embedding, context: (
             context.capture(
-                "fasttext_word_embeddings_file",
+                "file_to_replicate",
                 fasttext_embedding.setup.local_storage_setup.tmp_dir + "/word_embeddings.txt",
             ),
             context

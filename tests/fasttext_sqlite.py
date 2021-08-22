@@ -57,7 +57,7 @@ universe = Universe(
     endpoints=EndpointConfig(),
     compliance=None,
 )
-result = dag(universe, ["UploadSpacyToSQLite", "TrainFasttextModel"], 
+result = dag(universe, ["UploadSpacyToSQLite", "UploadFasttextToSQLite"], 
              "python", programs)
 with open('generated_script_ml.py', 'w') as f:
     f.write(result)

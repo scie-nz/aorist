@@ -1,14 +1,14 @@
-from aorist import aorist, UploadDataToSQLite
+from aorist import aorist, UploadDataToSQLite, UploadSpacyToSQLite, UploadFasttextToSQLite
 from json import dumps
 
 programs = {}
 
 @aorist(
     programs,
-    UploadDataToSQLite,
+    [UploadDataToSQLite, UploadSpacyToSQLite, UploadFasttextToSQLite],
     entrypoint="upload_to_sqlite",
     args={
-        "db_filename": lambda sq_lite_location: sq_lite_location.file_name,
+        "db_filename": lambda asset: asset.storage_setup.local[0].sq_lite_storage.location.file_name,
         "table_name": lambda asset: asset.name,
         "header_num_lines": lambda context: (context.get_int("header_num_lines"), context),
         "is_json": lambda context: (context.get_bool("is_json"), context),
@@ -47,9 +47,9 @@ def recipe(
         type_fn = []
         for _, v, _ in columns:
             if v == 'TEXT':
-                type_fn += [lambda x: x]
+                type_fn += [lambda x: str(x)]
             elif v == 'INTEGER':
-                type_fn += [int]
+                type_fn += [lambda x: int(x) if x is not None else None]
             elif v == 'REAL':
                 type_fn += [float]
             elif v == 'BLOB':
@@ -65,7 +65,7 @@ def recipe(
                     obj = [x[name] if name in x else None for name in attr_names]
                 else:
                     obj = line.split(delimiter)
-                assert len(obj) == len(type_fn)
+                    assert len(obj) == len(type_fn)
                 tpl = tuple(fn(arg) for fn, arg in zip(type_fn, obj))
                 values += [tpl]
 
