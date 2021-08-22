@@ -97,10 +97,14 @@ where
             params.insert(x.get_task_name(), x.get_params());
 
             let dep_uuids = x.get_dependencies()?;
-            let dependencies = dep_uuids
-                .iter()
-                .map(|x| identifiers.get(x).unwrap().clone())
-                .collect();
+            let mut dependencies = Vec::new();
+            for dep in &dep_uuids {
+                if let Some(ident) = identifiers.get(dep) {
+                    dependencies.push(ident.clone());
+                } else {
+                    panic!("Could not find identifier for Uuid: {}", dep);
+                }
+            }
             tasks.push(<Self::E as ETLTask<T, U>>::S::new(
                 x.get_task_name(),
                 ast.clone(),

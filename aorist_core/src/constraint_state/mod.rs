@@ -202,6 +202,14 @@ impl<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry = T::TAncestry>>
             );
         }
     }
+    pub fn get_dedup_key(&self) -> (String, String, ParameterTuple, Option<Dialect>) {
+        (
+            self.preamble.as_ref().unwrap().clone(), 
+            self.call.as_ref().unwrap().clone(), 
+            self.params.as_ref().unwrap().clone(), 
+            self.dialect.clone()
+        )
+    }
     pub fn new(
         constraint: Arc<RwLock<T>>,
         concepts: Arc<
@@ -278,7 +286,7 @@ impl<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry = T::TAncestry>>
                 self.key.as_ref().unwrap()
             ),
         };
-        format!("{}__{}", name, self.constraint.read().unwrap().get_uuid().unwrap()).to_string()
+        format!("{}__{}", name, self.constraint.read().unwrap().get_uuid().unwrap().to_string().split("-").take(1).next().unwrap()).to_string()
     }
     pub fn shorten_task_names(
         constraints: &LinkedHashMap<(Uuid, String), Arc<RwLock<ConstraintState<'a, T, P>>>>,

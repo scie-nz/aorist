@@ -27,7 +27,8 @@ embedding = FasttextEmbedding(
     ))),
     setup=StorageSetup(LocalStorageSetup(
         Storage(local),
-        '/tmp/fasttext_embedding',
+        '/tmp/named_entities',
+        #'/tmp/fasttext_embedding',
     )),
     source_assets=source_assets,
 )

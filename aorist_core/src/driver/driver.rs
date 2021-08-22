@@ -1,5 +1,6 @@
 #![allow(dead_code)]
 use crate::code::CodeBlockWithDefaultConstructor;
+use crate::code::CodeBlock;
 use crate::constraint::TConstraintEnum;
 use crate::constraint::{OuterConstraint, TBuilder};
 use crate::constraint_block::ConstraintBlock;
@@ -253,12 +254,14 @@ where
         reverse_dependencies: &HashMap<(Uuid, String), HashSet<(String, Uuid, String)>>,
         constraint_name: String,
         unsatisfied_constraints: &ConstraintsBlockMap<'a, B::OuterType, P>,
-        identifiers: &HashMap<Uuid, AST>,
+        identifiers: &mut HashMap<Uuid, AST>,
         programs: &Vec<P>,
+        existing_names: &mut HashSet<String>,
     ) -> Result<(
         Vec<<Self::CB as ConstraintBlock<'a, <D as FlowBuilderBase<U>>::T, B::OuterType, U, P>>::C>,
         Option<AST>,
     )> {
+        ConstraintState::shorten_task_names(block, existing_names);
         debug!("Processing constraint block: {}", constraint_name);
 
         // TODO: this could be done once for the entire set of blocks
@@ -273,7 +276,6 @@ where
         let shortened_name = shortened_names.into_iter().last().unwrap();
         debug!("Shortened constraint block name: {}", shortened_name);
 
-        let tasks_dict = Self::init_tasks_dict(block, shortened_name.clone());
         // (call, constraint_name, root_name) => (uuid, call parameters)
         let mut calls: HashMap<(String, String, String), Vec<(String, ParameterTuple)>> =
             HashMap::new();
@@ -297,8 +299,37 @@ where
                 .or_insert(Vec::new())
                 .push(state.clone());
         }
-
-        for (_dialect, satisfied) in by_dialect.into_iter() {
+        let mut processed = HashMap::new();
+        for (dialect, satisfied) in by_dialect.into_iter() {
+            let mut unique: HashMap<_, Vec<_>> = HashMap::new();
+            for c in satisfied.into_iter() {
+                let key = c.read().unwrap().get_dedup_key();
+                trace!("Dedup key: {:?}", key);
+                unique.entry(key).or_insert(Vec::new()).push(c);
+            }
+            let mut unique_constraints = Vec::new();
+            let mut uuid_mappings: HashMap<Uuid, Vec<Uuid>> = HashMap::new();
+            for (_, v) in unique {
+                let mut it = v.into_iter();
+                let first = it.next().unwrap();
+                let uuid = first.read().unwrap().get_constraint_uuid().unwrap();
+                unique_constraints.push(first);
+                uuid_mappings.insert(uuid, Vec::new());
+                while let Some(elem) = it.next() {
+                    let elem_uuid = elem.read().unwrap().get_constraint_uuid().unwrap();
+                    trace!("Inserted Uuid mapping: {} -> {}", &uuid, &elem_uuid);
+                    uuid_mappings.get_mut(&uuid).unwrap().push(elem_uuid);
+                }
+            }
+            processed.insert(dialect, (unique_constraints, uuid_mappings)); 
+        }
+        let tasks_dict = match processed.values().map(|x| x.0.len()).sum::<usize>() == 1 {
+            true => None,
+            false => Some(AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
+                format!("tasks_{}", constraint_name).to_string(),
+            )))
+        };
+        for (_dialect, (unique_constraints, uuid_mappings)) in processed.into_iter() {
             let block = <Self::CB as ConstraintBlock<
                 'a,
                 <D as FlowBuilderBase<U>>::T,
@@ -306,11 +337,18 @@ where
                 U,
                 P,
             >>::C::new(
-                satisfied,
+                //satisfied,
+                unique_constraints,
                 shortened_name.clone(),
                 tasks_dict.clone(),
                 identifiers,
             )?;
+            for (key, val) in block.get_identifiers() {
+                for mapped_key in uuid_mappings.get(&key).unwrap() {
+                    identifiers.insert(mapped_key.clone(), val.clone());
+                }
+                identifiers.insert(key, val);
+            }
             blocks.push(block);
         }
 
@@ -350,7 +388,6 @@ where
                     constraint_name,
                     block.len()
                 );
-                ConstraintState::shorten_task_names(block, &mut existing_names);
                 let programs = self.get_programs_for(&constraint_name);
                 let snake_case_name = to_snake_case(constraint_name);
                 if block.len() > 0 {
@@ -359,16 +396,17 @@ where
                         &reverse_dependencies,
                         snake_case_name.clone(),
                         &unsatisfied_constraints,
-                        &identifiers,
+                        &mut identifiers,
                         &programs,
+                        &mut existing_names,
                     )?;
 
                     let (title, body) = self.get_constraint_explanation(constraint_name);
                     let constraint_block =
                         Self::CB::new(snake_case_name, title, body, members, tasks_dict);
-                    for (key, val) in constraint_block.get_identifiers() {
+                    /*for (key, val) in constraint_block.get_identifiers() {
                         identifiers.insert(key, val);
-                    }
+                    }*/
                     self.add_block(constraint_block);
                 }
             } else {
