@@ -19,7 +19,6 @@ use uuid::Uuid;
 pub struct NamedEntities {
     pub name: String,
     pub comment: Option<String>,
-    #[constrainable]
     pub source_assets: Vec<AoristRef<Asset>>,
     #[constrainable]
     pub setup: AoristRef<StorageSetup>,

@@ -1,6 +1,7 @@
 from . import download_data_from_remote_gcs_location
 from . import download_data_from_remote_web_location
 from . import download_data_from_remote_pushshift_api_location_to_newline_delimited_json
+from . import extract_named_entities_using_spacy
 from . import convert_json_to_csv
 from . import text_corpus_data_from_hive
 from . import text_corpus_data_from_sqlite
@@ -65,6 +66,7 @@ programs = register_recipes(
         upload_fasttext_to_minio,
         upload_fasttext_to_sqlite,
         upload_data_to_sqlite,
+        extract_named_entities_using_spacy,
     ],
     sql_modules=[
         "%s/hive_directories_created.presto.sql" % path,

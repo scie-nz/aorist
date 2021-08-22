@@ -8,11 +8,11 @@ programs = {}
     TextCorpusDataFromSQLite,
     entrypoint="download_text_data_from_sqlite",
     args={
-        "text_attribute_name": lambda text_corpus_schema: text_corpus_schema.text_attribute_name,
+        "text_attribute_name": lambda language_asset: language_asset.schema.language_asset_schema.text_attribute_name,
         "source_tables": lambda language_asset: dumps([
             x.name() for x in language_asset.source_assets
         ]),
-        "dedup_text_attribute": lambda text_corpus_schema: text_corpus_schema.should_dedup_text_attribute(),
+        "dedup_text_attribute": lambda language_asset: language_asset.schema.language_asset_schema.should_dedup_text_attribute(),
         "db_filename": lambda language_asset: \
             language_asset.storage_setup.local_storage_setup.local.sq_lite_storage.location.file_name,
         "text_data_file": lambda language_asset, context: (

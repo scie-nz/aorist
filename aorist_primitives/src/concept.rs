@@ -65,6 +65,7 @@ pub trait TPrestoEndpoints {
 pub trait Ancestry {
     type TConcept: ConceptEnum + Clone + TConceptEnum;
     fn new(parents: Arc<RwLock<HashMap<(Uuid, String), Self::TConcept>>>) -> Self;
+    fn get_parents(&self) -> Arc<RwLock<HashMap<(Uuid, String), Self::TConcept>>>;
 }
 pub trait TAoristObject {
     fn get_name(&self) -> &String;

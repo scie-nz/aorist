@@ -190,5 +190,6 @@ register_concept!(
     SpacyNamedEntitySchema,
     NamedEntitySchema,
     TextCorpusSource,
-    LanguageAsset
+    LanguageAsset,
+    LanguageAssetSchema
 );

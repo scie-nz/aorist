@@ -119,6 +119,7 @@ where
             let num_tasks = tasks.len();
             // TODO: this is a magic number
             if num_tasks > 1 {
+                trace!("Running compression for {} tasks for constraint {}", num_tasks, constraint_name);
                 let params_constraint = AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
                     format!("params_{}", constraint_name).to_string(),
                 ));

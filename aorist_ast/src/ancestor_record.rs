@@ -1,7 +1,7 @@
 use inflector::cases::snakecase::to_snake_case;
 use uuid::Uuid;
 
-#[derive(Clone, PartialEq, Eq, Hash)]
+#[derive(Clone, PartialEq, Eq, Hash, Debug)]
 pub struct AncestorRecord {
     pub uuid: Uuid,
     pub object_type: String,

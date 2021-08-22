@@ -15,7 +15,7 @@ pub enum NamedEntitySchema {
 }
 
 impl NamedEntitySchema {
-    pub fn source_schema(&self) -> AoristRef<TextCorpusSchema> {
+    pub fn get_source_schema(&self) -> AoristRef<TextCorpusSchema> {
         match self {
             NamedEntitySchema::SpacyNamedEntitySchema(x) => {
                 x.0.read().unwrap().source_schema.clone()

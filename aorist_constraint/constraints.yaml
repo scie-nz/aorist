@@ -179,7 +179,7 @@ spec:
 type: Constraint
 spec:
   name: TextCorpusData
-  root: TextCorpusSchema
+  root: LanguageAsset
   requires:
       - TextCorpusDataFromHive
       - TextCorpusDataFromSQLite
@@ -188,7 +188,7 @@ spec:
 type: Constraint
 spec:
   name: TextCorpusDataFromHive
-  root: TextCorpusSchema
+  root: LanguageAsset
   requires:
       - ConvertJSONTableToORCTable
   requiresProgram: true
@@ -218,7 +218,7 @@ spec:
 type: Constraint
 spec:
   name: TextCorpusDataFromSQLite
-  root: TextCorpusSchema
+  root: LanguageAsset
   requires:
       - UploadDataToSQLite
   requiresProgram: true
@@ -356,3 +356,12 @@ spec:
           }
           _ => false,
       }
+---
+type: Constraint
+spec:
+  name: ExtractNamedEntitiesUsingSpacy
+  root: SpacyNamedEntitySchema
+  requires:
+      - TextCorpusDataFromSQLite
+  requiresProgram: true
+  title: Extracting named entities using SpaCy

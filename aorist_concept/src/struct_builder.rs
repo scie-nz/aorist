@@ -15,14 +15,39 @@ mod keyword {
 }
 use linked_hash_set::LinkedHashSet;
 
-fn extract_names_and_types(fields: &Vec<Field>) -> (Vec<Ident>, Vec<Type>) {
+fn extract_names_and_types(fields: &Vec<Field>) -> (
+    Vec<Ident>, 
+    Vec<Type>,
+    Vec<Ident>,
+    Vec<Type>,
+    Vec<Ident>,
+    Vec<Type>,
+) {
     let mut names: Vec<Ident> = Vec::new();
     let mut types: Vec<Type> = Vec::new();
+    let mut names_ref: Vec<Ident> = Vec::new();
+    let mut types_ref: Vec<Type> = Vec::new();
+    let mut names_vec_ref: Vec<Ident> = Vec::new();
+    let mut types_vec_ref: Vec<Type> = Vec::new();
     for field in fields {
-        names.push(field.ident.as_ref().unwrap().clone());
-        types.push(field.ty.clone());
+        if let Some(t) = extract_type_from_aorist_ref(&field.ty) {
+            names_ref.push(field.ident.as_ref().unwrap().clone());
+            types_ref.push(t.clone());
+        } else if let Some(ref vt) = extract_type_from_vector(&field.ty) {
+            if let Some(t) = extract_type_from_aorist_ref(vt) {
+                names_vec_ref.push(field.ident.as_ref().unwrap().clone());
+                types_vec_ref.push(t.clone());
+            } else {
+                names.push(field.ident.as_ref().unwrap().clone());
+                types.push(field.ty.clone());
+            }
+        }
+        else {
+            names.push(field.ident.as_ref().unwrap().clone());
+            types.push(field.ty.clone());
+        }
     }
-    (names, types)
+    (names, types, names_ref, types_ref, names_vec_ref, types_vec_ref)
 }
 
 fn field_is_constrainable(field: &Field) -> bool {
@@ -294,7 +319,14 @@ impl Builder for StructBuilder {
             &self.option_vec_types,
             &self.map_value_types,
         );
-        let (unconstrainable_name, unconstrainable_type) =
+        let (
+            unconstrainable_name,
+            unconstrainable_type,
+            unconstrainable_name_ref,
+            unconstrainable_type_ref,
+            unconstrainable_name_vec_ref,
+            unconstrainable_type_vec_ref,
+        ) =
             extract_names_and_types(&self.unconstrainable);
         let bare_type_deref = bare_type
             .iter()
@@ -385,6 +417,12 @@ impl Builder for StructBuilder {
                       >,
                     )*
                     #(
+                        #unconstrainable_name_ref: [<Py #unconstrainable_type_ref>],
+                    )*
+                    #(
+                        #unconstrainable_name_vec_ref: Vec<[<Py #unconstrainable_type_vec_ref>]>,
+                    )*
+                    #(
                         #unconstrainable_name: #unconstrainable_type,
                     )*
                     tag: Option<String>,
@@ -417,6 +455,14 @@ impl Builder for StructBuilder {
                         )*
                         #(
                             #unconstrainable_name,
+                        )*
+                        #(
+                            #unconstrainable_name_ref: #unconstrainable_name_ref.inner.clone(),
+                        )*
+                        #(
+                            #unconstrainable_name_vec_ref: #unconstrainable_name_vec_ref.iter().map(
+                                |x| x.inner.clone()
+                            ).collect(),
                         )*
                         tag,
                         uuid: None,
@@ -609,6 +655,12 @@ impl Builder for StructBuilder {
                         )*
                         #(
                             #unconstrainable_name: self.#unconstrainable_name.clone(),
+                        )*
+                        #(
+                            #unconstrainable_name_ref: self.#unconstrainable_name_ref.clone(),
+                        )*
+                        #(
+                            #unconstrainable_name_vec_ref: self.#unconstrainable_name_vec_ref.clone(),
                         )*
                         tag: self.tag.clone(),
                         uuid: None,

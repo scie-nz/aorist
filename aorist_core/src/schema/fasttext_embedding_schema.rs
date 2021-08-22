@@ -14,3 +14,8 @@ pub struct FasttextEmbeddingSchema {
     #[constrainable]
     pub source_schema: AoristRef<TextCorpusSchema>,
 }
+impl FasttextEmbeddingSchema { 
+    pub fn get_source_schema(&self) -> AoristRef<TextCorpusSchema> {
+        self.source_schema.clone()
+    }
+}

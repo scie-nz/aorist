@@ -21,7 +21,6 @@ pub struct FasttextEmbedding {
     pub comment: Option<String>,
     #[constrainable]
     pub schema: AoristRef<DataSchema>,
-    #[constrainable]
     pub source_assets: Vec<AoristRef<Asset>>,
     #[constrainable]
     pub setup: AoristRef<StorageSetup>,

@@ -991,6 +991,9 @@ macro_rules! register_concept {
             fn new(parents: Arc<RwLock<HashMap<(Uuid, String), AoristRef<$name>>>>) -> Self {
                  Self { parents }
             }
+            fn get_parents(&self) -> Arc<RwLock<HashMap<(Uuid, String), AoristRef<$name>>>> {
+                self.parents.clone()
+            }
 
         }
         impl $ancestry {

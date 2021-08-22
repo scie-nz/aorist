@@ -46,7 +46,6 @@ impl TextCorpusSource {
 #[aorist]
 pub struct TextCorpusSchema {
     text_attribute_name: String,
-    #[constrainable]
     source: AoristRef<TextCorpusSource>,
 }
 
@@ -59,6 +58,9 @@ impl TextCorpusSchema {
     }
     pub fn should_dedup_text_attribute(&self) -> bool {
         self.source.0.read().unwrap().should_dedup_text_attribute(&self.text_attribute_name)
+    }
+    pub fn get_text_attribute_name(&self) -> String {
+        self.text_attribute_name.clone()
     }
 }
 #[cfg(feature = "python")]
