@@ -11,6 +11,8 @@ use aorist_primitives::{AoristConcept, ConceptEnum};
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
 use uuid::Uuid;
+#[cfg(feature = "python")]
+use pyo3::prelude::*;
 
 #[aorist]
 pub enum LanguageAsset {
@@ -18,6 +20,19 @@ pub enum LanguageAsset {
     FasttextEmbedding(AoristRef<FasttextEmbedding>),
     #[constrainable]
     NamedEntities(AoristRef<NamedEntities>),
+}
+
+#[cfg(feature = "python")]
+#[pymethods]
+impl PyLanguageAsset {
+    #[getter]
+    pub fn get_source_assets(&self) -> Vec<PyAsset> {
+        self.inner.0.read().unwrap().get_source_assets().iter().map(|x| PyAsset{ inner: x.clone() }).collect()
+    }
+    #[getter]
+    pub fn get_storage_setup(&self) -> PyStorageSetup {
+        PyStorageSetup { inner: self.inner.0.read().unwrap().get_storage_setup().clone() }
+    }
 }
 
 impl LanguageAsset {
