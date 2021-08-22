@@ -8,11 +8,11 @@ use crate::storage_setup::*;
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
 use aorist_primitives::{AoristConcept, ConceptEnum};
+#[cfg(feature = "python")]
+use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
 use uuid::Uuid;
-#[cfg(feature = "python")]
-use pyo3::prelude::*;
 
 #[aorist]
 pub enum LanguageAsset {
@@ -27,15 +27,26 @@ pub enum LanguageAsset {
 impl PyLanguageAsset {
     #[getter]
     pub fn get_source_assets(&self) -> Vec<PyAsset> {
-        self.inner.0.read().unwrap().get_source_assets().iter().map(|x| PyAsset{ inner: x.clone()}).collect()
+        self.inner
+            .0
+            .read()
+            .unwrap()
+            .get_source_assets()
+            .iter()
+            .map(|x| PyAsset { inner: x.clone() })
+            .collect()
     }
     #[getter]
     pub fn get_storage_setup(&self) -> PyStorageSetup {
-        PyStorageSetup { inner: self.inner.0.read().unwrap().get_storage_setup().clone() }
+        PyStorageSetup {
+            inner: self.inner.0.read().unwrap().get_storage_setup().clone(),
+        }
     }
     #[getter]
     pub fn get_schema(&self) -> PyDataSchema {
-        PyDataSchema { inner: self.inner.0.read().unwrap().get_schema().clone() }
+        PyDataSchema {
+            inner: self.inner.0.read().unwrap().get_schema().clone(),
+        }
     }
 }
 

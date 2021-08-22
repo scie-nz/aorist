@@ -119,7 +119,11 @@ where
             let num_tasks = tasks.len();
             // TODO: this is a magic number
             if num_tasks > 1 {
-                trace!("Running compression for {} tasks for constraint {}", num_tasks, constraint_name);
+                trace!(
+                    "Running compression for {} tasks for constraint {}",
+                    num_tasks,
+                    constraint_name
+                );
                 let params_constraint = AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
                     format!("params_{}", constraint_name).to_string(),
                 ));
@@ -127,15 +131,21 @@ where
                     .into_iter()
                     .map(|x| x.get_uncompressible_part().unwrap())
                     .collect::<Vec<_>>();
-                trace!("There are {} maybe_uncompressible tasks", maybe_uncompressible.len());
+                trace!(
+                    "There are {} maybe_uncompressible tasks",
+                    maybe_uncompressible.len()
+                );
                 for v in &maybe_uncompressible {
                     trace!("-- {:?} : {:?}", v.dict, v.params);
                 }
-                let distinct_keys = maybe_uncompressible.iter().map(|x| x.dict.clone()).collect::<std::collections::HashSet<_>>();
+                let distinct_keys = maybe_uncompressible
+                    .iter()
+                    .map(|x| x.dict.clone())
+                    .collect::<std::collections::HashSet<_>>();
                 if distinct_keys.len() < maybe_uncompressible.len() {
                     panic!("Tasks with same keys in for loop compression.");
                 }
-          
+
                 let mut deps: HashMap<AST, HashSet<String>> = HashMap::new();
                 let mut kwargs: LinkedHashMap<String, HashMap<AST, HashSet<String>>> =
                     LinkedHashMap::new();
@@ -275,7 +285,10 @@ where
                     ),
                 };
 
-                trace!("There are now {} maybe_uncompressible tasks", maybe_uncompressible.len());
+                trace!(
+                    "There are now {} maybe_uncompressible tasks",
+                    maybe_uncompressible.len()
+                );
                 let compressed_task = ForLoopPythonBasedTask::new(
                     params_constraint,
                     compression_key,

@@ -12,7 +12,6 @@ use linked_hash_set::LinkedHashSet;
 use std::collections::{BTreeSet, HashMap, HashSet};
 use std::sync::{Arc, RwLock};
 use uuid::Uuid;
-use tracing::{debug, trace};
 
 pub trait CodeBlock<'a, T, C, U, P>
 where
@@ -38,7 +37,6 @@ where
     /// to each member of the code block.
     fn compute_task_vals(
         constraints: Vec<Arc<RwLock<ConstraintState<'a, C, P>>>>,
-        constraint_name: &String,
         tasks_dict: &Option<AST>,
     ) -> Vec<(AST, Arc<RwLock<ConstraintState<'a, C, P>>>)> {
         let mut out = Vec::new();
@@ -51,7 +49,7 @@ where
                 None => AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(name)),
                 Some(ref dict) => {
                     /*let shorter_name =
-                        name.replace(&format!("{}__", constraint_name).to_string(), "");*/
+                    name.replace(&format!("{}__", constraint_name).to_string(), "");*/
 
                     AST::Subscript(Subscript::new_wrapped(
                         dict.clone(),
@@ -75,7 +73,6 @@ where
 
     fn create_standalone_tasks(
         members: Vec<Arc<RwLock<ConstraintState<'a, C, P>>>>,
-        constraint_name: String,
         tasks_dict: Option<AST>,
         identifiers: &HashMap<Uuid, AST>,
     ) -> Result<(
@@ -87,7 +84,7 @@ where
         let mut params: HashMap<String, Option<ParameterTuple>> = HashMap::new();
         let mut tasks = Vec::new();
         let mut asts: HashSet<AST> = HashSet::new();
-        for (ast, state) in Self::compute_task_vals(members, &constraint_name, &tasks_dict) {
+        for (ast, state) in Self::compute_task_vals(members, &tasks_dict) {
             if asts.contains(&ast) {
                 panic!("Duplicated task val: {:?}", ast);
             }
@@ -199,12 +196,8 @@ where
         tasks_dict: Option<AST>,
         identifiers: &HashMap<Uuid, AST>,
     ) -> Result<Self> {
-        let (standalone_tasks, task_identifiers, params) = Self::create_standalone_tasks(
-            members,
-            constraint_name.clone(),
-            tasks_dict.clone(),
-            identifiers,
-        )?;
+        let (standalone_tasks, task_identifiers, params) =
+            Self::create_standalone_tasks(members, tasks_dict.clone(), identifiers)?;
         let (compressible, mut tasks) = Self::separate_compressible_tasks(standalone_tasks);
         Self::run_task_compressions(compressible, &mut tasks, constraint_name);
         Ok(Self::construct(tasks_dict, tasks, task_identifiers, params))

@@ -15,8 +15,10 @@ mod keyword {
 }
 use linked_hash_set::LinkedHashSet;
 
-fn extract_names_and_types(fields: &Vec<Field>) -> (
-    Vec<Ident>, 
+fn extract_names_and_types(
+    fields: &Vec<Field>,
+) -> (
+    Vec<Ident>,
     Vec<Type>,
     Vec<Ident>,
     Vec<Type>,
@@ -41,13 +43,19 @@ fn extract_names_and_types(fields: &Vec<Field>) -> (
                 names.push(field.ident.as_ref().unwrap().clone());
                 types.push(field.ty.clone());
             }
-        }
-        else {
+        } else {
             names.push(field.ident.as_ref().unwrap().clone());
             types.push(field.ty.clone());
         }
     }
-    (names, types, names_ref, types_ref, names_vec_ref, types_vec_ref)
+    (
+        names,
+        types,
+        names_ref,
+        types_ref,
+        names_vec_ref,
+        types_vec_ref,
+    )
 }
 
 fn field_is_constrainable(field: &Field) -> bool {
@@ -326,8 +334,7 @@ impl Builder for StructBuilder {
             unconstrainable_type_ref,
             unconstrainable_name_vec_ref,
             unconstrainable_type_vec_ref,
-        ) =
-            extract_names_and_types(&self.unconstrainable);
+        ) = extract_names_and_types(&self.unconstrainable);
         let bare_type_deref = bare_type
             .iter()
             .map(|x| extract_type_from_aorist_ref(x))

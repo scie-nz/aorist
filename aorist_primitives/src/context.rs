@@ -1,8 +1,8 @@
+use pyo3::exceptions::PyValueError;
 #[cfg(feature = "python")]
 use pyo3::prelude::*;
 use std::collections::HashMap;
 use tracing::debug;
-use pyo3::exceptions::PyValueError;
 
 #[derive(Clone, PartialEq, Eq, Debug)]
 pub enum ContextStoredValue {
@@ -78,36 +78,48 @@ impl Context {
 #[cfg_attr(feature = "python", pymethods)]
 impl Context {
     pub fn capture(&mut self, key: String, value: String) -> String {
-        self.inner.insert(key.clone(), ContextStoredValue::String(value.clone()));
+        self.inner
+            .insert(key.clone(), ContextStoredValue::String(value.clone()));
         debug!("Captured ({}, {})", &key, &value);
         value
     }
     pub fn capture_int(&mut self, key: String, value: i64) -> i64 {
-        self.inner.insert(key.clone(), ContextStoredValue::Integer(value));
+        self.inner
+            .insert(key.clone(), ContextStoredValue::Integer(value));
         debug!("Captured ({}, {})", &key, &value);
         value
     }
     pub fn capture_bool(&mut self, key: String, value: bool) -> bool {
-        self.inner.insert(key.clone(), ContextStoredValue::Boolean(value));
+        self.inner
+            .insert(key.clone(), ContextStoredValue::Boolean(value));
         debug!("Captured ({}, {})", &key, &value);
         value
     }
     pub fn get(&self, key: String) -> PyResult<String> {
         match self.inner.get(&key) {
             Some(x) => x.string(),
-            None => Err(PyValueError::new_err(format!("Could not find key {} in context", key))),
+            None => Err(PyValueError::new_err(format!(
+                "Could not find key {} in context",
+                key
+            ))),
         }
     }
     pub fn get_int(&self, key: String) -> PyResult<i64> {
         match self.inner.get(&key) {
             Some(x) => x.integer(),
-            None => Err(PyValueError::new_err(format!("Could not find key {} in context", key))),
+            None => Err(PyValueError::new_err(format!(
+                "Could not find key {} in context",
+                key
+            ))),
         }
     }
     pub fn get_bool(&self, key: String) -> PyResult<bool> {
         match self.inner.get(&key) {
             Some(x) => x.boolean(),
-            None => Err(PyValueError::new_err(format!("Could not find key {} in context", key))),
+            None => Err(PyValueError::new_err(format!(
+                "Could not find key {} in context",
+                key
+            ))),
         }
     }
 }

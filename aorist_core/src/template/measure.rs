@@ -106,9 +106,13 @@ impl AoristRef<TrainedFloatMeasure> {
     }
     pub fn get_model_storage_tabular_schema(&self) -> TabularSchema {
         TabularSchema {
-            datum_template: AoristRef(Arc::new(RwLock::new(DatumTemplate::TrainedFloatMeasure(self.clone())))),
+            datum_template: AoristRef(Arc::new(RwLock::new(DatumTemplate::TrainedFloatMeasure(
+                self.clone(),
+            )))),
             attributes: self
-                .0.read().unwrap()
+                .0
+                .read()
+                .unwrap()
                 .features
                 .iter()
                 .map(|x| x.0.read().unwrap().inner.get_name().clone())

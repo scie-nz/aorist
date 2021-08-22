@@ -1,6 +1,6 @@
 #![allow(dead_code)]
-use crate::code::CodeBlockWithDefaultConstructor;
 use crate::code::CodeBlock;
+use crate::code::CodeBlockWithDefaultConstructor;
 use crate::constraint::TConstraintEnum;
 use crate::constraint::{OuterConstraint, TBuilder};
 use crate::constraint_block::ConstraintBlock;
@@ -282,13 +282,10 @@ where
         let mut calls: HashMap<(String, String, String), Vec<(String, ParameterTuple)>> =
             HashMap::new();
         let mut blocks = Vec::new();
-        let mut by_dialect: HashMap<
-            Option<Dialect>,
-            Vec<_>
-        > = HashMap::new();
+        let mut by_dialect: HashMap<Option<Dialect>, Vec<_>> = HashMap::new();
         for (id, state) in block.clone() {
             let mut write = state.write().unwrap();
-            
+
             write.compute_task_key();
             drop(write);
 
@@ -330,14 +327,14 @@ where
                     uuid_mappings.get_mut(&uuid).unwrap().push(elem_uuid);
                 }
             }
-            processed.insert(dialect, (unique_constraints, uuid_mappings)); 
+            processed.insert(dialect, (unique_constraints, uuid_mappings));
         }
         ConstraintState::shorten_task_names(&reduced_block, existing_names);
         let tasks_dict = match processed.values().map(|x| x.0.len()).sum::<usize>() == 1 {
             true => None,
             false => Some(AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
                 format!("tasks_{}", constraint_name).to_string(),
-            )))
+            ))),
         };
         for (_dialect, (unique_constraints, uuid_mappings)) in processed.into_iter() {
             let block = <Self::CB as ConstraintBlock<
@@ -723,7 +720,7 @@ where
             let mut new_frontier: Vec<AncestorRecord> = Vec::new();
             for child in frontier.drain(0..) {
                 let key = child.get_key();
-                trace!("Ancestors for key: {:?}", key); 
+                trace!("Ancestors for key: {:?}", key);
                 let concept = concept_map.get(&key).unwrap();
                 let child_ancestors = ancestors.get(&key).unwrap().clone();
                 for grandchild in concept.get_child_concepts() {
@@ -733,7 +730,7 @@ where
                         grandchild.get_tag(),
                         grandchild.get_index_as_child(),
                     );
-                    trace!("- {:?}", t); 
+                    trace!("- {:?}", t);
                     new_frontier.push(t.clone());
                     let mut grandchild_ancestors = child_ancestors.clone();
                     grandchild_ancestors.push(t);
@@ -854,7 +851,6 @@ where
     ) -> Result<()> {
         let root_object_type = builder.get_root_type_name()?;
         let constraint_name = builder.get_constraint_name();
-        let parents = ancestry.get_parents();
 
         if let Some(root_concepts) = by_object_type.get(&root_object_type) {
             debug!(
@@ -867,7 +863,7 @@ where
             for root in root_concepts {
                 let root_key = (root.get_uuid(), root.get_type());
                 let family_tree = family_trees.get(&root_key).unwrap();
-               
+
                 let raw_potential_child_constraints = builder
                     .get_required_constraint_names()
                     .into_iter()
@@ -898,8 +894,11 @@ where
                     .into_iter()
                     .collect::<HashSet<_>>();
                 if other_required_concept_uuids.len() > 0 {
-                    trace!("Found {} other required concept uuids for root {:?}",
-                           other_required_concept_uuids.len(), root.get_uuid());
+                    trace!(
+                        "Found {} other required concept uuids for root {:?}",
+                        other_required_concept_uuids.len(),
+                        root.get_uuid()
+                    );
                 }
                 let potential_child_constraints = raw_potential_child_constraints
                     .into_iter()

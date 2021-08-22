@@ -1,12 +1,12 @@
 use crate::concept::Ancestry;
 use crate::constraint::OuterConstraint;
-use aorist_primitives::Context;
 use crate::dialect::Dialect;
 use crate::parameter_tuple::ParameterTuple;
 use crate::program::TOuterProgram;
 use crate::task_name_shortener::TaskNameShortener;
 use anyhow::{bail, Result};
 use aorist_ast::{AncestorRecord, Formatted, SimpleIdentifier, StringLiteral, AST};
+use aorist_primitives::Context;
 use aorist_primitives::TConceptEnum;
 use inflector::cases::snakecase::to_snake_case;
 use linked_hash_map::LinkedHashMap;
@@ -204,10 +204,10 @@ impl<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry = T::TAncestry>>
     }
     pub fn get_dedup_key(&self) -> (String, String, ParameterTuple, Option<Dialect>) {
         (
-            self.preamble.as_ref().unwrap().clone(), 
-            self.call.as_ref().unwrap().clone(), 
-            self.params.as_ref().unwrap().clone(), 
-            self.dialect.clone()
+            self.preamble.as_ref().unwrap().clone(),
+            self.call.as_ref().unwrap().clone(),
+            self.params.as_ref().unwrap().clone(),
+            self.dialect.clone(),
         )
     }
     pub fn new(
@@ -286,7 +286,21 @@ impl<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry = T::TAncestry>>
                 self.key.as_ref().unwrap()
             ),
         };
-        format!("{}__{}", name, self.constraint.read().unwrap().get_uuid().unwrap().to_string().split("-").take(1).next().unwrap()).to_string()
+        format!(
+            "{}__{}",
+            name,
+            self.constraint
+                .read()
+                .unwrap()
+                .get_uuid()
+                .unwrap()
+                .to_string()
+                .split("-")
+                .take(1)
+                .next()
+                .unwrap()
+        )
+        .to_string()
     }
     pub fn shorten_task_names(
         constraints: &LinkedHashMap<(Uuid, String), Arc<RwLock<ConstraintState<'a, T, P>>>>,

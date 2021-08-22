@@ -1,4 +1,4 @@
-use crate::{get_raw_objects_of_type, read_file};
+use crate::get_raw_objects_of_type;
 use codegen::Scope;
 use serde_yaml::Value;
 use std::collections::{HashMap, HashSet};

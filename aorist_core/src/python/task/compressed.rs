@@ -44,7 +44,10 @@ where
         for v in &values {
             trace!("-- {:?} : {:?}", v.dict, v.params);
         }
-        let distinct_keys = values.iter().map(|x| x.dict.clone()).collect::<std::collections::HashSet<_>>();
+        let distinct_keys = values
+            .iter()
+            .map(|x| x.dict.clone())
+            .collect::<std::collections::HashSet<_>>();
         if distinct_keys.len() < values.len() {
             panic!("Tasks with same keys in for loop compression.");
         }
