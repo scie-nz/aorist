@@ -10,6 +10,7 @@ use uuid::Uuid;
 use derivative::Derivative;
 #[cfg(feature = "python")]
 use pyo3::prelude::*;
+use crate::template::TDatumTemplate;
 
 #[aorist]
 pub enum TextCorpusSource {
@@ -28,7 +29,9 @@ impl TextCorpusSource {
     }
     pub fn get_datum_template_name(&self) -> Result<String, String> {
         match self {
-            TextCorpusSource::TabularSchema(x) => Ok(x.0.read().unwrap().datumTemplateName.clone()),
+            TextCorpusSource::TabularSchema(x) => Ok(
+                x.0.read().unwrap().get_datum_template().0.read().unwrap().get_name()
+            ),
             TextCorpusSource::LongTabularSchema(x) => {
                 Ok(x.0.read().unwrap().datumTemplateName.clone())
             }

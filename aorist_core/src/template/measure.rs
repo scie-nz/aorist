@@ -2,7 +2,7 @@
 use crate::attributes::*;
 use crate::concept::{AoristRef, WrappedConcept};
 use crate::schema::TabularSchema;
-use crate::template::datum_template::TDatumTemplate;
+use crate::template::*;
 use aorist_attributes::{Count, FloatPrediction, Regressor};
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
@@ -61,9 +61,9 @@ pub struct TrainedFloatMeasure {
     pub source_asset_name: String,
 }
 
-impl TDatumTemplate for TrainedFloatMeasure {
+impl TDatumTemplate for AoristRef<TrainedFloatMeasure> {
     fn get_attributes(&self) -> Vec<AoristRef<Attribute>> {
-        let mut attr = self.features.clone();
+        let mut attr = self.0.read().unwrap().features.clone();
         let prediction_attribute = self.get_prediction_attribute();
         attr.push(prediction_attribute);
         attr.push(AoristRef(Arc::new(RwLock::new(Attribute {
@@ -77,16 +77,16 @@ impl TDatumTemplate for TrainedFloatMeasure {
         attr
     }
     fn get_name(&self) -> String {
-        self.name.clone()
+        self.0.read().unwrap().name.clone()
     }
 }
-impl TrainedFloatMeasure {
+impl AoristRef<TrainedFloatMeasure> {
     pub fn get_prediction_attribute(&self) -> AoristRef<Attribute> {
         AoristRef(Arc::new(RwLock::new(Attribute {
             inner: AttributeOrTransform::Attribute(AttributeEnum::FloatPrediction(
                 FloatPrediction {
-                    name: self.name.clone(),
-                    comment: self.comment.clone(),
+                    name: self.0.read().unwrap().name.clone(),
+                    comment: self.0.read().unwrap().comment.clone(),
                     nullable: false,
                 },
             )),
@@ -95,7 +95,7 @@ impl TrainedFloatMeasure {
         })))
     }
     pub fn get_training_objective(&self) -> AoristRef<Attribute> {
-        self.objective.clone()
+        self.0.read().unwrap().objective.clone()
     }
     pub fn get_regressor_as_attribute(&self) -> Regressor {
         Regressor {
@@ -106,8 +106,9 @@ impl TrainedFloatMeasure {
     }
     pub fn get_model_storage_tabular_schema(&self) -> TabularSchema {
         TabularSchema {
-            datumTemplateName: self.name.clone(),
+            datum_template: AoristRef(Arc::new(RwLock::new(DatumTemplate::TrainedFloatMeasure(self.clone())))),
             attributes: self
+                .0.read().unwrap()
                 .features
                 .iter()
                 .map(|x| x.0.read().unwrap().inner.get_name().clone())

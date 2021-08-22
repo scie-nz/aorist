@@ -48,7 +48,7 @@ impl TDatumTemplate for DatumTemplate {
             DatumTemplate::RowStruct(x) => x.0.read().unwrap().get_name(),
             DatumTemplate::IdentifierTuple(x) => x.0.read().unwrap().get_name(),
             DatumTemplate::IntegerMeasure(x) => x.0.read().unwrap().get_name(),
-            DatumTemplate::TrainedFloatMeasure(x) => x.0.read().unwrap().get_name(),
+            DatumTemplate::TrainedFloatMeasure(x) => x.get_name(),
             DatumTemplate::PredictionsFromTrainedFloatMeasure(x) => x.0.read().unwrap().get_name(),
             DatumTemplate::Filter(x) => x.0.read().unwrap().get_name(),
         }
@@ -58,7 +58,7 @@ impl TDatumTemplate for DatumTemplate {
             DatumTemplate::RowStruct(x) => x.0.read().unwrap().get_attributes(),
             DatumTemplate::IdentifierTuple(x) => x.0.read().unwrap().get_attributes(),
             DatumTemplate::IntegerMeasure(x) => x.0.read().unwrap().get_attributes(),
-            DatumTemplate::TrainedFloatMeasure(x) => x.0.read().unwrap().get_attributes(),
+            DatumTemplate::TrainedFloatMeasure(x) => x.get_attributes(),
             DatumTemplate::PredictionsFromTrainedFloatMeasure(x) => {
                 x.0.read().unwrap().get_attributes()
             }

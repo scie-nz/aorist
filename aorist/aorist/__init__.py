@@ -12,9 +12,9 @@ import collections
 import os
 
 
-def default_tabular_schema(datum, template_name, attributes):
+def default_tabular_schema(datum, attributes):
     return TabularSchema(
-        datumTemplateName=template_name,
+        datum_template=datum,
         attributes=[a.name for a in attributes],
     )
 

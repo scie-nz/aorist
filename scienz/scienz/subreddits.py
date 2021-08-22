@@ -39,7 +39,7 @@ subreddit_datum = RowStruct(
     attributes=attributes,
 )
 subreddit_schema = default_tabular_schema(
-    subreddit_datum, subreddit_datum.name, attributes
+    DatumTemplate(subreddit_datum), attributes
 )
 
 local_subreddits = json.load(

@@ -14,6 +14,7 @@ use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
 use uuid::Uuid;
+use crate::template::TDatumTemplate;
 
 #[aorist]
 pub enum DataSchema {
@@ -32,7 +33,9 @@ pub enum DataSchema {
 impl DataSchema {
     pub fn get_datum_template_name(&self) -> Result<String, String> {
         match self {
-            DataSchema::TabularSchema(x) => Ok(x.0.read().unwrap().datumTemplateName.clone()),
+            DataSchema::TabularSchema(x) => Ok(
+                x.0.read().unwrap().get_datum_template().0.read().unwrap().get_name()
+            ),
             DataSchema::LongTabularSchema(x) => Ok(x.0.read().unwrap().datumTemplateName.clone()),
             DataSchema::LanguageAssetSchema(x) => x.0.read().unwrap().get_datum_template_name(),
             DataSchema::TimeOrderedTabularSchema(x) => {
