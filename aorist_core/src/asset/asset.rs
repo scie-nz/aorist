@@ -105,9 +105,11 @@ impl Asset {
 #[cfg(feature = "python")]
 #[pymethods]
 impl PyAsset {
+    #[getter]
     pub fn name(&self) -> PyResult<String> {
         Ok(self.inner.0.read().unwrap().get_name())
     }
+    #[getter]
     pub fn schema(&self) -> PyResult<PyDataSchema> {
         Ok(PyDataSchema {
             inner: self.inner.0.read().unwrap().get_schema().clone(),

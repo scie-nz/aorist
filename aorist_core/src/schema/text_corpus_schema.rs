@@ -32,9 +32,9 @@ impl TextCorpusSource {
             TextCorpusSource::TabularSchema(x) => Ok(
                 x.0.read().unwrap().get_datum_template().0.read().unwrap().get_name()
             ),
-            TextCorpusSource::LongTabularSchema(x) => {
-                Ok(x.0.read().unwrap().datumTemplateName.clone())
-            }
+            TextCorpusSource::LongTabularSchema(x) => Ok(
+                x.0.read().unwrap().get_datum_template().0.read().unwrap().get_name()
+            ),
         }
     }
     pub fn get_attribute_names(&self) -> Vec<String> {

@@ -1,7 +1,8 @@
 from aorist import *
 from aorist_recipes import programs
 from scienz import (
-    probprog, subreddit_schema
+    probprog, subreddit_schema,
+    fasttext_datum, spacy_ner_datum,
 )
 
 local = SQLiteStorage(
@@ -23,7 +24,8 @@ embedding = FasttextEmbedding(
     comment="Fasttext embedding of size 128",
     schema=DataSchema(LanguageAssetSchema(FasttextEmbeddingSchema(
         dim=16,
-        source_schema=text_source_schema
+        source_schema=text_source_schema,
+        datum_template=DatumTemplate(fasttext_datum)
     ))),
     setup=StorageSetup(LocalStorageSetup(
         Storage(local),
@@ -39,6 +41,7 @@ named_entities = NamedEntities(
     schema=DataSchema(LanguageAssetSchema(NamedEntitySchema(SpacyNamedEntitySchema(
         spacy_model_name="en_core_web_sm",
         source_schema=text_source_schema,
+        datum_template=DatumTemplate(spacy_ner_datum),
     )))),
     setup=StorageSetup(LocalStorageSetup(
         Storage(local),

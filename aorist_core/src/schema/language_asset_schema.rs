@@ -1,5 +1,6 @@
 use crate::concept::{AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
 use crate::schema::fasttext_embedding_schema::*;
+use crate::template::*;
 use crate::schema::named_entity_schema::*;
 use crate::schema::text_corpus_schema::*;
 use aorist_concept::{aorist, Constrainable};
@@ -25,14 +26,23 @@ impl LanguageAssetSchema {
             LanguageAssetSchema::NamedEntitySchema(x) => x.0.read().unwrap().get_source_schema(),
         }
     }
+    pub fn get_datum_template(&self) -> AoristRef<DatumTemplate> {
+        match self {
+            LanguageAssetSchema::FasttextEmbeddingSchema(x) => x.0.read().unwrap().get_datum_template(),
+            LanguageAssetSchema::NamedEntitySchema(x) => x.0.read().unwrap().get_datum_template(),
+        }
+    }
     pub fn get_text_attribute_name(&self) -> String {
         self.get_source_schema().0.read().unwrap().get_text_attribute_name()
     }
-    pub fn get_datum_template_name(&self) -> Result<String, String> {
-        self.get_source_schema().0.read().unwrap().get_datum_template_name()
+    pub fn get_datum_template_name(&self) -> String {
+        self.get_datum_template().0.read().unwrap().get_name()
     }
     pub fn get_attribute_names(&self) -> Vec<String> {
-        self.get_source_schema().0.read().unwrap().get_attribute_names()
+        match self {
+            LanguageAssetSchema::FasttextEmbeddingSchema(x) => x.0.read().unwrap().get_attribute_names(),
+            LanguageAssetSchema::NamedEntitySchema(x) => x.0.read().unwrap().get_attribute_names(),
+        }
     }
     pub fn should_dedup_text_attribute(&self) -> bool {
         self.get_source_schema().0.read().unwrap().should_dedup_text_attribute()

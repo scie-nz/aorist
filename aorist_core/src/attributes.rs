@@ -28,6 +28,12 @@ struct WrappedAttribute(Attribute);
 #[cfg(feature = "sql")]
 pub type AttrMap = HashMap<String, HashMap<String, LinkedHashMap<String, Attribute>>>;
 
+impl AoristRef<Attribute> {
+    pub fn get_name(&self) -> String {
+        self.0.read().unwrap().get_name().clone()
+    }
+}
+
 #[cfg(feature = "sql")]
 impl WrappedAttribute {
     pub fn try_from(x: Expr, attr: &AttrMap) -> Result<Self, String> {

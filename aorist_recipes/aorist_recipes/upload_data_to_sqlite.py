@@ -9,14 +9,14 @@ programs = {}
     entrypoint="upload_to_sqlite",
     args={
         "db_filename": lambda sq_lite_location: sq_lite_location.file_name,
-        "table_name": lambda static_data_table: static_data_table.name,
+        "table_name": lambda asset: asset.name,
         "header_num_lines": lambda context: (context.get_int("header_num_lines"), context),
         "is_json": lambda context: (context.get_bool("is_json"), context),
         "delimiter": lambda context: (context.get("delimiter"), context),
         "source_file": lambda context: (context.get("file_to_replicate"), context),
-        "columns": lambda data_set, asset: [
+        "columns": lambda asset: [
             (x.name, x.sqlite_type, x.is_nullable)
-            for x in data_set.get_template(asset).attributes()
+            for x in asset.schema.datum_template.attributes()
         ],
     }
 )
