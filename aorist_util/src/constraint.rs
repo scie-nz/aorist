@@ -19,9 +19,10 @@ pub fn process_constraints_py(raw_objects: &Vec<HashMap<String, Value>>) {
         .arg("m", "&PyModule");
     for attribute in constraints {
         let name = attribute.get("name").unwrap().as_str().unwrap().to_string();
-        let export = format!("m.add_class::<{}>().unwrap();", name,);
+        let export = format!("m.add_class::<{}>()?;", name,);
         fun.line(&export);
     }
+    fun.line("m.add_class::<crate::constraint::AoristConstraintProgram>()?;");
     let out_dir = env::var_os("OUT_DIR").unwrap();
     let dest_path_py = Path::new(&out_dir).join("python.rs");
     fun.line("Ok(())");

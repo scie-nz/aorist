@@ -919,6 +919,14 @@ macro_rules! register_concept {
                 $element((AoristRef<$element>, usize, Option<(Uuid, String)>)),
             )+
         }
+        #[cfg(feature = "python")]
+        pub fn concept_module(py: pyo3::prelude::Python, m: &pyo3::prelude::PyModule) -> pyo3::prelude::PyResult<()> {
+            $(
+                m.add_class::<[<Py $element>]>()?;
+            )+
+            m.add_class::<$ancestry>()?;
+            Ok(())
+        }
         // note: both Universe and EndpointConfig must exist
         impl AoristUniverse for AoristRef<Universe> {
             type TEndpoints = EndpointConfig;
