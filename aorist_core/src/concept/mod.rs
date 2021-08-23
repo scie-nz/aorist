@@ -199,5 +199,6 @@ register_concept!(
     Tensor,
     RasterAsset,
     PointCloud,
-    GeospatialAsset
+    GeospatialAsset,
+    PointCloudSchema
 );

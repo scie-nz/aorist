@@ -9,10 +9,10 @@ use uuid::Uuid;
 use crate::attributes::*;
 
 #[aorist]
-pub struct RasterSchema {
+pub struct PointCloudSchema {
     pub datum_template: AoristRef<DatumTemplate>,
 }
-impl RasterSchema {
+impl PointCloudSchema {
     pub fn get_attributes(&self) -> Vec<AoristRef<Attribute>> {
         self.datum_template.0.read().unwrap().get_attributes()
     }
