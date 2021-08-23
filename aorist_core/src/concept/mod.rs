@@ -192,5 +192,6 @@ register_concept!(
     TextCorpusSource,
     LanguageAsset,
     LanguageAssetSchema,
-    GeoTiffEncoding
+    GeoTiffEncoding,
+    CompressedFileCollectionLayout
 );
