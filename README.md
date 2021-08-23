@@ -81,9 +81,14 @@ You can add new canonical datasets to the `scienz` package. Once accepted for pu
 Run the following commands:
 
 ```
-python build_for_testing.py
 pip install astor black dill
-PYTHONPATH=$PYTHONPATH:../aorist_recipes:../scienz:../aorist python minimal.py
+```
+```
+python build_for_testing.py
+
+```
+```
+PYTHONPATH=$PYTHONPATH:../aorist_recipes:../scienz:../aorist python run_test.py
 ``` 
 
 ## Overview of an Aorist universe
