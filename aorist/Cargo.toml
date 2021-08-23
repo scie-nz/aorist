@@ -8,6 +8,7 @@ edition = "2018"
 homepage = "https://aorist.io"
 readme = "README.md"
 repository = "https://github.com/scie-nz/aorist"
+build = "build.rs"
 
 [lib]
 name = "aorist"
@@ -29,4 +30,7 @@ maplit = "1.0.2"
 aorist_paste = {version = "0.0.1"}
 uuid = {version = "0.8.1", features = ["v4", "serde"]}
 anyhow = "1.0"
-pyo3 = {version = "0.14.1", features=["auto-initialize", "multiple-pymethods"], optional = true}
+pyo3 = {version = "0.14.3", features=["auto-initialize", "multiple-pymethods"], optional = true}
+
+[build-dependencies]
+pyo3-build-config = "0.14.3"

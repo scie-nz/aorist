@@ -1593,10 +1593,9 @@ macro_rules! define_dag_function {
 }
 #[macro_export]
 macro_rules! export_aorist_python_module {
-    ($module_name: ident, $dag_function: ident) => {
+    ($module_name: ident, $dag_function: ident, $constraints_crate: ident) => {
         use aorist_attributes::attributes_module;
-        use aorist_constraint::constraints_module;
-        use aorist_constraint::*;
+        use $constraints_crate::*;
         use aorist_core::*;
         use aorist_primitives::*;
         use aorist_util::init_logging;
