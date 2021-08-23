@@ -193,5 +193,7 @@ register_concept!(
     LanguageAsset,
     LanguageAssetSchema,
     GeoTiffEncoding,
-    CompressedFileCollectionLayout
+    CompressedFileCollectionLayout,
+    GeospatialAssetSchema,
+    RasterSchema
 );
