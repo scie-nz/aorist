@@ -196,5 +196,6 @@ register_concept!(
     CompressedFileCollectionLayout,
     GeospatialAssetSchema,
     RasterSchema,
-    Tensor
+    Tensor,
+    RasterAsset
 );

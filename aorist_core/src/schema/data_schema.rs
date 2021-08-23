@@ -2,6 +2,7 @@
 use crate::concept::{AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
 use crate::schema::language_asset_schema::*;
 use crate::schema::long_tabular_schema::*;
+use crate::schema::geospatial_asset_schema::*;
 use crate::schema::tabular_schema::*;
 use crate::schema::time_ordered_tabular_schema::*;
 use crate::schema::undefined_tabular_schema::*;
@@ -18,6 +19,8 @@ use uuid::Uuid;
 
 #[aorist]
 pub enum DataSchema {
+    #[constrainable]
+    GeospatialAssetSchema(AoristRef<GeospatialAssetSchema>),
     #[constrainable]
     LanguageAssetSchema(AoristRef<LanguageAssetSchema>),
     #[constrainable]
@@ -38,6 +41,9 @@ impl DataSchema {
                 Ok(x.0.read().unwrap().get_datum_template().clone())
             }
             DataSchema::LanguageAssetSchema(x) => {
+                Ok(x.0.read().unwrap().get_datum_template().clone())
+            }
+            DataSchema::GeospatialAssetSchema(x) => {
                 Ok(x.0.read().unwrap().get_datum_template().clone())
             }
             DataSchema::TimeOrderedTabularSchema(x) => {
@@ -77,6 +83,15 @@ impl DataSchema {
                 .read()
                 .unwrap()
                 .get_name()),
+            DataSchema::GeospatialAssetSchema(x) => Ok(x
+                .0
+                .read()
+                .unwrap()
+                .get_datum_template()
+                .0
+                .read()
+                .unwrap()
+                .get_name()),
             DataSchema::TimeOrderedTabularSchema(x) => Ok(x
                 .0
                 .read()
@@ -96,6 +111,7 @@ impl DataSchema {
             DataSchema::TabularSchema(x) => x.0.read().unwrap().attributes.clone(),
             DataSchema::LongTabularSchema(x) => x.0.read().unwrap().get_attribute_names(),
             DataSchema::LanguageAssetSchema(x) => x.0.read().unwrap().get_attribute_names(),
+            DataSchema::GeospatialAssetSchema(x) => x.0.read().unwrap().get_attributes().iter().map(|x| x.get_name()).collect(),
             DataSchema::TimeOrderedTabularSchema(x) => x.0.read().unwrap().attributes.clone(),
             DataSchema::UndefinedTabularSchema(_) => vec![],
         }
