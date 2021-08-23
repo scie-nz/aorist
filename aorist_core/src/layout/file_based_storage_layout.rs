@@ -14,7 +14,11 @@ pub struct SingleFileLayout {}
 pub struct CompressedFileCollectionLayout {}
 
 #[aorist]
+pub struct DirectoryLayout {}
+
+#[aorist]
 pub enum FileBasedStorageLayout {
     SingleFileLayout(AoristRef<SingleFileLayout>),
+    DirectoryLayout(AoristRef<DirectoryLayout>),
     CompressedFileCollectionLayout(AoristRef<CompressedFileCollectionLayout>),
 }

@@ -200,5 +200,6 @@ register_concept!(
     RasterAsset,
     PointCloud,
     GeospatialAsset,
-    PointCloudSchema
+    PointCloudSchema,
+    DirectoryLayout
 );
