@@ -41,7 +41,7 @@ cd ~/aorist/aorist # change to the right path in your system
 cargo build
 ```
 
-#### 4. Conda-build from scratch
+### 4. Conda-build from scratch
 ```python
 rustup target add x86_64-pc-windows-msvc
 conda build .
