@@ -12,4 +12,5 @@ pub struct S3Location {
     // TODO: replace these with Getters and Setters
     pub bucket: String,
     pub key: String,
+    pub requester_pays: Option<bool>,
 }
