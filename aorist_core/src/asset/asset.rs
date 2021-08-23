@@ -1,5 +1,6 @@
 #![allow(non_snake_case)]
 use crate::asset::derived_asset::*;
+use crate::asset::geospatial_asset::*;
 use crate::asset::language_asset::*;
 use crate::asset::static_data_table::*;
 use crate::asset::supervised_model::*;
@@ -21,6 +22,8 @@ use uuid::Uuid;
 pub enum Asset {
     #[constrainable]
     DerivedAsset(AoristRef<DerivedAsset>),
+    #[constrainable]
+    GeospatialAsset(AoristRef<GeospatialAsset>),
     #[constrainable]
     LanguageAsset(AoristRef<LanguageAsset>),
     #[constrainable]
@@ -49,6 +52,7 @@ impl Asset {
             Asset::DerivedAsset(_) => "DerivedAsset".into(),
             Asset::StaticDataTable(_) => "StaticDataTable".into(),
             Asset::SupervisedModel(_) => "SupervisedModel".into(),
+            Asset::GeospatialAsset(_) => "GeospatialAsset".into(),
             Asset::LanguageAsset(x) => x.0.read().unwrap().get_type(),
         }
     }
@@ -58,6 +62,7 @@ impl Asset {
             Asset::SupervisedModel(x) => x.0.read().unwrap().name.clone(),
             Asset::DerivedAsset(x) => x.0.read().unwrap().name.clone(),
             Asset::LanguageAsset(x) => x.0.read().unwrap().get_name(),
+            Asset::GeospatialAsset(x) => x.0.read().unwrap().get_name(),
         }
     }
     pub fn get_schema(&self) -> AoristRef<DataSchema> {
@@ -66,6 +71,7 @@ impl Asset {
             Asset::SupervisedModel(x) => x.0.read().unwrap().schema.clone(),
             Asset::DerivedAsset(x) => x.0.read().unwrap().schema.clone(),
             Asset::LanguageAsset(x) => x.0.read().unwrap().get_schema(),
+            Asset::GeospatialAsset(x) => x.0.read().unwrap().get_schema(),
         }
     }
     pub fn get_storage_setup(&self) -> AoristRef<StorageSetup> {
@@ -74,6 +80,7 @@ impl Asset {
             Asset::SupervisedModel(x) => x.0.read().unwrap().setup.clone(),
             Asset::DerivedAsset(x) => x.0.read().unwrap().setup.clone(),
             Asset::LanguageAsset(x) => x.0.read().unwrap().get_storage_setup(),
+            Asset::GeospatialAsset(x) => x.0.read().unwrap().get_storage_setup(),
         }
     }
     pub fn replicate_to_local(
@@ -94,6 +101,11 @@ impl Asset {
                     .replicate_to_local(t, tmp_dir, tmp_encoding),
             )))),
             Asset::LanguageAsset(x) => Asset::LanguageAsset(AoristRef(Arc::new(RwLock::new(
+                x.0.read()
+                    .unwrap()
+                    .replicate_to_local(t, tmp_dir, tmp_encoding),
+            )))),
+            Asset::GeospatialAsset(x) => Asset::GeospatialAsset(AoristRef(Arc::new(RwLock::new(
                 x.0.read()
                     .unwrap()
                     .replicate_to_local(t, tmp_dir, tmp_encoding),
