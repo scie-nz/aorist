@@ -191,5 +191,6 @@ register_concept!(
     NamedEntitySchema,
     TextCorpusSource,
     LanguageAsset,
-    LanguageAssetSchema
+    LanguageAssetSchema,
+    GeoTiffEncoding
 );

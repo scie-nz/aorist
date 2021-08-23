@@ -3,6 +3,7 @@ use crate::compression::*;
 use crate::concept::{AoristRef, WrappedConcept};
 use crate::encoding::csv_encoding::*;
 use crate::encoding::gdb_encoding::*;
+use crate::encoding::geotiff_encoding::*;
 use crate::encoding::json_encoding::*;
 use crate::encoding::onnx_encoding::*;
 use crate::encoding::orc_encoding::*;
@@ -29,6 +30,7 @@ pub enum Encoding {
     ONNXEncoding(AoristRef<ONNXEncoding>),
     GDBEncoding(AoristRef<GDBEncoding>),
     SQLiteEncoding(AoristRef<SQLiteEncoding>),
+    GeoTiffEncoding(AoristRef<GeoTiffEncoding>),
 }
 
 impl Encoding {
@@ -43,6 +45,7 @@ impl Encoding {
             Self::GDBEncoding(_) => None,
             Self::SQLiteEncoding(_) => None,
             Self::NewlineDelimitedJSONEncoding(_) => None,
+            Self::GeoTiffEncoding(_) => None,
         }
     }
     pub fn get_compression(&self) -> Option<AoristRef<DataCompression>> {
@@ -51,6 +54,7 @@ impl Encoding {
             // TODO: need to change this to also be optional
             Self::TSVEncoding(x) => x.0.read().unwrap().compression.clone(),
             Self::GDBEncoding(x) => x.0.read().unwrap().compression.clone(),
+            Self::GeoTiffEncoding(x) => x.0.read().unwrap().compression.clone(),
             Self::JSONEncoding(_) => None,
             Self::ORCEncoding(_) => None,
             Self::ONNXEncoding(_) => None,
@@ -64,6 +68,7 @@ impl Encoding {
             // TODO: need to change this to also be optional
             Self::TSVEncoding(_) => "tsv".to_string(),
             Self::GDBEncoding(_) => "gdb".to_string(),
+            Self::GeoTiffEncoding(_) => "tiff".to_string(),
             Self::JSONEncoding(_) => "json".to_string(),
             Self::ORCEncoding(_) => "orc".to_string(),
             Self::ONNXEncoding(_) => "onnx".to_string(),
@@ -83,6 +88,10 @@ impl PyEncoding {
                 None => None,
             },
             Encoding::GDBEncoding(x) => match &x.0.read().unwrap().compression {
+                Some(y) => Some(PyDataCompression { inner: y.clone() }),
+                None => None,
+            },
+            Encoding::GeoTiffEncoding(x) => match &x.0.read().unwrap().compression {
                 Some(y) => Some(PyDataCompression { inner: y.clone() }),
                 None => None,
             },
