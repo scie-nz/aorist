@@ -19,6 +19,8 @@ use std::sync::{Arc, RwLock};
 pub enum GeospatialAsset {
     #[constrainable]
     RasterAsset(AoristRef<RasterAsset>),
+    #[constrainable]
+    PointCloudAsset(AoristRef<PointCloudAsset>),
 }
 
 #[cfg(feature = "python")]
@@ -42,22 +44,26 @@ impl GeospatialAsset {
     pub fn get_type(&self) -> String {
         match self {
             GeospatialAsset::RasterAsset(_) => "RasterAsset",
+            GeospatialAsset::PointCloudAsset(_) => "PointCloudAsset",
         }
         .to_string()
     }
     pub fn get_name(&self) -> String {
         match self {
             GeospatialAsset::RasterAsset(x) => x.0.read().unwrap().name.clone(),
+            GeospatialAsset::PointCloudAsset(x) => x.0.read().unwrap().name.clone(),
         }
     }
     pub fn get_schema(&self) -> AoristRef<DataSchema> {
         match self {
             GeospatialAsset::RasterAsset(x) => x.0.read().unwrap().schema.clone(),
+            GeospatialAsset::PointCloudAsset(x) => x.0.read().unwrap().schema.clone(),
         }
     }
     pub fn get_storage_setup(&self) -> AoristRef<StorageSetup> {
         match self {
             GeospatialAsset::RasterAsset(x) => x.0.read().unwrap().setup.clone(),
+            GeospatialAsset::PointCloudAsset(x) => x.0.read().unwrap().setup.clone(),
         }
     }
     pub fn replicate_to_local(
@@ -68,6 +74,11 @@ impl GeospatialAsset {
     ) -> Self {
         match self {
             GeospatialAsset::RasterAsset(x) => GeospatialAsset::RasterAsset(AoristRef(Arc::new(RwLock::new(
+                x.0.read()
+                    .unwrap()
+                    .replicate_to_local(t, tmp_dir, tmp_encoding),
+            )))),
+            GeospatialAsset::PointCloudAsset(x) => GeospatialAsset::PointCloudAsset(AoristRef(Arc::new(RwLock::new(
                 x.0.read()
                     .unwrap()
                     .replicate_to_local(t, tmp_dir, tmp_encoding),
