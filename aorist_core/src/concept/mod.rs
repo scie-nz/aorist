@@ -202,5 +202,6 @@ register_concept!(
     GeospatialAsset,
     PointCloudSchema,
     PointCloudAsset,
+    LASEncoding,
     DirectoryLayout
 );

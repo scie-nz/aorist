@@ -9,6 +9,7 @@ use crate::encoding::onnx_encoding::*;
 use crate::encoding::orc_encoding::*;
 use crate::encoding::sqlite_encoding::*;
 use crate::encoding::tsv_encoding::*;
+use crate::encoding::las_encoding::*;
 use crate::header::FileHeader;
 use crate::header::*;
 use aorist_concept::{aorist, Constrainable};
@@ -29,6 +30,7 @@ pub enum Encoding {
     TSVEncoding(AoristRef<TSVEncoding>),
     ONNXEncoding(AoristRef<ONNXEncoding>),
     GDBEncoding(AoristRef<GDBEncoding>),
+    LASEncoding(AoristRef<LASEncoding>),
     SQLiteEncoding(AoristRef<SQLiteEncoding>),
     GeoTiffEncoding(AoristRef<GeoTiffEncoding>),
 }
@@ -43,6 +45,7 @@ impl Encoding {
             Self::ORCEncoding(_) => None,
             Self::ONNXEncoding(_) => None,
             Self::GDBEncoding(_) => None,
+            Self::LASEncoding(_) => None,
             Self::SQLiteEncoding(_) => None,
             Self::NewlineDelimitedJSONEncoding(_) => None,
             Self::GeoTiffEncoding(_) => None,
@@ -54,6 +57,7 @@ impl Encoding {
             // TODO: need to change this to also be optional
             Self::TSVEncoding(x) => x.0.read().unwrap().compression.clone(),
             Self::GDBEncoding(x) => x.0.read().unwrap().compression.clone(),
+            Self::LASEncoding(x) => x.0.read().unwrap().compression.clone(),
             Self::GeoTiffEncoding(x) => x.0.read().unwrap().compression.clone(),
             Self::JSONEncoding(_) => None,
             Self::ORCEncoding(_) => None,
@@ -68,6 +72,7 @@ impl Encoding {
             // TODO: need to change this to also be optional
             Self::TSVEncoding(_) => "tsv".to_string(),
             Self::GDBEncoding(_) => "gdb".to_string(),
+            Self::LASEncoding(_) => "las".to_string(),
             Self::GeoTiffEncoding(_) => "tiff".to_string(),
             Self::JSONEncoding(_) => "json".to_string(),
             Self::ORCEncoding(_) => "orc".to_string(),
@@ -88,6 +93,10 @@ impl PyEncoding {
                 None => None,
             },
             Encoding::GDBEncoding(x) => match &x.0.read().unwrap().compression {
+                Some(y) => Some(PyDataCompression { inner: y.clone() }),
+                None => None,
+            },
+            Encoding::LASEncoding(x) => match &x.0.read().unwrap().compression {
                 Some(y) => Some(PyDataCompression { inner: y.clone() }),
                 None => None,
             },
