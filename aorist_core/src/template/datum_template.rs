@@ -4,6 +4,7 @@ use crate::template::filter::*;
 use crate::template::identifier_tuple::*;
 use crate::template::measure::*;
 use crate::template::row_struct::*;
+use crate::template::tensor::*;
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
 use aorist_primitives::{AoristConcept, ConceptEnum};
@@ -26,6 +27,7 @@ pub enum DatumTemplate {
     IdentifierTuple(AoristRef<IdentifierTuple>),
     IntegerMeasure(AoristRef<IntegerMeasure>),
     Filter(AoristRef<Filter>),
+    Tensor(AoristRef<Tensor>),
 }
 impl DatumTemplate {
     pub fn get_type(&self) -> String {
@@ -38,6 +40,7 @@ impl DatumTemplate {
                 "PredictionsFromTrainedFloatMeasure"
             }
             DatumTemplate::Filter(_) => "Filter",
+            DatumTemplate::Tensor(_) => "Tensor",
         }
         .to_string()
     }
@@ -51,6 +54,7 @@ impl TDatumTemplate for DatumTemplate {
             DatumTemplate::TrainedFloatMeasure(x) => x.get_name(),
             DatumTemplate::PredictionsFromTrainedFloatMeasure(x) => x.0.read().unwrap().get_name(),
             DatumTemplate::Filter(x) => x.0.read().unwrap().get_name(),
+            DatumTemplate::Tensor(x) => x.0.read().unwrap().get_name(),
         }
     }
     fn get_attributes(&self) -> Vec<AoristRef<Attribute>> {
@@ -63,6 +67,7 @@ impl TDatumTemplate for DatumTemplate {
                 x.0.read().unwrap().get_attributes()
             }
             DatumTemplate::Filter(x) => x.0.read().unwrap().get_attributes(),
+            DatumTemplate::Tensor(x) => x.0.read().unwrap().get_attributes(),
         }
     }
 }

@@ -195,5 +195,6 @@ register_concept!(
     GeoTiffEncoding,
     CompressedFileCollectionLayout,
     GeospatialAssetSchema,
-    RasterSchema
+    RasterSchema,
+    Tensor
 );
