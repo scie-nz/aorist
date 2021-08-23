@@ -85,7 +85,6 @@ pip install astor black dill
 ```
 ```
 python build_for_testing.py
-
 ```
 ```
 PYTHONPATH=$PYTHONPATH:../aorist_recipes:../scienz:../aorist python run_test.py
