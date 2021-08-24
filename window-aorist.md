@@ -62,3 +62,10 @@ Run conda-build to build aorist from scratch
 conda build .
 #Linker error at the end of the building stage has been successfully fixed)
 ```
+The file `aorist-0.0.1-py37_1.tar.bz2` will be created and stored in `~/Anaconda3/envs/aorist/conda-bld/win-64`
+
+### 5. Uploading to Conda cloud
+```python
+conda install anaconda-client
+anaconda -t <TOKEN> upload <FILEPATH>
+```
