@@ -205,5 +205,6 @@ register_concept!(
     LASEncoding,
     LAZCompression,
     PointCloudInfo,
+    PointCloudInfoSchema,
     DirectoryLayout
 );
