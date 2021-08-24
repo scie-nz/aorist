@@ -1,4 +1,5 @@
 use crate::compression::gzip_compression::*;
+use crate::compression::laz_compression::*;
 use crate::compression::zip_compression::*;
 use crate::concept::{AoristRef, WrappedConcept};
 use aorist_concept::{aorist, Constrainable};
@@ -14,4 +15,6 @@ pub enum DataCompression {
     GzipCompression(AoristRef<GzipCompression>),
     #[constrainable]
     ZipCompression(AoristRef<ZipCompression>),
+    #[constrainable]
+    LAZCompression(AoristRef<LAZCompression>),
 }
