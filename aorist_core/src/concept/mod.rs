@@ -204,5 +204,6 @@ register_concept!(
     PointCloudAsset,
     LASEncoding,
     LAZCompression,
+    PointCloudInfo,
     DirectoryLayout
 );

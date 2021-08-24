@@ -10,14 +10,15 @@ use std::fmt::Debug;
 use uuid::Uuid;
 
 #[aorist]
-pub struct RowStruct {
+pub struct PointCloudInfo {
     pub name: String,
-    #[constrainable]
-    pub attributes: Vec<AoristRef<Attribute>>,
+    pub metadata: bool,
+    pub borders: bool,
 }
-impl TDatumTemplate for RowStruct {
+impl TDatumTemplate for PointCloudInfo {
     fn get_attributes(&self) -> Vec<AoristRef<Attribute>> {
-        self.attributes.clone()
+        // TODO: fill this in
+        Vec::new()
     }
     fn get_name(&self) -> String {
         self.name.clone()
