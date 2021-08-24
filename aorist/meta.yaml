@@ -27,6 +27,7 @@ build:
   entry_points:
     - aorist=aorist:main
   #script: cd aorist && python setup.py install
+  #The script below is fixed for window10-adapt conda-build
   script: cd aorist && set "CARGO_BUILD_TARGET=x86_64-pc-windows-gnu" && python setup.py install
 
 requirements:
