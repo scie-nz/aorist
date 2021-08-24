@@ -38,8 +38,11 @@ pub struct DataSet {
 }
 
 impl DataSet {
-    pub fn add_asset(&mut self, asset_name: String, asset: AoristRef<Asset>) {
-        self.assets.insert(asset_name, asset);
+    pub fn add_asset(&mut self, asset: AoristRef<Asset>) {
+        self.assets.insert(asset.0.read().unwrap().get_name(), asset.clone());
+    }
+    pub fn add_template(&mut self, template: AoristRef<DatumTemplate>) {
+        self.datum_templates.push(template);
     }
     pub fn get_assets(&self) -> Vec<AoristRef<Asset>> {
         self.assets
@@ -126,12 +129,22 @@ impl PyDataSet {
 #[cfg(feature = "python")]
 #[pymethods]
 impl PyDataSet {
-    pub fn add_asset(&self, asset_name: String, asset: PyAsset) {
+    pub fn add_asset(&self, asset: PyAsset) {
         self.inner
             .0
             .write()
             .unwrap()
-            .add_asset(asset_name, asset.inner.clone());
+            .add_asset(asset.inner.clone());
+    }
+    pub fn get_asset(&self, name: String) -> PyAsset {
+        PyAsset{ inner: self.inner.0.read().unwrap().get_asset(name).unwrap() }
+    }
+    pub fn add_template(&self, template: PyDatumTemplate) {
+        self.inner
+            .0
+            .write()
+            .unwrap()
+            .add_template(template.inner.clone());
     }
     pub fn replicate_to_local(
         &self,
