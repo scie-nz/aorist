@@ -3,7 +3,7 @@ use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
 use aorist_primitives::{
     AWSConfig, AlluxioConfig, AoristConcept, ConceptEnum, GCPConfig, GiteaConfig, MinioConfig,
-    PostgresConfig, PrestoConfig, RangerConfig, TPrestoEndpoints,
+    PostgresConfig, PrestoConfig, RangerConfig, TPrestoEndpoints, PDALConfig,
 };
 use derivative::Derivative;
 use serde::{Deserialize, Serialize};
@@ -20,6 +20,7 @@ pub struct EndpointConfig {
     pub postgres: Option<PostgresConfig>,
     pub gcp: Option<GCPConfig>,
     pub aws: Option<AWSConfig>,
+    pub pdal: Option<PDALConfig>,
 }
 
 impl TPrestoEndpoints for EndpointConfig {

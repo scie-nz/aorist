@@ -3,6 +3,7 @@ mod aws;
 mod gcp;
 mod gitea;
 mod minio;
+mod pdal;
 mod postgres;
 mod presto;
 mod ranger;
@@ -12,6 +13,7 @@ pub use aws::*;
 pub use gcp::*;
 pub use gitea::*;
 pub use minio::*;
+pub use pdal::*;
 pub use postgres::*;
 pub use presto::*;
 pub use ranger::*;
@@ -26,5 +28,6 @@ pub fn endpoints_module(_py: pyo3::prelude::Python, m: &pyo3::prelude::PyModule)
     m.add_class::<PrestoConfig>()?;
     m.add_class::<PostgresConfig>()?;
     m.add_class::<MinioConfig>()?;
+    m.add_class::<PDALConfig>()?;
     Ok(())
 }
