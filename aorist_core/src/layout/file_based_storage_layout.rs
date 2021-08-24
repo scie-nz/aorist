@@ -14,7 +14,9 @@ pub struct SingleFileLayout {}
 pub struct CompressedFileCollectionLayout {}
 
 #[aorist]
-pub struct DirectoryLayout {}
+pub struct DirectoryLayout {
+    max_num_files: Option<usize>,
+}
 
 #[aorist]
 pub enum FileBasedStorageLayout {
