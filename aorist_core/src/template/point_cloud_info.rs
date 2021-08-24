@@ -13,7 +13,7 @@ use uuid::Uuid;
 pub struct PointCloudInfo {
     pub name: String,
     pub metadata: bool,
-    pub borders: bool,
+    pub boundaries: bool,
 }
 impl TDatumTemplate for PointCloudInfo {
     fn get_attributes(&self) -> Vec<AoristRef<Attribute>> {

@@ -604,6 +604,15 @@ impl Builder for StructBuilder {
                         Ok((*self.inner.0.write().unwrap()).#unconstrainable_name = val)
                     }
                 )*
+                #(
+                    #[getter]
+                    pub fn #unconstrainable_name_ref(&self) 
+                        -> pyo3::prelude::PyResult<[<Py #unconstrainable_type_ref>]> {
+                        Ok([<Py #unconstrainable_type_ref>]{ 
+                            inner: self.inner.0.read().unwrap().#unconstrainable_name_ref.clone()
+                        })
+                    }
+                )*
             }
             #[cfg(feature = "python")]
             #[pyo3::prelude::pyproto]
