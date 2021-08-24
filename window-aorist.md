@@ -42,10 +42,24 @@ cargo build
 ```
 
 #### 4. Conda-build from scratch
+Change `script` argument in `build` method in mata.yaml file FROM
 ```python
-rustup target add x86_64-pc-windows-msvc
-conda build .
-#Linker error at the end of the building stage has not been successfully fixed)
+build:
+  number: 1
+  entry_points:
+    - aorist=aorist:main
+  script: cd aorist && python setup.py install 
 ```
-
-
+TO
+```python
+build:
+  number: 1
+  entry_points:
+    - aorist=aorist:main
+  script: cd aorist && set "CARGO_BUILD_TARGET=x86_64-pc-windows-gnu" && python setup.py install 
+```
+Run conda-build to build aorist from scratch
+```python
+conda build .
+#Linker error at the end of the building stage has been successfully fixed)
+```
