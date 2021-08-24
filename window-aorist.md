@@ -41,8 +41,7 @@ cd ~/aorist/aorist # change to the right path in your system
 cargo build
 ```
 
-#### 4. Conda-build from scratch
-Change `script` argument in `build` method in mata.yaml file FROM
+### 4. Conda-build from scratch
 ```python
 build:
   number: 1
