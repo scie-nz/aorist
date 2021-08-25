@@ -1632,3 +1632,52 @@ macro_rules! attribute {
         })))
     }
 }
+#[macro_export]
+macro_rules! asset {
+    { $name: ident } => {
+        #[aorist]
+        pub struct $name {
+            pub name: String,
+            pub comment: Option<String>,
+            #[constrainable]
+            pub schema: AoristRef<DataSchema>,
+            #[constrainable]
+            pub setup: AoristRef<StorageSetup>,
+        }
+        impl TAsset for $name {
+            fn get_name(&self) -> String {
+                self.name.clone()
+            }
+            fn get_schema(&self) -> AoristRef<DataSchema> {
+                self.schema.clone()
+            }
+            fn get_storage_setup(&self) -> AoristRef<StorageSetup> {
+                self.setup.clone()
+            }
+        }
+
+        impl $name {
+            pub fn replicate_to_local(
+                &self,
+                t: AoristRef<Storage>,
+                tmp_dir: String,
+                tmp_encoding: AoristRef<Encoding>,
+            ) -> Self {
+                Self {
+                    name: self.name.clone(),
+                    comment: self.comment.clone(),
+                    setup: AoristRef(Arc::new(RwLock::new(
+                        self.setup
+                            .0
+                            .read()
+                            .unwrap()
+                            .replicate_to_local(t, tmp_dir, tmp_encoding),
+                    ))),
+                    schema: self.schema.clone(),
+                    tag: self.tag.clone(),
+                    uuid: None,
+                }
+            }
+        }
+    }
+}
