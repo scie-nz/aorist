@@ -65,7 +65,7 @@ def recipe(
                     obj = [x[name] if name in x else None for name in attr_names]
                 else:
                     obj = line.split(delimiter)
-                    assert len(obj) == len(type_fn)
+                    assert len(obj) == len(type_fn), (obj, type_fn)
                 tpl = tuple(fn(arg) for fn, arg in zip(type_fn, obj))
                 values += [tpl]
 

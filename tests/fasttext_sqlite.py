@@ -33,7 +33,7 @@ embedding = FasttextEmbedding(
     )),
     source_assets=source_assets,
 )
-subreddits.add_asset('embedding', Asset(LanguageAsset(embedding)))
+subreddits.add_asset(Asset(LanguageAsset(embedding)))
 
 named_entities = NamedEntities(
     name="named_entities",
@@ -49,7 +49,7 @@ named_entities = NamedEntities(
     )),
     source_assets=source_assets,
 )
-subreddits.add_asset('named_entities', Asset(LanguageAsset(named_entities)))
+subreddits.add_asset(Asset(LanguageAsset(named_entities)))
     
 universe = Universe(
     name="my_cluster",
