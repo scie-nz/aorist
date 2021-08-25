@@ -1621,7 +1621,7 @@ macro_rules! export_aorist_python_module {
 #[macro_export]
 macro_rules! attribute {
     {$attribute: ident ( $name: expr, $comment: expr, $nullable: expr ) } => {
-        AoristRef(Arc::new(RwLock::new(Attribute {
+        AoristRef(std::sync::Arc::new(std::sync::RwLock::new(Attribute {
             inner: AttributeOrTransform::Attribute(AttributeEnum::$attribute($attribute {
                 name: $name,
                 comment: $comment,

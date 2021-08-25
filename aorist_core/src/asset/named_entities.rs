@@ -12,7 +12,6 @@ use aorist_primitives::{AoristConcept, ConceptEnum, attribute};
 use derivative::Derivative;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
-use std::sync::{Arc, RwLock};
 use uuid::Uuid;
 
 #[aorist]
