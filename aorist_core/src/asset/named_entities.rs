@@ -8,7 +8,7 @@ use crate::template::TDatumTemplate;
 use aorist_attributes::*;
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
-use aorist_primitives::{AoristConcept, ConceptEnum};
+use aorist_primitives::{AoristConcept, ConceptEnum, attribute};
 use derivative::Derivative;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
@@ -36,55 +36,31 @@ impl NamedEntities {
 impl TDatumTemplate for NamedEntities {
     fn get_attributes(&self) -> Vec<AoristRef<Attribute>> {
         vec![
-            AoristRef(Arc::new(RwLock::new(Attribute {
-                inner: AttributeOrTransform::Attribute(AttributeEnum::FreeText(FreeText {
-                    name: "text".to_string(),
-                    comment: Some("Named Entity Text".to_string()),
-                    nullable: false,
-                })),
-                tag: None,
-                uuid: None,
-            }))),
-            AoristRef(Arc::new(RwLock::new(Attribute {
-                inner: AttributeOrTransform::Attribute(AttributeEnum::CharacterPosition(
-                    CharacterPosition {
-                        name: "start".to_string(),
-                        comment: Some("start of named entity location".to_string()),
-                        nullable: false,
-                    },
-                )),
-                tag: None,
-                uuid: None,
-            }))),
-            AoristRef(Arc::new(RwLock::new(Attribute {
-                inner: AttributeOrTransform::Attribute(AttributeEnum::CharacterPosition(
-                    CharacterPosition {
-                        name: "end".to_string(),
-                        comment: Some("end of named entity location".to_string()),
-                        nullable: false,
-                    },
-                )),
-                tag: None,
-                uuid: None,
-            }))),
-            AoristRef(Arc::new(RwLock::new(Attribute {
-                inner: AttributeOrTransform::Attribute(AttributeEnum::Factor(Factor {
-                    name: "label".to_string(),
-                    comment: Some("named entity label".to_string()),
-                    nullable: false,
-                })),
-                tag: None,
-                uuid: None,
-            }))),
-            AoristRef(Arc::new(RwLock::new(Attribute {
-                inner: AttributeOrTransform::Attribute(AttributeEnum::Factor(Factor {
-                    name: "description".to_string(),
-                    comment: Some("Named Entity Description".to_string()),
-                    nullable: false,
-                })),
-                tag: None,
-                uuid: None,
-            }))),
+            attribute! { FreeText(
+                "text".to_string(), 
+                Some("Named Entity Text".to_string()), 
+                false
+            ) }, 
+            attribute! { CharacterPosition(
+                "start".to_string(), 
+                Some("start of named entity location".to_string()),
+                false
+            ) }, 
+            attribute! { CharacterPosition(
+                "end".to_string(), 
+                Some("end of named entity location".to_string()),
+                false
+            ) }, 
+            attribute! { Factor(
+                "label".to_string(), 
+                Some("named entity label".to_string()),
+                false
+            ) }, 
+            attribute! { FreeText(
+                "description".to_string(), 
+                Some("named entity description".to_string()),
+                false
+            ) }, 
         ]
     }
     fn get_name(&self) -> String {
