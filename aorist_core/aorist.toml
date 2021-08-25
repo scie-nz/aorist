@@ -64,4 +64,5 @@ attributes = [
     "WKTString",
     "VectorEmbedding",
     "CharacterPosition",
+    "Boolean",
 ]

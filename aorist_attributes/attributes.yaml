@@ -713,3 +713,25 @@ spec:
   bigquery: BigQueryInt64
   postgres: PostgresBigInt
   value: IntegerValue
+---
+type: Attribute
+spec:
+  name: JSON
+  orc: OrcString
+  presto: PrestoVarchar
+  sql: SQLVarchar
+  sqlite: SQLiteText
+  bigquery: BigQueryString
+  postgres: PostgresJSONB
+  value: StringValue
+---
+type: Attribute
+spec:
+  name: Boolean
+  orc: OrcString
+  presto: PrestoVarchar
+  sql: SQLVarchar
+  sqlite: SQLiteInteger
+  bigquery: BigQueryBool
+  postgres: PostgresBoolean
+  value: StringValue

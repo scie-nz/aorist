@@ -206,5 +206,7 @@ register_concept!(
     LAZCompression,
     PointCloudInfo,
     PointCloudInfoSchema,
+    PointCloudMetadataSchema,
+    PointCloudBoundariesSchema,
     DirectoryLayout
 );
