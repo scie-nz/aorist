@@ -10,6 +10,8 @@ use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
 use uuid::Uuid;
 use crate::attributes::*;
+#[cfg(feature = "python")]
+use pyo3::prelude::*;
 
 #[aorist]
 pub struct PointCloudInfoSchema {
@@ -33,5 +35,13 @@ impl PointCloudInfoSchema {
     }
     pub fn get_datum_template(&self) -> AoristRef<DatumTemplate> {
         self.datum_template.clone()
+    }
+}
+#[cfg(feature = "python")]
+#[pymethods]
+impl PyPointCloudInfoSchema {
+    #[getter]
+    pub fn get_attributes(&self) -> Vec<PyAttribute> {
+        self.inner.0.read().unwrap().get_attributes().iter().map(|x| PyAttribute{ inner: x.clone() }).collect()
     }
 }

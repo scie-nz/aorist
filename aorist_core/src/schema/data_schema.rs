@@ -1,5 +1,6 @@
 #![allow(non_snake_case)]
 use crate::concept::{AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
+use crate::attributes::*;
 use crate::schema::language_asset_schema::*;
 use crate::schema::long_tabular_schema::*;
 use crate::schema::geospatial_asset_schema::*;
@@ -116,6 +117,12 @@ impl DataSchema {
             DataSchema::UndefinedTabularSchema(_) => vec![],
         }
     }
+    pub fn get_attributes(&self) -> Vec<AoristRef<Attribute>> {
+        match self {
+            DataSchema::GeospatialAssetSchema(x) => x.0.read().unwrap().get_attributes(),
+            _ => self.get_datum_template().unwrap().0.read().unwrap().get_attributes(),
+        }
+    }
 }
 #[cfg(feature = "python")]
 #[pymethods]
@@ -132,5 +139,9 @@ impl PyDataSchema {
             Ok(s) => Ok(PyDatumTemplate { inner: s.clone() }),
             Err(err) => Err(PyValueError::new_err(err)),
         }
+    }
+    #[getter]
+    pub fn get_attributes(&self) -> Vec<PyAttribute> {
+        self.inner.0.read().unwrap().get_attributes().iter().map(|x| PyAttribute{ inner: x.clone() }).collect()
     }
 }
