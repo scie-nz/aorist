@@ -1,6 +1,7 @@
 use crate::concept::{AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
 use crate::template::*;
 use crate::asset::*;
+use crate::schema::derived_asset_schema::DerivedAssetSchema;
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
 use derivative::Derivative;
@@ -14,7 +15,7 @@ use aorist_attributes::*;
 #[aorist]
 pub struct PointCloudMetadataSchema {
     pub datum_template: AoristRef<DatumTemplate>,
-    pub source: AoristRef<PointCloudAsset>,
+    pub source: AoristRef<StaticDataTable>,
 }
 impl PointCloudMetadataSchema {
 		pub fn get_attributes(&self) -> Vec<AoristRef<Attribute>> {
@@ -188,5 +189,11 @@ impl PointCloudMetadataSchema {
     }
     pub fn get_datum_template(&self) -> AoristRef<DatumTemplate> {
         self.datum_template.clone()
+    }
+}
+impl DerivedAssetSchema<'_> for PointCloudMetadataSchema {
+    type SourceAssetType = StaticDataTable; 
+    fn get_source(&self) -> AoristRef<Self::SourceAssetType> {
+        self.source.clone()
     }
 }

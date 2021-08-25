@@ -1,6 +1,7 @@
 use crate::concept::{AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
 use crate::template::*;
 use crate::asset::*;
+use crate::schema::derived_asset_schema::DerivedAssetSchema;
 use aorist_concept::{aorist, Constrainable};
 use aorist_primitives::attribute;
 use aorist_attributes::*;
@@ -43,5 +44,11 @@ impl PyPointCloudInfoSchema {
     #[getter]
     pub fn get_attributes(&self) -> Vec<PyAttribute> {
         self.inner.0.read().unwrap().get_attributes().iter().map(|x| PyAttribute{ inner: x.clone() }).collect()
+    }
+}
+impl DerivedAssetSchema<'_> for PointCloudInfoSchema {
+    type SourceAssetType = PointCloudAsset; 
+    fn get_source(&self) -> AoristRef<Self::SourceAssetType> {
+        self.source.clone()
     }
 }
