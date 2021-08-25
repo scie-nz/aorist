@@ -83,12 +83,15 @@ Run the following commands:
 ```
 pip install astor black dill
 ```
+Inside aorist:
 ```
 python build_for_testing.py
 ```
+Inside aorist/scienz:
 ```
 PYTHONPATH=$PYTHONPATH:../aorist_recipes:../scienz:../aorist python run_test.py
 ``` 
+If no error messages appear, your new dataset has been successfully added.
 
 ## Overview of an Aorist universe
 
