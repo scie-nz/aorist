@@ -15,7 +15,9 @@ programs = {}
                 named_entities.setup.local_storage_setup.tmp_dir + "/named_entities.txt",
             ),
             context
-        )
+        ),
+        "_is_json": lambda context: (context.capture_bool("is_json", True), context),
+        "_delimiter": lambda context: (context.capture("delimiter", ""), context),
     },
 )
 def recipe(
