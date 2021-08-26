@@ -65,4 +65,8 @@ attributes = [
     "VectorEmbedding",
     "CharacterPosition",
     "Boolean",
+    "Float64",
+    "FloatDensity",
+    "FloatArea",
+    "JSON",
 ]

@@ -207,6 +207,6 @@ register_concept!(
     PointCloudInfo,
     PointCloudInfoSchema,
     PointCloudMetadataSchema,
-    PointCloudBoundariesSchema,
+    PointCloudBoundarySchema,
     DirectoryLayout
 );

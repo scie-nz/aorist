@@ -735,3 +735,36 @@ spec:
   bigquery: BigQueryBool
   postgres: PostgresBoolean
   value: StringValue
+---
+type: Attribute
+spec:
+  name: FloatArea
+  orc: OrcFloat
+  presto: PrestoDouble
+  sql: SQLReal
+  sqlite: SQLiteReal
+  bigquery: BigQueryFloat64
+  postgres: PostgresReal
+  value: FloatValue
+---
+type: Attribute
+spec:
+  name: FloatDensity
+  orc: OrcFloat
+  presto: PrestoDouble
+  sql: SQLReal
+  sqlite: SQLiteReal
+  bigquery: BigQueryFloat64
+  postgres: PostgresReal
+  value: FloatValue
+---
+type: Attribute
+spec:
+  name: Float64
+  orc: OrcFloat
+  presto: PrestoDouble
+  sql: SQLReal
+  sqlite: SQLiteReal
+  bigquery: BigQueryFloat64
+  postgres: PostgresReal
+  value: FloatValue
