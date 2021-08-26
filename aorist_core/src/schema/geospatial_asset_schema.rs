@@ -1,6 +1,7 @@
 use crate::concept::{AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
 use crate::schema::raster_schema::*;
 use crate::schema::point_cloud_schema::*;
+use crate::schema::point_cloud_boundary_schema::*;
 use crate::schema::point_cloud_info_schema::*;
 use crate::schema::point_cloud_metadata_schema::*;
 use crate::template::*;
@@ -15,6 +16,7 @@ use crate::attributes::*;
 pub enum GeospatialAssetSchema {
     RasterSchema(AoristRef<RasterSchema>),
     PointCloudSchema(AoristRef<PointCloudSchema>),
+    PointCloudBoundarySchema(AoristRef<PointCloudBoundarySchema>),
     PointCloudInfoSchema(AoristRef<PointCloudInfoSchema>),
     PointCloudMetadataSchema(AoristRef<PointCloudMetadataSchema>),
 }
@@ -23,6 +25,7 @@ impl GeospatialAssetSchema {
         match self {
             Self::RasterSchema(x) => x.0.read().unwrap().get_attributes(),
             Self::PointCloudSchema(x) => x.0.read().unwrap().get_attributes(),
+            Self::PointCloudBoundarySchema(x) => x.0.read().unwrap().get_attributes(),
             Self::PointCloudInfoSchema(x) => x.0.read().unwrap().get_attributes(),
             Self::PointCloudMetadataSchema(x) => x.0.read().unwrap().get_attributes(),
         }
@@ -31,6 +34,7 @@ impl GeospatialAssetSchema {
         match self {
             Self::RasterSchema(x) => x.0.read().unwrap().get_datum_template(),
             Self::PointCloudSchema(x) => x.0.read().unwrap().get_datum_template(),
+            Self::PointCloudBoundarySchema(x) => x.0.read().unwrap().get_datum_template(),
             Self::PointCloudInfoSchema(x) => x.0.read().unwrap().get_datum_template(),
             Self::PointCloudMetadataSchema(x) => x.0.read().unwrap().get_datum_template(),
         }
