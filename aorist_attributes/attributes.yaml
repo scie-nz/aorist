@@ -62,7 +62,7 @@ spec:
   sql: SQLBigint
   sqlite: SQLiteInteger
   bigquery: BigQueryInt64
-  postgres: PostgresBigInt
+  postgres: PostgresBigInt # TODO postgres datetime
   value: IntegerValue
 ---
 type: Attribute
@@ -216,7 +216,7 @@ spec:
   sql: SQLVarchar
   sqlite: SQLiteText
   bigquery: BigQueryString
-  postgres: PostgresText
+  postgres: PostgresText # TODO postgres datetime
   value: StringValue
 ---
 type: Attribute

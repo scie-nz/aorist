@@ -467,7 +467,7 @@ pub fn derive_postgres_interval(input: TokenStream) -> TokenStream {
             fn get_postgres_type(&self) -> String {
                 "INTERVAL".to_string()
             }
-            // not JSON-serializable
+            // not JSON-serializable (TODO GeoJSON?)
             fn psycopg2_value_json_serializable(&self) -> bool {
                 false
             }
