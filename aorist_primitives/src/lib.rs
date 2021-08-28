@@ -1722,3 +1722,56 @@ macro_rules! derived_schema {
         }
      }}
 }
+
+#[macro_export]
+macro_rules! primary_schema {
+    {name: $name: ident, attributes:
+    $($attr_name: ident : $attribute: ident ($comment: expr, $nullable: expr )),+} => { aorist_paste::paste! {
+        #[aorist]
+        pub struct $name {
+            pub datum_template: AoristRef<DatumTemplate>,
+        }
+
+        impl $name {
+            pub fn get_attributes(&self) -> Vec<AoristRef<Attribute>> {
+                vec![$(
+                    attribute! { $attribute(
+                        stringify!($attr_name).to_string(), 
+                        Some($comment.to_string()), 
+                        $nullable
+                    )}, 
+                )+]
+            }
+            pub fn get_datum_template(&self) -> AoristRef<DatumTemplate> {
+                self.datum_template.clone()
+            }
+        }
+        #[cfg(feature = "python")]
+        #[pymethods]
+        impl [<Py $name>] {
+            #[getter]
+            pub fn get_attributes(&self) -> Vec<PyAttribute> {
+                self.inner.0.read().unwrap().get_attributes().iter().map(|x| PyAttribute{ inner: x.clone() }).collect()
+            }
+        }
+    }};
+    {$name: ident } => { aorist_paste::paste! {
+        #[aorist]
+        pub struct $name {
+            pub datum_template: AoristRef<DatumTemplate>,
+        }
+
+        impl $name {
+            pub fn get_attributes(&self) -> Vec<AoristRef<Attribute>> { Vec::new() }
+            pub fn get_datum_template(&self) -> AoristRef<DatumTemplate> {
+                self.datum_template.clone()
+            }
+        }
+        #[cfg(feature = "python")]
+        #[pymethods]
+        impl [<Py $name>] {
+            #[getter]
+            pub fn get_attributes(&self) -> Vec<PyAttribute> { Vec::new() }
+        }
+     }}
+}

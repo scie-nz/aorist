@@ -7,16 +7,8 @@ use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
 use uuid::Uuid;
 use crate::attributes::*;
+use aorist_primitives::primary_schema;
+#[cfg(feature = "python")]
+use pyo3::prelude::*;
 
-#[aorist]
-pub struct PointCloudSchema {
-    pub datum_template: AoristRef<DatumTemplate>,
-}
-impl PointCloudSchema {
-    pub fn get_attributes(&self) -> Vec<AoristRef<Attribute>> {
-        self.datum_template.0.read().unwrap().get_attributes()
-    }
-    pub fn get_datum_template(&self) -> AoristRef<DatumTemplate> {
-        self.datum_template.clone()
-    }
-}
+primary_schema! { PointCloudSchema }
