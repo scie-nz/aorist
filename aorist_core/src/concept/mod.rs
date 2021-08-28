@@ -209,5 +209,6 @@ register_concept!(
     PointCloudMetadataSchema,
     PointCloudBoundarySchema,
     DirectoryLayout,
-    PolygonCollectionAsset
+    PolygonCollectionAsset,
+    LINZPropertyTitlesSchema
 );
