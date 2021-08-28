@@ -208,5 +208,6 @@ register_concept!(
     PointCloudInfoSchema,
     PointCloudMetadataSchema,
     PointCloudBoundarySchema,
-    DirectoryLayout
+    DirectoryLayout,
+    PolygonCollectionAsset
 );

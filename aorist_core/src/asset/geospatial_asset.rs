@@ -21,6 +21,8 @@ pub enum GeospatialAsset {
     RasterAsset(AoristRef<RasterAsset>),
     #[constrainable]
     PointCloudAsset(AoristRef<PointCloudAsset>),
+    #[constrainable]
+    PolygonCollectionAsset(AoristRef<PolygonCollectionAsset>),
 }
 
 #[cfg(feature = "python")]
@@ -45,6 +47,7 @@ impl GeospatialAsset {
         match self {
             GeospatialAsset::RasterAsset(_) => "RasterAsset",
             GeospatialAsset::PointCloudAsset(_) => "PointCloudAsset",
+            GeospatialAsset::PolygonCollectionAsset(_) => "PolygonCollectionAsset",
         }
         .to_string()
     }
@@ -52,18 +55,21 @@ impl GeospatialAsset {
         match self {
             GeospatialAsset::RasterAsset(x) => x.0.read().unwrap().name.clone(),
             GeospatialAsset::PointCloudAsset(x) => x.0.read().unwrap().name.clone(),
+            GeospatialAsset::PolygonCollectionAsset(x) => x.0.read().unwrap().name.clone(),
         }
     }
     pub fn get_schema(&self) -> AoristRef<DataSchema> {
         match self {
             GeospatialAsset::RasterAsset(x) => x.0.read().unwrap().schema.clone(),
             GeospatialAsset::PointCloudAsset(x) => x.0.read().unwrap().schema.clone(),
+            GeospatialAsset::PolygonCollectionAsset(x) => x.0.read().unwrap().schema.clone(),
         }
     }
     pub fn get_storage_setup(&self) -> AoristRef<StorageSetup> {
         match self {
             GeospatialAsset::RasterAsset(x) => x.0.read().unwrap().setup.clone(),
             GeospatialAsset::PointCloudAsset(x) => x.0.read().unwrap().setup.clone(),
+            GeospatialAsset::PolygonCollectionAsset(x) => x.0.read().unwrap().setup.clone(),
         }
     }
     pub fn replicate_to_local(
@@ -79,6 +85,11 @@ impl GeospatialAsset {
                     .replicate_to_local(t, tmp_dir, tmp_encoding),
             )))),
             GeospatialAsset::PointCloudAsset(x) => GeospatialAsset::PointCloudAsset(AoristRef(Arc::new(RwLock::new(
+                x.0.read()
+                    .unwrap()
+                    .replicate_to_local(t, tmp_dir, tmp_encoding),
+            )))),
+            GeospatialAsset::PolygonCollectionAsset(x) => GeospatialAsset::PolygonCollectionAsset(AoristRef(Arc::new(RwLock::new(
                 x.0.read()
                     .unwrap()
                     .replicate_to_local(t, tmp_dir, tmp_encoding),

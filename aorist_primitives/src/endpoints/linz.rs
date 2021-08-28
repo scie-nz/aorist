@@ -27,6 +27,6 @@ impl LINZAPIConfig {
     }
     #[getter]
     pub fn pii_allowed(&self) -> bool {
-        self.pii_allowed,
+        self.pii_allowed
     }
 }
