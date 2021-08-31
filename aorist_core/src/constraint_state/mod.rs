@@ -311,10 +311,11 @@ impl<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry = T::TAncestry>>
             let mut write = constraint.write().unwrap();
             write.compute_task_key();
             let fqn = write.get_fully_qualified_task_name();
+            write.set_task_name(fqn);
             drop(write);
-            task_names.push((fqn, constraint.clone()));
+            //task_names.push((fqn, constraint.clone()));
         }
-        let to_shorten_task_names = task_names.iter().map(|(x, _)| x.clone()).collect();
+        /*let to_shorten_task_names = task_names.iter().map(|(x, _)| x.clone()).collect();
         let shortened_task_names_1 =
             TaskNameShortener::new(to_shorten_task_names, "____".to_string()).run();
         let shortened_task_names_2 =
@@ -324,6 +325,6 @@ impl<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry = T::TAncestry>>
             let mut write = rw.write().unwrap();
             existing_names.insert(name.clone());
             write.set_task_name(name.replace("____", "__"));
-        }
+        }*/
     }
 }

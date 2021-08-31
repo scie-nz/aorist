@@ -415,7 +415,7 @@ where
             )),
         );
         let dag_call = AST::Call(Call::new_wrapped(
-            AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("FlowBuilder".to_string())),
+            AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("DAG".to_string())),
             vec![AST::StringLiteral(StringLiteral::new_wrapped(
                 "flow".to_string(),
                 false,
