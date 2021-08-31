@@ -274,7 +274,7 @@ where
                     1 => (full_task_ids.into_iter().next().unwrap().0, false),
                     _ => (
                         AST::Subscript(Subscript::new_wrapped(
-                            params_constraint.clone(),
+                            AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("params".into())),
                             AST::StringLiteral(StringLiteral::new_wrapped(
                                 "task_id".to_string(),
                                 false,

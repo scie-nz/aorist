@@ -436,7 +436,7 @@ where
     }
     fn get_flow_imports(&self) -> Vec<PythonImport> {
         vec![
-            PythonImport::PythonFromImport("airflow".to_string(), "FlowBuilder".to_string(), None),
+            PythonImport::PythonFromImport("airflow".to_string(), "DAG".to_string(), None),
             PythonImport::PythonFromImport("datetime".to_string(), "datetime".to_string(), None),
         ]
     }
