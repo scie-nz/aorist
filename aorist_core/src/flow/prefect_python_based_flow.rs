@@ -267,6 +267,7 @@ impl<U: AoristUniverse> PythonBasedFlowBuilder<U> for PrefectFlowBuilder<U> {
     fn augment_statements(
         &self,
         statements: Vec<PythonFlowBuilderInput>,
+        flow_name: Option<String>,
     ) -> Vec<PythonFlowBuilderInput> {
         // TODO: add flow definition
         statements

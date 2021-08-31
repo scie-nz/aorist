@@ -1518,6 +1518,7 @@ macro_rules! define_dag_function {
             mode: &str,
             programs: BTreeMap<String, Vec<AoristConstraintProgram>>,
             dialect_preferences: Vec<Dialect>,
+            dag_name: Option<String>,
         ) -> PyResult<String> {
             universe.compute_uuids();
             let (output, _requirements) = match mode {
@@ -1535,7 +1536,7 @@ macro_rules! define_dag_function {
                     dialect_preferences,
                 )
                 .map_err(|e| pyo3::exceptions::PyException::new_err(e.to_string()))?
-                .run(),
+                .run(dag_name),
                 "prefect" => PythonBasedDriver::<
                     AoristConstraintBuilder<'a>,
                     PrefectFlowBuilder<AoristRef<Universe>>,
@@ -1550,7 +1551,7 @@ macro_rules! define_dag_function {
                     dialect_preferences,
                 )
                 .map_err(|e| pyo3::exceptions::PyException::new_err(e.to_string()))?
-                .run(),
+                .run(dag_name),
                 "python" => PythonBasedDriver::<
                     AoristConstraintBuilder<'a>,
                     PythonFlowBuilder<AoristRef<Universe>>,
@@ -1565,7 +1566,7 @@ macro_rules! define_dag_function {
                     dialect_preferences,
                 )
                 .map_err(|e| pyo3::exceptions::PyException::new_err(e.to_string()))?
-                .run(),
+                .run(dag_name),
                 "jupyter" => PythonBasedDriver::<
                     AoristConstraintBuilder<'a>,
                     JupyterFlowBuilder<AoristRef<Universe>>,
@@ -1580,10 +1581,10 @@ macro_rules! define_dag_function {
                     dialect_preferences,
                 )
                 .map_err(|e| pyo3::exceptions::PyException::new_err(e.to_string()))?
-                .run(),
+                .run(dag_name),
                 /*"r" => RBasedDriver::<ConstraintBuilder, RBasedFlowBuilder>::new(&universe, constraints.into_iter().collect())
                 .map_err(|e| pyo3::exceptions::PyException::new_err(e.to_string()))?
-                .run(),*/
+                .run(dag_name),*/
                 _ => panic!("Unknown mode provided: {}", mode),
             }
             .map_err(|e| pyo3::exceptions::PyException::new_err(e.to_string()))?;

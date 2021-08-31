@@ -332,6 +332,7 @@ where
     fn augment_statements(
         &self,
         mut statements: Vec<PythonFlowBuilderInput>,
+        flow_name: Option<String>,
     ) -> Vec<PythonFlowBuilderInput> {
         let default_args =
             AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("default_args".to_string()));
@@ -417,7 +418,10 @@ where
         let dag_call = AST::Call(Call::new_wrapped(
             AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("DAG".to_string())),
             vec![AST::StringLiteral(StringLiteral::new_wrapped(
-                "flow".to_string(),
+                match flow_name {
+                    Some(x) => x,
+                    None => "flow".to_string(),
+                },
                 false,
             ))],
             kwargs,

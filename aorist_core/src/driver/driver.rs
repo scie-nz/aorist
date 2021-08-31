@@ -425,7 +425,7 @@ where
     fn get_programs_for(&self, constraint_name: &String) -> Vec<P>;
     fn get_endpoints(&self) -> U::TEndpoints;
     fn get_dependencies(&self) -> Vec<String>;
-    fn run(&mut self) -> Result<(String, Vec<String>)> {
+    fn run(&mut self, flow_name: Option<String>) -> Result<(String, Vec<String>)> {
         self.satisfy_constraints()?;
         let etl = D::new();
         let endpoints = self.get_endpoints().clone();
@@ -436,7 +436,7 @@ where
             .collect::<Vec<_>>();
 
         Ok((
-            etl.materialize(statements_and_preambles)?,
+            etl.materialize(statements_and_preambles, flow_name)?,
             self.get_dependencies(),
         ))
     }
