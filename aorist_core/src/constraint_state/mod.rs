@@ -319,11 +319,11 @@ impl<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry = T::TAncestry>>
         let shortened_task_names_1 =
             TaskNameShortener::new(to_shorten_task_names, "____".to_string(), 
                                    existing_names.clone()).run();
-        let shortened_task_names_2 =
+        /*let shortened_task_names_2 =
             TaskNameShortener::new(shortened_task_names_1, "_".to_string(),
-                                   existing_names.clone()).run();
+                                   existing_names.clone()).run();*/
         for (i, (_, rw)) in task_names.iter().enumerate() {
-            let name = shortened_task_names_2.get(i).unwrap().clone();
+            let name = shortened_task_names_1.get(i).unwrap().clone();
             let mut write = rw.write().unwrap();
             existing_names.insert(name.clone());
             write.set_task_name(name.replace("____", "__"));
