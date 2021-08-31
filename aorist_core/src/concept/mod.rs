@@ -211,5 +211,6 @@ register_concept!(
     DirectoryLayout,
     PolygonCollectionAsset,
     LINZPrimaryParcelsSchema,
-    LINZPropertyTitlesSchema
+    LINZPropertyTitlesSchema,
+    TwoTierStorageSetup
 );
