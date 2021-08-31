@@ -274,7 +274,11 @@ where
             .chain(vec![constraint_name.clone()].into_iter())
             .collect();
         let shortened_names =
-            TaskNameShortener::new(to_shorten_constraint_block_names, "_".to_string()).run();
+            TaskNameShortener::new(
+                to_shorten_constraint_block_names, 
+                "_".to_string(), 
+                HashSet::new()
+            ).run();
         let shortened_name = shortened_names.into_iter().last().unwrap();
         debug!("Shortened constraint block name: {}", shortened_name);
 
