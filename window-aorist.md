@@ -42,6 +42,8 @@ cargo build
 ```
 
 ### 4. Conda-build from scratch
+To run the conda-build on window, please change the meta.yaml file 
+FROM
 ```python
 build:
   number: 1
