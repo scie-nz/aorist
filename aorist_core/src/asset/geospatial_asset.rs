@@ -24,6 +24,15 @@ pub enum GeospatialAsset {
     #[constrainable]
     PolygonCollectionAsset(AoristRef<PolygonCollectionAsset>),
 }
+impl GeospatialAsset {
+    pub fn set_storage_setup(&mut self, setup: AoristRef<StorageSetup>) {
+        match self {
+            Self::RasterAsset(x) => x.0.write().unwrap().set_storage_setup(setup),
+            Self::PointCloudAsset(x) => x.0.write().unwrap().set_storage_setup(setup),
+            Self::PolygonCollectionAsset(x) => x.0.write().unwrap().set_storage_setup(setup),
+        }
+    }
+}
 
 #[cfg(feature = "python")]
 #[pymethods]

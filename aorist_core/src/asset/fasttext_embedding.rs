@@ -26,6 +26,9 @@ pub struct FasttextEmbedding {
     pub setup: AoristRef<StorageSetup>,
 }
 impl FasttextEmbedding {
+    pub fn set_storage_setup(&mut self, setup: AoristRef<StorageSetup>) {
+        self.setup = setup;
+    }
     pub fn get_source_assets(&self) -> Vec<AoristRef<Asset>> {
         self.source_assets.clone()
     }

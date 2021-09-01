@@ -25,6 +25,9 @@ pub struct NamedEntities {
     pub schema: AoristRef<DataSchema>,
 }
 impl NamedEntities {
+    pub fn set_storage_setup(&mut self, setup: AoristRef<StorageSetup>) {
+        self.setup = setup;
+    }
     pub fn get_source_assets(&self) -> Vec<AoristRef<Asset>> {
         self.source_assets.clone()
     }

@@ -146,6 +146,33 @@ impl PyDataSet {
             .unwrap()
             .add_template(template.inner.clone());
     }
+    pub fn persist_local(
+        &self,
+        storage: PyStorage,
+    ) -> PyResult<Self> {
+        let dt = &*self.inner.0.read().unwrap();
+        let mut persisted_assets = BTreeMap::new();
+        for (key, asset_rw) in dt.assets.iter() {
+            let asset = &*asset_rw.0.read().unwrap();
+            persisted_assets.insert(
+                key.clone(),
+                AoristRef(Arc::new(RwLock::new(asset.persist_local(
+                    storage.inner.deep_clone(),
+                )))),
+            );
+        }
+        let inner = AoristRef(Arc::new(RwLock::new(DataSet {
+            name: dt.name.clone(),
+            description: dt.description.clone(),
+            source_path: dt.source_path.clone(),
+            access_policies: dt.access_policies.clone(),
+            datum_templates: dt.datum_templates.clone(),
+            assets: persisted_assets,
+            tag: dt.tag.clone(),
+            uuid: dt.uuid.clone(),
+        })));
+        Ok(PyDataSet { inner })
+    }
     pub fn replicate_to_local(
         &self,
         storage: PyStorage,

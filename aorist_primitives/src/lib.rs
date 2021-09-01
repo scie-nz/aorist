@@ -1658,6 +1658,9 @@ macro_rules! asset {
         }
 
         impl $name {
+            pub fn set_storage_setup(&mut self, setup: AoristRef<StorageSetup>) {
+                self.setup = setup;
+            }
             pub fn replicate_to_local(
                 &self,
                 t: AoristRef<Storage>,

@@ -81,7 +81,7 @@ impl StorageSetup {
                         .persist(persistent),
                 ))))
             }
-            _ => panic!("Only assets with RemoteStorageSetup can be replicated"),
+            _ => panic!("Only assets with LocalStorageSetup can be persisted"),
         }
     }
 }

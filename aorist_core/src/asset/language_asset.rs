@@ -21,7 +21,14 @@ pub enum LanguageAsset {
     #[constrainable]
     NamedEntities(AoristRef<NamedEntities>),
 }
-
+impl LanguageAsset {
+    pub fn set_storage_setup(&mut self, setup: AoristRef<StorageSetup>) {
+        match self {
+            Self::FasttextEmbedding(x) => x.0.write().unwrap().set_storage_setup(setup),
+            Self::NamedEntities(x) => x.0.write().unwrap().set_storage_setup(setup),
+        }
+    }
+}
 #[cfg(feature = "python")]
 #[pymethods]
 impl PyLanguageAsset {

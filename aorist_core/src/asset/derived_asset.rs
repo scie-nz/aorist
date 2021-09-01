@@ -19,6 +19,12 @@ pub struct DerivedAsset {
     pub schema: AoristRef<DataSchema>,
 }
 
+impl DerivedAsset {
+    pub fn set_storage_setup(&mut self, setup: AoristRef<StorageSetup>) {
+        self.setup = setup;
+    }
+}
+
 impl TAsset for DerivedAsset {
     fn get_name(&self) -> String {
         self.name.clone()

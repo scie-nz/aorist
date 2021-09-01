@@ -83,6 +83,33 @@ impl Asset {
             Asset::GeospatialAsset(x) => x.0.read().unwrap().get_storage_setup(),
         }
     }
+    pub fn set_storage_setup(&mut self, setup: AoristRef<StorageSetup>) {
+        match self {
+            Asset::StaticDataTable(x) => x.0.write().unwrap().set_storage_setup(setup),
+            _ => panic!("To implement"),
+            Asset::SupervisedModel(x) => x.0.write().unwrap().set_storage_setup(setup),
+            Asset::DerivedAsset(x) => x.0.write().unwrap().set_storage_setup(setup),
+            Asset::LanguageAsset(x) => x.0.write().unwrap().set_storage_setup(setup),
+            Asset::GeospatialAsset(x) => x.0.write().unwrap().set_storage_setup(setup),
+        }
+    }
+    pub fn persist_local(
+        &self,
+        persistent: AoristRef<Storage>,
+    ) -> Self {
+        let mut cloned = self.clone();
+        let storage_setup = cloned.get_storage_setup();
+        let new_setup = match *storage_setup.0.read().unwrap() {
+            StorageSetup::LocalStorageSetup(_) => 
+                AoristRef(Arc::new(RwLock::new(
+                    cloned.get_storage_setup().0.read().unwrap()
+                      .persist_local(persistent)
+                ))),
+            _ => cloned.get_storage_setup(),
+        };
+        cloned.set_storage_setup(new_setup);
+        cloned
+    }
     pub fn replicate_to_local(
         &self,
         t: AoristRef<Storage>,
