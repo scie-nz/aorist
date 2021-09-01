@@ -32,7 +32,7 @@ conda update conda
 Go to [Rust](https://www.rust-lang.org/tools/install) page, choose "DOWNLOAD RUSTUP-INIT.EXE (64-BIT)" and install it.
 
 ```python
-# Set the python compiler's linker 
+# Set the python compiler's linker. Please replace 'username' in the command by your current username (e.g., maggie)
 set PYO3_PYTHON=C:\Users\username\Anaconda3\envs\aorist\python.exe
 # Solving linker errors for cargo build 
 rustup default stable-x86_64-pc-windows-gnu 
