@@ -9,7 +9,7 @@ use crate::dialect::Dialect;
 use crate::flow::{FlowBuilderBase, FlowBuilderMaterialize};
 use crate::parameter_tuple::ParameterTuple;
 use crate::program::TOuterProgram;
-use crate::task_name_shortener::TaskNameShortener;
+//use crate::task_name_shortener::TaskNameShortener;
 use anyhow::Result;
 use aorist_ast::{AncestorRecord, SimpleIdentifier, AST};
 use aorist_primitives::TAoristObject;
@@ -266,7 +266,7 @@ where
     )> {
         debug!("Processing constraint block: {}", constraint_name);
 
-        // TODO: this could be done once for the entire set of blocks
+        /* TODO: this could be done once for the entire set of blocks
         let to_shorten_constraint_block_names = self
             .get_blocks()
             .iter()
@@ -281,7 +281,7 @@ where
             ).run();
         let shortened_name = shortened_names.into_iter().last().unwrap();
         debug!("Shortened constraint block name: {}", shortened_name);
-
+        */
         // (call, constraint_name, root_name) => (uuid, call parameters)
         let mut calls: HashMap<(String, String, String), Vec<(String, ParameterTuple)>> =
             HashMap::new();
@@ -350,7 +350,8 @@ where
             >>::C::new(
                 //satisfied,
                 unique_constraints,
-                shortened_name.clone(),
+                constraint_name.clone(),
+                //shortened_name.clone(),
                 tasks_dict.clone(),
                 identifiers,
             )?;

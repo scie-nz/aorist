@@ -89,6 +89,10 @@ impl StorageSetup {
 #[pymethods]
 impl PyStorageSetup {
     #[getter]
+    pub fn tmp_dir(&self) -> String {
+        self.inner.0.read().unwrap().get_tmp_dir()
+    }
+    #[getter]
     pub fn local(&self) -> Vec<PyStorage> {
         self.inner
             .0

@@ -86,7 +86,6 @@ impl Asset {
     pub fn set_storage_setup(&mut self, setup: AoristRef<StorageSetup>) {
         match self {
             Asset::StaticDataTable(x) => x.0.write().unwrap().set_storage_setup(setup),
-            _ => panic!("To implement"),
             Asset::SupervisedModel(x) => x.0.write().unwrap().set_storage_setup(setup),
             Asset::DerivedAsset(x) => x.0.write().unwrap().set_storage_setup(setup),
             Asset::LanguageAsset(x) => x.0.write().unwrap().set_storage_setup(setup),
