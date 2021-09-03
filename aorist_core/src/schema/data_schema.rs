@@ -5,6 +5,7 @@ use crate::schema::language_asset_schema::*;
 use crate::schema::long_tabular_schema::*;
 use crate::schema::geospatial_asset_schema::*;
 use crate::schema::tabular_schema::*;
+use crate::schema::tabular_collection_schema::*;
 use crate::schema::time_ordered_tabular_schema::*;
 use crate::schema::undefined_tabular_schema::*;
 use crate::template::*;
@@ -32,12 +33,15 @@ pub enum DataSchema {
     TimeOrderedTabularSchema(AoristRef<TimeOrderedTabularSchema>),
     #[constrainable]
     UndefinedTabularSchema(AoristRef<UndefinedTabularSchema>),
+    #[constrainable]
+    TabularCollectionSchema(AoristRef<TabularCollectionSchema>),
 }
 
 impl DataSchema {
     pub fn get_datum_template(&self) -> Result<AoristRef<DatumTemplate>, String> {
         match self {
             DataSchema::TabularSchema(x) => Ok(x.0.read().unwrap().get_datum_template().clone()),
+            DataSchema::TabularCollectionSchema(x) => Ok(x.0.read().unwrap().get_datum_template().clone()),
             DataSchema::LongTabularSchema(x) => {
                 Ok(x.0.read().unwrap().get_datum_template().clone())
             }
@@ -58,6 +62,15 @@ impl DataSchema {
     pub fn get_datum_template_name(&self) -> Result<String, String> {
         match self {
             DataSchema::TabularSchema(x) => Ok(x
+                .0
+                .read()
+                .unwrap()
+                .get_datum_template()
+                .0
+                .read()
+                .unwrap()
+                .get_name()),
+            DataSchema::TabularCollectionSchema(x) => Ok(x
                 .0
                 .read()
                 .unwrap()
@@ -110,6 +123,7 @@ impl DataSchema {
     pub fn get_attribute_names(&self) -> Vec<String> {
         match self {
             DataSchema::TabularSchema(x) => x.0.read().unwrap().attributes.clone(),
+            DataSchema::TabularCollectionSchema(x) => x.0.read().unwrap().attributes.clone(),
             DataSchema::LongTabularSchema(x) => x.0.read().unwrap().get_attribute_names(),
             DataSchema::LanguageAssetSchema(x) => x.0.read().unwrap().get_attribute_names(),
             DataSchema::GeospatialAssetSchema(x) => x.0.read().unwrap().get_attributes().iter().map(|x| x.get_name()).collect(),
