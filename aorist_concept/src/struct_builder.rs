@@ -617,6 +617,16 @@ impl Builder for StructBuilder {
             #[cfg(feature = "python")]
             #[pyo3::prelude::pyproto]
             impl pyo3::PyObjectProtocol for [<Py #struct_name>] {
+                fn __hash__(&self) -> pyo3::PyResult<u64> {
+                     let mut s = std::collections::hash_map::DefaultHasher::new();
+                     <#struct_name as std::hash::Hash>::hash(
+                        &*self.inner.0.read().unwrap(),
+                        &mut s
+                     );
+                     Ok(
+                        <std::collections::hash_map::DefaultHasher as std::hash::Hasher>::finish(&mut s)
+                     )
+                }
                 fn __repr__(&self) -> pyo3::PyResult<String> {
                     Ok(format!(
                         "{} {}",

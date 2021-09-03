@@ -10,7 +10,7 @@ use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
 use uuid::Uuid;
 
-#[aorist(derivative(Hash))]
+#[aorist]
 pub struct EndpointConfig {
     pub presto: Option<PrestoConfig>,
     pub alluxio: Option<AlluxioConfig>,

@@ -807,7 +807,7 @@ macro_rules! register_attribute_new {
                 }
             }
         }
-        #[aorist(derivative(Hash))]
+        #[aorist]
         pub struct $name {
             pub inner: AttributeOrTransform,
         }

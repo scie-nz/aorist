@@ -68,7 +68,7 @@ pub trait TConceptBuilder {
                 let quoted = quote! {
                     #[cfg_attr(feature = "python", pyo3::prelude::pyclass)]
                     #[derive(
-                        Derivative, Serialize, Deserialize, Clone,
+                        Derivative, Serialize, Deserialize, Clone, Hash,
                     )]
                     #[derivative(PartialEq, Debug, Eq)]
                     #ast
@@ -86,7 +86,7 @@ pub trait TConceptBuilder {
                 let variant_type = variants.iter().map(|x| (&x.fields)).collect::<Vec<_>>();
                 let quoted = quote! {
                     #[cfg_attr(feature = "python", derive(pyo3::prelude::FromPyObject))]
-                    #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
+                    #[derive(Debug, PartialEq, Serialize, Deserialize, Clone, Hash)]
                     #[serde(tag = "type")]
                     pub enum #enum_name {
                         #(#variant(#variant_type)),*
