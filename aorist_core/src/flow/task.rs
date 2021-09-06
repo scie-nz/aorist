@@ -77,7 +77,7 @@ where
     T: ETLFlow<U>,
 {
     fn new(task_id: String, dict: String, params: Option<ParameterTuple>, deps: Vec<AST>) -> Self;
-    fn as_dict(&self, dependencies_as_list: bool, insert_task_name: bool) -> AST;
+    fn as_dict(&self, insert_deps: bool, dependencies_as_list: bool, insert_task_name: bool) -> AST;
 }
 pub trait ForLoopCompressedTask<T, U: AoristUniverse>
 where
