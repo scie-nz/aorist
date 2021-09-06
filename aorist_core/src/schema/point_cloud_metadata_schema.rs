@@ -43,9 +43,9 @@ derived_schema! {
       scale_y: NaturalNumber("TBD", false),
       scale_z: NaturalNumber("TBD", false),
       point_length: NaturalNumber("TBD", false),
-      project_id: Int64Identifier("TBD", false),
-      software_id: Int64Identifier("TBD", false),
-      system_id: Int64Identifier("TBD", false),
+      project_id: StringIdentifier("TBD", false),
+      software_id: FreeText("TBD", false),
+      system_id: FreeText("TBD", false),
       spatialreference: FreeText("TBD", false),
       srs: FreeText("TBD", false),
       vlrs: FreeText("JSON for metadata VLRs", false)
