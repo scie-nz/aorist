@@ -134,6 +134,7 @@ impl DataSchema {
     pub fn get_attributes(&self) -> Vec<AoristRef<Attribute>> {
         match self {
             DataSchema::GeospatialAssetSchema(x) => x.0.read().unwrap().get_attributes(),
+            DataSchema::TabularCollectionSchema(x) => x.0.read().unwrap().get_attributes(),
             _ => self.get_datum_template().unwrap().0.read().unwrap().get_attributes(),
         }
     }
