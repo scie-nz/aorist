@@ -214,5 +214,6 @@ register_concept!(
     LINZPropertyTitlesSchema,
     TwoTierStorageSetup,
     TabularCollectionSchema,
-    Polygon
+    Polygon,
+    InlineBlobStorage
 );
