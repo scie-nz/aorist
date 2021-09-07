@@ -51,11 +51,10 @@ def execute_trino_sql(query):
         }}
     )
     cursor = connection.cursor()
-    if instanceof(query, list):
+    if isinstance(query, list):
         for q in query:
             cursor.execute(q)
             print('Ran query:\\n %s' % q)
-            cursor.fetchall()
     else:
         cursor.execute(query)
         print('Ran query:\\n %s' % query)
