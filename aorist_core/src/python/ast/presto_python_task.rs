@@ -50,15 +50,17 @@ def execute_trino_sql(query):
             'redistribute_writes': False,
         }}
     )
-    cursor = connection.cursor()
     if isinstance(query, list):
         for q in query:
+            cursor = connection.cursor()
             cursor.execute(q)
+            cursor.fetchall()
             print('Ran query:\\n %s' % q)
     else:
+        cursor = connection.cursor()
         cursor.execute(query)
         print('Ran query:\\n %s' % query)
-    return cursor.fetchall()
+        cursor.fetchall()
 ",
             host = self.endpoint.server,
             user = self.endpoint.user,
