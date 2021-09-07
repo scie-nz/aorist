@@ -868,6 +868,7 @@ where
             for root in root_concepts {
                 let root_key = (root.get_uuid(), root.get_type());
                 let family_tree = family_trees.get(&root_key).unwrap();
+                if builder.should_add(root.clone(), &ancestry) {
 
                 let raw_potential_child_constraints = builder
                     .get_required_constraint_names()
@@ -919,7 +920,6 @@ where
                     })
                     .flatten()
                     .collect::<Vec<Arc<RwLock<B::OuterType>>>>();
-                if builder.should_add(root.clone(), &ancestry) {
                     if level_enabled!(Level::DEBUG) {
                         debug!("After filtering:",);
                         for downstream_rw in potential_child_constraints.iter() {
