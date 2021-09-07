@@ -3,6 +3,7 @@ use crate::concept::{AoristRef, WrappedConcept};
 use crate::template::filter::*;
 use crate::template::identifier_tuple::*;
 use crate::template::measure::*;
+use crate::template::polygon::*;
 use crate::template::point_cloud::*;
 use crate::template::point_cloud_info::*;
 use crate::template::row_struct::*;
@@ -32,6 +33,7 @@ pub enum DatumTemplate {
     Tensor(AoristRef<Tensor>),
     PointCloud(AoristRef<PointCloud>),
     PointCloudInfo(AoristRef<PointCloudInfo>),
+    Polygon(AoristRef<Polygon>),
 }
 impl DatumTemplate {
     pub fn get_type(&self) -> String {
@@ -47,6 +49,7 @@ impl DatumTemplate {
             DatumTemplate::Tensor(_) => "Tensor",
             DatumTemplate::PointCloud(_) => "PointCloud",
             DatumTemplate::PointCloudInfo(_) => "PointCloudInfo",
+            DatumTemplate::Polygon(_) => "Polygon",
         }
         .to_string()
     }
@@ -63,6 +66,7 @@ impl TDatumTemplate for DatumTemplate {
             DatumTemplate::Tensor(x) => x.0.read().unwrap().get_name(),
             DatumTemplate::PointCloud(x) => x.0.read().unwrap().get_name(),
             DatumTemplate::PointCloudInfo(x) => x.0.read().unwrap().get_name(),
+            DatumTemplate::Polygon(x) => x.0.read().unwrap().get_name(),
         }
     }
     fn get_attributes(&self) -> Vec<AoristRef<Attribute>> {
@@ -78,6 +82,7 @@ impl TDatumTemplate for DatumTemplate {
             DatumTemplate::Tensor(x) => x.0.read().unwrap().get_attributes(),
             DatumTemplate::PointCloud(x) => x.0.read().unwrap().get_attributes(),
             DatumTemplate::PointCloudInfo(x) => x.0.read().unwrap().get_attributes(),
+            DatumTemplate::Polygon(x) => x.0.read().unwrap().get_attributes(),
         }
     }
 }

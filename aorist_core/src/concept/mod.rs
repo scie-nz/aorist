@@ -213,5 +213,6 @@ register_concept!(
     LINZPrimaryParcelsSchema,
     LINZPropertyTitlesSchema,
     TwoTierStorageSetup,
-    TabularCollectionSchema
+    TabularCollectionSchema,
+    Polygon
 );

@@ -11,13 +11,12 @@ use std::fmt::Debug;
 use uuid::Uuid;
 
 #[aorist]
-pub struct PointCloud {
+pub struct Polygon {
     pub name: String,
     pub dimensions: usize,
-    pub horiz_crs: Option<usize>,
-    pub vert_crs: Option<usize>,
+    pub crs: Option<usize>,
 }
-impl TDatumTemplate for PointCloud {
+impl TDatumTemplate for Polygon {
     fn get_attributes(&self) -> Vec<AoristRef<Attribute>> {
         Vec::new()
     }
