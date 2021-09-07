@@ -12,6 +12,8 @@ use std::collections::{HashSet, HashMap};
 use linked_hash_map::LinkedHashMap;
 use crate::attributes::*;
 use std::sync::{Arc, RwLock};
+#[cfg(feature = "python")]
+use pyo3::prelude::*;
 
 #[aorist]
 pub struct TabularCollectionSchema {
@@ -52,5 +54,14 @@ impl TabularCollectionSchema {
             }
         }
         attributes_map.into_iter().map(|(_, v)| v).collect()
+    }
+}
+
+#[cfg(feature = "python")]
+#[pymethods]
+impl PyTabularCollectionSchema {
+    #[getter]
+    pub fn get_source_assets(&self) -> Vec<PyAsset> {
+        self.inner.0.read().unwrap().source_assets.iter().map(|x| PyAsset{ inner: x.clone() }).collect()
     }
 }
