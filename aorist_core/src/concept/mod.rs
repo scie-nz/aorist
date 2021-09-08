@@ -215,5 +215,6 @@ register_concept!(
     TwoTierStorageSetup,
     TabularCollectionSchema,
     Polygon,
-    InlineBlobStorage
+    InlineBlobStorage,
+    WKTEncoding
 );
