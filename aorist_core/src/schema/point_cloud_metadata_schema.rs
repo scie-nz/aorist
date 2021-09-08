@@ -16,7 +16,7 @@ use pyo3::prelude::*;
 
 derived_schema! { 
     name: PointCloudMetadataSchema,
-    source: StaticDataTable,
+    source: PointCloudInfoAsset,
     attributes:
       prefix: FreeText("File Prefix", false), 
       comp_spatialreference: FreeText("Compressed spatial reference", false),
