@@ -218,5 +218,6 @@ register_concept!(
     InlineBlobStorage,
     WKTEncoding,
     PolygonSchema,
-    PointCloudInfoAsset
+    PointCloudInfoAsset,
+    PointCloudMetadataAsset
 );
