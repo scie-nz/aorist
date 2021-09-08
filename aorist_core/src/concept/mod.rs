@@ -216,5 +216,6 @@ register_concept!(
     TabularCollectionSchema,
     Polygon,
     InlineBlobStorage,
-    WKTEncoding
+    WKTEncoding,
+    PolygonSchema
 );
