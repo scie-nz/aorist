@@ -1732,6 +1732,18 @@ macro_rules! derived_schema {
                     self.sources.clone().into_iter().map(|x| Asset::$sources(x)).collect()
                 }
             }
+            #[cfg(feature = "python")]
+            #[pymethods]
+            impl [<Py $name>] {
+                #[getter]
+                pub fn sources(&self) -> Vec<PyAsset> {
+                    self.inner.0.read().unwrap().get_sources().into_iter().map(|x|
+                        PyAsset{
+                            inner: AoristRef(std::sync::Arc::new(std::sync::RwLock::new(x)))
+                        }
+                    ).collect()
+                }
+            }
         )?
      }}
 }

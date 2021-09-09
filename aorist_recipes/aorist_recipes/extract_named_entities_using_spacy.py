@@ -7,7 +7,7 @@ programs = {}
     ExtractNamedEntitiesUsingSpaCy,
     entrypoint="extract_named_entities",
     args={
-        "spacy_model": lambda spacy_named_entity_schema: spacy_named_entity_schema.spacy_model_name,
+        "spacy_model": lambda spa_cy_named_entity_schema: spa_cy_named_entity_schema.spacy_model_name,
         "text_data_file": lambda context: (context.get("text_data_file"), context),
         "ner_file": lambda named_entities, context: (
             context.capture(

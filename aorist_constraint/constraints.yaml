@@ -176,7 +176,7 @@ spec:
 type: Constraint
 spec:
   name: TextCorpusData
-  root: LanguageAsset
+  root: Asset
   requires:
       - TextCorpusDataFromHive
       - TextCorpusDataFromSQLite
@@ -185,7 +185,7 @@ spec:
 type: Constraint
 spec:
   name: TextCorpusDataFromHive
-  root: LanguageAsset
+  root: TextCorpus
   requires:
       - ConvertJSONTableToORCTable
   requiresProgram: true
@@ -214,7 +214,7 @@ spec:
 type: Constraint
 spec:
   name: TextCorpusDataFromSQLite
-  root: LanguageAsset
+  root: TextCorpus
   requires:
       - ReplicatedAsset
   requiresProgram: true
@@ -259,6 +259,12 @@ spec:
       This operation trains the Fasttext model and saves
       a dataset mapping words to their embeddings to a local
       file.
+  requiredConstraintsClosure: |
+      |root: AoristRef<Concept>, ancestry: &ConceptAncestry| {
+          vec![
+              ancestry.fasttext_embedding_schema(root.clone()).unwrap().0.read().unwrap().source.0.read().unwrap().get_uuid().clone().unwrap()
+          ]
+      }
 ---
 type: Constraint
 spec:
@@ -364,6 +370,12 @@ spec:
       - TextCorpusData
   requiresProgram: true
   title: Extracting named entities using SpaCy
+  requiredConstraintsClosure: |
+      |root: AoristRef<Concept>, ancestry: &ConceptAncestry| {
+          vec![
+              ancestry.spa_cy_named_entity_schema(root.clone()).unwrap().0.read().unwrap().source.0.read().unwrap().get_uuid().clone().unwrap()
+          ]
+      }
 ---
 type: Constraint
 spec:

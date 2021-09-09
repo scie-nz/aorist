@@ -10,7 +10,7 @@ programs = {}
     args={
         "text_attribute_name": lambda language_asset: language_asset.schema.language_asset_schema.text_attribute_name,
         "source_tables": lambda language_asset: [
-            x.name for x in language_asset.source_assets
+            x.name for x in language_asset.schema.language_asset_schema.text_corpus_schema.sources
         ],
         "dedup_text_attribute": lambda language_asset: language_asset.schema.language_asset_schema.should_dedup_text_attribute(),
         "db_filename": lambda language_asset: \
@@ -18,7 +18,6 @@ programs = {}
         "text_data_file": lambda language_asset, context: (
             context.capture(
                 "text_data_file",
-                
                 language_asset.storage_setup.local_storage_setup.tmp_dir + "/training_data.txt",
             ),
             context
