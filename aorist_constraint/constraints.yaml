@@ -194,7 +194,15 @@ spec:
       We download text corpus data data from a Hive table.
   attachIf: |
       |root: AoristRef<Concept>, ancestry: &ConceptAncestry| {
-          let source_assets = ancestry.language_asset(root.clone()).unwrap().0.read().unwrap().get_source_assets();
+          let language_asset = &*ancestry.language_asset(root.clone()).unwrap().0.read().unwrap();
+          let schema = &*language_asset.0.read().unwrap().get_schema();
+          let source_assets = match schema {
+              DataSchema::LanguageAssetSchema(x) => x.0.read().unwrap().get_source();
+              _ => panic!("schema must be LanguageAssetSchema");   
+          };
+          let source_assets = ancestry.language_asset(root.clone()).unwrap().0.read().unwrap().get_schema().0.read().unwrap();
+
+          get_source_assets();
 
           for asset in source_assets {
               let storage_setup = asset.0.read().unwrap().get_storage_setup();
@@ -359,8 +367,8 @@ spec:
 ---
 type: Constraint
 spec:
-  name: ExtractNamedEntitiesUsingSpacy
-  root: SpacyNamedEntitySchema
+  name: ExtractNamedEntitiesUsingSpaCy
+  root: SpaCyNamedEntitySchema
   requires:
       - TextCorpusData
   requiresProgram: true
@@ -376,11 +384,11 @@ spec:
 ---
 type: Constraint
 spec:
-  name: UploadSpacyToSQLite
-  root: SpacyNamedEntitySchema
+  name: UploadSpaCyToSQLite
+  root: SpaCyNamedEntitySchema
   requiresProgram: true
   requires:
-      - ExtractNamedEntitiesUsingSpacy
+      - ExtractNamedEntitiesUsingSpaCy
   title: Upload SpaCy named entities to SQLite
   attachIf: |
       |root: AoristRef<Concept>, ancestry: &ConceptAncestry| {

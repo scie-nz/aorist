@@ -11,4 +11,4 @@ use aorist_primitives::primary_schema;
 #[cfg(feature = "python")]
 use pyo3::prelude::*;
 
-primary_schema! { PolygonSchema }
+primary_schema! { name: PolygonSchema }
