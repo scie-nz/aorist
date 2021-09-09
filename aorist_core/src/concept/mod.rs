@@ -218,5 +218,6 @@ register_concept!(
     PointCloudMetadataAsset,
     TextCorpus,
     SpaCyNamedEntitySchema,
-    Text
+    Text,
+    PointCloudBoundingBoxSchema
 );
