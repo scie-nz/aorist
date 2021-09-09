@@ -125,7 +125,7 @@ impl DataSchema {
             DataSchema::TabularSchema(x) => x.0.read().unwrap().attributes.clone(),
             DataSchema::TabularCollectionSchema(x) => x.0.read().unwrap().attributes.clone(),
             DataSchema::LongTabularSchema(x) => x.0.read().unwrap().get_attribute_names(),
-            DataSchema::LanguageAssetSchema(x) => x.0.read().unwrap().get_attribute_names(),
+            DataSchema::LanguageAssetSchema(x) => x.0.read().unwrap().get_attributes().iter().map(|x| x.get_name()).collect(),
             DataSchema::GeospatialAssetSchema(x) => x.0.read().unwrap().get_attributes().iter().map(|x| x.get_name()).collect(),
             DataSchema::TimeOrderedTabularSchema(x) => x.0.read().unwrap().attributes.clone(),
             DataSchema::UndefinedTabularSchema(_) => vec![],

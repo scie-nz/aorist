@@ -1697,6 +1697,9 @@ macro_rules! derived_schema {
         pub struct $name {
             pub datum_template: AoristRef<DatumTemplate>,
             pub source: AoristRef<$source>,
+            $($(
+                pub $field_name: $field_type
+            ),+)?
         }
 
         impl $name {
