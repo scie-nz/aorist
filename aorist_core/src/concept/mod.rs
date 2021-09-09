@@ -219,5 +219,6 @@ register_concept!(
     PointCloudInfoAsset,
     PointCloudMetadataAsset,
     TextCorpus,
-    SpaCyNamedEntitySchema
+    SpaCyNamedEntitySchema,
+    Text
 );

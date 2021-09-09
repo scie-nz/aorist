@@ -179,11 +179,11 @@ local = SQLiteStorage(
 probprog = probprog.replicate_to_local(
     Storage(local), "/tmp/probprog", Encoding(CSVEncoding())
 )
+source_assets = list(probprog.assets.values())
 text_source_schema = TextCorpusSchema(
-    source=TextCorpusSource(subreddit_schema),
+    sources=[x.static_data_table for x in source_assets],
     text_attribute_name="title",
 )
-source_assets = list(probprog.assets.values())
 embedding = FasttextEmbedding(
     name="embedding",
     comment="Fasttext embedding of size 128",

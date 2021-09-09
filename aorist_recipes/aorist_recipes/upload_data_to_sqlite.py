@@ -1,11 +1,11 @@
-from aorist import aorist, UploadDataToSQLite, UploadSpacyToSQLite, UploadFasttextToSQLite
+from aorist import aorist, UploadDataToSQLite, UploadSpaCyToSQLite, UploadFasttextToSQLite
 from json import dumps
 
 programs = {}
 
 @aorist(
     programs,
-    [UploadDataToSQLite, UploadSpacyToSQLite, UploadFasttextToSQLite],
+    [UploadDataToSQLite, UploadSpaCyToSQLite, UploadFasttextToSQLite],
     entrypoint="upload_to_sqlite",
     args={
         "db_filename": lambda asset: asset.storage_setup.local[0].sq_lite_storage.location.file_name,

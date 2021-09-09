@@ -1,10 +1,10 @@
-from aorist import aorist, ExtractNamedEntitiesUsingSpacy
+from aorist import aorist, ExtractNamedEntitiesUsingSpaCy
 
 programs = {}
 
 @aorist(
     programs,
-    ExtractNamedEntitiesUsingSpacy,
+    ExtractNamedEntitiesUsingSpaCy,
     entrypoint="extract_named_entities",
     args={
         "spacy_model": lambda spacy_named_entity_schema: spacy_named_entity_schema.spacy_model_name,

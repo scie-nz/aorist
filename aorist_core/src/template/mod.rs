@@ -7,6 +7,7 @@ mod point_cloud_info;
 mod polygon;
 mod row_struct;
 mod tensor;
+mod text;
 
 pub use datum_template::*;
 pub use filter::*;
@@ -17,3 +18,4 @@ pub use point_cloud_info::*;
 pub use polygon::*;
 pub use row_struct::*;
 pub use tensor::*;
+pub use text::*;
