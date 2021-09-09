@@ -1785,3 +1785,90 @@ macro_rules! schema {
         }
     }};
 }
+#[macro_export] 
+macro_rules! asset_enum {
+    {
+        name: $name: ident
+        variants: $(- $variant: ident)+ 
+    } => { aorist_paste::paste! {
+        
+        #[aorist]
+        pub enum $name {
+            $(
+                #[constrainable]
+                $variant(AoristRef<$variant>),
+            )+
+        }
+        impl $name {
+            pub fn set_storage_setup(&mut self, setup: AoristRef<StorageSetup>) {
+                match self {
+                    $(
+                        Self::$variant(x) => x.0.write().unwrap().set_storage_setup(setup),
+                    )+
+                }
+            }
+            pub fn get_type(&self) -> String {
+                match self {
+                    $(
+                        Self::$variant(_) => stringify!($variant),
+                    )+
+                }
+                .to_string()
+            }
+            pub fn get_name(&self) -> String {
+                match self {
+                    $(
+                        Self::$variant(x) => x.0.read().unwrap().name.clone(),
+                    )+
+                }
+            }
+            pub fn get_schema(&self) -> AoristRef<DataSchema> {
+                match self {
+                    $(
+                        Self::$variant(x) => x.0.read().unwrap().get_schema(),
+                    )+
+                }
+            }
+            pub fn get_storage_setup(&self) -> AoristRef<StorageSetup> {
+                match self {
+                    $(
+                        Self::$variant(x) => x.0.read().unwrap().get_storage_setup(),
+                    )+
+                }
+            }
+            pub fn replicate_to_local(
+                &self,
+                t: AoristRef<Storage>,
+                tmp_dir: String,
+                tmp_encoding: AoristRef<Encoding>,
+            ) -> Self {
+                match self {
+                    $(
+                        Self::$variant(x) => Self::$variant(AoristRef(Arc::new(RwLock::new(
+                            x.0.read()
+                                .unwrap()
+                                .replicate_to_local(t, tmp_dir, tmp_encoding),
+                        )))),
+                    )+
+                }
+            }
+        }
+
+        #[cfg(feature = "python")]
+        #[pymethods]
+        impl [<Py $name>] {
+            #[getter]
+            pub fn get_storage_setup(&self) -> PyStorageSetup {
+                PyStorageSetup {
+                    inner: self.inner.0.read().unwrap().get_storage_setup().clone(),
+                }
+            }
+            #[getter]
+            pub fn get_schema(&self) -> PyDataSchema {
+                PyDataSchema {
+                    inner: self.inner.0.read().unwrap().get_schema().clone(),
+                }
+            }
+        }
+    }};
+}
