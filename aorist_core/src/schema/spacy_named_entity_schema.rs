@@ -22,7 +22,11 @@ derived_schema! {
     source: TextCorpus,
     attributes:
       document_id: StringIdentifier("document id", false),
-      named_entity: StringIdentifier("named entity", false)
+      named_entity: FreeText("Named Entity Text", false),
+      start: CharacterPosition("start of named entity location", false),
+      end: CharacterPosition("end of named entity location", false),
+      label: Factor("named entity label", false),
+      description: Factor("named entity description", false)
     fields:
       spacy_model_name: String
 }

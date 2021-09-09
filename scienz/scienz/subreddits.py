@@ -213,16 +213,15 @@ embedding = FasttextEmbedding(
 probprog.add_asset(Asset(LanguageAsset(embedding)))
 named_entities = NamedEntities(
     name="named_entities",
-    comment="Spacy Named Entities",
-    schema=DataSchema(LanguageAssetSchema(NamedEntitySchema(SpacyNamedEntitySchema(
+    comment="SpaCy Named Entities",
+    schema=DataSchema(LanguageAssetSchema(NamedEntitySchema(SpaCyNamedEntitySchema(
         spacy_model_name="en_core_web_sm",
-        source_schema=text_source_schema,
+        source=text_corpus,
         datum_template=DatumTemplate(spacy_ner_datum),
     )))),
     setup=StorageSetup(LocalStorageSetup(
         Storage(local),
         '/tmp/probprog',
     )),
-    source_assets=source_assets,
 )
 probprog.add_asset(Asset(LanguageAsset(named_entities)))
