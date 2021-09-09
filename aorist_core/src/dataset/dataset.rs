@@ -205,7 +205,7 @@ impl PyDataSet {
         Ok(PyDataSet { inner })
     }
     pub fn get_template(&self, asset: PyAsset) -> PyResult<PyDatumTemplate> {
-        let schema = asset.schema()?;
+        let schema = asset.get_schema();
         let template_name = schema.get_datum_template_name()?;
         let mapped_templates = self.get_mapped_datum_templates();
         let template = mapped_templates.get(&template_name);
@@ -214,7 +214,7 @@ impl PyDataSet {
             None => Err(PyValueError::new_err(format!(
                 "Could not find template {} for asset {} in dataset {}.\nTemplate names: {}",
                 template_name,
-                asset.name()?,
+                asset.name(),
                 self.name()?,
                 mapped_templates
                     .keys()

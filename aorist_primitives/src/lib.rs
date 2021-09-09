@@ -1789,51 +1789,71 @@ macro_rules! schema {
 macro_rules! asset_enum {
     {
         name: $name: ident
-        variants: $(- $variant: ident)+ 
+        $($(concrete_variants)? $(variants)? : $(- $variant: ident)+)? 
+        $(enum_variants: $(- $enum_variant: ident)+)? 
     } => { aorist_paste::paste! {
         
         #[aorist]
         pub enum $name {
-            $(
+            $($(
                 #[constrainable]
                 $variant(AoristRef<$variant>),
-            )+
+            )+)?
+            $($(
+                #[constrainable]
+                $enum_variant(AoristRef<$enum_variant>),
+            )+)?
         }
         impl $name {
             pub fn set_storage_setup(&mut self, setup: AoristRef<StorageSetup>) {
                 match self {
-                    $(
+                    $($(
                         Self::$variant(x) => x.0.write().unwrap().set_storage_setup(setup),
-                    )+
+                    )+)?
+                    $($(
+                        Self::$enum_variant(x) => x.0.write().unwrap().set_storage_setup(setup),
+                    )+)?
                 }
             }
             pub fn get_type(&self) -> String {
                 match self {
-                    $(
+                    $($(
                         Self::$variant(_) => stringify!($variant),
-                    )+
+                    )+)?
+                    $($(
+                        Self::$enum_variant(_) => stringify!($enum_variant),
+                    )+)?
                 }
                 .to_string()
             }
             pub fn get_name(&self) -> String {
                 match self {
-                    $(
+                    $($(
                         Self::$variant(x) => x.0.read().unwrap().name.clone(),
-                    )+
+                    )+)?
+                    $($(
+                        Self::$enum_variant(x) => x.0.read().unwrap().get_name(),
+                    )+)?
                 }
             }
             pub fn get_schema(&self) -> AoristRef<DataSchema> {
                 match self {
-                    $(
+                    $($(
                         Self::$variant(x) => x.0.read().unwrap().get_schema(),
-                    )+
+                    )+)?
+                    $($(
+                        Self::$enum_variant(x) => x.0.read().unwrap().get_schema(),
+                    )+)?
                 }
             }
             pub fn get_storage_setup(&self) -> AoristRef<StorageSetup> {
                 match self {
-                    $(
+                    $($(
                         Self::$variant(x) => x.0.read().unwrap().get_storage_setup(),
-                    )+
+                    )+)?
+                    $($(
+                        Self::$enum_variant(x) => x.0.read().unwrap().get_storage_setup(),
+                    )+)?
                 }
             }
             pub fn replicate_to_local(
@@ -1843,13 +1863,18 @@ macro_rules! asset_enum {
                 tmp_encoding: AoristRef<Encoding>,
             ) -> Self {
                 match self {
-                    $(
+                    $($(
                         Self::$variant(x) => Self::$variant(AoristRef(Arc::new(RwLock::new(
                             x.0.read()
                                 .unwrap()
                                 .replicate_to_local(t, tmp_dir, tmp_encoding),
                         )))),
-                    )+
+                    )+)?
+                    $($(
+                        Self::$enum_variant(x) => Self::$enum_variant(AoristRef(Arc::new(RwLock::new(
+                            x.0.read().unwrap().replicate_to_local(t, tmp_dir, tmp_encoding)
+                        )))),
+                    )+)?
                 }
             }
         }
@@ -1857,6 +1882,10 @@ macro_rules! asset_enum {
         #[cfg(feature = "python")]
         #[pymethods]
         impl [<Py $name>] {
+            #[getter]
+            pub fn name(&self) -> String {
+                self.inner.0.read().unwrap().get_name()
+            }
             #[getter]
             pub fn get_storage_setup(&self) -> PyStorageSetup {
                 PyStorageSetup {
