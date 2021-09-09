@@ -180,23 +180,35 @@ probprog = probprog.replicate_to_local(
     Storage(local), "/tmp/probprog", Encoding(CSVEncoding())
 )
 source_assets = list(probprog.assets.values())
-text_source_schema = TextCorpusSchema(
+text_template = DatumTemplate(Text(name="corpus"))
+text_corpus_schema = TextCorpusSchema(
     sources=[x.static_data_table for x in source_assets],
+    datum_template=text_template,
     text_attribute_name="title",
 )
+text_corpus = TextCorpus(
+    name="text_corpus",
+    comment="Subreddit text corpus",
+    schema=DataSchema(LanguageAssetSchema(text_corpus_schema)),
+    setup=StorageSetup(LocalStorageSetup(
+        Storage(local),
+        '/tmp/probprog',
+    )),
+)
+probprog.add_asset(Asset(LanguageAsset(text_corpus)))
+
 embedding = FasttextEmbedding(
     name="embedding",
     comment="Fasttext embedding of size 128",
     schema=DataSchema(LanguageAssetSchema(FasttextEmbeddingSchema(
         dim=16,
-        source_schema=text_source_schema,
+        source=text_corpus,
         datum_template=DatumTemplate(fasttext_datum)
     ))),
     setup=StorageSetup(LocalStorageSetup(
         Storage(local),
         '/tmp/probprog',
     )),
-    source_assets=source_assets,
 )
 probprog.add_asset(Asset(LanguageAsset(embedding)))
 named_entities = NamedEntities(
