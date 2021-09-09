@@ -194,18 +194,9 @@ spec:
       We download text corpus data data from a Hive table.
   attachIf: |
       |root: AoristRef<Concept>, ancestry: &ConceptAncestry| {
-          let language_asset = &*ancestry.language_asset(root.clone()).unwrap().0.read().unwrap();
-          let schema = &*language_asset.0.read().unwrap().get_schema();
-          let source_assets = match schema {
-              DataSchema::LanguageAssetSchema(x) => x.0.read().unwrap().get_source();
-              _ => panic!("schema must be LanguageAssetSchema");   
-          };
-          let source_assets = ancestry.language_asset(root.clone()).unwrap().0.read().unwrap().get_schema().0.read().unwrap();
-
-          get_source_assets();
-
-          for asset in source_assets {
-              let storage_setup = asset.0.read().unwrap().get_storage_setup();
+          let language_asset = ancestry.language_asset(root.clone()).unwrap();
+          for asset in language_asset.0.read().unwrap().get_source_assets() {
+              let storage_setup = asset.get_storage_setup();
               let local_storages = storage_setup.0.read().unwrap().get_local_storage();
               let mut hive_storage = false;
               for storage in &local_storages {
@@ -232,9 +223,9 @@ spec:
       We download corpus data from a SQLite table.
   attachIf: |
       |root: AoristRef<Concept>, ancestry: &ConceptAncestry| {
-          let source_assets = ancestry.language_asset(root.clone()).unwrap().0.read().unwrap().get_source_assets();
-          for asset in source_assets {
-              let storage_setup = asset.0.read().unwrap().get_storage_setup();
+          let language_asset = ancestry.language_asset(root.clone()).unwrap();
+          for asset in language_asset.0.read().unwrap().get_source_assets() {
+              let storage_setup = asset.get_storage_setup();
               let local_storages = storage_setup.0.read().unwrap().get_local_storage();
               let mut sqlite_storage = false;
               for storage in &local_storages {
@@ -252,7 +243,7 @@ spec:
       |root: AoristRef<Concept>, ancestry: &ConceptAncestry| {
           let language_asset = ancestry.language_asset(root.clone()).unwrap();
           let uuids = language_asset.0.read().unwrap().get_source_assets()
-              .iter().map(|x| x.0.read().unwrap().get_uuid().unwrap()).collect::<Vec<_>>();
+              .iter().map(|x| x.get_uuid().unwrap()).collect::<Vec<_>>();
           uuids
       }
 ---

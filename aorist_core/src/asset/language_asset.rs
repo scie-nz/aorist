@@ -79,6 +79,14 @@ impl LanguageAsset {
             LanguageAsset::NamedEntities(x) => x.0.read().unwrap().setup.clone(),
         }
     }
+    pub fn get_source_assets(&self) -> Vec<Asset> {
+        let source_schema = match &*self.get_schema().0.read().unwrap() {
+            DataSchema::LanguageAssetSchema(x) => x.0.read().unwrap().get_source_schema(),
+            _ => panic!("schema must be LanguageAssetSchema"),
+        };
+        let sources = source_schema.0.read().unwrap().get_sources();
+        sources
+    }
     pub fn replicate_to_local(
         &self,
         _t: AoristRef<Storage>,

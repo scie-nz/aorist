@@ -10,5 +10,5 @@ pub trait SingleSourceDerivedAssetSchema<'a>: DerivedAssetSchema<'a> {
     fn get_source(&self) -> AoristRef<<Self as DerivedAssetSchema<'a>>::SourceAssetType>;
 }
 pub trait MultipleSourceDerivedAssetSchema<'a>: DerivedAssetSchema<'a> {
-    fn get_sources(&self) -> Vec<AoristRef<<Self as DerivedAssetSchema<'a>>::SourceAssetType>>;
+    fn get_sources(&self) -> Vec<Asset>;
 }

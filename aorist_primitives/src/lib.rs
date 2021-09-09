@@ -1725,8 +1725,8 @@ macro_rules! derived_schema {
                 type SourceAssetType = $sources; 
             }
             impl MultipleSourceDerivedAssetSchema<'_> for $name {
-                fn get_sources(&self) -> Vec<AoristRef<$sources>> {
-                    self.sources.clone()
+                fn get_sources(&self) -> Vec<Asset> {
+                    self.sources.clone().into_iter().map(|x| Asset::$sources(x)).collect()
                 }
             }
         )?

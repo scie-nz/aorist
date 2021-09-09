@@ -28,7 +28,7 @@ derived_schema! {
 impl TextCorpusSchema {
     pub fn should_dedup_text_attribute(&self) -> bool {
         for source in &*self.get_sources() {
-            let dedup = match &*source.0.read().unwrap().get_schema().0.read().unwrap() {
+            let dedup = match &*source.get_schema().0.read().unwrap() {
                 DataSchema::TabularSchema(_) => false,
                 DataSchema::LongTabularSchema(x) => {
                     x.0.read().unwrap().should_dedup_text_attribute(&self.text_attribute_name)
