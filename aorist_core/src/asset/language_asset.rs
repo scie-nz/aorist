@@ -20,29 +20,21 @@ pub enum LanguageAsset {
     FasttextEmbedding(AoristRef<FasttextEmbedding>),
     #[constrainable]
     NamedEntities(AoristRef<NamedEntities>),
+    #[constrainable]
+    TextCorpus(AoristRef<TextCorpus>),
 }
 impl LanguageAsset {
     pub fn set_storage_setup(&mut self, setup: AoristRef<StorageSetup>) {
         match self {
             Self::FasttextEmbedding(x) => x.0.write().unwrap().set_storage_setup(setup),
             Self::NamedEntities(x) => x.0.write().unwrap().set_storage_setup(setup),
+            Self::TextCorpus(x) => x.0.write().unwrap().set_storage_setup(setup),
         }
     }
 }
 #[cfg(feature = "python")]
 #[pymethods]
 impl PyLanguageAsset {
-    #[getter]
-    pub fn get_source_assets(&self) -> Vec<PyAsset> {
-        self.inner
-            .0
-            .read()
-            .unwrap()
-            .get_source_assets()
-            .iter()
-            .map(|x| PyAsset { inner: x.clone() })
-            .collect()
-    }
     #[getter]
     pub fn get_storage_setup(&self) -> PyStorageSetup {
         PyStorageSetup {
@@ -58,34 +50,32 @@ impl PyLanguageAsset {
 }
 
 impl LanguageAsset {
-    pub fn get_source_assets(&self) -> Vec<AoristRef<Asset>> {
-        match self {
-            LanguageAsset::NamedEntities(x) => x.0.read().unwrap().get_source_assets(),
-            LanguageAsset::FasttextEmbedding(x) => x.0.read().unwrap().get_source_assets(),
-        }
-    }
     pub fn get_type(&self) -> String {
         match self {
             LanguageAsset::NamedEntities(_) => "LanguageAsset",
             LanguageAsset::FasttextEmbedding(_) => "FasttextEmbedding",
+            LanguageAsset::TextCorpus(_) => "TextCorpus",
         }
         .to_string()
     }
     pub fn get_name(&self) -> String {
         match self {
             LanguageAsset::FasttextEmbedding(x) => x.0.read().unwrap().name.clone(),
+            LanguageAsset::TextCorpus(x) => x.0.read().unwrap().name.clone(),
             LanguageAsset::NamedEntities(x) => x.0.read().unwrap().name.clone(),
         }
     }
     pub fn get_schema(&self) -> AoristRef<DataSchema> {
         match self {
             LanguageAsset::FasttextEmbedding(x) => x.0.read().unwrap().schema.clone(),
+            LanguageAsset::TextCorpus(x) => x.0.read().unwrap().schema.clone(),
             LanguageAsset::NamedEntities(x) => x.0.read().unwrap().schema.clone(),
         }
     }
     pub fn get_storage_setup(&self) -> AoristRef<StorageSetup> {
         match self {
             LanguageAsset::FasttextEmbedding(x) => x.0.read().unwrap().setup.clone(),
+            LanguageAsset::TextCorpus(x) => x.0.read().unwrap().setup.clone(),
             LanguageAsset::NamedEntities(x) => x.0.read().unwrap().setup.clone(),
         }
     }

@@ -219,5 +219,6 @@ register_concept!(
     WKTEncoding,
     PolygonSchema,
     PointCloudInfoAsset,
-    PointCloudMetadataAsset
+    PointCloudMetadataAsset,
+    TextCorpus
 );

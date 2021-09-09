@@ -11,6 +11,7 @@ mod polygon_collection_asset;
 mod raster_asset;
 mod static_data_table;
 mod supervised_model;
+mod text_corpus;
 
 pub use asset::*;
 pub use derived_asset::*;
@@ -25,3 +26,4 @@ pub use polygon_collection_asset::*;
 pub use raster_asset::*;
 pub use static_data_table::*;
 pub use supervised_model::*;
+pub use text_corpus::*;
