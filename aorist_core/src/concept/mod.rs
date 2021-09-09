@@ -105,8 +105,6 @@ register_concept!(
     SVMRegressionAlgorithm,
     Asset,
     StaticDataTable,
-    SupervisedModel,
-    DerivedAsset,
     Attribute,
     Predicate,
     APILayout,

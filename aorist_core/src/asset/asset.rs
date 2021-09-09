@@ -1,9 +1,7 @@
 #![allow(non_snake_case)]
-use crate::asset::derived_asset::*;
 use crate::asset::geospatial_asset::*;
 use crate::asset::language_asset::*;
 use crate::asset::static_data_table::*;
-use crate::asset::supervised_model::*;
 use crate::concept::{AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
 use aorist_primitives::asset_enum;
 use crate::encoding::Encoding;
@@ -37,7 +35,6 @@ asset_enum! {
     name: Asset
     concrete_variants:
     - StaticDataTable
-    - SupervisedModel
     enum_variants:
     - GeospatialAsset
     - LanguageAsset
