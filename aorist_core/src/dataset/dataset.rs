@@ -183,13 +183,17 @@ impl PyDataSet {
         let mut replicated_assets = BTreeMap::new();
         for (key, asset_rw) in dt.assets.iter() {
             let asset = &*asset_rw.0.read().unwrap();
+            let replicated_asset = match asset.replicate_to_local(
+                storage.inner.deep_clone(),
+                tmp_dir.clone(),
+                tmp_encoding.inner.deep_clone(),
+            ) {
+                Some(x) => AoristRef(Arc::new(RwLock::new(x))),
+                None => asset_rw.clone(),
+            };
             replicated_assets.insert(
                 key.clone(),
-                AoristRef(Arc::new(RwLock::new(asset.replicate_to_local(
-                    storage.inner.deep_clone(),
-                    tmp_dir.clone(),
-                    tmp_encoding.inner.deep_clone(),
-                )))),
+                replicated_asset,
             );
         }
         let inner = AoristRef(Arc::new(RwLock::new(DataSet {

@@ -1666,21 +1666,24 @@ macro_rules! asset {
                 t: AoristRef<Storage>,
                 tmp_dir: String,
                 tmp_encoding: AoristRef<Encoding>,
-            ) -> Self {
-                Self {
-                    name: self.name.clone(),
-                    comment: self.comment.clone(),
-                    setup: AoristRef(Arc::new(RwLock::new(
-                        self.setup
-                            .0
-                            .read()
-                            .unwrap()
-                            .replicate_to_local(t, tmp_dir, tmp_encoding),
-                    ))),
-                    schema: self.schema.clone(),
-                    tag: self.tag.clone(),
-                    uuid: None,
+            ) -> Option<Self> {
+                if let StorageSetup::RemoteStorageSetup(s) = &*self.setup.0.read().unwrap() { 
+                    return Some(Self {
+                        name: self.name.clone(),
+                        comment: self.comment.clone(),
+                        setup: AoristRef(Arc::new(RwLock::new(
+                            self.setup
+                                .0
+                                .read()
+                                .unwrap()
+                                .replicate_to_local(t, tmp_dir, tmp_encoding),
+                        ))),
+                        schema: self.schema.clone(),
+                        tag: self.tag.clone(),
+                        uuid: None,
+                    });
                 }
+                None
             }
         }
     }
@@ -1861,19 +1864,21 @@ macro_rules! asset_enum {
                 t: AoristRef<Storage>,
                 tmp_dir: String,
                 tmp_encoding: AoristRef<Encoding>,
-            ) -> Self {
+            ) -> Option<Self> {
                 match self {
                     $($(
-                        Self::$variant(x) => Self::$variant(AoristRef(Arc::new(RwLock::new(
-                            x.0.read()
-                                .unwrap()
-                                .replicate_to_local(t, tmp_dir, tmp_encoding),
-                        )))),
+                        Self::$variant(x) => x.0.read()
+                            .unwrap()
+                            .replicate_to_local(t, tmp_dir, tmp_encoding).and_then(|r|
+                                Some(Self::$variant(AoristRef(Arc::new(RwLock::new(r)))))
+                            ),
                     )+)?
                     $($(
-                        Self::$enum_variant(x) => Self::$enum_variant(AoristRef(Arc::new(RwLock::new(
-                            x.0.read().unwrap().replicate_to_local(t, tmp_dir, tmp_encoding)
-                        )))),
+                        Self::$enum_variant(x) => x.0.read()
+                            .unwrap()
+                            .replicate_to_local(t, tmp_dir, tmp_encoding).and_then(|r|
+                                Some(Self::$enum_variant(AoristRef(Arc::new(RwLock::new(r)))))
+                            ),
                     )+)?
                 }
             }
