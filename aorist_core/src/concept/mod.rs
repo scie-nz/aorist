@@ -220,5 +220,6 @@ register_concept!(
     PolygonSchema,
     PointCloudInfoAsset,
     PointCloudMetadataAsset,
-    TextCorpus
+    TextCorpus,
+    SpaCyNamedEntitySchema
 );

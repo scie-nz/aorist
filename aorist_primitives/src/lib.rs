@@ -1688,8 +1688,11 @@ macro_rules! asset {
 
 #[macro_export]
 macro_rules! derived_schema {
-    {name: $name: ident, source: $source: ty, attributes:
-    $($attr_name: ident : $attribute: ident ($comment: expr, $nullable: expr )),+} => { aorist_paste::paste! {
+    {name: $name: ident, source: $source: ty, 
+    attributes:
+    $($attr_name: ident : $attribute: ident ($comment: expr, $nullable: expr )),+
+    $(fields: $($field_name: ident : $field_type: ty),+)?
+    } => { aorist_paste::paste! {
         #[aorist]
         pub struct $name {
             pub datum_template: AoristRef<DatumTemplate>,
