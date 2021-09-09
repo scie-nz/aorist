@@ -3,7 +3,7 @@ use crate::template::*;
 use crate::asset::*;
 use crate::schema::data_schema::DataSchema;
 use crate::schema::language_asset_schema::LanguageAssetSchema;
-use crate::schema::derived_asset_schema::DerivedAssetSchema;
+use crate::schema::derived_asset_schema::*;
 use crate::schema::text_corpus_schema::TextCorpusSchema;
 use aorist_concept::{aorist, Constrainable};
 use aorist_primitives::{attribute, derived_schema};

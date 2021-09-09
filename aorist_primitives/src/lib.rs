@@ -1690,6 +1690,7 @@ macro_rules! asset {
 macro_rules! derived_schema {
     {name: $name: ident
     $(, source: $source: ty)?
+    $(, sources: $sources: ty)?
     , attributes:
     $($attr_name: ident : $attribute: ident ($comment: expr, $nullable: expr )),+
     $(fields: $($field_name: ident : $field_type: ty),+)?
@@ -1698,6 +1699,7 @@ macro_rules! derived_schema {
         pub struct $name {
             pub datum_template: AoristRef<DatumTemplate>,
             $(pub source: AoristRef<$source>,)?
+            $(pub sources: Vec<AoristRef<$sources>>,)?
             $($(
                 pub $field_name: $field_type
             ),+)?
@@ -1711,8 +1713,20 @@ macro_rules! derived_schema {
         $(
             impl DerivedAssetSchema<'_> for $name {
                 type SourceAssetType = $source; 
-                fn get_source(&self) -> AoristRef<Self::SourceAssetType> {
+            }
+            impl SingleSourceDerivedAssetSchema<'_> for $name {
+                fn get_source(&self) -> AoristRef<$source> {
                     self.source.clone()
+                }
+            }
+        )?
+        $(
+            impl DerivedAssetSchema<'_> for $name {
+                type SourceAssetType = $sources; 
+            }
+            impl MultipleSourceDerivedAssetSchema<'_> for $name {
+                fn get_sources(&self) -> Vec<AoristRef<$sources>> {
+                    self.sources.clone()
                 }
             }
         )?

@@ -2,7 +2,7 @@ use crate::concept::{AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
 use crate::template::*;
 use crate::asset::*;
 use crate::schema::data_schema::DataSchema;
-use crate::schema::derived_asset_schema::DerivedAssetSchema;
+use crate::schema::derived_asset_schema::*;
 use aorist_concept::{aorist, Constrainable};
 use aorist_primitives::{attribute, derived_schema};
 use aorist_attributes::*;
@@ -17,7 +17,7 @@ use pyo3::prelude::*;
 
 derived_schema! { 
     name: TextCorpusSchema,
-    source: StaticDataTable,
+    sources: StaticDataTable,
     attributes:
       document_id: StringIdentifier("document id", false),
       document: FreeText("document text", false)
@@ -27,13 +27,19 @@ derived_schema! {
 
 impl TextCorpusSchema {
     pub fn should_dedup_text_attribute(&self) -> bool {
-        match &*self.get_source().0.read().unwrap().get_schema().0.read().unwrap() {
-            DataSchema::TabularSchema(_) => false,
-            DataSchema::LongTabularSchema(x) => {
-                x.0.read().unwrap().should_dedup_text_attribute(&self.text_attribute_name)
+        for source in &*self.get_sources() {
+            let dedup = match &*source.0.read().unwrap().get_schema().0.read().unwrap() {
+                DataSchema::TabularSchema(_) => false,
+                DataSchema::LongTabularSchema(x) => {
+                    x.0.read().unwrap().should_dedup_text_attribute(&self.text_attribute_name)
+                }
+                _ => panic!("DataSchema must be either TabularSchema or LongTabularSchema"),
+            };
+            if dedup {
+                return true;
             }
-            _ => panic!("DataSchema must be either TabularSchema or LongTabularSchema"),
         }
+        false
     }
 }
 
