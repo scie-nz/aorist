@@ -22,4 +22,5 @@ asset_enum! {
     - PolygonCollectionAsset
     - PointCloudInfoAsset
     - PointCloudMetadataAsset
+    - PolygonIntersectionAsset
 }
