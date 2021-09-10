@@ -219,5 +219,6 @@ register_concept!(
     TextCorpus,
     SpaCyNamedEntitySchema,
     Text,
-    PointCloudBoundingBoxSchema
+    PointCloudBoundingBoxSchema,
+    PolygonIntersection
 );
