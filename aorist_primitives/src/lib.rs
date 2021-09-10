@@ -1807,8 +1807,9 @@ macro_rules! asset_enum {
         $($(concrete_variants)? $(variants)? : $(- $variant: ident)+)? 
         $(enum_variants: $(- $enum_variant: ident)+)? 
     } => { aorist_paste::paste! {
-        
+       
         #[aorist]
+        #[derive(Eq)]
         pub enum $name {
             $($(
                 #[constrainable]
@@ -1818,6 +1819,38 @@ macro_rules! asset_enum {
                 #[constrainable]
                 $enum_variant(AoristRef<$enum_variant>),
             )+)?
+        }
+        impl TAsset for $name {
+            fn get_name(&self) -> String {
+                match self {
+                    $($(
+                        Self::$variant(x) => x.0.read().unwrap().name.clone(),
+                    )+)?
+                    $($(
+                        Self::$enum_variant(x) => x.0.read().unwrap().get_name(),
+                    )+)?
+                }
+            }
+            fn get_schema(&self) -> AoristRef<DataSchema> {
+                match self {
+                    $($(
+                        Self::$variant(x) => x.0.read().unwrap().get_schema(),
+                    )+)?
+                    $($(
+                        Self::$enum_variant(x) => x.0.read().unwrap().get_schema(),
+                    )+)?
+                }
+            }
+            fn get_storage_setup(&self) -> AoristRef<StorageSetup> {
+                match self {
+                    $($(
+                        Self::$variant(x) => x.0.read().unwrap().get_storage_setup(),
+                    )+)?
+                    $($(
+                        Self::$enum_variant(x) => x.0.read().unwrap().get_storage_setup(),
+                    )+)?
+                }
+            }
         }
         impl $name {
             pub fn set_storage_setup(&mut self, setup: AoristRef<StorageSetup>) {
@@ -1840,36 +1873,6 @@ macro_rules! asset_enum {
                     )+)?
                 }
                 .to_string()
-            }
-            pub fn get_name(&self) -> String {
-                match self {
-                    $($(
-                        Self::$variant(x) => x.0.read().unwrap().name.clone(),
-                    )+)?
-                    $($(
-                        Self::$enum_variant(x) => x.0.read().unwrap().get_name(),
-                    )+)?
-                }
-            }
-            pub fn get_schema(&self) -> AoristRef<DataSchema> {
-                match self {
-                    $($(
-                        Self::$variant(x) => x.0.read().unwrap().get_schema(),
-                    )+)?
-                    $($(
-                        Self::$enum_variant(x) => x.0.read().unwrap().get_schema(),
-                    )+)?
-                }
-            }
-            pub fn get_storage_setup(&self) -> AoristRef<StorageSetup> {
-                match self {
-                    $($(
-                        Self::$variant(x) => x.0.read().unwrap().get_storage_setup(),
-                    )+)?
-                    $($(
-                        Self::$enum_variant(x) => x.0.read().unwrap().get_storage_setup(),
-                    )+)?
-                }
             }
             pub fn replicate_to_local(
                 &self,

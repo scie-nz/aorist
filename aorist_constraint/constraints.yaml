@@ -196,7 +196,7 @@ spec:
       |root: AoristRef<Concept>, ancestry: &ConceptAncestry| {
           let language_asset = ancestry.language_asset(root.clone()).unwrap();
           for asset in language_asset.0.read().unwrap().get_source_assets() {
-              let storage_setup = asset.get_storage_setup();
+              let storage_setup = aorist_core::TAsset::get_storage_setup(&asset);
               let local_storages = storage_setup.0.read().unwrap().get_local_storage();
               let mut hive_storage = false;
               for storage in &local_storages {
@@ -225,7 +225,7 @@ spec:
       |root: AoristRef<Concept>, ancestry: &ConceptAncestry| {
           let language_asset = ancestry.language_asset(root.clone()).unwrap();
           for asset in language_asset.0.read().unwrap().get_source_assets() {
-              let storage_setup = asset.get_storage_setup();
+              let storage_setup = aorist_core::TAsset::get_storage_setup(&asset);
               let local_storages = storage_setup.0.read().unwrap().get_local_storage();
               let mut sqlite_storage = false;
               for storage in &local_storages {
