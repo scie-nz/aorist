@@ -6,6 +6,7 @@ use crate::schema::point_cloud_bounding_box_schema::*;
 use crate::schema::point_cloud_info_schema::*;
 use crate::schema::point_cloud_metadata_schema::*;
 use crate::schema::point_cloud_schema::*;
+use crate::schema::polygon_intersection_schema::*;
 use crate::schema::polygon_schema::*;
 use crate::schema::raster_schema::*;
 use crate::template::*;
@@ -26,6 +27,7 @@ pub enum GeospatialAssetSchema {
     PointCloudInfoSchema(AoristRef<PointCloudInfoSchema>),
     PointCloudMetadataSchema(AoristRef<PointCloudMetadataSchema>),
     RasterSchema(AoristRef<RasterSchema>),
+    PolygonIntersectionSchema(AoristRef<PolygonIntersectionSchema>),
     PolygonSchema(AoristRef<PolygonSchema>),
 }
 impl GeospatialAssetSchema {
@@ -39,6 +41,7 @@ impl GeospatialAssetSchema {
             Self::PointCloudInfoSchema(x) => x.0.read().unwrap().get_attributes(),
             Self::PointCloudMetadataSchema(x) => x.0.read().unwrap().get_attributes(),
             Self::RasterSchema(x) => x.0.read().unwrap().get_attributes(),
+            Self::PolygonIntersectionSchema(x) => x.0.read().unwrap().get_attributes(),
             Self::PolygonSchema(x) => x.0.read().unwrap().get_attributes(),
         }
     }
@@ -52,6 +55,7 @@ impl GeospatialAssetSchema {
             Self::PointCloudInfoSchema(x) => x.0.read().unwrap().get_datum_template(),
             Self::PointCloudMetadataSchema(x) => x.0.read().unwrap().get_datum_template(),
             Self::RasterSchema(x) => x.0.read().unwrap().get_datum_template(),
+            Self::PolygonIntersectionSchema(x) => x.0.read().unwrap().get_datum_template(),
             Self::PolygonSchema(x) => x.0.read().unwrap().get_datum_template(),
         }
     }
