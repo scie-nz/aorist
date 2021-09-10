@@ -85,7 +85,10 @@ where
             for req in builder.get_required_constraint_names() {
                 debug!("  - {}", req);
                 if !visited.contains(&req) {
-                    let another = builders.remove(&req).unwrap();
+                    let another = match builders.remove(&req) {
+                        Some(x) => x,
+                        None => panic!("Cannot find {} in builders.", req),
+                    };
                     builder_q.push_back((req.clone(), another));
                     visited.insert(req.clone());
                 }
