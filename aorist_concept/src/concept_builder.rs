@@ -86,7 +86,7 @@ pub trait TConceptBuilder {
                 let variant_type = variants.iter().map(|x| (&x.fields)).collect::<Vec<_>>();
                 let quoted = quote! {
                     #[cfg_attr(feature = "python", derive(pyo3::prelude::FromPyObject))]
-                    #[derive(Debug, PartialEq, Serialize, Deserialize, Clone, Hash)]
+                    #[derive(Debug, PartialEq, Serialize, Deserialize, Clone, Hash, Eq)]
                     #[serde(tag = "type")]
                     pub enum #enum_name {
                         #(#variant(#variant_type)),*

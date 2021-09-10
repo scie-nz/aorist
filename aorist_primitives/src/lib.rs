@@ -17,6 +17,19 @@ macro_rules! register_ast_nodes {
                 $variant(Arc<RwLock<$variant>>),
             )+
         }
+        impl PartialEq for $name {
+            fn eq(&self, other: &Self) -> bool {
+                match (&self, other) {
+                    $(
+                        (Self::$variant(v1), Self::$variant(v2)) => {
+                            v1.read().unwrap().eq(&v2.read().unwrap())
+                        },
+                    )+
+                    (_, _) => false,
+                }
+            }
+        }
+        impl Eq for $name {}
         impl $name {
             pub fn clone_without_ancestors(&self) -> Self {
                 match &self {
@@ -105,19 +118,6 @@ macro_rules! register_ast_nodes {
                 }
             }
         }
-        impl PartialEq for $name {
-            fn eq(&self, other: &Self) -> bool {
-                match (&self, other) {
-                    $(
-                        (Self::$variant(v1), Self::$variant(v2)) => {
-                            v1.read().unwrap().eq(&v2.read().unwrap())
-                        },
-                    )+
-                    (_, _) => false,
-                }
-            }
-        }
-        impl Eq for $name {}
         impl Hash for $name {
             fn hash<H: Hasher>(&self, state: &mut H) {
                 match &self {

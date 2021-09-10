@@ -24,11 +24,12 @@ impl<'a, T: PartialEq + Serialize + Debug + Clone + FromPyObject<'a>> FromPyObje
     }
 }
 
-impl<T: PartialEq + Serialize + Debug + Clone> PartialEq for AoristRef<T> {
+impl<T: PartialEq + Eq + Serialize + Debug + Clone> PartialEq for AoristRef<T> {
     fn eq(&self, other: &Self) -> bool {
         self.0.read().unwrap().eq(&other.0.read().unwrap())
     }
 }
+impl <T: PartialEq + Eq + Serialize + Debug + Clone> Eq for AoristRef<T> {}
 impl<T: PartialEq + Serialize + Debug + Clone> Serialize for AoristRef<T> {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
