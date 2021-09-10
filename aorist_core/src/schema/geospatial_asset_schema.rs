@@ -10,6 +10,7 @@ use crate::schema::polygon_intersection_schema::*;
 use crate::schema::polygon_schema::*;
 use crate::schema::raster_schema::*;
 use crate::template::*;
+use aorist_primitives::schema_enum;
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
 use serde::{Deserialize, Serialize};
@@ -17,46 +18,17 @@ use std::fmt::Debug;
 use uuid::Uuid;
 use crate::attributes::*;
 
-#[aorist]
-pub enum GeospatialAssetSchema {
-    LINZPrimaryParcelsSchema(AoristRef<LINZPrimaryParcelsSchema>),
-    LINZPropertyTitlesSchema(AoristRef<LINZPropertyTitlesSchema>),
-    PointCloudSchema(AoristRef<PointCloudSchema>),
-    PointCloudBoundarySchema(AoristRef<PointCloudBoundarySchema>),
-    PointCloudBoundingBoxSchema(AoristRef<PointCloudBoundingBoxSchema>),
-    PointCloudInfoSchema(AoristRef<PointCloudInfoSchema>),
-    PointCloudMetadataSchema(AoristRef<PointCloudMetadataSchema>),
-    RasterSchema(AoristRef<RasterSchema>),
-    PolygonIntersectionSchema(AoristRef<PolygonIntersectionSchema>),
-    PolygonSchema(AoristRef<PolygonSchema>),
-}
-impl GeospatialAssetSchema {
-    pub fn get_attributes(&self) -> Vec<AoristRef<Attribute>> {
-        match self {
-            Self::LINZPrimaryParcelsSchema(x) => x.0.read().unwrap().get_attributes(),
-            Self::LINZPropertyTitlesSchema(x) => x.0.read().unwrap().get_attributes(),
-            Self::PointCloudSchema(x) => x.0.read().unwrap().get_attributes(),
-            Self::PointCloudBoundarySchema(x) => x.0.read().unwrap().get_attributes(),
-            Self::PointCloudBoundingBoxSchema(x) => x.0.read().unwrap().get_attributes(),
-            Self::PointCloudInfoSchema(x) => x.0.read().unwrap().get_attributes(),
-            Self::PointCloudMetadataSchema(x) => x.0.read().unwrap().get_attributes(),
-            Self::RasterSchema(x) => x.0.read().unwrap().get_attributes(),
-            Self::PolygonIntersectionSchema(x) => x.0.read().unwrap().get_attributes(),
-            Self::PolygonSchema(x) => x.0.read().unwrap().get_attributes(),
-        }
-    }
-    pub fn get_datum_template(&self) -> AoristRef<DatumTemplate> {
-        match self {
-            Self::LINZPrimaryParcelsSchema(x) => x.0.read().unwrap().get_datum_template(),
-            Self::LINZPropertyTitlesSchema(x) => x.0.read().unwrap().get_datum_template(),
-            Self::PointCloudSchema(x) => x.0.read().unwrap().get_datum_template(),
-            Self::PointCloudBoundarySchema(x) => x.0.read().unwrap().get_datum_template(),
-            Self::PointCloudBoundingBoxSchema(x) => x.0.read().unwrap().get_datum_template(),
-            Self::PointCloudInfoSchema(x) => x.0.read().unwrap().get_datum_template(),
-            Self::PointCloudMetadataSchema(x) => x.0.read().unwrap().get_datum_template(),
-            Self::RasterSchema(x) => x.0.read().unwrap().get_datum_template(),
-            Self::PolygonIntersectionSchema(x) => x.0.read().unwrap().get_datum_template(),
-            Self::PolygonSchema(x) => x.0.read().unwrap().get_datum_template(),
-        }
-    }
+schema_enum! {
+    name: GeospatialAssetSchema
+    variants:
+    - LINZPrimaryParcelsSchema
+    - LINZPropertyTitlesSchema
+    - PointCloudSchema
+    - PointCloudBoundarySchema
+    - PointCloudBoundingBoxSchema
+    - PointCloudInfoSchema
+    - PointCloudMetadataSchema
+    - RasterSchema
+    - PolygonIntersectionSchema
+    - PolygonSchema
 }

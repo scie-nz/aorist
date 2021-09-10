@@ -1921,3 +1921,47 @@ macro_rules! asset_enum {
         }
     }};
 }
+#[macro_export] 
+macro_rules! schema_enum {
+    {
+        name: $name: ident
+        $($(concrete_variants)? $(variants)? : $(- $variant: ident)+)? 
+        $(enum_variants: $(- $enum_variant: ident)+)? 
+    } => { aorist_paste::paste! {
+       
+        #[aorist]
+        #[derive(Eq)]
+        pub enum $name {
+            $($(
+                #[constrainable]
+                $variant(AoristRef<$variant>),
+            )+)?
+            $($(
+                #[constrainable]
+                $enum_variant(AoristRef<$enum_variant>),
+            )+)?
+        }
+        impl $name {
+            pub fn get_attributes(&self) -> Vec<AoristRef<Attribute>> {
+                match self {
+                    $($(
+                        Self::$variant(x) => x.0.read().unwrap().get_attributes(),
+                    )+)?
+                    $($(
+                        Self::$enum_variant(x) => x.0.read().unwrap().get_attributes(),
+                    )+)?
+                }
+            }
+            pub fn get_datum_template(&self) -> AoristRef<DatumTemplate> {
+                match self {
+                    $($(
+                        Self::$variant(x) => x.0.read().unwrap().get_datum_template(),
+                    )+)?
+                    $($(
+                        Self::$enum_variant(x) => x.0.read().unwrap().get_datum_template(),
+                    )+)?
+                }
+            }
+        }
+    }};
+}
