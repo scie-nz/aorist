@@ -4,6 +4,7 @@ from .subreddits import (
     subreddit_schema, subreddit_datum, 
 )
 from .subreddits import build_assets as build_subreddit_assets
+from .sports import *
 
 fasttext_attributes = [
     Attribute(KeyStringIdentifier("word_id")),
