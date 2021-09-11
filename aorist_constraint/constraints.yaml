@@ -176,7 +176,7 @@ spec:
 type: Constraint
 spec:
   name: TextCorpusData
-  root: LanguageAsset
+  root: Asset
   requires:
       - TextCorpusDataFromHive
       - TextCorpusDataFromSQLite
@@ -185,7 +185,7 @@ spec:
 type: Constraint
 spec:
   name: TextCorpusDataFromHive
-  root: LanguageAsset
+  root: TextCorpus
   requires:
       - ConvertJSONTableToORCTable
   requiresProgram: true
@@ -194,10 +194,9 @@ spec:
       We download text corpus data data from a Hive table.
   attachIf: |
       |root: AoristRef<Concept>, ancestry: &ConceptAncestry| {
-          let source_assets = ancestry.language_asset(root.clone()).unwrap().0.read().unwrap().get_source_assets();
-
-          for asset in source_assets {
-              let storage_setup = asset.0.read().unwrap().get_storage_setup();
+          let language_asset = ancestry.language_asset(root.clone()).unwrap();
+          for asset in language_asset.0.read().unwrap().get_source_assets() {
+              let storage_setup = aorist_core::TAsset::get_storage_setup(&asset);
               let local_storages = storage_setup.0.read().unwrap().get_local_storage();
               let mut hive_storage = false;
               for storage in &local_storages {
@@ -215,7 +214,7 @@ spec:
 type: Constraint
 spec:
   name: TextCorpusDataFromSQLite
-  root: LanguageAsset
+  root: TextCorpus
   requires:
       - ReplicatedAsset
   requiresProgram: true
@@ -224,9 +223,9 @@ spec:
       We download corpus data from a SQLite table.
   attachIf: |
       |root: AoristRef<Concept>, ancestry: &ConceptAncestry| {
-          let source_assets = ancestry.language_asset(root.clone()).unwrap().0.read().unwrap().get_source_assets();
-          for asset in source_assets {
-              let storage_setup = asset.0.read().unwrap().get_storage_setup();
+          let language_asset = ancestry.language_asset(root.clone()).unwrap();
+          for asset in language_asset.0.read().unwrap().get_source_assets() {
+              let storage_setup = aorist_core::TAsset::get_storage_setup(&asset);
               let local_storages = storage_setup.0.read().unwrap().get_local_storage();
               let mut sqlite_storage = false;
               for storage in &local_storages {
@@ -244,7 +243,7 @@ spec:
       |root: AoristRef<Concept>, ancestry: &ConceptAncestry| {
           let language_asset = ancestry.language_asset(root.clone()).unwrap();
           let uuids = language_asset.0.read().unwrap().get_source_assets()
-              .iter().map(|x| x.0.read().unwrap().get_uuid().unwrap()).collect::<Vec<_>>();
+              .iter().map(|x| x.get_uuid().unwrap()).collect::<Vec<_>>();
           uuids
       }
 ---
@@ -260,6 +259,12 @@ spec:
       This operation trains the Fasttext model and saves
       a dataset mapping words to their embeddings to a local
       file.
+  requiredConstraintsClosure: |
+      |root: AoristRef<Concept>, ancestry: &ConceptAncestry| {
+          vec![
+              ancestry.fasttext_embedding_schema(root.clone()).unwrap().0.read().unwrap().source.0.read().unwrap().get_uuid().clone().unwrap()
+          ]
+      }
 ---
 type: Constraint
 spec:
@@ -359,12 +364,18 @@ spec:
 ---
 type: Constraint
 spec:
-  name: ExtractNamedEntitiesUsingSpacy
-  root: SpacyNamedEntitySchema
+  name: ExtractNamedEntitiesUsingSpaCy
+  root: SpaCyNamedEntitySchema
   requires:
       - TextCorpusData
   requiresProgram: true
   title: Extracting named entities using SpaCy
+  requiredConstraintsClosure: |
+      |root: AoristRef<Concept>, ancestry: &ConceptAncestry| {
+          vec![
+              ancestry.spa_cy_named_entity_schema(root.clone()).unwrap().0.read().unwrap().source.0.read().unwrap().get_uuid().clone().unwrap()
+          ]
+      }
 ---
 type: Constraint
 spec:
@@ -376,11 +387,11 @@ spec:
 ---
 type: Constraint
 spec:
-  name: UploadSpacyToSQLite
-  root: SpacyNamedEntitySchema
+  name: UploadSpaCyToSQLite
+  root: SpaCyNamedEntitySchema
   requiresProgram: true
   requires:
-      - ExtractNamedEntitiesUsingSpacy
+      - ExtractNamedEntitiesUsingSpaCy
   title: Upload SpaCy named entities to SQLite
   attachIf: |
       |root: AoristRef<Concept>, ancestry: &ConceptAncestry| {

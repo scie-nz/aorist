@@ -62,7 +62,7 @@ spec:
   sql: SQLBigint
   sqlite: SQLiteInteger
   bigquery: BigQueryInt64
-  postgres: PostgresBigInt
+  postgres: PostgresBigInt # TODO postgres datetime
   value: IntegerValue
 ---
 type: Attribute
@@ -216,7 +216,7 @@ spec:
   sql: SQLVarchar
   sqlite: SQLiteText
   bigquery: BigQueryString
-  postgres: PostgresText
+  postgres: PostgresText # TODO postgres datetime
   value: StringValue
 ---
 type: Attribute
@@ -713,3 +713,69 @@ spec:
   bigquery: BigQueryInt64
   postgres: PostgresBigInt
   value: IntegerValue
+---
+type: Attribute
+spec:
+  name: JSON
+  orc: OrcString
+  presto: PrestoVarchar
+  sql: SQLVarchar
+  sqlite: SQLiteText
+  bigquery: BigQueryString
+  postgres: PostgresJSONB
+  value: StringValue
+---
+type: Attribute
+spec:
+  name: Boolean
+  orc: OrcString
+  presto: PrestoVarchar
+  sql: SQLVarchar
+  sqlite: SQLiteInteger
+  bigquery: BigQueryBool
+  postgres: PostgresBoolean
+  value: StringValue
+---
+type: Attribute
+spec:
+  name: FloatArea
+  orc: OrcFloat
+  presto: PrestoDouble
+  sql: SQLReal
+  sqlite: SQLiteReal
+  bigquery: BigQueryFloat64
+  postgres: PostgresReal
+  value: FloatValue
+---
+type: Attribute
+spec:
+  name: FloatDensity
+  orc: OrcFloat
+  presto: PrestoDouble
+  sql: SQLReal
+  sqlite: SQLiteReal
+  bigquery: BigQueryFloat64
+  postgres: PostgresReal
+  value: FloatValue
+---
+type: Attribute
+spec:
+  name: Float64
+  orc: OrcFloat
+  presto: PrestoDouble
+  sql: SQLReal
+  sqlite: SQLiteReal
+  bigquery: BigQueryFloat64
+  postgres: PostgresReal
+  value: FloatValue
+---
+type: Attribute
+spec:
+  name: Geometry
+  orc: OrcString
+  presto: PrestoVarchar
+  sql: SQLVarchar
+  sqlite: SQLiteText
+  bigquery: BigQueryString
+  postgres: PostgresGeometry
+  value: StringValue

@@ -29,6 +29,7 @@ where
     fn materialize(
         &self,
         statements_and_preambles: Vec<Self::BuilderInputType>,
+        flow_name: Option<String>,
     ) -> Result<String, Self::ErrorType>;
 
     fn literals_to_assignments(

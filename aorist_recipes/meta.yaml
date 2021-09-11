@@ -1,6 +1,6 @@
 package:
   name: "aorist_recipes"
-  version: "0.0.2"
+  version: "0.0.1"
 
 build:
   noarch: python

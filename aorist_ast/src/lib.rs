@@ -495,6 +495,55 @@ define_ast_node!(
     |lit: &BooleanLiteral, _depth: usize| { Robj::from(lit.val) },
     val: bool,
 );
+
+define_ast_node!(
+    If,
+    |if_else: &If| vec![if_else.test.clone()]
+        .into_iter()
+        .chain(if_else.body.clone().into_iter())
+        .chain(match &if_else.orelse {
+            Some(x) => x.clone().into_iter(),
+            None => vec![].into_iter(),
+        })
+        .collect(),
+    |if_else: &If, py: Python, ast_module: &'a PyModule, depth: usize| {
+        let body_ast = if_else
+            .body
+            .iter()
+            .map(|x| match &x {
+                AST::Assignment(_) | AST::Expression(_) => x,
+                _ => panic!("AST node of type {} found in if body", x.name()),
+            })
+            .map(|x| x.to_python_ast_node(py, ast_module, depth + 1))
+            .collect::<PyResult<Vec<_>>>()?;
+        let orelse_ast = match &if_else.orelse {
+            Some(x) => x
+                .iter()
+                .map(|x| match &x {
+                    AST::Assignment(_) | AST::Expression(_) => x,
+                    _ => panic!("AST node of type {} found in if orelse", x.name()),
+                })
+                .map(|x| x.to_python_ast_node(py, ast_module, depth + 1))
+                .collect::<PyResult<Vec<_>>>()?,
+            None => Vec::new(),
+        };
+
+        let body_list = PyList::new(py, body_ast);
+        let orelse_list = PyList::new(py, orelse_ast);
+        
+        ast_module.getattr("If")?.call1((
+            if_else.test.to_python_ast_node(py, ast_module, depth)?,
+            body_list.as_ref(),
+            orelse_list.as_ref(),
+        ))
+    },
+    |if_else: &If, depth: usize| {
+        panic!("if - else unimplemented in R");
+    },
+    test: AST,
+    body: Vec<AST>,
+    orelse: Option<Vec<AST>>,
+);
 define_ast_node!(
     BigIntLiteral,
     |_| Vec::new(),

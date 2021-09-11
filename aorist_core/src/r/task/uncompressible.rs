@@ -33,7 +33,7 @@ where
             singleton_type: PhantomData,
         }
     }
-    fn as_dict(&self, _dependencies_as_list: bool, _insert_task_name: bool) -> AST {
+    fn as_dict(&self, _insert_deps: bool, _dependencies_as_list: bool, insert_task_name: bool) -> AST {
         let mut local_params_map: LinkedHashMap<String, AST> = LinkedHashMap::new();
         if let Some(ref p) = self.params {
             p.populate_python_dict(&mut local_params_map);

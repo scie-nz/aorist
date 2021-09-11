@@ -8,6 +8,4 @@ use std::fmt::Debug;
 use uuid::Uuid;
 
 #[aorist]
-pub struct ZipCompression {
-    pub filename: Option<String>,
-}
+pub struct ZipCompression {}

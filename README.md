@@ -56,14 +56,36 @@ conda config --add channels conda-forge
 conda config --set channel_priority strict
 ```
 
+3. Create a new environment w/ mamba
+```
+conda create -n aorist-build -c conda-forge mamba
+conda activate aorist-build
+```
+
+4. Install boa:
+```
+mamba install "conda-build>=3.20" colorama \
+    pip ruamel ruamel.yaml rich mamba jsonschema -c conda-forge
+cd ~ && git clone git@github.com:mamba-org/boa.git
+cd boa ~ && pip install -e .
+```
+ 
+
 #### Building
 
 Build the packages by running:
 
 ```
-cd aorist && conda build . && cd .. && \
-cd aorist_recipes && conda build . && cd .. && \
-cd scienz && conda build . && cd ..
+cd ~/aorist
+cd aorist && conda mambabuild . && cd .. 
+anaconda upload [ARTIFACT] --label dev
+conda search --override -c scienz/label/dev aorist
+
+mamba install aorist dill astor -c conda-forge -c scienz/label/dev
+
+cd aorist_recipes && conda mambabuild . && cd .. 
+
+cd scienz && conda mambabuild . && cd ..
 ``` 
 
 ### Adding new datasets
@@ -81,10 +103,17 @@ You can add new canonical datasets to the `scienz` package. Once accepted for pu
 Run the following commands:
 
 ```
-python build_for_testing.py
 pip install astor black dill
-PYTHONPATH=$PYTHONPATH:../aorist_recipes:../scienz:../aorist python minimal.py
+```
+Inside aorist:
+```
+python build_for_testing.py
+```
+Inside aorist/scienz:
+```
+PYTHONPATH=$PYTHONPATH:../aorist_recipes:../scienz:../aorist python run_test.py
 ``` 
+If no error messages appear, your new dataset has been successfully added.
 
 ## Overview of an Aorist universe
 

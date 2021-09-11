@@ -1,11 +1,11 @@
-from aorist import aorist, UploadDataToSQLite, UploadSpacyToSQLite, UploadFasttextToSQLite
+from aorist import aorist, UploadDataToSQLite, UploadSpaCyToSQLite, UploadFasttextToSQLite
 from json import dumps
 
 programs = {}
 
 @aorist(
     programs,
-    [UploadDataToSQLite, UploadSpacyToSQLite, UploadFasttextToSQLite],
+    [UploadDataToSQLite, UploadSpaCyToSQLite, UploadFasttextToSQLite],
     entrypoint="upload_to_sqlite",
     args={
         "db_filename": lambda asset: asset.storage_setup.local[0].sq_lite_storage.location.file_name,
@@ -65,7 +65,7 @@ def recipe(
                     obj = [x[name] if name in x else None for name in attr_names]
                 else:
                     obj = line.split(delimiter)
-                    assert len(obj) == len(type_fn)
+                    assert len(obj) == len(type_fn), (obj, type_fn)
                 tpl = tuple(fn(arg) for fn, arg in zip(type_fn, obj))
                 values += [tpl]
 

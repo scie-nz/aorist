@@ -17,6 +17,19 @@ macro_rules! register_ast_nodes {
                 $variant(Arc<RwLock<$variant>>),
             )+
         }
+        impl PartialEq for $name {
+            fn eq(&self, other: &Self) -> bool {
+                match (&self, other) {
+                    $(
+                        (Self::$variant(v1), Self::$variant(v2)) => {
+                            v1.read().unwrap().eq(&v2.read().unwrap())
+                        },
+                    )+
+                    (_, _) => false,
+                }
+            }
+        }
+        impl Eq for $name {}
         impl $name {
             pub fn clone_without_ancestors(&self) -> Self {
                 match &self {
@@ -105,19 +118,6 @@ macro_rules! register_ast_nodes {
                 }
             }
         }
-        impl PartialEq for $name {
-            fn eq(&self, other: &Self) -> bool {
-                match (&self, other) {
-                    $(
-                        (Self::$variant(v1), Self::$variant(v2)) => {
-                            v1.read().unwrap().eq(&v2.read().unwrap())
-                        },
-                    )+
-                    (_, _) => false,
-                }
-            }
-        }
-        impl Eq for $name {}
         impl Hash for $name {
             fn hash<H: Hasher>(&self, state: &mut H) {
                 match &self {
@@ -807,7 +807,7 @@ macro_rules! register_attribute_new {
                 }
             }
         }
-        #[aorist(derivative(Hash))]
+        #[aorist]
         pub struct $name {
             pub inner: AttributeOrTransform,
         }
@@ -1518,6 +1518,7 @@ macro_rules! define_dag_function {
             mode: &str,
             programs: BTreeMap<String, Vec<AoristConstraintProgram>>,
             dialect_preferences: Vec<Dialect>,
+            dag_name: Option<String>,
         ) -> PyResult<String> {
             universe.compute_uuids();
             let (output, _requirements) = match mode {
@@ -1535,7 +1536,7 @@ macro_rules! define_dag_function {
                     dialect_preferences,
                 )
                 .map_err(|e| pyo3::exceptions::PyException::new_err(e.to_string()))?
-                .run(),
+                .run(dag_name),
                 "prefect" => PythonBasedDriver::<
                     AoristConstraintBuilder<'a>,
                     PrefectFlowBuilder<AoristRef<Universe>>,
@@ -1550,7 +1551,7 @@ macro_rules! define_dag_function {
                     dialect_preferences,
                 )
                 .map_err(|e| pyo3::exceptions::PyException::new_err(e.to_string()))?
-                .run(),
+                .run(dag_name),
                 "python" => PythonBasedDriver::<
                     AoristConstraintBuilder<'a>,
                     PythonFlowBuilder<AoristRef<Universe>>,
@@ -1565,7 +1566,7 @@ macro_rules! define_dag_function {
                     dialect_preferences,
                 )
                 .map_err(|e| pyo3::exceptions::PyException::new_err(e.to_string()))?
-                .run(),
+                .run(dag_name),
                 "jupyter" => PythonBasedDriver::<
                     AoristConstraintBuilder<'a>,
                     JupyterFlowBuilder<AoristRef<Universe>>,
@@ -1580,10 +1581,10 @@ macro_rules! define_dag_function {
                     dialect_preferences,
                 )
                 .map_err(|e| pyo3::exceptions::PyException::new_err(e.to_string()))?
-                .run(),
+                .run(dag_name),
                 /*"r" => RBasedDriver::<ConstraintBuilder, RBasedFlowBuilder>::new(&universe, constraints.into_iter().collect())
                 .map_err(|e| pyo3::exceptions::PyException::new_err(e.to_string()))?
-                .run(),*/
+                .run(dag_name),*/
                 _ => panic!("Unknown mode provided: {}", mode),
             }
             .map_err(|e| pyo3::exceptions::PyException::new_err(e.to_string()))?;
@@ -1593,10 +1594,9 @@ macro_rules! define_dag_function {
 }
 #[macro_export]
 macro_rules! export_aorist_python_module {
-    ($module_name: ident, $dag_function: ident) => {
-        use aorist_attributes::attributes_module;
-        use aorist_constraint::constraints_module;
-        use aorist_constraint::*;
+    ($module_name: ident, $dag_function: ident, $constraints_crate: ident, $attributes_crate: ident) => {
+        use $attributes_crate::attributes_module;
+        use $constraints_crate::*;
         use aorist_core::*;
         use aorist_primitives::*;
         use aorist_util::init_logging;
@@ -1618,4 +1618,350 @@ macro_rules! export_aorist_python_module {
             Ok(())
         }
     }
+}
+#[macro_export]
+macro_rules! attribute {
+    {$attribute: ident ( $name: expr, $comment: expr, $nullable: expr ) } => {
+        AoristRef(std::sync::Arc::new(std::sync::RwLock::new(Attribute {
+            inner: AttributeOrTransform::Attribute(AttributeEnum::$attribute($attribute {
+                name: $name,
+                comment: $comment,
+                nullable: $nullable,
+            })),
+            tag: None,
+            uuid: None,
+        })))
+    }
+}
+#[macro_export]
+macro_rules! asset {
+    { $name: ident } => {
+        #[aorist]
+        pub struct $name {
+            pub name: String,
+            pub comment: Option<String>,
+            #[constrainable]
+            pub schema: AoristRef<DataSchema>,
+            #[constrainable]
+            pub setup: AoristRef<StorageSetup>,
+        }
+        impl TAsset for $name {
+            fn get_name(&self) -> String {
+                self.name.clone()
+            }
+            fn get_schema(&self) -> AoristRef<DataSchema> {
+                self.schema.clone()
+            }
+            fn get_storage_setup(&self) -> AoristRef<StorageSetup> {
+                self.setup.clone()
+            }
+        }
+
+        impl $name {
+            pub fn set_storage_setup(&mut self, setup: AoristRef<StorageSetup>) {
+                self.setup = setup;
+            }
+            pub fn replicate_to_local(
+                &self,
+                t: AoristRef<Storage>,
+                tmp_dir: String,
+                tmp_encoding: AoristRef<Encoding>,
+            ) -> Option<Self> {
+                if let StorageSetup::RemoteStorageSetup(s) = &*self.setup.0.read().unwrap() { 
+                    return Some(Self {
+                        name: self.name.clone(),
+                        comment: self.comment.clone(),
+                        setup: AoristRef(Arc::new(RwLock::new(
+                            self.setup
+                                .0
+                                .read()
+                                .unwrap()
+                                .replicate_to_local(t, tmp_dir, tmp_encoding),
+                        ))),
+                        schema: self.schema.clone(),
+                        tag: self.tag.clone(),
+                        uuid: None,
+                    });
+                }
+                None
+            }
+        }
+    }
+}
+
+#[macro_export]
+macro_rules! derived_schema {
+    {name: $name: ident
+    $(, source: $source: ty)?
+    $(, sources: $sources: ty)?
+    , attributes:
+    $($attr_name: ident : $attribute: ident ($comment: expr, $nullable: expr )),+
+    $(fields: $($field_name: ident : $field_type: ty),+)?
+    } => { aorist_paste::paste! {
+        #[aorist]
+        pub struct $name {
+            pub datum_template: AoristRef<DatumTemplate>,
+            $(pub source: AoristRef<$source>,)?
+            $(pub sources: Vec<AoristRef<$sources>>,)?
+            $($(
+                pub $field_name: $field_type
+            ),+)?
+        }
+        aorist_primitives::schema! {
+            name: $name,
+            attributes: $(
+                $attr_name: $attribute($comment, $nullable)
+            ),+ 
+        }
+        $(
+            impl DerivedAssetSchema<'_> for $name {
+                type SourceAssetType = $source; 
+            }
+            impl SingleSourceDerivedAssetSchema<'_> for $name {
+                fn get_source(&self) -> AoristRef<$source> {
+                    self.source.clone()
+                }
+            }
+        )?
+        $(
+            impl DerivedAssetSchema<'_> for $name {
+                type SourceAssetType = $sources; 
+            }
+            impl MultipleSourceDerivedAssetSchema<'_> for $name {
+                fn get_sources(&self) -> Vec<Asset> {
+                    self.sources.clone().into_iter().map(|x| Asset::$sources(x)).collect()
+                }
+            }
+            #[cfg(feature = "python")]
+            #[pymethods]
+            impl [<Py $name>] {
+                #[getter]
+                pub fn sources(&self) -> Vec<PyAsset> {
+                    self.inner.0.read().unwrap().get_sources().into_iter().map(|x|
+                        PyAsset{
+                            inner: AoristRef(std::sync::Arc::new(std::sync::RwLock::new(x)))
+                        }
+                    ).collect()
+                }
+            }
+        )?
+     }}
+}
+
+#[macro_export]
+macro_rules! primary_schema {
+    {
+        name: $name: ident 
+        $(, attributes:
+            $($attr_name: ident : $attribute: ident ($comment: expr, $nullable: expr )),+
+        )?
+    } => { aorist_paste::paste! {
+        #[aorist]
+        pub struct $name {
+            pub datum_template: AoristRef<DatumTemplate>,
+        }
+        aorist_primitives::schema! {
+            name: $name
+            $(, attributes: $(
+                $attr_name: $attribute($comment, $nullable)
+            ),+)? 
+        }
+    }};
+}
+#[macro_export]
+macro_rules! schema {
+    {
+        name: $name: ident
+        $(, attributes: $(
+            $attr_name: ident : $attribute: ident ($comment: expr, $nullable: expr )),+)?
+    } => { aorist_paste::paste! {
+
+        impl $name {
+            pub fn get_attributes(&self) -> Vec<AoristRef<Attribute>> {
+                vec![$($(
+                    attribute! { $attribute(
+                        stringify!($attr_name).to_string(), 
+                        Some($comment.to_string()), 
+                        $nullable
+                    )}, 
+                )+)?]
+            }
+            pub fn get_datum_template(&self) -> AoristRef<DatumTemplate> {
+                self.datum_template.clone()
+            }
+        }
+        #[cfg(feature = "python")]
+        #[pymethods]
+        impl [<Py $name>] {
+            #[getter]
+            pub fn get_attributes(&self) -> Vec<PyAttribute> {
+                self.inner.0.read().unwrap().get_attributes().iter().map(|x| PyAttribute{ inner: x.clone() }).collect()
+            }
+        }
+    }};
+}
+#[macro_export] 
+macro_rules! asset_enum {
+    {
+        name: $name: ident
+        $($(concrete_variants)? $(variants)? : $(- $variant: ident)+)? 
+        $(enum_variants: $(- $enum_variant: ident)+)? 
+    } => { aorist_paste::paste! {
+       
+        #[aorist]
+        #[derive(Eq)]
+        pub enum $name {
+            $($(
+                #[constrainable]
+                $variant(AoristRef<$variant>),
+            )+)?
+            $($(
+                #[constrainable]
+                $enum_variant(AoristRef<$enum_variant>),
+            )+)?
+        }
+        impl TAsset for $name {
+            fn get_name(&self) -> String {
+                match self {
+                    $($(
+                        Self::$variant(x) => x.0.read().unwrap().name.clone(),
+                    )+)?
+                    $($(
+                        Self::$enum_variant(x) => x.0.read().unwrap().get_name(),
+                    )+)?
+                }
+            }
+            fn get_schema(&self) -> AoristRef<DataSchema> {
+                match self {
+                    $($(
+                        Self::$variant(x) => x.0.read().unwrap().get_schema(),
+                    )+)?
+                    $($(
+                        Self::$enum_variant(x) => x.0.read().unwrap().get_schema(),
+                    )+)?
+                }
+            }
+            fn get_storage_setup(&self) -> AoristRef<StorageSetup> {
+                match self {
+                    $($(
+                        Self::$variant(x) => x.0.read().unwrap().get_storage_setup(),
+                    )+)?
+                    $($(
+                        Self::$enum_variant(x) => x.0.read().unwrap().get_storage_setup(),
+                    )+)?
+                }
+            }
+        }
+        impl $name {
+            pub fn set_storage_setup(&mut self, setup: AoristRef<StorageSetup>) {
+                match self {
+                    $($(
+                        Self::$variant(x) => x.0.write().unwrap().set_storage_setup(setup),
+                    )+)?
+                    $($(
+                        Self::$enum_variant(x) => x.0.write().unwrap().set_storage_setup(setup),
+                    )+)?
+                }
+            }
+            pub fn get_type(&self) -> String {
+                match self {
+                    $($(
+                        Self::$variant(_) => stringify!($variant),
+                    )+)?
+                    $($(
+                        Self::$enum_variant(_) => stringify!($enum_variant),
+                    )+)?
+                }
+                .to_string()
+            }
+            pub fn replicate_to_local(
+                &self,
+                t: AoristRef<Storage>,
+                tmp_dir: String,
+                tmp_encoding: AoristRef<Encoding>,
+            ) -> Option<Self> {
+                match self {
+                    $($(
+                        Self::$variant(x) => x.0.read()
+                            .unwrap()
+                            .replicate_to_local(t, tmp_dir, tmp_encoding).and_then(|r|
+                                Some(Self::$variant(AoristRef(Arc::new(RwLock::new(r)))))
+                            ),
+                    )+)?
+                    $($(
+                        Self::$enum_variant(x) => x.0.read()
+                            .unwrap()
+                            .replicate_to_local(t, tmp_dir, tmp_encoding).and_then(|r|
+                                Some(Self::$enum_variant(AoristRef(Arc::new(RwLock::new(r)))))
+                            ),
+                    )+)?
+                }
+            }
+        }
+
+        #[cfg(feature = "python")]
+        #[pymethods]
+        impl [<Py $name>] {
+            #[getter]
+            pub fn name(&self) -> String {
+                self.inner.0.read().unwrap().get_name()
+            }
+            #[getter]
+            pub fn get_storage_setup(&self) -> PyStorageSetup {
+                PyStorageSetup {
+                    inner: self.inner.0.read().unwrap().get_storage_setup().clone(),
+                }
+            }
+            #[getter]
+            pub fn get_schema(&self) -> PyDataSchema {
+                PyDataSchema {
+                    inner: self.inner.0.read().unwrap().get_schema().clone(),
+                }
+            }
+        }
+    }};
+}
+#[macro_export] 
+macro_rules! schema_enum {
+    {
+        name: $name: ident
+        $($(concrete_variants)? $(variants)? : $(- $variant: ident)+)? 
+        $(enum_variants: $(- $enum_variant: ident)+)? 
+    } => { aorist_paste::paste! {
+       
+        #[aorist]
+        #[derive(Eq)]
+        pub enum $name {
+            $($(
+                #[constrainable]
+                $variant(AoristRef<$variant>),
+            )+)?
+            $($(
+                #[constrainable]
+                $enum_variant(AoristRef<$enum_variant>),
+            )+)?
+        }
+        impl $name {
+            pub fn get_attributes(&self) -> Vec<AoristRef<Attribute>> {
+                match self {
+                    $($(
+                        Self::$variant(x) => x.0.read().unwrap().get_attributes(),
+                    )+)?
+                    $($(
+                        Self::$enum_variant(x) => x.0.read().unwrap().get_attributes(),
+                    )+)?
+                }
+            }
+            pub fn get_datum_template(&self) -> AoristRef<DatumTemplate> {
+                match self {
+                    $($(
+                        Self::$variant(x) => x.0.read().unwrap().get_datum_template(),
+                    )+)?
+                    $($(
+                        Self::$enum_variant(x) => x.0.read().unwrap().get_datum_template(),
+                    )+)?
+                }
+            }
+        }
+    }};
 }

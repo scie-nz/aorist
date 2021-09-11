@@ -24,6 +24,7 @@ where
     fn materialize(
         &self,
         statements_and_preambles: Vec<PythonFlowBuilderInput>,
+        flow_name: Option<String>,
     ) -> Result<String, Self::ErrorType> {
         let gil = Python::acquire_gil();
         let py = gil.python();
@@ -81,7 +82,10 @@ where
             );
         }
 
-        let augmented_statements = self.augment_statements(statements_with_ast);
+        let augmented_statements = self.augment_statements(
+            statements_with_ast,
+            flow_name.clone(),
+        );
         let content: Vec<(Option<String>, Vec<&PyAny>)> = vec![(None, imports_ast)]
             .into_iter()
             .chain(
@@ -120,7 +124,7 @@ where
             }
             sources.push((comment, format_code(lines.join(""))?))
         }
-        self.build_file(sources)
+        self.build_file(sources, flow_name)
     }
 }
 
@@ -135,12 +139,14 @@ where
     fn augment_statements(
         &self,
         statements: Vec<PythonFlowBuilderInput>,
+        flow_name: Option<String>,
     ) -> Vec<PythonFlowBuilderInput> {
         statements
     }
     fn get_flow_imports(&self) -> Vec<PythonImport>;
 
-    fn build_file(&self, sources: Vec<(Option<String>, String)>) -> PyResult<String> {
+    fn build_file(&self, sources: Vec<(Option<String>, String)>,
+                  flow_name: Option<String>) -> PyResult<String> {
         format_code(
             sources
                 .into_iter()

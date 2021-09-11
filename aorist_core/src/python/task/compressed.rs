@@ -75,19 +75,26 @@ where
     U: AoristUniverse,
 {
     fn get_dict_assign(&self) -> (AST, bool) {
-        let dependencies_as_list = self
+        let insert_deps = self
             .values
             .iter()
-            .filter(|x| x.deps.len() > 1)
+            .filter(|x| x.deps.len() > 0)
             .next()
             .is_some();
+        // true if there is no task with but a single dependency
+        let dependencies_as_list = !self
+            .values
+            .iter()
+            .filter(|x| x.deps.len() != 1)
+            .next()
+            .is_none();
         let dict_pairs = self
             .values
             .iter()
             .map(|x| {
                 (
                     x.dict.clone(),
-                    x.as_dict(dependencies_as_list, self.insert_task_name),
+                    x.as_dict(insert_deps, dependencies_as_list, self.insert_task_name),
                 )
             })
             .collect::<LinkedHashMap<_, _>>();

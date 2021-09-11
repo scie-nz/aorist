@@ -9,7 +9,7 @@ use crate::dialect::Dialect;
 use crate::flow::{FlowBuilderBase, FlowBuilderMaterialize};
 use crate::parameter_tuple::ParameterTuple;
 use crate::program::TOuterProgram;
-use crate::task_name_shortener::TaskNameShortener;
+//use crate::task_name_shortener::TaskNameShortener;
 use anyhow::Result;
 use aorist_ast::{AncestorRecord, SimpleIdentifier, AST};
 use aorist_primitives::TAoristObject;
@@ -85,7 +85,10 @@ where
             for req in builder.get_required_constraint_names() {
                 debug!("  - {}", req);
                 if !visited.contains(&req) {
-                    let another = builders.remove(&req).unwrap();
+                    let another = match builders.remove(&req) {
+                        Some(x) => x,
+                        None => panic!("Cannot find {} in builders.", req),
+                    };
                     builder_q.push_back((req.clone(), another));
                     visited.insert(req.clone());
                 }
@@ -266,7 +269,7 @@ where
     )> {
         debug!("Processing constraint block: {}", constraint_name);
 
-        // TODO: this could be done once for the entire set of blocks
+        /* TODO: this could be done once for the entire set of blocks
         let to_shorten_constraint_block_names = self
             .get_blocks()
             .iter()
@@ -274,10 +277,14 @@ where
             .chain(vec![constraint_name.clone()].into_iter())
             .collect();
         let shortened_names =
-            TaskNameShortener::new(to_shorten_constraint_block_names, "_".to_string()).run();
+            TaskNameShortener::new(
+                to_shorten_constraint_block_names, 
+                "_".to_string(), 
+                HashSet::new()
+            ).run();
         let shortened_name = shortened_names.into_iter().last().unwrap();
         debug!("Shortened constraint block name: {}", shortened_name);
-
+        */
         // (call, constraint_name, root_name) => (uuid, call parameters)
         let mut calls: HashMap<(String, String, String), Vec<(String, ParameterTuple)>> =
             HashMap::new();
@@ -346,7 +353,8 @@ where
             >>::C::new(
                 //satisfied,
                 unique_constraints,
-                shortened_name.clone(),
+                constraint_name.clone(),
+                //shortened_name.clone(),
                 tasks_dict.clone(),
                 identifiers,
             )?;
@@ -425,7 +433,7 @@ where
     fn get_programs_for(&self, constraint_name: &String) -> Vec<P>;
     fn get_endpoints(&self) -> U::TEndpoints;
     fn get_dependencies(&self) -> Vec<String>;
-    fn run(&mut self) -> Result<(String, Vec<String>)> {
+    fn run(&mut self, flow_name: Option<String>) -> Result<(String, Vec<String>)> {
         self.satisfy_constraints()?;
         let etl = D::new();
         let endpoints = self.get_endpoints().clone();
@@ -436,7 +444,7 @@ where
             .collect::<Vec<_>>();
 
         Ok((
-            etl.materialize(statements_and_preambles)?,
+            etl.materialize(statements_and_preambles, flow_name)?,
             self.get_dependencies(),
         ))
     }
@@ -863,6 +871,7 @@ where
             for root in root_concepts {
                 let root_key = (root.get_uuid(), root.get_type());
                 let family_tree = family_trees.get(&root_key).unwrap();
+                if builder.should_add(root.clone(), &ancestry) {
 
                 let raw_potential_child_constraints = builder
                     .get_required_constraint_names()
@@ -914,7 +923,6 @@ where
                     })
                     .flatten()
                     .collect::<Vec<Arc<RwLock<B::OuterType>>>>();
-                if builder.should_add(root.clone(), &ancestry) {
                     if level_enabled!(Level::DEBUG) {
                         debug!("After filtering:",);
                         for downstream_rw in potential_child_constraints.iter() {

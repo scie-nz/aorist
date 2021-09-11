@@ -11,6 +11,16 @@ use uuid::Uuid;
 pub struct SingleFileLayout {}
 
 #[aorist]
+pub struct CompressedFileCollectionLayout {}
+
+#[aorist]
+pub struct DirectoryLayout {
+    max_num_files: Option<usize>,
+}
+
+#[aorist]
 pub enum FileBasedStorageLayout {
     SingleFileLayout(AoristRef<SingleFileLayout>),
+    DirectoryLayout(AoristRef<DirectoryLayout>),
+    CompressedFileCollectionLayout(AoristRef<CompressedFileCollectionLayout>),
 }

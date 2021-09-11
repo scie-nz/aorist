@@ -1,11 +1,12 @@
 use linked_hash_set::LinkedHashSet;
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::{BTreeMap, BTreeSet, HashSet};
 use tracing::{debug, trace};
 
 pub struct TaskNameShortener {
     names: Vec<String>,
     separator: String,
     substrings: BTreeMap<(usize, String), BTreeSet<usize>>,
+    existing_names: HashSet<String>,
 }
 
 impl TaskNameShortener {
@@ -26,7 +27,7 @@ impl TaskNameShortener {
         }
         substrings
     }
-    pub fn new(names: Vec<String>, separator: String) -> Self {
+    pub fn new(names: Vec<String>, separator: String, existing_names: HashSet<String>) -> Self {
         let unique_names = names.iter().map(|x| x.clone()).collect::<BTreeSet<_>>();
         if unique_names.len() < names.len() {
             trace!("Names:");
@@ -40,13 +41,14 @@ impl TaskNameShortener {
             names,
             separator,
             substrings,
+            existing_names,
         }
     }
     fn try_shorten(&mut self, substring: &str) -> bool {
         let mut shorter_names = LinkedHashSet::new();
         for elem in self.names.iter() {
             let shortened = elem.replace(substring, "");
-            if shortened.len() == 0 {
+            if shortened.len() == 0 || self.existing_names.contains(&shortened) {
                 return false;
             }
             shorter_names.insert(shortened);

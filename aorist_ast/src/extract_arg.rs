@@ -1,11 +1,13 @@
-use crate::{BigIntLiteral, BooleanLiteral, List, StringLiteral, Tuple, AST};
+use crate::{BigIntLiteral, BooleanLiteral, List, StringLiteral, Tuple, None, AST};
 use aorist_primitives::Context;
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 use pyo3::types::{PyList, PyTuple};
 
 pub fn extract_arg(arg: &PyAny) -> PyResult<AST> {
-    if let Ok(extracted_val) = arg.extract::<String>() {
+    if arg.is_none() {
+        Ok(AST::None(None::new_wrapped()))
+    } else if let Ok(extracted_val) = arg.extract::<String>() {
         Ok(AST::StringLiteral(StringLiteral::new_wrapped(
             extracted_val,
             false,
