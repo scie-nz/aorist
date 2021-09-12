@@ -18,7 +18,7 @@ derived_schema! {
     name: PointCloudMetadataSchema,
     source: PointCloudInfoAsset,
     attributes:
-      prefix: FreeText("File Prefix", false), 
+      prefix: KeyStringIdentifier("File Prefix", false), 
       comp_spatialreference: FreeText("Compressed spatial reference", false),
       compressed: Boolean("Whether object is compressed or not", false),
       count: Count("TBD", false),

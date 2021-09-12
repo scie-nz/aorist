@@ -18,6 +18,6 @@ derived_schema! {
     name: PointCloudInfoSchema,
     source: PointCloudAsset,
     attributes:
-      prefix: FreeText("File Prefix", false), 
+      prefix: KeyStringIdentifier("File Prefix", false), 
       json: FreeText("JSON for pdal info", false)
 }

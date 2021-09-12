@@ -7,8 +7,13 @@ use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
 use uuid::Uuid;
 use crate::attributes::*;
-use aorist_primitives::primary_schema;
+use aorist_attributes::*;
+use aorist_primitives::{primary_schema, attribute};
 #[cfg(feature = "python")]
 use pyo3::prelude::*;
 
-primary_schema! { name: PointCloudSchema }
+primary_schema! { 
+    name: PointCloudSchema,
+    attributes:
+      prefix: KeyStringIdentifier("File Prefix", false) 
+}
