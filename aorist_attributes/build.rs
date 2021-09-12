@@ -81,6 +81,10 @@ fn process_attributes(raw_objects: &Vec<HashMap<String, Value>>) {
     for attribute in attributes {
         let name = attribute.get("name").unwrap().as_str().unwrap().to_string();
         let orc = attribute.get("orc").unwrap().as_str().unwrap().to_string();
+        let key = format!("{}", match attribute.get("key") {
+            Some(x) => x.as_bool().unwrap(),
+            None => false,
+        }).to_string();
         let value = attribute
             .get("value")
             .unwrap()
@@ -114,8 +118,8 @@ fn process_attributes(raw_objects: &Vec<HashMap<String, Value>>) {
             .to_string();
 
         let define = format!(
-            "define_attribute!({}, {}, {}, {}, {}, {}, {}, {});",
-            name, orc, presto, sql, sqlite, postgres, bigquery, value
+            "define_attribute!({}, {}, {}, {}, {}, {}, {}, {}, {});",
+            name, orc, presto, sql, sqlite, postgres, bigquery, value, key
         );
         scope.raw(&define);
         attribute_names.push(name.clone());

@@ -271,6 +271,12 @@ impl AttributeOrTransform {
             AttributeOrTransform::Transform(x) => x.is_nullable(),
         }
     }
+    pub fn is_key_type(&self) -> bool {
+        match &self {
+            AttributeOrTransform::Attribute(x) => x.is_key_type(),
+            AttributeOrTransform::Transform(x) => false,
+        }
+    }
     pub fn as_predicted_objective(&self) -> Result<Self, String> {
         match &self {
             AttributeOrTransform::Attribute(x) => {

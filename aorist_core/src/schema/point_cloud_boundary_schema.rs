@@ -18,6 +18,7 @@ derived_schema! {
     name: PointCloudBoundarySchema,
     source: StaticDataTable,
     attributes:
+      prefix: KeyStringIdentifier("File Prefix", false), 
       area: FloatArea("Area in units", false),
       avg_pt_per_sq_unit: FloatDensity("average points per square unit", false),
       avg_pt_spacing: Float64("TBD", false),

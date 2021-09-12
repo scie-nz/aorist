@@ -18,6 +18,6 @@ derived_schema! {
     name: PointCloudBoundingBoxSchema,
     source: PointCloudMetadataAsset,
     attributes:
-      prefix: FreeText("File Prefix", false), 
+      prefix: KeyStringIdentifier("File Prefix", false), 
       bounding_box: FreeText("Bounding box", false)
 }
