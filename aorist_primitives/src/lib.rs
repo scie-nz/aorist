@@ -1803,6 +1803,10 @@ macro_rules! schema {
                     )}, 
                 )+)?]
             }
+            pub fn get_key(&self) -> Vec<AoristRef<Attribute>> {
+                self.get_attributes().into_iter()
+                    .filter(|x| x.0.read().unwrap().is_key_type()).collect()
+            }
             pub fn get_datum_template(&self) -> AoristRef<DatumTemplate> {
                 self.datum_template.clone()
             }
@@ -1813,6 +1817,10 @@ macro_rules! schema {
             #[getter]
             pub fn get_attributes(&self) -> Vec<PyAttribute> {
                 self.inner.0.read().unwrap().get_attributes().iter().map(|x| PyAttribute{ inner: x.clone() }).collect()
+            }
+            #[getter]
+            pub fn get_key(&self) -> Vec<PyAttribute> {
+                self.inner.0.read().unwrap().get_key().iter().map(|x| PyAttribute{ inner: x.clone() }).collect()
             }
         }
     }};
