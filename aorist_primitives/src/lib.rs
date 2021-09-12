@@ -342,7 +342,8 @@ macro_rules! define_attribute {
       $sqlite_type:ident,
       $postgres_type:ident,
       $bigquery_type:ident,
-      $value:ident
+      $value:ident,
+      $key:expr
     ) => {
         aorist_paste::item! {
             #[cfg_attr(feature = "python", pyclass(module = "aorist"))]
@@ -378,6 +379,9 @@ macro_rules! define_attribute {
                 fn is_nullable(&self) -> bool {
                     self.nullable
                 }
+                fn is_key_type() -> bool {
+                    $key
+                }
             }
             #[cfg(feature = "python")]
             #[pymethods]
@@ -396,7 +400,6 @@ macro_rules! define_attribute {
                 pub fn name(&self) -> PyResult<String> {
                     Ok(self.name.clone())
                 }
-
             }
             #[cfg(feature = "python")]
             #[pyo3::prelude::pyproto]
@@ -737,6 +740,13 @@ macro_rules! register_attribute_new {
                     )+
                 }
             }
+            pub fn is_key_type(&self) -> bool {
+                match self {
+                    $(
+                        [<$name Enum>]::$element(x) => $element::is_key_type(),
+                    )+
+                }
+            }
 
             pub fn as_predicted_objective(&self) -> Self {
                 match self {
@@ -831,6 +841,9 @@ macro_rules! register_attribute_new {
             pub fn is_nullable(&self) -> bool {
                 self.inner.is_nullable()
             }
+            pub fn is_key_type(&self) -> bool {
+                self.inner.is_key_type()
+            }
             pub fn get_comment(&self) -> &Option<String> {
                 self.inner.get_comment()
             }
@@ -897,6 +910,10 @@ macro_rules! register_attribute_new {
             #[getter]
             pub fn is_nullable(&self) -> pyo3::prelude::PyResult<bool> {
                 Ok(self.inner.0.read().unwrap().is_nullable().clone())
+            }
+            #[getter]
+            pub fn is_key(&self) -> bool {
+                self.inner.0.read().unwrap().is_key_type()
             }
             #[getter]
             pub fn psycopg2_value_json_serializable(&self) -> pyo3::prelude::PyResult<bool> {

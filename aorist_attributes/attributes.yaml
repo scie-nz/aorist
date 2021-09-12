@@ -9,6 +9,7 @@ spec:
   bigquery: BigQueryString
   postgres: PostgresText
   value: StringValue
+  key: true
 ---
 type: Attribute
 spec:
@@ -20,6 +21,7 @@ spec:
   bigquery: BigQueryInt64
   postgres: PostgresBigInt
   value: IntegerValue
+  key: true
 ---
 type: Attribute
 spec:

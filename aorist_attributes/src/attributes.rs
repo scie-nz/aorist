@@ -109,6 +109,7 @@ where
     fn get_name(&self) -> &String;
     fn get_comment(&self) -> &Option<String>;
     fn is_nullable(&self) -> bool;
+    fn is_key_type() -> bool;
 }
 pub trait TPrestoAttribute: TAttribute {
     fn get_presto_type(&self) -> String;
