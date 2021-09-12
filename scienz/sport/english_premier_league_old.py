@@ -1,0 +1,1414 @@
+from aorist import (
+    RowStruct,
+    CSVEncoding,
+    SingleFileLayout,
+    RemoteStorageSetup,
+    StaticDataTable,
+    DataSet,
+    default_tabular_schema,
+    attr_list,
+    WebLocation,
+    RemoteStorage,
+    CSVHeader,
+)
+
+# hacky import since submodule imports don't work well
+from aorist import attributes as attr
+
+"""
+Defining dataset
+"""
+# Attributes in the dataset
+attributes = attr_list([
+     attr.StringIdentifier("Div"),
+     attr.DateString("Date"),
+     attr.POSIXTimestamp("Time"),
+     attr.StringIdentifier("HomeTeam"),
+     attr.StringIdentifier("AwayTeam"),
+     attr.NaturalNumber("FTHG"),
+     attr.NaturalNumber("FTAG"),
+     attr.StringIdentifier("FTR"),
+     attr.NaturalNumber("HTHG"),
+     attr.NaturalNumber("HTAG"),
+     attr.StringIdentifier("HTR"),
+     attr.StringIdentifier("Referee"),
+     attr.NaturalNumber("HS"),
+     attr.NaturalNumber("AS"),
+     attr.NaturalNumber("HST"),
+     attr.NaturalNumber("AST"),
+     attr.NaturalNumber("HF"),
+     attr.NaturalNumber("AF"),
+     attr.NaturalNumber("HC"),
+     attr.NaturalNumber("AC"),
+     attr.NaturalNumber("HY"),
+     attr.NaturalNumber("AY"),
+     attr.NaturalNumber("HR"),
+     attr.NaturalNumber("AR"),
+     attr.PositiveFloat("B365H"),
+     attr.PositiveFloat("B365D"),
+     attr.PositiveFloat("B365A"),
+     attr.PositiveFloat("BWH"),
+     attr.PositiveFloat("BWD"),
+     attr.PositiveFloat("BWA"),
+     attr.PositiveFloat("IWH"),
+     attr.PositiveFloat("IWD"),
+     attr.PositiveFloat("IWA"),
+     attr.PositiveFloat("PSH"),
+     attr.PositiveFloat("PSD"),
+     attr.PositiveFloat("PSA"),
+     attr.PositiveFloat("WHH"),
+     attr.PositiveFloat("WHD"),
+     attr.PositiveFloat("WHA"),
+     attr.PositiveFloat("VCH"),
+     attr.PositiveFloat("VCD"),
+     attr.PositiveFloat("VCA"),
+     attr.PositiveFloat("MaxH"),
+     attr.PositiveFloat("MaxD"),
+     attr.PositiveFloat("MaxA"),
+     attr.PositiveFloat("AvgH"),
+     attr.PositiveFloat("AvgD"),
+     attr.PositiveFloat("AvgA"),
+     attr.PositiveFloat("B365>2.5"),
+     attr.PositiveFloat("B365<2.5"),
+     attr.PositiveFloat("P>2.5"),
+     attr.PositiveFloat("P<2.5"),
+     attr.PositiveFloat("Max>2.5"),
+     attr.PositiveFloat("Max<2.5"),
+     attr.PositiveFloat("Avg>2.5"),
+     attr.PositiveFloat("Avg<2.5"),
+     attr.PositiveFloat("AHh"),
+     attr.PositiveFloat("B365AHH"),
+     attr.PositiveFloat("B365AHA"),
+     attr.PositiveFloat("PAHH"),
+     attr.PositiveFloat("PAHA"),
+     attr.PositiveFloat("MaxAHH"),
+     attr.PositiveFloat("MaxAHA"),
+     attr.PositiveFloat("AvgAHH"),
+     attr.PositiveFloat("AvgAHA"),
+     attr.PositiveFloat("B365CH"),
+     attr.PositiveFloat("B365CD"),
+     attr.PositiveFloat("B365CA"),
+     attr.PositiveFloat("BWCH"),
+     attr.PositiveFloat("BWCD"),
+     attr.PositiveFloat("BWCA"),
+     attr.PositiveFloat("IWCH"),
+     attr.PositiveFloat("IWCD"),
+     attr.PositiveFloat("IWCA"),
+     attr.PositiveFloat("PSCH"),
+     attr.PositiveFloat("PSCD"),
+     attr.PositiveFloat("PSCA"),
+     attr.PositiveFloat("WHCH"),
+     attr.PositiveFloat("WHCD"),
+     attr.PositiveFloat("WHCA"),
+     attr.PositiveFloat("VCCH"),
+     attr.PositiveFloat("VCCD"),
+     attr.PositiveFloat("VCCA"),
+     attr.PositiveFloat("MaxCH"),
+     attr.PositiveFloat("MaxCD"),
+     attr.PositiveFloat("MaxCA"),
+     attr.PositiveFloat("AvgCH"),
+     attr.PositiveFloat("AvgCD"),
+     attr.PositiveFloat("AvgCA"),
+     attr.PositiveFloat("B365C>2.5"),
+     attr.PositiveFloat("B365C<2.5"),
+     attr.PositiveFloat("PC>2.5"),
+     attr.PositiveFloat("PC<2.5"),
+     attr.PositiveFloat("MaxC>2.5"),
+     attr.PositiveFloat("MaxC<2.5"),
+     attr.PositiveFloat("AvgC>2.5"),
+     attr.PositiveFloat("AvgC<2.5"),
+     attr.PositiveFloat("AHCh"),
+     attr.PositiveFloat("B365CAHH"),
+     attr.PositiveFloat("B365CAHA"),
+     attr.PositiveFloat("PCAHH"),
+     attr.PositiveFloat("PCAHA"),
+     attr.PositiveFloat("MaxCAHH"),
+     attr.PositiveFloat("MaxCAHA"),
+     attr.PositiveFloat("AvgCAHH"),
+     attr.PositiveFloat("AvgCAHA"),
+])
+
+# A row is equivalent to a struct
+SSEPL2020_datum = RowStruct(
+    name="SSEPL2020_datum",
+    attributes=attributes,
+)
+# Data can be found remotely, on the web
+remote = RemoteStorage(
+    location=WebLocation(
+        address=("https://sports-statistics.com/database/soccer-data"
+                 "/england-premier-league-2019-to-2020.csv"),
+    ),
+    layout=SingleFileLayout(),
+    encoding=CSVEncoding(header=CSVHeader(num_lines=1)),
+)
+
+# We will create a table that will always have the same content
+# (we do not expect it to change over time)
+SSEPL2020 = StaticDataTable(
+    name="SSEPL2020",
+    schema=default_tabular_schema(SSEPL2020_datum),
+    setup=RemoteStorageSetup(
+        remote=remote,
+    ),
+    tag="2019-2020_ss_epl",
+)
+
+
+SSEPL2019_datum = RowStruct(
+    name="SSEPL2019_datum",
+    attributes=attr_list([
+        attr.StringIdentifier("Div"),
+        attr.DateString("Date"),
+        attr.StringIdentifier("HomeTeam"),
+        attr.StringIdentifier("AwayTeam"),
+        attr.NaturalNumber("FTHG"),
+        attr.NaturalNumber("FTAG"),
+        attr.StringIdentifier("FTR"),
+        attr.NaturalNumber("HTHG"),
+        attr.NaturalNumber("HTAG"),
+        attr.StringIdentifier("HTR"),
+        attr.StringIdentifier("Referee"),
+        attr.NaturalNumber("HS"),
+        attr.NaturalNumber("AS"),
+        attr.NaturalNumber("HST"),
+        attr.NaturalNumber("AST"),
+        attr.NaturalNumber("HF"),
+        attr.NaturalNumber("AF"),
+        attr.NaturalNumber("HC"),
+        attr.NaturalNumber("AC"),
+        attr.NaturalNumber("HY"),
+        attr.NaturalNumber("AY"),
+        attr.NaturalNumber("HR"),
+        attr.NaturalNumber("AR"),
+        attr.PositiveFloat("B365H"),
+        attr.PositiveFloat("B365D"),
+        attr.PositiveFloat("B365A"),
+        attr.PositiveFloat("BWH"),
+        attr.PositiveFloat("BWD"),
+        attr.PositiveFloat("BWA"),
+        attr.PositiveFloat("IWH"),
+        attr.PositiveFloat("IWD"),
+        attr.PositiveFloat("IWA"),
+        attr.PositiveFloat("PSH"),
+        attr.PositiveFloat("PSD"),
+        attr.PositiveFloat("PSA"),
+        attr.PositiveFloat("WHH"),
+        attr.PositiveFloat("WHD"),
+        attr.PositiveFloat("WHA"),
+        attr.PositiveFloat("VCH"),
+        attr.PositiveFloat("VCD"),
+        attr.PositiveFloat("VCA"),
+        attr.NaturalNumber("Bb1X2"),
+        attr.PositiveFloat("BbMxH"),
+        attr.PositiveFloat("BbAvH"),
+        attr.PositiveFloat("BbMxD"),
+        attr.PositiveFloat("BbAvD"),
+        attr.PositiveFloat("BbMxA"),
+        attr.PositiveFloat("BbAvA"),
+        attr.NaturalNumber("BbOU"),
+        attr.PositiveFloat("BbMx>2.5"),
+        attr.PositiveFloat("BbAv>2.5"),
+        attr.PositiveFloat("BbMx<2.5"),
+        attr.PositiveFloat("BbAv<2.5"),
+        attr.NaturalNumber("BbAH"),
+        attr.PositiveFloat("BbAHh"),
+        attr.PositiveFloat("BbMxAHH"), 
+        attr.PositiveFloat("BbAvAHH"), 
+        attr.PositiveFloat("BbMxAHA"), 
+        attr.PositiveFloat("BbAvAHA"), 
+        attr.PositiveFloat("PSCH"), 
+        attr.PositiveFloat("PSCD"), 
+        attr.PositiveFloat("PSCA"), 
+       ])
+)
+
+SSEPL2019 = StaticDataTable(
+    name="SSEPL2019",
+    schema=default_tabular_schema(SSEPL2019_datum),
+    setup=RemoteStorageSetup(
+        remote=RemoteStorage(
+            location=WebLocation(
+                address=("https://sports-statistics.com/database/soccer-data"
+                         "/england-premier-league-2018-to-2019.csv"
+                ),
+            ),
+            layout=SingleFileLayout(),
+            encoding=CSVEncoding(header=CSVHeader(num_lines=1)),
+        )
+    ),
+    tag="2018-2019_ss_epl",
+)
+
+SSEPL2018_datum = RowStruct(
+    name="SSEPL2018_datum",
+    attributes=attr_list([
+        attr.StringIdentifier("Div"),
+        attr.DateString("Date"),
+        attr.StringIdentifier("HomeTeam"),
+        attr.StringIdentifier("AwayTeam"),
+        attr.NaturalNumber("FTHG"),
+        attr.NaturalNumber("FTAG"),
+        attr.StringIdentifier("FTR"),
+        attr.NaturalNumber("HTHG"),
+        attr.NaturalNumber("HTAG"),
+        attr.StringIdentifier("HTR"),
+        attr.StringIdentifier("Referee"),
+        attr.NaturalNumber("HS"),
+        attr.NaturalNumber("AS"),
+        attr.NaturalNumber("HST"),
+        attr.NaturalNumber("AST"),
+        attr.NaturalNumber("HF"),
+        attr.NaturalNumber("AF"),
+        attr.NaturalNumber("HC"),
+        attr.NaturalNumber("AC"),
+        attr.NaturalNumber("HY"),
+        attr.NaturalNumber("AY"),
+        attr.NaturalNumber("HR"),
+        attr.NaturalNumber("AR"),
+        attr.PositiveFloat("B365H"),
+        attr.PositiveFloat("B365D"),
+        attr.PositiveFloat("B365A"),
+        attr.PositiveFloat("BWH"),
+        attr.PositiveFloat("BWD"),
+        attr.PositiveFloat("BWA"),
+        attr.PositiveFloat("IWH"),
+        attr.PositiveFloat("IWD"),
+        attr.PositiveFloat("IWA"),
+        attr.PositiveFloat("LBH"),
+        attr.PositiveFloat("LBD"),
+        attr.PositiveFloat("LBA"),
+        attr.PositiveFloat("PSH"),
+        attr.PositiveFloat("PSD"),
+        attr.PositiveFloat("PSA"),
+        attr.PositiveFloat("WHH"),
+        attr.PositiveFloat("WHD"),
+        attr.PositiveFloat("WHA"),
+        attr.PositiveFloat("VCH"),
+        attr.PositiveFloat("VCD"),
+        attr.PositiveFloat("VCA"),
+        attr.NaturalNumber("Bb1X2"),
+        attr.PositiveFloat("BbMxH"),
+        attr.PositiveFloat("BbAvH"),
+        attr.PositiveFloat("BbMxD"),
+        attr.PositiveFloat("BbAvD"),
+        attr.PositiveFloat("BbMxA"),
+        attr.PositiveFloat("BbAvA"),
+        attr.NaturalNumber("BbOU"),
+        attr.PositiveFloat("BbMx>2.5"),
+        attr.PositiveFloat("BbAv>2.5"),
+        attr.PositiveFloat("BbMx<2.5"),
+        attr.PositiveFloat("BbAv<2.5"),
+        attr.NaturalNumber("BbAH"),
+        attr.PositiveFloat("BbAHh"),
+        attr.PositiveFloat("BbMxAHH"),
+        attr.PositiveFloat("BbAvAHH"),
+        attr.PositiveFloat("BbMxAHA"),
+        attr.PositiveFloat("BbAvAHA"),
+        attr.PositiveFloat("PSCH"),
+        attr.PositiveFloat("PSCD"),
+        attr.PositiveFloat("PSCA"),
+       ])
+)
+
+SSEPL2018 = StaticDataTable(
+    name="SSEPL2018",
+    schema=default_tabular_schema(SSEPL2018_datum),
+    setup=RemoteStorageSetup(
+        remote=RemoteStorage(
+            location=WebLocation(
+                address=("https://sports-statistics.com/database/soccer-data"
+                         "/england-premier-league-2017-to-2018.csv"
+                ),
+            ),
+            layout=SingleFileLayout(),
+            encoding=CSVEncoding(header=CSVHeader(num_lines=1)),
+        )
+    ),
+    tag="2017-2018_ss_epl",
+)
+
+SSEPL2017 = StaticDataTable(
+    name="SSEPL2017",
+    schema=default_tabular_schema(SSEPL2018_datum),
+    setup=RemoteStorageSetup(
+        remote=RemoteStorage(
+            location=WebLocation(
+                address=("https://sports-statistics.com/database/soccer-data"
+                         "/england-premier-league-2016-to-2017.csv"
+                ),
+            ),
+            layout=SingleFileLayout(),
+            encoding=CSVEncoding(header=CSVHeader(num_lines=1)),
+        )
+    ),
+    tag="2016-2017_ss_epl",
+)
+
+SSEPL2016 = StaticDataTable(
+    name="SSEPL2016",
+    schema=default_tabular_schema(SSEPL2018_datum),
+    setup=RemoteStorageSetup(
+        remote=RemoteStorage(
+            location=WebLocation(
+                address=("https://sports-statistics.com/database/soccer-data"
+                         "/england-premier-league-2015-to-2016.csv"
+                ),
+            ),
+            layout=SingleFileLayout(),
+            encoding=CSVEncoding(header=CSVHeader(num_lines=1)),
+        )
+    ),
+    tag="2015-2016_ss_epl",
+)
+
+SSEPL2015_datum = RowStruct(
+    name="SSEPL2015_datum",
+    attributes=attr_list([
+        attr.StringIdentifier("Div"),
+        attr.DateString("Date"),
+        attr.StringIdentifier("HomeTeam"),
+        attr.StringIdentifier("AwayTeam"),
+        attr.NaturalNumber("FTHG"),
+        attr.NaturalNumber("FTAG"),
+        attr.StringIdentifier("FTR"),
+        attr.NaturalNumber("HTHG"),
+        attr.NaturalNumber("HTAG"),
+        attr.StringIdentifier("HTR"),
+        attr.StringIdentifier("Referee"),
+        attr.NaturalNumber("HS"),
+        attr.NaturalNumber("AS"),
+        attr.NaturalNumber("HST"),
+        attr.NaturalNumber("AST"),
+        attr.NaturalNumber("HF"),
+        attr.NaturalNumber("AF"),
+        attr.NaturalNumber("HC"),
+        attr.NaturalNumber("AC"),
+        attr.NaturalNumber("HY"),
+        attr.NaturalNumber("AY"),
+        attr.NaturalNumber("HR"),
+        attr.NaturalNumber("AR"),
+        attr.PositiveFloat("B365H"),
+        attr.PositiveFloat("B365D"),
+        attr.PositiveFloat("B365A"),
+        attr.PositiveFloat("BWH"),
+        attr.PositiveFloat("BWD"),
+        attr.PositiveFloat("BWA"),
+        attr.PositiveFloat("IWH"),
+        attr.PositiveFloat("IWD"),
+        attr.PositiveFloat("IWA"),
+        attr.PositiveFloat("LBH"),
+        attr.PositiveFloat("LBD"),
+        attr.PositiveFloat("LBA"),
+        attr.PositiveFloat("PSH"),
+        attr.PositiveFloat("PSD"),
+        attr.PositiveFloat("PSA"),
+        attr.PositiveFloat("WHH"),
+        attr.PositiveFloat("WHD"),
+        attr.PositiveFloat("WHA"),
+        attr.PositiveFloat("SJH"),
+        attr.PositiveFloat("SJD"),
+        attr.PositiveFloat("SJA"),
+        attr.PositiveFloat("VCH"),
+        attr.PositiveFloat("VCD"),
+        attr.PositiveFloat("VCA"),
+        attr.NaturalNumber("Bb1X2"),
+        attr.PositiveFloat("BbMxH"),
+        attr.PositiveFloat("BbAvH"),
+        attr.PositiveFloat("BbMxD"),
+        attr.PositiveFloat("BbAvD"),
+        attr.PositiveFloat("BbMxA"),
+        attr.PositiveFloat("BbAvA"),
+        attr.NaturalNumber("BbOU"),
+        attr.PositiveFloat("BbMx>2.5"),
+        attr.PositiveFloat("BbAv>2.5"),
+        attr.PositiveFloat("BbMx<2.5"),
+        attr.PositiveFloat("BbAv<2.5"),
+        attr.NaturalNumber("BbAH"),
+        attr.PositiveFloat("BbAHh"),
+        attr.PositiveFloat("BbMxAHH"),
+        attr.PositiveFloat("BbAvAHH"),
+        attr.PositiveFloat("BbMxAHA"),
+        attr.PositiveFloat("BbAvAHA"),
+        attr.PositiveFloat("PSCH"),
+        attr.PositiveFloat("PSCD"),
+        attr.PositiveFloat("PSCA"),
+       ])
+)
+
+SSEPL2015 = StaticDataTable(
+    name="SSEPL2015",
+    schema=default_tabular_schema(SSEPL2015_datum),
+    setup=RemoteStorageSetup(
+        remote=RemoteStorage(
+            location=WebLocation(
+                address=("https://sports-statistics.com/database/soccer-data"
+                         "/england-premier-league-2014-to-2015.csv"
+                ),
+            ),
+            layout=SingleFileLayout(),
+            encoding=CSVEncoding(header=CSVHeader(num_lines=1)),
+        )
+    ),
+    tag="2014-2015_ss_epl",
+)
+
+SSEPL2014 = StaticDataTable(
+    name="SSEPL2014",
+    schema=default_tabular_schema(SSEPL2015_datum),
+    setup=RemoteStorageSetup(
+        remote=RemoteStorage(
+            location=WebLocation(
+                address=("https://sports-statistics.com/database/soccer-data"
+                         "/england-premier-league-2013-to-2014.csv"
+                ),
+            ),
+            layout=SingleFileLayout(),
+            encoding=CSVEncoding(header=CSVHeader(num_lines=1)),
+        )
+    ),
+    tag="2013-2014_ss_epl",
+)
+
+SSEPL2013_datum = RowStruct(
+    name="SSEPL2013_datum",
+    attributes=attr_list([
+        attr.StringIdentifier("Div"),
+        attr.DateString("Date"),
+        attr.StringIdentifier("HomeTeam"),
+        attr.StringIdentifier("AwayTeam"),
+        attr.NaturalNumber("FTHG"),
+        attr.NaturalNumber("FTAG"),
+        attr.StringIdentifier("FTR"),
+        attr.NaturalNumber("HTHG"),
+        attr.NaturalNumber("HTAG"),
+        attr.StringIdentifier("HTR"),
+        attr.StringIdentifier("Referee"),
+        attr.NaturalNumber("HS"),
+        attr.NaturalNumber("AS"),
+        attr.NaturalNumber("HST"),
+        attr.NaturalNumber("AST"),
+        attr.NaturalNumber("HF"),
+        attr.NaturalNumber("AF"),
+        attr.NaturalNumber("HC"),
+        attr.NaturalNumber("AC"),
+        attr.NaturalNumber("HY"),
+        attr.NaturalNumber("AY"),
+        attr.NaturalNumber("HR"),
+        attr.NaturalNumber("AR"),
+        attr.PositiveFloat("B365H"),
+        attr.PositiveFloat("B365D"),
+        attr.PositiveFloat("B365A"),
+        attr.PositiveFloat("BWH"),
+        attr.PositiveFloat("BWD"),
+        attr.PositiveFloat("BWA"),
+        attr.PositiveFloat("GBH"),
+        attr.PositiveFloat("GBD"),
+        attr.PositiveFloat("GBA"),
+        attr.PositiveFloat("IWH"),
+        attr.PositiveFloat("IWD"),
+        attr.PositiveFloat("IWA"),
+        attr.PositiveFloat("LBH"),
+        attr.PositiveFloat("LBD"),
+        attr.PositiveFloat("LBA"),
+        attr.PositiveFloat("PSH"),
+        attr.PositiveFloat("PSD"),
+        attr.PositiveFloat("PSA"),
+        attr.PositiveFloat("WHH"),
+        attr.PositiveFloat("WHD"),
+        attr.PositiveFloat("WHA"),
+        attr.PositiveFloat("SJH"),
+        attr.PositiveFloat("SJD"),
+        attr.PositiveFloat("SJA"),
+        attr.PositiveFloat("VCH"),
+        attr.PositiveFloat("VCD"),
+        attr.PositiveFloat("VCA"),
+        attr.PositiveFloat("BSH"),
+        attr.PositiveFloat("BSD"),
+        attr.PositiveFloat("BSA"),
+        attr.NaturalNumber("Bb1X2"),
+        attr.PositiveFloat("BbMxH"),
+        attr.PositiveFloat("BbAvH"),
+        attr.PositiveFloat("BbMxD"),
+        attr.PositiveFloat("BbAvD"),
+        attr.PositiveFloat("BbMxA"),
+        attr.PositiveFloat("BbAvA"),
+        attr.NaturalNumber("BbOU"),
+        attr.PositiveFloat("BbMx>2.5"),
+        attr.PositiveFloat("BbAv>2.5"),
+        attr.PositiveFloat("BbMx<2.5"),
+        attr.PositiveFloat("BbAv<2.5"),
+        attr.NaturalNumber("BbAH"),
+        attr.PositiveFloat("BbAHh"),
+        attr.PositiveFloat("BbMxAHH"),
+        attr.PositiveFloat("BbAvAHH"),
+        attr.PositiveFloat("BbMxAHA"),
+        attr.PositiveFloat("BbAvAHA"),
+        attr.PositiveFloat("PSCH"),
+        attr.PositiveFloat("PSCD"),
+        attr.PositiveFloat("PSCA"),
+       ])
+)
+
+SSEPL2013 = StaticDataTable(
+    name="SSEPL2013",
+    schema=default_tabular_schema(SSEPL2013_datum),
+    setup=RemoteStorageSetup(
+        remote=RemoteStorage(
+            location=WebLocation(
+                address=("https://sports-statistics.com/database/soccer-data"
+                         "/england-premier-league-2012-to-2013.csv"
+                ),
+            ),
+            layout=SingleFileLayout(),
+            encoding=CSVEncoding(header=CSVHeader(num_lines=1)),
+        )
+    ),
+    tag="2012-2013_ss_epl",
+)
+
+SSEPL2012_datum = RowStruct(
+    name="SSEPL2012_datum",
+    attributes=attr_list([
+        attr.StringIdentifier("Div"),
+        attr.DateString("Date"),
+        attr.StringIdentifier("HomeTeam"),
+        attr.StringIdentifier("AwayTeam"),
+        attr.NaturalNumber("FTHG"),
+        attr.NaturalNumber("FTAG"),
+        attr.StringIdentifier("FTR"),
+        attr.NaturalNumber("HTHG"),
+        attr.NaturalNumber("HTAG"),
+        attr.StringIdentifier("HTR"),
+        attr.StringIdentifier("Referee"),
+        attr.NaturalNumber("HS"),
+        attr.NaturalNumber("AS"),
+        attr.NaturalNumber("HST"),
+        attr.NaturalNumber("AST"),
+        attr.NaturalNumber("HF"),
+        attr.NaturalNumber("AF"),
+        attr.NaturalNumber("HC"),
+        attr.NaturalNumber("AC"),
+        attr.NaturalNumber("HY"),
+        attr.NaturalNumber("AY"),
+        attr.NaturalNumber("HR"),
+        attr.NaturalNumber("AR"),
+        attr.PositiveFloat("B365H"),
+        attr.PositiveFloat("B365D"),
+        attr.PositiveFloat("B365A"),
+        attr.PositiveFloat("BWH"),
+        attr.PositiveFloat("BWD"),
+        attr.PositiveFloat("BWA"),
+        attr.PositiveFloat("GBH"),
+        attr.PositiveFloat("GBD"),
+        attr.PositiveFloat("GBA"),
+        attr.PositiveFloat("IWH"),
+        attr.PositiveFloat("IWD"),
+        attr.PositiveFloat("IWA"),
+        attr.PositiveFloat("LBH"),
+        attr.PositiveFloat("LBD"),
+        attr.PositiveFloat("LBA"),
+        attr.PositiveFloat("SBH"),
+        attr.PositiveFloat("SBD"),
+        attr.PositiveFloat("SBA"),
+        attr.PositiveFloat("WHH"),
+        attr.PositiveFloat("WHD"),
+        attr.PositiveFloat("WHA"),
+        attr.PositiveFloat("SJH"),
+        attr.PositiveFloat("SJD"),
+        attr.PositiveFloat("SJA"),
+        attr.PositiveFloat("VCH"),
+        attr.PositiveFloat("VCD"),
+        attr.PositiveFloat("VCA"),
+        attr.PositiveFloat("BSH"),
+        attr.PositiveFloat("BSD"),
+        attr.PositiveFloat("BSA"),
+        attr.NaturalNumber("Bb1X2"),
+        attr.PositiveFloat("BbMxH"),
+        attr.PositiveFloat("BbAvH"),
+        attr.PositiveFloat("BbMxD"),
+        attr.PositiveFloat("BbAvD"),
+        attr.PositiveFloat("BbMxA"),
+        attr.PositiveFloat("BbAvA"),
+        attr.NaturalNumber("BbOU"),
+        attr.PositiveFloat("BbMx>2.5"),
+        attr.PositiveFloat("BbAv>2.5"),
+        attr.PositiveFloat("BbMx<2.5"),
+        attr.PositiveFloat("BbAv<2.5"),
+        attr.NaturalNumber("BbAH"),
+        attr.PositiveFloat("BbAHh"),
+        attr.PositiveFloat("BbMxAHH"),
+        attr.PositiveFloat("BbAvAHH"),
+        attr.PositiveFloat("BbMxAHA"),
+        attr.PositiveFloat("BbAvAHA"),
+       ])
+)
+
+SSEPL2012 = StaticDataTable(
+    name="SSEPL2012",
+    schema=default_tabular_schema(SSEPL2012_datum),
+    setup=RemoteStorageSetup(
+        remote=RemoteStorage(
+            location=WebLocation(
+                address=("https://sports-statistics.com/database/soccer-data"
+                         "/england-premier-league-2011-to-2012.csv"
+                ),
+            ),
+            layout=SingleFileLayout(),
+            encoding=CSVEncoding(header=CSVHeader(num_lines=1)),
+        )
+    ),
+    tag="2011-2012_ss_epl",
+)
+
+SSEPL2011 = StaticDataTable(
+    name="SSEPL2011",
+    schema=default_tabular_schema(SSEPL2012_datum),
+    setup=RemoteStorageSetup(
+        remote=RemoteStorage(
+            location=WebLocation(  
+                address=("https://sports-statistics.com/database/soccer-data"
+                         "/england-premier-league-2010-to-2011.csv"
+                ),
+            ),
+            layout=SingleFileLayout(),
+            encoding=CSVEncoding(header=CSVHeader(num_lines=1)),
+        )
+    ),
+    tag="2010-2011_ss_epl",
+)
+
+SSEPL2010 = StaticDataTable(
+    name="SSEPL2010",
+    schema=default_tabular_schema(SSEPL2012_datum),
+    setup=RemoteStorageSetup(
+        remote=RemoteStorage(
+            location=WebLocation(
+                address=("https://sports-statistics.com/database/soccer-data"
+                         "/england-premier-league-2009-to-2010.csv"
+                ),
+            ),
+            layout=SingleFileLayout(),
+            encoding=CSVEncoding(header=CSVHeader(num_lines=1)),
+        )
+    ),
+    tag="2009-2010_ss_epl",
+)
+
+SSEPL2009 = StaticDataTable(
+    name="SSEPL2009",
+    schema=default_tabular_schema(SSEPL2012_datum),
+    setup=RemoteStorageSetup(
+        remote=RemoteStorage(
+            location=WebLocation(
+                address=("https://sports-statistics.com/database/soccer-data"
+                         "/england-premier-league-2008-to-2009.csv"
+                ),
+            ),
+            layout=SingleFileLayout(),
+            encoding=CSVEncoding(header=CSVHeader(num_lines=1)),
+        )
+    ),
+    tag="2008-2009_ss_epl",
+)
+
+SSEPL2008 = StaticDataTable(
+    name="SSEPL2008",
+    schema=default_tabular_schema(SSEPL2012_datum),
+    setup=RemoteStorageSetup(
+        remote=RemoteStorage(
+            location=WebLocation(
+                address=("https://sports-statistics.com/database/soccer-data"
+                         "/england-premier-league-2007-to-2008.csv"
+                ),
+            ),
+            layout=SingleFileLayout(),
+            encoding=CSVEncoding(header=CSVHeader(num_lines=1)),
+        )
+    ),
+    tag="2007-2008_ss_epl",
+)
+
+SSEPL2007_datum = RowStruct(
+    name="SSEPL2007_datum",
+    attributes=attr_list([
+        attr.StringIdentifier("Div"),
+        attr.DateString("Date"),
+        attr.StringIdentifier("HomeTeam"),
+        attr.StringIdentifier("AwayTeam"),
+        attr.NaturalNumber("FTHG"),
+        attr.NaturalNumber("FTAG"),
+        attr.StringIdentifier("FTR"),
+        attr.NaturalNumber("HTHG"),
+        attr.NaturalNumber("HTAG"),
+        attr.StringIdentifier("HTR"),
+        attr.StringIdentifier("Referee"),
+        attr.NaturalNumber("HS"),
+        attr.NaturalNumber("AS"),
+        attr.NaturalNumber("HST"),
+        attr.NaturalNumber("AST"),
+        attr.NaturalNumber("HF"),
+        attr.NaturalNumber("AF"),
+        attr.NaturalNumber("HC"),
+        attr.NaturalNumber("AC"),
+        attr.NaturalNumber("HY"),
+        attr.NaturalNumber("AY"),
+        attr.NaturalNumber("HR"),
+        attr.NaturalNumber("AR"),
+        attr.PositiveFloat("B365H"),
+        attr.PositiveFloat("B365D"),
+        attr.PositiveFloat("B365A"),
+        attr.PositiveFloat("BWH"),
+        attr.PositiveFloat("BWD"),
+        attr.PositiveFloat("BWA"),
+        attr.PositiveFloat("GBH"),
+        attr.PositiveFloat("GBD"),
+        attr.PositiveFloat("GBA"),
+        attr.PositiveFloat("IWH"),
+        attr.PositiveFloat("IWD"),
+        attr.PositiveFloat("IWA"),
+        attr.PositiveFloat("LBH"),
+        attr.PositiveFloat("LBD"),
+        attr.PositiveFloat("LBA"),
+        attr.PositiveFloat("SBH"),
+        attr.PositiveFloat("SBD"),
+        attr.PositiveFloat("SBA"),
+        attr.PositiveFloat("WHH"),
+        attr.PositiveFloat("WHD"),
+        attr.PositiveFloat("WHA"),
+        attr.PositiveFloat("SJH"),
+        attr.PositiveFloat("SJD"),
+        attr.PositiveFloat("SJA"),
+        attr.PositiveFloat("VCH"),
+        attr.PositiveFloat("VCD"),
+        attr.PositiveFloat("VCA"),
+        attr.NaturalNumber("Bb1X2"),
+        attr.PositiveFloat("BbMxH"),
+        attr.PositiveFloat("BbAvH"),
+        attr.PositiveFloat("BbMxD"),
+        attr.PositiveFloat("BbAvD"),
+        attr.PositiveFloat("BbMxA"),
+        attr.PositiveFloat("BbAvA"),
+        attr.NaturalNumber("BbOU"),
+        attr.PositiveFloat("BbMx>2.5"),
+        attr.PositiveFloat("BbAv>2.5"),
+        attr.PositiveFloat("BbMx<2.5"),
+        attr.PositiveFloat("BbAv<2.5"),
+        attr.NaturalNumber("BbAH"),
+        attr.PositiveFloat("BbAHh"),
+        attr.PositiveFloat("BbMxAHH"),
+        attr.PositiveFloat("BbAvAHH"),
+        attr.PositiveFloat("BbMxAHA"),
+        attr.PositiveFloat("BbAvAHA"),
+       ])
+)
+
+SSEPL2007 = StaticDataTable(
+    name="SSEPL2007",
+    schema=default_tabular_schema(SSEPL2007_datum),
+    setup=RemoteStorageSetup(
+        remote=RemoteStorage(
+            location=WebLocation(
+                address=("https://sports-statistics.com/database/soccer-data"
+                         "/england-premier-league-2006-to-2007.csv"
+                ),
+            ),
+            layout=SingleFileLayout(),
+            encoding=CSVEncoding(header=CSVHeader(num_lines=1)),
+        )
+    ),
+    tag="2006-2007_ss_epl",
+)
+
+SSEPL2006 = StaticDataTable(
+    name="SSEPL2006",
+    schema=default_tabular_schema(SSEPL2007_datum),
+    setup=RemoteStorageSetup(
+        remote=RemoteStorage(
+            location=WebLocation(
+                address=("https://sports-statistics.com/database/soccer-data"
+                         "/england-premier-league-2005-to-2006.csv"
+                ),
+            ),
+            layout=SingleFileLayout(),
+            encoding=CSVEncoding(header=CSVHeader(num_lines=1)),
+        )
+    ),
+    tag="2005-2006_ss_epl",
+)
+
+SSEPL2005_datum = RowStruct(
+    name="SSEPL2005_datum",
+    attributes=attr_list([
+        attr.StringIdentifier("Div"),
+        attr.DateString("Date"),
+        attr.StringIdentifier("HomeTeam"),
+        attr.StringIdentifier("AwayTeam"),
+        attr.NaturalNumber("FTHG"),
+        attr.NaturalNumber("FTAG"),
+        attr.StringIdentifier("FTR"),
+        attr.NaturalNumber("HTHG"),
+        attr.NaturalNumber("HTAG"),
+        attr.StringIdentifier("HTR"),
+        attr.StringIdentifier("Referee"),
+        attr.NaturalNumber("HS"),
+        attr.NaturalNumber("AS"),
+        attr.NaturalNumber("HST"),
+        attr.NaturalNumber("AST"),
+        attr.NaturalNumber("HF"),
+        attr.NaturalNumber("AF"),
+        attr.NaturalNumber("HC"),
+        attr.NaturalNumber("AC"),
+        attr.NaturalNumber("HY"),
+        attr.NaturalNumber("AY"),
+        attr.NaturalNumber("HR"),
+        attr.NaturalNumber("AR"),
+        attr.PositiveFloat("B365H"),
+        attr.PositiveFloat("B365D"),
+        attr.PositiveFloat("B365A"),
+        attr.PositiveFloat("BWH"),
+        attr.PositiveFloat("BWD"),
+        attr.PositiveFloat("BWA"),
+        attr.PositiveFloat("GBH"),
+        attr.PositiveFloat("GBD"),
+        attr.PositiveFloat("GBA"),
+        attr.PositiveFloat("IWH"),
+        attr.PositiveFloat("IWD"),
+        attr.PositiveFloat("IWA"),
+        attr.PositiveFloat("LBH"),
+        attr.PositiveFloat("LBD"),
+        attr.PositiveFloat("LBA"),
+        attr.PositiveFloat("SBH"),
+        attr.PositiveFloat("SBD"),
+        attr.PositiveFloat("SBA"),
+        attr.PositiveFloat("WHH"),
+        attr.PositiveFloat("WHD"),
+        attr.PositiveFloat("WHA"),
+        attr.PositiveFloat("GB>2.5"),
+        attr.PositiveFloat("GB<2.5"),
+        attr.PositiveFloat("B365>2.5"),
+        attr.PositiveFloat("B365<2.5"),
+        attr.PositiveFloat("GBAHH"),
+        attr.PositiveFloat("GBAHA"),
+        attr.PositiveFloat("GBAH"),
+        attr.PositiveFloat("LBAHH"),
+        attr.PositiveFloat("LBAHA"),
+        attr.PositiveFloat("LBAH"),
+        attr.PositiveFloat("B365AHH"),
+        attr.PositiveFloat("B365AHA"),
+        attr.PositiveFloat("B365AH"),
+       ])
+)
+
+SSEPL2005 = StaticDataTable(
+    name="SSEPL2005",
+    schema=default_tabular_schema(SSEPL2005_datum),
+    setup=RemoteStorageSetup(
+        remote=RemoteStorage(
+            location=WebLocation(
+                address=("https://sports-statistics.com/database/soccer-data"
+                         "/england-premier-league-2004-to-2005.csv"
+                ),
+            ),
+            layout=SingleFileLayout(),
+            encoding=CSVEncoding(header=CSVHeader(num_lines=1)),
+        )
+    ),
+    tag="2004-2005_ss_epl",
+)
+
+SSEPL2004_datum = RowStruct(
+    name="SSEPL2004_datum",
+    attributes=attr_list([
+        attr.StringIdentifier("Div"),
+        attr.DateString("Date"),
+        attr.StringIdentifier("HomeTeam"),
+        attr.StringIdentifier("AwayTeam"),
+        attr.NaturalNumber("FTHG"),
+        attr.NaturalNumber("FTAG"),
+        attr.StringIdentifier("FTR"),
+        attr.NaturalNumber("HTHG"),
+        attr.NaturalNumber("HTAG"),
+        attr.StringIdentifier("HTR"),
+        attr.StringIdentifier("Referee"),
+        attr.NaturalNumber("HS"),
+        attr.NaturalNumber("AS"),
+        attr.NaturalNumber("HST"),
+        attr.NaturalNumber("AST"),
+        attr.NaturalNumber("HF"),
+        attr.NaturalNumber("AF"),
+        attr.NaturalNumber("HC"),
+        attr.NaturalNumber("AC"),
+        attr.NaturalNumber("HY"),
+        attr.NaturalNumber("AY"),
+        attr.NaturalNumber("HR"),
+        attr.NaturalNumber("AR"),
+        attr.PositiveFloat("B365H"),
+        attr.PositiveFloat("B365D"),
+        attr.PositiveFloat("B365A"),
+        attr.PositiveFloat("GBH"),
+        attr.PositiveFloat("GBD"),
+        attr.PositiveFloat("GBA"),
+        attr.PositiveFloat("IWH"),
+        attr.PositiveFloat("IWD"),
+        attr.PositiveFloat("IWA"),
+        attr.PositiveFloat("LBH"),
+        attr.PositiveFloat("LBD"),
+        attr.PositiveFloat("LBA"),
+        attr.PositiveFloat("SOH"),
+        attr.PositiveFloat("SOD"),
+        attr.PositiveFloat("SOA"),
+        attr.PositiveFloat("SBH"),
+        attr.PositiveFloat("SBD"),
+        attr.PositiveFloat("SBA"),
+        attr.PositiveFloat("WHH"),
+        attr.PositiveFloat("WHD"),
+        attr.PositiveFloat("WHA"),
+        attr.PositiveFloat("GB>2.5"),
+        attr.PositiveFloat("GB<2.5"),
+        attr.PositiveFloat("B365>2.5"),
+        attr.PositiveFloat("B365<2.5"),
+        attr.PositiveFloat("GBAHH"),
+        attr.PositiveFloat("GBAHA"),
+        attr.PositiveFloat("GBAH"),
+        attr.PositiveFloat("LBAHH"),
+        attr.PositiveFloat("LBAHA"),
+        attr.PositiveFloat("LBAH"),
+        attr.PositiveFloat("B365AHH"),
+        attr.PositiveFloat("B365AHA"),
+        attr.PositiveFloat("B365AH"),
+       ])
+)
+
+SSEPL2004 = StaticDataTable(
+    name="SSEPL2004",
+    schema=default_tabular_schema(SSEPL2004_datum),
+    setup=RemoteStorageSetup(
+        remote=RemoteStorage(
+            location=WebLocation(
+                address=("https://sports-statistics.com/database/soccer-data"
+                         "/england-premier-league-2003-to-2004.csv"
+                ),
+            ),
+            layout=SingleFileLayout(),
+            encoding=CSVEncoding(header=CSVHeader(num_lines=1)),
+        )
+    ),
+    tag="2003-2004_ss_epl",
+)
+
+SSEPL2003_datum = RowStruct(
+    name="SSEPL2003_datum",
+    attributes=attr_list([
+        attr.StringIdentifier("Div"),
+        attr.DateString("Date"),
+        attr.StringIdentifier("HomeTeam"),
+        attr.StringIdentifier("AwayTeam"),
+        attr.NaturalNumber("FTHG"),
+        attr.NaturalNumber("FTAG"),
+        attr.StringIdentifier("FTR"),
+        attr.NaturalNumber("HTHG"),
+        attr.NaturalNumber("HTAG"),
+        attr.StringIdentifier("HTR"),
+        attr.StringIdentifier("Referee"),
+        attr.NaturalNumber("HS"),
+        attr.NaturalNumber("AS"),
+        attr.NaturalNumber("HST"),
+        attr.NaturalNumber("AST"),
+        attr.NaturalNumber("HF"),
+        attr.NaturalNumber("AF"),
+        attr.NaturalNumber("HC"),
+        attr.NaturalNumber("AC"),
+        attr.NaturalNumber("HY"),
+        attr.NaturalNumber("AY"),
+        attr.NaturalNumber("HR"),
+        attr.NaturalNumber("AR"),
+        attr.PositiveFloat("B365H"),
+        attr.PositiveFloat("B365D"),
+        attr.PositiveFloat("B365A"),
+        attr.PositiveFloat("GBH"),
+        attr.PositiveFloat("GBD"),
+        attr.PositiveFloat("GBA"),
+        attr.PositiveFloat("IWH"),
+        attr.PositiveFloat("IWD"),
+        attr.PositiveFloat("IWA"),
+        attr.PositiveFloat("LBH"),
+        attr.PositiveFloat("LBD"),
+        attr.PositiveFloat("LBA"),
+        attr.PositiveFloat("SOH"),
+        attr.PositiveFloat("SOD"),
+        attr.PositiveFloat("SOA"),
+        attr.PositiveFloat("SBH"),
+        attr.PositiveFloat("SBD"),
+        attr.PositiveFloat("SBA"),
+        attr.PositiveFloat("WHH"),
+        attr.PositiveFloat("WHD"),
+        attr.PositiveFloat("WHA"),
+        attr.PositiveFloat("GB>2.5"),
+        attr.PositiveFloat("GB<2.5"),
+        attr.PositiveFloat("B365>2.5"),
+        attr.PositiveFloat("B365<2.5"),
+       ])
+)
+
+SSEPL2003 = StaticDataTable(
+    name="SSEPL2003",
+    schema=default_tabular_schema(SSEPL2003_datum),
+    setup=RemoteStorageSetup(
+        remote=RemoteStorage(
+            location=WebLocation(
+                address=("https://sports-statistics.com/database/soccer-data"
+                         "/england-premier-league-2002-to-2003.csv"
+                ),
+            ),
+            layout=SingleFileLayout(),
+            encoding=CSVEncoding(header=CSVHeader(num_lines=1)),
+        )
+    ),
+    tag="2002-2003_ss_epl",
+)
+
+SSEPL2002_datum = RowStruct(
+    name="SSEPL2002_datum",
+    attributes=attr_list([
+        attr.StringIdentifier("Div"),
+        attr.DateString("Date"),
+        attr.StringIdentifier("HomeTeam"),
+        attr.StringIdentifier("AwayTeam"),
+        attr.NaturalNumber("FTHG"),
+        attr.NaturalNumber("FTAG"),
+        attr.StringIdentifier("FTR"),
+        attr.NaturalNumber("HTHG"),
+        attr.NaturalNumber("HTAG"),
+        attr.StringIdentifier("HTR"),
+        attr.NaturalNumber("Attendance"),
+        attr.StringIdentifier("Referee"),
+        attr.NaturalNumber("HS"),
+        attr.NaturalNumber("AS"),
+        attr.NaturalNumber("HST"),
+        attr.NaturalNumber("AST"),
+        attr.NaturalNumber("HHW"),
+        attr.NaturalNumber("AHW"),
+        attr.NaturalNumber("HC"),
+        attr.NaturalNumber("AC"),
+        attr.NaturalNumber("HF"),
+        attr.NaturalNumber("AF"),
+        attr.NaturalNumber("HO"),
+        attr.NaturalNumber("AO"),
+        attr.NaturalNumber("HY"),
+        attr.NaturalNumber("AY"),
+        attr.NaturalNumber("HR"),
+        attr.NaturalNumber("AR"),
+        attr.NaturalNumber("HBP"),
+        attr.NaturalNumber("ABP"),
+        attr.PositiveFloat("GBH"),
+        attr.PositiveFloat("GBD"),
+        attr.PositiveFloat("GBA"),
+        attr.PositiveFloat("IWH"),
+        attr.PositiveFloat("IWD"),
+        attr.PositiveFloat("IWA"),
+        attr.PositiveFloat("LBH"),
+        attr.PositiveFloat("LBD"),
+        attr.PositiveFloat("LBA"),
+        attr.PositiveFloat("SBH"),
+        attr.PositiveFloat("SBD"),
+        attr.PositiveFloat("SBA"),
+        attr.PositiveFloat("SYH"),
+        attr.PositiveFloat("SYD"),
+        attr.PositiveFloat("SYA"),
+        attr.PositiveFloat("WHH"),
+        attr.PositiveFloat("WHD"),
+        attr.PositiveFloat("WHA"),
+       ])
+)
+
+SSEPL2002 = StaticDataTable(
+    name="SSEPL2002",
+    schema=default_tabular_schema(SSEPL2002_datum),
+    setup=RemoteStorageSetup(
+        remote=RemoteStorage(
+            location=WebLocation(
+                address=("https://sports-statistics.com/database/soccer-data"
+                         "/england-premier-league-2001-to-2002.csv"
+                ),
+            ),
+            layout=SingleFileLayout(),
+            encoding=CSVEncoding(header=CSVHeader(num_lines=1)),
+        )
+    ),
+    tag="2001-2002_ss_epl",
+)
+
+SSEPL2001_datum = RowStruct(
+    name="SSEPL2001_datum",
+    attributes=attr_list([
+        attr.StringIdentifier("Div"),
+        attr.DateString("Date"),
+        attr.StringIdentifier("HomeTeam"),
+        attr.StringIdentifier("AwayTeam"),
+        attr.NaturalNumber("FTHG"),
+        attr.NaturalNumber("FTAG"),
+        attr.StringIdentifier("FTR"),
+        attr.NaturalNumber("HTHG"),
+        attr.NaturalNumber("HTAG"),
+        attr.StringIdentifier("HTR"),
+        attr.NaturalNumber("Attendance"),
+        attr.StringIdentifier("Referee"),
+        attr.NaturalNumber("HS"),
+        attr.NaturalNumber("AS"),
+        attr.NaturalNumber("HST"),
+        attr.NaturalNumber("AST"),
+        attr.NaturalNumber("HHW"),
+        attr.NaturalNumber("AHW"),
+        attr.NaturalNumber("HC"),
+        attr.NaturalNumber("AC"),
+        attr.NaturalNumber("HF"),
+        attr.NaturalNumber("AF"),
+        attr.NaturalNumber("HO"),
+        attr.NaturalNumber("AO"),
+        attr.NaturalNumber("HY"),
+        attr.NaturalNumber("AY"),
+        attr.NaturalNumber("HR"),
+        attr.NaturalNumber("AR"),
+        attr.NaturalNumber("HBP"),
+        attr.NaturalNumber("ABP"),
+        attr.PositiveFloat("GBH"),
+        attr.PositiveFloat("GBD"),
+        attr.PositiveFloat("GBA"),
+        attr.PositiveFloat("IWH"),
+        attr.PositiveFloat("IWD"),
+        attr.PositiveFloat("IWA"),
+        attr.PositiveFloat("LBH"),
+        attr.PositiveFloat("LBD"),
+        attr.PositiveFloat("LBA"),
+        attr.PositiveFloat("SBH"),
+        attr.PositiveFloat("SBD"),
+        attr.PositiveFloat("SBA"),
+        attr.PositiveFloat("WHH"),
+        attr.PositiveFloat("WHD"),
+        attr.PositiveFloat("WHA"),
+       ])
+)
+
+SSEPL2001 = StaticDataTable(
+    name="SSEPL2001",
+    schema=default_tabular_schema(SSEPL2001_datum),
+    setup=RemoteStorageSetup(
+        remote=RemoteStorage(
+            location=WebLocation(
+                address=("https://sports-statistics.com/database/soccer-data"
+                         "/england-premier-league-2000-to-2001.csv"
+                ),
+            ),
+            layout=SingleFileLayout(),
+            encoding=CSVEncoding(header=CSVHeader(num_lines=1)),
+        )
+    ),
+    tag="2000-2001_ss_epl",
+)
+
+SSEPL2000_datum = RowStruct(
+    name="SSEPL2000_datum",
+    attributes=attr_list([
+        attr.StringIdentifier("Div"),
+        attr.DateString("Date"),
+        attr.StringIdentifier("HomeTeam"),
+        attr.StringIdentifier("AwayTeam"),
+        attr.NaturalNumber("FTHG"),
+        attr.NaturalNumber("FTAG"),
+        attr.StringIdentifier("FTR"),
+        attr.NaturalNumber("HTHG"),
+        attr.NaturalNumber("HTAG"),
+        attr.StringIdentifier("HTR"),
+        ])
+)
+
+SSEPL2000 = StaticDataTable(
+    name="SSEPL2000",
+    schema=default_tabular_schema(SSEPL2000_datum),
+    setup=RemoteStorageSetup(
+        remote=RemoteStorage(
+            location=WebLocation(
+                address=("https://sports-statistics.com/database/soccer-data"
+                         "/england-premier-league-1999-to-2000.csv"
+                ),
+            ),
+            layout=SingleFileLayout(),
+            encoding=CSVEncoding(header=CSVHeader(num_lines=1)),
+        )
+    ),
+    tag="1999-2000_ss_epl",
+)
+
+SSEPL1999 = StaticDataTable(
+    name="SSEPL1999",
+    schema=default_tabular_schema(SSEPL2000_datum),
+    setup=RemoteStorageSetup(
+        remote=RemoteStorage(
+            location=WebLocation(
+                address=("https://sports-statistics.com/database/soccer-data"
+                         "/england-premier-league-1998-to-1999.csv"
+                ),
+            ),
+            layout=SingleFileLayout(),
+            encoding=CSVEncoding(header=CSVHeader(num_lines=1)),
+        )
+    ),
+    tag="1998-1999_ss_epl",
+)
+
+SSEPL1998 = StaticDataTable(
+    name="SSEPL1998",
+    schema=default_tabular_schema(SSEPL2000_datum),
+    setup=RemoteStorageSetup(
+        remote=RemoteStorage(
+            location=WebLocation(
+                address=("https://sports-statistics.com/database/soccer-data"
+                         "/england-premier-league-1997-to-1998.csv"
+                ),
+            ),
+            layout=SingleFileLayout(),
+            encoding=CSVEncoding(header=CSVHeader(num_lines=1)),
+        )
+    ),
+    tag="1997-1998_ss_epl",
+)
+
+SSEPL1997 = StaticDataTable(
+    name="SSEPL1997",
+    schema=default_tabular_schema(SSEPL2000_datum),
+    setup=RemoteStorageSetup(
+        remote=RemoteStorage(
+            location=WebLocation(
+                address=("https://sports-statistics.com/database/soccer-data"
+                         "/england-premier-league-1996-to-1997.csv"
+                ),
+            ),
+            layout=SingleFileLayout(),
+            encoding=CSVEncoding(header=CSVHeader(num_lines=1)),
+        )
+    ),
+    tag="1996-1997_ss_epl",
+)
+
+SSEPL1996 = StaticDataTable(
+    name="SSEPL1996",
+    schema=default_tabular_schema(SSEPL2000_datum),
+    setup=RemoteStorageSetup(
+        remote=RemoteStorage(
+            location=WebLocation(
+                address=("https://sports-statistics.com/database/soccer-data"
+                         "/england-premier-league-1995-to-1996.csv"
+                ),
+            ),
+            layout=SingleFileLayout(),
+            encoding=CSVEncoding(header=CSVHeader(num_lines=1)),
+        )
+    ),
+    tag="1995-1996_ss_epl",
+)
+
+SSEPL1995_datum = RowStruct(
+    name="SSEPL1995_datum",
+    attributes=attr_list([
+        attr.StringIdentifier("Div"),
+        attr.DateString("Date"),
+        attr.StringIdentifier("HomeTeam"),
+        attr.StringIdentifier("AwayTeam"),
+        attr.NaturalNumber("FTHG"),
+        attr.NaturalNumber("FTAG"),
+        attr.StringIdentifier("FTR"),
+        ])
+)
+
+SSEPL1995 = StaticDataTable(
+    name="SSEPL1995",
+    schema=default_tabular_schema(SSEPL1995_datum),
+    setup=RemoteStorageSetup(
+        remote=RemoteStorage(
+            location=WebLocation(
+                address=("https://sports-statistics.com/database/soccer-data"
+                         "/england-premier-league-1994-to-1995.csv"
+                ),
+            ),
+            layout=SingleFileLayout(),
+            encoding=CSVEncoding(header=CSVHeader(num_lines=1)),
+        )
+    ),
+    tag="1994-1995_ss_epl",
+)
+
+SSEPL1994 = StaticDataTable(
+    name="SSEPL1994",
+    schema=default_tabular_schema(SSEPL1995_datum),
+    setup=RemoteStorageSetup(
+        remote=RemoteStorage(
+            location=WebLocation(
+                address=("https://sports-statistics.com/database/soccer-data"
+                         "/england-premier-league-1993-to-1994.csv"
+                ),
+            ),
+            layout=SingleFileLayout(),
+            encoding=CSVEncoding(header=CSVHeader(num_lines=1)),
+        )
+    ),
+    tag="1993-1994_ss_epl",
+)
+
+
+# Our dataset contains only this table and only this datum
+# definition. Note that multiple assets can reference the
+# same template!
+english_premier_league_dataset = DataSet(
+    name="english_premier_league",
+    description=(
+        "This dataset contains detailed match level statistics for the"
+        " English Premier League seasons 2 (1993/94) to 28 (2019/20)."
+    ),
+    sourcePath=__file__,
+    datumTemplates=[
+        SSEPL2020_datum,
+        SSEPL2019_datum,
+        SSEPL2018_datum,
+        SSEPL2015_datum,
+        SSEPL2013_datum,
+        SSEPL2012_datum,
+        SSEPL2007_datum,
+        SSEPL2005_datum,
+        SSEPL2004_datum,
+        SSEPL2003_datum,
+        SSEPL2002_datum,
+        SSEPL2001_datum,
+        SSEPL2000_datum,
+        SSEPL1995_datum,
+    ],
+    assets={
+        "English_Premier_League_2020_data": SSEPL2020,
+        "English_Premier_League_2019_data": SSEPL2019,
+        "English_Premier_League_2018_data": SSEPL2018,
+        "English_Premier_League_2017_data": SSEPL2017,
+        "English_Premier_League_2016_data": SSEPL2016,
+        "English_Premier_League_2015_data": SSEPL2015,
+        "English_Premier_League_2014_data": SSEPL2014,
+        "English_Premier_League_2013_data": SSEPL2013,
+        "English_Premier_League_2012_data": SSEPL2012,
+        "English_Premier_League_2011_data": SSEPL2011,
+        "English_Premier_League_2010_data": SSEPL2010,
+        "English_Premier_League_2009_data": SSEPL2009,
+        "English_Premier_League_2008_data": SSEPL2008,
+        "English_Premier_League_2007_data": SSEPL2007,
+        "English_Premier_League_2006_data": SSEPL2006,
+        "English_Premier_League_2005_data": SSEPL2005,
+        "English_Premier_League_2004_data": SSEPL2004,
+        "English_Premier_League_2003_data": SSEPL2003,
+        "English_Premier_League_2002_data": SSEPL2002,
+        "English_Premier_League_2001_data": SSEPL2001,
+        "English_Premier_League_2000_data": SSEPL2000,
+        "English_Premier_League_1999_data": SSEPL1999,
+        "English_Premier_League_1998_data": SSEPL1998,
+        "English_Premier_League_1997_data": SSEPL1997,
+        "English_Premier_League_1996_data": SSEPL1996,
+        "English_Premier_League_1995_data": SSEPL1995,
+        "English_Premier_League_1994_data": SSEPL1994,
+    },
+)
