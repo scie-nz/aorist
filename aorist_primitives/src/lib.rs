@@ -1711,6 +1711,9 @@ macro_rules! derived_schema {
     {name: $name: ident
     $(, source: $source: ty)?
     $(, sources: $sources: ty)?
+    $(, sources:
+        $(- $source_name: ident : $source_type: ty),+
+    )?
     , attributes:
     $($attr_name: ident : $attribute: ident ($comment: expr, $nullable: expr )),+
     $(fields: $($field_name: ident : $field_type: ty),+)?
@@ -1720,6 +1723,7 @@ macro_rules! derived_schema {
             pub datum_template: AoristRef<DatumTemplate>,
             $(pub source: AoristRef<$source>,)?
             $(pub sources: Vec<AoristRef<$sources>>,)?
+            $($(pub $source_name: AoristRef<$source_type>,)+)?
             $($(
                 pub $field_name: $field_type
             ),+)?
@@ -1760,6 +1764,20 @@ macro_rules! derived_schema {
                         }
                     ).collect()
                 }
+            }
+        )?
+        $(
+            #[cfg(feature = "python")]
+            #[pymethods]
+            impl [<Py $name>] {
+                $(
+                    #[getter]
+                    pub fn [<get_ $source_name>](&self) -> [<Py $source_type>] {
+                        [<Py $source_type>] {
+                            inner: self.inner.0.read().unwrap().$source_name.clone()
+                        }
+                    }
+                )+
             }
         )?
      }}

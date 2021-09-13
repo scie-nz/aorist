@@ -223,5 +223,6 @@ register_concept!(
     PointCloudBoundingBoxSchema,
     PolygonIntersection,
     PolygonIntersectionSchema,
-    PolygonIntersectionAsset
+    PolygonIntersectionAsset,
+    PointCloudSubsetSchema
 );
