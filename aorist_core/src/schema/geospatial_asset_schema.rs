@@ -11,6 +11,7 @@ use crate::schema::point_cloud_subset_schema::*;
 use crate::schema::polygon_intersection_schema::*;
 use crate::schema::polygon_schema::*;
 use crate::schema::raster_schema::*;
+use crate::schema::raster_from_point_cloud_schema::*;
 use crate::template::*;
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
@@ -31,6 +32,7 @@ schema_enum! {
     - PointCloudMetadataSchema
     - PointCloudSubsetSchema
     - RasterSchema
+    - RasterFromPointCloudSchema
     - PolygonIntersectionSchema
     - PolygonSchema
 }

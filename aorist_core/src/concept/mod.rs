@@ -224,5 +224,6 @@ register_concept!(
     PolygonIntersection,
     PolygonIntersectionSchema,
     PolygonIntersectionAsset,
-    PointCloudSubsetSchema
+    PointCloudSubsetSchema,
+    RasterFromPointCloudSchema
 );
