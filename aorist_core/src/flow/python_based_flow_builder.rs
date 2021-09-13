@@ -139,14 +139,14 @@ where
     fn augment_statements(
         &self,
         statements: Vec<PythonFlowBuilderInput>,
-        flow_name: Option<String>,
+        _flow_name: Option<String>,
     ) -> Vec<PythonFlowBuilderInput> {
         statements
     }
     fn get_flow_imports(&self) -> Vec<PythonImport>;
 
     fn build_file(&self, sources: Vec<(Option<String>, String)>,
-                  flow_name: Option<String>) -> PyResult<String> {
+                  _flow_name: Option<String>) -> PyResult<String> {
         format_code(
             sources
                 .into_iter()

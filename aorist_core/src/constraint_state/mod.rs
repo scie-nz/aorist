@@ -303,7 +303,7 @@ impl<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry = T::TAncestry>>
     }
     pub fn shorten_task_names(
         constraints: &LinkedHashMap<(Uuid, String), Arc<RwLock<ConstraintState<'a, T, P>>>>,
-        existing_names: &mut HashSet<String>,
+        _existing_names: &mut HashSet<String>,
     ) {
         let mut task_names: Vec<(String, Arc<RwLock<ConstraintState<'a, T, P>>>)> = Vec::new();
         for constraint in constraints.values() {

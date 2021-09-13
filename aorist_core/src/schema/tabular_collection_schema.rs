@@ -8,7 +8,7 @@ use derivative::Derivative;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
 use uuid::Uuid;
-use std::collections::{HashSet, HashMap};
+use std::collections::HashMap;
 use linked_hash_map::LinkedHashMap;
 use crate::attributes::*;
 use std::sync::{Arc, RwLock};
@@ -27,7 +27,6 @@ impl TabularCollectionSchema {
         self.datum_template.clone()
     }
     pub fn get_attributes(&self) -> Vec<AoristRef<Attribute>> {
-        let attribute_names: HashSet<String> = self.attributes.clone().into_iter().collect();
         let mut attributes_map = LinkedHashMap::new();
         for asset in &self.source_assets {
             let mut asset_attr: HashMap<String, Attribute> = asset.0.read().unwrap()

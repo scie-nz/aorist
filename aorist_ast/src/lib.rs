@@ -537,7 +537,7 @@ define_ast_node!(
             orelse_list.as_ref(),
         ))
     },
-    |if_else: &If, depth: usize| {
+    |_if_else: &If, _depth: usize| {
         panic!("if - else unimplemented in R");
     },
     test: AST,
