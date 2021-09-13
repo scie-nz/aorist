@@ -373,6 +373,9 @@ impl Builder for StructBuilder {
             #[cfg(feature = "python")]
             #[pyo3::prelude::pymethods]
             impl [<Py #struct_name>] {
+                pub fn deep_clone(&self) -> Self {
+                    Self { inner: self.inner.deep_clone() }
+                }
                 pub fn compute_uuids(&self) {
                     self.inner.compute_uuids()
                 }

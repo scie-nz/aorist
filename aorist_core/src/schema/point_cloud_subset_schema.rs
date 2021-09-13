@@ -1,9 +1,6 @@
 use crate::asset::*;
 use crate::attributes::*;
 use crate::concept::{AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
-use crate::schema::derived_asset_schema::*;
-use crate::schema::point_cloud_schema::*;
-use crate::schema::polygon_intersection_schema::*;
 use crate::template::*;
 use aorist_attributes::*;
 use aorist_concept::{aorist, Constrainable};
@@ -19,9 +16,9 @@ use uuid::Uuid;
 derived_schema! {
     name: PointCloudSubsetSchema,
     sources:
-      - point_cloud: PointCloudSchema,
+      - point_cloud: PointCloudAsset,
       // TODO: this should be more flexible in the future
-      - subset: PolygonIntersectionSchema,
+      - subset: PolygonIntersectionAsset,
     attributes:
       prefix: KeyStringIdentifier("File Prefix", false)
 }
