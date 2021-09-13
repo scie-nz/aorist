@@ -1,7 +1,6 @@
 use crate::concept::{AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
 use crate::template::*;
 use crate::asset::*;
-use crate::schema::data_schema::DataSchema;
 use crate::schema::derived_asset_schema::*;
 use aorist_concept::{aorist, Constrainable};
 use aorist_primitives::{attribute, derived_schema};

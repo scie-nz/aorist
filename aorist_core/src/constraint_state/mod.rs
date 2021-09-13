@@ -3,7 +3,6 @@ use crate::constraint::OuterConstraint;
 use crate::dialect::Dialect;
 use crate::parameter_tuple::ParameterTuple;
 use crate::program::TOuterProgram;
-use crate::task_name_shortener::TaskNameShortener;
 use anyhow::{bail, Result};
 use aorist_ast::{AncestorRecord, Formatted, SimpleIdentifier, StringLiteral, AST};
 use aorist_primitives::Context;
