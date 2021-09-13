@@ -10,6 +10,7 @@ use crate::schema::point_cloud_schema::*;
 use crate::schema::point_cloud_subset_schema::*;
 use crate::schema::polygon_intersection_schema::*;
 use crate::schema::polygon_schema::*;
+use crate::schema::polygon_from_raster_schema::*;
 use crate::schema::raster_schema::*;
 use crate::schema::raster_difference_schema::*;
 use crate::schema::raster_from_point_cloud_schema::*;
@@ -35,6 +36,7 @@ schema_enum! {
     - RasterSchema
     - RasterDifferenceSchema
     - RasterFromPointCloudSchema
+    - PolygonFromRasterSchema
     - PolygonIntersectionSchema
     - PolygonSchema
 }
