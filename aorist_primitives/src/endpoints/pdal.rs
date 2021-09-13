@@ -10,12 +10,8 @@ pub struct PDALConfig {
 #[pymethods]
 impl PDALConfig {
     #[new]
-    fn new(
-        pdal_binary: String,
-    ) -> Self {
-        PDALConfig {
-            pdal_binary,
-        }
+    fn new(pdal_binary: String) -> Self {
+        PDALConfig { pdal_binary }
     }
     #[getter]
     pub fn pdal_binary(&self) -> String {

@@ -36,7 +36,7 @@ impl LanguageAssetSchema {
                 x.0.read().unwrap().get_source_schema()
             }
             LanguageAssetSchema::NamedEntitySchema(x) => x.0.read().unwrap().get_source_schema(),
-            LanguageAssetSchema::TextCorpusSchema(x) => x.clone(), 
+            LanguageAssetSchema::TextCorpusSchema(x) => x.clone(),
         }
     }
     pub fn get_datum_template(&self) -> AoristRef<DatumTemplate> {
@@ -53,7 +53,8 @@ impl LanguageAssetSchema {
             .0
             .read()
             .unwrap()
-            .text_attribute_name.clone()
+            .text_attribute_name
+            .clone()
     }
     pub fn get_datum_template_name(&self) -> String {
         self.get_datum_template().0.read().unwrap().get_name()

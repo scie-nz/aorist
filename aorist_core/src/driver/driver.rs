@@ -278,8 +278,8 @@ where
             .collect();
         let shortened_names =
             TaskNameShortener::new(
-                to_shorten_constraint_block_names, 
-                "_".to_string(), 
+                to_shorten_constraint_block_names,
+                "_".to_string(),
                 HashSet::new()
             ).run();
         let shortened_name = shortened_names.into_iter().last().unwrap();
@@ -872,57 +872,61 @@ where
                 let root_key = (root.get_uuid(), root.get_type());
                 let family_tree = family_trees.get(&root_key).unwrap();
                 if builder.should_add(root.clone(), &ancestry) {
-
-                let raw_potential_child_constraints = builder
-                    .get_required_constraint_names()
-                    .into_iter()
-                    .map(|req| (req.clone(), generated_constraints.get(&req)))
-                    .filter(|(_req, x)| x.is_some())
-                    .map(|(req, x)| (req, x.unwrap()))
-                    .collect::<Vec<_>>();
-                if level_enabled!(Level::DEBUG) {
-                    debug!(
+                    let raw_potential_child_constraints = builder
+                        .get_required_constraint_names()
+                        .into_iter()
+                        .map(|req| (req.clone(), generated_constraints.get(&req)))
+                        .filter(|(_req, x)| x.is_some())
+                        .map(|(req, x)| (req, x.unwrap()))
+                        .collect::<Vec<_>>();
+                    if level_enabled!(Level::DEBUG) {
+                        debug!(
                         "Creating constraint {:?} on root {:?} with potential child constraints:",
                         builder.get_constraint_name(),
                         &root_key
                     );
-                    for (required_constraint_name, map) in raw_potential_child_constraints.iter() {
-                        debug!(" - for {}:", required_constraint_name);
-                        for (key, v) in map.iter() {
-                            let downstream = v.read().unwrap();
-                            debug!(
-                                " -- {:?}: {:?}",
-                                key,
-                                (downstream.get_uuid()?, downstream.get_name())
-                            );
+                        for (required_constraint_name, map) in
+                            raw_potential_child_constraints.iter()
+                        {
+                            debug!(" - for {}:", required_constraint_name);
+                            for (key, v) in map.iter() {
+                                let downstream = v.read().unwrap();
+                                debug!(
+                                    " -- {:?}: {:?}",
+                                    key,
+                                    (downstream.get_uuid()?, downstream.get_name())
+                                );
+                            }
                         }
                     }
-                }
-                let other_required_concept_uuids = builder
-                    .get_required(root.clone(), &ancestry)
-                    .into_iter()
-                    .collect::<HashSet<_>>();
-                if other_required_concept_uuids.len() > 0 {
-                    trace!(
-                        "Found {} other required concept uuids for root {:?}",
-                        other_required_concept_uuids.len(),
-                        root.get_uuid()
-                    );
-                }
-                let potential_child_constraints = raw_potential_child_constraints
-                    .into_iter()
-                    .map(|(_req, x)| {
-                        x.iter()
-                            .filter(|((potential_root_id, potential_root_type), _constraint)| {
-                                (match family_tree.get(potential_root_type) {
-                                    None => false,
-                                    Some(set) => set.contains(potential_root_id),
-                                } || other_required_concept_uuids.contains(potential_root_id))
-                            })
-                            .map(|(_, constraint)| constraint.clone())
-                    })
-                    .flatten()
-                    .collect::<Vec<Arc<RwLock<B::OuterType>>>>();
+                    let other_required_concept_uuids = builder
+                        .get_required(root.clone(), &ancestry)
+                        .into_iter()
+                        .collect::<HashSet<_>>();
+                    if other_required_concept_uuids.len() > 0 {
+                        trace!(
+                            "Found {} other required concept uuids for root {:?}",
+                            other_required_concept_uuids.len(),
+                            root.get_uuid()
+                        );
+                    }
+                    let potential_child_constraints = raw_potential_child_constraints
+                        .into_iter()
+                        .map(|(_req, x)| {
+                            x.iter()
+                                .filter(
+                                    |((potential_root_id, potential_root_type), _constraint)| {
+                                        (match family_tree.get(potential_root_type) {
+                                            None => false,
+                                            Some(set) => set.contains(potential_root_id),
+                                        } || other_required_concept_uuids
+                                            .contains(potential_root_id))
+                                    },
+                                )
+                                .map(|(_, constraint)| constraint.clone())
+                        })
+                        .flatten()
+                        .collect::<Vec<Arc<RwLock<B::OuterType>>>>();
                     if level_enabled!(Level::DEBUG) {
                         debug!("After filtering:",);
                         for downstream_rw in potential_child_constraints.iter() {

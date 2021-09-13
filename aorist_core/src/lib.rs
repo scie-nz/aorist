@@ -47,7 +47,7 @@ pub use constraint::*;
 pub use constraint_block::*;
 pub use constraint_state::*;
 pub use dataset::*;
-pub use dialect::{Bash, Dialect, Presto, Python, R, dialects_module};
+pub use dialect::{dialects_module, Bash, Dialect, Presto, Python, R};
 pub use encoding::*;
 pub use endpoints::*;
 pub use error::*;

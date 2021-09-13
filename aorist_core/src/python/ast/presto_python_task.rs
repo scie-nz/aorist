@@ -91,12 +91,7 @@ def execute_trino_sql(query):
                 "execute_trino_sql".to_string(),
             )),
             vec![],
-            vec![(
-                "query".to_string(),
-                query
-            )]
-            .into_iter()
-            .collect(),
+            vec![("query".to_string(), query)].into_iter().collect(),
         ))
     }
 }

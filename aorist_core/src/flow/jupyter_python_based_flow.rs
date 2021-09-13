@@ -31,8 +31,11 @@ where
     fn get_flow_imports(&self) -> Vec<PythonImport> {
         Vec::new()
     }
-    fn build_file(&self, sources: Vec<(Option<String>, String)>,
-                  _flow_name: Option<String>) -> PyResult<String> {
+    fn build_file(
+        &self,
+        sources: Vec<(Option<String>, String)>,
+        _flow_name: Option<String>,
+    ) -> PyResult<String> {
         let cells = json!(sources
             .into_iter()
             .map(|(maybe_comment, block)| match maybe_comment {

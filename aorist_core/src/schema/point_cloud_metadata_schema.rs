@@ -1,24 +1,24 @@
-use crate::concept::{AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
-use crate::template::*;
 use crate::asset::*;
+use crate::attributes::*;
+use crate::concept::{AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
 use crate::schema::derived_asset_schema::*;
+use crate::template::*;
+use aorist_attributes::*;
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
+use aorist_primitives::{attribute, derived_schema};
 use derivative::Derivative;
+#[cfg(feature = "python")]
+use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
 use uuid::Uuid;
-use crate::attributes::*;
-use aorist_primitives::{attribute, derived_schema};
-use aorist_attributes::*;
-#[cfg(feature = "python")]
-use pyo3::prelude::*;
 
-derived_schema! { 
+derived_schema! {
     name: PointCloudMetadataSchema,
     source: PointCloudInfoAsset,
     attributes:
-      prefix: KeyStringIdentifier("File Prefix", false), 
+      prefix: KeyStringIdentifier("File Prefix", false),
       comp_spatialreference: FreeText("Compressed spatial reference", false),
       compressed: Boolean("Whether object is compressed or not", false),
       count: Count("TBD", false),

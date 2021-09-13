@@ -12,10 +12,7 @@ pub struct LINZAPIConfig {
 #[pymethods]
 impl LINZAPIConfig {
     #[new]
-    fn new(
-        koordinates_token: String,
-        pii_allowed: bool,
-    ) -> Self {
+    fn new(koordinates_token: String, pii_allowed: bool) -> Self {
         LINZAPIConfig {
             koordinates_token,
             pii_allowed,

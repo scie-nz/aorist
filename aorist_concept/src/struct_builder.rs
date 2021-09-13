@@ -606,9 +606,9 @@ impl Builder for StructBuilder {
                 )*
                 #(
                     #[getter]
-                    pub fn #unconstrainable_name_ref(&self) 
+                    pub fn #unconstrainable_name_ref(&self)
                         -> pyo3::prelude::PyResult<[<Py #unconstrainable_type_ref>]> {
-                        Ok([<Py #unconstrainable_type_ref>]{ 
+                        Ok([<Py #unconstrainable_type_ref>]{
                             inner: self.inner.0.read().unwrap().#unconstrainable_name_ref.clone()
                         })
                     }

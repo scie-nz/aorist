@@ -1,4 +1,4 @@
-use crate::{BigIntLiteral, BooleanLiteral, List, StringLiteral, Tuple, None, AST};
+use crate::{BigIntLiteral, BooleanLiteral, List, None, StringLiteral, Tuple, AST};
 use aorist_primitives::Context;
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;

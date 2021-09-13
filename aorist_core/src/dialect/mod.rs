@@ -67,7 +67,10 @@ pub enum Dialect {
 }
 
 #[cfg(feature = "python")]
-pub fn dialects_module(_py: pyo3::prelude::Python, m: &pyo3::prelude::PyModule) -> pyo3::prelude::PyResult<()> {
+pub fn dialects_module(
+    _py: pyo3::prelude::Python,
+    m: &pyo3::prelude::PyModule,
+) -> pyo3::prelude::PyResult<()> {
     m.add_class::<Python>()?;
     m.add_class::<Bash>()?;
     m.add_class::<Presto>()?;

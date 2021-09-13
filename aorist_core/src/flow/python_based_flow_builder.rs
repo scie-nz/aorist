@@ -82,10 +82,7 @@ where
             );
         }
 
-        let augmented_statements = self.augment_statements(
-            statements_with_ast,
-            flow_name.clone(),
-        );
+        let augmented_statements = self.augment_statements(statements_with_ast, flow_name.clone());
         let content: Vec<(Option<String>, Vec<&PyAny>)> = vec![(None, imports_ast)]
             .into_iter()
             .chain(
@@ -145,8 +142,11 @@ where
     }
     fn get_flow_imports(&self) -> Vec<PythonImport>;
 
-    fn build_file(&self, sources: Vec<(Option<String>, String)>,
-                  _flow_name: Option<String>) -> PyResult<String> {
+    fn build_file(
+        &self,
+        sources: Vec<(Option<String>, String)>,
+        _flow_name: Option<String>,
+    ) -> PyResult<String> {
         format_code(
             sources
                 .into_iter()
