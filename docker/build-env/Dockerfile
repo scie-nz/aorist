@@ -38,10 +38,12 @@ RUN set -eux; \
     rustc --version;
 
 # Install other aorist build prereqs:
+# - git: for pulling the repo itself in a self-contained environment
 # - libclang-dev, r-base, r-base-dev: for R code generation (libclang for bindgen)
 # - python3-*, black: for Python linking and code generation
 RUN apt-get update -y \
   && apt-get install -y \
+    git \
     libclang-dev r-base r-base-dev \
     python3-dev python3-astor python3-yaml black \
   && apt-get clean \
