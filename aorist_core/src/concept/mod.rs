@@ -229,5 +229,6 @@ register_concept!(
     RasterDifferenceSchema,
     PolygonFromRasterSchema,
     Raster,
-    NormalizedPointCloudSchema
+    NormalizedPointCloudSchema,
+    LabeledPointCloudSchema
 );
