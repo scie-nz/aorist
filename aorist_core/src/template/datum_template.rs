@@ -110,4 +110,8 @@ impl PyDatumTemplate {
             .map(|x| PyAttribute { inner: x })
             .collect())
     }
+    #[getter]
+    pub fn get_name(&self) -> String {
+        self.inner.0.read().unwrap().get_name()
+    }
 }

@@ -21,6 +21,8 @@ use aorist_primitives::schema_enum;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
 use uuid::Uuid;
+#[cfg(feature = "python")]
+use pyo3::prelude::*;
 
 schema_enum! {
     name: GeospatialAssetSchema

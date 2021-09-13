@@ -1840,6 +1840,10 @@ macro_rules! schema {
             pub fn get_key(&self) -> Vec<PyAttribute> {
                 self.inner.0.read().unwrap().get_key().iter().map(|x| PyAttribute{ inner: x.clone() }).collect()
             }
+            #[getter]
+            pub fn get_datum_template(&self) -> PyDatumTemplate {
+                PyDatumTemplate{ inner: self.inner.0.read().unwrap().get_datum_template() }
+            }
         }
     }};
 }
@@ -2004,6 +2008,14 @@ macro_rules! schema_enum {
                         Self::$enum_variant(x) => x.0.read().unwrap().get_datum_template(),
                     )+)?
                 }
+            }
+        }
+        #[cfg(feature = "python")]
+        #[pymethods]
+        impl [<Py $name>] {
+            #[getter]
+            pub fn get_datum_template(&self) -> PyDatumTemplate {
+                PyDatumTemplate{ inner: self.inner.0.read().unwrap().get_datum_template() }
             }
         }
     }};
