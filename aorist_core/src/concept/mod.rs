@@ -227,5 +227,6 @@ register_concept!(
     PointCloudSubsetSchema,
     RasterFromPointCloudSchema,
     RasterDifferenceSchema,
-    PolygonFromRasterSchema
+    PolygonFromRasterSchema,
+    Raster
 );
