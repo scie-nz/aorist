@@ -230,5 +230,8 @@ register_concept!(
     PolygonFromRasterSchema,
     Raster,
     NormalizedPointCloudSchema,
-    LabeledPointCloudSchema
+    LabeledPointCloudSchema,
+    TAOdaSilvaSegmentationSchema,
+    TAOLiSegmentationSchema,
+    TAOWatershedSegmentationSchema
 );

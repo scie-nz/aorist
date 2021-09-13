@@ -36,12 +36,19 @@ impl StringValue {
         format!("\"{}\"", self.inner).to_string()
     }
 }
+#[cfg_attr(feature = "python", pyclass)]
 #[derive(Hash, PartialEq, Eq, Debug, Serialize, Deserialize, Clone)]
-#[cfg_attr(feature = "python", derive(FromPyObject))]
 pub struct FloatValue {
     sign: i8,
     mantissa: u64,
     exponent: i16,
+}
+#[cfg(feature = "python")]
+impl std::convert::From<&pyo3::types::PyFloat> for FloatValue {
+    fn from(x: &pyo3::types::PyFloat) -> Self {
+        let (mantissa, exponent, sign) = Float::integer_decode(x.value());
+        Self{ sign, mantissa, exponent }
+    }
 }
 impl FloatValue {
     pub fn try_from(x: String) -> Result<Self, String> {

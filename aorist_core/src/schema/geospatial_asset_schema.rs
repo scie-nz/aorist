@@ -16,6 +16,9 @@ use crate::schema::polygon_from_raster_schema::*;
 use crate::schema::raster_schema::*;
 use crate::schema::raster_difference_schema::*;
 use crate::schema::raster_from_point_cloud_schema::*;
+use crate::schema::tao_watershed_segmentation_schema::*;
+use crate::schema::tao_li_segmentation_schema::*;
+use crate::schema::tao_da_silva_segmentation_schema::*;
 use crate::template::*;
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
@@ -45,4 +48,7 @@ schema_enum! {
     - PolygonFromRasterSchema
     - PolygonIntersectionSchema
     - PolygonSchema
+    - TAOWatershedSegmentationSchema
+    - TAOLiSegmentationSchema
+    - TAOdaSilvaSegmentationSchema
 }
