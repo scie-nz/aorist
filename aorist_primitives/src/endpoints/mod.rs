@@ -1,5 +1,6 @@
 mod alluxio;
 mod aws;
+mod dask;
 mod gcp;
 mod gitea;
 mod linz;
@@ -11,6 +12,7 @@ mod ranger;
 
 pub use alluxio::*;
 pub use aws::*;
+pub use dask::*;
 pub use gcp::*;
 pub use gitea::*;
 pub use linz::*;
@@ -27,6 +29,7 @@ pub fn endpoints_module(
 ) -> pyo3::prelude::PyResult<()> {
     m.add_class::<AlluxioConfig>()?;
     m.add_class::<AWSConfig>()?;
+    m.add_class::<DaskConfig>()?;
     m.add_class::<GCPConfig>()?;
     m.add_class::<GiteaConfig>()?;
     m.add_class::<RangerConfig>()?;

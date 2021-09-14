@@ -4,6 +4,7 @@ use aorist_paste::paste;
 use aorist_primitives::{
     AWSConfig, AlluxioConfig, AoristConcept, ConceptEnum, GCPConfig, GiteaConfig, LINZAPIConfig,
     MinioConfig, PDALConfig, PostgresConfig, PrestoConfig, RangerConfig, TPrestoEndpoints,
+    DaskConfig,
 };
 use derivative::Derivative;
 use serde::{Deserialize, Serialize};
@@ -22,6 +23,7 @@ pub struct EndpointConfig {
     pub aws: Option<AWSConfig>,
     pub pdal: Option<PDALConfig>,
     pub linz: Option<LINZAPIConfig>,
+    pub dask: Option<DaskConfig>,
 }
 
 impl TPrestoEndpoints for EndpointConfig {
