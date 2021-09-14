@@ -313,28 +313,41 @@ where
         let mut processed = HashMap::new();
         let mut reduced_block = LinkedHashMap::new();
         for (dialect, satisfied) in by_dialect.into_iter() {
-            let mut unique: HashMap<_, Vec<_>> = HashMap::new();
-            for (c, id) in satisfied.into_iter() {
-                let key = c.read().unwrap().get_dedup_key();
-                trace!("Dedup key: {:?}", key);
-                unique.entry(key).or_insert(Vec::new()).push((c, id));
-            }
-            let mut unique_constraints = Vec::new();
-            let mut uuid_mappings: HashMap<Uuid, Vec<Uuid>> = HashMap::new();
-            for (_, v) in unique {
-                let mut it = v.into_iter();
-                let first = it.next().unwrap();
-                let uuid = first.0.read().unwrap().get_constraint_uuid().unwrap();
-                reduced_block.insert(first.1.clone(), first.0.clone());
-                unique_constraints.push(first.0);
-                uuid_mappings.insert(uuid, Vec::new());
-                while let Some((elem, _)) = it.next() {
-                    let elem_uuid = elem.read().unwrap().get_constraint_uuid().unwrap();
-                    trace!("Inserted Uuid mapping: {} -> {}", &uuid, &elem_uuid);
-                    uuid_mappings.get_mut(&uuid).unwrap().push(elem_uuid);
+            if dialect.is_some() {
+                let mut unique: HashMap<_, Vec<_>> = HashMap::new();
+                for (c, id) in satisfied.into_iter() {
+                    let key = c.read().unwrap().get_dedup_key();
+                    trace!("Dedup key: {:?}", key);
+                    unique.entry(key).or_insert(Vec::new()).push((c, id));
+                }
+                let mut unique_constraints = Vec::new();
+                let mut uuid_mappings: HashMap<Uuid, Vec<Uuid>> = HashMap::new();
+                for (_, v) in unique {
+                    let mut it = v.into_iter();
+                    let first = it.next().unwrap();
+                    let uuid = first.0.read().unwrap().get_constraint_uuid().unwrap();
+                    reduced_block.insert(first.1.clone(), first.0.clone());
+                    unique_constraints.push(first.0);
+                    uuid_mappings.insert(uuid, Vec::new());
+                    while let Some((elem, _)) = it.next() {
+                        let elem_uuid = elem.read().unwrap().get_constraint_uuid().unwrap();
+                        trace!("Inserted Uuid mapping: {} -> {}", &uuid, &elem_uuid);
+                        uuid_mappings.get_mut(&uuid).unwrap().push(elem_uuid);
+                    }
+                }
+                processed.insert(dialect, (unique_constraints, uuid_mappings));
+            } else {
+                processed.insert(dialect, (
+                    satisfied.iter().map(|(c, _)| c.clone()).collect(),
+                    satisfied.iter().map(|(c, id)| ( 
+                        c.read().unwrap().get_constraint_uuid().unwrap(),
+                        vec![c.read().unwrap().get_constraint_uuid().unwrap()]
+                    )).collect()
+                ));
+                for elem in &satisfied {
+                    reduced_block.insert(elem.1.clone(), elem.0.clone());
                 }
             }
-            processed.insert(dialect, (unique_constraints, uuid_mappings));
         }
         ConstraintState::shorten_task_names(&reduced_block, existing_names);
         let tasks_dict = match processed.values().map(|x| x.0.len()).sum::<usize>() == 1 {
