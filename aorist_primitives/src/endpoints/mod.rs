@@ -6,6 +6,7 @@ mod gitea;
 mod linz;
 mod minio;
 mod pdal;
+mod gdal;
 mod postgres;
 mod presto;
 mod ranger;
@@ -18,6 +19,7 @@ pub use gitea::*;
 pub use linz::*;
 pub use minio::*;
 pub use pdal::*;
+pub use gdal::*;
 pub use postgres::*;
 pub use presto::*;
 pub use ranger::*;
@@ -38,5 +40,6 @@ pub fn endpoints_module(
     m.add_class::<LINZAPIConfig>()?;
     m.add_class::<MinioConfig>()?;
     m.add_class::<PDALConfig>()?;
+    m.add_class::<GDALConfig>()?;
     Ok(())
 }
