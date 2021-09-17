@@ -57,46 +57,45 @@ where
     type CB: ConstraintBlock<'a, <D as FlowBuilderBase<U>>::T, B::OuterType, U, P>;
 
     fn get_relevant_builders(topline_constraint_names: &LinkedHashSet<String>) -> Vec<B> {
-        let mut builders = B::builders()
-            .into_iter()
-            .map(|x| (x.get_constraint_name(), x))
-            .collect::<LinkedHashMap<String, _>>();
-        let mut builder_q = topline_constraint_names
-            .clone()
-            .into_iter()
-            .map(|x| {
-                (
-                    x.clone(),
-                    builders
-                        .remove(&x)
-                        .expect(format!("Missing constraint named {}", x).as_str()),
-                )
-            })
-            .collect::<VecDeque<_>>();
-        let mut relevant_builders = LinkedHashMap::new();
+        
         let mut visited = HashSet::new();
+        let mut relevant_builders = LinkedHashMap::new();
         let mut g: LinkedHashMap<String, LinkedHashSet<String>> = LinkedHashMap::new();
         let mut rev: HashMap<String, Vec<String>> = HashMap::new();
 
-        while builder_q.len() > 0 {
-            let (key, builder) = builder_q.pop_front().unwrap();
-            let edges = g.entry(key.clone()).or_insert(LinkedHashSet::new());
-            debug!("Constraint {} requires:", key);
-            for req in builder.get_required_constraint_names() {
-                debug!("  - {}", req);
-                if !visited.contains(&req) {
-                    let another = match builders.remove(&req) {
-                        Some(x) => x,
-                        None => panic!("Cannot find {} in builders.", req),
-                    };
-                    builder_q.push_back((req.clone(), another));
-                    visited.insert(req.clone());
+        for start in topline_constraint_names {
+            let mut builders = B::builders()
+                .into_iter()
+                .map(|x| (x.get_constraint_name(), x))
+                .collect::<LinkedHashMap<String, _>>();
+            
+            let constraint = builders
+                .remove(start)
+                .expect(format!("Missing constraint named {}", start).as_str());
+            let mut builder_q = vec![(start.clone(), constraint)]
+                .into_iter()
+                .collect::<VecDeque<_>>();
+            
+            while builder_q.len() > 0 {
+                let (key, builder) = builder_q.pop_front().unwrap();
+                let edges = g.entry(key.clone()).or_insert(LinkedHashSet::new());
+                debug!("Constraint {} requires:", key);
+                for req in builder.get_required_constraint_names() {
+                    debug!("  - {}", req);
+                    if !visited.contains(&req) {
+                        let another = match builders.remove(&req) {
+                            Some(x) => x,
+                            None => panic!("Cannot find {} in builders.", req),
+                        };
+                        builder_q.push_back((req.clone(), another));
+                        visited.insert(req.clone());
+                    }
+                    edges.insert(req.clone());
+                    let rev_edges = rev.entry(req.clone()).or_insert(Vec::new());
+                    rev_edges.push(key.clone());
                 }
-                edges.insert(req.clone());
-                let rev_edges = rev.entry(req.clone()).or_insert(Vec::new());
-                rev_edges.push(key.clone());
+                relevant_builders.insert(key.clone(), builder);
             }
-            relevant_builders.insert(key.clone(), builder);
         }
         let mut sorted_builders = Vec::new();
         while g.len() > 0 {
