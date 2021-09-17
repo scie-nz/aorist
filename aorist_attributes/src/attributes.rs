@@ -36,18 +36,58 @@ impl StringValue {
         format!("\"{}\"", self.inner).to_string()
     }
 }
-#[cfg_attr(feature = "python", pyclass)]
-#[derive(Hash, PartialEq, Eq, Debug, Serialize, Deserialize, Clone)]
+#[derive(Hash, PartialEq, Eq, Debug, Serialize, Deserialize, Clone, Copy)]
 pub struct FloatValue {
     sign: i8,
     mantissa: u64,
     exponent: i16,
 }
+/*#[cfg(feature = "python")]
+impl pyo3::callback::IntoPyCallbackOutput<FloatValue> for Result<FloatValue, pyo3::PyErr> {
+    #[inline]
+    fn convert(self, _: Python) -> PyResult<FloatValue> {
+        Ok(self.unwrap())
+    }
+}
+#[cfg(feature = "python")]
+impl pyo3::callback::IntoPyCallbackOutput<FloatValue> for FloatValue {
+    #[inline]
+    fn convert(self, _: Python) -> PyResult<FloatValue> {
+        Ok(self)
+    }
+}
+impl pyo3::callback::PyCallbackOutput for FloatValue {
+    const ERR_VALUE: Self = Self { sign: -2, mantissa: 0, exponent: 0 };
+}*/
 #[cfg(feature = "python")]
 impl std::convert::From<&pyo3::types::PyFloat> for FloatValue {
     fn from(x: &pyo3::types::PyFloat) -> Self {
         let (mantissa, exponent, sign) = Float::integer_decode(x.value());
         Self{ sign, mantissa, exponent }
+    }
+}
+#[cfg(feature = "python")]
+impl std::convert::From<&pyo3::types::PyAny> for FloatValue {
+    fn from(x: &pyo3::types::PyAny) -> Self {
+        let float: &pyo3::types::PyFloat = x.downcast().unwrap();
+        FloatValue::from(float)
+    }
+}
+impl std::convert::From<f64> for FloatValue {
+    fn from(x: f64) -> Self {
+        let (mantissa, exponent, sign) = Float::integer_decode(x);
+        Self{ sign, mantissa, exponent }
+    }
+}
+#[cfg(feature = "python")]
+impl pyo3::conversion::FromPyObject<'_> for FloatValue {
+    fn extract(ob: &PyAny) -> PyResult<FloatValue> {
+        Ok(FloatValue::from(ob))
+    }
+}
+impl pyo3::conversion::IntoPy<PyObject> for FloatValue {
+    fn into_py(self, py: Python) -> PyObject {
+        self.as_f64().into_py(py)
     }
 }
 impl FloatValue {
@@ -63,6 +103,13 @@ impl FloatValue {
             }
             Err(_) => Err(format!("Could not parse {} as float.", &x).into()),
         }
+    }
+    pub fn as_f64(&self) -> f64 {
+        let num = 2.0f64;
+        let sign_f = self.sign as f64;
+        let mantissa_f = self.mantissa as f64;
+        let exponent_f = num.powf(self.exponent as f64);
+        sign_f * mantissa_f * exponent_f
     }
     pub fn as_sql(&self) -> String {
         let num = 2.0f64;
