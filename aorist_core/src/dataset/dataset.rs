@@ -39,7 +39,8 @@ pub struct DataSet {
 
 impl DataSet {
     pub fn add_asset(&mut self, asset: AoristRef<Asset>) {
-        self.assets.insert(asset.0.read().unwrap().get_name(), asset.clone());
+        self.assets
+            .insert(asset.0.read().unwrap().get_name(), asset.clone());
     }
     pub fn add_template(&mut self, template: AoristRef<DatumTemplate>) {
         self.datum_templates.push(template);
@@ -130,14 +131,12 @@ impl PyDataSet {
 #[pymethods]
 impl PyDataSet {
     pub fn add_asset(&self, asset: PyAsset) {
-        self.inner
-            .0
-            .write()
-            .unwrap()
-            .add_asset(asset.inner.clone());
+        self.inner.0.write().unwrap().add_asset(asset.inner.clone());
     }
     pub fn get_asset(&self, name: String) -> PyAsset {
-        PyAsset{ inner: self.inner.0.read().unwrap().get_asset(name).unwrap() }
+        PyAsset {
+            inner: self.inner.0.read().unwrap().get_asset(name).unwrap(),
+        }
     }
     pub fn add_template(&self, template: PyDatumTemplate) {
         self.inner
@@ -146,19 +145,16 @@ impl PyDataSet {
             .unwrap()
             .add_template(template.inner.clone());
     }
-    pub fn persist_local(
-        &self,
-        storage: PyStorage,
-    ) -> PyResult<Self> {
+    pub fn persist_local(&self, storage: PyStorage) -> PyResult<Self> {
         let dt = &*self.inner.0.read().unwrap();
         let mut persisted_assets = BTreeMap::new();
         for (key, asset_rw) in dt.assets.iter() {
             let asset = &*asset_rw.0.read().unwrap();
             persisted_assets.insert(
                 key.clone(),
-                AoristRef(Arc::new(RwLock::new(asset.persist_local(
-                    storage.inner.deep_clone(),
-                )))),
+                AoristRef(Arc::new(RwLock::new(
+                    asset.persist_local(storage.inner.deep_clone()),
+                ))),
             );
         }
         let inner = AoristRef(Arc::new(RwLock::new(DataSet {
@@ -191,10 +187,7 @@ impl PyDataSet {
                 Some(x) => AoristRef(Arc::new(RwLock::new(x))),
                 None => asset_rw.clone(),
             };
-            replicated_assets.insert(
-                key.clone(),
-                replicated_asset,
-            );
+            replicated_assets.insert(key.clone(), replicated_asset);
         }
         let inner = AoristRef(Arc::new(RwLock::new(DataSet {
             name: dt.name.clone(),

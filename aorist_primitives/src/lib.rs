@@ -1612,14 +1612,14 @@ macro_rules! define_dag_function {
 #[macro_export]
 macro_rules! export_aorist_python_module {
     ($module_name: ident, $dag_function: ident, $constraints_crate: ident, $attributes_crate: ident) => {
-        use $attributes_crate::attributes_module;
-        use $constraints_crate::*;
         use aorist_core::*;
         use aorist_primitives::*;
         use aorist_util::init_logging;
         use pyo3::prelude::*;
         use pyo3::wrap_pyfunction;
         use std::collections::BTreeMap;
+        use $attributes_crate::attributes_module;
+        use $constraints_crate::*;
 
         define_dag_function!($dag_function);
 
@@ -1634,7 +1634,7 @@ macro_rules! export_aorist_python_module {
             m.add_wrapped(wrap_pyfunction!($dag_function))?;
             Ok(())
         }
-    }
+    };
 }
 #[macro_export]
 macro_rules! attribute {
@@ -1684,7 +1684,7 @@ macro_rules! asset {
                 tmp_dir: String,
                 tmp_encoding: AoristRef<Encoding>,
             ) -> Option<Self> {
-                if let StorageSetup::RemoteStorageSetup(s) = &*self.setup.0.read().unwrap() { 
+                if let StorageSetup::RemoteStorageSetup(s) = &*self.setup.0.read().unwrap() {
                     return Some(Self {
                         name: self.name.clone(),
                         comment: self.comment.clone(),
@@ -1711,6 +1711,9 @@ macro_rules! derived_schema {
     {name: $name: ident
     $(, source: $source: ty)?
     $(, sources: $sources: ty)?
+    $(, sources:
+        $(- $source_name: ident : $source_type: ty),+
+    )?
     , attributes:
     $($attr_name: ident : $attribute: ident ($comment: expr, $nullable: expr )),+
     $(fields: $($field_name: ident : $field_type: ty),+)?
@@ -1720,6 +1723,7 @@ macro_rules! derived_schema {
             pub datum_template: AoristRef<DatumTemplate>,
             $(pub source: AoristRef<$source>,)?
             $(pub sources: Vec<AoristRef<$sources>>,)?
+            $($(pub $source_name: AoristRef<$source_type>,)+)?
             $($(
                 pub $field_name: $field_type
             ),+)?
@@ -1728,11 +1732,11 @@ macro_rules! derived_schema {
             name: $name,
             attributes: $(
                 $attr_name: $attribute($comment, $nullable)
-            ),+ 
+            ),+
         }
         $(
             impl DerivedAssetSchema<'_> for $name {
-                type SourceAssetType = $source; 
+                type SourceAssetType = $source;
             }
             impl SingleSourceDerivedAssetSchema<'_> for $name {
                 fn get_source(&self) -> AoristRef<$source> {
@@ -1742,7 +1746,7 @@ macro_rules! derived_schema {
         )?
         $(
             impl DerivedAssetSchema<'_> for $name {
-                type SourceAssetType = $sources; 
+                type SourceAssetType = $sources;
             }
             impl MultipleSourceDerivedAssetSchema<'_> for $name {
                 fn get_sources(&self) -> Vec<Asset> {
@@ -1762,13 +1766,27 @@ macro_rules! derived_schema {
                 }
             }
         )?
+        $(
+            #[cfg(feature = "python")]
+            #[pymethods]
+            impl [<Py $name>] {
+                $(
+                    #[getter]
+                    pub fn [<get_ $source_name>](&self) -> [<Py $source_type>] {
+                        [<Py $source_type>] {
+                            inner: self.inner.0.read().unwrap().$source_name.clone()
+                        }
+                    }
+                )+
+            }
+        )?
      }}
 }
 
 #[macro_export]
 macro_rules! primary_schema {
     {
-        name: $name: ident 
+        name: $name: ident
         $(, attributes:
             $($attr_name: ident : $attribute: ident ($comment: expr, $nullable: expr )),+
         )?
@@ -1781,7 +1799,7 @@ macro_rules! primary_schema {
             name: $name
             $(, attributes: $(
                 $attr_name: $attribute($comment, $nullable)
-            ),+)? 
+            ),+)?
         }
     }};
 }
@@ -1797,10 +1815,10 @@ macro_rules! schema {
             pub fn get_attributes(&self) -> Vec<AoristRef<Attribute>> {
                 vec![$($(
                     attribute! { $attribute(
-                        stringify!($attr_name).to_string(), 
-                        Some($comment.to_string()), 
+                        stringify!($attr_name).to_string(),
+                        Some($comment.to_string()),
                         $nullable
-                    )}, 
+                    )},
                 )+)?]
             }
             pub fn get_key(&self) -> Vec<AoristRef<Attribute>> {
@@ -1822,17 +1840,21 @@ macro_rules! schema {
             pub fn get_key(&self) -> Vec<PyAttribute> {
                 self.inner.0.read().unwrap().get_key().iter().map(|x| PyAttribute{ inner: x.clone() }).collect()
             }
+            #[getter]
+            pub fn get_datum_template(&self) -> PyDatumTemplate {
+                PyDatumTemplate{ inner: self.inner.0.read().unwrap().get_datum_template() }
+            }
         }
     }};
 }
-#[macro_export] 
+#[macro_export]
 macro_rules! asset_enum {
     {
         name: $name: ident
-        $($(concrete_variants)? $(variants)? : $(- $variant: ident)+)? 
-        $(enum_variants: $(- $enum_variant: ident)+)? 
+        $($(concrete_variants)? $(variants)? : $(- $variant: ident)+)?
+        $(enum_variants: $(- $enum_variant: ident)+)?
     } => { aorist_paste::paste! {
-       
+
         #[aorist]
         #[derive(Eq)]
         pub enum $name {
@@ -1946,14 +1968,14 @@ macro_rules! asset_enum {
         }
     }};
 }
-#[macro_export] 
+#[macro_export]
 macro_rules! schema_enum {
     {
         name: $name: ident
-        $($(concrete_variants)? $(variants)? : $(- $variant: ident)+)? 
-        $(enum_variants: $(- $enum_variant: ident)+)? 
+        $($(concrete_variants)? $(variants)? : $(- $variant: ident)+)?
+        $(enum_variants: $(- $enum_variant: ident)+)?
     } => { aorist_paste::paste! {
-       
+
         #[aorist]
         #[derive(Eq)]
         pub enum $name {
@@ -1986,6 +2008,14 @@ macro_rules! schema_enum {
                         Self::$enum_variant(x) => x.0.read().unwrap().get_datum_template(),
                     )+)?
                 }
+            }
+        }
+        #[cfg(feature = "python")]
+        #[pymethods]
+        impl [<Py $name>] {
+            #[getter]
+            pub fn get_datum_template(&self) -> PyDatumTemplate {
+                PyDatumTemplate{ inner: self.inner.0.read().unwrap().get_datum_template() }
             }
         }
     }};

@@ -1,7 +1,6 @@
 use crate::asset::*;
 use crate::attributes::*;
 use crate::concept::{AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
-use crate::schema::derived_asset_schema::*;
 use crate::template::*;
 use aorist_attributes::*;
 use aorist_concept::{aorist, Constrainable};
@@ -15,9 +14,11 @@ use std::fmt::Debug;
 use uuid::Uuid;
 
 derived_schema! {
-    name: PolygonIntersectionSchema,
-    sources: GeospatialAsset,
+    name: PointCloudTransformationSchema,
+    sources:
+      - point_cloud: PointCloudAsset,
     attributes:
-      polygon_ids: JSON("list with polygon identifiers", false),
-      overlap: JSON("list with overlap between i-th and j-th polygon", false)
+      prefix: KeyStringIdentifier("File Prefix", false)
+    fields:
+      pdal_pipeline: String
 }

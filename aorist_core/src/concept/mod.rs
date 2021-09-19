@@ -29,7 +29,7 @@ impl<T: PartialEq + Eq + Serialize + Debug + Clone> PartialEq for AoristRef<T> {
         self.0.read().unwrap().eq(&other.0.read().unwrap())
     }
 }
-impl <T: PartialEq + Eq + Serialize + Debug + Clone> Eq for AoristRef<T> {}
+impl<T: PartialEq + Eq + Serialize + Debug + Clone> Eq for AoristRef<T> {}
 impl<T: PartialEq + Serialize + Debug + Clone> Serialize for AoristRef<T> {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
@@ -223,5 +223,17 @@ register_concept!(
     PointCloudBoundingBoxSchema,
     PolygonIntersection,
     PolygonIntersectionSchema,
-    PolygonIntersectionAsset
+    PolygonIntersectionAsset,
+    PointCloudSubsetSchema,
+    RasterFromPointCloudSchema,
+    RasterDifferenceSchema,
+    PolygonFromRasterSchema,
+    Raster,
+    NormalizedPointCloudSchema,
+    LabeledPointCloudSchema,
+    TAOdaSilvaSegmentationSchema,
+    TAOLiSegmentationSchema,
+    TAOWatershedSegmentationSchema,
+    PointCloudTransformationSchema,
+    PointCloudRasterDifferenceSchema
 );

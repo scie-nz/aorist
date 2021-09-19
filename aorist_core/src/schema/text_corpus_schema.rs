@@ -1,21 +1,21 @@
-use crate::concept::{AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
-use crate::template::*;
 use crate::asset::*;
+use crate::attributes::*;
+use crate::concept::{AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
 use crate::schema::data_schema::DataSchema;
 use crate::schema::derived_asset_schema::*;
-use aorist_concept::{aorist, Constrainable};
-use aorist_primitives::{attribute, derived_schema};
+use crate::template::*;
 use aorist_attributes::*;
+use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
+use aorist_primitives::{attribute, derived_schema};
 use derivative::Derivative;
+#[cfg(feature = "python")]
+use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
 use uuid::Uuid;
-use crate::attributes::*;
-#[cfg(feature = "python")]
-use pyo3::prelude::*;
 
-derived_schema! { 
+derived_schema! {
     name: TextCorpusSchema,
     sources: StaticDataTable,
     attributes:
@@ -31,7 +31,9 @@ impl TextCorpusSchema {
             let dedup = match &*source.get_schema().0.read().unwrap() {
                 DataSchema::TabularSchema(_) => false,
                 DataSchema::LongTabularSchema(x) => {
-                    x.0.read().unwrap().should_dedup_text_attribute(&self.text_attribute_name)
+                    x.0.read()
+                        .unwrap()
+                        .should_dedup_text_attribute(&self.text_attribute_name)
                 }
                 _ => panic!("DataSchema must be either TabularSchema or LongTabularSchema"),
             };

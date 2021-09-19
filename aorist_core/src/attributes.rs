@@ -274,7 +274,7 @@ impl AttributeOrTransform {
     pub fn is_key_type(&self) -> bool {
         match &self {
             AttributeOrTransform::Attribute(x) => x.is_key_type(),
-            AttributeOrTransform::Transform(x) => false,
+            AttributeOrTransform::Transform(_) => false,
         }
     }
     pub fn as_predicted_objective(&self) -> Result<Self, String> {

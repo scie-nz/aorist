@@ -1,11 +1,11 @@
 #![allow(non_snake_case)]
-use crate::concept::{AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
 use crate::attributes::*;
+use crate::concept::{AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
+use crate::schema::geospatial_asset_schema::*;
 use crate::schema::language_asset_schema::*;
 use crate::schema::long_tabular_schema::*;
-use crate::schema::geospatial_asset_schema::*;
-use crate::schema::tabular_schema::*;
 use crate::schema::tabular_collection_schema::*;
+use crate::schema::tabular_schema::*;
 use crate::schema::time_ordered_tabular_schema::*;
 use crate::schema::undefined_tabular_schema::*;
 use crate::template::*;
@@ -41,7 +41,9 @@ impl DataSchema {
     pub fn get_datum_template(&self) -> Result<AoristRef<DatumTemplate>, String> {
         match self {
             DataSchema::TabularSchema(x) => Ok(x.0.read().unwrap().get_datum_template().clone()),
-            DataSchema::TabularCollectionSchema(x) => Ok(x.0.read().unwrap().get_datum_template().clone()),
+            DataSchema::TabularCollectionSchema(x) => {
+                Ok(x.0.read().unwrap().get_datum_template().clone())
+            }
             DataSchema::LongTabularSchema(x) => {
                 Ok(x.0.read().unwrap().get_datum_template().clone())
             }
@@ -125,8 +127,22 @@ impl DataSchema {
             DataSchema::TabularSchema(x) => x.0.read().unwrap().attributes.clone(),
             DataSchema::TabularCollectionSchema(x) => x.0.read().unwrap().attributes.clone(),
             DataSchema::LongTabularSchema(x) => x.0.read().unwrap().get_attribute_names(),
-            DataSchema::LanguageAssetSchema(x) => x.0.read().unwrap().get_attributes().iter().map(|x| x.get_name()).collect(),
-            DataSchema::GeospatialAssetSchema(x) => x.0.read().unwrap().get_attributes().iter().map(|x| x.get_name()).collect(),
+            DataSchema::LanguageAssetSchema(x) => {
+                x.0.read()
+                    .unwrap()
+                    .get_attributes()
+                    .iter()
+                    .map(|x| x.get_name())
+                    .collect()
+            }
+            DataSchema::GeospatialAssetSchema(x) => {
+                x.0.read()
+                    .unwrap()
+                    .get_attributes()
+                    .iter()
+                    .map(|x| x.get_name())
+                    .collect()
+            }
             DataSchema::TimeOrderedTabularSchema(x) => x.0.read().unwrap().attributes.clone(),
             DataSchema::UndefinedTabularSchema(_) => vec![],
         }
@@ -135,7 +151,13 @@ impl DataSchema {
         match self {
             DataSchema::GeospatialAssetSchema(x) => x.0.read().unwrap().get_attributes(),
             DataSchema::TabularCollectionSchema(x) => x.0.read().unwrap().get_attributes(),
-            _ => self.get_datum_template().unwrap().0.read().unwrap().get_attributes(),
+            _ => self
+                .get_datum_template()
+                .unwrap()
+                .0
+                .read()
+                .unwrap()
+                .get_attributes(),
         }
     }
 }
@@ -157,6 +179,13 @@ impl PyDataSchema {
     }
     #[getter]
     pub fn get_attributes(&self) -> Vec<PyAttribute> {
-        self.inner.0.read().unwrap().get_attributes().iter().map(|x| PyAttribute{ inner: x.clone() }).collect()
+        self.inner
+            .0
+            .read()
+            .unwrap()
+            .get_attributes()
+            .iter()
+            .map(|x| PyAttribute { inner: x.clone() })
+            .collect()
     }
 }

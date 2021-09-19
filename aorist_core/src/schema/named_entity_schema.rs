@@ -1,12 +1,11 @@
 #![allow(non_snake_case)]
 use crate::attributes::*;
 use crate::concept::{AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
-use crate::schema::text_corpus_schema::*;
 use crate::schema::spacy_named_entity_schema::*;
+use crate::schema::text_corpus_schema::*;
 use crate::template::*;
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
-use derivative::Derivative;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
 use uuid::Uuid;
@@ -20,9 +19,7 @@ pub enum NamedEntitySchema {
 impl NamedEntitySchema {
     pub fn get_source_schema(&self) -> AoristRef<TextCorpusSchema> {
         match self {
-            NamedEntitySchema::SpaCyNamedEntitySchema(x) => {
-                x.0.read().unwrap().get_source_schema()
-            }
+            NamedEntitySchema::SpaCyNamedEntitySchema(x) => x.0.read().unwrap().get_source_schema(),
         }
     }
     pub fn get_attributes(&self) -> Vec<AoristRef<Attribute>> {

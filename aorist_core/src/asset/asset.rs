@@ -3,13 +3,13 @@ use crate::asset::geospatial_asset::*;
 use crate::asset::language_asset::*;
 use crate::asset::static_data_table::*;
 use crate::concept::{AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
-use aorist_primitives::asset_enum;
 use crate::encoding::Encoding;
 use crate::schema::*;
 use crate::storage::Storage;
 use crate::storage_setup::*;
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
+use aorist_primitives::asset_enum;
 #[cfg(feature = "python")]
 use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
@@ -41,18 +41,18 @@ asset_enum! {
 }
 
 impl Asset {
-    pub fn persist_local(
-        &self,
-        persistent: AoristRef<Storage>,
-    ) -> Self {
+    pub fn persist_local(&self, persistent: AoristRef<Storage>) -> Self {
         let mut cloned = self.clone();
         let storage_setup = cloned.get_storage_setup();
         let new_setup = match *storage_setup.0.read().unwrap() {
-            StorageSetup::LocalStorageSetup(_) => 
-                AoristRef(Arc::new(RwLock::new(
-                    cloned.get_storage_setup().0.read().unwrap()
-                      .persist_local(persistent)
-                ))),
+            StorageSetup::LocalStorageSetup(_) => AoristRef(Arc::new(RwLock::new(
+                cloned
+                    .get_storage_setup()
+                    .0
+                    .read()
+                    .unwrap()
+                    .persist_local(persistent),
+            ))),
             _ => cloned.get_storage_setup(),
         };
         cloned.set_storage_setup(new_setup);

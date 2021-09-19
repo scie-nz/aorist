@@ -69,18 +69,11 @@ impl StorageSetup {
             _ => panic!("Only assets with RemoteStorageSetup can be replicated"),
         }
     }
-    pub fn persist_local(
-        &self,
-        persistent: AoristRef<Storage>,
-    ) -> Self {
+    pub fn persist_local(&self, persistent: AoristRef<Storage>) -> Self {
         match self {
-            Self::LocalStorageSetup(x) => {
-                Self::TwoTierStorageSetup(AoristRef(Arc::new(RwLock::new(
-                    x.0.read()
-                        .unwrap()
-                        .persist(persistent),
-                ))))
-            }
+            Self::LocalStorageSetup(x) => Self::TwoTierStorageSetup(AoristRef(Arc::new(
+                RwLock::new(x.0.read().unwrap().persist(persistent)),
+            ))),
             _ => panic!("Only assets with LocalStorageSetup can be persisted"),
         }
     }

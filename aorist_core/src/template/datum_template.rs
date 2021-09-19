@@ -3,11 +3,12 @@ use crate::concept::{AoristRef, WrappedConcept};
 use crate::template::filter::*;
 use crate::template::identifier_tuple::*;
 use crate::template::measure::*;
-use crate::template::polygon::*;
 use crate::template::point_cloud::*;
 use crate::template::point_cloud_info::*;
+use crate::template::polygon::*;
 use crate::template::polygon_intersection::*;
 use crate::template::row_struct::*;
+use crate::template::raster::*;
 use crate::template::tensor::*;
 use crate::template::text::*;
 use aorist_concept::{aorist, Constrainable};
@@ -37,6 +38,7 @@ pub enum DatumTemplate {
     PointCloudInfo(AoristRef<PointCloudInfo>),
     Polygon(AoristRef<Polygon>),
     PolygonIntersection(AoristRef<PolygonIntersection>),
+    Raster(AoristRef<Raster>),
     Text(AoristRef<Text>),
 }
 impl DatumTemplate {
@@ -56,6 +58,7 @@ impl DatumTemplate {
             DatumTemplate::Polygon(_) => "Polygon",
             DatumTemplate::PolygonIntersection(_) => "PolygonIntersection",
             DatumTemplate::Text(_) => "Text",
+            DatumTemplate::Raster(_) => "Raster",
         }
         .to_string()
     }
@@ -75,6 +78,7 @@ impl TDatumTemplate for DatumTemplate {
             DatumTemplate::Polygon(x) => x.0.read().unwrap().get_name(),
             DatumTemplate::PolygonIntersection(x) => x.0.read().unwrap().get_name(),
             DatumTemplate::Text(x) => x.0.read().unwrap().get_name(),
+            DatumTemplate::Raster(x) => x.0.read().unwrap().get_name(),
         }
     }
     fn get_attributes(&self) -> Vec<AoristRef<Attribute>> {
@@ -93,6 +97,7 @@ impl TDatumTemplate for DatumTemplate {
             DatumTemplate::Polygon(x) => x.0.read().unwrap().get_attributes(),
             DatumTemplate::PolygonIntersection(x) => x.0.read().unwrap().get_attributes(),
             DatumTemplate::Text(x) => x.0.read().unwrap().get_attributes(),
+            DatumTemplate::Raster(x) => x.0.read().unwrap().get_attributes(),
         }
     }
 }
@@ -109,5 +114,9 @@ impl PyDatumTemplate {
             .into_iter()
             .map(|x| PyAttribute { inner: x })
             .collect())
+    }
+    #[getter]
+    pub fn get_name(&self) -> String {
+        self.inner.0.read().unwrap().get_name()
     }
 }

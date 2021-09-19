@@ -24,8 +24,8 @@ impl AWSConfig {
         project_name: Option<String>,
     ) -> Self {
         assert!(
-            (aws_key_id.is_some() && aws_key_secret.is_some()) ||
-            (aws_key_env_var.is_some() && aws_key_secret_env_var.is_some())
+            (aws_key_id.is_some() && aws_key_secret.is_some())
+                || (aws_key_env_var.is_some() && aws_key_secret_env_var.is_some())
         );
         AWSConfig {
             aws_key_id,

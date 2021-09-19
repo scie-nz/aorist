@@ -2,8 +2,9 @@ use crate::concept::{AoristRef, WrappedConcept};
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
 use aorist_primitives::{
-    AWSConfig, AlluxioConfig, AoristConcept, ConceptEnum, GCPConfig, GiteaConfig, MinioConfig,
-    PostgresConfig, PrestoConfig, RangerConfig, TPrestoEndpoints, PDALConfig, LINZAPIConfig,
+    AWSConfig, AlluxioConfig, AoristConcept, ConceptEnum, GCPConfig, GiteaConfig, LINZAPIConfig,
+    MinioConfig, PDALConfig, PostgresConfig, PrestoConfig, RangerConfig, TPrestoEndpoints,
+    DaskConfig, GDALConfig,
 };
 use derivative::Derivative;
 use serde::{Deserialize, Serialize};
@@ -22,6 +23,8 @@ pub struct EndpointConfig {
     pub aws: Option<AWSConfig>,
     pub pdal: Option<PDALConfig>,
     pub linz: Option<LINZAPIConfig>,
+    pub dask: Option<DaskConfig>,
+    pub gdal: Option<GDALConfig>,
 }
 
 impl TPrestoEndpoints for EndpointConfig {

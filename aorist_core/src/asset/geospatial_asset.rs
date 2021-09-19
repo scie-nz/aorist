@@ -6,13 +6,13 @@ use crate::storage::Storage;
 use crate::storage_setup::*;
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
-use aorist_primitives::{AoristConcept, ConceptEnum, asset_enum};
+use aorist_primitives::{asset_enum, AoristConcept, ConceptEnum};
 #[cfg(feature = "python")]
 use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
-use uuid::Uuid;
 use std::sync::{Arc, RwLock};
+use uuid::Uuid;
 
 asset_enum! {
     name: GeospatialAsset

@@ -1,7 +1,7 @@
+#![allow(non_snake_case)]
 use crate::asset::*;
 use crate::attributes::*;
 use crate::concept::{AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
-use crate::schema::derived_asset_schema::*;
 use crate::template::*;
 use aorist_attributes::*;
 use aorist_concept::{aorist, Constrainable};
@@ -13,11 +13,19 @@ use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
 use uuid::Uuid;
+use aorist_attributes::FloatValue;
 
 derived_schema! {
-    name: PolygonIntersectionSchema,
-    sources: GeospatialAsset,
+    name: TAOLiSegmentationSchema,
+    sources:
+      - point_cloud: PointCloudAsset,
     attributes:
-      polygon_ids: JSON("list with polygon identifiers", false),
-      overlap: JSON("list with overlap between i-th and j-th polygon", false)
+      prefix: KeyStringIdentifier("File Prefix", false)
+    fields:
+      dt1: FloatValue,
+      dt2: FloatValue,
+      R: FloatValue,
+      Zu: FloatValue,
+      hmin: FloatValue,
+      speed_up: FloatValue
 }

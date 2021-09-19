@@ -3,7 +3,6 @@ use crate::constraint::OuterConstraint;
 use crate::dialect::Dialect;
 use crate::parameter_tuple::ParameterTuple;
 use crate::program::TOuterProgram;
-use crate::task_name_shortener::TaskNameShortener;
 use anyhow::{bail, Result};
 use aorist_ast::{AncestorRecord, Formatted, SimpleIdentifier, StringLiteral, AST};
 use aorist_primitives::Context;
@@ -304,7 +303,7 @@ impl<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry = T::TAncestry>>
     }
     pub fn shorten_task_names(
         constraints: &LinkedHashMap<(Uuid, String), Arc<RwLock<ConstraintState<'a, T, P>>>>,
-        existing_names: &mut HashSet<String>,
+        _existing_names: &mut HashSet<String>,
     ) {
         let mut task_names: Vec<(String, Arc<RwLock<ConstraintState<'a, T, P>>>)> = Vec::new();
         for constraint in constraints.values() {
@@ -317,7 +316,7 @@ impl<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry = T::TAncestry>>
         }
         /*let mut to_shorten_task_names = task_names.iter().map(|(x, _)| x.clone()).collect();
         let shortened_task_names_1 =
-            TaskNameShortener::new(to_shorten_task_names, "____".to_string(), 
+            TaskNameShortener::new(to_shorten_task_names, "____".to_string(),
                                    existing_names.clone()).run();
         let shortened_task_names_2 =
             TaskNameShortener::new(shortened_task_names_1, "_".to_string(),

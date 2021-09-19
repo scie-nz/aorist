@@ -3,7 +3,7 @@
 # How to build this:
 # 1. Get latest version of docker, ensure it's started with 'systemctl start docker'
 # 2. Install qemu binfmt support: ubuntu:qemu-system-misc, arch:(aur)qemu-user-static-bin
-# 3. Run: ./docker-ci-build.sh
+# 3. Run: ./build.sh
 
 FROM debian:bullseye
 
@@ -38,11 +38,19 @@ RUN set -eux; \
     rustc --version;
 
 # Install other aorist build prereqs:
+# - git: for pulling the repo itself in a self-contained environment
 # - libclang-dev, r-base, r-base-dev: for R code generation (libclang for bindgen)
 # - python3-*, black: for Python linking and code generation
+# - libssl-dev: for sccache below which wants openssl-sys
 RUN apt-get update -y \
   && apt-get install -y \
+    git \
     libclang-dev r-base r-base-dev \
     python3-dev python3-astor python3-yaml black \
+    libssl-dev \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists /var/cache/apt/archives
+
+# Install sccache for easy build artifact caching in CI
+RUN cargo install sccache \
+  && rm -rf ~/.cargo

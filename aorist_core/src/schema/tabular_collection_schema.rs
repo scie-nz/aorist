@@ -1,19 +1,19 @@
 #![allow(non_snake_case)]
+use crate::asset::*;
+use crate::attributes::*;
 use crate::concept::{AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
 use crate::template::*;
-use crate::asset::*;
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
 use derivative::Derivative;
-use serde::{Deserialize, Serialize};
-use std::fmt::Debug;
-use uuid::Uuid;
-use std::collections::{HashSet, HashMap};
 use linked_hash_map::LinkedHashMap;
-use crate::attributes::*;
-use std::sync::{Arc, RwLock};
 #[cfg(feature = "python")]
 use pyo3::prelude::*;
+use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
+use std::fmt::Debug;
+use std::sync::{Arc, RwLock};
+use uuid::Uuid;
 
 #[aorist]
 pub struct TabularCollectionSchema {
@@ -27,15 +27,23 @@ impl TabularCollectionSchema {
         self.datum_template.clone()
     }
     pub fn get_attributes(&self) -> Vec<AoristRef<Attribute>> {
-        let attribute_names: HashSet<String> = self.attributes.clone().into_iter().collect();
         let mut attributes_map = LinkedHashMap::new();
         for asset in &self.source_assets {
-            let mut asset_attr: HashMap<String, Attribute> = asset.0.read().unwrap()
-                .get_schema().0.read().unwrap()
-                .get_attributes().into_iter().map(|x| {
+            let mut asset_attr: HashMap<String, Attribute> = asset
+                .0
+                .read()
+                .unwrap()
+                .get_schema()
+                .0
+                .read()
+                .unwrap()
+                .get_attributes()
+                .into_iter()
+                .map(|x| {
                     let attribute: Attribute = x.0.read().unwrap().clone();
                     (attribute.get_name().clone(), attribute)
-                }).collect();
+                })
+                .collect();
             for attribute_name in self.attributes.clone() {
                 assert!(asset_attr.contains_key(&attribute_name));
                 if attributes_map.len() < self.attributes.len() {
@@ -47,7 +55,12 @@ impl TabularCollectionSchema {
                     );
                 } else {
                     assert_eq!(
-                        *attributes_map.get(&attribute_name).unwrap().0.read().unwrap(),
+                        *attributes_map
+                            .get(&attribute_name)
+                            .unwrap()
+                            .0
+                            .read()
+                            .unwrap(),
                         asset_attr.remove(&attribute_name).unwrap(),
                     );
                 }
@@ -62,6 +75,13 @@ impl TabularCollectionSchema {
 impl PyTabularCollectionSchema {
     #[getter]
     pub fn get_source_assets(&self) -> Vec<PyAsset> {
-        self.inner.0.read().unwrap().source_assets.iter().map(|x| PyAsset{ inner: x.clone() }).collect()
+        self.inner
+            .0
+            .read()
+            .unwrap()
+            .source_assets
+            .iter()
+            .map(|x| PyAsset { inner: x.clone() })
+            .collect()
     }
 }

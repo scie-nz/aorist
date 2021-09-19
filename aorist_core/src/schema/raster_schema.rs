@@ -1,3 +1,4 @@
+use crate::attributes::*;
 use crate::concept::{AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
 use crate::template::*;
 use aorist_concept::{aorist, Constrainable};
@@ -6,7 +7,6 @@ use derivative::Derivative;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
 use uuid::Uuid;
-use crate::attributes::*;
 
 #[aorist]
 pub struct RasterSchema {

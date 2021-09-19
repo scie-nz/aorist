@@ -1,16 +1,16 @@
+use crate::attributes::*;
 use crate::concept::{AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
 use crate::template::*;
-use aorist_concept::{aorist, Constrainable};
-use aorist_primitives::{attribute, primary_schema};
 use aorist_attributes::*;
+use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
+use aorist_primitives::{attribute, primary_schema};
 use derivative::Derivative;
+#[cfg(feature = "python")]
+use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
 use uuid::Uuid;
-use crate::attributes::*;
-#[cfg(feature = "python")]
-use pyo3::prelude::*;
 
 // Datasets 50804 (non-PII) and 50805 (PII)
 primary_schema! {

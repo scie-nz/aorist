@@ -373,6 +373,9 @@ impl Builder for StructBuilder {
             #[cfg(feature = "python")]
             #[pyo3::prelude::pymethods]
             impl [<Py #struct_name>] {
+                pub fn deep_clone(&self) -> Self {
+                    Self { inner: self.inner.deep_clone() }
+                }
                 pub fn compute_uuids(&self) {
                     self.inner.compute_uuids()
                 }
@@ -606,9 +609,9 @@ impl Builder for StructBuilder {
                 )*
                 #(
                     #[getter]
-                    pub fn #unconstrainable_name_ref(&self) 
+                    pub fn #unconstrainable_name_ref(&self)
                         -> pyo3::prelude::PyResult<[<Py #unconstrainable_type_ref>]> {
-                        Ok([<Py #unconstrainable_type_ref>]{ 
+                        Ok([<Py #unconstrainable_type_ref>]{
                             inner: self.inner.0.read().unwrap().#unconstrainable_name_ref.clone()
                         })
                     }
