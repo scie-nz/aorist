@@ -1,78 +1,91 @@
 from aorist import (
-    RowStruct,
-    CSVEncoding,
-    SingleFileLayout,
-    RemoteStorageSetup,
-    StaticDataTable,
-    DataSet,
+    Attribute,
+    NaturalNumber,
+    StringIdentifier,
+    DateString,
+    POSIXTimestamp,
+    PositiveFloat,
     default_tabular_schema,
-    attr_list,
-    WebLocation,
+    RowStruct,
+    StaticDataTable,
+    DataSchema,
+    StorageSetup,
+    RemoteStorageSetup,
+    Storage,
     RemoteStorage,
+    RemoteLocation,
+    CSVEncoding,
+    Encoding,
+    DataSet,
+    DatumTemplate,
+    Asset,
+    WebLocation,
+    FileBasedStorageLayout,
     CSVHeader,
+    FileHeader,
+    APIOrFileLayout,
+    SingleFileLayout,
+    FreeText,
+    FloatLatitude,
 )
 
-# hacky import since submodule imports don't work well
-from aorist import attributes as attr
+attributes = [
+    Attribute(StringIdentifier("country")),
+    Attribute(StringIdentifier("country_code")),
+    Attribute(StringIdentifier("continent")),
+    Attribute(NaturalNumber("population")),
+    Attribute(StringIdentifier("indicator")),
+    Attribute(NaturalNumber("weekly_count")),
+    Attribute(DateString("year_week")),
+    Attribute(FloatLatitude("rate_14_day")),
+    Attribute(NaturalNumber("cumulative_count")),
+    Attribute(FreeText("source")),
+]
 
-"""
-Defining dataset
-"""
-# Attributes in the dataset
-attributes = attr_list([
-    attr.StringIdentifier("country"),
-    attr.StringIdentifier("country_code"),
-    attr.StringIdentifier("continent"),
-    attr.NaturalNumber("population"),
-    attr.StringIdentifier("indicator"),
-    attr.NaturalNumber("weekly_count"),
-    attr.DateString("year_week"),
-    attr.FloatLatitude("rate_14_day"),
-    attr.NaturalNumber("cumulative_count"),
-    attr.FreeText("source"),
-])
-# A row is equivalent to a struct
-covid_euro_ts_datum = RowStruct(
-    name="covid_euro_ts_datum",
+covid_euro_datum = RowStruct(
+    name="covid_euro_datum",
     attributes=attributes,
 )
-# Data can be found remotely, on the web
-remote = RemoteStorage(
-    location=WebLocation(
-        address=("https://opendata.ecdc.europa.eu/covid19/nationalcasedeath/csv"),
-    ),
-    layout=SingleFileLayout(),
-    encoding=CSVEncoding(header=CSVHeader(num_lines=1)),
+
+covid_euro_schema = default_tabular_schema(
+    DatumTemplate(covid_euro_datum), attributes
 )
 
-# We will create a table that will always have the same content
-# (we do not expect it to change over time)
-table = StaticDataTable(
-    name="covid_euro",
-    schema=default_tabular_schema(covid_euro_ts_datum),
-    setup=RemoteStorageSetup(
-        remote=remote,
-    ),
-    tag="covid_euro",
-)
+table = Asset(StaticDataTable(
+            name="covid_euro_table",
+            schema=DataSchema(covid_euro_schema),
+            setup=StorageSetup(RemoteStorageSetup(
+                remote=Storage(RemoteStorage(
+                    location=RemoteLocation(
+                        WebLocation(
+                            address=("https://opendata.ecdc.europa.eu/covid19/nationalcasedeath/csv"),
+                        )
+                    ),
+                    layout=APIOrFileLayout(
+                        FileBasedStorageLayout(
+                            SingleFileLayout()
+                        ),
+                    ),
+                    encoding=Encoding(CSVEncoding(header=FileHeader(
+                        CSVHeader(num_lines=1)
+                    ))),
+                )),
+            )),
+            tag="ECDC_covid",
+            ))
 
-
-# Our dataset contains only this table and only this datum
-# definition. Note that multiple assets can reference the
-# same template!
 ECDC_covid_dataset = DataSet(
     name="covid_euro",
-    description=(
-        "Contains information on the 14-day notification rate of"
-        "newly reported COVID-19 cases per 100 000 population"
-        "and the 14-day notification rate of reported deaths per"
-        "million populatoin by week and country."
-    ),
-    sourcePath=__file__,
-    datumTemplates=[
-        covid_euro_ts_datum,
-    ],
+    description="""
+        Contains information on the 14-day notification rate of
+         newly reported COVID-19 cases per 100 000 population
+         and the 14-day notification rate of reported deaths per
+         million populatoin by week and country.
+    """,
+    source_path=__file__,
+    datum_templates=[DatumTemplate(covid_euro_datum)],
     assets={
         "ECDC_COVID-19_data": table,
     },
+    access_policies=[]
 )

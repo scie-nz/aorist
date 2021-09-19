@@ -5,4 +5,4 @@ from .subreddits import (
 )
 from .subreddits import build_assets as build_subreddit_assets
 from .sports import *
-
+from .covid import *

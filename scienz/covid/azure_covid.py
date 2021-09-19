@@ -1,101 +1,114 @@
 from aorist import (
-    RowStruct,
-    CSVEncoding,
-    SingleFileLayout,
-    RemoteStorageSetup,
-    StaticDataTable,
-    DataSet,
+    Attribute,
+    NaturalNumber,
+    StringIdentifier,
+    DateString,
+    POSIXTimestamp,
+    PositiveFloat,
     default_tabular_schema,
-    attr_list,
-    WebLocation,
+    RowStruct,
+    StaticDataTable,
+    DataSchema,
+    StorageSetup,
+    RemoteStorageSetup,
+    Storage,
     RemoteStorage,
+    RemoteLocation,
+    CSVEncoding,
+    Encoding,
+    DataSet,
+    DatumTemplate,
+    Asset,
+    WebLocation,
+    FileBasedStorageLayout,
     CSVHeader,
+    FileHeader,
+    APIOrFileLayout,
+    SingleFileLayout,
+    FreeText,
+    Empty,
+    FIPSStateCode,
+    IntegerNumber,
 )
 
-# hacky import since submodule imports don't work well
-from aorist import attributes as attr
+attributes = [
+    Attribute(DateString("date")),
+    Attribute(StringIdentifier("state")),
+    Attribute(NaturalNumber("positive")),
+    Attribute(NaturalNumber("negative")),
+    Attribute(NaturalNumber("pending")),
+    Attribute(NaturalNumber("hospitalized_currently")),
+    Attribute(NaturalNumber("hospitalized_cumulative")),
+    Attribute(NaturalNumber("in_icu_currently")),
+    Attribute(NaturalNumber("in_icu_cumulative")),
+    Attribute(NaturalNumber("on_ventilator_currently")),
+    Attribute(NaturalNumber("on_ventilator_cumultive")),
+    Attribute(NaturalNumber("recovered")),
+    Attribute(Empty("data_quality_grade")),
+    Attribute(DateString("last_update_et")),
+    Attribute(FreeText("hash")),
+    Attribute(DateString("date_checked")),
+    Attribute(NaturalNumber("death")),
+    Attribute(NaturalNumber("hospitalized")),
+    Attribute(NaturalNumber("total")),
+    Attribute(NaturalNumber("total_test_results")),
+    Attribute(NaturalNumber("pos_neg")),
+    Attribute(FIPSStateCode("fips")),
+    Attribute(IntegerNumber("death_increase")),
+    Attribute(IntegerNumber("hospitalized_increase")),
+    Attribute(IntegerNumber("negative_increase")),
+    Attribute(IntegerNumber("positive_increase")),
+    Attribute(IntegerNumber("total_test_results_increase")),
+    Attribute(FIPSStateCode("fips_code")),
+    Attribute(StringIdentifier("iso_subdivision")),
+    Attribute(DateString("load_time")),
+    Attribute(StringIdentifier("iso_country")),
+]
 
-"""
-Defining dataset
-"""
-# Attributes in the dataset
-attributes = attr_list([
-    attr.DateString("date"),
-    attr.StringIdentifier("state"),
-    attr.NaturalNumber("positive"),
-    attr.NaturalNumber("negative"),
-    attr.NaturalNumber("pending"),
-    attr.NaturalNumber("hospitalized_currently"),
-    attr.NaturalNumber("hospitalized_cumulative"),
-    attr.NaturalNumber("in_icu_currently"),
-    attr.NaturalNumber("in_icu_cumulative"),
-    attr.NaturalNumber("on_ventilator_currently"),
-    attr.NaturalNumber("on_ventilator_cumultive"),
-    attr.NaturalNumber("recovered"),
-    attr.Empty("data_quality_grade"),
-    attr.DateString("last_update_et"),
-    attr.FreeText("hash"),
-    attr.DateString("date_checked"),
-    attr.NaturalNumber("death"),
-    attr.NaturalNumber("hospitalized"),
-    attr.NaturalNumber("total"),
-    attr.NaturalNumber("total_test_results"),
-    attr.NaturalNumber("pos_neg"),
-    attr.FIPSStateCode("fips"),
-    attr.IntegerNumber("death_increase"),
-    attr.IntegerNumber("hospitalized_increase"),
-    attr.IntegerNumber("negative_increase"),
-    attr.IntegerNumber("positive_increase"),
-    attr.IntegerNumber("total_test_results_increase"),
-    attr.FIPSStateCode("fips_code"),
-    attr.StringIdentifier("iso_subdivision"),
-    attr.DateString("load_time"),
-    attr.StringIdentifier("iso_country"),
-])
-# A row is equivalent to a struct
-microsoft_covid_ts_datum = RowStruct(
-    name="microsoft_covid_ts_datum",
+microsoft_covid_datum = RowStruct(
+    name="microsoft_covid_datum",
     attributes=attributes,
 )
-# Data can be found remotely, on the web
-remote = RemoteStorage(
-    location=WebLocation(
-        address=(
-            "https://pandemicdatalake.blob.core.windows.net/public/"
-            "curated/covid-19/covid_tracking/latest/covid_tracking.csv"
-        ),
-    ),
-    layout=SingleFileLayout(),
-    encoding=CSVEncoding(header=CSVHeader(num_lines=1)),
+
+microsoft_covid_schema = default_tabular_schema(
+    DatumTemplate(microsoft_covid_datum), attributes
 )
 
-# We will create a table that will always have the same content
-# (we do not expect it to change over time)
-table = StaticDataTable(
-    name="azure-covid",
-    schema=default_tabular_schema(microsoft_covid_ts_datum),
-    setup=RemoteStorageSetup(
-        remote=remote,
-    ),
-    tag="azure-covid",
-)
+table = Asset(StaticDataTable(
+            name="microsoft_covid_table",
+            schema=DataSchema(microsoft_covid_schema),
+            setup=StorageSetup(RemoteStorageSetup(
+                remote=Storage(RemoteStorage(
+                    location=RemoteLocation(
+                        WebLocation(
+                            address=("https://pandemicdatalake.blob.core.windows.net/public/"
+                                     "curated/covid-19/covid_tracking/latest/covid_tracking.csv"),
+                        )
+                    ),
+                    layout=APIOrFileLayout(
+                        FileBasedStorageLayout(
+                            SingleFileLayout()
+                        ),
+                    ),
+                    encoding=Encoding(CSVEncoding(header=FileHeader(
+                        CSVHeader(num_lines=1)
+                    ))),
+                )),
+            )),
+            tag="azure_covid_microsoft",
+            ))
 
-
-# Our dataset contains only this table and only this datum
-# definition. Note that multiple assets can reference the
-# same template!
 azure_covid_dataset = DataSet(
     name="azure-covid",
-    description=(
-        "Statistics about COVID 19 in the United States compiled by Microsoft,"
-        "including test, confirmed cases, hospitalizations, and patient "
-        "outcomes from every US state and territory, up until 2021-03-07."
-    ),
-    sourcePath=__file__,
-    datumTemplates=[
-        microsoft_covid_ts_datum,
-    ],
+    description="""
+        Statistics about COVID 19 in the United States compiled by Microsoft,
+         including test, confirmed cases, hospitalizations, and patient
+         outcomes from every US state and territory, up until 2021-03-07.
+    """,
+    source_path=__file__,
+    datum_templates=[DatumTemplate(microsoft_covid_datum)],
     assets={
-        "Microsoft COVID-19 data": table,
+       "Microsoft COVID-19 data": table,
     },
+    access_policies=[]
 )
