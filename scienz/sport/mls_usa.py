@@ -90,7 +90,7 @@ mls_usa_dataset = DataSet(
     source_path=__file__,
     datum_templates=[DatumTemplate(mls_usa_datum)],
     assets={
-        "Major__League_Soccer_data": table,
+        "Major_League_Soccer_data": table,
     },
     access_policies=[]
 )

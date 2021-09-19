@@ -1,77 +1,88 @@
 from aorist import (
-    RowStruct,
-    CSVEncoding,
-    SingleFileLayout,
-    RemoteStorageSetup,
-    StaticDataTable,
-    DataSet,
+    Attribute,
+    NaturalNumber,
+    StringIdentifier,
+    DateString,
+    Year,
+    POSIXTimestamp,
+    PositiveFloat,
     default_tabular_schema,
-    attr_list,
-    WebLocation,
+    RowStruct,
+    StaticDataTable,
+    DataSchema,
+    StorageSetup,
+    RemoteStorageSetup,
+    Storage,
     RemoteStorage,
+    RemoteLocation,
+    CSVEncoding,
+    Encoding,
+    DataSet,
+    DatumTemplate,
+    Asset,
+    WebLocation,
+    FileBasedStorageLayout,
     CSVHeader,
+    FileHeader,
+    APIOrFileLayout,
+    SingleFileLayout,
 )
 
-# hacky import since submodule imports don't work well
-from aorist import attributes as attr
+attributes = [
+    Attribute(StringIdentifier("id")),
+    Attribute(StringIdentifier("home_team")),
+    Attribute(NaturalNumber("home_score")),
+    Attribute(StringIdentifier("away_team")),
+    Attribute(NaturalNumber("away_score")),
+    Attribute(NaturalNumber("temperature")),
+    Attribute(NaturalNumber("wind_chill")),
+    Attribute(StringIdentifier("humidity")),
+    Attribute(NaturalNumber("wind_mph")),
+    Attribute(StringIdentifier("weather")),
+    Attribute(DateString("date")),
+]
 
-"""
-Defining dataset
-"""
-# Attributes in the dataset
-attributes = attr_list([
-     attr.StringIdentifier("id"),
-     attr.StringIdentifier("home_team"),
-     attr.NaturalNumber("home_score"),
-     attr.StringIdentifier("away_team"),
-     attr.NaturalNumber("away_score"),
-     attr.NaturalNumber("temperature"),
-     attr.NaturalNumber("wind_chill"),
-     attr.StringIdentifier("humidity"),
-     attr.NaturalNumber("wind_mph"),
-     attr.StringIdentifier("weather"),
-     attr.DateString("date"),
-])
-
-# A row is equivalent to a struct
 nfl_weather_datum = RowStruct(
     name="nfl_weather_datum",
     attributes=attributes,
 )
-# Data can be found remotely, on the web
-remote = RemoteStorage(
-    location=WebLocation(
-        address=("http://nflsavant.com/dump/weather_20131231.csv"),
-    ),
-    layout=SingleFileLayout(),
-    encoding=CSVEncoding(header=CSVHeader(num_lines=1)),
+
+nfl_weather_schema = default_tabular_schema(
+    DatumTemplate(nfl_weather_datum), attributes
 )
 
-# We will create a table that will always have the same content
-# (we do not expect it to change over time)
-table = StaticDataTable(
-    name="nfl_weather_table",
-    schema=default_tabular_schema(nfl_weather_datum),
-    setup=RemoteStorageSetup(
-        remote=remote,
-    ),
-    tag="nfl_weather",
-)
+table = Asset(StaticDataTable(
+            name="nfl_weather_table",
+            schema=DataSchema(nfl_weather_schema),
+            setup=StorageSetup(RemoteStorageSetup(
+                remote=Storage(RemoteStorage(
+                    location=RemoteLocation(
+                        WebLocation(
+                            address=("http://nflsavant.com/dump/weather_20131231.csv"),
+                        )
+                    ),
+                    layout=APIOrFileLayout(
+                        FileBasedStorageLayout(
+                            SingleFileLayout()
+                        ),
+                    ),
+                    encoding=Encoding(CSVEncoding(header=FileHeader(
+                        CSVHeader(num_lines=1)
+                    ))),
+                )),
+            )),
+            tag="nfl_weather",
+            ))
 
-
-# Our dataset contains only this table and only this datum
-# definition. Note that multiple assets can reference the
-# same template!
 nfl_weather_dataset = DataSet(
     name="nfl_weather_dataset",
-    description=(
-        "Data about the Weather for NFL games 1960-2013. From NFLsavant.com."
-    ),
-    sourcePath=__file__,
-    datumTemplates=[
-        nfl_weather_datum,
-    ],
+    description="""
+        Data about the Weather for NFL games 1960-2013. From NFLsavant.com.
+    """,
+    source_path=__file__,
+    datum_templates=[DatumTemplate(nfl_weather_datum)],
     assets={
         "nfl_weather_data": table,
     },
+    access_policies=[]
 )

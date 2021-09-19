@@ -1,111 +1,125 @@
 from aorist import (
-    RowStruct,
-    CSVEncoding,
-    SingleFileLayout,
-    RemoteStorageSetup,
-    StaticDataTable,
-    DataSet,
+    Attribute,
+    NaturalNumber,
+    StringIdentifier,
+    DateString,
+    Year,
+    POSIXTimestamp,
+    PositiveFloat,
     default_tabular_schema,
-    attr_list,
-    WebLocation,
+    RowStruct,
+    StaticDataTable,
+    DataSchema,
+    StorageSetup,
+    RemoteStorageSetup,
+    Storage,
     RemoteStorage,
+    RemoteLocation,
+    CSVEncoding,
+    Encoding,
+    DataSet,
+    DatumTemplate,
+    Asset,
+    WebLocation,
+    FileBasedStorageLayout,
     CSVHeader,
+    FileHeader,
+    APIOrFileLayout,
+    SingleFileLayout,
+    Empty,
+    FreeText,
+    IntegerNumber,
 )
 
-# hacky import since submodule imports don't work well
-from aorist import attributes as attr
+attributes = [
+    Attribute(StringIdentifier("GameId")),
+    Attribute(DateString("GameDate")),
+    Attribute(NaturalNumber("Quarter")),
+    Attribute(NaturalNumber("Minute")),
+    Attribute(NaturalNumber("Second")),
+    Attribute(StringIdentifier("OffenseTeam")),
+    Attribute(StringIdentifier("DefenseTeam")),
+    Attribute(NaturalNumber("Down")),
+    Attribute(NaturalNumber("ToGo")),
+    Attribute(NaturalNumber("YardLine")),
+    Attribute(Empty("")),
+    Attribute(NaturalNumber("SeriesFirstDown")),
+    Attribute(Empty("")),
+    Attribute(NaturalNumber("NextScore")),
+    Attribute(FreeText("Description")),
+    Attribute(NaturalNumber("TeamWin")),
+    Attribute(Empty("")),
+    Attribute(Empty("")),
+    Attribute(Year("SeasonYear")),
+    Attribute(IntegerNumber("Yards")),
+    Attribute(StringIdentifier("Formation")),
+    Attribute(StringIdentifier("PlayType")),
+    Attribute(NaturalNumber("IsRush")),
+    Attribute(NaturalNumber("IsPass")),
+    Attribute(NaturalNumber("IsIncomplete")),
+    Attribute(NaturalNumber("IsTouchdown")),
+    Attribute(StringIdentifier("PassType")),
+    Attribute(NaturalNumber("IsSack")),
+    Attribute(NaturalNumber("IsChallenge")),
+    Attribute(NaturalNumber("IsChallengeReversed")),
+    Attribute(Empty("Challenger")),
+    Attribute(NaturalNumber("IsMeasurement")),
+    Attribute(NaturalNumber("IsInterception")),
+    Attribute(NaturalNumber("IsFumble")),
+    Attribute(NaturalNumber("IsPenalty")),
+    Attribute(NaturalNumber("IsTwoPointConversion")),
+    Attribute(NaturalNumber("IsTwoPointConversionSuccessful")),
+    Attribute(StringIdentifier("RushDirection")),
+    Attribute(NaturalNumber("YardLineFixed")),
+    Attribute(StringIdentifier("YardLineDirection")),
+    Attribute(NaturalNumber("IsPenaltyAccepted")),
+    Attribute(StringIdentifier("PenaltyTeam")),
+    Attribute(NaturalNumber("IsNoPlay")),
+    Attribute(StringIdentifier("PenaltyType")),
+    Attribute(NaturalNumber("PenaltyYards")),
+]
 
-"""
-Defining dataset
-"""
-# Attributes in the dataset
-attributes = attr_list([
-     attr.StringIdentifier("GameId"),
-     attr.DateString("GameDate"),
-     attr.NaturalNumber("Quarter"),
-     attr.NaturalNumber("Minute"),
-     attr.NaturalNumber("Second"),
-     attr.StringIdentifier("OffenseTeam"),
-     attr.StringIdentifier("DefenseTeam"),
-     attr.NaturalNumber("Down"),
-     attr.NaturalNumber("ToGo"),
-     attr.NaturalNumber("YardLine"),
-     attr.Empty(""),
-     attr.NaturalNumber("SeriesFirstDown"),
-     attr.Empty(""),
-     attr.NaturalNumber("NextScore"),
-     attr.FreeText("Description"),
-     attr.NaturalNumber("TeamWin"),
-     attr.Empty(""),
-     attr.Empty(""),
-     attr.Year("SeasonYear"),
-     attr.IntegerNumber("Yards"),
-     attr.StringIdentifier("Formation"),
-     attr.StringIdentifier("PlayType"),
-     attr.NaturalNumber("IsRush"),
-     attr.NaturalNumber("IsPass"),
-     attr.NaturalNumber("IsIncomplete"),
-     attr.NaturalNumber("IsTouchdown"),
-     attr.StringIdentifier("PassType"),
-     attr.NaturalNumber("IsSack"),
-     attr.NaturalNumber("IsChallenge"),
-     attr.NaturalNumber("IsChallengeReversed"),
-     attr.Empty("Challenger"),
-     attr.NaturalNumber("IsMeasurement"),
-     attr.NaturalNumber("IsInterception"),
-     attr.NaturalNumber("IsFumble"),
-     attr.NaturalNumber("IsPenalty"),
-     attr.NaturalNumber("IsTwoPointConversion"),
-     attr.NaturalNumber("IsTwoPointConversionSuccessful"),
-     attr.StringIdentifier("RushDirection"),
-     attr.NaturalNumber("YardLineFixed"),
-     attr.StringIdentifier("YardLineDirection"),
-     attr.NaturalNumber("IsPenaltyAccepted"),
-     attr.StringIdentifier("PenaltyTeam"),
-     attr.NaturalNumber("IsNoPlay"),
-     attr.StringIdentifier("PenaltyType"),
-     attr.NaturalNumber("PenaltyYards"),
-])
-
-# A row is equivalent to a struct
 nfl_2020_pbp_datum = RowStruct(
     name="nfl_2020_pbp_datum",
     attributes=attributes,
 )
-# Data can be found remotely, on the web
-remote = RemoteStorage(
-    location=WebLocation(
-        address=("http://nflsavant.com/pbp_data.php?year=2020"),
-    ),
-    layout=SingleFileLayout(),
-    encoding=CSVEncoding(header=CSVHeader(num_lines=1)),
+
+nfl_2020_pbp_schema = default_tabular_schema(
+    DatumTemplate(nfl_2020_pbp_datum), attributes
 )
 
-# We will create a table that will always have the same content
-# (we do not expect it to change over time)
-table = StaticDataTable(
-    name="nfl_2020_pbp_table",
-    schema=default_tabular_schema(nfl_2020_pbp_datum),
-    setup=RemoteStorageSetup(
-        remote=remote,
-    ),
-    tag="nfl_2020_play_by_play",
-)
+table = Asset(StaticDataTable(
+            name="nfl_2020_pbp_table",
+            schema=DataSchema(nfl_2020_pbp_schema),
+            setup=StorageSetup(RemoteStorageSetup(
+                remote=Storage(RemoteStorage(
+                    location=RemoteLocation(
+                        WebLocation(
+                            address=("http://nflsavant.com/pbp_data.php?year=2020"),
+                        )
+                    ),
+                    layout=APIOrFileLayout(
+                        FileBasedStorageLayout(
+                            SingleFileLayout()
+                        ),
+                    ),
+                    encoding=Encoding(CSVEncoding(header=FileHeader(
+                        CSVHeader(num_lines=1)
+                    ))),
+                )),
+            )),
+            tag="nfl_play_by_play",
+            ))
 
-
-# Our dataset contains only this table and only this datum
-# definition. Note that multiple assets can reference the
-# same template!
 nfl_2020_pbp_dataset = DataSet(
     name="nfl_2020_pbp_dataset",
-    description=(
-        "2020 NFL play-by-play data."
-    ),
-    sourcePath=__file__,
-    datumTemplates=[
-        nfl_2020_pbp_datum,
-    ],
+    description="""
+        2020 NFL play-by-play data.
+    """,
+    source_path=__file__,
+    datum_templates=[DatumTemplate(nfl_2020_pbp_datum)],
     assets={
         "NFL_2020_play_by_play_data": table,
     },
+    access_policies=[]
 )

@@ -1,2429 +1,987 @@
 from aorist import (
-    RowStruct,
-    CSVEncoding,
-    SingleFileLayout,
-    RemoteStorageSetup,
-    StaticDataTable,
-    DataSet,
+    Attribute,
+    NaturalNumber,
+    StringIdentifier,
+    DateString,
+    POSIXTimestamp,
+    PositiveFloat,
     default_tabular_schema,
-    attr_list,
-    WebLocation,
+    RowStruct,
+    StaticDataTable,
+    DataSchema,
+    StorageSetup,
+    RemoteStorageSetup,
+    Storage,
     RemoteStorage,
+    RemoteLocation,
+    CSVEncoding,
+    Encoding,
+    DataSet,
+    DatumTemplate,
+    Asset,
+    WebLocation,
+    FileBasedStorageLayout,
     CSVHeader,
+    FileHeader,
+    APIOrFileLayout,
+    SingleFileLayout,
 )
 
-# hacky import since submodule imports don't work well
-from aorist import attributes as attr
-
-"""
-Defining dataset
-"""
-# Attributes in the dataset
-attributes = attr_list([
-     attr.StringIdentifier("Div"),
-     attr.DateString("Date"),
-     attr.POSIXTimestamp("Time"),
-     attr.StringIdentifier("HomeTeam"),
-     attr.StringIdentifier("AwayTeam"),
-     attr.NaturalNumber("FTHG"),
-     attr.NaturalNumber("FTAG"),
-     attr.StringIdentifier("FTR"),
-     attr.NaturalNumber("HTHG"),
-     attr.NaturalNumber("HTAG"),
-     attr.StringIdentifier("HTR"),
-     attr.NaturalNumber("HS"),
-     attr.NaturalNumber("AS"),
-     attr.NaturalNumber("HST"),
-     attr.NaturalNumber("AST"),
-     attr.NaturalNumber("HF"),
-     attr.NaturalNumber("AF"),
-     attr.NaturalNumber("HC"),
-     attr.NaturalNumber("AC"),
-     attr.NaturalNumber("HY"),
-     attr.NaturalNumber("AY"),
-     attr.NaturalNumber("HR"),
-     attr.NaturalNumber("AR"),
-     attr.PositiveFloat("B365H"),
-     attr.PositiveFloat("B365D"),
-     attr.PositiveFloat("B365A"),
-     attr.PositiveFloat("BWH"),
-     attr.PositiveFloat("BWD"),
-     attr.PositiveFloat("BWA"),
-     attr.PositiveFloat("IWH"),
-     attr.PositiveFloat("IWD"),
-     attr.PositiveFloat("IWA"),
-     attr.PositiveFloat("PSH"),
-     attr.PositiveFloat("PSD"),
-     attr.PositiveFloat("PSA"),
-     attr.PositiveFloat("WHH"),
-     attr.PositiveFloat("WHD"),
-     attr.PositiveFloat("WHA"),
-     attr.PositiveFloat("VCH"),
-     attr.PositiveFloat("VCD"),
-     attr.PositiveFloat("VCA"),
-     attr.PositiveFloat("MaxH"),
-     attr.PositiveFloat("MaxD"),
-     attr.PositiveFloat("MaxA"),
-     attr.PositiveFloat("AvgH"),
-     attr.PositiveFloat("AvgD"),
-     attr.PositiveFloat("AvgA"),
-     attr.PositiveFloat("B365>2.5"),
-     attr.PositiveFloat("B365<2.5"),
-     attr.PositiveFloat("P>2.5"),
-     attr.PositiveFloat("P<2.5"),
-     attr.PositiveFloat("Max>2.5"),
-     attr.PositiveFloat("Max<2.5"),
-     attr.PositiveFloat("Avg>2.5"),
-     attr.PositiveFloat("Avg<2.5"),
-     attr.PositiveFloat("AHh"),
-     attr.PositiveFloat("B365AHH"),
-     attr.PositiveFloat("B365AHA"),
-     attr.PositiveFloat("PAHH"),
-     attr.PositiveFloat("PAHA"),
-     attr.PositiveFloat("MaxAHH"),
-     attr.PositiveFloat("MaxAHA"),
-     attr.PositiveFloat("AvgAHH"),
-     attr.PositiveFloat("AvgAHA"),
-     attr.PositiveFloat("B365CH"),
-     attr.PositiveFloat("B365CD"),
-     attr.PositiveFloat("B365CA"),
-     attr.PositiveFloat("BWCH"),
-     attr.PositiveFloat("BWCD"),
-     attr.PositiveFloat("BWCA"),
-     attr.PositiveFloat("IWCH"),
-     attr.PositiveFloat("IWCD"),
-     attr.PositiveFloat("IWCA"),
-     attr.PositiveFloat("PSCH"),
-     attr.PositiveFloat("PSCD"),
-     attr.PositiveFloat("PSCA"),
-     attr.PositiveFloat("WHCH"),
-     attr.PositiveFloat("WHCD"),
-     attr.PositiveFloat("WHCA"),
-     attr.PositiveFloat("VCCH"),
-     attr.PositiveFloat("VCCD"),
-     attr.PositiveFloat("VCCA"),
-     attr.PositiveFloat("MaxCH"),
-     attr.PositiveFloat("MaxCD"),
-     attr.PositiveFloat("MaxCA"),
-     attr.PositiveFloat("AvgCH"),
-     attr.PositiveFloat("AvgCD"),
-     attr.PositiveFloat("AvgCA"),
-     attr.PositiveFloat("B365C>2.5"),
-     attr.PositiveFloat("B365C<2.5"),
-     attr.PositiveFloat("PC>2.5"),
-     attr.PositiveFloat("PC<2.5"),
-     attr.PositiveFloat("MaxC>2.5"),
-     attr.PositiveFloat("MaxC<2.5"),
-     attr.PositiveFloat("AvgC>2.5"),
-     attr.PositiveFloat("AvgC<2.5"),
-     attr.PositiveFloat("AHCh"),
-     attr.PositiveFloat("B365CAHH"),
-     attr.PositiveFloat("B365CAHA"),
-     attr.PositiveFloat("PCAHH"),
-     attr.PositiveFloat("PCAHA"),
-     attr.PositiveFloat("MaxCAHH"),
-     attr.PositiveFloat("MaxCAHA"),
-     attr.PositiveFloat("AvgCAHH"),
-     attr.PositiveFloat("AvgCAHA"),
+attributes2020 = (2020,2020,[
+    Attribute(StringIdentifier("Div")),
+    Attribute(DateString("Date")),
+    Attribute(POSIXTimestamp("Time")),
+    Attribute(StringIdentifier("HomeTeam")),
+    Attribute(StringIdentifier("AwayTeam")),
+    Attribute(NaturalNumber("FTHG")),
+    Attribute(NaturalNumber("FTAG")),
+    Attribute(StringIdentifier("FTR")),
+    Attribute(NaturalNumber("HTHG")),
+    Attribute(NaturalNumber("HTAG")),
+    Attribute(StringIdentifier("HTR")),
+    Attribute(NaturalNumber("HS")),
+    Attribute(NaturalNumber("AS")),
+    Attribute(NaturalNumber("HST")),
+    Attribute(NaturalNumber("AST")),
+    Attribute(NaturalNumber("HF")),
+    Attribute(NaturalNumber("AF")),
+    Attribute(NaturalNumber("HC")),
+    Attribute(NaturalNumber("AC")),
+    Attribute(NaturalNumber("HY")),
+    Attribute(NaturalNumber("AY")),
+    Attribute(NaturalNumber("HR")),
+    Attribute(NaturalNumber("AR")),
+    Attribute(PositiveFloat("B365H")),
+    Attribute(PositiveFloat("B365D")),
+    Attribute(PositiveFloat("B365A")),
+    Attribute(PositiveFloat("BWH")),
+    Attribute(PositiveFloat("BWD")),
+    Attribute(PositiveFloat("BWA")),
+    Attribute(PositiveFloat("IWH")),
+    Attribute(PositiveFloat("IWD")),
+    Attribute(PositiveFloat("IWA")),
+    Attribute(PositiveFloat("PSH")),
+    Attribute(PositiveFloat("PSD")),
+    Attribute(PositiveFloat("PSA")),
+    Attribute(PositiveFloat("WHH")),
+    Attribute(PositiveFloat("WHD")),
+    Attribute(PositiveFloat("WHA")),
+    Attribute(PositiveFloat("VCH")),
+    Attribute(PositiveFloat("VCD")),
+    Attribute(PositiveFloat("VCA")),
+    Attribute(PositiveFloat("MaxH")),
+    Attribute(PositiveFloat("MaxD")),
+    Attribute(PositiveFloat("MaxA")),
+    Attribute(PositiveFloat("AvgH")),
+    Attribute(PositiveFloat("AvgD")),
+    Attribute(PositiveFloat("AvgA")),
+    Attribute(PositiveFloat("B365>2.5")),
+    Attribute(PositiveFloat("B365<2.5")),
+    Attribute(PositiveFloat("P>2.5")),
+    Attribute(PositiveFloat("P<2.5")),
+    Attribute(PositiveFloat("Max>2.5")),
+    Attribute(PositiveFloat("Max<2.5")),
+    Attribute(PositiveFloat("Avg>2.5")),
+    Attribute(PositiveFloat("Avg<2.5")),
+    Attribute(PositiveFloat("AHh")),
+    Attribute(PositiveFloat("B365AHH")),
+    Attribute(PositiveFloat("B365AHA")),
+    Attribute(PositiveFloat("PAHH")),
+    Attribute(PositiveFloat("PAHA")),
+    Attribute(PositiveFloat("MaxAHH")),
+    Attribute(PositiveFloat("MaxAHA")),
+    Attribute(PositiveFloat("AvgAHH")),
+    Attribute(PositiveFloat("AvgAHA")),
+    Attribute(PositiveFloat("B365CH")),
+    Attribute(PositiveFloat("B365CD")),
+    Attribute(PositiveFloat("B365CA")),
+    Attribute(PositiveFloat("BWCH")),
+    Attribute(PositiveFloat("BWCD")),
+    Attribute(PositiveFloat("BWCA")),
+    Attribute(PositiveFloat("IWCH")),
+    Attribute(PositiveFloat("IWCD")),
+    Attribute(PositiveFloat("IWCA")),
+    Attribute(PositiveFloat("PSCH")),
+    Attribute(PositiveFloat("PSCD")),
+    Attribute(PositiveFloat("PSCA")),
+    Attribute(PositiveFloat("WHCH")),
+    Attribute(PositiveFloat("WHCD")),
+    Attribute(PositiveFloat("WHCA")),
+    Attribute(PositiveFloat("VCCH")),
+    Attribute(PositiveFloat("VCCD")),
+    Attribute(PositiveFloat("VCCA")),
+    Attribute(PositiveFloat("MaxCH")),
+    Attribute(PositiveFloat("MaxCD")),
+    Attribute(PositiveFloat("MaxCA")),
+    Attribute(PositiveFloat("AvgCH")),
+    Attribute(PositiveFloat("AvgCD")),
+    Attribute(PositiveFloat("AvgCA")),
+    Attribute(PositiveFloat("B365C>2.5")),
+    Attribute(PositiveFloat("B365C<2.5")),
+    Attribute(PositiveFloat("PC>2.5")),
+    Attribute(PositiveFloat("PC<2.5")),
+    Attribute(PositiveFloat("MaxC>2.5")),
+    Attribute(PositiveFloat("MaxC<2.5")),
+    Attribute(PositiveFloat("AvgC>2.5")),
+    Attribute(PositiveFloat("AvgC<2.5")),
+    Attribute(PositiveFloat("AHCh")),
+    Attribute(PositiveFloat("B365CAHH")),
+    Attribute(PositiveFloat("B365CAHA")),
+    Attribute(PositiveFloat("PCAHH")),
+    Attribute(PositiveFloat("PCAHA")),
+    Attribute(PositiveFloat("MaxCAHH")),
+    Attribute(PositiveFloat("MaxCAHA")),
+    Attribute(PositiveFloat("AvgCAHH")),
+    Attribute(PositiveFloat("AvgCAHA")),
 ])
 
-# A row is equivalent to a struct
-SSBundesliga_2020_datum = RowStruct(
-    name="SSBundesliga_2020_datum",
-    attributes=attributes,
-)
-# Data can be found remotely, on the web
-remote = RemoteStorage(
-    location=WebLocation(
-        address=("https://sports-statistics.com/database/soccer-data"
-                 "/germany-bundesliga-1-2019-to-2020.csv"),
-    ),
-    layout=SingleFileLayout(),
-    encoding=CSVEncoding(header=CSVHeader(num_lines=1)),
-)
 
-# We will create a table that will always have the same content
-# (we do not expect it to change over time)
-SSBundesliga1_2020 = StaticDataTable(
-    name="SSBundesliga1_2020",
-    schema=default_tabular_schema(SSBundesliga_2020_datum),
-    setup=RemoteStorageSetup(
-        remote=remote,
-    ),
-    tag="2019-2020_ss_bundesliga1",
-)
+attributes2019 = (2019,2019,[
+    Attribute(StringIdentifier("Div")),
+    Attribute(DateString("Date")),
+    Attribute(StringIdentifier("HomeTeam")),
+    Attribute(StringIdentifier("AwayTeam")),
+    Attribute(NaturalNumber("FTHG")),
+    Attribute(NaturalNumber("FTAG")),
+    Attribute(StringIdentifier("FTR")),
+    Attribute(NaturalNumber("HTHG")),
+    Attribute(NaturalNumber("HTAG")),
+    Attribute(StringIdentifier("HTR")),
+    Attribute(NaturalNumber("HS")),
+    Attribute(NaturalNumber("AS")),
+    Attribute(NaturalNumber("HST")),
+    Attribute(NaturalNumber("AST")),
+    Attribute(NaturalNumber("HF")),
+    Attribute(NaturalNumber("AF")),
+    Attribute(NaturalNumber("HC")),
+    Attribute(NaturalNumber("AC")),
+    Attribute(NaturalNumber("HY")),
+    Attribute(NaturalNumber("AY")),
+    Attribute(NaturalNumber("HR")),
+    Attribute(NaturalNumber("AR")),
+    Attribute(PositiveFloat("B365H")),
+    Attribute(PositiveFloat("B365D")),
+    Attribute(PositiveFloat("B365A")),
+    Attribute(PositiveFloat("BWH")),
+    Attribute(PositiveFloat("BWD")),
+    Attribute(PositiveFloat("BWA")),
+    Attribute(PositiveFloat("IWH")),
+    Attribute(PositiveFloat("IWD")),
+    Attribute(PositiveFloat("IWA")),
+    Attribute(PositiveFloat("PSH")),
+    Attribute(PositiveFloat("PSD")),
+    Attribute(PositiveFloat("PSA")),
+    Attribute(PositiveFloat("WHH")),
+    Attribute(PositiveFloat("WHD")),
+    Attribute(PositiveFloat("WHA")),
+    Attribute(PositiveFloat("VCH")),
+    Attribute(PositiveFloat("VCD")),
+    Attribute(PositiveFloat("VCA")),
+    Attribute(NaturalNumber("Bb1X2")),
+    Attribute(PositiveFloat("BbMxH")),
+    Attribute(PositiveFloat("BbAvH")),
+    Attribute(PositiveFloat("BbMxD")),
+    Attribute(PositiveFloat("BbAvD")),
+    Attribute(PositiveFloat("BbMxA")),
+    Attribute(PositiveFloat("BbAvA")),
+    Attribute(NaturalNumber("BbOU")),
+    Attribute(PositiveFloat("BbMx>2.5")),
+    Attribute(PositiveFloat("BbAv>2.5")),
+    Attribute(PositiveFloat("BbMx<2.5")),
+    Attribute(PositiveFloat("BbAv<2.5")),
+    Attribute(NaturalNumber("BbAH")),
+    Attribute(PositiveFloat("BbAHh")),
+    Attribute(PositiveFloat("BbMxAHH")), 
+    Attribute(PositiveFloat("BbAvAHH")), 
+    Attribute(PositiveFloat("BbMxAHA")), 
+    Attribute(PositiveFloat("BbAvAHA")), 
+    Attribute(PositiveFloat("PSCH")), 
+    Attribute(PositiveFloat("PSCD")), 
+    Attribute(PositiveFloat("PSCA")), 
+])
+
+attributes2018 = (2016,2018,[
+    Attribute(StringIdentifier("Div")),
+    Attribute(DateString("Date")),
+    Attribute(StringIdentifier("HomeTeam")),
+    Attribute(StringIdentifier("AwayTeam")),
+    Attribute(NaturalNumber("FTHG")),
+    Attribute(NaturalNumber("FTAG")),
+    Attribute(StringIdentifier("FTR")),
+    Attribute(NaturalNumber("HTHG")),
+    Attribute(NaturalNumber("HTAG")),
+    Attribute(StringIdentifier("HTR")),
+    Attribute(NaturalNumber("HS")),
+    Attribute(NaturalNumber("AS")),
+    Attribute(NaturalNumber("HST")),
+    Attribute(NaturalNumber("AST")),
+    Attribute(NaturalNumber("HF")),
+    Attribute(NaturalNumber("AF")),
+    Attribute(NaturalNumber("HC")),
+    Attribute(NaturalNumber("AC")),
+    Attribute(NaturalNumber("HY")),
+    Attribute(NaturalNumber("AY")),
+    Attribute(NaturalNumber("HR")),
+    Attribute(NaturalNumber("AR")),
+    Attribute(PositiveFloat("B365H")),
+    Attribute(PositiveFloat("B365D")),
+    Attribute(PositiveFloat("B365A")),
+    Attribute(PositiveFloat("BWH")),
+    Attribute(PositiveFloat("BWD")),
+    Attribute(PositiveFloat("BWA")),
+    Attribute(PositiveFloat("IWH")),
+    Attribute(PositiveFloat("IWD")),
+    Attribute(PositiveFloat("IWA")),
+    Attribute(PositiveFloat("LBH")),
+    Attribute(PositiveFloat("LBD")),
+    Attribute(PositiveFloat("LBA")),
+    Attribute(PositiveFloat("PSH")),
+    Attribute(PositiveFloat("PSD")),
+    Attribute(PositiveFloat("PSA")),
+    Attribute(PositiveFloat("WHH")),
+    Attribute(PositiveFloat("WHD")),
+    Attribute(PositiveFloat("WHA")),
+    Attribute(PositiveFloat("VCH")),
+    Attribute(PositiveFloat("VCD")),
+    Attribute(PositiveFloat("VCA")),
+    Attribute(NaturalNumber("Bb1X2")),
+    Attribute(PositiveFloat("BbMxH")),
+    Attribute(PositiveFloat("BbAvH")),
+    Attribute(PositiveFloat("BbMxD")),
+    Attribute(PositiveFloat("BbAvD")),
+    Attribute(PositiveFloat("BbMxA")),
+    Attribute(PositiveFloat("BbAvA")),
+    Attribute(NaturalNumber("BbOU")),
+    Attribute(PositiveFloat("BbMx>2.5")),
+    Attribute(PositiveFloat("BbAv>2.5")),
+    Attribute(PositiveFloat("BbMx<2.5")),
+    Attribute(PositiveFloat("BbAv<2.5")),
+    Attribute(NaturalNumber("BbAH")),
+    Attribute(PositiveFloat("BbAHh")),
+    Attribute(PositiveFloat("BbMxAHH")),
+    Attribute(PositiveFloat("BbAvAHH")),
+    Attribute(PositiveFloat("BbMxAHA")),
+    Attribute(PositiveFloat("BbAvAHA")),
+    Attribute(PositiveFloat("PSCH")),
+    Attribute(PositiveFloat("PSCD")),
+    Attribute(PositiveFloat("PSCA")),
+])
+
+attributes2015 = (2014,2015,[
+    Attribute(StringIdentifier("Div")),
+    Attribute(DateString("Date")),
+    Attribute(StringIdentifier("HomeTeam")),
+    Attribute(StringIdentifier("AwayTeam")),
+    Attribute(NaturalNumber("FTHG")),
+    Attribute(NaturalNumber("FTAG")),
+    Attribute(StringIdentifier("FTR")),
+    Attribute(NaturalNumber("HTHG")),
+    Attribute(NaturalNumber("HTAG")),
+    Attribute(StringIdentifier("HTR")),
+    Attribute(NaturalNumber("HS")),
+    Attribute(NaturalNumber("AS")),
+    Attribute(NaturalNumber("HST")),
+    Attribute(NaturalNumber("AST")),
+    Attribute(NaturalNumber("HF")),
+    Attribute(NaturalNumber("AF")),
+    Attribute(NaturalNumber("HC")),
+    Attribute(NaturalNumber("AC")),
+    Attribute(NaturalNumber("HY")),
+    Attribute(NaturalNumber("AY")),
+    Attribute(NaturalNumber("HR")),
+    Attribute(NaturalNumber("AR")),
+    Attribute(PositiveFloat("B365H")),
+    Attribute(PositiveFloat("B365D")),
+    Attribute(PositiveFloat("B365A")),
+    Attribute(PositiveFloat("BWH")),
+    Attribute(PositiveFloat("BWD")),
+    Attribute(PositiveFloat("BWA")),
+    Attribute(PositiveFloat("IWH")),
+    Attribute(PositiveFloat("IWD")),
+    Attribute(PositiveFloat("IWA")),
+    Attribute(PositiveFloat("LBH")),
+    Attribute(PositiveFloat("LBD")),
+    Attribute(PositiveFloat("LBA")),
+    Attribute(PositiveFloat("PSH")),
+    Attribute(PositiveFloat("PSD")),
+    Attribute(PositiveFloat("PSA")),
+    Attribute(PositiveFloat("WHH")),
+    Attribute(PositiveFloat("WHD")),
+    Attribute(PositiveFloat("WHA")),
+    Attribute(PositiveFloat("SJH")),
+    Attribute(PositiveFloat("SJD")),
+    Attribute(PositiveFloat("SJA")),
+    Attribute(PositiveFloat("VCH")),
+    Attribute(PositiveFloat("VCD")),
+    Attribute(PositiveFloat("VCA")),
+    Attribute(NaturalNumber("Bb1X2")),
+    Attribute(PositiveFloat("BbMxH")),
+    Attribute(PositiveFloat("BbAvH")),
+    Attribute(PositiveFloat("BbMxD")),
+    Attribute(PositiveFloat("BbAvD")),
+    Attribute(PositiveFloat("BbMxA")),
+    Attribute(PositiveFloat("BbAvA")),
+    Attribute(NaturalNumber("BbOU")),
+    Attribute(PositiveFloat("BbMx>2.5")),
+    Attribute(PositiveFloat("BbAv>2.5")),
+    Attribute(PositiveFloat("BbMx<2.5")),
+    Attribute(PositiveFloat("BbAv<2.5")),
+    Attribute(NaturalNumber("BbAH")),
+    Attribute(PositiveFloat("BbAHh")),
+    Attribute(PositiveFloat("BbMxAHH")),
+    Attribute(PositiveFloat("BbAvAHH")),
+    Attribute(PositiveFloat("BbMxAHA")),
+    Attribute(PositiveFloat("BbAvAHA")),
+    Attribute(PositiveFloat("PSCH")),
+    Attribute(PositiveFloat("PSCD")),
+    Attribute(PositiveFloat("PSCA")),
+])
+
+attributes2013 = (2013,2013,[
+    Attribute(StringIdentifier("Div")),
+    Attribute(DateString("Date")),
+    Attribute(StringIdentifier("HomeTeam")),
+    Attribute(StringIdentifier("AwayTeam")),
+    Attribute(NaturalNumber("FTHG")),
+    Attribute(NaturalNumber("FTAG")),
+    Attribute(StringIdentifier("FTR")),
+    Attribute(NaturalNumber("HTHG")),
+    Attribute(NaturalNumber("HTAG")),
+    Attribute(StringIdentifier("HTR")),
+    Attribute(NaturalNumber("HS")),
+    Attribute(NaturalNumber("AS")),
+    Attribute(NaturalNumber("HST")),
+    Attribute(NaturalNumber("AST")),
+    Attribute(NaturalNumber("HF")),
+    Attribute(NaturalNumber("AF")),
+    Attribute(NaturalNumber("HC")),
+    Attribute(NaturalNumber("AC")),
+    Attribute(NaturalNumber("HY")),
+    Attribute(NaturalNumber("AY")),
+    Attribute(NaturalNumber("HR")),
+    Attribute(NaturalNumber("AR")),
+    Attribute(PositiveFloat("B365H")),
+    Attribute(PositiveFloat("B365D")),
+    Attribute(PositiveFloat("B365A")),
+    Attribute(PositiveFloat("BWH")),
+    Attribute(PositiveFloat("BWD")),
+    Attribute(PositiveFloat("BWA")),
+    Attribute(PositiveFloat("GBH")),
+    Attribute(PositiveFloat("GBD")),
+    Attribute(PositiveFloat("GBA")),
+    Attribute(PositiveFloat("IWH")),
+    Attribute(PositiveFloat("IWD")),
+    Attribute(PositiveFloat("IWA")),
+    Attribute(PositiveFloat("LBH")),
+    Attribute(PositiveFloat("LBD")),
+    Attribute(PositiveFloat("LBA")),
+    Attribute(PositiveFloat("PSH")),
+    Attribute(PositiveFloat("PSD")),
+    Attribute(PositiveFloat("PSA")),
+    Attribute(PositiveFloat("WHH")),
+    Attribute(PositiveFloat("WHD")),
+    Attribute(PositiveFloat("WHA")),
+    Attribute(PositiveFloat("SJH")),
+    Attribute(PositiveFloat("SJD")),
+    Attribute(PositiveFloat("SJA")),
+    Attribute(PositiveFloat("VCH")),
+    Attribute(PositiveFloat("VCD")),
+    Attribute(PositiveFloat("VCA")),
+    Attribute(PositiveFloat("BSH")),
+    Attribute(PositiveFloat("BSD")),
+    Attribute(PositiveFloat("BSA")),
+    Attribute(NaturalNumber("Bb1X2")),
+    Attribute(PositiveFloat("BbMxH")),
+    Attribute(PositiveFloat("BbAvH")),
+    Attribute(PositiveFloat("BbMxD")),
+    Attribute(PositiveFloat("BbAvD")),
+    Attribute(PositiveFloat("BbMxA")),
+    Attribute(PositiveFloat("BbAvA")),
+    Attribute(NaturalNumber("BbOU")),
+    Attribute(PositiveFloat("BbMx>2.5")),
+    Attribute(PositiveFloat("BbAv>2.5")),
+    Attribute(PositiveFloat("BbMx<2.5")),
+    Attribute(PositiveFloat("BbAv<2.5")),
+    Attribute(NaturalNumber("BbAH")),
+    Attribute(PositiveFloat("BbAHh")),
+    Attribute(PositiveFloat("BbMxAHH")),
+    Attribute(PositiveFloat("BbAvAHH")),
+    Attribute(PositiveFloat("BbMxAHA")),
+    Attribute(PositiveFloat("BbAvAHA")),
+    Attribute(PositiveFloat("PSCH")),
+    Attribute(PositiveFloat("PSCD")),
+    Attribute(PositiveFloat("PSCA")),
+])
+
+attributes2012 = (2008,2012,[
+    Attribute(StringIdentifier("Div")),
+    Attribute(DateString("Date")),
+    Attribute(StringIdentifier("HomeTeam")),
+    Attribute(StringIdentifier("AwayTeam")),
+    Attribute(NaturalNumber("FTHG")),
+    Attribute(NaturalNumber("FTAG")),
+    Attribute(StringIdentifier("FTR")),
+    Attribute(NaturalNumber("HTHG")),
+    Attribute(NaturalNumber("HTAG")),
+    Attribute(StringIdentifier("HTR")),
+    Attribute(NaturalNumber("HS")),
+    Attribute(NaturalNumber("AS")),
+    Attribute(NaturalNumber("HST")),
+    Attribute(NaturalNumber("AST")),
+    Attribute(NaturalNumber("HF")),
+    Attribute(NaturalNumber("AF")),
+    Attribute(NaturalNumber("HC")),
+    Attribute(NaturalNumber("AC")),
+    Attribute(NaturalNumber("HY")),
+    Attribute(NaturalNumber("AY")),
+    Attribute(NaturalNumber("HR")),
+    Attribute(NaturalNumber("AR")),
+    Attribute(PositiveFloat("B365H")),
+    Attribute(PositiveFloat("B365D")),
+    Attribute(PositiveFloat("B365A")),
+    Attribute(PositiveFloat("BWH")),
+    Attribute(PositiveFloat("BWD")),
+    Attribute(PositiveFloat("BWA")),
+    Attribute(PositiveFloat("GBH")),
+    Attribute(PositiveFloat("GBD")),
+    Attribute(PositiveFloat("GBA")),
+    Attribute(PositiveFloat("IWH")),
+    Attribute(PositiveFloat("IWD")),
+    Attribute(PositiveFloat("IWA")),
+    Attribute(PositiveFloat("LBH")),
+    Attribute(PositiveFloat("LBD")),
+    Attribute(PositiveFloat("LBA")),
+    Attribute(PositiveFloat("SBH")),
+    Attribute(PositiveFloat("SBD")),
+    Attribute(PositiveFloat("SBA")),
+    Attribute(PositiveFloat("WHH")),
+    Attribute(PositiveFloat("WHD")),
+    Attribute(PositiveFloat("WHA")),
+    Attribute(PositiveFloat("SJH")),
+    Attribute(PositiveFloat("SJD")),
+    Attribute(PositiveFloat("SJA")),
+    Attribute(PositiveFloat("VCH")),
+    Attribute(PositiveFloat("VCD")),
+    Attribute(PositiveFloat("VCA")),
+    Attribute(PositiveFloat("BSH")),
+    Attribute(PositiveFloat("BSD")),
+    Attribute(PositiveFloat("BSA")),
+    Attribute(NaturalNumber("Bb1X2")),
+    Attribute(PositiveFloat("BbMxH")),
+    Attribute(PositiveFloat("BbAvH")),
+    Attribute(PositiveFloat("BbMxD")),
+    Attribute(PositiveFloat("BbAvD")),
+    Attribute(PositiveFloat("BbMxA")),
+    Attribute(PositiveFloat("BbAvA")),
+    Attribute(NaturalNumber("BbOU")),
+    Attribute(PositiveFloat("BbMx>2.5")),
+    Attribute(PositiveFloat("BbAv>2.5")),
+    Attribute(PositiveFloat("BbMx<2.5")),
+    Attribute(PositiveFloat("BbAv<2.5")),
+    Attribute(NaturalNumber("BbAH")),
+    Attribute(PositiveFloat("BbAHh")),
+    Attribute(PositiveFloat("BbMxAHH")),
+    Attribute(PositiveFloat("BbAvAHH")),
+    Attribute(PositiveFloat("BbMxAHA")),
+    Attribute(PositiveFloat("BbAvAHA")),
+])
+
+attributes2007 = (2007,2007,[
+    Attribute(StringIdentifier("Div")),
+    Attribute(DateString("Date")),
+    Attribute(StringIdentifier("HomeTeam")),
+    Attribute(StringIdentifier("AwayTeam")),
+    Attribute(NaturalNumber("FTHG")),
+    Attribute(NaturalNumber("FTAG")),
+    Attribute(StringIdentifier("FTR")),
+    Attribute(NaturalNumber("HTHG")),
+    Attribute(NaturalNumber("HTAG")),
+    Attribute(StringIdentifier("HTR")),
+    Attribute(NaturalNumber("HS")),
+    Attribute(NaturalNumber("AS")),
+    Attribute(NaturalNumber("HST")),
+    Attribute(NaturalNumber("AST")),
+    Attribute(NaturalNumber("HF")),
+    Attribute(NaturalNumber("AF")),
+    Attribute(NaturalNumber("HC")),
+    Attribute(NaturalNumber("AC")),
+    Attribute(NaturalNumber("HY")),
+    Attribute(NaturalNumber("AY")),
+    Attribute(NaturalNumber("HR")),
+    Attribute(NaturalNumber("AR")),
+    Attribute(PositiveFloat("B365H")),
+    Attribute(PositiveFloat("B365D")),
+    Attribute(PositiveFloat("B365A")),
+    Attribute(PositiveFloat("BWH")),
+    Attribute(PositiveFloat("BWD")),
+    Attribute(PositiveFloat("BWA")),
+    Attribute(PositiveFloat("GBH")),
+    Attribute(PositiveFloat("GBD")),
+    Attribute(PositiveFloat("GBA")),
+    Attribute(PositiveFloat("IWH")),
+    Attribute(PositiveFloat("IWD")),
+    Attribute(PositiveFloat("IWA")),
+    Attribute(PositiveFloat("LBH")),
+    Attribute(PositiveFloat("LBD")),
+    Attribute(PositiveFloat("LBA")),
+    Attribute(PositiveFloat("SBH")),
+    Attribute(PositiveFloat("SBD")),
+    Attribute(PositiveFloat("SBA")),
+    Attribute(PositiveFloat("WHH")),
+    Attribute(PositiveFloat("WHD")),
+    Attribute(PositiveFloat("WHA")),
+    Attribute(PositiveFloat("SJH")),
+    Attribute(PositiveFloat("SJD")),
+    Attribute(PositiveFloat("SJA")),
+    Attribute(PositiveFloat("VCH")),
+    Attribute(PositiveFloat("VCD")),
+    Attribute(PositiveFloat("VCA")),
+    Attribute(NaturalNumber("Bb1X2")),
+    Attribute(PositiveFloat("BbMxH")),
+    Attribute(PositiveFloat("BbAvH")),
+    Attribute(PositiveFloat("BbMxD")),
+    Attribute(PositiveFloat("BbAvD")),
+    Attribute(PositiveFloat("BbMxA")),
+    Attribute(PositiveFloat("BbAvA")),
+    Attribute(NaturalNumber("BbOU")),
+    Attribute(PositiveFloat("BbMx>2.5")),
+    Attribute(PositiveFloat("BbAv>2.5")),
+    Attribute(PositiveFloat("BbMx<2.5")),
+    Attribute(PositiveFloat("BbAv<2.5")),
+    Attribute(NaturalNumber("BbAH")),
+    Attribute(PositiveFloat("BbAHh")),
+    Attribute(PositiveFloat("BbMxAHH")),
+    Attribute(PositiveFloat("BbAvAHH")),
+    Attribute(PositiveFloat("BbMxAHA")),
+    Attribute(PositiveFloat("BbAvAHA")),
+])
+
+attributes2006 = (2006,2006,[
+    Attribute(StringIdentifier("Div")),
+    Attribute(DateString("Date")),
+    Attribute(StringIdentifier("HomeTeam")),
+    Attribute(StringIdentifier("AwayTeam")),
+    Attribute(NaturalNumber("FTHG")),
+    Attribute(NaturalNumber("FTAG")),
+    Attribute(StringIdentifier("FTR")),
+    Attribute(NaturalNumber("HTHG")),
+    Attribute(NaturalNumber("HTAG")),
+    Attribute(StringIdentifier("HTR")),
+    Attribute(NaturalNumber("HS")),
+    Attribute(NaturalNumber("AS")),
+    Attribute(NaturalNumber("HF")),
+    Attribute(NaturalNumber("AF")),
+    Attribute(NaturalNumber("HC")),
+    Attribute(NaturalNumber("AC")),
+    Attribute(NaturalNumber("HY")),
+    Attribute(NaturalNumber("AY")),
+    Attribute(NaturalNumber("HR")),
+    Attribute(NaturalNumber("AR")),
+    Attribute(PositiveFloat("B365H")),
+    Attribute(PositiveFloat("B365D")),
+    Attribute(PositiveFloat("B365A")),
+    Attribute(PositiveFloat("BWH")),
+    Attribute(PositiveFloat("BWD")),
+    Attribute(PositiveFloat("BWA")),
+    Attribute(PositiveFloat("GBH")),
+    Attribute(PositiveFloat("GBD")),
+    Attribute(PositiveFloat("GBA")),
+    Attribute(PositiveFloat("IWH")),
+    Attribute(PositiveFloat("IWD")),
+    Attribute(PositiveFloat("IWA")),
+    Attribute(PositiveFloat("LBH")),
+    Attribute(PositiveFloat("LBD")),
+    Attribute(PositiveFloat("LBA")),
+    Attribute(PositiveFloat("SBH")),
+    Attribute(PositiveFloat("SBD")),
+    Attribute(PositiveFloat("SBA")),
+    Attribute(PositiveFloat("WHH")),
+    Attribute(PositiveFloat("WHD")),
+    Attribute(PositiveFloat("WHA")),
+    Attribute(PositiveFloat("SJH")),
+    Attribute(PositiveFloat("SJD")),
+    Attribute(PositiveFloat("SJA")),
+    Attribute(PositiveFloat("VCH")),
+    Attribute(PositiveFloat("VCD")),
+    Attribute(PositiveFloat("VCA")),
+    Attribute(NaturalNumber("Bb1X2")),
+    Attribute(PositiveFloat("BbMxH")),
+    Attribute(PositiveFloat("BbAvH")),
+    Attribute(PositiveFloat("BbMxD")),
+    Attribute(PositiveFloat("BbAvD")),
+    Attribute(PositiveFloat("BbMxA")),
+    Attribute(PositiveFloat("BbAvA")),
+    Attribute(NaturalNumber("BbOU")),
+    Attribute(PositiveFloat("BbMx>2.5")),
+    Attribute(PositiveFloat("BbAv>2.5")),
+    Attribute(PositiveFloat("BbMx<2.5")),
+    Attribute(PositiveFloat("BbAv<2.5")),
+    Attribute(NaturalNumber("BbAH")),
+    Attribute(PositiveFloat("BbAHh")),
+    Attribute(PositiveFloat("BbMxAHH")),
+    Attribute(PositiveFloat("BbAvAHH")),
+    Attribute(PositiveFloat("BbMxAHA")),
+    Attribute(PositiveFloat("BbAvAHA")),
+])
+
+attributes2005 = (2005,2005,[
+    Attribute(StringIdentifier("Div")),
+    Attribute(DateString("Date")),
+    Attribute(StringIdentifier("HomeTeam")),
+    Attribute(StringIdentifier("AwayTeam")),
+    Attribute(NaturalNumber("FTHG")),
+    Attribute(NaturalNumber("FTAG")),
+    Attribute(StringIdentifier("FTR")),
+    Attribute(NaturalNumber("HTHG")),
+    Attribute(NaturalNumber("HTAG")),
+    Attribute(StringIdentifier("HTR")),
+    Attribute(NaturalNumber("HS")),
+    Attribute(NaturalNumber("AS")),
+    Attribute(NaturalNumber("HF")),
+    Attribute(NaturalNumber("AF")),
+    Attribute(NaturalNumber("HC")),
+    Attribute(NaturalNumber("AC")),
+    Attribute(NaturalNumber("HY")),
+    Attribute(NaturalNumber("AY")),
+    Attribute(NaturalNumber("HR")),
+    Attribute(NaturalNumber("AR")),
+    Attribute(PositiveFloat("B365H")),
+    Attribute(PositiveFloat("B365D")),
+    Attribute(PositiveFloat("B365A")),
+    Attribute(PositiveFloat("BWH")),
+    Attribute(PositiveFloat("BWD")),
+    Attribute(PositiveFloat("BWA")),
+    Attribute(PositiveFloat("GBH")),
+    Attribute(PositiveFloat("GBD")),
+    Attribute(PositiveFloat("GBA")),
+    Attribute(PositiveFloat("IWH")),
+    Attribute(PositiveFloat("IWD")),
+    Attribute(PositiveFloat("IWA")),
+    Attribute(PositiveFloat("LBH")),
+    Attribute(PositiveFloat("LBD")),
+    Attribute(PositiveFloat("LBA")),
+    Attribute(PositiveFloat("SBH")),
+    Attribute(PositiveFloat("SBD")),
+    Attribute(PositiveFloat("SBA")),
+    Attribute(PositiveFloat("WHH")),
+    Attribute(PositiveFloat("WHD")),
+    Attribute(PositiveFloat("WHA")),
+    Attribute(PositiveFloat("GB>2.5")),
+    Attribute(PositiveFloat("GB<2.5")),
+    Attribute(PositiveFloat("B365>2.5")),
+    Attribute(PositiveFloat("B365<2.5")),
+    Attribute(PositiveFloat("GBAHH")),
+    Attribute(PositiveFloat("GBAHA")),
+    Attribute(PositiveFloat("GBAH")),
+    Attribute(PositiveFloat("LBAHH")),
+    Attribute(PositiveFloat("LBAHA")),
+    Attribute(PositiveFloat("LBAH")),
+    Attribute(PositiveFloat("B365AHH")),
+    Attribute(PositiveFloat("B365AHA")),
+    Attribute(PositiveFloat("B365AH")),
+])
+
+attributes2004 = (2004,2004,[
+    Attribute(StringIdentifier("Div")),
+    Attribute(DateString("Date")),
+    Attribute(StringIdentifier("HomeTeam")),
+    Attribute(StringIdentifier("AwayTeam")),
+    Attribute(NaturalNumber("FTHG")),
+    Attribute(NaturalNumber("FTAG")),
+    Attribute(StringIdentifier("FTR")),
+    Attribute(NaturalNumber("HTHG")),
+    Attribute(NaturalNumber("HTAG")),
+    Attribute(StringIdentifier("HTR")),
+    Attribute(NaturalNumber("HS")),
+    Attribute(NaturalNumber("AS")),
+    Attribute(NaturalNumber("HF")),
+    Attribute(NaturalNumber("AF")),
+    Attribute(NaturalNumber("HC")),
+    Attribute(NaturalNumber("AC")),
+    Attribute(NaturalNumber("HY")),
+    Attribute(NaturalNumber("AY")),
+    Attribute(NaturalNumber("HR")),
+    Attribute(NaturalNumber("AR")),
+    Attribute(PositiveFloat("B365H")),
+    Attribute(PositiveFloat("B365D")),
+    Attribute(PositiveFloat("B365A")),
+    Attribute(PositiveFloat("GBH")),
+    Attribute(PositiveFloat("GBD")),
+    Attribute(PositiveFloat("GBA")),
+    Attribute(PositiveFloat("IWH")),
+    Attribute(PositiveFloat("IWD")),
+    Attribute(PositiveFloat("IWA")),
+    Attribute(PositiveFloat("LBH")),
+    Attribute(PositiveFloat("LBD")),
+    Attribute(PositiveFloat("LBA")),
+    Attribute(PositiveFloat("SOH")),
+    Attribute(PositiveFloat("SOD")),
+    Attribute(PositiveFloat("SOA")),
+    Attribute(PositiveFloat("SBH")),
+    Attribute(PositiveFloat("SBD")),
+    Attribute(PositiveFloat("SBA")),
+    Attribute(PositiveFloat("WHH")),
+    Attribute(PositiveFloat("WHD")),
+    Attribute(PositiveFloat("WHA")),
+    Attribute(PositiveFloat("GB>2.5")),
+    Attribute(PositiveFloat("GB<2.5")),
+    Attribute(PositiveFloat("B365>2.5")),
+    Attribute(PositiveFloat("B365<2.5")),
+    Attribute(PositiveFloat("GBAHH")),
+    Attribute(PositiveFloat("GBAHA")),
+    Attribute(PositiveFloat("GBAH")),
+    Attribute(PositiveFloat("LBAHH")),
+    Attribute(PositiveFloat("LBAHA")),
+    Attribute(PositiveFloat("LBAH")),
+    Attribute(PositiveFloat("B365AHH")),
+    Attribute(PositiveFloat("B365AHA")),
+    Attribute(PositiveFloat("B365AH")),
+])
+
+attributes2003 = (2003,2003,[
+    Attribute(StringIdentifier("Div")),
+    Attribute(DateString("Date")),
+    Attribute(StringIdentifier("HomeTeam")),
+    Attribute(StringIdentifier("AwayTeam")),
+    Attribute(NaturalNumber("FTHG")),
+    Attribute(NaturalNumber("FTAG")),
+    Attribute(StringIdentifier("FTR")),
+    Attribute(NaturalNumber("HTHG")),
+    Attribute(NaturalNumber("HTAG")),
+    Attribute(StringIdentifier("HTR")),
+    Attribute(PositiveFloat("B365H")),
+    Attribute(PositiveFloat("B365D")),
+    Attribute(PositiveFloat("B365A")),
+    Attribute(PositiveFloat("GBH")),
+    Attribute(PositiveFloat("GBD")),
+    Attribute(PositiveFloat("GBA")),
+    Attribute(PositiveFloat("IWH")),
+    Attribute(PositiveFloat("IWD")),
+    Attribute(PositiveFloat("IWA")),
+    Attribute(PositiveFloat("LBH")),
+    Attribute(PositiveFloat("LBD")),
+    Attribute(PositiveFloat("LBA")),
+    Attribute(PositiveFloat("SOH")),
+    Attribute(PositiveFloat("SOD")),
+    Attribute(PositiveFloat("SOA")),
+    Attribute(PositiveFloat("SBH")),
+    Attribute(PositiveFloat("SBD")),
+    Attribute(PositiveFloat("SBA")),
+    Attribute(PositiveFloat("WHH")),
+    Attribute(PositiveFloat("WHD")),
+    Attribute(PositiveFloat("WHA")),
+    Attribute(PositiveFloat("GB>2.5")),
+    Attribute(PositiveFloat("GB<2.5")),
+    Attribute(PositiveFloat("B365>2.5")),
+    Attribute(PositiveFloat("B365<2.5")),
+])
+
+attributes2002 = (2002,2002,[
+    Attribute(StringIdentifier("Div")),
+    Attribute(DateString("Date")),
+    Attribute(StringIdentifier("HomeTeam")),
+    Attribute(StringIdentifier("AwayTeam")),
+    Attribute(NaturalNumber("FTHG")),
+    Attribute(NaturalNumber("FTAG")),
+    Attribute(StringIdentifier("FTR")),
+    Attribute(NaturalNumber("HTHG")),
+    Attribute(NaturalNumber("HTAG")),
+    Attribute(StringIdentifier("HTR")),
+    Attribute(NaturalNumber("Attendance")),
+    Attribute(StringIdentifier("Referee")),
+    Attribute(NaturalNumber("HS")),
+    Attribute(NaturalNumber("AS")),
+    Attribute(NaturalNumber("HST")),
+    Attribute(NaturalNumber("AST")),
+    Attribute(NaturalNumber("HHW")),
+    Attribute(NaturalNumber("AHW")),
+    Attribute(NaturalNumber("HC")),
+    Attribute(NaturalNumber("AC")),
+    Attribute(NaturalNumber("HF")),
+    Attribute(NaturalNumber("AF")),
+    Attribute(NaturalNumber("HO")),
+    Attribute(NaturalNumber("AO")),
+    Attribute(NaturalNumber("HY")),
+    Attribute(NaturalNumber("AY")),
+    Attribute(NaturalNumber("HR")),
+    Attribute(NaturalNumber("AR")),
+    Attribute(NaturalNumber("HBP")),
+    Attribute(NaturalNumber("ABP")),
+    Attribute(PositiveFloat("GBH")),
+    Attribute(PositiveFloat("GBD")),
+    Attribute(PositiveFloat("GBA")),
+    Attribute(PositiveFloat("IWH")),
+    Attribute(PositiveFloat("IWD")),
+    Attribute(PositiveFloat("IWA")),
+    Attribute(PositiveFloat("LBH")),
+    Attribute(PositiveFloat("LBD")),
+    Attribute(PositiveFloat("LBA")),
+    Attribute(PositiveFloat("SBH")),
+    Attribute(PositiveFloat("SBD")),
+    Attribute(PositiveFloat("SBA")),
+    Attribute(PositiveFloat("SYH")),
+    Attribute(PositiveFloat("SYD")),
+    Attribute(PositiveFloat("SYA")),
+    Attribute(PositiveFloat("WHH")),
+    Attribute(PositiveFloat("WHD")),
+    Attribute(PositiveFloat("WHA")),
+])
+
+attributes2001 = (2001,2001,[
+    Attribute(StringIdentifier("Div")),
+    Attribute(DateString("Date")),
+    Attribute(StringIdentifier("HomeTeam")),
+    Attribute(StringIdentifier("AwayTeam")),
+    Attribute(NaturalNumber("FTHG")),
+    Attribute(NaturalNumber("FTAG")),
+    Attribute(StringIdentifier("FTR")),
+    Attribute(NaturalNumber("HTHG")),
+    Attribute(NaturalNumber("HTAG")),
+    Attribute(StringIdentifier("HTR")),
+    Attribute(NaturalNumber("Attendance")),
+    Attribute(StringIdentifier("Referee")),
+    Attribute(NaturalNumber("HS")),
+    Attribute(NaturalNumber("AS")),
+    Attribute(NaturalNumber("HST")),
+    Attribute(NaturalNumber("AST")),
+    Attribute(NaturalNumber("HHW")),
+    Attribute(NaturalNumber("AHW")),
+    Attribute(NaturalNumber("HC")),
+    Attribute(NaturalNumber("AC")),
+    Attribute(NaturalNumber("HF")),
+    Attribute(NaturalNumber("AF")),
+    Attribute(NaturalNumber("HO")),
+    Attribute(NaturalNumber("AO")),
+    Attribute(NaturalNumber("HY")),
+    Attribute(NaturalNumber("AY")),
+    Attribute(NaturalNumber("HR")),
+    Attribute(NaturalNumber("AR")),
+    Attribute(NaturalNumber("HBP")),
+    Attribute(NaturalNumber("ABP")),
+    Attribute(PositiveFloat("GBH")),
+    Attribute(PositiveFloat("GBD")),
+    Attribute(PositiveFloat("GBA")),
+    Attribute(PositiveFloat("IWH")),
+    Attribute(PositiveFloat("IWD")),
+    Attribute(PositiveFloat("IWA")),
+    Attribute(PositiveFloat("LBH")),
+    Attribute(PositiveFloat("LBD")),
+    Attribute(PositiveFloat("LBA")),
+    Attribute(PositiveFloat("SBH")),
+    Attribute(PositiveFloat("SBD")),
+    Attribute(PositiveFloat("SBA")),
+    Attribute(PositiveFloat("WHH")),
+    Attribute(PositiveFloat("WHD")),
+    Attribute(PositiveFloat("WHA")),
+])
+
+attributes2000 = (1996,2000,[
+    Attribute(StringIdentifier("Div")),
+    Attribute(DateString("Date")),
+    Attribute(StringIdentifier("HomeTeam")),
+    Attribute(StringIdentifier("AwayTeam")),
+    Attribute(NaturalNumber("FTHG")),
+    Attribute(NaturalNumber("FTAG")),
+    Attribute(StringIdentifier("FTR")),
+    Attribute(NaturalNumber("HTHG")),
+    Attribute(NaturalNumber("HTAG")),
+    Attribute(StringIdentifier("HTR")),
+])
+
+attributes1995 = (1994,1995,[
+    Attribute(StringIdentifier("Div")),
+    Attribute(DateString("Date")),
+    Attribute(StringIdentifier("HomeTeam")),
+    Attribute(StringIdentifier("AwayTeam")),
+    Attribute(NaturalNumber("FTHG")),
+    Attribute(NaturalNumber("FTAG")),
+    Attribute(StringIdentifier("FTR")),
+])
+
+attr_list = [
+    attributes1995,
+    attributes2000,
+    attributes2001,
+    attributes2002,
+    attributes2003,
+    attributes2004,
+    attributes2005,
+    attributes2006,
+    attributes2007,
+    attributes2012,
+    attributes2013,
+    attributes2015,
+    attributes2018,
+    attributes2019,
+    attributes2020,
+]
+
+templates = {}
+
+for (start_year, end_year, attributes) in attr_list:
+    key=(start_year, end_year)
+    templates[key]=DatumTemplate(RowStruct(
+        name="SSBundesliga_%d-%d_datum" % (start_year, end_year),
+        attributes=attributes,
+    ))
+
+
+def build_assets(start_year, end_year, attributes):
+    return {"SSBundesliga%d" % (x): Asset(StaticDataTable(
+        name="SSBundesliga%d" % (x),
+        schema=DataSchema(default_tabular_schema(
+            templates[(start_year,end_year)],
+            attributes=templates[(start_year,end_year)].attributes()
+        )),
+        setup=StorageSetup(RemoteStorageSetup(
+            remote=Storage(RemoteStorage(
+                location=RemoteLocation(WebLocation(
+                    address=("https://sports-statistics.com/database/soccer-data"
+                            "germany-bundesliga-1-%d-to-%d.csv" % (x-1,x)
+                    ),
+                )),
+                layout=APIOrFileLayout(FileBasedStorageLayout(
+                    SingleFileLayout()
+                )),
+                encoding=Encoding(CSVEncoding(header=FileHeader(
+                    CSVHeader(num_lines=1
+                    )
+                ))),
+            )),
+        )),
+        tag=str(x-1)+"-"+str(x)+"_ss_bundesliga",
+        )) for x in range(start_year,end_year)}
+
+assets1995 = build_assets(1994, 1995, attributes1995)
+assets2000 = build_assets(1996, 2000, attributes2000)
+assets2001 = build_assets(2001, 2001, attributes2001)
+assets2002 = build_assets(2002, 2002, attributes2002)
+assets2003 = build_assets(2003, 2003, attributes2003)
+assets2004 = build_assets(2004, 2004, attributes2004)
+assets2005 = build_assets(2005, 2005, attributes2005)
+assets2006 = build_assets(2006, 2006, attributes2006)
+assets2007 = build_assets(2007, 2007, attributes2007)
+assets2012 = build_assets(2008, 2012, attributes2012)
+assets2013 = build_assets(2013, 2013, attributes2013)
+assets2015 = build_assets(2014, 2015, attributes2015)
+assets2018 = build_assets(2016, 2018, attributes2018)
+assets2019 = build_assets(2029, 2019, attributes2019)
+assets2020 = build_assets(2020, 2020, attributes2020)
+
+assets = {**assets1995, **assets2000, **assets2001,
+          **assets2002, **assets2003, **assets2004,
+          **assets2005, **assets2006, **assets2007,
+          **assets2012, **assets2013, **assets2015,
+          **assets2018, **assets2019, **assets2020}
 
-
-SSBundesliga_2019_datum = RowStruct(
-    name="SSBundesliga_2019_datum",
-    attributes=attr_list([
-        attr.StringIdentifier("Div"),
-        attr.DateString("Date"),
-        attr.StringIdentifier("HomeTeam"),
-        attr.StringIdentifier("AwayTeam"),
-        attr.NaturalNumber("FTHG"),
-        attr.NaturalNumber("FTAG"),
-        attr.StringIdentifier("FTR"),
-        attr.NaturalNumber("HTHG"),
-        attr.NaturalNumber("HTAG"),
-        attr.StringIdentifier("HTR"),
-        attr.NaturalNumber("HS"),
-        attr.NaturalNumber("AS"),
-        attr.NaturalNumber("HST"),
-        attr.NaturalNumber("AST"),
-        attr.NaturalNumber("HF"),
-        attr.NaturalNumber("AF"),
-        attr.NaturalNumber("HC"),
-        attr.NaturalNumber("AC"),
-        attr.NaturalNumber("HY"),
-        attr.NaturalNumber("AY"),
-        attr.NaturalNumber("HR"),
-        attr.NaturalNumber("AR"),
-        attr.PositiveFloat("B365H"),
-        attr.PositiveFloat("B365D"),
-        attr.PositiveFloat("B365A"),
-        attr.PositiveFloat("BWH"),
-        attr.PositiveFloat("BWD"),
-        attr.PositiveFloat("BWA"),
-        attr.PositiveFloat("IWH"),
-        attr.PositiveFloat("IWD"),
-        attr.PositiveFloat("IWA"),
-        attr.PositiveFloat("PSH"),
-        attr.PositiveFloat("PSD"),
-        attr.PositiveFloat("PSA"),
-        attr.PositiveFloat("WHH"),
-        attr.PositiveFloat("WHD"),
-        attr.PositiveFloat("WHA"),
-        attr.PositiveFloat("VCH"),
-        attr.PositiveFloat("VCD"),
-        attr.PositiveFloat("VCA"),
-        attr.NaturalNumber("Bb1X2"),
-        attr.PositiveFloat("BbMxH"),
-        attr.PositiveFloat("BbAvH"),
-        attr.PositiveFloat("BbMxD"),
-        attr.PositiveFloat("BbAvD"),
-        attr.PositiveFloat("BbMxA"),
-        attr.PositiveFloat("BbAvA"),
-        attr.NaturalNumber("BbOU"),
-        attr.PositiveFloat("BbMx>2.5"),
-        attr.PositiveFloat("BbAv>2.5"),
-        attr.PositiveFloat("BbMx<2.5"),
-        attr.PositiveFloat("BbAv<2.5"),
-        attr.NaturalNumber("BbAH"),
-        attr.PositiveFloat("BbAHh"),
-        attr.PositiveFloat("BbMxAHH"), 
-        attr.PositiveFloat("BbAvAHH"), 
-        attr.PositiveFloat("BbMxAHA"), 
-        attr.PositiveFloat("BbAvAHA"), 
-        attr.PositiveFloat("PSCH"), 
-        attr.PositiveFloat("PSCD"), 
-        attr.PositiveFloat("PSCA"), 
-       ])
-)
-
-SSBundesliga1_2019 = StaticDataTable(
-    name="SSBundesliga1_2019",
-    schema=default_tabular_schema(SSBundesliga_2019_datum),
-    setup=RemoteStorageSetup(
-        remote=RemoteStorage(
-            location=WebLocation(
-                address=("https://sports-statistics.com/database/soccer-data"
-                         "/germany-bundesliga-1-2018-to-2019.csv"
-                ),
-            ),
-            layout=SingleFileLayout(),
-            encoding=CSVEncoding(header=CSVHeader(num_lines=1)),
-        )
-    ),
-    tag="2018-2019_ss_bundesliga1",
-)
-
-SSBundesliga_2018_datum = RowStruct(
-    name="SSBundesliga_2018_datum",
-    attributes=attr_list([
-        attr.StringIdentifier("Div"),
-        attr.DateString("Date"),
-        attr.StringIdentifier("HomeTeam"),
-        attr.StringIdentifier("AwayTeam"),
-        attr.NaturalNumber("FTHG"),
-        attr.NaturalNumber("FTAG"),
-        attr.StringIdentifier("FTR"),
-        attr.NaturalNumber("HTHG"),
-        attr.NaturalNumber("HTAG"),
-        attr.StringIdentifier("HTR"),
-        attr.NaturalNumber("HS"),
-        attr.NaturalNumber("AS"),
-        attr.NaturalNumber("HST"),
-        attr.NaturalNumber("AST"),
-        attr.NaturalNumber("HF"),
-        attr.NaturalNumber("AF"),
-        attr.NaturalNumber("HC"),
-        attr.NaturalNumber("AC"),
-        attr.NaturalNumber("HY"),
-        attr.NaturalNumber("AY"),
-        attr.NaturalNumber("HR"),
-        attr.NaturalNumber("AR"),
-        attr.PositiveFloat("B365H"),
-        attr.PositiveFloat("B365D"),
-        attr.PositiveFloat("B365A"),
-        attr.PositiveFloat("BWH"),
-        attr.PositiveFloat("BWD"),
-        attr.PositiveFloat("BWA"),
-        attr.PositiveFloat("IWH"),
-        attr.PositiveFloat("IWD"),
-        attr.PositiveFloat("IWA"),
-        attr.PositiveFloat("LBH"),
-        attr.PositiveFloat("LBD"),
-        attr.PositiveFloat("LBA"),
-        attr.PositiveFloat("PSH"),
-        attr.PositiveFloat("PSD"),
-        attr.PositiveFloat("PSA"),
-        attr.PositiveFloat("WHH"),
-        attr.PositiveFloat("WHD"),
-        attr.PositiveFloat("WHA"),
-        attr.PositiveFloat("VCH"),
-        attr.PositiveFloat("VCD"),
-        attr.PositiveFloat("VCA"),
-        attr.NaturalNumber("Bb1X2"),
-        attr.PositiveFloat("BbMxH"),
-        attr.PositiveFloat("BbAvH"),
-        attr.PositiveFloat("BbMxD"),
-        attr.PositiveFloat("BbAvD"),
-        attr.PositiveFloat("BbMxA"),
-        attr.PositiveFloat("BbAvA"),
-        attr.NaturalNumber("BbOU"),
-        attr.PositiveFloat("BbMx>2.5"),
-        attr.PositiveFloat("BbAv>2.5"),
-        attr.PositiveFloat("BbMx<2.5"),
-        attr.PositiveFloat("BbAv<2.5"),
-        attr.NaturalNumber("BbAH"),
-        attr.PositiveFloat("BbAHh"),
-        attr.PositiveFloat("BbMxAHH"),
-        attr.PositiveFloat("BbAvAHH"),
-        attr.PositiveFloat("BbMxAHA"),
-        attr.PositiveFloat("BbAvAHA"),
-        attr.PositiveFloat("PSCH"),
-        attr.PositiveFloat("PSCD"),
-        attr.PositiveFloat("PSCA"),
-       ])
-)
-
-SSBundesliga1_2018 = StaticDataTable(
-    name="SSBundesliga1_2018",
-    schema=default_tabular_schema(SSBundesliga_2018_datum),
-    setup=RemoteStorageSetup(
-        remote=RemoteStorage(
-            location=WebLocation(
-                address=("https://sports-statistics.com/database/soccer-data"
-                         "/germany-bundesliga-1-2017-to-2018.csv"
-                ),
-            ),
-            layout=SingleFileLayout(),
-            encoding=CSVEncoding(header=CSVHeader(num_lines=1)),
-        )
-    ),
-    tag="2017-2018_ss_bundesliga1",
-)
-
-SSBundesliga1_2017 = StaticDataTable(
-    name="SSBundesliga1_2017",
-    schema=default_tabular_schema(SSBundesliga_2018_datum),
-    setup=RemoteStorageSetup(
-        remote=RemoteStorage(
-            location=WebLocation(
-                address=("https://sports-statistics.com/database/soccer-data"
-                         "/germany-bundesliga-1-2016-to-2017.csv"
-                ),
-            ),
-            layout=SingleFileLayout(),
-            encoding=CSVEncoding(header=CSVHeader(num_lines=1)),
-        )
-    ),
-    tag="2016-2017_ss_bundesliga1",
-)
-
-SSBundesliga1_2016 = StaticDataTable(
-    name="SSBundesliga1_2016",
-    schema=default_tabular_schema(SSBundesliga_2018_datum),
-    setup=RemoteStorageSetup(
-        remote=RemoteStorage(
-            location=WebLocation(
-                address=("https://sports-statistics.com/database/soccer-data"
-                         "/germany-bundesliga-1-2015-to-2016.csv"
-                ),
-            ),
-            layout=SingleFileLayout(),
-            encoding=CSVEncoding(header=CSVHeader(num_lines=1)),
-        )
-    ),
-    tag="2015-2016_ss_bundesliga1",
-)
-
-SSBundesliga1_2015_datum = RowStruct(
-    name="SSBundesliga1_2015_datum",
-    attributes=attr_list([
-        attr.StringIdentifier("Div"),
-        attr.DateString("Date"),
-        attr.StringIdentifier("HomeTeam"),
-        attr.StringIdentifier("AwayTeam"),
-        attr.NaturalNumber("FTHG"),
-        attr.NaturalNumber("FTAG"),
-        attr.StringIdentifier("FTR"),
-        attr.NaturalNumber("HTHG"),
-        attr.NaturalNumber("HTAG"),
-        attr.StringIdentifier("HTR"),
-        attr.NaturalNumber("HS"),
-        attr.NaturalNumber("AS"),
-        attr.NaturalNumber("HST"),
-        attr.NaturalNumber("AST"),
-        attr.NaturalNumber("HF"),
-        attr.NaturalNumber("AF"),
-        attr.NaturalNumber("HC"),
-        attr.NaturalNumber("AC"),
-        attr.NaturalNumber("HY"),
-        attr.NaturalNumber("AY"),
-        attr.NaturalNumber("HR"),
-        attr.NaturalNumber("AR"),
-        attr.PositiveFloat("B365H"),
-        attr.PositiveFloat("B365D"),
-        attr.PositiveFloat("B365A"),
-        attr.PositiveFloat("BWH"),
-        attr.PositiveFloat("BWD"),
-        attr.PositiveFloat("BWA"),
-        attr.PositiveFloat("IWH"),
-        attr.PositiveFloat("IWD"),
-        attr.PositiveFloat("IWA"),
-        attr.PositiveFloat("LBH"),
-        attr.PositiveFloat("LBD"),
-        attr.PositiveFloat("LBA"),
-        attr.PositiveFloat("PSH"),
-        attr.PositiveFloat("PSD"),
-        attr.PositiveFloat("PSA"),
-        attr.PositiveFloat("WHH"),
-        attr.PositiveFloat("WHD"),
-        attr.PositiveFloat("WHA"),
-        attr.PositiveFloat("SJH"),
-        attr.PositiveFloat("SJD"),
-        attr.PositiveFloat("SJA"),
-        attr.PositiveFloat("VCH"),
-        attr.PositiveFloat("VCD"),
-        attr.PositiveFloat("VCA"),
-        attr.NaturalNumber("Bb1X2"),
-        attr.PositiveFloat("BbMxH"),
-        attr.PositiveFloat("BbAvH"),
-        attr.PositiveFloat("BbMxD"),
-        attr.PositiveFloat("BbAvD"),
-        attr.PositiveFloat("BbMxA"),
-        attr.PositiveFloat("BbAvA"),
-        attr.NaturalNumber("BbOU"),
-        attr.PositiveFloat("BbMx>2.5"),
-        attr.PositiveFloat("BbAv>2.5"),
-        attr.PositiveFloat("BbMx<2.5"),
-        attr.PositiveFloat("BbAv<2.5"),
-        attr.NaturalNumber("BbAH"),
-        attr.PositiveFloat("BbAHh"),
-        attr.PositiveFloat("BbMxAHH"),
-        attr.PositiveFloat("BbAvAHH"),
-        attr.PositiveFloat("BbMxAHA"),
-        attr.PositiveFloat("BbAvAHA"),
-        attr.PositiveFloat("PSCH"),
-        attr.PositiveFloat("PSCD"),
-        attr.PositiveFloat("PSCA"),
-       ])
-)
-
-SSBundesliga1_2015 = StaticDataTable(
-    name="SSBundesliga1_2015",
-    schema=default_tabular_schema(SSBundesliga1_2015_datum),
-    setup=RemoteStorageSetup(
-        remote=RemoteStorage(
-            location=WebLocation(
-                address=("https://sports-statistics.com/database/soccer-data"
-                         "/germany-bundesliga-1-2014-to-2015.csv"
-                ),
-            ),
-            layout=SingleFileLayout(),
-            encoding=CSVEncoding(header=CSVHeader(num_lines=1)),
-        )
-    ),
-    tag="2014-2015_ss_bundesliga1",
-)
-
-SSBundesliga1_2014 = StaticDataTable(
-    name="SSBundesliga1_2014",
-    schema=default_tabular_schema(SSBundesliga1_2015_datum),
-    setup=RemoteStorageSetup(
-        remote=RemoteStorage(
-            location=WebLocation(
-                address=("https://sports-statistics.com/database/soccer-data"
-                         "/germany-bundesliga-1-2013-to-2014.csv"
-                ),
-            ),
-            layout=SingleFileLayout(),
-            encoding=CSVEncoding(header=CSVHeader(num_lines=1)),
-        )
-    ),
-    tag="2013-2014_ss_bundesliga1",
-)
-
-SSBundesliga1_2013_datum = RowStruct(
-    name="SSBundesliga1_2013_datum",
-    attributes=attr_list([
-        attr.StringIdentifier("Div"),
-        attr.DateString("Date"),
-        attr.StringIdentifier("HomeTeam"),
-        attr.StringIdentifier("AwayTeam"),
-        attr.NaturalNumber("FTHG"),
-        attr.NaturalNumber("FTAG"),
-        attr.StringIdentifier("FTR"),
-        attr.NaturalNumber("HTHG"),
-        attr.NaturalNumber("HTAG"),
-        attr.StringIdentifier("HTR"),
-        attr.NaturalNumber("HS"),
-        attr.NaturalNumber("AS"),
-        attr.NaturalNumber("HST"),
-        attr.NaturalNumber("AST"),
-        attr.NaturalNumber("HF"),
-        attr.NaturalNumber("AF"),
-        attr.NaturalNumber("HC"),
-        attr.NaturalNumber("AC"),
-        attr.NaturalNumber("HY"),
-        attr.NaturalNumber("AY"),
-        attr.NaturalNumber("HR"),
-        attr.NaturalNumber("AR"),
-        attr.PositiveFloat("B365H"),
-        attr.PositiveFloat("B365D"),
-        attr.PositiveFloat("B365A"),
-        attr.PositiveFloat("BWH"),
-        attr.PositiveFloat("BWD"),
-        attr.PositiveFloat("BWA"),
-        attr.PositiveFloat("GBH"),
-        attr.PositiveFloat("GBD"),
-        attr.PositiveFloat("GBA"),
-        attr.PositiveFloat("IWH"),
-        attr.PositiveFloat("IWD"),
-        attr.PositiveFloat("IWA"),
-        attr.PositiveFloat("LBH"),
-        attr.PositiveFloat("LBD"),
-        attr.PositiveFloat("LBA"),
-        attr.PositiveFloat("PSH"),
-        attr.PositiveFloat("PSD"),
-        attr.PositiveFloat("PSA"),
-        attr.PositiveFloat("WHH"),
-        attr.PositiveFloat("WHD"),
-        attr.PositiveFloat("WHA"),
-        attr.PositiveFloat("SJH"),
-        attr.PositiveFloat("SJD"),
-        attr.PositiveFloat("SJA"),
-        attr.PositiveFloat("VCH"),
-        attr.PositiveFloat("VCD"),
-        attr.PositiveFloat("VCA"),
-        attr.PositiveFloat("BSH"),
-        attr.PositiveFloat("BSD"),
-        attr.PositiveFloat("BSA"),
-        attr.NaturalNumber("Bb1X2"),
-        attr.PositiveFloat("BbMxH"),
-        attr.PositiveFloat("BbAvH"),
-        attr.PositiveFloat("BbMxD"),
-        attr.PositiveFloat("BbAvD"),
-        attr.PositiveFloat("BbMxA"),
-        attr.PositiveFloat("BbAvA"),
-        attr.NaturalNumber("BbOU"),
-        attr.PositiveFloat("BbMx>2.5"),
-        attr.PositiveFloat("BbAv>2.5"),
-        attr.PositiveFloat("BbMx<2.5"),
-        attr.PositiveFloat("BbAv<2.5"),
-        attr.NaturalNumber("BbAH"),
-        attr.PositiveFloat("BbAHh"),
-        attr.PositiveFloat("BbMxAHH"),
-        attr.PositiveFloat("BbAvAHH"),
-        attr.PositiveFloat("BbMxAHA"),
-        attr.PositiveFloat("BbAvAHA"),
-        attr.PositiveFloat("PSCH"),
-        attr.PositiveFloat("PSCD"),
-        attr.PositiveFloat("PSCA"),
-       ])
-)
-
-SSBundesliga1_2013 = StaticDataTable(
-    name="SSBundesliga1_2013",
-    schema=default_tabular_schema(SSBundesliga1_2013_datum),
-    setup=RemoteStorageSetup(
-        remote=RemoteStorage(
-            location=WebLocation(
-                address=("https://sports-statistics.com/database/soccer-data"
-                         "/germany-bundesliga-1-2012-to-2013.csv"
-                ),
-            ),
-            layout=SingleFileLayout(),
-            encoding=CSVEncoding(header=CSVHeader(num_lines=1)),
-        )
-    ),
-    tag="2012-2013_ss_bundesliga1",
-)
-
-SSBundesliga1_2012_datum = RowStruct(
-    name="SSBundesliga1_2012_datum",
-    attributes=attr_list([
-        attr.StringIdentifier("Div"),
-        attr.DateString("Date"),
-        attr.StringIdentifier("HomeTeam"),
-        attr.StringIdentifier("AwayTeam"),
-        attr.NaturalNumber("FTHG"),
-        attr.NaturalNumber("FTAG"),
-        attr.StringIdentifier("FTR"),
-        attr.NaturalNumber("HTHG"),
-        attr.NaturalNumber("HTAG"),
-        attr.StringIdentifier("HTR"),
-        attr.NaturalNumber("HS"),
-        attr.NaturalNumber("AS"),
-        attr.NaturalNumber("HST"),
-        attr.NaturalNumber("AST"),
-        attr.NaturalNumber("HF"),
-        attr.NaturalNumber("AF"),
-        attr.NaturalNumber("HC"),
-        attr.NaturalNumber("AC"),
-        attr.NaturalNumber("HY"),
-        attr.NaturalNumber("AY"),
-        attr.NaturalNumber("HR"),
-        attr.NaturalNumber("AR"),
-        attr.PositiveFloat("B365H"),
-        attr.PositiveFloat("B365D"),
-        attr.PositiveFloat("B365A"),
-        attr.PositiveFloat("BWH"),
-        attr.PositiveFloat("BWD"),
-        attr.PositiveFloat("BWA"),
-        attr.PositiveFloat("GBH"),
-        attr.PositiveFloat("GBD"),
-        attr.PositiveFloat("GBA"),
-        attr.PositiveFloat("IWH"),
-        attr.PositiveFloat("IWD"),
-        attr.PositiveFloat("IWA"),
-        attr.PositiveFloat("LBH"),
-        attr.PositiveFloat("LBD"),
-        attr.PositiveFloat("LBA"),
-        attr.PositiveFloat("SBH"),
-        attr.PositiveFloat("SBD"),
-        attr.PositiveFloat("SBA"),
-        attr.PositiveFloat("WHH"),
-        attr.PositiveFloat("WHD"),
-        attr.PositiveFloat("WHA"),
-        attr.PositiveFloat("SJH"),
-        attr.PositiveFloat("SJD"),
-        attr.PositiveFloat("SJA"),
-        attr.PositiveFloat("VCH"),
-        attr.PositiveFloat("VCD"),
-        attr.PositiveFloat("VCA"),
-        attr.PositiveFloat("BSH"),
-        attr.PositiveFloat("BSD"),
-        attr.PositiveFloat("BSA"),
-        attr.NaturalNumber("Bb1X2"),
-        attr.PositiveFloat("BbMxH"),
-        attr.PositiveFloat("BbAvH"),
-        attr.PositiveFloat("BbMxD"),
-        attr.PositiveFloat("BbAvD"),
-        attr.PositiveFloat("BbMxA"),
-        attr.PositiveFloat("BbAvA"),
-        attr.NaturalNumber("BbOU"),
-        attr.PositiveFloat("BbMx>2.5"),
-        attr.PositiveFloat("BbAv>2.5"),
-        attr.PositiveFloat("BbMx<2.5"),
-        attr.PositiveFloat("BbAv<2.5"),
-        attr.NaturalNumber("BbAH"),
-        attr.PositiveFloat("BbAHh"),
-        attr.PositiveFloat("BbMxAHH"),
-        attr.PositiveFloat("BbAvAHH"),
-        attr.PositiveFloat("BbMxAHA"),
-        attr.PositiveFloat("BbAvAHA"),
-       ])
-)
-
-SSBundesliga1_2012 = StaticDataTable(
-    name="SSBundesliga1_2012",
-    schema=default_tabular_schema(SSBundesliga1_2012_datum),
-    setup=RemoteStorageSetup(
-        remote=RemoteStorage(
-            location=WebLocation(
-                address=("https://sports-statistics.com/database/soccer-data"
-                         "/germany-bundesliga-1-2011-to-2012.csv"
-                ),
-            ),
-            layout=SingleFileLayout(),
-            encoding=CSVEncoding(header=CSVHeader(num_lines=1)),
-        )
-    ),
-    tag="2011-2012_ss_bundesliga1",
-)
-
-SSBundesliga1_2011 = StaticDataTable(
-    name="SSBundesliga1_2011",
-    schema=default_tabular_schema(SSBundesliga1_2012_datum),
-    setup=RemoteStorageSetup(
-        remote=RemoteStorage(
-            location=WebLocation(  
-                address=("https://sports-statistics.com/database/soccer-data"
-                         "/germany-bundesliga-1-2010-to-2011.csv"
-                ),
-            ),
-            layout=SingleFileLayout(),
-            encoding=CSVEncoding(header=CSVHeader(num_lines=1)),
-        )
-    ),
-    tag="2010-2011_ss_bundesliga1",
-)
-
-SSBundesliga1_2010 = StaticDataTable(
-    name="SSBundesliga1_2010",
-    schema=default_tabular_schema(SSBundesliga1_2012_datum),
-    setup=RemoteStorageSetup(
-        remote=RemoteStorage(
-            location=WebLocation(
-                address=("https://sports-statistics.com/database/soccer-data"
-                         "/germany-bundesliga-1-2009-to-2010.csv"
-                ),
-            ),
-            layout=SingleFileLayout(),
-            encoding=CSVEncoding(header=CSVHeader(num_lines=1)),
-        )
-    ),
-    tag="2009-2010_ss_bundesliga1",
-)
-
-SSBundesliga1_2009 = StaticDataTable(
-    name="SSBundesliga1_2009",
-    schema=default_tabular_schema(SSBundesliga1_2012_datum),
-    setup=RemoteStorageSetup(
-        remote=RemoteStorage(
-            location=WebLocation(
-                address=("https://sports-statistics.com/database/soccer-data"
-                         "/germany-bundesliga-1-2008-to-2009.csv"
-                ),
-            ),
-            layout=SingleFileLayout(),
-            encoding=CSVEncoding(header=CSVHeader(num_lines=1)),
-        )
-    ),
-    tag="2008-2009_ss_bundesliga1",
-)
-
-SSBundesliga1_2008 = StaticDataTable(
-    name="SSBundesliga1_2008",
-    schema=default_tabular_schema(SSBundesliga1_2012_datum),
-    setup=RemoteStorageSetup(
-        remote=RemoteStorage(
-            location=WebLocation(
-                address=("https://sports-statistics.com/database/soccer-data"
-                         "/germany-bundesliga-1-2007-to-2008.csv"
-                ),
-            ),
-            layout=SingleFileLayout(),
-            encoding=CSVEncoding(header=CSVHeader(num_lines=1)),
-        )
-    ),
-    tag="2007-2008_ss_bundesliga1",
-)
-
-SSBundesliga_2007_datum = RowStruct(
-    name="SSBundesliga_2007_datum",
-    attributes=attr_list([
-        attr.StringIdentifier("Div"),
-        attr.DateString("Date"),
-        attr.StringIdentifier("HomeTeam"),
-        attr.StringIdentifier("AwayTeam"),
-        attr.NaturalNumber("FTHG"),
-        attr.NaturalNumber("FTAG"),
-        attr.StringIdentifier("FTR"),
-        attr.NaturalNumber("HTHG"),
-        attr.NaturalNumber("HTAG"),
-        attr.StringIdentifier("HTR"),
-        attr.NaturalNumber("HS"),
-        attr.NaturalNumber("AS"),
-        attr.NaturalNumber("HST"),
-        attr.NaturalNumber("AST"),
-        attr.NaturalNumber("HF"),
-        attr.NaturalNumber("AF"),
-        attr.NaturalNumber("HC"),
-        attr.NaturalNumber("AC"),
-        attr.NaturalNumber("HY"),
-        attr.NaturalNumber("AY"),
-        attr.NaturalNumber("HR"),
-        attr.NaturalNumber("AR"),
-        attr.PositiveFloat("B365H"),
-        attr.PositiveFloat("B365D"),
-        attr.PositiveFloat("B365A"),
-        attr.PositiveFloat("BWH"),
-        attr.PositiveFloat("BWD"),
-        attr.PositiveFloat("BWA"),
-        attr.PositiveFloat("GBH"),
-        attr.PositiveFloat("GBD"),
-        attr.PositiveFloat("GBA"),
-        attr.PositiveFloat("IWH"),
-        attr.PositiveFloat("IWD"),
-        attr.PositiveFloat("IWA"),
-        attr.PositiveFloat("LBH"),
-        attr.PositiveFloat("LBD"),
-        attr.PositiveFloat("LBA"),
-        attr.PositiveFloat("SBH"),
-        attr.PositiveFloat("SBD"),
-        attr.PositiveFloat("SBA"),
-        attr.PositiveFloat("WHH"),
-        attr.PositiveFloat("WHD"),
-        attr.PositiveFloat("WHA"),
-        attr.PositiveFloat("SJH"),
-        attr.PositiveFloat("SJD"),
-        attr.PositiveFloat("SJA"),
-        attr.PositiveFloat("VCH"),
-        attr.PositiveFloat("VCD"),
-        attr.PositiveFloat("VCA"),
-        attr.NaturalNumber("Bb1X2"),
-        attr.PositiveFloat("BbMxH"),
-        attr.PositiveFloat("BbAvH"),
-        attr.PositiveFloat("BbMxD"),
-        attr.PositiveFloat("BbAvD"),
-        attr.PositiveFloat("BbMxA"),
-        attr.PositiveFloat("BbAvA"),
-        attr.NaturalNumber("BbOU"),
-        attr.PositiveFloat("BbMx>2.5"),
-        attr.PositiveFloat("BbAv>2.5"),
-        attr.PositiveFloat("BbMx<2.5"),
-        attr.PositiveFloat("BbAv<2.5"),
-        attr.NaturalNumber("BbAH"),
-        attr.PositiveFloat("BbAHh"),
-        attr.PositiveFloat("BbMxAHH"),
-        attr.PositiveFloat("BbAvAHH"),
-        attr.PositiveFloat("BbMxAHA"),
-        attr.PositiveFloat("BbAvAHA"),
-       ])
-)
-
-SSBundesliga1_2007 = StaticDataTable(
-    name="SSBundesliga1_2007",
-    schema=default_tabular_schema(SSBundesliga_2007_datum),
-    setup=RemoteStorageSetup(
-        remote=RemoteStorage(
-            location=WebLocation(
-                address=("https://sports-statistics.com/database/soccer-data"
-                         "/germany-bundesliga-1-2006-to-2007.csv"
-                ),
-            ),
-            layout=SingleFileLayout(),
-            encoding=CSVEncoding(header=CSVHeader(num_lines=1)),
-        )
-    ),
-    tag="2006-2007_ss_bundesliga1",
-)
-
-SSBundesliga1_2006_datum = RowStruct(
-    name="SSBundesliga1_2006_datum",
-    attributes=attr_list([
-        attr.StringIdentifier("Div"),
-        attr.DateString("Date"),
-        attr.StringIdentifier("HomeTeam"),
-        attr.StringIdentifier("AwayTeam"),
-        attr.NaturalNumber("FTHG"),
-        attr.NaturalNumber("FTAG"),
-        attr.StringIdentifier("FTR"),
-        attr.NaturalNumber("HTHG"),
-        attr.NaturalNumber("HTAG"),
-        attr.StringIdentifier("HTR"),
-        attr.NaturalNumber("HS"),
-        attr.NaturalNumber("AS"),
-        attr.NaturalNumber("HF"),
-        attr.NaturalNumber("AF"),
-        attr.NaturalNumber("HC"),
-        attr.NaturalNumber("AC"),
-        attr.NaturalNumber("HY"),
-        attr.NaturalNumber("AY"),
-        attr.NaturalNumber("HR"),
-        attr.NaturalNumber("AR"),
-        attr.PositiveFloat("B365H"),
-        attr.PositiveFloat("B365D"),
-        attr.PositiveFloat("B365A"),
-        attr.PositiveFloat("BWH"),
-        attr.PositiveFloat("BWD"),
-        attr.PositiveFloat("BWA"),
-        attr.PositiveFloat("GBH"),
-        attr.PositiveFloat("GBD"),
-        attr.PositiveFloat("GBA"),
-        attr.PositiveFloat("IWH"),
-        attr.PositiveFloat("IWD"),
-        attr.PositiveFloat("IWA"),
-        attr.PositiveFloat("LBH"),
-        attr.PositiveFloat("LBD"),
-        attr.PositiveFloat("LBA"),
-        attr.PositiveFloat("SBH"),
-        attr.PositiveFloat("SBD"),
-        attr.PositiveFloat("SBA"),
-        attr.PositiveFloat("WHH"),
-        attr.PositiveFloat("WHD"),
-        attr.PositiveFloat("WHA"),
-        attr.PositiveFloat("SJH"),
-        attr.PositiveFloat("SJD"),
-        attr.PositiveFloat("SJA"),
-        attr.PositiveFloat("VCH"),
-        attr.PositiveFloat("VCD"),
-        attr.PositiveFloat("VCA"),
-        attr.NaturalNumber("Bb1X2"),
-        attr.PositiveFloat("BbMxH"),
-        attr.PositiveFloat("BbAvH"),
-        attr.PositiveFloat("BbMxD"),
-        attr.PositiveFloat("BbAvD"),
-        attr.PositiveFloat("BbMxA"),
-        attr.PositiveFloat("BbAvA"),
-        attr.NaturalNumber("BbOU"),
-        attr.PositiveFloat("BbMx>2.5"),
-        attr.PositiveFloat("BbAv>2.5"),
-        attr.PositiveFloat("BbMx<2.5"),
-        attr.PositiveFloat("BbAv<2.5"),
-        attr.NaturalNumber("BbAH"),
-        attr.PositiveFloat("BbAHh"),
-        attr.PositiveFloat("BbMxAHH"),
-        attr.PositiveFloat("BbAvAHH"),
-        attr.PositiveFloat("BbMxAHA"),
-        attr.PositiveFloat("BbAvAHA"),
-       ])
-)
-
-SSBundesliga1_2006 = StaticDataTable(
-    name="SSBundesliga1_2006",
-    schema=default_tabular_schema(SSBundesliga1_2006_datum),
-    setup=RemoteStorageSetup(
-        remote=RemoteStorage(
-            location=WebLocation(
-                address=("https://sports-statistics.com/database/soccer-data"
-                         "/germany-bundesliga-1-2005-to-2006.csv"
-                ),
-            ),
-            layout=SingleFileLayout(),
-            encoding=CSVEncoding(header=CSVHeader(num_lines=1)),
-        )
-    ),
-    tag="2005-2006_ss_bundesliga1",
-)
-
-SSBundesliga1_2005_datum = RowStruct(
-    name="SSBundesliga1_2005_datum",
-    attributes=attr_list([
-        attr.StringIdentifier("Div"),
-        attr.DateString("Date"),
-        attr.StringIdentifier("HomeTeam"),
-        attr.StringIdentifier("AwayTeam"),
-        attr.NaturalNumber("FTHG"),
-        attr.NaturalNumber("FTAG"),
-        attr.StringIdentifier("FTR"),
-        attr.NaturalNumber("HTHG"),
-        attr.NaturalNumber("HTAG"),
-        attr.StringIdentifier("HTR"),
-        attr.NaturalNumber("HS"),
-        attr.NaturalNumber("AS"),
-        attr.NaturalNumber("HF"),
-        attr.NaturalNumber("AF"),
-        attr.NaturalNumber("HC"),
-        attr.NaturalNumber("AC"),
-        attr.NaturalNumber("HY"),
-        attr.NaturalNumber("AY"),
-        attr.NaturalNumber("HR"),
-        attr.NaturalNumber("AR"),
-        attr.PositiveFloat("B365H"),
-        attr.PositiveFloat("B365D"),
-        attr.PositiveFloat("B365A"),
-        attr.PositiveFloat("BWH"),
-        attr.PositiveFloat("BWD"),
-        attr.PositiveFloat("BWA"),
-        attr.PositiveFloat("GBH"),
-        attr.PositiveFloat("GBD"),
-        attr.PositiveFloat("GBA"),
-        attr.PositiveFloat("IWH"),
-        attr.PositiveFloat("IWD"),
-        attr.PositiveFloat("IWA"),
-        attr.PositiveFloat("LBH"),
-        attr.PositiveFloat("LBD"),
-        attr.PositiveFloat("LBA"),
-        attr.PositiveFloat("SBH"),
-        attr.PositiveFloat("SBD"),
-        attr.PositiveFloat("SBA"),
-        attr.PositiveFloat("WHH"),
-        attr.PositiveFloat("WHD"),
-        attr.PositiveFloat("WHA"),
-        attr.PositiveFloat("GB>2.5"),
-        attr.PositiveFloat("GB<2.5"),
-        attr.PositiveFloat("B365>2.5"),
-        attr.PositiveFloat("B365<2.5"),
-        attr.PositiveFloat("GBAHH"),
-        attr.PositiveFloat("GBAHA"),
-        attr.PositiveFloat("GBAH"),
-        attr.PositiveFloat("LBAHH"),
-        attr.PositiveFloat("LBAHA"),
-        attr.PositiveFloat("LBAH"),
-        attr.PositiveFloat("B365AHH"),
-        attr.PositiveFloat("B365AHA"),
-        attr.PositiveFloat("B365AH"),
-       ])
-)
-
-SSBundesliga1_2005 = StaticDataTable(
-    name="SSBundesliga1_2005",
-    schema=default_tabular_schema(SSBundesliga1_2005_datum),
-    setup=RemoteStorageSetup(
-        remote=RemoteStorage(
-            location=WebLocation(
-                address=("https://sports-statistics.com/database/soccer-data"
-                         "/germany-bundesliga-1-2004-to-2005.csv"
-                ),
-            ),
-            layout=SingleFileLayout(),
-            encoding=CSVEncoding(header=CSVHeader(num_lines=1)),
-        )
-    ),
-    tag="2004-2005_ss_bundesliga1",
-)
-
-SSBundesliga1_2004_datum = RowStruct(
-    name="SSBundesliga1_2004_datum",
-    attributes=attr_list([
-        attr.StringIdentifier("Div"),
-        attr.DateString("Date"),
-        attr.StringIdentifier("HomeTeam"),
-        attr.StringIdentifier("AwayTeam"),
-        attr.NaturalNumber("FTHG"),
-        attr.NaturalNumber("FTAG"),
-        attr.StringIdentifier("FTR"),
-        attr.NaturalNumber("HTHG"),
-        attr.NaturalNumber("HTAG"),
-        attr.StringIdentifier("HTR"),
-        attr.NaturalNumber("HS"),
-        attr.NaturalNumber("AS"),
-        attr.NaturalNumber("HF"),
-        attr.NaturalNumber("AF"),
-        attr.NaturalNumber("HC"),
-        attr.NaturalNumber("AC"),
-        attr.NaturalNumber("HY"),
-        attr.NaturalNumber("AY"),
-        attr.NaturalNumber("HR"),
-        attr.NaturalNumber("AR"),
-        attr.PositiveFloat("B365H"),
-        attr.PositiveFloat("B365D"),
-        attr.PositiveFloat("B365A"),
-        attr.PositiveFloat("GBH"),
-        attr.PositiveFloat("GBD"),
-        attr.PositiveFloat("GBA"),
-        attr.PositiveFloat("IWH"),
-        attr.PositiveFloat("IWD"),
-        attr.PositiveFloat("IWA"),
-        attr.PositiveFloat("LBH"),
-        attr.PositiveFloat("LBD"),
-        attr.PositiveFloat("LBA"),
-        attr.PositiveFloat("SOH"),
-        attr.PositiveFloat("SOD"),
-        attr.PositiveFloat("SOA"),
-        attr.PositiveFloat("SBH"),
-        attr.PositiveFloat("SBD"),
-        attr.PositiveFloat("SBA"),
-        attr.PositiveFloat("WHH"),
-        attr.PositiveFloat("WHD"),
-        attr.PositiveFloat("WHA"),
-        attr.PositiveFloat("GB>2.5"),
-        attr.PositiveFloat("GB<2.5"),
-        attr.PositiveFloat("B365>2.5"),
-        attr.PositiveFloat("B365<2.5"),
-        attr.PositiveFloat("GBAHH"),
-        attr.PositiveFloat("GBAHA"),
-        attr.PositiveFloat("GBAH"),
-        attr.PositiveFloat("LBAHH"),
-        attr.PositiveFloat("LBAHA"),
-        attr.PositiveFloat("LBAH"),
-        attr.PositiveFloat("B365AHH"),
-        attr.PositiveFloat("B365AHA"),
-        attr.PositiveFloat("B365AH"),
-       ])
-)
-
-SSBundesliga1_2004 = StaticDataTable(
-    name="SSBundesliga1_2004",
-    schema=default_tabular_schema(SSBundesliga1_2004_datum),
-    setup=RemoteStorageSetup(
-        remote=RemoteStorage(
-            location=WebLocation(
-                address=("https://sports-statistics.com/database/soccer-data"
-                         "/germany-bundesliga-1-2003-to-2004.csv"
-                ),
-            ),
-            layout=SingleFileLayout(),
-            encoding=CSVEncoding(header=CSVHeader(num_lines=1)),
-        )
-    ),
-    tag="2003-2004_ss_bundesliga1",
-)
-
-SSBundesliga1_2003_datum = RowStruct(
-    name="SSBundesliga1_2003_datum",
-    attributes=attr_list([
-        attr.StringIdentifier("Div"),
-        attr.DateString("Date"),
-        attr.StringIdentifier("HomeTeam"),
-        attr.StringIdentifier("AwayTeam"),
-        attr.NaturalNumber("FTHG"),
-        attr.NaturalNumber("FTAG"),
-        attr.StringIdentifier("FTR"),
-        attr.NaturalNumber("HTHG"),
-        attr.NaturalNumber("HTAG"),
-        attr.StringIdentifier("HTR"),
-        attr.PositiveFloat("B365H"),
-        attr.PositiveFloat("B365D"),
-        attr.PositiveFloat("B365A"),
-        attr.PositiveFloat("GBH"),
-        attr.PositiveFloat("GBD"),
-        attr.PositiveFloat("GBA"),
-        attr.PositiveFloat("IWH"),
-        attr.PositiveFloat("IWD"),
-        attr.PositiveFloat("IWA"),
-        attr.PositiveFloat("LBH"),
-        attr.PositiveFloat("LBD"),
-        attr.PositiveFloat("LBA"),
-        attr.PositiveFloat("SOH"),
-        attr.PositiveFloat("SOD"),
-        attr.PositiveFloat("SOA"),
-        attr.PositiveFloat("SBH"),
-        attr.PositiveFloat("SBD"),
-        attr.PositiveFloat("SBA"),
-        attr.PositiveFloat("WHH"),
-        attr.PositiveFloat("WHD"),
-        attr.PositiveFloat("WHA"),
-        attr.PositiveFloat("GB>2.5"),
-        attr.PositiveFloat("GB<2.5"),
-        attr.PositiveFloat("B365>2.5"),
-        attr.PositiveFloat("B365<2.5"),
-       ])
-)
-
-SSBundesliga1_2003 = StaticDataTable(
-    name="SSBundesliga1_2003",
-    schema=default_tabular_schema(SSBundesliga1_2003_datum),
-    setup=RemoteStorageSetup(
-        remote=RemoteStorage(
-            location=WebLocation(
-                address=("https://sports-statistics.com/database/soccer-data"
-                         "/germany-bundesliga-1-2002-to-2003.csv"
-                ),
-            ),
-            layout=SingleFileLayout(),
-            encoding=CSVEncoding(header=CSVHeader(num_lines=1)),
-        )
-    ),
-    tag="2002-2003_ss_bundesliga1",
-)
-
-SSBundesliga1_2002_datum = RowStruct(
-    name="SSBundesliga1_2002_datum",
-    attributes=attr_list([
-        attr.StringIdentifier("Div"),
-        attr.DateString("Date"),
-        attr.StringIdentifier("HomeTeam"),
-        attr.StringIdentifier("AwayTeam"),
-        attr.NaturalNumber("FTHG"),
-        attr.NaturalNumber("FTAG"),
-        attr.StringIdentifier("FTR"),
-        attr.NaturalNumber("HTHG"),
-        attr.NaturalNumber("HTAG"),
-        attr.StringIdentifier("HTR"),
-        attr.NaturalNumber("Attendance"),
-        attr.StringIdentifier("Referee"),
-        attr.NaturalNumber("HS"),
-        attr.NaturalNumber("AS"),
-        attr.NaturalNumber("HST"),
-        attr.NaturalNumber("AST"),
-        attr.NaturalNumber("HHW"),
-        attr.NaturalNumber("AHW"),
-        attr.NaturalNumber("HC"),
-        attr.NaturalNumber("AC"),
-        attr.NaturalNumber("HF"),
-        attr.NaturalNumber("AF"),
-        attr.NaturalNumber("HO"),
-        attr.NaturalNumber("AO"),
-        attr.NaturalNumber("HY"),
-        attr.NaturalNumber("AY"),
-        attr.NaturalNumber("HR"),
-        attr.NaturalNumber("AR"),
-        attr.NaturalNumber("HBP"),
-        attr.NaturalNumber("ABP"),
-        attr.PositiveFloat("GBH"),
-        attr.PositiveFloat("GBD"),
-        attr.PositiveFloat("GBA"),
-        attr.PositiveFloat("IWH"),
-        attr.PositiveFloat("IWD"),
-        attr.PositiveFloat("IWA"),
-        attr.PositiveFloat("LBH"),
-        attr.PositiveFloat("LBD"),
-        attr.PositiveFloat("LBA"),
-        attr.PositiveFloat("SBH"),
-        attr.PositiveFloat("SBD"),
-        attr.PositiveFloat("SBA"),
-        attr.PositiveFloat("SYH"),
-        attr.PositiveFloat("SYD"),
-        attr.PositiveFloat("SYA"),
-        attr.PositiveFloat("WHH"),
-        attr.PositiveFloat("WHD"),
-        attr.PositiveFloat("WHA"),
-       ])
-)
-
-SSBundesliga1_2002 = StaticDataTable(
-    name="SSBundesliga1_2002",
-    schema=default_tabular_schema(SSBundesliga1_2002_datum),
-    setup=RemoteStorageSetup(
-        remote=RemoteStorage(
-            location=WebLocation(
-                address=("https://sports-statistics.com/database/soccer-data"
-                         "/germany-bundesliga-1-2001-to-2002.csv"
-                ),
-            ),
-            layout=SingleFileLayout(),
-            encoding=CSVEncoding(header=CSVHeader(num_lines=1)),
-        )
-    ),
-    tag="2001-2002_ss_bundesliga1",
-)
-
-SSBundesliga1_2001_datum = RowStruct(
-    name="SSBundesliga1_2001_datum",
-    attributes=attr_list([
-        attr.StringIdentifier("Div"),
-        attr.DateString("Date"),
-        attr.StringIdentifier("HomeTeam"),
-        attr.StringIdentifier("AwayTeam"),
-        attr.NaturalNumber("FTHG"),
-        attr.NaturalNumber("FTAG"),
-        attr.StringIdentifier("FTR"),
-        attr.NaturalNumber("HTHG"),
-        attr.NaturalNumber("HTAG"),
-        attr.StringIdentifier("HTR"),
-        attr.NaturalNumber("Attendance"),
-        attr.StringIdentifier("Referee"),
-        attr.NaturalNumber("HS"),
-        attr.NaturalNumber("AS"),
-        attr.NaturalNumber("HST"),
-        attr.NaturalNumber("AST"),
-        attr.NaturalNumber("HHW"),
-        attr.NaturalNumber("AHW"),
-        attr.NaturalNumber("HC"),
-        attr.NaturalNumber("AC"),
-        attr.NaturalNumber("HF"),
-        attr.NaturalNumber("AF"),
-        attr.NaturalNumber("HO"),
-        attr.NaturalNumber("AO"),
-        attr.NaturalNumber("HY"),
-        attr.NaturalNumber("AY"),
-        attr.NaturalNumber("HR"),
-        attr.NaturalNumber("AR"),
-        attr.NaturalNumber("HBP"),
-        attr.NaturalNumber("ABP"),
-        attr.PositiveFloat("GBH"),
-        attr.PositiveFloat("GBD"),
-        attr.PositiveFloat("GBA"),
-        attr.PositiveFloat("IWH"),
-        attr.PositiveFloat("IWD"),
-        attr.PositiveFloat("IWA"),
-        attr.PositiveFloat("LBH"),
-        attr.PositiveFloat("LBD"),
-        attr.PositiveFloat("LBA"),
-        attr.PositiveFloat("SBH"),
-        attr.PositiveFloat("SBD"),
-        attr.PositiveFloat("SBA"),
-        attr.PositiveFloat("WHH"),
-        attr.PositiveFloat("WHD"),
-        attr.PositiveFloat("WHA"),
-       ])
-)
-
-SSBundesliga1_2001 = StaticDataTable(
-    name="SSBundesliga1_2001",
-    schema=default_tabular_schema(SSBundesliga1_2001_datum),
-    setup=RemoteStorageSetup(
-        remote=RemoteStorage(
-            location=WebLocation(
-                address=("https://sports-statistics.com/database/soccer-data"
-                         "/germany-bundesliga-1-2000-to-2001.csv"
-                ),
-            ),
-            layout=SingleFileLayout(),
-            encoding=CSVEncoding(header=CSVHeader(num_lines=1)),
-        )
-    ),
-    tag="2000-2001_ss_bundesliga1",
-)
-
-SSBundesliga_2000_datum = RowStruct(
-    name="SSBundesliga_2000_datum",
-    attributes=attr_list([
-        attr.StringIdentifier("Div"),
-        attr.DateString("Date"),
-        attr.StringIdentifier("HomeTeam"),
-        attr.StringIdentifier("AwayTeam"),
-        attr.NaturalNumber("FTHG"),
-        attr.NaturalNumber("FTAG"),
-        attr.StringIdentifier("FTR"),
-        attr.NaturalNumber("HTHG"),
-        attr.NaturalNumber("HTAG"),
-        attr.StringIdentifier("HTR"),
-        ])
-)
-
-SSBundesliga1_2000 = StaticDataTable(
-    name="SSBundesliga1_2000",
-    schema=default_tabular_schema(SSBundesliga_2000_datum),
-    setup=RemoteStorageSetup(
-        remote=RemoteStorage(
-            location=WebLocation(
-                address=("https://sports-statistics.com/database/soccer-data"
-                         "/germany-bundesliga-1-1999-to-2000.csv"
-                ),
-            ),
-            layout=SingleFileLayout(),
-            encoding=CSVEncoding(header=CSVHeader(num_lines=1)),
-        )
-    ),
-    tag="1999-2000_ss_bundesliga1",
-)
-
-SSBundesliga1_1999 = StaticDataTable(
-    name="SSBundesliga1_1999",
-    schema=default_tabular_schema(SSBundesliga_2000_datum),
-    setup=RemoteStorageSetup(
-        remote=RemoteStorage(
-            location=WebLocation(
-                address=("https://sports-statistics.com/database/soccer-data"
-                         "/germany-bundesliga-1-1998-to-1999.csv"
-                ),
-            ),
-            layout=SingleFileLayout(),
-            encoding=CSVEncoding(header=CSVHeader(num_lines=1)),
-        )
-    ),
-    tag="1998-1999_ss_bundesliga1",
-)
-
-SSBundesliga1_1998 = StaticDataTable(
-    name="SSBundesliga1_1998",
-    schema=default_tabular_schema(SSBundesliga_2000_datum),
-    setup=RemoteStorageSetup(
-        remote=RemoteStorage(
-            location=WebLocation(
-                address=("https://sports-statistics.com/database/soccer-data"
-                         "/germany-bundesliga-1-1997-to-1998.csv"
-                ),
-            ),
-            layout=SingleFileLayout(),
-            encoding=CSVEncoding(header=CSVHeader(num_lines=1)),
-        )
-    ),
-    tag="1997-1998_ss_bundesliga1",
-)
-
-SSBundesliga1_1997 = StaticDataTable(
-    name="SSBundesliga1_1997",
-    schema=default_tabular_schema(SSBundesliga_2000_datum),
-    setup=RemoteStorageSetup(
-        remote=RemoteStorage(
-            location=WebLocation(
-                address=("https://sports-statistics.com/database/soccer-data"
-                         "/germany-bundesliga-1-1996-to-1997.csv"
-                ),
-            ),
-            layout=SingleFileLayout(),
-            encoding=CSVEncoding(header=CSVHeader(num_lines=1)),
-        )
-    ),
-    tag="1996-1997_ss_bundesliga1",
-)
-
-SSBundesliga1_1996 = StaticDataTable(
-    name="SSBundesliga1_1996",
-    schema=default_tabular_schema(SSBundesliga_2000_datum),
-    setup=RemoteStorageSetup(
-        remote=RemoteStorage(
-            location=WebLocation(
-                address=("https://sports-statistics.com/database/soccer-data"
-                         "/germany-bundesliga-1-1995-to-1996.csv"
-                ),
-            ),
-            layout=SingleFileLayout(),
-            encoding=CSVEncoding(header=CSVHeader(num_lines=1)),
-        )
-    ),
-    tag="1995-1996_ss_bundesliga1",
-)
-
-SSBundesliga_1995_datum = RowStruct(
-    name="SSBundesliga_1995_datum",
-    attributes=attr_list([
-        attr.StringIdentifier("Div"),
-        attr.DateString("Date"),
-        attr.StringIdentifier("HomeTeam"),
-        attr.StringIdentifier("AwayTeam"),
-        attr.NaturalNumber("FTHG"),
-        attr.NaturalNumber("FTAG"),
-        attr.StringIdentifier("FTR"),
-        ])
-)
-
-SSBundesliga1_1995 = StaticDataTable(
-    name="SSBundesliga1_1995",
-    schema=default_tabular_schema(SSBundesliga_1995_datum),
-    setup=RemoteStorageSetup(
-        remote=RemoteStorage(
-            location=WebLocation(
-                address=("https://sports-statistics.com/database/soccer-data"
-                         "/germany-bundesliga-1-1994-to-1995.csv"
-                ),
-            ),
-            layout=SingleFileLayout(),
-            encoding=CSVEncoding(header=CSVHeader(num_lines=1)),
-        )
-    ),
-    tag="1994-1995_ss_bundesliga1",
-)
-
-SSBundesliga1_1994 = StaticDataTable(
-    name="SSBundesliga1_1994",
-    schema=default_tabular_schema(SSBundesliga_1995_datum),
-    setup=RemoteStorageSetup(
-        remote=RemoteStorage(
-            location=WebLocation(
-                address=("https://sports-statistics.com/database/soccer-data"
-                         "/germany-bundesliga-1-1993-to-1994.csv"
-                ),
-            ),
-            layout=SingleFileLayout(),
-            encoding=CSVEncoding(header=CSVHeader(num_lines=1)),
-        )
-    ),
-    tag="1993-1994_ss_bundesliga1",
-)
-
-SSBundesliga2_2020 = StaticDataTable(
-    name="SSBundesliga2_2020",
-    schema=default_tabular_schema(SSBundesliga_2020_datum),
-    setup=RemoteStorageSetup(
-        remote=RemoteStorage(
-            location=WebLocation(
-                address=("https://sports-statistics.com/database/soccer-data"
-                         "/germany-bundesliga-2-2019-to-2020.csv"
-                ),
-            ),
-            layout=SingleFileLayout(),
-            encoding=CSVEncoding(header=CSVHeader(num_lines=1)),
-        )
-    ),
-    tag="2019-2020_ss_bundesliga2",
-)
-
-SSBundesliga2_2019 = StaticDataTable(
-    name="SSBundesliga2_2019",
-    schema=default_tabular_schema(SSBundesliga_2019_datum),
-    setup=RemoteStorageSetup(
-        remote=RemoteStorage(
-            location=WebLocation(
-                address=("https://sports-statistics.com/database/soccer-data"
-                         "/germany-bundesliga-2-2018-to-2019.csv"
-                ),
-            ),
-            layout=SingleFileLayout(),
-            encoding=CSVEncoding(header=CSVHeader(num_lines=1)),
-        )
-    ),
-    tag="2018-2019_ss_bundesliga2",
-)
-
-SSBundesliga2_2018 = StaticDataTable(
-    name="SSBundesliga2_2018",
-    schema=default_tabular_schema(SSBundesliga_2018_datum),
-    setup=RemoteStorageSetup(
-        remote=RemoteStorage(
-            location=WebLocation(
-                address=("https://sports-statistics.com/database/soccer-data"
-                         "/germany-bundesliga-2-2017-to-2018.csv"
-                ),
-            ),
-            layout=SingleFileLayout(),
-            encoding=CSVEncoding(header=CSVHeader(num_lines=1)),
-        )
-    ),
-    tag="2017-2018_ss_bundesliga2",
-)
-
-SSBundesliga2_2017 = StaticDataTable(
-    name="SSBundesliga2_2017",
-    schema=default_tabular_schema(SSBundesliga_2018_datum),
-    setup=RemoteStorageSetup(
-        remote=RemoteStorage(
-            location=WebLocation(
-                address=("https://sports-statistics.com/database/soccer-data"
-                         "/germany-bundesliga-2-2016-to-2017.csv"
-                ),
-            ),
-            layout=SingleFileLayout(),
-            encoding=CSVEncoding(header=CSVHeader(num_lines=1)),
-        )
-    ),
-    tag="2016-2017_ss_bundesliga2",
-)
-
-SSBundesliga2_2016 = StaticDataTable(
-    name="SSBundesliga_2016",
-    schema=default_tabular_schema(SSBundesliga_2018_datum),
-    setup=RemoteStorageSetup(
-        remote=RemoteStorage(
-            location=WebLocation(
-                address=("https://sports-statistics.com/database/soccer-data"
-                         "/germany-bundesliga-2-2015-to-2016.csv"
-                ),
-            ),
-            layout=SingleFileLayout(),
-            encoding=CSVEncoding(header=CSVHeader(num_lines=1)),
-        )
-    ),
-    tag="2015-2016_ss_bundesliga2",
-)
-
-SSBundesliga2_2015_datum = RowStruct(
-    name="SSBundesliga2_2015_datum",
-    attributes=attr_list([
-        attr.StringIdentifier("Div"),
-        attr.DateString("Date"),
-        attr.StringIdentifier("HomeTeam"),
-        attr.StringIdentifier("AwayTeam"),
-        attr.NaturalNumber("FTHG"),
-        attr.NaturalNumber("FTAG"),
-        attr.StringIdentifier("FTR"),
-        attr.NaturalNumber("HTHG"),
-        attr.NaturalNumber("HTAG"),
-        attr.StringIdentifier("HTR"),
-        attr.PositiveFloat("B365H"),
-        attr.PositiveFloat("B365D"),
-        attr.PositiveFloat("B365A"),
-        attr.PositiveFloat("BWH"),
-        attr.PositiveFloat("BWD"),
-        attr.PositiveFloat("BWA"),
-        attr.PositiveFloat("IWH"),
-        attr.PositiveFloat("IWD"),
-        attr.PositiveFloat("IWA"),
-        attr.PositiveFloat("LBH"),
-        attr.PositiveFloat("LBD"),
-        attr.PositiveFloat("LBA"),
-        attr.PositiveFloat("PSH"),
-        attr.PositiveFloat("PSD"),
-        attr.PositiveFloat("PSA"),
-        attr.PositiveFloat("WHH"),
-        attr.PositiveFloat("WHD"),
-        attr.PositiveFloat("WHA"),
-        attr.PositiveFloat("SJH"),
-        attr.PositiveFloat("SJD"),
-        attr.PositiveFloat("SJA"),
-        attr.PositiveFloat("VCH"),
-        attr.PositiveFloat("VCD"),
-        attr.PositiveFloat("VCA"),
-        attr.NaturalNumber("Bb1X2"),
-        attr.PositiveFloat("BbMxH"),
-        attr.PositiveFloat("BbAvH"),
-        attr.PositiveFloat("BbMxD"),
-        attr.PositiveFloat("BbAvD"),
-        attr.PositiveFloat("BbMxA"),
-        attr.PositiveFloat("BbAvA"),
-        attr.NaturalNumber("BbOU"),
-        attr.PositiveFloat("BbMx>2.5"),
-        attr.PositiveFloat("BbAv>2.5"),
-        attr.PositiveFloat("BbMx<2.5"),
-        attr.PositiveFloat("BbAv<2.5"),
-        attr.NaturalNumber("BbAH"),
-        attr.PositiveFloat("BbAHh"),
-        attr.PositiveFloat("BbMxAHH"),
-        attr.PositiveFloat("BbAvAHH"),
-        attr.PositiveFloat("BbMxAHA"),
-        attr.PositiveFloat("BbAvAHA"),
-        attr.PositiveFloat("PSCH"),
-        attr.PositiveFloat("PSCD"),
-        attr.PositiveFloat("PSCA"),
-       ])
-)
-
-SSBundesliga2_2015 = StaticDataTable(
-    name="SSBundesliga2_2015",
-    schema=default_tabular_schema(SSBundesliga2_2015_datum),
-    setup=RemoteStorageSetup(
-        remote=RemoteStorage(
-            location=WebLocation(
-                address=("https://sports-statistics.com/database/soccer-data"
-                         "/germany-bundesliga-2-2014-to-2015.csv"
-                ),
-            ),
-            layout=SingleFileLayout(),
-            encoding=CSVEncoding(header=CSVHeader(num_lines=1)),
-        )
-    ),
-    tag="2014-2015_ss_bundesliga2",
-)
-
-SSBundesliga2_2014 = StaticDataTable(
-    name="SSBundesliga2_2014",
-    schema=default_tabular_schema(SSBundesliga2_2015_datum),
-    setup=RemoteStorageSetup(
-        remote=RemoteStorage(
-            location=WebLocation(
-                address=("https://sports-statistics.com/database/soccer-data"
-                         "/germany-bundesliga-2-2013-to-2014.csv"
-                ),
-            ),
-            layout=SingleFileLayout(),
-            encoding=CSVEncoding(header=CSVHeader(num_lines=1)),
-        )
-    ),
-    tag="2013-2014_ss_bundesliga2",
-)
-
-SSBundesliga2_2013_datum = RowStruct(
-    name="SSBundesliga2_2013_datum",
-    attributes=attr_list([
-        attr.StringIdentifier("Div"),
-        attr.DateString("Date"),
-        attr.StringIdentifier("HomeTeam"),
-        attr.StringIdentifier("AwayTeam"),
-        attr.NaturalNumber("FTHG"),
-        attr.NaturalNumber("FTAG"),
-        attr.StringIdentifier("FTR"),
-        attr.NaturalNumber("HTHG"),
-        attr.NaturalNumber("HTAG"),
-        attr.StringIdentifier("HTR"),
-        attr.PositiveFloat("B365H"),
-        attr.PositiveFloat("B365D"),
-        attr.PositiveFloat("B365A"),
-        attr.PositiveFloat("BWH"),
-        attr.PositiveFloat("BWD"),
-        attr.PositiveFloat("BWA"),
-        attr.PositiveFloat("GBH"),
-        attr.PositiveFloat("GBD"),
-        attr.PositiveFloat("GBA"),
-        attr.PositiveFloat("IWH"),
-        attr.PositiveFloat("IWD"),
-        attr.PositiveFloat("IWA"),
-        attr.PositiveFloat("LBH"),
-        attr.PositiveFloat("LBD"),
-        attr.PositiveFloat("LBA"),
-        attr.PositiveFloat("PSH"),
-        attr.PositiveFloat("PSD"),
-        attr.PositiveFloat("PSA"),
-        attr.PositiveFloat("WHH"),
-        attr.PositiveFloat("WHD"),
-        attr.PositiveFloat("WHA"),
-        attr.PositiveFloat("SJH"),
-        attr.PositiveFloat("SJD"),
-        attr.PositiveFloat("SJA"),
-        attr.PositiveFloat("VCH"),
-        attr.PositiveFloat("VCD"),
-        attr.PositiveFloat("VCA"),
-        attr.PositiveFloat("BSH"),
-        attr.PositiveFloat("BSD"),
-        attr.PositiveFloat("BSA"),
-        attr.NaturalNumber("Bb1X2"),
-        attr.PositiveFloat("BbMxH"),
-        attr.PositiveFloat("BbAvH"),
-        attr.PositiveFloat("BbMxD"),
-        attr.PositiveFloat("BbAvD"),
-        attr.PositiveFloat("BbMxA"),
-        attr.PositiveFloat("BbAvA"),
-        attr.NaturalNumber("BbOU"),
-        attr.PositiveFloat("BbMx>2.5"),
-        attr.PositiveFloat("BbAv>2.5"),
-        attr.PositiveFloat("BbMx<2.5"),
-        attr.PositiveFloat("BbAv<2.5"),
-        attr.NaturalNumber("BbAH"),
-        attr.PositiveFloat("BbAHh"),
-        attr.PositiveFloat("BbMxAHH"),
-        attr.PositiveFloat("BbAvAHH"),
-        attr.PositiveFloat("BbMxAHA"),
-        attr.PositiveFloat("BbAvAHA"),
-        attr.PositiveFloat("PSCH"),
-        attr.PositiveFloat("PSCD"),
-        attr.PositiveFloat("PSCA"),
-       ])
-)
-
-SSBundesliga2_2013 = StaticDataTable(
-    name="SSBundesliga2_2013",
-    schema=default_tabular_schema(SSBundesliga2_2013_datum),
-    setup=RemoteStorageSetup(
-        remote=RemoteStorage(
-            location=WebLocation(
-                address=("https://sports-statistics.com/database/soccer-data"
-                         "/germany-bundesliga-2-2012-to-2013.csv"
-                ),
-            ),
-            layout=SingleFileLayout(),
-            encoding=CSVEncoding(header=CSVHeader(num_lines=1)),
-        )
-    ),
-    tag="2012-2013_ss_bundesliga2",
-)
-
-SSBundesliga2_2012_datum = RowStruct(
-    name="SSBundesliga2_2012_datum",
-    attributes=attr_list([
-        attr.StringIdentifier("Div"),
-        attr.DateString("Date"),
-        attr.StringIdentifier("HomeTeam"),
-        attr.StringIdentifier("AwayTeam"),
-        attr.NaturalNumber("FTHG"),
-        attr.NaturalNumber("FTAG"),
-        attr.StringIdentifier("FTR"),
-        attr.NaturalNumber("HTHG"),
-        attr.NaturalNumber("HTAG"),
-        attr.StringIdentifier("HTR"),
-        attr.PositiveFloat("B365H"),
-        attr.PositiveFloat("B365D"),
-        attr.PositiveFloat("B365A"),
-        attr.PositiveFloat("BWH"),
-        attr.PositiveFloat("BWD"),
-        attr.PositiveFloat("BWA"),
-        attr.PositiveFloat("GBH"),
-        attr.PositiveFloat("GBD"),
-        attr.PositiveFloat("GBA"),
-        attr.PositiveFloat("IWH"),
-        attr.PositiveFloat("IWD"),
-        attr.PositiveFloat("IWA"),
-        attr.PositiveFloat("LBH"),
-        attr.PositiveFloat("LBD"),
-        attr.PositiveFloat("LBA"),
-        attr.PositiveFloat("SBH"),
-        attr.PositiveFloat("SBD"),
-        attr.PositiveFloat("SBA"),
-        attr.PositiveFloat("WHH"),
-        attr.PositiveFloat("WHD"),
-        attr.PositiveFloat("WHA"),
-        attr.PositiveFloat("SJH"),
-        attr.PositiveFloat("SJD"),
-        attr.PositiveFloat("SJA"),
-        attr.PositiveFloat("VCH"),
-        attr.PositiveFloat("VCD"),
-        attr.PositiveFloat("VCA"),
-        attr.PositiveFloat("BSH"),
-        attr.PositiveFloat("BSD"),
-        attr.PositiveFloat("BSA"),
-        attr.NaturalNumber("Bb1X2"),
-        attr.PositiveFloat("BbMxH"),
-        attr.PositiveFloat("BbAvH"),
-        attr.PositiveFloat("BbMxD"),
-        attr.PositiveFloat("BbAvD"),
-        attr.PositiveFloat("BbMxA"),
-        attr.PositiveFloat("BbAvA"),
-        attr.NaturalNumber("BbOU"),
-        attr.PositiveFloat("BbMx>2.5"),
-        attr.PositiveFloat("BbAv>2.5"),
-        attr.PositiveFloat("BbMx<2.5"),
-        attr.PositiveFloat("BbAv<2.5"),
-        attr.NaturalNumber("BbAH"),
-        attr.PositiveFloat("BbAHh"),
-        attr.PositiveFloat("BbMxAHH"),
-        attr.PositiveFloat("BbAvAHH"),
-        attr.PositiveFloat("BbMxAHA"),
-        attr.PositiveFloat("BbAvAHA"),
-       ])
-)
-
-SSBundesliga2_2012 = StaticDataTable(
-    name="SSBundesliga2_2012",
-    schema=default_tabular_schema(SSBundesliga2_2012_datum),
-    setup=RemoteStorageSetup(
-        remote=RemoteStorage(
-            location=WebLocation(
-                address=("https://sports-statistics.com/database/soccer-data"
-                         "/germany-bundesliga-2-2011-to-2012.csv"
-                ),
-            ),
-            layout=SingleFileLayout(),
-            encoding=CSVEncoding(header=CSVHeader(num_lines=1)),
-        )
-    ),
-    tag="2011-2012_ss_bundesliga2",
-)
-
-SSBundesliga2_2011 = StaticDataTable(
-    name="SSBundesliga2_2011",
-    schema=default_tabular_schema(SSBundesliga2_2012_datum),
-    setup=RemoteStorageSetup(
-        remote=RemoteStorage(
-            location=WebLocation(  
-                address=("https://sports-statistics.com/database/soccer-data"
-                         "/germany-bundesliga-2-2010-to-2011.csv"
-                ),
-            ),
-            layout=SingleFileLayout(),
-            encoding=CSVEncoding(header=CSVHeader(num_lines=1)),
-        )
-    ),
-    tag="2010-2011_ss_bundesliga2",
-)
-
-SSBundesliga2_2010 = StaticDataTable(
-    name="SSBundesliga2_2010",
-    schema=default_tabular_schema(SSBundesliga2_2012_datum),
-    setup=RemoteStorageSetup(
-        remote=RemoteStorage(
-            location=WebLocation(
-                address=("https://sports-statistics.com/database/soccer-data"
-                         "/germany-bundesliga-2-2009-to-2010.csv"
-                ),
-            ),
-            layout=SingleFileLayout(),
-            encoding=CSVEncoding(header=CSVHeader(num_lines=1)),
-        )
-    ),
-    tag="2009-2010_ss_bundesliga2",
-)
-
-SSBundesliga2_2009 = StaticDataTable(
-    name="SSBundesliga2_2009",
-    schema=default_tabular_schema(SSBundesliga2_2012_datum),
-    setup=RemoteStorageSetup(
-        remote=RemoteStorage(
-            location=WebLocation(
-                address=("https://sports-statistics.com/database/soccer-data"
-                         "/germany-bundesliga-2-2008-to-2009.csv"
-                ),
-            ),
-            layout=SingleFileLayout(),
-            encoding=CSVEncoding(header=CSVHeader(num_lines=1)),
-        )
-    ),
-    tag="2008-2009_ss_bundesliga2",
-)
-
-SSBundesliga2_2008 = StaticDataTable(
-    name="SSBundesliga2_2008",
-    schema=default_tabular_schema(SSBundesliga2_2012_datum),
-    setup=RemoteStorageSetup(
-        remote=RemoteStorage(
-            location=WebLocation(
-                address=("https://sports-statistics.com/database/soccer-data"
-                         "/germany-bundesliga-2-2007-to-2008.csv"
-                ),
-            ),
-            layout=SingleFileLayout(),
-            encoding=CSVEncoding(header=CSVHeader(num_lines=1)),
-        )
-    ),
-    tag="2007-2008_ss_bundesliga2",
-)
-
-SSBundesliga2_2007 = StaticDataTable(
-    name="SSBundesliga2_2007",
-    schema=default_tabular_schema(SSBundesliga_2007_datum),
-    setup=RemoteStorageSetup(
-        remote=RemoteStorage(
-            location=WebLocation(
-                address=("https://sports-statistics.com/database/soccer-data"
-                         "/germany-bundesliga-2-2006-to-2007.csv"
-                ),
-            ),
-            layout=SingleFileLayout(),
-            encoding=CSVEncoding(header=CSVHeader(num_lines=1)),
-        )
-    ),
-    tag="2006-2007_ss_bundesliga2",
-)
-
-SSBundesliga2_2006_datum = RowStruct(
-    name="SSBundesliga2_2006_datum",
-    attributes=attr_list([
-        attr.StringIdentifier("Div"),
-        attr.DateString("Date"),
-        attr.StringIdentifier("HomeTeam"),
-        attr.StringIdentifier("AwayTeam"),
-        attr.NaturalNumber("FTHG"),
-        attr.NaturalNumber("FTAG"),
-        attr.StringIdentifier("FTR"),
-        attr.NaturalNumber("HTHG"),
-        attr.NaturalNumber("HTAG"),
-        attr.StringIdentifier("HTR"),
-        attr.PositiveFloat("B365H"),
-        attr.PositiveFloat("B365D"),
-        attr.PositiveFloat("B365A"),
-        attr.PositiveFloat("BWH"),
-        attr.PositiveFloat("BWD"),
-        attr.PositiveFloat("BWA"),
-        attr.PositiveFloat("GBH"),
-        attr.PositiveFloat("GBD"),
-        attr.PositiveFloat("GBA"),
-        attr.PositiveFloat("IWH"),
-        attr.PositiveFloat("IWD"),
-        attr.PositiveFloat("IWA"),
-        attr.PositiveFloat("LBH"),
-        attr.PositiveFloat("LBD"),
-        attr.PositiveFloat("LBA"),
-        attr.PositiveFloat("SBH"),
-        attr.PositiveFloat("SBD"),
-        attr.PositiveFloat("SBA"),
-        attr.PositiveFloat("WHH"),
-        attr.PositiveFloat("WHD"),
-        attr.PositiveFloat("WHA"),
-        attr.PositiveFloat("SJH"),
-        attr.PositiveFloat("SJD"),
-        attr.PositiveFloat("SJA"),
-        attr.PositiveFloat("VCH"),
-        attr.PositiveFloat("VCD"),
-        attr.PositiveFloat("VCA"),
-        attr.NaturalNumber("Bb1X2"),
-        attr.PositiveFloat("BbMxH"),
-        attr.PositiveFloat("BbAvH"),
-        attr.PositiveFloat("BbMxD"),
-        attr.PositiveFloat("BbAvD"),
-        attr.PositiveFloat("BbMxA"),
-        attr.PositiveFloat("BbAvA"),
-        attr.NaturalNumber("BbOU"),
-        attr.PositiveFloat("BbMx>2.5"),
-        attr.PositiveFloat("BbAv>2.5"),
-        attr.PositiveFloat("BbMx<2.5"),
-        attr.PositiveFloat("BbAv<2.5"),
-        attr.NaturalNumber("BbAH"),
-        attr.PositiveFloat("BbAHh"),
-        attr.PositiveFloat("BbMxAHH"),
-        attr.PositiveFloat("BbAvAHH"),
-        attr.PositiveFloat("BbMxAHA"),
-        attr.PositiveFloat("BbAvAHA"),
-       ])
-)
-
-SSBundesliga2_2006 = StaticDataTable(
-    name="SSBundesliga2_2006",
-    schema=default_tabular_schema(SSBundesliga2_2006_datum),
-    setup=RemoteStorageSetup(
-        remote=RemoteStorage(
-            location=WebLocation(
-                address=("https://sports-statistics.com/database/soccer-data"
-                         "/germany-bundesliga-2-2005-to-2006.csv"
-                ),
-            ),
-            layout=SingleFileLayout(),
-            encoding=CSVEncoding(header=CSVHeader(num_lines=1)),
-        )
-    ),
-    tag="2005-2006_ss_bundesliga2",
-)
-
-SSBundesliga2_2005_datum = RowStruct(
-    name="SSBundesliga2_2005_datum",
-    attributes=attr_list([
-        attr.StringIdentifier("Div"),
-        attr.DateString("Date"),
-        attr.StringIdentifier("HomeTeam"),
-        attr.StringIdentifier("AwayTeam"),
-        attr.NaturalNumber("FTHG"),
-        attr.NaturalNumber("FTAG"),
-        attr.StringIdentifier("FTR"),
-        attr.NaturalNumber("HTHG"),
-        attr.NaturalNumber("HTAG"),
-        attr.StringIdentifier("HTR"),
-        attr.PositiveFloat("B365H"),
-        attr.PositiveFloat("B365D"),
-        attr.PositiveFloat("B365A"),
-        attr.PositiveFloat("BWH"),
-        attr.PositiveFloat("BWD"),
-        attr.PositiveFloat("BWA"),
-        attr.PositiveFloat("GBH"),
-        attr.PositiveFloat("GBD"),
-        attr.PositiveFloat("GBA"),
-        attr.PositiveFloat("IWH"),
-        attr.PositiveFloat("IWD"),
-        attr.PositiveFloat("IWA"),
-        attr.PositiveFloat("LB"),
-        attr.PositiveFloat("LB"),
-        attr.PositiveFloat("LB"),
-        attr.PositiveFloat("SBH"),
-        attr.PositiveFloat("SBD"),
-        attr.PositiveFloat("SBA"),
-        attr.PositiveFloat("WHH"),
-        attr.PositiveFloat("WHD"),
-        attr.PositiveFloat("WHA"),
-        attr.PositiveFloat("GB>2.5"),
-        attr.PositiveFloat("GB<2.5"),
-        attr.PositiveFloat("GBAHH"),
-        attr.PositiveFloat("GBAHA"),
-        attr.PositiveFloat("GBAH"),
-       ])
-)
-
-SSBundesliga2_2005 = StaticDataTable(
-    name="SSBundesliga2_2005",
-    schema=default_tabular_schema(SSBundesliga2_2005_datum),
-    setup=RemoteStorageSetup(
-        remote=RemoteStorage(
-            location=WebLocation(
-                address=("https://sports-statistics.com/database/soccer-data"
-                         "/germany-bundesliga-2-2004-to-2005.csv"
-                ),
-            ),
-            layout=SingleFileLayout(),
-            encoding=CSVEncoding(header=CSVHeader(num_lines=1)),
-        )
-    ),
-    tag="2004-2005_ss_bundesliga2",
-)
-
-SSBundesliga2_2004_datum = RowStruct(
-    name="SSBundesliga2_2004_datum",
-    attributes=attr_list([
-        attr.StringIdentifier("Div"),
-        attr.DateString("Date"),
-        attr.StringIdentifier("HomeTeam"),
-        attr.StringIdentifier("AwayTeam"),
-        attr.NaturalNumber("FTHG"),
-        attr.NaturalNumber("FTAG"),
-        attr.StringIdentifier("FTR"),
-        attr.NaturalNumber("HTHG"),
-        attr.NaturalNumber("HTAG"),
-        attr.StringIdentifier("HTR"),
-        attr.PositiveFloat("B365H"),
-        attr.PositiveFloat("B365D"),
-        attr.PositiveFloat("B365A"),
-        attr.PositiveFloat("GBH"),
-        attr.PositiveFloat("GBD"),
-        attr.PositiveFloat("GBA"),
-        attr.PositiveFloat("IWH"),
-        attr.PositiveFloat("IWD"),
-        attr.PositiveFloat("IWA"),
-        attr.PositiveFloat("SBH"),
-        attr.PositiveFloat("SBD"),
-        attr.PositiveFloat("SBA"),
-        attr.PositiveFloat("WHH"),
-        attr.PositiveFloat("WHD"),
-        attr.PositiveFloat("WHA"),
-        attr.PositiveFloat("GB>2.5"),
-        attr.PositiveFloat("GB<2.5"),
-        attr.PositiveFloat("GBAHH"),
-        attr.PositiveFloat("GBAHA"),
-        attr.PositiveFloat("GBAH"),
-        ])
-)
-
-SSBundesliga2_2004 = StaticDataTable(
-    name="SSBundesliga2_2004",
-    schema=default_tabular_schema(SSBundesliga2_2004_datum),
-    setup=RemoteStorageSetup(
-        remote=RemoteStorage(
-            location=WebLocation(
-                address=("https://sports-statistics.com/database/soccer-data"
-                         "/germany-bundesliga-2-2003-to-2004.csv"
-                ),
-            ),
-            layout=SingleFileLayout(),
-            encoding=CSVEncoding(header=CSVHeader(num_lines=1)),
-        )
-    ),
-    tag="2003-2004_ss_bundesliga2",
-)
-
-SSBundesliga2_2003_datum = RowStruct(
-    name="SSBundesliga2_2003_datum",
-    attributes=attr_list([
-        attr.StringIdentifier("Div"),
-        attr.DateString("Date"),
-        attr.StringIdentifier("HomeTeam"),
-        attr.StringIdentifier("AwayTeam"),
-        attr.NaturalNumber("FTHG"),
-        attr.NaturalNumber("FTAG"),
-        attr.StringIdentifier("FTR"),
-        attr.NaturalNumber("HTHG"),
-        attr.NaturalNumber("HTAG"),
-        attr.StringIdentifier("HTR"),
-        attr.PositiveFloat("B365H"),
-        attr.PositiveFloat("B365D"),
-        attr.PositiveFloat("B365A"),
-        attr.PositiveFloat("GBH"),
-        attr.PositiveFloat("GBD"),
-        attr.PositiveFloat("GBA"),
-        attr.PositiveFloat("IWH"),
-        attr.PositiveFloat("IWD"),
-        attr.PositiveFloat("IWA"),
-        attr.PositiveFloat("SBH"),
-        attr.PositiveFloat("SBD"),
-        attr.PositiveFloat("SBA"),
-        attr.PositiveFloat("WHH"),
-        attr.PositiveFloat("WHD"),
-        attr.PositiveFloat("WHA"),
-        attr.PositiveFloat("GB>2.5"),
-        attr.PositiveFloat("GB<2.5"),
-       ])
-)
-
-SSBundesliga2_2003 = StaticDataTable(
-    name="SSBundesliga2_2003",
-    schema=default_tabular_schema(SSBundesliga2_2003_datum),
-    setup=RemoteStorageSetup(
-        remote=RemoteStorage(
-            location=WebLocation(
-                address=("https://sports-statistics.com/database/soccer-data"
-                         "/germany-bundesliga-2-2002-to-2003.csv"
-                ),
-            ),
-            layout=SingleFileLayout(),
-            encoding=CSVEncoding(header=CSVHeader(num_lines=1)),
-        )
-    ),
-    tag="2002-2003_ss_bundesliga2",
-)
-
-SSBundesliga2_2002_datum = RowStruct(
-    name="SSBundesliga2_2002_datum",
-    attributes=attr_list([
-        attr.StringIdentifier("Div"),
-        attr.DateString("Date"),
-        attr.StringIdentifier("HomeTeam"),
-        attr.StringIdentifier("AwayTeam"),
-        attr.NaturalNumber("FTHG"),
-        attr.NaturalNumber("FTAG"),
-        attr.StringIdentifier("FTR"),
-        attr.NaturalNumber("HTHG"),
-        attr.NaturalNumber("HTAG"),
-        attr.StringIdentifier("HTR"),
-        attr.NaturalNumber("Attendance"),
-        attr.StringIdentifier("Referee"),
-        attr.NaturalNumber("HS"),
-        attr.NaturalNumber("AS"),
-        attr.NaturalNumber("HST"),
-        attr.NaturalNumber("AST"),
-        attr.NaturalNumber("HHW"),
-        attr.NaturalNumber("AHW"),
-        attr.NaturalNumber("HC"),
-        attr.NaturalNumber("AC"),
-        attr.NaturalNumber("HF"),
-        attr.NaturalNumber("AF"),
-        attr.NaturalNumber("HO"),
-        attr.NaturalNumber("AO"),
-        attr.NaturalNumber("HY"),
-        attr.NaturalNumber("AY"),
-        attr.NaturalNumber("HR"),
-        attr.NaturalNumber("AR"),
-        attr.NaturalNumber("HBP"),
-        attr.NaturalNumber("ABP"),
-        attr.PositiveFloat("GBH"),
-        attr.PositiveFloat("GBD"),
-        attr.PositiveFloat("GBA"),
-        attr.PositiveFloat("IWH"),
-        attr.PositiveFloat("IWD"),
-        attr.PositiveFloat("IWA"),
-        attr.PositiveFloat("SBH"),
-        attr.PositiveFloat("SBD"),
-        attr.PositiveFloat("SBA"),
-        attr.PositiveFloat("SYH"),
-        attr.PositiveFloat("SYD"),
-        attr.PositiveFloat("SYA"),
-        attr.PositiveFloat("WHH"),
-        attr.PositiveFloat("WHD"),
-        attr.PositiveFloat("WHA"),
-       ])
-)
-
-SSBundesliga2_2002 = StaticDataTable(
-    name="SSBundesliga2_2002",
-    schema=default_tabular_schema(SSBundesliga2_2002_datum),
-    setup=RemoteStorageSetup(
-        remote=RemoteStorage(
-            location=WebLocation(
-                address=("https://sports-statistics.com/database/soccer-data"
-                         "/germany-bundesliga-2-2001-to-2002.csv"
-                ),
-            ),
-            layout=SingleFileLayout(),
-            encoding=CSVEncoding(header=CSVHeader(num_lines=1)),
-        )
-    ),
-    tag="2001-2002_ss_bundesliga2",
-)
-
-SSBundesliga2_2001_datum = RowStruct(
-    name="SSBundesliga2_2001_datum",
-    attributes=attr_list([
-        attr.StringIdentifier("Div"),
-        attr.DateString("Date"),
-        attr.StringIdentifier("HomeTeam"),
-        attr.StringIdentifier("AwayTeam"),
-        attr.NaturalNumber("FTHG"),
-        attr.NaturalNumber("FTAG"),
-        attr.StringIdentifier("FTR"),
-        attr.NaturalNumber("HTHG"),
-        attr.NaturalNumber("HTAG"),
-        attr.StringIdentifier("HTR"),
-        attr.NaturalNumber("Attendance"),
-        attr.StringIdentifier("Referee"),
-        attr.NaturalNumber("HS"),
-        attr.NaturalNumber("AS"),
-        attr.NaturalNumber("HST"),
-        attr.NaturalNumber("AST"),
-        attr.NaturalNumber("HHW"),
-        attr.NaturalNumber("AHW"),
-        attr.NaturalNumber("HC"),
-        attr.NaturalNumber("AC"),
-        attr.NaturalNumber("HF"),
-        attr.NaturalNumber("AF"),
-        attr.NaturalNumber("HO"),
-        attr.NaturalNumber("AO"),
-        attr.NaturalNumber("HY"),
-        attr.NaturalNumber("AY"),
-        attr.NaturalNumber("HR"),
-        attr.NaturalNumber("AR"),
-        attr.NaturalNumber("HBP"),
-        attr.NaturalNumber("ABP"),
-        attr.PositiveFloat("GBH"),
-        attr.PositiveFloat("GBD"),
-        attr.PositiveFloat("GBA"),
-        attr.PositiveFloat("IWH"),
-        attr.PositiveFloat("IWD"),
-        attr.PositiveFloat("IWA"),
-        attr.PositiveFloat("WHH"),
-        attr.PositiveFloat("WHD"),
-        attr.PositiveFloat("WHA"),
-       ])
-)
-
-SSBundesliga2_2001 = StaticDataTable(
-    name="SSBundesliga2_2001",
-    schema=default_tabular_schema(SSBundesliga2_2001_datum),
-    setup=RemoteStorageSetup(
-        remote=RemoteStorage(
-            location=WebLocation(
-                address=("https://sports-statistics.com/database/soccer-data"
-                         "/germany-bundesliga-2-2000-to-2001.csv"
-                ),
-            ),
-            layout=SingleFileLayout(),
-            encoding=CSVEncoding(header=CSVHeader(num_lines=1)),
-        )
-    ),
-    tag="2000-2001_ss_bundesliga2",
-)
-
-SSBundesliga2_2000 = StaticDataTable(
-    name="SSBundesliga2_2000",
-    schema=default_tabular_schema(SSBundesliga_2000_datum),
-    setup=RemoteStorageSetup(
-        remote=RemoteStorage(
-            location=WebLocation(
-                address=("https://sports-statistics.com/database/soccer-data"
-                         "/germany-bundesliga-2-1999-to-2000.csv"
-                ),
-            ),
-            layout=SingleFileLayout(),
-            encoding=CSVEncoding(header=CSVHeader(num_lines=1)),
-        )
-    ),
-    tag="1999-2000_ss_bundesliga2",
-)
-
-SSBundesliga2_1999 = StaticDataTable(
-    name="SSBundesliga2_1999",
-    schema=default_tabular_schema(SSBundesliga_2000_datum),
-    setup=RemoteStorageSetup(
-        remote=RemoteStorage(
-            location=WebLocation(
-                address=("https://sports-statistics.com/database/soccer-data"
-                         "/germany-bundesliga-2-1998-to-1999.csv"
-                ),
-            ),
-            layout=SingleFileLayout(),
-            encoding=CSVEncoding(header=CSVHeader(num_lines=1)),
-        )
-    ),
-    tag="1998-1999_ss_bundesliga2",
-)
-
-SSBundesliga2_1998 = StaticDataTable(
-    name="SSBundesliga2_1998",
-    schema=default_tabular_schema(SSBundesliga_2000_datum),
-    setup=RemoteStorageSetup(
-        remote=RemoteStorage(
-            location=WebLocation(
-                address=("https://sports-statistics.com/database/soccer-data"
-                         "/germany-bundesliga-2-1997-to-1998.csv"
-                ),
-            ),
-            layout=SingleFileLayout(),
-            encoding=CSVEncoding(header=CSVHeader(num_lines=1)),
-        )
-    ),
-    tag="1997-1998_ss_bundesliga2",
-)
-
-SSBundesliga2_1997 = StaticDataTable(
-    name="SSBundesliga2_1997",
-    schema=default_tabular_schema(SSBundesliga_2000_datum),
-    setup=RemoteStorageSetup(
-        remote=RemoteStorage(
-            location=WebLocation(
-                address=("https://sports-statistics.com/database/soccer-data"
-                         "/germany-bundesliga-2-1996-to-1997.csv"
-                ),
-            ),
-            layout=SingleFileLayout(),
-            encoding=CSVEncoding(header=CSVHeader(num_lines=1)),
-        )
-    ),
-    tag="1996-1997_ss_bundesliga2",
-)
-
-SSBundesliga_1996_datum = RowStruct(
-    name="SSBundesliga_1996_datum",
-    attributes=attr_list([
-        attr.StringIdentifier("Div"),
-        attr.DateString("Date"),
-        attr.StringIdentifier("HomeTeam"),
-        attr.StringIdentifier("AwayTeam"),
-        attr.NaturalNumber("FTHG"),
-        attr.NaturalNumber("FTAG"),
-        attr.StringIdentifier("FTR"),
-        ])
-)
-
-SSBundesliga2_1996 = StaticDataTable(
-    name="SSBundesliga2_1996",
-    schema=default_tabular_schema(SSBundesliga_1996_datum),
-    setup=RemoteStorageSetup(
-        remote=RemoteStorage(
-            location=WebLocation(
-                address=("https://sports-statistics.com/database/soccer-data"
-                         "/germany-bundesliga-2-1995-to-1996.csv"
-                ),
-            ),
-            layout=SingleFileLayout(),
-            encoding=CSVEncoding(header=CSVHeader(num_lines=1)),
-        )
-    ),
-    tag="1995-1996_ss_bundesliga2",
-)
-
-SSBundesliga2_1995 = StaticDataTable(
-    name="SSBundesliga2_1995",
-    schema=default_tabular_schema(SSBundesliga_1996_datum),
-    setup=RemoteStorageSetup(
-        remote=RemoteStorage(
-            location=WebLocation(
-                address=("https://sports-statistics.com/database/soccer-data"
-                         "/germany-bundesliga-2-1994-to-1995.csv"
-                ),
-            ),
-            layout=SingleFileLayout(),
-            encoding=CSVEncoding(header=CSVHeader(num_lines=1)),
-        )
-    ),
-    tag="1994-1995_ss_bundesliga2",
-)
-
-SSBundesliga2_1994 = StaticDataTable(
-    name="SSBundesliga2_1994",
-    schema=default_tabular_schema(SSBundesliga_1996_datum),
-    setup=RemoteStorageSetup(
-        remote=RemoteStorage(
-            location=WebLocation(
-                address=("https://sports-statistics.com/database/soccer-data"
-                         "/germany-bundesliga-2-1993-to-1994.csv"
-                ),
-            ),
-            layout=SingleFileLayout(),
-            encoding=CSVEncoding(header=CSVHeader(num_lines=1)),
-        )
-    ),
-    tag="1993-1994_ss_bundesliga2",
-)
-
-# Our dataset contains only this table and only this datum
-# definition. Note that multiple assets can reference the
-# same template!
 bundesliga_dataset = DataSet(
     name="bundesliga",
-    description=(
-        "This dataset contains detailed match level statistics for the"
-        " Bundesliga seasons 31 (1993/94) to 57 (2019/20)."
-    ),
-    sourcePath=__file__,
-    datumTemplates=[
-        SSBundesliga_2020_datum,
-        SSBundesliga_2019_datum,
-        SSBundesliga_2018_datum,
-        SSBundesliga1_2015_datum,
-        SSBundesliga2_2015_datum,
-        SSBundesliga1_2013_datum,
-        SSBundesliga2_2013_datum,
-        SSBundesliga1_2012_datum,
-        SSBundesliga2_2012_datum,
-        SSBundesliga_2007_datum,
-        SSBundesliga1_2006_datum,
-        SSBundesliga2_2006_datum,
-        SSBundesliga1_2005_datum,
-        SSBundesliga2_2005_datum,
-        SSBundesliga1_2004_datum,
-        SSBundesliga2_2004_datum,
-        SSBundesliga1_2003_datum,
-        SSBundesliga2_2003_datum,
-        SSBundesliga1_2002_datum,
-        SSBundesliga2_2002_datum,
-        SSBundesliga1_2001_datum,
-        SSBundesliga2_2001_datum,
-        SSBundesliga_2000_datum,
-        SSBundesliga_1996_datum,
-        SSBundesliga_1995_datum,
-    ],
-    assets={
-        "Bundesliga1_2020_data": SSBundesliga1_2020,
-        "Bundesliga1_2019_data": SSBundesliga1_2019,
-        "Bundesliga1_2018_data": SSBundesliga1_2018,
-        "Bundesliga1_2017_data": SSBundesliga1_2017,
-        "Bundesliga1_2016_data": SSBundesliga1_2016,
-        "Bundesliga1_2015_data": SSBundesliga1_2015,
-        "Bundesliga1_2014_data": SSBundesliga1_2014,
-        "Bundesliga1_2013_data": SSBundesliga1_2013,
-        "Bundesliga1_2012_data": SSBundesliga1_2012,
-        "Bundesliga1_2011_data": SSBundesliga1_2011,
-        "Bundesliga1_2010_data": SSBundesliga1_2010,
-        "Bundesliga1_2009_data": SSBundesliga1_2009,
-        "Bundesliga1_2008_data": SSBundesliga1_2008,
-        "Bundesliga1_2007_data": SSBundesliga1_2007,
-        "Bundesliga1_2006_data": SSBundesliga1_2006,
-        "Bundesliga1_2005_data": SSBundesliga1_2005,
-        "Bundesliga1_2004_data": SSBundesliga1_2004,
-        "Bundesliga1_2003_data": SSBundesliga1_2003,
-        "Bundesliga1_2002_data": SSBundesliga1_2002,
-        "Bundesliga1_2001_data": SSBundesliga1_2001,
-        "Bundesliga1_2000_data": SSBundesliga1_2000,
-        "Bundesliga1_1999_data": SSBundesliga1_1999,
-        "Bundesliga1_1998_data": SSBundesliga1_1998,
-        "Bundesliga1_1997_data": SSBundesliga1_1997,
-        "Bundesliga1_1996_data": SSBundesliga1_1996,
-        "Bundesliga1_1995_data": SSBundesliga1_1995,
-        "Bundesliga1_1994_data": SSBundesliga1_1994,
-        "Bundesliga2_2020_data": SSBundesliga2_2020,
-        "Bundesliga2_2019_data": SSBundesliga2_2019,
-        "Bundesliga2_2018_data": SSBundesliga2_2018,
-        "Bundesliga2_2017_data": SSBundesliga2_2017,
-        "Bundesliga2_2016_data": SSBundesliga2_2016,
-        "Bundesliga2_2015_data": SSBundesliga2_2015,
-        "Bundesliga2_2014_data": SSBundesliga2_2014,
-        "Bundesliga2_2013_data": SSBundesliga2_2013,
-        "Bundesliga2_2012_data": SSBundesliga2_2012,
-        "Bundesliga2_2011_data": SSBundesliga2_2011,
-        "Bundesliga2_2010_data": SSBundesliga2_2010,
-        "Bundesliga2_2009_data": SSBundesliga2_2009,
-        "Bundesliga2_2008_data": SSBundesliga2_2008,
-        "Bundesliga2_2007_data": SSBundesliga2_2007,
-        "Bundesliga2_2006_data": SSBundesliga2_2006,
-        "Bundesliga2_2005_data": SSBundesliga2_2005,
-        "Bundesliga2_2004_data": SSBundesliga2_2004,
-        "Bundesliga2_2003_data": SSBundesliga2_2003,
-        "Bundesliga2_2002_data": SSBundesliga2_2002,
-        "Bundesliga2_2001_data": SSBundesliga2_2001,
-        "Bundesliga2_2000_data": SSBundesliga2_2000,
-        "Bundesliga2_1999_data": SSBundesliga2_1999,
-        "Bundesliga2_1998_data": SSBundesliga2_1998,
-        "Bundesliga2_1997_data": SSBundesliga2_1997,
-        "Bundesliga2_1996_data": SSBundesliga2_1996,
-        "Bundesliga2_1995_data": SSBundesliga2_1995,
-        "Bundesliga2_1994_data": SSBundesliga2_1994,
-
-    },
+    description="""
+        This dataset contains detailed match level statistics for the
+         Bundesliga (Div 1) seasons 31 (1993/94) to 57 (2019/20).
+    """,
+    source_path=__file__,
+    datum_templates=list(templates.values()),
+    assets=assets,
+    access_policies=[]
 )
