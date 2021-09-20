@@ -2,6 +2,7 @@ use crate::asset::*;
 use crate::attributes::*;
 use crate::concept::{AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
 use crate::template::*;
+use crate::schema::derived_asset_schema::*;
 use aorist_attributes::*;
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
@@ -14,14 +15,11 @@ use std::fmt::Debug;
 use uuid::Uuid;
 
 derived_schema! {
-    name: TAOCrownHullSchema,
-    sources: 
-      - point_cloud: PointCloudAsset,
+    name: TreeDetectionSchema,
+    source: GeospatialAsset,
     attributes:
       prefix: KeyStringIdentifier("File Prefix", false)
     fields:
-      hull_type: String,
-      concavity: FloatValue,
-      length_threshold: FloatValue,
-      func: Option<String>
+      algorithm: String,
+      uniqueness: String
 }

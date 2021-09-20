@@ -236,5 +236,6 @@ register_concept!(
     TAOWatershedSegmentationSchema,
     PointCloudTransformationSchema,
     PointCloudRasterDifferenceSchema,
-    TAOCrownHullSchema
+    TAOCrownHullSchema,
+    TreeDetectionSchema
 );

@@ -32,6 +32,7 @@ mod tao_li_segmentation_schema;
 mod tao_watershed_segmentation_schema;
 mod text_corpus_schema;
 mod time_ordered_tabular_schema;
+mod tree_detection_schema;
 mod undefined_tabular_schema;
 
 pub use data_schema::*;
@@ -68,4 +69,5 @@ pub use tao_li_segmentation_schema::*;
 pub use tao_da_silva_segmentation_schema::*;
 pub use text_corpus_schema::*;
 pub use time_ordered_tabular_schema::*;
+pub use tree_detection_schema::*;
 pub use undefined_tabular_schema::*;
