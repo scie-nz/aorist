@@ -39,10 +39,19 @@ impl PythonFunctionCallTask for RPythonTask {
 def execute_r(call, preamble=None, **kwargs):
     if preamble is not None:
         robjects.r(preamble)
-    return robjects.r('%s(%s)' % (
-        call,
-        ', '.join(['%s = \"%s\"' % (k, v) for k, v in kwargs.items()]) 
-    ))
+    return robjects.r(
+        \"%s(%s)\"
+        % (call, ', '.join([
+            ('%s = \"%s\"' % (k, v))
+            if isinstance(v, str) 
+            else (('%s = %s' % (k, str(v)))
+                  if isinstance(v, int) or isinstance(v, float)
+                  else ('%s = c(%s)' % (k, ', '.join(v)))
+                 )
+            for k, v in kwargs.items()
+        ]))
+    )
+
 ";
         Some(NativePythonPreamble {
             imports: vec![rpy2],
