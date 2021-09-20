@@ -15,7 +15,7 @@ define_task_node!(
         vec![
             PythonImport::PythonModuleImport("rpy2".to_string(), None),
             PythonImport::PythonModuleImport(
-                "rpy2.objects".to_string(),
+                "rpy2.robjects".to_string(),
                 Some("robjects".to_string()),
             ),
         ]
@@ -32,14 +32,14 @@ impl PythonFunctionCallTask for RPythonTask {
     fn get_preamble(&self) -> Option<NativePythonPreamble> {
         let rpy2 = PythonImport::PythonModuleImport("rpy2".to_string(), None);
         let rpy2o = PythonImport::PythonModuleImport(
-            "rpy2.objects".to_string(),
+            "rpy2.robjects".to_string(),
             Some("robjects".to_string()),
         );
         let body = "
 def execute_r(call, preamble=None, **kwargs):
     if preamble is not None:
-        rpy2.r(preamble)
-    return rpy2.r('%s(%s)' % (
+        robjects.r(preamble)
+    return robjects.r('%s(%s)' % (
         call,
         ', '.join(['%s = \"%s\"' % (k, v) for k, v in kwargs.items()]) 
     ))

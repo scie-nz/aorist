@@ -72,7 +72,7 @@ impl Preamble for RPythonPreamble {
     type ImportType = PythonImport;
     fn get_imports(&self) -> Vec<Self::ImportType> {
         vec![PythonImport::PythonModuleImport(
-            "rpy2.objects".to_string(),
+            "rpy2.robjects".to_string(),
             Some("robjects".to_string()),
         )]
     }
