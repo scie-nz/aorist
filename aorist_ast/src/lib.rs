@@ -555,6 +555,15 @@ define_ast_node!(
     val: i64,
 );
 define_ast_node!(
+    FloatLiteral,
+    |_| Vec::new(),
+    |lit: &FloatLiteral, _py: Python, ast_module: &'a PyModule, _depth: usize| {
+        ast_module.getattr("Constant")?.call1((lit.val.as_f64(),))
+    },
+    |lit: &FloatLiteral, _depth: usize| { r!(lit.val.as_f64()) },
+    val: aorist_attributes::FloatValue,
+);
+define_ast_node!(
     None,
     |_| Vec::new(),
     |_, py: Python, ast_module: &'a PyModule, _depth: usize| {
@@ -633,6 +642,7 @@ register_ast_nodes!(
     Add,
     BinOp,
     FunctionDef,
+    FloatLiteral,
 );
 
 impl Formatted {
