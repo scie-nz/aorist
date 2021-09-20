@@ -235,5 +235,6 @@ register_concept!(
     TAOLiSegmentationSchema,
     TAOWatershedSegmentationSchema,
     PointCloudTransformationSchema,
-    PointCloudRasterDifferenceSchema
+    PointCloudRasterDifferenceSchema,
+    TAOCrownHullSchema
 );
