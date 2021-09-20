@@ -231,7 +231,7 @@ register_concept!(
     Raster,
     NormalizedPointCloudSchema,
     LabeledPointCloudSchema,
-    TAOdaSilvaSegmentationSchema,
+    TAODaSilvaSegmentationSchema,
     TAOLiSegmentationSchema,
     TAOWatershedSegmentationSchema,
     PointCloudTransformationSchema,

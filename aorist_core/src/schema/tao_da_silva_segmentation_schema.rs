@@ -15,7 +15,7 @@ use uuid::Uuid;
 use aorist_attributes::FloatValue;
 
 derived_schema! {
-    name: TAOdaSilvaSegmentationSchema,
+    name: TAODaSilvaSegmentationSchema,
     sources:
       - point_cloud: PointCloudAsset,
       - chm: RasterAsset,

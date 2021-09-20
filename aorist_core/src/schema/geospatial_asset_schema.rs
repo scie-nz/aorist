@@ -57,6 +57,6 @@ schema_enum! {
     - TAOCrownHullSchema
     - TAOWatershedSegmentationSchema
     - TAOLiSegmentationSchema
-    - TAOdaSilvaSegmentationSchema
+    - TAODaSilvaSegmentationSchema
     - TreeDetectionSchema
 }
