@@ -5,7 +5,7 @@ use crate::asset::static_data_table::*;
 use crate::concept::{AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
 use crate::encoding::Encoding;
 use crate::schema::*;
-use crate::storage::Storage;
+use crate::storage::*;
 use crate::storage_setup::*;
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
@@ -57,5 +57,16 @@ impl Asset {
         };
         cloned.set_storage_setup(new_setup);
         cloned
+    }
+}
+#[cfg(feature = "python")]
+#[pymethods]
+impl PyAsset {
+    pub fn persist_local(&self, storage: PyStorage) -> PyResult<Self> {
+        Ok(PyAsset{ 
+            inner: AoristRef(Arc::new(RwLock::new(
+                self.inner.0.read().unwrap().persist_local(storage.inner.deep_clone())
+            )))
+        })
     }
 }
