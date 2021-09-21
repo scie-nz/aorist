@@ -237,5 +237,6 @@ register_concept!(
     PointCloudTransformationSchema,
     PointCloudRasterDifferenceSchema,
     TAOCrownHullSchema,
-    TreeDetectionSchema
+    TreeDetectionSchema,
+    ShapefileEncoding
 );
