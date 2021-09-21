@@ -37,9 +37,18 @@ impl PythonFunctionCallTask for RPythonTask {
         );
         let body = "
 def execute_r(call, preamble=None, **kwargs):
+    airflow_args = {
+        'ds', 'ds_nodash', 'inlets', 'next_ds',
+        'next_ds_nodash', 'outlets', 'prev_ds',
+        'prev_ds_nodash', 'run_id', 'task_instance_key_str',
+        'tomorrow_ds_nodash', 'ts', 'ts_nodash',
+        'ts_nodash_with_tz', 'yesterday_ds',
+        'yesterday_ds_nodash', 'test_mode',
+        'tomorrow_ds'
+    }   
     if preamble is not None:
         robjects.r(preamble)
-    return robjects.r(
+    return str(robjects.r(
         \"%s(%s)\"
         % (call, ', '.join([
             ('%s = \"%s\"' % (k, v))
@@ -49,8 +58,15 @@ def execute_r(call, preamble=None, **kwargs):
                   else ('%s = c(%s)' % (k, ', '.join(v)))
                  )
             for k, v in kwargs.items()
+            if (
+                isinstance(v, str)
+                or isinstance(v, float)
+                or isinstance(v, int)
+                or isinstance(v, tuple)
+                or isinstance(v, list)
+            ) and not k in airflow_args
         ]))
-    )
+    ))
 
 ";
         Some(NativePythonPreamble {
