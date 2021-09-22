@@ -12,7 +12,7 @@ use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
 use std::collections::{HashMap, HashSet};
 use std::sync::{Arc, RwLock};
-use tracing::{level_enabled, trace, Level};
+use tracing::{level_enabled, trace, Level, debug};
 use uuid::Uuid;
 
 pub struct ConstraintState<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry = T::TAncestry>> {
@@ -41,6 +41,7 @@ impl<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry = T::TAncestry>>
         dependency: &Arc<RwLock<ConstraintState<'a, T, P>>>,
         uuid: &(Uuid, String),
     ) {
+        debug!("Marked dependency {} as satisfied.", dependency.read().unwrap().get_name());
         let dependency_context = &(*dependency.read().unwrap()).context;
         self.satisfied_dependencies.push(dependency.clone());
         self.context.insert(dependency_context);
