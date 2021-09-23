@@ -1270,7 +1270,8 @@ macro_rules! register_constraint_new {
                         }
                         Err(err) => {
                             err.print(py);
-                            panic!("Problem when extracting object. See traceback above");
+                            panic!("Problem when extracting object (tag: {:?}). See traceback above", 
+                                   aorist_primitives::TConceptEnum::get_tag(&root));
                         }
                     };
 

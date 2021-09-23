@@ -15,7 +15,7 @@ define_task_node!(
         vec![
             PythonImport::PythonModuleImport("rpy2".to_string(), None),
             PythonImport::PythonModuleImport(
-                "rpy2.objects".to_string(),
+                "rpy2.robjects".to_string(),
                 Some("robjects".to_string()),
             ),
         ]
@@ -32,17 +32,42 @@ impl PythonFunctionCallTask for RPythonTask {
     fn get_preamble(&self) -> Option<NativePythonPreamble> {
         let rpy2 = PythonImport::PythonModuleImport("rpy2".to_string(), None);
         let rpy2o = PythonImport::PythonModuleImport(
-            "rpy2.objects".to_string(),
+            "rpy2.robjects".to_string(),
             Some("robjects".to_string()),
         );
         let body = "
 def execute_r(call, preamble=None, **kwargs):
+    airflow_args = {
+        'ds', 'ds_nodash', 'inlets', 'next_ds',
+        'next_ds_nodash', 'outlets', 'prev_ds',
+        'prev_ds_nodash', 'run_id', 'task_instance_key_str',
+        'tomorrow_ds_nodash', 'ts', 'ts_nodash',
+        'ts_nodash_with_tz', 'yesterday_ds',
+        'yesterday_ds_nodash', 'test_mode',
+        'tomorrow_ds'
+    }   
     if preamble is not None:
-        rpy2.r(preamble)
-    return rpy2.r('%s(%s)' % (
-        call,
-        ', '.join(['%s = \"%s\"' % (k, v) for k, v in kwargs.items()]) 
+        robjects.r(preamble)
+    return str(robjects.r(
+        \"%s(%s)\"
+        % (call, ', '.join([
+            ('%s = \"%s\"' % (k, v))
+            if isinstance(v, str) 
+            else (('%s = %s' % (k, str(v)))
+                  if isinstance(v, int) or isinstance(v, float)
+                  else ('%s = c(%s)' % (k, ', '.join(v)))
+                 )
+            for k, v in kwargs.items()
+            if (
+                isinstance(v, str)
+                or isinstance(v, float)
+                or isinstance(v, int)
+                or isinstance(v, tuple)
+                or isinstance(v, list)
+            ) and not k in airflow_args
+        ]))
     ))
+
 ";
         Some(NativePythonPreamble {
             imports: vec![rpy2],

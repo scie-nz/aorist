@@ -11,6 +11,7 @@ use crate::encoding::orc_encoding::*;
 use crate::encoding::sqlite_encoding::*;
 use crate::encoding::tsv_encoding::*;
 use crate::encoding::wkt_encoding::*;
+use crate::encoding::shapefile_encoding::*;
 use crate::header::FileHeader;
 use crate::header::*;
 use aorist_concept::{aorist, Constrainable};
@@ -35,6 +36,7 @@ pub enum Encoding {
     SQLiteEncoding(AoristRef<SQLiteEncoding>),
     GeoTiffEncoding(AoristRef<GeoTiffEncoding>),
     WKTEncoding(AoristRef<WKTEncoding>),
+    ShapefileEncoding(AoristRef<ShapefileEncoding>),
 }
 
 impl Encoding {
@@ -52,6 +54,7 @@ impl Encoding {
             Self::NewlineDelimitedJSONEncoding(_) => None,
             Self::GeoTiffEncoding(_) => None,
             Self::WKTEncoding(_) => None,
+            Self::ShapefileEncoding(_) => None,
         }
     }
     pub fn get_compression(&self) -> Option<AoristRef<DataCompression>> {
@@ -68,6 +71,7 @@ impl Encoding {
             Self::ONNXEncoding(_) => None,
             Self::SQLiteEncoding(_) => None,
             Self::NewlineDelimitedJSONEncoding(_) => None,
+            Self::ShapefileEncoding(_) => None,
         }
     }
     pub fn get_default_file_extension(&self) -> String {
@@ -79,6 +83,7 @@ impl Encoding {
             Self::LASEncoding(_) => "las".to_string(),
             Self::GeoTiffEncoding(_) => "tiff".to_string(),
             Self::WKTEncoding(_) => "wkt".to_string(),
+            Self::ShapefileEncoding(_) => "shp".to_string(),
             Self::JSONEncoding(_) => "json".to_string(),
             Self::ORCEncoding(_) => "orc".to_string(),
             Self::ONNXEncoding(_) => "onnx".to_string(),
@@ -120,6 +125,7 @@ impl PyEncoding {
             Encoding::JSONEncoding(_) => None,
             Encoding::ORCEncoding(_) => None,
             Encoding::ONNXEncoding(_) => None,
+            Encoding::ShapefileEncoding(_) => None,
             Encoding::SQLiteEncoding(_) => None,
             Encoding::NewlineDelimitedJSONEncoding(_) => None,
         })

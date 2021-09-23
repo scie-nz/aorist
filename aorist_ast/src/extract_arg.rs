@@ -1,4 +1,4 @@
-use crate::{BigIntLiteral, BooleanLiteral, List, None, StringLiteral, Tuple, AST};
+use crate::{BigIntLiteral, BooleanLiteral, FloatLiteral, List, None, StringLiteral, Tuple, AST};
 use aorist_primitives::Context;
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
@@ -26,6 +26,10 @@ pub fn extract_arg(arg: &PyAny) -> PyResult<AST> {
             .map(|x| extract_arg(x))
             .collect::<PyResult<Vec<AST>>>()?;
         Ok(AST::List(List::new_wrapped(v, false)))
+    } else if let Ok(extracted_val) = arg.downcast::<pyo3::types::PyFloat>() {
+        Ok(AST::FloatLiteral(FloatLiteral::new_wrapped(
+            aorist_attributes::FloatValue::from_f64(extracted_val.value()),
+        )))
     } else if let Ok(extracted_tuple) = arg.downcast::<PyTuple>() {
         let v = extracted_tuple
             .iter()

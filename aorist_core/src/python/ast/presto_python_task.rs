@@ -55,11 +55,11 @@ def execute_trino_sql(query):
             cursor = connection.cursor()
             cursor.execute(q)
             cursor.fetchall()
-            print('Ran query:\\n %s' % q)
+            print('Ran query: ' + chr(10) + ' ' + q)
     else:
         cursor = connection.cursor()
         cursor.execute(query)
-        print('Ran query:\\n %s' % query)
+        print('Ran query: ' + chr(10) + ' ' + query)
         cursor.fetchall()
 ",
             host = self.endpoint.server,

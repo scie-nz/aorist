@@ -231,9 +231,12 @@ register_concept!(
     Raster,
     NormalizedPointCloudSchema,
     LabeledPointCloudSchema,
-    TAOdaSilvaSegmentationSchema,
+    TAODaSilvaSegmentationSchema,
     TAOLiSegmentationSchema,
     TAOWatershedSegmentationSchema,
     PointCloudTransformationSchema,
-    PointCloudRasterDifferenceSchema
+    PointCloudRasterDifferenceSchema,
+    TAOCrownHullSchema,
+    TreeDetectionSchema,
+    ShapefileEncoding
 );

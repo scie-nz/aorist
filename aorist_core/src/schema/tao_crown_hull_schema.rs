@@ -12,17 +12,19 @@ use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
 use uuid::Uuid;
-use aorist_attributes::FloatValue;
 
 derived_schema! {
-    name: TAODaSilvaSegmentationSchema,
-    sources:
+    name: TAOCrownHullSchema,
+    sources: 
       - point_cloud: PointCloudAsset,
-      - chm: RasterAsset,
-      - ttops: PointCloudAsset,
     attributes:
-      prefix: KeyStringIdentifier("File Prefix", false)
+      prefix: KeyStringIdentifier("File Prefix", false),
+      tao_id: KeyInt64Identifier("ID of TAO (unique in file)", false),
+      wkt: WKTString("WKT string of TAO boundary", false),
+      metrics: JSON("JSON map of metrics", false) 
     fields:
-      max_cr_factor: FloatValue,
-      exclusion: FloatValue
+      hull_type: String,
+      concavity: FloatValue,
+      length_threshold: FloatValue,
+      func: Option<String>
 }

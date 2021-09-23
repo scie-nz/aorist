@@ -91,16 +91,17 @@ impl pyo3::conversion::IntoPy<PyObject> for FloatValue {
     }
 }
 impl FloatValue {
+    pub fn from_f64(val: f64) -> Self {
+        let (mantissa, exponent, sign) = Float::integer_decode(val);
+        Self {
+            sign,
+            mantissa,
+            exponent,
+        }
+    }
     pub fn try_from(x: String) -> Result<Self, String> {
         match x.parse::<f64>() {
-            Ok(val) => {
-                let (mantissa, exponent, sign) = Float::integer_decode(val);
-                Ok(Self {
-                    sign,
-                    mantissa,
-                    exponent,
-                })
-            }
+            Ok(val) => Ok(Self::from_f64(val)),
             Err(_) => Err(format!("Could not parse {} as float.", &x).into()),
         }
     }
