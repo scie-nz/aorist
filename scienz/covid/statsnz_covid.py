@@ -27,38 +27,43 @@ from aorist import (
     SingleFileLayout,
     FreeText,
     Empty,
+    Year,
     CountryName,
-    IntegerNumber,
 )
 
 attributes = [
-    Attribute(DateString("Date_reported")),
-    Attribute(StringIdentifier("Country_code")),
+    Attribute(StringIdentifier("Direction")),
+    Attribute(Year("Year")),
+    Attribute(DateString("Date")),
+    Attribute(StringIdentifier("Weekday")),
     Attribute(CountryName("Country")),
-    Attribute(StringIdentifier("WHO_region")),
-    Attribute(NaturalNumber("New_cases")),
-    Attribute(NaturalNumber("Cumulative_cases")),
-    Attribute(NaturalNumber("New_deaths")),
-    Attribute(NaturalNumber("Cumulative_deaths")),
+    Attribute(StringIdentifier("Comodity")),
+    Attribute(StringIdentifier("Transport_Mode")),
+    Attribute(StringIdentifier("Measure")),
+    Attribute(NaturalNumber("Value")),
+    Attribute(NaturalNumber("Cumulative")),
 ]
 
-who_covid_datum = RowStruct(
-    name="who_covid_datum",
+statsnz_covid_datum = RowStruct(
+    name="statsnz_covid_datum",
     attributes=attributes,
 )
 
-who_covid_schema = default_tabular_schema(
-    DatumTemplate(who_covid_datum), attributes
+statsnz_covid_schema = default_tabular_schema(
+    DatumTemplate(statsnz_covid_datum), attributes
 )
 
 table = Asset(StaticDataTable(
-            name="who_covid_table",
-            schema=DataSchema(who_covid_schema),
+            name="stats_nz_table",
+            schema=DataSchema(statsnz_covid_schema),
             setup=StorageSetup(RemoteStorageSetup(
                 remote=Storage(RemoteStorage(
                     location=RemoteLocation(
                         WebLocation(
-                            address=("https://covid19.who.int/WHO-COVID-19-global-data.csv"),
+                            address=("https://www.stats.govt.nz/assets/Uploads/Effects-of-"
+                                     "COVID-19-on-trade/Effects-of-COVID-19-on-trade-At-"
+                                     "14-April-2021-provisional/Download-data/effects-of"
+                                     "-covid-19-on-trade-at-14-April-2021-provisional.csv"),
                         )
                     ),
                     layout=APIOrFileLayout(
@@ -71,19 +76,19 @@ table = Asset(StaticDataTable(
                     ))),
                 )),
             )),
-            tag="WHO_covid",
+            tag="statsnz_covid",
             ))
 
-who_covid_dataset = DataSet(
-    name="who_covid",
+statsnz_covid_dataset = DataSet(
+    name="statsnz_covid",
     description="""
-        COVID-19 new and cumulative cases and deaths by country,
-         from the World Health Organisation.
+        New Zealand's daily goods trade with the world. Comparing 
+         values with previous years shows the potential impacts of COVID-19.
     """,
     source_path=__file__,
-    datum_templates=[DatumTemplate(who_covid_datum)],
+    datum_templates=[DatumTemplate(statsnz_covid_datum)],
     assets={
-        "World_Health_Organisation_COVID-19_data": table,
+        "StatsNZ_effects_of_COVID-19_on_trade_data": table,
     },
     access_policies=[]
 )
