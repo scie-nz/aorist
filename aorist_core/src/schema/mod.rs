@@ -1,6 +1,7 @@
 mod data_schema;
 mod derived_asset_schema;
 mod fasttext_embedding_schema;
+mod gdal_fillnodata_schema;
 mod geospatial_asset_schema;
 mod labeled_point_cloud_schema;
 mod language_asset_schema;
@@ -38,6 +39,7 @@ mod undefined_tabular_schema;
 pub use data_schema::*;
 pub use derived_asset_schema::*;
 pub use fasttext_embedding_schema::*;
+pub use gdal_fillnodata_schema::*;
 pub use geospatial_asset_schema::*;
 pub use labeled_point_cloud_schema::*;
 pub use language_asset_schema::*;
