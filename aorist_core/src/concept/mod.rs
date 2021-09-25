@@ -238,5 +238,6 @@ register_concept!(
     PointCloudRasterDifferenceSchema,
     TAOCrownHullSchema,
     TreeDetectionSchema,
-    ShapefileEncoding
+    ShapefileEncoding,
+    GDALFillNoDataSchema
 );
