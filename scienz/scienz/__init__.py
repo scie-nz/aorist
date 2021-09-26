@@ -4,5 +4,5 @@ from .subreddits import (
     subreddit_schema, subreddit_datum, fasttext_datum, spacy_ner_datum,
 )
 from .subreddits import build_assets as build_subreddit_assets
-from .sport import *
+from .sports import *
 from .covid import *

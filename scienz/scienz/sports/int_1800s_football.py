@@ -79,7 +79,7 @@ def build_assets(century, start_year, end_year, attributes):
 
 assets1800s = build_assets(1800, 1872, 1899, attributes1800)
 
-int_1800_football_dataset = DataSet(
+int_1800s_football_dataset = DataSet(
     name="int-1800-football",
     description="""
         International Football Results from 1872-1899 
