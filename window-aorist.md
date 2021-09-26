@@ -32,7 +32,7 @@ conda update conda
 Go to [Rust](https://www.rust-lang.org/tools/install) page, choose "DOWNLOAD RUSTUP-INIT.EXE (64-BIT)" and install it.
 
 ```python
-# Set the python compiler's linker 
+# Set the python compiler's linker. Please replace 'username' in the command by your current username (e.g., maggie)
 set PYO3_PYTHON=C:\Users\username\Anaconda3\envs\aorist\python.exe
 # Solving linker errors for cargo build 
 rustup default stable-x86_64-pc-windows-gnu 
@@ -42,6 +42,8 @@ cargo build
 ```
 
 ### 4. Conda-build from scratch
+To run the conda-build on window, please change the meta.yaml file 
+FROM
 ```python
 build:
   number: 1
@@ -61,4 +63,11 @@ Run conda-build to build aorist from scratch
 ```python
 conda build .
 #Linker error at the end of the building stage has been successfully fixed)
+```
+The file `aorist-0.0.1-py37_1.tar.bz2` will be created and stored in `~/Anaconda3/envs/aorist/conda-bld/win-64`
+
+### 5. Uploading to Conda cloud
+```python
+conda install anaconda-client
+anaconda -t <TOKEN> upload <FILEPATH>
 ```
