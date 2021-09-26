@@ -5,6 +5,7 @@ use crate::storage_setup::computed_from_local_data::*;
 use crate::storage_setup::local_storage_setup::*;
 use crate::storage_setup::remote_storage_setup::*;
 use crate::storage_setup::replication_storage_setup::*;
+use crate::storage_setup::two_tier_storage_setup::*;
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
 use aorist_primitives::{AoristConcept, ConceptEnum};
@@ -25,6 +26,8 @@ pub enum StorageSetup {
     RemoteStorageSetup(AoristRef<RemoteStorageSetup>),
     #[constrainable]
     LocalStorageSetup(AoristRef<LocalStorageSetup>),
+    #[constrainable]
+    TwoTierStorageSetup(AoristRef<TwoTierStorageSetup>),
 }
 
 impl StorageSetup {
@@ -34,6 +37,10 @@ impl StorageSetup {
             Self::ReplicationStorageSetup(x) => x.0.read().unwrap().targets.clone(),
             Self::ComputedFromLocalData(x) => vec![x.0.read().unwrap().target.clone()],
             Self::LocalStorageSetup(x) => vec![x.0.read().unwrap().local.clone()],
+            Self::TwoTierStorageSetup(x) => vec![
+                x.0.read().unwrap().scratch.clone(),
+                x.0.read().unwrap().persistent.clone(),
+            ],
         }
     }
     pub fn get_tmp_dir(&self) -> String {
@@ -42,6 +49,7 @@ impl StorageSetup {
             Self::RemoteStorageSetup(_) => panic!("RemoteStorageSetup has no tmp_dir"),
             Self::ComputedFromLocalData(x) => x.0.read().unwrap().tmp_dir.clone(),
             Self::LocalStorageSetup(x) => x.0.read().unwrap().tmp_dir.clone(),
+            Self::TwoTierStorageSetup(x) => x.0.read().unwrap().tmp_dir.clone(),
         }
     }
     pub fn replicate_to_local(
@@ -61,10 +69,22 @@ impl StorageSetup {
             _ => panic!("Only assets with RemoteStorageSetup can be replicated"),
         }
     }
+    pub fn persist_local(&self, persistent: AoristRef<Storage>) -> Self {
+        match self {
+            Self::LocalStorageSetup(x) => Self::TwoTierStorageSetup(AoristRef(Arc::new(
+                RwLock::new(x.0.read().unwrap().persist(persistent)),
+            ))),
+            _ => panic!("Only assets with LocalStorageSetup can be persisted"),
+        }
+    }
 }
 #[cfg(feature = "python")]
 #[pymethods]
 impl PyStorageSetup {
+    #[getter]
+    pub fn tmp_dir(&self) -> String {
+        self.inner.0.read().unwrap().get_tmp_dir()
+    }
     #[getter]
     pub fn local(&self) -> Vec<PyStorage> {
         self.inner

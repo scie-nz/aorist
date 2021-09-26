@@ -95,31 +95,30 @@ impl Context {
         debug!("Captured ({}, {})", &key, &value);
         value
     }
+    fn missing_key_error(&self, key: String) -> PyErr {
+        PyValueError::new_err(format!(
+            "Could not find key {} in context.\nContext contents: {:?}", 
+            key,
+            &self.inner
+        ))
+    }
+    
     pub fn get(&self, key: String) -> PyResult<String> {
         match self.inner.get(&key) {
             Some(x) => x.string(),
-            None => Err(PyValueError::new_err(format!(
-                "Could not find key {} in context",
-                key
-            ))),
+            None => Err(self.missing_key_error(key)),
         }
     }
     pub fn get_int(&self, key: String) -> PyResult<i64> {
         match self.inner.get(&key) {
             Some(x) => x.integer(),
-            None => Err(PyValueError::new_err(format!(
-                "Could not find key {} in context",
-                key
-            ))),
+            None => Err(self.missing_key_error(key)),
         }
     }
     pub fn get_bool(&self, key: String) -> PyResult<bool> {
         match self.inner.get(&key) {
             Some(x) => x.boolean(),
-            None => Err(PyValueError::new_err(format!(
-                "Could not find key {} in context",
-                key
-            ))),
+            None => Err(self.missing_key_error(key)),
         }
     }
 }

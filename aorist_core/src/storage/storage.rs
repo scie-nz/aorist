@@ -3,6 +3,7 @@ use crate::encoding::*;
 use crate::storage::bigquery_storage::*;
 use crate::storage::git_storage::*;
 use crate::storage::hive_table_storage::*;
+use crate::storage::inline_blob_storage::*;
 use crate::storage::local_file_storage::*;
 use crate::storage::postgres_storage::*;
 use crate::storage::remote_storage::*;
@@ -32,6 +33,8 @@ pub enum Storage {
     PostgresStorage(AoristRef<PostgresStorage>),
     #[constrainable]
     BigQueryStorage(AoristRef<BigQueryStorage>),
+    #[constrainable]
+    InlineBlobStorage(AoristRef<InlineBlobStorage>),
 }
 
 impl Storage {
@@ -41,6 +44,7 @@ impl Storage {
             Self::HiveTableStorage(x) => Some(x.0.read().unwrap().encoding.clone()),
             Self::LocalFileStorage(x) => Some(x.0.read().unwrap().encoding.clone()),
             Self::GitStorage(x) => Some(x.0.read().unwrap().encoding.clone()),
+            Self::InlineBlobStorage(x) => Some(x.0.read().unwrap().encoding.clone()),
             Self::SQLiteStorage(_) => None,
             Self::PostgresStorage(_) => None,
             Self::BigQueryStorage(_) => None,

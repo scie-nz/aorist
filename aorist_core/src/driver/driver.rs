@@ -9,7 +9,7 @@ use crate::dialect::Dialect;
 use crate::flow::{FlowBuilderBase, FlowBuilderMaterialize};
 use crate::parameter_tuple::ParameterTuple;
 use crate::program::TOuterProgram;
-use crate::task_name_shortener::TaskNameShortener;
+//use crate::task_name_shortener::TaskNameShortener;
 use anyhow::Result;
 use aorist_ast::{AncestorRecord, SimpleIdentifier, AST};
 use aorist_primitives::TAoristObject;
@@ -57,43 +57,45 @@ where
     type CB: ConstraintBlock<'a, <D as FlowBuilderBase<U>>::T, B::OuterType, U, P>;
 
     fn get_relevant_builders(topline_constraint_names: &LinkedHashSet<String>) -> Vec<B> {
-        let mut builders = B::builders()
-            .into_iter()
-            .map(|x| (x.get_constraint_name(), x))
-            .collect::<LinkedHashMap<String, _>>();
-        let mut builder_q = topline_constraint_names
-            .clone()
-            .into_iter()
-            .map(|x| {
-                (
-                    x.clone(),
-                    builders
-                        .remove(&x)
-                        .expect(format!("Missing constraint named {}", x).as_str()),
-                )
-            })
-            .collect::<VecDeque<_>>();
-        let mut relevant_builders = LinkedHashMap::new();
+        
         let mut visited = HashSet::new();
+        let mut relevant_builders = LinkedHashMap::new();
         let mut g: LinkedHashMap<String, LinkedHashSet<String>> = LinkedHashMap::new();
         let mut rev: HashMap<String, Vec<String>> = HashMap::new();
 
-        while builder_q.len() > 0 {
-            let (key, builder) = builder_q.pop_front().unwrap();
-            let edges = g.entry(key.clone()).or_insert(LinkedHashSet::new());
-            debug!("Constraint {} requires:", key);
-            for req in builder.get_required_constraint_names() {
-                debug!("  - {}", req);
-                if !visited.contains(&req) {
-                    let another = builders.remove(&req).unwrap();
-                    builder_q.push_back((req.clone(), another));
-                    visited.insert(req.clone());
+        for start in topline_constraint_names {
+            let mut builders = B::builders()
+                .into_iter()
+                .map(|x| (x.get_constraint_name(), x))
+                .collect::<LinkedHashMap<String, _>>();
+            
+            let constraint = builders
+                .remove(start)
+                .expect(format!("Missing constraint named {}", start).as_str());
+            let mut builder_q = vec![(start.clone(), constraint)]
+                .into_iter()
+                .collect::<VecDeque<_>>();
+            
+            while builder_q.len() > 0 {
+                let (key, builder) = builder_q.pop_front().unwrap();
+                let edges = g.entry(key.clone()).or_insert(LinkedHashSet::new());
+                debug!("Constraint {} requires:", key);
+                for req in builder.get_required_constraint_names() {
+                    debug!("  - {}", req);
+                    if !visited.contains(&req) {
+                        let another = match builders.remove(&req) {
+                            Some(x) => x,
+                            None => panic!("Cannot find {} in builders.", req),
+                        };
+                        builder_q.push_back((req.clone(), another));
+                        visited.insert(req.clone());
+                    }
+                    edges.insert(req.clone());
+                    let rev_edges = rev.entry(req.clone()).or_insert(Vec::new());
+                    rev_edges.push(key.clone());
                 }
-                edges.insert(req.clone());
-                let rev_edges = rev.entry(req.clone()).or_insert(Vec::new());
-                rev_edges.push(key.clone());
+                relevant_builders.insert(key.clone(), builder);
             }
-            relevant_builders.insert(key.clone(), builder);
         }
         let mut sorted_builders = Vec::new();
         while g.len() > 0 {
@@ -266,7 +268,7 @@ where
     )> {
         debug!("Processing constraint block: {}", constraint_name);
 
-        // TODO: this could be done once for the entire set of blocks
+        /* TODO: this could be done once for the entire set of blocks
         let to_shorten_constraint_block_names = self
             .get_blocks()
             .iter()
@@ -274,10 +276,14 @@ where
             .chain(vec![constraint_name.clone()].into_iter())
             .collect();
         let shortened_names =
-            TaskNameShortener::new(to_shorten_constraint_block_names, "_".to_string()).run();
+            TaskNameShortener::new(
+                to_shorten_constraint_block_names,
+                "_".to_string(),
+                HashSet::new()
+            ).run();
         let shortened_name = shortened_names.into_iter().last().unwrap();
         debug!("Shortened constraint block name: {}", shortened_name);
-
+        */
         // (call, constraint_name, root_name) => (uuid, call parameters)
         let mut calls: HashMap<(String, String, String), Vec<(String, ParameterTuple)>> =
             HashMap::new();
@@ -306,28 +312,41 @@ where
         let mut processed = HashMap::new();
         let mut reduced_block = LinkedHashMap::new();
         for (dialect, satisfied) in by_dialect.into_iter() {
-            let mut unique: HashMap<_, Vec<_>> = HashMap::new();
-            for (c, id) in satisfied.into_iter() {
-                let key = c.read().unwrap().get_dedup_key();
-                trace!("Dedup key: {:?}", key);
-                unique.entry(key).or_insert(Vec::new()).push((c, id));
-            }
-            let mut unique_constraints = Vec::new();
-            let mut uuid_mappings: HashMap<Uuid, Vec<Uuid>> = HashMap::new();
-            for (_, v) in unique {
-                let mut it = v.into_iter();
-                let first = it.next().unwrap();
-                let uuid = first.0.read().unwrap().get_constraint_uuid().unwrap();
-                reduced_block.insert(first.1.clone(), first.0.clone());
-                unique_constraints.push(first.0);
-                uuid_mappings.insert(uuid, Vec::new());
-                while let Some((elem, _)) = it.next() {
-                    let elem_uuid = elem.read().unwrap().get_constraint_uuid().unwrap();
-                    trace!("Inserted Uuid mapping: {} -> {}", &uuid, &elem_uuid);
-                    uuid_mappings.get_mut(&uuid).unwrap().push(elem_uuid);
+            if dialect.is_some() {
+                let mut unique: HashMap<_, Vec<_>> = HashMap::new();
+                for (c, id) in satisfied.into_iter() {
+                    let key = c.read().unwrap().get_dedup_key();
+                    trace!("Dedup key: {:?}", key);
+                    unique.entry(key).or_insert(Vec::new()).push((c, id));
+                }
+                let mut unique_constraints = Vec::new();
+                let mut uuid_mappings: HashMap<Uuid, Vec<Uuid>> = HashMap::new();
+                for (_, v) in unique {
+                    let mut it = v.into_iter();
+                    let first = it.next().unwrap();
+                    let uuid = first.0.read().unwrap().get_constraint_uuid().unwrap();
+                    reduced_block.insert(first.1.clone(), first.0.clone());
+                    unique_constraints.push(first.0);
+                    uuid_mappings.insert(uuid, Vec::new());
+                    while let Some((elem, _)) = it.next() {
+                        let elem_uuid = elem.read().unwrap().get_constraint_uuid().unwrap();
+                        trace!("Inserted Uuid mapping: {} -> {}", &uuid, &elem_uuid);
+                        uuid_mappings.get_mut(&uuid).unwrap().push(elem_uuid);
+                    }
+                }
+                processed.insert(dialect, (unique_constraints, uuid_mappings));
+            } else {
+                processed.insert(dialect, (
+                    satisfied.iter().map(|(c, _)| c.clone()).collect(),
+                    satisfied.iter().map(|(c, id)| ( 
+                        c.read().unwrap().get_constraint_uuid().unwrap(),
+                        vec![c.read().unwrap().get_constraint_uuid().unwrap()]
+                    )).collect()
+                ));
+                for elem in &satisfied {
+                    reduced_block.insert(elem.1.clone(), elem.0.clone());
                 }
             }
-            processed.insert(dialect, (unique_constraints, uuid_mappings));
         }
         ConstraintState::shorten_task_names(&reduced_block, existing_names);
         let tasks_dict = match processed.values().map(|x| x.0.len()).sum::<usize>() == 1 {
@@ -346,7 +365,8 @@ where
             >>::C::new(
                 //satisfied,
                 unique_constraints,
-                shortened_name.clone(),
+                constraint_name.clone(),
+                //shortened_name.clone(),
                 tasks_dict.clone(),
                 identifiers,
             )?;
@@ -425,7 +445,7 @@ where
     fn get_programs_for(&self, constraint_name: &String) -> Vec<P>;
     fn get_endpoints(&self) -> U::TEndpoints;
     fn get_dependencies(&self) -> Vec<String>;
-    fn run(&mut self) -> Result<(String, Vec<String>)> {
+    fn run(&mut self, flow_name: Option<String>) -> Result<(String, Vec<String>)> {
         self.satisfy_constraints()?;
         let etl = D::new();
         let endpoints = self.get_endpoints().clone();
@@ -436,7 +456,7 @@ where
             .collect::<Vec<_>>();
 
         Ok((
-            etl.materialize(statements_and_preambles)?,
+            etl.materialize(statements_and_preambles, flow_name)?,
             self.get_dependencies(),
         ))
     }
@@ -658,7 +678,7 @@ where
             (Uuid, String),
             Arc<RwLock<ConstraintState<'a, B::OuterType, P>>>,
         > = Self::generate_constraint_states_map(constraints, concepts, ancestors)?;
-        Self::remove_redundant_dependencies(&mut raw_unsatisfied_constraints);
+        //Self::remove_redundant_dependencies(&mut raw_unsatisfied_constraints);
         Self::remove_superfluous_dummy_tasks(&mut raw_unsatisfied_constraints)?;
         Self::remove_dangling_dummy_tasks(&mut raw_unsatisfied_constraints)?;
 
@@ -863,58 +883,62 @@ where
             for root in root_concepts {
                 let root_key = (root.get_uuid(), root.get_type());
                 let family_tree = family_trees.get(&root_key).unwrap();
-
-                let raw_potential_child_constraints = builder
-                    .get_required_constraint_names()
-                    .into_iter()
-                    .map(|req| (req.clone(), generated_constraints.get(&req)))
-                    .filter(|(_req, x)| x.is_some())
-                    .map(|(req, x)| (req, x.unwrap()))
-                    .collect::<Vec<_>>();
-                if level_enabled!(Level::DEBUG) {
-                    debug!(
+                if builder.should_add(root.clone(), &ancestry) {
+                    let raw_potential_child_constraints = builder
+                        .get_required_constraint_names()
+                        .into_iter()
+                        .map(|req| (req.clone(), generated_constraints.get(&req)))
+                        .filter(|(_req, x)| x.is_some())
+                        .map(|(req, x)| (req, x.unwrap()))
+                        .collect::<Vec<_>>();
+                    if level_enabled!(Level::DEBUG) {
+                        debug!(
                         "Creating constraint {:?} on root {:?} with potential child constraints:",
                         builder.get_constraint_name(),
                         &root_key
                     );
-                    for (required_constraint_name, map) in raw_potential_child_constraints.iter() {
-                        debug!(" - for {}:", required_constraint_name);
-                        for (key, v) in map.iter() {
-                            let downstream = v.read().unwrap();
-                            debug!(
-                                " -- {:?}: {:?}",
-                                key,
-                                (downstream.get_uuid()?, downstream.get_name())
-                            );
+                        for (required_constraint_name, map) in
+                            raw_potential_child_constraints.iter()
+                        {
+                            debug!(" - for {}:", required_constraint_name);
+                            for (key, v) in map.iter() {
+                                let downstream = v.read().unwrap();
+                                debug!(
+                                    " -- {:?}: {:?}",
+                                    key,
+                                    (downstream.get_uuid()?, downstream.get_name())
+                                );
+                            }
                         }
                     }
-                }
-                let other_required_concept_uuids = builder
-                    .get_required(root.clone(), &ancestry)
-                    .into_iter()
-                    .collect::<HashSet<_>>();
-                if other_required_concept_uuids.len() > 0 {
-                    trace!(
-                        "Found {} other required concept uuids for root {:?}",
-                        other_required_concept_uuids.len(),
-                        root.get_uuid()
-                    );
-                }
-                let potential_child_constraints = raw_potential_child_constraints
-                    .into_iter()
-                    .map(|(_req, x)| {
-                        x.iter()
-                            .filter(|((potential_root_id, potential_root_type), _constraint)| {
-                                (match family_tree.get(potential_root_type) {
-                                    None => false,
-                                    Some(set) => set.contains(potential_root_id),
-                                } || other_required_concept_uuids.contains(potential_root_id))
-                            })
-                            .map(|(_, constraint)| constraint.clone())
-                    })
-                    .flatten()
-                    .collect::<Vec<Arc<RwLock<B::OuterType>>>>();
-                if builder.should_add(root.clone(), &ancestry) {
+                    let other_required_concept_uuids = builder
+                        .get_required(root.clone(), &ancestry)
+                        .into_iter()
+                        .collect::<HashSet<_>>();
+                    if other_required_concept_uuids.len() > 0 {
+                        trace!(
+                            "Found {} other required concept uuids for root {:?}",
+                            other_required_concept_uuids.len(),
+                            root.get_uuid()
+                        );
+                    }
+                    let potential_child_constraints = raw_potential_child_constraints
+                        .into_iter()
+                        .map(|(_req, x)| {
+                            x.iter()
+                                .filter(
+                                    |((potential_root_id, potential_root_type), _constraint)| {
+                                        (match family_tree.get(potential_root_type) {
+                                            None => false,
+                                            Some(set) => set.contains(potential_root_id),
+                                        } || other_required_concept_uuids
+                                            .contains(potential_root_id))
+                                    },
+                                )
+                                .map(|(_, constraint)| constraint.clone())
+                        })
+                        .flatten()
+                        .collect::<Vec<Arc<RwLock<B::OuterType>>>>();
                     if level_enabled!(Level::DEBUG) {
                         debug!("After filtering:",);
                         for downstream_rw in potential_child_constraints.iter() {

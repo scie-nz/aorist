@@ -162,6 +162,9 @@ impl Builder for EnumBuilder {
           #[cfg(feature = "python")]
           #[pyo3::prelude::pymethods]
           impl [<Py #enum_name>] {
+              pub fn deep_clone(&self) -> Self {
+                  Self { inner: self.inner.deep_clone() }
+              }
               #[staticmethod]
               pub fn is_enum_type() -> bool {
                   true

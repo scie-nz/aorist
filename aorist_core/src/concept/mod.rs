@@ -24,11 +24,12 @@ impl<'a, T: PartialEq + Serialize + Debug + Clone + FromPyObject<'a>> FromPyObje
     }
 }
 
-impl<T: PartialEq + Serialize + Debug + Clone> PartialEq for AoristRef<T> {
+impl<T: PartialEq + Eq + Serialize + Debug + Clone> PartialEq for AoristRef<T> {
     fn eq(&self, other: &Self) -> bool {
         self.0.read().unwrap().eq(&other.0.read().unwrap())
     }
 }
+impl<T: PartialEq + Eq + Serialize + Debug + Clone> Eq for AoristRef<T> {}
 impl<T: PartialEq + Serialize + Debug + Clone> Serialize for AoristRef<T> {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
@@ -105,8 +106,6 @@ register_concept!(
     SVMRegressionAlgorithm,
     Asset,
     StaticDataTable,
-    SupervisedModel,
-    DerivedAsset,
     Attribute,
     Predicate,
     APILayout,
@@ -187,9 +186,58 @@ register_concept!(
     TextCorpusSchema,
     SQLiteEncoding,
     NamedEntities,
-    SpacyNamedEntitySchema,
     NamedEntitySchema,
-    TextCorpusSource,
     LanguageAsset,
-    LanguageAssetSchema
+    LanguageAssetSchema,
+    GeoTiffEncoding,
+    CompressedFileCollectionLayout,
+    GeospatialAssetSchema,
+    RasterSchema,
+    Tensor,
+    RasterAsset,
+    PointCloud,
+    GeospatialAsset,
+    PointCloudSchema,
+    PointCloudAsset,
+    LASEncoding,
+    LAZCompression,
+    PointCloudInfo,
+    PointCloudInfoSchema,
+    PointCloudMetadataSchema,
+    PointCloudBoundarySchema,
+    DirectoryLayout,
+    PolygonCollectionAsset,
+    LINZPrimaryParcelsSchema,
+    LINZPropertyTitlesSchema,
+    TwoTierStorageSetup,
+    TabularCollectionSchema,
+    Polygon,
+    InlineBlobStorage,
+    WKTEncoding,
+    PolygonSchema,
+    PointCloudInfoAsset,
+    PointCloudMetadataAsset,
+    TextCorpus,
+    SpaCyNamedEntitySchema,
+    Text,
+    PointCloudBoundingBoxSchema,
+    PolygonIntersection,
+    PolygonIntersectionSchema,
+    PolygonIntersectionAsset,
+    PointCloudSubsetSchema,
+    RasterFromPointCloudSchema,
+    RasterDifferenceSchema,
+    PolygonFromRasterSchema,
+    Raster,
+    NormalizedPointCloudSchema,
+    LabeledPointCloudSchema,
+    TAODaSilvaSegmentationSchema,
+    TAOLiSegmentationSchema,
+    TAOWatershedSegmentationSchema,
+    PointCloudTransformationSchema,
+    PointCloudRasterDifferenceSchema,
+    TAOCrownHullSchema,
+    TreeDetectionSchema,
+    ShapefileEncoding,
+    GDALFillNoDataSchema
 );

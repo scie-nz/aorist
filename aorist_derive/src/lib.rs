@@ -467,7 +467,7 @@ pub fn derive_postgres_interval(input: TokenStream) -> TokenStream {
             fn get_postgres_type(&self) -> String {
                 "INTERVAL".to_string()
             }
-            // not JSON-serializable
+            // not JSON-serializable (TODO GeoJSON?)
             fn psycopg2_value_json_serializable(&self) -> bool {
                 false
             }
@@ -995,4 +995,22 @@ fn optimize_struct_fields(fields: &Punctuated<Field, Comma>, input: &DeriveInput
         }
     }
     })
+}
+
+#[proc_macro_derive(PostgresGeometry)]
+pub fn derive_postgres_geometry(input: TokenStream) -> TokenStream {
+    let ast: syn::DeriveInput = syn::parse(input).unwrap();
+    let name = &ast.ident;
+    let gen = quote! {
+        impl TPostgresAttribute for #name {
+            fn get_postgres_type(&self) -> String {
+                "GEOMETRY".to_string()
+            }
+            // not JSON-serializable
+            fn psycopg2_value_json_serializable(&self) -> bool {
+                false
+            }
+        }
+    };
+    gen.into()
 }

@@ -3,7 +3,14 @@ use crate::concept::{AoristRef, WrappedConcept};
 use crate::template::filter::*;
 use crate::template::identifier_tuple::*;
 use crate::template::measure::*;
+use crate::template::point_cloud::*;
+use crate::template::point_cloud_info::*;
+use crate::template::polygon::*;
+use crate::template::polygon_intersection::*;
 use crate::template::row_struct::*;
+use crate::template::raster::*;
+use crate::template::tensor::*;
+use crate::template::text::*;
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
 use aorist_primitives::{AoristConcept, ConceptEnum};
@@ -26,6 +33,13 @@ pub enum DatumTemplate {
     IdentifierTuple(AoristRef<IdentifierTuple>),
     IntegerMeasure(AoristRef<IntegerMeasure>),
     Filter(AoristRef<Filter>),
+    Tensor(AoristRef<Tensor>),
+    PointCloud(AoristRef<PointCloud>),
+    PointCloudInfo(AoristRef<PointCloudInfo>),
+    Polygon(AoristRef<Polygon>),
+    PolygonIntersection(AoristRef<PolygonIntersection>),
+    Raster(AoristRef<Raster>),
+    Text(AoristRef<Text>),
 }
 impl DatumTemplate {
     pub fn get_type(&self) -> String {
@@ -38,6 +52,13 @@ impl DatumTemplate {
                 "PredictionsFromTrainedFloatMeasure"
             }
             DatumTemplate::Filter(_) => "Filter",
+            DatumTemplate::Tensor(_) => "Tensor",
+            DatumTemplate::PointCloud(_) => "PointCloud",
+            DatumTemplate::PointCloudInfo(_) => "PointCloudInfo",
+            DatumTemplate::Polygon(_) => "Polygon",
+            DatumTemplate::PolygonIntersection(_) => "PolygonIntersection",
+            DatumTemplate::Text(_) => "Text",
+            DatumTemplate::Raster(_) => "Raster",
         }
         .to_string()
     }
@@ -51,6 +72,13 @@ impl TDatumTemplate for DatumTemplate {
             DatumTemplate::TrainedFloatMeasure(x) => x.get_name(),
             DatumTemplate::PredictionsFromTrainedFloatMeasure(x) => x.0.read().unwrap().get_name(),
             DatumTemplate::Filter(x) => x.0.read().unwrap().get_name(),
+            DatumTemplate::Tensor(x) => x.0.read().unwrap().get_name(),
+            DatumTemplate::PointCloud(x) => x.0.read().unwrap().get_name(),
+            DatumTemplate::PointCloudInfo(x) => x.0.read().unwrap().get_name(),
+            DatumTemplate::Polygon(x) => x.0.read().unwrap().get_name(),
+            DatumTemplate::PolygonIntersection(x) => x.0.read().unwrap().get_name(),
+            DatumTemplate::Text(x) => x.0.read().unwrap().get_name(),
+            DatumTemplate::Raster(x) => x.0.read().unwrap().get_name(),
         }
     }
     fn get_attributes(&self) -> Vec<AoristRef<Attribute>> {
@@ -63,6 +91,13 @@ impl TDatumTemplate for DatumTemplate {
                 x.0.read().unwrap().get_attributes()
             }
             DatumTemplate::Filter(x) => x.0.read().unwrap().get_attributes(),
+            DatumTemplate::Tensor(x) => x.0.read().unwrap().get_attributes(),
+            DatumTemplate::PointCloud(x) => x.0.read().unwrap().get_attributes(),
+            DatumTemplate::PointCloudInfo(x) => x.0.read().unwrap().get_attributes(),
+            DatumTemplate::Polygon(x) => x.0.read().unwrap().get_attributes(),
+            DatumTemplate::PolygonIntersection(x) => x.0.read().unwrap().get_attributes(),
+            DatumTemplate::Text(x) => x.0.read().unwrap().get_attributes(),
+            DatumTemplate::Raster(x) => x.0.read().unwrap().get_attributes(),
         }
     }
 }
@@ -79,5 +114,9 @@ impl PyDatumTemplate {
             .into_iter()
             .map(|x| PyAttribute { inner: x })
             .collect())
+    }
+    #[getter]
+    pub fn get_name(&self) -> String {
+        self.inner.0.read().unwrap().get_name()
     }
 }

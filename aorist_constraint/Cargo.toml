@@ -31,7 +31,7 @@ maplit = "1.0.2"
 aorist_paste = "0.0.1"
 uuid = {version = "0.8.1", features = ["v4", "serde"]}
 anyhow = "1.0"
-pyo3 = {version = "0.14.1", features=["auto-initialize", "multiple-pymethods"], optional = true}
+pyo3 = {version = "0.14.4", features=["auto-initialize", "multiple-pymethods"], optional = true}
 aorist_extendr-api = {version = "0.0.1", optional = true}
 aorist_extendr-engine = {version = "0.0.1", optional = true}
 sqlformat = {version = "0.1.5", optional = true}

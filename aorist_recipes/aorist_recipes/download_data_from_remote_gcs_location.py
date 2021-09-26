@@ -20,31 +20,27 @@ programs = {}
             context,
         ),
         "_is_json": lambda replication_storage_setup, context: (
-            context.capture(
+            context.capture_bool(
                 "is_json",
-                dumps(replication_storage_setup.source.encoding.newline_delimited_json_encoding is not None),
+                replication_storage_setup.source.encoding.newline_delimited_json_encoding is not None,
             ),
             context,
         ),
         "_delimiter": lambda replication_storage_setup, context: (
             context.capture(
                 "delimiter",
-                dumps(
-                    "\\t" if replication_storage_setup.source.encoding.tsv_encoding is not None
-                    else "," if replication_storage_setup.source.encoding.csv_encoding is not None 
-                    else None
-                ),
+                "\t" if replication_storage_setup.source.encoding.tsv_encoding is not None
+                else "," if replication_storage_setup.source.encoding.csv_encoding is not None 
+                else None
             ),
             context,
         ),
         "_header_num_lines": lambda replication_storage_setup, context: (
-            context.capture(
+            context.capture_int(
                 "header_num_lines",
-                dumps(
-                    replication_storage_setup.source.encoding.header.num_lines 
-                    if replication_storage_setup.source.encoding.header is not None 
-                    else 0
-                ),
+                replication_storage_setup.source.encoding.header.num_lines 
+                if replication_storage_setup.source.encoding.header is not None 
+                else 0,
             ),
             context,
         ),
@@ -58,10 +54,10 @@ programs = {}
         ), context)
     },
 )
-def recipe(bucket_name, blob_name, tmp_dir, dest, credentials, _is_json, _delimiter, _header_num_lines):
+def recipe(bucket_name, blob_name, tmp_dir, dest, credentials):
     from google.cloud import storage
     import os
-    def download_blob_to_file(bucket_name, blob_name, tmp_dir, dest, credentials, _is_json, _delimiter, _header_num_lines):
+    def download_blob_to_file(bucket_name, blob_name, tmp_dir, dest, credentials):
       if credentials != "":
           client = storage.Client.from_service_account_json(credentials)
       else:

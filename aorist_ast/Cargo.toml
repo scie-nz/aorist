@@ -15,10 +15,12 @@ repository = "https://github.com/scie-nz/aorist"
 aorist_concept = {path = "../aorist_concept", version = "0.0.1"}
 aorist_derive = {path = "../aorist_derive", version = "0.0.1"}
 aorist_primitives = {path = "../aorist_primitives", features = ["python"], version = "0.0.14"}
+aorist_attributes = {path = "../aorist_attributes", features = ["python"], version = "0.0.14"}
 # workaround for failure to build on ARM on 0.2.0
 # switch back to upstream once a >0.2.0 release with this commit is published: https://github.com/extendr/extendr/commit/da8c95c
 aorist_extendr-api = "0.0.1"
 Inflector = "0.11.4"
 linked-hash-map = "0.5.3"
-pyo3 = {version = "0.14.1", features=["auto-initialize", "multiple-pymethods"]}
+pyo3 = {version = "0.14.4", features=["auto-initialize", "multiple-pymethods"]}
 uuid = {version = "0.8.1", features = ["v4", "serde"]}
+tracing = "0.1"

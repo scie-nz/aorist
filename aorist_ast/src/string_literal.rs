@@ -14,6 +14,7 @@ pub struct StringLiteral {
 
 impl StringLiteral {
     pub fn new(value: String, is_sql: bool) -> Self {
+        assert!(value.len() > 0 || !is_sql);
         Self {
             value,
             is_sql,
@@ -50,7 +51,9 @@ impl StringLiteral {
             .filter(|x| x.len() > 0)
             .map(|x| x.to_string())
             .collect();
-        assert!(splits.len() > 0);
+        if splits.len() == 0 {
+            panic!("Cannot pretify SQL value: {}", self.value);
+        }
         if splits.len() == 1 {
             return splits.into_iter().next().unwrap();
         }

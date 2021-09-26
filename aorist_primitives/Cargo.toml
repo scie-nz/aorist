@@ -18,7 +18,7 @@ serde_yaml = "0.8"
 uuid = {version = "0.8.1", features = ["v4", "serde"]}
 siphasher = "0.3"
 tracing = "0.1"
-pyo3 = {version = "0.14.1", features=["auto-initialize", "multiple-pymethods"], optional = true}
+pyo3 = {version = "0.14.4", features=["auto-initialize", "multiple-pymethods"], optional = true}
 
 [features]
 python = ["pyo3"]

@@ -3,7 +3,6 @@ use crate::constraint::OuterConstraint;
 use crate::dialect::Dialect;
 use crate::parameter_tuple::ParameterTuple;
 use crate::program::TOuterProgram;
-use crate::task_name_shortener::TaskNameShortener;
 use anyhow::{bail, Result};
 use aorist_ast::{AncestorRecord, Formatted, SimpleIdentifier, StringLiteral, AST};
 use aorist_primitives::Context;
@@ -13,7 +12,7 @@ use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
 use std::collections::{HashMap, HashSet};
 use std::sync::{Arc, RwLock};
-use tracing::{level_enabled, trace, Level};
+use tracing::{level_enabled, trace, Level, debug};
 use uuid::Uuid;
 
 pub struct ConstraintState<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry = T::TAncestry>> {
@@ -42,6 +41,7 @@ impl<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry = T::TAncestry>>
         dependency: &Arc<RwLock<ConstraintState<'a, T, P>>>,
         uuid: &(Uuid, String),
     ) {
+        debug!("Marked dependency {} as satisfied.", dependency.read().unwrap().get_name());
         let dependency_context = &(*dependency.read().unwrap()).context;
         self.satisfied_dependencies.push(dependency.clone());
         self.context.insert(dependency_context);
@@ -304,26 +304,29 @@ impl<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry = T::TAncestry>>
     }
     pub fn shorten_task_names(
         constraints: &LinkedHashMap<(Uuid, String), Arc<RwLock<ConstraintState<'a, T, P>>>>,
-        existing_names: &mut HashSet<String>,
+        _existing_names: &mut HashSet<String>,
     ) {
         let mut task_names: Vec<(String, Arc<RwLock<ConstraintState<'a, T, P>>>)> = Vec::new();
         for constraint in constraints.values() {
             let mut write = constraint.write().unwrap();
             write.compute_task_key();
             let fqn = write.get_fully_qualified_task_name();
+            write.set_task_name(fqn.clone());
             drop(write);
             task_names.push((fqn, constraint.clone()));
         }
-        let to_shorten_task_names = task_names.iter().map(|(x, _)| x.clone()).collect();
+        /*let mut to_shorten_task_names = task_names.iter().map(|(x, _)| x.clone()).collect();
         let shortened_task_names_1 =
-            TaskNameShortener::new(to_shorten_task_names, "____".to_string()).run();
+            TaskNameShortener::new(to_shorten_task_names, "____".to_string(),
+                                   existing_names.clone()).run();
         let shortened_task_names_2 =
-            TaskNameShortener::new(shortened_task_names_1, "_".to_string()).run();
+            TaskNameShortener::new(shortened_task_names_1, "_".to_string(),
+                                   existing_names.clone()).run();
         for (i, (_, rw)) in task_names.iter().enumerate() {
-            let name = shortened_task_names_2.get(i).unwrap().clone();
+            let name = shortened_task_names_1.get(i).unwrap().clone();
             let mut write = rw.write().unwrap();
             existing_names.insert(name.clone());
             write.set_task_name(name.replace("____", "__"));
-        }
+        }*/
     }
 }

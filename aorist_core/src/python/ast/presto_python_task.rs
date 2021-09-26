@@ -50,10 +50,17 @@ def execute_trino_sql(query):
             'redistribute_writes': False,
         }}
     )
-    cursor = connection.cursor()
-    cursor.execute(query)
-    print('Ran query:\\n %s' % query)
-    return cursor.fetchall()
+    if isinstance(query, list):
+        for q in query:
+            cursor = connection.cursor()
+            cursor.execute(q)
+            cursor.fetchall()
+            print('Ran query: ' + chr(10) + ' ' + q)
+    else:
+        cursor = connection.cursor()
+        cursor.execute(query)
+        print('Ran query: ' + chr(10) + ' ' + query)
+        cursor.fetchall()
 ",
             host = self.endpoint.server,
             user = self.endpoint.user,
@@ -66,20 +73,25 @@ def execute_trino_sql(query):
         })
     }
     fn get_call(&self) -> AST {
+        let query;
+        if let AST::StringLiteral(ref s) = self.sql {
+            if s.read().unwrap().value() == "{queries}" {
+                query = self.kwargs.get("queries").unwrap().clone();
+            } else {
+                query = AST::Formatted(Formatted::new_wrapped(
+                    self.sql.clone(),
+                    self.kwargs.clone(),
+                ));
+            }
+        } else {
+            panic!("SQL should be StringLiteral.");
+        }
         AST::Call(Call::new_wrapped(
             AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
                 "execute_trino_sql".to_string(),
             )),
             vec![],
-            vec![(
-                "query".to_string(),
-                AST::Formatted(Formatted::new_wrapped(
-                    self.sql.clone(),
-                    self.kwargs.clone(),
-                )),
-            )]
-            .into_iter()
-            .collect(),
+            vec![("query".to_string(), query)].into_iter().collect(),
         ))
     }
 }

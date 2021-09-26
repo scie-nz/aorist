@@ -38,8 +38,12 @@ pub struct DataSet {
 }
 
 impl DataSet {
-    pub fn add_asset(&mut self, asset_name: String, asset: AoristRef<Asset>) {
-        self.assets.insert(asset_name, asset);
+    pub fn add_asset(&mut self, asset: AoristRef<Asset>) {
+        self.assets
+            .insert(asset.0.read().unwrap().get_name(), asset.clone());
+    }
+    pub fn add_template(&mut self, template: AoristRef<DatumTemplate>) {
+        self.datum_templates.push(template);
     }
     pub fn get_assets(&self) -> Vec<AoristRef<Asset>> {
         self.assets
@@ -126,12 +130,44 @@ impl PyDataSet {
 #[cfg(feature = "python")]
 #[pymethods]
 impl PyDataSet {
-    pub fn add_asset(&self, asset_name: String, asset: PyAsset) {
+    pub fn add_asset(&self, asset: PyAsset) {
+        self.inner.0.write().unwrap().add_asset(asset.inner.clone());
+    }
+    pub fn get_asset(&self, name: String) -> PyAsset {
+        PyAsset {
+            inner: self.inner.0.read().unwrap().get_asset(name).unwrap(),
+        }
+    }
+    pub fn add_template(&self, template: PyDatumTemplate) {
         self.inner
             .0
             .write()
             .unwrap()
-            .add_asset(asset_name, asset.inner.clone());
+            .add_template(template.inner.clone());
+    }
+    pub fn persist_local(&self, storage: PyStorage) -> PyResult<Self> {
+        let dt = &*self.inner.0.read().unwrap();
+        let mut persisted_assets = BTreeMap::new();
+        for (key, asset_rw) in dt.assets.iter() {
+            let asset = &*asset_rw.0.read().unwrap();
+            persisted_assets.insert(
+                key.clone(),
+                AoristRef(Arc::new(RwLock::new(
+                    asset.persist_local(storage.inner.deep_clone()),
+                ))),
+            );
+        }
+        let inner = AoristRef(Arc::new(RwLock::new(DataSet {
+            name: dt.name.clone(),
+            description: dt.description.clone(),
+            source_path: dt.source_path.clone(),
+            access_policies: dt.access_policies.clone(),
+            datum_templates: dt.datum_templates.clone(),
+            assets: persisted_assets,
+            tag: dt.tag.clone(),
+            uuid: dt.uuid.clone(),
+        })));
+        Ok(PyDataSet { inner })
     }
     pub fn replicate_to_local(
         &self,
@@ -143,14 +179,15 @@ impl PyDataSet {
         let mut replicated_assets = BTreeMap::new();
         for (key, asset_rw) in dt.assets.iter() {
             let asset = &*asset_rw.0.read().unwrap();
-            replicated_assets.insert(
-                key.clone(),
-                AoristRef(Arc::new(RwLock::new(asset.replicate_to_local(
-                    storage.inner.deep_clone(),
-                    tmp_dir.clone(),
-                    tmp_encoding.inner.deep_clone(),
-                )))),
-            );
+            let replicated_asset = match asset.replicate_to_local(
+                storage.inner.deep_clone(),
+                tmp_dir.clone(),
+                tmp_encoding.inner.deep_clone(),
+            ) {
+                Some(x) => AoristRef(Arc::new(RwLock::new(x))),
+                None => asset_rw.clone(),
+            };
+            replicated_assets.insert(key.clone(), replicated_asset);
         }
         let inner = AoristRef(Arc::new(RwLock::new(DataSet {
             name: dt.name.clone(),
@@ -165,7 +202,7 @@ impl PyDataSet {
         Ok(PyDataSet { inner })
     }
     pub fn get_template(&self, asset: PyAsset) -> PyResult<PyDatumTemplate> {
-        let schema = asset.schema()?;
+        let schema = asset.get_schema();
         let template_name = schema.get_datum_template_name()?;
         let mapped_templates = self.get_mapped_datum_templates();
         let template = mapped_templates.get(&template_name);
@@ -174,7 +211,7 @@ impl PyDataSet {
             None => Err(PyValueError::new_err(format!(
                 "Could not find template {} for asset {} in dataset {}.\nTemplate names: {}",
                 template_name,
-                asset.name()?,
+                asset.name(),
                 self.name()?,
                 mapped_templates
                     .keys()

@@ -1,9 +1,15 @@
-#![allow(non_snake_case)]
+use crate::asset::*;
+use crate::attributes::*;
 use crate::concept::{AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
-use crate::schema::text_corpus_schema::*;
+use crate::schema::data_schema::DataSchema;
+use crate::schema::derived_asset_schema::*;
+use crate::schema::language_asset_schema::LanguageAssetSchema;
+use crate::schema::text_corpus_schema::TextCorpusSchema;
 use crate::template::*;
+use aorist_attributes::*;
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
+use aorist_primitives::{attribute, derived_schema};
 use derivative::Derivative;
 #[cfg(feature = "python")]
 use pyo3::prelude::*;
@@ -11,40 +17,33 @@ use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
 use uuid::Uuid;
 
-#[aorist]
-pub struct FasttextEmbeddingSchema {
-    pub dim: usize,
-    #[constrainable]
-    pub source_schema: AoristRef<TextCorpusSchema>,
-    pub datum_template: AoristRef<DatumTemplate>,
+derived_schema! {
+    name: FasttextEmbeddingSchema,
+    source: TextCorpus,
+    attributes:
+      token: KeyStringIdentifier("token", false),
+      embedding: VectorEmbedding("embedding", false)
+    fields:
+      dim: usize
 }
+
 impl FasttextEmbeddingSchema {
     pub fn get_source_schema(&self) -> AoristRef<TextCorpusSchema> {
-        self.source_schema.clone()
-    }
-    pub fn get_attribute_names(&self) -> Vec<String> {
-        self.datum_template
+        match &*self
+            .get_source()
             .0
             .read()
             .unwrap()
-            .get_attributes()
-            .iter()
-            .map(|x| x.get_name())
-            .collect()
-    }
-}
-impl FasttextEmbeddingSchema {
-    pub fn get_datum_template(&self) -> AoristRef<DatumTemplate> {
-        self.datum_template.clone()
-    }
-}
-#[cfg(feature = "python")]
-#[pymethods]
-impl PyFasttextEmbeddingSchema {
-    #[getter]
-    pub fn datum_template(&self) -> PyDatumTemplate {
-        PyDatumTemplate {
-            inner: self.inner.0.read().unwrap().get_datum_template().clone(),
+            .get_schema()
+            .0
+            .read()
+            .unwrap()
+        {
+            DataSchema::LanguageAssetSchema(l) => match &*l.0.read().unwrap() {
+                LanguageAssetSchema::TextCorpusSchema(x) => x.clone(),
+                _ => panic!("Source schema must be TextCorpusSchema"),
+            },
+            _ => panic!("Source schema must be LanguageAssetSchema"),
         }
     }
 }

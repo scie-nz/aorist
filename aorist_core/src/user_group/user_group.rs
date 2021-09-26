@@ -6,7 +6,7 @@ use aorist_paste::paste;
 use aorist_primitives::TAoristObject;
 use derivative::Derivative;
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 use std::fmt::Debug;
 use uuid::Uuid;
 
@@ -14,15 +14,15 @@ use uuid::Uuid;
 pub struct UserGroup {
     name: String,
     members: Vec<String>,
-    labels: HashMap<String, String>,
+    labels: BTreeMap<String, String>,
     description: Option<String>,
     users: Vec<User>,
 }
 pub trait TUserGroup {
-    fn get_labels(&self) -> &HashMap<String, String>;
+    fn get_labels(&self) -> &BTreeMap<String, String>;
 }
 impl TUserGroup for UserGroup {
-    fn get_labels(&self) -> &HashMap<String, String> {
+    fn get_labels(&self) -> &BTreeMap<String, String> {
         &self.labels
     }
 }

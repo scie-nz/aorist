@@ -9,6 +9,8 @@ programs = {}
     args={
         "dim": lambda fasttext_embedding_schema: str(fasttext_embedding_schema.dim),
         "text_data_file": lambda context: (context.get("text_data_file"), context),
+        "_is_json": lambda context: (context.capture_bool("is_json", True), context),
+        "_delimiter": lambda context: (context.capture("delimiter", ""), context),
         "fasttext_word_embeddings_file": lambda fasttext_embedding, context: (
             context.capture(
                 "file_to_replicate",

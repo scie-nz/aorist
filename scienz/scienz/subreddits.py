@@ -25,6 +25,7 @@ from aorist import (
     DatumTemplate,
     Asset,
 )
+from aorist import *
 
 attributes = [
     Attribute(KeyStringIdentifier("id")),
@@ -145,3 +146,82 @@ probprog = DataSet(
     assets=build_assets(["probprog"]),
     access_policies=[],
 )
+
+### TODO: move elsewhere
+fasttext_attributes = [
+    Attribute(KeyStringIdentifier("word_id")),
+    Attribute(FreeText("word")),
+    Attribute(FreeText("embedding")),
+]
+fasttext_datum = RowStruct(
+    name="fasttext",
+    attributes=fasttext_attributes,
+)
+
+spacy_ner_attributes = [
+    Attribute(Int64Identifier("line_id")),
+    Attribute(KeyStringIdentifier("entity_id")),
+    Attribute(FreeText("entity_text")),
+    Attribute(FreeText("text")),
+    Attribute(Count("start")),
+    Attribute(Count("end")),
+    Attribute(Factor("label")),
+]
+spacy_ner_datum = RowStruct(
+    name="spacy_ner",
+    attributes=spacy_ner_attributes,
+)
+
+local = SQLiteStorage(
+    location=SQLiteLocation(file_name='probprog.sqlite'),
+    layout=TabularLayout(StaticTabularLayout()),
+)
+probprog = probprog.replicate_to_local(
+    Storage(local), "/tmp/probprog", Encoding(CSVEncoding())
+)
+source_assets = list(probprog.assets.values())
+text_template = DatumTemplate(Text(name="corpus"))
+text_corpus_schema = TextCorpusSchema(
+    sources=[x.static_data_table for x in source_assets],
+    datum_template=text_template,
+    text_attribute_name="title",
+)
+text_corpus = TextCorpus(
+    name="text_corpus",
+    comment="Subreddit text corpus",
+    schema=DataSchema(LanguageAssetSchema(text_corpus_schema)),
+    setup=StorageSetup(LocalStorageSetup(
+        Storage(local),
+        '/tmp/probprog',
+    )),
+)
+probprog.add_asset(Asset(LanguageAsset(text_corpus)))
+
+embedding = FasttextEmbedding(
+    name="embedding",
+    comment="Fasttext embedding of size 128",
+    schema=DataSchema(LanguageAssetSchema(FasttextEmbeddingSchema(
+        dim=16,
+        source=text_corpus,
+        datum_template=DatumTemplate(fasttext_datum)
+    ))),
+    setup=StorageSetup(LocalStorageSetup(
+        Storage(local),
+        '/tmp/probprog',
+    )),
+)
+probprog.add_asset(Asset(LanguageAsset(embedding)))
+named_entities = NamedEntities(
+    name="named_entities",
+    comment="SpaCy Named Entities",
+    schema=DataSchema(LanguageAssetSchema(NamedEntitySchema(SpaCyNamedEntitySchema(
+        spacy_model_name="en_core_web_sm",
+        source=text_corpus,
+        datum_template=DatumTemplate(spacy_ner_datum),
+    )))),
+    setup=StorageSetup(LocalStorageSetup(
+        Storage(local),
+        '/tmp/probprog',
+    )),
+)
+probprog.add_asset(Asset(LanguageAsset(named_entities)))
