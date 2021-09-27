@@ -239,5 +239,6 @@ register_concept!(
     TAOCrownHullSchema,
     TreeDetectionSchema,
     ShapefileEncoding,
-    GDALFillNoDataSchema
+    GDALFillNoDataSchema,
+    TAOMarkerControlledWatershedSegmentationSchema
 );
