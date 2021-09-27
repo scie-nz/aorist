@@ -1,6 +1,11 @@
 import sys
+import os
 from setuptools import setup
 from setuptools_rust import Binding, RustExtension
+
+# We set a specific cargo build target in windows
+if os.name == "nt":
+    os.environ["CARGO_BUILD_TARGET"] = "x86_64-pc-windows-gnu"
 
 setup(
     name="aorist",
