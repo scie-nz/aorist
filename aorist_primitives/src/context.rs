@@ -109,16 +109,34 @@ impl Context {
             None => Err(self.missing_key_error(key)),
         }
     }
+    pub fn get_optional(&self, key: String) -> PyResult<Option<String>> {
+        match self.inner.get(&key) {
+            Some(x) => Ok(Some(x.string()?)),
+            None => Ok(None),
+        }
+    }
     pub fn get_int(&self, key: String) -> PyResult<i64> {
         match self.inner.get(&key) {
             Some(x) => x.integer(),
             None => Err(self.missing_key_error(key)),
         }
     }
+    pub fn get_optional_int(&self, key: String) -> PyResult<Option<i64>> {
+        match self.inner.get(&key) {
+            Some(x) => Ok(Some(x.integer()?)),
+            None => Ok(None),
+        }
+    }
     pub fn get_bool(&self, key: String) -> PyResult<bool> {
         match self.inner.get(&key) {
             Some(x) => x.boolean(),
             None => Err(self.missing_key_error(key)),
+        }
+    }
+    pub fn get_optional_bool(&self, key: String) -> PyResult<Option<bool>> {
+        match self.inner.get(&key) {
+            Some(x) => Ok(Some(x.boolean()?)),
+            None => Ok(None),
         }
     }
 }
