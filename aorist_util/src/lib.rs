@@ -12,10 +12,19 @@ pub use constraint::*;
 
 pub fn read_file(filename: &str) -> Vec<HashMap<String, Value>> {
     let s = fs::read_to_string(filename).unwrap();
-    s.split("\n---\n")
-        .filter(|x| x.len() > 0)
-        .map(|x| from_str(x).unwrap())
-        .collect()
+    
+    let splits = s.split("\n---\n")
+        .filter(|x| x.len() > 0);
+
+    let mut result = Vec::new();
+    for split in splits {
+        let doc = match from_str(split) {
+            Ok(x) => x,
+            Err(err) => panic!("Error {:?} encountered when processing:\n---\n{}\n---\n.", err, split),
+        };
+        result.push(doc);
+    }
+    result
 }
 pub fn get_raw_objects_of_type(
     raw_objects: &Vec<HashMap<String, Value>>,
