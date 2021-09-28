@@ -1,4 +1,3 @@
----
 type: Attribute
 spec:
   name: KeyStringIdentifier
@@ -10,6 +9,7 @@ spec:
   postgres: PostgresText
   value: StringValue
   key: true
+  python: str
 ---
 type: Attribute
 spec:
@@ -22,6 +22,7 @@ spec:
   postgres: PostgresBigInt
   value: IntegerValue
   key: true
+  python: int
 ---
 type: Attribute
 spec:
@@ -33,6 +34,7 @@ spec:
   bigquery: BigQueryString
   postgres: PostgresText
   value: StringValue
+  python: str
 ---
 type: Attribute
 spec:
@@ -44,6 +46,7 @@ spec:
   bigquery: BigQueryInt64
   postgres: PostgresBigInt
   value: IntegerValue
+  python: int
 ---
 type: Attribute
 spec:
@@ -55,6 +58,7 @@ spec:
   bigquery: BigQueryString
   postgres: PostgresText
   value: StringValue
+  python: str
 ---
 type: Attribute
 spec:
@@ -66,6 +70,7 @@ spec:
   bigquery: BigQueryInt64
   postgres: PostgresBigInt # TODO postgres datetime
   value: IntegerValue
+  python: int
 ---
 type: Attribute
 spec:
@@ -77,6 +82,7 @@ spec:
   bigquery: BigQueryInt64
   postgres: PostgresBigInt
   value: IntegerValue
+  python: int
 ---
 type: Attribute
 spec:
@@ -88,6 +94,7 @@ spec:
   bigquery: BigQueryInt64
   postgres: PostgresBigInt
   value: IntegerValue
+  python: int
 ---
 type: Attribute
 spec:
@@ -99,6 +106,7 @@ spec:
   bigquery: BigQueryFloat64
   postgres: PostgresReal
   value: FloatValue
+  python: float
 ---
 type: Attribute
 spec:
@@ -110,6 +118,7 @@ spec:
   bigquery: BigQueryFloat64
   postgres: PostgresReal
   value: FloatValue
+  python: float
 ---
 type: Attribute
 spec:
@@ -121,6 +130,7 @@ spec:
   bigquery: BigQueryString
   postgres: PostgresText
   value: StringValue
+  python: str
 ---
 type: Attribute
 spec:
@@ -132,6 +142,7 @@ spec:
   bigquery: BigQueryInt64
   postgres: PostgresBigInt
   value: IntegerValue
+  python: int
 ---
 type: Attribute
 spec:
@@ -143,6 +154,7 @@ spec:
   bigquery: BigQueryFloat64
   postgres: PostgresReal
   value: FloatValue
+  python: float
 ---
 type: Attribute
 spec:
@@ -154,6 +166,7 @@ spec:
   bigquery: BigQueryInt64
   postgres: PostgresBigInt
   value: StringValue
+  python: int
 ---
 type: Attribute
 spec:
@@ -165,6 +178,7 @@ spec:
   bigquery: BigQueryString
   postgres: PostgresText
   value: StringValue
+  python: str
 ---
 type: Attribute
 spec:
@@ -176,6 +190,7 @@ spec:
   bigquery: BigQueryString
   postgres: PostgresText
   value: StringValue
+  python: str
 ---
 type: Attribute
 spec:
@@ -187,6 +202,7 @@ spec:
   bigquery: BigQueryFloat64
   postgres: PostgresReal
   value: FloatValue
+  python: float
 ---
 type: Attribute
 spec:
@@ -198,6 +214,7 @@ spec:
   bigquery: BigQueryString
   postgres: PostgresText
   value: StringValue
+  python: str
 ---
 type: Attribute
 spec:
@@ -209,6 +226,7 @@ spec:
   bigquery: BigQueryString
   postgres: PostgresText
   value: StringValue
+  python: str
 ---
 type: Attribute
 spec:
@@ -220,6 +238,7 @@ spec:
   bigquery: BigQueryString
   postgres: PostgresText # TODO postgres datetime
   value: StringValue
+  python: str
 ---
 type: Attribute
 spec:
@@ -231,6 +250,7 @@ spec:
   bigquery: BigQueryString
   postgres: PostgresText
   value: StringValue
+  python: str
 ---
 type: Attribute
 spec:
@@ -242,6 +262,7 @@ spec:
   bigquery: BigQueryInt64
   postgres: PostgresBigInt
   value: IntegerValue
+  python: int
 ---
 type: Attribute
 spec:
@@ -253,6 +274,7 @@ spec:
   bigquery: BigQueryString
   postgres: PostgresCharacterVarying
   value: StringValue
+  python: str
 ---
 type: Attribute
 spec:
@@ -264,6 +286,7 @@ spec:
   bigquery: BigQueryString
   postgres: PostgresTimestampWithoutTimeZone
   value: StringValue
+  python: str
 ---
 type: Attribute
 spec:
@@ -275,6 +298,7 @@ spec:
   bigquery: BigQueryInt64
   postgres: PostgresInteger
   value: IntegerValue
+  python: int
 ---
 type: Attribute
 spec:
@@ -286,6 +310,7 @@ spec:
   bigquery: BigQueryString
   postgres: PostgresUuid
   value: StringValue
+  python: str
 ---
 type: Attribute
 spec:
@@ -297,6 +322,7 @@ spec:
   bigquery: BigQueryString
   postgres: PostgresName
   value: StringValue
+  python: str
 ---
 type: Attribute
 spec:
@@ -308,6 +334,7 @@ spec:
   bigquery: BigQueryString
   postgres: PostgresTimestampWithTimeZone
   value: StringValue
+  python: str
 ---
 type: Attribute
 spec:
@@ -319,6 +346,7 @@ spec:
   bigquery: BigQueryString
   postgres: PostgresChar
   value: StringValue
+  python: str
 ---
 type: Attribute
 spec:
@@ -330,6 +358,7 @@ spec:
   bigquery: BigQueryBool
   postgres: PostgresBoolean
   value: StringValue
+  python: str
 ---
 type: Attribute
 spec:
@@ -341,6 +370,7 @@ spec:
   bigquery: BigQueryString
   postgres: PostgresJSONB
   value: StringValue
+  python: str
 ---
 type: Attribute
 spec:
@@ -352,6 +382,7 @@ spec:
   bigquery: BigQueryString
   postgres: PostgresArray
   value: StringValue
+  python: str
 ---
 type: Attribute
 spec:
@@ -363,6 +394,7 @@ spec:
   bigquery: BigQueryString
   postgres: PostgresUserDefined
   value: StringValue
+  python: str
 ---
 type: Attribute
 spec:
@@ -374,6 +406,7 @@ spec:
   bigquery: BigQueryString
   postgres: PostgresRegProc
   value: StringValue
+  python: str
 ---
 type: Attribute
 spec:
@@ -385,6 +418,7 @@ spec:
   bigquery: BigQueryInt64
   postgres: PostgresSmallInt
   value: IntegerValue
+  python: int
 ---
 type: Attribute
 spec:
@@ -396,6 +430,7 @@ spec:
   bigquery: BigQueryFloat64
   postgres: PostgresReal
   value: FloatValue
+  python: float
 ---
 type: Attribute
 spec:
@@ -407,6 +442,7 @@ spec:
   bigquery: BigQueryFloat64
   postgres: PostgresReal
   value: FloatValue
+  python: float
 ---
 type: Attribute
 spec:
@@ -418,6 +454,7 @@ spec:
   bigquery: BigQueryFloat64
   postgres: PostgresDoublePrecision
   value: FloatValue
+  python: float
 ---
 type: Attribute
 spec:
@@ -429,6 +466,7 @@ spec:
   bigquery: BigQueryString
   postgres: PostgresPgNodeTree
   value: StringValue
+  python: str
 ---
 type: Attribute
 spec:
@@ -440,6 +478,7 @@ spec:
   bigquery: BigQueryString
   postgres: PostgresPgLsn
   value: StringValue
+  python: str
 ---
 type: Attribute
 spec:
@@ -451,6 +490,7 @@ spec:
   bigquery: BigQueryString
   postgres: PostgresXid
   value: StringValue
+  python: str
 ---
 type: Attribute
 spec:
@@ -462,6 +502,7 @@ spec:
   bigquery: BigQueryString
   postgres: PostgresInterval
   value: StringValue
+  python: str
 ---
 type: Attribute
 spec:
@@ -473,6 +514,7 @@ spec:
   bigquery: BigQueryString
   postgres: PostgresAnyArray
   value: StringValue
+  python: str
 ---
 type: Attribute
 spec:
@@ -484,6 +526,7 @@ spec:
   bigquery: BigQueryString
   postgres: PostgresBytea
   value: StringValue
+  python: str
 ---
 type: Attribute
 spec:
@@ -495,6 +538,7 @@ spec:
   bigquery: BigQueryString
   postgres: PostgresRegType
   value: StringValue
+  python: str
 ---
 type: Attribute
 spec:
@@ -506,6 +550,7 @@ spec:
   bigquery: BigQueryString
   postgres: PostgresPgNDistinct
   value: StringValue
+  python: str
 ---
 type: Attribute
 spec:
@@ -517,6 +562,7 @@ spec:
   bigquery: BigQueryString
   postgres: PostgresPgDependencies
   value: StringValue
+  python: str
 ---
 type: Attribute
 spec:
@@ -528,6 +574,7 @@ spec:
   bigquery: BigQueryString
   postgres: PostgresInet
   value: StringValue
+  python: str
 ---
 type: Attribute
 spec:
@@ -539,6 +586,7 @@ spec:
   bigquery: BigQueryFloat64
   postgres: PostgresReal
   value: FloatValue
+  python: float
 ---
 type: Attribute
 spec:
@@ -550,6 +598,7 @@ spec:
   bigquery: BigQueryInt64
   postgres: PostgresOid
   value: IntegerValue
+  python: str
 ---
 type: Attribute
 spec:
@@ -561,6 +610,7 @@ spec:
   bigquery: BigQueryInt64
   postgres: PostgresOid
   value: IntegerValue
+  python: int
 ---
 type: Attribute
 spec:
@@ -572,6 +622,7 @@ spec:
   bigquery: BigQueryString
   postgres: PostgresText
   value: StringValue
+  python: str
 ---
 type: Attribute
 spec:
@@ -583,6 +634,7 @@ spec:
   bigquery: BigQueryString
   postgres: PostgresText
   value: StringValue
+  python: str
 ---
 type: Attribute
 spec:
@@ -594,6 +646,7 @@ spec:
   bigquery: BigQueryString
   postgres: PostgresText
   value: StringValue
+  python: str
 ---
 type: Attribute
 spec:
@@ -605,6 +658,7 @@ spec:
   bigquery: BigQueryString
   postgres: PostgresText
   value: StringValue
+  python: str
 ---
 type: Attribute
 spec:
@@ -616,6 +670,7 @@ spec:
   bigquery: BigQueryString
   postgres: PostgresText
   value: StringValue
+  python: str
 ---
 type: Attribute
 spec:
@@ -627,6 +682,7 @@ spec:
   bigquery: BigQueryFloat64
   postgres: PostgresReal
   value: FloatValue
+  python: float
 ---
 type: Attribute
 spec:
@@ -638,6 +694,7 @@ spec:
   bigquery: BigQueryInt64
   postgres: PostgresBigInt
   value: IntegerValue
+  python: int
 ---
 type: Attribute
 spec:
@@ -649,6 +706,7 @@ spec:
   bigquery: BigQueryInt64
   postgres: PostgresBigInt
   value: IntegerValue
+  python: int
 ---
 type: Attribute
 spec:
@@ -660,6 +718,7 @@ spec:
   bigquery: BigQueryInt64
   postgres: PostgresBigInt
   value: IntegerValue
+  python: int
 ---
 type: Attribute
 spec:
@@ -671,6 +730,7 @@ spec:
   bigquery: BigQueryInt64
   postgres: PostgresOid
   value: IntegerValue
+  python: int
 ---
 type: Attribute
 spec:
@@ -682,6 +742,7 @@ spec:
   bigquery: BigQueryString
   postgres: PostgresText
   value: StringValue
+  python: str
 ---
 type: Attribute
 spec:
@@ -693,6 +754,7 @@ spec:
   bigquery: BigQueryString
   postgres: PostgresText
   value: StringValue
+  python: str
 ---
 type: Attribute
 spec:
@@ -704,6 +766,7 @@ spec:
   bigquery: BigQueryString
   postgres: PostgresText
   value: StringValue
+  python: str
 ---
 type: Attribute
 spec:
@@ -715,6 +778,7 @@ spec:
   bigquery: BigQueryInt64
   postgres: PostgresBigInt
   value: IntegerValue
+  python: int
 ---
 type: Attribute
 spec:
@@ -726,6 +790,7 @@ spec:
   bigquery: BigQueryString
   postgres: PostgresJSONB
   value: StringValue
+  python: str
 ---
 type: Attribute
 spec:
@@ -737,6 +802,7 @@ spec:
   bigquery: BigQueryBool
   postgres: PostgresBoolean
   value: StringValue
+  python: str
 ---
 type: Attribute
 spec:
@@ -748,6 +814,7 @@ spec:
   bigquery: BigQueryFloat64
   postgres: PostgresReal
   value: FloatValue
+  python: float
 ---
 type: Attribute
 spec:
@@ -759,6 +826,7 @@ spec:
   bigquery: BigQueryFloat64
   postgres: PostgresReal
   value: FloatValue
+  python: float
 ---
 type: Attribute
 spec:
@@ -770,6 +838,7 @@ spec:
   bigquery: BigQueryFloat64
   postgres: PostgresReal
   value: FloatValue
+  python: float
 ---
 type: Attribute
 spec:
@@ -781,6 +850,7 @@ spec:
   bigquery: BigQueryString
   postgres: PostgresGeometry
   value: StringValue
+  python: str
 ---
 type: Attribute
 spec:
@@ -792,3 +862,4 @@ spec:
   bigquery: BigQueryInt64
   postgres: PostgresBigInt
   value: IntegerValue
+  python: int
