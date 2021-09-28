@@ -1,6 +1,7 @@
 use serde_yaml::{from_str, Value};
 use std::collections::HashMap;
-use std::fs;
+use std::fs::File;
+use std::io::{self, prelude::*, BufReader};
 use syn::punctuated::Pair;
 use syn::token::Colon2;
 use syn::{GenericArgument, Path, PathArguments, PathSegment};
@@ -11,12 +12,39 @@ mod constraint;
 pub use constraint::*;
 
 pub fn read_file(filename: &str) -> Vec<HashMap<String, Value>> {
-    let s = fs::read_to_string(filename).unwrap();
-    s.split("\n---\n")
-        .filter(|x| x.len() > 0)
-        .map(|x| from_str(x).unwrap())
-        .collect()
+    let file = match File::open(filename) {
+        Ok(x) => x,
+        Err(err) => panic!("Cannot find file {}.", filename),
+    };
+    let reader = BufReader::new(file);
+    let mut buf: String = "".into();
+    let mut result = Vec::new();
+    for line in reader.lines() {
+        let line_str = line.unwrap();
+        if line_str == "---" {
+            if buf.len() > 0 {
+                let doc = match from_str(&buf) {
+                    Ok(x) => x,
+                    Err(err) => panic!("Error {:?} encountered when processing:\n---\n{}\n---\n.", err, buf),
+                };
+                result.push(doc);
+            }
+            buf = "".into();
+        } else {
+            buf += "\n";
+            buf += &line_str;
+        }
+    }
+    if buf.len() > 0 {
+        let doc = match from_str(&buf) {
+            Ok(x) => x,
+            Err(err) => panic!("Error {:?} encountered when processing:\n---\n{}\n---\n.", err, buf),
+        };
+        result.push(doc);
+    }
+    result
 }
+
 pub fn get_raw_objects_of_type(
     raw_objects: &Vec<HashMap<String, Value>>,
     object_type: String,
