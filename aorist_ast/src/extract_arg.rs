@@ -52,6 +52,8 @@ pub fn extract_arg(arg: &PyAny) -> PyResult<AST> {
             ))
             .collect::<LinkedHashMap<String, AST>>();
         Ok(AST::Dict(Dict::new_wrapped(m)))
+    } else if arg.is_none() {
+        Ok(AST::None(crate::None::new_wrapped()))
     } else {
         Err(PyValueError::new_err(
             "Object can be either string, boolean, int, or a list",
@@ -59,25 +61,12 @@ pub fn extract_arg(arg: &PyAny) -> PyResult<AST> {
     }
 }
 pub fn extract_arg_with_context(arg: &PyAny, context: &mut Context) -> PyResult<AST> {
-    if let Ok((extracted_val, extracted_context)) = arg.extract::<(String, Context)>() {
+    if let Ok((py_any, extracted_context)) = arg.extract::<(&PyAny, Context)>() {
         context.insert(&extracted_context);
-        Ok(AST::StringLiteral(StringLiteral::new_wrapped(
-            extracted_val,
-            false,
-        )))
-    } else if let Ok((extracted_val, extracted_context)) = arg.extract::<(bool, Context)>() {
-        context.insert(&extracted_context);
-        Ok(AST::BooleanLiteral(BooleanLiteral::new_wrapped(
-            extracted_val,
-        )))
-    } else if let Ok((extracted_val, extracted_context)) = arg.extract::<(i64, Context)>() {
-        context.insert(&extracted_context);
-        Ok(AST::BigIntLiteral(BigIntLiteral::new_wrapped(
-            extracted_val,
-        )))
+        extract_arg(py_any)
     } else {
         Err(PyValueError::new_err(
-            "Object can be either string, boolean, or int",
+            "Lambdas containing context should return a tuple of the form (x, context), where x string, bool or int."
         ))
     }
 }
