@@ -70,4 +70,5 @@ attributes = [
     "FloatArea",
     "JSON",
     "Geometry",
+    "UTMZone",
 ]
