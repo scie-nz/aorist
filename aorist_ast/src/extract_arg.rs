@@ -1,9 +1,9 @@
-use crate::{BigIntLiteral, BooleanLiteral, FloatLiteral, List, None, StringLiteral, Tuple, AST, Dict};
+use crate::{BigIntLiteral, BooleanLiteral, FloatLiteral, List, None, StringLiteral, Tuple, AST, Dict, SimpleIdentifier};
 use aorist_primitives::Context;
 use linked_hash_map::LinkedHashMap;
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
-use pyo3::types::{PyList, PyTuple, PyDict};
+use pyo3::types::{PyList, PyTuple, PyDict, PyType};
 
 pub fn extract_arg(arg: &PyAny) -> PyResult<AST> {
     if arg.is_none() {
@@ -54,9 +54,11 @@ pub fn extract_arg(arg: &PyAny) -> PyResult<AST> {
         Ok(AST::Dict(Dict::new_wrapped(m)))
     } else if arg.is_none() {
         Ok(AST::None(crate::None::new_wrapped()))
+    } else if let Ok(extracted_type) = arg.downcast::<PyType>() {
+        Ok(AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(extracted_type.name()?.to_string())))
     } else {
         Err(PyValueError::new_err(
-            "Object can be either string, boolean, int, or a list",
+            "Object can be either string, boolean, int, a list, a tuple, or a type",
         ))
     }
 }
