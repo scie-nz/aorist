@@ -241,5 +241,6 @@ register_concept!(
     ShapefileEncoding,
     GDALFillNoDataSchema,
     TAOMarkerControlledWatershedSegmentationSchema,
-    NAIPMetadataSchema
+    NAIPMetadataSchema,
+    S3Storage
 );
