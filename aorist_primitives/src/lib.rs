@@ -343,7 +343,8 @@ macro_rules! define_attribute {
       $postgres_type:ident,
       $bigquery_type:ident,
       $value:ident,
-      $key:expr
+      $key:expr,
+      $pyo3_type: ty
     ) => {
         aorist_paste::item! {
             #[cfg_attr(feature = "python", pyclass(module = "aorist"))]
@@ -384,6 +385,14 @@ macro_rules! define_attribute {
                 }
             }
             #[cfg(feature = "python")]
+            impl $element {
+                pub fn get_py_type(&self) -> PyResult<pyo3::prelude::PyObject> {
+                    let gil_guard = pyo3::prelude::Python::acquire_gil(); 
+                    let py = gil_guard.python(); 
+                    Ok(pyo3::types::PyType::new::<$pyo3_type>(py).to_object(py))
+                }
+            }
+            #[cfg(feature = "python")]
             #[pymethods]
             impl $element {
                 #[new]
@@ -399,6 +408,10 @@ macro_rules! define_attribute {
                 #[getter]
                 pub fn name(&self) -> PyResult<String> {
                     Ok(self.name.clone())
+                }
+                #[getter]
+                pub fn py_type(&self) -> PyResult<pyo3::prelude::PyObject> {
+                    self.get_py_type()
                 }
             }
             #[cfg(feature = "python")]
@@ -816,6 +829,14 @@ macro_rules! register_attribute_new {
                     )+
                 }
             }
+            #[cfg(feature = "python")]
+            pub fn get_py_type(&self) -> PyResult<pyo3::prelude::PyObject> {
+                match self {
+                    $(
+                        [<$name Enum>]::$element(x) => x.get_py_type(),
+                    )+
+                }
+            }
         }
         #[aorist]
         pub struct $name {
@@ -865,6 +886,10 @@ macro_rules! register_attribute_new {
             }
             pub fn get_orc_type(&self) -> String {
                 self.inner.get_orc_type()
+            }
+            #[cfg(feature = "python")]
+            pub fn get_py_type(&self) -> PyResult<pyo3::prelude::PyObject> {
+                self.inner.get_py_type()
             }
         }
         #[cfg(feature = "python")]
@@ -922,6 +947,10 @@ macro_rules! register_attribute_new {
             #[getter]
             pub fn postgres_type(&self) -> pyo3::prelude::PyResult<String> {
                 Ok(self.inner.0.read().unwrap().get_postgres_type().clone())
+            }
+            #[getter]
+            pub fn py_type(&self) -> PyResult<pyo3::prelude::PyObject> {
+                self.inner.0.read().unwrap().get_py_type()
             }
         }
     }}
