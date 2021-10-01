@@ -46,7 +46,7 @@ impl StorageSetup {
     pub fn get_tmp_dir(&self) -> String {
         match self {
             Self::ReplicationStorageSetup(x) => x.0.read().unwrap().tmp_dir.clone(),
-            Self::RemoteStorageSetup(_) => panic!("RemoteStorageSetup has no tmp_dir"),
+            Self::RemoteStorageSetup(x) => x.0.read().unwrap().tmp_dir.as_ref().unwrap().clone(),
             Self::ComputedFromLocalData(x) => x.0.read().unwrap().tmp_dir.clone(),
             Self::LocalStorageSetup(x) => x.0.read().unwrap().tmp_dir.clone(),
             Self::TwoTierStorageSetup(x) => x.0.read().unwrap().tmp_dir.clone(),
