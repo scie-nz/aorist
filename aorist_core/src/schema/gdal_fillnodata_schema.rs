@@ -20,7 +20,7 @@ derived_schema! {
     name: GDALFillNoDataSchema,
     source: RasterAsset,
     attributes:
-      prefix: KeyStringIdentifier("File Prefix", false)
+      path: KeyStringIdentifier("File Path", false)
     fields:
       max_distance: usize,
       smooth_iterations: usize

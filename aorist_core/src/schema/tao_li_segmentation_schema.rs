@@ -20,7 +20,7 @@ derived_schema! {
     sources:
       - point_cloud: PointCloudAsset,
     attributes:
-      prefix: KeyStringIdentifier("File Prefix", false)
+      path: KeyStringIdentifier("File Path", false)
     fields:
       dt1: FloatValue,
       dt2: FloatValue,

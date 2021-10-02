@@ -18,7 +18,7 @@ derived_schema! {
     sources: 
       - point_cloud: PointCloudAsset,
     attributes:
-      prefix: KeyStringIdentifier("File Prefix", false),
+      path: KeyStringIdentifier("File Path", false),
       tao_id: KeyInt64Identifier("ID of TAO (unique in file)", false),
       wkt: WKTString("WKT string of TAO boundary", false),
       metrics: JSON("JSON map of metrics", false) 

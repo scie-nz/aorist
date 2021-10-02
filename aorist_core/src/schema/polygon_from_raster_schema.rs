@@ -18,7 +18,7 @@ derived_schema! {
     name: PolygonFromRasterSchema,
     source: RasterAsset,
     attributes:
-      prefix: KeyStringIdentifier("File Prefix", false)
+      path: KeyStringIdentifier("File Path", false)
     fields:
       algorithm_json: String
 }
