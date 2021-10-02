@@ -11,6 +11,7 @@ use crate::encoding::orc_encoding::*;
 use crate::encoding::sqlite_encoding::*;
 use crate::encoding::tsv_encoding::*;
 use crate::encoding::wkt_encoding::*;
+use crate::encoding::xml_encoding::*;
 use crate::encoding::shapefile_encoding::*;
 use crate::header::FileHeader;
 use crate::header::*;
@@ -37,6 +38,7 @@ pub enum Encoding {
     GeoTiffEncoding(AoristRef<GeoTiffEncoding>),
     WKTEncoding(AoristRef<WKTEncoding>),
     ShapefileEncoding(AoristRef<ShapefileEncoding>),
+    XMLEncoding(AoristRef<XMLEncoding>),
 }
 
 impl Encoding {
@@ -55,6 +57,7 @@ impl Encoding {
             Self::GeoTiffEncoding(_) => None,
             Self::WKTEncoding(_) => None,
             Self::ShapefileEncoding(_) => None,
+            Self::XMLEncoding(_) => None,
         }
     }
     pub fn get_compression(&self) -> Option<AoristRef<DataCompression>> {
@@ -66,6 +69,7 @@ impl Encoding {
             Self::LASEncoding(x) => x.0.read().unwrap().compression.clone(),
             Self::GeoTiffEncoding(x) => x.0.read().unwrap().compression.clone(),
             Self::WKTEncoding(x) => x.0.read().unwrap().compression.clone(),
+            Self::XMLEncoding(x) => x.0.read().unwrap().compression.clone(),
             Self::JSONEncoding(_) => None,
             Self::ORCEncoding(_) => None,
             Self::ONNXEncoding(_) => None,
@@ -83,6 +87,7 @@ impl Encoding {
             Self::LASEncoding(_) => "las".to_string(),
             Self::GeoTiffEncoding(_) => "tiff".to_string(),
             Self::WKTEncoding(_) => "wkt".to_string(),
+            Self::XMLEncoding(_) => "xml".to_string(),
             Self::ShapefileEncoding(_) => "shp".to_string(),
             Self::JSONEncoding(_) => "json".to_string(),
             Self::ORCEncoding(_) => "orc".to_string(),
@@ -115,6 +120,10 @@ impl PyEncoding {
                 None => None,
             },
             Encoding::WKTEncoding(x) => match &x.0.read().unwrap().compression {
+                Some(y) => Some(PyDataCompression { inner: y.clone() }),
+                None => None,
+            },
+            Encoding::XMLEncoding(x) => match &x.0.read().unwrap().compression {
                 Some(y) => Some(PyDataCompression { inner: y.clone() }),
                 None => None,
             },
