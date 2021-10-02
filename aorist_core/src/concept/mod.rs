@@ -243,5 +243,6 @@ register_concept!(
     TAOMarkerControlledWatershedSegmentationSchema,
     NAIPMetadataSchema,
     S3Storage,
-    XMLEncoding
+    XMLEncoding,
+    BZip2Compression
 );
