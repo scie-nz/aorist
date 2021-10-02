@@ -373,6 +373,109 @@ impl Builder for StructBuilder {
             #[cfg(feature = "python")]
             #[pyo3::prelude::pymethods]
             impl [<Py #struct_name>] {
+                #[staticmethod]
+                pub fn child_concept_types() -> Vec<pyo3::prelude::PyObject> {
+                    let gil_guard = pyo3::prelude::Python::acquire_gil();
+                    let py = gil_guard.python();
+                    vec![
+                        #(
+                            pyo3::prelude::ToPyObject::to_object(
+                                pyo3::types::PyTuple::new(
+                                    py,
+                                    vec![
+                                        core::convert::AsRef::<pyo3::PyAny>::as_ref(
+                                            pyo3::types::PyType::new::<[<Py #bare_type_deref>]>(py)
+                                        ),
+                                        core::convert::AsRef::<pyo3::PyAny>::as_ref(
+                                            pyo3::types::PyString::new(py, "required")
+                                        ),
+                                        core::convert::AsRef::<pyo3::PyAny>::as_ref(
+                                            pyo3::types::PyString::new(py, "singleton")
+                                        ),
+                                    ]
+                                ),
+                                py
+                            ),
+                        )*
+                        #(
+                            pyo3::prelude::ToPyObject::to_object(
+                                pyo3::types::PyTuple::new(
+                                    py,
+                                    vec![
+                                        core::convert::AsRef::<pyo3::PyAny>::as_ref(
+                                            pyo3::types::PyType::new::<[<Py #vec_type_deref>]>(py)
+                                        ),
+                                        core::convert::AsRef::<pyo3::PyAny>::as_ref(
+                                            pyo3::types::PyString::new(py, "required")
+                                        ),
+                                        core::convert::AsRef::<pyo3::PyAny>::as_ref(
+                                            pyo3::types::PyString::new(py, "vector")
+                                        ),
+                                    ]
+                                ),
+                                py
+                            ),
+                        )*
+                        #(
+                            pyo3::prelude::ToPyObject::to_object(
+                                pyo3::types::PyTuple::new(
+                                    py,
+                                    vec![
+                                        core::convert::AsRef::<pyo3::PyAny>::as_ref(
+                                            pyo3::types::PyType::new::<[<Py #option_type_deref>]>(py)
+                                        ),
+                                        core::convert::AsRef::<pyo3::PyAny>::as_ref(
+                                            pyo3::types::PyString::new(py, "optional")
+                                        ),
+                                        core::convert::AsRef::<pyo3::PyAny>::as_ref(
+                                            pyo3::types::PyString::new(py, "singleton")
+                                        ),
+                                    ]
+                                ),
+                                py
+                            ),
+                        )*
+                        #(
+                            pyo3::prelude::ToPyObject::to_object(
+                                pyo3::types::PyTuple::new(
+                                    py,
+                                    vec![
+                                        core::convert::AsRef::<pyo3::PyAny>::as_ref(
+                                            pyo3::types::PyType::new::<[<Py #option_vec_type_deref>]>(py)
+                                        ),
+                                        core::convert::AsRef::<pyo3::PyAny>::as_ref(
+                                            pyo3::types::PyString::new(py, "optional")
+                                        ),
+                                        core::convert::AsRef::<pyo3::PyAny>::as_ref(
+                                            pyo3::types::PyString::new(py, "vector")
+                                        ),
+                                    ]
+                                ),
+                                py
+                            ),
+                        )*
+                        #(
+                            pyo3::prelude::ToPyObject::to_object(
+                                pyo3::types::PyTuple::new(
+                                    py,
+                                    vec![
+                                        core::convert::AsRef::<pyo3::PyAny>::as_ref(
+                                            pyo3::types::PyType::new::<[<Py #map_value_type_deref>]>(py)
+                                        ),
+                                        core::convert::AsRef::<pyo3::PyAny>::as_ref(
+                                            pyo3::types::PyString::new(py, "required")
+                                        ),
+                                        core::convert::AsRef::<pyo3::PyAny>::as_ref(
+                                            pyo3::types::PyString::new(py, "map")
+                                        ),
+                                    ]
+                                ),
+                                py
+                            ),
+                        )*
+                    ]
+
+                }
                 pub fn deep_clone(&self) -> Self {
                     Self { inner: self.inner.deep_clone() }
                 }

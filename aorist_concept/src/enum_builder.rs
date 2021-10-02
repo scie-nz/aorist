@@ -166,6 +166,18 @@ impl Builder for EnumBuilder {
                   Self { inner: self.inner.deep_clone() }
               }
               #[staticmethod]
+              pub fn child_concept_types() -> Vec<pyo3::prelude::PyObject> {
+                  let gil_guard = pyo3::prelude::Python::acquire_gil();
+                  let py = gil_guard.python();
+                  vec![#(
+                      pyo3::prelude::ToPyObject::to_object(
+                          pyo3::types::PyType::new::<[<Py #variant>]>(py),
+                          py
+                      ),
+                  )*]
+
+              }
+              #[staticmethod]
               pub fn is_enum_type() -> bool {
                   true
               }
