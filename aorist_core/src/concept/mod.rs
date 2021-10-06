@@ -244,5 +244,6 @@ register_concept!(
     NAIPMetadataSchema,
     S3Storage,
     XMLEncoding,
-    BZip2Compression
+    BZip2Compression,
+    KMLEncoding
 );
