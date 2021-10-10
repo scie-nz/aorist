@@ -246,5 +246,7 @@ register_concept!(
     XMLEncoding,
     BZip2Compression,
     KMLEncoding,
-    AdjacentPolygonsSchema
+    AdjacentPolygonsSchema,
+    GraphAsset,
+    SimpleUndirectedGraphAsset
 );
