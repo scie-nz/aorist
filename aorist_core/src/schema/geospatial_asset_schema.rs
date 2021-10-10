@@ -1,5 +1,6 @@
 use crate::attributes::*;
 use crate::concept::{AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
+use crate::schema::adjacent_polygons_schema::*;
 use crate::schema::gdal_fillnodata_schema::*;
 use crate::schema::linz_primary_parcels_schema::*;
 use crate::schema::linz_property_titles_schema::*;
@@ -39,6 +40,7 @@ use pyo3::prelude::*;
 schema_enum! {
     name: GeospatialAssetSchema
     variants:
+    - AdjacentPolygonsSchema
     - GDALFillNoDataSchema
     - LINZPrimaryParcelsSchema
     - LINZPropertyTitlesSchema

@@ -245,5 +245,6 @@ register_concept!(
     S3Storage,
     XMLEncoding,
     BZip2Compression,
-    KMLEncoding
+    KMLEncoding,
+    AdjacentPolygonsSchema
 );

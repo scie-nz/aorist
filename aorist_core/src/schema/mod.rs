@@ -1,3 +1,4 @@
+mod adjacent_polygons_schema;
 mod data_schema;
 mod derived_asset_schema;
 mod fasttext_embedding_schema;
@@ -38,6 +39,7 @@ mod time_ordered_tabular_schema;
 mod tree_detection_schema;
 mod undefined_tabular_schema;
 
+pub use adjacent_polygons_schema::*;
 pub use data_schema::*;
 pub use derived_asset_schema::*;
 pub use fasttext_embedding_schema::*;
