@@ -20,7 +20,7 @@ derived_schema! {
       - point_cloud: PointCloudAsset,
       - chm: RasterAsset,
     attributes:
-      prefix: KeyStringIdentifier("File Prefix", false)
+      path: KeyStringIdentifier("File Path", false)
     fields:
       th_tree: FloatValue,
       tol: FloatValue,

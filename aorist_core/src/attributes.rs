@@ -253,6 +253,13 @@ impl<'a> FromPyObject<'a> for Box<Transform> {
     }
 }
 impl AttributeOrTransform {
+    #[cfg(feature = "python")]
+    pub fn get_py_type(&self) -> PyResult<pyo3::prelude::PyObject> {
+        match &self {
+            AttributeOrTransform::Attribute(x) => x.get_py_type(),
+            AttributeOrTransform::Transform(_) => Err(PyValueError::new_err("called py_type on a transform")),
+        }
+    }
     pub fn get_name(&self) -> &String {
         match &self {
             AttributeOrTransform::Attribute(x) => x.get_name(),

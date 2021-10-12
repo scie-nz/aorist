@@ -1,5 +1,6 @@
 #![allow(non_snake_case)]
 use crate::asset::geospatial_asset::*;
+use crate::asset::graph_asset::*;
 use crate::asset::language_asset::*;
 use crate::asset::static_data_table::*;
 use crate::concept::{AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
@@ -38,6 +39,7 @@ asset_enum! {
     enum_variants:
     - GeospatialAsset
     - LanguageAsset
+    - GraphAsset
 }
 
 impl Asset {

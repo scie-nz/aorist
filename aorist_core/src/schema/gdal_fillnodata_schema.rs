@@ -2,6 +2,9 @@ use crate::asset::*;
 use crate::attributes::*;
 use crate::concept::{AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
 use crate::template::*;
+use crate::schema::{
+    DerivedAssetSchema, SingleSourceDerivedAssetSchema
+};
 use aorist_attributes::*;
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
@@ -14,11 +17,11 @@ use std::fmt::Debug;
 use uuid::Uuid;
 
 derived_schema! {
-    name: PointCloudTransformationSchema,
-    sources:
-      - point_cloud: PointCloudAsset,
+    name: GDALFillNoDataSchema,
+    source: RasterAsset,
     attributes:
       path: KeyStringIdentifier("File Path", false)
     fields:
-      pdal_pipeline: String
+      max_distance: usize,
+      smooth_iterations: usize
 }

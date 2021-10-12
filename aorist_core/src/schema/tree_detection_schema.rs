@@ -18,7 +18,7 @@ derived_schema! {
     name: TreeDetectionSchema,
     source: GeospatialAsset,
     attributes:
-      prefix: KeyStringIdentifier("File Prefix", false)
+      path: KeyStringIdentifier("File Path", false)
     fields:
       algorithm: String,
       uniqueness: String

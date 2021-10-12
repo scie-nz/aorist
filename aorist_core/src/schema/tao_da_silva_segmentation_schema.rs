@@ -21,7 +21,7 @@ derived_schema! {
       - chm: RasterAsset,
       - ttops: PointCloudAsset,
     attributes:
-      prefix: KeyStringIdentifier("File Prefix", false)
+      path: KeyStringIdentifier("File Path", false)
     fields:
       max_cr_factor: FloatValue,
       exclusion: FloatValue

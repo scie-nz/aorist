@@ -1,6 +1,6 @@
 package:
   name: "aorist"
-  version: "0.0.2"
+  version: "0.0.1"
 
 source:
   - path: ../aorist_util
@@ -26,6 +26,8 @@ build:
   number: 1
   entry_points:
     - aorist=aorist:main
+  #script: cd aorist && set "CARGO_BUILD_TARGET=x86_64-pc-windows-gnu" && python setup.py install
+  #The script below is fixed for window10-adapt conda-build
   script: cd aorist && python setup.py install
 
 requirements:

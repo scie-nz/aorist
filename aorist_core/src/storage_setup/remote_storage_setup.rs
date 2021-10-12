@@ -14,7 +14,7 @@ use uuid::Uuid;
 pub struct RemoteStorageSetup {
     #[constrainable]
     pub remote: AoristRef<Storage>,
-    tmp_dir: Option<String>,
+    pub tmp_dir: Option<String>,
 }
 impl RemoteStorageSetup {
     pub fn replicate_to_local(

@@ -1,3 +1,13 @@
+import os
+import subprocess
+
+if os.name == 'nt':
+    m_version = 'R-4.'
+    s_version = str(subprocess.Popen('cd C:/Program Files/R && dir R.dll /s /p', stdout=subprocess.PIPE, shell=True).communicate()[0]).split(m_version)[1][:3] 
+    f_version = m_version + s_version
+    os.environ["R_HOME"] = 'C:/Program Files/R/' + f_version + '/bin/x64'
+    os.environ["PATH"] = os.environ["R_HOME"] + ";" + os.environ["PATH"]
+
 import inspect
 import dill
 import ast
@@ -9,8 +19,6 @@ import builtins
 from functools import wraps
 import linecache
 import collections
-import os
-
 
 def default_tabular_schema(datum, attributes):
     return TabularSchema(

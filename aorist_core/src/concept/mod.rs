@@ -238,5 +238,15 @@ register_concept!(
     PointCloudRasterDifferenceSchema,
     TAOCrownHullSchema,
     TreeDetectionSchema,
-    ShapefileEncoding
+    ShapefileEncoding,
+    GDALFillNoDataSchema,
+    TAOMarkerControlledWatershedSegmentationSchema,
+    NAIPMetadataSchema,
+    S3Storage,
+    XMLEncoding,
+    BZip2Compression,
+    KMLEncoding,
+    AdjacentPolygonsSchema,
+    GraphAsset,
+    SimpleUndirectedGraphAsset
 );
