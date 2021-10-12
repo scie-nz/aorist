@@ -248,5 +248,6 @@ register_concept!(
     KMLEncoding,
     AdjacentPolygonsSchema,
     GraphAsset,
-    SimpleUndirectedGraphAsset
+    SimpleUndirectedGraphAsset,
+    TAOCrownHullFilterSchema
 );

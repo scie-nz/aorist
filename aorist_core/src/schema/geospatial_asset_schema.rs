@@ -25,6 +25,7 @@ use crate::schema::tao_marker_controlled_watershed_segmentation_schema::*;
 use crate::schema::tao_watershed_segmentation_schema::*;
 use crate::schema::tao_li_segmentation_schema::*;
 use crate::schema::tao_da_silva_segmentation_schema::*;
+use crate::schema::tao_crown_hull_filter_schema::*;
 use crate::schema::tao_crown_hull_schema::*;
 use crate::schema::tree_detection_schema::*;
 use crate::template::*;
@@ -62,6 +63,7 @@ schema_enum! {
     - PolygonIntersectionSchema
     - PolygonSchema
     - TAOCrownHullSchema
+    - TAOCrownHullFilterSchema
     - TAOMarkerControlledWatershedSegmentationSchema
     - TAOWatershedSegmentationSchema
     - TAOLiSegmentationSchema
