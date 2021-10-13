@@ -249,5 +249,7 @@ register_concept!(
     AdjacentPolygonsSchema,
     GraphAsset,
     SimpleUndirectedGraphAsset,
-    TAOCrownHullFilterSchema
+    TAOCrownHullFilterSchema,
+    GraphAssetSchema,
+    EdgelistFilterSchema
 );
