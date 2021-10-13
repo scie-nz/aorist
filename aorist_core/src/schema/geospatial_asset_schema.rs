@@ -27,6 +27,7 @@ use crate::schema::tao_li_segmentation_schema::*;
 use crate::schema::tao_da_silva_segmentation_schema::*;
 use crate::schema::tao_crown_hull_filter_schema::*;
 use crate::schema::tao_crown_hull_schema::*;
+use crate::schema::tao_to_eco_object_schema::*;
 use crate::schema::tree_detection_schema::*;
 use crate::template::*;
 use aorist_concept::{aorist, Constrainable};
@@ -68,5 +69,6 @@ schema_enum! {
     - TAOWatershedSegmentationSchema
     - TAOLiSegmentationSchema
     - TAODaSilvaSegmentationSchema
+    - TAOToEcoObjectSchema
     - TreeDetectionSchema
 }
