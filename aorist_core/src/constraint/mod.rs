@@ -57,6 +57,8 @@ pub trait TBuilder<'a> {
 pub trait TConstraintEnum<'a>: Sized + Clone {
     fn get_required_constraint_names() -> HashMap<String, Vec<String>>;
     fn get_explanations() -> HashMap<String, (Option<String>, Option<String>)>;
+    #[cfg(feature = "python")]
+    fn get_py_obj<'b>(&self, py: pyo3::Python<'b>) -> pyo3::prelude::PyObject;
 }
 pub trait ConstraintEnum<'a> {}
 

@@ -12,8 +12,8 @@ alluxio_config = AlluxioConfig(
     directory="data",
 )
 aws_config = AWSConfig(
-    access_key_id="[AWS_ACCESS_KEY]",
-    access_key_secret="[AWS_ACCESS_KEY_SECRET]",
+    aws_key_env_var="[AWS_ACCESS_KEY]",
+    aws_key_secret_env_var="[AWS_ACCESS_KEY_SECRET]",
 )
 ranger_config = RangerConfig(
     server="localhost", user="admin", password="G0powerRangers", port=8088,

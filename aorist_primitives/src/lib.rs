@@ -1212,11 +1212,12 @@ macro_rules! register_constraint_new {
             fn get_dialect(&self) -> Dialect {
                 self.inner.get_dialect()
             }
-            fn compute_args(
+            fn compute_args<'a, T: aorist_core::OuterConstraint<'a>>(
                 &self,
                 root: <Self::TAncestry as Ancestry>::TConcept,
                 ancestry: &Self::TAncestry,
                 context: &mut aorist_primitives::Context,
+                constraint: std::sync::Arc<std::sync::RwLock<T>>, 
             ) -> (String, String, ParameterTuple, Dialect) {
                 let gil = Python::acquire_gil();
                 let py = gil.python();
@@ -1265,12 +1266,18 @@ macro_rules! register_constraint_new {
 
                     let mut objects = Vec::new();
                     let mut context_pos = None;
+                    let mut constraint_pos = None;
                     for (i, x) in input_types.iter().enumerate() {
-                        if x == "context" {
-                            assert!(context_pos.is_none());
-                            context_pos = Some(i);
-                        } else {
-                            match ancestry.py_object(x, root.clone(), py) {
+                        match &x as &str {
+                            "constraint" => {
+                                assert!(constraint_pos.is_none());
+                                constraint_pos = Some(i);
+                            },
+                            "context" => {
+                                assert!(context_pos.is_none());
+                                context_pos = Some(i);
+                            },
+                            _ => match ancestry.py_object(x, root.clone(), py) {
                                 Ok(x) => objects.push(x.to_object(py)),
                                 Err(err) => panic!(
                                     "Error when running program for key {} input_type {} # {}:\n{}",
@@ -1281,6 +1288,12 @@ macro_rules! register_constraint_new {
                     }
                     if let Some(pos) = context_pos {
                         let obj = PyObject::from(PyCell::new(py, context.clone()).unwrap());
+                        objects.insert(pos, obj.to_object(py));
+                    };
+                    if let Some(pos) = constraint_pos {
+                        let constraint_rw = constraint.read().unwrap();
+                        let inner = constraint_rw.inner(stringify!($name)).unwrap();
+                        let obj = inner.get_py_obj(py);
                         objects.insert(pos, obj.to_object(py));
                     };
                     let extracted: AST = match deserialized.call1((objects,)) {
@@ -1457,6 +1470,20 @@ macro_rules! register_constraint_new {
                 hashmap! {
                     $(
                         stringify!($element).to_string() => $element::get_required_constraint_names(),
+                    )+
+                }
+            }
+            #[cfg(feature = "python")]
+            fn get_py_obj<'b>(&self, py: pyo3::Python<'b>) -> pyo3::prelude::PyObject {
+                match &self {
+                    $(
+                        $name::$element(elem) => {
+                            pyo3::prelude::PyObject::from(
+                                pyo3::prelude::PyCell::new(
+                                    py, elem.clone()
+                                ).unwrap()
+                            )
+                        }
                     )+
                 }
             }

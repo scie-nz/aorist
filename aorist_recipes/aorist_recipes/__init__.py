@@ -57,6 +57,7 @@ programs = register_recipes(
     py_modules=[
         download_data_from_remote_pushshift_api_location_to_newline_delimited_json,
         download_data_from_remote_gcs_location,
+        download_data_from_remote_web_location,
         upload_data_to_minio,
         convert_json_to_csv,
         text_corpus_data_from_hive,
