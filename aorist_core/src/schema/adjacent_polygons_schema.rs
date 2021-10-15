@@ -18,8 +18,8 @@ derived_schema! {
     name: AdjacentPolygonsSchema, 
     source: PolygonCollectionAsset,
     attributes:
-      id1: KeyStringIdentifier("Polygon 1 Identifier", false),
-      id2: KeyStringIdentifier("Polygon 2 Identifier", false)
+      id1: KeyInt64Identifier("Polygon 1 Identifier", false),
+      id2: KeyInt64Identifier("Polygon 2 Identifier", false)
     fields:
       buffer: Option<FloatValue>
 }
