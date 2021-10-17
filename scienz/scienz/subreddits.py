@@ -24,6 +24,7 @@ from aorist import (
     DataSet,
     DatumTemplate,
     Asset,
+    Text,
 )
 from aorist import *
 
