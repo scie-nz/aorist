@@ -4,6 +4,7 @@ use crate::parameter_tuple::ParameterTuple;
 use aorist_primitives::{Ancestry, Context};
 use linked_hash_map::LinkedHashMap;
 use std::marker::PhantomData;
+use std::sync::{Arc, RwLock};
 
 pub trait TProgram<'a, T: TConstraint<'a>> {
     fn new(
@@ -22,11 +23,12 @@ pub trait TProgram<'a, T: TConstraint<'a>> {
 pub trait TOuterProgram: Clone {
     type TAncestry: Ancestry;
     fn get_dialect(&self) -> Dialect;
-    fn compute_args(
+    fn compute_args<'a, T: OuterConstraint<'a>>(
         &self,
         root: <Self::TAncestry as Ancestry>::TConcept,
         ancestry: &Self::TAncestry,
         context: &mut Context,
+        constraint: Arc<RwLock<T>>,
     ) -> (String, String, ParameterTuple, Dialect);
 }
 #[derive(Clone)]

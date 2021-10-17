@@ -239,5 +239,18 @@ register_concept!(
     TAOCrownHullSchema,
     TreeDetectionSchema,
     ShapefileEncoding,
-    GDALFillNoDataSchema
+    GDALFillNoDataSchema,
+    TAOMarkerControlledWatershedSegmentationSchema,
+    NAIPMetadataSchema,
+    S3Storage,
+    XMLEncoding,
+    BZip2Compression,
+    KMLEncoding,
+    AdjacentPolygonsSchema,
+    GraphAsset,
+    SimpleUndirectedGraphAsset,
+    TAOCrownHullFilterSchema,
+    TAOToEcoObjectSchema,
+    GraphAssetSchema,
+    EdgelistFilterSchema
 );

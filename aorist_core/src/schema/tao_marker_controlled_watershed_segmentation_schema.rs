@@ -12,13 +12,16 @@ use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
 use uuid::Uuid;
+use aorist_attributes::FloatValue;
 
 derived_schema! {
-    name: PointCloudTransformationSchema,
+    name: TAOMarkerControlledWatershedSegmentationSchema,
     sources:
       - point_cloud: PointCloudAsset,
+      - chm: RasterAsset,
+      - ttops: PointCloudAsset,
     attributes:
-      path: KeyStringIdentifier("File Path", false)
+      prefix: KeyStringIdentifier("File Prefix", false)
     fields:
-      pdal_pipeline: String
+      th_tree: FloatValue
 }

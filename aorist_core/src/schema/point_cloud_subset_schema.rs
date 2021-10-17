@@ -20,5 +20,5 @@ derived_schema! {
       // TODO: this should be more flexible in the future
       - subset: PolygonIntersectionAsset,
     attributes:
-      prefix: KeyStringIdentifier("File Prefix", false)
+      path: KeyStringIdentifier("File Path", false)
 }

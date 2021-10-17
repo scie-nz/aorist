@@ -190,7 +190,7 @@ impl<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry = T::TAncestry>>
         let best_program = Self::find_best_program(preferences, programs);
         if let Some(program) = best_program {
             let (preamble, call, params, dialect) =
-                program.compute_args(self.root.clone(), ancestry, &mut self.context);
+                program.compute_args(self.root.clone(), ancestry, &mut self.context, self.constraint.clone());
             self.preamble = Some(preamble);
             self.call = Some(call);
             self.params = Some(params);

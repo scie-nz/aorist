@@ -8,6 +8,7 @@ use crate::storage::local_file_storage::*;
 use crate::storage::postgres_storage::*;
 use crate::storage::remote_storage::*;
 use crate::storage::sqlite_storage::*;
+use crate::storage::s3_storage::*;
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
 use aorist_primitives::{AoristConcept, ConceptEnum};
@@ -35,6 +36,8 @@ pub enum Storage {
     BigQueryStorage(AoristRef<BigQueryStorage>),
     #[constrainable]
     InlineBlobStorage(AoristRef<InlineBlobStorage>),
+    #[constrainable]
+    S3Storage(AoristRef<S3Storage>),
 }
 
 impl Storage {
@@ -45,6 +48,7 @@ impl Storage {
             Self::LocalFileStorage(x) => Some(x.0.read().unwrap().encoding.clone()),
             Self::GitStorage(x) => Some(x.0.read().unwrap().encoding.clone()),
             Self::InlineBlobStorage(x) => Some(x.0.read().unwrap().encoding.clone()),
+            Self::S3Storage(x) => Some(x.0.read().unwrap().encoding.clone()),
             Self::SQLiteStorage(_) => None,
             Self::PostgresStorage(_) => None,
             Self::BigQueryStorage(_) => None,

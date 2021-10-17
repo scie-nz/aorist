@@ -176,7 +176,7 @@ spec:
 type: Constraint
 spec:
   name: TextCorpusData
-  root: Asset
+  root: TextCorpus
   requires:
       - TextCorpusDataFromHive
       - TextCorpusDataFromSQLite

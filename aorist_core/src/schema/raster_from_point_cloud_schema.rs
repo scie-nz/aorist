@@ -18,7 +18,7 @@ derived_schema! {
     name: RasterFromPointCloudSchema,
     source: PointCloudAsset,
     attributes:
-      prefix: KeyStringIdentifier("File Prefix", false)
+      path: KeyStringIdentifier("File Path", false)
     fields:
       pdal_pipeline: String
 }

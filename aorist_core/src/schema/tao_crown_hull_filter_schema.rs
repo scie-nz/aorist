@@ -1,4 +1,5 @@
 use crate::asset::*;
+use crate::schema::derived_asset_schema::*;
 use crate::attributes::*;
 use crate::concept::{AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
 use crate::template::*;
@@ -14,11 +15,13 @@ use std::fmt::Debug;
 use uuid::Uuid;
 
 derived_schema! {
-    name: PointCloudTransformationSchema,
-    sources:
-      - point_cloud: PointCloudAsset,
+    name: TAOCrownHullFilterSchema,
+    source: PolygonCollectionAsset, 
     attributes:
-      path: KeyStringIdentifier("File Path", false)
+      path: KeyStringIdentifier("File Path", false),
+      tao_id: KeyInt64Identifier("ID of TAO (unique in file)", false),
+      wkt: WKTString("WKT string of TAO boundary", false),
+      metrics: JSON("JSON map of metrics", false) 
     fields:
-      pdal_pipeline: String
+      sql_predicate: String
 }

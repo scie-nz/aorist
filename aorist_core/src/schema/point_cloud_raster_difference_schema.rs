@@ -19,5 +19,5 @@ derived_schema! {
       - point_cloud: PointCloudAsset,
       - raster: RasterAsset,
     attributes:
-      prefix: KeyStringIdentifier("File Prefix", false)
+      path: KeyStringIdentifier("File Path", false)
 }

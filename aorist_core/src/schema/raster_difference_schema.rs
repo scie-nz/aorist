@@ -19,5 +19,5 @@ derived_schema! {
       - asset_1: RasterAsset,
       - asset_2: RasterAsset,
     attributes:
-      prefix: KeyStringIdentifier("File Prefix", false)
+      path: KeyStringIdentifier("File Path", false)
 }

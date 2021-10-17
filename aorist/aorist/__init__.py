@@ -1,3 +1,13 @@
+import os
+import subprocess
+
+if os.name == 'nt':
+    m_version = 'R-4.'
+    s_version = str(subprocess.Popen('cd C:/Program Files/R && dir R.dll /s /p', stdout=subprocess.PIPE, shell=True).communicate()[0]).split(m_version)[1][:3] 
+    f_version = m_version + s_version
+    os.environ["R_HOME"] = 'C:/Program Files/R/' + f_version + '/bin/x64'
+    os.environ["PATH"] = os.environ["R_HOME"] + ";" + os.environ["PATH"]
+
 import inspect
 import dill
 import ast
@@ -9,8 +19,6 @@ import builtins
 from functools import wraps
 import linecache
 import collections
-import os
-
 
 def default_tabular_schema(datum, attributes):
     return TabularSchema(
@@ -81,11 +89,17 @@ def aorist(programs, constraint, entrypoint, args, pip_requirements=[]):
             return inner_func(func)
         return inner
 
+def get_code(v):
+    print(type(v))
+    el = lambda x: v(*x)
+    dumped = dill.dumps(el)
+    return dumped.decode('latin-1')
+
 def aorist_presto(programs, constraint, entrypoint, args):
     args_str = {
         k : (
             list(inspect.signature(v).parameters.keys()),
-            dill.dumps(lambda x: v(*x)).decode('latin-1')
+            get_code(v)
         ) for k, v in args.items()
     }
     programs[constraint] = constraint.register_presto_program(

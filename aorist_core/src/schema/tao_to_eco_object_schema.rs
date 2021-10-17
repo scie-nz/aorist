@@ -2,7 +2,6 @@ use crate::asset::*;
 use crate::attributes::*;
 use crate::concept::{AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
 use crate::template::*;
-use aorist_attributes::*;
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
 use aorist_primitives::{attribute, derived_schema};
@@ -12,19 +11,19 @@ use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
 use uuid::Uuid;
+use aorist_attributes::*;
 
-derived_schema! {
-    name: TAOCrownHullSchema,
+derived_schema! { 
+    name: TAOToEcoObjectSchema, 
     sources: 
-      - point_cloud: PointCloudAsset,
+      - taos: PolygonCollectionAsset,
+      - adjacency: SimpleUndirectedGraphAsset,
     attributes:
-      path: KeyStringIdentifier("File Path", false),
+      path: KeyStringIdentifier("TAO File Path", false),
       tao_id: KeyInt64Identifier("ID of TAO (unique in file)", false),
+      eco_object_id: KeyInt64Identifier("ID of TAO (unique in file)", false),
       wkt: WKTString("WKT string of TAO boundary", false),
       metrics: JSON("JSON map of metrics", false) 
     fields:
-      hull_type: String,
-      concavity: FloatValue,
-      length_threshold: FloatValue,
-      func: Option<String>
+      pruning_threshold: FloatValue
 }
