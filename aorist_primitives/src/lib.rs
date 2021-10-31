@@ -1248,7 +1248,7 @@ macro_rules! register_constraint_new {
                         let (
                             extracted_string, extracted_context
                         ) : (String, aorist_primitives::Context) = returned.extract().unwrap();
-                        context.insert(&extracted_context);
+                        context.insert(&extracted_context, constraint.read().unwrap().get_name().clone());
                         extracted = extracted_string;
                     } else {
                         let arg = deserialized.call1((objects,)).unwrap();
@@ -1299,7 +1299,7 @@ macro_rules! register_constraint_new {
                     let extracted: AST = match deserialized.call1((objects,)) {
                         Ok(arg) => {
                             let result = match context_pos {
-                                Some(_) => aorist_ast::extract_arg_with_context(arg, context),
+                                Some(_) => aorist_ast::extract_arg_with_context(arg, context, constraint.read().unwrap().get_name().clone()),
                                 None => aorist_ast::extract_arg(arg),
                             };
                             match result {
