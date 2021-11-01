@@ -25,5 +25,6 @@ derived_schema! {
       wkt: WKTString("WKT string of TAO boundary", false),
       metrics: JSON("JSON map of metrics", false) 
     fields:
-      pruning_threshold: FloatValue
+      pruning_threshold: FloatValue,
+      max_neck_size: FloatValue
 }
