@@ -26,5 +26,6 @@ derived_schema! {
       metrics: JSON("JSON map of metrics", false) 
     fields:
       pruning_threshold: FloatValue,
-      max_neck_size: FloatValue
+      max_neck_size: FloatValue,
+      minimum_mapping_area: FloatValue
 }

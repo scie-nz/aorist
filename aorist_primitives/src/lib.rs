@@ -1264,7 +1264,7 @@ macro_rules! register_constraint_new {
                     let deserialized = dill.getattr("loads").unwrap().call1((py_arg,)).unwrap();
 
 
-                    let mut objects = Vec::new();
+                    let mut objects = Vec::with_capacity(input_types.len());
                     let mut context_pos = None;
                     let mut constraint_pos = None;
                     for (i, x) in input_types.iter().enumerate() {
@@ -1272,9 +1272,15 @@ macro_rules! register_constraint_new {
                             "constraint" => {
                                 assert!(constraint_pos.is_none());
                                 constraint_pos = Some(i);
+                                let constraint_rw = constraint.read().unwrap();
+                                let inner = constraint_rw.inner(stringify!($name)).unwrap();
+                                let obj = inner.get_py_obj(py);
+                                objects.push(obj);
                             },
                             "context" => {
                                 assert!(context_pos.is_none());
+                                let obj = PyObject::from(PyCell::new(py, context.clone()).unwrap());
+                                objects.push(obj);
                                 context_pos = Some(i);
                             },
                             _ => match ancestry.py_object(x, root.clone(), py) {
@@ -1286,16 +1292,6 @@ macro_rules! register_constraint_new {
                             }
                         }
                     }
-                    if let Some(pos) = context_pos {
-                        let obj = PyObject::from(PyCell::new(py, context.clone()).unwrap());
-                        objects.insert(pos, obj.to_object(py));
-                    };
-                    if let Some(pos) = constraint_pos {
-                        let constraint_rw = constraint.read().unwrap();
-                        let inner = constraint_rw.inner(stringify!($name)).unwrap();
-                        let obj = inner.get_py_obj(py);
-                        objects.insert(pos, obj.to_object(py));
-                    };
                     let extracted: AST = match deserialized.call1((objects,)) {
                         Ok(arg) => {
                             let result = match context_pos {
