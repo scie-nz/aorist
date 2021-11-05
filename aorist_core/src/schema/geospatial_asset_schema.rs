@@ -21,6 +21,7 @@ use crate::schema::polygon_from_raster_schema::*;
 use crate::schema::raster_schema::*;
 use crate::schema::raster_difference_schema::*;
 use crate::schema::raster_from_point_cloud_schema::*;
+use crate::schema::raster_polygon_intersection_schema::*;
 use crate::schema::tao_marker_controlled_watershed_segmentation_schema::*;
 use crate::schema::tao_watershed_segmentation_schema::*;
 use crate::schema::tao_li_segmentation_schema::*;
@@ -59,6 +60,7 @@ schema_enum! {
     - PointCloudTransformationSchema
     - RasterSchema
     - RasterDifferenceSchema
+    - RasterPolygonIntersectionSchema
     - RasterFromPointCloudSchema
     - PolygonFromRasterSchema
     - PolygonIntersectionSchema

@@ -252,5 +252,6 @@ register_concept!(
     TAOCrownHullFilterSchema,
     TAOToEcoObjectSchema,
     GraphAssetSchema,
-    EdgelistFilterSchema
+    EdgelistFilterSchema,
+    RasterPolygonIntersectionSchema
 );
