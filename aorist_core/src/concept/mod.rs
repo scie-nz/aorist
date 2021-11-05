@@ -253,5 +253,6 @@ register_concept!(
     TAOToEcoObjectSchema,
     GraphAssetSchema,
     EdgelistFilterSchema,
-    RasterPolygonIntersectionSchema
+    RasterPolygonIntersectionSchema,
+    GPKGEncoding
 );
