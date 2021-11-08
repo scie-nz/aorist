@@ -2,6 +2,7 @@
 use crate::asset::geospatial_asset::*;
 use crate::asset::graph_asset::*;
 use crate::asset::language_asset::*;
+use crate::asset::vision_asset::*;
 use crate::asset::static_data_table::*;
 use crate::concept::{AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
 use crate::encoding::{Encoding, PyEncoding};
@@ -40,6 +41,7 @@ asset_enum! {
     - GeospatialAsset
     - LanguageAsset
     - GraphAsset
+    - VisionAsset
 }
 
 impl Asset {

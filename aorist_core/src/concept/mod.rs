@@ -257,5 +257,7 @@ register_concept!(
     GPKGEncoding,
     ImageFromRasterSchema,
     VisionAssetSchema,
-    TiffEncoding
+    TiffEncoding,
+    ImageCorpus,
+    VisionAsset
 );
