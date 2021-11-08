@@ -254,5 +254,7 @@ register_concept!(
     GraphAssetSchema,
     EdgelistFilterSchema,
     RasterPolygonIntersectionSchema,
-    GPKGEncoding
+    GPKGEncoding,
+    ImageFromRasterSchema,
+    VisionAssetSchema
 );

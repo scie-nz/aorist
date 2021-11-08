@@ -9,6 +9,7 @@ use crate::schema::tabular_collection_schema::*;
 use crate::schema::tabular_schema::*;
 use crate::schema::time_ordered_tabular_schema::*;
 use crate::schema::undefined_tabular_schema::*;
+use crate::schema::vision_asset_schema::*;
 use crate::template::*;
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
@@ -38,6 +39,8 @@ pub enum DataSchema {
     UndefinedTabularSchema(AoristRef<UndefinedTabularSchema>),
     #[constrainable]
     TabularCollectionSchema(AoristRef<TabularCollectionSchema>),
+    #[constrainable]
+    VisionAssetSchema(AoristRef<VisionAssetSchema>),
 }
 
 impl DataSchema {
@@ -51,6 +54,9 @@ impl DataSchema {
                 Ok(x.0.read().unwrap().get_datum_template().clone())
             }
             DataSchema::LanguageAssetSchema(x) => {
+                Ok(x.0.read().unwrap().get_datum_template().clone())
+            }
+            DataSchema::VisionAssetSchema(x) => {
                 Ok(x.0.read().unwrap().get_datum_template().clone())
             }
             DataSchema::GeospatialAssetSchema(x) => {
@@ -114,6 +120,15 @@ impl DataSchema {
                 .read()
                 .unwrap()
                 .get_name()),
+            DataSchema::VisionAssetSchema(x) => Ok(x
+                .0
+                .read()
+                .unwrap()
+                .get_datum_template()
+                .0
+                .read()
+                .unwrap()
+                .get_name()),
             DataSchema::GeospatialAssetSchema(x) => Ok(x
                 .0
                 .read()
@@ -142,6 +157,14 @@ impl DataSchema {
             DataSchema::TabularSchema(x) => x.0.read().unwrap().attributes.clone(),
             DataSchema::TabularCollectionSchema(x) => x.0.read().unwrap().attributes.clone(),
             DataSchema::LongTabularSchema(x) => x.0.read().unwrap().get_attribute_names(),
+            DataSchema::VisionAssetSchema(x) => {
+                x.0.read()
+                    .unwrap()
+                    .get_attributes()
+                    .iter()
+                    .map(|x| x.get_name())
+                    .collect()
+            }
             DataSchema::LanguageAssetSchema(x) => {
                 x.0.read()
                     .unwrap()
