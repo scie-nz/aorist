@@ -14,6 +14,7 @@ use crate::encoding::sqlite_encoding::*;
 use crate::encoding::tsv_encoding::*;
 use crate::encoding::wkt_encoding::*;
 use crate::encoding::xml_encoding::*;
+use crate::encoding::tiff_encoding::*;
 use crate::encoding::shapefile_encoding::*;
 use crate::header::FileHeader;
 use crate::header::*;
@@ -38,6 +39,7 @@ pub enum Encoding {
     LASEncoding(AoristRef<LASEncoding>),
     SQLiteEncoding(AoristRef<SQLiteEncoding>),
     GeoTiffEncoding(AoristRef<GeoTiffEncoding>),
+    TiffEncoding(AoristRef<TiffEncoding>),
     WKTEncoding(AoristRef<WKTEncoding>),
     ShapefileEncoding(AoristRef<ShapefileEncoding>),
     XMLEncoding(AoristRef<XMLEncoding>),
@@ -59,6 +61,7 @@ impl Encoding {
             Self::SQLiteEncoding(_) => None,
             Self::NewlineDelimitedJSONEncoding(_) => None,
             Self::GeoTiffEncoding(_) => None,
+            Self::TiffEncoding(_) => None,
             Self::WKTEncoding(_) => None,
             Self::ShapefileEncoding(_) => None,
             Self::XMLEncoding(_) => None,
@@ -74,6 +77,7 @@ impl Encoding {
             Self::GDBEncoding(x) => x.0.read().unwrap().compression.clone(),
             Self::LASEncoding(x) => x.0.read().unwrap().compression.clone(),
             Self::GeoTiffEncoding(x) => x.0.read().unwrap().compression.clone(),
+            Self::TiffEncoding(x) => x.0.read().unwrap().compression.clone(),
             Self::WKTEncoding(x) => x.0.read().unwrap().compression.clone(),
             Self::XMLEncoding(x) => x.0.read().unwrap().compression.clone(),
             Self::KMLEncoding(x) => x.0.read().unwrap().compression.clone(),
@@ -94,6 +98,7 @@ impl Encoding {
             Self::GDBEncoding(_) => "gdb".to_string(),
             Self::LASEncoding(_) => "las".to_string(),
             Self::GeoTiffEncoding(_) => "tiff".to_string(),
+            Self::TiffEncoding(_) => "tiff".to_string(),
             Self::WKTEncoding(_) => "wkt".to_string(),
             Self::XMLEncoding(_) => "xml".to_string(),
             Self::KMLEncoding(_) => "kml".to_string(),
@@ -126,6 +131,10 @@ impl PyEncoding {
                 None => None,
             },
             Encoding::GeoTiffEncoding(x) => match &x.0.read().unwrap().compression {
+                Some(y) => Some(PyDataCompression { inner: y.clone() }),
+                None => None,
+            },
+            Encoding::TiffEncoding(x) => match &x.0.read().unwrap().compression {
                 Some(y) => Some(PyDataCompression { inner: y.clone() }),
                 None => None,
             },

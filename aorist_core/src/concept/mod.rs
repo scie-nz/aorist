@@ -256,5 +256,6 @@ register_concept!(
     RasterPolygonIntersectionSchema,
     GPKGEncoding,
     ImageFromRasterSchema,
-    VisionAssetSchema
+    VisionAssetSchema,
+    TiffEncoding
 );
