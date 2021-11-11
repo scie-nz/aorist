@@ -266,5 +266,6 @@ register_concept!(
     SIFTAffineImageKeyPointSchema,
     ImageCorpusKeyPoints,
     FLANNKNNMatchSchema,
-    ImageCorporaKNNMatch
+    ImageCorporaKNNMatch,
+    HomographyFromKNNMatchSchema
 );

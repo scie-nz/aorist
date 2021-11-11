@@ -1,5 +1,6 @@
 use crate::attributes::*;
 use crate::concept::{AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
+use crate::schema::homography_from_knn_match_schema::*;
 use crate::schema::pytorch_image_collection_mlp_schema::*;
 use crate::schema::flann_knn_match_schema::*;
 use crate::schema::image_from_raster_schema::*;
@@ -26,6 +27,8 @@ pub enum VisionAssetSchema {
     SIFTAffineImageKeyPointSchema(AoristRef<SIFTAffineImageKeyPointSchema>),
     #[constrainable]
     FLANNKNNMatchSchema(AoristRef<FLANNKNNMatchSchema>),
+    #[constrainable]
+    HomographyFromKNNMatchSchema(AoristRef<HomographyFromKNNMatchSchema>),
 }
 
 impl VisionAssetSchema {
@@ -36,6 +39,7 @@ impl VisionAssetSchema {
             Self::TransformImageCorpusThroughMLPSchema(x) => x.0.read().unwrap().get_attributes(),
             Self::SIFTAffineImageKeyPointSchema(x) => x.0.read().unwrap().get_attributes(),
             Self::FLANNKNNMatchSchema(x) => x.0.read().unwrap().get_attributes(),
+            Self::HomographyFromKNNMatchSchema(x) => x.0.read().unwrap().get_attributes(),
         }
     }
     pub fn get_datum_template(&self) -> AoristRef<DatumTemplate> {
@@ -53,6 +57,9 @@ impl VisionAssetSchema {
                 x.0.read().unwrap().get_datum_template()
             }
             VisionAssetSchema::FLANNKNNMatchSchema(x) => {
+                x.0.read().unwrap().get_datum_template()
+            }
+            VisionAssetSchema::HomographyFromKNNMatchSchema(x) => {
                 x.0.read().unwrap().get_datum_template()
             }
         }
