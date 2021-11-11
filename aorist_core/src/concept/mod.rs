@@ -262,5 +262,6 @@ register_concept!(
     VisionAsset,
     PyTorchImageCollectionMLPSchema,
     MLPAsset,
-    TransformImageCorpusThroughMLPSchema
+    TransformImageCorpusThroughMLPSchema,
+    SIFTAffineImageKeyPointSchema
 );
