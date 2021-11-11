@@ -260,5 +260,6 @@ register_concept!(
     TiffEncoding,
     ImageCorpus,
     VisionAsset,
-    PyTorchImageCollectionMLPSchema
+    PyTorchImageCollectionMLPSchema,
+    MLPAsset
 );
