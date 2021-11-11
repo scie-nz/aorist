@@ -19,5 +19,6 @@ asset_enum! {
     variants:
     - ImageCorpus
     - ImageCorpusKeyPoints
+    - ImageCorporaKNNMatch
     - MLPAsset
 }
