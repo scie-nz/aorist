@@ -2,6 +2,7 @@ use crate::attributes::*;
 use crate::concept::{AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
 use crate::schema::pytorch_image_collection_mlp_schema::*;
 use crate::schema::image_from_raster_schema::*;
+use crate::schema::transform_image_corpus_through_mlp_schema::*;
 use crate::template::*;
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
@@ -17,6 +18,8 @@ pub enum VisionAssetSchema {
     ImageFromRasterSchema(AoristRef<ImageFromRasterSchema>),
     #[constrainable]
     PyTorchImageCollectionMLPSchema(AoristRef<PyTorchImageCollectionMLPSchema>),
+    #[constrainable]
+    TransformImageCorpusThroughMLPSchema(AoristRef<TransformImageCorpusThroughMLPSchema>)
 }
 
 impl VisionAssetSchema {
@@ -24,6 +27,7 @@ impl VisionAssetSchema {
         match self {
             Self::ImageFromRasterSchema(x) => x.0.read().unwrap().get_attributes(),
             Self::PyTorchImageCollectionMLPSchema(x) => x.0.read().unwrap().get_attributes(),
+            Self::TransformImageCorpusThroughMLPSchema(x) => x.0.read().unwrap().get_attributes(),
         }
     }
     pub fn get_datum_template(&self) -> AoristRef<DatumTemplate> {
@@ -32,6 +36,9 @@ impl VisionAssetSchema {
                 x.0.read().unwrap().get_datum_template()
             }
             VisionAssetSchema::PyTorchImageCollectionMLPSchema(x) => {
+                x.0.read().unwrap().get_datum_template()
+            }
+            VisionAssetSchema::TransformImageCorpusThroughMLPSchema(x) => {
                 x.0.read().unwrap().get_datum_template()
             }
         }

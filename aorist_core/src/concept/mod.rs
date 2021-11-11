@@ -261,5 +261,6 @@ register_concept!(
     ImageCorpus,
     VisionAsset,
     PyTorchImageCollectionMLPSchema,
-    MLPAsset
+    MLPAsset,
+    TransformImageCorpusThroughMLPSchema
 );
