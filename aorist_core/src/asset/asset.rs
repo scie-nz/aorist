@@ -2,9 +2,10 @@
 use crate::asset::geospatial_asset::*;
 use crate::asset::graph_asset::*;
 use crate::asset::language_asset::*;
+use crate::asset::vision_asset::*;
 use crate::asset::static_data_table::*;
 use crate::concept::{AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
-use crate::encoding::Encoding;
+use crate::encoding::{Encoding, PyEncoding};
 use crate::schema::*;
 use crate::storage::*;
 use crate::storage_setup::*;
@@ -40,6 +41,7 @@ asset_enum! {
     - GeospatialAsset
     - LanguageAsset
     - GraphAsset
+    - VisionAsset
 }
 
 impl Asset {
@@ -70,5 +72,17 @@ impl PyAsset {
                 self.inner.0.read().unwrap().persist_local(storage.inner.deep_clone())
             )))
         })
+    }
+    pub fn replicate_to_local(
+        &self,
+        storage: PyStorage,
+        tmp_dir: String,
+        tmp_encoding: PyEncoding,
+    ) -> PyResult<Self> {
+        Ok(PyAsset { inner: AoristRef(Arc::new(RwLock::new(self.inner.0.read().unwrap().replicate_to_local(
+            storage.inner.deep_clone(),
+            tmp_dir.clone(),
+            tmp_encoding.inner.deep_clone(),
+        ).unwrap()))) } ) 
     }
 }

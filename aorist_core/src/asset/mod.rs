@@ -13,6 +13,8 @@ mod raster_asset;
 mod simple_undirected_graph_asset;
 mod static_data_table;
 mod text_corpus;
+mod vision_asset;
+mod image_corpus;
 
 pub use asset::*;
 pub use fasttext_embedding::*;
@@ -29,3 +31,5 @@ pub use raster_asset::*;
 pub use simple_undirected_graph_asset::*;
 pub use static_data_table::*;
 pub use text_corpus::*;
+pub use vision_asset::*;
+pub use image_corpus::*;

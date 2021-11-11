@@ -1212,11 +1212,12 @@ macro_rules! register_constraint_new {
             fn get_dialect(&self) -> Dialect {
                 self.inner.get_dialect()
             }
-            fn compute_args(
+            fn compute_args<'a, T: aorist_core::OuterConstraint<'a>>(
                 &self,
                 root: <Self::TAncestry as Ancestry>::TConcept,
                 ancestry: &Self::TAncestry,
                 context: &mut aorist_primitives::Context,
+                constraint: std::sync::Arc<std::sync::RwLock<T>>, 
             ) -> (String, String, ParameterTuple, Dialect) {
                 let gil = Python::acquire_gil();
                 let py = gil.python();
@@ -1247,7 +1248,7 @@ macro_rules! register_constraint_new {
                         let (
                             extracted_string, extracted_context
                         ) : (String, aorist_primitives::Context) = returned.extract().unwrap();
-                        context.insert(&extracted_context);
+                        context.insert(&extracted_context, constraint.read().unwrap().get_name().clone());
                         extracted = extracted_string;
                     } else {
                         let arg = deserialized.call1((objects,)).unwrap();
@@ -1263,14 +1264,26 @@ macro_rules! register_constraint_new {
                     let deserialized = dill.getattr("loads").unwrap().call1((py_arg,)).unwrap();
 
 
-                    let mut objects = Vec::new();
+                    let mut objects = Vec::with_capacity(input_types.len());
                     let mut context_pos = None;
+                    let mut constraint_pos = None;
                     for (i, x) in input_types.iter().enumerate() {
-                        if x == "context" {
-                            assert!(context_pos.is_none());
-                            context_pos = Some(i);
-                        } else {
-                            match ancestry.py_object(x, root.clone(), py) {
+                        match &x as &str {
+                            "constraint" => {
+                                assert!(constraint_pos.is_none());
+                                constraint_pos = Some(i);
+                                let constraint_rw = constraint.read().unwrap();
+                                let inner = constraint_rw.inner(stringify!($name)).unwrap();
+                                let obj = inner.get_py_obj(py);
+                                objects.push(obj);
+                            },
+                            "context" => {
+                                assert!(context_pos.is_none());
+                                let obj = PyObject::from(PyCell::new(py, context.clone()).unwrap());
+                                objects.push(obj);
+                                context_pos = Some(i);
+                            },
+                            _ => match ancestry.py_object(x, root.clone(), py) {
                                 Ok(x) => objects.push(x.to_object(py)),
                                 Err(err) => panic!(
                                     "Error when running program for key {} input_type {} # {}:\n{}",
@@ -1279,14 +1292,10 @@ macro_rules! register_constraint_new {
                             }
                         }
                     }
-                    if let Some(pos) = context_pos {
-                        let obj = PyObject::from(PyCell::new(py, context.clone()).unwrap());
-                        objects.insert(pos, obj.to_object(py));
-                    };
                     let extracted: AST = match deserialized.call1((objects,)) {
                         Ok(arg) => {
                             let result = match context_pos {
-                                Some(_) => aorist_ast::extract_arg_with_context(arg, context),
+                                Some(_) => aorist_ast::extract_arg_with_context(arg, context, constraint.read().unwrap().get_name().clone()),
                                 None => aorist_ast::extract_arg(arg),
                             };
                             match result {
@@ -1457,6 +1466,20 @@ macro_rules! register_constraint_new {
                 hashmap! {
                     $(
                         stringify!($element).to_string() => $element::get_required_constraint_names(),
+                    )+
+                }
+            }
+            #[cfg(feature = "python")]
+            fn get_py_obj<'b>(&self, py: pyo3::Python<'b>) -> pyo3::prelude::PyObject {
+                match &self {
+                    $(
+                        $name::$element(elem) => {
+                            pyo3::prelude::PyObject::from(
+                                pyo3::prelude::PyCell::new(
+                                    py, elem.clone()
+                                ).unwrap()
+                            )
+                        }
                     )+
                 }
             }

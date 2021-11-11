@@ -2,12 +2,14 @@
 use crate::attributes::*;
 use crate::concept::{AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
 use crate::schema::geospatial_asset_schema::*;
+use crate::schema::graph_asset_schema::*;
 use crate::schema::language_asset_schema::*;
 use crate::schema::long_tabular_schema::*;
 use crate::schema::tabular_collection_schema::*;
 use crate::schema::tabular_schema::*;
 use crate::schema::time_ordered_tabular_schema::*;
 use crate::schema::undefined_tabular_schema::*;
+use crate::schema::vision_asset_schema::*;
 use crate::template::*;
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
@@ -24,6 +26,8 @@ pub enum DataSchema {
     #[constrainable]
     GeospatialAssetSchema(AoristRef<GeospatialAssetSchema>),
     #[constrainable]
+    GraphAssetSchema(AoristRef<GraphAssetSchema>),
+    #[constrainable]
     LanguageAssetSchema(AoristRef<LanguageAssetSchema>),
     #[constrainable]
     LongTabularSchema(AoristRef<LongTabularSchema>),
@@ -35,6 +39,8 @@ pub enum DataSchema {
     UndefinedTabularSchema(AoristRef<UndefinedTabularSchema>),
     #[constrainable]
     TabularCollectionSchema(AoristRef<TabularCollectionSchema>),
+    #[constrainable]
+    VisionAssetSchema(AoristRef<VisionAssetSchema>),
 }
 
 impl DataSchema {
@@ -50,7 +56,13 @@ impl DataSchema {
             DataSchema::LanguageAssetSchema(x) => {
                 Ok(x.0.read().unwrap().get_datum_template().clone())
             }
+            DataSchema::VisionAssetSchema(x) => {
+                Ok(x.0.read().unwrap().get_datum_template().clone())
+            }
             DataSchema::GeospatialAssetSchema(x) => {
+                Ok(x.0.read().unwrap().get_datum_template().clone())
+            }
+            DataSchema::GraphAssetSchema(x) => {
                 Ok(x.0.read().unwrap().get_datum_template().clone())
             }
             DataSchema::TimeOrderedTabularSchema(x) => {
@@ -81,6 +93,15 @@ impl DataSchema {
                 .read()
                 .unwrap()
                 .get_name()),
+            DataSchema::GraphAssetSchema(x) => Ok(x
+                .0
+                .read()
+                .unwrap()
+                .get_datum_template()
+                .0
+                .read()
+                .unwrap()
+                .get_name()),
             DataSchema::LongTabularSchema(x) => Ok(x
                 .0
                 .read()
@@ -91,6 +112,15 @@ impl DataSchema {
                 .unwrap()
                 .get_name()),
             DataSchema::LanguageAssetSchema(x) => Ok(x
+                .0
+                .read()
+                .unwrap()
+                .get_datum_template()
+                .0
+                .read()
+                .unwrap()
+                .get_name()),
+            DataSchema::VisionAssetSchema(x) => Ok(x
                 .0
                 .read()
                 .unwrap()
@@ -127,6 +157,14 @@ impl DataSchema {
             DataSchema::TabularSchema(x) => x.0.read().unwrap().attributes.clone(),
             DataSchema::TabularCollectionSchema(x) => x.0.read().unwrap().attributes.clone(),
             DataSchema::LongTabularSchema(x) => x.0.read().unwrap().get_attribute_names(),
+            DataSchema::VisionAssetSchema(x) => {
+                x.0.read()
+                    .unwrap()
+                    .get_attributes()
+                    .iter()
+                    .map(|x| x.get_name())
+                    .collect()
+            }
             DataSchema::LanguageAssetSchema(x) => {
                 x.0.read()
                     .unwrap()
@@ -143,6 +181,14 @@ impl DataSchema {
                     .map(|x| x.get_name())
                     .collect()
             }
+            DataSchema::GraphAssetSchema(x) => {
+                x.0.read()
+                    .unwrap()
+                    .get_attributes()
+                    .iter()
+                    .map(|x| x.get_name())
+                    .collect()
+            }
             DataSchema::TimeOrderedTabularSchema(x) => x.0.read().unwrap().attributes.clone(),
             DataSchema::UndefinedTabularSchema(_) => vec![],
         }
@@ -150,6 +196,7 @@ impl DataSchema {
     pub fn get_attributes(&self) -> Vec<AoristRef<Attribute>> {
         match self {
             DataSchema::GeospatialAssetSchema(x) => x.0.read().unwrap().get_attributes(),
+            DataSchema::GraphAssetSchema(x) => x.0.read().unwrap().get_attributes(),
             DataSchema::TabularCollectionSchema(x) => x.0.read().unwrap().get_attributes(),
             _ => self
                 .get_datum_template()

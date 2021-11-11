@@ -13,21 +13,45 @@ local = HiveTableStorage(
 subreddits = us_subreddits.replicate_to_local(
     Storage(local), "/tmp/us_subreddits", Encoding(CSVEncoding())
 )
-embedding = FasttextEmbedding(
-    name="embedding",
-    comment="Fasttext embedding of size 128",
-    schema=DataSchema(FasttextEmbeddingSchema(
-        dim=128,
-        source_schema=subreddit_schema,
-        text_attribute_name="selftext",
-    )),
+text_template = DatumTemplate(Text(name="corpus"))
+text_corpus_schema = TextCorpusSchema(
+    sources=[x.static_data_table for x in subreddits.assets.values()],
+    datum_template=text_template,
+    text_attribute_name="TEXT",
+)
+text_corpus = TextCorpus(
+    name="text_corpus",
+    comment="Subreddits",
+    schema=DataSchema(LanguageAssetSchema(text_corpus_schema)),
     setup=StorageSetup(LocalStorageSetup(
         Storage(local),
-        '/tmp/fasttext_embedding',
+        '/tmp/subreddits',
     )),
-    source_assets=list(subreddits.assets.values()),
 )
-subreddits.add_asset('embedding', Asset(embedding))
+subreddits.add_asset(Asset(LanguageAsset(text_corpus)))
+fasttext_attributes = [
+    Attribute(KeyStringIdentifier("word_id")),
+    Attribute(FreeText("word")),
+    Attribute(FreeText("embedding")),
+]
+fasttext_datum = RowStruct(
+    name="fasttext",
+    attributes=fasttext_attributes,
+)
+embedding = LanguageAsset(FasttextEmbedding(
+    name="embedding",
+    comment="Fasttext embedding of size 128",
+    schema=DataSchema(LanguageAssetSchema(FasttextEmbeddingSchema(
+        dim=128,
+        source=text_corpus,
+        datum_template=DatumTemplate(fasttext_datum),
+    ))),
+    setup=StorageSetup(LocalStorageSetup(
+        Storage(local),
+        '/tmp/subreddits',
+    )),
+))
+subreddits.add_asset(Asset(embedding))
 universe = Universe(
     name="my_cluster",
     datasets=[subreddits],

@@ -248,5 +248,16 @@ register_concept!(
     KMLEncoding,
     AdjacentPolygonsSchema,
     GraphAsset,
-    SimpleUndirectedGraphAsset
+    SimpleUndirectedGraphAsset,
+    TAOCrownHullFilterSchema,
+    TAOToEcoObjectSchema,
+    GraphAssetSchema,
+    EdgelistFilterSchema,
+    RasterPolygonIntersectionSchema,
+    GPKGEncoding,
+    ImageFromRasterSchema,
+    VisionAssetSchema,
+    TiffEncoding,
+    ImageCorpus,
+    VisionAsset
 );

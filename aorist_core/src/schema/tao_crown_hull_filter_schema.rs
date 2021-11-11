@@ -1,7 +1,9 @@
 use crate::asset::*;
+use crate::schema::derived_asset_schema::*;
 use crate::attributes::*;
 use crate::concept::{AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
 use crate::template::*;
+use aorist_attributes::*;
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
 use aorist_primitives::{attribute, derived_schema};
@@ -9,17 +11,17 @@ use derivative::Derivative;
 #[cfg(feature = "python")]
 use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
-use crate::schema::derived_asset_schema::*;
 use std::fmt::Debug;
 use uuid::Uuid;
-use aorist_attributes::*;
 
-derived_schema! { 
-    name: AdjacentPolygonsSchema, 
-    source: PolygonCollectionAsset,
+derived_schema! {
+    name: TAOCrownHullFilterSchema,
+    source: PolygonCollectionAsset, 
     attributes:
-      id1: KeyInt64Identifier("Polygon 1 Identifier", false),
-      id2: KeyInt64Identifier("Polygon 2 Identifier", false)
+      path: KeyStringIdentifier("File Path", false),
+      tao_id: KeyInt64Identifier("ID of TAO (unique in file)", false),
+      wkt: WKTString("WKT string of TAO boundary", false),
+      metrics: JSON("JSON map of metrics", false) 
     fields:
-      buffer: Option<FloatValue>
+      sql_predicate: String
 }

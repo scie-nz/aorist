@@ -62,9 +62,9 @@ pub fn extract_arg(arg: &PyAny) -> PyResult<AST> {
         ))
     }
 }
-pub fn extract_arg_with_context(arg: &PyAny, context: &mut Context) -> PyResult<AST> {
+pub fn extract_arg_with_context(arg: &PyAny, context: &mut Context, constraint_name: String) -> PyResult<AST> {
     if let Ok((py_any, extracted_context)) = arg.extract::<(&PyAny, Context)>() {
-        context.insert(&extracted_context);
+        context.insert(&extracted_context, constraint_name);
         extract_arg(py_any)
     } else {
         Err(PyValueError::new_err(

@@ -41,11 +41,12 @@ impl<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry = T::TAncestry>>
         dependency: &Arc<RwLock<ConstraintState<'a, T, P>>>,
         uuid: &(Uuid, String),
     ) {
-        debug!("Marked dependency {} as satisfied.", dependency.read().unwrap().get_name());
+        let dependency_name = dependency.read().unwrap().get_name();
         let dependency_context = &(*dependency.read().unwrap()).context;
         self.satisfied_dependencies.push(dependency.clone());
-        self.context.insert(dependency_context);
+        self.context.insert(dependency_context, dependency_name.clone());
         assert!(self.unsatisfied_dependencies.remove(uuid));
+        debug!("Marked dependency {} as satisfied.", dependency_name);
     }
     pub fn requires_program(&self) -> Result<bool> {
         self.constraint.read().unwrap().requires_program()
@@ -190,7 +191,7 @@ impl<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry = T::TAncestry>>
         let best_program = Self::find_best_program(preferences, programs);
         if let Some(program) = best_program {
             let (preamble, call, params, dialect) =
-                program.compute_args(self.root.clone(), ancestry, &mut self.context);
+                program.compute_args(self.root.clone(), ancestry, &mut self.context, self.constraint.clone());
             self.preamble = Some(preamble);
             self.call = Some(call);
             self.params = Some(params);

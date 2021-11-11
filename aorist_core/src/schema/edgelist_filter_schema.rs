@@ -15,11 +15,11 @@ use uuid::Uuid;
 use aorist_attributes::*;
 
 derived_schema! { 
-    name: AdjacentPolygonsSchema, 
-    source: PolygonCollectionAsset,
+    name: EdgelistFilterSchema, 
+    source: SimpleUndirectedGraphAsset,
     attributes:
-      id1: KeyInt64Identifier("Polygon 1 Identifier", false),
-      id2: KeyInt64Identifier("Polygon 2 Identifier", false)
+      id1: KeyStringIdentifier("Node 1 Identifier", false),
+      id2: KeyStringIdentifier("Node 2 Identifier", false)
     fields:
-      buffer: Option<FloatValue>
+      sql_predicate: String
 }

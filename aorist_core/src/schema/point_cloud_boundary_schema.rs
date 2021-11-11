@@ -16,7 +16,7 @@ use uuid::Uuid;
 
 derived_schema! {
     name: PointCloudBoundarySchema,
-    source: StaticDataTable,
+    source: PointCloudInfoAsset,
     attributes:
       path: KeyStringIdentifier("File Path", false),
       area: FloatArea("Area in units", false),

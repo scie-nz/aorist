@@ -21,11 +21,14 @@ use crate::schema::polygon_from_raster_schema::*;
 use crate::schema::raster_schema::*;
 use crate::schema::raster_difference_schema::*;
 use crate::schema::raster_from_point_cloud_schema::*;
+use crate::schema::raster_polygon_intersection_schema::*;
 use crate::schema::tao_marker_controlled_watershed_segmentation_schema::*;
 use crate::schema::tao_watershed_segmentation_schema::*;
 use crate::schema::tao_li_segmentation_schema::*;
 use crate::schema::tao_da_silva_segmentation_schema::*;
+use crate::schema::tao_crown_hull_filter_schema::*;
 use crate::schema::tao_crown_hull_schema::*;
+use crate::schema::tao_to_eco_object_schema::*;
 use crate::schema::tree_detection_schema::*;
 use crate::template::*;
 use aorist_concept::{aorist, Constrainable};
@@ -57,14 +60,17 @@ schema_enum! {
     - PointCloudTransformationSchema
     - RasterSchema
     - RasterDifferenceSchema
+    - RasterPolygonIntersectionSchema
     - RasterFromPointCloudSchema
     - PolygonFromRasterSchema
     - PolygonIntersectionSchema
     - PolygonSchema
     - TAOCrownHullSchema
+    - TAOCrownHullFilterSchema
     - TAOMarkerControlledWatershedSegmentationSchema
     - TAOWatershedSegmentationSchema
     - TAOLiSegmentationSchema
     - TAODaSilvaSegmentationSchema
+    - TAOToEcoObjectSchema
     - TreeDetectionSchema
 }

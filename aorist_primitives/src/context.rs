@@ -57,18 +57,20 @@ impl Context {
             inner: HashMap::new(),
         }
     }
-    pub fn insert(&mut self, other: &Self) {
+    pub fn insert(&mut self, other: &Self, constraint_name: String) {
         for (k, v) in other.inner.iter() {
             let existing: Option<_> = self.inner.get(k).and_then(|x| Some(x.clone()));
             if let Some(existing_val) = existing {
                 if existing_val != *v {
                     self.inner.insert(k.clone(), v.clone());
+                    debug!("Old value {} for key {} replaced with {} from dependent constraint {}", 
+                            existing_val, &k, &v, constraint_name);
                     //panic!("Key {} already populated", k);
                     //self.inner
                     //    .insert(k.clone(), format!("{};{}", existing_val, v).to_string());
                 }
             } else {
-                debug!("Inserted from dependent constraint ({}, {})", &k, &v);
+                debug!("Inserted from dependent constraint {} ({}, {})", constraint_name, &k, &v);
                 self.inner.insert(k.clone(), v.clone());
             }
         }
