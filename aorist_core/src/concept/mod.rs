@@ -264,5 +264,6 @@ register_concept!(
     MLPAsset,
     TransformImageCorpusThroughMLPSchema,
     SIFTAffineImageKeyPointSchema,
-    ImageCorpusKeyPoints
+    ImageCorpusKeyPoints,
+    FLANNKNNMatchSchema
 );
