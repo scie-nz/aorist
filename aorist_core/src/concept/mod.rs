@@ -263,5 +263,6 @@ register_concept!(
     PyTorchImageCollectionMLPSchema,
     MLPAsset,
     TransformImageCorpusThroughMLPSchema,
-    SIFTAffineImageKeyPointSchema
+    SIFTAffineImageKeyPointSchema,
+    ImageCorpusKeyPoints
 );
