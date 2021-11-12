@@ -1,4 +1,4 @@
-use crate::{BigIntLiteral, BooleanLiteral, FloatLiteral, List, None, StringLiteral, Tuple, AST, Dict, SimpleIdentifier};
+use crate::{BigIntLiteral, BooleanLiteral, FloatLiteral, List, None, StringLiteral, Tuple, AST, Dict, SimpleIdentifier, Call, Attribute};
 use aorist_primitives::Context;
 use linked_hash_map::LinkedHashMap;
 use pyo3::exceptions::PyValueError;
@@ -57,9 +57,46 @@ pub fn extract_arg(arg: &PyAny) -> PyResult<AST> {
     } else if let Ok(extracted_type) = arg.downcast::<PyType>() {
         Ok(AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(extracted_type.name()?.to_string())))
     } else {
-        Err(PyValueError::new_err(
-            "Object can be either string, boolean, int, a list, a tuple, or a type",
-        ))
+        let class = arg.getattr("__class__")?;
+        let module = class.getattr("__module__")?.extract::<String>()?;
+        let name = class.getattr("__name__")?.extract::<&str>()?;
+        if module == "ast" {
+            match name {
+               "Call" => {
+                    let func = extract_arg(arg.getattr("func")?)?;
+                    let args = match extract_arg(arg.getattr("args")?)? {
+                        AST::List(x) => x.read().unwrap().elems().clone(),
+                        AST::None(x) => Vec::new(),
+                        _ => panic!("args field of call should be list or none"),
+                    };
+                    let keywords = arg.getattr("keywords")?.downcast::<PyList>()?;
+                    let kwmap = keywords.into_iter().map(
+                        |x| (x.getattr("arg").unwrap(), x.getattr("value").unwrap())
+                    ).map(
+                        |x| (x.0.extract::<String>().unwrap(), extract_arg(x.1).unwrap())
+                    ).collect::<LinkedHashMap<String, AST>>();
+                    Ok(AST::Call(Call::new_wrapped(func, args, kwmap)))
+              },
+              "Attribute" => {
+                    let value = extract_arg(arg.getattr("value")?)?;
+                    let attr = arg.getattr("attr")?.extract::<String>()?;
+                    Ok(AST::Attribute(Attribute::new_wrapped(value, attr, false)))
+              },
+              "Name" => {
+                    let id = arg.getattr("id")?.extract::<String>()?;
+                    Ok(AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(id)))
+              },
+              "Constant" => {
+                    let value = arg.getattr("value")?;
+                    Ok(extract_arg(value)?)
+              },
+              _ => panic!("Not sure what to do with ast.{}", name)
+          }
+        } else {
+            Err(PyValueError::new_err(
+                "Object can be either string, boolean, int, a list, a tuple, or a type",
+            ))
+        }
     }
 }
 pub fn extract_arg_with_context(arg: &PyAny, context: &mut Context, constraint_name: String) -> PyResult<AST> {
