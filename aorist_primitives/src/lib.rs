@@ -1185,6 +1185,15 @@ macro_rules! register_concept {
     }
 }
 #[macro_export]
+macro_rules! register_constraint {
+    ( $name:ident, $lt: lifetime, $($element: ident),+ ) => { aorist_paste::item! {
+        #[sabi_extern_fn]
+        pub fn builders() -> RResult<RVec<RString>, AoristError> {
+            ROk(vec![$(stringify!($element).into()),+].into())
+        }
+    }}
+}
+#[macro_export]
 macro_rules! register_constraint_new {
     ( $name:ident, $lt: lifetime, $($element: ident),+ ) => { aorist_paste::item! {
         #[derive(Clone)]
@@ -1684,7 +1693,7 @@ macro_rules! export_aorist_python_module {
 
         define_dag_function!($dag_function);
         #[pyfunction]
-        pub fn test() -> PyResult<String> {
+        pub fn test() -> PyResult<Vec<String>> {
             let base_name = "constraint_module";
             let debug_dir = "../target/debug/"
                 .as_ref_::<Path>()
@@ -1692,8 +1701,8 @@ macro_rules! export_aorist_python_module {
             let debug_path = RawLibrary::path_in_directory(&debug_dir, base_name, LibrarySuffix::NoSuffix);
             let header = lib_header_from_path(&debug_path).unwrap();
             let root_module = header.init_root_module::<ConstraintMod_Ref>().unwrap();
-            let constructor = root_module.new();
-            Ok(constructor().unwrap().into())
+            let constructor = root_module.builders();
+            Ok(constructor().unwrap().into_iter().map(|x| x.into()).collect())
         }
 
         #[pymodule]

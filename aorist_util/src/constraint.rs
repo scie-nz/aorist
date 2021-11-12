@@ -243,3 +243,21 @@ pub fn process_constraints(raw_objects: &Vec<HashMap<String, Value>>) {
     ));
     fs::write(&dest_path, scope.to_string()).unwrap();
 }
+pub fn process_constraints_new(raw_objects: &Vec<HashMap<String, Value>>) {
+    let constraints = get_raw_objects_of_type(raw_objects, "Constraint".into());
+    let mut scope = Scope::new();
+    scope.import("aorist_primitives", "register_constraint");
+    let dependencies = get_constraint_dependencies(&constraints);
+    let order = compute_topological_sort(&dependencies);
+    let out_dir = env::var_os("OUT_DIR").unwrap();
+    let dest_path = Path::new(&out_dir).join("constraints.rs");
+    scope.raw(&format!(
+        "register_constraint!(AoristConstraint, 'a, {});",
+        order
+            .iter()
+            .map(|x| x.0.clone())
+            .collect::<Vec<_>>()
+            .join("\n,    ")
+    ));
+    fs::write(&dest_path, scope.to_string()).unwrap();
+}
