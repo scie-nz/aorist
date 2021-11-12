@@ -267,5 +267,6 @@ register_concept!(
     ImageCorpusKeyPoints,
     FLANNKNNMatchSchema,
     ImageCorporaKNNMatch,
-    HomographyFromKNNMatchSchema
+    HomographyFromKNNMatchSchema,
+    ImageCorporaHomography
 );

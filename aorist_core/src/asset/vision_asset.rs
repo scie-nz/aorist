@@ -21,4 +21,5 @@ asset_enum! {
     - ImageCorpusKeyPoints
     - ImageCorporaKNNMatch
     - MLPAsset
+    - ImageCorporaHomography
 }
