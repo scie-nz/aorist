@@ -269,5 +269,6 @@ register_concept!(
     ImageCorporaKNNMatch,
     HomographyFromKNNMatchSchema,
     ImageCorporaHomography,
-    PerspectiveTransformFromHomographySchema
+    PerspectiveTransformFromHomographySchema,
+    GridPerspectiveTransformAsset
 );
