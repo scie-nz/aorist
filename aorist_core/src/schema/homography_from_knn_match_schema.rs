@@ -23,6 +23,7 @@ derived_schema! {
       dst_points: FreeText("JSON of destination points", false),
       matrix: FreeText("JSON of Homography Matrix (H)", false)
     fields:
+      knn_filter_threshold: FloatValue,
       method: String,
       ransac_reproj_threshold: Option<FloatValue>,
       max_iters: usize,

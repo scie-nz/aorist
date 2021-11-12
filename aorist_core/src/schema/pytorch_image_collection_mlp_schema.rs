@@ -23,5 +23,6 @@ derived_schema! {
       path: KeyStringIdentifier("File Path", false)
     fields:
       model: String,
-      optimizer: String
+      optimizer: String,
+      train_epochs: usize
 }
