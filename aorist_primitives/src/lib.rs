@@ -441,7 +441,8 @@ macro_rules! define_constraint {
     ($element:ident, $requires_program:expr, $satisfy_type:ident, $root:ident, $outer:ident,
     $title:expr, $body:expr, $should_add:expr, $get_required:expr $(, $required:ident)*) => {
         aorist_paste::item! {
-            
+           
+            #[repr(C)]
             #[cfg_attr(feature = "python", pyclass(module = "aorist"))]
             #[derive(Clone)]
             pub struct $element {
@@ -488,6 +489,7 @@ macro_rules! define_constraint {
                 fn get_dialect() -> Dialect;
             }
 
+            #[repr(C)]
             #[cfg_attr(feature = "python", pyclass(module = "aorist"))]
             #[derive(Clone)]
             pub struct [<$element Program>] {
@@ -497,6 +499,7 @@ macro_rules! define_constraint {
                 pub arg_functions: Vec<(Vec<String>, String)>,
                 pub kwarg_functions: LinkedHashMap<String, (Vec<String>, String)>,
             }
+            
             #[cfg(feature = "python")]
             #[pymethods]
             impl $element {
