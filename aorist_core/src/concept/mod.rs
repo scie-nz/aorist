@@ -268,5 +268,6 @@ register_concept!(
     FLANNKNNMatchSchema,
     ImageCorporaKNNMatch,
     HomographyFromKNNMatchSchema,
-    ImageCorporaHomography
+    ImageCorporaHomography,
+    PerspectiveTransformFromHomographySchema
 );
