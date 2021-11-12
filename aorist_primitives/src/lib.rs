@@ -441,6 +441,7 @@ macro_rules! define_constraint {
     ($element:ident, $requires_program:expr, $satisfy_type:ident, $root:ident, $outer:ident,
     $title:expr, $body:expr, $should_add:expr, $get_required:expr $(, $required:ident)*) => {
         aorist_paste::item! {
+            
             #[cfg_attr(feature = "python", pyclass(module = "aorist"))]
             #[derive(Clone)]
             pub struct $element {

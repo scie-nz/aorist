@@ -1,3 +1,4 @@
+use crate::error::AoristError;
 use crate::dialect::Dialect;
 use crate::parameter_tuple::ParameterTuple;
 use anyhow::Result;
@@ -8,6 +9,15 @@ use std::marker::PhantomData;
 use std::sync::{Arc, RwLock};
 use tracing::info;
 use uuid::Uuid;
+
+use abi_stable::{
+    StableAbi, 
+    std_types::RResult,
+	declare_root_module_statics,
+    library::RootModule,
+    sabi_types::VersionStrings,
+    package_version_strings,
+};
 
 pub trait SatisfiableConstraint<'a>: TConstraint<'a> {
     type TAncestry: Ancestry;
@@ -25,6 +35,23 @@ pub trait SatisfiableConstraint<'a>: TConstraint<'a> {
         ancestry: Arc<Self::TAncestry>,
     ) -> Result<(String, String, ParameterTuple, Dialect)>;
 }
+
+#[repr(C)]
+#[derive(StableAbi)]
+#[sabi(kind(Prefix(prefix_ref = "ConstraintMod_Ref")))]
+#[sabi(missing_field(panic))]
+pub struct ConstraintMod {
+    #[sabi(last_prefix_field)]
+    pub new: extern "C" fn() -> RResult<(), AoristError>,
+}
+
+impl RootModule for ConstraintMod_Ref {
+    declare_root_module_statics! {ConstraintMod_Ref}
+    const BASE_NAME: &'static str = "constraint";
+    const NAME: &'static str = "constraint";
+    const VERSION_STRINGS: VersionStrings = package_version_strings!();
+}
+
 // TODO: duplicate function, should be unified in trait
 pub trait SatisfiableOuterConstraint<'a>: OuterConstraint<'a> {
     fn satisfy_given_preference_ordering(
