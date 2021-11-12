@@ -7,6 +7,7 @@ use crate::schema::linz_property_titles_schema::*;
 use crate::schema::normalized_point_cloud_schema::*;
 use crate::schema::labeled_point_cloud_schema::*;
 use crate::schema::naip_metadata_schema::*;
+use crate::schema::perspective_transformed_gridded_polygon_collection_schema::*;
 use crate::schema::point_cloud_boundary_schema::*;
 use crate::schema::point_cloud_bounding_box_schema::*;
 use crate::schema::point_cloud_info_schema::*;
@@ -50,6 +51,7 @@ schema_enum! {
     - LabeledPointCloudSchema
     - NAIPMetadataSchema
     - NormalizedPointCloudSchema
+    - PerspectiveTransformedGriddedPolygonCollectionSchema
     - PointCloudSchema
     - PointCloudBoundarySchema
     - PointCloudBoundingBoxSchema
