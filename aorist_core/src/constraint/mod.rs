@@ -12,7 +12,7 @@ use uuid::Uuid;
 
 use abi_stable::{
     StableAbi, 
-    std_types::RResult,
+    std_types::{RResult, RString},
 	declare_root_module_statics,
     library::RootModule,
     sabi_types::VersionStrings,
@@ -42,7 +42,7 @@ pub trait SatisfiableConstraint<'a>: TConstraint<'a> {
 #[sabi(missing_field(panic))]
 pub struct ConstraintMod {
     #[sabi(last_prefix_field)]
-    pub new: extern "C" fn() -> RResult<(), AoristError>,
+    pub new: extern "C" fn() -> RResult<RString, AoristError>,
 }
 
 impl RootModule for ConstraintMod_Ref {
