@@ -20,6 +20,7 @@ extension-module = ["pyo3/extension-module"]
 default = ["extension-module"]
 
 [dependencies]
+abi_stable = "0.10.3"
 serde = { version = "1.0", features = ["derive"] }
 aorist_constraint = {path = "../aorist_constraint", features=["python"]}
 aorist_attributes = {path = "../aorist_attributes", features=["python"]}

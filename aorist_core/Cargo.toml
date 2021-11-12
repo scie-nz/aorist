@@ -42,8 +42,9 @@ serde_json = "^1.0"
 serde_yaml = "0.8"
 siphasher = "0.3"
 tracing = "0.1"
+libR-sys = {version = "0.2.2", features = ["use-bindgen"]}
 uuid = {version = "0.8.1", features = ["v4", "serde"]}
-pyo3 = {version = "0.14.5", features=["auto-initialize", "multiple-pymethods"], optional = true}
+pyo3 = {version = "0.14.5", features=["auto-initialize", "extension-module", "multiple-pymethods"], optional = true}
 aorist_extendr-api = {version = "0.0.1", optional = true}
 aorist_extendr-engine = {version = "0.0.1", optional = true}
 sqlformat = {version = "0.1.5", optional = true}

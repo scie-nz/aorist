@@ -1675,7 +1675,26 @@ macro_rules! export_aorist_python_module {
         use $attributes_crate::attributes_module;
         use $constraints_crate::*;
 
+        use abi_stable::{
+            library::{lib_header_from_path, RawLibrary, LibrarySuffix}, 
+        };
+        use aorist_core::{ConstraintMod_Ref, AoristApplicationError};
+        use std::path::{Path, PathBuf};
+        use abi_stable::reexports::SelfOps;
+
         define_dag_function!($dag_function);
+        #[pyfunction]
+        pub fn test() -> PyResult<String> {
+            let base_name = "constraint_module";
+            let debug_dir = "../target/debug/"
+                .as_ref_::<Path>()
+                .into_::<PathBuf>();    
+            let debug_path = RawLibrary::path_in_directory(&debug_dir, base_name, LibrarySuffix::NoSuffix);
+            let header = lib_header_from_path(&debug_path).unwrap();
+            let root_module = header.init_root_module::<ConstraintMod_Ref>().unwrap();
+            let constructor = root_module.new();
+            Ok(constructor().unwrap().into())
+        }
 
         #[pymodule]
         fn $module_name(py: pyo3::prelude::Python, m: &PyModule) -> PyResult<()> {
@@ -1686,6 +1705,7 @@ macro_rules! export_aorist_python_module {
             endpoints_module(py, m)?;
             dialects_module(py, m)?;
             m.add_wrapped(wrap_pyfunction!($dag_function))?;
+            m.add_wrapped(wrap_pyfunction!(test))?;
             Ok(())
         }
     };

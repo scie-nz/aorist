@@ -2,9 +2,18 @@
 name = "constraint_module"
 version = "0.1.0"
 edition = "2018"
+build = "build.rs"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 abi_stable = "0.10.3"
 aorist_core = {path = "../aorist_core", features=["python"]}
+pyo3 = {version = "0.14.4", features=["auto-initialize", "multiple-pymethods", "extension-module"]}
+
+[build-dependencies]
+pyo3-build-config = "0.14.4"
+
+[lib]
+name="constraint_module"
+crate-type = ["cdylib"]

@@ -12,6 +12,7 @@ members = [
     "constraint_module",
 ]
 default-members = ["aorist"]
+
 [profile.release]
 opt-level = 'z'     # Optimize for size.
 lto = true          # Enable Link Time Optimization
