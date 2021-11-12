@@ -247,10 +247,92 @@ pub fn process_constraints_new(raw_objects: &Vec<HashMap<String, Value>>) {
     let constraints = get_raw_objects_of_type(raw_objects, "Constraint".into());
     let mut scope = Scope::new();
     scope.import("aorist_primitives", "register_constraint");
+    scope.import("aorist_primitives", "define_constraint_abi");
     let dependencies = get_constraint_dependencies(&constraints);
     let order = compute_topological_sort(&dependencies);
     let out_dir = env::var_os("OUT_DIR").unwrap();
     let dest_path = Path::new(&out_dir).join("constraints.rs");
+    let program_required = constraints
+        .iter()
+        .map(|x| {
+            (
+                x.get("name").unwrap().as_str().unwrap().to_string(),
+                match x.get("requiresProgram") {
+                    Some(Value::Bool(ref val)) => *val,
+                    None => false,
+                    _ => panic!("requiresProgram needs to be a bool"),
+                },
+            )
+        })
+        .collect::<HashMap<String, bool>>();
+    let attach_if = constraints
+        .iter()
+        .map(|x| {
+            (
+                x.get("name").unwrap().as_str().unwrap().to_string(),
+                match x.get("attachIf") {
+                    Some(Value::String(ref val)) => Some(val.to_string()),
+                    None => None,
+                    _ => panic!("attachIf needs to be a string containing a Rust closure"),
+                },
+            )
+        })
+        .collect::<HashMap<String, Option<String>>>();
+    let constraint_closures = constraints
+        .iter()
+        .map(|x| {
+            (
+                x.get("name").unwrap().as_str().unwrap().to_string(),
+                match x.get("requiredConstraintsClosure") {
+                    Some(Value::String(ref val)) => Some(val.to_string()),
+                    None => None,
+                    _ => panic!(
+                        "requiredConstraintsClosure needs to be a string containing a Rust closure"
+                    ),
+                },
+            )
+        })
+        .collect::<HashMap<String, Option<String>>>();
+    let mut satisfiable = Vec::new();
+    for (name, root, title, body) in &order {
+        let required = dependencies
+            .get(&(name.clone(), root.clone(), title.clone(), body.clone()))
+            .unwrap();
+        let requires_program = program_required.get(name).unwrap();
+        if *requires_program {
+            satisfiable.push(name.clone());
+        }
+        let should_add = attach_if.get(name).unwrap();
+        let get_required = constraint_closures.get(name).unwrap();
+        let formatted_title = match title {
+            Some(x) => format!("Some(\"{}\".to_string())", x),
+            None => "None".to_string(),
+        };
+        let formatted_body = match body {
+            Some(x) => format!("Some(\"{}\".to_string())", x),
+            None => "None".to_string(),
+        };
+        let should_add = match should_add {
+            None => "|_, _| true".to_string(),
+            Some(x) => x.to_string(),
+        };
+        let get_required = match get_required {
+            None => "|_, _| Vec::new()".to_string(),
+            Some(x) => x.to_string(),
+        };
+
+        let define = match required.len() {
+            0 => format!(
+                "define_constraint_abi!({});", name,
+            ),
+            _ => format!(
+                "define_constraint_abi!({}, {});",
+                name,
+                required.join(", ")
+            ),
+        };
+        scope.raw(&define);
+    }
     scope.raw(&format!(
         "register_constraint!(AoristConstraint, 'a, {});",
         order

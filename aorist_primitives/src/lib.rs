@@ -2106,3 +2106,18 @@ macro_rules! schema_enum {
         }
     }};
 }
+
+#[macro_export]
+macro_rules! define_constraint_abi {
+    ($element:ident $(, $required:ident)*) => {
+        aorist_paste::item! {
+           
+            #[repr(C)]
+            #[cfg_attr(feature = "python", pyclass(module = "aorist"))]
+            #[derive(Clone)]
+            pub struct [<$element ABI>] {
+                root: aorist_core::RefABI<aorist_core::Concept>,
+            }
+        }
+    };
+}
