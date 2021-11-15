@@ -25,5 +25,9 @@ derived_schema! {
       n_octave_layers: usize,
       contrast_threshold: FloatValue,
       edge_threshold: FloatValue,
-      sigma: FloatValue
+      sigma: FloatValue,
+      min_tilt: i32,
+      max_tilt: i32,
+      tilt_step: FloatValue,
+      rotate_step_base: FloatValue
 }

@@ -1,6 +1,7 @@
 use crate::asset::*;
 use crate::attributes::*;
 use crate::concept::{AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
+use crate::schema::derived_asset_schema::*;
 use crate::template::*;
 use aorist_attributes::*;
 use aorist_concept::{aorist, Constrainable};
@@ -14,10 +15,8 @@ use std::fmt::Debug;
 use uuid::Uuid;
 
 derived_schema! {
-    name: TransformImageCorpusThroughMLPSchema,
-    sources:
-      - corpus: ImageCorpus,
-      - mlp: MLPAsset,
+    name: PolygonUnionSchema,
+    source: PolygonCollectionAsset,
     attributes:
-      path: KeyStringIdentifier("File Path", false)
+      wkt: WKTString("wkt string of union", false)
 }

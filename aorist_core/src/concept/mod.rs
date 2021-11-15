@@ -276,5 +276,6 @@ register_concept!(
     ImageCorporaHomography,
     PerspectiveTransformFromHomographySchema,
     GridPerspectiveTransformAsset,
-    PerspectiveTransformedGriddedPolygonCollectionSchema
+    PerspectiveTransformedGriddedPolygonCollectionSchema,
+    PolygonUnionSchema
 );

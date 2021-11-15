@@ -18,6 +18,7 @@ use crate::schema::point_cloud_subset_schema::*;
 use crate::schema::point_cloud_raster_difference_schema::*;
 use crate::schema::polygon_intersection_schema::*;
 use crate::schema::polygon_schema::*;
+use crate::schema::polygon_union_schema::*;
 use crate::schema::polygon_from_raster_schema::*;
 use crate::schema::raster_schema::*;
 use crate::schema::raster_difference_schema::*;
@@ -67,6 +68,7 @@ schema_enum! {
     - PolygonFromRasterSchema
     - PolygonIntersectionSchema
     - PolygonSchema
+    - PolygonUnionSchema
     - TAOCrownHullSchema
     - TAOCrownHullFilterSchema
     - TAOMarkerControlledWatershedSegmentationSchema
