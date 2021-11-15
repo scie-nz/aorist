@@ -19,7 +19,7 @@ pub use point_cloud::*;
 pub use point_cloud_info::*;
 pub use polygon::*;
 pub use polygon_intersection::*;
-pub use row_struct::*;
 pub use raster::*;
+pub use row_struct::*;
 pub use tensor::*;
 pub use text::*;

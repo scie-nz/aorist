@@ -1,5 +1,5 @@
-use crate::error::AoristError;
 use crate::dialect::Dialect;
+use crate::error::AoristError;
 use crate::parameter_tuple::ParameterTuple;
 use anyhow::Result;
 use aorist_primitives::AoristConcept;
@@ -11,12 +11,12 @@ use tracing::info;
 use uuid::Uuid;
 
 use abi_stable::{
-    StableAbi, 
-    std_types::{RResult, RString, RVec},
-	declare_root_module_statics,
+    declare_root_module_statics,
     library::RootModule,
-    sabi_types::VersionStrings,
     package_version_strings,
+    sabi_types::VersionStrings,
+    std_types::{RResult, RString, RVec},
+    StableAbi,
 };
 
 pub trait SatisfiableConstraint<'a>: TConstraint<'a> {

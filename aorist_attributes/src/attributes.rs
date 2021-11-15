@@ -63,7 +63,11 @@ impl pyo3::callback::PyCallbackOutput for FloatValue {
 impl std::convert::From<&pyo3::types::PyFloat> for FloatValue {
     fn from(x: &pyo3::types::PyFloat) -> Self {
         let (mantissa, exponent, sign) = Float::integer_decode(x.value());
-        Self{ sign, mantissa, exponent }
+        Self {
+            sign,
+            mantissa,
+            exponent,
+        }
     }
 }
 #[cfg(feature = "python")]
@@ -76,7 +80,11 @@ impl std::convert::From<&pyo3::types::PyAny> for FloatValue {
 impl std::convert::From<f64> for FloatValue {
     fn from(x: f64) -> Self {
         let (mantissa, exponent, sign) = Float::integer_decode(x);
-        Self{ sign, mantissa, exponent }
+        Self {
+            sign,
+            mantissa,
+            exponent,
+        }
     }
 }
 #[cfg(feature = "python")]

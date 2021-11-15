@@ -1,7 +1,7 @@
+use abi_stable::{std_types::*, StableAbi};
 #[cfg(feature = "python")]
 use pyo3::prelude::*;
 use std::collections::BTreeSet;
-use abi_stable::{std_types::*, StableAbi};
 
 #[repr(C)]
 #[cfg_attr(feature = "python", pyclass)]
@@ -19,7 +19,11 @@ impl Python {
         }
     }
     pub fn get_pip_requirements(&self) -> BTreeSet<String> {
-        self.pip_requirements.clone().into_iter().map(|x| x.into()).collect()
+        self.pip_requirements
+            .clone()
+            .into_iter()
+            .map(|x| x.into())
+            .collect()
     }
 }
 

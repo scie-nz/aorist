@@ -120,15 +120,13 @@ fn process_attributes(raw_objects: &Vec<HashMap<String, Value>>) {
             .as_str()
             .unwrap()
             .to_string();
-        let python = match attribute
-            .get("python")
-            .unwrap()
-            .as_str().unwrap() {
-                "str" => "pyo3::types::PyString",
-                "int" => "pyo3::types::PyLong",
-                "float" => "pyo3::types::PyFloat",
-                _ => panic!("Only str, int or float python types supported."),
-            }.to_string();
+        let python = match attribute.get("python").unwrap().as_str().unwrap() {
+            "str" => "pyo3::types::PyString",
+            "int" => "pyo3::types::PyLong",
+            "float" => "pyo3::types::PyFloat",
+            _ => panic!("Only str, int or float python types supported."),
+        }
+        .to_string();
 
         let define = format!(
             "define_attribute!({}, {}, {}, {}, {}, {}, {}, {}, {}, {});",

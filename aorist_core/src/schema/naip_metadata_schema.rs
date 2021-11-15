@@ -19,7 +19,7 @@ primary_schema! {
       perimeter: FloatArea("perimeter", false),
       xcoord: FloatLongitude("longitude", false),
       ycoord: FloatLatitude("latitude", false),
-      st: FIPSStateCode("FIPS state code", false), 
+      st: FIPSStateCode("FIPS state code", false),
       qq_name: FreeText("TBD", false),
       qkey: FreeText("quadkey", false),
       quadrant: FreeText("quadrant", false),

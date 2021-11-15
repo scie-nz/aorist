@@ -1,6 +1,6 @@
+use crate::compression::bzip2_compression::*;
 use crate::compression::gzip_compression::*;
 use crate::compression::laz_compression::*;
-use crate::compression::bzip2_compression::*;
 use crate::compression::zip_compression::*;
 use crate::concept::{AoristRef, WrappedConcept};
 use aorist_concept::{aorist, Constrainable};

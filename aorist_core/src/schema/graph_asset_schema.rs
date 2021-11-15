@@ -5,11 +5,11 @@ use crate::template::*;
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
 use aorist_primitives::schema_enum;
+#[cfg(feature = "python")]
+use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
 use uuid::Uuid;
-#[cfg(feature = "python")]
-use pyo3::prelude::*;
 
 schema_enum! {
     name: GraphAssetSchema

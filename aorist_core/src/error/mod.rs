@@ -1,5 +1,5 @@
+use abi_stable::{library::LibraryError, std_types::RString, StableAbi};
 use thiserror::Error;
-use abi_stable::{std_types::RString, StableAbi, library::LibraryError};
 
 #[repr(u8)]
 #[derive(Error, Debug, StableAbi)]
@@ -9,7 +9,7 @@ pub enum AoristError {
 }
 
 #[derive(Error, Debug)]
-pub enum AoristApplicationError {    
+pub enum AoristApplicationError {
     #[error("Library load error")]
     LibraryLoadError(#[from] LibraryError),
 }

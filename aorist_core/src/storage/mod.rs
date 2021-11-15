@@ -5,8 +5,8 @@ mod inline_blob_storage;
 mod local_file_storage;
 mod postgres_storage;
 mod remote_storage;
-mod sqlite_storage;
 mod s3_storage;
+mod sqlite_storage;
 mod storage;
 
 pub use bigquery_storage::*;
@@ -16,6 +16,6 @@ pub use inline_blob_storage::*;
 pub use local_file_storage::*;
 pub use postgres_storage::*;
 pub use remote_storage::*;
-pub use sqlite_storage::*;
 pub use s3_storage::*;
+pub use sqlite_storage::*;
 pub use storage::*;

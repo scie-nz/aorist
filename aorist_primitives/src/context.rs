@@ -63,14 +63,19 @@ impl Context {
             if let Some(existing_val) = existing {
                 if existing_val != *v {
                     self.inner.insert(k.clone(), v.clone());
-                    debug!("Old value {} for key {} replaced with {} from dependent constraint {}", 
-                            existing_val, &k, &v, constraint_name);
+                    debug!(
+                        "Old value {} for key {} replaced with {} from dependent constraint {}",
+                        existing_val, &k, &v, constraint_name
+                    );
                     //panic!("Key {} already populated", k);
                     //self.inner
                     //    .insert(k.clone(), format!("{};{}", existing_val, v).to_string());
                 }
             } else {
-                debug!("Inserted from dependent constraint {} ({}, {})", constraint_name, &k, &v);
+                debug!(
+                    "Inserted from dependent constraint {} ({}, {})",
+                    constraint_name, &k, &v
+                );
                 self.inner.insert(k.clone(), v.clone());
             }
         }
@@ -99,12 +104,11 @@ impl Context {
     }
     fn missing_key_error(&self, key: String) -> PyErr {
         PyValueError::new_err(format!(
-            "Could not find key {} in context.\nContext contents: {:?}", 
-            key,
-            &self.inner
+            "Could not find key {} in context.\nContext contents: {:?}",
+            key, &self.inner
         ))
     }
-    
+
     pub fn get(&self, key: String) -> PyResult<String> {
         match self.inner.get(&key) {
             Some(x) => x.string(),

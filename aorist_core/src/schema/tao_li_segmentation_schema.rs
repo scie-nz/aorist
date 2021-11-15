@@ -3,6 +3,7 @@ use crate::asset::*;
 use crate::attributes::*;
 use crate::concept::{AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
 use crate::template::*;
+use aorist_attributes::FloatValue;
 use aorist_attributes::*;
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
@@ -13,7 +14,6 @@ use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
 use uuid::Uuid;
-use aorist_attributes::FloatValue;
 
 derived_schema! {
     name: TAOLiSegmentationSchema,

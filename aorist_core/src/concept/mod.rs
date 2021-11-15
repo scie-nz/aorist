@@ -16,9 +16,9 @@ use uuid::Uuid;
 pub struct AoristRef<T: PartialEq + Serialize + Debug + Clone>(pub Arc<RwLock<T>>);
 
 #[derive(Clone)]
-pub struct RefABI<T: PartialEq + Serialize + Debug + Clone>(pub abi_stable::std_types::RArc<
-    abi_stable::external_types::parking_lot::rw_lock::RRwLock<T>
->);
+pub struct RefABI<T: PartialEq + Serialize + Debug + Clone>(
+    pub abi_stable::std_types::RArc<abi_stable::external_types::parking_lot::rw_lock::RRwLock<T>>,
+);
 
 #[cfg(feature = "python")]
 impl<'a, T: PartialEq + Serialize + Debug + Clone + FromPyObject<'a>> FromPyObject<'a>

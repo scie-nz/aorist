@@ -11,14 +11,8 @@ pub struct DaskConfig {
 #[pymethods]
 impl DaskConfig {
     #[new]
-    fn new(
-        server: String,
-        port: usize,
-    ) -> Self {
-        DaskConfig {
-            server,
-            port,
-        }
+    fn new(server: String, port: usize) -> Self {
+        DaskConfig { server, port }
     }
     #[getter]
     fn server(&self) -> String {

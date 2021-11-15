@@ -387,8 +387,8 @@ macro_rules! define_attribute {
             #[cfg(feature = "python")]
             impl $element {
                 pub fn get_py_type(&self) -> PyResult<pyo3::prelude::PyObject> {
-                    let gil_guard = pyo3::prelude::Python::acquire_gil(); 
-                    let py = gil_guard.python(); 
+                    let gil_guard = pyo3::prelude::Python::acquire_gil();
+                    let py = gil_guard.python();
                     Ok(pyo3::types::PyType::new::<$pyo3_type>(py).to_object(py))
                 }
             }
@@ -441,7 +441,7 @@ macro_rules! define_constraint {
     ($element:ident, $requires_program:expr, $satisfy_type:ident, $root:ident, $outer:ident,
     $title:expr, $body:expr, $should_add:expr, $get_required:expr $(, $required:ident)*) => {
         aorist_paste::item! {
-           
+
             #[repr(C)]
             #[cfg_attr(feature = "python", pyclass(module = "aorist"))]
             #[derive(Clone)]
@@ -499,7 +499,7 @@ macro_rules! define_constraint {
                 pub arg_functions: Vec<(Vec<String>, String)>,
                 pub kwarg_functions: LinkedHashMap<String, (Vec<String>, String)>,
             }
-            
+
             #[cfg(feature = "python")]
             #[pymethods]
             impl $element {
@@ -1230,7 +1230,7 @@ macro_rules! register_constraint_new {
                 root: <Self::TAncestry as Ancestry>::TConcept,
                 ancestry: &Self::TAncestry,
                 context: &mut aorist_primitives::Context,
-                constraint: std::sync::Arc<std::sync::RwLock<T>>, 
+                constraint: std::sync::Arc<std::sync::RwLock<T>>,
             ) -> (String, String, ParameterTuple, Dialect) {
                 let gil = Python::acquire_gil();
                 let py = gil.python();
@@ -1321,7 +1321,7 @@ macro_rules! register_constraint_new {
                         }
                         Err(err) => {
                             err.print(py);
-                            panic!("Problem when extracting object (tag: {:?}). See traceback above", 
+                            panic!("Problem when extracting object (tag: {:?}). See traceback above",
                                    aorist_primitives::TConceptEnum::get_tag(&root));
                         }
                     };
@@ -1687,25 +1687,26 @@ macro_rules! export_aorist_python_module {
         use $attributes_crate::attributes_module;
         use $constraints_crate::*;
 
-        use abi_stable::{
-            library::{lib_header_from_path, RawLibrary, LibrarySuffix}, 
-        };
-        use aorist_core::{ConstraintMod_Ref, AoristApplicationError};
-        use std::path::{Path, PathBuf};
+        use abi_stable::library::{lib_header_from_path, LibrarySuffix, RawLibrary};
         use abi_stable::reexports::SelfOps;
+        use aorist_core::{AoristApplicationError, ConstraintMod_Ref};
+        use std::path::{Path, PathBuf};
 
         define_dag_function!($dag_function);
         #[pyfunction]
         pub fn test() -> PyResult<Vec<String>> {
             let base_name = "constraint_module";
-            let debug_dir = "../target/debug/"
-                .as_ref_::<Path>()
-                .into_::<PathBuf>();    
-            let debug_path = RawLibrary::path_in_directory(&debug_dir, base_name, LibrarySuffix::NoSuffix);
+            let debug_dir = "../target/debug/".as_ref_::<Path>().into_::<PathBuf>();
+            let debug_path =
+                RawLibrary::path_in_directory(&debug_dir, base_name, LibrarySuffix::NoSuffix);
             let header = lib_header_from_path(&debug_path).unwrap();
             let root_module = header.init_root_module::<ConstraintMod_Ref>().unwrap();
             let constructor = root_module.builders();
-            Ok(constructor().unwrap().into_iter().map(|x| x.into()).collect())
+            Ok(constructor()
+                .unwrap()
+                .into_iter()
+                .map(|x| x.into())
+                .collect())
         }
 
         #[pymodule]
@@ -2111,7 +2112,7 @@ macro_rules! schema_enum {
 macro_rules! define_constraint_abi {
     ($element:ident $(, $required:ident)*) => {
         aorist_paste::item! {
-           
+
             #[repr(C)]
             #[cfg_attr(feature = "python", pyclass(module = "aorist"))]
             #[derive(Clone)]

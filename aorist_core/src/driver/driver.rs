@@ -57,7 +57,6 @@ where
     type CB: ConstraintBlock<'a, <D as FlowBuilderBase<U>>::T, B::OuterType, U, P>;
 
     fn get_relevant_builders(topline_constraint_names: &LinkedHashSet<String>) -> Vec<B> {
-        
         let mut visited = HashSet::new();
         let mut relevant_builders = LinkedHashMap::new();
         let mut g: LinkedHashMap<String, LinkedHashSet<String>> = LinkedHashMap::new();
@@ -68,14 +67,14 @@ where
                 .into_iter()
                 .map(|x| (x.get_constraint_name(), x))
                 .collect::<LinkedHashMap<String, _>>();
-            
+
             let constraint = builders
                 .remove(start)
                 .expect(format!("Missing constraint named {}", start).as_str());
             let mut builder_q = vec![(start.clone(), constraint)]
                 .into_iter()
                 .collect::<VecDeque<_>>();
-            
+
             while builder_q.len() > 0 {
                 let (key, builder) = builder_q.pop_front().unwrap();
                 let edges = g.entry(key.clone()).or_insert(LinkedHashSet::new());
@@ -336,13 +335,21 @@ where
                 }
                 processed.insert(dialect, (unique_constraints, uuid_mappings));
             } else {
-                processed.insert(dialect, (
-                    satisfied.iter().map(|(c, _)| c.clone()).collect(),
-                    satisfied.iter().map(|(c, id)| ( 
-                        c.read().unwrap().get_constraint_uuid().unwrap(),
-                        vec![c.read().unwrap().get_constraint_uuid().unwrap()]
-                    )).collect()
-                ));
+                processed.insert(
+                    dialect,
+                    (
+                        satisfied.iter().map(|(c, _)| c.clone()).collect(),
+                        satisfied
+                            .iter()
+                            .map(|(c, _id)| {
+                                (
+                                    c.read().unwrap().get_constraint_uuid().unwrap(),
+                                    vec![c.read().unwrap().get_constraint_uuid().unwrap()],
+                                )
+                            })
+                            .collect(),
+                    ),
+                );
                 for elem in &satisfied {
                     reduced_block.insert(elem.1.clone(), elem.0.clone());
                 }

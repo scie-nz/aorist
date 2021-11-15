@@ -304,32 +304,26 @@ pub fn process_constraints_new(raw_objects: &Vec<HashMap<String, Value>>) {
         }
         let should_add = attach_if.get(name).unwrap();
         let get_required = constraint_closures.get(name).unwrap();
-        let formatted_title = match title {
+        let _formatted_title = match title {
             Some(x) => format!("Some(\"{}\".to_string())", x),
             None => "None".to_string(),
         };
-        let formatted_body = match body {
+        let _formatted_body = match body {
             Some(x) => format!("Some(\"{}\".to_string())", x),
             None => "None".to_string(),
         };
-        let should_add = match should_add {
+        let _should_add = match should_add {
             None => "|_, _| true".to_string(),
             Some(x) => x.to_string(),
         };
-        let get_required = match get_required {
+        let _get_required = match get_required {
             None => "|_, _| Vec::new()".to_string(),
             Some(x) => x.to_string(),
         };
 
         let define = match required.len() {
-            0 => format!(
-                "define_constraint_abi!({});", name,
-            ),
-            _ => format!(
-                "define_constraint_abi!({}, {});",
-                name,
-                required.join(", ")
-            ),
+            0 => format!("define_constraint_abi!({});", name,),
+            _ => format!("define_constraint_abi!({}, {});", name, required.join(", ")),
         };
         scope.raw(&define);
     }

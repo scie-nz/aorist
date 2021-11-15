@@ -62,9 +62,7 @@ impl DataSchema {
             DataSchema::GeospatialAssetSchema(x) => {
                 Ok(x.0.read().unwrap().get_datum_template().clone())
             }
-            DataSchema::GraphAssetSchema(x) => {
-                Ok(x.0.read().unwrap().get_datum_template().clone())
-            }
+            DataSchema::GraphAssetSchema(x) => Ok(x.0.read().unwrap().get_datum_template().clone()),
             DataSchema::TimeOrderedTabularSchema(x) => {
                 Ok(x.0.read().unwrap().get_datum_template().clone())
             }

@@ -1,9 +1,11 @@
-use aorist_core::{ConstraintMod, ConstraintMod_Ref};
-use aorist_core::AoristError;
 use abi_stable::{
-    export_root_module, sabi_extern_fn, std_types::{RString, ROk, RResult, RVec},
+    export_root_module,
     prefix_type::PrefixTypeTrait,
+    sabi_extern_fn,
+    std_types::{ROk, RResult, RString, RVec},
 };
+use aorist_core::AoristError;
+use aorist_core::{ConstraintMod, ConstraintMod_Ref};
 
 #[export_root_module]
 fn instantiate_root_module() -> ConstraintMod_Ref {
