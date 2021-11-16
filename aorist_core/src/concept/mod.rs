@@ -279,5 +279,6 @@ register_concept!(
     PerspectiveTransformedGriddedPolygonCollectionSchema,
     PolygonUnionSchema,
     PolygonAsset,
-    PolygonCollectionWithinPolygonSchema
+    PolygonCollectionWithinPolygonSchema,
+    PolygonCollectionZonalStatsSchema
 );
