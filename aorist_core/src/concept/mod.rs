@@ -280,5 +280,7 @@ register_concept!(
     PolygonUnionSchema,
     PolygonAsset,
     PolygonCollectionWithinPolygonSchema,
-    PolygonCollectionZonalStatsSchema
+    PolygonCollectionZonalStatsSchema,
+    NDVISchema,
+    NBRSchema
 );
