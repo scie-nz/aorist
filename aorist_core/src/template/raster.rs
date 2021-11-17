@@ -15,6 +15,7 @@ pub struct Raster {
     pub name: String,
     pub dimensions: usize,
     pub epsg: Option<usize>,
+    pub channels: Option<usize>,
 }
 impl TDatumTemplate for Raster {
     fn get_attributes(&self) -> Vec<AoristRef<Attribute>> {
