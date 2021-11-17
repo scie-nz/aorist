@@ -1798,6 +1798,7 @@ macro_rules! derived_schema {
     {name: $name: ident
     $(, source: $source: ty)?
     $(, sources: $sources: ty)?
+    $(, sources_map: BTreeMap<String, AoristRef<$sources_map: ty>>)?
     $(, sources:
         $(- $source_name: ident : $source_type: ty),+
     )?
@@ -1810,6 +1811,7 @@ macro_rules! derived_schema {
             pub datum_template: AoristRef<DatumTemplate>,
             $(pub source: AoristRef<$source>,)?
             $(pub sources: Vec<AoristRef<$sources>>,)?
+            $(pub sources_map: std::collections::BTreeMap<String, AoristRef<$sources_map>>,)?
             $($(pub $source_name: AoristRef<$source_type>,)+)?
             $($(
                 pub $field_name: $field_type
@@ -1838,6 +1840,28 @@ macro_rules! derived_schema {
             impl MultipleSourceDerivedAssetSchema<'_> for $name {
                 fn get_sources(&self) -> Vec<Asset> {
                     self.sources.clone().into_iter().map(|x| Asset::$sources(x)).collect()
+                }
+            }
+            #[cfg(feature = "python")]
+            #[pymethods]
+            impl [<Py $name>] {
+                #[getter]
+                pub fn sources(&self) -> Vec<PyAsset> {
+                    self.inner.0.read().unwrap().get_sources().into_iter().map(|x|
+                        PyAsset{
+                            inner: AoristRef(std::sync::Arc::new(std::sync::RwLock::new(x)))
+                        }
+                    ).collect()
+                }
+            }
+        )?
+        $(
+            impl DerivedAssetSchema<'_> for $name {
+                type SourceAssetType = $sources_map;
+            }
+            impl MultipleSourceDerivedAssetSchema<'_> for $name {
+                fn get_sources(&self) -> Vec<Asset> {
+                    self.sources_map.values().map(|x| Asset::$sources_map(x.clone())).collect()
                 }
             }
             #[cfg(feature = "python")]
