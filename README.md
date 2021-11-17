@@ -1,12 +1,29 @@
+<a href="https://aorist.io/" target="_blank">
+    <img src="https://user-images.githubusercontent.com/31727438/136563601-6cfa52c4-0307-45e1-9e77-68f26cc97976.png" alt="Aorist logo" title="Aiorist" align="right" height="60" />
+</a>
+
 # Aorist
 
 Aorist is a code-generation tool for MLOps. Its aim is to generate legible
 code for common repetitive tasks in data science, such as data replication,
 common transformations, as well as machine learning operations.
 
+## Table of contents
+
+- [Installation instructions](#installation-instructions)
+- [Developer Guide](#developer-guide)
+	- [Package organization](#package-organization)
+	- [How to build](#how-to-build)
+	- [Overview of an Aorist universe](#overview-of-an-aorist-universe)
+	- [Generating a DAG](#generating-a-dag)
+	- [Describing a dataset](#describing-a-dataset)
+	- [Back to the SNAP dataset](#back-to-the-snap-dataset)
+	- [What if we want to do Machine Learning?](#what-if-we-want-to-do-machine-learning)
+
+
 ## Installation instructions
 
-Go to [aorist.io](https://aorist.io) for installation instructions and a tutorial.
+Go to <a href="https://aorist.io/" target="_blank">aorist.io </a>for installation instructions and a tutorial.
 You can find the developer guide below.
 
 # Developer Guide
