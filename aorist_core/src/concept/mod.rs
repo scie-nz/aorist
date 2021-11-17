@@ -283,5 +283,6 @@ register_concept!(
     PolygonCollectionZonalStatsSchema,
     NDVISchema,
     NBRSchema,
-    PolygonCollectionStatsUnionSchema
+    PolygonCollectionStatsUnionSchema,
+    PolygonCollectionStatsFilterSchema
 );

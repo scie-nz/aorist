@@ -20,6 +20,7 @@ use crate::schema::point_cloud_subset_schema::*;
 use crate::schema::point_cloud_transformation_schema::*;
 use crate::schema::polygon_collection_within_polygon_schema::*;
 use crate::schema::polygon_collection_stats_union_schema::*;
+use crate::schema::polygon_collection_stats_filter_schema::*;
 use crate::schema::polygon_collection_zonal_stats_schema::*;
 use crate::schema::polygon_from_raster_schema::*;
 use crate::schema::polygon_intersection_schema::*;
@@ -74,6 +75,7 @@ schema_enum! {
     - RasterFromPointCloudSchema
     - PolygonCollectionWithinPolygonSchema
     - PolygonCollectionZonalStatsSchema
+    - PolygonCollectionStatsFilterSchema
     - PolygonCollectionStatsUnionSchema
     - PolygonFromRasterSchema
     - PolygonIntersectionSchema
