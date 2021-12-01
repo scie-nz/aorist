@@ -24,6 +24,7 @@ where
     task_id: AST,
     insert_task_name: bool,
     _universe: PhantomData<U>,
+    render_dependencies: bool,
 }
 impl<T, U> ForLoopCompressedTask<T, U> for ForLoopPythonBasedTask<T, U>
 where
@@ -38,6 +39,7 @@ where
         values: Vec<PythonBasedTaskUncompressiblePart<T, U>>,
         task_id: AST,
         insert_task_name: bool,
+        render_dependencies: bool,
     ) -> Self {
         trace!("New compressed task with key: {:?}", key);
         trace!("uncompressible:");
@@ -59,6 +61,7 @@ where
             insert_task_name,
             singleton_type: PhantomData,
             _universe: PhantomData,
+            render_dependencies,
         }
     }
 }
@@ -203,7 +206,7 @@ where
         for (k, v) in &self.key.kwargs {
             kwargs.insert(k.clone(), v.clone());
         }
-        let mut dependencies = match any_dependencies {
+        let mut dependencies = match self.render_dependencies && any_dependencies {
             true => Some(AST::Subscript(Subscript::new_wrapped(
                 params.clone(),
                 AST::StringLiteral(StringLiteral::new_wrapped(

@@ -46,6 +46,7 @@ where
     topline_constraint_names: LinkedHashSet<String>,
     programs: LinkedHashMap<String, Vec<P>>,
     preferences: Vec<Dialect>,
+    render_dependencies: bool
 }
 impl<'a, B, D, U, C, A, P> Driver<'a, B, D, U, C, A, P> for PythonBasedDriver<'a, B, D, U, C, A, P>
 where
@@ -147,6 +148,7 @@ where
         topline_constraint_names: LinkedHashSet<String>,
         programs: LinkedHashMap<String, Vec<P>>,
         preferences: Vec<Dialect>,
+        render_dependencies: bool,
     ) -> Self {
         Self {
             concepts,
@@ -163,6 +165,10 @@ where
             topline_constraint_names,
             programs,
             preferences,
+            render_dependencies
         }
+    }
+    fn get_render_dependencies(&self) -> bool {
+            self.render_dependencies
     }
 }

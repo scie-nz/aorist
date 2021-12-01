@@ -92,5 +92,6 @@ where
         values: Vec<Self::UncompressiblePartType>,
         task_id: AST,
         insert_task_name: bool,
+        render_dependencies: bool,
     ) -> Self;
 }

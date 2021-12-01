@@ -1617,6 +1617,7 @@ macro_rules! define_dag_function {
                     constraints.into_iter().collect(),
                     programs.into_iter().collect(),
                     dialect_preferences,
+                    true,
                 )
                 .map_err(|e| pyo3::exceptions::PyException::new_err(e.to_string()))?
                 .run(dag_name),
@@ -1632,6 +1633,7 @@ macro_rules! define_dag_function {
                     constraints.into_iter().collect(),
                     programs.into_iter().collect(),
                     dialect_preferences,
+                    true,
                 )
                 .map_err(|e| pyo3::exceptions::PyException::new_err(e.to_string()))?
                 .run(dag_name),
@@ -1647,6 +1649,7 @@ macro_rules! define_dag_function {
                     constraints.into_iter().collect(),
                     programs.into_iter().collect(),
                     dialect_preferences,
+                    false,
                 )
                 .map_err(|e| pyo3::exceptions::PyException::new_err(e.to_string()))?
                 .run(dag_name),
@@ -1662,6 +1665,7 @@ macro_rules! define_dag_function {
                     constraints.into_iter().collect(),
                     programs.into_iter().collect(),
                     dialect_preferences,
+                    false,
                 )
                 .map_err(|e| pyo3::exceptions::PyException::new_err(e.to_string()))?
                 .run(dag_name),

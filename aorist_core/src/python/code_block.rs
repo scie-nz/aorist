@@ -114,6 +114,7 @@ where
         >,
         python_based_tasks: &mut Vec<Self::E>,
         constraint_name: String,
+        render_dependencies: bool,
     ) {
         for (mut compression_key, tasks) in compressible.into_iter() {
             let num_tasks = tasks.len();
@@ -295,6 +296,7 @@ where
                     maybe_uncompressible,
                     task_id,
                     insert_task_name,
+                    render_dependencies,
                 );
                 python_based_tasks.push(PythonBasedTask::ForLoopPythonBasedTask(compressed_task));
             } else {

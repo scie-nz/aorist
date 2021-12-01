@@ -131,6 +131,7 @@ pub trait CodeBlockWithDefaultConstructor<
         constraint_name: String,
         tasks_dict: Option<AST>,
         identifiers: &HashMap<Uuid, AST>,
+        render_dependencies: bool,
     ) -> Result<Self>;
 }
 pub trait CodeBlockWithForLoopCompression<
@@ -153,6 +154,7 @@ pub trait CodeBlockWithForLoopCompression<
         >,
         tasks: &mut Vec<Self::E>,
         constraint_name: String,
+        render_dependencies: bool,
     );
     fn separate_compressible_tasks(
         tasks: Vec<<Self::E as ETLTask<T, U>>::S>,
@@ -195,11 +197,12 @@ where
         constraint_name: String,
         tasks_dict: Option<AST>,
         identifiers: &HashMap<Uuid, AST>,
+        render_dependencies: bool
     ) -> Result<Self> {
         let (standalone_tasks, task_identifiers, params) =
             Self::create_standalone_tasks(members, tasks_dict.clone(), identifiers)?;
         let (compressible, mut tasks) = Self::separate_compressible_tasks(standalone_tasks);
-        Self::run_task_compressions(compressible, &mut tasks, constraint_name);
+        Self::run_task_compressions(compressible, &mut tasks, constraint_name, render_dependencies);
         Ok(Self::construct(tasks_dict, tasks, task_identifiers, params))
     }
 }

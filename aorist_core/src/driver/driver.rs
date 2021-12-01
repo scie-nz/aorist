@@ -376,6 +376,7 @@ where
                 //shortened_name.clone(),
                 tasks_dict.clone(),
                 identifiers,
+                self.get_render_dependencies(),
             )?;
             for (key, val) in block.get_identifiers() {
                 for mapped_key in uuid_mappings.get(&key).unwrap() {
@@ -388,6 +389,7 @@ where
 
         Ok((blocks, tasks_dict))
     }
+    fn get_render_dependencies(&self) -> bool;
     fn get_constraint_explanation(
         &self,
         constraint_name: &String,
@@ -477,6 +479,7 @@ where
         topline_constraint_names: LinkedHashSet<String>,
         programs: LinkedHashMap<String, Vec<P>>,
         preferences: Vec<Dialect>,
+        render_dependencies: bool,
     ) -> Self;
 
     fn generate_constraint_states_map(
@@ -776,6 +779,7 @@ where
         topline_constraint_names: LinkedHashSet<String>,
         programs: LinkedHashMap<String, Vec<P>>,
         preferences: Vec<Dialect>,
+        render_dependencies: bool,
     ) -> Result<Self>
     where
         Self: Sized,
@@ -829,6 +833,7 @@ where
             topline_constraint_names,
             programs,
             preferences,
+            render_dependencies,
         ))
     }
     fn generate_family_trees(
