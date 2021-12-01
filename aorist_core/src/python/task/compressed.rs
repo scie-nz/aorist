@@ -78,7 +78,7 @@ where
     U: AoristUniverse,
 {
     fn get_dict_assign(&self) -> (AST, bool) {
-        let insert_deps = self
+        let insert_deps = self.render_dependencies && self
             .values
             .iter()
             .filter(|x| x.deps.len() > 0)
