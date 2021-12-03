@@ -12,7 +12,7 @@ use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
 use std::collections::{HashMap, HashSet};
 use abi_stable::std_types::RArc;
-use std::sync::RwLock;
+use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 use tracing::{debug, level_enabled, trace, Level};
 use uuid::Uuid;
 
@@ -21,9 +21,9 @@ pub struct ConstraintState<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestr
     pub key: Option<String>,
     name: String,
     pub satisfied: bool,
-    pub satisfied_dependencies: Vec<RArc<RwLock<ConstraintState<'a, T, P>>>>,
+    pub satisfied_dependencies: Vec<RArc<RRwLock<ConstraintState<'a, T, P>>>>,
     pub unsatisfied_dependencies: LinkedHashSet<(Uuid, String)>,
-    constraint: RArc<RwLock<T>>,
+    constraint: RArc<RRwLock<T>>,
     root: <<T as OuterConstraint<'a>>::TAncestry as Ancestry>::TConcept,
     // these are concept ancestors
     // TODO: change this to Vec<Concept<'a>>
@@ -39,11 +39,11 @@ impl<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry = T::TAncestry>>
 {
     pub fn mark_dependency_as_satisfied(
         &mut self,
-        dependency: &RArc<RwLock<ConstraintState<'a, T, P>>>,
+        dependency: &RArc<RRwLock<ConstraintState<'a, T, P>>>,
         uuid: &(Uuid, String),
     ) {
-        let dependency_name = dependency.read().unwrap().get_name();
-        let dependency_context = &(*dependency.read().unwrap()).context;
+        let dependency_name = dependency.read().get_name();
+        let dependency_context = &(*dependency.read()).context;
         self.satisfied_dependencies.push(dependency.clone());
         self.context
             .insert(dependency_context, dependency_name.clone());
@@ -51,12 +51,12 @@ impl<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry = T::TAncestry>>
         debug!("Marked dependency {} as satisfied.", dependency_name);
     }
     pub fn requires_program(&self) -> Result<bool> {
-        self.constraint.read().unwrap().requires_program()
+        self.constraint.read().requires_program()
     }
     pub fn get_dependencies(&self) -> Result<Vec<Uuid>> {
         let mut dependencies = Vec::new();
         for dep in &self.satisfied_dependencies {
-            dependencies.push(dep.read().unwrap().get_constraint_uuid()?);
+            dependencies.push(dep.read().get_constraint_uuid()?);
         }
         Ok(dependencies)
     }
@@ -81,7 +81,7 @@ impl<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry = T::TAncestry>>
             (_, Some(Dialect::Presto(_))) => Ok(Vec::new()),
             (_, Some(Dialect::Bash(_))) => Ok(Vec::new()),
             (_, None) => Ok(vec![AST::StringLiteral(StringLiteral::new_wrapped(
-                self.constraint.read().unwrap().get_name().clone(),
+                self.constraint.read().get_name().clone(),
                 false,
             ))]),
             _ => bail!("Dialect not supported for args vec: {:?}", self.dialect),
@@ -133,7 +133,7 @@ impl<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry = T::TAncestry>>
     pub fn get_satisfied_dependency_keys(&self) -> Vec<String> {
         self.satisfied_dependencies
             .iter()
-            .map(|x| x.read().unwrap().get_task_name())
+            .map(|x| x.read().get_task_name())
             .collect()
     }
     pub fn get_name(&self) -> String {
@@ -144,7 +144,7 @@ impl<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry = T::TAncestry>>
         self.root.clone()
     }
     pub fn get_constraint_uuid(&self) -> Result<Uuid> {
-        Ok(self.constraint.read().unwrap().get_uuid()?.clone())
+        Ok(self.constraint.read().get_uuid()?.clone())
     }
     #[allow(dead_code)]
     pub fn get_root_uuid(&self) -> Uuid {
@@ -205,7 +205,7 @@ impl<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry = T::TAncestry>>
         } else {
             panic!(
                 "Could not find any program for constraint {}.",
-                self.constraint.read().unwrap().get_name()
+                self.constraint.read().get_name()
             );
         }
     }
@@ -218,9 +218,9 @@ impl<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry = T::TAncestry>>
         )
     }
     pub fn new(
-        constraint: RArc<RwLock<T>>,
+        constraint: RArc<RRwLock<T>>,
         concepts: RArc<
-            RwLock<
+            RRwLock<
                 HashMap<
                     (Uuid, String),
                     <<T as OuterConstraint<'a>>::TAncestry as Ancestry>::TConcept,
@@ -230,16 +230,16 @@ impl<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry = T::TAncestry>>
         concept_ancestors: &HashMap<(Uuid, String), Vec<AncestorRecord>>,
     ) -> Result<Self> {
         let arc = constraint.clone();
-        let x = arc.read().unwrap();
+        let x = arc.read();
         let root_uuid = x.get_root_uuid()?;
-        let guard = concepts.read().unwrap();
+        let guard = concepts.read();
         let root = guard
             .get(&(root_uuid.clone(), x.get_root()))
             .unwrap()
             .clone();
         let mut dependencies: LinkedHashSet<(Uuid, String)> = LinkedHashSet::new();
         for constraint in x.get_downstream_constraints()? {
-            let entry = constraint.read().unwrap();
+            let entry = constraint.read();
             dependencies.insert((entry.get_uuid()?, entry.get_root()));
         }
 
@@ -298,7 +298,6 @@ impl<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry = T::TAncestry>>
             name,
             self.constraint
                 .read()
-                .unwrap()
                 .get_uuid()
                 .unwrap()
                 .to_string()
@@ -310,12 +309,12 @@ impl<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry = T::TAncestry>>
         .to_string()
     }
     pub fn shorten_task_names(
-        constraints: &LinkedHashMap<(Uuid, String), RArc<RwLock<ConstraintState<'a, T, P>>>>,
+        constraints: &LinkedHashMap<(Uuid, String), RArc<RRwLock<ConstraintState<'a, T, P>>>>,
         _existing_names: &mut HashSet<String>,
     ) {
-        let mut task_names: Vec<(String, RArc<RwLock<ConstraintState<'a, T, P>>>)> = Vec::new();
+        let mut task_names: Vec<(String, RArc<RRwLock<ConstraintState<'a, T, P>>>)> = Vec::new();
         for constraint in constraints.values() {
-            let mut write = constraint.write().unwrap();
+            let mut write = constraint.write();
             write.compute_task_key();
             let fqn = write.get_fully_qualified_task_name();
             write.set_task_name(fqn.clone());
@@ -331,7 +330,7 @@ impl<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry = T::TAncestry>>
                                    existing_names.clone()).run();
         for (i, (_, rw)) in task_names.iter().enumerate() {
             let name = shortened_task_names_1.get(i).unwrap().clone();
-            let mut write = rw.write().unwrap();
+            let mut write = rw.write();
             existing_names.insert(name.clone());
             write.set_task_name(name.replace("____", "__"));
         }*/

@@ -580,28 +580,28 @@ impl Builder for StructBuilder {
                         tag,
                         uuid: None,
                     };
-                    let inner = AoristRef(abi_stable::std_types::RArc::new(std::sync::RwLock::new(
+                    let inner = AoristRef(abi_stable::std_types::RArc::new(abi_stable::external_types::parking_lot::rw_lock::RRwLock::new(
                         obj
                     )));
                     Self { inner }
                 }
                 #[getter]
                 pub fn tag(&self) -> pyo3::prelude::PyResult<Option<String>> {
-                    Ok(self.inner.0.read().unwrap().tag.clone())
+                    Ok(self.inner.0.read().tag.clone())
                 }
                 #(
                     #[getter]
                     pub fn #bare_ident(&self) -> pyo3::prelude::PyResult<[<Py #bare_type_deref>]> {
                         Ok(
                             [<Py #bare_type_deref>] {
-                                inner: self.inner.0.read().unwrap().#bare_ident.clone(),
+                                inner: self.inner.0.read().#bare_ident.clone(),
                             }
                         )
                     }
                     #[setter]
                     pub fn [<set_#bare_ident>](&self, val: [<Py #bare_type_deref>]) -> pyo3::prelude::PyResult<()> {
                         Ok(
-                            (*self.inner.0.write().unwrap()).#bare_ident = val.inner.clone()
+                            (*self.inner.0.write()).#bare_ident = val.inner.clone()
                         )
                     }
                 )*
@@ -609,7 +609,7 @@ impl Builder for StructBuilder {
                     #[getter]
                     pub fn #option_ident(&self) -> pyo3::prelude::PyResult<Option<[<Py #option_type_deref>]>> {
                         Ok(
-                            self.inner.0.read().unwrap().#option_ident.as_ref().and_then(|x|
+                            self.inner.0.read().#option_ident.as_ref().and_then(|x|
                                 Some([<Py #option_type_deref>] {
                                     inner: x.clone()
                                 })
@@ -619,7 +619,7 @@ impl Builder for StructBuilder {
                     #[setter]
                     pub fn [<set_#option_ident>](&self, val: Option<[<Py #option_type_deref>]>) -> pyo3::prelude::PyResult<()> {
                         Ok(
-                            (*self.inner.0.write().unwrap()).#option_ident = val.and_then(|x| Some(x.inner.clone()))
+                            (*self.inner.0.write()).#option_ident = val.and_then(|x| Some(x.inner.clone()))
                         )
                     }
                 )*
@@ -627,7 +627,7 @@ impl Builder for StructBuilder {
                     #[getter]
                     pub fn #vec_ident(&self) -> pyo3::prelude::PyResult<Vec<[<Py #vec_type_deref>]>> {
                         Ok(
-                            self.inner.0.read().unwrap().#vec_ident.iter().map(|x| {
+                            self.inner.0.read().#vec_ident.iter().map(|x| {
                                 [<Py #vec_type_deref>] {
                                     inner: x.clone(),
                                 }
@@ -637,7 +637,7 @@ impl Builder for StructBuilder {
                     #[setter]
                     pub fn [<set_#vec_ident>](&self, val: Vec<[<Py #vec_type_deref>]>) -> pyo3::prelude::PyResult<()> {
                         Ok(
-                            (*self.inner.0.write().unwrap()).#vec_ident = val.iter().map(|x| x.inner.clone()).collect()
+                            (*self.inner.0.write()).#vec_ident = val.iter().map(|x| x.inner.clone()).collect()
                         )
                     }
                 )*
@@ -647,7 +647,7 @@ impl Builder for StructBuilder {
                         Vec<[<Py #option_vec_type_deref>]>
                     >> {
                         Ok(
-                            self.inner.0.read().unwrap().#option_vec_ident.as_ref().and_then(|x|
+                            self.inner.0.read().#option_vec_ident.as_ref().and_then(|x|
                                 Some(
                                     x.iter().map(|y| {
                                         [<Py #option_vec_type_deref>] {
@@ -664,7 +664,7 @@ impl Builder for StructBuilder {
                         val: Option<Vec<[<Py #option_vec_type_deref>]>>
                     ) -> pyo3::prelude::PyResult<()> {
                         Ok(
-                            (*self.inner.0.write().unwrap()).#option_vec_ident = val.and_then(
+                            (*self.inner.0.write()).#option_vec_ident = val.and_then(
                                 |x| Some(
                                     x.iter().map(|y| y.inner.clone()).collect()
                                 )
@@ -678,7 +678,7 @@ impl Builder for StructBuilder {
                         String, [<Py #map_value_type_deref>]>
                     > {
                         Ok(
-                            self.inner.0.read().unwrap().#map_ident.iter().map(|(k, v)| {(
+                            self.inner.0.read().#map_ident.iter().map(|(k, v)| {(
                                 k.clone(),
                                 [<Py #map_value_type_deref>] {
                                     inner: v.clone(),
@@ -692,7 +692,7 @@ impl Builder for StructBuilder {
                         val: BTreeMap<String, [<Py #map_value_type_deref>]>
                     ) -> pyo3::prelude::PyResult<()> {
                         Ok(
-                            (*self.inner.0.write().unwrap()).#map_ident = val.iter().map(
+                            (*self.inner.0.write()).#map_ident = val.iter().map(
                                 |(k, v)| (k.clone(), v.inner.clone())
                             ).collect()
                         )
@@ -701,13 +701,13 @@ impl Builder for StructBuilder {
                 #(
                     #[getter]
                     pub fn #unconstrainable_name(&self) -> pyo3::prelude::PyResult<#unconstrainable_type> {
-                        Ok(self.inner.0.read().unwrap().#unconstrainable_name.clone())
+                        Ok(self.inner.0.read().#unconstrainable_name.clone())
                     }
                 )*
                 #(
                     #[setter]
                     pub fn [<set_#unconstrainable_name>](&mut self, val: #unconstrainable_type) -> pyo3::prelude::PyResult<()> {
-                        Ok((*self.inner.0.write().unwrap()).#unconstrainable_name = val)
+                        Ok((*self.inner.0.write()).#unconstrainable_name = val)
                     }
                 )*
                 #(
@@ -715,7 +715,7 @@ impl Builder for StructBuilder {
                     pub fn #unconstrainable_name_ref(&self)
                         -> pyo3::prelude::PyResult<[<Py #unconstrainable_type_ref>]> {
                         Ok([<Py #unconstrainable_type_ref>]{
-                            inner: self.inner.0.read().unwrap().#unconstrainable_name_ref.clone()
+                            inner: self.inner.0.read().#unconstrainable_name_ref.clone()
                         })
                     }
                 )*
@@ -726,7 +726,7 @@ impl Builder for StructBuilder {
                 fn __hash__(&self) -> pyo3::PyResult<u64> {
                      let mut s = std::collections::hash_map::DefaultHasher::new();
                      <#struct_name as std::hash::Hash>::hash(
-                        &*self.inner.0.read().unwrap(),
+                        &*self.inner.0.read(),
                         &mut s
                      );
                      Ok(
@@ -737,14 +737,14 @@ impl Builder for StructBuilder {
                     Ok(format!(
                         "{} {}",
                         stringify!(#struct_name),
-                        serde_json::to_string_pretty(&*self.inner.0.read().unwrap()).unwrap()
+                        serde_json::to_string_pretty(&*self.inner.0.read()).unwrap()
                     ))
                 }
                 fn __str__(&self) -> pyo3::PyResult<String> {
                     Ok(format!(
                         "{} {}",
                         stringify!(#struct_name),
-                        serde_json::to_string_pretty(&*self.inner.0.read().unwrap()).unwrap()
+                        serde_json::to_string_pretty(&*self.inner.0.read()).unwrap()
                     ))
                 }
             }
@@ -758,7 +758,7 @@ impl Builder for StructBuilder {
             }
             impl AoristRef<#struct_name> {
                 pub fn deep_clone(&self) -> Self {
-                    AoristRef(abi_stable::std_types::RArc::new(std::sync::RwLock::new(self.0.read().unwrap().deep_clone())))
+                    AoristRef(abi_stable::std_types::RArc::new(abi_stable::external_types::parking_lot::rw_lock::RRwLock::new(self.0.read().deep_clone())))
                 }
             }
             impl #struct_name {
@@ -879,39 +879,19 @@ impl Builder for StructBuilder {
             impl AoristConcept for AoristRef<#struct_name> {
                 type TChildrenEnum = [<#struct_name Children>];
                 fn get_uuid(&self) -> Option<Uuid> {
-                    let read_lock = self.0.read().unwrap();
-                    if let Ok(ref x) = self.0.read() {
-                        return x.get_uuid();
-                    }
-                    panic!("Could not open object {} for reading.", stringify!(#struct_name));
+                    self.0.read().get_uuid()
                 }
                 fn compute_uuids(&self) {
-                    if let Ok(ref mut x) = self.0.write() {
-                        x.compute_uuids();
-                    } else {
-                        panic!("Could not open object {} for writing.", stringify!(#struct_name));
-                    }
+                    self.0.write().compute_uuids();
                     let uuid;
-                    if let Ok(ref x) = self.0.read() {
-                        uuid = self.get_uuid_from_children_uuid();
-                    } else {
-                        panic!("Could not open object {} for reading.", stringify!(#struct_name));
-                    }
-                    if let Ok(ref mut x) = self.0.write() {
-                        x.set_uuid(uuid);
-                    } else {
-                        panic!("Could not open object {} for writing.", stringify!(#struct_name));
-                    }
+                    uuid = self.get_uuid_from_children_uuid();
+                    self.0.write().set_uuid(uuid);
                 }
                 fn get_children_uuid(&self) -> Vec<Uuid> {
                     self.get_children().iter().map(|x| x.4.get_uuid().unwrap()).collect()
                 }
                 fn get_tag(&self) -> Option<String> {
-                    let read_lock = self.0.read().unwrap();
-                    if let Ok(ref x) = self.0.read() {
-                        return x.get_tag();
-                    }
-                    panic!("Could not open object {} for reading.", stringify!(#struct_name));
+                    self.0.read().get_tag()
                 }
                 fn get_children(&self) -> Vec<(
                     // struct name
@@ -926,7 +906,7 @@ impl Builder for StructBuilder {
                     [<#struct_name Children>],
                 )> {
                     let mut children: Vec<_> = Vec::new();
-                    let read = self.0.read().unwrap();
+                    let read = self.0.read();
                     #(
                         children.push((
                             stringify!(#struct_name),

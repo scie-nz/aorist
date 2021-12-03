@@ -11,18 +11,27 @@ pub use context::*;
 macro_rules! register_ast_nodes {
     ($name:ident, $($variant: ident,)+) => {
 
-        #[derive(Clone, Debug)]
+        #[derive(Clone)]
         pub enum $name {
             $(
-                $variant(RArc<RwLock<$variant>>),
+                $variant(RArc<RRwLock<$variant>>),
             )+
+        }
+        impl std::fmt::Debug for $name {
+            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::result::Result<(), std::fmt::Error> {
+                match (&self) {
+                    $(
+                        Self::$variant(v) => v.read().fmt(f),
+                    )+
+                }
+            }
         }
         impl PartialEq for $name {
             fn eq(&self, other: &Self) -> bool {
                 match (&self, other) {
                     $(
                         (Self::$variant(v1), Self::$variant(v2)) => {
-                            v1.read().unwrap().eq(&v2.read().unwrap())
+                            v1.read().eq(&v2.read())
                         },
                     )+
                     (_, _) => false,
@@ -34,21 +43,21 @@ macro_rules! register_ast_nodes {
             pub fn clone_without_ancestors(&self) -> Self {
                 match &self {
                     $(
-                        Self::$variant(x) => Self::$variant(RArc::new(RwLock::new(x.read().unwrap().clone_without_ancestors()))),
+                        Self::$variant(x) => Self::$variant(RArc::new(RRwLock::new(x.read().clone_without_ancestors()))),
                     )+
                 }
             }
             pub fn set_ancestors(&self, ancestors: Vec<AncestorRecord>) {
                 match &self {
                     $(
-                        Self::$variant(x) => x.write().unwrap().set_ancestors(ancestors),
+                        Self::$variant(x) => x.write().set_ancestors(ancestors),
                     )+
                 }
             }
             pub fn get_ancestors(&self) -> Option<Vec<AncestorRecord>> {
                 match &self {
                     $(
-                        Self::$variant(x) => x.read().unwrap().get_ancestors(),
+                        Self::$variant(x) => x.read().get_ancestors(),
                     )+
                 }
             }
@@ -61,7 +70,7 @@ macro_rules! register_ast_nodes {
                     let direct_descendants = match &elem {
                         $(
                             Self::$variant(x) => {
-                            let read = x.read().unwrap();
+                            let read = x.read();
                             read.get_direct_descendants()
                             }
                         )+
@@ -85,7 +94,7 @@ macro_rules! register_ast_nodes {
             pub fn optimize_fields(&self) {
                 match &self {
                     $(
-                        Self::$variant(rw) => rw.write().unwrap().optimize_fields(),
+                        Self::$variant(rw) => rw.write().optimize_fields(),
                     )+
                 }
             }
@@ -97,7 +106,7 @@ macro_rules! register_ast_nodes {
             ) -> PyResult<&'a PyAny> {
                 match &self {
                     $(
-                        Self::$variant(x) => x.read().unwrap().to_python_ast_node(
+                        Self::$variant(x) => x.read().to_python_ast_node(
                             py,
                             ast_module,
                             depth,
@@ -111,7 +120,7 @@ macro_rules! register_ast_nodes {
             ) -> Robj {
                 match &self {
                     $(
-                        Self::$variant(x) => x.read().unwrap().to_r_ast_node(
+                        Self::$variant(x) => x.read().to_r_ast_node(
                             depth,
                         ),
                     )+
@@ -122,7 +131,7 @@ macro_rules! register_ast_nodes {
             fn hash<H: Hasher>(&self, state: &mut H) {
                 match &self {
                     $(
-                        Self::$variant(x) => x.read().unwrap().hash(state),
+                        Self::$variant(x) => x.read().hash(state),
                     )+
                 }
             }
@@ -147,8 +156,8 @@ macro_rules! define_task_node {
         impl $name {
             pub fn new_wrapped($(
                 $field: $field_type,
-            )*) -> RArc<RwLock<Self>> {
-                RArc::new(RwLock::new(Self::new($($field, )*)))
+            )*) -> RArc<RRwLock<Self>> {
+                RArc::new(RRwLock::new(Self::new($($field, )*)))
             }
             pub fn get_statements<'a>(
                 &self,
@@ -184,21 +193,21 @@ macro_rules! register_task_nodes {
         #[derive(Clone)]
         pub enum $name {
             $(
-                $variant(RArc<RwLock<$variant>>),
+                $variant(RArc<RRwLock<$variant>>),
             )+
         }
         impl $name {
             pub fn get_imports(&self) -> Vec<$import_type>{
                 match &self {
                     $(
-                        Self::$variant(x) => x.read().unwrap().get_imports(),
+                        Self::$variant(x) => x.read().get_imports(),
                     )+
                 }
             }
             pub fn get_statements(&self) -> Vec<AST> {
                 match &self {
                     $(
-                        Self::$variant(x) => x.read().unwrap().get_statements(),
+                        Self::$variant(x) => x.read().get_statements(),
                     )+
                 }
             }
@@ -208,7 +217,7 @@ macro_rules! register_task_nodes {
                 match (&self, other) {
                     $(
                         (Self::$variant(v1), Self::$variant(v2)) => {
-                            v1.read().unwrap().eq(&v2.read().unwrap())
+                            v1.read().eq(&v2.read())
                         },
                     )+
                     (_, _) => false,
@@ -220,7 +229,7 @@ macro_rules! register_task_nodes {
             fn hash<H: Hasher>(&self, state: &mut H) {
                 match &self {
                     $(
-                        Self::$variant(x) => x.read().unwrap().hash(state),
+                        Self::$variant(x) => x.read().hash(state),
                     )+
                 }
             }
@@ -245,8 +254,8 @@ macro_rules! define_ast_node {
         impl $name {
             pub fn new_wrapped($(
                 $field: $field_type,
-            )*) -> RArc<RwLock<Self>> {
-                RArc::new(RwLock::new(Self::new($($field, )*)))
+            )*) -> RArc<RRwLock<Self>> {
+                RArc::new(RRwLock::new(Self::new($($field, )*)))
             }
             pub fn to_python_ast_node<'a>(
                 &self,
@@ -448,7 +457,7 @@ macro_rules! define_constraint {
             pub struct $element {
                 id: Uuid,
                 root_uuid: Uuid,
-                $([<$required:snake:lower>] : Vec<RArc<RwLock<$outer>>>,)*
+                $([<$required:snake:lower>] : Vec<RArc<RRwLock<$outer>>>,)*
             }
             #[cfg(feature = "python")]
             #[pymethods]
@@ -630,8 +639,8 @@ macro_rules! define_constraint {
                     Ok($requires_program)
                 }
                 // these are *all* downstream constraints
-                fn get_downstream_constraints(&self) -> Result<Vec<RArc<RwLock<Constraint>>>> {
-                    let mut downstream: Vec<RArc<RwLock<Constraint>>> = Vec::new();
+                fn get_downstream_constraints(&self) -> Result<Vec<RArc<RRwLock<Constraint>>>> {
+                    let mut downstream: Vec<RArc<RRwLock<Constraint>>> = Vec::new();
                     $(
                         for arc in &self.[<$required:snake:lower>] {
                             downstream.push(arc.clone());
@@ -660,27 +669,27 @@ macro_rules! define_constraint {
                     ),*]
                 }
                 fn should_add(root: AoristRef<Concept>, ancestry: &ConceptAncestry) -> bool {
-                    let read = root.0.read().unwrap();
-                    match *read {
+                    let read = root.0.read();
+                    match &*read {
                         Concept::$root((_, _, _)) => Self::_should_add(root.clone(), ancestry),
                         _ => panic!("should_add called with unexpected concept."),
                     }
                 }
                 fn new(root_uuid: Uuid,
-                       potential_child_constraints: Vec<RArc<RwLock<Constraint>>>) -> Result<Self> {
+                       potential_child_constraints: Vec<RArc<RRwLock<Constraint>>>) -> Result<Self> {
                     // TODO: we should dedupe potential child constraints
                     $(
-                        let mut [<$required:snake:lower>]: Vec<RArc<RwLock<Constraint>>> =
+                        let mut [<$required:snake:lower>]: Vec<RArc<RRwLock<Constraint>>> =
                         Vec::new();
                     )*
-                    let mut by_uuid: HashMap<Uuid, RArc<RwLock<Constraint>>> = HashMap::new();
+                    let mut by_uuid: HashMap<Uuid, RArc<RRwLock<Constraint>>> = HashMap::new();
                     for constraint in &potential_child_constraints {
                         $(
                             if let Some(AoristConstraint::$required{..}) =
-                            &constraint.read().unwrap().inner
+                            &constraint.read().inner
                             {
                                 by_uuid.insert(
-                                    constraint.read().unwrap().get_uuid()?,
+                                    constraint.read().get_uuid()?,
                                     constraint.clone()
                                 );
                             }
@@ -689,7 +698,7 @@ macro_rules! define_constraint {
                     for constraint in by_uuid.values() {
                         $(
                             if let Some(AoristConstraint::$required{..}) =
-                            &constraint.read().unwrap().inner {
+                            &constraint.read().inner {
                                 [<$required:snake:lower>].push(constraint.clone());
                             }
                         )*
@@ -910,51 +919,51 @@ macro_rules! register_attribute_new {
         impl [<Py $name>] {
             #[getter]
             pub fn name(&self) -> pyo3::prelude::PyResult<String> {
-                Ok(self.inner.0.read().unwrap().get_name().clone())
+                Ok(self.inner.0.read().get_name().clone())
             }
             #[getter]
             pub fn aorist_type(&self) -> pyo3::prelude::PyResult<String> {
-                Ok(self.inner.0.read().unwrap().get_type().clone())
+                Ok(self.inner.0.read().get_type().clone())
             }
             #[getter]
             pub fn comment(&self) -> pyo3::prelude::PyResult<Option<String>> {
-                Ok(self.inner.0.read().unwrap().get_comment().clone())
+                Ok(self.inner.0.read().get_comment().clone())
             }
             #[getter]
             pub fn orc_type(&self) -> pyo3::prelude::PyResult<String> {
-                Ok(self.inner.0.read().unwrap().get_orc_type().clone())
+                Ok(self.inner.0.read().get_orc_type().clone())
             }
             #[getter]
             pub fn presto_type(&self) -> pyo3::prelude::PyResult<String> {
-                Ok(self.inner.0.read().unwrap().get_presto_type().clone())
+                Ok(self.inner.0.read().get_presto_type().clone())
             }
             #[getter]
             pub fn bigquery_type(&self) -> pyo3::prelude::PyResult<String> {
-                Ok(self.inner.0.read().unwrap().get_bigquery_type().clone())
+                Ok(self.inner.0.read().get_bigquery_type().clone())
             }
             #[getter]
             pub fn sqlite_type(&self) -> pyo3::prelude::PyResult<String> {
-                Ok(self.inner.0.read().unwrap().get_sqlite_type().clone())
+                Ok(self.inner.0.read().get_sqlite_type().clone())
             }
             #[getter]
             pub fn is_nullable(&self) -> pyo3::prelude::PyResult<bool> {
-                Ok(self.inner.0.read().unwrap().is_nullable().clone())
+                Ok(self.inner.0.read().is_nullable().clone())
             }
             #[getter]
             pub fn is_key(&self) -> bool {
-                self.inner.0.read().unwrap().is_key_type()
+                self.inner.0.read().is_key_type()
             }
             #[getter]
             pub fn psycopg2_value_json_serializable(&self) -> pyo3::prelude::PyResult<bool> {
-                Ok(self.inner.0.read().unwrap().psycopg2_value_json_serializable().clone())
+                Ok(self.inner.0.read().psycopg2_value_json_serializable().clone())
             }
             #[getter]
             pub fn postgres_type(&self) -> pyo3::prelude::PyResult<String> {
-                Ok(self.inner.0.read().unwrap().get_postgres_type().clone())
+                Ok(self.inner.0.read().get_postgres_type().clone())
             }
             #[getter]
             pub fn py_type(&self) -> PyResult<pyo3::prelude::PyObject> {
-                self.inner.0.read().unwrap().get_py_type()
+                self.inner.0.read().get_py_type()
             }
         }
     }}
@@ -981,7 +990,7 @@ macro_rules! register_concept {
         impl AoristUniverse for AoristRef<Universe> {
             type TEndpoints = EndpointConfig;
             fn get_endpoints(&self) -> Self::TEndpoints {
-                (*self.0.read().unwrap()).endpoints.0.read().unwrap().clone()
+                (*self.0.read()).endpoints.0.read().clone()
             }
         }
         $(
@@ -991,7 +1000,7 @@ macro_rules! register_concept {
                     ix: Option<usize>,
                     id: Option<(Uuid, String)>
                 ) -> AoristRef<Self> {
-                    AoristRef(RArc::new(RwLock::new($name::$element((
+                    AoristRef(RArc::new(RRwLock::new($name::$element((
                         obj_ref.clone(),
                         match ix {
                             Some(i) => i,
@@ -1029,12 +1038,9 @@ macro_rules! register_concept {
                 type Error = String;
                 fn try_from(x: AoristRef<$name>) -> Result<Self, String> {
                     let read = x.0.read();
-                    match read {
-                        Ok(elem) => match *elem {
-                            $name::$element((ref y, _, _)) => Ok(y.clone()),
-                            _ => Err("Cannot convert.".into()),
-                        },
-                        _ => Err("Cannot read.".into()),
+                    match *read {
+                        $name::$element((ref y, _, _)) => Ok(y.clone()),
+                        _ => Err("Cannot convert.".into()),
                     }
                 }
             }
@@ -1042,14 +1048,14 @@ macro_rules! register_concept {
 
         #[cfg_attr(feature = "python", pyclass(module = "aorist"))]
         pub struct $ancestry {
-            pub parents: RArc<RwLock<HashMap<(Uuid, String), AoristRef<$name>>>>,
+            pub parents: RArc<RRwLock<HashMap<(Uuid, String), AoristRef<$name>>>>,
         }
         impl Ancestry for $ancestry {
             type TConcept = AoristRef<$name>;
-            fn new(parents: RArc<RwLock<HashMap<(Uuid, String), AoristRef<$name>>>>) -> Self {
+            fn new(parents: RArc<RRwLock<HashMap<(Uuid, String), AoristRef<$name>>>>) -> Self {
                  Self { parents }
             }
-            fn get_parents(&self) -> RArc<RwLock<HashMap<(Uuid, String), AoristRef<$name>>>> {
+            fn get_parents(&self) -> RArc<RRwLock<HashMap<(Uuid, String), AoristRef<$name>>>> {
                 self.parents.clone()
             }
 
@@ -1073,7 +1079,7 @@ macro_rules! register_concept {
                             )
                         ),
                         Some(id) => {
-                            let guard = self.parents.read().unwrap();
+                            let guard = self.parents.read();
                             let parent = guard.get(&id).unwrap().clone();
                             self.[<$element:snake:lower>](parent)
                         }
@@ -1111,7 +1117,7 @@ macro_rules! register_concept {
         impl TConceptEnum for AoristRef<$name> {
             type TUniverse = AoristRef<Universe>;
             fn get_parent_id(&self) -> Option<(Uuid, String)> {
-                let read = self.0.read().unwrap();
+                let read = self.0.read();
                 match *read {
                     $(
                         $name::$element((_, _, ref id)) => id.clone(),
@@ -1119,10 +1125,10 @@ macro_rules! register_concept {
                 }
             }
             fn from_universe(universe: AoristRef<Universe>) -> Self {
-                AoristRef(RArc::new(RwLock::new($name::Universe((universe, 0, None)))))
+                AoristRef(RArc::new(RRwLock::new($name::Universe((universe, 0, None)))))
             }
             fn get_type(&self) -> String {
-                let read = self.0.read().unwrap();
+                let read = self.0.read();
                 match *read {
                     $(
                         $name::$element((ref x, _, _)) => stringify!($element).to_string(),
@@ -1130,7 +1136,7 @@ macro_rules! register_concept {
                 }
             }
             fn get_uuid(&self) -> Uuid {
-                let read = self.0.read().unwrap();
+                let read = self.0.read();
                 match *read {
                     $(
                         $name::$element((ref x, _, _)) => x.get_uuid().unwrap(),
@@ -1138,7 +1144,7 @@ macro_rules! register_concept {
                 }
             }
             fn get_tag(&self) -> Option<String> {
-                let read = self.0.read().unwrap();
+                let read = self.0.read();
                 match *read {
                     $(
                         $name::$element((ref x, _, _)) => x.get_tag(),
@@ -1146,7 +1152,7 @@ macro_rules! register_concept {
                 }
             }
             fn get_index_as_child(&self) -> usize {
-                let read = self.0.read().unwrap();
+                let read = self.0.read();
                 match *read {
                     $(
                         $name::$element((_, idx, _)) => idx,
@@ -1154,7 +1160,7 @@ macro_rules! register_concept {
                 }
             }
             fn get_child_concepts(&self) -> Vec<Self> {
-                let read = self.0.read().unwrap();
+                let read = self.0.read();
                 match *read {
                     $(
                         $name::$element((ref x, _, _)) => x.get_descendants(),
@@ -1162,7 +1168,7 @@ macro_rules! register_concept {
                 }
             }
             fn populate_child_concept_map(&self, concept_map: &mut HashMap<(Uuid, String), Self>) {
-                let read = self.0.read().unwrap();
+                let read = self.0.read();
                 match *read {
                     $(
                         $name::$element((ref x, idx, ref parent)) => {
@@ -1175,7 +1181,7 @@ macro_rules! register_concept {
                                     x.get_uuid().unwrap(),
                                     stringify!($element).to_string()
                                  ),
-                                 AoristRef(RArc::new(RwLock::new(
+                                 AoristRef(RArc::new(RRwLock::new(
                                     $name::$element((x.clone(), idx, parent.clone()))
                                  ))),
                             );
@@ -1230,7 +1236,7 @@ macro_rules! register_constraint_new {
                 root: <Self::TAncestry as Ancestry>::TConcept,
                 ancestry: &Self::TAncestry,
                 context: &mut aorist_primitives::Context,
-                constraint: abi_stable::std_types::RArc<std::sync::RwLock<T>>,
+                constraint: abi_stable::std_types::RArc<abi_stable::external_types::parking_lot::rw_lock::RRwLock<T>>,
             ) -> (String, String, ParameterTuple, Dialect) {
                 let gil = Python::acquire_gil();
                 let py = gil.python();
@@ -1261,7 +1267,7 @@ macro_rules! register_constraint_new {
                         let (
                             extracted_string, extracted_context
                         ) : (String, aorist_primitives::Context) = returned.extract().unwrap();
-                        context.insert(&extracted_context, constraint.read().unwrap().get_name().clone());
+                        context.insert(&extracted_context, constraint.read().get_name().clone());
                         extracted = extracted_string;
                     } else {
                         let arg = deserialized.call1((objects,)).unwrap();
@@ -1285,7 +1291,7 @@ macro_rules! register_constraint_new {
                             "constraint" => {
                                 assert!(constraint_pos.is_none());
                                 constraint_pos = Some(i);
-                                let constraint_rw = constraint.read().unwrap();
+                                let constraint_rw = constraint.read();
                                 let inner = constraint_rw.inner(stringify!($name)).unwrap();
                                 let obj = inner.get_py_obj(py);
                                 objects.push(obj);
@@ -1308,7 +1314,7 @@ macro_rules! register_constraint_new {
                     let extracted: AST = match deserialized.call1((objects,)) {
                         Ok(arg) => {
                             let result = match context_pos {
-                                Some(_) => aorist_ast::extract_arg_with_context(arg, context, constraint.read().unwrap().get_name().clone()),
+                                Some(_) => aorist_ast::extract_arg_with_context(arg, context, constraint.read().get_name().clone()),
                                 None => aorist_ast::extract_arg(arg),
                             };
                             match result {
@@ -1432,7 +1438,7 @@ macro_rules! register_constraint_new {
             fn build_constraint(
                 &self,
                 root_uuid: Uuid,
-                potential_child_constraints: Vec<RArc<RwLock<Self::OuterType>>>,
+                potential_child_constraints: Vec<RArc<RRwLock<Self::OuterType>>>,
             ) -> Result<Self::OuterType> {
                 match &self {
                     $(
@@ -1515,7 +1521,7 @@ macro_rules! register_constraint_new {
                     )+
                 }
             }
-            pub fn get_downstream_constraints(&self) -> Result<Vec<RArc<RwLock<Constraint>>>> {
+            pub fn get_downstream_constraints(&self) -> Result<Vec<RArc<RRwLock<Constraint>>>> {
                 match self {
                     $(
                         Self::$element(x) => x.get_downstream_constraints(),
@@ -1730,7 +1736,7 @@ macro_rules! export_aorist_python_module {
 #[macro_export]
 macro_rules! attribute {
     {$attribute: ident ( $name: expr, $comment: expr, $nullable: expr ) } => {
-        AoristRef(abi_stable::std_types::RArc::new(std::sync::RwLock::new(Attribute {
+        AoristRef(abi_stable::std_types::RArc::new(abi_stable::external_types::parking_lot::rw_lock::RRwLock::new(Attribute {
             inner: AttributeOrTransform::Attribute(AttributeEnum::$attribute($attribute {
                 name: $name,
                 comment: $comment,
@@ -1775,15 +1781,14 @@ macro_rules! asset {
                 tmp_dir: String,
                 tmp_encoding: AoristRef<Encoding>,
             ) -> Option<Self> {
-                if let StorageSetup::RemoteStorageSetup(s) = &*self.setup.0.read().unwrap() {
+                if let StorageSetup::RemoteStorageSetup(s) = &*self.setup.0.read() {
                     return Some(Self {
                         name: self.name.clone(),
                         comment: self.comment.clone(),
-                        setup: AoristRef(RArc::new(RwLock::new(
+                        setup: AoristRef(RArc::new(RRwLock::new(
                             self.setup
                                 .0
                                 .read()
-                                .unwrap()
                                 .replicate_to_local(t, tmp_dir, tmp_encoding),
                         ))),
                         schema: self.schema.clone(),
@@ -1851,9 +1856,9 @@ macro_rules! derived_schema {
             impl [<Py $name>] {
                 #[getter]
                 pub fn sources(&self) -> Vec<PyAsset> {
-                    self.inner.0.read().unwrap().get_sources().into_iter().map(|x|
+                    self.inner.0.read().get_sources().into_iter().map(|x|
                         PyAsset{
-                            inner: AoristRef(abi_stable::std_types::RArc::new(std::sync::RwLock::new(x)))
+                            inner: AoristRef(abi_stable::std_types::RArc::new(abi_stable::external_types::parking_lot::rw_lock::RRwLock::new(x)))
                         }
                     ).collect()
                 }
@@ -1873,9 +1878,9 @@ macro_rules! derived_schema {
             impl [<Py $name>] {
                 #[getter]
                 pub fn sources(&self) -> Vec<PyAsset> {
-                    self.inner.0.read().unwrap().get_sources().into_iter().map(|x|
+                    self.inner.0.read().get_sources().into_iter().map(|x|
                         PyAsset{
-                            inner: AoristRef(abi_stable::std_types::RArc::new(std::sync::RwLock::new(x)))
+                            inner: AoristRef(abi_stable::std_types::RArc::new(abi_stable::external_types::parking_lot::rw_lock::RRwLock::new(x)))
                         }
                     ).collect()
                 }
@@ -1889,7 +1894,7 @@ macro_rules! derived_schema {
                     #[getter]
                     pub fn [<get_ $source_name>](&self) -> [<Py $source_type>] {
                         [<Py $source_type>] {
-                            inner: self.inner.0.read().unwrap().$source_name.clone()
+                            inner: self.inner.0.read().$source_name.clone()
                         }
                     }
                 )+
@@ -1938,7 +1943,7 @@ macro_rules! schema {
             }
             pub fn get_key(&self) -> Vec<AoristRef<Attribute>> {
                 self.get_attributes().into_iter()
-                    .filter(|x| x.0.read().unwrap().is_key_type()).collect()
+                    .filter(|x| x.0.read().is_key_type()).collect()
             }
             pub fn get_datum_template(&self) -> AoristRef<DatumTemplate> {
                 self.datum_template.clone()
@@ -1949,15 +1954,15 @@ macro_rules! schema {
         impl [<Py $name>] {
             #[getter]
             pub fn get_attributes(&self) -> Vec<PyAttribute> {
-                self.inner.0.read().unwrap().get_attributes().iter().map(|x| PyAttribute{ inner: x.clone() }).collect()
+                self.inner.0.read().get_attributes().iter().map(|x| PyAttribute{ inner: x.clone() }).collect()
             }
             #[getter]
             pub fn get_key(&self) -> Vec<PyAttribute> {
-                self.inner.0.read().unwrap().get_key().iter().map(|x| PyAttribute{ inner: x.clone() }).collect()
+                self.inner.0.read().get_key().iter().map(|x| PyAttribute{ inner: x.clone() }).collect()
             }
             #[getter]
             pub fn get_datum_template(&self) -> PyDatumTemplate {
-                PyDatumTemplate{ inner: self.inner.0.read().unwrap().get_datum_template() }
+                PyDatumTemplate{ inner: self.inner.0.read().get_datum_template() }
             }
         }
     }};
@@ -1986,30 +1991,30 @@ macro_rules! asset_enum {
             fn get_name(&self) -> String {
                 match self {
                     $($(
-                        Self::$variant(x) => x.0.read().unwrap().name.clone(),
+                        Self::$variant(x) => x.0.read().name.clone(),
                     )+)?
                     $($(
-                        Self::$enum_variant(x) => x.0.read().unwrap().get_name(),
+                        Self::$enum_variant(x) => x.0.read().get_name(),
                     )+)?
                 }
             }
             fn get_schema(&self) -> AoristRef<DataSchema> {
                 match self {
                     $($(
-                        Self::$variant(x) => x.0.read().unwrap().get_schema(),
+                        Self::$variant(x) => x.0.read().get_schema(),
                     )+)?
                     $($(
-                        Self::$enum_variant(x) => x.0.read().unwrap().get_schema(),
+                        Self::$enum_variant(x) => x.0.read().get_schema(),
                     )+)?
                 }
             }
             fn get_storage_setup(&self) -> AoristRef<StorageSetup> {
                 match self {
                     $($(
-                        Self::$variant(x) => x.0.read().unwrap().get_storage_setup(),
+                        Self::$variant(x) => x.0.read().get_storage_setup(),
                     )+)?
                     $($(
-                        Self::$enum_variant(x) => x.0.read().unwrap().get_storage_setup(),
+                        Self::$enum_variant(x) => x.0.read().get_storage_setup(),
                     )+)?
                 }
             }
@@ -2018,10 +2023,10 @@ macro_rules! asset_enum {
             pub fn set_storage_setup(&mut self, setup: AoristRef<StorageSetup>) {
                 match self {
                     $($(
-                        Self::$variant(x) => x.0.write().unwrap().set_storage_setup(setup),
+                        Self::$variant(x) => x.0.write().set_storage_setup(setup),
                     )+)?
                     $($(
-                        Self::$enum_variant(x) => x.0.write().unwrap().set_storage_setup(setup),
+                        Self::$enum_variant(x) => x.0.write().set_storage_setup(setup),
                     )+)?
                 }
             }
@@ -2045,16 +2050,14 @@ macro_rules! asset_enum {
                 match self {
                     $($(
                         Self::$variant(x) => x.0.read()
-                            .unwrap()
                             .replicate_to_local(t, tmp_dir, tmp_encoding).and_then(|r|
-                                Some(Self::$variant(AoristRef(RArc::new(RwLock::new(r)))))
+                                Some(Self::$variant(AoristRef(RArc::new(RRwLock::new(r)))))
                             ),
                     )+)?
                     $($(
                         Self::$enum_variant(x) => x.0.read()
-                            .unwrap()
                             .replicate_to_local(t, tmp_dir, tmp_encoding).and_then(|r|
-                                Some(Self::$enum_variant(AoristRef(RArc::new(RwLock::new(r)))))
+                                Some(Self::$enum_variant(AoristRef(RArc::new(RRwLock::new(r)))))
                             ),
                     )+)?
                 }
@@ -2066,18 +2069,18 @@ macro_rules! asset_enum {
         impl [<Py $name>] {
             #[getter]
             pub fn name(&self) -> String {
-                self.inner.0.read().unwrap().get_name()
+                self.inner.0.read().get_name()
             }
             #[getter]
             pub fn get_storage_setup(&self) -> PyStorageSetup {
                 PyStorageSetup {
-                    inner: self.inner.0.read().unwrap().get_storage_setup().clone(),
+                    inner: self.inner.0.read().get_storage_setup().clone(),
                 }
             }
             #[getter]
             pub fn get_schema(&self) -> PyDataSchema {
                 PyDataSchema {
-                    inner: self.inner.0.read().unwrap().get_schema().clone(),
+                    inner: self.inner.0.read().get_schema().clone(),
                 }
             }
         }
@@ -2107,20 +2110,20 @@ macro_rules! schema_enum {
             pub fn get_attributes(&self) -> Vec<AoristRef<Attribute>> {
                 match self {
                     $($(
-                        Self::$variant(x) => x.0.read().unwrap().get_attributes(),
+                        Self::$variant(x) => x.0.read().get_attributes(),
                     )+)?
                     $($(
-                        Self::$enum_variant(x) => x.0.read().unwrap().get_attributes(),
+                        Self::$enum_variant(x) => x.0.read().get_attributes(),
                     )+)?
                 }
             }
             pub fn get_datum_template(&self) -> AoristRef<DatumTemplate> {
                 match self {
                     $($(
-                        Self::$variant(x) => x.0.read().unwrap().get_datum_template(),
+                        Self::$variant(x) => x.0.read().get_datum_template(),
                     )+)?
                     $($(
-                        Self::$enum_variant(x) => x.0.read().unwrap().get_datum_template(),
+                        Self::$enum_variant(x) => x.0.read().get_datum_template(),
                     )+)?
                 }
             }
@@ -2130,7 +2133,7 @@ macro_rules! schema_enum {
         impl [<Py $name>] {
             #[getter]
             pub fn get_datum_template(&self) -> PyDatumTemplate {
-                PyDatumTemplate{ inner: self.inner.0.read().unwrap().get_datum_template() }
+                PyDatumTemplate{ inner: self.inner.0.read().get_datum_template() }
             }
         }
     }};

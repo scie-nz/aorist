@@ -3,7 +3,7 @@ use aorist_ast::{Assignment, StringLiteral, AST};
 use aorist_primitives::define_task_node;
 use std::hash::Hash;
 use abi_stable::std_types::RArc;
-use std::sync::RwLock;
+use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 
 define_task_node!(
     NativeRTask,
@@ -25,7 +25,7 @@ define_task_node!(
                         task_val_assigned = true;
                         AST::Assignment(Assignment::new_wrapped(
                             task.task_val.clone(),
-                            expr.read().unwrap().inner().clone(),
+                            expr.read().inner().clone(),
                         ))
                     }
                 },

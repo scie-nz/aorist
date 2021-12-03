@@ -37,13 +37,11 @@ impl SpaCyNamedEntitySchema {
             .get_source()
             .0
             .read()
-            .unwrap()
             .get_schema()
             .0
             .read()
-            .unwrap()
         {
-            DataSchema::LanguageAssetSchema(l) => match &*l.0.read().unwrap() {
+            DataSchema::LanguageAssetSchema(l) => match &*l.0.read() {
                 LanguageAssetSchema::TextCorpusSchema(x) => x.clone(),
                 _ => panic!("Source schema must be TextCorpusSchema"),
             },

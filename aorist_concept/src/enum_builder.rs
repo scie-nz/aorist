@@ -109,18 +109,15 @@ impl Builder for EnumBuilder {
               ) -> Self {
                   let (name, field, ix, uuid, children_enum) = tpl;
                   let read = children_enum.0.read();
-                  match read {
-                      Ok(y) => match *y {
-                          #(
-                              #enum_name::#variant(ref x) => WrappedConcept{
-                                  inner: T::[<construct_ #variant:snake:lower>](
-                                      x.clone(), ix, Some((uuid.unwrap(), name.to_string()))
-                                  ),
-                              },
-                          )*
-                          _ => panic!("_phantom arm should not be activated"),
-                      },
-                      _ => panic!("problem reading."),
+                  match &*read {
+                      #(
+                          #enum_name::#variant(ref x) => WrappedConcept{
+                              inner: T::[<construct_ #variant:snake:lower>](
+                                  x.clone(), ix, Some((uuid.unwrap(), name.to_string()))
+                              ),
+                          },
+                      )*
+                      _ => panic!("_phantom arm should not be activated"),
                   }
               }
           }
@@ -196,7 +193,7 @@ impl Builder for EnumBuilder {
                       #(
                           [<Py #enum_name Input>]::#variant(x) => {
                               let obj = #enum_name::#variant(x.inner.clone());
-                              let inner = AoristRef(abi_stable::std_types::RArc::new(std::sync::RwLock::new(obj)));
+                              let inner = AoristRef(abi_stable::std_types::RArc::new(abi_stable::external_types::parking_lot::rw_lock::RRwLock::new(obj)));
                               Self { inner }
                           }
                       )*
@@ -206,7 +203,7 @@ impl Builder for EnumBuilder {
                     #[getter]
                     pub fn [<#variant:snake:lower>](&self) -> pyo3::prelude::PyResult<Option<[<Py #variant>]>> {
                         Ok(
-                            match &*self.inner.0.read().unwrap() {
+                            match &*self.inner.0.read() {
                                 #enum_name::#variant(x) => Some([<Py #variant>]{ inner: x.clone() }),
                                 _ => None,
                             }
@@ -257,7 +254,7 @@ impl Builder for EnumBuilder {
           }
           impl AoristRef<#enum_name> {
               pub fn deep_clone(&self) -> Self {
-                  AoristRef(abi_stable::std_types::RArc::new(std::sync::RwLock::new(self.0.read().unwrap().deep_clone())))
+                  AoristRef(abi_stable::std_types::RArc::new(abi_stable::external_types::parking_lot::rw_lock::RRwLock::new(self.0.read().deep_clone())))
               }
           }
           impl AoristConcept for AoristRef<#enum_name> {
@@ -278,33 +275,21 @@ impl Builder for EnumBuilder {
                       None,
                       None,
                       self.get_uuid(),
-                      // clone of RArc<RwLock
+                      // clone of RArc<RRwLock
                       Self(self.0.clone()),
                   )]
               }
               fn get_uuid(&self) -> Option<Uuid> {
-                match self.0.read() {
-                   Ok(x) => x.get_uuid(),
-                  _ => panic!("Could not open for reading.")
-                }
+                  self.0.read().get_uuid()
               }
               fn get_tag(&self) -> Option<String> {
-                  match self.0.read() {
-                     Ok(x) => x.get_tag(),
-                    _ => panic!("Could not open for reading.")
-                  }
+                  self.0.read().get_tag()
               }
               fn get_children_uuid(&self) -> Vec<Uuid> {
-                  match self.0.read() {
-                     Ok(x) => x.get_children_uuid(),
-                    _ => panic!("Could not open for reading.")
-                  }
+                  self.0.read().get_children_uuid()
               }
               fn compute_uuids(&self) {
-                  match self.0.read() {
-                    Ok(mut x) => x.compute_uuids(),
-                    _ => panic!("Could not open for reading.")
-                  }
+                  self.0.read().compute_uuids()
               }
           }
         }})

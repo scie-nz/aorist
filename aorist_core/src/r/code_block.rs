@@ -153,7 +153,7 @@ where
                         for (key, val) in p.kwargs.iter() {
                             let val_no_ancestors = val.clone_without_ancestors();
                             if let AST::StringLiteral(rw) = val {
-                                let x = rw.read().unwrap();
+                                let x = rw.read();
                                 if x.value() == task_id_subscript {
                                     // TODO: pass this to ForLoopETLFlow
                                     let ident = AST::SimpleIdentifier(

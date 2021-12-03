@@ -18,7 +18,7 @@ use pyo3::PyResult;
 use std::hash::{Hash, Hasher};
 use std::marker::PhantomData;
 use abi_stable::std_types::RArc;
-use std::sync::RwLock;
+use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 
 register_task_nodes! {
     PrefectTask,

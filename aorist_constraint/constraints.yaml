@@ -15,7 +15,7 @@ spec:
       match ancestry.replication_storage_setup(root.clone()) {
           Ok(x) => {
             debug!("Root has ReplicationStorageSetup.");
-            match *x.0.read().unwrap().tmp_encoding.0.read().unwrap() {
+            match *x.0.read().tmp_encoding.0.read() {
                 aorist_core::Encoding::NewlineDelimitedJSONEncoding(_) => true,
                 aorist_core::Encoding::CSVEncoding(_) => true,
                 _ => false,
@@ -50,7 +50,7 @@ spec:
       We need to convert the JSON data to CSV format to process it further.
   attachIf: |
       |root: AoristRef<Concept>, ancestry: &ConceptAncestry| {
-          match *ancestry.remote_storage(root.clone()).unwrap().0.read().unwrap().encoding.0.read().unwrap() {
+          match *ancestry.remote_storage(root.clone()).unwrap().0.read().encoding.0.read() {
               aorist_core::Encoding::NewlineDelimitedJSONEncoding(_) => {
                   ancestry.replication_storage_setup(root.clone()).is_ok()
               },
@@ -111,7 +111,7 @@ spec:
       data. We need to create these schemas to be able to write data to them.
   attachIf: |
       |root: AoristRef<Concept>, ancestry: &ConceptAncestry| {
-         match &*ancestry.hive_table_storage(root.clone()).unwrap().0.read().unwrap().encoding.0.read().unwrap() {
+         match &*ancestry.hive_table_storage(root.clone()).unwrap().0.read().encoding.0.read() {
             aorist_core::Encoding::NewlineDelimitedJSONEncoding(_) => true,
             _ => false,
          }
@@ -144,7 +144,7 @@ spec:
   attachIf: |
       |root: AoristRef<Concept>, ancestry: &ConceptAncestry|
       match ancestry.static_data_table(root.clone()) {
-          Ok(sdt) => match &*sdt.0.read().unwrap().setup.0.read().unwrap() {
+          Ok(sdt) => match &*sdt.0.read().setup.0.read() {
               aorist_core::StorageSetup::ReplicationStorageSetup(_) => true,
               _ => false,
           },
@@ -195,12 +195,12 @@ spec:
   attachIf: |
       |root: AoristRef<Concept>, ancestry: &ConceptAncestry| {
           let language_asset = ancestry.language_asset(root.clone()).unwrap();
-          for asset in language_asset.0.read().unwrap().get_source_assets() {
+          for asset in language_asset.0.read().get_source_assets() {
               let storage_setup = aorist_core::TAsset::get_storage_setup(&asset);
-              let local_storages = storage_setup.0.read().unwrap().get_local_storage();
+              let local_storages = storage_setup.0.read().get_local_storage();
               let mut hive_storage = false;
               for storage in &local_storages {
-                  if let aorist_core::Storage::HiveTableStorage(_) = *storage.0.read().unwrap() {
+                  if let aorist_core::Storage::HiveTableStorage(_) = *storage.0.read() {
                       hive_storage = true;
                   }
               }
@@ -224,12 +224,12 @@ spec:
   attachIf: |
       |root: AoristRef<Concept>, ancestry: &ConceptAncestry| {
           let language_asset = ancestry.language_asset(root.clone()).unwrap();
-          for asset in language_asset.0.read().unwrap().get_source_assets() {
+          for asset in language_asset.0.read().get_source_assets() {
               let storage_setup = aorist_core::TAsset::get_storage_setup(&asset);
-              let local_storages = storage_setup.0.read().unwrap().get_local_storage();
+              let local_storages = storage_setup.0.read().get_local_storage();
               let mut sqlite_storage = false;
               for storage in &local_storages {
-                  if let aorist_core::Storage::SQLiteStorage(_) = *storage.0.read().unwrap() {
+                  if let aorist_core::Storage::SQLiteStorage(_) = *storage.0.read() {
                       sqlite_storage = true;
                   }
               }
@@ -242,7 +242,7 @@ spec:
   requiredConstraintsClosure: |
       |root: AoristRef<Concept>, ancestry: &ConceptAncestry| {
           let language_asset = ancestry.language_asset(root.clone()).unwrap();
-          let uuids = language_asset.0.read().unwrap().get_source_assets()
+          let uuids = language_asset.0.read().get_source_assets()
               .iter().map(|x| x.get_uuid().unwrap()).collect::<Vec<_>>();
           uuids
       }
@@ -262,7 +262,7 @@ spec:
   requiredConstraintsClosure: |
       |root: AoristRef<Concept>, ancestry: &ConceptAncestry| {
           vec![
-              ancestry.fasttext_embedding_schema(root.clone()).unwrap().0.read().unwrap().source.0.read().unwrap().get_uuid().clone().unwrap()
+              ancestry.fasttext_embedding_schema(root.clone()).unwrap().0.read().source.0.read().get_uuid().clone().unwrap()
           ]
       }
 ---
@@ -280,9 +280,9 @@ spec:
   attachIf: |
       |root: AoristRef<Concept>, ancestry: &ConceptAncestry| {
           match ancestry.fasttext_embedding(root.clone()) {
-              Ok(x) => match *x.0.read().unwrap().setup.0.read().unwrap() {
-                  aorist_core::StorageSetup::LocalStorageSetup(ref s) => match *s.0.read().unwrap().local.0.read().unwrap() {
-                      aorist_core::Storage::HiveTableStorage(ref h) => match *h.0.read().unwrap().location.0.read().unwrap() {
+              Ok(x) => match *x.0.read().setup.0.read() {
+                  aorist_core::StorageSetup::LocalStorageSetup(ref s) => match *s.0.read().local.0.read() {
+                      aorist_core::Storage::HiveTableStorage(ref h) => match *h.0.read().location.0.read() {
                           aorist_core::HiveLocation::MinioLocation(_) => true,
                           _ => false,
                       },
@@ -305,8 +305,8 @@ spec:
   attachIf: |
       |root: AoristRef<Concept>, ancestry: &ConceptAncestry| {
           match ancestry.fasttext_embedding(root.clone()) {
-              Ok(x) => match *x.0.read().unwrap().setup.0.read().unwrap() {
-                  aorist_core::StorageSetup::LocalStorageSetup(ref s) => match *s.0.read().unwrap().local.0.read().unwrap() {
+              Ok(x) => match *x.0.read().setup.0.read() {
+                  aorist_core::StorageSetup::LocalStorageSetup(ref s) => match *s.0.read().local.0.read() {
                       aorist_core::Storage::SQLiteStorage(_) => true,
                       _ => false,
                   },
@@ -332,7 +332,7 @@ spec:
           Ok(_) => true, 
           /*{
             debug!("Root has ReplicationStorageSetup.");
-            match *x.0.read().unwrap().tmp_encoding.0.read().unwrap() {
+            match *x.0.read().tmp_encoding.0.read() {
                 aorist_core::Encoding::NewlineDelimitedJSONEncoding(_) => true,
                 aorist_core::Encoding::CSVEncoding(_) => true,
                 _ => false,
@@ -353,7 +353,7 @@ spec:
       match ancestry.replication_storage_setup(root.clone()) {
           Ok(x) => {
             debug!("Root has ReplicationStorageSetup.");
-            match *x.0.read().unwrap().tmp_encoding.0.read().unwrap() {
+            match *x.0.read().tmp_encoding.0.read() {
                 aorist_core::Encoding::NewlineDelimitedJSONEncoding(_) => true,
                 aorist_core::Encoding::CSVEncoding(_) => true,
                 _ => false,
@@ -373,7 +373,7 @@ spec:
   requiredConstraintsClosure: |
       |root: AoristRef<Concept>, ancestry: &ConceptAncestry| {
           vec![
-              ancestry.spa_cy_named_entity_schema(root.clone()).unwrap().0.read().unwrap().source.0.read().unwrap().get_uuid().clone().unwrap()
+              ancestry.spa_cy_named_entity_schema(root.clone()).unwrap().0.read().source.0.read().get_uuid().clone().unwrap()
           ]
       }
 ---
@@ -396,8 +396,8 @@ spec:
   attachIf: |
       |root: AoristRef<Concept>, ancestry: &ConceptAncestry| {
           match ancestry.named_entities(root.clone()) {
-              Ok(x) => match *x.0.read().unwrap().setup.0.read().unwrap() {
-                  aorist_core::StorageSetup::LocalStorageSetup(ref s) => match *s.0.read().unwrap().local.0.read().unwrap() {
+              Ok(x) => match *x.0.read().setup.0.read() {
+                  aorist_core::StorageSetup::LocalStorageSetup(ref s) => match *s.0.read().local.0.read() {
                       aorist_core::Storage::SQLiteStorage(_) => true,
                       _ => false,
                   },

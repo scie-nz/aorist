@@ -17,7 +17,7 @@ use pyo3::types::{PyList, PyModule, PyString, PyTuple};
 use std::collections::VecDeque;
 use std::hash::{Hash, Hasher};
 use abi_stable::std_types::RArc;
-use std::sync::RwLock;
+use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 
 define_ast_node!(
     ImportNode,
@@ -92,13 +92,13 @@ define_ast_node!(
     |assign: &Assignment, py: Python, ast_module: &'a PyModule, depth: usize| {
         let assign_target = match assign.target {
             AST::Subscript(ref x) => {
-                AST::Subscript(x.read().unwrap().as_wrapped_assignment_target())
+                AST::Subscript(x.read().as_wrapped_assignment_target())
             }
             AST::Attribute(ref x) => {
-                AST::Attribute(x.read().unwrap().as_wrapped_assignment_target())
+                AST::Attribute(x.read().as_wrapped_assignment_target())
             }
-            AST::List(ref x) => AST::List(x.read().unwrap().as_wrapped_assignment_target()),
-            AST::Tuple(ref x) => AST::Tuple(x.read().unwrap().as_wrapped_assignment_target()),
+            AST::List(ref x) => AST::List(x.read().as_wrapped_assignment_target()),
+            AST::Tuple(ref x) => AST::Tuple(x.read().as_wrapped_assignment_target()),
             AST::SimpleIdentifier(_) => assign.target.clone(),
             _ => panic!("Assignment target not supported."),
         };
@@ -356,7 +356,7 @@ define_ast_node!(
     |call: &Call, depth: usize| {
         unsafe {
             let fn_name = match call.function {
-                AST::SimpleIdentifier(ref x) => x.read().unwrap().name(),
+                AST::SimpleIdentifier(ref x) => x.read().name(),
                 _ => panic!("function name must be SimpleIdentifier"),
             };
             let res = make_lang("call");
@@ -651,7 +651,7 @@ impl Formatted {
         if self.keywords.len() == 1 {
             if let AST::StringLiteral(rw) = &self.fmt {
                 let (unique_key, unique_value) = self.keywords.iter().next().unwrap().clone();
-                let read = rw.read().unwrap();
+                let read = rw.read();
                 if read.value() == format!("{{{}}}", unique_key).to_string() {
                     return Some(unique_value.clone());
                 }
@@ -665,13 +665,13 @@ impl AST {
     pub fn as_wrapped_assignment_target(&self) -> Self {
         match &self {
             AST::Subscript(ref x) => {
-                AST::Subscript(x.read().unwrap().as_wrapped_assignment_target())
+                AST::Subscript(x.read().as_wrapped_assignment_target())
             }
             AST::Attribute(ref x) => {
-                AST::Attribute(x.read().unwrap().as_wrapped_assignment_target())
+                AST::Attribute(x.read().as_wrapped_assignment_target())
             }
-            AST::List(ref x) => AST::List(x.read().unwrap().as_wrapped_assignment_target()),
-            AST::Tuple(ref x) => AST::Tuple(x.read().unwrap().as_wrapped_assignment_target()),
+            AST::List(ref x) => AST::List(x.read().as_wrapped_assignment_target()),
+            AST::Tuple(ref x) => AST::Tuple(x.read().as_wrapped_assignment_target()),
             AST::SimpleIdentifier(_) => self.clone(),
             _ => panic!("Assignment target not supported."),
         }
@@ -690,7 +690,7 @@ impl AST {
     pub fn optimize(&self) -> Option<AST> {
         match self {
             AST::Formatted(ref rw) => {
-                let read = rw.read().unwrap();
+                let read = rw.read();
                 read.optimize()
             }
             _ => None,
@@ -707,14 +707,14 @@ mod r_ast_tests {
     fn test_string_literal() {
         test! {
             let s = StringLiteral::new_wrapped("test".to_string(), false);
-            assert_eq!(s.read().unwrap().to_r_ast_node(0), r!("test"));
+            assert_eq!(s.read().to_r_ast_node(0), r!("test"));
         }
     }
     #[test]
     fn test_simple_identifier() {
         test! {
             let s = SimpleIdentifier::new_wrapped("test".to_string());
-            assert_eq!(s.read().unwrap().to_r_ast_node(0), sym!(test));
+            assert_eq!(s.read().to_r_ast_node(0), sym!(test));
         }
     }
     #[test]

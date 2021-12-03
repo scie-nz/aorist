@@ -17,7 +17,7 @@ use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
 use abi_stable::std_types::RArc;
-use std::sync::RwLock;
+use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 use uuid::Uuid;
 
 pub trait TAsset {
@@ -28,7 +28,6 @@ pub trait TAsset {
         self.get_schema()
             .0
             .read()
-            .unwrap()
             .get_datum_template_name()
             .unwrap()
     }
@@ -49,13 +48,12 @@ impl Asset {
     pub fn persist_local(&self, persistent: AoristRef<Storage>) -> Self {
         let mut cloned = self.clone();
         let storage_setup = cloned.get_storage_setup();
-        let new_setup = match *storage_setup.0.read().unwrap() {
-            StorageSetup::LocalStorageSetup(_) => AoristRef(RArc::new(RwLock::new(
+        let new_setup = match *storage_setup.0.read() {
+            StorageSetup::LocalStorageSetup(_) => AoristRef(RArc::new(RRwLock::new(
                 cloned
                     .get_storage_setup()
                     .0
                     .read()
-                    .unwrap()
                     .persist_local(persistent),
             ))),
             _ => cloned.get_storage_setup(),
@@ -69,11 +67,10 @@ impl Asset {
 impl PyAsset {
     pub fn persist_local(&self, storage: PyStorage) -> PyResult<Self> {
         Ok(PyAsset {
-            inner: AoristRef(RArc::new(RwLock::new(
+            inner: AoristRef(RArc::new(RRwLock::new(
                 self.inner
                     .0
                     .read()
-                    .unwrap()
                     .persist_local(storage.inner.deep_clone()),
             ))),
         })
@@ -85,11 +82,10 @@ impl PyAsset {
         tmp_encoding: PyEncoding,
     ) -> PyResult<Self> {
         Ok(PyAsset {
-            inner: AoristRef(RArc::new(RwLock::new(
+            inner: AoristRef(RArc::new(RRwLock::new(
                 self.inner
                     .0
                     .read()
-                    .unwrap()
                     .replicate_to_local(
                         storage.inner.deep_clone(),
                         tmp_dir.clone(),

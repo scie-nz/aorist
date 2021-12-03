@@ -4,7 +4,7 @@ use pyo3::prelude::*;
 use pyo3::types::PyModule;
 use std::hash::Hash;
 use abi_stable::std_types::RArc;
-use std::sync::RwLock;
+use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 
 #[derive(Hash, PartialEq, Eq, Clone, Debug)]
 pub struct StringLiteral {
@@ -102,8 +102,8 @@ impl StringLiteral {
         Robj::from(vec![&*value])
     }
 
-    pub fn new_wrapped(value: String, is_sql: bool) -> RArc<RwLock<Self>> {
-        RArc::new(RwLock::new(Self::new(value, is_sql)))
+    pub fn new_wrapped(value: String, is_sql: bool) -> RArc<RRwLock<Self>> {
+        RArc::new(RRwLock::new(Self::new(value, is_sql)))
     }
     pub fn value(&self) -> String {
         self.value.clone()

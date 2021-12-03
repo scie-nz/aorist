@@ -5,7 +5,7 @@ use aorist_primitives::{Ancestry, Context};
 use linked_hash_map::LinkedHashMap;
 use std::marker::PhantomData;
 use abi_stable::std_types::RArc;
-use std::sync::RwLock;
+use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 
 pub trait TProgram<'a, T: TConstraint<'a>> {
     fn new(
@@ -29,7 +29,7 @@ pub trait TOuterProgram: Clone {
         root: <Self::TAncestry as Ancestry>::TConcept,
         ancestry: &Self::TAncestry,
         context: &mut Context,
-        constraint: RArc<RwLock<T>>,
+        constraint: RArc<RRwLock<T>>,
     ) -> (String, String, ParameterTuple, Dialect);
 }
 #[derive(Clone)]

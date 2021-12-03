@@ -73,7 +73,7 @@ where
                 _ => {
                     let call = self.node.get_call().unwrap();
                     match call {
-                        AST::Call(call_rw) => call_rw.read().unwrap().function(),
+                        AST::Call(call_rw) => call_rw.read().function(),
                         _ => panic!("AST object should be call"),
                     }
                 }
@@ -86,7 +86,7 @@ where
             {
                 let call = self.node.get_call().unwrap();
                 if let AST::Call(call_rw) = call {
-                    let x = call_rw.read().unwrap();
+                    let x = call_rw.read();
                     if x.args().len() > 0 {
                         panic!("Call should not have any arguments");
                     }
@@ -239,7 +239,7 @@ where
                                 match *v {
                                     AST::StringLiteral(ref x) => {
                                         AST::StringLiteral(StringLiteral::new_wrapped(
-                                            x.read().unwrap().value().clone(),
+                                            x.read().value().clone(),
                                             true,
                                         ))
                                     }

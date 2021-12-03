@@ -3,7 +3,7 @@ use aorist_ast::AST;
 use aorist_primitives::register_task_nodes;
 use std::hash::{Hash, Hasher};
 use abi_stable::std_types::RArc;
-use std::sync::RwLock;
+use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 
 mod airflow_bash_operator_task;
 mod airflow_python_operator_task;
@@ -43,10 +43,10 @@ impl PythonTask {
     pub fn get_preamble(&self) -> Option<PythonPreamble> {
         let inner = match &self {
             PythonTask::BashPythonTask(_) => None,
-            PythonTask::RPythonTask(x) => x.read().unwrap().get_preamble(),
-            PythonTask::NativePythonTask(x) => x.read().unwrap().get_preamble(),
-            PythonTask::ConstantPythonTask(x) => x.read().unwrap().get_preamble(),
-            PythonTask::PrestoPythonTask(x) => x.read().unwrap().get_preamble(),
+            PythonTask::RPythonTask(x) => x.read().get_preamble(),
+            PythonTask::NativePythonTask(x) => x.read().get_preamble(),
+            PythonTask::ConstantPythonTask(x) => x.read().get_preamble(),
+            PythonTask::PrestoPythonTask(x) => x.read().get_preamble(),
         };
         if let Some(p) = inner {
             return Some(PythonPreamble::NativePythonPreamble(p));
@@ -56,10 +56,10 @@ impl PythonTask {
     pub fn get_call(&self) -> Option<AST> {
         match &self {
             PythonTask::BashPythonTask(_) => None,
-            PythonTask::RPythonTask(x) => Some(x.read().unwrap().get_call()),
-            PythonTask::NativePythonTask(x) => Some(x.read().unwrap().get_call()),
-            PythonTask::ConstantPythonTask(x) => Some(x.read().unwrap().get_call()),
-            PythonTask::PrestoPythonTask(x) => Some(x.read().unwrap().get_call()),
+            PythonTask::RPythonTask(x) => Some(x.read().get_call()),
+            PythonTask::NativePythonTask(x) => Some(x.read().get_call()),
+            PythonTask::ConstantPythonTask(x) => Some(x.read().get_call()),
+            PythonTask::PrestoPythonTask(x) => Some(x.read().get_call()),
         }
     }
 }

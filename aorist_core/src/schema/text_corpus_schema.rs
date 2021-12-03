@@ -28,11 +28,10 @@ derived_schema! {
 impl TextCorpusSchema {
     pub fn should_dedup_text_attribute(&self) -> bool {
         for source in &*self.get_sources() {
-            let dedup = match &*source.get_schema().0.read().unwrap() {
+            let dedup = match &*source.get_schema().0.read() {
                 DataSchema::TabularSchema(_) => false,
                 DataSchema::LongTabularSchema(x) => {
                     x.0.read()
-                        .unwrap()
                         .should_dedup_text_attribute(&self.text_attribute_name)
                 }
                 _ => panic!("DataSchema must be either TabularSchema or LongTabularSchema"),
@@ -49,6 +48,6 @@ impl TextCorpusSchema {
 #[pymethods]
 impl PyTextCorpusSchema {
     pub fn should_dedup_text_attribute(&self) -> bool {
-        self.inner.0.read().unwrap().should_dedup_text_attribute()
+        self.inner.0.read().should_dedup_text_attribute()
     }
 }

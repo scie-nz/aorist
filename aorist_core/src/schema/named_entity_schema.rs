@@ -19,18 +19,18 @@ pub enum NamedEntitySchema {
 impl NamedEntitySchema {
     pub fn get_source_schema(&self) -> AoristRef<TextCorpusSchema> {
         match self {
-            NamedEntitySchema::SpaCyNamedEntitySchema(x) => x.0.read().unwrap().get_source_schema(),
+            NamedEntitySchema::SpaCyNamedEntitySchema(x) => x.0.read().get_source_schema(),
         }
     }
     pub fn get_attributes(&self) -> Vec<AoristRef<Attribute>> {
         match self {
-            Self::SpaCyNamedEntitySchema(x) => x.0.read().unwrap().get_attributes(),
+            Self::SpaCyNamedEntitySchema(x) => x.0.read().get_attributes(),
         }
     }
     pub fn get_datum_template(&self) -> AoristRef<DatumTemplate> {
         match self {
             NamedEntitySchema::SpaCyNamedEntitySchema(x) => {
-                x.0.read().unwrap().get_datum_template()
+                x.0.read().get_datum_template()
             }
         }
     }

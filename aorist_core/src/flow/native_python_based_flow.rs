@@ -102,11 +102,11 @@ where
                                 k.clone(),
                                 match *v {
                                     AST::StringLiteral(ref x) => {
-                                        if x.read().unwrap().len() == 0 {
+                                        if x.read().len() == 0 {
                                             panic!("Cannot process empty string for key: {}", k);
                                         }
                                         AST::StringLiteral(StringLiteral::new_wrapped(
-                                            x.read().unwrap().value().clone(),
+                                            x.read().value().clone(),
                                             true,
                                         ))
                                     }

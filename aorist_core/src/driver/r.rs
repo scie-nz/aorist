@@ -16,7 +16,7 @@ use linked_hash_set::LinkedHashSet;
 use std::collections::HashMap;
 use std::marker::PhantomData;
 use abi_stable::std_types::RArc;
-use std::sync::RwLock;
+use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 use uuid::Uuid;
 
 pub struct RBasedDriver<'a, 'b, D, C>
@@ -28,9 +28,9 @@ where
         + 'b,
     'a: 'b,
 {
-    pub concepts: RArc<RwLock<HashMap<(Uuid, String), Concept<'a>>>>,
-    constraints: LinkedHashMap<(Uuid, String), RArc<RwLock<C>>>,
-    satisfied_constraints: HashMap<(Uuid, String), RArc<RwLock<ConstraintState<'a, 'b, C>>>>,
+    pub concepts: RArc<RRwLock<HashMap<(Uuid, String), Concept<'a>>>>,
+    constraints: LinkedHashMap<(Uuid, String), RArc<RRwLock<C>>>,
+    satisfied_constraints: HashMap<(Uuid, String), RArc<RRwLock<ConstraintState<'a, 'b, C>>>>,
     blocks: Vec<RBasedConstraintBlock<'a, 'b, D::T, C>>,
     ancestry: RArc<ConceptAncestry<'a>>,
     dag_type: PhantomData<D>,
@@ -52,7 +52,7 @@ where
 {
     type CB = RBasedConstraintBlock<'a, 'b, <D as FlowBuilderBase>::T, C>;
 
-    fn get_constraint_rwlock(&self, uuid: &(Uuid, String)) -> RArc<RwLock<C>> {
+    fn get_constraint_rwlock(&self, uuid: &(Uuid, String)) -> RArc<RRwLock<C>> {
         self.constraints.get(uuid).unwrap().clone()
     }
     fn get_preferences(&self) -> Vec<Dialect> {
@@ -73,7 +73,7 @@ where
     fn mark_constraint_state_as_satisfied(
         &mut self,
         id: (Uuid, String),
-        state: RArc<RwLock<ConstraintState<'a, 'b, C>>>,
+        state: RArc<RRwLock<ConstraintState<'a, 'b, C>>>,
     ) {
         self.satisfied_constraints.insert(id, state.clone());
     }
@@ -108,8 +108,8 @@ where
         vec![]
     }
     fn _new(
-        concepts: RArc<RwLock<HashMap<(Uuid, String), Concept<'a>>>>,
-        constraints: LinkedHashMap<(Uuid, String), RArc<RwLock<C>>>,
+        concepts: RArc<RRwLock<HashMap<(Uuid, String), Concept<'a>>>>,
+        constraints: LinkedHashMap<(Uuid, String), RArc<RRwLock<C>>>,
         ancestry: RArc<ConceptAncestry<'a>>,
         endpoints: EndpointConfig,
         ancestors: HashMap<(Uuid, String), Vec<AncestorRecord>>,

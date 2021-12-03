@@ -4,7 +4,7 @@ use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
 use std::collections::BTreeSet;
 use abi_stable::std_types::RArc;
-use std::sync::RwLock;
+use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 
 pub trait FlowBuilderInput
 where
@@ -48,22 +48,22 @@ where
 
     fn extract_literals(
         &self,
-        literals: &mut LinkedHashMap<AST, LinkedHashMap<String, Vec<(String, RArc<RwLock<Dict>>)>>>,
+        literals: &mut LinkedHashMap<AST, LinkedHashMap<String, Vec<(String, RArc<RRwLock<Dict>>)>>>,
     ) {
         let short_name = &self.get_constraint_name();
         for ast in &self.get_statements() {
             if let AST::Assignment(rw) = ast {
-                let assign = rw.read().unwrap();
+                let assign = rw.read();
                 if let AST::Dict(dict_rw) = assign.call() {
-                    let dict = dict_rw.read().unwrap();
+                    let dict = dict_rw.read();
                     for (_task_key, task_val) in dict.elems() {
                         if let AST::Dict(param_dict_rw) = task_val {
-                            let param_dict = param_dict_rw.read().unwrap();
+                            let param_dict = param_dict_rw.read();
                             for (key, val) in param_dict.elems() {
                                 if let Some(_ancestors) = val.get_ancestors() {
                                     let is_long_literal = match val {
                                         AST::StringLiteral(ref x) => {
-                                            x.read().unwrap().value().len()
+                                            x.read().value().len()
                                                 > short_name.len() + key.len() + 2
                                         }
                                         _ => true,

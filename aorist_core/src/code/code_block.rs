@@ -11,7 +11,7 @@ use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
 use std::collections::{BTreeSet, HashMap, HashSet};
 use abi_stable::std_types::RArc;
-use std::sync::RwLock;
+use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 use uuid::Uuid;
 
 pub trait CodeBlock<'a, T, C, U, P>
@@ -37,12 +37,12 @@ where
     /// assigns task values (Python variables in which they will be stored)
     /// to each member of the code block.
     fn compute_task_vals(
-        constraints: Vec<RArc<RwLock<ConstraintState<'a, C, P>>>>,
+        constraints: Vec<RArc<RRwLock<ConstraintState<'a, C, P>>>>,
         tasks_dict: &Option<AST>,
-    ) -> Vec<(AST, RArc<RwLock<ConstraintState<'a, C, P>>>)> {
+    ) -> Vec<(AST, RArc<RRwLock<ConstraintState<'a, C, P>>>)> {
         let mut out = Vec::new();
         for rw in constraints.into_iter() {
-            let read = rw.read().unwrap();
+            let read = rw.read();
             let name = read.get_task_name();
             drop(read);
             // TODO: magic number
@@ -73,7 +73,7 @@ where
     fn get_params(&self) -> HashMap<String, Option<ParameterTuple>>;
 
     fn create_standalone_tasks(
-        members: Vec<RArc<RwLock<ConstraintState<'a, C, P>>>>,
+        members: Vec<RArc<RRwLock<ConstraintState<'a, C, P>>>>,
         tasks_dict: Option<AST>,
         identifiers: &HashMap<Uuid, AST>,
     ) -> Result<(
@@ -90,7 +90,7 @@ where
                 panic!("Duplicated task val: {:?}", ast);
             }
             asts.insert(ast.clone());
-            let x = state.read().unwrap();
+            let x = state.read();
             task_identifiers.insert(x.get_constraint_uuid()?, ast.clone());
             params.insert(x.get_task_name(), x.get_params());
 
@@ -128,7 +128,7 @@ pub trait CodeBlockWithDefaultConstructor<
     Self: CodeBlock<'a, T, C, U, P>,
 {
     fn new(
-        members: Vec<RArc<RwLock<ConstraintState<'a, C, P>>>>,
+        members: Vec<RArc<RRwLock<ConstraintState<'a, C, P>>>>,
         constraint_name: String,
         tasks_dict: Option<AST>,
         identifiers: &HashMap<Uuid, AST>,
@@ -194,7 +194,7 @@ where
     <<Self as CodeBlock<'a, T, CType, U, P>>::E as ETLTask<T, U>>::S: CompressibleTask,
 {
     fn new(
-        members: Vec<RArc<RwLock<ConstraintState<'a, CType, P>>>>,
+        members: Vec<RArc<RRwLock<ConstraintState<'a, CType, P>>>>,
         constraint_name: String,
         tasks_dict: Option<AST>,
         identifiers: &HashMap<Uuid, AST>,

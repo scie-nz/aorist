@@ -30,7 +30,7 @@ pub type AttrMap = HashMap<String, HashMap<String, LinkedHashMap<String, Attribu
 
 impl AoristRef<Attribute> {
     pub fn get_name(&self) -> String {
-        self.0.read().unwrap().get_name().clone()
+        self.0.read().get_name().clone()
     }
 }
 

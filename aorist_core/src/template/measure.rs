@@ -11,7 +11,7 @@ use derivative::Derivative;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
 use abi_stable::std_types::RArc;
-use std::sync::RwLock;
+use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 use uuid::Uuid;
 
 /// An integer-valued measure for the density of attribute
@@ -40,7 +40,7 @@ impl TDatumTemplate for IntegerMeasure {
 }
 impl IntegerMeasure {
     pub fn get_frequency_attribute(&self) -> AoristRef<Attribute> {
-        AoristRef(RArc::new(RwLock::new(Attribute {
+        AoristRef(RArc::new(RRwLock::new(Attribute {
             inner: AttributeOrTransform::Attribute(AttributeEnum::Count(Count {
                 name: self.name.clone(),
                 comment: self.comment.clone(),
@@ -64,10 +64,10 @@ pub struct TrainedFloatMeasure {
 
 impl TDatumTemplate for AoristRef<TrainedFloatMeasure> {
     fn get_attributes(&self) -> Vec<AoristRef<Attribute>> {
-        let mut attr = self.0.read().unwrap().features.clone();
+        let mut attr = self.0.read().features.clone();
         let prediction_attribute = self.get_prediction_attribute();
         attr.push(prediction_attribute);
-        attr.push(AoristRef(RArc::new(RwLock::new(Attribute {
+        attr.push(AoristRef(RArc::new(RRwLock::new(Attribute {
             inner: AttributeOrTransform::Attribute(AttributeEnum::Regressor(
                 self.get_regressor_as_attribute().clone(),
             )),
@@ -78,16 +78,16 @@ impl TDatumTemplate for AoristRef<TrainedFloatMeasure> {
         attr
     }
     fn get_name(&self) -> String {
-        self.0.read().unwrap().name.clone()
+        self.0.read().name.clone()
     }
 }
 impl AoristRef<TrainedFloatMeasure> {
     pub fn get_prediction_attribute(&self) -> AoristRef<Attribute> {
-        AoristRef(RArc::new(RwLock::new(Attribute {
+        AoristRef(RArc::new(RRwLock::new(Attribute {
             inner: AttributeOrTransform::Attribute(AttributeEnum::FloatPrediction(
                 FloatPrediction {
-                    name: self.0.read().unwrap().name.clone(),
-                    comment: self.0.read().unwrap().comment.clone(),
+                    name: self.0.read().name.clone(),
+                    comment: self.0.read().comment.clone(),
                     nullable: false,
                 },
             )),
@@ -96,7 +96,7 @@ impl AoristRef<TrainedFloatMeasure> {
         })))
     }
     pub fn get_training_objective(&self) -> AoristRef<Attribute> {
-        self.0.read().unwrap().objective.clone()
+        self.0.read().objective.clone()
     }
     pub fn get_regressor_as_attribute(&self) -> Regressor {
         Regressor {
@@ -107,16 +107,15 @@ impl AoristRef<TrainedFloatMeasure> {
     }
     pub fn get_model_storage_tabular_schema(&self) -> TabularSchema {
         TabularSchema {
-            datum_template: AoristRef(RArc::new(RwLock::new(DatumTemplate::TrainedFloatMeasure(
+            datum_template: AoristRef(RArc::new(RRwLock::new(DatumTemplate::TrainedFloatMeasure(
                 self.clone(),
             )))),
             attributes: self
                 .0
                 .read()
-                .unwrap()
                 .features
                 .iter()
-                .map(|x| x.0.read().unwrap().inner.get_name().clone())
+                .map(|x| x.0.read().inner.get_name().clone())
                 .collect(),
             tag: None,
             uuid: None,

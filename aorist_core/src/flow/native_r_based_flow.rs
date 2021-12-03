@@ -7,7 +7,7 @@ use aorist_primitives::register_task_nodes;
 use linked_hash_map::LinkedHashMap;
 use std::hash::{Hash, Hasher};
 use abi_stable::std_types::RArc;
-use std::sync::RwLock;
+use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 
 register_task_nodes! {
     RTask,

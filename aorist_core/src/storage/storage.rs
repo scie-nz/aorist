@@ -43,12 +43,12 @@ pub enum Storage {
 impl Storage {
     pub fn get_encoding(&self) -> Option<AoristRef<Encoding>> {
         match &self {
-            Self::RemoteStorage(x) => Some(x.0.read().unwrap().encoding.clone()),
-            Self::HiveTableStorage(x) => Some(x.0.read().unwrap().encoding.clone()),
-            Self::LocalFileStorage(x) => Some(x.0.read().unwrap().encoding.clone()),
-            Self::GitStorage(x) => Some(x.0.read().unwrap().encoding.clone()),
-            Self::InlineBlobStorage(x) => Some(x.0.read().unwrap().encoding.clone()),
-            Self::S3Storage(x) => Some(x.0.read().unwrap().encoding.clone()),
+            Self::RemoteStorage(x) => Some(x.0.read().encoding.clone()),
+            Self::HiveTableStorage(x) => Some(x.0.read().encoding.clone()),
+            Self::LocalFileStorage(x) => Some(x.0.read().encoding.clone()),
+            Self::GitStorage(x) => Some(x.0.read().encoding.clone()),
+            Self::InlineBlobStorage(x) => Some(x.0.read().encoding.clone()),
+            Self::S3Storage(x) => Some(x.0.read().encoding.clone()),
             Self::SQLiteStorage(_) => None,
             Self::PostgresStorage(_) => None,
             Self::BigQueryStorage(_) => None,
@@ -64,7 +64,6 @@ impl PyStorage {
         self.inner
             .0
             .read()
-            .unwrap()
             .get_encoding()
             .and_then(|x| Some(PyEncoding { inner: x }))
     }

@@ -100,7 +100,7 @@ where
     fn get_left_of_task_val(&self) -> Result<AST, String> {
         match &self.task_val {
             AST::Subscript(x) => {
-                let rw = x.read().unwrap();
+                let rw = x.read();
                 Ok(rw.a().clone())
             }
             _ => Err("Task val must be a subscript".to_string()),
@@ -109,9 +109,9 @@ where
     fn get_right_of_task_val(&self) -> Result<String, String> {
         match &self.task_val {
             AST::Subscript(x) => {
-                let rw = x.read().unwrap();
+                let rw = x.read();
                 match &rw.b() {
-                    AST::StringLiteral(l) => Ok(l.read().unwrap().value().clone()),
+                    AST::StringLiteral(l) => Ok(l.read().value().clone()),
                     _ => Err("Right of subscript must be a string
                     literal"
                         .to_string()),

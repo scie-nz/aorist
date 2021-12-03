@@ -14,7 +14,7 @@ use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
 use abi_stable::std_types::RArc;
-use std::sync::RwLock;
+use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 use uuid::Uuid;
 
 #[aorist]
@@ -35,22 +35,22 @@ impl StorageSetup {
     pub fn get_local_storage(&self) -> Vec<AoristRef<Storage>> {
         match self {
             Self::RemoteStorageSetup(_) => vec![],
-            Self::ReplicationStorageSetup(x) => x.0.read().unwrap().targets.clone(),
-            Self::ComputedFromLocalData(x) => vec![x.0.read().unwrap().target.clone()],
-            Self::LocalStorageSetup(x) => vec![x.0.read().unwrap().local.clone()],
+            Self::ReplicationStorageSetup(x) => x.0.read().targets.clone(),
+            Self::ComputedFromLocalData(x) => vec![x.0.read().target.clone()],
+            Self::LocalStorageSetup(x) => vec![x.0.read().local.clone()],
             Self::TwoTierStorageSetup(x) => vec![
-                x.0.read().unwrap().scratch.clone(),
-                x.0.read().unwrap().persistent.clone(),
+                x.0.read().scratch.clone(),
+                x.0.read().persistent.clone(),
             ],
         }
     }
     pub fn get_tmp_dir(&self) -> String {
         match self {
-            Self::ReplicationStorageSetup(x) => x.0.read().unwrap().tmp_dir.clone(),
-            Self::RemoteStorageSetup(x) => x.0.read().unwrap().tmp_dir.as_ref().unwrap().clone(),
-            Self::ComputedFromLocalData(x) => x.0.read().unwrap().tmp_dir.clone(),
-            Self::LocalStorageSetup(x) => x.0.read().unwrap().tmp_dir.clone(),
-            Self::TwoTierStorageSetup(x) => x.0.read().unwrap().tmp_dir.clone(),
+            Self::ReplicationStorageSetup(x) => x.0.read().tmp_dir.clone(),
+            Self::RemoteStorageSetup(x) => x.0.read().tmp_dir.as_ref().unwrap().clone(),
+            Self::ComputedFromLocalData(x) => x.0.read().tmp_dir.clone(),
+            Self::LocalStorageSetup(x) => x.0.read().tmp_dir.clone(),
+            Self::TwoTierStorageSetup(x) => x.0.read().tmp_dir.clone(),
         }
     }
     pub fn replicate_to_local(
@@ -61,9 +61,8 @@ impl StorageSetup {
     ) -> Self {
         match self {
             Self::RemoteStorageSetup(x) => {
-                Self::ReplicationStorageSetup(AoristRef(RArc::new(RwLock::new(
+                Self::ReplicationStorageSetup(AoristRef(RArc::new(RRwLock::new(
                     x.0.read()
-                        .unwrap()
                         .replicate_to_local(t, tmp_dir, tmp_encoding),
                 ))))
             }
@@ -73,7 +72,7 @@ impl StorageSetup {
     pub fn persist_local(&self, persistent: AoristRef<Storage>) -> Self {
         match self {
             Self::LocalStorageSetup(x) => Self::TwoTierStorageSetup(AoristRef(RArc::new(
-                RwLock::new(x.0.read().unwrap().persist(persistent)),
+                RRwLock::new(x.0.read().persist(persistent)),
             ))),
             _ => panic!("Only assets with LocalStorageSetup can be persisted"),
         }
@@ -84,14 +83,13 @@ impl StorageSetup {
 impl PyStorageSetup {
     #[getter]
     pub fn tmp_dir(&self) -> String {
-        self.inner.0.read().unwrap().get_tmp_dir()
+        self.inner.0.read().get_tmp_dir()
     }
     #[getter]
     pub fn local(&self) -> Vec<PyStorage> {
         self.inner
             .0
             .read()
-            .unwrap()
             .get_local_storage()
             .into_iter()
             .map(|x| PyStorage { inner: x })

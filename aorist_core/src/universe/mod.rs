@@ -46,14 +46,14 @@ impl TUniverse for Universe {
             .as_ref()
             .unwrap()
             .iter()
-            .map(|x| (x.0.read().unwrap().get_unixname().clone(), x.clone()))
+            .map(|x| (x.0.read().get_unixname().clone(), x.clone()))
             .collect()
     }
     fn get_user_permissions(&self) -> Result<HashMap<String, HashSet<String>>, String> {
         let umap = self.get_user_unixname_map();
         let mut map: HashMap<_, HashSet<String>> = HashMap::new();
         for binding in self.role_bindings.as_ref().unwrap() {
-            let name = binding.0.read().unwrap().get_user_name().clone();
+            let name = binding.0.read().get_user_name().clone();
             if !umap.contains_key(&name) {
                 return Err(format!("Cannot find user with name {}.", name));
             }
@@ -61,14 +61,12 @@ impl TUniverse for Universe {
             for perm in binding
                 .0
                 .read()
-                .unwrap()
                 .get_role()
                 .0
                 .read()
-                .unwrap()
                 .get_permissions()
             {
-                map.entry(user.0.read().unwrap().get_unixname().clone())
+                map.entry(user.0.read().get_unixname().clone())
                     .or_insert_with(HashSet::new)
                     .insert(perm.clone());
             }

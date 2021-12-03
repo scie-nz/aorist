@@ -25,45 +25,43 @@ pub enum LanguageAssetSchema {
 impl LanguageAssetSchema {
     pub fn get_attributes(&self) -> Vec<AoristRef<Attribute>> {
         match self {
-            Self::FasttextEmbeddingSchema(x) => x.0.read().unwrap().get_attributes(),
-            Self::NamedEntitySchema(x) => x.0.read().unwrap().get_attributes(),
-            Self::TextCorpusSchema(x) => x.0.read().unwrap().get_attributes(),
+            Self::FasttextEmbeddingSchema(x) => x.0.read().get_attributes(),
+            Self::NamedEntitySchema(x) => x.0.read().get_attributes(),
+            Self::TextCorpusSchema(x) => x.0.read().get_attributes(),
         }
     }
     pub fn get_source_schema(&self) -> AoristRef<TextCorpusSchema> {
         match self {
             LanguageAssetSchema::FasttextEmbeddingSchema(x) => {
-                x.0.read().unwrap().get_source_schema()
+                x.0.read().get_source_schema()
             }
-            LanguageAssetSchema::NamedEntitySchema(x) => x.0.read().unwrap().get_source_schema(),
+            LanguageAssetSchema::NamedEntitySchema(x) => x.0.read().get_source_schema(),
             LanguageAssetSchema::TextCorpusSchema(x) => x.clone(),
         }
     }
     pub fn get_datum_template(&self) -> AoristRef<DatumTemplate> {
         match self {
             LanguageAssetSchema::FasttextEmbeddingSchema(x) => {
-                x.0.read().unwrap().get_datum_template()
+                x.0.read().get_datum_template()
             }
-            LanguageAssetSchema::NamedEntitySchema(x) => x.0.read().unwrap().get_datum_template(),
-            LanguageAssetSchema::TextCorpusSchema(x) => x.0.read().unwrap().get_datum_template(),
+            LanguageAssetSchema::NamedEntitySchema(x) => x.0.read().get_datum_template(),
+            LanguageAssetSchema::TextCorpusSchema(x) => x.0.read().get_datum_template(),
         }
     }
     pub fn get_text_attribute_name(&self) -> String {
         self.get_source_schema()
             .0
             .read()
-            .unwrap()
             .text_attribute_name
             .clone()
     }
     pub fn get_datum_template_name(&self) -> String {
-        self.get_datum_template().0.read().unwrap().get_name()
+        self.get_datum_template().0.read().get_name()
     }
     pub fn should_dedup_text_attribute(&self) -> bool {
         self.get_source_schema()
             .0
             .read()
-            .unwrap()
             .should_dedup_text_attribute()
     }
 }
@@ -72,9 +70,9 @@ impl LanguageAssetSchema {
 impl PyLanguageAssetSchema {
     #[getter]
     pub fn get_text_attribute_name(&self) -> String {
-        self.inner.0.read().unwrap().get_text_attribute_name()
+        self.inner.0.read().get_text_attribute_name()
     }
     pub fn should_dedup_text_attribute(&self) -> bool {
-        self.inner.0.read().unwrap().should_dedup_text_attribute()
+        self.inner.0.read().should_dedup_text_attribute()
     }
 }

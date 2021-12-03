@@ -12,7 +12,7 @@ use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
 use abi_stable::std_types::RArc;
-use std::sync::RwLock;
+use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 use uuid::Uuid;
 
 asset_enum! {
@@ -24,11 +24,11 @@ asset_enum! {
 }
 impl LanguageAsset {
     pub fn get_source_assets(&self) -> Vec<Asset> {
-        let source_schema = match &*self.get_schema().0.read().unwrap() {
-            DataSchema::LanguageAssetSchema(x) => x.0.read().unwrap().get_source_schema(),
+        let source_schema = match &*self.get_schema().0.read() {
+            DataSchema::LanguageAssetSchema(x) => x.0.read().get_source_schema(),
             _ => panic!("schema must be LanguageAssetSchema"),
         };
-        let sources = source_schema.0.read().unwrap().get_sources();
+        let sources = source_schema.0.read().get_sources();
         sources
     }
 }

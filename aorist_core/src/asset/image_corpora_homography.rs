@@ -12,7 +12,7 @@ use derivative::Derivative;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
 use abi_stable::std_types::RArc;
-use std::sync::RwLock;
+use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 use uuid::Uuid;
 
 asset! { ImageCorporaHomography }

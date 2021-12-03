@@ -50,9 +50,9 @@ pub enum Encoding {
 impl Encoding {
     pub fn get_header(&self) -> Option<AoristRef<FileHeader>> {
         match &self {
-            Self::CSVEncoding(x) => x.0.read().unwrap().header.clone(),
+            Self::CSVEncoding(x) => x.0.read().header.clone(),
             // TODO: need to change this to also be optional
-            Self::TSVEncoding(x) => x.0.read().unwrap().header.clone(),
+            Self::TSVEncoding(x) => x.0.read().header.clone(),
             Self::JSONEncoding(_) => None,
             Self::ORCEncoding(_) => None,
             Self::ONNXEncoding(_) => None,
@@ -71,17 +71,17 @@ impl Encoding {
     }
     pub fn get_compression(&self) -> Option<AoristRef<DataCompression>> {
         match &self {
-            Self::CSVEncoding(x) => x.0.read().unwrap().compression.clone(),
+            Self::CSVEncoding(x) => x.0.read().compression.clone(),
             // TODO: need to change this to also be optional
-            Self::TSVEncoding(x) => x.0.read().unwrap().compression.clone(),
-            Self::GDBEncoding(x) => x.0.read().unwrap().compression.clone(),
-            Self::LASEncoding(x) => x.0.read().unwrap().compression.clone(),
-            Self::GeoTiffEncoding(x) => x.0.read().unwrap().compression.clone(),
-            Self::TiffEncoding(x) => x.0.read().unwrap().compression.clone(),
-            Self::WKTEncoding(x) => x.0.read().unwrap().compression.clone(),
-            Self::XMLEncoding(x) => x.0.read().unwrap().compression.clone(),
-            Self::KMLEncoding(x) => x.0.read().unwrap().compression.clone(),
-            Self::GPKGEncoding(x) => x.0.read().unwrap().compression.clone(),
+            Self::TSVEncoding(x) => x.0.read().compression.clone(),
+            Self::GDBEncoding(x) => x.0.read().compression.clone(),
+            Self::LASEncoding(x) => x.0.read().compression.clone(),
+            Self::GeoTiffEncoding(x) => x.0.read().compression.clone(),
+            Self::TiffEncoding(x) => x.0.read().compression.clone(),
+            Self::WKTEncoding(x) => x.0.read().compression.clone(),
+            Self::XMLEncoding(x) => x.0.read().compression.clone(),
+            Self::KMLEncoding(x) => x.0.read().compression.clone(),
+            Self::GPKGEncoding(x) => x.0.read().compression.clone(),
             Self::JSONEncoding(_) => None,
             Self::ORCEncoding(_) => None,
             Self::ONNXEncoding(_) => None,
@@ -117,44 +117,44 @@ impl Encoding {
 #[pymethods]
 impl PyEncoding {
     pub fn get_compression(&self) -> PyResult<Option<PyDataCompression>> {
-        Ok(match &*self.inner.0.read().unwrap() {
-            Encoding::CSVEncoding(x) => match &x.0.read().unwrap().compression {
+        Ok(match &*self.inner.0.read() {
+            Encoding::CSVEncoding(x) => match &x.0.read().compression {
                 Some(y) => Some(PyDataCompression { inner: y.clone() }),
                 None => None,
             },
-            Encoding::GDBEncoding(x) => match &x.0.read().unwrap().compression {
+            Encoding::GDBEncoding(x) => match &x.0.read().compression {
                 Some(y) => Some(PyDataCompression { inner: y.clone() }),
                 None => None,
             },
-            Encoding::LASEncoding(x) => match &x.0.read().unwrap().compression {
+            Encoding::LASEncoding(x) => match &x.0.read().compression {
                 Some(y) => Some(PyDataCompression { inner: y.clone() }),
                 None => None,
             },
-            Encoding::GeoTiffEncoding(x) => match &x.0.read().unwrap().compression {
+            Encoding::GeoTiffEncoding(x) => match &x.0.read().compression {
                 Some(y) => Some(PyDataCompression { inner: y.clone() }),
                 None => None,
             },
-            Encoding::TiffEncoding(x) => match &x.0.read().unwrap().compression {
+            Encoding::TiffEncoding(x) => match &x.0.read().compression {
                 Some(y) => Some(PyDataCompression { inner: y.clone() }),
                 None => None,
             },
-            Encoding::WKTEncoding(x) => match &x.0.read().unwrap().compression {
+            Encoding::WKTEncoding(x) => match &x.0.read().compression {
                 Some(y) => Some(PyDataCompression { inner: y.clone() }),
                 None => None,
             },
-            Encoding::XMLEncoding(x) => match &x.0.read().unwrap().compression {
+            Encoding::XMLEncoding(x) => match &x.0.read().compression {
                 Some(y) => Some(PyDataCompression { inner: y.clone() }),
                 None => None,
             },
-            Encoding::KMLEncoding(x) => match &x.0.read().unwrap().compression {
+            Encoding::KMLEncoding(x) => match &x.0.read().compression {
                 Some(y) => Some(PyDataCompression { inner: y.clone() }),
                 None => None,
             },
-            Encoding::GPKGEncoding(x) => match &x.0.read().unwrap().compression {
+            Encoding::GPKGEncoding(x) => match &x.0.read().compression {
                 Some(y) => Some(PyDataCompression { inner: y.clone() }),
                 None => None,
             },
-            Encoding::TSVEncoding(x) => match &x.0.read().unwrap().compression {
+            Encoding::TSVEncoding(x) => match &x.0.read().compression {
                 Some(y) => Some(PyDataCompression { inner: y.clone() }),
                 None => None,
             },
@@ -171,7 +171,6 @@ impl PyEncoding {
         self.inner
             .0
             .read()
-            .unwrap()
             .get_header()
             .and_then(|x| Some(PyFileHeader { inner: x.clone() }))
     }

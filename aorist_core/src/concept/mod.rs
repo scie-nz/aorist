@@ -10,11 +10,11 @@ use std::convert::TryFrom;
 use std::fmt::{Debug, Formatter};
 use std::hash::{Hash, Hasher};
 use abi_stable::std_types::RArc;
-use std::sync::RwLock;
+use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 use tracing::debug;
 use uuid::Uuid;
 
-pub struct AoristRef<T: PartialEq + Serialize + Debug + Clone>(pub RArc<RwLock<T>>);
+pub struct AoristRef<T: PartialEq + Serialize + Debug + Clone>(pub RArc<RRwLock<T>>);
 
 #[derive(Clone)]
 pub struct RefABI<T: PartialEq + Serialize + Debug + Clone>(
@@ -26,13 +26,13 @@ impl<'a, T: PartialEq + Serialize + Debug + Clone + FromPyObject<'a>> FromPyObje
     for AoristRef<T>
 {
     fn extract(ob: &'a PyAny) -> PyResult<Self> {
-        Ok(AoristRef(RArc::new(RwLock::new(T::extract(ob)?))))
+        Ok(AoristRef(RArc::new(RRwLock::new(T::extract(ob)?))))
     }
 }
 
 impl<T: PartialEq + Eq + Serialize + Debug + Clone> PartialEq for AoristRef<T> {
     fn eq(&self, other: &Self) -> bool {
-        self.0.read().unwrap().eq(&other.0.read().unwrap())
+        self.0.read().eq(&other.0.read())
     }
 }
 impl<T: PartialEq + Eq + Serialize + Debug + Clone> Eq for AoristRef<T> {}
@@ -41,7 +41,7 @@ impl<T: PartialEq + Serialize + Debug + Clone> Serialize for AoristRef<T> {
     where
         S: Serializer,
     {
-        self.0.read().unwrap().serialize(serializer)
+        self.0.read().serialize(serializer)
     }
 }
 impl<'de, T: Deserialize<'de> + PartialEq + Serialize + Debug + Clone> Deserialize<'de>
@@ -52,7 +52,7 @@ impl<'de, T: Deserialize<'de> + PartialEq + Serialize + Debug + Clone> Deseriali
         D: Deserializer<'de>,
     {
         let d = T::deserialize(deserializer)?;
-        Ok(Self(RArc::new(RwLock::new(d))))
+        Ok(Self(RArc::new(RRwLock::new(d))))
     }
 }
 impl<T: Clone + Debug + Serialize + PartialEq> Clone for AoristRef<T> {
@@ -62,7 +62,7 @@ impl<T: Clone + Debug + Serialize + PartialEq> Clone for AoristRef<T> {
 }
 impl<T: Debug + Clone + Serialize + PartialEq> Debug for AoristRef<T> {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), std::fmt::Error> {
-        self.0.read().unwrap().fmt(f)
+        self.0.read().fmt(f)
     }
 }
 pub struct WrappedConcept<T>
@@ -76,7 +76,7 @@ where
     T: Hash,
 {
     fn hash<H: Hasher>(&self, state: &mut H) {
-        self.0.read().unwrap().hash(state);
+        self.0.read().hash(state);
     }
 }
 

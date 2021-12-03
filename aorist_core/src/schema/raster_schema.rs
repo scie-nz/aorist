@@ -14,7 +14,7 @@ pub struct RasterSchema {
 }
 impl RasterSchema {
     pub fn get_attributes(&self) -> Vec<AoristRef<Attribute>> {
-        self.datum_template.0.read().unwrap().get_attributes()
+        self.datum_template.0.read().get_attributes()
     }
     pub fn get_datum_template(&self) -> AoristRef<DatumTemplate> {
         self.datum_template.clone()

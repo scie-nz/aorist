@@ -15,7 +15,7 @@ use linked_hash_set::LinkedHashSet;
 use std::collections::{BTreeSet, HashMap};
 use std::marker::PhantomData;
 use abi_stable::std_types::RArc;
-use std::sync::RwLock;
+use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 use uuid::Uuid;
 
 pub struct PythonBasedDriver<'a, B, D, U, C, A, P>
@@ -34,10 +34,10 @@ where
         TConceptEnum<TUniverse = U>,
     P: TOuterProgram<TAncestry = A>,
 {
-    pub concepts: RArc<RwLock<HashMap<(Uuid, String), C>>>,
-    constraints: LinkedHashMap<(Uuid, String), RArc<RwLock<B::OuterType>>>,
+    pub concepts: RArc<RRwLock<HashMap<(Uuid, String), C>>>,
+    constraints: LinkedHashMap<(Uuid, String), RArc<RRwLock<B::OuterType>>>,
     satisfied_constraints:
-        HashMap<(Uuid, String), RArc<RwLock<ConstraintState<'a, B::OuterType, P>>>>,
+        HashMap<(Uuid, String), RArc<RRwLock<ConstraintState<'a, B::OuterType, P>>>>,
     blocks: Vec<PythonBasedConstraintBlock<'a, D::T, B::OuterType, U, P>>,
     ancestry: A,
     dag_type: PhantomData<D>,
@@ -76,7 +76,7 @@ where
     fn get_preferences(&self) -> Vec<Dialect> {
         self.preferences.clone()
     }
-    fn get_constraint_rwlock(&self, uuid: &(Uuid, String)) -> RArc<RwLock<B::OuterType>> {
+    fn get_constraint_rwlock(&self, uuid: &(Uuid, String)) -> RArc<RRwLock<B::OuterType>> {
         self.constraints.get(uuid).unwrap().clone()
     }
 
@@ -90,7 +90,7 @@ where
     fn mark_constraint_state_as_satisfied(
         &mut self,
         id: (Uuid, String),
-        state: RArc<RwLock<ConstraintState<'a, B::OuterType, P>>>,
+        state: RArc<RRwLock<ConstraintState<'a, B::OuterType, P>>>,
     ) {
         self.satisfied_constraints.insert(id, state.clone());
     }
@@ -129,7 +129,7 @@ where
     fn get_dependencies(&self) -> Vec<String> {
         self.satisfied_constraints
             .values()
-            .map(|x| match x.read().unwrap().get_dialect() {
+            .map(|x| match x.read().get_dialect() {
                 Some(Dialect::Python(x)) => Some(x.get_pip_requirements()),
                 _ => None,
             })
@@ -141,8 +141,8 @@ where
             .collect()
     }
     fn _new(
-        concepts: RArc<RwLock<HashMap<(Uuid, String), C>>>,
-        constraints: LinkedHashMap<(Uuid, String), RArc<RwLock<B::OuterType>>>,
+        concepts: RArc<RRwLock<HashMap<(Uuid, String), C>>>,
+        constraints: LinkedHashMap<(Uuid, String), RArc<RRwLock<B::OuterType>>>,
         ancestry: A,
         endpoints: U::TEndpoints,
         ancestors: HashMap<(Uuid, String), Vec<AncestorRecord>>,

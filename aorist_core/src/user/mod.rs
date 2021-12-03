@@ -62,7 +62,7 @@ impl TUser for User {
     fn get_permissions(&self) -> Result<HashSet<String>, AoristError> {
         let mut perms: HashSet<String> = HashSet::new();
         for role in self.get_roles()? {
-            for perm in role.0.read().unwrap().get_permissions() {
+            for perm in role.0.read().get_permissions() {
                 perms.insert(perm);
             }
         }

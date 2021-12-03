@@ -18,7 +18,7 @@ pub enum FileHeader {
 impl FileHeader {
     pub fn get_num_lines(&self) -> usize {
         let FileHeader::CSVHeader(x) = self;
-        let read = x.0.read().unwrap();
+        let read = x.0.read();
         match read.num_lines {
             None => 1,
             Some(n) => n,
@@ -30,6 +30,6 @@ impl FileHeader {
 impl PyFileHeader {
     #[getter]
     pub fn get_num_lines(&self) -> usize {
-        self.inner.0.read().unwrap().get_num_lines()
+        self.inner.0.read().get_num_lines()
     }
 }

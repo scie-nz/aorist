@@ -77,7 +77,7 @@ pub fn extract_arg(arg: &PyAny) -> PyResult<AST> {
                 "Call" => {
                     let func = extract_arg(arg.getattr("func")?)?;
                     let args = match extract_arg(arg.getattr("args")?)? {
-                        AST::List(x) => x.read().unwrap().elems().clone(),
+                        AST::List(x) => x.read().elems().clone(),
                         AST::None(_) => Vec::new(),
                         _ => panic!("args field of call should be list or none"),
                     };

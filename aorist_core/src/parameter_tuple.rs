@@ -68,7 +68,7 @@ impl ParameterTuple {
         for (k, arg) in &self.kwargs {
             let fmt: String = format!("{{{}}}", k).to_string();
             if let AST::StringLiteral(v) = arg {
-                call = call.replace(&fmt, &v.read().unwrap().value());
+                call = call.replace(&fmt, &v.read().value());
             }
         }
         call

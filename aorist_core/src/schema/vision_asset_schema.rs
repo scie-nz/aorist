@@ -35,35 +35,35 @@ pub enum VisionAssetSchema {
 impl VisionAssetSchema {
     pub fn get_attributes(&self) -> Vec<AoristRef<Attribute>> {
         match self {
-            Self::ImageFromRasterSchema(x) => x.0.read().unwrap().get_attributes(),
-            Self::PyTorchImageCollectionMLPSchema(x) => x.0.read().unwrap().get_attributes(),
-            Self::TransformImageCorpusThroughMLPSchema(x) => x.0.read().unwrap().get_attributes(),
-            Self::SIFTAffineImageKeyPointSchema(x) => x.0.read().unwrap().get_attributes(),
-            Self::FLANNKNNMatchSchema(x) => x.0.read().unwrap().get_attributes(),
-            Self::HomographyFromKNNMatchSchema(x) => x.0.read().unwrap().get_attributes(),
+            Self::ImageFromRasterSchema(x) => x.0.read().get_attributes(),
+            Self::PyTorchImageCollectionMLPSchema(x) => x.0.read().get_attributes(),
+            Self::TransformImageCorpusThroughMLPSchema(x) => x.0.read().get_attributes(),
+            Self::SIFTAffineImageKeyPointSchema(x) => x.0.read().get_attributes(),
+            Self::FLANNKNNMatchSchema(x) => x.0.read().get_attributes(),
+            Self::HomographyFromKNNMatchSchema(x) => x.0.read().get_attributes(),
             Self::PerspectiveTransformFromHomographySchema(x) => {
-                x.0.read().unwrap().get_attributes()
+                x.0.read().get_attributes()
             }
         }
     }
     pub fn get_datum_template(&self) -> AoristRef<DatumTemplate> {
         match self {
-            VisionAssetSchema::ImageFromRasterSchema(x) => x.0.read().unwrap().get_datum_template(),
+            VisionAssetSchema::ImageFromRasterSchema(x) => x.0.read().get_datum_template(),
             VisionAssetSchema::PyTorchImageCollectionMLPSchema(x) => {
-                x.0.read().unwrap().get_datum_template()
+                x.0.read().get_datum_template()
             }
             VisionAssetSchema::TransformImageCorpusThroughMLPSchema(x) => {
-                x.0.read().unwrap().get_datum_template()
+                x.0.read().get_datum_template()
             }
             VisionAssetSchema::SIFTAffineImageKeyPointSchema(x) => {
-                x.0.read().unwrap().get_datum_template()
+                x.0.read().get_datum_template()
             }
-            VisionAssetSchema::FLANNKNNMatchSchema(x) => x.0.read().unwrap().get_datum_template(),
+            VisionAssetSchema::FLANNKNNMatchSchema(x) => x.0.read().get_datum_template(),
             VisionAssetSchema::HomographyFromKNNMatchSchema(x) => {
-                x.0.read().unwrap().get_datum_template()
+                x.0.read().get_datum_template()
             }
             VisionAssetSchema::PerspectiveTransformFromHomographySchema(x) => {
-                x.0.read().unwrap().get_datum_template()
+                x.0.read().get_datum_template()
             }
         }
     }

@@ -21,7 +21,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fmt;
 use abi_stable::std_types::RArc;
-use std::sync::RwLock;
+use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 use tracing::debug;
 
 include!(concat!(env!("OUT_DIR"), "/constraints.rs"));
@@ -48,7 +48,7 @@ impl<'a> OuterConstraint<'a> for Constraint {
     fn get_root_uuid(&self) -> Result<Uuid> {
         self.inner("get_root_uuid()")?.get_root_uuid()
     }
-    fn get_downstream_constraints(&self) -> Result<Vec<RArc<RwLock<Self>>>> {
+    fn get_downstream_constraints(&self) -> Result<Vec<RArc<RRwLock<Self>>>> {
         self.inner("get_downstream_constraints()")?
             .get_downstream_constraints()
     }

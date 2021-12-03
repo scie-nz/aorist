@@ -8,7 +8,7 @@ use linked_hash_set::LinkedHashSet;
 use std::collections::BTreeMap;
 use std::error::Error;
 use abi_stable::std_types::RArc;
-use std::sync::RwLock;
+use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 
 pub trait FlowBuilderBase<U: AoristUniverse>
 where
@@ -34,11 +34,11 @@ where
     ) -> Result<String, Self::ErrorType>;
 
     fn literals_to_assignments(
-        literals: LinkedHashMap<AST, LinkedHashMap<String, Vec<(String, RArc<RwLock<Dict>>)>>>,
+        literals: LinkedHashMap<AST, LinkedHashMap<String, Vec<(String, RArc<RRwLock<Dict>>)>>>,
     ) -> Vec<AST> {
         let mut assignments: LinkedHashMap<
             String,
-            Vec<(AST, Vec<(RArc<RwLock<Dict>>, std::string::String)>)>,
+            Vec<(AST, Vec<(RArc<RRwLock<Dict>>, std::string::String)>)>,
         > = LinkedHashMap::new();
         for (literal, val) in literals.into_iter() {
             for (short_name, keys) in val.into_iter() {
@@ -71,7 +71,7 @@ where
                 let (rval, rws) = vals.into_iter().next().unwrap();
                 assignments_ast.push(AST::Assignment(Assignment::new_wrapped(lval.clone(), rval)));
                 for (rw, key) in rws {
-                    let mut write = rw.write().unwrap();
+                    let mut write = rw.write();
                     write.replace_elem(key, lval.clone());
                 }
             }

@@ -66,38 +66,38 @@ impl DatumTemplate {
 impl TDatumTemplate for DatumTemplate {
     fn get_name(&self) -> String {
         match self {
-            DatumTemplate::RowStruct(x) => x.0.read().unwrap().get_name(),
-            DatumTemplate::IdentifierTuple(x) => x.0.read().unwrap().get_name(),
-            DatumTemplate::IntegerMeasure(x) => x.0.read().unwrap().get_name(),
+            DatumTemplate::RowStruct(x) => x.0.read().get_name(),
+            DatumTemplate::IdentifierTuple(x) => x.0.read().get_name(),
+            DatumTemplate::IntegerMeasure(x) => x.0.read().get_name(),
             DatumTemplate::TrainedFloatMeasure(x) => x.get_name(),
-            DatumTemplate::PredictionsFromTrainedFloatMeasure(x) => x.0.read().unwrap().get_name(),
-            DatumTemplate::Filter(x) => x.0.read().unwrap().get_name(),
-            DatumTemplate::Tensor(x) => x.0.read().unwrap().get_name(),
-            DatumTemplate::PointCloud(x) => x.0.read().unwrap().get_name(),
-            DatumTemplate::PointCloudInfo(x) => x.0.read().unwrap().get_name(),
-            DatumTemplate::Polygon(x) => x.0.read().unwrap().get_name(),
-            DatumTemplate::PolygonIntersection(x) => x.0.read().unwrap().get_name(),
-            DatumTemplate::Text(x) => x.0.read().unwrap().get_name(),
-            DatumTemplate::Raster(x) => x.0.read().unwrap().get_name(),
+            DatumTemplate::PredictionsFromTrainedFloatMeasure(x) => x.0.read().get_name(),
+            DatumTemplate::Filter(x) => x.0.read().get_name(),
+            DatumTemplate::Tensor(x) => x.0.read().get_name(),
+            DatumTemplate::PointCloud(x) => x.0.read().get_name(),
+            DatumTemplate::PointCloudInfo(x) => x.0.read().get_name(),
+            DatumTemplate::Polygon(x) => x.0.read().get_name(),
+            DatumTemplate::PolygonIntersection(x) => x.0.read().get_name(),
+            DatumTemplate::Text(x) => x.0.read().get_name(),
+            DatumTemplate::Raster(x) => x.0.read().get_name(),
         }
     }
     fn get_attributes(&self) -> Vec<AoristRef<Attribute>> {
         match self {
-            DatumTemplate::RowStruct(x) => x.0.read().unwrap().get_attributes(),
-            DatumTemplate::IdentifierTuple(x) => x.0.read().unwrap().get_attributes(),
-            DatumTemplate::IntegerMeasure(x) => x.0.read().unwrap().get_attributes(),
+            DatumTemplate::RowStruct(x) => x.0.read().get_attributes(),
+            DatumTemplate::IdentifierTuple(x) => x.0.read().get_attributes(),
+            DatumTemplate::IntegerMeasure(x) => x.0.read().get_attributes(),
             DatumTemplate::TrainedFloatMeasure(x) => x.get_attributes(),
             DatumTemplate::PredictionsFromTrainedFloatMeasure(x) => {
-                x.0.read().unwrap().get_attributes()
+                x.0.read().get_attributes()
             }
-            DatumTemplate::Filter(x) => x.0.read().unwrap().get_attributes(),
-            DatumTemplate::Tensor(x) => x.0.read().unwrap().get_attributes(),
-            DatumTemplate::PointCloud(x) => x.0.read().unwrap().get_attributes(),
-            DatumTemplate::PointCloudInfo(x) => x.0.read().unwrap().get_attributes(),
-            DatumTemplate::Polygon(x) => x.0.read().unwrap().get_attributes(),
-            DatumTemplate::PolygonIntersection(x) => x.0.read().unwrap().get_attributes(),
-            DatumTemplate::Text(x) => x.0.read().unwrap().get_attributes(),
-            DatumTemplate::Raster(x) => x.0.read().unwrap().get_attributes(),
+            DatumTemplate::Filter(x) => x.0.read().get_attributes(),
+            DatumTemplate::Tensor(x) => x.0.read().get_attributes(),
+            DatumTemplate::PointCloud(x) => x.0.read().get_attributes(),
+            DatumTemplate::PointCloudInfo(x) => x.0.read().get_attributes(),
+            DatumTemplate::Polygon(x) => x.0.read().get_attributes(),
+            DatumTemplate::PolygonIntersection(x) => x.0.read().get_attributes(),
+            DatumTemplate::Text(x) => x.0.read().get_attributes(),
+            DatumTemplate::Raster(x) => x.0.read().get_attributes(),
         }
     }
 }
@@ -109,7 +109,6 @@ impl PyDatumTemplate {
             .inner
             .0
             .read()
-            .unwrap()
             .get_attributes()
             .into_iter()
             .map(|x| PyAttribute { inner: x })
@@ -117,6 +116,6 @@ impl PyDatumTemplate {
     }
     #[getter]
     pub fn get_name(&self) -> String {
-        self.inner.0.read().unwrap().get_name()
+        self.inner.0.read().get_name()
     }
 }

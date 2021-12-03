@@ -9,7 +9,7 @@ use aorist_primitives::PrestoConfig;
 use linked_hash_map::LinkedHashMap;
 use std::hash::Hash;
 use abi_stable::std_types::RArc;
-use std::sync::RwLock;
+use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 
 define_task_node!(
     PrestoPythonTask,
@@ -76,7 +76,7 @@ def execute_trino_sql(query):
     fn get_call(&self) -> AST {
         let query;
         if let AST::StringLiteral(ref s) = self.sql {
-            if s.read().unwrap().value() == "{queries}" {
+            if s.read().value() == "{queries}" {
                 query = self.kwargs.get("queries").unwrap().clone();
             } else {
                 query = AST::Formatted(Formatted::new_wrapped(

@@ -105,7 +105,7 @@ where
             .iter()
             .filter(|x| {
                 if let AST::Dict(ref dict) = x.1 {
-                    dict.read().unwrap().len() > 0
+                    dict.read().len() > 0
                 } else {
                     panic!("This should be a dictionary.");
                 }

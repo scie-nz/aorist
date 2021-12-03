@@ -13,7 +13,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fmt::Debug;
 use abi_stable::std_types::RArc;
-use std::sync::RwLock;
+use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 use uuid::Uuid;
 
 #[aorist]
@@ -33,15 +33,13 @@ impl TabularCollectionSchema {
             let mut asset_attr: HashMap<String, Attribute> = asset
                 .0
                 .read()
-                .unwrap()
                 .get_schema()
                 .0
                 .read()
-                .unwrap()
                 .get_attributes()
                 .into_iter()
                 .map(|x| {
-                    let attribute: Attribute = x.0.read().unwrap().clone();
+                    let attribute: Attribute = x.0.read().clone();
                     (attribute.get_name().clone(), attribute)
                 })
                 .collect();
@@ -50,7 +48,7 @@ impl TabularCollectionSchema {
                 if attributes_map.len() < self.attributes.len() {
                     attributes_map.insert(
                         attribute_name.clone(),
-                        AoristRef(RArc::new(RwLock::new(
+                        AoristRef(RArc::new(RRwLock::new(
                             asset_attr.remove(&attribute_name).unwrap(),
                         ))),
                     );
@@ -60,8 +58,7 @@ impl TabularCollectionSchema {
                             .get(&attribute_name)
                             .unwrap()
                             .0
-                            .read()
-                            .unwrap(),
+                            .read(),
                         asset_attr.remove(&attribute_name).unwrap(),
                     );
                 }
@@ -79,7 +76,6 @@ impl PyTabularCollectionSchema {
         self.inner
             .0
             .read()
-            .unwrap()
             .source_assets
             .iter()
             .map(|x| PyAsset { inner: x.clone() })
