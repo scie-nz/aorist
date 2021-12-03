@@ -13,7 +13,10 @@ use std::fmt::{Debug, Formatter};
 use std::hash::{Hash, Hasher};
 use tracing::debug;
 use uuid::Uuid;
+use abi_stable::StableAbi;
 
+#[repr(C)]
+#[derive(StableAbi)]
 pub struct AoristRef<T: PartialEq + Serialize + Debug + Clone>(pub RArc<RRwLock<T>>);
 
 #[derive(Clone)]

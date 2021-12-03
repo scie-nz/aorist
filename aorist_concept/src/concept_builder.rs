@@ -125,6 +125,7 @@ pub trait TConceptBuilder {
             syn::Data::Struct(ref mut struct_data) => {
                 self.add_aorist_fields(struct_data);
                 let quoted = quote! {
+                    #[repr(C)]
                     #[derive(
                         Derivative, Serialize, Deserialize, Clone,
                     )]
@@ -142,6 +143,7 @@ pub trait TConceptBuilder {
                 let enum_name = &ast.ident;
                 let variant = variants.iter().map(|x| (&x.ident)).collect::<Vec<_>>();
                 let quoted = quote! {
+                    #[repr(C)]
                     #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
                     #[serde(tag = "type")]
                     pub enum #enum_name {
