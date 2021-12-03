@@ -203,5 +203,5 @@ pub fn extract_type_from_linked_hash_map(ty: &syn::Type) -> Option<(&syn::Type, 
     )
 }
 pub fn extract_type_from_aorist_ref(ty: &syn::Type) -> Option<&syn::Type> {
-    extract_inner_from_bracketed_type(ty, vec!["Arc|".to_string(), "AoristRef|".to_string()])
+    extract_inner_from_bracketed_type(ty, vec!["RArc|".to_string(), "AoristRef|".to_string()])
 }

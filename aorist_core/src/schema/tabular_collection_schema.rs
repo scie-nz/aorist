@@ -12,7 +12,7 @@ use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fmt::Debug;
-use std::sync::Arc;
+use abi_stable::std_types::RArc;
 use std::sync::RwLock;
 use uuid::Uuid;
 
@@ -50,7 +50,7 @@ impl TabularCollectionSchema {
                 if attributes_map.len() < self.attributes.len() {
                     attributes_map.insert(
                         attribute_name.clone(),
-                        AoristRef(Arc::new(RwLock::new(
+                        AoristRef(RArc::new(RwLock::new(
                             asset_attr.remove(&attribute_name).unwrap(),
                         ))),
                     );

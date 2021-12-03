@@ -196,7 +196,7 @@ impl Builder for EnumBuilder {
                       #(
                           [<Py #enum_name Input>]::#variant(x) => {
                               let obj = #enum_name::#variant(x.inner.clone());
-                              let inner = AoristRef(std::sync::Arc::new(std::sync::RwLock::new(obj)));
+                              let inner = AoristRef(abi_stable::std_types::RArc::new(std::sync::RwLock::new(obj)));
                               Self { inner }
                           }
                       )*
@@ -257,7 +257,7 @@ impl Builder for EnumBuilder {
           }
           impl AoristRef<#enum_name> {
               pub fn deep_clone(&self) -> Self {
-                  AoristRef(std::sync::Arc::new(std::sync::RwLock::new(self.0.read().unwrap().deep_clone())))
+                  AoristRef(abi_stable::std_types::RArc::new(std::sync::RwLock::new(self.0.read().unwrap().deep_clone())))
               }
           }
           impl AoristConcept for AoristRef<#enum_name> {
@@ -278,7 +278,7 @@ impl Builder for EnumBuilder {
                       None,
                       None,
                       self.get_uuid(),
-                      // clone of Arc<RwLock
+                      // clone of RArc<RwLock
                       Self(self.0.clone()),
                   )]
               }

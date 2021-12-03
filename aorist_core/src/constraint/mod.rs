@@ -6,7 +6,7 @@ use aorist_primitives::AoristConcept;
 use aorist_primitives::{Ancestry, TAoristObject, TConceptEnum};
 use std::collections::HashMap;
 use std::marker::PhantomData;
-use std::sync::Arc;
+use abi_stable::std_types::RArc;
 use std::sync::RwLock;
 use tracing::info;
 use uuid::Uuid;
@@ -26,14 +26,14 @@ pub trait SatisfiableConstraint<'a>: TConstraint<'a> {
         &mut self,
         c: <Self::TAncestry as Ancestry>::TConcept,
         d: &Dialect,
-        ancestry: Arc<Self::TAncestry>,
+        ancestry: RArc<Self::TAncestry>,
     ) -> Result<Option<(String, String, ParameterTuple, Dialect)>>;
 
     fn satisfy_given_preference_ordering(
         &mut self,
         r: <Self::TAncestry as Ancestry>::TConcept,
         preferences: &Vec<Dialect>,
-        ancestry: Arc<Self::TAncestry>,
+        ancestry: RArc<Self::TAncestry>,
     ) -> Result<(String, String, ParameterTuple, Dialect)>;
 }
 
@@ -60,7 +60,7 @@ pub trait SatisfiableOuterConstraint<'a>: OuterConstraint<'a> {
         &mut self,
         c: <<Self as OuterConstraint<'a>>::TAncestry as Ancestry>::TConcept,
         preferences: &Vec<Dialect>,
-        ancestry: Arc<<Self as OuterConstraint<'a>>::TAncestry>,
+        ancestry: RArc<<Self as OuterConstraint<'a>>::TAncestry>,
     ) -> Result<(String, String, ParameterTuple, Dialect)>;
 }
 pub trait TBuilder<'a> {
@@ -76,7 +76,7 @@ pub trait TBuilder<'a> {
     fn build_constraint(
         &self,
         root_uuid: Uuid,
-        potential_child_constraints: Vec<Arc<RwLock<Self::OuterType>>>,
+        potential_child_constraints: Vec<RArc<RwLock<Self::OuterType>>>,
     ) -> Result<Self::OuterType>;
     fn get_root_type_name(&self) -> Result<String>;
     fn get_required(&self, root: Self::TEnum, ancestry: &Self::TAncestry) -> Vec<Uuid>;
@@ -98,7 +98,7 @@ pub trait OuterConstraint<'a>: TAoristObject + std::fmt::Display + Clone {
     fn get_uuid(&self) -> Result<Uuid>;
     fn get_root(&self) -> String;
     fn get_root_uuid(&self) -> Result<Uuid>;
-    fn get_downstream_constraints(&self) -> Result<Vec<Arc<RwLock<Self>>>>;
+    fn get_downstream_constraints(&self) -> Result<Vec<RArc<RwLock<Self>>>>;
     fn requires_program(&self) -> Result<bool>;
     fn get_root_type_name(&self) -> Result<String>;
     fn print_dag(&self) -> Result<()> {
@@ -138,7 +138,7 @@ where
     fn get_required_constraint_names() -> Vec<String>;
     fn new(
         root_uuid: Uuid,
-        potential_child_constraints: Vec<Arc<RwLock<Self::Outer>>>,
+        potential_child_constraints: Vec<RArc<RwLock<Self::Outer>>>,
     ) -> Result<Self>
     where
         Self: Sized;
@@ -165,7 +165,7 @@ impl<'a, T: TConstraint<'a>> ConstraintBuilder<'a, T> {
     pub fn build_constraint(
         &self,
         root_uuid: Uuid,
-        potential_child_constraints: Vec<Arc<RwLock<T::Outer>>>,
+        potential_child_constraints: Vec<RArc<RwLock<T::Outer>>>,
     ) -> Result<T> {
         <T as crate::constraint::TConstraint<'a>>::new(root_uuid, potential_child_constraints)
     }

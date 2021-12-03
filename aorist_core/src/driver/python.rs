@@ -14,7 +14,7 @@ use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
 use std::collections::{BTreeSet, HashMap};
 use std::marker::PhantomData;
-use std::sync::Arc;
+use abi_stable::std_types::RArc;
 use std::sync::RwLock;
 use uuid::Uuid;
 
@@ -34,10 +34,10 @@ where
         TConceptEnum<TUniverse = U>,
     P: TOuterProgram<TAncestry = A>,
 {
-    pub concepts: Arc<RwLock<HashMap<(Uuid, String), C>>>,
-    constraints: LinkedHashMap<(Uuid, String), Arc<RwLock<B::OuterType>>>,
+    pub concepts: RArc<RwLock<HashMap<(Uuid, String), C>>>,
+    constraints: LinkedHashMap<(Uuid, String), RArc<RwLock<B::OuterType>>>,
     satisfied_constraints:
-        HashMap<(Uuid, String), Arc<RwLock<ConstraintState<'a, B::OuterType, P>>>>,
+        HashMap<(Uuid, String), RArc<RwLock<ConstraintState<'a, B::OuterType, P>>>>,
     blocks: Vec<PythonBasedConstraintBlock<'a, D::T, B::OuterType, U, P>>,
     ancestry: A,
     dag_type: PhantomData<D>,
@@ -76,7 +76,7 @@ where
     fn get_preferences(&self) -> Vec<Dialect> {
         self.preferences.clone()
     }
-    fn get_constraint_rwlock(&self, uuid: &(Uuid, String)) -> Arc<RwLock<B::OuterType>> {
+    fn get_constraint_rwlock(&self, uuid: &(Uuid, String)) -> RArc<RwLock<B::OuterType>> {
         self.constraints.get(uuid).unwrap().clone()
     }
 
@@ -90,7 +90,7 @@ where
     fn mark_constraint_state_as_satisfied(
         &mut self,
         id: (Uuid, String),
-        state: Arc<RwLock<ConstraintState<'a, B::OuterType, P>>>,
+        state: RArc<RwLock<ConstraintState<'a, B::OuterType, P>>>,
     ) {
         self.satisfied_constraints.insert(id, state.clone());
     }
@@ -141,8 +141,8 @@ where
             .collect()
     }
     fn _new(
-        concepts: Arc<RwLock<HashMap<(Uuid, String), C>>>,
-        constraints: LinkedHashMap<(Uuid, String), Arc<RwLock<B::OuterType>>>,
+        concepts: RArc<RwLock<HashMap<(Uuid, String), C>>>,
+        constraints: LinkedHashMap<(Uuid, String), RArc<RwLock<B::OuterType>>>,
         ancestry: A,
         endpoints: U::TEndpoints,
         ancestors: HashMap<(Uuid, String), Vec<AncestorRecord>>,

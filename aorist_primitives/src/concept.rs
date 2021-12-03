@@ -2,7 +2,7 @@ use crate::endpoints::*;
 use siphasher::sip128::{Hasher128, SipHasher};
 use std::collections::{BTreeSet, HashMap};
 use std::hash::Hasher;
-use std::sync::Arc;
+use abi_stable::std_types::RArc;
 use std::sync::RwLock;
 use uuid::Uuid;
 
@@ -65,8 +65,8 @@ pub trait TPrestoEndpoints {
 }
 pub trait Ancestry {
     type TConcept: ConceptEnum + Clone + TConceptEnum;
-    fn new(parents: Arc<RwLock<HashMap<(Uuid, String), Self::TConcept>>>) -> Self;
-    fn get_parents(&self) -> Arc<RwLock<HashMap<(Uuid, String), Self::TConcept>>>;
+    fn new(parents: RArc<RwLock<HashMap<(Uuid, String), Self::TConcept>>>) -> Self;
+    fn get_parents(&self) -> RArc<RwLock<HashMap<(Uuid, String), Self::TConcept>>>;
 }
 pub trait TAoristObject {
     fn get_name(&self) -> &String;

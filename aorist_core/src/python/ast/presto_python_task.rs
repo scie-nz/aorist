@@ -8,7 +8,7 @@ use aorist_primitives::define_task_node;
 use aorist_primitives::PrestoConfig;
 use linked_hash_map::LinkedHashMap;
 use std::hash::Hash;
-use std::sync::Arc;
+use abi_stable::std_types::RArc;
 use std::sync::RwLock;
 
 define_task_node!(

@@ -9,12 +9,12 @@ use std::collections::HashMap;
 use std::convert::TryFrom;
 use std::fmt::{Debug, Formatter};
 use std::hash::{Hash, Hasher};
-use std::sync::Arc;
+use abi_stable::std_types::RArc;
 use std::sync::RwLock;
 use tracing::debug;
 use uuid::Uuid;
 
-pub struct AoristRef<T: PartialEq + Serialize + Debug + Clone>(pub Arc<RwLock<T>>);
+pub struct AoristRef<T: PartialEq + Serialize + Debug + Clone>(pub RArc<RwLock<T>>);
 
 #[derive(Clone)]
 pub struct RefABI<T: PartialEq + Serialize + Debug + Clone>(
@@ -26,7 +26,7 @@ impl<'a, T: PartialEq + Serialize + Debug + Clone + FromPyObject<'a>> FromPyObje
     for AoristRef<T>
 {
     fn extract(ob: &'a PyAny) -> PyResult<Self> {
-        Ok(AoristRef(Arc::new(RwLock::new(T::extract(ob)?))))
+        Ok(AoristRef(RArc::new(RwLock::new(T::extract(ob)?))))
     }
 }
 
@@ -52,7 +52,7 @@ impl<'de, T: Deserialize<'de> + PartialEq + Serialize + Debug + Clone> Deseriali
         D: Deserializer<'de>,
     {
         let d = T::deserialize(deserializer)?;
-        Ok(Self(Arc::new(RwLock::new(d))))
+        Ok(Self(RArc::new(RwLock::new(d))))
     }
 }
 impl<T: Clone + Debug + Serialize + PartialEq> Clone for AoristRef<T> {

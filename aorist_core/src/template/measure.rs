@@ -10,7 +10,7 @@ use aorist_primitives::{AoristConcept, ConceptEnum};
 use derivative::Derivative;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
-use std::sync::Arc;
+use abi_stable::std_types::RArc;
 use std::sync::RwLock;
 use uuid::Uuid;
 
@@ -40,7 +40,7 @@ impl TDatumTemplate for IntegerMeasure {
 }
 impl IntegerMeasure {
     pub fn get_frequency_attribute(&self) -> AoristRef<Attribute> {
-        AoristRef(Arc::new(RwLock::new(Attribute {
+        AoristRef(RArc::new(RwLock::new(Attribute {
             inner: AttributeOrTransform::Attribute(AttributeEnum::Count(Count {
                 name: self.name.clone(),
                 comment: self.comment.clone(),
@@ -67,7 +67,7 @@ impl TDatumTemplate for AoristRef<TrainedFloatMeasure> {
         let mut attr = self.0.read().unwrap().features.clone();
         let prediction_attribute = self.get_prediction_attribute();
         attr.push(prediction_attribute);
-        attr.push(AoristRef(Arc::new(RwLock::new(Attribute {
+        attr.push(AoristRef(RArc::new(RwLock::new(Attribute {
             inner: AttributeOrTransform::Attribute(AttributeEnum::Regressor(
                 self.get_regressor_as_attribute().clone(),
             )),
@@ -83,7 +83,7 @@ impl TDatumTemplate for AoristRef<TrainedFloatMeasure> {
 }
 impl AoristRef<TrainedFloatMeasure> {
     pub fn get_prediction_attribute(&self) -> AoristRef<Attribute> {
-        AoristRef(Arc::new(RwLock::new(Attribute {
+        AoristRef(RArc::new(RwLock::new(Attribute {
             inner: AttributeOrTransform::Attribute(AttributeEnum::FloatPrediction(
                 FloatPrediction {
                     name: self.0.read().unwrap().name.clone(),
@@ -107,7 +107,7 @@ impl AoristRef<TrainedFloatMeasure> {
     }
     pub fn get_model_storage_tabular_schema(&self) -> TabularSchema {
         TabularSchema {
-            datum_template: AoristRef(Arc::new(RwLock::new(DatumTemplate::TrainedFloatMeasure(
+            datum_template: AoristRef(RArc::new(RwLock::new(DatumTemplate::TrainedFloatMeasure(
                 self.clone(),
             )))),
             attributes: self

@@ -580,7 +580,7 @@ impl Builder for StructBuilder {
                         tag,
                         uuid: None,
                     };
-                    let inner = AoristRef(std::sync::Arc::new(std::sync::RwLock::new(
+                    let inner = AoristRef(abi_stable::std_types::RArc::new(std::sync::RwLock::new(
                         obj
                     )));
                     Self { inner }
@@ -758,7 +758,7 @@ impl Builder for StructBuilder {
             }
             impl AoristRef<#struct_name> {
                 pub fn deep_clone(&self) -> Self {
-                    AoristRef(std::sync::Arc::new(std::sync::RwLock::new(self.0.read().unwrap().deep_clone())))
+                    AoristRef(abi_stable::std_types::RArc::new(std::sync::RwLock::new(self.0.read().unwrap().deep_clone())))
                 }
             }
             impl #struct_name {

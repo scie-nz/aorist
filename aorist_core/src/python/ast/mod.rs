@@ -2,7 +2,7 @@ use crate::python::PythonImport;
 use aorist_ast::AST;
 use aorist_primitives::register_task_nodes;
 use std::hash::{Hash, Hasher};
-use std::sync::Arc;
+use abi_stable::std_types::RArc;
 use std::sync::RwLock;
 
 mod airflow_bash_operator_task;

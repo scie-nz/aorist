@@ -19,6 +19,7 @@ sql = ["sqlformat", "sqlparser"]
 default = ["python", "r", "sql"]
 
 [dependencies]
+abi_stable = "0.10.3"
 aorist_concept = {path = "../aorist_concept", version = "0.0.1"}
 aorist_derive = {path = "../aorist_derive", version = "0.0.1"}
 aorist_util = {path = "../aorist_util", version = "0.0.1"}

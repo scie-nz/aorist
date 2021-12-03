@@ -10,6 +10,7 @@ readme = false
 repository = "https://github.com/scie-nz/aorist"
 
 [dependencies]
+abi_stable = "0.10.3"
 anyhow = "1.0"
 aorist_derive = "0.0.1"
 aorist_paste = "0.0.1"

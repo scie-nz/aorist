@@ -16,7 +16,7 @@ use aorist_primitives::asset_enum;
 use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
-use std::sync::Arc;
+use abi_stable::std_types::RArc;
 use std::sync::RwLock;
 use uuid::Uuid;
 
@@ -50,7 +50,7 @@ impl Asset {
         let mut cloned = self.clone();
         let storage_setup = cloned.get_storage_setup();
         let new_setup = match *storage_setup.0.read().unwrap() {
-            StorageSetup::LocalStorageSetup(_) => AoristRef(Arc::new(RwLock::new(
+            StorageSetup::LocalStorageSetup(_) => AoristRef(RArc::new(RwLock::new(
                 cloned
                     .get_storage_setup()
                     .0
@@ -69,7 +69,7 @@ impl Asset {
 impl PyAsset {
     pub fn persist_local(&self, storage: PyStorage) -> PyResult<Self> {
         Ok(PyAsset {
-            inner: AoristRef(Arc::new(RwLock::new(
+            inner: AoristRef(RArc::new(RwLock::new(
                 self.inner
                     .0
                     .read()
@@ -85,7 +85,7 @@ impl PyAsset {
         tmp_encoding: PyEncoding,
     ) -> PyResult<Self> {
         Ok(PyAsset {
-            inner: AoristRef(Arc::new(RwLock::new(
+            inner: AoristRef(RArc::new(RwLock::new(
                 self.inner
                     .0
                     .read()

@@ -21,7 +21,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use std::fmt::Debug;
 #[cfg(feature = "python")]
-use std::sync::Arc;
+use abi_stable::std_types::RArc;
 use std::sync::RwLock;
 use uuid::Uuid;
 
@@ -153,12 +153,12 @@ impl PyDataSet {
             let asset = &*asset_rw.0.read().unwrap();
             persisted_assets.insert(
                 key.clone(),
-                AoristRef(Arc::new(RwLock::new(
+                AoristRef(RArc::new(RwLock::new(
                     asset.persist_local(storage.inner.deep_clone()),
                 ))),
             );
         }
-        let inner = AoristRef(Arc::new(RwLock::new(DataSet {
+        let inner = AoristRef(RArc::new(RwLock::new(DataSet {
             name: dt.name.clone(),
             description: dt.description.clone(),
             source_path: dt.source_path.clone(),
@@ -185,12 +185,12 @@ impl PyDataSet {
                 tmp_dir.clone(),
                 tmp_encoding.inner.deep_clone(),
             ) {
-                Some(x) => AoristRef(Arc::new(RwLock::new(x))),
+                Some(x) => AoristRef(RArc::new(RwLock::new(x))),
                 None => asset_rw.clone(),
             };
             replicated_assets.insert(key.clone(), replicated_asset);
         }
-        let inner = AoristRef(Arc::new(RwLock::new(DataSet {
+        let inner = AoristRef(RArc::new(RwLock::new(DataSet {
             name: dt.name.clone(),
             description: dt.description.clone(),
             source_path: dt.source_path.clone(),

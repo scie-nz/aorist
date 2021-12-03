@@ -3,7 +3,7 @@ use aorist_ast::{Dict, AST};
 use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
 use std::collections::BTreeSet;
-use std::sync::Arc;
+use abi_stable::std_types::RArc;
 use std::sync::RwLock;
 
 pub trait FlowBuilderInput
@@ -48,7 +48,7 @@ where
 
     fn extract_literals(
         &self,
-        literals: &mut LinkedHashMap<AST, LinkedHashMap<String, Vec<(String, Arc<RwLock<Dict>>)>>>,
+        literals: &mut LinkedHashMap<AST, LinkedHashMap<String, Vec<(String, RArc<RwLock<Dict>>)>>>,
     ) {
         let short_name = &self.get_constraint_name();
         for ast in &self.get_statements() {

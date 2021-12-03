@@ -11,7 +11,7 @@ use inflector::cases::snakecase::to_snake_case;
 use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
 use std::collections::{HashMap, HashSet};
-use std::sync::Arc;
+use abi_stable::std_types::RArc;
 use std::sync::RwLock;
 use tracing::{debug, level_enabled, trace, Level};
 use uuid::Uuid;
@@ -21,9 +21,9 @@ pub struct ConstraintState<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestr
     pub key: Option<String>,
     name: String,
     pub satisfied: bool,
-    pub satisfied_dependencies: Vec<Arc<RwLock<ConstraintState<'a, T, P>>>>,
+    pub satisfied_dependencies: Vec<RArc<RwLock<ConstraintState<'a, T, P>>>>,
     pub unsatisfied_dependencies: LinkedHashSet<(Uuid, String)>,
-    constraint: Arc<RwLock<T>>,
+    constraint: RArc<RwLock<T>>,
     root: <<T as OuterConstraint<'a>>::TAncestry as Ancestry>::TConcept,
     // these are concept ancestors
     // TODO: change this to Vec<Concept<'a>>
@@ -39,7 +39,7 @@ impl<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry = T::TAncestry>>
 {
     pub fn mark_dependency_as_satisfied(
         &mut self,
-        dependency: &Arc<RwLock<ConstraintState<'a, T, P>>>,
+        dependency: &RArc<RwLock<ConstraintState<'a, T, P>>>,
         uuid: &(Uuid, String),
     ) {
         let dependency_name = dependency.read().unwrap().get_name();
@@ -218,8 +218,8 @@ impl<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry = T::TAncestry>>
         )
     }
     pub fn new(
-        constraint: Arc<RwLock<T>>,
-        concepts: Arc<
+        constraint: RArc<RwLock<T>>,
+        concepts: RArc<
             RwLock<
                 HashMap<
                     (Uuid, String),
@@ -310,10 +310,10 @@ impl<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry = T::TAncestry>>
         .to_string()
     }
     pub fn shorten_task_names(
-        constraints: &LinkedHashMap<(Uuid, String), Arc<RwLock<ConstraintState<'a, T, P>>>>,
+        constraints: &LinkedHashMap<(Uuid, String), RArc<RwLock<ConstraintState<'a, T, P>>>>,
         _existing_names: &mut HashSet<String>,
     ) {
-        let mut task_names: Vec<(String, Arc<RwLock<ConstraintState<'a, T, P>>>)> = Vec::new();
+        let mut task_names: Vec<(String, RArc<RwLock<ConstraintState<'a, T, P>>>)> = Vec::new();
         for constraint in constraints.values() {
             let mut write = constraint.write().unwrap();
             write.compute_task_key();

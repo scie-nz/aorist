@@ -15,7 +15,7 @@ use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
 use std::collections::HashMap;
 use std::marker::PhantomData;
-use std::sync::Arc;
+use abi_stable::std_types::RArc;
 use std::sync::RwLock;
 use uuid::Uuid;
 
@@ -28,11 +28,11 @@ where
         + 'b,
     'a: 'b,
 {
-    pub concepts: Arc<RwLock<HashMap<(Uuid, String), Concept<'a>>>>,
-    constraints: LinkedHashMap<(Uuid, String), Arc<RwLock<C>>>,
-    satisfied_constraints: HashMap<(Uuid, String), Arc<RwLock<ConstraintState<'a, 'b, C>>>>,
+    pub concepts: RArc<RwLock<HashMap<(Uuid, String), Concept<'a>>>>,
+    constraints: LinkedHashMap<(Uuid, String), RArc<RwLock<C>>>,
+    satisfied_constraints: HashMap<(Uuid, String), RArc<RwLock<ConstraintState<'a, 'b, C>>>>,
     blocks: Vec<RBasedConstraintBlock<'a, 'b, D::T, C>>,
-    ancestry: Arc<ConceptAncestry<'a>>,
+    ancestry: RArc<ConceptAncestry<'a>>,
     dag_type: PhantomData<D>,
     endpoints: EndpointConfig,
     constraint_explanations: HashMap<String, (Option<String>, Option<String>)>,
@@ -52,7 +52,7 @@ where
 {
     type CB = RBasedConstraintBlock<'a, 'b, <D as FlowBuilderBase>::T, C>;
 
-    fn get_constraint_rwlock(&self, uuid: &(Uuid, String)) -> Arc<RwLock<C>> {
+    fn get_constraint_rwlock(&self, uuid: &(Uuid, String)) -> RArc<RwLock<C>> {
         self.constraints.get(uuid).unwrap().clone()
     }
     fn get_preferences(&self) -> Vec<Dialect> {
@@ -67,13 +67,13 @@ where
         &self.endpoints
     }
 
-    fn get_ancestry(&self) -> Arc<ConceptAncestry<'a>> {
+    fn get_ancestry(&self) -> RArc<ConceptAncestry<'a>> {
         self.ancestry.clone()
     }
     fn mark_constraint_state_as_satisfied(
         &mut self,
         id: (Uuid, String),
-        state: Arc<RwLock<ConstraintState<'a, 'b, C>>>,
+        state: RArc<RwLock<ConstraintState<'a, 'b, C>>>,
     ) {
         self.satisfied_constraints.insert(id, state.clone());
     }
@@ -108,9 +108,9 @@ where
         vec![]
     }
     fn _new(
-        concepts: Arc<RwLock<HashMap<(Uuid, String), Concept<'a>>>>,
-        constraints: LinkedHashMap<(Uuid, String), Arc<RwLock<C>>>,
-        ancestry: Arc<ConceptAncestry<'a>>,
+        concepts: RArc<RwLock<HashMap<(Uuid, String), Concept<'a>>>>,
+        constraints: LinkedHashMap<(Uuid, String), RArc<RwLock<C>>>,
+        ancestry: RArc<ConceptAncestry<'a>>,
         endpoints: EndpointConfig,
         ancestors: HashMap<(Uuid, String), Vec<AncestorRecord>>,
         topline_constraint_names: LinkedHashSet<String>,

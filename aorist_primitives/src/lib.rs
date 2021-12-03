@@ -14,7 +14,7 @@ macro_rules! register_ast_nodes {
         #[derive(Clone, Debug)]
         pub enum $name {
             $(
-                $variant(Arc<RwLock<$variant>>),
+                $variant(RArc<RwLock<$variant>>),
             )+
         }
         impl PartialEq for $name {
@@ -34,7 +34,7 @@ macro_rules! register_ast_nodes {
             pub fn clone_without_ancestors(&self) -> Self {
                 match &self {
                     $(
-                        Self::$variant(x) => Self::$variant(Arc::new(RwLock::new(x.read().unwrap().clone_without_ancestors()))),
+                        Self::$variant(x) => Self::$variant(RArc::new(RwLock::new(x.read().unwrap().clone_without_ancestors()))),
                     )+
                 }
             }
@@ -147,8 +147,8 @@ macro_rules! define_task_node {
         impl $name {
             pub fn new_wrapped($(
                 $field: $field_type,
-            )*) -> Arc<RwLock<Self>> {
-                Arc::new(RwLock::new(Self::new($($field, )*)))
+            )*) -> RArc<RwLock<Self>> {
+                RArc::new(RwLock::new(Self::new($($field, )*)))
             }
             pub fn get_statements<'a>(
                 &self,
@@ -184,7 +184,7 @@ macro_rules! register_task_nodes {
         #[derive(Clone)]
         pub enum $name {
             $(
-                $variant(Arc<RwLock<$variant>>),
+                $variant(RArc<RwLock<$variant>>),
             )+
         }
         impl $name {
@@ -245,8 +245,8 @@ macro_rules! define_ast_node {
         impl $name {
             pub fn new_wrapped($(
                 $field: $field_type,
-            )*) -> Arc<RwLock<Self>> {
-                Arc::new(RwLock::new(Self::new($($field, )*)))
+            )*) -> RArc<RwLock<Self>> {
+                RArc::new(RwLock::new(Self::new($($field, )*)))
             }
             pub fn to_python_ast_node<'a>(
                 &self,
@@ -315,7 +315,7 @@ macro_rules! define_program {
             fn compute_parameter_tuple(
                 uuid: Uuid,
                 c: Concept<'a>,
-                ancestry: Arc<ConceptAncestry<'a>>,
+                ancestry: RArc<ConceptAncestry<'a>>,
             ) -> ParameterTuple {
                 $tuple_call(uuid, c, ancestry)
             }
@@ -448,7 +448,7 @@ macro_rules! define_constraint {
             pub struct $element {
                 id: Uuid,
                 root_uuid: Uuid,
-                $([<$required:snake:lower>] : Vec<Arc<RwLock<$outer>>>,)*
+                $([<$required:snake:lower>] : Vec<RArc<RwLock<$outer>>>,)*
             }
             #[cfg(feature = "python")]
             #[pymethods]
@@ -482,7 +482,7 @@ macro_rules! define_constraint {
                 fn compute_parameter_tuple(
                     uuid: Uuid,
                     root: Concept,
-                    ancestry: Arc<ConceptAncestry>,
+                    ancestry: RArc<ConceptAncestry>,
                 ) -> ParameterTuple;
                 fn get_preamble() -> String;
                 fn get_call() -> String;
@@ -630,8 +630,8 @@ macro_rules! define_constraint {
                     Ok($requires_program)
                 }
                 // these are *all* downstream constraints
-                fn get_downstream_constraints(&self) -> Result<Vec<Arc<RwLock<Constraint>>>> {
-                    let mut downstream: Vec<Arc<RwLock<Constraint>>> = Vec::new();
+                fn get_downstream_constraints(&self) -> Result<Vec<RArc<RwLock<Constraint>>>> {
+                    let mut downstream: Vec<RArc<RwLock<Constraint>>> = Vec::new();
                     $(
                         for arc in &self.[<$required:snake:lower>] {
                             downstream.push(arc.clone());
@@ -667,13 +667,13 @@ macro_rules! define_constraint {
                     }
                 }
                 fn new(root_uuid: Uuid,
-                       potential_child_constraints: Vec<Arc<RwLock<Constraint>>>) -> Result<Self> {
+                       potential_child_constraints: Vec<RArc<RwLock<Constraint>>>) -> Result<Self> {
                     // TODO: we should dedupe potential child constraints
                     $(
-                        let mut [<$required:snake:lower>]: Vec<Arc<RwLock<Constraint>>> =
+                        let mut [<$required:snake:lower>]: Vec<RArc<RwLock<Constraint>>> =
                         Vec::new();
                     )*
-                    let mut by_uuid: HashMap<Uuid, Arc<RwLock<Constraint>>> = HashMap::new();
+                    let mut by_uuid: HashMap<Uuid, RArc<RwLock<Constraint>>> = HashMap::new();
                     for constraint in &potential_child_constraints {
                         $(
                             if let Some(AoristConstraint::$required{..}) =
@@ -991,7 +991,7 @@ macro_rules! register_concept {
                     ix: Option<usize>,
                     id: Option<(Uuid, String)>
                 ) -> AoristRef<Self> {
-                    AoristRef(Arc::new(RwLock::new($name::$element((
+                    AoristRef(RArc::new(RwLock::new($name::$element((
                         obj_ref.clone(),
                         match ix {
                             Some(i) => i,
@@ -1042,14 +1042,14 @@ macro_rules! register_concept {
 
         #[cfg_attr(feature = "python", pyclass(module = "aorist"))]
         pub struct $ancestry {
-            pub parents: Arc<RwLock<HashMap<(Uuid, String), AoristRef<$name>>>>,
+            pub parents: RArc<RwLock<HashMap<(Uuid, String), AoristRef<$name>>>>,
         }
         impl Ancestry for $ancestry {
             type TConcept = AoristRef<$name>;
-            fn new(parents: Arc<RwLock<HashMap<(Uuid, String), AoristRef<$name>>>>) -> Self {
+            fn new(parents: RArc<RwLock<HashMap<(Uuid, String), AoristRef<$name>>>>) -> Self {
                  Self { parents }
             }
-            fn get_parents(&self) -> Arc<RwLock<HashMap<(Uuid, String), AoristRef<$name>>>> {
+            fn get_parents(&self) -> RArc<RwLock<HashMap<(Uuid, String), AoristRef<$name>>>> {
                 self.parents.clone()
             }
 
@@ -1119,7 +1119,7 @@ macro_rules! register_concept {
                 }
             }
             fn from_universe(universe: AoristRef<Universe>) -> Self {
-                AoristRef(Arc::new(RwLock::new($name::Universe((universe, 0, None)))))
+                AoristRef(RArc::new(RwLock::new($name::Universe((universe, 0, None)))))
             }
             fn get_type(&self) -> String {
                 let read = self.0.read().unwrap();
@@ -1175,7 +1175,7 @@ macro_rules! register_concept {
                                     x.get_uuid().unwrap(),
                                     stringify!($element).to_string()
                                  ),
-                                 AoristRef(Arc::new(RwLock::new(
+                                 AoristRef(RArc::new(RwLock::new(
                                     $name::$element((x.clone(), idx, parent.clone()))
                                  ))),
                             );
@@ -1230,7 +1230,7 @@ macro_rules! register_constraint_new {
                 root: <Self::TAncestry as Ancestry>::TConcept,
                 ancestry: &Self::TAncestry,
                 context: &mut aorist_primitives::Context,
-                constraint: std::sync::Arc<std::sync::RwLock<T>>,
+                constraint: abi_stable::std_types::RArc<std::sync::RwLock<T>>,
             ) -> (String, String, ParameterTuple, Dialect) {
                 let gil = Python::acquire_gil();
                 let py = gil.python();
@@ -1432,7 +1432,7 @@ macro_rules! register_constraint_new {
             fn build_constraint(
                 &self,
                 root_uuid: Uuid,
-                potential_child_constraints: Vec<Arc<RwLock<Self::OuterType>>>,
+                potential_child_constraints: Vec<RArc<RwLock<Self::OuterType>>>,
             ) -> Result<Self::OuterType> {
                 match &self {
                     $(
@@ -1515,7 +1515,7 @@ macro_rules! register_constraint_new {
                     )+
                 }
             }
-            pub fn get_downstream_constraints(&self) -> Result<Vec<Arc<RwLock<Constraint>>>> {
+            pub fn get_downstream_constraints(&self) -> Result<Vec<RArc<RwLock<Constraint>>>> {
                 match self {
                     $(
                         Self::$element(x) => x.get_downstream_constraints(),
@@ -1730,7 +1730,7 @@ macro_rules! export_aorist_python_module {
 #[macro_export]
 macro_rules! attribute {
     {$attribute: ident ( $name: expr, $comment: expr, $nullable: expr ) } => {
-        AoristRef(std::sync::Arc::new(std::sync::RwLock::new(Attribute {
+        AoristRef(abi_stable::std_types::RArc::new(std::sync::RwLock::new(Attribute {
             inner: AttributeOrTransform::Attribute(AttributeEnum::$attribute($attribute {
                 name: $name,
                 comment: $comment,
@@ -1779,7 +1779,7 @@ macro_rules! asset {
                     return Some(Self {
                         name: self.name.clone(),
                         comment: self.comment.clone(),
-                        setup: AoristRef(Arc::new(RwLock::new(
+                        setup: AoristRef(RArc::new(RwLock::new(
                             self.setup
                                 .0
                                 .read()
@@ -1853,7 +1853,7 @@ macro_rules! derived_schema {
                 pub fn sources(&self) -> Vec<PyAsset> {
                     self.inner.0.read().unwrap().get_sources().into_iter().map(|x|
                         PyAsset{
-                            inner: AoristRef(std::sync::Arc::new(std::sync::RwLock::new(x)))
+                            inner: AoristRef(abi_stable::std_types::RArc::new(std::sync::RwLock::new(x)))
                         }
                     ).collect()
                 }
@@ -1875,7 +1875,7 @@ macro_rules! derived_schema {
                 pub fn sources(&self) -> Vec<PyAsset> {
                     self.inner.0.read().unwrap().get_sources().into_iter().map(|x|
                         PyAsset{
-                            inner: AoristRef(std::sync::Arc::new(std::sync::RwLock::new(x)))
+                            inner: AoristRef(abi_stable::std_types::RArc::new(std::sync::RwLock::new(x)))
                         }
                     ).collect()
                 }
@@ -2047,14 +2047,14 @@ macro_rules! asset_enum {
                         Self::$variant(x) => x.0.read()
                             .unwrap()
                             .replicate_to_local(t, tmp_dir, tmp_encoding).and_then(|r|
-                                Some(Self::$variant(AoristRef(Arc::new(RwLock::new(r)))))
+                                Some(Self::$variant(AoristRef(RArc::new(RwLock::new(r)))))
                             ),
                     )+)?
                     $($(
                         Self::$enum_variant(x) => x.0.read()
                             .unwrap()
                             .replicate_to_local(t, tmp_dir, tmp_encoding).and_then(|r|
-                                Some(Self::$enum_variant(AoristRef(Arc::new(RwLock::new(r)))))
+                                Some(Self::$enum_variant(AoristRef(RArc::new(RwLock::new(r)))))
                             ),
                     )+)?
                 }

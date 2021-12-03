@@ -18,7 +18,8 @@ use inflector::cases::snakecase::to_snake_case;
 use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
 use std::collections::{HashMap, HashSet, VecDeque};
-use std::sync::{Arc, RwLock, RwLockReadGuard};
+use abi_stable::std_types::RArc;
+use std::sync::{RwLock, RwLockReadGuard};
 use tracing::{debug, level_enabled, trace, Level};
 use uuid::Uuid;
 
@@ -26,7 +27,7 @@ pub type ConstraintsBlockMap<'a, C, P> = LinkedHashMap<
     String,
     (
         LinkedHashSet<String>,
-        LinkedHashMap<(Uuid, String), Arc<RwLock<ConstraintState<'a, C, P>>>>,
+        LinkedHashMap<(Uuid, String), RArc<RwLock<ConstraintState<'a, C, P>>>>,
     ),
 >;
 
@@ -124,7 +125,7 @@ where
         &self,
         unsatisfied_constraints: &mut ConstraintsBlockMap<'a, B::OuterType, P>,
     ) -> Option<(
-        LinkedHashMap<(Uuid, String), Arc<RwLock<ConstraintState<'a, B::OuterType, P>>>>,
+        LinkedHashMap<(Uuid, String), RArc<RwLock<ConstraintState<'a, B::OuterType, P>>>>,
         String,
     )> {
         debug!(
@@ -154,7 +155,7 @@ where
         }
     }
     fn init_tasks_dict(
-        block: &LinkedHashMap<(Uuid, String), Arc<RwLock<ConstraintState<'a, B::OuterType, P>>>>,
+        block: &LinkedHashMap<(Uuid, String), RArc<RwLock<ConstraintState<'a, B::OuterType, P>>>>,
         constraint_name: String,
     ) -> Option<AST> {
         match block.len() == 1 {
@@ -164,7 +165,7 @@ where
             ))),
         }
     }
-    fn get_constraint_rwlock(&self, uuid: &(Uuid, String)) -> Arc<RwLock<B::OuterType>>;
+    fn get_constraint_rwlock(&self, uuid: &(Uuid, String)) -> RArc<RwLock<B::OuterType>>;
     fn get_preferences(&self) -> Vec<Dialect>;
     fn get_ancestry(&self) -> &A;
     fn process_constraint_with_program(
@@ -172,7 +173,7 @@ where
         constraint: RwLockReadGuard<'_, B::OuterType>,
         uuid: (Uuid, String),
         calls: &mut HashMap<(String, String, String), Vec<(String, ParameterTuple)>>,
-        state: Arc<RwLock<ConstraintState<'a, B::OuterType, P>>>,
+        state: RArc<RwLock<ConstraintState<'a, B::OuterType, P>>>,
         programs: &Vec<P>,
     ) {
         let name = constraint.get_name().clone();
@@ -201,7 +202,7 @@ where
     fn process_constraint_state(
         &mut self,
         uuid: (Uuid, String),
-        state: Arc<RwLock<ConstraintState<'a, B::OuterType, P>>>,
+        state: RArc<RwLock<ConstraintState<'a, B::OuterType, P>>>,
         calls: &mut HashMap<(String, String, String), Vec<(String, ParameterTuple)>>,
         reverse_dependencies: &HashMap<(Uuid, String), HashSet<(String, Uuid, String)>>,
         unsatisfied_constraints: &ConstraintsBlockMap<'a, B::OuterType, P>,
@@ -247,13 +248,13 @@ where
     fn mark_constraint_state_as_satisfied(
         &mut self,
         id: (Uuid, String),
-        state: Arc<RwLock<ConstraintState<'a, B::OuterType, P>>>,
+        state: RArc<RwLock<ConstraintState<'a, B::OuterType, P>>>,
     );
     fn process_constraint_block(
         &mut self,
         block: &mut LinkedHashMap<
             (Uuid, String),
-            Arc<RwLock<ConstraintState<'a, B::OuterType, P>>>,
+            RArc<RwLock<ConstraintState<'a, B::OuterType, P>>>,
         >,
         reverse_dependencies: &HashMap<(Uuid, String), HashSet<(String, Uuid, String)>>,
         constraint_name: String,
@@ -471,8 +472,8 @@ where
     }
     fn get_blocks(&self) -> &Vec<Self::CB>;
     fn _new(
-        concepts: Arc<RwLock<HashMap<(Uuid, String), C>>>,
-        constraints: LinkedHashMap<(Uuid, String), Arc<RwLock<B::OuterType>>>,
+        concepts: RArc<RwLock<HashMap<(Uuid, String), C>>>,
+        constraints: LinkedHashMap<(Uuid, String), RArc<RwLock<B::OuterType>>>,
         ancestry: A,
         endpoints: <U as AoristUniverse>::TEndpoints,
         ancestors: HashMap<(Uuid, String), Vec<AncestorRecord>>,
@@ -483,8 +484,8 @@ where
     ) -> Self;
 
     fn generate_constraint_states_map(
-        constraints: &LinkedHashMap<(Uuid, String), Arc<RwLock<B::OuterType>>>,
-        concepts: Arc<
+        constraints: &LinkedHashMap<(Uuid, String), RArc<RwLock<B::OuterType>>>,
+        concepts: RArc<
             RwLock<
                 HashMap<
                     (Uuid, String),
@@ -493,7 +494,7 @@ where
             >,
         >,
         ancestors: &HashMap<(Uuid, String), Vec<AncestorRecord>>,
-    ) -> Result<LinkedHashMap<(Uuid, String), Arc<RwLock<ConstraintState<'a, B::OuterType, P>>>>>
+    ) -> Result<LinkedHashMap<(Uuid, String), RArc<RwLock<ConstraintState<'a, B::OuterType, P>>>>>
     {
         let mut states_map = LinkedHashMap::new();
         debug!(
@@ -507,7 +508,7 @@ where
             );
             states_map.insert(
                 k.clone(),
-                Arc::new(RwLock::new(ConstraintState::new(
+                RArc::new(RwLock::new(ConstraintState::new(
                     rw.clone(),
                     concepts.clone(),
                     ancestors,
@@ -519,7 +520,7 @@ where
     fn remove_redundant_dependencies(
         raw_unsatisfied_constraints: &mut LinkedHashMap<
             (Uuid, String),
-            Arc<RwLock<ConstraintState<'a, B::OuterType, P>>>,
+            RArc<RwLock<ConstraintState<'a, B::OuterType, P>>>,
         >,
     ) {
         /* Remove redundant dependencies */
@@ -543,7 +544,7 @@ where
                 .filter(|(k, _v)| !reverse_dependencies.contains_key(k));
             for tip in tips {
                 let mut visits: HashMap<(Uuid, String), (Uuid, String)> = HashMap::new();
-                let mut queue: VecDeque<((Uuid, String), Arc<RwLock<_>>)> = VecDeque::new();
+                let mut queue: VecDeque<((Uuid, String), RArc<RwLock<_>>)> = VecDeque::new();
                 queue.push_back((tip.0.clone(), tip.1.clone()));
                 while queue.len() > 0 {
                     let (key, elem) = queue.pop_front().unwrap();
@@ -574,7 +575,7 @@ where
     fn remove_superfluous_dummy_tasks(
         raw_unsatisfied_constraints: &mut LinkedHashMap<
             (Uuid, String),
-            Arc<RwLock<ConstraintState<'a, B::OuterType, P>>>,
+            RArc<RwLock<ConstraintState<'a, B::OuterType, P>>>,
         >,
     ) -> Result<()> {
         /* Remove superfluous dummy tasks */
@@ -627,7 +628,7 @@ where
     fn remove_dangling_dummy_tasks(
         raw_unsatisfied_constraints: &mut LinkedHashMap<
             (Uuid, String),
-            Arc<RwLock<ConstraintState<'a, B::OuterType, P>>>,
+            RArc<RwLock<ConstraintState<'a, B::OuterType, P>>>,
         >,
     ) -> Result<()> {
         /* Remove dangling dummy tasks */
@@ -672,8 +673,8 @@ where
         Ok(())
     }
     fn get_unsatisfied_constraints(
-        constraints: &LinkedHashMap<(Uuid, String), Arc<RwLock<B::OuterType>>>,
-        concepts: Arc<
+        constraints: &LinkedHashMap<(Uuid, String), RArc<RwLock<B::OuterType>>>,
+        concepts: RArc<
             RwLock<
                 HashMap<
                     (Uuid, String),
@@ -686,7 +687,7 @@ where
     ) -> Result<ConstraintsBlockMap<'a, B::OuterType, P>> {
         let mut raw_unsatisfied_constraints: LinkedHashMap<
             (Uuid, String),
-            Arc<RwLock<ConstraintState<'a, B::OuterType, P>>>,
+            RArc<RwLock<ConstraintState<'a, B::OuterType, P>>>,
         > = Self::generate_constraint_states_map(constraints, concepts, ancestors)?;
         //Self::remove_redundant_dependencies(&mut raw_unsatisfied_constraints);
         Self::remove_superfluous_dummy_tasks(&mut raw_unsatisfied_constraints)?;
@@ -796,10 +797,10 @@ where
         // constraint_name => root_id => constraint_object
         let mut generated_constraints: LinkedHashMap<
             String,
-            LinkedHashMap<(Uuid, String), Arc<RwLock<B::OuterType>>>,
+            LinkedHashMap<(Uuid, String), RArc<RwLock<B::OuterType>>>,
         > = LinkedHashMap::new();
 
-        let concepts = Arc::new(RwLock::new(concept_map));
+        let concepts = RArc::new(RwLock::new(concept_map));
         let ancestry: A = A::new(concepts.clone());
         let family_trees = Self::generate_family_trees(&ancestors);
 
@@ -877,7 +878,7 @@ where
         ancestry: &A,
         generated_constraints: &mut LinkedHashMap<
             String,
-            LinkedHashMap<(Uuid, String), Arc<RwLock<B::OuterType>>>,
+            LinkedHashMap<(Uuid, String), RArc<RwLock<B::OuterType>>>,
         >,
         visited_constraint_names: &mut LinkedHashSet<String>,
     ) -> Result<()> {
@@ -950,7 +951,7 @@ where
                                 .map(|(_, constraint)| constraint.clone())
                         })
                         .flatten()
-                        .collect::<Vec<Arc<RwLock<B::OuterType>>>>();
+                        .collect::<Vec<RArc<RwLock<B::OuterType>>>>();
                     if level_enabled!(Level::DEBUG) {
                         debug!("After filtering:",);
                         for downstream_rw in potential_child_constraints.iter() {
@@ -975,7 +976,7 @@ where
                             debug!(" --  {:?}", (downstream.get_uuid()?, downstream.get_name()));
                         }
                     }
-                    gen_for_constraint.insert(root_key, Arc::new(RwLock::new(constraint)));
+                    gen_for_constraint.insert(root_key, RArc::new(RwLock::new(constraint)));
                 } else {
                     debug!("Constraint was filtered out.");
                 }

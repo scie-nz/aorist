@@ -3,7 +3,7 @@ use crate::python::PythonImport;
 use aorist_ast::AST;
 use aorist_primitives::define_task_node;
 use std::hash::Hash;
-use std::sync::Arc;
+use abi_stable::std_types::RArc;
 use std::sync::RwLock;
 
 define_task_node!(

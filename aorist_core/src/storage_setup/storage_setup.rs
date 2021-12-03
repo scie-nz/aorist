@@ -13,7 +13,7 @@ use aorist_primitives::{AoristConcept, ConceptEnum};
 use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
-use std::sync::Arc;
+use abi_stable::std_types::RArc;
 use std::sync::RwLock;
 use uuid::Uuid;
 
@@ -61,7 +61,7 @@ impl StorageSetup {
     ) -> Self {
         match self {
             Self::RemoteStorageSetup(x) => {
-                Self::ReplicationStorageSetup(AoristRef(Arc::new(RwLock::new(
+                Self::ReplicationStorageSetup(AoristRef(RArc::new(RwLock::new(
                     x.0.read()
                         .unwrap()
                         .replicate_to_local(t, tmp_dir, tmp_encoding),
@@ -72,7 +72,7 @@ impl StorageSetup {
     }
     pub fn persist_local(&self, persistent: AoristRef<Storage>) -> Self {
         match self {
-            Self::LocalStorageSetup(x) => Self::TwoTierStorageSetup(AoristRef(Arc::new(
+            Self::LocalStorageSetup(x) => Self::TwoTierStorageSetup(AoristRef(RArc::new(
                 RwLock::new(x.0.read().unwrap().persist(persistent)),
             ))),
             _ => panic!("Only assets with LocalStorageSetup can be persisted"),

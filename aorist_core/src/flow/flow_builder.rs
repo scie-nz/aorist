@@ -7,7 +7,7 @@ use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
 use std::collections::BTreeMap;
 use std::error::Error;
-use std::sync::Arc;
+use abi_stable::std_types::RArc;
 use std::sync::RwLock;
 
 pub trait FlowBuilderBase<U: AoristUniverse>
@@ -34,11 +34,11 @@ where
     ) -> Result<String, Self::ErrorType>;
 
     fn literals_to_assignments(
-        literals: LinkedHashMap<AST, LinkedHashMap<String, Vec<(String, Arc<RwLock<Dict>>)>>>,
+        literals: LinkedHashMap<AST, LinkedHashMap<String, Vec<(String, RArc<RwLock<Dict>>)>>>,
     ) -> Vec<AST> {
         let mut assignments: LinkedHashMap<
             String,
-            Vec<(AST, Vec<(Arc<RwLock<Dict>>, std::string::String)>)>,
+            Vec<(AST, Vec<(RArc<RwLock<Dict>>, std::string::String)>)>,
         > = LinkedHashMap::new();
         for (literal, val) in literals.into_iter() {
             for (short_name, keys) in val.into_iter() {
