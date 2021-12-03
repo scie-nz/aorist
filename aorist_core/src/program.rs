@@ -4,7 +4,8 @@ use crate::parameter_tuple::ParameterTuple;
 use aorist_primitives::{Ancestry, Context};
 use linked_hash_map::LinkedHashMap;
 use std::marker::PhantomData;
-use std::sync::{Arc, RwLock};
+use std::sync::Arc;
+use std::sync::RwLock;
 
 pub trait TProgram<'a, T: TConstraint<'a>> {
     fn new(

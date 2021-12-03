@@ -2,7 +2,8 @@ use crate::python::PythonImport;
 use aorist_ast::AST;
 use aorist_primitives::register_task_nodes;
 use std::hash::{Hash, Hasher};
-use std::sync::{Arc, RwLock};
+use std::sync::Arc;
+use std::sync::RwLock;
 
 mod airflow_bash_operator_task;
 mod airflow_python_operator_task;

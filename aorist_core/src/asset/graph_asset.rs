@@ -11,7 +11,8 @@ use aorist_primitives::{asset_enum, AoristConcept, ConceptEnum};
 use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
-use std::sync::{Arc, RwLock};
+use std::sync::Arc;
+use std::sync::RwLock;
 use uuid::Uuid;
 
 asset_enum! {

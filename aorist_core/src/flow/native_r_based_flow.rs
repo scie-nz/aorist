@@ -6,7 +6,8 @@ use aorist_core::Dialect;
 use aorist_primitives::register_task_nodes;
 use linked_hash_map::LinkedHashMap;
 use std::hash::{Hash, Hasher};
-use std::sync::{Arc, RwLock};
+use std::sync::Arc;
+use std::sync::RwLock;
 
 register_task_nodes! {
     RTask,

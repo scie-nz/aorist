@@ -21,7 +21,8 @@ use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use std::fmt::Debug;
 #[cfg(feature = "python")]
-use std::sync::{Arc, RwLock};
+use std::sync::Arc;
+use std::sync::RwLock;
 use uuid::Uuid;
 
 #[aorist]

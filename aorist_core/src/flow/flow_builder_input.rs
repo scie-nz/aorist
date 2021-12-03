@@ -3,7 +3,8 @@ use aorist_ast::{Dict, AST};
 use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
 use std::collections::BTreeSet;
-use std::sync::{Arc, RwLock};
+use std::sync::Arc;
+use std::sync::RwLock;
 
 pub trait FlowBuilderInput
 where

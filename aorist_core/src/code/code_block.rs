@@ -10,7 +10,8 @@ use aorist_primitives::AoristUniverse;
 use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
 use std::collections::{BTreeSet, HashMap, HashSet};
-use std::sync::{Arc, RwLock};
+use std::sync::Arc;
+use std::sync::RwLock;
 use uuid::Uuid;
 
 pub trait CodeBlock<'a, T, C, U, P>

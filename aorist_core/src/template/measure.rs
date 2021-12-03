@@ -10,7 +10,8 @@ use aorist_primitives::{AoristConcept, ConceptEnum};
 use derivative::Derivative;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
-use std::sync::{Arc, RwLock};
+use std::sync::Arc;
+use std::sync::RwLock;
 use uuid::Uuid;
 
 /// An integer-valued measure for the density of attribute

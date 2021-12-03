@@ -6,7 +6,8 @@ use aorist_primitives::AoristConcept;
 use aorist_primitives::{Ancestry, TAoristObject, TConceptEnum};
 use std::collections::HashMap;
 use std::marker::PhantomData;
-use std::sync::{Arc, RwLock};
+use std::sync::Arc;
+use std::sync::RwLock;
 use tracing::info;
 use uuid::Uuid;
 

@@ -2,7 +2,8 @@ use crate::r::r_import::RImport;
 use aorist_ast::{Assignment, StringLiteral, AST};
 use aorist_primitives::define_task_node;
 use std::hash::Hash;
-use std::sync::{Arc, RwLock};
+use std::sync::Arc;
+use std::sync::RwLock;
 
 define_task_node!(
     NativeRTask,

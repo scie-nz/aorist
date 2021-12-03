@@ -7,7 +7,8 @@ use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
 use std::collections::BTreeMap;
 use std::error::Error;
-use std::sync::{Arc, RwLock};
+use std::sync::Arc;
+use std::sync::RwLock;
 
 pub trait FlowBuilderBase<U: AoristUniverse>
 where

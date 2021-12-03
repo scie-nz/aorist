@@ -20,7 +20,8 @@ use pyo3::types::PyString;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fmt;
-use std::sync::{Arc, RwLock};
+use std::sync::Arc;
+use std::sync::RwLock;
 use tracing::debug;
 
 include!(concat!(env!("OUT_DIR"), "/constraints.rs"));

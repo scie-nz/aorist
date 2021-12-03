@@ -8,7 +8,8 @@ use aorist_ast::{Formatted, AST};
 use aorist_primitives::define_task_node;
 use linked_hash_map::LinkedHashMap;
 use std::hash::Hash;
-use std::sync::{Arc, RwLock};
+use std::sync::Arc;
+use std::sync::RwLock;
 
 define_task_node!(
     BashPythonTask,

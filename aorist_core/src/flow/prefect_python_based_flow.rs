@@ -17,7 +17,8 @@ use linked_hash_map::LinkedHashMap;
 use pyo3::PyResult;
 use std::hash::{Hash, Hasher};
 use std::marker::PhantomData;
-use std::sync::{Arc, RwLock};
+use std::sync::Arc;
+use std::sync::RwLock;
 
 register_task_nodes! {
     PrefectTask,

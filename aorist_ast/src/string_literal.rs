@@ -3,7 +3,8 @@ use aorist_extendr_api::prelude::*;
 use pyo3::prelude::*;
 use pyo3::types::PyModule;
 use std::hash::Hash;
-use std::sync::{Arc, RwLock};
+use std::sync::Arc;
+use std::sync::RwLock;
 
 #[derive(Hash, PartialEq, Eq, Clone, Debug)]
 pub struct StringLiteral {
