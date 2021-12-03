@@ -6,6 +6,7 @@ use pyo3::prelude::*;
 #[cfg(feature = "sql")]
 use sqlparser::ast::{ColumnDef, DataType, Expr, Ident, Value};
 pub trait TValue {}
+use aorist_primitives::AString;
 
 #[derive(Hash, PartialEq, Eq, Debug, Serialize, Deserialize, Clone)]
 #[cfg_attr(feature = "python", derive(FromPyObject))]
@@ -169,8 +170,8 @@ where
     Self::Value: TValue,
 {
     type Value;
-    fn get_name(&self) -> &String;
-    fn get_comment(&self) -> &Option<String>;
+    fn get_name(&self) -> AString;
+    fn get_comment(&self) -> Option<AString>;
     fn is_nullable(&self) -> bool;
     fn is_key_type() -> bool;
 }
@@ -187,7 +188,7 @@ pub trait TPrestoAttribute: TAttribute {
                 {first_line}
                      COMMENT '{comment}'",
                 first_line = first_line,
-                comment = comment.trim().replace("'", "\\'").to_string()
+                comment = comment.as_str().to_string().trim().replace("'", "\\'").to_string()
             );
             return formatted_with_comment;
         }
@@ -205,7 +206,7 @@ pub trait TSQLAttribute: TAttribute {
     fn get_sql_type(&self) -> DataType;
     fn get_coldef(&self) -> ColumnDef {
         ColumnDef {
-            name: Ident::new(self.get_name()),
+            name: Ident::new(self.get_name().as_str()),
             data_type: self.get_sql_type(),
             collation: None,
             // TODO: add comments here

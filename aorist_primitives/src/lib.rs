@@ -373,18 +373,18 @@ macro_rules! define_attribute {
             )]
             #[cfg_attr(feature = "sql", derive($sql_type))]
             pub struct $element {
-                pub name: String,
-                pub comment: Option<String>,
+                pub name: AString,
+                pub comment: Option<AString>,
                 pub nullable: bool,
             }
             impl TAttribute for $element {
                 type Value = $value;
 
-                fn get_name(&self) -> &String {
-                    &self.name
+                fn get_name(&self) -> AString {
+                    self.name.clone()
                 }
-                fn get_comment(&self) -> &Option<String> {
-                    &self.comment
+                fn get_comment(&self) -> Option<AString> {
+                    self.comment.clone()
                 }
                 fn is_nullable(&self) -> bool {
                     self.nullable
@@ -408,15 +408,15 @@ macro_rules! define_attribute {
                 #[args(comment = "None")]
                 #[args(nullable = "false")]
                 pub fn new(
-                    name: String,
-                    comment: Option<String>,
+                    name: &str,
+                    comment: Option<&str>,
                     nullable: bool
                 ) -> Self {
-                    Self { name, comment, nullable }
+                    Self { name: name.into(), comment: comment.clone().and_then(|x| Some(x.into())), nullable }
                 }
                 #[getter]
-                pub fn name(&self) -> PyResult<String> {
-                    Ok(self.name.clone())
+                pub fn name(&self) -> PyResult<&str> {
+                    Ok(self.name.as_str())
                 }
                 #[getter]
                 pub fn py_type(&self) -> PyResult<pyo3::prelude::PyObject> {
@@ -1752,15 +1752,15 @@ macro_rules! asset {
     { $name: ident } => {
         #[aorist]
         pub struct $name {
-            pub name: String,
-            pub comment: Option<String>,
+            pub name: crate::concept::AString,
+            pub comment: Option<crate::concept::AString>,
             #[constrainable]
             pub schema: AoristRef<DataSchema>,
             #[constrainable]
             pub setup: AoristRef<StorageSetup>,
         }
         impl TAsset for $name {
-            fn get_name(&self) -> String {
+            fn get_name(&self) -> crate::concept::AString {
                 self.name.clone()
             }
             fn get_schema(&self) -> AoristRef<DataSchema> {
@@ -1778,7 +1778,7 @@ macro_rules! asset {
             pub fn replicate_to_local(
                 &self,
                 t: AoristRef<Storage>,
-                tmp_dir: String,
+                tmp_dir: crate::concept::AString,
                 tmp_encoding: AoristRef<Encoding>,
             ) -> Option<Self> {
                 if let StorageSetup::RemoteStorageSetup(s) = &*self.setup.0.read() {
@@ -1988,7 +1988,7 @@ macro_rules! asset_enum {
             )+)?
         }
         impl TAsset for $name {
-            fn get_name(&self) -> String {
+            fn get_name(&self) -> AString {
                 match self {
                     $($(
                         Self::$variant(x) => x.0.read().name.clone(),
@@ -2030,7 +2030,7 @@ macro_rules! asset_enum {
                     )+)?
                 }
             }
-            pub fn get_type(&self) -> String {
+            pub fn get_type(&self) -> AString {
                 match self {
                     $($(
                         Self::$variant(_) => stringify!($variant),
@@ -2044,7 +2044,7 @@ macro_rules! asset_enum {
             pub fn replicate_to_local(
                 &self,
                 t: AoristRef<Storage>,
-                tmp_dir: String,
+                tmp_dir: AString,
                 tmp_encoding: AoristRef<Encoding>,
             ) -> Option<Self> {
                 match self {
@@ -2068,7 +2068,7 @@ macro_rules! asset_enum {
         #[pymethods]
         impl [<Py $name>] {
             #[getter]
-            pub fn name(&self) -> String {
+            pub fn name(&self) -> AString {
                 self.inner.0.read().get_name()
             }
             #[getter]
