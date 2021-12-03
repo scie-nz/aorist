@@ -5,6 +5,58 @@ use siphasher::sip128::{Hasher128, SipHasher};
 use std::collections::{BTreeSet, HashMap};
 use std::hash::Hasher;
 use uuid::Uuid;
+use abi_stable::StableAbi;
+use serde::{Deserialize, Deserializer, Serialize};
+#[cfg(feature = "python")]
+use pyo3::prelude::*;
+
+#[repr(C)]
+#[cfg(feature = "python")]
+#[pyclass]
+#[derive(StableAbi, Clone, PartialEq, Serialize, Debug, Hash, Eq)]
+pub struct AString(abi_stable::std_types::RString);
+impl<'de> Deserialize<'de>
+    for AString
+{
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let d = abi_stable::std_types::RString::deserialize(deserializer)?;
+        Ok(Self(d))
+    }
+}
+
+impl std::fmt::Display for AString {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.0.fmt(f)
+    }
+}
+impl From<&str> for AString {
+    fn from(s: &str) -> Self {
+        AString(s.into())
+    }
+}
+impl std::convert::AsRef<str> for AString {
+    fn as_ref(&self) -> &str {
+        self.as_str()
+    }
+}
+
+impl AString {
+    pub fn len(&self) -> usize {
+        self.0.len()
+    }
+    pub fn contains(&self, c: char) -> bool {
+        self.0.contains(c)
+    }
+    pub fn as_str(&self) -> &str {
+        self.0.as_str()
+    }
+    pub fn new(s: &str) -> Self {
+        Self(s.into())
+    }
+}
 
 pub trait ConceptEnum {}
 pub trait AoristConcept {

@@ -18,6 +18,7 @@ use pyo3::prelude::*;
 use pyo3::types::{PyList, PyModule, PyString, PyTuple};
 use std::collections::VecDeque;
 use std::hash::{Hash, Hasher};
+use aorist_primitives::AString;
 
 define_ast_node!(
     ImportNode,
@@ -236,13 +237,13 @@ define_ast_node!(
             .map(|x| x.to_r_ast_node(depth))
             .collect::<Vec<_>>();
         let obj = r!(aorist_extendr_api::List::from_values(&elems));
-        obj.set_names(dict.elems.keys()).unwrap();
+        obj.set_names(dict.elems.keys().map(|x| x.as_str())).unwrap();
         obj
     },
-    elems: LinkedHashMap<String, AST>,
+    elems: LinkedHashMap<AString, AST>,
 );
 impl Dict {
-    pub fn replace_elem(&mut self, key: String, elem: AST) {
+    pub fn replace_elem(&mut self, key: AString, elem: AST) {
         self.elems.insert(key, elem);
     }
     pub fn len(&self) -> usize {
@@ -294,14 +295,14 @@ define_ast_node!(
             })?
             .call0()?;
         let val_ast = attribute.value.to_python_ast_node(py, ast_module, depth)?;
-        let name_ast = PyString::new(py, &attribute.name);
+        let name_ast = PyString::new(py, attribute.name.as_str());
         ast_module
             .getattr("Attribute")?
             .call1((val_ast, name_ast.as_ref(), mode))
     },
     |_attribute: &Attribute, _depth: usize| { panic!("No R correspondent for Attribute nodes") },
     value: AST,
-    name: String,
+    name: AString,
     store: bool,
 );
 impl TAssignmentTarget for Attribute {
@@ -357,7 +358,7 @@ define_ast_node!(
             };
             let res = make_lang("call");
             let mut tail = res.get();
-            tail = append_with_name(tail, r!(fn_name), "name");
+            tail = append_with_name(tail, r!(fn_name.as_str()), "name");
             for arg in &call.args {
                 tail = append(tail, arg.to_r_ast_node(depth));
             }
@@ -475,12 +476,12 @@ define_ast_node!(
     |simple_identifier: &SimpleIdentifier, py: Python, ast_module: &'a PyModule, _depth: usize| {
         ast_module
             .getattr("Name")?
-            .call1((PyString::new(py, &simple_identifier.name).as_ref(),))
+            .call1((PyString::new(py, simple_identifier.name.as_str()).as_ref(),))
     },
     |simple_identifier: &SimpleIdentifier, _depth: usize| {
-        call!("call", r!("as.name"), r!(&simple_identifier.name)).unwrap()
+        call!("call", r!("as.name"), r!(simple_identifier.name.as_str())).unwrap()
     },
-    name: String,
+    name: AString,
 );
 
 define_ast_node!(
@@ -609,12 +610,12 @@ define_ast_node!(
             .collect::<PyResult<Vec<_>>>()?;
         ast_module
             .getattr("FunctionDef")?
-            .call1((&fun.name, arguments, body_py))
+            .call1((fun.name.as_str(), arguments, body_py))
     },
     |_fun: &FunctionDef, _depth: usize| { panic!("Function defs not supported in R") },
-    name: String,
+    name: AString,
     args: Vec<AST>,
-    kwargs: LinkedHashMap<String, AST>,
+    kwargs: LinkedHashMap<AString, AST>,
     body: Vec<AST>,
 );
 
@@ -648,7 +649,7 @@ impl Formatted {
             if let AST::StringLiteral(rw) = &self.fmt {
                 let (unique_key, unique_value) = self.keywords.iter().next().unwrap().clone();
                 let read = rw.read();
-                if read.value() == format!("{{{}}}", unique_key).to_string() {
+                if read.value() == format!("{{{}}}", unique_key).as_str().into() {
                     return Some(unique_value.clone());
                 }
             }

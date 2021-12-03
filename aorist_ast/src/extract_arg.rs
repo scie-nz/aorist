@@ -2,7 +2,7 @@ use crate::{
     Attribute, BigIntLiteral, BooleanLiteral, Call, Dict, FloatLiteral, List, None,
     SimpleIdentifier, StringLiteral, Tuple, AST,
 };
-use aorist_primitives::Context;
+use aorist_primitives::{Context, AString};
 use linked_hash_map::LinkedHashMap;
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
@@ -11,9 +11,9 @@ use pyo3::types::{PyDict, PyList, PyTuple, PyType};
 pub fn extract_arg(arg: &PyAny) -> PyResult<AST> {
     if arg.is_none() {
         Ok(AST::None(None::new_wrapped()))
-    } else if let Ok(extracted_val) = arg.extract::<String>() {
+    } else if let Ok(extracted_val) = arg.extract::<&str>() {
         Ok(AST::StringLiteral(StringLiteral::new_wrapped(
-            extracted_val,
+            extracted_val.into(),
             false,
         )))
     } else if let Ok(extracted_val) = arg.extract::<bool>() {
@@ -45,8 +45,8 @@ pub fn extract_arg(arg: &PyAny) -> PyResult<AST> {
             .iter()
             .map(|(k, v)| {
                 (
-                    match k.extract::<String>() {
-                        Ok(key) => key.clone(),
+                    match k.extract::<&str>() {
+                        Ok(key) => key.into(),
                         Err(err) => panic!(
                             "Dictionary keys should be string. Got {:?} instead:\n{:?}",
                             k, err
@@ -60,13 +60,13 @@ pub fn extract_arg(arg: &PyAny) -> PyResult<AST> {
                     },
                 )
             })
-            .collect::<LinkedHashMap<String, AST>>();
+            .collect::<LinkedHashMap<AString, AST>>();
         Ok(AST::Dict(Dict::new_wrapped(m)))
     } else if arg.is_none() {
         Ok(AST::None(crate::None::new_wrapped()))
     } else if let Ok(extracted_type) = arg.downcast::<PyType>() {
         Ok(AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
-            extracted_type.name()?.to_string(),
+            extracted_type.name()?.into(),
         )))
     } else {
         let class = arg.getattr("__class__")?;
@@ -91,12 +91,12 @@ pub fn extract_arg(arg: &PyAny) -> PyResult<AST> {
                 }
                 "Attribute" => {
                     let value = extract_arg(arg.getattr("value")?)?;
-                    let attr = arg.getattr("attr")?.extract::<String>()?;
-                    Ok(AST::Attribute(Attribute::new_wrapped(value, attr, false)))
+                    let attr = arg.getattr("attr")?.extract::<&str>()?;
+                    Ok(AST::Attribute(Attribute::new_wrapped(value, attr.into(), false)))
                 }
                 "Name" => {
-                    let id = arg.getattr("id")?.extract::<String>()?;
-                    Ok(AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(id)))
+                    let id = arg.getattr("id")?.extract::<&str>()?;
+                    Ok(AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(id.into())))
                 }
                 "Constant" => {
                     let value = arg.getattr("value")?;

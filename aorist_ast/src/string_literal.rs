@@ -5,16 +5,17 @@ use aorist_extendr_api::prelude::*;
 use pyo3::prelude::*;
 use pyo3::types::PyModule;
 use std::hash::Hash;
+use aorist_primitives::AString;
 
 #[derive(Hash, PartialEq, Eq, Clone, Debug)]
 pub struct StringLiteral {
-    value: String,
+    value: AString,
     is_sql: bool,
     ancestors: Option<Vec<AncestorRecord>>,
 }
 
 impl StringLiteral {
-    pub fn new(value: String, is_sql: bool) -> Self {
+    pub fn new(value: AString, is_sql: bool) -> Self {
         assert!(value.len() > 0 || !is_sql);
         Self {
             value,
@@ -43,11 +44,12 @@ impl StringLiteral {
             ancestors: self.ancestors.clone(),
         }
     }
-    pub fn pretty_sql_value(&self, depth: usize) -> String {
+    pub fn pretty_sql_value(&self, depth: usize) -> AString {
         assert!(self.is_sql);
         let splits: Vec<String> = self
             .value
-            .clone()
+            .as_str()
+            .to_string()
             .split("\n")
             .filter(|x| x.len() > 0)
             .map(|x| x.to_string())
@@ -56,7 +58,7 @@ impl StringLiteral {
             panic!("Cannot pretify SQL value: {}", self.value);
         }
         if splits.len() == 1 {
-            return splits.into_iter().next().unwrap();
+            return AString::new(&splits.into_iter().next().unwrap());
         }
         let min_num_leading_spaces = splits
             .iter()
@@ -78,7 +80,8 @@ impl StringLiteral {
                 format!("{}{}", &offset, without_leading_spaces).to_string()
             })
             .collect::<Vec<String>>();
-        format!("\n{}\n{}", pretty_splits.join("\n"), offset,).to_string()
+        let out = format!("\n{}\n{}", pretty_splits.join("\n"), offset,);
+        AString::new(&out)
     }
 
     pub fn to_python_ast_node<'a>(
@@ -91,7 +94,7 @@ impl StringLiteral {
             false => self.value.clone(),
             true => self.pretty_sql_value(depth),
         };
-        ast_module.getattr("Constant")?.call1((&value,))
+        ast_module.getattr("Constant")?.call1((value.as_str(),))
     }
 
     pub fn to_r_ast_node(&self, depth: usize) -> Robj {
@@ -99,13 +102,13 @@ impl StringLiteral {
             false => self.value.clone(),
             true => self.pretty_sql_value(depth),
         };
-        Robj::from(vec![&*value])
+        Robj::from(vec![value.as_str()])
     }
 
-    pub fn new_wrapped(value: String, is_sql: bool) -> RArc<RRwLock<Self>> {
+    pub fn new_wrapped(value: AString, is_sql: bool) -> RArc<RRwLock<Self>> {
         RArc::new(RRwLock::new(Self::new(value, is_sql)))
     }
-    pub fn value(&self) -> String {
+    pub fn value(&self) -> AString {
         self.value.clone()
     }
     pub fn len(&self) -> usize {
