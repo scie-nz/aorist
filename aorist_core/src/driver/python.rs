@@ -7,6 +7,8 @@ use crate::driver::{ConstraintsBlockMap, Driver};
 use crate::flow::{ETLFlow, FlowBuilderBase, PythonBasedFlowBuilder};
 use crate::program::TOuterProgram;
 use crate::python::{PythonBasedConstraintBlock, PythonImport, PythonPreamble};
+use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
+use abi_stable::std_types::RArc;
 use anyhow::Result;
 use aorist_ast::AncestorRecord;
 use aorist_primitives::{Ancestry, AoristConcept, AoristUniverse, TConceptEnum};
@@ -14,8 +16,6 @@ use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
 use std::collections::{BTreeSet, HashMap};
 use std::marker::PhantomData;
-use abi_stable::std_types::RArc;
-use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 use uuid::Uuid;
 
 pub struct PythonBasedDriver<'a, B, D, U, C, A, P>
@@ -47,7 +47,7 @@ where
     topline_constraint_names: LinkedHashSet<String>,
     programs: LinkedHashMap<String, Vec<P>>,
     preferences: Vec<Dialect>,
-    render_dependencies: bool
+    render_dependencies: bool,
 }
 impl<'a, B, D, U, C, A, P> Driver<'a, B, D, U, C, A, P> for PythonBasedDriver<'a, B, D, U, C, A, P>
 where
@@ -170,6 +170,6 @@ where
         }
     }
     fn get_render_dependencies(&self) -> bool {
-            self.render_dependencies
+        self.render_dependencies
     }
 }

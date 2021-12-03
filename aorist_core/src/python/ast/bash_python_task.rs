@@ -4,12 +4,12 @@ use super::python_subprocess_task::PythonSubprocessTask;
 use crate::python::ast::AirflowTaskBase;
 use crate::python::ast::PythonTaskBase;
 use crate::python::PythonImport;
+use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
+use abi_stable::std_types::RArc;
 use aorist_ast::{Formatted, AST};
 use aorist_primitives::define_task_node;
 use linked_hash_map::LinkedHashMap;
 use std::hash::Hash;
-use abi_stable::std_types::RArc;
-use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 
 define_task_node!(
     BashPythonTask,

@@ -58,14 +58,7 @@ impl TUniverse for Universe {
                 return Err(format!("Cannot find user with name {}.", name));
             }
             let user = umap.get(&name).unwrap().clone();
-            for perm in binding
-                .0
-                .read()
-                .get_role()
-                .0
-                .read()
-                .get_permissions()
-            {
+            for perm in binding.0.read().get_role().0.read().get_permissions() {
                 map.entry(user.0.read().get_unixname().clone())
                     .or_insert_with(HashSet::new)
                     .insert(perm.clone());

@@ -1,10 +1,10 @@
 use crate::{AncestorRecord, AST};
+use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
+use abi_stable::std_types::RArc;
 use aorist_extendr_api::prelude::*;
 use pyo3::prelude::*;
 use pyo3::types::PyModule;
 use std::hash::Hash;
-use abi_stable::std_types::RArc;
-use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 
 #[derive(Hash, PartialEq, Eq, Clone, Debug)]
 pub struct StringLiteral {

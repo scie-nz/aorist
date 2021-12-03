@@ -32,18 +32,14 @@ impl LanguageAssetSchema {
     }
     pub fn get_source_schema(&self) -> AoristRef<TextCorpusSchema> {
         match self {
-            LanguageAssetSchema::FasttextEmbeddingSchema(x) => {
-                x.0.read().get_source_schema()
-            }
+            LanguageAssetSchema::FasttextEmbeddingSchema(x) => x.0.read().get_source_schema(),
             LanguageAssetSchema::NamedEntitySchema(x) => x.0.read().get_source_schema(),
             LanguageAssetSchema::TextCorpusSchema(x) => x.clone(),
         }
     }
     pub fn get_datum_template(&self) -> AoristRef<DatumTemplate> {
         match self {
-            LanguageAssetSchema::FasttextEmbeddingSchema(x) => {
-                x.0.read().get_datum_template()
-            }
+            LanguageAssetSchema::FasttextEmbeddingSchema(x) => x.0.read().get_datum_template(),
             LanguageAssetSchema::NamedEntitySchema(x) => x.0.read().get_datum_template(),
             LanguageAssetSchema::TextCorpusSchema(x) => x.0.read().get_datum_template(),
         }

@@ -3,6 +3,8 @@ use crate::constraint::OuterConstraint;
 use crate::dialect::Dialect;
 use crate::parameter_tuple::ParameterTuple;
 use crate::program::TOuterProgram;
+use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
+use abi_stable::std_types::RArc;
 use anyhow::{bail, Result};
 use aorist_ast::{AncestorRecord, Formatted, SimpleIdentifier, StringLiteral, AST};
 use aorist_primitives::Context;
@@ -11,8 +13,6 @@ use inflector::cases::snakecase::to_snake_case;
 use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
 use std::collections::{HashMap, HashSet};
-use abi_stable::std_types::RArc;
-use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 use tracing::{debug, level_enabled, trace, Level};
 use uuid::Uuid;
 

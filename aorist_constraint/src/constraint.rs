@@ -1,3 +1,5 @@
+use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
+use abi_stable::std_types::RArc;
 use anyhow::{Context, Result};
 #[cfg(feature = "python")]
 use aorist_ast::{StringLiteral, AST};
@@ -20,8 +22,6 @@ use pyo3::types::PyString;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fmt;
-use abi_stable::std_types::RArc;
-use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 use tracing::debug;
 
 include!(concat!(env!("OUT_DIR"), "/constraints.rs"));

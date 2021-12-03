@@ -41,9 +41,7 @@ impl VisionAssetSchema {
             Self::SIFTAffineImageKeyPointSchema(x) => x.0.read().get_attributes(),
             Self::FLANNKNNMatchSchema(x) => x.0.read().get_attributes(),
             Self::HomographyFromKNNMatchSchema(x) => x.0.read().get_attributes(),
-            Self::PerspectiveTransformFromHomographySchema(x) => {
-                x.0.read().get_attributes()
-            }
+            Self::PerspectiveTransformFromHomographySchema(x) => x.0.read().get_attributes(),
         }
     }
     pub fn get_datum_template(&self) -> AoristRef<DatumTemplate> {
@@ -55,13 +53,9 @@ impl VisionAssetSchema {
             VisionAssetSchema::TransformImageCorpusThroughMLPSchema(x) => {
                 x.0.read().get_datum_template()
             }
-            VisionAssetSchema::SIFTAffineImageKeyPointSchema(x) => {
-                x.0.read().get_datum_template()
-            }
+            VisionAssetSchema::SIFTAffineImageKeyPointSchema(x) => x.0.read().get_datum_template(),
             VisionAssetSchema::FLANNKNNMatchSchema(x) => x.0.read().get_datum_template(),
-            VisionAssetSchema::HomographyFromKNNMatchSchema(x) => {
-                x.0.read().get_datum_template()
-            }
+            VisionAssetSchema::HomographyFromKNNMatchSchema(x) => x.0.read().get_datum_template(),
             VisionAssetSchema::PerspectiveTransformFromHomographySchema(x) => {
                 x.0.read().get_datum_template()
             }

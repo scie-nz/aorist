@@ -1,11 +1,11 @@
 use crate::python::ast::{AirflowTaskBase, PythonFunctionCallTask, PythonTaskBase};
 use crate::python::PythonImport;
+use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
+use abi_stable::std_types::RArc;
 use aorist_ast::{Call, SimpleIdentifier, AST};
 use aorist_primitives::define_task_node;
 use linked_hash_map::LinkedHashMap;
 use std::hash::Hash;
-use abi_stable::std_types::RArc;
-use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 
 define_task_node!(
     ConstantPythonTask,

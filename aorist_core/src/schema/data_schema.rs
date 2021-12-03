@@ -47,25 +47,13 @@ impl DataSchema {
     pub fn get_datum_template(&self) -> Result<AoristRef<DatumTemplate>, String> {
         match self {
             DataSchema::TabularSchema(x) => Ok(x.0.read().get_datum_template().clone()),
-            DataSchema::TabularCollectionSchema(x) => {
-                Ok(x.0.read().get_datum_template().clone())
-            }
-            DataSchema::LongTabularSchema(x) => {
-                Ok(x.0.read().get_datum_template().clone())
-            }
-            DataSchema::LanguageAssetSchema(x) => {
-                Ok(x.0.read().get_datum_template().clone())
-            }
-            DataSchema::VisionAssetSchema(x) => {
-                Ok(x.0.read().get_datum_template().clone())
-            }
-            DataSchema::GeospatialAssetSchema(x) => {
-                Ok(x.0.read().get_datum_template().clone())
-            }
+            DataSchema::TabularCollectionSchema(x) => Ok(x.0.read().get_datum_template().clone()),
+            DataSchema::LongTabularSchema(x) => Ok(x.0.read().get_datum_template().clone()),
+            DataSchema::LanguageAssetSchema(x) => Ok(x.0.read().get_datum_template().clone()),
+            DataSchema::VisionAssetSchema(x) => Ok(x.0.read().get_datum_template().clone()),
+            DataSchema::GeospatialAssetSchema(x) => Ok(x.0.read().get_datum_template().clone()),
             DataSchema::GraphAssetSchema(x) => Ok(x.0.read().get_datum_template().clone()),
-            DataSchema::TimeOrderedTabularSchema(x) => {
-                Ok(x.0.read().get_datum_template().clone())
-            }
+            DataSchema::TimeOrderedTabularSchema(x) => Ok(x.0.read().get_datum_template().clone()),
             DataSchema::UndefinedTabularSchema(_) => {
                 Err("UndefinedTabularSchema has no datum template.".to_string())
             }
@@ -73,62 +61,28 @@ impl DataSchema {
     }
     pub fn get_datum_template_name(&self) -> Result<String, String> {
         match self {
-            DataSchema::TabularSchema(x) => Ok(x
-                .0
-                .read()
-                .get_datum_template()
-                .0
-                .read()
-                .get_name()),
-            DataSchema::TabularCollectionSchema(x) => Ok(x
-                .0
-                .read()
-                .get_datum_template()
-                .0
-                .read()
-                .get_name()),
-            DataSchema::GraphAssetSchema(x) => Ok(x
-                .0
-                .read()
-                .get_datum_template()
-                .0
-                .read()
-                .get_name()),
-            DataSchema::LongTabularSchema(x) => Ok(x
-                .0
-                .read()
-                .get_datum_template()
-                .0
-                .read()
-                .get_name()),
-            DataSchema::LanguageAssetSchema(x) => Ok(x
-                .0
-                .read()
-                .get_datum_template()
-                .0
-                .read()
-                .get_name()),
-            DataSchema::VisionAssetSchema(x) => Ok(x
-                .0
-                .read()
-                .get_datum_template()
-                .0
-                .read()
-                .get_name()),
-            DataSchema::GeospatialAssetSchema(x) => Ok(x
-                .0
-                .read()
-                .get_datum_template()
-                .0
-                .read()
-                .get_name()),
-            DataSchema::TimeOrderedTabularSchema(x) => Ok(x
-                .0
-                .read()
-                .get_datum_template()
-                .0
-                .read()
-                .get_name()),
+            DataSchema::TabularSchema(x) => Ok(x.0.read().get_datum_template().0.read().get_name()),
+            DataSchema::TabularCollectionSchema(x) => {
+                Ok(x.0.read().get_datum_template().0.read().get_name())
+            }
+            DataSchema::GraphAssetSchema(x) => {
+                Ok(x.0.read().get_datum_template().0.read().get_name())
+            }
+            DataSchema::LongTabularSchema(x) => {
+                Ok(x.0.read().get_datum_template().0.read().get_name())
+            }
+            DataSchema::LanguageAssetSchema(x) => {
+                Ok(x.0.read().get_datum_template().0.read().get_name())
+            }
+            DataSchema::VisionAssetSchema(x) => {
+                Ok(x.0.read().get_datum_template().0.read().get_name())
+            }
+            DataSchema::GeospatialAssetSchema(x) => {
+                Ok(x.0.read().get_datum_template().0.read().get_name())
+            }
+            DataSchema::TimeOrderedTabularSchema(x) => {
+                Ok(x.0.read().get_datum_template().0.read().get_name())
+            }
             DataSchema::UndefinedTabularSchema(_) => {
                 Err("UndefinedTabularSchema has no datum template.".to_string())
             }
@@ -176,12 +130,7 @@ impl DataSchema {
             DataSchema::GeospatialAssetSchema(x) => x.0.read().get_attributes(),
             DataSchema::GraphAssetSchema(x) => x.0.read().get_attributes(),
             DataSchema::TabularCollectionSchema(x) => x.0.read().get_attributes(),
-            _ => self
-                .get_datum_template()
-                .unwrap()
-                .0
-                .read()
-                .get_attributes(),
+            _ => self.get_datum_template().unwrap().0.read().get_attributes(),
         }
     }
 }

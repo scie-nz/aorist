@@ -78,12 +78,13 @@ where
     U: AoristUniverse,
 {
     fn get_dict_assign(&self) -> (AST, bool) {
-        let insert_deps = self.render_dependencies && self
-            .values
-            .iter()
-            .filter(|x| x.deps.len() > 0)
-            .next()
-            .is_some();
+        let insert_deps = self.render_dependencies
+            && self
+                .values
+                .iter()
+                .filter(|x| x.deps.len() > 0)
+                .next()
+                .is_some();
         // true if there is no task with but a single dependency
         let dependencies_as_list = !self
             .values

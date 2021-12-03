@@ -23,5 +23,5 @@ derived_schema! {
       name: FreeText("Polygon name", true),
       wkt: WKTString("WKT string", false)
     fields:
-      min_overlap: FloatValue 
+      min_overlap: FloatValue
 }

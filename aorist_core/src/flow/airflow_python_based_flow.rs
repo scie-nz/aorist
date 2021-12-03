@@ -237,12 +237,9 @@ where
                             (
                                 k.clone(),
                                 match *v {
-                                    AST::StringLiteral(ref x) => {
-                                        AST::StringLiteral(StringLiteral::new_wrapped(
-                                            x.read().value().clone(),
-                                            true,
-                                        ))
-                                    }
+                                    AST::StringLiteral(ref x) => AST::StringLiteral(
+                                        StringLiteral::new_wrapped(x.read().value().clone(), true),
+                                    ),
                                     _ => v.clone(),
                                 },
                             )

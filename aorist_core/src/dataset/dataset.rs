@@ -8,6 +8,9 @@ use crate::encoding::*;
 use crate::storage::*;
 use crate::storage_setup::*;
 use crate::template::*;
+use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
+#[cfg(feature = "python")]
+use abi_stable::std_types::RArc;
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
 use aorist_primitives::TAoristObject;
@@ -20,9 +23,6 @@ use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use std::fmt::Debug;
-#[cfg(feature = "python")]
-use abi_stable::std_types::RArc;
-use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 use uuid::Uuid;
 
 #[aorist]
@@ -40,8 +40,7 @@ pub struct DataSet {
 
 impl DataSet {
     pub fn add_asset(&mut self, asset: AoristRef<Asset>) {
-        self.assets
-            .insert(asset.0.read().get_name(), asset.clone());
+        self.assets.insert(asset.0.read().get_name(), asset.clone());
     }
     pub fn add_template(&mut self, template: AoristRef<DatumTemplate>) {
         self.datum_templates.push(template);
@@ -139,10 +138,7 @@ impl PyDataSet {
         }
     }
     pub fn add_template(&self, template: PyDatumTemplate) {
-        self.inner
-            .0
-            .write()
-            .add_template(template.inner.clone());
+        self.inner.0.write().add_template(template.inner.clone());
     }
     pub fn persist_local(&self, storage: PyStorage) -> PyResult<Self> {
         let dt = &*self.inner.0.read();

@@ -1,5 +1,5 @@
-use abi_stable::std_types::RArc;
 use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
+use abi_stable::std_types::RArc;
 
 pub trait TAssignmentTarget
 where

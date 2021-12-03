@@ -1,4 +1,6 @@
 pub use crate::universe::*;
+use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
+use abi_stable::std_types::RArc;
 pub use aorist_primitives::{
     register_concept, Ancestry, AoristConcept, AoristUniverse, ConceptEnum, TConceptEnum,
 };
@@ -9,8 +11,6 @@ use std::collections::HashMap;
 use std::convert::TryFrom;
 use std::fmt::{Debug, Formatter};
 use std::hash::{Hash, Hasher};
-use abi_stable::std_types::RArc;
-use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 use tracing::debug;
 use uuid::Uuid;
 

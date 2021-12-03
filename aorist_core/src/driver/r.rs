@@ -7,6 +7,8 @@ use crate::driver::{ConstraintsBlockMap, Driver};
 use crate::endpoints::EndpointConfig;
 use crate::flow::{ETLFlow, FlowBuilderBase, FlowBuilderMaterialize};
 use crate::r::{RBasedConstraintBlock, RFlowBuilderInput, RImport, RPreamble};
+use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
+use abi_stable::std_types::RArc;
 use anyhow::Result;
 use aorist_ast::AncestorRecord;
 use aorist_primitives::OuterConstraint;
@@ -15,8 +17,6 @@ use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
 use std::collections::HashMap;
 use std::marker::PhantomData;
-use abi_stable::std_types::RArc;
-use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 use uuid::Uuid;
 
 pub struct RBasedDriver<'a, 'b, D, C>

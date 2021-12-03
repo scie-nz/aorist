@@ -4,14 +4,14 @@ use crate::constraint_state::ConstraintState;
 use crate::flow::{CompressibleETLTask, CompressibleTask, ETLFlow, ETLTask, StandaloneTask};
 use crate::parameter_tuple::ParameterTuple;
 use crate::program::TOuterProgram;
+use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
+use abi_stable::std_types::RArc;
 use anyhow::Result;
 use aorist_ast::{SimpleIdentifier, StringLiteral, Subscript, AST};
 use aorist_primitives::AoristUniverse;
 use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
 use std::collections::{BTreeSet, HashMap, HashSet};
-use abi_stable::std_types::RArc;
-use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 use uuid::Uuid;
 
 pub trait CodeBlock<'a, T, C, U, P>
@@ -198,12 +198,17 @@ where
         constraint_name: String,
         tasks_dict: Option<AST>,
         identifiers: &HashMap<Uuid, AST>,
-        render_dependencies: bool
+        render_dependencies: bool,
     ) -> Result<Self> {
         let (standalone_tasks, task_identifiers, params) =
             Self::create_standalone_tasks(members, tasks_dict.clone(), identifiers)?;
         let (compressible, mut tasks) = Self::separate_compressible_tasks(standalone_tasks);
-        Self::run_task_compressions(compressible, &mut tasks, constraint_name, render_dependencies);
+        Self::run_task_compressions(
+            compressible,
+            &mut tasks,
+            constraint_name,
+            render_dependencies,
+        );
         Ok(Self::construct(tasks_dict, tasks, task_identifiers, params))
     }
 }

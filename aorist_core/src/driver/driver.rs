@@ -10,6 +10,8 @@ use crate::flow::{FlowBuilderBase, FlowBuilderMaterialize};
 use crate::parameter_tuple::ParameterTuple;
 use crate::program::TOuterProgram;
 //use crate::task_name_shortener::TaskNameShortener;
+use abi_stable::external_types::parking_lot::rw_lock::{RReadGuard, RRwLock};
+use abi_stable::std_types::RArc;
 use anyhow::Result;
 use aorist_ast::{AncestorRecord, SimpleIdentifier, AST};
 use aorist_primitives::TAoristObject;
@@ -18,8 +20,6 @@ use inflector::cases::snakecase::to_snake_case;
 use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
 use std::collections::{HashMap, HashSet, VecDeque};
-use abi_stable::std_types::RArc;
-use abi_stable::external_types::parking_lot::rw_lock::{RRwLock, RReadGuard};
 use tracing::{debug, level_enabled, trace, Level};
 use uuid::Uuid;
 
@@ -188,11 +188,7 @@ where
         // TODO: preambles and calls are superflous
         if let Some(key) = state.read().key.as_ref() {
             calls
-                .entry((
-                    state.read().get_call().unwrap(),
-                    name,
-                    uuid.1.clone(),
-                ))
+                .entry((state.read().get_call().unwrap(), name, uuid.1.clone()))
                 .or_insert(Vec::new())
                 .push((key.clone(), state.read().get_params().unwrap()))
         } else {
@@ -609,10 +605,7 @@ where
 
                 if let Some(rev_deps) = reverse_dependencies.get(&elem) {
                     for rev in rev_deps.iter() {
-                        let mut write = raw_unsatisfied_constraints
-                            .get(rev)
-                            .unwrap()
-                            .write();
+                        let mut write = raw_unsatisfied_constraints.get(rev).unwrap().write();
                         assert!(write.unsatisfied_dependencies.remove(&elem));
                         write.unsatisfied_dependencies.insert(dep.clone());
                     }
@@ -815,10 +808,7 @@ where
         let mut constraints = LinkedHashMap::new();
         for (_k, v) in generated_constraints {
             for ((_root_id, root_type), rw) in v.into_iter() {
-                constraints.insert(
-                    (rw.read().get_uuid()?.clone(), root_type),
-                    rw.clone(),
-                );
+                constraints.insert((rw.read().get_uuid()?.clone(), root_type), rw.clone());
             }
         }
         debug!("There are {} generated_constraints.", constraints.len());

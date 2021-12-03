@@ -6,6 +6,8 @@ use crate::flow::python_based_flow_builder::PythonBasedFlowBuilder;
 use crate::python::{
     NativePythonPreamble, PythonFlowBuilderInput, PythonImport, PythonPreamble, RPythonTask,
 };
+use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
+use abi_stable::std_types::RArc;
 use aorist_ast::{
     Assignment, Attribute, Call, Expression, ForLoop, Formatted, SimpleIdentifier, StringLiteral,
     AST,
@@ -17,8 +19,6 @@ use linked_hash_map::LinkedHashMap;
 use pyo3::PyResult;
 use std::hash::{Hash, Hasher};
 use std::marker::PhantomData;
-use abi_stable::std_types::RArc;
-use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 
 register_task_nodes! {
     PrefectTask,

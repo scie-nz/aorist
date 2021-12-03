@@ -15,7 +15,7 @@ use uuid::Uuid;
 
 derived_schema! {
     name: PolygonCollectionStatsUnionSchema,
-    sources: 
+    sources:
         - first: PolygonCollectionAsset,
         - second: PolygonCollectionAsset,
     attributes:

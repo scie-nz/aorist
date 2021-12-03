@@ -8,6 +8,8 @@ pub use assignment_target::*;
 pub use extract_arg::*;
 pub use string_literal::*;
 
+use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
+use abi_stable::std_types::RArc;
 use aorist_derive::Optimizable;
 use aorist_extendr_api::prelude::*;
 use aorist_primitives::{define_ast_node, register_ast_nodes};
@@ -16,8 +18,6 @@ use pyo3::prelude::*;
 use pyo3::types::{PyList, PyModule, PyString, PyTuple};
 use std::collections::VecDeque;
 use std::hash::{Hash, Hasher};
-use abi_stable::std_types::RArc;
-use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 
 define_ast_node!(
     ImportNode,
@@ -91,12 +91,8 @@ define_ast_node!(
     |assign: &Assignment| vec![assign.target.clone(), assign.call.clone()],
     |assign: &Assignment, py: Python, ast_module: &'a PyModule, depth: usize| {
         let assign_target = match assign.target {
-            AST::Subscript(ref x) => {
-                AST::Subscript(x.read().as_wrapped_assignment_target())
-            }
-            AST::Attribute(ref x) => {
-                AST::Attribute(x.read().as_wrapped_assignment_target())
-            }
+            AST::Subscript(ref x) => AST::Subscript(x.read().as_wrapped_assignment_target()),
+            AST::Attribute(ref x) => AST::Attribute(x.read().as_wrapped_assignment_target()),
             AST::List(ref x) => AST::List(x.read().as_wrapped_assignment_target()),
             AST::Tuple(ref x) => AST::Tuple(x.read().as_wrapped_assignment_target()),
             AST::SimpleIdentifier(_) => assign.target.clone(),
@@ -664,12 +660,8 @@ impl Formatted {
 impl AST {
     pub fn as_wrapped_assignment_target(&self) -> Self {
         match &self {
-            AST::Subscript(ref x) => {
-                AST::Subscript(x.read().as_wrapped_assignment_target())
-            }
-            AST::Attribute(ref x) => {
-                AST::Attribute(x.read().as_wrapped_assignment_target())
-            }
+            AST::Subscript(ref x) => AST::Subscript(x.read().as_wrapped_assignment_target()),
+            AST::Attribute(ref x) => AST::Attribute(x.read().as_wrapped_assignment_target()),
             AST::List(ref x) => AST::List(x.read().as_wrapped_assignment_target()),
             AST::Tuple(ref x) => AST::Tuple(x.read().as_wrapped_assignment_target()),
             AST::SimpleIdentifier(_) => self.clone(),

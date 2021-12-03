@@ -6,6 +6,8 @@ use crate::storage_setup::local_storage_setup::*;
 use crate::storage_setup::remote_storage_setup::*;
 use crate::storage_setup::replication_storage_setup::*;
 use crate::storage_setup::two_tier_storage_setup::*;
+use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
+use abi_stable::std_types::RArc;
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
 use aorist_primitives::{AoristConcept, ConceptEnum};
@@ -13,8 +15,6 @@ use aorist_primitives::{AoristConcept, ConceptEnum};
 use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
-use abi_stable::std_types::RArc;
-use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 use uuid::Uuid;
 
 #[aorist]
@@ -38,10 +38,9 @@ impl StorageSetup {
             Self::ReplicationStorageSetup(x) => x.0.read().targets.clone(),
             Self::ComputedFromLocalData(x) => vec![x.0.read().target.clone()],
             Self::LocalStorageSetup(x) => vec![x.0.read().local.clone()],
-            Self::TwoTierStorageSetup(x) => vec![
-                x.0.read().scratch.clone(),
-                x.0.read().persistent.clone(),
-            ],
+            Self::TwoTierStorageSetup(x) => {
+                vec![x.0.read().scratch.clone(), x.0.read().persistent.clone()]
+            }
         }
     }
     pub fn get_tmp_dir(&self) -> String {
@@ -60,12 +59,9 @@ impl StorageSetup {
         tmp_encoding: AoristRef<Encoding>,
     ) -> Self {
         match self {
-            Self::RemoteStorageSetup(x) => {
-                Self::ReplicationStorageSetup(AoristRef(RArc::new(RRwLock::new(
-                    x.0.read()
-                        .replicate_to_local(t, tmp_dir, tmp_encoding),
-                ))))
-            }
+            Self::RemoteStorageSetup(x) => Self::ReplicationStorageSetup(AoristRef(RArc::new(
+                RRwLock::new(x.0.read().replicate_to_local(t, tmp_dir, tmp_encoding)),
+            ))),
             _ => panic!("Only assets with RemoteStorageSetup can be replicated"),
         }
     }

@@ -29,14 +29,7 @@ derived_schema! {
 
 impl FasttextEmbeddingSchema {
     pub fn get_source_schema(&self) -> AoristRef<TextCorpusSchema> {
-        match &*self
-            .get_source()
-            .0
-            .read()
-            .get_schema()
-            .0
-            .read()
-        {
+        match &*self.get_source().0.read().get_schema().0.read() {
             DataSchema::LanguageAssetSchema(l) => match &*l.0.read() {
                 LanguageAssetSchema::TextCorpusSchema(x) => x.clone(),
                 _ => panic!("Source schema must be TextCorpusSchema"),

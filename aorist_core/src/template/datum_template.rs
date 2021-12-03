@@ -87,9 +87,7 @@ impl TDatumTemplate for DatumTemplate {
             DatumTemplate::IdentifierTuple(x) => x.0.read().get_attributes(),
             DatumTemplate::IntegerMeasure(x) => x.0.read().get_attributes(),
             DatumTemplate::TrainedFloatMeasure(x) => x.get_attributes(),
-            DatumTemplate::PredictionsFromTrainedFloatMeasure(x) => {
-                x.0.read().get_attributes()
-            }
+            DatumTemplate::PredictionsFromTrainedFloatMeasure(x) => x.0.read().get_attributes(),
             DatumTemplate::Filter(x) => x.0.read().get_attributes(),
             DatumTemplate::Tensor(x) => x.0.read().get_attributes(),
             DatumTemplate::PointCloud(x) => x.0.read().get_attributes(),

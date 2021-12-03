@@ -29,9 +29,7 @@ impl NamedEntitySchema {
     }
     pub fn get_datum_template(&self) -> AoristRef<DatumTemplate> {
         match self {
-            NamedEntitySchema::SpaCyNamedEntitySchema(x) => {
-                x.0.read().get_datum_template()
-            }
+            NamedEntitySchema::SpaCyNamedEntitySchema(x) => x.0.read().get_datum_template(),
         }
     }
 }
