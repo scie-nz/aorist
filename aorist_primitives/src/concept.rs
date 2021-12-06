@@ -1,3 +1,4 @@
+use abi_stable::std_types::vec::RVec;
 use crate::endpoints::*;
 use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 use abi_stable::std_types::RArc;
@@ -15,6 +16,11 @@ use uuid::Uuid;
 #[pyclass]
 #[derive(StableAbi, Clone, PartialEq, Serialize, Debug, Hash, Eq, PartialOrd, Ord)]
 pub struct AString(abi_stable::std_types::RString);
+
+#[repr(C)]
+#[derive(StableAbi, Clone, PartialEq, Serialize, Debug, Hash, Eq, PartialOrd, Ord)]
+pub struct AVec<T>(abi_stable::std_types::RVec<T>);
+
 impl<'de> Deserialize<'de> for AString {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
@@ -62,7 +68,7 @@ pub trait AoristConcept {
     fn get_uuid(&self) -> Option<Uuid>;
     fn get_tag(&self) -> Option<AString>;
     fn compute_uuids(&self);
-    fn get_children_uuid(&self) -> Vec<Uuid>;
+    fn get_children_uuid(&self) -> RVec<Uuid>;
     fn get_uuid_from_children_uuid(&self) -> Uuid {
         let child_uuids = self.get_children_uuid();
         if child_uuids.len() > 0 {
@@ -80,7 +86,7 @@ pub trait AoristConcept {
     }
     fn get_children(
         &self,
-    ) -> Vec<(
+    ) -> RVec<(
         // struct name
         &str,
         // field name
@@ -101,7 +107,7 @@ pub trait TConceptEnum: Sized + Clone {
     fn get_uuid(&self) -> Uuid;
     fn get_tag(&self) -> Option<AString>;
     fn get_index_as_child(&self) -> usize;
-    fn get_child_concepts(&self) -> Vec<Self>;
+    fn get_child_concepts(&self) -> RVec<Self>;
     fn populate_child_concept_map(&self, concept_map: &mut HashMap<(Uuid, AString), Self>);
     fn from_universe(universe: Self::TUniverse) -> Self;
 }
