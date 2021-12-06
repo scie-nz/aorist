@@ -1,11 +1,11 @@
 use crate::code::Preamble;
 use crate::python::PythonImport;
 use aorist_ast::FunctionDef;
+use aorist_primitives::AString;
 use pyo3::prelude::*;
 use pyo3::types::{PyList, PyModule, PyString, PyTuple};
 use std::hash::Hash;
 use tracing::debug;
-use aorist_primitives::AString;
 
 pub trait TPythonPreamble {
     fn to_python_ast_nodes<'b>(
@@ -180,11 +180,7 @@ def build_preamble(body):
             .iter()
             .map(|x| {
                 let tpl: &PyTuple = x.extract().unwrap();
-                let name: AString = tpl
-                    .get_item(0)
-                    .extract::<&PyString>()?
-                    .to_str()?
-                    .into();
+                let name: AString = tpl.get_item(0).extract::<&PyString>()?.to_str()?.into();
                 let alias = tpl.get_item(1);
                 let asname: Option<AString> = match alias.is_none() {
                     true => None,
@@ -199,16 +195,8 @@ def build_preamble(body):
             .iter()
             .map(|x| {
                 let tpl: &PyTuple = x.extract()?;
-                let module: AString = tpl
-                    .get_item(0)
-                    .extract::<&PyString>()?
-                    .to_str()?
-                    .into();
-                let name: AString = tpl
-                    .get_item(1)
-                    .extract::<&PyString>()?
-                    .to_str()?
-                    .into();
+                let module: AString = tpl.get_item(0).extract::<&PyString>()?.to_str()?.into();
+                let name: AString = tpl.get_item(1).extract::<&PyString>()?.to_str()?.into();
                 let alias = tpl.get_item(2);
                 let asname: Option<AString> = match alias.is_none() {
                     true => None,
@@ -224,13 +212,7 @@ def build_preamble(body):
             from_imports,
             body: body_no_imports
                 .iter()
-                .map(|x| {
-                    x.extract::<&PyString>()
-                        .unwrap()
-                        .to_str()
-                        .unwrap()
-                        .into()
-                })
+                .map(|x| x.extract::<&PyString>().unwrap().to_str().unwrap().into())
                 .collect::<Vec<String>>()
                 .join("\n")
                 .as_str()
@@ -243,7 +225,11 @@ def build_preamble(body):
             .into_iter()
             .map(|x| x.to_string())
             .chain(self.imports.clone().into_iter().map(|x| x.to_string()))
-            .chain(vec![self.body.clone()].into_iter().map(|x| x.as_str().to_string()))
+            .chain(
+                vec![self.body.clone()]
+                    .into_iter()
+                    .map(|x| x.as_str().to_string()),
+            )
             .collect::<Vec<String>>()
             .join("\n")
     }

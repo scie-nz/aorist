@@ -1,6 +1,7 @@
 #![allow(non_snake_case)]
 use crate::attributes::*;
 use crate::concept::{AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
+use crate::error::AoristError;
 use crate::schema::geospatial_asset_schema::*;
 use crate::schema::graph_asset_schema::*;
 use crate::schema::language_asset_schema::*;
@@ -11,9 +12,9 @@ use crate::schema::time_ordered_tabular_schema::*;
 use crate::schema::undefined_tabular_schema::*;
 use crate::schema::vision_asset_schema::*;
 use crate::template::*;
-use aorist_primitives::AString;
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
+use aorist_primitives::AString;
 #[cfg(feature = "python")]
 use pyo3::exceptions::PyValueError;
 #[cfg(feature = "python")]
@@ -21,7 +22,6 @@ use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
 use uuid::Uuid;
-use crate::error::AoristError;
 
 #[aorist]
 pub enum DataSchema {
@@ -56,9 +56,9 @@ impl DataSchema {
             DataSchema::GeospatialAssetSchema(x) => Ok(x.0.read().get_datum_template().clone()),
             DataSchema::GraphAssetSchema(x) => Ok(x.0.read().get_datum_template().clone()),
             DataSchema::TimeOrderedTabularSchema(x) => Ok(x.0.read().get_datum_template().clone()),
-            DataSchema::UndefinedTabularSchema(_) => {
-                Err(AoristError::OtherError(AString::from("UndefinedTabularSchema has no datum template.")))
-            }
+            DataSchema::UndefinedTabularSchema(_) => Err(AoristError::OtherError(AString::from(
+                "UndefinedTabularSchema has no datum template.",
+            ))),
         }
     }
     pub fn get_datum_template_name(&self) -> Result<AString, AoristError> {
@@ -85,9 +85,9 @@ impl DataSchema {
             DataSchema::TimeOrderedTabularSchema(x) => {
                 Ok(x.0.read().get_datum_template().0.read().get_name())
             }
-            DataSchema::UndefinedTabularSchema(_) => {
-                Err(AoristError::OtherError(AString::from("UndefinedTabularSchema has no datum template.")))
-            }
+            DataSchema::UndefinedTabularSchema(_) => Err(AoristError::OtherError(AString::from(
+                "UndefinedTabularSchema has no datum template.",
+            ))),
         }
     }
     pub fn get_attribute_names(&self) -> Vec<AString> {

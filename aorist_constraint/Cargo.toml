@@ -28,7 +28,6 @@ aorist_primitives = {path = "../aorist_primitives", features=[], version = "0.0.
 aorist_ast = {path = "../aorist_ast", features=[], version = "0.0.14"}
 aorist_core = {path = "../aorist_core", features=[], version = "0.0.14"}
 aorist_util = {path = "../aorist_util", version = "0.0.1"}
-maplit = "1.0.2"
 aorist_paste = "0.0.1"
 uuid = {version = "0.8.1", features = ["v4", "serde"]}
 anyhow = "1.0"

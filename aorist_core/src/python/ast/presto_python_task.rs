@@ -6,8 +6,8 @@ use crate::python::PythonImport;
 use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 use abi_stable::std_types::RArc;
 use aorist_ast::{Call, Formatted, SimpleIdentifier, AST};
-use aorist_primitives::{AString, define_task_node};
 use aorist_primitives::PrestoConfig;
+use aorist_primitives::{define_task_node, AString};
 use linked_hash_map::LinkedHashMap;
 use std::hash::Hash;
 
@@ -88,9 +88,7 @@ def execute_trino_sql(query):
             panic!("SQL should be StringLiteral.");
         }
         AST::Call(Call::new_wrapped(
-            AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
-                "execute_trino_sql".into(),
-            )),
+            AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("execute_trino_sql".into())),
             vec![],
             vec![("query".into(), query)].into_iter().collect(),
         ))

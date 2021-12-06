@@ -43,9 +43,9 @@ impl TUser for User {
     }
     fn set_roles(&mut self, roles: Vec<AoristRef<Role>>) -> Result<(), AoristError> {
         if let Some(_) = self.roles {
-            return Err(AoristError::OtherError(
-                AString::from("Tried to set roles more than once."),
-            ));
+            return Err(AoristError::OtherError(AString::from(
+                "Tried to set roles more than once.",
+            )));
         }
         self.roles = Some(roles);
         Ok(())
@@ -53,9 +53,9 @@ impl TUser for User {
     fn get_roles(&self) -> Result<Vec<AoristRef<Role>>, AoristError> {
         match &self.roles {
             Some(x) => Ok(x.clone()),
-            None => Err(AoristError::OtherError(
-                AString::from("Tried to get roles for user but set_roles was never called"),
-            )),
+            None => Err(AoristError::OtherError(AString::from(
+                "Tried to get roles for user but set_roles was never called",
+            ))),
         }
     }
     fn get_permissions(&self) -> Result<HashSet<AString>, AoristError> {

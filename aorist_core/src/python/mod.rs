@@ -6,11 +6,11 @@ mod python_import;
 mod task;
 
 use crate::flow::FlowBuilderInput;
+use aorist_primitives::AString;
 use linked_hash_set::LinkedHashSet;
 use pyo3::prelude::*;
 use pyo3::types::{IntoPyDict, PyString, PyTuple};
 use std::collections::{BTreeSet, HashMap};
-use aorist_primitives::AString;
 
 use aorist_ast::{
     Add, Assignment, Attribute, BigIntLiteral, BinOp, Call, Dict, ForLoop, Formatted, List,

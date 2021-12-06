@@ -8,8 +8,8 @@ use crate::python::{
     PythonPreamble, PythonTask, RPythonTask,
 };
 use aorist_ast::{Call, SimpleIdentifier, StringLiteral, AST};
-use aorist_primitives::{AString, AoristUniverse};
 use aorist_primitives::TPrestoEndpoints;
+use aorist_primitives::{AString, AoristUniverse};
 use linked_hash_map::LinkedHashMap;
 use std::hash::Hash;
 use std::marker::PhantomData;

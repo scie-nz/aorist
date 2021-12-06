@@ -2,7 +2,7 @@ use crate::flow::flow_builder::FlowBuilderBase;
 use crate::flow::native_python_based_flow::NativePythonBasedFlow;
 use crate::flow::python_based_flow_builder::PythonBasedFlowBuilder;
 use crate::python::{format_code, PythonImport};
-use aorist_primitives::{AoristUniverse, TPrestoEndpoints, AString};
+use aorist_primitives::{AString, AoristUniverse, TPrestoEndpoints};
 use pyo3::PyResult;
 use serde_json::json;
 use std::marker::PhantomData;
@@ -91,6 +91,9 @@ where
                 })
            }),
         });
-        Ok(serde_json::to_string_pretty(&notebook).unwrap().as_str().into())
+        Ok(serde_json::to_string_pretty(&notebook)
+            .unwrap()
+            .as_str()
+            .into())
     }
 }

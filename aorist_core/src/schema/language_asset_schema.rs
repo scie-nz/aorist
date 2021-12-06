@@ -6,12 +6,12 @@ use crate::schema::text_corpus_schema::*;
 use crate::template::*;
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
+use aorist_primitives::AString;
 #[cfg(feature = "python")]
 use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
 use uuid::Uuid;
-use aorist_primitives::AString;
 
 #[aorist]
 pub enum LanguageAssetSchema {
@@ -67,7 +67,12 @@ impl LanguageAssetSchema {
 impl PyLanguageAssetSchema {
     #[getter]
     pub fn get_text_attribute_name(&self) -> String {
-        self.inner.0.read().get_text_attribute_name().as_str().into()
+        self.inner
+            .0
+            .read()
+            .get_text_attribute_name()
+            .as_str()
+            .into()
     }
     pub fn should_dedup_text_attribute(&self) -> bool {
         self.inner.0.read().should_dedup_text_attribute()

@@ -1,8 +1,8 @@
 use crate::python::ast::PythonTaskBase;
 use crate::python::PythonImport;
 use aorist_ast::{Assignment, Attribute, BooleanLiteral, Call, SimpleIdentifier, Tuple, AST};
-use linked_hash_map::LinkedHashMap;
 use aorist_primitives::AString;
+use linked_hash_map::LinkedHashMap;
 
 pub trait PythonSubprocessTask: PythonTaskBase {
     fn compute_task_call(&self) -> AST {
@@ -13,10 +13,7 @@ pub trait PythonSubprocessTask: PythonTaskBase {
         ))
     }
     fn get_python_subprocess_imports(&self) -> Vec<PythonImport> {
-        vec![PythonImport::PythonModuleImport(
-            "subprocess".into(),
-            None,
-        )]
+        vec![PythonImport::PythonModuleImport("subprocess".into(), None)]
     }
     fn compute_task_kwargs(&self) -> LinkedHashMap<AString, AST> {
         let mut kwargs = LinkedHashMap::new();
@@ -53,11 +50,7 @@ pub trait PythonSubprocessTask: PythonTaskBase {
                 true,
             )),
             AST::Call(Call::new_wrapped(
-                AST::Attribute(Attribute::new_wrapped(
-                    process,
-                    "communicate".into(),
-                    false,
-                )),
+                AST::Attribute(Attribute::new_wrapped(process, "communicate".into(), false)),
                 Vec::new(),
                 LinkedHashMap::new(),
             )),

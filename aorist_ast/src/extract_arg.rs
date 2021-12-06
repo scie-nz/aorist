@@ -2,7 +2,7 @@ use crate::{
     Attribute, BigIntLiteral, BooleanLiteral, Call, Dict, FloatLiteral, List, None,
     SimpleIdentifier, StringLiteral, Tuple, AST,
 };
-use aorist_primitives::{Context, AString};
+use aorist_primitives::{AString, Context};
 use linked_hash_map::LinkedHashMap;
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
@@ -85,18 +85,29 @@ pub fn extract_arg(arg: &PyAny) -> PyResult<AST> {
                     let kwmap = keywords
                         .into_iter()
                         .map(|x| (x.getattr("arg").unwrap(), x.getattr("value").unwrap()))
-                        .map(|x| (x.0.extract::<&str>().unwrap().into(), extract_arg(x.1).unwrap()))
+                        .map(|x| {
+                            (
+                                x.0.extract::<&str>().unwrap().into(),
+                                extract_arg(x.1).unwrap(),
+                            )
+                        })
                         .collect::<LinkedHashMap<AString, AST>>();
                     Ok(AST::Call(Call::new_wrapped(func, args, kwmap)))
                 }
                 "Attribute" => {
                     let value = extract_arg(arg.getattr("value")?)?;
                     let attr = arg.getattr("attr")?.extract::<&str>()?;
-                    Ok(AST::Attribute(Attribute::new_wrapped(value, attr.into(), false)))
+                    Ok(AST::Attribute(Attribute::new_wrapped(
+                        value,
+                        attr.into(),
+                        false,
+                    )))
                 }
                 "Name" => {
                     let id = arg.getattr("id")?.extract::<&str>()?;
-                    Ok(AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(id.into())))
+                    Ok(AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
+                        id.into(),
+                    )))
                 }
                 "Constant" => {
                     let value = arg.getattr("value")?;

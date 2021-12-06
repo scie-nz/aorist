@@ -1,6 +1,6 @@
+use aorist_primitives::AString;
 use inflector::cases::snakecase::to_snake_case;
 use uuid::Uuid;
-use aorist_primitives::AString;
 
 #[derive(Clone, PartialEq, Eq, Hash, Debug)]
 pub struct AncestorRecord {

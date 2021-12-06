@@ -10,10 +10,10 @@ use crate::schema::transform_image_corpus_through_mlp_schema::*;
 use crate::template::*;
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
+use aorist_primitives::AString;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
 use uuid::Uuid;
-use aorist_primitives::AString;
 
 #[aorist]
 pub enum VisionAssetSchema {

@@ -12,13 +12,13 @@ use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 use abi_stable::std_types::RArc;
 use aorist_derive::Optimizable;
 use aorist_extendr_api::prelude::*;
+use aorist_primitives::AString;
 use aorist_primitives::{define_ast_node, register_ast_nodes};
 use linked_hash_map::LinkedHashMap;
 use pyo3::prelude::*;
 use pyo3::types::{PyList, PyModule, PyString, PyTuple};
 use std::collections::VecDeque;
 use std::hash::{Hash, Hasher};
-use aorist_primitives::AString;
 
 define_ast_node!(
     ImportNode,
@@ -237,7 +237,8 @@ define_ast_node!(
             .map(|x| x.to_r_ast_node(depth))
             .collect::<Vec<_>>();
         let obj = r!(aorist_extendr_api::List::from_values(&elems));
-        obj.set_names(dict.elems.keys().map(|x| x.as_str())).unwrap();
+        obj.set_names(dict.elems.keys().map(|x| x.as_str()))
+            .unwrap();
         obj
     },
     elems: LinkedHashMap<AString, AST>,

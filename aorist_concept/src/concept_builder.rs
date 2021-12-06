@@ -69,7 +69,7 @@ pub trait TConceptBuilder {
                     #[repr(C)]
                     #[cfg_attr(feature = "python", pyo3::prelude::pyclass)]
                     #[derive(
-                        Derivative, Serialize, Deserialize, Clone, Hash, 
+                        Derivative, Serialize, Deserialize, Clone, Hash,
                     )]
                     #[derivative(PartialEq, Debug, Eq)]
                     #ast

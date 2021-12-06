@@ -5,7 +5,7 @@ use crate::compression::zip_compression::*;
 use crate::concept::{AoristRef, WrappedConcept};
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
-use aorist_primitives::{AoristConcept, ConceptEnum, AString};
+use aorist_primitives::{AString, AoristConcept, ConceptEnum};
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
 use uuid::Uuid;

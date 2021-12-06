@@ -126,7 +126,9 @@ impl FloatValue {
         let sign_f = self.sign as f64;
         let mantissa_f = self.mantissa as f64;
         let exponent_f = num.powf(self.exponent as f64);
-        format!("{}", (sign_f * mantissa_f * exponent_f)).as_str().into()
+        format!("{}", (sign_f * mantissa_f * exponent_f))
+            .as_str()
+            .into()
     }
 }
 
@@ -198,7 +200,9 @@ pub trait TPrestoAttribute: TAttribute {
 pub trait TOrcAttribute: TAttribute {
     fn get_orc_type(&self) -> AString;
     fn get_orc_schema(&self) -> AString {
-        format!("{}:{}", self.get_name(), self.get_orc_type()).as_str().into()
+        format!("{}:{}", self.get_name(), self.get_orc_type())
+            .as_str()
+            .into()
     }
 }
 #[cfg(feature = "sql")]
@@ -218,7 +222,9 @@ pub trait TSQLAttribute: TAttribute {
 pub trait TSQLiteAttribute: TAttribute {
     fn get_sqlite_type(&self) -> AString;
     fn get_sqlite_coldef(&self) -> AString {
-        format!("{} {}", self.get_name(), self.get_sqlite_type()).as_str().into()
+        format!("{} {}", self.get_name(), self.get_sqlite_type())
+            .as_str()
+            .into()
     }
 }
 pub trait TPostgresAttribute: TAttribute {
@@ -243,7 +249,9 @@ pub trait TPostgresAttribute: TAttribute {
 pub trait TBigQueryAttribute: TAttribute {
     fn get_bigquery_type(&self) -> AString;
     fn get_bigquery_coldef(&self) -> AString {
-        format!("{} {}", self.get_name(), self.get_bigquery_type()).as_str().into()
+        format!("{} {}", self.get_name(), self.get_bigquery_type())
+            .as_str()
+            .into()
     }
 }
 include!(concat!(env!("OUT_DIR"), "/attributes.rs"));

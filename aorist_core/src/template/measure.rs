@@ -8,7 +8,7 @@ use abi_stable::std_types::RArc;
 use aorist_attributes::{Count, FloatPrediction, Regressor};
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
-use aorist_primitives::{AoristConcept, ConceptEnum, AString};
+use aorist_primitives::{AString, AoristConcept, ConceptEnum};
 use derivative::Derivative;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;

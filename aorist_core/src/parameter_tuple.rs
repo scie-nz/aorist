@@ -61,7 +61,8 @@ impl ParameterTuple {
             .map(|_| "%s".into())
             .collect::<Vec<String>>()
             .join(" ")
-            .as_str().into()
+            .as_str()
+            .into()
     }
     pub fn get_presto_query(&self, mut call: AString) -> AString {
         if self.args.len() > 0 {
@@ -70,7 +71,12 @@ impl ParameterTuple {
         for (k, arg) in &self.kwargs {
             let fmt = format!("{{{}}}", k).as_str().to_string();
             if let AST::StringLiteral(v) = arg {
-                call = call.as_str().to_string().replace(&fmt, v.read().value().as_str()).as_str().into();
+                call = call
+                    .as_str()
+                    .to_string()
+                    .replace(&fmt, v.read().value().as_str())
+                    .as_str()
+                    .into();
             }
         }
         call

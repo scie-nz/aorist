@@ -4,7 +4,7 @@ use crate::parameter_tuple::ParameterTuple;
 use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 use abi_stable::std_types::RArc;
 use anyhow::Result;
-use aorist_primitives::{Ancestry, TAoristObject, TConceptEnum, AoristConcept, AString};
+use aorist_primitives::{AString, Ancestry, AoristConcept, TAoristObject, TConceptEnum};
 use std::collections::HashMap;
 use std::marker::PhantomData;
 use tracing::info;

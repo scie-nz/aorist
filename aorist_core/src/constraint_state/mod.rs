@@ -7,7 +7,7 @@ use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 use abi_stable::std_types::RArc;
 use anyhow::{bail, Result};
 use aorist_ast::{AncestorRecord, Formatted, SimpleIdentifier, StringLiteral, AST};
-use aorist_primitives::{Context, TConceptEnum, AString};
+use aorist_primitives::{AString, Context, TConceptEnum};
 use inflector::cases::snakecase::to_snake_case;
 use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;

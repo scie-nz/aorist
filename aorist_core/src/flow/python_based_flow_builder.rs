@@ -119,7 +119,18 @@ where
                     .into();
                 lines.push(out);
             }
-            sources.push((comment, format_code(lines.iter().map(|x| x.as_str().to_string()).collect::<Vec<String>>().join("").as_str().into())?))
+            sources.push((
+                comment,
+                format_code(
+                    lines
+                        .iter()
+                        .map(|x| x.as_str().to_string())
+                        .collect::<Vec<String>>()
+                        .join("")
+                        .as_str()
+                        .into(),
+                )?,
+            ))
         }
         self.build_file(sources, flow_name)
     }
@@ -155,7 +166,9 @@ where
                     None => block.as_str().into(),
                 })
                 .collect::<Vec<String>>()
-                .join("").as_str().into(),
+                .join("")
+                .as_str()
+                .into(),
         )
     }
 }

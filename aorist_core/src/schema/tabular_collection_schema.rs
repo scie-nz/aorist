@@ -7,6 +7,7 @@ use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 use abi_stable::std_types::RArc;
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
+use aorist_primitives::AString;
 use derivative::Derivative;
 use linked_hash_map::LinkedHashMap;
 #[cfg(feature = "python")]
@@ -15,7 +16,6 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fmt::Debug;
 use uuid::Uuid;
-use aorist_primitives::{AString};
 
 #[aorist]
 pub struct TabularCollectionSchema {

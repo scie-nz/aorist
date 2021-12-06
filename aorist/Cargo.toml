@@ -27,7 +27,6 @@ aorist_attributes = {path = "../aorist_attributes", features=["python"]}
 aorist_primitives = {path = "../aorist_primitives", features=[]}
 aorist_core = {path = "../aorist_core", features=["python"]}
 aorist_util = {path = "../aorist_util"}
-maplit = "1.0.2"
 aorist_paste = {version = "0.0.1"}
 uuid = {version = "0.8.1", features = ["v4", "serde"]}
 anyhow = "1.0"

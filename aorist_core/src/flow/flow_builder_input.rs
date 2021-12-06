@@ -2,10 +2,10 @@ use crate::code::{Import, Preamble};
 use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 use abi_stable::std_types::RArc;
 use aorist_ast::{Dict, AST};
+use aorist_primitives::AString;
 use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
 use std::collections::BTreeSet;
-use aorist_primitives::AString;
 
 pub trait FlowBuilderInput
 where
@@ -35,7 +35,9 @@ where
                 Some(b) => format!(
                     "## {}\n{}",
                     t,
-                    b.as_str().to_string().split("\n")
+                    b.as_str()
+                        .to_string()
+                        .split("\n")
                         .map(|x| format!("# {}", x).to_string())
                         .collect::<Vec<String>>()
                         .join("\n")

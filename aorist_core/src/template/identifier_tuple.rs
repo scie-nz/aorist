@@ -1,5 +1,5 @@
 use crate::attributes::*;
-use aorist_primitives::{AoristConcept, ConceptEnum, AString};
+use aorist_primitives::{AString, AoristConcept, ConceptEnum};
 
 use crate::concept::{AoristRef, WrappedConcept};
 use crate::template::datum_template::TDatumTemplate;

@@ -8,7 +8,7 @@ use crate::user::*;
 use crate::user_group::*;
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
-use aorist_primitives::{AoristConcept, ConceptEnum, AString};
+use aorist_primitives::{AString, AoristConcept, ConceptEnum};
 use derivative::Derivative;
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
@@ -55,7 +55,9 @@ impl TUniverse for Universe {
         for binding in self.role_bindings.as_ref().unwrap() {
             let name: AString = binding.0.read().get_user_name().clone();
             if !umap.contains_key(&name) {
-                return Err(format!("Cannot find user with name {}.", name.as_str()).as_str().into());
+                return Err(format!("Cannot find user with name {}.", name.as_str())
+                    .as_str()
+                    .into());
             }
             let user = umap.get(&name).unwrap().clone();
             for perm in binding.0.read().get_role().0.read().get_permissions() {

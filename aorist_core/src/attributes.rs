@@ -7,7 +7,7 @@ use aorist_attributes::{
 };
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
-use aorist_primitives::{AoristConcept, ConceptEnum, AString};
+use aorist_primitives::{AString, AoristConcept, ConceptEnum};
 use derivative::Derivative;
 #[cfg(feature = "sql")]
 use linked_hash_map::LinkedHashMap;
@@ -43,9 +43,7 @@ impl WrappedAttribute {
             ),
             Expr::CompoundIdentifier(mut idents) => {
                 if idents.len() != 3 {
-                    return Err(
-                        "Exactly 3 identifiers must be in each compound identifier.".into()
-                    );
+                    return Err("Exactly 3 identifiers must be in each compound identifier.".into());
                 }
                 let attr_name = idents.pop().unwrap().value;
                 let asset_name = idents.pop().unwrap().value;

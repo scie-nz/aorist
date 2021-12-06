@@ -8,7 +8,7 @@ pub use standalone::*;
 
 use crate::flow::{CompressibleETLTask, ETLFlow, ETLTask, TaskBase};
 use crate::python::{PythonImport, PythonPreamble, AST};
-use aorist_primitives::{AoristUniverse};
+use aorist_primitives::AoristUniverse;
 
 pub enum PythonBasedTask<T, U>
 where

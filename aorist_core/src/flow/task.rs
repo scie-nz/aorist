@@ -76,7 +76,8 @@ pub trait UncompressiblePart<T, U: AoristUniverse>
 where
     T: ETLFlow<U>,
 {
-    fn new(task_id: AString, dict: AString, params: Option<ParameterTuple>, deps: Vec<AST>) -> Self;
+    fn new(task_id: AString, dict: AString, params: Option<ParameterTuple>, deps: Vec<AST>)
+        -> Self;
     fn as_dict(&self, insert_deps: bool, dependencies_as_list: bool, insert_task_name: bool)
         -> AST;
 }

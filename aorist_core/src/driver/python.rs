@@ -11,7 +11,7 @@ use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 use abi_stable::std_types::RArc;
 use anyhow::Result;
 use aorist_ast::AncestorRecord;
-use aorist_primitives::{Ancestry, AoristConcept, AoristUniverse, TConceptEnum, AString};
+use aorist_primitives::{AString, Ancestry, AoristConcept, AoristUniverse, TConceptEnum};
 use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
 use std::collections::{BTreeSet, HashMap};

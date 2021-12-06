@@ -5,7 +5,7 @@ use crate::python::{
     Add, Assignment, Attribute, BigIntLiteral, BinOp, Call, Dict, ForLoop, List, PythonImport,
     PythonPreamble, SimpleIdentifier, StringLiteral, Subscript, Tuple, AST,
 };
-use aorist_primitives::{AoristUniverse};
+use aorist_primitives::AoristUniverse;
 use linked_hash_map::LinkedHashMap;
 use std::hash::Hash;
 use std::marker::PhantomData;
@@ -189,10 +189,7 @@ where
                     AST::Subscript(Subscript::new_wrapped(
                         AST::Subscript(Subscript::new_wrapped(
                             params.clone(),
-                            AST::StringLiteral(StringLiteral::new_wrapped(
-                                "args".into(),
-                                false,
-                            )),
+                            AST::StringLiteral(StringLiteral::new_wrapped("args".into(), false)),
                             false,
                         )),
                         AST::BigIntLiteral(BigIntLiteral::new_wrapped(x as i64)),
@@ -210,10 +207,7 @@ where
         let mut dependencies = match self.render_dependencies && any_dependencies {
             true => Some(AST::Subscript(Subscript::new_wrapped(
                 params.clone(),
-                AST::StringLiteral(StringLiteral::new_wrapped(
-                    "dependencies".into(),
-                    false,
-                )),
+                AST::StringLiteral(StringLiteral::new_wrapped("dependencies".into(), false)),
                 false,
             ))),
             false => None,

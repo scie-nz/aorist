@@ -2,9 +2,9 @@ use crate::dialect::Dialect;
 use crate::flow::CompressionKey;
 use crate::parameter_tuple::ParameterTupleDedupKey;
 use crate::python::AST;
+use aorist_primitives::AString;
 use linked_hash_map::LinkedHashMap;
 use std::hash::Hash;
-use aorist_primitives::AString;
 
 /// tuple of:
 /// - name of dict / list in which task_val is stored (must be dict or list)

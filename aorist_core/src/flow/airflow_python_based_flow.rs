@@ -11,8 +11,8 @@ use aorist_ast::{
     Assignment, Attribute, BigIntLiteral, BooleanLiteral, Call, Dict, Expression, Formatted, List,
     None, SimpleIdentifier, StringLiteral, AST,
 };
-use aorist_primitives::{AString, AoristUniverse};
 use aorist_primitives::TPrestoEndpoints;
+use aorist_primitives::{AString, AoristUniverse};
 use linked_hash_map::LinkedHashMap;
 use std::marker::PhantomData;
 
@@ -123,9 +123,7 @@ where
             Some(Dialect::R(_)) => {
                 AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("PythonOperator".into()))
             }
-            None => {
-                AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("DummyOperator".into()))
-            }
+            None => AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("DummyOperator".into())),
         }
     }
 }
@@ -386,10 +384,7 @@ where
                 false,
             )),
         );
-        kwargs.insert(
-            "schedule_interval".into(),
-            AST::None(None::new_wrapped()),
-        );
+        kwargs.insert("schedule_interval".into(), AST::None(None::new_wrapped()));
         kwargs.insert(
             "start_date".into(),
             AST::Call(Call::new_wrapped(

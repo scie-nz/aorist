@@ -2,8 +2,8 @@ use crate::python::ast::AirflowTaskBase;
 use crate::python::ast::PythonTaskBase;
 use crate::python::PythonImport;
 use aorist_ast::{Assignment, Attribute, Call, Dict, Expression, SimpleIdentifier, AST};
-use linked_hash_map::LinkedHashMap;
 use aorist_primitives::AString;
+use linked_hash_map::LinkedHashMap;
 
 pub trait AirflowPythonOperatorTask: PythonTaskBase + AirflowTaskBase {
     fn compute_task_call(&self) -> AST {

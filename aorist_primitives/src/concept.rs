@@ -1,23 +1,21 @@
 use crate::endpoints::*;
 use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 use abi_stable::std_types::RArc;
+use abi_stable::StableAbi;
+#[cfg(feature = "python")]
+use pyo3::prelude::*;
+use serde::{Deserialize, Deserializer, Serialize};
 use siphasher::sip128::{Hasher128, SipHasher};
 use std::collections::{BTreeSet, HashMap};
 use std::hash::Hasher;
 use uuid::Uuid;
-use abi_stable::StableAbi;
-use serde::{Deserialize, Deserializer, Serialize};
-#[cfg(feature = "python")]
-use pyo3::prelude::*;
 
 #[repr(C)]
 #[cfg(feature = "python")]
 #[pyclass]
 #[derive(StableAbi, Clone, PartialEq, Serialize, Debug, Hash, Eq, PartialOrd, Ord)]
 pub struct AString(abi_stable::std_types::RString);
-impl<'de> Deserialize<'de>
-    for AString
-{
+impl<'de> Deserialize<'de> for AString {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: Deserializer<'de>,

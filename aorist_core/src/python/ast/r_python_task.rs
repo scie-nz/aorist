@@ -4,7 +4,7 @@ use crate::python::PythonImport;
 use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 use abi_stable::std_types::RArc;
 use aorist_ast::{Call, SimpleIdentifier, StringLiteral, AST};
-use aorist_primitives::{AString, define_task_node};
+use aorist_primitives::{define_task_node, AString};
 use linked_hash_map::LinkedHashMap;
 use std::hash::Hash;
 
@@ -15,10 +15,7 @@ define_task_node!(
     |_task: &RPythonTask| {
         vec![
             PythonImport::PythonModuleImport("rpy2".into(), None),
-            PythonImport::PythonModuleImport(
-                "rpy2.robjects".into(),
-                Some("robjects".into()),
-            ),
+            PythonImport::PythonModuleImport("rpy2.robjects".into(), Some("robjects".into())),
         ]
     },
     PythonImport,
@@ -32,10 +29,8 @@ define_task_node!(
 impl PythonFunctionCallTask for RPythonTask {
     fn get_preamble(&self) -> Option<NativePythonPreamble> {
         let rpy2 = PythonImport::PythonModuleImport("rpy2".into(), None);
-        let rpy2o = PythonImport::PythonModuleImport(
-            "rpy2.robjects".into(),
-            Some("robjects".into()),
-        );
+        let rpy2o =
+            PythonImport::PythonModuleImport("rpy2.robjects".into(), Some("robjects".into()));
         let body = "
 def execute_r(call, preamble=None, **kwargs):
     airflow_args = {

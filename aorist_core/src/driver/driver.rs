@@ -435,8 +435,13 @@ where
                     )?;
 
                     let (title, body) = self.get_constraint_explanation(constraint_name);
-                    let constraint_block =
-                        Self::CB::new(snake_case_name.as_str().into(), title.and_then(|x| Some(x.as_str().into())), body.and_then(|x| Some(x.as_str().into())), members, tasks_dict);
+                    let constraint_block = Self::CB::new(
+                        snake_case_name.as_str().into(),
+                        title.and_then(|x| Some(x.as_str().into())),
+                        body.and_then(|x| Some(x.as_str().into())),
+                        members,
+                        tasks_dict,
+                    );
                     /*for (key, val) in constraint_block.get_identifiers() {
                         identifiers.insert(key, val);
                     }*/

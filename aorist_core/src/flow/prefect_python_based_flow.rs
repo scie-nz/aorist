@@ -1,4 +1,5 @@
 use crate::dialect::Dialect;
+use crate::error::AoristError;
 use crate::flow::etl_flow::ETLFlow;
 use crate::flow::flow_builder::FlowBuilderBase;
 use crate::flow::python_based_flow::PythonBasedFlow;
@@ -13,13 +14,12 @@ use aorist_ast::{
     AST,
 };
 use aorist_primitives::register_task_nodes;
-use aorist_primitives::{AString, AoristUniverse};
 use aorist_primitives::TPrestoEndpoints;
+use aorist_primitives::{AString, AoristUniverse};
 use linked_hash_map::LinkedHashMap;
 use pyo3::PyResult;
 use std::hash::{Hash, Hasher};
 use std::marker::PhantomData;
-use crate::error::AoristError;
 
 register_task_nodes! {
     PrefectTask,
@@ -110,9 +110,7 @@ impl<U: AoristUniverse> ETLFlow<U> for PrefectPythonBasedFlow<U> {
             dep_list,
             preamble,
             dialect,
-            flow_identifier: AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
-                "flow".into(),
-            )),
+            flow_identifier: AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("flow".into())),
             endpoints,
             _universe: PhantomData,
         }
@@ -171,7 +169,9 @@ impl<U: AoristUniverse> PrefectPythonBasedFlow<U> {
             )),
             Some(Dialect::Presto(_)) => AST::Formatted(Formatted::new_wrapped(
                 AST::StringLiteral(StringLiteral::new_wrapped(
-                    format!("presto -e '{}'", self.command.as_ref().unwrap()).as_str().into(),
+                    format!("presto -e '{}'", self.command.as_ref().unwrap())
+                        .as_str()
+                        .into(),
                     true,
                 )),
                 self.kwargs.clone(),
@@ -192,8 +192,11 @@ impl<U: AoristUniverse> PrefectPythonBasedFlow<U> {
             None => Ok(AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
                 "Constant".into(),
             ))),
-            _ => Err(AoristError::OtherError(AString::from("Dialect not supported"))),
-        }.unwrap()
+            _ => Err(AoristError::OtherError(AString::from(
+                "Dialect not supported",
+            ))),
+        }
+        .unwrap()
     }
     fn get_flow_identifier(&self) -> AST {
         self.flow_identifier.clone()
@@ -215,8 +218,7 @@ impl<U: AoristUniverse> PrefectPythonBasedFlow<U> {
         match self.dep_list {
             None => Vec::new(),
             Some(AST::List(_)) => {
-                let target =
-                    AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("dep".into()));
+                let target = AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("dep".into()));
                 let for_stmt = AST::ForLoop(ForLoop::new_wrapped(
                     target.clone(),
                     self.dep_list.as_ref().unwrap().clone(),
@@ -253,9 +255,7 @@ impl<U: AoristUniverse> FlowBuilderBase<U> for PrefectFlowBuilder<U> {
     type T = PrefectPythonBasedFlow<U>;
     fn new() -> Self {
         Self {
-            flow_identifier: AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
-                "flow".into(),
-            )),
+            flow_identifier: AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("flow".into())),
             universe: PhantomData,
         }
     }

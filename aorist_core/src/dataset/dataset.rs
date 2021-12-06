@@ -72,7 +72,9 @@ impl DataSet {
                 "Could not find template for asset {} in dataset {}",
                 asset.get_name().as_str(),
                 self.name.as_str(),
-            ).as_str().into()),
+            )
+            .as_str()
+            .into()),
         }
     }
 
@@ -80,7 +82,11 @@ impl DataSet {
         if let Some(asset) = self.assets.get(&name) {
             return Ok(asset.clone());
         }
-        Err(format!("Could not find asset {} in dataset {}.", name, self.name).as_str().into())
+        Err(
+            format!("Could not find asset {} in dataset {}.", name, self.name)
+                .as_str()
+                .into(),
+        )
     }
 
     // TODO: should reference identifier tuple

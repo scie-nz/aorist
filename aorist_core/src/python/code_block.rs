@@ -160,14 +160,27 @@ where
                             .or_insert(HashSet::new())
                             .insert(t.task_id.clone());
                     }
-                    let task_id_subscript = t.task_id.as_str().to_string().split("__").last().unwrap().to_string();
-                    let replaced = t.task_id.as_str().to_string().replace(&task_id_subscript, "{t}");
-                    let ident =
-                        AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("t".into()));
+                    let task_id_subscript = t
+                        .task_id
+                        .as_str()
+                        .to_string()
+                        .split("__")
+                        .last()
+                        .unwrap()
+                        .to_string();
+                    let replaced = t
+                        .task_id
+                        .as_str()
+                        .to_string()
+                        .replace(&task_id_subscript, "{t}");
+                    let ident = AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("t".into()));
                     let mut kw = LinkedHashMap::new();
                     kw.insert("t".into(), ident);
                     let replacement = AST::Formatted(Formatted::new_wrapped(
-                        AST::StringLiteral(StringLiteral::new_wrapped(replaced.as_str().into(), false)),
+                        AST::StringLiteral(StringLiteral::new_wrapped(
+                            replaced.as_str().into(),
+                            false,
+                        )),
                         kw,
                     ));
                     full_task_ids
@@ -200,7 +213,8 @@ where
                                         kw.insert("t".into(), ident);
                                         let replacement = AST::Formatted(Formatted::new_wrapped(
                                             AST::StringLiteral(StringLiteral::new_wrapped(
-                                                replaced.as_str().into(), false,
+                                                replaced.as_str().into(),
+                                                false,
                                             )),
                                             kw,
                                         ));
@@ -277,10 +291,7 @@ where
                     _ => (
                         AST::Subscript(Subscript::new_wrapped(
                             AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("params".into())),
-                            AST::StringLiteral(StringLiteral::new_wrapped(
-                                "task_id".into(),
-                                false,
-                            )),
+                            AST::StringLiteral(StringLiteral::new_wrapped("task_id".into(), false)),
                             false,
                         )),
                         true,

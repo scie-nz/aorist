@@ -1,7 +1,7 @@
 use crate::code::{Import, Preamble};
 use crate::dialect::Dialect;
 use aorist_ast::AST;
-use aorist_primitives::{AoristUniverse, AString};
+use aorist_primitives::{AString, AoristUniverse};
 use linked_hash_map::LinkedHashMap;
 use std::error::Error;
 

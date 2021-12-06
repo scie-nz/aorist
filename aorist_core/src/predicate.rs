@@ -4,7 +4,7 @@ use crate::attributes::AttributeOrValue;
 use crate::concept::{AoristRef, WrappedConcept};
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
-use aorist_primitives::{AoristConcept, ConceptEnum, AString};
+use aorist_primitives::{AString, AoristConcept, ConceptEnum};
 use derivative::Derivative;
 #[cfg(feature = "python")]
 use pyo3::prelude::*;
@@ -58,7 +58,9 @@ impl PredicateInnerOrTerminal {
     pub fn as_sql(&self) -> AString {
         match &self {
             PredicateInnerOrTerminal::PredicateTerminal(x) => x.as_sql(),
-            PredicateInnerOrTerminal::PredicateInner(x) => format!("({})", x.as_sql()).as_str().into(),
+            PredicateInnerOrTerminal::PredicateInner(x) => {
+                format!("({})", x.as_sql()).as_str().into()
+            }
         }
     }
 }
