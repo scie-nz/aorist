@@ -2,27 +2,27 @@ use abi_stable::{std_types::*, StableAbi};
 #[cfg(feature = "python")]
 use pyo3::prelude::*;
 use std::collections::BTreeSet;
+use aorist_primitives::AString;
 
 #[repr(C)]
 #[cfg_attr(feature = "python", pyclass)]
 #[derive(Debug, Clone, PartialEq, Eq, Hash, StableAbi)]
 pub struct Python {
-    pip_requirements: RVec<RString>,
+    pip_requirements: RVec<AString>,
 }
 #[cfg(feature = "python")]
 #[pymethods]
 impl Python {
     #[new]
-    pub fn new(pip_requirements: Vec<String>) -> Self {
+    pub fn new(pip_requirements: Vec<&str>) -> Self {
         Self {
             pip_requirements: pip_requirements.into_iter().map(|x| x.into()).collect(),
         }
     }
-    pub fn get_pip_requirements(&self) -> BTreeSet<String> {
+    pub fn get_pip_requirements(&self) -> BTreeSet<AString> {
         self.pip_requirements
             .clone()
             .into_iter()
-            .map(|x| x.into())
             .collect()
     }
 }

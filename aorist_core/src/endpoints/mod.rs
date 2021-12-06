@@ -4,7 +4,7 @@ use aorist_paste::paste;
 use aorist_primitives::{
     AWSConfig, AlluxioConfig, AoristConcept, ConceptEnum, DaskConfig, GCPConfig, GDALConfig,
     GiteaConfig, LINZAPIConfig, MinioConfig, PDALConfig, PostgresConfig, PrestoConfig,
-    RangerConfig, TPrestoEndpoints,
+    RangerConfig, TPrestoEndpoints, AString,
 };
 use derivative::Derivative;
 use serde::{Deserialize, Serialize};

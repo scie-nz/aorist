@@ -13,7 +13,7 @@ use pyo3::prelude::*;
 #[repr(C)]
 #[cfg(feature = "python")]
 #[pyclass]
-#[derive(StableAbi, Clone, PartialEq, Serialize, Debug, Hash, Eq)]
+#[derive(StableAbi, Clone, PartialEq, Serialize, Debug, Hash, Eq, PartialOrd, Ord)]
 pub struct AString(abi_stable::std_types::RString);
 impl<'de> Deserialize<'de>
     for AString
@@ -62,7 +62,7 @@ pub trait ConceptEnum {}
 pub trait AoristConcept {
     type TChildrenEnum: ConceptEnum;
     fn get_uuid(&self) -> Option<Uuid>;
-    fn get_tag(&self) -> Option<String>;
+    fn get_tag(&self) -> Option<AString>;
     fn compute_uuids(&self);
     fn get_children_uuid(&self) -> Vec<Uuid>;
     fn get_uuid_from_children_uuid(&self) -> Uuid {
@@ -98,13 +98,13 @@ pub trait AoristConcept {
 
 pub trait TConceptEnum: Sized + Clone {
     type TUniverse: AoristConcept + AoristUniverse;
-    fn get_parent_id(&self) -> Option<(Uuid, String)>;
-    fn get_type(&self) -> String;
+    fn get_parent_id(&self) -> Option<(Uuid, AString)>;
+    fn get_type(&self) -> AString;
     fn get_uuid(&self) -> Uuid;
-    fn get_tag(&self) -> Option<String>;
+    fn get_tag(&self) -> Option<AString>;
     fn get_index_as_child(&self) -> usize;
     fn get_child_concepts(&self) -> Vec<Self>;
-    fn populate_child_concept_map(&self, concept_map: &mut HashMap<(Uuid, String), Self>);
+    fn populate_child_concept_map(&self, concept_map: &mut HashMap<(Uuid, AString), Self>);
     fn from_universe(universe: Self::TUniverse) -> Self;
 }
 
@@ -117,9 +117,9 @@ pub trait TPrestoEndpoints {
 }
 pub trait Ancestry {
     type TConcept: ConceptEnum + Clone + TConceptEnum;
-    fn new(parents: RArc<RRwLock<HashMap<(Uuid, String), Self::TConcept>>>) -> Self;
-    fn get_parents(&self) -> RArc<RRwLock<HashMap<(Uuid, String), Self::TConcept>>>;
+    fn new(parents: RArc<RRwLock<HashMap<(Uuid, AString), Self::TConcept>>>) -> Self;
+    fn get_parents(&self) -> RArc<RRwLock<HashMap<(Uuid, AString), Self::TConcept>>>;
 }
 pub trait TAoristObject {
-    fn get_name(&self) -> &String;
+    fn get_name(&self) -> &AString;
 }

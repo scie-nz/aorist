@@ -6,7 +6,7 @@ use crate::template::*;
 use aorist_attributes::*;
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
-use aorist_primitives::{attribute, derived_schema};
+use aorist_primitives::{attribute, derived_schema, AString};
 use derivative::Derivative;
 #[cfg(feature = "python")]
 use pyo3::prelude::*;
@@ -23,5 +23,5 @@ derived_schema! {
       wkt: WKTString("WKT string of TAO boundary", false),
       metrics: JSON("JSON map of metrics", false)
     fields:
-      sql_predicate: String
+      sql_predicate: AString
 }

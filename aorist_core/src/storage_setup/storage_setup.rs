@@ -10,7 +10,7 @@ use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 use abi_stable::std_types::RArc;
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
-use aorist_primitives::{AoristConcept, ConceptEnum};
+use aorist_primitives::{AoristConcept, ConceptEnum, AString};
 #[cfg(feature = "python")]
 use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
@@ -43,7 +43,7 @@ impl StorageSetup {
             }
         }
     }
-    pub fn get_tmp_dir(&self) -> String {
+    pub fn get_tmp_dir(&self) -> AString {
         match self {
             Self::ReplicationStorageSetup(x) => x.0.read().tmp_dir.clone(),
             Self::RemoteStorageSetup(x) => x.0.read().tmp_dir.as_ref().unwrap().clone(),
@@ -55,7 +55,7 @@ impl StorageSetup {
     pub fn replicate_to_local(
         &self,
         t: AoristRef<Storage>,
-        tmp_dir: String,
+        tmp_dir: AString,
         tmp_encoding: AoristRef<Encoding>,
     ) -> Self {
         match self {
@@ -79,7 +79,7 @@ impl StorageSetup {
 impl PyStorageSetup {
     #[getter]
     pub fn tmp_dir(&self) -> String {
-        self.inner.0.read().get_tmp_dir()
+        self.inner.0.read().get_tmp_dir().as_str().into()
     }
     #[getter]
     pub fn local(&self) -> Vec<PyStorage> {

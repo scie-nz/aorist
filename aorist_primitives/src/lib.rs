@@ -503,10 +503,10 @@ macro_rules! define_constraint {
             #[derive(Clone)]
             pub struct [<$element Program>] {
                 pub dialect: Dialect,
-                pub code: String,
-                pub entrypoint: String,
-                pub arg_functions: Vec<(Vec<String>, String)>,
-                pub kwarg_functions: LinkedHashMap<String, (Vec<String>, String)>,
+                pub code: AString,
+                pub entrypoint: AString,
+                pub arg_functions: Vec<(Vec<AString>, AString)>,
+                pub kwarg_functions: LinkedHashMap<AString, (Vec<AString>, AString)>,
             }
 
             #[cfg(feature = "python")]
@@ -518,17 +518,17 @@ macro_rules! define_constraint {
                     entrypoint: &str,
                     arg_functions: Vec<(Vec<&str>, &str)>,
                     kwarg_functions: HashMap<&str, (Vec<&str>, &str)>,
-                    pip_requirements: Vec<String>,
+                    pip_requirements: Vec<&str>,
                 ) -> PyResult<[<$element Program>]> {
 
-                    let mut funs: LinkedHashMap<String, (Vec<String>, String)> = LinkedHashMap::new();
-                    for (k, (v1, v2)) in kwarg_functions.iter() {
-                        funs.insert(k.to_string(), (v1.iter().map(|x| x.to_string()).collect(), v2.to_string()));
+                    let mut funs: LinkedHashMap<AString, (Vec<AString>, AString)> = LinkedHashMap::new();
+                    for (k, (v1, v2)) in kwarg_functions.into_iter() {
+                        funs.insert(k.into(), (v1.into_iter().map(|x| x.into()).collect(), v2.into()));
                     }
                     Ok([<$element Program>]{
-                        code: code.to_string(),
-                        entrypoint: entrypoint.to_string(),
-                        arg_functions: arg_functions.iter().map(|(x, y)| (x.iter().map(|x| x.to_string()).collect(), y.to_string())).collect(),
+                        code: code.into(),
+                        entrypoint: entrypoint.into(),
+                        arg_functions: arg_functions.into_iter().map(|(x, y)| (x.into_iter().map(|x| x.into()).collect(), y.into())).collect(),
                         kwarg_functions: funs,
                         dialect: Dialect::Python(aorist_core::Python::new(pip_requirements))
                     })
@@ -541,14 +541,14 @@ macro_rules! define_constraint {
                     kwarg_functions: HashMap<&str, (Vec<&str>, &str)>,
                 ) -> PyResult<[<$element Program>]> {
 
-                    let mut funs: LinkedHashMap<String, (Vec<String>, String)> = LinkedHashMap::new();
-                    for (k, (v1, v2)) in kwarg_functions.iter() {
-                        funs.insert(k.to_string(), (v1.iter().map(|x| x.to_string()).collect(), v2.to_string()));
+                    let mut funs: LinkedHashMap<AString, (Vec<AString>, AString)> = LinkedHashMap::new();
+                    for (k, (v1, v2)) in kwarg_functions.into_iter() {
+                        funs.insert(k.into(), (v1.into_iter().map(|x| x.into()).collect(), v2.into()));
                     }
                     Ok([<$element Program>]{
-                        code: code.to_string(),
-                        entrypoint: entrypoint.to_string(),
-                        arg_functions: arg_functions.iter().map(|(x, y)| (x.iter().map(|x| x.to_string()).collect(), y.to_string())).collect(),
+                        code: code.into(),
+                        entrypoint: entrypoint.into(),
+                        arg_functions: arg_functions.into_iter().map(|(x, y)| (x.into_iter().map(|x| x.into()).collect(), y.into())).collect(),
                         kwarg_functions: funs,
                         dialect: Dialect::R(aorist_core::R::new())
                     })
@@ -561,14 +561,14 @@ macro_rules! define_constraint {
                     kwarg_functions: HashMap<&str, (Vec<&str>, &str)>,
                 ) -> PyResult<[<$element Program>]> {
 
-                    let mut funs: LinkedHashMap<String, (Vec<String>, String)> = LinkedHashMap::new();
-                    for (k, (v1, v2)) in kwarg_functions.iter() {
-                        funs.insert(k.to_string(), (v1.iter().map(|x| x.to_string()).collect(), v2.to_string()));
+                    let mut funs: LinkedHashMap<AString, (Vec<AString>, AString)> = LinkedHashMap::new();
+                    for (k, (v1, v2)) in kwarg_functions.into_iter() {
+                        funs.insert(k.into(), (v1.into_iter().map(|x| x.into()).collect(), v2.into()));
                     }
                     Ok([<$element Program>]{
-                        code: code.to_string(),
-                        entrypoint: entrypoint.to_string(),
-                        arg_functions: arg_functions.iter().map(|(x, y)| (x.iter().map(|x| x.to_string()).collect(), y.to_string())).collect(),
+                        code: code.into(),
+                        entrypoint: entrypoint.into(),
+                        arg_functions: arg_functions.into_iter().map(|(x, y)| (x.into_iter().map(|x| x.into()).collect(), y.into())).collect(),
                         kwarg_functions: funs,
                         dialect: Dialect::Presto(aorist_core::Presto::new())
                     })
@@ -581,14 +581,14 @@ macro_rules! define_constraint {
                     kwarg_functions: HashMap<&str, (Vec<&str>, &str)>,
                 ) -> PyResult<[<$element Program>]> {
 
-                    let mut funs: LinkedHashMap<String, (Vec<String>, String)> = LinkedHashMap::new();
-                    for (k, (v1, v2)) in kwarg_functions.iter() {
-                        funs.insert(k.to_string(), (v1.iter().map(|x| x.to_string()).collect(), v2.to_string()));
+                    let mut funs: LinkedHashMap<AString, (Vec<AString>, AString)> = LinkedHashMap::new();
+                    for (k, (v1, v2)) in kwarg_functions.into_iter() {
+                        funs.insert(k.into(), (v1.into_iter().map(|x| x.into()).collect(), v2.into()));
                     }
                     Ok([<$element Program>]{
-                        code: code.to_string(),
-                        entrypoint: entrypoint.to_string(),
-                        arg_functions: arg_functions.iter().map(|(x, y)| (x.iter().map(|x| x.to_string()).collect(), y.to_string())).collect(),
+                        code: code.into(),
+                        entrypoint: entrypoint.into(),
+                        arg_functions: arg_functions.into_iter().map(|(x, y)| (x.into_iter().map(|x| x.into()).collect(), y.into())).collect(),
                         kwarg_functions: funs,
                         dialect: Dialect::Bash(aorist_core::Bash::new())
                     })
@@ -596,27 +596,27 @@ macro_rules! define_constraint {
             }
             impl <'a> TProgram<'a, $element> for [<$element Program>] {
                 fn new(
-                    code: String,
-                    entrypoint: String,
-                    arg_functions: Vec<(Vec<String>, String)>,
-                    kwarg_functions: LinkedHashMap<String, (Vec<String>, String)>,
+                    code: AString,
+                    entrypoint: AString,
+                    arg_functions: Vec<(Vec<AString>, AString)>,
+                    kwarg_functions: LinkedHashMap<AString, (Vec<AString>, AString)>,
                     dialect: Dialect,
                 ) -> Self {
                     Self { code, entrypoint, arg_functions, kwarg_functions, dialect }
                 }
-                fn get_arg_functions(&self) -> Vec<(Vec<String>, String)> {
+                fn get_arg_functions(&self) -> Vec<(Vec<AString>, AString)> {
                     self.arg_functions.clone()
                 }
-                fn get_code(&self) -> String {
+                fn get_code(&self) -> AString {
                     self.code.clone()
                 }
                 fn get_dialect(&self) -> Dialect {
                     self.dialect.clone()
                 }
-                fn get_entrypoint(&self) -> String {
+                fn get_entrypoint(&self) -> AString {
                     self.entrypoint.clone()
                 }
-                fn get_kwarg_functions(&self) -> LinkedHashMap<String, (Vec<String>, String)> {
+                fn get_kwarg_functions(&self) -> LinkedHashMap<AString, (Vec<AString>, AString)> {
                     self.kwarg_functions.clone()
                 }
             }
@@ -648,10 +648,10 @@ macro_rules! define_constraint {
                     )*
                     Ok(downstream)
                 }
-                fn get_title() -> Option<String> {
+                fn get_title() -> Option<AString> {
                     $title
                 }
-                fn get_body() -> Option<String> {
+                fn get_body() -> Option<AString> {
                     $body
                 }
             }
@@ -660,10 +660,10 @@ macro_rules! define_constraint {
                 type Outer = $outer;
                 type Ancestry = ConceptAncestry;
 
-                fn get_root_type_name() -> Result<String> {
+                fn get_root_type_name() -> Result<AString> {
                     Ok(stringify!($root).into())
                 }
-                fn get_required_constraint_names() -> Vec<String> {
+                fn get_required_constraint_names() -> Vec<AString> {
                     vec![$(
                         stringify!($required).into()
                     ),*]
@@ -745,17 +745,17 @@ macro_rules! register_attribute_new {
             }
         }
         impl [<$name Enum>] {
-            pub fn get_name(&self) -> &String {
+            pub fn get_name(&self) -> AString {
                 match self {
                     $(
                         [<$name Enum>]::$element(x) => x.get_name(),
                     )+
                 }
             }
-            pub fn get_type(&self) -> String {
+            pub fn get_type(&self) -> AString {
                 match self {
                     $(
-                        [<$name Enum>]::$element(x) => stringify!($element).to_string(),
+                        [<$name Enum>]::$element(x) => stringify!($element).into(),
                     )+
                 }
             }
@@ -778,14 +778,14 @@ macro_rules! register_attribute_new {
                 match self {
                     $(
                         [<$name Enum>]::$element(x) => [<$name Enum>]::$element($element {
-                            name: format!("predicted_{}", x.get_name()).to_string(),
+                            name: format!("predicted_{}", x.get_name().as_str()).as_str().into(),
                             comment: x.get_comment().clone(),
                             nullable: false,
                         }),
                     )+
                 }
             }
-            pub fn get_comment(&self) -> &Option<String> {
+            pub fn get_comment(&self) -> Option<AString> {
                 match self {
                     $(
                         [<$name Enum>]::$element(x) => x.get_comment(),
@@ -800,21 +800,21 @@ macro_rules! register_attribute_new {
                     )+
                 }
             }
-            pub fn get_presto_type(&self) -> String {
+            pub fn get_presto_type(&self) -> AString {
                 match self {
                     $(
                         [<$name Enum>]::$element(x) => x.get_presto_type(),
                     )+
                 }
             }
-            pub fn get_sqlite_type(&self) -> String {
+            pub fn get_sqlite_type(&self) -> AString {
                 match self {
                     $(
                         [<$name Enum>]::$element(x) => x.get_sqlite_type(),
                     )+
                 }
             }
-            pub fn get_postgres_type(&self) -> String {
+            pub fn get_postgres_type(&self) -> AString {
                 match self {
                     $(
                         [<$name Enum>]::$element(x) => x.get_postgres_type(),
@@ -828,14 +828,14 @@ macro_rules! register_attribute_new {
                     )+
                 }
             }
-            pub fn get_bigquery_type(&self) -> String {
+            pub fn get_bigquery_type(&self) -> AString {
                 match self {
                     $(
                         [<$name Enum>]::$element(x) => x.get_bigquery_type(),
                     )+
                 }
             }
-            pub fn get_orc_type(&self) -> String {
+            pub fn get_orc_type(&self) -> AString {
                 match self {
                     $(
                         [<$name Enum>]::$element(x) => x.get_orc_type(),
@@ -863,13 +863,13 @@ macro_rules! register_attribute_new {
             }
         }*/
         impl $name {
-            pub fn get_name(&self) -> &String {
+            pub fn get_name(&self) -> AString {
                 self.inner.get_name()
             }
             pub fn psycopg2_value_json_serializable(&self) -> bool {
                 self.inner.psycopg2_value_json_serializable()
             }
-            pub fn get_type(&self) -> String {
+            pub fn get_type(&self) -> AString {
                 self.inner.get_type()
             }
             pub fn is_nullable(&self) -> bool {
@@ -878,26 +878,26 @@ macro_rules! register_attribute_new {
             pub fn is_key_type(&self) -> bool {
                 self.inner.is_key_type()
             }
-            pub fn get_comment(&self) -> &Option<String> {
+            pub fn get_comment(&self) -> Option<AString> {
                 self.inner.get_comment()
             }
             #[cfg(feature = "sql")]
             pub fn get_sql_type(&self) -> DataType {
                 self.inner.get_sql_type()
             }
-            pub fn get_presto_type(&self) -> String {
+            pub fn get_presto_type(&self) -> AString {
                 self.inner.get_presto_type()
             }
-            pub fn get_sqlite_type(&self) -> String {
+            pub fn get_sqlite_type(&self) -> AString {
                 self.inner.get_sqlite_type()
             }
-            pub fn get_postgres_type(&self) -> String {
+            pub fn get_postgres_type(&self) -> AString {
                 self.inner.get_postgres_type()
             }
-            pub fn get_bigquery_type(&self) -> String {
+            pub fn get_bigquery_type(&self) -> AString {
                 self.inner.get_bigquery_type()
             }
-            pub fn get_orc_type(&self) -> String {
+            pub fn get_orc_type(&self) -> AString {
                 self.inner.get_orc_type()
             }
             #[cfg(feature = "python")]
@@ -919,31 +919,31 @@ macro_rules! register_attribute_new {
         impl [<Py $name>] {
             #[getter]
             pub fn name(&self) -> pyo3::prelude::PyResult<String> {
-                Ok(self.inner.0.read().get_name().clone())
+                Ok(self.inner.0.read().get_name().as_str().into())
             }
             #[getter]
             pub fn aorist_type(&self) -> pyo3::prelude::PyResult<String> {
-                Ok(self.inner.0.read().get_type().clone())
+                Ok(self.inner.0.read().get_type().as_str().into())
             }
             #[getter]
             pub fn comment(&self) -> pyo3::prelude::PyResult<Option<String>> {
-                Ok(self.inner.0.read().get_comment().clone())
+                Ok(self.inner.0.read().get_comment().clone().and_then(|x| Some(x.as_str().into())))
             }
             #[getter]
             pub fn orc_type(&self) -> pyo3::prelude::PyResult<String> {
-                Ok(self.inner.0.read().get_orc_type().clone())
+                Ok(self.inner.0.read().get_orc_type().as_str().into())
             }
             #[getter]
             pub fn presto_type(&self) -> pyo3::prelude::PyResult<String> {
-                Ok(self.inner.0.read().get_presto_type().clone())
+                Ok(self.inner.0.read().get_presto_type().as_str().into())
             }
             #[getter]
             pub fn bigquery_type(&self) -> pyo3::prelude::PyResult<String> {
-                Ok(self.inner.0.read().get_bigquery_type().clone())
+                Ok(self.inner.0.read().get_bigquery_type().as_str().into())
             }
             #[getter]
             pub fn sqlite_type(&self) -> pyo3::prelude::PyResult<String> {
-                Ok(self.inner.0.read().get_sqlite_type().clone())
+                Ok(self.inner.0.read().get_sqlite_type().as_str().into())
             }
             #[getter]
             pub fn is_nullable(&self) -> pyo3::prelude::PyResult<bool> {
@@ -959,7 +959,7 @@ macro_rules! register_attribute_new {
             }
             #[getter]
             pub fn postgres_type(&self) -> pyo3::prelude::PyResult<String> {
-                Ok(self.inner.0.read().get_postgres_type().clone())
+                Ok(self.inner.0.read().get_postgres_type().as_str().into())
             }
             #[getter]
             pub fn py_type(&self) -> PyResult<pyo3::prelude::PyObject> {
@@ -975,7 +975,7 @@ macro_rules! register_concept {
         #[derive(Clone, Debug, Serialize, PartialEq)]
         pub enum $name {
             $(
-                $element((AoristRef<$element>, usize, Option<(Uuid, String)>)),
+                $element((AoristRef<$element>, usize, Option<(Uuid, AString)>)),
             )+
         }
         #[cfg(feature = "python")]
@@ -998,7 +998,7 @@ macro_rules! register_concept {
                 fn [<construct_ $element:snake:lower>](
                     obj_ref: AoristRef<$element>,
                     ix: Option<usize>,
-                    id: Option<(Uuid, String)>
+                    id: Option<(Uuid, AString)>
                 ) -> AoristRef<Self> {
                     AoristRef(RArc::new(RRwLock::new($name::$element((
                         obj_ref.clone(),
@@ -1048,14 +1048,14 @@ macro_rules! register_concept {
 
         #[cfg_attr(feature = "python", pyclass(module = "aorist"))]
         pub struct $ancestry {
-            pub parents: RArc<RRwLock<HashMap<(Uuid, String), AoristRef<$name>>>>,
+            pub parents: RArc<RRwLock<HashMap<(Uuid, AString), AoristRef<$name>>>>,
         }
         impl Ancestry for $ancestry {
             type TConcept = AoristRef<$name>;
-            fn new(parents: RArc<RRwLock<HashMap<(Uuid, String), AoristRef<$name>>>>) -> Self {
+            fn new(parents: RArc<RRwLock<HashMap<(Uuid, AString), AoristRef<$name>>>>) -> Self {
                  Self { parents }
             }
-            fn get_parents(&self) -> RArc<RRwLock<HashMap<(Uuid, String), AoristRef<$name>>>> {
+            fn get_parents(&self) -> RArc<RRwLock<HashMap<(Uuid, AString), AoristRef<$name>>>> {
                 self.parents.clone()
             }
 
@@ -1066,7 +1066,7 @@ macro_rules! register_concept {
                     &self,
                     root: AoristRef<$name>,
                 ) -> Result<AoristRef<$element>, String> {
-                    if root.get_type() == stringify!($element).to_string(){
+                    if root.get_type().as_str() == stringify!($element) {
                         return(Ok(AoristRef::<$element>::try_from(root.clone()).unwrap()));
                     }
                     let parent_id = root.get_parent_id();
@@ -1116,7 +1116,7 @@ macro_rules! register_concept {
         }
         impl TConceptEnum for AoristRef<$name> {
             type TUniverse = AoristRef<Universe>;
-            fn get_parent_id(&self) -> Option<(Uuid, String)> {
+            fn get_parent_id(&self) -> Option<(Uuid, AString)> {
                 let read = self.0.read();
                 match *read {
                     $(
@@ -1127,11 +1127,11 @@ macro_rules! register_concept {
             fn from_universe(universe: AoristRef<Universe>) -> Self {
                 AoristRef(RArc::new(RRwLock::new($name::Universe((universe, 0, None)))))
             }
-            fn get_type(&self) -> String {
+            fn get_type(&self) -> AString {
                 let read = self.0.read();
                 match *read {
                     $(
-                        $name::$element((ref x, _, _)) => stringify!($element).to_string(),
+                        $name::$element((ref x, _, _)) => stringify!($element).into(),
                     )*
                 }
             }
@@ -1143,7 +1143,7 @@ macro_rules! register_concept {
                     )*
                 }
             }
-            fn get_tag(&self) -> Option<String> {
+            fn get_tag(&self) -> Option<AString> {
                 let read = self.0.read();
                 match *read {
                     $(
@@ -1167,7 +1167,7 @@ macro_rules! register_concept {
                     )*
                 }
             }
-            fn populate_child_concept_map(&self, concept_map: &mut HashMap<(Uuid, String), Self>) {
+            fn populate_child_concept_map(&self, concept_map: &mut HashMap<(Uuid, AString), Self>) {
                 let read = self.0.read();
                 match *read {
                     $(
@@ -1179,7 +1179,7 @@ macro_rules! register_concept {
                             concept_map.insert(
                                 (
                                     x.get_uuid().unwrap(),
-                                    stringify!($element).to_string()
+                                    stringify!($element).into()
                                  ),
                                  AoristRef(RArc::new(RRwLock::new(
                                     $name::$element((x.clone(), idx, parent.clone()))
@@ -1237,25 +1237,25 @@ macro_rules! register_constraint_new {
                 ancestry: &Self::TAncestry,
                 context: &mut aorist_primitives::Context,
                 constraint: abi_stable::std_types::RArc<abi_stable::external_types::parking_lot::rw_lock::RRwLock<T>>,
-            ) -> (String, String, ParameterTuple, Dialect) {
+            ) -> (AString, AString, ParameterTuple, Dialect) {
                 let gil = Python::acquire_gil();
                 let py = gil.python();
                 //let mut args = Vec::new();
                 let dill: &PyModule = PyModule::import(py, "dill").unwrap();
-                let mut args = Vec::new();
-                let mut kwargs = LinkedHashMap::new();
+                let mut args: Vec<AST> = Vec::new();
+                let mut kwargs: LinkedHashMap<AString, AST> = LinkedHashMap::new();
                 for (input_types, serialized) in &self.inner.get_arg_functions() {
-                    let py_arg = PyString::new(py, &serialized);
+                    let py_arg = PyString::new(py, serialized.as_str());
                     let deserialized = dill.getattr("loads").unwrap().call1((py_arg,)).unwrap();
                     let mut objects = Vec::new();
                     let mut context_pos = None;
                     for (i, x) in input_types.iter().enumerate() {
-                        if x == "context" {
+                        if x.as_str() == "context" {
                             assert!(context_pos.is_none());
                             context_pos = Some(i);
                         } else {
                             objects.push(
-                                ancestry.py_object(x, root.clone(), py).unwrap().to_object(py)
+                                ancestry.py_object(x.as_str(), root.clone(), py).unwrap().to_object(py)
                             );
                         }
                     }
@@ -1267,18 +1267,18 @@ macro_rules! register_constraint_new {
                         let (
                             extracted_string, extracted_context
                         ) : (String, aorist_primitives::Context) = returned.extract().unwrap();
-                        context.insert(&extracted_context, constraint.read().get_name().clone());
+                        context.insert(&extracted_context, constraint.read().get_name().as_str());
                         extracted = extracted_string;
                     } else {
                         let arg = deserialized.call1((objects,)).unwrap();
                         // TODO: add more return types here
                         extracted = arg.extract().unwrap();
                     }
-                    let ast = AST::StringLiteral(StringLiteral::new_wrapped(extracted, false));
+                    let ast = AST::StringLiteral(StringLiteral::new_wrapped(extracted.as_str().into(), false));
                     args.push(ast);
                 }
                 for (key, (input_types, serialized)) in &self.inner.get_kwarg_functions() {
-                    let py_arg = PyString::new(py, &serialized);
+                    let py_arg = PyString::new(py, serialized.as_str());
                     let py_arg = py_arg.call_method1("encode", ("latin-1",)).unwrap();
                     let deserialized = dill.getattr("loads").unwrap().call1((py_arg,)).unwrap();
 
@@ -1287,7 +1287,7 @@ macro_rules! register_constraint_new {
                     let mut context_pos = None;
                     let mut constraint_pos = None;
                     for (i, x) in input_types.iter().enumerate() {
-                        match &x as &str {
+                        match x.as_str() {
                             "constraint" => {
                                 assert!(constraint_pos.is_none());
                                 constraint_pos = Some(i);
@@ -1302,7 +1302,7 @@ macro_rules! register_constraint_new {
                                 objects.push(obj);
                                 context_pos = Some(i);
                             },
-                            _ => match ancestry.py_object(x, root.clone(), py) {
+                            _ => match ancestry.py_object(x.as_str(), root.clone(), py) {
                                 Ok(x) => objects.push(x.to_object(py)),
                                 Err(err) => panic!(
                                     "Error when running program for key {} input_type {} # {}:\n{}",
@@ -1314,7 +1314,7 @@ macro_rules! register_constraint_new {
                     let extracted: AST = match deserialized.call1((objects,)) {
                         Ok(arg) => {
                             let result = match context_pos {
-                                Some(_) => aorist_ast::extract_arg_with_context(arg, context, constraint.read().get_name().clone()),
+                                Some(_) => aorist_ast::extract_arg_with_context(arg, context, constraint.read().get_name().as_str()),
                                 None => aorist_ast::extract_arg(arg),
                             };
                             match result {
@@ -1332,8 +1332,8 @@ macro_rules! register_constraint_new {
                         }
                     };
 
-                    if key.as_bytes()[0] != '_' as u8 {
-                        kwargs.insert(key.to_string(), extracted);
+                    if key.as_str().as_bytes()[0] != '_' as u8 {
+                        kwargs.insert(key.clone(), extracted);
                     }
                 }
                 (
@@ -1354,7 +1354,7 @@ macro_rules! register_constraint_new {
         }
         impl [<$name ProgramEnum>] {
             #[cfg(feature = "python")]
-            pub fn get_arg_functions(&self) -> Vec<(Vec<String>, String)> {
+            pub fn get_arg_functions(&self) -> Vec<(Vec<AString>, AString)> {
                 match self {
                     $(
                         [<$name ProgramEnum>]::$element(x) => x.get_arg_functions(),
@@ -1368,21 +1368,21 @@ macro_rules! register_constraint_new {
                     )+
                 }
             }
-            pub fn get_code(&self) -> String {
+            pub fn get_code(&self) -> AString {
                 match self {
                     $(
                         [<$name ProgramEnum>]::$element(x) => x.get_code(),
                     )+
                 }
             }
-            pub fn get_entrypoint(&self) -> String {
+            pub fn get_entrypoint(&self) -> AString {
                 match self {
                     $(
                         [<$name ProgramEnum>]::$element(x) => x.get_entrypoint(),
                     )+
                 }
             }
-            pub fn get_kwarg_functions(&self) -> LinkedHashMap<String, (Vec<String>, String)> {
+            pub fn get_kwarg_functions(&self) -> LinkedHashMap<AString, (Vec<AString>, AString)> {
                 match self {
                     $(
                         [<$name ProgramEnum>]::$element(x) => x.get_kwarg_functions(),
@@ -1421,14 +1421,14 @@ macro_rules! register_constraint_new {
                     )+
                 ]
             }
-            fn get_constraint_name(&self) -> String {
+            fn get_constraint_name(&self) -> AString {
                 match &self {
                     $(
-                        [<$name Builder>]::$element(_) => stringify!($element).to_string(),
+                        [<$name Builder>]::$element(_) => stringify!($element).into(),
                     )+
                 }
             }
-            fn get_required_constraint_names(&self) -> Vec<String> {
+            fn get_required_constraint_names(&self) -> Vec<AString> {
                 match &self {
                     $(
                         [<$name Builder>]::$element(_) => $element::get_required_constraint_names(),
@@ -1456,7 +1456,7 @@ macro_rules! register_constraint_new {
                     )+
                 }
             }
-            fn get_root_type_name(&self) -> Result<String> {
+            fn get_root_type_name(&self) -> Result<AString> {
                 match &self {
                     $(
                         [<$name Builder>]::$element(_) => $element::get_root_type_name(),
@@ -1481,12 +1481,12 @@ macro_rules! register_constraint_new {
             }
         }
         impl <$lt> TConstraintEnum<$lt> for $name {
-            fn get_required_constraint_names() -> HashMap<String, Vec<String>> {
-                hashmap! {
+            fn get_required_constraint_names() -> HashMap<AString, Vec<AString>> {
+                vec! [
                     $(
-                        stringify!($element).to_string() => $element::get_required_constraint_names(),
+                        (stringify!($element).into(), $element::get_required_constraint_names()),
                     )+
-                }
+                ].into_iter().collect()
             }
             #[cfg(feature = "python")]
             fn get_py_obj<'b>(&self, py: pyo3::Python<'b>) -> pyo3::prelude::PyObject {
@@ -1502,19 +1502,19 @@ macro_rules! register_constraint_new {
                     )+
                 }
             }
-            fn get_explanations() -> HashMap<String, (Option<String>, Option<String>)> {
-                hashmap! {
+            fn get_explanations() -> HashMap<AString, (Option<AString>, Option<AString>)> {
+                vec! [
                     $(
-                        stringify!($element).to_string() => (
+                        (stringify!($element).into(), (
                             $element::get_title(),
                             $element::get_body(),
-                        ),
+                        )),
                     )+
-                }
+                ].into_iter().collect()
             }
         }
         impl <$lt> $name {
-            pub fn get_root_type_name(&self) -> Result<String> {
+            pub fn get_root_type_name(&self) -> Result<AString> {
                 match self {
                     $(
                         Self::$element(_) => $element::get_root_type_name(),
@@ -1542,14 +1542,14 @@ macro_rules! register_constraint_new {
                     )+
                 }
             }
-            pub fn get_title(&self) -> Option<String> {
+            pub fn get_title(&self) -> Option<AString> {
                 match self {
                     $(
                         Self::$element(_) => $element::get_title(),
                     )+
                 }
             }
-            pub fn get_body(&self) -> Option<String> {
+            pub fn get_body(&self) -> Option<AString> {
                 match self {
                     $(
                         Self::$element(_) => $element::get_body(),
@@ -1563,17 +1563,19 @@ macro_rules! register_constraint_new {
                     )+
                 }
             }
-            fn get_root_type_names() -> Result<HashMap<String, String>> {
-                Ok(hashmap! {
+            fn get_root_type_names() -> Result<HashMap<AString, AString>> {
+                Ok(vec![
                     $(
-                        stringify!($element).to_string() => $element::get_root_type_name()?,
+                        (
+                            stringify!($element).into(), $element::get_root_type_name()?
+                        ),
                     )+
-                })
+                ].into_iter().collect())
             }
-            pub fn get_name(&self) -> String {
+            pub fn get_name(&self) -> aorist_primitives::AString {
                 match self {
                     $(
-                        Self::$element(x) => stringify!($element).to_string(),
+                        Self::$element(x) => stringify!($element).into(),
                     )+
                 }
             }
@@ -1610,6 +1612,7 @@ macro_rules! define_dag_function {
             dag_name: Option<String>,
         ) -> PyResult<String> {
             universe.compute_uuids();
+            let programs_map = programs.into_iter().map(|(k, v)| (k.as_str().into(), v)).collect();
             let (output, _requirements) = match mode {
                 "airflow" => PythonBasedDriver::<
                     AoristConstraintBuilder<'a>,
@@ -1620,13 +1623,13 @@ macro_rules! define_dag_function {
                     AoristConstraintProgram,
                 >::new(
                     universe.inner.clone(),
-                    constraints.into_iter().collect(),
-                    programs.into_iter().collect(),
+                    constraints.into_iter().map(|x| x.as_str().into()).collect(),
+                    programs_map,
                     dialect_preferences,
                     true,
                 )
                 .map_err(|e| pyo3::exceptions::PyException::new_err(e.to_string()))?
-                .run(dag_name),
+                .run(dag_name.and_then(|x| Some(x.as_str().into()))),
                 "prefect" => PythonBasedDriver::<
                     AoristConstraintBuilder<'a>,
                     PrefectFlowBuilder<AoristRef<Universe>>,
@@ -1636,13 +1639,13 @@ macro_rules! define_dag_function {
                     AoristConstraintProgram,
                 >::new(
                     universe.inner.clone(),
-                    constraints.into_iter().collect(),
-                    programs.into_iter().collect(),
+                    constraints.into_iter().map(|x| x.as_str().into()).collect(),
+                    programs_map,
                     dialect_preferences,
                     true,
                 )
                 .map_err(|e| pyo3::exceptions::PyException::new_err(e.to_string()))?
-                .run(dag_name),
+                .run(dag_name.and_then(|x| Some(x.as_str().into()))),
                 "python" => PythonBasedDriver::<
                     AoristConstraintBuilder<'a>,
                     PythonFlowBuilder<AoristRef<Universe>>,
@@ -1652,13 +1655,13 @@ macro_rules! define_dag_function {
                     AoristConstraintProgram,
                 >::new(
                     universe.inner.clone(),
-                    constraints.into_iter().collect(),
-                    programs.into_iter().collect(),
+                    constraints.into_iter().map(|x| x.as_str().into()).collect(),
+                    programs_map,
                     dialect_preferences,
                     false,
                 )
                 .map_err(|e| pyo3::exceptions::PyException::new_err(e.to_string()))?
-                .run(dag_name),
+                .run(dag_name.and_then(|x| Some(x.as_str().into()))),
                 "jupyter" => PythonBasedDriver::<
                     AoristConstraintBuilder<'a>,
                     JupyterFlowBuilder<AoristRef<Universe>>,
@@ -1668,20 +1671,20 @@ macro_rules! define_dag_function {
                     AoristConstraintProgram,
                 >::new(
                     universe.inner.clone(),
-                    constraints.into_iter().collect(),
-                    programs.into_iter().collect(),
+                    constraints.into_iter().map(|x| x.as_str().into()).collect(),
+                    programs_map,
                     dialect_preferences,
                     false,
                 )
                 .map_err(|e| pyo3::exceptions::PyException::new_err(e.to_string()))?
-                .run(dag_name),
+                .run(dag_name.and_then(|x| Some(x.as_str().into()))),
                 /*"r" => RBasedDriver::<ConstraintBuilder, RBasedFlowBuilder>::new(&universe, constraints.into_iter().collect())
                 .map_err(|e| pyo3::exceptions::PyException::new_err(e.to_string()))?
                 .run(dag_name),*/
                 _ => panic!("Unknown mode provided: {}", mode),
             }
             .map_err(|e| pyo3::exceptions::PyException::new_err(e.to_string()))?;
-            Ok(output.replace("\\\\", "\\"))
+            Ok(output.as_str().to_string().replace("\\\\", "\\").as_str().into())
         }
     }
 }
@@ -1752,15 +1755,15 @@ macro_rules! asset {
     { $name: ident } => {
         #[aorist]
         pub struct $name {
-            pub name: crate::concept::AString,
-            pub comment: Option<crate::concept::AString>,
+            pub name: AString,
+            pub comment: Option<AString>,
             #[constrainable]
             pub schema: AoristRef<DataSchema>,
             #[constrainable]
             pub setup: AoristRef<StorageSetup>,
         }
         impl TAsset for $name {
-            fn get_name(&self) -> crate::concept::AString {
+            fn get_name(&self) -> AString {
                 self.name.clone()
             }
             fn get_schema(&self) -> AoristRef<DataSchema> {
@@ -1778,7 +1781,7 @@ macro_rules! asset {
             pub fn replicate_to_local(
                 &self,
                 t: AoristRef<Storage>,
-                tmp_dir: crate::concept::AString,
+                tmp_dir: AString,
                 tmp_encoding: AoristRef<Encoding>,
             ) -> Option<Self> {
                 if let StorageSetup::RemoteStorageSetup(s) = &*self.setup.0.read() {
@@ -1935,8 +1938,8 @@ macro_rules! schema {
             pub fn get_attributes(&self) -> Vec<AoristRef<Attribute>> {
                 vec![$($(
                     attribute! { $attribute(
-                        stringify!($attr_name).to_string(),
-                        Some($comment.to_string()),
+                        stringify!($attr_name).into(),
+                        Some($comment.into()),
                         $nullable
                     )},
                 )+)?]
@@ -2039,7 +2042,7 @@ macro_rules! asset_enum {
                         Self::$enum_variant(_) => stringify!($enum_variant),
                     )+)?
                 }
-                .to_string()
+                .into()
             }
             pub fn replicate_to_local(
                 &self,

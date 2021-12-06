@@ -5,16 +5,16 @@ use std::hash::Hash;
 
 #[derive(Clone, Hash, PartialEq, Eq, PartialOrd, Ord)]
 pub struct RImport {
-    pub library: String,
+    pub library: AString,
 }
 impl Import for RImport {}
 impl RImport {
-    pub fn new(library: String) -> Self {
+    pub fn new(library: AString) -> Self {
         Self { library }
     }
     pub fn to_r_ast_node(&self, depth: usize) -> Robj {
         AST::Call(Call::new_wrapped(
-            AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("library".to_string())),
+            AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("library".into())),
             vec![AST::StringLiteral(StringLiteral::new_wrapped(
                 self.library.clone(),
                 false,

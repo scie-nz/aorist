@@ -8,7 +8,7 @@ use abi_stable::std_types::RArc;
 use aorist_attributes::{Count, FloatPrediction, Regressor};
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
-use aorist_primitives::{AoristConcept, ConceptEnum};
+use aorist_primitives::{AoristConcept, ConceptEnum, AString};
 use derivative::Derivative;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
@@ -20,11 +20,11 @@ use uuid::Uuid;
 /// in a table.
 #[aorist]
 pub struct IntegerMeasure {
-    pub name: String,
-    pub comment: Option<String>,
+    pub name: AString,
+    pub comment: Option<AString>,
     #[constrainable]
     pub attributes: Vec<AoristRef<Attribute>>,
-    pub source_asset_name: String,
+    pub source_asset_name: AString,
 }
 
 impl TDatumTemplate for IntegerMeasure {
@@ -34,7 +34,7 @@ impl TDatumTemplate for IntegerMeasure {
         attr.push(frequency_attribute);
         attr
     }
-    fn get_name(&self) -> String {
+    fn get_name(&self) -> AString {
         self.name.clone()
     }
 }
@@ -53,13 +53,13 @@ impl IntegerMeasure {
 }
 #[aorist]
 pub struct TrainedFloatMeasure {
-    pub name: String,
-    pub comment: Option<String>,
+    pub name: AString,
+    pub comment: Option<AString>,
     #[constrainable]
     pub features: Vec<AoristRef<Attribute>>,
     #[constrainable]
     pub objective: AoristRef<Attribute>,
-    pub source_asset_name: String,
+    pub source_asset_name: AString,
 }
 
 impl TDatumTemplate for AoristRef<TrainedFloatMeasure> {
@@ -77,7 +77,7 @@ impl TDatumTemplate for AoristRef<TrainedFloatMeasure> {
 
         attr
     }
-    fn get_name(&self) -> String {
+    fn get_name(&self) -> AString {
         self.0.read().name.clone()
     }
 }
@@ -100,8 +100,8 @@ impl AoristRef<TrainedFloatMeasure> {
     }
     pub fn get_regressor_as_attribute(&self) -> Regressor {
         Regressor {
-            name: "model".to_string(),
-            comment: Some("A serialized version of the model".to_string()),
+            name: "model".into(),
+            comment: Some("A serialized version of the model".into()),
             nullable: false,
         }
     }
@@ -125,15 +125,15 @@ impl AoristRef<TrainedFloatMeasure> {
 
 #[aorist]
 pub struct PredictionsFromTrainedFloatMeasure {
-    pub name: String,
-    pub comment: Option<String>,
+    pub name: AString,
+    pub comment: Option<AString>,
     #[constrainable]
     pub features: Vec<AoristRef<Attribute>>,
     #[constrainable]
     pub objective: AoristRef<Attribute>,
 }
 impl PredictionsFromTrainedFloatMeasure {
-    pub fn get_name(&self) -> String {
+    pub fn get_name(&self) -> AString {
         self.name.clone()
     }
     pub fn get_attributes(&self) -> Vec<AoristRef<Attribute>> {
@@ -143,9 +143,9 @@ impl PredictionsFromTrainedFloatMeasure {
         attr
     }
     pub fn get_model_asset_role(&self) -> String {
-        "model".to_string()
+        "model".into()
     }
     pub fn get_source_asset_role(&self) -> String {
-        "source".to_string()
+        "source".into()
     }
 }

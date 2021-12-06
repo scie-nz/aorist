@@ -7,7 +7,7 @@ use crate::python::PythonImport;
 use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 use abi_stable::std_types::RArc;
 use aorist_ast::{Formatted, AST};
-use aorist_primitives::define_task_node;
+use aorist_primitives::{AString, define_task_node};
 use linked_hash_map::LinkedHashMap;
 use std::hash::Hash;
 
@@ -18,7 +18,7 @@ define_task_node!(
     |task: &BashPythonTask| { task.get_python_subprocess_imports() },
     PythonImport,
     call: AST,
-    kwargs: LinkedHashMap<String, AST>,
+    kwargs: LinkedHashMap<AString, AST>,
     task_val: AST,
     dependencies: Option<AST>,
 );

@@ -11,6 +11,7 @@ use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
 use uuid::Uuid;
+use aorist_primitives::AString;
 
 #[aorist]
 pub enum LanguageAssetSchema {
@@ -44,14 +45,14 @@ impl LanguageAssetSchema {
             LanguageAssetSchema::TextCorpusSchema(x) => x.0.read().get_datum_template(),
         }
     }
-    pub fn get_text_attribute_name(&self) -> String {
+    pub fn get_text_attribute_name(&self) -> AString {
         self.get_source_schema()
             .0
             .read()
             .text_attribute_name
             .clone()
     }
-    pub fn get_datum_template_name(&self) -> String {
+    pub fn get_datum_template_name(&self) -> AString {
         self.get_datum_template().0.read().get_name()
     }
     pub fn should_dedup_text_attribute(&self) -> bool {
@@ -66,7 +67,7 @@ impl LanguageAssetSchema {
 impl PyLanguageAssetSchema {
     #[getter]
     pub fn get_text_attribute_name(&self) -> String {
-        self.inner.0.read().get_text_attribute_name()
+        self.inner.0.read().get_text_attribute_name().as_str().into()
     }
     pub fn should_dedup_text_attribute(&self) -> bool {
         self.inner.0.read().should_dedup_text_attribute()

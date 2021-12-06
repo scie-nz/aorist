@@ -6,7 +6,7 @@ use crate::python::PythonImport;
 use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 use abi_stable::std_types::RArc;
 use aorist_ast::{Call, Formatted, SimpleIdentifier, AST};
-use aorist_primitives::define_task_node;
+use aorist_primitives::{AString, define_task_node};
 use aorist_primitives::PrestoConfig;
 use linked_hash_map::LinkedHashMap;
 use std::hash::Hash;
@@ -17,14 +17,14 @@ define_task_node!(
     |task: &PrestoPythonTask| { task.get_native_python_statements() },
     |_task: &PrestoPythonTask| {
         vec![
-            PythonImport::PythonModuleImport("subprocess".to_string(), None),
-            PythonImport::PythonModuleImport("trino".to_string(), None),
-            PythonImport::PythonModuleImport("re".to_string(), None),
+            PythonImport::PythonModuleImport("subprocess".into(), None),
+            PythonImport::PythonModuleImport("trino".into(), None),
+            PythonImport::PythonModuleImport("re".into(), None),
         ]
     },
     PythonImport,
     sql: AST,
-    kwargs: LinkedHashMap<String, AST>,
+    kwargs: LinkedHashMap<AString, AST>,
     task_val: AST,
     endpoint: PrestoConfig,
     dependencies: Option<AST>,
@@ -37,8 +37,8 @@ impl PythonTaskBase for PrestoPythonTask {
 }
 impl PythonFunctionCallTask for PrestoPythonTask {
     fn get_preamble(&self) -> Option<NativePythonPreamble> {
-        let re = PythonImport::PythonModuleImport("re".to_string(), None);
-        let trino = PythonImport::PythonModuleImport("trino".to_string(), None);
+        let re = PythonImport::PythonModuleImport("re".into(), None);
+        let trino = PythonImport::PythonModuleImport("trino".into(), None);
         let body = format!(
             "
 def execute_trino_sql(query):
@@ -70,14 +70,14 @@ def execute_trino_sql(query):
         Some(NativePythonPreamble {
             imports: vec![re, trino],
             from_imports: Vec::new(),
-            body: body.to_string(),
+            body: body.as_str().into(),
         })
     }
     fn get_call(&self) -> AST {
         let query;
         if let AST::StringLiteral(ref s) = self.sql {
-            if s.read().value() == "{queries}" {
-                query = self.kwargs.get("queries").unwrap().clone();
+            if s.read().value().as_str() == "{queries}" {
+                query = self.kwargs.get(&("queries".into())).unwrap().clone();
             } else {
                 query = AST::Formatted(Formatted::new_wrapped(
                     self.sql.clone(),
@@ -89,10 +89,10 @@ def execute_trino_sql(query):
         }
         AST::Call(Call::new_wrapped(
             AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
-                "execute_trino_sql".to_string(),
+                "execute_trino_sql".into(),
             )),
             vec![],
-            vec![("query".to_string(), query)].into_iter().collect(),
+            vec![("query".into(), query)].into_iter().collect(),
         ))
     }
 }

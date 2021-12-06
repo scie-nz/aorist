@@ -1,10 +1,9 @@
-#![allow(non_snake_case)]
 use crate::concept::{AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
 use crate::error::AoristError;
 use crate::role::*;
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
-use aorist_primitives::TAoristObject;
+use aorist_primitives::{AString, TAoristObject};
 use derivative::Derivative;
 use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
@@ -13,39 +12,39 @@ use uuid::Uuid;
 
 #[aorist]
 pub struct User {
-    firstName: String,
-    lastName: String,
-    email: String,
-    phone: String,
-    pub unixname: String,
+    first_name: AString,
+    last_name: AString,
+    email: AString,
+    phone: AString,
+    pub unixname: AString,
     #[constrainable]
     roles: Option<Vec<AoristRef<Role>>>,
 }
 
 impl TAoristObject for User {
-    fn get_name(&self) -> &String {
+    fn get_name(&self) -> &AString {
         &self.unixname
     }
 }
 
 pub trait TUser {
-    fn to_yaml(&self) -> String;
-    fn get_unixname(&self) -> String;
+    fn to_yaml(&self) -> AString;
+    fn get_unixname(&self) -> AString;
     fn set_roles(&mut self, roles: Vec<AoristRef<Role>>) -> Result<(), AoristError>;
     fn get_roles(&self) -> Result<Vec<AoristRef<Role>>, AoristError>;
-    fn get_permissions(&self) -> Result<HashSet<String>, AoristError>;
+    fn get_permissions(&self) -> Result<HashSet<AString>, AoristError>;
 }
 impl TUser for User {
-    fn to_yaml(&self) -> String {
-        serde_yaml::to_string(self).unwrap()
+    fn to_yaml(&self) -> AString {
+        serde_yaml::to_string(self).unwrap().as_str().into()
     }
-    fn get_unixname(&self) -> String {
-        self.unixname.clone()
+    fn get_unixname(&self) -> AString {
+        self.unixname.as_str().into()
     }
     fn set_roles(&mut self, roles: Vec<AoristRef<Role>>) -> Result<(), AoristError> {
         if let Some(_) = self.roles {
             return Err(AoristError::OtherError(
-                "Tried to set roles more than once.".into(),
+                AString::from("Tried to set roles more than once."),
             ));
         }
         self.roles = Some(roles);
@@ -55,12 +54,12 @@ impl TUser for User {
         match &self.roles {
             Some(x) => Ok(x.clone()),
             None => Err(AoristError::OtherError(
-                "Tried to get roles for user but set_roles was never called".into(),
+                AString::from("Tried to get roles for user but set_roles was never called"),
             )),
         }
     }
-    fn get_permissions(&self) -> Result<HashSet<String>, AoristError> {
-        let mut perms: HashSet<String> = HashSet::new();
+    fn get_permissions(&self) -> Result<HashSet<AString>, AoristError> {
+        let mut perms: HashSet<AString> = HashSet::new();
         for role in self.get_roles()? {
             for perm in role.0.read().get_permissions() {
                 perms.insert(perm);

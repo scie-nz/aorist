@@ -12,15 +12,15 @@ use thiserror::Error;
 #[derive(Debug, Error)]
 pub enum RFlowBuilderError {
     #[error("{0}")]
-    Generic(String),
+    Generic(AString),
 }
 
 pub struct RBasedFlowBuilder {}
 impl RBasedFlowBuilder {
     fn build_flow(
         &self,
-        statements: Vec<(String, Option<String>, Option<String>, Vec<String>)>,
-    ) -> Vec<(String, Vec<String>)> {
+        statements: Vec<(AString, Option<AString>, Option<AString>, Vec<AString>)>,
+    ) -> Vec<(AString, Vec<AString>)> {
         statements
             .into_iter()
             .map(|(name, title, body, code)| {
@@ -32,7 +32,7 @@ impl RBasedFlowBuilder {
                                 t,
                                 b.split("\n")
                                     .map(|x| format!("# {}", x).to_string())
-                                    .collect::<Vec<String>>()
+                                    .collect::<Vec<AString>>()
                                     .join("\n")
                             )
                             .to_string(),
@@ -46,14 +46,14 @@ impl RBasedFlowBuilder {
             .collect()
     }
 
-    fn build_file(&self, sources: Vec<(Option<String>, String)>) -> String {
+    fn build_file(&self, sources: Vec<(Option<AString>, AString)>) -> String {
         sources
             .into_iter()
             .map(|(maybe_comment, block)| match maybe_comment {
                 Some(comment) => format!("# {}\n{}\n", comment, block).to_string(),
                 None => block,
             })
-            .collect::<Vec<String>>()
+            .collect::<Vec<AString>>()
             .join("\n")
     }
 }
@@ -72,7 +72,7 @@ impl FlowBuilderMaterialize for RBasedFlowBuilder {
     fn materialize(
         &self,
         statements_and_preambles: Vec<RFlowBuilderInput>,
-    ) -> std::result::Result<String, RFlowBuilderError> {
+    ) -> std::result::Result<AString, RFlowBuilderError> {
         let preambles: LinkedHashSet<RPreamble> = statements_and_preambles
             .iter()
             .map(|x| x.clone().get_preambles().into_iter())
@@ -93,11 +93,11 @@ impl FlowBuilderMaterialize for RBasedFlowBuilder {
             .map(|x| {
                 let call = x.to_r_ast_node(0);
                 let deparsed = call!("deparse", call).unwrap();
-                Vec::<String>::from_robj(&deparsed).unwrap().join("\n")
+                Vec::<AString>::from_robj(&deparsed).unwrap().join("\n")
             })
             .collect();
 
-        let statements: Vec<(String, Option<String>, Option<String>, Vec<AST>)> =
+        let statements: Vec<(AString, Option<AString>, Option<AString>, Vec<AST>)> =
             statements_and_preambles
                 .into_iter()
                 .map(|x| {
@@ -115,7 +115,7 @@ impl FlowBuilderMaterialize for RBasedFlowBuilder {
             .collect::<Vec<_>>();
 
         // ast_value without ancestry => short_name => keys
-        let mut literals: LinkedHashMap<AST, LinkedHashMap<String, Vec<_>>> = LinkedHashMap::new();
+        let mut literals: LinkedHashMap<AST, LinkedHashMap<AString, Vec<_>>> = LinkedHashMap::new();
 
         for (short_name, _, _, asts) in statements_with_ast.iter() {
             for ast in asts {
@@ -128,8 +128,8 @@ impl FlowBuilderMaterialize for RBasedFlowBuilder {
             statements_with_ast.insert(
                 0,
                 (
-                    "assignments".to_string(),
-                    Some("Common string literals".to_string()),
+                    "assignments".into(),
+                    Some("Common string literals".into()),
                     None,
                     assignments_ast,
                 ),
@@ -145,7 +145,7 @@ impl FlowBuilderMaterialize for RBasedFlowBuilder {
                     x.into_iter()
                         .map(|y| {
                             let deparsed = call!("deparse", y.to_r_ast_node(0)).unwrap();
-                            Vec::<String>::from_robj(&deparsed).unwrap().join("\n")
+                            Vec::<AString>::from_robj(&deparsed).unwrap().join("\n")
                         })
                         .collect(),
                 )
@@ -154,18 +154,18 @@ impl FlowBuilderMaterialize for RBasedFlowBuilder {
 
         let flow = self.build_flow(statements_ast);
 
-        let content: Vec<(Option<String>, Vec<_>)> =
-            vec![(Some("RImports".to_string()), imports_ast)]
+        let content: Vec<(Option<AString>, Vec<_>)> =
+            vec![(Some("RImports".into()), imports_ast)]
                 .into_iter()
                 .chain(preambles.into_iter().map(|x| (None, vec![x.get_body()])))
                 .chain(flow.into_iter().map(|(x, y)| (Some(x), y)))
                 .collect();
 
-        let mut sources: Vec<(Option<String>, String)> = Vec::new();
+        let mut sources: Vec<(Option<AString>, AString)> = Vec::new();
 
         // This is needed since astor will occasionally forget to add a newline
         for (comment, block) in content {
-            let mut lines: Vec<String> = Vec::new();
+            let mut lines: Vec<AString> = Vec::new();
             for item in block {
                 lines.push(item);
             }

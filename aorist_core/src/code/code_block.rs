@@ -8,7 +8,7 @@ use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 use abi_stable::std_types::RArc;
 use anyhow::Result;
 use aorist_ast::{SimpleIdentifier, StringLiteral, Subscript, AST};
-use aorist_primitives::AoristUniverse;
+use aorist_primitives::{AString, AoristUniverse};
 use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
 use std::collections::{BTreeSet, HashMap, HashSet};
@@ -31,7 +31,7 @@ where
         tasks_dict: Option<AST>,
         tasks: Vec<Self::E>,
         task_identifiers: HashMap<Uuid, AST>,
-        params: HashMap<String, Option<ParameterTuple>>,
+        params: HashMap<AString, Option<ParameterTuple>>,
     ) -> Self;
 
     /// assigns task values (Python variables in which they will be stored)
@@ -70,7 +70,7 @@ where
 
     fn get_tasks_dict(&self) -> Option<AST>;
     fn get_identifiers(&self) -> HashMap<Uuid, AST>;
-    fn get_params(&self) -> HashMap<String, Option<ParameterTuple>>;
+    fn get_params(&self) -> HashMap<AString, Option<ParameterTuple>>;
 
     fn create_standalone_tasks(
         members: Vec<RArc<RRwLock<ConstraintState<'a, C, P>>>>,
@@ -79,10 +79,10 @@ where
     ) -> Result<(
         Vec<<Self::E as ETLTask<T, U>>::S>,
         HashMap<Uuid, AST>,
-        HashMap<String, Option<ParameterTuple>>,
+        HashMap<AString, Option<ParameterTuple>>,
     )> {
         let mut task_identifiers: HashMap<Uuid, AST> = HashMap::new();
-        let mut params: HashMap<String, Option<ParameterTuple>> = HashMap::new();
+        let mut params: HashMap<AString, Option<ParameterTuple>> = HashMap::new();
         let mut tasks = Vec::new();
         let mut asts: HashSet<AST> = HashSet::new();
         for (ast, state) in Self::compute_task_vals(members, &tasks_dict) {
@@ -129,7 +129,7 @@ pub trait CodeBlockWithDefaultConstructor<
 {
     fn new(
         members: Vec<RArc<RRwLock<ConstraintState<'a, C, P>>>>,
-        constraint_name: String,
+        constraint_name: AString,
         tasks_dict: Option<AST>,
         identifiers: &HashMap<Uuid, AST>,
         render_dependencies: bool,
@@ -154,7 +154,7 @@ pub trait CodeBlockWithForLoopCompression<
             Vec<<Self::E as ETLTask<T, U>>::S>,
         >,
         tasks: &mut Vec<Self::E>,
-        constraint_name: String,
+        constraint_name: AString,
         render_dependencies: bool,
     );
     fn separate_compressible_tasks(
@@ -195,7 +195,7 @@ where
 {
     fn new(
         members: Vec<RArc<RRwLock<ConstraintState<'a, CType, P>>>>,
-        constraint_name: String,
+        constraint_name: AString,
         tasks_dict: Option<AST>,
         identifiers: &HashMap<Uuid, AST>,
         render_dependencies: bool,

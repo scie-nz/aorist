@@ -15,13 +15,14 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fmt::Debug;
 use uuid::Uuid;
+use aorist_primitives::{AString};
 
 #[aorist]
 pub struct TabularCollectionSchema {
     // same datum_template as a TabularSchema
     pub datum_template: AoristRef<DatumTemplate>,
     pub source_assets: Vec<AoristRef<Asset>>,
-    pub attributes: Vec<String>,
+    pub attributes: Vec<AString>,
 }
 impl TabularCollectionSchema {
     pub fn get_datum_template(&self) -> AoristRef<DatumTemplate> {
@@ -30,7 +31,7 @@ impl TabularCollectionSchema {
     pub fn get_attributes(&self) -> Vec<AoristRef<Attribute>> {
         let mut attributes_map = LinkedHashMap::new();
         for asset in &self.source_assets {
-            let mut asset_attr: HashMap<String, Attribute> = asset
+            let mut asset_attr: HashMap<AString, Attribute> = asset
                 .0
                 .read()
                 .get_schema()

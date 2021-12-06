@@ -6,7 +6,7 @@ use crate::template::*;
 use aorist_attributes::*;
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
-use aorist_primitives::{attribute, derived_schema};
+use aorist_primitives::{attribute, derived_schema, AString};
 use derivative::Derivative;
 #[cfg(feature = "python")]
 use pyo3::prelude::*;
@@ -20,5 +20,5 @@ derived_schema! {
     attributes:
       path: KeyStringIdentifier("File Path", false)
     fields:
-      algorithm_json: String
+      algorithm_json: AString
 }

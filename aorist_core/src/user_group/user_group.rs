@@ -3,7 +3,7 @@ use crate::concept::{AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
 use crate::user::*;
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
-use aorist_primitives::TAoristObject;
+use aorist_primitives::{AString, TAoristObject};
 use derivative::Derivative;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
@@ -12,22 +12,22 @@ use uuid::Uuid;
 
 #[aorist]
 pub struct UserGroup {
-    name: String,
-    members: Vec<String>,
-    labels: BTreeMap<String, String>,
-    description: Option<String>,
+    name: AString,
+    members: Vec<AString>,
+    labels: BTreeMap<AString, AString>,
+    description: Option<AString>,
     users: Vec<User>,
 }
 pub trait TUserGroup {
-    fn get_labels(&self) -> &BTreeMap<String, String>;
+    fn get_labels(&self) -> &BTreeMap<AString, AString>;
 }
 impl TUserGroup for UserGroup {
-    fn get_labels(&self) -> &BTreeMap<String, String> {
+    fn get_labels(&self) -> &BTreeMap<AString, AString> {
         &self.labels
     }
 }
 impl TAoristObject for UserGroup {
-    fn get_name(&self) -> &String {
+    fn get_name(&self) -> &AString {
         &self.name
     }
 }

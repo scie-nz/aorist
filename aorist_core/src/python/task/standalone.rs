@@ -6,7 +6,7 @@ use crate::parameter_tuple::ParameterTuple;
 use crate::python::task::key::PythonBasedTaskCompressionKey;
 use crate::python::task::uncompressible::PythonBasedTaskUncompressiblePart;
 use crate::python::{List, PythonImport, PythonPreamble, StringLiteral, AST};
-use aorist_primitives::AoristUniverse;
+use aorist_primitives::{AoristUniverse, AString};
 use linked_hash_map::LinkedHashMap;
 use std::hash::Hash;
 use std::marker::PhantomData;
@@ -20,17 +20,17 @@ where
     /// where the task creation call should be stored.
     task_val: AST,
     /// unique task identifier
-    task_id: String,
+    task_id: AString,
     /// function called to create task (has different meaning depending on
     /// the render we use.
-    call: Option<String>,
+    call: Option<AString>,
     /// arguments passed to function call
     params: Option<ParameterTuple>,
     /// task_vals (or references to them) of other tasks this one
     /// depends on.
     dependencies: Vec<AST>,
     /// Python preamble used by this task call
-    preamble: Option<String>,
+    preamble: Option<AString>,
     /// Dialect (e.g. Bash, Python, R, Presto, etc.), to be interpreted
     /// by render.
     dialect: Option<Dialect>,
@@ -50,12 +50,12 @@ where
     U: AoristUniverse,
 {
     fn new(
-        task_id: String,
+        task_id: AString,
         task_val: AST,
-        call: Option<String>,
+        call: Option<AString>,
         params: Option<ParameterTuple>,
         dependencies: Vec<AST>,
-        preamble: Option<String>,
+        preamble: Option<AString>,
         dialect: Option<Dialect>,
     ) -> Self {
         Self {
@@ -85,7 +85,7 @@ where
             _ => false,
         }
     }
-    fn get_compression_key(&self) -> Result<PythonBasedTaskCompressionKey, String> {
+    fn get_compression_key(&self) -> Result<PythonBasedTaskCompressionKey, AString> {
         Ok(PythonBasedTaskCompressionKey::new(
             self.get_left_of_task_val()?,
             self.call.clone(),
@@ -97,30 +97,28 @@ where
             self.dialect.clone(),
         ))
     }
-    fn get_left_of_task_val(&self) -> Result<AST, String> {
+    fn get_left_of_task_val(&self) -> Result<AST, AString> {
         match &self.task_val {
             AST::Subscript(x) => {
                 let rw = x.read();
                 Ok(rw.a().clone())
             }
-            _ => Err("Task val must be a subscript".to_string()),
+            _ => Err("Task val must be a subscript".into()),
         }
     }
-    fn get_right_of_task_val(&self) -> Result<String, String> {
+    fn get_right_of_task_val(&self) -> Result<AString, AString> {
         match &self.task_val {
             AST::Subscript(x) => {
                 let rw = x.read();
                 match &rw.b() {
                     AST::StringLiteral(l) => Ok(l.read().value().clone()),
-                    _ => Err("Right of subscript must be a string
-                    literal"
-                        .to_string()),
+                    _ => Err("Right of subscript must be a string literal".into()),
                 }
             }
-            _ => Err("Task val must be a subscript".to_string()),
+            _ => Err("Task val must be a subscript".into()),
         }
     }
-    fn get_preamble(&self) -> Option<String> {
+    fn get_preamble(&self) -> Option<AString> {
         self.preamble.clone()
     }
     fn get_dialect(&self) -> Option<Dialect> {
@@ -138,7 +136,7 @@ where
 {
     pub fn get_uncompressible_part(
         &self,
-    ) -> Result<PythonBasedTaskUncompressiblePart<T, U>, String> {
+    ) -> Result<PythonBasedTaskUncompressiblePart<T, U>, AString> {
         Ok(PythonBasedTaskUncompressiblePart::new(
             self.task_id.clone(),
             self.get_right_of_task_val()?,

@@ -7,8 +7,7 @@ use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 use abi_stable::std_types::RArc;
 use anyhow::{bail, Result};
 use aorist_ast::{AncestorRecord, Formatted, SimpleIdentifier, StringLiteral, AST};
-use aorist_primitives::Context;
-use aorist_primitives::TConceptEnum;
+use aorist_primitives::{Context, TConceptEnum, AString};
 use inflector::cases::snakecase::to_snake_case;
 use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
@@ -18,20 +17,20 @@ use uuid::Uuid;
 
 pub struct ConstraintState<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry = T::TAncestry>> {
     dialect: Option<Dialect>,
-    pub key: Option<String>,
-    name: String,
+    pub key: Option<AString>,
+    name: AString,
     pub satisfied: bool,
     pub satisfied_dependencies: Vec<RArc<RRwLock<ConstraintState<'a, T, P>>>>,
-    pub unsatisfied_dependencies: LinkedHashSet<(Uuid, String)>,
+    pub unsatisfied_dependencies: LinkedHashSet<(Uuid, AString)>,
     constraint: RArc<RRwLock<T>>,
     root: <<T as OuterConstraint<'a>>::TAncestry as Ancestry>::TConcept,
     // these are concept ancestors
     // TODO: change this to Vec<Concept<'a>>
     ancestors: Vec<AncestorRecord>,
-    preamble: Option<String>,
-    call: Option<String>,
+    preamble: Option<AString>,
+    call: Option<AString>,
     params: Option<ParameterTuple>,
-    task_name: Option<String>,
+    task_name: Option<AString>,
     context: Context,
 }
 impl<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry = T::TAncestry>>
@@ -40,13 +39,13 @@ impl<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry = T::TAncestry>>
     pub fn mark_dependency_as_satisfied(
         &mut self,
         dependency: &RArc<RRwLock<ConstraintState<'a, T, P>>>,
-        uuid: &(Uuid, String),
+        uuid: &(Uuid, AString),
     ) {
         let dependency_name = dependency.read().get_name();
         let dependency_context = &(*dependency.read()).context;
         self.satisfied_dependencies.push(dependency.clone());
         self.context
-            .insert(dependency_context, dependency_name.clone());
+            .insert(dependency_context, dependency_name.as_str().into());
         assert!(self.unsatisfied_dependencies.remove(uuid));
         debug!("Marked dependency {} as satisfied.", dependency_name);
     }
@@ -66,10 +65,10 @@ impl<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry = T::TAncestry>>
                 self.get_call().unwrap(),
             ))),
             Some(Dialect::Bash(_)) | Some(Dialect::Presto(_)) => Ok(AST::SimpleIdentifier(
-                SimpleIdentifier::new_wrapped("ShellTask".to_string()),
+                SimpleIdentifier::new_wrapped("ShellTask".into()),
             )),
             None => Ok(AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
-                "ConstantTask".to_string(),
+                "ConstantTask".into(),
             ))),
             _ => bail!("Dialect not supported for task call: {:?}", self.dialect),
         }
@@ -87,7 +86,7 @@ impl<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry = T::TAncestry>>
             _ => bail!("Dialect not supported for args vec: {:?}", self.dialect),
         }
     }
-    pub fn get_kwargs_map(&self) -> Result<LinkedHashMap<String, AST>> {
+    pub fn get_kwargs_map(&self) -> Result<LinkedHashMap<AString, AST>> {
         match &self.dialect {
             Some(Dialect::Python(_)) => match self.params {
                 Some(ref p) => Ok(p.get_kwargs()),
@@ -95,7 +94,7 @@ impl<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry = T::TAncestry>>
             },
             Some(Dialect::Presto(_)) => {
                 let raw_command = format!("presto -e '{}'", self.get_call().unwrap().clone());
-                let format_string = StringLiteral::new_wrapped(raw_command.to_string(), true);
+                let format_string = StringLiteral::new_wrapped(raw_command.as_str().into(), true);
                 let command = match self.params {
                     Some(ref p) => AST::Formatted(Formatted::new_wrapped(
                         AST::StringLiteral(format_string),
@@ -103,8 +102,8 @@ impl<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry = T::TAncestry>>
                     )),
                     None => AST::StringLiteral(format_string),
                 };
-                let mut keywords: LinkedHashMap<String, AST> = LinkedHashMap::new();
-                keywords.insert("command".to_string(), command);
+                let mut keywords: LinkedHashMap<AString, AST> = LinkedHashMap::new();
+                keywords.insert("command".into(), command);
                 Ok(keywords)
             }
             Some(Dialect::Bash(_)) => {
@@ -116,27 +115,27 @@ impl<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry = T::TAncestry>>
                     }
                     None => format_string,
                 };
-                let mut keywords: LinkedHashMap<String, AST> = LinkedHashMap::new();
-                keywords.insert("command".to_string(), command);
+                let mut keywords: LinkedHashMap<AString, AST> = LinkedHashMap::new();
+                keywords.insert("command".into(), command);
                 Ok(keywords)
             }
             None => Ok(LinkedHashMap::new()),
             _ => bail!("Dialect not supported for kwargs map: {:?}", self.dialect),
         }
     }
-    pub fn set_task_name(&mut self, name: String) {
+    pub fn set_task_name(&mut self, name: AString) {
         self.task_name = Some(name)
     }
-    pub fn get_task_name(&self) -> String {
+    pub fn get_task_name(&self) -> AString {
         self.task_name.as_ref().unwrap().clone()
     }
-    pub fn get_satisfied_dependency_keys(&self) -> Vec<String> {
+    pub fn get_satisfied_dependency_keys(&self) -> Vec<AString> {
         self.satisfied_dependencies
             .iter()
             .map(|x| x.read().get_task_name())
             .collect()
     }
-    pub fn get_name(&self) -> String {
+    pub fn get_name(&self) -> AString {
         self.name.clone()
     }
     #[allow(dead_code)]
@@ -150,13 +149,13 @@ impl<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry = T::TAncestry>>
     pub fn get_root_uuid(&self) -> Uuid {
         self.root.get_uuid().clone()
     }
-    pub fn get_root_type(&self) -> String {
+    pub fn get_root_type(&self) -> AString {
         self.root.get_type()
     }
     pub fn get_ancestors(&self) -> Vec<AncestorRecord> {
         self.ancestors.clone()
     }
-    pub fn get_preamble(&self) -> Option<String> {
+    pub fn get_preamble(&self) -> Option<AString> {
         self.preamble.clone()
     }
     pub fn get_dialect(&self) -> Option<Dialect> {
@@ -165,10 +164,10 @@ impl<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry = T::TAncestry>>
     pub fn get_params(&self) -> Option<ParameterTuple> {
         self.params.clone()
     }
-    pub fn get_call(&self) -> Option<String> {
+    pub fn get_call(&self) -> Option<AString> {
         self.call.clone()
     }
-    pub fn get_key(&self) -> Option<String> {
+    pub fn get_key(&self) -> Option<AString> {
         self.key.clone()
     }
     pub fn find_best_program<'b>(
@@ -209,7 +208,7 @@ impl<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry = T::TAncestry>>
             );
         }
     }
-    pub fn get_dedup_key(&self) -> (String, String, ParameterTuple, Option<Dialect>) {
+    pub fn get_dedup_key(&self) -> (AString, AString, ParameterTuple, Option<Dialect>) {
         (
             self.preamble.as_ref().unwrap().clone(),
             self.call.as_ref().unwrap().clone(),
@@ -222,12 +221,12 @@ impl<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry = T::TAncestry>>
         concepts: RArc<
             RRwLock<
                 HashMap<
-                    (Uuid, String),
+                    (Uuid, AString),
                     <<T as OuterConstraint<'a>>::TAncestry as Ancestry>::TConcept,
                 >,
             >,
         >,
-        concept_ancestors: &HashMap<(Uuid, String), Vec<AncestorRecord>>,
+        concept_ancestors: &HashMap<(Uuid, AString), Vec<AncestorRecord>>,
     ) -> Result<Self> {
         let arc = constraint.clone();
         let x = arc.read();
@@ -237,7 +236,7 @@ impl<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry = T::TAncestry>>
             .get(&(root_uuid.clone(), x.get_root()))
             .unwrap()
             .clone();
-        let mut dependencies: LinkedHashSet<(Uuid, String)> = LinkedHashSet::new();
+        let mut dependencies: LinkedHashSet<(Uuid, AString)> = LinkedHashSet::new();
         for constraint in x.get_downstream_constraints()? {
             let entry = constraint.read();
             dependencies.insert((entry.get_uuid()?, entry.get_root()));
@@ -276,20 +275,20 @@ impl<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry = T::TAncestry>>
             context: Context::new(),
         })
     }
-    pub fn compute_task_key(&mut self) -> String {
+    pub fn compute_task_key(&mut self) -> AString {
         self.key = Some(match self.root.get_tag() {
             None => AncestorRecord::compute_relative_path(&self.ancestors),
             Some(t) => t,
         });
         self.key.as_ref().unwrap().clone()
     }
-    pub fn get_fully_qualified_task_name(&self) -> String {
+    pub fn get_fully_qualified_task_name(&self) -> AString {
         let key = self.key.as_ref().unwrap();
         let name = match key.len() {
-            0 => to_snake_case(&self.get_name()),
+            0 => to_snake_case(self.get_name().as_str()),
             _ => format!(
                 "{}__{}",
-                to_snake_case(&self.get_name()),
+                to_snake_case(self.get_name().as_str()),
                 self.key.as_ref().unwrap()
             ),
         };
@@ -306,13 +305,14 @@ impl<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry = T::TAncestry>>
                 .next()
                 .unwrap()
         )
-        .to_string()
+        .as_str()
+        .into()
     }
     pub fn shorten_task_names(
-        constraints: &LinkedHashMap<(Uuid, String), RArc<RRwLock<ConstraintState<'a, T, P>>>>,
-        _existing_names: &mut HashSet<String>,
+        constraints: &LinkedHashMap<(Uuid, AString), RArc<RRwLock<ConstraintState<'a, T, P>>>>,
+        _existing_names: &mut HashSet<AString>,
     ) {
-        let mut task_names: Vec<(String, RArc<RRwLock<ConstraintState<'a, T, P>>>)> = Vec::new();
+        let mut task_names: Vec<(AString, RArc<RRwLock<ConstraintState<'a, T, P>>>)> = Vec::new();
         for constraint in constraints.values() {
             let mut write = constraint.write();
             write.compute_task_key();
@@ -323,10 +323,10 @@ impl<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry = T::TAncestry>>
         }
         /*let mut to_shorten_task_names = task_names.iter().map(|(x, _)| x.clone()).collect();
         let shortened_task_names_1 =
-            TaskNameShortener::new(to_shorten_task_names, "____".to_string(),
+            TaskNameShortener::new(to_shorten_task_names, "____".into(),
                                    existing_names.clone()).run();
         let shortened_task_names_2 =
-            TaskNameShortener::new(shortened_task_names_1, "_".to_string(),
+            TaskNameShortener::new(shortened_task_names_1, "_".into(),
                                    existing_names.clone()).run();
         for (i, (_, rw)) in task_names.iter().enumerate() {
             let name = shortened_task_names_1.get(i).unwrap().clone();

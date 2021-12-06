@@ -3,7 +3,7 @@ use crate::layout::*;
 use crate::location::*;
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
-use aorist_primitives::{AoristConcept, ConceptEnum};
+use aorist_primitives::{AoristConcept, ConceptEnum, AString};
 use derivative::Derivative;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;

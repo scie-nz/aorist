@@ -8,7 +8,7 @@ use std::hash::Hash;
 #[derive(Clone, PartialEq, Hash, Eq)]
 pub struct RPreamble {
     pub libraries: Vec<RImport>,
-    pub body: String,
+    pub body: AString,
 }
 impl Preamble for RPreamble {
     type ImportType = RImport;
@@ -18,7 +18,7 @@ impl Preamble for RPreamble {
 }
 impl<'a> RPreamble {
     // Assumes R has already been started
-    pub fn new(body: String) -> RPreamble {
+    pub fn new(body: AString) -> RPreamble {
         eval_string(
             r#"
             to.preamble <- function(body) {
@@ -57,11 +57,11 @@ impl<'a> RPreamble {
         }
     }
     #[cfg(feature = "python")]
-    pub fn from_python(var_name: String, body: String) -> RPreamble {
+    pub fn from_python(var_name: AString, body: AString) -> RPreamble {
         let python_preamble = PythonPreamble::new(body);
         let formatted = python_preamble.to_string().replace("'", "\\'");
         Self {
-            libraries: vec![RImport::new("reticulate".to_string())],
+            libraries: vec![RImport::new("reticulate".into())],
             body: format!("{} <- '\n{}'", var_name, formatted).to_string(),
         }
     }

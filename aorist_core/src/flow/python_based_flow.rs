@@ -1,7 +1,7 @@
 use crate::dialect::Dialect;
 use crate::flow::etl_flow::ETLFlow;
 use crate::python::{NativePythonPreamble, PythonPreamble, RPythonPreamble};
-use aorist_primitives::AoristUniverse;
+use aorist_primitives::{AString, AoristUniverse};
 use aorist_primitives::TPrestoEndpoints;
 use pyo3::prelude::*;
 
@@ -10,7 +10,7 @@ where
     U: AoristUniverse,
     <U as AoristUniverse>::TEndpoints: TPrestoEndpoints,
 {
-    fn get_preamble_string(&self) -> Option<String>;
+    fn get_preamble_string(&self) -> Option<AString>;
     fn get_python_preamble(&self) -> PyResult<Vec<PythonPreamble>> {
         let preambles = match self.get_dialect() {
             Some(Dialect::Python(_)) => match self.get_preamble_string() {

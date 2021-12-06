@@ -13,12 +13,13 @@ use aorist_ast::{
     AST,
 };
 use aorist_primitives::register_task_nodes;
-use aorist_primitives::AoristUniverse;
+use aorist_primitives::{AString, AoristUniverse};
 use aorist_primitives::TPrestoEndpoints;
 use linked_hash_map::LinkedHashMap;
 use pyo3::PyResult;
 use std::hash::{Hash, Hasher};
 use std::marker::PhantomData;
+use crate::error::AoristError;
 
 register_task_nodes! {
     PrefectTask,
@@ -31,11 +32,11 @@ register_task_nodes! {
 pub struct PrefectPythonBasedFlow<U: AoristUniverse> {
     task_id: AST,
     task_val: AST,
-    command: Option<String>,
+    command: Option<AString>,
     args: Vec<AST>,
-    kwargs: LinkedHashMap<String, AST>,
+    kwargs: LinkedHashMap<AString, AST>,
     dep_list: Option<AST>,
-    preamble: Option<String>,
+    preamble: Option<AString>,
     dialect: Option<Dialect>,
     flow_identifier: AST,
     endpoints: U::TEndpoints,
@@ -46,7 +47,7 @@ impl<U: AoristUniverse> PythonBasedFlow<U> for PrefectPythonBasedFlow<U>
 where
     U::TEndpoints: TPrestoEndpoints,
 {
-    fn get_preamble_string(&self) -> Option<String> {
+    fn get_preamble_string(&self) -> Option<AString> {
         self.preamble.clone()
     }
 }
@@ -92,11 +93,11 @@ impl<U: AoristUniverse> ETLFlow<U> for PrefectPythonBasedFlow<U> {
     fn new(
         task_id: AST,
         task_val: AST,
-        call: Option<String>,
+        call: Option<AString>,
         args: Vec<AST>,
-        kwargs: LinkedHashMap<String, AST>,
+        kwargs: LinkedHashMap<AString, AST>,
         dep_list: Option<AST>,
-        preamble: Option<String>,
+        preamble: Option<AString>,
         dialect: Option<Dialect>,
         endpoints: U::TEndpoints,
     ) -> Self {
@@ -110,32 +111,32 @@ impl<U: AoristUniverse> ETLFlow<U> for PrefectPythonBasedFlow<U> {
             preamble,
             dialect,
             flow_identifier: AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
-                "flow".to_string(),
+                "flow".into(),
             )),
             endpoints,
             _universe: PhantomData,
         }
     }
     fn get_type() -> String {
-        "prefect".to_string()
+        "prefect".into()
     }
     fn get_imports(&self) -> Vec<PythonImport> {
         match self.dialect {
             Some(Dialect::Python(_)) => vec![PythonImport::PythonFromImport(
-                "prefect".to_string(),
-                "task".to_string(),
+                "prefect".into(),
+                "task".into(),
                 None,
             )],
             Some(Dialect::Bash(_)) | Some(Dialect::Presto(_)) | Some(Dialect::R(_)) => {
                 vec![PythonImport::PythonFromImport(
-                    "prefect.tasks.shell".to_string(),
-                    "ShellTask".to_string(),
+                    "prefect.tasks.shell".into(),
+                    "ShellTask".into(),
                     None,
                 )]
             }
             None => vec![PythonImport::PythonFromImport(
-                "prefect.tasks.core".to_string(),
-                "Constant".to_string(),
+                "prefect.tasks.core".into(),
+                "Constant".into(),
                 None,
             )],
         }
@@ -148,7 +149,7 @@ impl<U: AoristUniverse> PrefectPythonBasedFlow<U> {
         }
         Vec::new()
     }
-    fn compute_task_kwargs(&self) -> LinkedHashMap<String, AST> {
+    fn compute_task_kwargs(&self) -> LinkedHashMap<AString, AST> {
         if self.dialect.is_none() {
             return self.kwargs.clone();
         }
@@ -157,7 +158,7 @@ impl<U: AoristUniverse> PrefectPythonBasedFlow<U> {
         }
         let mut kwargs = LinkedHashMap::new();
         let call_param_name = match self.dialect {
-            Some(Dialect::Bash(_)) | Some(Dialect::Presto(_)) => "command".to_string(),
+            Some(Dialect::Bash(_)) | Some(Dialect::Presto(_)) => "command".into(),
             _ => panic!("Dialect not supported"),
         };
         let call_param_value = match self.dialect {
@@ -170,7 +171,7 @@ impl<U: AoristUniverse> PrefectPythonBasedFlow<U> {
             )),
             Some(Dialect::Presto(_)) => AST::Formatted(Formatted::new_wrapped(
                 AST::StringLiteral(StringLiteral::new_wrapped(
-                    format!("presto -e '{}'", self.command.as_ref().unwrap()).to_string(),
+                    format!("presto -e '{}'", self.command.as_ref().unwrap()).as_str().into(),
                     true,
                 )),
                 self.kwargs.clone(),
@@ -186,14 +187,13 @@ impl<U: AoristUniverse> PrefectPythonBasedFlow<U> {
                 self.command.as_ref().unwrap().clone(),
             ))),
             Some(Dialect::Bash(_)) | Some(Dialect::Presto(_)) => Ok(AST::SimpleIdentifier(
-                SimpleIdentifier::new_wrapped("ShellTask".to_string()),
+                SimpleIdentifier::new_wrapped("ShellTask".into()),
             )),
             None => Ok(AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
-                "Constant".to_string(),
+                "Constant".into(),
             ))),
-            _ => Err("Dialect not supported".to_string()),
-        }
-        .unwrap()
+            _ => Err(AoristError::OtherError(AString::from("Dialect not supported"))),
+        }.unwrap()
     }
     fn get_flow_identifier(&self) -> AST {
         self.flow_identifier.clone()
@@ -201,7 +201,7 @@ impl<U: AoristUniverse> PrefectPythonBasedFlow<U> {
     fn get_flow_add_edge_statement(&self, dep: AST) -> AST {
         let function = AST::Attribute(Attribute::new_wrapped(
             self.get_flow_identifier(),
-            "add_edge".to_string(),
+            "add_edge".into(),
             false,
         ));
         let add_expr = AST::Call(Call::new_wrapped(
@@ -216,7 +216,7 @@ impl<U: AoristUniverse> PrefectPythonBasedFlow<U> {
             None => Vec::new(),
             Some(AST::List(_)) => {
                 let target =
-                    AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("dep".to_string()));
+                    AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("dep".into()));
                 let for_stmt = AST::ForLoop(ForLoop::new_wrapped(
                     target.clone(),
                     self.dep_list.as_ref().unwrap().clone(),
@@ -234,7 +234,7 @@ impl<U: AoristUniverse> PrefectPythonBasedFlow<U> {
     pub fn get_flow_node_addition(&self) -> AST {
         let function = AST::Attribute(Attribute::new_wrapped(
             self.get_flow_identifier(),
-            "add_node".to_string(),
+            "add_node".into(),
             false,
         ));
         let add_expr = AST::Call(Call::new_wrapped(
@@ -254,7 +254,7 @@ impl<U: AoristUniverse> FlowBuilderBase<U> for PrefectFlowBuilder<U> {
     fn new() -> Self {
         Self {
             flow_identifier: AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
-                "flow".to_string(),
+                "flow".into(),
             )),
             universe: PhantomData,
         }
@@ -268,7 +268,7 @@ impl<U: AoristUniverse> PythonBasedFlowBuilder<U> for PrefectFlowBuilder<U> {
     fn augment_statements(
         &self,
         statements: Vec<PythonFlowBuilderInput>,
-        _flow_name: Option<String>,
+        _flow_name: Option<AString>,
     ) -> Vec<PythonFlowBuilderInput> {
         // TODO: add flow definition
         statements
@@ -286,7 +286,7 @@ impl<U: AoristUniverse> PythonBasedFlowBuilder<U> for PrefectFlowBuilder<U> {
                             LinkedHashMap::new(),
                         ),
                     )))],
-                    "Run Prefect flow".to_string(),
+                    "Run Prefect flow".into(),
                     None,
                     None,
                 )]

@@ -17,15 +17,15 @@ where
     T: ETLFlow,
 {
     /// unique task identifier
-    task_id: String,
+    task_id: AString,
     task_val: AST,
     /// function called to create task (has different meaning depending on
     /// the render we use.
-    call: Option<String>,
+    call: Option<AString>,
     /// arguments passed to function call
     params: Option<ParameterTuple>,
     /// R preamble used by this task call
-    preamble: Option<String>,
+    preamble: Option<AString>,
     /// Dialect (e.g. Bash, R, R, Presto, etc.), to be interpreted
     /// by render.
     dialect: Option<Dialect>,
@@ -37,7 +37,7 @@ where
     T: ETLFlow<ImportType = RImport, PreambleType = RPreamble>,
 {
     // TODO: move to trait
-    pub fn get_uncompressible_part(&self) -> Result<RBasedTaskUncompressiblePart<T>, String> {
+    pub fn get_uncompressible_part(&self) -> Result<RBasedTaskUncompressiblePart<T>, AString> {
         Ok(RBasedTaskUncompressiblePart::new(
             self.task_id.clone(),
             self.get_right_of_task_val()?,
@@ -45,7 +45,7 @@ where
             self.dependencies.clone(),
         ))
     }
-    pub fn get_preamble(&self) -> Option<String> {
+    pub fn get_preamble(&self) -> Option<AString> {
         self.preamble.clone()
     }
     pub fn get_dialect(&self) -> Option<Dialect> {
@@ -96,12 +96,12 @@ where
     T: ETLFlow,
 {
     fn new(
-        task_id: String,
+        task_id: AString,
         task_val: AST,
-        call: Option<String>,
+        call: Option<AString>,
         params: Option<ParameterTuple>,
         dependencies: Vec<AST>,
-        preamble: Option<String>,
+        preamble: Option<AString>,
         dialect: Option<Dialect>,
     ) -> Self {
         Self {
@@ -130,7 +130,7 @@ where
             _ => false,
         }
     }
-    fn get_compression_key(&self) -> Result<RBasedTaskCompressionKey, String> {
+    fn get_compression_key(&self) -> Result<RBasedTaskCompressionKey, AString> {
         Ok(RBasedTaskCompressionKey::new(
             self.get_left_of_task_val()?,
             self.call.clone(),
@@ -142,16 +142,16 @@ where
             self.dialect.clone(),
         ))
     }
-    fn get_left_of_task_val(&self) -> Result<AST, String> {
+    fn get_left_of_task_val(&self) -> Result<AST, AString> {
         match &self.task_val {
             AST::Subscript(x) => {
                 let rw = x.read();
                 Ok(rw.a().clone())
             }
-            _ => Err("Task val must be a subscript".to_string()),
+            _ => Err("Task val must be a subscript".into()),
         }
     }
-    fn get_right_of_task_val(&self) -> Result<String, String> {
+    fn get_right_of_task_val(&self) -> Result<AString, AString> {
         match &self.task_val {
             AST::Subscript(x) => {
                 let rw = x.read();
@@ -162,10 +162,10 @@ where
                         .to_string()),
                 }
             }
-            _ => Err("Task val must be a subscript".to_string()),
+            _ => Err("Task val must be a subscript".into()),
         }
     }
-    fn get_preamble(&self) -> Option<String> {
+    fn get_preamble(&self) -> Option<AString> {
         self.preamble.clone()
     }
     fn get_dialect(&self) -> Option<Dialect> {

@@ -85,8 +85,8 @@ pub fn extract_arg(arg: &PyAny) -> PyResult<AST> {
                     let kwmap = keywords
                         .into_iter()
                         .map(|x| (x.getattr("arg").unwrap(), x.getattr("value").unwrap()))
-                        .map(|x| (x.0.extract::<String>().unwrap(), extract_arg(x.1).unwrap()))
-                        .collect::<LinkedHashMap<String, AST>>();
+                        .map(|x| (x.0.extract::<&str>().unwrap().into(), extract_arg(x.1).unwrap()))
+                        .collect::<LinkedHashMap<AString, AST>>();
                     Ok(AST::Call(Call::new_wrapped(func, args, kwmap)))
                 }
                 "Attribute" => {
@@ -114,7 +114,7 @@ pub fn extract_arg(arg: &PyAny) -> PyResult<AST> {
 pub fn extract_arg_with_context(
     arg: &PyAny,
     context: &mut Context,
-    constraint_name: String,
+    constraint_name: &str,
 ) -> PyResult<AST> {
     if let Ok((py_any, extracted_context)) = arg.extract::<(&PyAny, Context)>() {
         context.insert(&extracted_context, constraint_name);

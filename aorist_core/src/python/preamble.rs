@@ -5,6 +5,7 @@ use pyo3::prelude::*;
 use pyo3::types::{PyList, PyModule, PyString, PyTuple};
 use std::hash::Hash;
 use tracing::debug;
+use aorist_primitives::AString;
 
 pub trait TPythonPreamble {
     fn to_python_ast_nodes<'b>(
@@ -37,7 +38,7 @@ def to_nodes(body):
 
         out.into_iter().collect()
     }
-    fn get_body(&self) -> String;
+    fn get_body(&self) -> AString;
 }
 
 #[derive(Clone, PartialEq, Hash, Eq)]
@@ -51,11 +52,11 @@ pub enum PythonPreamble {
 pub struct NativePythonPreamble {
     pub imports: Vec<PythonImport>,
     pub from_imports: Vec<PythonImport>,
-    pub body: String,
+    pub body: AString,
 }
 #[derive(Clone, PartialEq, Hash, Eq)]
 pub struct RPythonPreamble {
-    pub body: String,
+    pub body: AString,
 }
 #[derive(Clone, PartialEq, Hash, Eq)]
 pub struct PythonStatementsPreamble {
@@ -72,8 +73,8 @@ impl Preamble for RPythonPreamble {
     type ImportType = PythonImport;
     fn get_imports(&self) -> Vec<Self::ImportType> {
         vec![PythonImport::PythonModuleImport(
-            "rpy2.robjects".to_string(),
-            Some("robjects".to_string()),
+            "rpy2.robjects".into(),
+            Some("robjects".into()),
         )]
     }
 }
@@ -88,16 +89,17 @@ impl Preamble for NativePythonPreamble {
     }
 }
 impl TPythonPreamble for RPythonPreamble {
-    fn get_body(&self) -> String {
+    fn get_body(&self) -> AString {
         format!(
             "robjects.r(\"\"\"{}\"\"\")",
-            self.body.clone().replace("'", "\\'")
+            self.body.as_str().to_string().replace("'", "\\'")
         )
-        .to_string()
+        .as_str()
+        .into()
     }
 }
 impl TPythonPreamble for NativePythonPreamble {
-    fn get_body(&self) -> String {
+    fn get_body(&self) -> AString {
         self.body.clone()
     }
 }
@@ -129,12 +131,12 @@ impl PythonPreamble {
     }
 }
 impl RPythonPreamble {
-    pub fn new(body: String) -> PyResult<Self> {
+    pub fn new(body: AString) -> PyResult<Self> {
         Ok(Self { body })
     }
 }
 impl NativePythonPreamble {
-    pub fn new(body: String) -> PyResult<Self> {
+    pub fn new(body: AString) -> PyResult<Self> {
         let gil = Python::acquire_gil();
         let py = gil.python();
         let helpers = PyModule::from_code(
@@ -178,15 +180,15 @@ def build_preamble(body):
             .iter()
             .map(|x| {
                 let tpl: &PyTuple = x.extract().unwrap();
-                let name: String = tpl
+                let name: AString = tpl
                     .get_item(0)
                     .extract::<&PyString>()?
                     .to_str()?
-                    .to_string();
+                    .into();
                 let alias = tpl.get_item(1);
-                let asname: Option<String> = match alias.is_none() {
+                let asname: Option<AString> = match alias.is_none() {
                     true => None,
-                    false => Some(alias.extract::<&PyString>()?.to_str()?.to_string()),
+                    false => Some(alias.extract::<&PyString>()?.to_str()?.into()),
                 };
                 Ok(PythonImport::PythonModuleImport(name, asname))
             })
@@ -197,20 +199,20 @@ def build_preamble(body):
             .iter()
             .map(|x| {
                 let tpl: &PyTuple = x.extract()?;
-                let module: String = tpl
+                let module: AString = tpl
                     .get_item(0)
                     .extract::<&PyString>()?
                     .to_str()?
-                    .to_string();
-                let name: String = tpl
+                    .into();
+                let name: AString = tpl
                     .get_item(1)
                     .extract::<&PyString>()?
                     .to_str()?
-                    .to_string();
+                    .into();
                 let alias = tpl.get_item(2);
-                let asname: Option<String> = match alias.is_none() {
+                let asname: Option<AString> = match alias.is_none() {
                     true => None,
-                    false => Some(alias.extract::<&PyString>()?.to_str()?.to_string()),
+                    false => Some(alias.extract::<&PyString>()?.to_str()?.into()),
                 };
                 Ok(PythonImport::PythonFromImport(module, name, asname))
             })
@@ -227,10 +229,12 @@ def build_preamble(body):
                         .unwrap()
                         .to_str()
                         .unwrap()
-                        .to_string()
+                        .into()
                 })
                 .collect::<Vec<String>>()
-                .join("\n"),
+                .join("\n")
+                .as_str()
+                .into(),
         })
     }
     pub fn to_string(&self) -> String {
@@ -239,7 +243,7 @@ def build_preamble(body):
             .into_iter()
             .map(|x| x.to_string())
             .chain(self.imports.clone().into_iter().map(|x| x.to_string()))
-            .chain(vec![self.body.clone()].into_iter())
+            .chain(vec![self.body.clone()].into_iter().map(|x| x.as_str().to_string()))
             .collect::<Vec<String>>()
             .join("\n")
     }

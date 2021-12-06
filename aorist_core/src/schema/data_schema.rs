@@ -11,6 +11,7 @@ use crate::schema::time_ordered_tabular_schema::*;
 use crate::schema::undefined_tabular_schema::*;
 use crate::schema::vision_asset_schema::*;
 use crate::template::*;
+use aorist_primitives::AString;
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
 #[cfg(feature = "python")]
@@ -20,6 +21,7 @@ use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
 use uuid::Uuid;
+use crate::error::AoristError;
 
 #[aorist]
 pub enum DataSchema {
@@ -44,7 +46,7 @@ pub enum DataSchema {
 }
 
 impl DataSchema {
-    pub fn get_datum_template(&self) -> Result<AoristRef<DatumTemplate>, String> {
+    pub fn get_datum_template(&self) -> Result<AoristRef<DatumTemplate>, AoristError> {
         match self {
             DataSchema::TabularSchema(x) => Ok(x.0.read().get_datum_template().clone()),
             DataSchema::TabularCollectionSchema(x) => Ok(x.0.read().get_datum_template().clone()),
@@ -55,11 +57,11 @@ impl DataSchema {
             DataSchema::GraphAssetSchema(x) => Ok(x.0.read().get_datum_template().clone()),
             DataSchema::TimeOrderedTabularSchema(x) => Ok(x.0.read().get_datum_template().clone()),
             DataSchema::UndefinedTabularSchema(_) => {
-                Err("UndefinedTabularSchema has no datum template.".to_string())
+                Err(AoristError::OtherError(AString::from("UndefinedTabularSchema has no datum template.")))
             }
         }
     }
-    pub fn get_datum_template_name(&self) -> Result<String, String> {
+    pub fn get_datum_template_name(&self) -> Result<AString, AoristError> {
         match self {
             DataSchema::TabularSchema(x) => Ok(x.0.read().get_datum_template().0.read().get_name()),
             DataSchema::TabularCollectionSchema(x) => {
@@ -84,11 +86,11 @@ impl DataSchema {
                 Ok(x.0.read().get_datum_template().0.read().get_name())
             }
             DataSchema::UndefinedTabularSchema(_) => {
-                Err("UndefinedTabularSchema has no datum template.".to_string())
+                Err(AoristError::OtherError(AString::from("UndefinedTabularSchema has no datum template.")))
             }
         }
     }
-    pub fn get_attribute_names(&self) -> Vec<String> {
+    pub fn get_attribute_names(&self) -> Vec<AString> {
         match self {
             DataSchema::TabularSchema(x) => x.0.read().attributes.clone(),
             DataSchema::TabularCollectionSchema(x) => x.0.read().attributes.clone(),
@@ -137,17 +139,17 @@ impl DataSchema {
 #[cfg(feature = "python")]
 #[pymethods]
 impl PyDataSchema {
-    pub fn get_datum_template_name(&self) -> PyResult<String> {
+    pub fn get_datum_template_name(&self) -> PyResult<AString> {
         match self.inner.0.read().get_datum_template_name() {
             Ok(s) => Ok(s),
-            Err(err) => Err(PyValueError::new_err(err)),
+            Err(err) => Err(PyValueError::new_err(err.as_str().to_string())),
         }
     }
     #[getter]
     pub fn get_datum_template(&self) -> PyResult<PyDatumTemplate> {
         match self.inner.0.read().get_datum_template() {
             Ok(s) => Ok(PyDatumTemplate { inner: s.clone() }),
-            Err(err) => Err(PyValueError::new_err(err)),
+            Err(err) => Err(PyValueError::new_err(err.as_str().to_string())),
         }
     }
     #[getter]

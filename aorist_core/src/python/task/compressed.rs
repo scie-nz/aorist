@@ -5,7 +5,7 @@ use crate::python::{
     Add, Assignment, Attribute, BigIntLiteral, BinOp, Call, Dict, ForLoop, List, PythonImport,
     PythonPreamble, SimpleIdentifier, StringLiteral, Subscript, Tuple, AST,
 };
-use aorist_primitives::AoristUniverse;
+use aorist_primitives::{AoristUniverse};
 use linked_hash_map::LinkedHashMap;
 use std::hash::Hash;
 use std::marker::PhantomData;
@@ -158,8 +158,8 @@ where
 
         let (dict_assign, has_params_dict) = self.get_dict_assign();
 
-        let params = AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("params".to_string()));
-        let ident = AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("t".to_string()));
+        let params = AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("params".into()));
+        let ident = AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("t".into()));
 
         let tpl = match has_params_dict {
             true => self.get_for_loop_tuple(&ident, &params),
@@ -177,7 +177,7 @@ where
                         x.clone(),
                         AST::Subscript(Subscript::new_wrapped(
                             params.clone(),
-                            AST::StringLiteral(StringLiteral::new_wrapped(x.to_string(), false)),
+                            AST::StringLiteral(StringLiteral::new_wrapped(x.clone(), false)),
                             false,
                         )),
                     )
@@ -190,7 +190,7 @@ where
                         AST::Subscript(Subscript::new_wrapped(
                             params.clone(),
                             AST::StringLiteral(StringLiteral::new_wrapped(
-                                "args".to_string(),
+                                "args".into(),
                                 false,
                             )),
                             false,
@@ -211,7 +211,7 @@ where
             true => Some(AST::Subscript(Subscript::new_wrapped(
                 params.clone(),
                 AST::StringLiteral(StringLiteral::new_wrapped(
-                    "dependencies".to_string(),
+                    "dependencies".into(),
                     false,
                 )),
                 false,
@@ -245,7 +245,7 @@ where
             true => AST::Call(Call::new_wrapped(
                 AST::Attribute(Attribute::new_wrapped(
                     self.params_dict_name.clone(),
-                    "items".to_string(),
+                    "items".into(),
                     false,
                 )),
                 Vec::new(),

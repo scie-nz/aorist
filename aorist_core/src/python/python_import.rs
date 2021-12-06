@@ -3,11 +3,12 @@ use aorist_ast::{SimpleIdentifier, AST};
 use pyo3::prelude::*;
 use pyo3::types::{PyList, PyModule};
 use std::hash::Hash;
+use aorist_primitives::AString;
 
 #[derive(Clone, Hash, PartialEq, Eq, PartialOrd, Ord)]
 pub enum PythonImport {
-    PythonModuleImport(String, Option<String>),
-    PythonFromImport(String, String, Option<String>),
+    PythonModuleImport(AString, Option<AString>),
+    PythonFromImport(AString, AString, Option<AString>),
 }
 impl Import for PythonImport {}
 
@@ -67,7 +68,7 @@ impl PythonImport {
                 );
                 ast_module
                     .getattr("ImportFrom")?
-                    .call1((module, alias.as_ref(), 0))
+                    .call1((module.as_str(), alias, 0))
             }
         }
     }

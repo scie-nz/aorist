@@ -2,7 +2,7 @@ use crate::flow::flow_builder::FlowBuilderBase;
 use crate::flow::native_python_based_flow::NativePythonBasedFlow;
 use crate::flow::python_based_flow_builder::PythonBasedFlowBuilder;
 use crate::python::{format_code, PythonImport};
-use aorist_primitives::{AoristUniverse, TPrestoEndpoints};
+use aorist_primitives::{AoristUniverse, TPrestoEndpoints, AString};
 use pyo3::PyResult;
 use serde_json::json;
 use std::marker::PhantomData;
@@ -33,33 +33,36 @@ where
     }
     fn build_file(
         &self,
-        sources: Vec<(Option<String>, String)>,
-        _flow_name: Option<String>,
-    ) -> PyResult<String> {
+        sources: Vec<(Option<AString>, AString)>,
+        _flow_name: Option<AString>,
+    ) -> PyResult<AString> {
         let cells = json!(sources
             .into_iter()
-            .map(|(maybe_comment, block)| match maybe_comment {
-                Some(comment) => vec![
-                    json!({
-                        "cell_type": "markdown",
-                        "metadata": json!({}),
-                        "source": comment.replace("# ", "").replace("#", "# ").replace("\\n", "\r"),
-                    }),
-                    json!({
+            .map(|(maybe_comment, block)| {
+                let format_block = format_code(block).unwrap().as_str().to_string().replace("\\n", "\n");
+                match maybe_comment {
+                    Some(comment) => vec![
+                        json!({
+                            "cell_type": "markdown",
+                            "metadata": json!({}),
+                            "source": comment.as_str().to_string().replace("# ", "").replace("#", "# ").replace("\\n", "\r"),
+                        }),
+                        json!({
+                            "cell_type": "code",
+                            "execution_count": None as Option<usize>,
+                            "metadata": json!({}),
+                            "source": format_block,
+                            "outputs": Vec::<String>::new(),
+                        })
+                    ],
+                    None => vec![json!({
                         "cell_type": "code",
                         "execution_count": None as Option<usize>,
                         "metadata": json!({}),
-                        "source": format_code(block).unwrap().replace("\\n", "\n"),
+                        "source": format_block,
                         "outputs": Vec::<String>::new(),
-                    })
-                ],
-                None => vec![json!({
-                    "cell_type": "code",
-                    "execution_count": None as Option<usize>,
-                    "metadata": json!({}),
-                    "source": format_code(block).unwrap().replace("\\n", "\n"),
-                    "outputs": Vec::<String>::new(),
-                })],
+                    })],
+                }
             })
             .into_iter()
             .flatten()
@@ -88,6 +91,6 @@ where
                 })
            }),
         });
-        Ok(serde_json::to_string_pretty(&notebook).unwrap())
+        Ok(serde_json::to_string_pretty(&notebook).unwrap().as_str().into())
     }
 }

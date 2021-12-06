@@ -6,11 +6,12 @@ use derivative::Derivative;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
 use uuid::Uuid;
+use aorist_primitives::AString;
 
 #[aorist]
 pub struct GlobalPermissionsAdmin {}
 impl TRole for AoristRef<GlobalPermissionsAdmin> {
-    fn get_permissions(&self) -> Vec<String> {
-        vec!["gitea/admin".to_string(), "ranger/admin".to_string()]
+    fn get_permissions(&self) -> Vec<AString> {
+        vec!["gitea/admin".into(), "ranger/admin".into()]
     }
 }

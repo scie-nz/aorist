@@ -102,8 +102,8 @@ where
 
         let dict_assign = self.get_dict_assign();
 
-        let params = AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("params".to_string()));
-        let ident = AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("t".to_string()));
+        let params = AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("params".into()));
+        let ident = AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("t".into()));
 
         let tpl = self.get_for_loop_tuple(&ident, &params);
         let new_collector = self.get_task_collector(&ident);
@@ -131,7 +131,7 @@ where
                         AST::Subscript(Subscript::new_wrapped(
                             params.clone(),
                             AST::StringLiteral(StringLiteral::new_wrapped(
-                                "args".to_string(),
+                                "args".into(),
                                 false,
                             )),
                             false,
@@ -152,7 +152,7 @@ where
             true => Some(AST::Subscript(Subscript::new_wrapped(
                 params.clone(),
                 AST::StringLiteral(StringLiteral::new_wrapped(
-                    "dependencies".to_string(),
+                    "dependencies".into(),
                     false,
                 )),
                 false,

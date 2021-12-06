@@ -8,7 +8,7 @@ use crate::user::*;
 use crate::user_group::*;
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
-use aorist_primitives::{AoristConcept, ConceptEnum};
+use aorist_primitives::{AoristConcept, ConceptEnum, AString};
 use derivative::Derivative;
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
@@ -22,7 +22,7 @@ create_exception!(aorist, SQLParseError, pyo3::exceptions::PyException);
 
 #[aorist]
 pub struct Universe {
-    pub name: String,
+    pub name: AString,
     #[constrainable]
     pub users: Option<Vec<AoristRef<User>>>,
     #[constrainable]
@@ -37,11 +37,11 @@ pub struct Universe {
     pub compliance: Option<AoristRef<ComplianceConfig>>,
 }
 pub trait TUniverse {
-    fn get_user_unixname_map(&self) -> HashMap<String, AoristRef<User>>;
-    fn get_user_permissions(&self) -> Result<HashMap<String, HashSet<String>>, String>;
+    fn get_user_unixname_map(&self) -> HashMap<AString, AoristRef<User>>;
+    fn get_user_permissions(&self) -> Result<HashMap<AString, HashSet<AString>>, AString>;
 }
 impl TUniverse for Universe {
-    fn get_user_unixname_map(&self) -> HashMap<String, AoristRef<User>> {
+    fn get_user_unixname_map(&self) -> HashMap<AString, AoristRef<User>> {
         self.users
             .as_ref()
             .unwrap()
@@ -49,13 +49,13 @@ impl TUniverse for Universe {
             .map(|x| (x.0.read().get_unixname().clone(), x.clone()))
             .collect()
     }
-    fn get_user_permissions(&self) -> Result<HashMap<String, HashSet<String>>, String> {
+    fn get_user_permissions(&self) -> Result<HashMap<AString, HashSet<AString>>, AString> {
         let umap = self.get_user_unixname_map();
-        let mut map: HashMap<_, HashSet<String>> = HashMap::new();
+        let mut map: HashMap<_, HashSet<AString>> = HashMap::new();
         for binding in self.role_bindings.as_ref().unwrap() {
-            let name = binding.0.read().get_user_name().clone();
+            let name: AString = binding.0.read().get_user_name().clone();
             if !umap.contains_key(&name) {
-                return Err(format!("Cannot find user with name {}.", name));
+                return Err(format!("Cannot find user with name {}.", name.as_str()).as_str().into());
             }
             let user = umap.get(&name).unwrap().clone();
             for perm in binding.0.read().get_role().0.read().get_permissions() {

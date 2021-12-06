@@ -28,9 +28,9 @@ pub struct RFlowBuilderInput {
     statements: Vec<AST>,
     preambles: LinkedHashSet<RPreamble>,
     imports: BTreeSet<RImport>,
-    constraint_name: String,
-    constraint_title: Option<String>,
-    constraint_body: Option<String>,
+    constraint_name: AString,
+    constraint_title: Option<AString>,
+    constraint_body: Option<AString>,
 }
 impl FlowBuilderInput for RFlowBuilderInput {
     type ImportType = RImport;
@@ -40,9 +40,9 @@ impl FlowBuilderInput for RFlowBuilderInput {
         statements: Vec<AST>,
         preambles: LinkedHashSet<RPreamble>,
         imports: BTreeSet<RImport>,
-        constraint_name: String,
-        constraint_title: Option<String>,
-        constraint_body: Option<String>,
+        constraint_name: AString,
+        constraint_title: Option<AString>,
+        constraint_body: Option<AString>,
     ) -> Self {
         Self {
             statements,
@@ -65,10 +65,10 @@ impl FlowBuilderInput for RFlowBuilderInput {
     fn get_constraint_name(&self) -> String {
         self.constraint_name.clone()
     }
-    fn get_constraint_title(&self) -> Option<String> {
+    fn get_constraint_title(&self) -> Option<AString> {
         self.constraint_title.clone()
     }
-    fn get_constraint_body(&self) -> Option<String> {
+    fn get_constraint_body(&self) -> Option<AString> {
         self.constraint_body.clone()
     }
 }

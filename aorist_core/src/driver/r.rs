@@ -28,16 +28,16 @@ where
         + 'b,
     'a: 'b,
 {
-    pub concepts: RArc<RRwLock<HashMap<(Uuid, String), Concept<'a>>>>,
-    constraints: LinkedHashMap<(Uuid, String), RArc<RRwLock<C>>>,
-    satisfied_constraints: HashMap<(Uuid, String), RArc<RRwLock<ConstraintState<'a, 'b, C>>>>,
+    pub concepts: RArc<RRwLock<HashMap<(Uuid, AString), Concept<'a>>>>,
+    constraints: LinkedHashMap<(Uuid, AString), RArc<RRwLock<C>>>,
+    satisfied_constraints: HashMap<(Uuid, AString), RArc<RRwLock<ConstraintState<'a, 'b, C>>>>,
     blocks: Vec<RBasedConstraintBlock<'a, 'b, D::T, C>>,
     ancestry: RArc<ConceptAncestry<'a>>,
     dag_type: PhantomData<D>,
     endpoints: EndpointConfig,
-    constraint_explanations: HashMap<String, (Option<String>, Option<String>)>,
-    ancestors: HashMap<(Uuid, String), Vec<AncestorRecord>>,
-    topline_constraint_names: LinkedHashSet<String>,
+    constraint_explanations: HashMap<AString, (Option<AString>, Option<AString>)>,
+    ancestors: HashMap<(Uuid, AString), Vec<AncestorRecord>>,
+    topline_constraint_names: LinkedHashSet<AString>,
     _lt_phantom: PhantomData<&'b ()>,
 }
 impl<'a, 'b, D, C> Driver<'a, 'b, D, C> for RBasedDriver<'a, 'b, D, C>
@@ -52,7 +52,7 @@ where
 {
     type CB = RBasedConstraintBlock<'a, 'b, <D as FlowBuilderBase>::T, C>;
 
-    fn get_constraint_rwlock(&self, uuid: &(Uuid, String)) -> RArc<RRwLock<C>> {
+    fn get_constraint_rwlock(&self, uuid: &(Uuid, AString)) -> RArc<RRwLock<C>> {
         self.constraints.get(uuid).unwrap().clone()
     }
     fn get_preferences(&self) -> Vec<Dialect> {
@@ -72,7 +72,7 @@ where
     }
     fn mark_constraint_state_as_satisfied(
         &mut self,
-        id: (Uuid, String),
+        id: (Uuid, AString),
         state: RArc<RRwLock<ConstraintState<'a, 'b, C>>>,
     ) {
         self.satisfied_constraints.insert(id, state.clone());
@@ -94,7 +94,7 @@ where
     fn get_constraint_explanation(
         &self,
         constraint_name: &String,
-    ) -> (Option<String>, Option<String>) {
+    ) -> (Option<AString>, Option<AString>) {
         self.constraint_explanations
             .get(constraint_name)
             .unwrap()
@@ -103,17 +103,17 @@ where
     fn get_blocks(&'b self) -> &'b Vec<Self::CB> {
         &self.blocks
     }
-    fn get_dependencies(&self) -> Vec<String> {
+    fn get_dependencies(&self) -> Vec<AString> {
         // TODO: add libraries
         vec![]
     }
     fn _new(
-        concepts: RArc<RRwLock<HashMap<(Uuid, String), Concept<'a>>>>,
-        constraints: LinkedHashMap<(Uuid, String), RArc<RRwLock<C>>>,
+        concepts: RArc<RRwLock<HashMap<(Uuid, AString), Concept<'a>>>>,
+        constraints: LinkedHashMap<(Uuid, AString), RArc<RRwLock<C>>>,
         ancestry: RArc<ConceptAncestry<'a>>,
         endpoints: EndpointConfig,
-        ancestors: HashMap<(Uuid, String), Vec<AncestorRecord>>,
-        topline_constraint_names: LinkedHashSet<String>,
+        ancestors: HashMap<(Uuid, AString), Vec<AncestorRecord>>,
+        topline_constraint_names: LinkedHashSet<AString>,
     ) -> Self {
         Self {
             concepts,

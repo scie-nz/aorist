@@ -3,7 +3,7 @@ use crate::concept::{AoristRef, WrappedConcept};
 use crate::template::datum_template::TDatumTemplate;
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
-use aorist_primitives::{AoristConcept, ConceptEnum};
+use aorist_primitives::{AoristConcept, ConceptEnum, AString};
 use derivative::Derivative;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
@@ -11,7 +11,7 @@ use uuid::Uuid;
 
 #[aorist]
 pub struct PointCloudInfo {
-    pub name: String,
+    pub name: AString,
     pub metadata: bool,
     pub boundaries: bool,
 }
@@ -20,7 +20,7 @@ impl TDatumTemplate for PointCloudInfo {
         // TODO: fill this in
         Vec::new()
     }
-    fn get_name(&self) -> String {
+    fn get_name(&self) -> AString {
         self.name.clone()
     }
 }

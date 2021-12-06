@@ -10,7 +10,7 @@ use aorist_core::{
     ConstraintBuilder, ConstraintEnum, ConstraintSatisfactionBase, OuterConstraint, TBuilder,
     TConstraint, TConstraintEnum, TProgram,
 };
-use aorist_primitives::{define_constraint, register_constraint_new, TAoristObject};
+use aorist_primitives::{define_constraint, register_constraint_new, TAoristObject, AString};
 #[cfg(feature = "python")]
 use aorist_util::init_logging;
 use linked_hash_map::LinkedHashMap;
@@ -31,9 +31,9 @@ impl<'a> ConstraintEnum<'a> for AoristConstraint {}
 pub struct Constraint {
     #[serde(skip)]
     pub inner: Option<AoristConstraint>,
-    pub name: String,
-    pub root: String,
-    pub requires: Option<Vec<String>>,
+    pub name: AString,
+    pub root: AString,
+    pub requires: Option<Vec<AString>>,
 }
 impl<'a> OuterConstraint<'a> for Constraint {
     type TEnum = AoristConstraint;
@@ -42,7 +42,7 @@ impl<'a> OuterConstraint<'a> for Constraint {
     fn get_uuid(&self) -> Result<Uuid> {
         self.inner("get_uuid()")?.get_uuid()
     }
-    fn get_root(&self) -> String {
+    fn get_root(&self) -> AString {
         self.root.clone()
     }
     fn get_root_uuid(&self) -> Result<Uuid> {
@@ -55,7 +55,7 @@ impl<'a> OuterConstraint<'a> for Constraint {
     fn requires_program(&self) -> Result<bool> {
         self.inner("requires_program()")?.requires_program()
     }
-    fn get_root_type_name(&self) -> Result<String> {
+    fn get_root_type_name(&self) -> Result<AString> {
         self.inner("get_root_type_name()")?.get_root_type_name()
     }
     fn inner(&self, caller: &str) -> Result<&Self::TEnum> {
@@ -68,12 +68,12 @@ impl<'a> OuterConstraint<'a> for Constraint {
     }
 }
 impl TAoristObject for Constraint {
-    fn get_name(&self) -> &String {
+    fn get_name(&self) -> &AString {
         &self.name
     }
 }
 impl fmt::Display for Constraint {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.name)
+        write!(f, "{}", self.name.as_str())
     }
 }

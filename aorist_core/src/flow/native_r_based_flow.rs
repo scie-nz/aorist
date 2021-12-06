@@ -20,9 +20,9 @@ register_task_nodes! {
 pub struct NativeRBasedFlow {
     task_id: AST,
     task_val: AST,
-    command: Option<String>,
+    command: Option<AString>,
     args: Vec<AST>,
-    kwargs: LinkedHashMap<String, AST>,
+    kwargs: LinkedHashMap<AString, AST>,
     dep_list: Option<AST>,
     preamble: Vec<RPreamble>,
     dialect: Option<Dialect>,
@@ -54,11 +54,11 @@ impl ETLFlow for NativeRBasedFlow {
     fn new(
         task_id: AST,
         task_val: AST,
-        call: Option<String>,
+        call: Option<AString>,
         args: Vec<AST>,
-        kwargs: LinkedHashMap<String, AST>,
+        kwargs: LinkedHashMap<AString, AST>,
         dep_list: Option<AST>,
-        preamble: Option<String>,
+        preamble: Option<AString>,
         dialect: Option<Dialect>,
         endpoints: EndpointConfig,
     ) -> Self {
@@ -95,11 +95,11 @@ impl ETLFlow for NativeRBasedFlow {
                 .to_python_source();
                 let mut kwargs = LinkedHashMap::new();
                 kwargs.insert(
-                    "sep".to_string(),
-                    AST::StringLiteral(StringLiteral::new_wrapped("\n".to_string(), false)),
+                    "sep".into(),
+                    AST::StringLiteral(StringLiteral::new_wrapped("\n".into(), false)),
                 );
                 let code = AST::Call(Call::new_wrapped(
-                    AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("paste".to_string())),
+                    AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("paste".into())),
                     vec![
                         AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
                             call.as_ref().unwrap().clone(),
@@ -110,14 +110,14 @@ impl ETLFlow for NativeRBasedFlow {
                 ));
                 AST::Call(Call::new_wrapped(
                     AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
-                        "py_run_string".to_string(),
+                        "py_run_string".into(),
                     )),
                     vec![code],
                     LinkedHashMap::new(),
                 ))
             }
             Some(Dialect::Bash(_)) => AST::Call(Call::new_wrapped(
-                AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("system".to_string())),
+                AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("system".into())),
                 vec![AST::Formatted(Formatted::new_wrapped(
                     AST::StringLiteral(StringLiteral::new_wrapped(
                         call.as_ref().unwrap().to_string(),
@@ -127,7 +127,7 @@ impl ETLFlow for NativeRBasedFlow {
                 ))],
                 linked_hash_map::LinkedHashMap::new(),
             )),
-            None => AST::StringLiteral(StringLiteral::new_wrapped("Done".to_string(), false)),
+            None => AST::StringLiteral(StringLiteral::new_wrapped("Done".into(), false)),
             _ => panic!("Dialect not supported"),
         };
         let node = match &dialect {
@@ -157,6 +157,6 @@ impl ETLFlow for NativeRBasedFlow {
         }
     }
     fn get_type() -> String {
-        "r".to_string()
+        "r".into()
     }
 }

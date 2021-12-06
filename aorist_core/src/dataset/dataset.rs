@@ -13,7 +13,7 @@ use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 use abi_stable::std_types::RArc;
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
-use aorist_primitives::TAoristObject;
+use aorist_primitives::{AString, TAoristObject};
 use derivative::Derivative;
 use linked_hash_map::LinkedHashMap;
 #[cfg(feature = "python")]
@@ -27,15 +27,15 @@ use uuid::Uuid;
 
 #[aorist]
 pub struct DataSet {
-    pub name: String,
-    pub description: String,
-    pub source_path: String,
+    pub name: AString,
+    pub description: AString,
+    pub source_path: AString,
     #[constrainable]
     pub access_policies: Vec<AoristRef<AccessPolicy>>,
     #[constrainable]
     pub datum_templates: Vec<AoristRef<DatumTemplate>>,
     #[constrainable]
-    pub assets: BTreeMap<String, AoristRef<Asset>>,
+    pub assets: BTreeMap<AString, AoristRef<Asset>>,
 }
 
 impl DataSet {
@@ -61,7 +61,7 @@ impl DataSet {
     pub fn get_template_for_asset<T: TAsset>(
         &self,
         asset: &T,
-    ) -> Result<AoristRef<DatumTemplate>, String> {
+    ) -> Result<AoristRef<DatumTemplate>, AString> {
         let schema = asset.get_schema();
         let template_name = schema.0.read().get_datum_template_name().unwrap();
         let mapped_templates = self.get_mapped_datum_templates();
@@ -70,24 +70,24 @@ impl DataSet {
             Some(template) => Ok(template.clone()),
             None => Err(format!(
                 "Could not find template for asset {} in dataset {}",
-                asset.get_name(),
-                self.name,
-            )),
+                asset.get_name().as_str(),
+                self.name.as_str(),
+            ).as_str().into()),
         }
     }
 
-    pub fn get_asset(&self, name: String) -> Result<AoristRef<Asset>, String> {
+    pub fn get_asset(&self, name: AString) -> Result<AoristRef<Asset>, AString> {
         if let Some(asset) = self.assets.get(&name) {
             return Ok(asset.clone());
         }
-        Err(format!("Could not find asset {} in dataset {}.", name, self.name).to_string())
+        Err(format!("Could not find asset {} in dataset {}.", name, self.name).as_str().into())
     }
 
     // TODO: should reference identifier tuple
     pub fn get_source_assets(
         &self,
         setup: AoristRef<ComputedFromLocalData>,
-    ) -> Result<BTreeMap<String, AoristRef<Asset>>, String> {
+    ) -> Result<BTreeMap<AString, AoristRef<Asset>>, AString> {
         let mut assets = BTreeMap::new();
         for name in setup.0.read().source_asset_names.values() {
             assets.insert(name.clone(), self.get_asset(name.clone())?);
@@ -97,17 +97,17 @@ impl DataSet {
 }
 
 impl TAoristObject for DataSet {
-    fn get_name(&self) -> &String {
+    fn get_name(&self) -> &AString {
         &self.name
     }
 }
 
 pub trait TDataSet {
-    fn get_mapped_datum_templates(&self) -> LinkedHashMap<String, AoristRef<DatumTemplate>>;
+    fn get_mapped_datum_templates(&self) -> LinkedHashMap<AString, AoristRef<DatumTemplate>>;
 }
 
 impl TDataSet for DataSet {
-    fn get_mapped_datum_templates(&self) -> LinkedHashMap<String, AoristRef<DatumTemplate>> {
+    fn get_mapped_datum_templates(&self) -> LinkedHashMap<AString, AoristRef<DatumTemplate>> {
         self.datum_templates
             .iter()
             .map(|x| (x.0.read().get_name().clone(), x.clone()))
@@ -116,7 +116,7 @@ impl TDataSet for DataSet {
 }
 #[cfg(feature = "python")]
 impl PyDataSet {
-    fn get_mapped_datum_templates(&self) -> LinkedHashMap<String, PyDatumTemplate> {
+    fn get_mapped_datum_templates(&self) -> LinkedHashMap<AString, PyDatumTemplate> {
         self.inner
             .0
             .read()
@@ -132,7 +132,7 @@ impl PyDataSet {
     pub fn add_asset(&self, asset: PyAsset) {
         self.inner.0.write().add_asset(asset.inner.clone());
     }
-    pub fn get_asset(&self, name: String) -> PyAsset {
+    pub fn get_asset(&self, name: AString) -> PyAsset {
         PyAsset {
             inner: self.inner.0.read().get_asset(name).unwrap(),
         }
@@ -167,7 +167,7 @@ impl PyDataSet {
     pub fn replicate_to_local(
         &self,
         storage: PyStorage,
-        tmp_dir: String,
+        tmp_dir: AString,
         tmp_encoding: PyEncoding,
     ) -> PyResult<Self> {
         let dt = &*self.inner.0.read();
@@ -210,7 +210,7 @@ impl PyDataSet {
                 self.name()?,
                 mapped_templates
                     .keys()
-                    .map(|x| x.clone())
+                    .map(|x| x.as_str().to_string())
                     .collect::<Vec<String>>()
                     .join(", "),
             ))),

@@ -6,7 +6,7 @@ use crate::parameter_tuple::ParameterTuple;
 use crate::program::TOuterProgram;
 use crate::python::PythonBasedCodeBlock;
 use crate::python::{Assignment, Dict, PythonFlowBuilderInput, PythonImport, PythonPreamble, AST};
-use aorist_primitives::AoristUniverse;
+use aorist_primitives::{AString, AoristUniverse};
 use linked_hash_map::LinkedHashMap;
 use std::collections::HashMap;
 use std::marker::PhantomData;
@@ -19,9 +19,9 @@ where
     U: AoristUniverse,
     P: TOuterProgram<TAncestry = C::TAncestry>,
 {
-    constraint_name: String,
-    title: Option<String>,
-    body: Option<String>,
+    constraint_name: AString,
+    title: Option<AString>,
+    body: Option<AString>,
     members: Vec<PythonBasedCodeBlock<'a, T, C, U, P>>,
     tasks_dict: Option<AST>,
     _lt: PhantomData<&'a ()>,
@@ -37,13 +37,13 @@ where
     type C = PythonBasedCodeBlock<'a, T, C, U, P>;
     type BuilderInputType = PythonFlowBuilderInput;
 
-    fn get_constraint_name(&self) -> String {
+    fn get_constraint_name(&self) -> AString {
         self.constraint_name.clone()
     }
-    fn get_constraint_title(&self) -> Option<String> {
+    fn get_constraint_title(&self) -> Option<AString> {
         self.title.clone()
     }
-    fn get_constraint_body(&self) -> Option<String> {
+    fn get_constraint_body(&self) -> Option<AString> {
         self.body.clone()
     }
     fn get_code_blocks(&self) -> &Vec<Self::C> {
@@ -51,9 +51,9 @@ where
     }
 
     fn new(
-        constraint_name: String,
-        title: Option<String>,
-        body: Option<String>,
+        constraint_name: AString,
+        title: Option<AString>,
+        body: Option<AString>,
         members: Vec<PythonBasedCodeBlock<'a, T, C, U, P>>,
         tasks_dict: Option<AST>,
     ) -> Self {
@@ -93,7 +93,7 @@ where
     U: AoristUniverse,
     P: TOuterProgram<TAncestry = C::TAncestry>,
 {
-    pub fn get_params(&self) -> HashMap<String, Option<ParameterTuple>> {
+    pub fn get_params(&self) -> HashMap<AString, Option<ParameterTuple>> {
         self.members
             .iter()
             .map(|x| x.get_params().into_iter())

@@ -2,7 +2,7 @@ use crate::concept::{AoristRef, WrappedConcept};
 use crate::storage::*;
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
-use aorist_primitives::{AoristConcept, ConceptEnum};
+use aorist_primitives::{AoristConcept, ConceptEnum, AString};
 use derivative::Derivative;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
@@ -14,5 +14,5 @@ pub struct TwoTierStorageSetup {
     pub scratch: AoristRef<Storage>,
     #[constrainable]
     pub persistent: AoristRef<Storage>,
-    pub tmp_dir: String,
+    pub tmp_dir: AString,
 }

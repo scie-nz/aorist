@@ -4,7 +4,7 @@ use crate::attributes::AttributeOrValue;
 use crate::concept::{AoristRef, WrappedConcept};
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
-use aorist_primitives::{AoristConcept, ConceptEnum};
+use aorist_primitives::{AoristConcept, ConceptEnum, AString};
 use derivative::Derivative;
 #[cfg(feature = "python")]
 use pyo3::prelude::*;
@@ -17,22 +17,22 @@ use uuid::Uuid;
 #[derive(Hash, PartialEq, Eq, Debug, Serialize, Deserialize, Clone)]
 #[cfg_attr(feature = "python", derive(FromPyObject))]
 pub enum Operator {
-    GtEq(String),
-    Gt(String),
-    Eq(String),
-    NotEq(String),
-    Lt(String),
-    LtEq(String),
+    GtEq(AString),
+    Gt(AString),
+    Eq(AString),
+    NotEq(AString),
+    Lt(AString),
+    LtEq(AString),
 }
 impl Operator {
     pub fn as_sql(&self) -> String {
         match &self {
-            Operator::GtEq(_) => ">=".to_string(),
-            Operator::Gt(_) => ">".to_string(),
-            Operator::Eq(_) => "=".to_string(),
-            Operator::NotEq(_) => "!=".to_string(),
-            Operator::Lt(_) => "<".to_string(),
-            Operator::LtEq(_) => "<=".to_string(),
+            Operator::GtEq(_) => ">=".into(),
+            Operator::Gt(_) => ">".into(),
+            Operator::Eq(_) => "=".into(),
+            Operator::NotEq(_) => "!=".into(),
+            Operator::Lt(_) => "<".into(),
+            Operator::LtEq(_) => "<=".into(),
         }
     }
 }
@@ -44,7 +44,7 @@ pub enum PredicateInnerOrTerminal {
 }
 impl PredicateInnerOrTerminal {
     #[cfg(feature = "sql")]
-    pub fn try_from(x: Expr, attr: &AttrMap) -> Result<Self, String> {
+    pub fn try_from(x: Expr, attr: &AttrMap) -> Result<Self, AString> {
         match x {
             Expr::BinaryOp { .. } => Ok(Self::PredicateInner(Box::new(PredicateInner::try_from(
                 x, attr,
@@ -55,10 +55,10 @@ impl PredicateInnerOrTerminal {
             _ => Err("Only Binary operators, identifiers or values supported as nodes".into()),
         }
     }
-    pub fn as_sql(&self) -> String {
+    pub fn as_sql(&self) -> AString {
         match &self {
             PredicateInnerOrTerminal::PredicateTerminal(x) => x.as_sql(),
-            PredicateInnerOrTerminal::PredicateInner(x) => format!("({})", x.as_sql()).to_string(),
+            PredicateInnerOrTerminal::PredicateInner(x) => format!("({})", x.as_sql()).as_str().into(),
         }
     }
 }
@@ -78,16 +78,16 @@ impl<'a> FromPyObject<'a> for Box<PredicateInner> {
 }
 impl PredicateInner {
     #[cfg(feature = "sql")]
-    fn try_from(x: Expr, attr: &AttrMap) -> Result<Self, String> {
+    fn try_from(x: Expr, attr: &AttrMap) -> Result<Self, AString> {
         match x {
             Expr::BinaryOp { left, op, right } => {
                 let operator = match op {
-                    BinaryOperator::Gt => Operator::Gt(">".to_string()),
-                    BinaryOperator::GtEq => Operator::GtEq(">=".to_string()),
-                    BinaryOperator::Eq => Operator::Eq("=".to_string()),
-                    BinaryOperator::NotEq => Operator::NotEq("!=".to_string()),
-                    BinaryOperator::Lt => Operator::Lt("<".to_string()),
-                    BinaryOperator::LtEq => Operator::LtEq("<=".to_string()),
+                    BinaryOperator::Gt => Operator::Gt(">".into()),
+                    BinaryOperator::GtEq => Operator::GtEq(">=".into()),
+                    BinaryOperator::Eq => Operator::Eq("=".into()),
+                    BinaryOperator::NotEq => Operator::NotEq("!=".into()),
+                    BinaryOperator::Lt => Operator::Lt("<".into()),
+                    BinaryOperator::LtEq => Operator::LtEq("<=".into()),
                     _ => return Err("Only > operators supported.".into()),
                 };
                 Ok(Self {
@@ -117,7 +117,7 @@ pub struct Predicate {
 
 impl Predicate {
     #[cfg(feature = "sql")]
-    pub fn try_from(x: Expr, attr: &AttrMap) -> Result<Self, String> {
+    pub fn try_from(x: Expr, attr: &AttrMap) -> Result<Self, AString> {
         match x {
             Expr::BinaryOp { .. } => Ok(Self {
                 root: PredicateInner::try_from(x, attr)?,

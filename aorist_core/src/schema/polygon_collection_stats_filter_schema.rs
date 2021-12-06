@@ -6,7 +6,7 @@ use crate::template::*;
 use aorist_attributes::*;
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
-use aorist_primitives::{attribute, derived_schema};
+use aorist_primitives::{attribute, derived_schema, AString};
 use derivative::Derivative;
 #[cfg(feature = "python")]
 use pyo3::prelude::*;
@@ -22,5 +22,5 @@ derived_schema! {
       wkt: WKTString("WKT string", false),
       stats: JSON("JSON string of stats", false)
     fields:
-      filter: String
+      filter: AString
 }

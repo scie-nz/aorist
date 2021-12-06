@@ -4,6 +4,7 @@ use crate::parameter_tuple::ParameterTupleDedupKey;
 use crate::python::AST;
 use linked_hash_map::LinkedHashMap;
 use std::hash::Hash;
+use aorist_primitives::AString;
 
 /// tuple of:
 /// - name of dict / list in which task_val is stored (must be dict or list)
@@ -18,24 +19,24 @@ pub struct PythonBasedTaskCompressionKey {
     // dict name
     dict_name: AST,
     // function call
-    function_call: Option<String>,
+    function_call: Option<AString>,
     // dedup key from parameters
     dedup_key: Option<ParameterTupleDedupKey>,
     // preamble
-    preamble: Option<String>,
+    preamble: Option<AString>,
     // dialect
     dialect: Option<Dialect>,
     // optional: dependencies
     pub deps: Vec<AST>,
     // optional: kwargs
-    pub kwargs: LinkedHashMap<String, AST>,
+    pub kwargs: LinkedHashMap<AString, AST>,
 }
 impl CompressionKey for PythonBasedTaskCompressionKey {
     fn new(
         dict_name: AST,
-        function_call: Option<String>,
+        function_call: Option<AString>,
         dedup_key: Option<ParameterTupleDedupKey>,
-        preamble: Option<String>,
+        preamble: Option<AString>,
         dialect: Option<Dialect>,
     ) -> Self {
         Self {
@@ -54,10 +55,10 @@ impl CompressionKey for PythonBasedTaskCompressionKey {
     fn get_dedup_key(&self) -> Option<ParameterTupleDedupKey> {
         self.dedup_key.clone()
     }
-    fn get_call(&self) -> Option<String> {
+    fn get_call(&self) -> Option<AString> {
         self.function_call.clone()
     }
-    fn get_preamble(&self) -> Option<String> {
+    fn get_preamble(&self) -> Option<AString> {
         self.preamble.clone()
     }
     fn get_dialect(&self) -> Option<Dialect> {

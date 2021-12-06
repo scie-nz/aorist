@@ -341,7 +341,7 @@ define_ast_node!(
                 ast_module.getattr("keyword")?.call1(PyTuple::new(
                     py,
                     &vec![
-                        PyString::new(py, k).as_ref(),
+                        PyString::new(py, k.as_str()).as_ref(),
                         v.to_python_ast_node(py, ast_module, depth + 1)?,
                     ],
                 ))
@@ -363,7 +363,7 @@ define_ast_node!(
                 tail = append(tail, arg.to_r_ast_node(depth));
             }
             for (k, v) in &call.keywords {
-                tail = append_with_name(tail, v.to_r_ast_node(depth), k);
+                tail = append_with_name(tail, v.to_r_ast_node(depth), k.as_str());
             }
             let _ = tail;
             res
@@ -371,7 +371,7 @@ define_ast_node!(
     },
     function: AST,
     args: Vec<AST>,
-    keywords: LinkedHashMap<String, AST>,
+    keywords: LinkedHashMap<AString, AST>,
 );
 
 define_ast_node!(
@@ -395,7 +395,7 @@ define_ast_node!(
                 ast_module.getattr("keyword")?.call1(PyTuple::new(
                     py,
                     &vec![
-                        PyString::new(py, k).as_ref(),
+                        PyString::new(py, k.as_str()).as_ref(),
                         v.to_python_ast_node(py, ast_module, depth + 1)?,
                     ],
                 ))
@@ -419,14 +419,14 @@ define_ast_node!(
             tail = append_with_name(tail, r!("glue"), "name");
             tail = append(tail, formatted.fmt.to_r_ast_node(depth));
             for (k, v) in &formatted.keywords {
-                tail = append_with_name(tail, v.to_r_ast_node(depth), k);
+                tail = append_with_name(tail, v.to_r_ast_node(depth), k.as_str());
             }
             let _ = tail;
             res
         }
     },
     fmt: AST,
-    keywords: LinkedHashMap<String, AST>,
+    keywords: LinkedHashMap<AString, AST>,
 );
 define_ast_node!(
     Subscript,

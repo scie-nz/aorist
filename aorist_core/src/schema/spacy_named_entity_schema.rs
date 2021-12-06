@@ -9,7 +9,7 @@ use crate::template::*;
 use aorist_attributes::*;
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
-use aorist_primitives::{attribute, derived_schema};
+use aorist_primitives::{attribute, derived_schema, AString};
 use derivative::Derivative;
 #[cfg(feature = "python")]
 use pyo3::prelude::*;
@@ -28,7 +28,7 @@ derived_schema! {
       label: Factor("named entity label", false),
       description: Factor("named entity description", false)
     fields:
-      spacy_model_name: String
+      spacy_model_name: AString
 }
 
 impl SpaCyNamedEntitySchema {

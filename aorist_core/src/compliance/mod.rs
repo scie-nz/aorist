@@ -3,7 +3,7 @@ See: https://www.cnil.fr/en/record-processing-activities */
 use crate::concept::{AoristRef, WrappedConcept};
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
-use aorist_primitives::{AoristConcept, ConceptEnum};
+use aorist_primitives::{AoristConcept, ConceptEnum, AString};
 use derivative::Derivative;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
@@ -12,21 +12,21 @@ use uuid::Uuid;
 #[cfg_attr(feature = "python", pyo3::prelude::pyclass)]
 #[derive(PartialEq, Debug, Eq, Clone, Hash, Serialize, Deserialize)]
 pub struct GDPRStakeholder {
-    name: String,
-    street_address: String,
-    postcode: String,
-    city: String,
-    country: String,
-    phone_number: String,
-    email: String,
-    external_organization_name: Option<String>,
+    name: AString,
+    street_address: AString,
+    postcode: AString,
+    city: AString,
+    country: AString,
+    phone_number: AString,
+    email: AString,
+    external_organization_name: Option<AString>,
 }
 
 #[cfg_attr(feature = "python", pyo3::prelude::pyclass)]
 #[derive(PartialEq, Debug, Eq, Clone, Hash, Serialize, Deserialize)]
 pub struct GDPRDataProcessingPurpose {
-    main_purpose: String,
-    sub_purposes: Option<Vec<String>>,
+    main_purpose: AString,
+    sub_purposes: Option<Vec<AString>>,
 }
 
 #[macro_export]
@@ -36,7 +36,7 @@ macro_rules! gdpr_data_type {
         #[cfg_attr(feature = "python", pyo3::prelude::pyclass)]
         #[derive(Hash, PartialEq, Eq, Clone, Debug, Serialize, Deserialize)]
         pub struct $name {
-            description: String,
+            description: AString,
             $(
                 $field: $field_type,
             )*
@@ -95,31 +95,31 @@ pub enum GDPRPersonalDataCategory {
 
 #[derive(PartialEq, Debug, Eq, Clone, Hash, Serialize, Deserialize)]
 pub enum GDPRDataSubjectCategory {
-    Employees(String),
-    InternalServices(String),
-    Customers(String),
-    Suppliers(String),
-    ServiceProviders(String),
-    PotentialCustomers(String),
-    Applicants(String),
-    Other(String),
+    Employees(AString),
+    InternalServices(AString),
+    Customers(AString),
+    Suppliers(AString),
+    ServiceProviders(AString),
+    PotentialCustomers(AString),
+    Applicants(AString),
+    Other(AString),
 }
 
 #[derive(PartialEq, Debug, Eq, Clone, Hash, Serialize, Deserialize)]
 pub enum GDPRDataProcessingRecipient {
-    InternalDepartment(String),
-    Processor(String),
-    RecipientInThirdCountryOrInternationalOrganization(String),
-    InstitutionalOrCommercialPartner(String),
-    Other(String),
+    InternalDepartment(AString),
+    Processor(AString),
+    RecipientInThirdCountryOrInternationalOrganization(AString),
+    InstitutionalOrCommercialPartner(AString),
+    Other(AString),
 }
 
 #[cfg_attr(feature = "python", pyo3::prelude::pyclass)]
 #[derive(PartialEq, Debug, Eq, Clone, Hash, Serialize, Deserialize)]
 pub struct GDPRProcessorRecord {
-    unique_short_name: String,
-    name_of_processing_operation: String,
-    processing_start_date: String,
+    unique_short_name: AString,
+    name_of_processing_operation: AString,
+    processing_start_date: AString,
     controller: GDPRStakeholder,
     data_protection_officer: GDPRStakeholder,
     representative: Option<GDPRStakeholder>,
@@ -133,38 +133,38 @@ pub struct GDPRProcessorRecord {
 #[cfg_attr(feature = "python", pyo3::prelude::pyclass)]
 #[derive(PartialEq, Debug, Eq, Clone, Hash, Serialize, Deserialize)]
 pub struct GDPRSecurityMeasuresStatement {
-    traceability: Vec<String>,
-    software_protection: Vec<String>,
-    data_backup: Vec<String>,
-    data_encryption: Vec<String>,
-    user_access_control: Vec<String>,
-    control_of_processors: Vec<String>,
-    other: Vec<String>,
+    traceability: Vec<AString>,
+    software_protection: Vec<AString>,
+    data_backup: Vec<AString>,
+    data_encryption: Vec<AString>,
+    user_access_control: Vec<AString>,
+    control_of_processors: Vec<AString>,
+    other: Vec<AString>,
 }
 
 #[derive(PartialEq, Debug, Eq, Clone, Hash, Serialize, Deserialize)]
 pub enum GDPRDataTransferGuarantee {
-    StandardContractualClauses(String),
-    BindingCorporateRules(String),
-    CountryProvidingAdequateLevelOfProtection(String),
-    PrivacyShield(String),
-    CodeOfConduct(String),
-    Certification(String),
-    DerogationsPerArticle49GDPR(String),
+    StandardContractualClauses(AString),
+    BindingCorporateRules(AString),
+    CountryProvidingAdequateLevelOfProtection(AString),
+    PrivacyShield(AString),
+    CodeOfConduct(AString),
+    Certification(AString),
+    DerogationsPerArticle49GDPR(AString),
 }
 
 #[cfg_attr(feature = "python", pyo3::prelude::pyclass)]
 #[derive(PartialEq, Debug, Eq, Clone, Hash, Serialize, Deserialize)]
 pub struct GDPRThirdPartyCountryOrInternationalOrganizationTransferRecord {
-    recipient_organization_name: String,
-    iso_3166_2c_country_code: String,
+    recipient_organization_name: AString,
+    iso_3166_2c_country_code: AString,
     data_transfer_guarantees: Vec<GDPRDataTransferGuarantee>,
-    links_to_relevant_documents: Option<Vec<String>>,
+    links_to_relevant_documents: Option<Vec<AString>>,
 }
 
 #[aorist]
 pub struct ComplianceConfig {
-    description: String,
+    description: AString,
     data_about_human_subjects: bool,
     contains_personally_identifiable_information: bool,
     gdpr_processor_record: Option<GDPRProcessorRecord>,

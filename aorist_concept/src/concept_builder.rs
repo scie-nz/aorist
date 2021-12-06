@@ -66,9 +66,10 @@ pub trait TConceptBuilder {
             syn::Data::Struct(ref mut struct_data) => {
                 self.add_aorist_fields(struct_data);
                 let quoted = quote! {
+                    #[repr(C)]
                     #[cfg_attr(feature = "python", pyo3::prelude::pyclass)]
                     #[derive(
-                        Derivative, Serialize, Deserialize, Clone, Hash,
+                        Derivative, Serialize, Deserialize, Clone, Hash, 
                     )]
                     #[derivative(PartialEq, Debug, Eq)]
                     #ast
@@ -85,6 +86,7 @@ pub trait TConceptBuilder {
                 let variant = variants.iter().map(|x| (&x.ident)).collect::<Vec<_>>();
                 let variant_type = variants.iter().map(|x| (&x.fields)).collect::<Vec<_>>();
                 let quoted = quote! {
+                    #[repr(C)]
                     #[cfg_attr(feature = "python", derive(pyo3::prelude::FromPyObject))]
                     #[derive(Debug, PartialEq, Serialize, Deserialize, Clone, Hash, Eq)]
                     #[serde(tag = "type")]
@@ -152,7 +154,7 @@ impl TConceptBuilder for RawConceptBuilder {
                 fields.named.push(
                     Field::parse_named
                         .parse2(quote! {
-                        pub tag: Option<String>
+                        pub tag: Option<AString>
                         })
                         .unwrap(),
                 );

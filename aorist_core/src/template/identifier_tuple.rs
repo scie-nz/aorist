@@ -1,5 +1,5 @@
 use crate::attributes::*;
-use aorist_primitives::{AoristConcept, ConceptEnum};
+use aorist_primitives::{AoristConcept, ConceptEnum, AString};
 
 use crate::concept::{AoristRef, WrappedConcept};
 use crate::template::datum_template::TDatumTemplate;
@@ -12,7 +12,7 @@ use uuid::Uuid;
 
 #[aorist]
 pub struct IdentifierTuple {
-    pub name: String,
+    pub name: AString,
     #[constrainable]
     pub attributes: Vec<AoristRef<Attribute>>,
 }
@@ -20,7 +20,7 @@ impl TDatumTemplate for IdentifierTuple {
     fn get_attributes(&self) -> Vec<AoristRef<Attribute>> {
         self.attributes.clone()
     }
-    fn get_name(&self) -> String {
+    fn get_name(&self) -> AString {
         self.name.clone()
     }
 }

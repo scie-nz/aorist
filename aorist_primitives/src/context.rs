@@ -57,7 +57,7 @@ impl Context {
             inner: HashMap::new(),
         }
     }
-    pub fn insert(&mut self, other: &Self, constraint_name: String) {
+    pub fn insert(&mut self, other: &Self, constraint_name: &str) {
         for (k, v) in other.inner.iter() {
             let existing: Option<_> = self.inner.get(k).and_then(|x| Some(x.clone()));
             if let Some(existing_val) = existing {

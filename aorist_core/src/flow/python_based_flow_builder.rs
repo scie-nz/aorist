@@ -3,7 +3,7 @@ use crate::flow::flow_builder::{FlowBuilderBase, FlowBuilderMaterialize};
 use crate::flow::flow_builder_input::FlowBuilderInput;
 use crate::python::{format_code, PythonFlowBuilderInput, PythonImport, PythonPreamble};
 use aorist_ast::AST;
-use aorist_primitives::AoristUniverse;
+use aorist_primitives::{AString, AoristUniverse};
 use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
 use pyo3::prelude::*;
@@ -24,8 +24,8 @@ where
     fn materialize(
         &self,
         statements_and_preambles: Vec<PythonFlowBuilderInput>,
-        flow_name: Option<String>,
-    ) -> Result<String, Self::ErrorType> {
+        flow_name: Option<AString>,
+    ) -> Result<AString, Self::ErrorType> {
         let gil = Python::acquire_gil();
         let py = gil.python();
 
@@ -61,7 +61,7 @@ where
             .collect::<Vec<_>>();
 
         // ast_value without ancestry => short_name => keys
-        let mut literals: LinkedHashMap<AST, LinkedHashMap<String, Vec<_>>> = LinkedHashMap::new();
+        let mut literals: LinkedHashMap<AST, LinkedHashMap<AString, Vec<_>>> = LinkedHashMap::new();
 
         for pfbi in statements_with_ast.iter() {
             pfbi.extract_literals(&mut literals);
@@ -75,15 +75,15 @@ where
                     assignments_ast,
                     LinkedHashSet::new(),
                     BTreeSet::new(),
-                    "assignments".to_string(),
-                    Some("Common string literals".to_string()),
+                    "assignments".into(),
+                    Some("Common string literals".into()),
                     None,
                 ),
             );
         }
 
         let augmented_statements = self.augment_statements(statements_with_ast, flow_name.clone());
-        let content: Vec<(Option<String>, Vec<&PyAny>)> = vec![(None, imports_ast)]
+        let content: Vec<(Option<AString>, Vec<&PyAny>)> = vec![(None, imports_ast)]
             .into_iter()
             .chain(
                 preambles
@@ -98,11 +98,11 @@ where
             }))
             .collect();
 
-        let mut sources: Vec<(Option<String>, String)> = Vec::new();
+        let mut sources: Vec<(Option<AString>, AString)> = Vec::new();
 
         // This is needed since astor will occasionally forget to add a newline
         for (comment, block) in content {
-            let mut lines: Vec<String> = Vec::new();
+            let mut lines: Vec<AString> = Vec::new();
             for item in block {
                 let module = ast.getattr("Expression")?.call1((item,))?;
                 let source: PyResult<_> = astor.getattr("to_source")?.call1((module,));
@@ -116,10 +116,10 @@ where
                     .unwrap()
                     .to_str()
                     .unwrap()
-                    .to_string();
+                    .into();
                 lines.push(out);
             }
-            sources.push((comment, format_code(lines.join(""))?))
+            sources.push((comment, format_code(lines.iter().map(|x| x.as_str().to_string()).collect::<Vec<String>>().join("").as_str().into())?))
         }
         self.build_file(sources, flow_name)
     }
@@ -136,7 +136,7 @@ where
     fn augment_statements(
         &self,
         statements: Vec<PythonFlowBuilderInput>,
-        _flow_name: Option<String>,
+        _flow_name: Option<AString>,
     ) -> Vec<PythonFlowBuilderInput> {
         statements
     }
@@ -144,18 +144,18 @@ where
 
     fn build_file(
         &self,
-        sources: Vec<(Option<String>, String)>,
-        _flow_name: Option<String>,
-    ) -> PyResult<String> {
+        sources: Vec<(Option<AString>, AString)>,
+        _flow_name: Option<AString>,
+    ) -> PyResult<AString> {
         format_code(
             sources
                 .into_iter()
                 .map(|(maybe_comment, block)| match maybe_comment {
                     Some(comment) => format!("# {}\n{}\n", comment, block).to_string(),
-                    None => block,
+                    None => block.as_str().into(),
                 })
                 .collect::<Vec<String>>()
-                .join(""),
+                .join("").as_str().into(),
         )
     }
 }

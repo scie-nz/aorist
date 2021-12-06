@@ -3,7 +3,7 @@ use crate::encoding::*;
 use crate::storage::*;
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
-use aorist_primitives::{AoristConcept, ConceptEnum};
+use aorist_primitives::{AoristConcept, ConceptEnum, AString};
 use derivative::Derivative;
 #[cfg(feature = "python")]
 use pyo3::prelude::*;
@@ -17,7 +17,7 @@ pub struct ReplicationStorageSetup {
     pub source: AoristRef<Storage>,
     #[constrainable]
     pub targets: Vec<AoristRef<Storage>>,
-    pub tmp_dir: String,
+    pub tmp_dir: AString,
     #[constrainable]
     pub tmp_encoding: AoristRef<Encoding>,
 }
@@ -28,12 +28,12 @@ impl PyReplicationStorageSetup {
     #[getter]
     pub fn download_extension(&self) -> PyResult<String> {
         let rss = &*self.inner.0.read();
-        Ok(rss.get_download_extension())
+        Ok(rss.get_download_extension().as_str().into())
     }
 }
 
 impl ReplicationStorageSetup {
-    pub fn get_download_extension(&self) -> String {
+    pub fn get_download_extension(&self) -> AString {
         match self.source.0.read().get_encoding() {
             Some(source_encoding_read) => {
                 let source_encoding = source_encoding_read.0.read();
@@ -42,7 +42,7 @@ impl ReplicationStorageSetup {
                 {
                     return source_encoding.get_default_file_extension();
                 } else {
-                    return "downloaded".to_string();
+                    return "downloaded".into();
                 }*/
             }
             None => panic!("get_download_extension called against source storage without encoding"),

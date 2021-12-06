@@ -74,7 +74,7 @@ impl Builder for EnumBuilder {
                   match children_enum {
                       #(
                           #enum_name::#variant(ref x) => WrappedConcept{
-                              inner: T::[<construct_ #variant:snake:lower>](x.clone(), ix, Some((uuid.unwrap(), name.to_string()))),
+                              inner: T::[<construct_ #variant:snake:lower>](x.clone(), ix, Some((uuid.unwrap(), name.into()))),
                           },
                       )*
                       _ => panic!("_phantom arm should not be activated"),
@@ -113,7 +113,7 @@ impl Builder for EnumBuilder {
                       #(
                           #enum_name::#variant(ref x) => WrappedConcept{
                               inner: T::[<construct_ #variant:snake:lower>](
-                                  x.clone(), ix, Some((uuid.unwrap(), name.to_string()))
+                                  x.clone(), ix, Some((uuid.unwrap(), name.into()))
                               ),
                           },
                       )*
@@ -132,7 +132,7 @@ impl Builder for EnumBuilder {
               fn [<construct_ #enum_name:snake:lower>] (
                   obj_ref: AoristRef<#enum_name>,
                   ix: Option<usize>,
-                  id: Option<(Uuid, String)>
+                  id: Option<(Uuid, AString)>
               ) -> AoristRef<Self>;
           }
           #[cfg(feature = "python")]
@@ -227,7 +227,7 @@ impl Builder for EnumBuilder {
                       )*
                   }
               }
-              fn get_tag(&self) -> Option<String> {
+              fn get_tag(&self) -> Option<AString> {
                   match self {
                       #(
                         #enum_name::#variant(x) => x.get_tag(),
@@ -282,7 +282,7 @@ impl Builder for EnumBuilder {
               fn get_uuid(&self) -> Option<Uuid> {
                   self.0.read().get_uuid()
               }
-              fn get_tag(&self) -> Option<String> {
+              fn get_tag(&self) -> Option<AString> {
                   self.0.read().get_tag()
               }
               fn get_children_uuid(&self) -> Vec<Uuid> {

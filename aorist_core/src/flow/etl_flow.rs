@@ -1,7 +1,7 @@
 use crate::code::{Import, Preamble};
 use crate::dialect::Dialect;
 use aorist_ast::AST;
-use aorist_primitives::AoristUniverse;
+use aorist_primitives::{AoristUniverse, AString};
 use linked_hash_map::LinkedHashMap;
 use std::error::Error;
 
@@ -21,11 +21,11 @@ where
         task_id: AST,
         // TODO: change this to optional dict
         task_val: AST,
-        call: Option<String>,
+        call: Option<AString>,
         args: Vec<AST>,
-        kwargs: LinkedHashMap<String, AST>,
+        kwargs: LinkedHashMap<AString, AST>,
         dep_list: Option<AST>,
-        preamble: Option<String>,
+        preamble: Option<AString>,
         dialect: Option<Dialect>,
         endpoints: U::TEndpoints,
     ) -> Self;

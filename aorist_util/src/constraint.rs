@@ -188,11 +188,11 @@ pub fn process_constraints(raw_objects: &Vec<HashMap<String, Value>>) {
         let should_add = attach_if.get(name).unwrap();
         let get_required = constraint_closures.get(name).unwrap();
         let formatted_title = match title {
-            Some(x) => format!("Some(\"{}\".to_string())", x),
+            Some(x) => format!("Some(\"{}\".into())", x),
             None => "None".to_string(),
         };
         let formatted_body = match body {
-            Some(x) => format!("Some(\"{}\".to_string())", x),
+            Some(x) => format!("Some(\"{}\".into())", x),
             None => "None".to_string(),
         };
         let should_add = match should_add {

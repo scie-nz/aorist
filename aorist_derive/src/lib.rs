@@ -13,8 +13,8 @@ pub fn derive_presto_varchar(input: TokenStream) -> TokenStream {
     let name = &ast.ident;
     let gen = quote! {
         impl TPrestoAttribute for #name {
-            fn get_presto_type(&self) -> String {
-                        "VARCHAR".to_string()
+            fn get_presto_type(&self) -> AString {
+                        "VARCHAR".into()
             }
         }
     };
@@ -27,8 +27,8 @@ pub fn derive_presto_bigint(input: TokenStream) -> TokenStream {
     let name = &ast.ident;
     let gen = quote! {
         impl TPrestoAttribute for #name {
-            fn get_presto_type(&self) -> String {
-                        "BIGINT".to_string()
+            fn get_presto_type(&self) -> AString {
+                        "BIGINT".into()
             }
         }
     };
@@ -41,8 +41,8 @@ pub fn derive_presto_real(input: TokenStream) -> TokenStream {
     let name = &ast.ident;
     let gen = quote! {
         impl TPrestoAttribute for #name {
-            fn get_presto_type(&self) -> String {
-                        "REAL".to_string()
+            fn get_presto_type(&self) -> AString {
+                        "REAL".into()
             }
         }
     };
@@ -55,8 +55,8 @@ pub fn derive_presto_regressor(input: TokenStream) -> TokenStream {
     let name = &ast.ident;
     let gen = quote! {
         impl TPrestoAttribute for #name {
-            fn get_presto_type(&self) -> String {
-                        "REGRESSOR".to_string()
+            fn get_presto_type(&self) -> AString {
+                        "REGRESSOR".into()
             }
         }
     };
@@ -69,8 +69,8 @@ pub fn derive_presto_double(input: TokenStream) -> TokenStream {
     let name = &ast.ident;
     let gen = quote! {
         impl TPrestoAttribute for #name {
-            fn get_presto_type(&self) -> String {
-                        "DOUBLE".to_string()
+            fn get_presto_type(&self) -> AString {
+                        "DOUBLE".into()
             }
         }
     };
@@ -83,8 +83,8 @@ pub fn derive_orc_string(input: TokenStream) -> TokenStream {
     let name = &ast.ident;
     let gen = quote! {
         impl TOrcAttribute for #name {
-            fn get_orc_type(&self) -> String {
-                        "STRING".to_string()
+            fn get_orc_type(&self) -> AString {
+                        "STRING".into()
             }
         }
     };
@@ -97,8 +97,8 @@ pub fn derive_orc_bigint(input: TokenStream) -> TokenStream {
     let name = &ast.ident;
     let gen = quote! {
         impl TOrcAttribute for #name {
-            fn get_orc_type(&self) -> String {
-                        "BIGINT".to_string()
+            fn get_orc_type(&self) -> AString {
+                        "BIGINT".into()
             }
         }
     };
@@ -111,8 +111,8 @@ pub fn derive_orc_float(input: TokenStream) -> TokenStream {
     let name = &ast.ident;
     let gen = quote! {
         impl TOrcAttribute for #name {
-            fn get_orc_type(&self) -> String {
-                        "FLOAT".to_string()
+            fn get_orc_type(&self) -> AString {
+                        "FLOAT".into()
             }
         }
     };
@@ -167,8 +167,8 @@ pub fn derive_sqlite_integer(input: TokenStream) -> TokenStream {
     let name = &ast.ident;
     let gen = quote! {
         impl TSQLiteAttribute for #name {
-            fn get_sqlite_type(&self) -> String {
-                "INTEGER".to_string()
+            fn get_sqlite_type(&self) -> AString {
+                "INTEGER".into()
             }
         }
     };
@@ -181,8 +181,8 @@ pub fn derive_sqlite_real(input: TokenStream) -> TokenStream {
     let name = &ast.ident;
     let gen = quote! {
         impl TSQLiteAttribute for #name {
-            fn get_sqlite_type(&self) -> String {
-                "REAL".to_string()
+            fn get_sqlite_type(&self) -> AString {
+                "REAL".into()
             }
         }
     };
@@ -195,8 +195,8 @@ pub fn derive_sqlite_text(input: TokenStream) -> TokenStream {
     let name = &ast.ident;
     let gen = quote! {
         impl TSQLiteAttribute for #name {
-            fn get_sqlite_type(&self) -> String {
-                "TEXT".to_string()
+            fn get_sqlite_type(&self) -> AString {
+                "TEXT".into()
             }
         }
     };
@@ -209,8 +209,8 @@ pub fn derive_postgres_smallint(input: TokenStream) -> TokenStream {
     let name = &ast.ident;
     let gen = quote! {
         impl TPostgresAttribute for #name {
-            fn get_postgres_type(&self) -> String {
-                "SMALLINT".to_string()
+            fn get_postgres_type(&self) -> AString {
+                "SMALLINT".into()
             }
         }
     };
@@ -223,8 +223,8 @@ pub fn derive_postgres_integer(input: TokenStream) -> TokenStream {
     let name = &ast.ident;
     let gen = quote! {
         impl TPostgresAttribute for #name {
-            fn get_postgres_type(&self) -> String {
-                "INTEGER".to_string()
+            fn get_postgres_type(&self) -> AString {
+                "INTEGER".into()
             }
         }
     };
@@ -237,8 +237,8 @@ pub fn derive_postgres_bigint(input: TokenStream) -> TokenStream {
     let name = &ast.ident;
     let gen = quote! {
         impl TPostgresAttribute for #name {
-            fn get_postgres_type(&self) -> String {
-                "BIGINT".to_string()
+            fn get_postgres_type(&self) -> AString {
+                "BIGINT".into()
             }
         }
     };
@@ -251,8 +251,8 @@ pub fn derive_postgres_decimal(input: TokenStream) -> TokenStream {
     let name = &ast.ident;
     let gen = quote! {
         impl TPostgresAttribute for #name {
-            fn get_postgres_type(&self) -> String {
-                "DECIMAL".to_string()
+            fn get_postgres_type(&self) -> AString {
+                "DECIMAL".into()
             }
         }
     };
@@ -265,8 +265,8 @@ pub fn derive_postgres_numeric(input: TokenStream) -> TokenStream {
     let name = &ast.ident;
     let gen = quote! {
         impl TPostgresAttribute for #name {
-            fn get_postgres_type(&self) -> String {
-                "NUMERIC".to_string()
+            fn get_postgres_type(&self) -> AString {
+                "NUMERIC".into()
             }
         }
     };
@@ -279,8 +279,8 @@ pub fn derive_postgres_real(input: TokenStream) -> TokenStream {
     let name = &ast.ident;
     let gen = quote! {
         impl TPostgresAttribute for #name {
-            fn get_postgres_type(&self) -> String {
-                "REAL".to_string()
+            fn get_postgres_type(&self) -> AString {
+                "REAL".into()
             }
         }
     };
@@ -293,8 +293,8 @@ pub fn derive_postgres_doubleprecision(input: TokenStream) -> TokenStream {
     let name = &ast.ident;
     let gen = quote! {
         impl TPostgresAttribute for #name {
-            fn get_postgres_type(&self) -> String {
-                "DOUBLE PRECISION".to_string()
+            fn get_postgres_type(&self) -> AString {
+                "DOUBLE PRECISION".into()
             }
         }
     };
@@ -307,8 +307,8 @@ pub fn derive_postgres_smallserial(input: TokenStream) -> TokenStream {
     let name = &ast.ident;
     let gen = quote! {
         impl TPostgresAttribute for #name {
-            fn get_postgres_type(&self) -> String {
-                "SMALLSERIAL".to_string()
+            fn get_postgres_type(&self) -> AString {
+                "SMALLSERIAL".into()
             }
         }
     };
@@ -321,8 +321,8 @@ pub fn derive_postgres_serial(input: TokenStream) -> TokenStream {
     let name = &ast.ident;
     let gen = quote! {
         impl TPostgresAttribute for #name {
-            fn get_postgres_type(&self) -> String {
-                "SERIAL".to_string()
+            fn get_postgres_type(&self) -> AString {
+                "SERIAL".into()
             }
         }
     };
@@ -335,8 +335,8 @@ pub fn derive_postgres_bigserial(input: TokenStream) -> TokenStream {
     let name = &ast.ident;
     let gen = quote! {
         impl TPostgresAttribute for #name {
-            fn get_postgres_type(&self) -> String {
-                "BIGSERIAL".to_string()
+            fn get_postgres_type(&self) -> AString {
+                "BIGSERIAL".into()
             }
         }
     };
@@ -349,8 +349,8 @@ pub fn derive_postgres_money(input: TokenStream) -> TokenStream {
     let name = &ast.ident;
     let gen = quote! {
         impl TPostgresAttribute for #name {
-            fn get_postgres_type(&self) -> String {
-                "MONEY".to_string()
+            fn get_postgres_type(&self) -> AString {
+                "MONEY".into()
             }
         }
     };
@@ -363,8 +363,8 @@ pub fn derive_postgres_varchar(input: TokenStream) -> TokenStream {
     let name = &ast.ident;
     let gen = quote! {
         impl TPostgresAttribute for #name {
-            fn get_postgres_type(&self) -> String {
-                "VARCHAR".to_string()
+            fn get_postgres_type(&self) -> AString {
+                "VARCHAR".into()
             }
         }
     };
@@ -377,8 +377,8 @@ pub fn derive_postgres_char(input: TokenStream) -> TokenStream {
     let name = &ast.ident;
     let gen = quote! {
         impl TPostgresAttribute for #name {
-            fn get_postgres_type(&self) -> String {
-                "CHAR".to_string()
+            fn get_postgres_type(&self) -> AString {
+                "CHAR".into()
             }
         }
     };
@@ -391,8 +391,8 @@ pub fn derive_postgres_text(input: TokenStream) -> TokenStream {
     let name = &ast.ident;
     let gen = quote! {
         impl TPostgresAttribute for #name {
-            fn get_postgres_type(&self) -> String {
-                "TEXT".to_string()
+            fn get_postgres_type(&self) -> AString {
+                "TEXT".into()
             }
         }
     };
@@ -405,8 +405,8 @@ pub fn derive_postgres_bytea(input: TokenStream) -> TokenStream {
     let name = &ast.ident;
     let gen = quote! {
         impl TPostgresAttribute for #name {
-            fn get_postgres_type(&self) -> String {
-                "BYTEA".to_string()
+            fn get_postgres_type(&self) -> AString {
+                "BYTEA".into()
             }
         }
     };
@@ -419,8 +419,8 @@ pub fn derive_postgres_timestamp(input: TokenStream) -> TokenStream {
     let name = &ast.ident;
     let gen = quote! {
         impl TPostgresAttribute for #name {
-            fn get_postgres_type(&self) -> String {
-                "TIMESTAMP".to_string()
+            fn get_postgres_type(&self) -> AString {
+                "TIMESTAMP".into()
             }
             fn psycopg2_value_json_serializable(&self) -> bool {
                 false
@@ -436,8 +436,8 @@ pub fn derive_postgres_date(input: TokenStream) -> TokenStream {
     let name = &ast.ident;
     let gen = quote! {
         impl TPostgresAttribute for #name {
-            fn get_postgres_type(&self) -> String {
-                "DATE".to_string()
+            fn get_postgres_type(&self) -> AString {
+                "DATE".into()
             }
         }
     };
@@ -450,8 +450,8 @@ pub fn derive_postgres_time(input: TokenStream) -> TokenStream {
     let name = &ast.ident;
     let gen = quote! {
         impl TPostgresAttribute for #name {
-            fn get_postgres_type(&self) -> String {
-                "TIME".to_string()
+            fn get_postgres_type(&self) -> AString {
+                "TIME".into()
             }
         }
     };
@@ -464,8 +464,8 @@ pub fn derive_postgres_interval(input: TokenStream) -> TokenStream {
     let name = &ast.ident;
     let gen = quote! {
         impl TPostgresAttribute for #name {
-            fn get_postgres_type(&self) -> String {
-                "INTERVAL".to_string()
+            fn get_postgres_type(&self) -> AString {
+                "INTERVAL".into()
             }
             // not JSON-serializable (TODO GeoJSON?)
             fn psycopg2_value_json_serializable(&self) -> bool {
@@ -482,8 +482,8 @@ pub fn derive_postgres_boolean(input: TokenStream) -> TokenStream {
     let name = &ast.ident;
     let gen = quote! {
         impl TPostgresAttribute for #name {
-            fn get_postgres_type(&self) -> String {
-                "BOOLEAN".to_string()
+            fn get_postgres_type(&self) -> AString {
+                "BOOLEAN".into()
             }
         }
     };
@@ -496,8 +496,8 @@ pub fn derive_bigquery_bool(input: TokenStream) -> TokenStream {
     let name = &ast.ident;
     let gen = quote! {
         impl TBigQueryAttribute for #name {
-            fn get_bigquery_type(&self) -> String {
-                "BOOL".to_string()
+            fn get_bigquery_type(&self) -> AString {
+                "BOOL".into()
             }
         }
     };
@@ -510,8 +510,8 @@ pub fn derive_bigquery_bytes(input: TokenStream) -> TokenStream {
     let name = &ast.ident;
     let gen = quote! {
         impl TBigQueryAttribute for #name {
-            fn get_bigquery_type(&self) -> String {
-                "BYTES".to_string()
+            fn get_bigquery_type(&self) -> AString {
+                "BYTES".into()
             }
         }
     };
@@ -524,8 +524,8 @@ pub fn derive_bigquery_date(input: TokenStream) -> TokenStream {
     let name = &ast.ident;
     let gen = quote! {
         impl TBigQueryAttribute for #name {
-            fn get_bigquery_type(&self) -> String {
-                "DATE".to_string()
+            fn get_bigquery_type(&self) -> AString {
+                "DATE".into()
             }
         }
     };
@@ -538,8 +538,8 @@ pub fn derive_bigquery_datetime(input: TokenStream) -> TokenStream {
     let name = &ast.ident;
     let gen = quote! {
         impl TBigQueryAttribute for #name {
-            fn get_bigquery_type(&self) -> String {
-                "DATETIME".to_string()
+            fn get_bigquery_type(&self) -> AString {
+                "DATETIME".into()
             }
         }
     };
@@ -552,8 +552,8 @@ pub fn derive_bigquery_geography(input: TokenStream) -> TokenStream {
     let name = &ast.ident;
     let gen = quote! {
         impl TBigQueryAttribute for #name {
-            fn get_bigquery_type(&self) -> String {
-                "GEOGRAPHY".to_string()
+            fn get_bigquery_type(&self) -> AString {
+                "GEOGRAPHY".into()
             }
         }
     };
@@ -566,8 +566,8 @@ pub fn derive_bigquery_int64(input: TokenStream) -> TokenStream {
     let name = &ast.ident;
     let gen = quote! {
         impl TBigQueryAttribute for #name {
-            fn get_bigquery_type(&self) -> String {
-                "INT64".to_string()
+            fn get_bigquery_type(&self) -> AString {
+                "INT64".into()
             }
         }
     };
@@ -580,8 +580,8 @@ pub fn derive_bigquery_numeric(input: TokenStream) -> TokenStream {
     let name = &ast.ident;
     let gen = quote! {
         impl TBigQueryAttribute for #name {
-            fn get_bigquery_type(&self) -> String {
-                "NUMERIC".to_string()
+            fn get_bigquery_type(&self) -> AString {
+                "NUMERIC".into()
             }
         }
     };
@@ -594,8 +594,8 @@ pub fn derive_bigquery_bignumeric(input: TokenStream) -> TokenStream {
     let name = &ast.ident;
     let gen = quote! {
         impl TBigQueryAttribute for #name {
-            fn get_bigquery_type(&self) -> String {
-                "BIGNUMERIC".to_string()
+            fn get_bigquery_type(&self) -> AString {
+                "BIGNUMERIC".into()
             }
         }
     };
@@ -608,8 +608,8 @@ pub fn derive_bigquery_float64(input: TokenStream) -> TokenStream {
     let name = &ast.ident;
     let gen = quote! {
         impl TBigQueryAttribute for #name {
-            fn get_bigquery_type(&self) -> String {
-                "FLOAT64".to_string()
+            fn get_bigquery_type(&self) -> AString {
+                "FLOAT64".into()
             }
         }
     };
@@ -622,8 +622,8 @@ pub fn derive_bigquery_string(input: TokenStream) -> TokenStream {
     let name = &ast.ident;
     let gen = quote! {
         impl TBigQueryAttribute for #name {
-            fn get_bigquery_type(&self) -> String {
-                "STRING".to_string()
+            fn get_bigquery_type(&self) -> AString {
+                "STRING".into()
             }
         }
     };
@@ -636,8 +636,8 @@ pub fn derive_bigquery_time(input: TokenStream) -> TokenStream {
     let name = &ast.ident;
     let gen = quote! {
         impl TBigQueryAttribute for #name {
-            fn get_bigquery_type(&self) -> String {
-                "TIME".to_string()
+            fn get_bigquery_type(&self) -> AString {
+                "TIME".into()
             }
         }
     };
@@ -650,8 +650,8 @@ pub fn derive_bigquery_timestamp(input: TokenStream) -> TokenStream {
     let name = &ast.ident;
     let gen = quote! {
         impl TBigQueryAttribute for #name {
-            fn get_bigquery_type(&self) -> String {
-                "TIMESTAMP".to_string()
+            fn get_bigquery_type(&self) -> AString {
+                "TIMESTAMP".into()
             }
         }
     };
@@ -664,8 +664,8 @@ pub fn derive_postgres_character_varying(input: TokenStream) -> TokenStream {
     let name = &ast.ident;
     let gen = quote! {
         impl TPostgresAttribute for #name {
-            fn get_postgres_type(&self) -> String {
-                "CHARACTER VARYING".to_string()
+            fn get_postgres_type(&self) -> AString {
+                "CHARACTER VARYING".into()
             }
         }
     };
@@ -678,8 +678,8 @@ pub fn derive_postgres_timestamp_without_time_zone(input: TokenStream) -> TokenS
     let name = &ast.ident;
     let gen = quote! {
         impl TPostgresAttribute for #name {
-            fn get_postgres_type(&self) -> String {
-                "TIMESTAMP WITHOUT TIME ZONE".to_string()
+            fn get_postgres_type(&self) -> AString {
+                "TIMESTAMP WITHOUT TIME ZONE".into()
             }
             fn psycopg2_value_json_serializable(&self) -> bool {
                 false
@@ -695,8 +695,8 @@ pub fn derive_postgres_uuid(input: TokenStream) -> TokenStream {
     let name = &ast.ident;
     let gen = quote! {
         impl TPostgresAttribute for #name {
-            fn get_postgres_type(&self) -> String {
-                "UUID".to_string()
+            fn get_postgres_type(&self) -> AString {
+                "UUID".into()
             }
         }
     };
@@ -709,8 +709,8 @@ pub fn derive_postgres_oid(input: TokenStream) -> TokenStream {
     let name = &ast.ident;
     let gen = quote! {
         impl TPostgresAttribute for #name {
-            fn get_postgres_type(&self) -> String {
-                "OID".to_string()
+            fn get_postgres_type(&self) -> AString {
+                "OID".into()
             }
         }
     };
@@ -723,8 +723,8 @@ pub fn derive_postgres_name(input: TokenStream) -> TokenStream {
     let name = &ast.ident;
     let gen = quote! {
         impl TPostgresAttribute for #name {
-            fn get_postgres_type(&self) -> String {
-                "NAME".to_string()
+            fn get_postgres_type(&self) -> AString {
+                "NAME".into()
             }
         }
     };
@@ -737,8 +737,8 @@ pub fn derive_postgres_timestamp_with_time_zone(input: TokenStream) -> TokenStre
     let name = &ast.ident;
     let gen = quote! {
         impl TPostgresAttribute for #name {
-            fn get_postgres_type(&self) -> String {
-                "TIMESTAMP WITH TIME ZONE".to_string()
+            fn get_postgres_type(&self) -> AString {
+                "TIMESTAMP WITH TIME ZONE".into()
             }
             fn psycopg2_value_json_serializable(&self) -> bool {
                 false
@@ -754,8 +754,8 @@ pub fn derive_postgres_jsonb(input: TokenStream) -> TokenStream {
     let name = &ast.ident;
     let gen = quote! {
         impl TPostgresAttribute for #name {
-            fn get_postgres_type(&self) -> String {
-                "JSONB".to_string()
+            fn get_postgres_type(&self) -> AString {
+                "JSONB".into()
             }
             // not JSON-serializable
             fn psycopg2_value_json_serializable(&self) -> bool {
@@ -772,8 +772,8 @@ pub fn derive_postgres_userdefined(input: TokenStream) -> TokenStream {
     let name = &ast.ident;
     let gen = quote! {
         impl TPostgresAttribute for #name {
-            fn get_postgres_type(&self) -> String {
-                "USER-DEFINED".to_string()
+            fn get_postgres_type(&self) -> AString {
+                "USER-DEFINED".into()
             }
         }
     };
@@ -786,8 +786,8 @@ pub fn derive_postgres_array(input: TokenStream) -> TokenStream {
     let array = &ast.ident;
     let gen = quote! {
         impl TPostgresAttribute for #array {
-            fn get_postgres_type(&self) -> String {
-                "ARRAY".to_string()
+            fn get_postgres_type(&self) -> AString {
+                "ARRAY".into()
             }
             // not JSON-serializable
             fn psycopg2_value_json_serializable(&self) -> bool {
@@ -804,8 +804,8 @@ pub fn derive_postgres_regproc(input: TokenStream) -> TokenStream {
     let name = &ast.ident;
     let gen = quote! {
         impl TPostgresAttribute for #name {
-            fn get_postgres_type(&self) -> String {
-                "REGPROC".to_string()
+            fn get_postgres_type(&self) -> AString {
+                "REGPROC".into()
             }
         }
     };
@@ -817,8 +817,8 @@ pub fn derive_postgres_pgnodetree(input: TokenStream) -> TokenStream {
     let name = &ast.ident;
     let gen = quote! {
         impl TPostgresAttribute for #name {
-            fn get_postgres_type(&self) -> String {
-                "PG_NODE_TREE".to_string()
+            fn get_postgres_type(&self) -> AString {
+                "PG_NODE_TREE".into()
             }
         }
     };
@@ -830,8 +830,8 @@ pub fn derive_postgres_pglsn(input: TokenStream) -> TokenStream {
     let name = &ast.ident;
     let gen = quote! {
         impl TPostgresAttribute for #name {
-            fn get_postgres_type(&self) -> String {
-                "PG_LSN".to_string()
+            fn get_postgres_type(&self) -> AString {
+                "PG_LSN".into()
             }
         }
     };
@@ -843,8 +843,8 @@ pub fn derive_postgres_xid(input: TokenStream) -> TokenStream {
     let name = &ast.ident;
     let gen = quote! {
         impl TPostgresAttribute for #name {
-            fn get_postgres_type(&self) -> String {
-                "XID".to_string()
+            fn get_postgres_type(&self) -> AString {
+                "XID".into()
             }
         }
     };
@@ -856,8 +856,8 @@ pub fn derive_postgres_anyarray(input: TokenStream) -> TokenStream {
     let name = &ast.ident;
     let gen = quote! {
         impl TPostgresAttribute for #name {
-            fn get_postgres_type(&self) -> String {
-                "ANYARRAY".to_string()
+            fn get_postgres_type(&self) -> AString {
+                "ANYARRAY".into()
             }
         }
     };
@@ -869,8 +869,8 @@ pub fn derive_postgres_regtype(input: TokenStream) -> TokenStream {
     let name = &ast.ident;
     let gen = quote! {
         impl TPostgresAttribute for #name {
-            fn get_postgres_type(&self) -> String {
-                "REGTYPE".to_string()
+            fn get_postgres_type(&self) -> AString {
+                "REGTYPE".into()
             }
         }
     };
@@ -882,8 +882,8 @@ pub fn derive_postgres_pgndistinct(input: TokenStream) -> TokenStream {
     let name = &ast.ident;
     let gen = quote! {
         impl TPostgresAttribute for #name {
-            fn get_postgres_type(&self) -> String {
-                "PG_NDISTINCT".to_string()
+            fn get_postgres_type(&self) -> AString {
+                "PG_NDISTINCT".into()
             }
         }
     };
@@ -895,8 +895,8 @@ pub fn derive_postgres_pgdependencies(input: TokenStream) -> TokenStream {
     let name = &ast.ident;
     let gen = quote! {
         impl TPostgresAttribute for #name {
-            fn get_postgres_type(&self) -> String {
-                "PG_DEPENDENCIES".to_string()
+            fn get_postgres_type(&self) -> AString {
+                "PG_DEPENDENCIES".into()
             }
         }
     };
@@ -908,8 +908,8 @@ pub fn derive_postgres_inet(input: TokenStream) -> TokenStream {
     let name = &ast.ident;
     let gen = quote! {
         impl TPostgresAttribute for #name {
-            fn get_postgres_type(&self) -> String {
-                "INET".to_string()
+            fn get_postgres_type(&self) -> AString {
+                "INET".into()
             }
         }
     };
@@ -1003,8 +1003,8 @@ pub fn derive_postgres_geometry(input: TokenStream) -> TokenStream {
     let name = &ast.ident;
     let gen = quote! {
         impl TPostgresAttribute for #name {
-            fn get_postgres_type(&self) -> String {
-                "GEOMETRY".to_string()
+            fn get_postgres_type(&self) -> AString {
+                "GEOMETRY".into()
             }
             // not JSON-serializable
             fn psycopg2_value_json_serializable(&self) -> bool {

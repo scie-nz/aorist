@@ -13,7 +13,7 @@ use crate::template::tensor::*;
 use crate::template::text::*;
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
-use aorist_primitives::{AoristConcept, ConceptEnum};
+use aorist_primitives::{AoristConcept, ConceptEnum, AString};
 #[cfg(feature = "python")]
 use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
@@ -22,7 +22,7 @@ use uuid::Uuid;
 
 pub trait TDatumTemplate {
     fn get_attributes(&self) -> Vec<AoristRef<Attribute>>;
-    fn get_name(&self) -> String;
+    fn get_name(&self) -> AString;
 }
 
 #[aorist]
@@ -64,7 +64,7 @@ impl DatumTemplate {
     }
 }
 impl TDatumTemplate for DatumTemplate {
-    fn get_name(&self) -> String {
+    fn get_name(&self) -> AString {
         match self {
             DatumTemplate::RowStruct(x) => x.0.read().get_name(),
             DatumTemplate::IdentifierTuple(x) => x.0.read().get_name(),
@@ -113,7 +113,7 @@ impl PyDatumTemplate {
             .collect())
     }
     #[getter]
-    pub fn get_name(&self) -> String {
+    pub fn get_name(&self) -> AString {
         self.inner.0.read().get_name()
     }
 }

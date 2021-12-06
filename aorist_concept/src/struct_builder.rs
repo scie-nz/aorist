@@ -294,7 +294,7 @@ impl Builder for StructBuilder {
                     match children_enum {
                         #(
                             [<#struct_name Children>]::#types(x) => WrappedConcept{
-                                inner: T::[<construct_ #types:snake:lower>](x, ix, Some((uuid.unwrap(), name.to_string()))),
+                                inner: T::[<construct_ #types:snake:lower>](x, ix, Some((uuid.unwrap(), name.into()))),
                             },
                         )*
                         _ => panic!("_phantom arm should not be activated"),
@@ -563,7 +563,7 @@ impl Builder for StructBuilder {
                         )*
                         #(
                             #map_ident: #map_ident.iter().map(
-                                |(k, v)| (k.clone(), v.inner.clone())
+                                |(k, v)| (k.as_str().into(), v.inner.clone())
                             ).collect(),
                         )*
                         #(
@@ -577,7 +577,7 @@ impl Builder for StructBuilder {
                                 |x| x.inner.clone()
                             ).collect(),
                         )*
-                        tag,
+                        tag: tag.as_ref().and_then(|x| Some(x.as_str().into())),
                         uuid: None,
                     };
                     let inner = AoristRef(abi_stable::std_types::RArc::new(abi_stable::external_types::parking_lot::rw_lock::RRwLock::new(
@@ -587,7 +587,7 @@ impl Builder for StructBuilder {
                 }
                 #[getter]
                 pub fn tag(&self) -> pyo3::prelude::PyResult<Option<String>> {
-                    Ok(self.inner.0.read().tag.clone())
+                    Ok(self.inner.0.read().tag.as_ref().and_then(|x| Some(x.as_str().into())))
                 }
                 #(
                     #[getter]
@@ -679,7 +679,7 @@ impl Builder for StructBuilder {
                     > {
                         Ok(
                             self.inner.0.read().#map_ident.iter().map(|(k, v)| {(
-                                k.clone(),
+                                k.as_str().into(),
                                 [<Py #map_value_type_deref>] {
                                     inner: v.clone(),
                                 }
@@ -693,7 +693,7 @@ impl Builder for StructBuilder {
                     ) -> pyo3::prelude::PyResult<()> {
                         Ok(
                             (*self.inner.0.write()).#map_ident = val.iter().map(
-                                |(k, v)| (k.clone(), v.inner.clone())
+                                |(k, v)| (k.as_str().into(), v.inner.clone())
                             ).collect()
                         )
                     }
@@ -828,7 +828,7 @@ impl Builder for StructBuilder {
                 fn set_uuid(&mut self, uuid: Uuid) {
                     self.uuid = Some(uuid);
                 }
-                fn get_tag(&self) -> Option<String> {
+                fn get_tag(&self) -> Option<AString> {
                     self.tag.clone()
                 }
                 #(
@@ -852,7 +852,7 @@ impl Builder for StructBuilder {
                     }
                 )*
                 #(
-                    pub fn #map_ident(&self) -> BTreeMap<String, #map_value_type> {
+                    pub fn #map_ident(&self) -> BTreeMap<AString, #map_value_type> {
                         self.#map_ident.clone()
                     }
                 )*
@@ -872,7 +872,7 @@ impl Builder for StructBuilder {
                 fn [<construct_ #struct_name:snake:lower>](
                     obj_ref: AoristRef<#struct_name>,
                     ix: Option<usize>,
-                    id: Option<(Uuid, String)>
+                    id: Option<(Uuid, AString)>
                 ) -> AoristRef<Self>;
             }
 
@@ -890,7 +890,7 @@ impl Builder for StructBuilder {
                 fn get_children_uuid(&self) -> Vec<Uuid> {
                     self.get_children().iter().map(|x| x.4.get_uuid().unwrap()).collect()
                 }
-                fn get_tag(&self) -> Option<String> {
+                fn get_tag(&self) -> Option<AString> {
                     self.0.read().get_tag()
                 }
                 fn get_children(&self) -> Vec<(

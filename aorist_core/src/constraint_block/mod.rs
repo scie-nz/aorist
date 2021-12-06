@@ -3,7 +3,7 @@ use crate::constraint::OuterConstraint;
 use crate::flow::{ETLFlow, FlowBuilderInput};
 use crate::program::TOuterProgram;
 use aorist_ast::AST;
-use aorist_primitives::AoristUniverse;
+use aorist_primitives::{AString, AoristUniverse};
 use linked_hash_set::LinkedHashSet;
 use std::collections::{BTreeSet, HashMap};
 use uuid::Uuid;
@@ -23,9 +23,9 @@ where
     type C: CodeBlock<'a, T, C, U, P>;
     type BuilderInputType;
 
-    fn get_constraint_name(&self) -> String;
-    fn get_constraint_title(&self) -> Option<String>;
-    fn get_constraint_body(&self) -> Option<String>;
+    fn get_constraint_name(&self) -> AString;
+    fn get_constraint_title(&self) -> Option<AString>;
+    fn get_constraint_body(&self) -> Option<AString>;
     fn get_code_blocks(&self) -> &Vec<Self::C>;
     fn get_task_val_assignments(&self) -> Vec<AST>;
 
@@ -60,9 +60,9 @@ where
 
     fn get_identifiers(&self) -> HashMap<Uuid, AST>;
     fn new(
-        constraint_name: String,
-        title: Option<String>,
-        body: Option<String>,
+        constraint_name: AString,
+        title: Option<AString>,
+        body: Option<AString>,
         members: Vec<Self::C>,
         tasks_dict: Option<AST>,
     ) -> Self;

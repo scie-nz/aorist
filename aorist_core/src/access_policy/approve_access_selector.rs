@@ -7,25 +7,26 @@ use derivative::Derivative;
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
 use std::fmt::Debug;
+use aorist_primitives::AString;
 use uuid::Uuid;
 
 #[aorist]
 pub struct ApproveAccessSelector {
-    matchLabels: Vec<(String, Vec<String>)>,
+    matchLabels: Vec<(AString, Vec<AString>)>,
 }
 pub trait TApproveAccessSelector {
     fn checkGroupIsAllowed(&self, group: &UserGroup) -> bool;
 }
 impl TApproveAccessSelector for ApproveAccessSelector {
     fn checkGroupIsAllowed(&self, group: &UserGroup) -> bool {
-        let my_labels: HashMap<String, HashSet<String>> = self
+        let my_labels: HashMap<AString, HashSet<AString>> = self
             .matchLabels
             .clone()
             .into_iter()
             .map(|(k, v)| {
                 (
                     k.clone(),
-                    v.clone().into_iter().collect::<HashSet<String>>(),
+                    v.clone().into_iter().collect::<HashSet<AString>>(),
                 )
             })
             .collect();

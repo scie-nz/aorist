@@ -1,4 +1,5 @@
 use aorist_ast::{AncestorRecord, List, StringLiteral, AST};
+use aorist_primitives::AString;
 use linked_hash_map::LinkedHashMap;
 use std::hash::Hash;
 use uuid::Uuid;
@@ -6,9 +7,9 @@ use uuid::Uuid;
 #[derive(Clone, PartialEq, Eq, Hash, Debug)]
 pub struct ParameterTuple {
     pub args: Vec<AST>,
-    pub kwargs: LinkedHashMap<String, AST>,
+    pub kwargs: LinkedHashMap<AString, AST>,
 }
-pub type ParameterTupleDedupKey = (usize, Vec<String>);
+pub type ParameterTupleDedupKey = (usize, Vec<AString>);
 impl ParameterTuple {
     pub fn set_ancestors(&self, ancestors: Vec<AncestorRecord>) {
         for arg in self.args.iter() {
@@ -18,10 +19,10 @@ impl ParameterTuple {
             v.set_ancestors(ancestors.clone());
         }
     }
-    pub fn populate_python_dict(&self, dict: &mut LinkedHashMap<String, AST>) {
+    pub fn populate_python_dict(&self, dict: &mut LinkedHashMap<AString, AST>) {
         if self.args.len() > 0 {
             dict.insert(
-                "args".to_string(),
+                "args".into(),
                 AST::List(List::new_wrapped(self.args.clone(), false)),
             );
         }
@@ -34,8 +35,8 @@ impl ParameterTuple {
     }
     pub fn new(
         _object_uuid: Uuid,
-        args_v: Vec<String>,
-        kwargs_v: LinkedHashMap<String, String>,
+        args_v: Vec<AString>,
+        kwargs_v: LinkedHashMap<AString, AString>,
         is_sql: bool,
     ) -> Self {
         let args = args_v
@@ -51,24 +52,25 @@ impl ParameterTuple {
     pub fn get_args(&self) -> Vec<AST> {
         self.args.clone()
     }
-    pub fn get_kwargs(&self) -> LinkedHashMap<String, AST> {
+    pub fn get_kwargs(&self) -> LinkedHashMap<AString, AST> {
         self.kwargs.clone()
     }
-    pub fn get_args_format_string(&self) -> String {
+    pub fn get_args_format_string(&self) -> AString {
         self.args
             .iter()
-            .map(|_| "%s".to_string())
+            .map(|_| "%s".into())
             .collect::<Vec<String>>()
             .join(" ")
+            .as_str().into()
     }
-    pub fn get_presto_query(&self, mut call: String) -> String {
+    pub fn get_presto_query(&self, mut call: AString) -> AString {
         if self.args.len() > 0 {
             panic!("Do not expect self.args to be > 0 for presto queries.");
         }
         for (k, arg) in &self.kwargs {
-            let fmt: String = format!("{{{}}}", k).to_string();
+            let fmt = format!("{{{}}}", k).as_str().to_string();
             if let AST::StringLiteral(v) = arg {
-                call = call.replace(&fmt, &v.read().value());
+                call = call.as_str().to_string().replace(&fmt, v.read().value().as_str()).as_str().into();
             }
         }
         call

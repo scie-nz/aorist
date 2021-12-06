@@ -3,28 +3,29 @@ use crate::python::ast::PythonTaskBase;
 use crate::python::PythonImport;
 use aorist_ast::{Assignment, Attribute, Call, Dict, Expression, SimpleIdentifier, AST};
 use linked_hash_map::LinkedHashMap;
+use aorist_primitives::AString;
 
 pub trait AirflowPythonOperatorTask: PythonTaskBase + AirflowTaskBase {
     fn compute_task_call(&self) -> AST {
-        AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("PythonOperator".to_string()))
+        AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("PythonOperator".into()))
     }
     fn get_call_param_value(&self) -> AST;
     fn get_python_operator_imports(&self) -> Vec<PythonImport> {
         vec![PythonImport::PythonFromImport(
-            "airflow.operators.python_operator".to_string(),
-            "PythonOperator".to_string(),
+            "airflow.operators.python_operator".into(),
+            "PythonOperator".into(),
             None,
         )]
     }
-    fn get_callable_kwargs(&self) -> LinkedHashMap<String, AST>;
-    fn compute_task_kwargs(&self) -> LinkedHashMap<String, AST> {
+    fn get_callable_kwargs(&self) -> LinkedHashMap<AString, AST>;
+    fn compute_task_kwargs(&self) -> LinkedHashMap<AString, AST> {
         let mut kwargs = LinkedHashMap::new();
         let call_param_value = self.get_call_param_value();
-        kwargs.insert("python_callable".to_string(), call_param_value);
+        kwargs.insert("python_callable".into(), call_param_value);
         let callable_kwargs = self.get_callable_kwargs();
         if callable_kwargs.len() > 0 {
             kwargs.insert(
-                "op_kwargs".to_string(),
+                "op_kwargs".into(),
                 AST::Dict(Dict::new_wrapped(callable_kwargs)),
             );
         }
@@ -45,7 +46,7 @@ pub trait AirflowPythonOperatorTask: PythonTaskBase + AirflowTaskBase {
                 Call::new_wrapped(
                     AST::Attribute(Attribute::new_wrapped(
                         self.get_task_val(),
-                        "set_upstream".to_string(),
+                        "set_upstream".into(),
                         false,
                     )),
                     vec![dependencies],

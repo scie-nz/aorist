@@ -5,6 +5,7 @@ use aorist_ast::{Dict, AST};
 use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
 use std::collections::BTreeSet;
+use aorist_primitives::AString;
 
 pub trait FlowBuilderInput
 where
@@ -18,31 +19,33 @@ where
         statements: Vec<AST>,
         preambles: LinkedHashSet<Self::PreambleType>,
         imports: BTreeSet<Self::ImportType>,
-        constraint_name: String,
-        constraint_title: Option<String>,
-        constraint_body: Option<String>,
+        constraint_name: AString,
+        constraint_title: Option<AString>,
+        constraint_body: Option<AString>,
     ) -> Self;
     fn get_statements(&self) -> Vec<AST>;
     fn get_preambles(&self) -> LinkedHashSet<Self::PreambleType>;
     fn get_imports(&self) -> BTreeSet<Self::ImportType>;
-    fn get_constraint_name(&self) -> String;
-    fn get_constraint_title(&self) -> Option<String>;
-    fn get_constraint_body(&self) -> Option<String>;
-    fn get_block_comment(&self) -> String {
+    fn get_constraint_name(&self) -> AString;
+    fn get_constraint_title(&self) -> Option<AString>;
+    fn get_constraint_body(&self) -> Option<AString>;
+    fn get_block_comment(&self) -> AString {
         match self.get_constraint_title() {
             Some(t) => match self.get_constraint_body() {
                 Some(b) => format!(
                     "## {}\n{}",
                     t,
-                    b.split("\n")
+                    b.as_str().to_string().split("\n")
                         .map(|x| format!("# {}", x).to_string())
                         .collect::<Vec<String>>()
                         .join("\n")
+                        .as_str()
                 )
-                .to_string(),
-                None => format!("## {}", t).to_string(),
+                .as_str()
+                .into(),
+                None => format!("## {}", t).as_str().into(),
             },
-            None => format!("## {}", self.get_constraint_name()).to_string(),
+            None => format!("## {}", self.get_constraint_name()).as_str().into(),
         }
     }
 
@@ -50,7 +53,7 @@ where
         &self,
         literals: &mut LinkedHashMap<
             AST,
-            LinkedHashMap<String, Vec<(String, RArc<RRwLock<Dict>>)>>,
+            LinkedHashMap<AString, Vec<(AString, RArc<RRwLock<Dict>>)>>,
         >,
     ) {
         let short_name = &self.get_constraint_name();
@@ -75,9 +78,9 @@ where
                                         literals
                                             .entry(val.clone_without_ancestors())
                                             .or_insert(LinkedHashMap::new())
-                                            .entry(short_name.to_string())
+                                            .entry(short_name.clone())
                                             .or_insert(Vec::new())
-                                            .push((key.to_string(), param_dict_rw.clone()));
+                                            .push((key.into(), param_dict_rw.clone()));
                                     }
                                 }
                             }

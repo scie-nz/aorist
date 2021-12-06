@@ -4,8 +4,7 @@ use crate::parameter_tuple::ParameterTuple;
 use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 use abi_stable::std_types::RArc;
 use anyhow::Result;
-use aorist_primitives::AoristConcept;
-use aorist_primitives::{Ancestry, TAoristObject, TConceptEnum};
+use aorist_primitives::{Ancestry, TAoristObject, TConceptEnum, AoristConcept, AString};
 use std::collections::HashMap;
 use std::marker::PhantomData;
 use tracing::info;
@@ -27,14 +26,14 @@ pub trait SatisfiableConstraint<'a>: TConstraint<'a> {
         c: <Self::TAncestry as Ancestry>::TConcept,
         d: &Dialect,
         ancestry: RArc<Self::TAncestry>,
-    ) -> Result<Option<(String, String, ParameterTuple, Dialect)>>;
+    ) -> Result<Option<(AString, AString, ParameterTuple, Dialect)>>;
 
     fn satisfy_given_preference_ordering(
         &mut self,
         r: <Self::TAncestry as Ancestry>::TConcept,
         preferences: &Vec<Dialect>,
         ancestry: RArc<Self::TAncestry>,
-    ) -> Result<(String, String, ParameterTuple, Dialect)>;
+    ) -> Result<(AString, AString, ParameterTuple, Dialect)>;
 }
 
 #[repr(C)]
@@ -61,7 +60,7 @@ pub trait SatisfiableOuterConstraint<'a>: OuterConstraint<'a> {
         c: <<Self as OuterConstraint<'a>>::TAncestry as Ancestry>::TConcept,
         preferences: &Vec<Dialect>,
         ancestry: RArc<<Self as OuterConstraint<'a>>::TAncestry>,
-    ) -> Result<(String, String, ParameterTuple, Dialect)>;
+    ) -> Result<(AString, AString, ParameterTuple, Dialect)>;
 }
 pub trait TBuilder<'a> {
     type TEnum: TConceptEnum;
@@ -71,21 +70,21 @@ pub trait TBuilder<'a> {
     fn builders() -> Vec<Self>
     where
         Self: Sized;
-    fn get_constraint_name(&self) -> String;
-    fn get_required_constraint_names(&self) -> Vec<String>;
+    fn get_constraint_name(&self) -> AString;
+    fn get_required_constraint_names(&self) -> Vec<AString>;
     fn build_constraint(
         &self,
         root_uuid: Uuid,
         potential_child_constraints: Vec<RArc<RRwLock<Self::OuterType>>>,
     ) -> Result<Self::OuterType>;
-    fn get_root_type_name(&self) -> Result<String>;
+    fn get_root_type_name(&self) -> Result<AString>;
     fn get_required(&self, root: Self::TEnum, ancestry: &Self::TAncestry) -> Vec<Uuid>;
     fn should_add(&self, root: Self::TEnum, ancestry: &Self::TAncestry) -> bool;
 }
 
 pub trait TConstraintEnum<'a>: Sized + Clone {
-    fn get_required_constraint_names() -> HashMap<String, Vec<String>>;
-    fn get_explanations() -> HashMap<String, (Option<String>, Option<String>)>;
+    fn get_required_constraint_names() -> HashMap<AString, Vec<AString>>;
+    fn get_explanations() -> HashMap<AString, (Option<AString>, Option<AString>)>;
     #[cfg(feature = "python")]
     fn get_py_obj<'b>(&self, py: pyo3::Python<'b>) -> pyo3::prelude::PyObject;
 }
@@ -96,11 +95,11 @@ pub trait OuterConstraint<'a>: TAoristObject + std::fmt::Display + Clone {
     type TAncestry: Ancestry;
 
     fn get_uuid(&self) -> Result<Uuid>;
-    fn get_root(&self) -> String;
+    fn get_root(&self) -> AString;
     fn get_root_uuid(&self) -> Result<Uuid>;
     fn get_downstream_constraints(&self) -> Result<Vec<RArc<RRwLock<Self>>>>;
     fn requires_program(&self) -> Result<bool>;
-    fn get_root_type_name(&self) -> Result<String>;
+    fn get_root_type_name(&self) -> Result<AString>;
     fn print_dag(&self) -> Result<()> {
         for downstream_rw in self.get_downstream_constraints()? {
             let downstream = downstream_rw.read();
@@ -134,8 +133,8 @@ where
     type Outer;
     type Ancestry;
 
-    fn get_root_type_name() -> Result<String>;
-    fn get_required_constraint_names() -> Vec<String>;
+    fn get_root_type_name() -> Result<AString>;
+    fn get_required_constraint_names() -> Vec<AString>;
     fn new(
         root_uuid: Uuid,
         potential_child_constraints: Vec<RArc<RRwLock<Self::Outer>>>,
@@ -169,7 +168,7 @@ impl<'a, T: TConstraint<'a>> ConstraintBuilder<'a, T> {
     ) -> Result<T> {
         <T as crate::constraint::TConstraint<'a>>::new(root_uuid, potential_child_constraints)
     }
-    pub fn get_root_type_name(&self) -> Result<String> {
+    pub fn get_root_type_name(&self) -> Result<AString> {
         <T as crate::constraint::TConstraint<'a>>::get_root_type_name()
     }
 }

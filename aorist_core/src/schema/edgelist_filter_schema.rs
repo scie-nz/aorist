@@ -6,7 +6,7 @@ use crate::template::*;
 use aorist_attributes::*;
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
-use aorist_primitives::{attribute, derived_schema};
+use aorist_primitives::{attribute, derived_schema, AString};
 use derivative::Derivative;
 #[cfg(feature = "python")]
 use pyo3::prelude::*;
@@ -21,5 +21,5 @@ derived_schema! {
       id1: KeyStringIdentifier("Node 1 Identifier", false),
       id2: KeyStringIdentifier("Node 2 Identifier", false)
     fields:
-      sql_predicate: String
+      sql_predicate: AString
 }

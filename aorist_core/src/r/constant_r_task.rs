@@ -1,6 +1,6 @@
 use crate::r::r_import::RImport;
 use aorist_ast::{Assignment, Call, Expression, SimpleIdentifier, AST};
-use aorist_primitives::define_task_node;
+use aorist_primitives::{AString, define_task_node};
 use linked_hash_map::LinkedHashMap;
 use std::hash::Hash;
 use abi_stable::std_types::RArc;
@@ -11,7 +11,7 @@ define_task_node!(
     |task: &ConstantRTask| vec![task.name.clone()],
     |task: &ConstantRTask| {
         let call = AST::Call(Call::new_wrapped(
-            AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("print".to_string())),
+            AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("print".into())),
             vec![task.name.clone()],
             LinkedHashMap::new(),
         ));

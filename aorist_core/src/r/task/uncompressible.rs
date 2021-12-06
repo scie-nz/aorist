@@ -11,9 +11,9 @@ where
     T: ETLFlow,
 {
     // unique task_id
-    pub task_id: String,
+    pub task_id: AString,
     // dict value
-    pub dict: String,
+    pub dict: AString,
     // params
     pub params: Option<ParameterTuple>,
     // dep list
@@ -24,7 +24,7 @@ impl<T> UncompressiblePart<T> for RBasedTaskUncompressiblePart<T>
 where
     T: ETLFlow,
 {
-    fn new(task_id: String, dict: String, params: Option<ParameterTuple>, deps: Vec<AST>) -> Self {
+    fn new(task_id: AString, dict: AString, params: Option<ParameterTuple>, deps: Vec<AST>) -> Self {
         Self {
             task_id,
             dict,
@@ -34,7 +34,7 @@ where
         }
     }
     fn as_dict(&self, _insert_deps: bool, _dependencies_as_list: bool, insert_task_name: bool) -> AST {
-        let mut local_params_map: LinkedHashMap<String, AST> = LinkedHashMap::new();
+        let mut local_params_map: LinkedHashMap<AString, AST> = LinkedHashMap::new();
         if let Some(ref p) = self.params {
             p.populate_python_dict(&mut local_params_map);
         }

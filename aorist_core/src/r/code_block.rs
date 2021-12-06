@@ -24,7 +24,7 @@ where
     tasks_dict: Option<AST>,
     task_identifiers: HashMap<Uuid, AST>,
     tasks: Vec<RBasedTask<T>>,
-    params: HashMap<String, Option<ParameterTuple>>,
+    params: HashMap<AString, Option<ParameterTuple>>,
     _lt: PhantomData<&'a ()>,
     _lt2: PhantomData<&'b ()>,
     _constraint: PhantomData<C>,
@@ -42,7 +42,7 @@ where
         tasks_dict: Option<AST>,
         tasks: Vec<Self::E>,
         task_identifiers: HashMap<Uuid, AST>,
-        params: HashMap<String, Option<ParameterTuple>>,
+        params: HashMap<AString, Option<ParameterTuple>>,
     ) -> Self {
         Self {
             tasks_dict,
@@ -90,7 +90,7 @@ where
         self.task_identifiers.clone()
     }
 
-    fn get_params(&self) -> HashMap<String, Option<ParameterTuple>> {
+    fn get_params(&self) -> HashMap<AString, Option<ParameterTuple>> {
         self.params.clone()
     }
 }
@@ -107,7 +107,7 @@ where
             Vec<<Self::E as ETLTask<T>>::S>,
         >,
         python_based_tasks: &mut Vec<Self::E>,
-        constraint_name: String,
+        constraint_name: AString,
     ) {
         for (mut compression_key, tasks) in compressible.into_iter() {
             let num_tasks = tasks.len();
@@ -121,12 +121,12 @@ where
                     .map(|x| x.get_uncompressible_part().unwrap())
                     .collect::<Vec<_>>();
 
-                let mut deps: HashMap<AST, HashSet<String>> = HashMap::new();
-                let mut kwargs: LinkedHashMap<String, HashMap<AST, HashSet<String>>> =
+                let mut deps: HashMap<AST, HashSet<AString>> = HashMap::new();
+                let mut kwargs: LinkedHashMap<AString, HashMap<AST, HashSet<AString>>> =
                     LinkedHashMap::new();
-                let mut kwargs_by_task_id: LinkedHashMap<(String, AST), HashSet<String>> =
+                let mut kwargs_by_task_id: LinkedHashMap<(AString, AST), HashSet<AString>> =
                     LinkedHashMap::new();
-                let mut full_task_ids: LinkedHashMap<AST, HashSet<String>> = LinkedHashMap::new();
+                let mut full_task_ids: LinkedHashMap<AST, HashSet<AString>> = LinkedHashMap::new();
 
                 for t in &maybe_uncompressible {
                     for dep in &t.deps {
@@ -137,9 +137,9 @@ where
                     let task_id_subscript = t.task_id.split("__").last().unwrap().to_string();
                     let replaced = t.task_id.replace(&task_id_subscript, "{t}");
                     let ident =
-                        AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("t".to_string()));
+                        AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("t".into()));
                     let mut kw = LinkedHashMap::new();
-                    kw.insert("t".to_string(), ident);
+                    kw.insert("t".into(), ident);
                     let replacement = AST::Formatted(Formatted::new_wrapped(
                         AST::StringLiteral(StringLiteral::new_wrapped(replaced, false)),
                         kw,
@@ -157,7 +157,7 @@ where
                                 if x.value() == task_id_subscript {
                                     // TODO: pass this to ForLoopETLFlow
                                     let ident = AST::SimpleIdentifier(
-                                        SimpleIdentifier::new_wrapped("t".to_string()),
+                                        SimpleIdentifier::new_wrapped("t".into()),
                                     );
                                     kwargs_by_task_id
                                         .entry((key.clone(), ident))
@@ -167,10 +167,10 @@ where
                                     let replaced = x.value().replace(&task_id_subscript, "{t}");
                                     if replaced != x.value() {
                                         let ident = AST::SimpleIdentifier(
-                                            SimpleIdentifier::new_wrapped("t".to_string()),
+                                            SimpleIdentifier::new_wrapped("t".into()),
                                         );
                                         let mut kw = LinkedHashMap::new();
-                                        kw.insert("t".to_string(), ident);
+                                        kw.insert("t".into(), ident);
                                         let replacement = AST::Formatted(Formatted::new_wrapped(
                                             AST::StringLiteral(StringLiteral::new_wrapped(
                                                 replaced, false,
@@ -217,7 +217,7 @@ where
                     })
                     .filter(|(_k, v)| v.is_some())
                     .map(|(k, v)| (k, v.unwrap()))
-                    .collect::<LinkedHashMap<String, AST>>();
+                    .collect::<LinkedHashMap<AString, AST>>();
 
                 for (key, val) in compressible_kwargs_by_task_id.iter() {
                     compressible_kwargs.insert(key.clone(), val.clone());
@@ -251,7 +251,7 @@ where
                         AST::Subscript(Subscript::new_wrapped(
                             params_constraint.clone(),
                             AST::StringLiteral(StringLiteral::new_wrapped(
-                                "task_id".to_string(),
+                                "task_id".into(),
                                 false,
                             )),
                             false,

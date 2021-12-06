@@ -7,14 +7,15 @@ use derivative::Derivative;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
 use uuid::Uuid;
+use aorist_primitives::{AString};
 
 #[aorist]
 pub struct TimeOrderedTabularSchema {
     pub datum_template: AoristRef<DatumTemplate>,
-    pub attributes: Vec<String>,
+    pub attributes: Vec<AString>,
     // non-null time stamp columns used to order records
     // order is always: 1st column, then 2nd, etc.
-    pub orderingAttributes: Vec<String>,
+    pub orderingAttributes: Vec<AString>,
 }
 impl TimeOrderedTabularSchema {
     pub fn get_datum_template(&self) -> AoristRef<DatumTemplate> {

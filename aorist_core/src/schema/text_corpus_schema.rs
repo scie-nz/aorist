@@ -7,7 +7,7 @@ use crate::template::*;
 use aorist_attributes::*;
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
-use aorist_primitives::{attribute, derived_schema};
+use aorist_primitives::{attribute, derived_schema, AString};
 use derivative::Derivative;
 #[cfg(feature = "python")]
 use pyo3::prelude::*;
@@ -22,7 +22,7 @@ derived_schema! {
       document_id: StringIdentifier("document id", false),
       document: FreeText("document text", false)
     fields:
-      text_attribute_name: String
+      text_attribute_name: AString
 }
 
 impl TextCorpusSchema {

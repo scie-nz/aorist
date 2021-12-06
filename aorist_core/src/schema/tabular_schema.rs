@@ -7,11 +7,12 @@ use derivative::Derivative;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
 use uuid::Uuid;
+use aorist_primitives::{AString};
 
 #[aorist]
 pub struct TabularSchema {
     pub datum_template: AoristRef<DatumTemplate>,
-    pub attributes: Vec<String>,
+    pub attributes: Vec<AString>,
 }
 impl TabularSchema {
     pub fn get_datum_template(&self) -> AoristRef<DatumTemplate> {

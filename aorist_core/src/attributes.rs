@@ -7,7 +7,7 @@ use aorist_attributes::{
 };
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
-use aorist_primitives::{AoristConcept, ConceptEnum};
+use aorist_primitives::{AoristConcept, ConceptEnum, AString};
 use derivative::Derivative;
 #[cfg(feature = "sql")]
 use linked_hash_map::LinkedHashMap;
@@ -26,17 +26,17 @@ include!(concat!(env!("OUT_DIR"), "/attributes.rs"));
 #[cfg(feature = "sql")]
 struct WrappedAttribute(Attribute);
 #[cfg(feature = "sql")]
-pub type AttrMap = HashMap<String, HashMap<String, LinkedHashMap<String, Attribute>>>;
+pub type AttrMap = HashMap<AString, HashMap<AString, LinkedHashMap<AString, Attribute>>>;
 
 impl AoristRef<Attribute> {
-    pub fn get_name(&self) -> String {
+    pub fn get_name(&self) -> AString {
         self.0.read().get_name().clone()
     }
 }
 
 #[cfg(feature = "sql")]
 impl WrappedAttribute {
-    pub fn try_from(x: Expr, attr: &AttrMap) -> Result<Self, String> {
+    pub fn try_from(x: Expr, attr: &AttrMap) -> Result<Self, AString> {
         match x {
             Expr::Identifier(_) => Err(
                 "Simple identifiers not supported for now. Please prefix with table name".into(),
@@ -44,7 +44,7 @@ impl WrappedAttribute {
             Expr::CompoundIdentifier(mut idents) => {
                 if idents.len() != 3 {
                     return Err(
-                        "Exactly 3 identifiers must be in each compound identifier.".to_string()
+                        "Exactly 3 identifiers must be in each compound identifier.".into()
                     );
                 }
                 let attr_name = idents.pop().unwrap().value;
@@ -88,14 +88,14 @@ impl<'a> FromPyObject<'a> for AttributeOrValue {
     }
 }
 impl AttributeOrValue {
-    pub fn as_sql(&self) -> String {
+    pub fn as_sql(&self) -> AString {
         match &self {
             AttributeOrValue::Attribute(x) => x.get_name().clone(),
             AttributeOrValue::Value(x) => x.as_sql(),
         }
     }
     #[cfg(feature = "sql")]
-    pub fn try_from(x: Expr, attr: &AttrMap) -> Result<Self, String> {
+    pub fn try_from(x: Expr, attr: &AttrMap) -> Result<Self, AString> {
         match x {
             Expr::Identifier { .. } | Expr::CompoundIdentifier { .. } => {
                 Ok(Self::Attribute(WrappedAttribute::try_from(x, attr)?.0))
@@ -110,35 +110,35 @@ impl AttributeOrValue {
 #[derive(Hash, PartialEq, Eq, Debug, Serialize, Deserialize, Clone)]
 pub struct IdentityTransform {
     attribute: AttributeOrTransform,
-    name: String,
+    name: AString,
 }
 impl IdentityTransform {
-    pub fn get_name(&self) -> &String {
-        &self.name
+    pub fn get_name(&self) -> AString {
+        self.name.clone()
     }
     pub fn is_nullable(&self) -> bool {
         self.attribute.is_nullable()
     }
-    pub fn get_comment(&self) -> &Option<String> {
+    pub fn get_comment(&self) -> Option<AString> {
         self.attribute.get_comment()
     }
     #[cfg(feature = "sql")]
     fn get_sql_type(&self) -> DataType {
         self.attribute.get_sql_type()
     }
-    pub fn get_presto_type(&self) -> String {
+    pub fn get_presto_type(&self) -> AString {
         self.attribute.get_presto_type()
     }
-    pub fn get_orc_type(&self) -> String {
+    pub fn get_orc_type(&self) -> AString {
         self.attribute.get_orc_type()
     }
-    pub fn get_sqlite_type(&self) -> String {
+    pub fn get_sqlite_type(&self) -> AString {
         self.attribute.get_sqlite_type()
     }
-    pub fn get_postgres_type(&self) -> String {
+    pub fn get_postgres_type(&self) -> AString {
         self.attribute.get_postgres_type()
     }
-    pub fn get_bigquery_type(&self) -> String {
+    pub fn get_bigquery_type(&self) -> AString {
         self.attribute.get_bigquery_type()
     }
 }
@@ -166,14 +166,14 @@ impl<'a> FromPyObject<'a> for Transform {
     }
 }
 impl Transform {
-    pub fn get_name(&self) -> &String {
+    pub fn get_name(&self) -> AString {
         match &self {
             Transform::IdentityTransform(x) => x.get_name(),
         }
     }
-    pub fn get_type(&self) -> String {
+    pub fn get_type(&self) -> AString {
         match &self {
-            Transform::IdentityTransform(_) => "IdentityTransform".to_string(),
+            Transform::IdentityTransform(_) => "IdentityTransform".into(),
         }
     }
     pub fn is_nullable(&self) -> bool {
@@ -181,7 +181,7 @@ impl Transform {
             Transform::IdentityTransform(x) => x.is_nullable(),
         }
     }
-    pub fn get_comment(&self) -> &Option<String> {
+    pub fn get_comment(&self) -> Option<AString> {
         match &self {
             Transform::IdentityTransform(x) => x.get_comment(),
         }
@@ -192,27 +192,27 @@ impl Transform {
             Transform::IdentityTransform(x) => x.get_sql_type(),
         }
     }
-    pub fn get_presto_type(&self) -> String {
+    pub fn get_presto_type(&self) -> AString {
         match &self {
             Transform::IdentityTransform(x) => x.get_presto_type(),
         }
     }
-    pub fn get_sqlite_type(&self) -> String {
+    pub fn get_sqlite_type(&self) -> AString {
         match &self {
             Transform::IdentityTransform(x) => x.get_sqlite_type(),
         }
     }
-    pub fn get_postgres_type(&self) -> String {
+    pub fn get_postgres_type(&self) -> AString {
         match &self {
             Transform::IdentityTransform(x) => x.get_postgres_type(),
         }
     }
-    pub fn get_bigquery_type(&self) -> String {
+    pub fn get_bigquery_type(&self) -> AString {
         match &self {
             Transform::IdentityTransform(x) => x.get_bigquery_type(),
         }
     }
-    pub fn get_orc_type(&self) -> String {
+    pub fn get_orc_type(&self) -> AString {
         match &self {
             Transform::IdentityTransform(x) => x.get_orc_type(),
         }
@@ -262,13 +262,13 @@ impl AttributeOrTransform {
             }
         }
     }
-    pub fn get_name(&self) -> &String {
+    pub fn get_name(&self) -> AString {
         match &self {
             AttributeOrTransform::Attribute(x) => x.get_name(),
             AttributeOrTransform::Transform(x) => x.get_name(),
         }
     }
-    pub fn get_type(&self) -> String {
+    pub fn get_type(&self) -> AString {
         match &self {
             AttributeOrTransform::Attribute(x) => x.get_type(),
             AttributeOrTransform::Transform(x) => x.get_type(),
@@ -286,17 +286,17 @@ impl AttributeOrTransform {
             AttributeOrTransform::Transform(_) => false,
         }
     }
-    pub fn as_predicted_objective(&self) -> Result<Self, String> {
+    pub fn as_predicted_objective(&self) -> Result<Self, AString> {
         match &self {
             AttributeOrTransform::Attribute(x) => {
                 Ok(AttributeOrTransform::Attribute(x.as_predicted_objective()))
             }
             AttributeOrTransform::Transform(_) => {
-                Err("Transforms cannot be predicted objectives".to_string())
+                Err("Transforms cannot be predicted objectives".into())
             }
         }
     }
-    pub fn get_comment(&self) -> &Option<String> {
+    pub fn get_comment(&self) -> Option<AString> {
         match &self {
             AttributeOrTransform::Attribute(x) => x.get_comment(),
             AttributeOrTransform::Transform(x) => x.get_comment(),
@@ -309,25 +309,25 @@ impl AttributeOrTransform {
             AttributeOrTransform::Transform(x) => x.get_sql_type(),
         }
     }
-    pub fn get_presto_type(&self) -> String {
+    pub fn get_presto_type(&self) -> AString {
         match &self {
             AttributeOrTransform::Attribute(x) => x.get_presto_type(),
             AttributeOrTransform::Transform(x) => x.get_presto_type(),
         }
     }
-    pub fn get_orc_type(&self) -> String {
+    pub fn get_orc_type(&self) -> AString {
         match &self {
             AttributeOrTransform::Attribute(x) => x.get_orc_type(),
             AttributeOrTransform::Transform(x) => (*x).get_orc_type(),
         }
     }
-    pub fn get_sqlite_type(&self) -> String {
+    pub fn get_sqlite_type(&self) -> AString {
         match &self {
             AttributeOrTransform::Attribute(x) => x.get_sqlite_type(),
             AttributeOrTransform::Transform(x) => (*x).get_sqlite_type(),
         }
     }
-    pub fn get_postgres_type(&self) -> String {
+    pub fn get_postgres_type(&self) -> AString {
         match &self {
             AttributeOrTransform::Attribute(x) => x.get_postgres_type(),
             AttributeOrTransform::Transform(x) => (*x).get_postgres_type(),
@@ -339,7 +339,7 @@ impl AttributeOrTransform {
             _ => panic!("Should only be called for Attributes"),
         }
     }
-    pub fn get_bigquery_type(&self) -> String {
+    pub fn get_bigquery_type(&self) -> AString {
         match &self {
             AttributeOrTransform::Attribute(x) => x.get_bigquery_type(),
             AttributeOrTransform::Transform(x) => (*x).get_bigquery_type(),

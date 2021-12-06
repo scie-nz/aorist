@@ -8,7 +8,7 @@ use crate::python::{
     PythonPreamble, PythonTask, RPythonTask,
 };
 use aorist_ast::{Call, SimpleIdentifier, StringLiteral, AST};
-use aorist_primitives::AoristUniverse;
+use aorist_primitives::{AString, AoristUniverse};
 use aorist_primitives::TPrestoEndpoints;
 use linked_hash_map::LinkedHashMap;
 use std::hash::Hash;
@@ -21,11 +21,11 @@ where
 {
     task_id: AST,
     task_val: AST,
-    command: Option<String>,
+    command: Option<AString>,
     args: Vec<AST>,
-    kwargs: LinkedHashMap<String, AST>,
+    kwargs: LinkedHashMap<AString, AST>,
     dep_list: Option<AST>,
-    preamble: Option<String>,
+    preamble: Option<AString>,
     dialect: Option<Dialect>,
     endpoints: U::TEndpoints,
     node: PythonTask,
@@ -35,7 +35,7 @@ impl<U: AoristUniverse> PythonBasedFlow<U> for NativePythonBasedFlow<U>
 where
     U::TEndpoints: TPrestoEndpoints,
 {
-    fn get_preamble_string(&self) -> Option<String> {
+    fn get_preamble_string(&self) -> Option<AString> {
         self.preamble.clone()
     }
 }
@@ -71,24 +71,24 @@ where
     fn new(
         task_id: AST,
         task_val: AST,
-        call: Option<String>,
+        call: Option<AString>,
         args: Vec<AST>,
-        kwargs: LinkedHashMap<String, AST>,
+        kwargs: LinkedHashMap<AString, AST>,
         dep_list: Option<AST>,
-        preamble: Option<String>,
+        preamble: Option<AString>,
         dialect: Option<Dialect>,
         endpoints: U::TEndpoints,
     ) -> Self {
         let command = match &dialect {
             Some(Dialect::Presto(_)) => AST::StringLiteral(StringLiteral::new_wrapped(
-                call.as_ref().unwrap().to_string(),
+                call.as_ref().unwrap().clone(),
                 true,
             )),
             Some(_) => AST::StringLiteral(StringLiteral::new_wrapped(
-                call.as_ref().unwrap().to_string(),
+                call.as_ref().unwrap().clone(),
                 false,
             )),
-            None => AST::StringLiteral(StringLiteral::new_wrapped("Done".to_string(), false)),
+            None => AST::StringLiteral(StringLiteral::new_wrapped("Done".into(), false)),
         };
         let node = match &dialect {
             Some(Dialect::Presto(_)) => {
@@ -171,7 +171,7 @@ where
         }
     }
     fn get_type() -> String {
-        "python".to_string()
+        "python".into()
     }
 }
 pub struct PythonFlowBuilder<U: AoristUniverse>

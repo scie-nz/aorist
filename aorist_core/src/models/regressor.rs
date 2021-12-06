@@ -2,6 +2,7 @@ use crate::algorithms::*;
 use crate::asset::*;
 use crate::concept::{AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
 use aorist_concept::{aorist, Constrainable};
+use aorist_primitives::AString;
 use aorist_paste::paste;
 use derivative::Derivative;
 use serde::{Deserialize, Serialize};
@@ -10,7 +11,7 @@ use uuid::Uuid;
 
 #[aorist]
 pub struct SingleObjectiveRegressor {
-    name: String,
+    name: AString,
     #[constrainable]
     source_data: Vec<AoristRef<Asset>>,
     #[constrainable]

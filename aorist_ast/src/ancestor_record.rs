@@ -1,15 +1,16 @@
 use inflector::cases::snakecase::to_snake_case;
 use uuid::Uuid;
+use aorist_primitives::AString;
 
 #[derive(Clone, PartialEq, Eq, Hash, Debug)]
 pub struct AncestorRecord {
     pub uuid: Uuid,
-    pub object_type: String,
-    pub tag: Option<String>,
+    pub object_type: AString,
+    pub tag: Option<AString>,
     pub ix: usize,
 }
 impl AncestorRecord {
-    pub fn new(uuid: Uuid, object_type: String, tag: Option<String>, ix: usize) -> Self {
+    pub fn new(uuid: Uuid, object_type: AString, tag: Option<AString>, ix: usize) -> Self {
         Self {
             uuid,
             object_type,
@@ -17,11 +18,11 @@ impl AncestorRecord {
             ix,
         }
     }
-    pub fn get_key(&self) -> (Uuid, String) {
+    pub fn get_key(&self) -> (Uuid, AString) {
         (self.uuid.clone(), self.object_type.clone())
     }
-    pub fn compute_relative_path(ancestors: &Vec<AncestorRecord>) -> String {
-        let mut relative_path: String = "".to_string();
+    pub fn compute_relative_path(ancestors: &Vec<AncestorRecord>) -> AString {
+        let mut relative_path: String = "".into();
         for record in ancestors.iter().rev() {
             if let Some(ref t) = record.tag {
                 relative_path = format!("{}__{}", relative_path, t);
@@ -31,11 +32,11 @@ impl AncestorRecord {
                 relative_path = format!(
                     "{}__{}_{}",
                     relative_path,
-                    to_snake_case(&record.object_type),
+                    to_snake_case(record.object_type.as_str()),
                     record.ix
                 );
             }
         }
-        relative_path
+        relative_path.as_str().into()
     }
 }

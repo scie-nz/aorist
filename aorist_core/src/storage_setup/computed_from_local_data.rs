@@ -3,7 +3,7 @@ use crate::concept::{AoristRef, WrappedConcept};
 use crate::storage::*;
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
-use aorist_primitives::{AoristConcept, ConceptEnum};
+use aorist_primitives::{AoristConcept, ConceptEnum, AString};
 use derivative::Derivative;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
@@ -12,8 +12,8 @@ use uuid::Uuid;
 
 #[aorist]
 pub struct ComputedFromLocalData {
-    pub source_asset_names: BTreeMap<String, String>,
+    pub source_asset_names: BTreeMap<AString, AString>,
     #[constrainable]
     pub target: AoristRef<Storage>,
-    pub tmp_dir: String,
+    pub tmp_dir: AString,
 }

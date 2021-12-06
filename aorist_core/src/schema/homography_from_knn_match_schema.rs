@@ -6,7 +6,7 @@ use crate::template::*;
 use aorist_attributes::*;
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
-use aorist_primitives::{attribute, derived_schema};
+use aorist_primitives::{attribute, derived_schema, AString};
 use derivative::Derivative;
 #[cfg(feature = "python")]
 use pyo3::prelude::*;
@@ -24,7 +24,7 @@ derived_schema! {
       matrix: FreeText("JSON of Homography Matrix (H)", false)
     fields:
       knn_filter_threshold: FloatValue,
-      method: String,
+      method: AString,
       ransac_reproj_threshold: Option<FloatValue>,
       max_iters: usize,
       confidence: FloatValue

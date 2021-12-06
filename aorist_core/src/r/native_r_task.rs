@@ -1,6 +1,6 @@
 use crate::r::r_import::RImport;
 use aorist_ast::{Assignment, StringLiteral, AST};
-use aorist_primitives::define_task_node;
+use aorist_primitives::{AString, define_task_node};
 use std::hash::Hash;
 use abi_stable::std_types::RArc;
 use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
@@ -38,7 +38,7 @@ define_task_node!(
         if !task_val_assigned {
             statements.push(AST::Assignment(Assignment::new_wrapped(
                 task.task_val.clone(),
-                AST::StringLiteral(StringLiteral::new_wrapped("Done".to_string(), false)),
+                AST::StringLiteral(StringLiteral::new_wrapped("Done".into(), false)),
             )));
         }
         statements

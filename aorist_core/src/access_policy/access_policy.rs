@@ -7,6 +7,7 @@ use aorist_paste::paste;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
 use uuid::Uuid;
+use aorist_primitives::AString;
 
 #[aorist]
 pub enum AccessPolicy {

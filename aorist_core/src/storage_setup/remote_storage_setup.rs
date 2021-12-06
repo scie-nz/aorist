@@ -4,7 +4,7 @@ use crate::storage::*;
 use crate::storage_setup::replication_storage_setup::*;
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
-use aorist_primitives::{AoristConcept, ConceptEnum};
+use aorist_primitives::{AoristConcept, ConceptEnum, AString};
 use derivative::Derivative;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
@@ -14,13 +14,13 @@ use uuid::Uuid;
 pub struct RemoteStorageSetup {
     #[constrainable]
     pub remote: AoristRef<Storage>,
-    pub tmp_dir: Option<String>,
+    pub tmp_dir: Option<AString>,
 }
 impl RemoteStorageSetup {
     pub fn replicate_to_local(
         &self,
         t: AoristRef<Storage>,
-        tmp_dir: String,
+        tmp_dir: AString,
         tmp_encoding: AoristRef<Encoding>,
     ) -> ReplicationStorageSetup {
         ReplicationStorageSetup {

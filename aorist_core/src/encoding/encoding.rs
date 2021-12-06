@@ -20,7 +20,7 @@ use crate::header::FileHeader;
 use crate::header::*;
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
-use aorist_primitives::{AoristConcept, ConceptEnum};
+use aorist_primitives::{AoristConcept, ConceptEnum, AString};
 #[cfg(feature = "python")]
 use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
@@ -90,25 +90,25 @@ impl Encoding {
             Self::ShapefileEncoding(_) => None,
         }
     }
-    pub fn get_default_file_extension(&self) -> String {
+    pub fn get_default_file_extension(&self) -> AString {
         match &self {
-            Self::CSVEncoding(_) => "csv".to_string(),
+            Self::CSVEncoding(_) => "csv".into(),
             // TODO: need to change this to also be optional
-            Self::TSVEncoding(_) => "tsv".to_string(),
-            Self::GDBEncoding(_) => "gdb".to_string(),
-            Self::LASEncoding(_) => "las".to_string(),
-            Self::GeoTiffEncoding(_) => "tiff".to_string(),
-            Self::TiffEncoding(_) => "tiff".to_string(),
-            Self::WKTEncoding(_) => "wkt".to_string(),
-            Self::XMLEncoding(_) => "xml".to_string(),
-            Self::KMLEncoding(_) => "kml".to_string(),
-            Self::GPKGEncoding(_) => "gpkg".to_string(),
-            Self::ShapefileEncoding(_) => "shp".to_string(),
-            Self::JSONEncoding(_) => "json".to_string(),
-            Self::ORCEncoding(_) => "orc".to_string(),
-            Self::ONNXEncoding(_) => "onnx".to_string(),
-            Self::SQLiteEncoding(_) => "sqlite".to_string(),
-            Self::NewlineDelimitedJSONEncoding(_) => "json".to_string(),
+            Self::TSVEncoding(_) => "tsv".into(),
+            Self::GDBEncoding(_) => "gdb".into(),
+            Self::LASEncoding(_) => "las".into(),
+            Self::GeoTiffEncoding(_) => "tiff".into(),
+            Self::TiffEncoding(_) => "tiff".into(),
+            Self::WKTEncoding(_) => "wkt".into(),
+            Self::XMLEncoding(_) => "xml".into(),
+            Self::KMLEncoding(_) => "kml".into(),
+            Self::GPKGEncoding(_) => "gpkg".into(),
+            Self::ShapefileEncoding(_) => "shp".into(),
+            Self::JSONEncoding(_) => "json".into(),
+            Self::ORCEncoding(_) => "orc".into(),
+            Self::ONNXEncoding(_) => "onnx".into(),
+            Self::SQLiteEncoding(_) => "sqlite".into(),
+            Self::NewlineDelimitedJSONEncoding(_) => "json".into(),
         }
     }
 }

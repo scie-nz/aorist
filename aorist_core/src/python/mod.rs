@@ -10,6 +10,7 @@ use linked_hash_set::LinkedHashSet;
 use pyo3::prelude::*;
 use pyo3::types::{IntoPyDict, PyString, PyTuple};
 use std::collections::{BTreeSet, HashMap};
+use aorist_primitives::AString;
 
 use aorist_ast::{
     Add, Assignment, Attribute, BigIntLiteral, BinOp, Call, Dict, ForLoop, Formatted, List,
@@ -34,9 +35,9 @@ pub struct PythonFlowBuilderInput {
     statements: Vec<AST>,
     preambles: LinkedHashSet<PythonPreamble>,
     imports: BTreeSet<PythonImport>,
-    constraint_name: String,
-    constraint_title: Option<String>,
-    constraint_body: Option<String>,
+    constraint_name: AString,
+    constraint_title: Option<AString>,
+    constraint_body: Option<AString>,
 }
 impl PythonFlowBuilderInput {
     pub fn has_statements(&self) -> bool {
@@ -44,9 +45,9 @@ impl PythonFlowBuilderInput {
     }
     pub fn statements_only(
         statements: Vec<AST>,
-        constraint_name: String,
-        constraint_title: Option<String>,
-        constraint_body: Option<String>,
+        constraint_name: AString,
+        constraint_title: Option<AString>,
+        constraint_body: Option<AString>,
     ) -> Self {
         Self::new(
             statements,
@@ -78,9 +79,9 @@ impl FlowBuilderInput for PythonFlowBuilderInput {
         statements: Vec<AST>,
         preambles: LinkedHashSet<PythonPreamble>,
         imports: BTreeSet<PythonImport>,
-        constraint_name: String,
-        constraint_title: Option<String>,
-        constraint_body: Option<String>,
+        constraint_name: AString,
+        constraint_title: Option<AString>,
+        constraint_body: Option<AString>,
     ) -> Self {
         Self {
             statements,
@@ -100,18 +101,18 @@ impl FlowBuilderInput for PythonFlowBuilderInput {
     fn get_imports(&self) -> BTreeSet<PythonImport> {
         self.imports.clone()
     }
-    fn get_constraint_name(&self) -> String {
+    fn get_constraint_name(&self) -> AString {
         self.constraint_name.clone()
     }
-    fn get_constraint_title(&self) -> Option<String> {
+    fn get_constraint_title(&self) -> Option<AString> {
         self.constraint_title.clone()
     }
-    fn get_constraint_body(&self) -> Option<String> {
+    fn get_constraint_body(&self) -> Option<AString> {
         self.constraint_body.clone()
     }
 }
 
-pub fn format_code(code: String) -> PyResult<String> {
+pub fn format_code(code: AString) -> PyResult<AString> {
     let gil = Python::acquire_gil();
     let py = gil.python();
 
@@ -122,7 +123,7 @@ pub fn format_code(code: String) -> PyResult<String> {
         .getattr("FileMode")?
         .call((), Some(kwargs.into_py_dict(py)))?;
 
-    let py_code = PyString::new(py, &code);
+    let py_code = PyString::new(py, code.as_str());
 
     let mut kwargs = HashMap::<&str, &PyAny>::new();
     kwargs.insert("mode", mode);

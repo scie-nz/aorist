@@ -11,7 +11,7 @@ use aorist_ast::{
     Assignment, Attribute, BigIntLiteral, BooleanLiteral, Call, Dict, Expression, Formatted, List,
     None, SimpleIdentifier, StringLiteral, AST,
 };
-use aorist_primitives::AoristUniverse;
+use aorist_primitives::{AString, AoristUniverse};
 use aorist_primitives::TPrestoEndpoints;
 use linked_hash_map::LinkedHashMap;
 use std::marker::PhantomData;
@@ -23,11 +23,11 @@ where
 {
     task_id: AST,
     task_val: AST,
-    command: Option<String>,
+    command: Option<AString>,
     args: Vec<AST>,
-    kwargs: LinkedHashMap<String, AST>,
+    kwargs: LinkedHashMap<AString, AST>,
     dep_list: Option<AST>,
-    preamble: Option<String>,
+    preamble: Option<AString>,
     dialect: Option<Dialect>,
     endpoints: U::TEndpoints,
     node: PythonTask,
@@ -37,7 +37,7 @@ impl<U: AoristUniverse> PythonBasedFlow<U> for AirflowPythonBasedFlow<U>
 where
     U::TEndpoints: TPrestoEndpoints,
 {
-    fn get_preamble_string(&self) -> Option<String> {
+    fn get_preamble_string(&self) -> Option<AString> {
         self.preamble.clone()
     }
 }
@@ -48,7 +48,7 @@ where
     fn compute_task_args(&self) -> Vec<AST> {
         Vec::new()
     }
-    fn compute_task_kwargs(&self) -> LinkedHashMap<String, AST> {
+    fn compute_task_kwargs(&self) -> LinkedHashMap<AString, AST> {
         let mut kwargs;
         if self.dialect.is_none() {
             kwargs = self.kwargs.clone();
@@ -58,8 +58,8 @@ where
                 Some(Dialect::Python(_))
                 | Some(Dialect::R(_))
                 | Some(Dialect::Presto(_))
-                | None => "python_callable".to_string(),
-                Some(Dialect::Bash(_)) => "bash_command".to_string(),
+                | None => "python_callable".into(),
+                Some(Dialect::Bash(_)) => "bash_command".into(),
             };
             // TODO: deprecate this once Bash tasks also migrate
             let call_param_value = match self.dialect {
@@ -93,7 +93,7 @@ where
                     let inner_kwargs = x.keywords();
                     if inner_kwargs.len() > 0 {
                         kwargs.insert(
-                            "op_kwargs".to_string(),
+                            "op_kwargs".into(),
                             AST::Dict(Dict::new_wrapped(inner_kwargs)),
                         );
                     }
@@ -103,28 +103,28 @@ where
             }
         }
         kwargs.insert(
-            "dag".to_string(),
-            AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("dag".to_string())),
+            "dag".into(),
+            AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("dag".into())),
         );
-        kwargs.insert("task_id".to_string(), self.task_id.clone());
+        kwargs.insert("task_id".into(), self.task_id.clone());
         kwargs
     }
     fn compute_task_call(&self) -> AST {
         match self.dialect {
             Some(Dialect::Python(_)) => {
-                AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("PythonOperator".to_string()))
+                AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("PythonOperator".into()))
             }
             Some(Dialect::Bash(_)) => {
-                AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("BashOperator".to_string()))
+                AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("BashOperator".into()))
             }
             Some(Dialect::Presto(_)) => {
-                AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("PythonOperator".to_string()))
+                AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("PythonOperator".into()))
             }
             Some(Dialect::R(_)) => {
-                AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("PythonOperator".to_string()))
+                AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("PythonOperator".into()))
             }
             None => {
-                AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("DummyOperator".to_string()))
+                AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("DummyOperator".into()))
             }
         }
     }
@@ -139,20 +139,20 @@ where
     fn get_imports(&self) -> Vec<PythonImport> {
         match self.dialect {
             Some(Dialect::Python(_)) | Some(Dialect::R(_)) => vec![PythonImport::PythonFromImport(
-                "airflow.operators.python_operator".to_string(),
-                "PythonOperator".to_string(),
+                "airflow.operators.python_operator".into(),
+                "PythonOperator".into(),
                 None,
             )],
             Some(Dialect::Bash(_)) | Some(Dialect::Presto(_)) => {
                 vec![PythonImport::PythonFromImport(
-                    "airflow.operators.bash_operator".to_string(),
-                    "BashOperator".to_string(),
+                    "airflow.operators.bash_operator".into(),
+                    "BashOperator".into(),
                     None,
                 )]
             }
             None => vec![PythonImport::PythonFromImport(
-                "airflow.operators.dummy_operator".to_string(),
-                "DummyOperator".to_string(),
+                "airflow.operators.dummy_operator".into(),
+                "DummyOperator".into(),
                 None,
             )],
         }
@@ -194,7 +194,7 @@ where
                 Call::new_wrapped(
                     AST::Attribute(Attribute::new_wrapped(
                         self.get_task_val(),
-                        "set_upstream".to_string(),
+                        "set_upstream".into(),
                         false,
                     )),
                     vec![dependencies.clone()],
@@ -207,24 +207,24 @@ where
     fn new(
         task_id: AST,
         task_val: AST,
-        call: Option<String>,
+        call: Option<AString>,
         args: Vec<AST>,
-        kwargs: LinkedHashMap<String, AST>,
+        kwargs: LinkedHashMap<AString, AST>,
         dep_list: Option<AST>,
-        preamble: Option<String>,
+        preamble: Option<AString>,
         dialect: Option<Dialect>,
         endpoints: U::TEndpoints,
     ) -> Self {
         let command = match &dialect {
             Some(Dialect::Presto(_)) => AST::StringLiteral(StringLiteral::new_wrapped(
-                call.as_ref().unwrap().to_string(),
+                call.as_ref().unwrap().clone(),
                 true,
             )),
             Some(_) => AST::StringLiteral(StringLiteral::new_wrapped(
-                call.as_ref().unwrap().to_string(),
+                call.as_ref().unwrap().clone(),
                 false,
             )),
-            None => AST::StringLiteral(StringLiteral::new_wrapped("Done".to_string(), false)),
+            None => AST::StringLiteral(StringLiteral::new_wrapped("Done".into(), false)),
         };
         let node = match &dialect {
             Some(Dialect::Presto(_)) => {
@@ -303,7 +303,7 @@ where
         }
     }
     fn get_type() -> String {
-        "airflow".to_string()
+        "airflow".into()
     }
 }
 
@@ -329,43 +329,43 @@ where
     fn augment_statements(
         &self,
         mut statements: Vec<PythonFlowBuilderInput>,
-        flow_name: Option<String>,
+        flow_name: Option<AString>,
     ) -> Vec<PythonFlowBuilderInput> {
         let default_args =
-            AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("default_args".to_string()));
-        let mut default_args_map: LinkedHashMap<String, AST> = LinkedHashMap::new();
+            AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("default_args".into()));
+        let mut default_args_map: LinkedHashMap<AString, AST> = LinkedHashMap::new();
         default_args_map.insert(
-            "owner".to_string(),
-            AST::StringLiteral(StringLiteral::new_wrapped("airflow".to_string(), false)),
+            "owner".into(),
+            AST::StringLiteral(StringLiteral::new_wrapped("airflow".into(), false)),
         );
         default_args_map.insert(
-            "depends_on_past".to_string(),
+            "depends_on_past".into(),
             AST::BooleanLiteral(BooleanLiteral::new_wrapped(false)),
         );
         default_args_map.insert(
-            "email".to_string(),
+            "email".into(),
             AST::List(List::new_wrapped(
                 vec![AST::StringLiteral(StringLiteral::new_wrapped(
-                    "airflow@example.com".to_string(),
+                    "airflow@example.com".into(),
                     false,
                 ))],
                 false,
             )),
         );
         default_args_map.insert(
-            "email_on_failure".to_string(),
+            "email_on_failure".into(),
             AST::BooleanLiteral(BooleanLiteral::new_wrapped(false)),
         );
         default_args_map.insert(
-            "email_on_retry".to_string(),
+            "email_on_retry".into(),
             AST::BooleanLiteral(BooleanLiteral::new_wrapped(false)),
         );
         default_args_map.insert(
-            "retries".to_string(),
+            "retries".into(),
             AST::BigIntLiteral(BigIntLiteral::new_wrapped(1)),
         );
         default_args_map.insert(
-            "retry_delay".to_string(),
+            "retry_delay".into(),
             AST::BigIntLiteral(BigIntLiteral::new_wrapped(300)),
         );
 
@@ -375,25 +375,25 @@ where
             default_args_dict,
         ));
 
-        let dag = AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("dag".to_string()));
+        let dag = AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("dag".into()));
 
-        let mut kwargs: LinkedHashMap<String, AST> = LinkedHashMap::new();
-        kwargs.insert("default_args".to_string(), default_args);
+        let mut kwargs: LinkedHashMap<AString, AST> = LinkedHashMap::new();
+        kwargs.insert("default_args".into(), default_args);
         kwargs.insert(
-            "description".to_string(),
+            "description".into(),
             AST::StringLiteral(StringLiteral::new_wrapped(
-                "Auto-generated by Aorist".to_string(),
+                "Auto-generated by Aorist".into(),
                 false,
             )),
         );
         kwargs.insert(
-            "schedule_interval".to_string(),
+            "schedule_interval".into(),
             AST::None(None::new_wrapped()),
         );
         kwargs.insert(
-            "start_date".to_string(),
+            "start_date".into(),
             AST::Call(Call::new_wrapped(
-                AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("datetime".to_string())),
+                AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("datetime".into())),
                 vec![
                     AST::BigIntLiteral(BigIntLiteral::new_wrapped(2021)),
                     AST::BigIntLiteral(BigIntLiteral::new_wrapped(1)),
@@ -403,21 +403,21 @@ where
             )),
         );
         kwargs.insert(
-            "tags".to_string(),
+            "tags".into(),
             AST::List(List::new_wrapped(
                 vec![AST::StringLiteral(StringLiteral::new_wrapped(
-                    "aorist".to_string(),
+                    "aorist".into(),
                     false,
                 ))],
                 false,
             )),
         );
         let dag_call = AST::Call(Call::new_wrapped(
-            AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("DAG".to_string())),
+            AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("DAG".into())),
             vec![AST::StringLiteral(StringLiteral::new_wrapped(
                 match flow_name {
                     Some(x) => x,
-                    None => "flow".to_string(),
+                    None => "flow".into(),
                 },
                 false,
             ))],
@@ -428,7 +428,7 @@ where
             0,
             PythonFlowBuilderInput::statements_only(
                 vec![default_args_assign, dag_call_assign],
-                "Setting up Airflow FlowBuilder".to_string(),
+                "Setting up Airflow FlowBuilder".into(),
                 None,
                 None,
             ),
@@ -437,8 +437,8 @@ where
     }
     fn get_flow_imports(&self) -> Vec<PythonImport> {
         vec![
-            PythonImport::PythonFromImport("airflow".to_string(), "DAG".to_string(), None),
-            PythonImport::PythonFromImport("datetime".to_string(), "datetime".to_string(), None),
+            PythonImport::PythonFromImport("airflow".into(), "DAG".into(), None),
+            PythonImport::PythonFromImport("datetime".into(), "datetime".into(), None),
         ]
     }
 }

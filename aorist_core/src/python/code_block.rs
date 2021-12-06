@@ -7,7 +7,7 @@ use crate::python::{
     ForLoopPythonBasedTask, Formatted, PythonBasedTask, PythonImport, PythonPreamble,
     SimpleIdentifier, StringLiteral, Subscript, AST,
 };
-use aorist_primitives::AoristUniverse;
+use aorist_primitives::{AString, AoristUniverse};
 use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
 use std::collections::{BTreeSet, HashMap, HashSet};
@@ -25,7 +25,7 @@ where
     tasks_dict: Option<AST>,
     task_identifiers: HashMap<Uuid, AST>,
     python_based_tasks: Vec<PythonBasedTask<T, U>>,
-    params: HashMap<String, Option<ParameterTuple>>,
+    params: HashMap<AString, Option<ParameterTuple>>,
     _lt: PhantomData<&'a ()>,
     _constraint: PhantomData<C>,
     _program: PhantomData<P>,
@@ -44,7 +44,7 @@ where
         tasks_dict: Option<AST>,
         tasks: Vec<Self::E>,
         task_identifiers: HashMap<Uuid, AST>,
-        params: HashMap<String, Option<ParameterTuple>>,
+        params: HashMap<AString, Option<ParameterTuple>>,
     ) -> Self {
         Self {
             tasks_dict,
@@ -95,7 +95,7 @@ where
         self.task_identifiers.clone()
     }
 
-    fn get_params(&self) -> HashMap<String, Option<ParameterTuple>> {
+    fn get_params(&self) -> HashMap<AString, Option<ParameterTuple>> {
         self.params.clone()
     }
 }
@@ -113,7 +113,7 @@ where
             Vec<<Self::E as ETLTask<T, U>>::S>,
         >,
         python_based_tasks: &mut Vec<Self::E>,
-        constraint_name: String,
+        constraint_name: AString,
         render_dependencies: bool,
     ) {
         for (mut compression_key, tasks) in compressible.into_iter() {
@@ -126,7 +126,7 @@ where
                     constraint_name
                 );
                 let params_constraint = AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
-                    format!("params_{}", constraint_name).to_string(),
+                    format!("params_{}", constraint_name).as_str().into(),
                 ));
                 let mut maybe_uncompressible = tasks
                     .into_iter()
@@ -147,12 +147,12 @@ where
                     panic!("Tasks with same keys in for loop compression.");
                 }
 
-                let mut deps: HashMap<AST, HashSet<String>> = HashMap::new();
-                let mut kwargs: LinkedHashMap<String, HashMap<AST, HashSet<String>>> =
+                let mut deps: HashMap<AST, HashSet<AString>> = HashMap::new();
+                let mut kwargs: LinkedHashMap<AString, HashMap<AST, HashSet<AString>>> =
                     LinkedHashMap::new();
-                let mut kwargs_by_task_id: LinkedHashMap<(String, AST), HashSet<String>> =
+                let mut kwargs_by_task_id: LinkedHashMap<(AString, AST), HashSet<AString>> =
                     LinkedHashMap::new();
-                let mut full_task_ids: LinkedHashMap<AST, HashSet<String>> = LinkedHashMap::new();
+                let mut full_task_ids: LinkedHashMap<AST, HashSet<AString>> = LinkedHashMap::new();
 
                 for t in &maybe_uncompressible {
                     for dep in &t.deps {
@@ -160,14 +160,14 @@ where
                             .or_insert(HashSet::new())
                             .insert(t.task_id.clone());
                     }
-                    let task_id_subscript = t.task_id.split("__").last().unwrap().to_string();
-                    let replaced = t.task_id.replace(&task_id_subscript, "{t}");
+                    let task_id_subscript = t.task_id.as_str().to_string().split("__").last().unwrap().to_string();
+                    let replaced = t.task_id.as_str().to_string().replace(&task_id_subscript, "{t}");
                     let ident =
-                        AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("t".to_string()));
+                        AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("t".into()));
                     let mut kw = LinkedHashMap::new();
-                    kw.insert("t".to_string(), ident);
+                    kw.insert("t".into(), ident);
                     let replacement = AST::Formatted(Formatted::new_wrapped(
-                        AST::StringLiteral(StringLiteral::new_wrapped(replaced, false)),
+                        AST::StringLiteral(StringLiteral::new_wrapped(replaced.as_str().into(), false)),
                         kw,
                     ));
                     full_task_ids
@@ -180,26 +180,27 @@ where
                             let val_no_ancestors = val.clone_without_ancestors();
                             if let AST::StringLiteral(rw) = val {
                                 let x = rw.read();
-                                if x.value() == task_id_subscript {
+                                if x.value().as_str() == task_id_subscript.as_str() {
                                     // TODO: pass this to ForLoopETLFlow
                                     let ident = AST::SimpleIdentifier(
-                                        SimpleIdentifier::new_wrapped("t".to_string()),
+                                        SimpleIdentifier::new_wrapped("t".into()),
                                     );
                                     kwargs_by_task_id
                                         .entry((key.clone(), ident))
                                         .or_insert(HashSet::new())
                                         .insert(t.task_id.clone());
                                 } else {
-                                    let replaced = x.value().replace(&task_id_subscript, "{t}");
-                                    if replaced != x.value() {
+                                    let val = x.value().as_str().to_string();
+                                    let replaced = val.replace(&task_id_subscript, "{t}");
+                                    if replaced != val {
                                         let ident = AST::SimpleIdentifier(
-                                            SimpleIdentifier::new_wrapped("t".to_string()),
+                                            SimpleIdentifier::new_wrapped("t".into()),
                                         );
                                         let mut kw = LinkedHashMap::new();
-                                        kw.insert("t".to_string(), ident);
+                                        kw.insert("t".into(), ident);
                                         let replacement = AST::Formatted(Formatted::new_wrapped(
                                             AST::StringLiteral(StringLiteral::new_wrapped(
-                                                replaced, false,
+                                                replaced.as_str().into(), false,
                                             )),
                                             kw,
                                         ));
@@ -243,7 +244,7 @@ where
                     })
                     .filter(|(_k, v)| v.is_some())
                     .map(|(k, v)| (k, v.unwrap()))
-                    .collect::<LinkedHashMap<String, AST>>();
+                    .collect::<LinkedHashMap<AString, AST>>();
 
                 for (key, val) in compressible_kwargs_by_task_id.iter() {
                     compressible_kwargs.insert(key.clone(), val.clone());
@@ -277,7 +278,7 @@ where
                         AST::Subscript(Subscript::new_wrapped(
                             AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("params".into())),
                             AST::StringLiteral(StringLiteral::new_wrapped(
-                                "task_id".to_string(),
+                                "task_id".into(),
                                 false,
                             )),
                             false,

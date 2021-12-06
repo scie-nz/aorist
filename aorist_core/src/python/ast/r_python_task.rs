@@ -4,7 +4,7 @@ use crate::python::PythonImport;
 use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 use abi_stable::std_types::RArc;
 use aorist_ast::{Call, SimpleIdentifier, StringLiteral, AST};
-use aorist_primitives::define_task_node;
+use aorist_primitives::{AString, define_task_node};
 use linked_hash_map::LinkedHashMap;
 use std::hash::Hash;
 
@@ -14,10 +14,10 @@ define_task_node!(
     |task: &RPythonTask| { task.get_native_python_statements() },
     |_task: &RPythonTask| {
         vec![
-            PythonImport::PythonModuleImport("rpy2".to_string(), None),
+            PythonImport::PythonModuleImport("rpy2".into(), None),
             PythonImport::PythonModuleImport(
-                "rpy2.robjects".to_string(),
-                Some("robjects".to_string()),
+                "rpy2.robjects".into(),
+                Some("robjects".into()),
             ),
         ]
     },
@@ -25,16 +25,16 @@ define_task_node!(
     task_val: AST,
     call: AST,
     args: Vec<AST>,
-    kwargs: LinkedHashMap<String, AST>,
+    kwargs: LinkedHashMap<AString, AST>,
     dep_list: Option<AST>,
-    preamble: Option<String>,
+    preamble: Option<AString>,
 );
 impl PythonFunctionCallTask for RPythonTask {
     fn get_preamble(&self) -> Option<NativePythonPreamble> {
-        let rpy2 = PythonImport::PythonModuleImport("rpy2".to_string(), None);
+        let rpy2 = PythonImport::PythonModuleImport("rpy2".into(), None);
         let rpy2o = PythonImport::PythonModuleImport(
-            "rpy2.robjects".to_string(),
-            Some("robjects".to_string()),
+            "rpy2.robjects".into(),
+            Some("robjects".into()),
         );
         let body = "
 def execute_r(call, preamble=None, **kwargs):
@@ -73,17 +73,17 @@ def execute_r(call, preamble=None, **kwargs):
         Some(NativePythonPreamble {
             imports: vec![rpy2],
             from_imports: vec![rpy2o],
-            body: body.to_string(),
+            body: body.into(),
         })
     }
     fn get_call(&self) -> AST {
         let mut inner_kwargs = LinkedHashMap::new();
-        inner_kwargs.insert("call".to_string(), self.call.clone());
+        inner_kwargs.insert("call".into(), self.call.clone());
         if let Some(ref p) = self.preamble {
             inner_kwargs.insert(
-                "preamble".to_string(),
+                "preamble".into(),
                 AST::StringLiteral(StringLiteral::new_wrapped(
-                    format!("\n{}\n", p).to_string(),
+                    format!("\n{}\n", p).as_str().into(),
                     false,
                 )),
             );
@@ -92,7 +92,7 @@ def execute_r(call, preamble=None, **kwargs):
             inner_kwargs.insert(k, v);
         }
         AST::Call(Call::new_wrapped(
-            AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("execute_r".to_string())),
+            AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("execute_r".into())),
             vec![],
             inner_kwargs,
         ))

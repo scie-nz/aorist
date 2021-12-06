@@ -1,4 +1,3 @@
-#![allow(non_snake_case)]
 use crate::asset::geospatial_asset::*;
 use crate::asset::graph_asset::*;
 use crate::asset::language_asset::*;
@@ -13,7 +12,7 @@ use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 use abi_stable::std_types::RArc;
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
-use aorist_primitives::asset_enum;
+use aorist_primitives::{asset_enum, AString};
 #[cfg(feature = "python")]
 use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
@@ -21,10 +20,10 @@ use std::fmt::Debug;
 use uuid::Uuid;
 
 pub trait TAsset {
-    fn get_name(&self) -> String;
+    fn get_name(&self) -> AString;
     fn get_schema(&self) -> AoristRef<DataSchema>;
     fn get_storage_setup(&self) -> AoristRef<StorageSetup>;
-    fn get_template_name(&self) -> String {
+    fn get_template_name(&self) -> AString {
         self.get_schema()
             .0
             .read()
@@ -78,7 +77,7 @@ impl PyAsset {
     pub fn replicate_to_local(
         &self,
         storage: PyStorage,
-        tmp_dir: String,
+        tmp_dir: AString,
         tmp_encoding: PyEncoding,
     ) -> PyResult<Self> {
         Ok(PyAsset {

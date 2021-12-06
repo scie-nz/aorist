@@ -20,9 +20,9 @@ where
     C: OuterConstraint<'a, 'b> + SatisfiableOuterConstraint<'a, 'b>,
     'a: 'b,
 {
-    constraint_name: String,
-    title: Option<String>,
-    body: Option<String>,
+    constraint_name: AString,
+    title: Option<AString>,
+    body: Option<AString>,
     members: Vec<RBasedCodeBlock<'a, 'b, T, C>>,
     tasks_dict: Option<AST>,
     _lt: PhantomData<&'a ()>,
@@ -40,10 +40,10 @@ where
     fn get_constraint_name(&self) -> String {
         self.constraint_name.clone()
     }
-    fn get_constraint_title(&self) -> Option<String> {
+    fn get_constraint_title(&self) -> Option<AString> {
         self.title.clone()
     }
-    fn get_constraint_body(&self) -> Option<String> {
+    fn get_constraint_body(&self) -> Option<AString> {
         self.body.clone()
     }
     fn get_code_blocks(&self) -> &Vec<Self::C> {
@@ -51,9 +51,9 @@ where
     }
 
     fn new(
-        constraint_name: String,
-        title: Option<String>,
-        body: Option<String>,
+        constraint_name: AString,
+        title: Option<AString>,
+        body: Option<AString>,
         members: Vec<RBasedCodeBlock<'a, 'b, T, C>>,
         tasks_dict: Option<AST>,
     ) -> Self {
@@ -92,7 +92,7 @@ where
     C: OuterConstraint<'a, 'b> + SatisfiableOuterConstraint<'a, 'b>,
     'a: 'b,
 {
-    pub fn get_params(&self) -> HashMap<String, Option<ParameterTuple>> {
+    pub fn get_params(&self) -> HashMap<AString, Option<ParameterTuple>> {
         self.members
             .iter()
             .map(|x| x.get_params().into_iter())
