@@ -51,9 +51,9 @@ define_ast_node!(
                 _ => panic!("AST node of type {} found in for loop body", x.name()),
             })
             .map(|x| x.to_python_ast_node(py, ast_module, depth + 1))
-            .collect::<PyResult<AVec<_>>>()?;
+            .collect::<PyResult<Vec<_>>>()?;
         let body_list = PyList::new(py, body_ast);
-        let empty_vec: AVec<String> = AVec::new();
+        let empty_vec: Vec<String> = Vec::new();
         let empty_list = PyList::new(py, empty_vec);
         ast_module.getattr("For")?.call1((
             for_loop.target.to_python_ast_node(py, ast_module, depth)?,
@@ -102,7 +102,7 @@ define_ast_node!(
         };
         let targets = PyList::new(
             py,
-            vec![assign_target.to_python_ast_node(py, ast_module, depth)?].into_iter().collect(),
+            vec![assign_target.to_python_ast_node(py, ast_module, depth)?]
         );
         ast_module.getattr("Assign")?.call1((
             targets,
@@ -144,7 +144,7 @@ define_ast_node!(
 );
 define_ast_node!(
     BinOp,
-    |node: &BinOp| vec![node.left.clone(), node.right.clone()].into_iter().collect()
+    |node: &BinOp| vec![node.left.clone(), node.right.clone()].into_iter().collect(),
     |node: &BinOp, py: Python, ast_module: &'a PyModule, depth: usize| {
         ast_module.getattr("BinOp")?.call1((
             node.left.to_python_ast_node(py, ast_module, depth)?,
@@ -181,7 +181,7 @@ define_ast_node!(
             .elems
             .iter()
             .map(|x| x.to_python_ast_node(py, ast_module, depth))
-            .collect::<PyResult<AVec<_>>>()?;
+            .collect::<PyResult<Vec<_>>>()?;
         let children_list = PyList::new(py, children);
         ast_module
             .getattr("List")?
@@ -192,7 +192,7 @@ define_ast_node!(
             .elems
             .iter()
             .map(|x| x.to_r_ast_node(depth))
-            .collect::<AVec<_>>();
+            .collect::<Vec<_>>();
         elems.insert(0, r!(Symbol::from_string("list")));
         r!(Language::from_values(&elems))
     },
@@ -219,12 +219,12 @@ define_ast_node!(
             .map(|x| {
                 StringLiteral::new(x.clone(), false).to_python_ast_node(py, ast_module, depth + 1)
             })
-            .collect::<PyResult<AVec<_>>>()?;
+            .collect::<PyResult<Vec<_>>>()?;
         let values = dict
             .elems
             .values()
             .map(|x| x.to_python_ast_node(py, ast_module, depth + 1))
-            .collect::<PyResult<AVec<_>>>()?;
+            .collect::<PyResult<Vec<_>>>()?;
         let keys_list = PyList::new(py, keys);
         let values_list = PyList::new(py, values);
         ast_module
@@ -236,7 +236,7 @@ define_ast_node!(
             .elems
             .values()
             .map(|x| x.to_r_ast_node(depth))
-            .collect::<AVec<_>>();
+            .collect::<Vec<_>>();
         let obj = r!(aorist_extendr_api::List::from_values(&elems));
         obj.set_names(dict.elems.keys().map(|x| x.as_str()))
             .unwrap();
@@ -266,7 +266,7 @@ define_ast_node!(
             .elems
             .iter()
             .map(|x| x.to_python_ast_node(py, ast_module, depth + 1))
-            .collect::<PyResult<AVec<_>>>()?;
+            .collect::<PyResult<Vec<_>>>()?;
         let children_list = PyList::new(py, children);
         ast_module
             .getattr("Tuple")?
@@ -288,7 +288,7 @@ impl TAssignmentTarget for Tuple {
 
 define_ast_node!(
     Attribute,
-    |attribute: &Attribute| vec![attribute.value().clone()].into_iter().collect()
+    |attribute: &Attribute| vec![attribute.value().clone()].into_iter().collect(),
     |attribute: &Attribute, py: Python, ast_module: &'a PyModule, depth: usize| {
         let mode = ast_module
             .getattr(match attribute.store {
@@ -321,7 +321,7 @@ impl TAssignmentTarget for Attribute {
 define_ast_node!(
     Call,
     |call: &Call| {
-        let mut v = vec![call.function().clone()];
+        let mut v: AVec<AST> = vec![call.function().clone()].into_iter().collect();
         for arg in call.args() {
             v.push(arg.clone());
         }
@@ -335,7 +335,7 @@ define_ast_node!(
             .args
             .iter()
             .map(|x| x.to_python_ast_node(py, ast_module, depth + 1))
-            .collect::<PyResult<AVec<_>>>()?;
+            .collect::<PyResult<Vec<_>>>()?;
         let kwargs = call
             .keywords
             .iter()
@@ -348,7 +348,7 @@ define_ast_node!(
                     ],
                 ))
             })
-            .collect::<PyResult<AVec<_>>>()?;
+            .collect::<PyResult<Vec<_>>>()?;
         let function = call.function.to_python_ast_node(py, ast_module, depth)?;
         ast_module.getattr("Call")?.call1((function, args, kwargs))
     },
@@ -361,7 +361,7 @@ define_ast_node!(
             let res = make_lang("call");
             let mut tail = res.get();
             tail = append_with_name(tail, r!(fn_name.as_str()), "name");
-            for arg in &call.args {
+            for arg in call.args.iter() {
                 tail = append(tail, arg.to_r_ast_node(depth));
             }
             for (k, v) in &call.keywords {
@@ -379,7 +379,7 @@ define_ast_node!(
 define_ast_node!(
     Formatted,
     |formatted: &Formatted| {
-        let mut v = vec![formatted.fmt().clone()];
+        let mut v: AVec<AST> = vec![formatted.fmt().clone()].into_iter().collect();
         for kw in formatted.keywords().values() {
             v.push(kw.clone());
         }
@@ -402,8 +402,8 @@ define_ast_node!(
                     ],
                 ))
             })
-            .collect::<PyResult<AVec<_>>>()?;
-        let args: AVec<String> = AVec::new();
+            .collect::<PyResult<Vec<_>>>()?;
+        let args: Vec<String> = Vec::new();
         ast_module.getattr("Call")?.call1((
             format_fn,
             PyList::new(py, args).as_ref(),
@@ -432,7 +432,7 @@ define_ast_node!(
 );
 define_ast_node!(
     Subscript,
-    |subscript: &Subscript| vec![subscript.a().clone(), subscript.b().clone()].into_iter().collect()
+    |subscript: &Subscript| vec![subscript.a().clone(), subscript.b().clone()].into_iter().collect(),
     |subscript: &Subscript, py: Python, ast_module: &'a PyModule, depth: usize| {
         let mode = ast_module
             .getattr(match subscript.store {
@@ -503,7 +503,7 @@ define_ast_node!(
         .chain(if_else.body.clone().into_iter())
         .chain(match &if_else.orelse {
             Some(x) => x.clone().into_iter(),
-            None => vec![].into_iter(),
+            None => AVec::new().into_iter(),
         })
         .collect(),
     |if_else: &If, py: Python, ast_module: &'a PyModule, depth: usize| {
@@ -515,7 +515,7 @@ define_ast_node!(
                 _ => panic!("AST node of type {} found in if body", x.name()),
             })
             .map(|x| x.to_python_ast_node(py, ast_module, depth + 1))
-            .collect::<PyResult<AVec<_>>>()?;
+            .collect::<PyResult<Vec<_>>>()?;
         let orelse_ast = match &if_else.orelse {
             Some(x) => x
                 .iter()
@@ -524,8 +524,8 @@ define_ast_node!(
                     _ => panic!("AST node of type {} found in if orelse", x.name()),
                 })
                 .map(|x| x.to_python_ast_node(py, ast_module, depth + 1))
-                .collect::<PyResult<AVec<_>>>()?,
-            None => AVec::new(),
+                .collect::<PyResult<Vec<_>>>()?,
+            None => Vec::new(),
         };
 
         let body_list = PyList::new(py, body_ast);
@@ -577,10 +577,10 @@ define_ast_node!(
     FunctionDef,
     |_fun: &FunctionDef| AVec::new(),
     |fun: &FunctionDef, py: Python, ast_module: &'a PyModule, depth: usize| {
-        let mut args_py = AVec::new();
-        let mut kwargs_py = AVec::new();
-        let mut kwargs_defaults = AVec::new();
-        for arg in &fun.args {
+        let mut args_py = Vec::new();
+        let mut kwargs_py = Vec::new();
+        let mut kwargs_defaults = Vec::new();
+        for arg in fun.args.iter() {
             let arg_py = ast_module.getattr("arg")?.call1((
                 arg.to_python_ast_node(py, ast_module, depth)?,
                 py.None().as_ref(py),
@@ -609,7 +609,7 @@ define_ast_node!(
             .body
             .iter()
             .map(|x| x.to_python_ast_node(py, ast_module, depth))
-            .collect::<PyResult<AVec<_>>>()?;
+            .collect::<PyResult<Vec<_>>>()?;
         ast_module
             .getattr("FunctionDef")?
             .call1((fun.name.as_str(), arguments, body_py))

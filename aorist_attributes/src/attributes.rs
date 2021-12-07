@@ -1,5 +1,4 @@
 #![allow(dead_code)]
-use aorist_primitives::AVec;
 use indoc::formatdoc;
 use num::Float;
 #[cfg(feature = "python")]
