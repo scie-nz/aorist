@@ -1,3 +1,4 @@
+use aorist_primitives::AVec;
 use crate::code::{CodeBlock, CodeBlockWithDefaultConstructor};
 use crate::constraint::OuterConstraint;
 use crate::flow::{ETLFlow, FlowBuilderInput};
@@ -26,15 +27,15 @@ where
     fn get_constraint_name(&self) -> AString;
     fn get_constraint_title(&self) -> Option<AString>;
     fn get_constraint_body(&self) -> Option<AString>;
-    fn get_code_blocks(&self) -> &Vec<Self::C>;
-    fn get_task_val_assignments(&self) -> Vec<AST>;
+    fn get_code_blocks(&self) -> &AVec<Self::C>;
+    fn get_task_val_assignments(&self) -> AVec<AST>;
 
     fn get_statements(&self, endpoints: U::TEndpoints) -> Self::BuilderInputType {
         let preambles_and_statements = self
             .get_code_blocks()
             .iter()
             .map(|x| x.get_statements(endpoints.clone()))
-            .collect::<Vec<_>>();
+            .collect::<AVec<_>>();
         let preambles = preambles_and_statements
             .iter()
             .map(|x| x.1.clone().into_iter())
@@ -49,7 +50,7 @@ where
             self.get_task_val_assignments()
                 .into_iter()
                 .chain(preambles_and_statements.into_iter().map(|x| x.0).flatten())
-                .collect::<Vec<_>>(),
+                .collect::<AVec<_>>(),
             preambles,
             imports,
             self.get_constraint_name(),
@@ -63,7 +64,7 @@ where
         constraint_name: AString,
         title: Option<AString>,
         body: Option<AString>,
-        members: Vec<Self::C>,
+        members: AVec<Self::C>,
         tasks_dict: Option<AST>,
     ) -> Self;
 }

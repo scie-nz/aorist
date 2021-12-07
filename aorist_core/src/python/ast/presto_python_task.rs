@@ -1,3 +1,4 @@
+use aorist_primitives::AVec;
 #![allow(dead_code)]
 use crate::python::ast::AirflowTaskBase;
 use crate::python::ast::{PythonFunctionCallTask, PythonTaskBase};
@@ -69,7 +70,7 @@ def execute_trino_sql(query):
         );
         Some(NativePythonPreamble {
             imports: vec![re, trino],
-            from_imports: Vec::new(),
+            from_imports: AVec::new(),
             body: body.as_str().into(),
         })
     }

@@ -1,3 +1,4 @@
+use aorist_primitives::AVec;
 #![allow(non_snake_case)]
 use crate::asset::*;
 use crate::attributes::*;
@@ -21,14 +22,14 @@ use uuid::Uuid;
 pub struct TabularCollectionSchema {
     // same datum_template as a TabularSchema
     pub datum_template: AoristRef<DatumTemplate>,
-    pub source_assets: Vec<AoristRef<Asset>>,
-    pub attributes: Vec<AString>,
+    pub source_assets: AVec<AoristRef<Asset>>,
+    pub attributes: AVec<AString>,
 }
 impl TabularCollectionSchema {
     pub fn get_datum_template(&self) -> AoristRef<DatumTemplate> {
         self.datum_template.clone()
     }
-    pub fn get_attributes(&self) -> Vec<AoristRef<Attribute>> {
+    pub fn get_attributes(&self) -> AVec<AoristRef<Attribute>> {
         let mut attributes_map = LinkedHashMap::new();
         for asset in &self.source_assets {
             let mut asset_attr: HashMap<AString, Attribute> = asset
@@ -69,7 +70,7 @@ impl TabularCollectionSchema {
 #[pymethods]
 impl PyTabularCollectionSchema {
     #[getter]
-    pub fn get_source_assets(&self) -> Vec<PyAsset> {
+    pub fn get_source_assets(&self) -> AVec<PyAsset> {
         self.inner
             .0
             .read()

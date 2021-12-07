@@ -1,3 +1,4 @@
+use aorist_primitives::AVec;
 use crate::flow::{ETLFlow, UncompressiblePart};
 use crate::parameter_tuple::ParameterTuple;
 use aorist_ast::{Dict, List, StringLiteral, AST};
@@ -19,7 +20,7 @@ where
     // params
     pub params: Option<ParameterTuple>,
     // dep list
-    pub deps: Vec<AST>,
+    pub deps: AVec<AST>,
     singleton_type: PhantomData<T>,
     _universe: PhantomData<U>,
 }
@@ -32,7 +33,7 @@ where
         task_id: AString,
         dict: AString,
         params: Option<ParameterTuple>,
-        deps: Vec<AST>,
+        deps: AVec<AST>,
     ) -> Self {
         Self {
             task_id,

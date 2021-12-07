@@ -1,3 +1,4 @@
+use aorist_primitives::AVec;
 use crate::concept::{AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
 use crate::role::global_permissions_admin::*;
 use aorist_concept::{aorist, Constrainable};
@@ -10,7 +11,7 @@ use uuid::Uuid;
 
 #[enum_dispatch(Role)]
 pub trait TRole {
-    fn get_permissions(&self) -> Vec<AString>;
+    fn get_permissions(&self) -> AVec<AString>;
 }
 
 #[enum_dispatch]

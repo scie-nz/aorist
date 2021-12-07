@@ -1,3 +1,4 @@
+use aorist_primitives::AVec;
 extern crate proc_macro;
 use self::proc_macro::TokenStream;
 use crate::builder::Builder;
@@ -16,22 +17,22 @@ mod keyword {
 use linked_hash_set::LinkedHashSet;
 
 fn extract_names_and_types(
-    fields: &Vec<Field>,
+    fields: &AVec<Field>,
 ) -> (
-    Vec<Ident>,
-    Vec<Type>,
-    Vec<Ident>,
-    Vec<Type>,
-    Vec<Ident>,
-    Vec<Type>,
+    AVec<Ident>,
+    AVec<Type>,
+    AVec<Ident>,
+    AVec<Type>,
+    AVec<Ident>,
+    AVec<Type>,
 ) {
-    let mut names: Vec<Ident> = Vec::new();
-    let mut types: Vec<Type> = Vec::new();
-    let mut names_ref: Vec<Ident> = Vec::new();
-    let mut types_ref: Vec<Type> = Vec::new();
-    let mut names_vec_ref: Vec<Ident> = Vec::new();
-    let mut types_vec_ref: Vec<Type> = Vec::new();
-    for field in fields {
+    let mut names: AVec<Ident> = AVec::new();
+    let mut types: AVec<Type> = AVec::new();
+    let mut names_ref: AVec<Ident> = AVec::new();
+    let mut types_ref: AVec<Type> = AVec::new();
+    let mut names_vec_ref: AVec<Ident> = AVec::new();
+    let mut types_vec_ref: AVec<Type> = AVec::new();
+    for field in fields.iter() {
         if let Some(t) = extract_type_from_aorist_ref(&field.ty) {
             names_ref.push(field.ident.as_ref().unwrap().clone());
             types_ref.push(t.clone());
@@ -69,9 +70,9 @@ fn field_is_constrainable(field: &Field) -> bool {
     return false;
 }
 
-pub fn get_constrainable_fields(fields: Vec<Field>) -> (Vec<Field>, Vec<Field>) {
-    let mut constrainable_fields: Vec<Field> = Vec::new();
-    let mut unconstrainable_fields: Vec<Field> = Vec::new();
+pub fn get_constrainable_fields(fields: AVec<Field>) -> (AVec<Field>, AVec<Field>) {
+    let mut constrainable_fields: AVec<Field> = AVec::new();
+    let mut unconstrainable_fields: AVec<Field> = AVec::new();
     for field in fields {
         if field_is_constrainable(&field) {
             constrainable_fields.push(field);
@@ -83,22 +84,22 @@ pub fn get_constrainable_fields(fields: Vec<Field>) -> (Vec<Field>, Vec<Field>) 
 }
 
 pub struct StructBuilder {
-    pub bare_types: Vec<Type>,
-    pub vec_types: Vec<Type>,
-    pub option_vec_types: Vec<Type>,
-    pub option_types: Vec<Type>,
-    pub map_key_types: Vec<Type>,
-    pub map_value_types: Vec<Type>,
-    pub bare_idents: Vec<Ident>,
-    pub vec_idents: Vec<Ident>,
-    pub option_vec_idents: Vec<Ident>,
-    pub option_idents: Vec<Ident>,
-    pub map_idents: Vec<Ident>,
+    pub bare_types: AVec<Type>,
+    pub vec_types: AVec<Type>,
+    pub option_vec_types: AVec<Type>,
+    pub option_types: AVec<Type>,
+    pub map_key_types: AVec<Type>,
+    pub map_value_types: AVec<Type>,
+    pub bare_idents: AVec<Ident>,
+    pub vec_idents: AVec<Ident>,
+    pub option_vec_idents: AVec<Ident>,
+    pub option_idents: AVec<Ident>,
+    pub map_idents: AVec<Ident>,
     pub fields_with_default: syn::punctuated::Punctuated<syn::NestedMeta, syn::token::Comma>,
-    pub unconstrainable: Vec<Field>,
+    pub unconstrainable: AVec<Field>,
 }
 impl StructBuilder {
-    pub fn get_all_types(&self) -> Vec<&Type> {
+    pub fn get_all_types(&self) -> AVec<&Type> {
         self.bare_types
             .iter()
             .chain(self.vec_types.iter())
@@ -122,7 +123,7 @@ impl Builder for StructBuilder {
                 let ident = x.ident.as_ref().unwrap().to_string();
                 !(ident == "tag" || ident == "uuid" || ident == "constraints")
             })
-            .collect::<Vec<_>>();
+            .collect::<AVec<_>>();
         let fields_with_default = fields_filtered
             .clone()
             .into_iter()
@@ -162,18 +163,18 @@ impl Builder for StructBuilder {
 
         let (constrainable, unconstrainable) = get_constrainable_fields(fields_filtered.clone());
 
-        let mut bare_types: Vec<Type> = Vec::new();
-        let mut vec_types: Vec<Type> = Vec::new();
-        let mut option_vec_types: Vec<Type> = Vec::new();
-        let mut option_types: Vec<Type> = Vec::new();
-        let mut map_key_types: Vec<Type> = Vec::new();
-        let mut map_value_types: Vec<Type> = Vec::new();
+        let mut bare_types: AVec<Type> = AVec::new();
+        let mut vec_types: AVec<Type> = AVec::new();
+        let mut option_vec_types: AVec<Type> = AVec::new();
+        let mut option_types: AVec<Type> = AVec::new();
+        let mut map_key_types: AVec<Type> = AVec::new();
+        let mut map_value_types: AVec<Type> = AVec::new();
 
-        let mut bare_idents: Vec<Ident> = Vec::new();
-        let mut vec_idents: Vec<Ident> = Vec::new();
-        let mut option_vec_idents: Vec<Ident> = Vec::new();
-        let mut option_idents: Vec<Ident> = Vec::new();
-        let mut map_idents: Vec<Ident> = Vec::new();
+        let mut bare_idents: AVec<Ident> = AVec::new();
+        let mut vec_idents: AVec<Ident> = AVec::new();
+        let mut option_vec_idents: AVec<Ident> = AVec::new();
+        let mut option_idents: AVec<Ident> = AVec::new();
+        let mut map_idents: AVec<Ident> = AVec::new();
 
         for field in constrainable {
             let tt = &field.ty;
@@ -249,7 +250,7 @@ impl Builder for StructBuilder {
                 .segments
                 .iter()
                 .map(|x| x.ident.to_string())
-                .collect::<Vec<_>>()
+                .collect::<AVec<_>>()
                 .join("|");
             writeln!(
                 file,
@@ -338,23 +339,23 @@ impl Builder for StructBuilder {
         let bare_type_deref = bare_type
             .iter()
             .map(|x| extract_type_from_aorist_ref(x))
-            .collect::<Vec<_>>();
+            .collect::<AVec<_>>();
         let vec_type_deref = vec_type
             .iter()
             .map(|x| extract_type_from_aorist_ref(x))
-            .collect::<Vec<_>>();
+            .collect::<AVec<_>>();
         let option_vec_type_deref = option_vec_type
             .iter()
             .map(|x| extract_type_from_aorist_ref(x))
-            .collect::<Vec<_>>();
+            .collect::<AVec<_>>();
         let option_type_deref = option_type
             .iter()
             .map(|x| extract_type_from_aorist_ref(x))
-            .collect::<Vec<_>>();
+            .collect::<AVec<_>>();
         let map_value_type_deref = map_value_type
             .iter()
             .map(|x| extract_type_from_aorist_ref(x))
-            .collect::<Vec<_>>();
+            .collect::<AVec<_>>();
         let py_class_name = format!("{}", struct_name);
         let types = self.get_all_types();
         TokenStream::from(quote! { paste! {
@@ -374,7 +375,7 @@ impl Builder for StructBuilder {
             #[pyo3::prelude::pymethods]
             impl [<Py #struct_name>] {
                 #[staticmethod]
-                pub fn child_concept_types() -> Vec<pyo3::prelude::PyObject> {
+                pub fn child_concept_types() -> AVec<pyo3::prelude::PyObject> {
                     let gil_guard = pyo3::prelude::Python::acquire_gil();
                     let py = gil_guard.python();
                     vec![
@@ -487,31 +488,31 @@ impl Builder for StructBuilder {
                     false
                 }
                 #[staticmethod]
-                pub fn required_unique_children_type_names() -> Vec<String> {
+                pub fn required_unique_children_type_names() -> AVec<String> {
                     vec![#(
                         stringify!(#bare_type_deref).into(),
                     )*]
                 }
                 #[staticmethod]
-                pub fn optional_unique_children_type_names() -> Vec<String> {
+                pub fn optional_unique_children_type_names() -> AVec<String> {
                     vec![#(
                         stringify!(#option_type_deref).into(),
                     )*]
                 }
                 #[staticmethod]
-                pub fn required_list_children_type_names() -> Vec<String> {
+                pub fn required_list_children_type_names() -> AVec<String> {
                     vec![#(
                         stringify!(#vec_type_deref).into(),
                     )*]
                 }
                 #[staticmethod]
-                pub fn optional_list_children_type_names() -> Vec<String> {
+                pub fn optional_list_children_type_names() -> AVec<String> {
                     vec![#(
                         stringify!(#option_vec_type_deref).into(),
                     )*]
                 }
                 #[staticmethod]
-                pub fn children_dict_type_names() -> Vec<String> {
+                pub fn children_dict_type_names() -> AVec<String> {
                     vec![#(
                         stringify!(#map_value_type_deref).into(),
                     )*]
@@ -521,9 +522,9 @@ impl Builder for StructBuilder {
                     #(
                         #bare_ident: [<Py #bare_type_deref>],
                     )*
-                    #(#vec_ident: Vec<[<Py #vec_type_deref>]> ,)*
+                    #(#vec_ident: AVec<[<Py #vec_type_deref>]> ,)*
                     #(#option_ident: Option<[<Py #option_type_deref>]> ,)*
-                    #(#option_vec_ident: Option<Vec<[<Py #option_vec_type_deref>]>> ,)*
+                    #(#option_vec_ident: Option<AVec<[<Py #option_vec_type_deref>]>> ,)*
                     #(
                       #map_ident: std::collections::BTreeMap<
                         String, [<Py #map_value_type_deref>]
@@ -533,7 +534,7 @@ impl Builder for StructBuilder {
                         #unconstrainable_name_ref: [<Py #unconstrainable_type_ref>],
                     )*
                     #(
-                        #unconstrainable_name_vec_ref: Vec<[<Py #unconstrainable_type_vec_ref>]>,
+                        #unconstrainable_name_vec_ref: AVec<[<Py #unconstrainable_type_vec_ref>]>,
                     )*
                     #(
                         #unconstrainable_name: #unconstrainable_type,
@@ -625,17 +626,17 @@ impl Builder for StructBuilder {
                 )*
                 #(
                     #[getter]
-                    pub fn #vec_ident(&self) -> pyo3::prelude::PyResult<Vec<[<Py #vec_type_deref>]>> {
+                    pub fn #vec_ident(&self) -> pyo3::prelude::PyResult<AVec<[<Py #vec_type_deref>]>> {
                         Ok(
                             self.inner.0.read().#vec_ident.iter().map(|x| {
                                 [<Py #vec_type_deref>] {
                                     inner: x.clone(),
                                 }
-                            }).collect::<Vec<_>>()
+                            }).collect::<AVec<_>>()
                         )
                     }
                     #[setter]
-                    pub fn [<set_#vec_ident>](&self, val: Vec<[<Py #vec_type_deref>]>) -> pyo3::prelude::PyResult<()> {
+                    pub fn [<set_#vec_ident>](&self, val: AVec<[<Py #vec_type_deref>]>) -> pyo3::prelude::PyResult<()> {
                         Ok(
                             (*self.inner.0.write()).#vec_ident = val.iter().map(|x| x.inner.clone()).collect()
                         )
@@ -644,7 +645,7 @@ impl Builder for StructBuilder {
                 #(
                     #[getter]
                     pub fn #option_vec_ident(&self) -> pyo3::prelude::PyResult<Option<
-                        Vec<[<Py #option_vec_type_deref>]>
+                        AVec<[<Py #option_vec_type_deref>]>
                     >> {
                         Ok(
                             self.inner.0.read().#option_vec_ident.as_ref().and_then(|x|
@@ -661,7 +662,7 @@ impl Builder for StructBuilder {
                     #[setter]
                     pub fn [<set_#option_vec_ident>](
                         &self,
-                        val: Option<Vec<[<Py #option_vec_type_deref>]>>
+                        val: Option<AVec<[<Py #option_vec_type_deref>]>>
                     ) -> pyo3::prelude::PyResult<()> {
                         Ok(
                             (*self.inner.0.write()).#option_vec_ident = val.and_then(
@@ -842,12 +843,12 @@ impl Builder for StructBuilder {
                     }
                 )*
                 #(
-                    pub fn #vec_ident(&self) -> Vec<#vec_type> {
+                    pub fn #vec_ident(&self) -> AVec<#vec_type> {
                         self.#vec_ident.clone()
                     }
                 )*
                 #(
-                    pub fn #option_vec_ident(&self) -> Option<Vec<#option_vec_type>> {
+                    pub fn #option_vec_ident(&self) -> Option<AVec<#option_vec_type>> {
                         self.#option_vec_ident.clone()
                     }
                 )*
@@ -887,13 +888,13 @@ impl Builder for StructBuilder {
                     uuid = self.get_uuid_from_children_uuid();
                     self.0.write().set_uuid(uuid);
                 }
-                fn get_children_uuid(&self) -> Vec<Uuid> {
+                fn get_children_uuid(&self) -> AVec<Uuid> {
                     self.get_children().iter().map(|x| x.4.get_uuid().unwrap()).collect()
                 }
                 fn get_tag(&self) -> Option<AString> {
                     self.0.read().get_tag()
                 }
-                fn get_children(&self) -> Vec<(
+                fn get_children(&self) -> AVec<(
                     // struct name
                     &str,
                     // field name
@@ -905,7 +906,7 @@ impl Builder for StructBuilder {
                     // wrapped reference
                     [<#struct_name Children>],
                 )> {
-                    let mut children: Vec<_> = Vec::new();
+                    let mut children: AVec<_> = AVec::new();
                     let read = self.0.read();
                     #(
                         children.push((

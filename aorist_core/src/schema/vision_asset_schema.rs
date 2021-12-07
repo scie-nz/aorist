@@ -1,3 +1,4 @@
+use aorist_primitives::AVec;
 use crate::attributes::*;
 use crate::concept::{AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
 use crate::schema::flann_knn_match_schema::*;
@@ -34,7 +35,7 @@ pub enum VisionAssetSchema {
 }
 
 impl VisionAssetSchema {
-    pub fn get_attributes(&self) -> Vec<AoristRef<Attribute>> {
+    pub fn get_attributes(&self) -> AVec<AoristRef<Attribute>> {
         match self {
             Self::ImageFromRasterSchema(x) => x.0.read().get_attributes(),
             Self::PyTorchImageCollectionMLPSchema(x) => x.0.read().get_attributes(),

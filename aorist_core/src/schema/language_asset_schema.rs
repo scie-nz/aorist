@@ -1,3 +1,4 @@
+use aorist_primitives::AVec;
 use crate::attributes::*;
 use crate::concept::{AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
 use crate::schema::fasttext_embedding_schema::*;
@@ -24,7 +25,7 @@ pub enum LanguageAssetSchema {
 }
 
 impl LanguageAssetSchema {
-    pub fn get_attributes(&self) -> Vec<AoristRef<Attribute>> {
+    pub fn get_attributes(&self) -> AVec<AoristRef<Attribute>> {
         match self {
             Self::FasttextEmbeddingSchema(x) => x.0.read().get_attributes(),
             Self::NamedEntitySchema(x) => x.0.read().get_attributes(),

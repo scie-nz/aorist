@@ -1,3 +1,4 @@
+use aorist_primitives::AVec;
 use crate::attributes::*;
 use crate::concept::{AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
 use crate::template::*;
@@ -14,7 +15,7 @@ pub struct RasterSchema {
     pub datum_template: AoristRef<DatumTemplate>,
 }
 impl RasterSchema {
-    pub fn get_attributes(&self) -> Vec<AoristRef<Attribute>> {
+    pub fn get_attributes(&self) -> AVec<AoristRef<Attribute>> {
         self.datum_template.0.read().get_attributes()
     }
     pub fn get_datum_template(&self) -> AoristRef<DatumTemplate> {

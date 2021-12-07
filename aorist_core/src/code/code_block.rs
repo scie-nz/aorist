@@ -1,3 +1,4 @@
+use aorist_primitives::AVec;
 use crate::code::Preamble;
 use crate::constraint::OuterConstraint;
 use crate::constraint_state::ConstraintState;
@@ -29,7 +30,7 @@ where
 
     fn construct(
         tasks_dict: Option<AST>,
-        tasks: Vec<Self::E>,
+        tasks: AVec<Self::E>,
         task_identifiers: HashMap<Uuid, AST>,
         params: HashMap<AString, Option<ParameterTuple>>,
     ) -> Self;
@@ -37,10 +38,10 @@ where
     /// assigns task values (Python variables in which they will be stored)
     /// to each member of the code block.
     fn compute_task_vals(
-        constraints: Vec<RArc<RRwLock<ConstraintState<'a, C, P>>>>,
+        constraints: AVec<RArc<RRwLock<ConstraintState<'a, C, P>>>>,
         tasks_dict: &Option<AST>,
-    ) -> Vec<(AST, RArc<RRwLock<ConstraintState<'a, C, P>>>)> {
-        let mut out = Vec::new();
+    ) -> AVec<(AST, RArc<RRwLock<ConstraintState<'a, C, P>>>)> {
+        let mut out = AVec::new();
         for rw in constraints.into_iter() {
             let read = rw.read();
             let name = read.get_task_name();
@@ -66,24 +67,24 @@ where
     fn get_statements(
         &self,
         endpoints: U::TEndpoints,
-    ) -> (Vec<AST>, LinkedHashSet<Self::P>, BTreeSet<T::ImportType>);
+    ) -> (AVec<AST>, LinkedHashSet<Self::P>, BTreeSet<T::ImportType>);
 
     fn get_tasks_dict(&self) -> Option<AST>;
     fn get_identifiers(&self) -> HashMap<Uuid, AST>;
     fn get_params(&self) -> HashMap<AString, Option<ParameterTuple>>;
 
     fn create_standalone_tasks(
-        members: Vec<RArc<RRwLock<ConstraintState<'a, C, P>>>>,
+        members: AVec<RArc<RRwLock<ConstraintState<'a, C, P>>>>,
         tasks_dict: Option<AST>,
         identifiers: &HashMap<Uuid, AST>,
     ) -> Result<(
-        Vec<<Self::E as ETLTask<T, U>>::S>,
+        AVec<<Self::E as ETLTask<T, U>>::S>,
         HashMap<Uuid, AST>,
         HashMap<AString, Option<ParameterTuple>>,
     )> {
         let mut task_identifiers: HashMap<Uuid, AST> = HashMap::new();
         let mut params: HashMap<AString, Option<ParameterTuple>> = HashMap::new();
-        let mut tasks = Vec::new();
+        let mut tasks = AVec::new();
         let mut asts: HashSet<AST> = HashSet::new();
         for (ast, state) in Self::compute_task_vals(members, &tasks_dict) {
             if asts.contains(&ast) {
@@ -95,7 +96,7 @@ where
             params.insert(x.get_task_name(), x.get_params());
 
             let dep_uuids = x.get_dependencies()?;
-            let mut dependencies = Vec::new();
+            let mut dependencies = AVec::new();
             for dep in &dep_uuids {
                 if let Some(ident) = identifiers.get(dep) {
                     dependencies.push(ident.clone());
@@ -128,7 +129,7 @@ pub trait CodeBlockWithDefaultConstructor<
     Self: CodeBlock<'a, T, C, U, P>,
 {
     fn new(
-        members: Vec<RArc<RRwLock<ConstraintState<'a, C, P>>>>,
+        members: AVec<RArc<RRwLock<ConstraintState<'a, C, P>>>>,
         constraint_name: AString,
         tasks_dict: Option<AST>,
         identifiers: &HashMap<Uuid, AST>,
@@ -151,28 +152,28 @@ pub trait CodeBlockWithForLoopCompression<
     fn run_task_compressions(
         compressible: LinkedHashMap<
             <<Self::E as ETLTask<T, U>>::S as CompressibleTask>::KeyType,
-            Vec<<Self::E as ETLTask<T, U>>::S>,
+            AVec<<Self::E as ETLTask<T, U>>::S>,
         >,
-        tasks: &mut Vec<Self::E>,
+        tasks: &mut AVec<Self::E>,
         constraint_name: AString,
         render_dependencies: bool,
     );
     fn separate_compressible_tasks(
-        tasks: Vec<<Self::E as ETLTask<T, U>>::S>,
+        tasks: AVec<<Self::E as ETLTask<T, U>>::S>,
     ) -> (
         LinkedHashMap<
             <<Self::E as ETLTask<T, U>>::S as CompressibleTask>::KeyType,
-            Vec<<Self::E as ETLTask<T, U>>::S>,
+            AVec<<Self::E as ETLTask<T, U>>::S>,
         >,
-        Vec<Self::E>,
+        AVec<Self::E>,
     ) {
         let mut compressible = LinkedHashMap::new();
-        let mut uncompressible = Vec::new();
+        let mut uncompressible = AVec::new();
 
         for task in tasks.into_iter() {
             if task.is_compressible() {
                 let key = task.get_compression_key().unwrap();
-                compressible.entry(key).or_insert(Vec::new()).push(task);
+                compressible.entry(key).or_insert(AVec::new()).push(task);
             } else {
                 uncompressible.push(<Self::E as ETLTask<T, U>>::standalone_task(task));
             }
@@ -194,7 +195,7 @@ where
     <<Self as CodeBlock<'a, T, CType, U, P>>::E as ETLTask<T, U>>::S: CompressibleTask,
 {
     fn new(
-        members: Vec<RArc<RRwLock<ConstraintState<'a, CType, P>>>>,
+        members: AVec<RArc<RRwLock<ConstraintState<'a, CType, P>>>>,
         constraint_name: AString,
         tasks_dict: Option<AST>,
         identifiers: &HashMap<Uuid, AST>,

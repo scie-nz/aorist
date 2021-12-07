@@ -15,6 +15,7 @@ path = "src/lib.rs"
 proc-macro = true
 
 [dependencies]
+abi_stable = "0.10.3"
 quote = "1.0.7"
 sqlparser = "0.9.0"
 syn = "1.0.48"

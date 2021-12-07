@@ -1,3 +1,4 @@
+use aorist_primitives::AVec;
 use crate::compliance::*;
 use crate::concept::{AoristRef, WrappedConcept};
 use crate::dataset::*;
@@ -24,13 +25,13 @@ create_exception!(aorist, SQLParseError, pyo3::exceptions::PyException);
 pub struct Universe {
     pub name: AString,
     #[constrainable]
-    pub users: Option<Vec<AoristRef<User>>>,
+    pub users: Option<AVec<AoristRef<User>>>,
     #[constrainable]
-    pub groups: Option<Vec<AoristRef<UserGroup>>>,
+    pub groups: Option<AVec<AoristRef<UserGroup>>>,
     #[constrainable]
-    pub datasets: Option<Vec<AoristRef<DataSet>>>,
+    pub datasets: Option<AVec<AoristRef<DataSet>>>,
     #[constrainable]
-    pub role_bindings: Option<Vec<AoristRef<RoleBinding>>>,
+    pub role_bindings: Option<AVec<AoristRef<RoleBinding>>>,
     #[constrainable]
     pub endpoints: AoristRef<EndpointConfig>,
     #[constrainable]

@@ -1,3 +1,4 @@
+use aorist_primitives::AVec;
 mod compressed;
 mod key;
 mod standalone;
@@ -43,7 +44,7 @@ where
     pub fn get_statements(
         &self,
         endpoints: U::TEndpoints,
-    ) -> (Vec<AST>, Vec<PythonPreamble>, Vec<PythonImport>) {
+    ) -> (AVec<AST>, AVec<PythonPreamble>, AVec<PythonImport>) {
         match &self {
             PythonBasedTask::StandalonePythonBasedTask(x) => x.get_statements(endpoints),
             PythonBasedTask::ForLoopPythonBasedTask(x) => x.get_statements(endpoints),

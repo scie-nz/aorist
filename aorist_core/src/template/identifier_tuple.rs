@@ -1,3 +1,4 @@
+use aorist_primitives::AVec;
 use crate::attributes::*;
 use aorist_primitives::{AString, AoristConcept, ConceptEnum};
 
@@ -14,10 +15,10 @@ use uuid::Uuid;
 pub struct IdentifierTuple {
     pub name: AString,
     #[constrainable]
-    pub attributes: Vec<AoristRef<Attribute>>,
+    pub attributes: AVec<AoristRef<Attribute>>,
 }
 impl TDatumTemplate for IdentifierTuple {
-    fn get_attributes(&self) -> Vec<AoristRef<Attribute>> {
+    fn get_attributes(&self) -> AVec<AoristRef<Attribute>> {
         self.attributes.clone()
     }
     fn get_name(&self) -> AString {

@@ -1,3 +1,4 @@
+use aorist_primitives::AVec;
 use crate::concept::{AoristRef, WrappedConcept};
 use crate::encoding::*;
 use aorist_concept::{aorist, Constrainable};
@@ -12,5 +13,5 @@ use uuid::Uuid;
 pub struct InlineBlobStorage {
     #[constrainable]
     pub encoding: AoristRef<Encoding>,
-    pub data: Vec<AString>,
+    pub data: AVec<AString>,
 }

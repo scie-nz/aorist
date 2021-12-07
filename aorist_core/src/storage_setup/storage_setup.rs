@@ -1,3 +1,4 @@
+use aorist_primitives::AVec;
 use crate::concept::{AoristRef, WrappedConcept};
 use crate::encoding::*;
 use crate::storage::*;
@@ -32,7 +33,7 @@ pub enum StorageSetup {
 }
 
 impl StorageSetup {
-    pub fn get_local_storage(&self) -> Vec<AoristRef<Storage>> {
+    pub fn get_local_storage(&self) -> AVec<AoristRef<Storage>> {
         match self {
             Self::RemoteStorageSetup(_) => vec![],
             Self::ReplicationStorageSetup(x) => x.0.read().targets.clone(),
@@ -82,7 +83,7 @@ impl PyStorageSetup {
         self.inner.0.read().get_tmp_dir().as_str().into()
     }
     #[getter]
-    pub fn local(&self) -> Vec<PyStorage> {
+    pub fn local(&self) -> AVec<PyStorage> {
         self.inner
             .0
             .read()

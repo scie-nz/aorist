@@ -1,3 +1,4 @@
+use aorist_primitives::AVec;
 use serde_yaml::{from_str, Value};
 use std::collections::HashMap;
 use std::fs::File;
@@ -11,14 +12,14 @@ use tracing_subscriber::{fmt, EnvFilter};
 mod constraint;
 pub use constraint::*;
 
-pub fn read_file(filename: &str) -> Vec<HashMap<String, Value>> {
+pub fn read_file(filename: &str) -> AVec<HashMap<String, Value>> {
     let file = match File::open(filename) {
         Ok(x) => x,
         Err(_err) => panic!("Cannot find file {}.", filename),
     };
     let reader = BufReader::new(file);
     let mut buf: String = "".into();
-    let mut result = Vec::new();
+    let mut result = AVec::new();
     for line in reader.lines() {
         let line_str = line.unwrap();
         if line_str == "---" {
@@ -52,11 +53,11 @@ pub fn read_file(filename: &str) -> Vec<HashMap<String, Value>> {
 }
 
 pub fn get_raw_objects_of_type(
-    raw_objects: &Vec<HashMap<String, Value>>,
+    raw_objects: &AVec<HashMap<String, Value>>,
     object_type: String,
-) -> Vec<HashMap<String, Value>> {
+) -> AVec<HashMap<String, Value>> {
     raw_objects
-        .into_iter()
+        .iter()
         .filter(|x| x.get("type").unwrap().as_str().unwrap() == object_type)
         .map(|x| {
             x.get("spec")
@@ -67,7 +68,7 @@ pub fn get_raw_objects_of_type(
                 .map(|(k, v)| (k.as_str().unwrap().into(), v.clone()))
                 .collect()
         })
-        .collect::<Vec<HashMap<String, Value>>>()
+        .collect::<AVec<HashMap<String, Value>>>()
 }
 /// Configures logging for Aorist based on a LOG_LEVEL envvar.
 /// Valid values are: error/warn/info/debug/trace/off (default: info)
@@ -93,7 +94,7 @@ pub fn extract_type_path(ty: &syn::Type) -> Option<&Path> {
 
 fn get_inner_type<'a>(
     ty: &'a syn::Type,
-    idents: Vec<String>,
+    idents: AVec<String>,
 ) -> Option<Pair<&'a PathSegment, &'a Colon2>> {
     // TODO store (with lazy static) the vec of string
     // TODO maybe optimization, reverse the order of segments
@@ -122,7 +123,7 @@ fn get_inner_type<'a>(
 // https://rust-syndication.github.io/rss/src/derive_builder_core/setter.rs.html#198
 fn extract_inner_from_bracketed_type<'a>(
     ty: &'a syn::Type,
-    idents: Vec<String>,
+    idents: AVec<String>,
 ) -> Option<&'a syn::Type> {
     let tp2 = get_inner_type(ty, idents);
     let tp3 = tp2.and_then(|pair_path_segment| {
@@ -141,7 +142,7 @@ fn extract_inner_from_bracketed_type<'a>(
 
 fn extract_inner_from_double_bracketed_type<'a>(
     ty: &'a syn::Type,
-    idents: Vec<String>,
+    idents: AVec<String>,
 ) -> Option<(&'a syn::Type, &'a syn::Type)> {
     let tp2 = get_inner_type(ty, idents);
     let tp3 = tp2.and_then(|pair_path_segment| {
@@ -171,7 +172,7 @@ pub fn extract_type_from_option(ty: &syn::Type) -> Option<&syn::Type> {
             "Option|".to_string(),
             "std|option|Option|".into(),
             "core|option|Option|".into(),
-        ],
+        ].into_iter().collect(),
     )
 }
 
@@ -180,16 +181,16 @@ pub fn extract_type_from_vector(ty: &syn::Type) -> Option<&syn::Type> {
         ty,
         vec![
             "Vector|".to_string(),
-            "std|vec|Vec|".into(),
-            "Vec|".to_string(),
-        ],
+            "AVec|".to_string(),
+            "abi_stable|std_types|vec|AVec|".to_string(),
+        ].into_iter().collect(),
     )
 }
 
 pub fn extract_type_from_map(ty: &syn::Type) -> Option<(&syn::Type, &syn::Type)> {
     extract_inner_from_double_bracketed_type(
         ty,
-        vec!["BTreeMap|".to_string(), "std|collections|BTreeMap|".into()],
+        vec!["BTreeMap|".to_string(), "std|collections|BTreeMap|".into()].into_iter().collect(),
     )
 }
 
@@ -199,9 +200,9 @@ pub fn extract_type_from_linked_hash_map(ty: &syn::Type) -> Option<(&syn::Type, 
         vec![
             "LinkedHashMap|".to_string(),
             "linked_hash_map|LinkedHashMap|".into(),
-        ],
+        ].into_iter().collect(),
     )
 }
 pub fn extract_type_from_aorist_ref(ty: &syn::Type) -> Option<&syn::Type> {
-    extract_inner_from_bracketed_type(ty, vec!["RArc|".to_string(), "AoristRef|".to_string()])
+    extract_inner_from_bracketed_type(ty, vec!["RArc|".to_string(), "AoristRef|".to_string()].into_iter().collect())
 }

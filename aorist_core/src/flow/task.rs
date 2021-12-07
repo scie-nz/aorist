@@ -1,3 +1,4 @@
+use aorist_primitives::AVec;
 use crate::dialect::Dialect;
 use crate::flow::etl_flow::ETLFlow;
 use crate::parameter_tuple::{ParameterTuple, ParameterTupleDedupKey};
@@ -21,7 +22,7 @@ where
         task_val: AST,
         call: Option<AString>,
         params: Option<ParameterTuple>,
-        dependencies: Vec<AST>,
+        dependencies: AVec<AST>,
         preamble: Option<AString>,
         dialect: Option<Dialect>,
     ) -> Self;
@@ -76,7 +77,7 @@ pub trait UncompressiblePart<T, U: AoristUniverse>
 where
     T: ETLFlow<U>,
 {
-    fn new(task_id: AString, dict: AString, params: Option<ParameterTuple>, deps: Vec<AST>)
+    fn new(task_id: AString, dict: AString, params: Option<ParameterTuple>, deps: AVec<AST>)
         -> Self;
     fn as_dict(&self, insert_deps: bool, dependencies_as_list: bool, insert_task_name: bool)
         -> AST;
@@ -90,7 +91,7 @@ where
     fn new(
         params_dict_name: AST,
         key: Self::KeyType,
-        values: Vec<Self::UncompressiblePartType>,
+        values: AVec<Self::UncompressiblePartType>,
         task_id: AST,
         insert_task_name: bool,
         render_dependencies: bool,

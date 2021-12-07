@@ -1,3 +1,4 @@
+use aorist_primitives::AVec;
 use crate::code::Preamble;
 #[cfg(feature = "python")]
 use crate::python::PythonPreamble;
@@ -7,12 +8,12 @@ use std::hash::Hash;
 
 #[derive(Clone, PartialEq, Hash, Eq)]
 pub struct RPreamble {
-    pub libraries: Vec<RImport>,
+    pub libraries: AVec<RImport>,
     pub body: AString,
 }
 impl Preamble for RPreamble {
     type ImportType = RImport;
-    fn get_imports(&self) -> Vec<Self::ImportType> {
+    fn get_imports(&self) -> AVec<Self::ImportType> {
         self.libraries.clone()
     }
 }
@@ -51,7 +52,7 @@ impl<'a> RPreamble {
         Self {
             libraries: match libraries.as_string_vector() {
                 Some(v) => v.into_iter().map(|x| RImport::new(x)).collect(),
-                None => Vec::new(),
+                None => AVec::new(),
             },
             body: body_no_imports.as_str().unwrap().to_string(),
         }

@@ -1,3 +1,4 @@
+use aorist_primitives::AVec;
 use crate::python::ast::PythonTaskBase;
 use crate::python::PythonImport;
 use aorist_ast::{Assignment, Attribute, BooleanLiteral, Call, SimpleIdentifier, Tuple, AST};
@@ -12,7 +13,7 @@ pub trait PythonSubprocessTask: PythonTaskBase {
             false,
         ))
     }
-    fn get_python_subprocess_imports(&self) -> Vec<PythonImport> {
+    fn get_python_subprocess_imports(&self) -> AVec<PythonImport> {
         vec![PythonImport::PythonModuleImport("subprocess".into(), None)]
     }
     fn compute_task_kwargs(&self) -> LinkedHashMap<AString, AST> {
@@ -32,7 +33,7 @@ pub trait PythonSubprocessTask: PythonTaskBase {
         kwargs
     }
     fn get_command(&self) -> AST;
-    fn get_subprocess_statements(&self) -> Vec<AST> {
+    fn get_subprocess_statements(&self) -> AVec<AST> {
         let creation_expr = AST::Call(Call::new_wrapped(
             self.compute_task_call(),
             vec![self.get_command()],
@@ -51,7 +52,7 @@ pub trait PythonSubprocessTask: PythonTaskBase {
             )),
             AST::Call(Call::new_wrapped(
                 AST::Attribute(Attribute::new_wrapped(process, "communicate".into(), false)),
-                Vec::new(),
+                AVec::new(),
                 LinkedHashMap::new(),
             )),
         ));

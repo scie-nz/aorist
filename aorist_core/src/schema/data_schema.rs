@@ -1,3 +1,4 @@
+use aorist_primitives::AVec;
 #![allow(non_snake_case)]
 use crate::attributes::*;
 use crate::concept::{AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
@@ -90,7 +91,7 @@ impl DataSchema {
             ))),
         }
     }
-    pub fn get_attribute_names(&self) -> Vec<AString> {
+    pub fn get_attribute_names(&self) -> AVec<AString> {
         match self {
             DataSchema::TabularSchema(x) => x.0.read().attributes.clone(),
             DataSchema::TabularCollectionSchema(x) => x.0.read().attributes.clone(),
@@ -127,7 +128,7 @@ impl DataSchema {
             DataSchema::UndefinedTabularSchema(_) => vec![],
         }
     }
-    pub fn get_attributes(&self) -> Vec<AoristRef<Attribute>> {
+    pub fn get_attributes(&self) -> AVec<AoristRef<Attribute>> {
         match self {
             DataSchema::GeospatialAssetSchema(x) => x.0.read().get_attributes(),
             DataSchema::GraphAssetSchema(x) => x.0.read().get_attributes(),
@@ -153,7 +154,7 @@ impl PyDataSchema {
         }
     }
     #[getter]
-    pub fn get_attributes(&self) -> Vec<PyAttribute> {
+    pub fn get_attributes(&self) -> AVec<PyAttribute> {
         self.inner
             .0
             .read()

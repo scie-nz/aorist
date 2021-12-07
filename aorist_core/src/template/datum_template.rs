@@ -1,3 +1,4 @@
+use aorist_primitives::AVec;
 use crate::attributes::*;
 use crate::concept::{AoristRef, WrappedConcept};
 use crate::template::filter::*;
@@ -21,7 +22,7 @@ use std::fmt::Debug;
 use uuid::Uuid;
 
 pub trait TDatumTemplate {
-    fn get_attributes(&self) -> Vec<AoristRef<Attribute>>;
+    fn get_attributes(&self) -> AVec<AoristRef<Attribute>>;
     fn get_name(&self) -> AString;
 }
 
@@ -81,7 +82,7 @@ impl TDatumTemplate for DatumTemplate {
             DatumTemplate::Raster(x) => x.0.read().get_name(),
         }
     }
-    fn get_attributes(&self) -> Vec<AoristRef<Attribute>> {
+    fn get_attributes(&self) -> AVec<AoristRef<Attribute>> {
         match self {
             DatumTemplate::RowStruct(x) => x.0.read().get_attributes(),
             DatumTemplate::IdentifierTuple(x) => x.0.read().get_attributes(),
@@ -102,7 +103,7 @@ impl TDatumTemplate for DatumTemplate {
 #[cfg(feature = "python")]
 #[pymethods]
 impl PyDatumTemplate {
-    pub fn attributes(&self) -> PyResult<Vec<PyAttribute>> {
+    pub fn attributes(&self) -> PyResult<AVec<PyAttribute>> {
         Ok(self
             .inner
             .0

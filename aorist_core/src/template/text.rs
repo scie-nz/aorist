@@ -1,3 +1,4 @@
+use aorist_primitives::AVec;
 #![allow(non_snake_case)]
 use crate::attributes::*;
 use crate::concept::{AoristRef, WrappedConcept};
@@ -15,8 +16,8 @@ pub struct Text {
     pub name: AString,
 }
 impl TDatumTemplate for Text {
-    fn get_attributes(&self) -> Vec<AoristRef<Attribute>> {
-        Vec::new()
+    fn get_attributes(&self) -> AVec<AoristRef<Attribute>> {
+        AVec::new()
     }
     fn get_name(&self) -> AString {
         self.name.clone()

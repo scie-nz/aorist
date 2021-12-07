@@ -1,3 +1,4 @@
+use aorist_primitives::AVec;
 use crate::python::ast::{AirflowTaskBase, PythonFunctionCallTask, PythonTaskBase};
 use crate::python::PythonImport;
 use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
@@ -13,7 +14,7 @@ define_task_node!(
     |task: &NativePythonTask| task.imports.clone(),
     PythonImport,
     call: AST,
-    imports: Vec<PythonImport>,
+    imports: AVec<PythonImport>,
     task_val: AST,
     dep_list: Option<AST>,
 );

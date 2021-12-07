@@ -1,3 +1,4 @@
+use aorist_primitives::AVec;
 #![allow(non_snake_case)]
 use crate::concept::{AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
 use crate::user_group::{TUserGroup, UserGroup};
@@ -12,7 +13,7 @@ use uuid::Uuid;
 
 #[aorist]
 pub struct ApproveAccessSelector {
-    matchLabels: Vec<(AString, Vec<AString>)>,
+    matchLabels: AVec<(AString, AVec<AString>)>,
 }
 pub trait TApproveAccessSelector {
     fn checkGroupIsAllowed(&self, group: &UserGroup) -> bool;

@@ -1,3 +1,4 @@
+use aorist_primitives::AVec;
 use crate::code::{Import, Preamble};
 use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 use abi_stable::std_types::RArc;
@@ -16,14 +17,14 @@ where
     type PreambleType;
 
     fn new(
-        statements: Vec<AST>,
+        statements: AVec<AST>,
         preambles: LinkedHashSet<Self::PreambleType>,
         imports: BTreeSet<Self::ImportType>,
         constraint_name: AString,
         constraint_title: Option<AString>,
         constraint_body: Option<AString>,
     ) -> Self;
-    fn get_statements(&self) -> Vec<AST>;
+    fn get_statements(&self) -> AVec<AST>;
     fn get_preambles(&self) -> LinkedHashSet<Self::PreambleType>;
     fn get_imports(&self) -> BTreeSet<Self::ImportType>;
     fn get_constraint_name(&self) -> AString;
@@ -39,7 +40,7 @@ where
                         .to_string()
                         .split("\n")
                         .map(|x| format!("# {}", x).to_string())
-                        .collect::<Vec<String>>()
+                        .collect::<AVec<String>>()
                         .join("\n")
                         .as_str()
                 )
@@ -55,7 +56,7 @@ where
         &self,
         literals: &mut LinkedHashMap<
             AST,
-            LinkedHashMap<AString, Vec<(AString, RArc<RRwLock<Dict>>)>>,
+            LinkedHashMap<AString, AVec<(AString, RArc<RRwLock<Dict>>)>>,
         >,
     ) {
         let short_name = &self.get_constraint_name();
@@ -81,7 +82,7 @@ where
                                             .entry(val.clone_without_ancestors())
                                             .or_insert(LinkedHashMap::new())
                                             .entry(short_name.clone())
-                                            .or_insert(Vec::new())
+                                            .or_insert(AVec::new())
                                             .push((key.into(), param_dict_rw.clone()));
                                     }
                                 }

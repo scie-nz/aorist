@@ -1,3 +1,4 @@
+use aorist_primitives::AVec;
 use crate::dialect::Dialect;
 use crate::error::AoristError;
 use crate::flow::etl_flow::ETLFlow;
@@ -33,7 +34,7 @@ pub struct PrefectPythonBasedFlow<U: AoristUniverse> {
     task_id: AST,
     task_val: AST,
     command: Option<AString>,
-    args: Vec<AST>,
+    args: AVec<AST>,
     kwargs: LinkedHashMap<AString, AST>,
     dep_list: Option<AST>,
     preamble: Option<AString>,
@@ -57,15 +58,15 @@ impl<U: AoristUniverse> ETLFlow<U> for PrefectPythonBasedFlow<U> {
     type PreambleType = PythonPreamble;
     type ErrorType = pyo3::PyErr;
 
-    fn get_preamble(&self) -> PyResult<Vec<PythonPreamble>> {
+    fn get_preamble(&self) -> PyResult<AVec<PythonPreamble>> {
         let preambles = match self.dialect {
             Some(Dialect::Python(_)) => match self.preamble {
                 Some(ref p) => vec![PythonPreamble::NativePythonPreamble(
                     NativePythonPreamble::new(p.clone())?,
                 )],
-                None => Vec::new(),
+                None => AVec::new(),
             },
-            _ => Vec::new(),
+            _ => AVec::new(),
         };
         Ok(preambles)
     }
@@ -75,7 +76,7 @@ impl<U: AoristUniverse> ETLFlow<U> for PrefectPythonBasedFlow<U> {
     fn get_task_val(&self) -> AST {
         self.task_val.clone()
     }
-    fn get_statements(&self) -> Vec<AST> {
+    fn get_statements(&self) -> AVec<AST> {
         let creation_expr = AST::Call(Call::new_wrapped(
             self.compute_task_call(),
             self.compute_task_args(),
@@ -94,7 +95,7 @@ impl<U: AoristUniverse> ETLFlow<U> for PrefectPythonBasedFlow<U> {
         task_id: AST,
         task_val: AST,
         call: Option<AString>,
-        args: Vec<AST>,
+        args: AVec<AST>,
         kwargs: LinkedHashMap<AString, AST>,
         dep_list: Option<AST>,
         preamble: Option<AString>,
@@ -118,7 +119,7 @@ impl<U: AoristUniverse> ETLFlow<U> for PrefectPythonBasedFlow<U> {
     fn get_type() -> String {
         "prefect".into()
     }
-    fn get_imports(&self) -> Vec<PythonImport> {
+    fn get_imports(&self) -> AVec<PythonImport> {
         match self.dialect {
             Some(Dialect::Python(_)) => vec![PythonImport::PythonFromImport(
                 "prefect".into(),
@@ -141,11 +142,11 @@ impl<U: AoristUniverse> ETLFlow<U> for PrefectPythonBasedFlow<U> {
     }
 }
 impl<U: AoristUniverse> PrefectPythonBasedFlow<U> {
-    fn compute_task_args(&self) -> Vec<AST> {
+    fn compute_task_args(&self) -> AVec<AST> {
         if let Some(Dialect::Python(_)) = self.dialect {
             return self.args.clone();
         }
-        Vec::new()
+        AVec::new()
     }
     fn compute_task_kwargs(&self) -> LinkedHashMap<AString, AST> {
         if self.dialect.is_none() {
@@ -214,9 +215,9 @@ impl<U: AoristUniverse> PrefectPythonBasedFlow<U> {
         ));
         AST::Expression(Expression::new_wrapped(add_expr))
     }
-    pub fn get_edge_addition_statements(&self) -> Vec<AST> {
+    pub fn get_edge_addition_statements(&self) -> AVec<AST> {
         match self.dep_list {
-            None => Vec::new(),
+            None => AVec::new(),
             Some(AST::List(_)) => {
                 let target = AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("dep".into()));
                 let for_stmt = AST::ForLoop(ForLoop::new_wrapped(
@@ -261,15 +262,15 @@ impl<U: AoristUniverse> FlowBuilderBase<U> for PrefectFlowBuilder<U> {
     }
 }
 impl<U: AoristUniverse> PythonBasedFlowBuilder<U> for PrefectFlowBuilder<U> {
-    fn get_flow_imports(&self) -> Vec<PythonImport> {
-        Vec::new()
+    fn get_flow_imports(&self) -> AVec<PythonImport> {
+        AVec::new()
     }
     /// Takes a set of statements and mutates them so as make a valid ETL flow
     fn augment_statements(
         &self,
-        statements: Vec<PythonFlowBuilderInput>,
+        statements: AVec<PythonFlowBuilderInput>,
         _flow_name: Option<AString>,
-    ) -> Vec<PythonFlowBuilderInput> {
+    ) -> AVec<PythonFlowBuilderInput> {
         // TODO: add flow definition
         statements
             .into_iter()
@@ -282,7 +283,7 @@ impl<U: AoristUniverse> PythonBasedFlowBuilder<U> for PrefectFlowBuilder<U> {
                                 "run".into(),
                                 false,
                             )),
-                            Vec::new(),
+                            AVec::new(),
                             LinkedHashMap::new(),
                         ),
                     )))],

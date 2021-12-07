@@ -1,3 +1,4 @@
+use aorist_primitives::AVec;
 #![allow(non_snake_case)]
 use crate::attributes::*;
 use crate::concept::{AoristRef, WrappedConcept};
@@ -15,10 +16,10 @@ pub struct Tensor {
     pub name: AString,
     pub dimensions: usize,
     #[constrainable]
-    pub attributes: Vec<AoristRef<Attribute>>,
+    pub attributes: AVec<AoristRef<Attribute>>,
 }
 impl TDatumTemplate for Tensor {
-    fn get_attributes(&self) -> Vec<AoristRef<Attribute>> {
+    fn get_attributes(&self) -> AVec<AoristRef<Attribute>> {
         self.attributes.clone()
     }
     fn get_name(&self) -> AString {

@@ -1,3 +1,4 @@
+use aorist_primitives::AVec;
 #![allow(non_snake_case)]
 use crate::concept::{AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
 use crate::user::*;
@@ -13,10 +14,10 @@ use uuid::Uuid;
 #[aorist]
 pub struct UserGroup {
     name: AString,
-    members: Vec<AString>,
+    members: AVec<AString>,
     labels: BTreeMap<AString, AString>,
     description: Option<AString>,
-    users: Vec<User>,
+    users: AVec<User>,
 }
 pub trait TUserGroup {
     fn get_labels(&self) -> &BTreeMap<AString, AString>;

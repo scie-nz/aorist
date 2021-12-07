@@ -1,3 +1,4 @@
+use aorist_primitives::AVec;
 use crate::attributes::*;
 use crate::concept::{AoristRef, WrappedConcept};
 use crate::template::datum_template::TDatumTemplate;
@@ -13,10 +14,10 @@ use uuid::Uuid;
 pub struct RowStruct {
     pub name: AString,
     #[constrainable]
-    pub attributes: Vec<AoristRef<Attribute>>,
+    pub attributes: AVec<AoristRef<Attribute>>,
 }
 impl TDatumTemplate for RowStruct {
-    fn get_attributes(&self) -> Vec<AoristRef<Attribute>> {
+    fn get_attributes(&self) -> AVec<AoristRef<Attribute>> {
         self.attributes.clone()
     }
     fn get_name(&self) -> AString {

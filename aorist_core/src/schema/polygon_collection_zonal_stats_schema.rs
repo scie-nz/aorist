@@ -1,3 +1,4 @@
+use aorist_primitives::AVec;
 use crate::asset::*;
 use crate::attributes::*;
 use crate::concept::{AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
@@ -24,5 +25,5 @@ derived_schema! {
       wkt: WKTString("WKT string", false),
       stats: JSON("JSON string of stats", false)
     fields:
-      stats: Vec<AString>
+      stats: AVec<AString>
 }

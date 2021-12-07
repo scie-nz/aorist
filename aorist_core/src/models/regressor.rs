@@ -1,3 +1,4 @@
+use aorist_primitives::AVec;
 use crate::algorithms::*;
 use crate::asset::*;
 use crate::concept::{AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
@@ -13,7 +14,7 @@ use uuid::Uuid;
 pub struct SingleObjectiveRegressor {
     name: AString,
     #[constrainable]
-    source_data: Vec<AoristRef<Asset>>,
+    source_data: AVec<AoristRef<Asset>>,
     #[constrainable]
     algorithm: AoristRef<RegressionAlgorithm>,
 }

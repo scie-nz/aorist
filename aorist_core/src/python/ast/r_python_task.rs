@@ -1,3 +1,4 @@
+use aorist_primitives::AVec;
 use crate::python::ast::{PythonFunctionCallTask, PythonTaskBase};
 use crate::python::NativePythonPreamble;
 use crate::python::PythonImport;
@@ -21,7 +22,7 @@ define_task_node!(
     PythonImport,
     task_val: AST,
     call: AST,
-    args: Vec<AST>,
+    args: AVec<AST>,
     kwargs: LinkedHashMap<AString, AST>,
     dep_list: Option<AST>,
     preamble: Option<AString>,

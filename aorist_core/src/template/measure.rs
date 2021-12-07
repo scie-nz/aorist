@@ -1,3 +1,4 @@
+use aorist_primitives::AVec;
 #![allow(dead_code)]
 use crate::attributes::*;
 use crate::concept::{AoristRef, WrappedConcept};
@@ -23,12 +24,12 @@ pub struct IntegerMeasure {
     pub name: AString,
     pub comment: Option<AString>,
     #[constrainable]
-    pub attributes: Vec<AoristRef<Attribute>>,
+    pub attributes: AVec<AoristRef<Attribute>>,
     pub source_asset_name: AString,
 }
 
 impl TDatumTemplate for IntegerMeasure {
-    fn get_attributes(&self) -> Vec<AoristRef<Attribute>> {
+    fn get_attributes(&self) -> AVec<AoristRef<Attribute>> {
         let mut attr = self.attributes.clone();
         let frequency_attribute = self.get_frequency_attribute();
         attr.push(frequency_attribute);
@@ -56,14 +57,14 @@ pub struct TrainedFloatMeasure {
     pub name: AString,
     pub comment: Option<AString>,
     #[constrainable]
-    pub features: Vec<AoristRef<Attribute>>,
+    pub features: AVec<AoristRef<Attribute>>,
     #[constrainable]
     pub objective: AoristRef<Attribute>,
     pub source_asset_name: AString,
 }
 
 impl TDatumTemplate for AoristRef<TrainedFloatMeasure> {
-    fn get_attributes(&self) -> Vec<AoristRef<Attribute>> {
+    fn get_attributes(&self) -> AVec<AoristRef<Attribute>> {
         let mut attr = self.0.read().features.clone();
         let prediction_attribute = self.get_prediction_attribute();
         attr.push(prediction_attribute);
@@ -128,7 +129,7 @@ pub struct PredictionsFromTrainedFloatMeasure {
     pub name: AString,
     pub comment: Option<AString>,
     #[constrainable]
-    pub features: Vec<AoristRef<Attribute>>,
+    pub features: AVec<AoristRef<Attribute>>,
     #[constrainable]
     pub objective: AoristRef<Attribute>,
 }
@@ -136,7 +137,7 @@ impl PredictionsFromTrainedFloatMeasure {
     pub fn get_name(&self) -> AString {
         self.name.clone()
     }
-    pub fn get_attributes(&self) -> Vec<AoristRef<Attribute>> {
+    pub fn get_attributes(&self) -> AVec<AoristRef<Attribute>> {
         let mut attr = self.features.clone();
         let prediction_attribute = self.objective.clone();
         attr.push(prediction_attribute);

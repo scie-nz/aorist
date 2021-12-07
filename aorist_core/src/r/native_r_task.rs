@@ -1,3 +1,4 @@
+use aorist_primitives::AVec;
 use crate::r::r_import::RImport;
 use aorist_ast::{Assignment, StringLiteral, AST};
 use aorist_primitives::{AString, define_task_node};
@@ -9,7 +10,7 @@ define_task_node!(
     NativeRTask,
     |task: &NativeRTask| task.statements.clone(),
     |task: &NativeRTask| {
-        let mut statements: Vec<AST> = Vec::new();
+        let mut statements: AVec<AST> = AVec::new();
 
         let mut it = task.statements.iter();
 
@@ -45,7 +46,7 @@ define_task_node!(
     },
     |task: &NativeRTask| task.imports.clone(),
     RImport,
-    statements: Vec<AST>,
-    imports: Vec<RImport>,
+    statements: AVec<AST>,
+    imports: AVec<RImport>,
     task_val: AST,
 );

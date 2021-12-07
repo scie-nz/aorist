@@ -1,3 +1,4 @@
+use aorist_primitives::AVec;
 use crate::flow::{CompressionKey, ETLFlow, ForLoopCompressedTask, TaskBase, UncompressiblePart};
 use crate::python::task::key::PythonBasedTaskCompressionKey;
 use crate::python::task::uncompressible::PythonBasedTaskUncompressiblePart;
@@ -19,7 +20,7 @@ where
 {
     params_dict_name: AST,
     key: PythonBasedTaskCompressionKey,
-    values: Vec<PythonBasedTaskUncompressiblePart<T, U>>,
+    values: AVec<PythonBasedTaskUncompressiblePart<T, U>>,
     singleton_type: PhantomData<T>,
     task_id: AST,
     insert_task_name: bool,
@@ -36,7 +37,7 @@ where
     fn new(
         params_dict_name: AST,
         key: PythonBasedTaskCompressionKey,
-        values: Vec<PythonBasedTaskUncompressiblePart<T, U>>,
+        values: AVec<PythonBasedTaskUncompressiblePart<T, U>>,
         task_id: AST,
         insert_task_name: bool,
         render_dependencies: bool,
@@ -148,7 +149,7 @@ where
     pub fn get_statements(
         &self,
         endpoints: U::TEndpoints,
-    ) -> (Vec<AST>, Vec<PythonPreamble>, Vec<PythonImport>) {
+    ) -> (AVec<AST>, AVec<PythonPreamble>, AVec<PythonImport>) {
         let any_dependencies = self
             .values
             .iter()
@@ -196,10 +197,10 @@ where
                         false,
                     ))
                 })
-                .collect::<Vec<AST>>();
+                .collect::<AVec<AST>>();
         } else {
             kwargs = LinkedHashMap::new();
-            args = Vec::new();
+            args = AVec::new();
         }
         for (k, v) in &self.key.kwargs {
             kwargs.insert(k.clone(), v.clone());
@@ -242,7 +243,7 @@ where
                     "items".into(),
                     false,
                 )),
-                Vec::new(),
+                AVec::new(),
                 LinkedHashMap::new(),
             )),
             false => self.params_dict_name.clone(),

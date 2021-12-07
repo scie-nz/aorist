@@ -1,7 +1,6 @@
-use abi_stable::std_types::vec::RVec;
 use crate::endpoints::*;
 use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
-use abi_stable::std_types::RArc;
+use abi_stable::std_types::{RArc, RVec};
 use abi_stable::StableAbi;
 #[cfg(feature = "python")]
 use pyo3::prelude::*;
@@ -12,14 +11,9 @@ use std::hash::Hasher;
 use uuid::Uuid;
 
 #[repr(C)]
-#[cfg(feature = "python")]
-#[pyclass]
+#[cfg_attr(feature = "python", pyclass)]
 #[derive(StableAbi, Clone, PartialEq, Serialize, Debug, Hash, Eq, PartialOrd, Ord)]
 pub struct AString(abi_stable::std_types::RString);
-
-#[repr(C)]
-#[derive(StableAbi, Clone, PartialEq, Serialize, Debug, Hash, Eq, PartialOrd, Ord)]
-pub struct AVec<T>(abi_stable::std_types::RVec<T>);
 
 impl<'de> Deserialize<'de> for AString {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
@@ -62,13 +56,59 @@ impl AString {
     }
 }
 
+#[repr(C)]
+#[derive(Clone, PartialEq, Serialize, Debug, Hash, Eq, PartialOrd, Ord)]
+pub struct AVec<T>(abi_stable::std_types::RVec<T>);
+
+impl <T> std::iter::IntoIterator for AVec<T> {
+    type Item = T;
+    type IntoIter = <abi_stable::std_types::RVec<T> as std::iter::IntoIterator>::IntoIter;
+    fn into_iter(self) -> Self::IntoIter {
+        self.0.into_iter()
+    }
+}
+impl <T> std::iter::FromIterator<T> for AVec<T> {
+    fn from_iter<I>(iter: I) -> Self
+    where
+        I: IntoIterator<Item = T> {
+        Self(abi_stable::std_types::RVec::<T>::from_iter(iter))
+    } 
+}
+impl <T> std::ops::Deref for AVec<T> {
+    type Target = [T];
+    fn deref(&self) -> &Self::Target {
+        &self.0.deref()
+    }
+}
+
+impl <T> AVec<T> {
+    pub fn len(&self) -> usize {
+        self.0.len()
+    }
+    pub fn iter<'a>(&'a self) -> std::slice::Iter<'a, T> {
+        self.0.iter()
+    }
+    pub fn new() -> AVec<T> {
+        Self(RVec::<T>::new())
+    }
+    pub fn push(&mut self, elem: T) {
+        self.0.push(elem)
+    }
+}
+impl AVec<String> {
+    pub fn join(&self, separator: &str) -> String {
+        self.0.join(separator)
+    }
+}
+
+
 pub trait ConceptEnum {}
 pub trait AoristConcept {
     type TChildrenEnum: ConceptEnum;
     fn get_uuid(&self) -> Option<Uuid>;
     fn get_tag(&self) -> Option<AString>;
     fn compute_uuids(&self);
-    fn get_children_uuid(&self) -> RVec<Uuid>;
+    fn get_children_uuid(&self) -> AVec<Uuid>;
     fn get_uuid_from_children_uuid(&self) -> Uuid {
         let child_uuids = self.get_children_uuid();
         if child_uuids.len() > 0 {
@@ -86,7 +126,7 @@ pub trait AoristConcept {
     }
     fn get_children(
         &self,
-    ) -> RVec<(
+    ) -> AVec<(
         // struct name
         &str,
         // field name
@@ -107,7 +147,7 @@ pub trait TConceptEnum: Sized + Clone {
     fn get_uuid(&self) -> Uuid;
     fn get_tag(&self) -> Option<AString>;
     fn get_index_as_child(&self) -> usize;
-    fn get_child_concepts(&self) -> RVec<Self>;
+    fn get_child_concepts(&self) -> AVec<Self>;
     fn populate_child_concept_map(&self, concept_map: &mut HashMap<(Uuid, AString), Self>);
     fn from_universe(universe: Self::TUniverse) -> Self;
 }

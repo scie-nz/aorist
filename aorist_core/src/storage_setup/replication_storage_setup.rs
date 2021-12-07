@@ -1,3 +1,4 @@
+use aorist_primitives::AVec;
 use crate::concept::{AoristRef, WrappedConcept};
 use crate::encoding::*;
 use crate::storage::*;
@@ -16,7 +17,7 @@ pub struct ReplicationStorageSetup {
     #[constrainable]
     pub source: AoristRef<Storage>,
     #[constrainable]
-    pub targets: Vec<AoristRef<Storage>>,
+    pub targets: AVec<AoristRef<Storage>>,
     pub tmp_dir: AString,
     #[constrainable]
     pub tmp_encoding: AoristRef<Encoding>,

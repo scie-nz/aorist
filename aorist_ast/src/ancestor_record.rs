@@ -1,3 +1,4 @@
+use aorist_primitives::AVec;
 use aorist_primitives::AString;
 use inflector::cases::snakecase::to_snake_case;
 use uuid::Uuid;
@@ -21,7 +22,7 @@ impl AncestorRecord {
     pub fn get_key(&self) -> (Uuid, AString) {
         (self.uuid.clone(), self.object_type.clone())
     }
-    pub fn compute_relative_path(ancestors: &Vec<AncestorRecord>) -> AString {
+    pub fn compute_relative_path(ancestors: &AVec<AncestorRecord>) -> AString {
         let mut relative_path: String = "".into();
         for record in ancestors.iter().rev() {
             if let Some(ref t) = record.tag {

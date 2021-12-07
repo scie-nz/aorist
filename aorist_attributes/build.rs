@@ -1,3 +1,4 @@
+use aorist_primitives::AVec;
 use aorist_util::{get_raw_objects_of_type, read_file};
 use codegen::Scope;
 use serde_yaml::Value;
@@ -6,7 +7,7 @@ use std::env;
 use std::fs;
 use std::path::Path;
 
-fn process_attributes_py(raw_objects: &Vec<HashMap<String, Value>>) {
+fn process_attributes_py(raw_objects: &AVec<HashMap<String, Value>>) {
     let attributes = get_raw_objects_of_type(raw_objects, "Attribute".into());
     let mut scope_py = Scope::new();
     let fun = scope_py
@@ -25,7 +26,7 @@ fn process_attributes_py(raw_objects: &Vec<HashMap<String, Value>>) {
     fun.line("Ok(())");
     fs::write(&dest_path_py, scope_py.to_string()).unwrap();
 }
-fn process_attributes(raw_objects: &Vec<HashMap<String, Value>>) {
+fn process_attributes(raw_objects: &AVec<HashMap<String, Value>>) {
     let attributes = get_raw_objects_of_type(raw_objects, "Attribute".into());
     let mut scope = Scope::new();
     #[cfg(feature = "python")]
@@ -77,7 +78,7 @@ fn process_attributes(raw_objects: &Vec<HashMap<String, Value>>) {
     for item in derive_macros {
         scope.import("aorist_derive", &item);
     }
-    let mut attribute_names: Vec<String> = Vec::new();
+    let mut attribute_names: AVec<String> = AVec::new();
     for attribute in attributes {
         let name = attribute.get("name").unwrap().as_str().unwrap().to_string();
         let orc = attribute.get("orc").unwrap().as_str().unwrap().to_string();

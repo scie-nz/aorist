@@ -47,25 +47,25 @@ macro_rules! register_ast_nodes {
                     )+
                 }
             }
-            pub fn set_ancestors(&self, ancestors: Vec<AncestorRecord>) {
+            pub fn set_ancestors(&self, ancestors: AVec<AncestorRecord>) {
                 match &self {
                     $(
                         Self::$variant(x) => x.write().set_ancestors(ancestors),
                     )+
                 }
             }
-            pub fn get_ancestors(&self) -> Option<Vec<AncestorRecord>> {
+            pub fn get_ancestors(&self) -> Option<AVec<AncestorRecord>> {
                 match &self {
                     $(
                         Self::$variant(x) => x.read().get_ancestors(),
                     )+
                 }
             }
-            pub fn get_descendants(&self) -> Vec<AST> {
+            pub fn get_descendants(&self) -> AVec<AST> {
                 let mut queue = VecDeque::new();
                 queue.push_back(self.clone());
                 let mut current = queue.pop_front();
-                let mut v: Vec<AST> = Vec::new();
+                let mut v: AVec<AST> = AVec::new();
                 while let Some(elem) = current {
                     let direct_descendants = match &elem {
                         $(
@@ -161,7 +161,7 @@ macro_rules! define_task_node {
             }
             pub fn get_statements<'a>(
                 &self,
-            ) -> Vec<AST> {
+            ) -> AVec<AST> {
                 ($py_ast_closure)(self)
             }
             pub fn new($(
@@ -176,10 +176,10 @@ macro_rules! define_task_node {
                     self.$field.clone()
                 }
             )*
-            pub fn get_direct_descendants(&self) -> Vec<AST> {
+            pub fn get_direct_descendants(&self) -> AVec<AST> {
                 $descendants(self)
             }
-            pub fn get_imports(&self) -> Vec<$import_type> {
+            pub fn get_imports(&self) -> AVec<$import_type> {
                 $import_closure(self)
             }
         }
@@ -197,14 +197,14 @@ macro_rules! register_task_nodes {
             )+
         }
         impl $name {
-            pub fn get_imports(&self) -> Vec<$import_type>{
+            pub fn get_imports(&self) -> AVec<$import_type>{
                 match &self {
                     $(
                         Self::$variant(x) => x.read().get_imports(),
                     )+
                 }
             }
-            pub fn get_statements(&self) -> Vec<AST> {
+            pub fn get_statements(&self) -> AVec<AST> {
                 match &self {
                     $(
                         Self::$variant(x) => x.read().get_statements(),
@@ -249,7 +249,7 @@ macro_rules! define_ast_node {
             $(
                 $field: $field_type,
             )*
-            ancestors: Option<Vec<AncestorRecord>>,
+            ancestors: Option<AVec<AncestorRecord>>,
         }
         impl $name {
             pub fn new_wrapped($(
@@ -282,11 +282,11 @@ macro_rules! define_ast_node {
                     ancestors: None,
                 }
             }
-            pub fn set_ancestors(&mut self, ancestors: Vec<AncestorRecord>) {
+            pub fn set_ancestors(&mut self, ancestors: AVec<AncestorRecord>) {
                 assert!(self.ancestors.is_none());
                 self.ancestors = Some(ancestors);
             }
-            pub fn get_ancestors(&self) -> Option<Vec<AncestorRecord>> {
+            pub fn get_ancestors(&self) -> Option<AVec<AncestorRecord>> {
                 self.ancestors.clone()
             }
             $(
@@ -294,7 +294,7 @@ macro_rules! define_ast_node {
                     self.$field.clone()
                 }
             )*
-            pub fn get_direct_descendants(&self) -> Vec<AST> {
+            pub fn get_direct_descendants(&self) -> AVec<AST> {
                 $descendants(self)
             }
         }
@@ -457,7 +457,7 @@ macro_rules! define_constraint {
             pub struct $element {
                 id: Uuid,
                 root_uuid: Uuid,
-                $([<$required:snake:lower>] : Vec<RArc<RRwLock<$outer>>>,)*
+                $([<$required:snake:lower>] : AVec<RArc<RRwLock<$outer>>>,)*
             }
             #[cfg(feature = "python")]
             #[pymethods]
@@ -467,7 +467,7 @@ macro_rules! define_constraint {
                     stringify!($element).to_string()
                 }
                 #[classattr]
-                pub fn required() -> Vec<String> {
+                pub fn required() -> AVec<String> {
                     vec![
                         $(
                             stringify!($required).into(),
@@ -505,8 +505,8 @@ macro_rules! define_constraint {
                 pub dialect: Dialect,
                 pub code: AString,
                 pub entrypoint: AString,
-                pub arg_functions: Vec<(Vec<AString>, AString)>,
-                pub kwarg_functions: LinkedHashMap<AString, (Vec<AString>, AString)>,
+                pub arg_functions: AVec<(AVec<AString>, AString)>,
+                pub kwarg_functions: LinkedHashMap<AString, (AVec<AString>, AString)>,
             }
 
             #[cfg(feature = "python")]
@@ -516,12 +516,12 @@ macro_rules! define_constraint {
                 pub fn register_python_program(
                     code: &str,
                     entrypoint: &str,
-                    arg_functions: Vec<(Vec<&str>, &str)>,
-                    kwarg_functions: HashMap<&str, (Vec<&str>, &str)>,
-                    pip_requirements: Vec<&str>,
+                    arg_functions: AVec<(AVec<&str>, &str)>,
+                    kwarg_functions: HashMap<&str, (AVec<&str>, &str)>,
+                    pip_requirements: AVec<&str>,
                 ) -> PyResult<[<$element Program>]> {
 
-                    let mut funs: LinkedHashMap<AString, (Vec<AString>, AString)> = LinkedHashMap::new();
+                    let mut funs: LinkedHashMap<AString, (AVec<AString>, AString)> = LinkedHashMap::new();
                     for (k, (v1, v2)) in kwarg_functions.into_iter() {
                         funs.insert(k.into(), (v1.into_iter().map(|x| x.into()).collect(), v2.into()));
                     }
@@ -537,11 +537,11 @@ macro_rules! define_constraint {
                 pub fn register_r_program(
                     code: &str,
                     entrypoint: &str,
-                    arg_functions: Vec<(Vec<&str>, &str)>,
-                    kwarg_functions: HashMap<&str, (Vec<&str>, &str)>,
+                    arg_functions: AVec<(AVec<&str>, &str)>,
+                    kwarg_functions: HashMap<&str, (AVec<&str>, &str)>,
                 ) -> PyResult<[<$element Program>]> {
 
-                    let mut funs: LinkedHashMap<AString, (Vec<AString>, AString)> = LinkedHashMap::new();
+                    let mut funs: LinkedHashMap<AString, (AVec<AString>, AString)> = LinkedHashMap::new();
                     for (k, (v1, v2)) in kwarg_functions.into_iter() {
                         funs.insert(k.into(), (v1.into_iter().map(|x| x.into()).collect(), v2.into()));
                     }
@@ -557,11 +557,11 @@ macro_rules! define_constraint {
                 pub fn register_presto_program(
                     code: &str,
                     entrypoint: &str,
-                    arg_functions: Vec<(Vec<&str>, &str)>,
-                    kwarg_functions: HashMap<&str, (Vec<&str>, &str)>,
+                    arg_functions: AVec<(AVec<&str>, &str)>,
+                    kwarg_functions: HashMap<&str, (AVec<&str>, &str)>,
                 ) -> PyResult<[<$element Program>]> {
 
-                    let mut funs: LinkedHashMap<AString, (Vec<AString>, AString)> = LinkedHashMap::new();
+                    let mut funs: LinkedHashMap<AString, (AVec<AString>, AString)> = LinkedHashMap::new();
                     for (k, (v1, v2)) in kwarg_functions.into_iter() {
                         funs.insert(k.into(), (v1.into_iter().map(|x| x.into()).collect(), v2.into()));
                     }
@@ -577,11 +577,11 @@ macro_rules! define_constraint {
                 pub fn register_bash_program(
                     code: &str,
                     entrypoint: &str,
-                    arg_functions: Vec<(Vec<&str>, &str)>,
-                    kwarg_functions: HashMap<&str, (Vec<&str>, &str)>,
+                    arg_functions: AVec<(AVec<&str>, &str)>,
+                    kwarg_functions: HashMap<&str, (AVec<&str>, &str)>,
                 ) -> PyResult<[<$element Program>]> {
 
-                    let mut funs: LinkedHashMap<AString, (Vec<AString>, AString)> = LinkedHashMap::new();
+                    let mut funs: LinkedHashMap<AString, (AVec<AString>, AString)> = LinkedHashMap::new();
                     for (k, (v1, v2)) in kwarg_functions.into_iter() {
                         funs.insert(k.into(), (v1.into_iter().map(|x| x.into()).collect(), v2.into()));
                     }
@@ -598,13 +598,13 @@ macro_rules! define_constraint {
                 fn new(
                     code: AString,
                     entrypoint: AString,
-                    arg_functions: Vec<(Vec<AString>, AString)>,
-                    kwarg_functions: LinkedHashMap<AString, (Vec<AString>, AString)>,
+                    arg_functions: AVec<(AVec<AString>, AString)>,
+                    kwarg_functions: LinkedHashMap<AString, (AVec<AString>, AString)>,
                     dialect: Dialect,
                 ) -> Self {
                     Self { code, entrypoint, arg_functions, kwarg_functions, dialect }
                 }
-                fn get_arg_functions(&self) -> Vec<(Vec<AString>, AString)> {
+                fn get_arg_functions(&self) -> AVec<(AVec<AString>, AString)> {
                     self.arg_functions.clone()
                 }
                 fn get_code(&self) -> AString {
@@ -616,7 +616,7 @@ macro_rules! define_constraint {
                 fn get_entrypoint(&self) -> AString {
                     self.entrypoint.clone()
                 }
-                fn get_kwarg_functions(&self) -> LinkedHashMap<AString, (Vec<AString>, AString)> {
+                fn get_kwarg_functions(&self) -> LinkedHashMap<AString, (AVec<AString>, AString)> {
                     self.kwarg_functions.clone()
                 }
             }
@@ -629,7 +629,7 @@ macro_rules! define_constraint {
                 fn _should_add(root: AoristRef<Concept>, ancestry: &ConceptAncestry) -> bool {
                     $should_add(root, ancestry)
                 }
-                fn get_required(root: AoristRef<Concept>, ancestry: &ConceptAncestry) -> Vec<Uuid> {
+                fn get_required(root: AoristRef<Concept>, ancestry: &ConceptAncestry) -> AVec<Uuid> {
                     $get_required(root, ancestry)
                 }
                 fn get_root_uuid(&self) -> Result<Uuid> {
@@ -639,8 +639,8 @@ macro_rules! define_constraint {
                     Ok($requires_program)
                 }
                 // these are *all* downstream constraints
-                fn get_downstream_constraints(&self) -> Result<Vec<RArc<RRwLock<Constraint>>>> {
-                    let mut downstream: Vec<RArc<RRwLock<Constraint>>> = Vec::new();
+                fn get_downstream_constraints(&self) -> Result<AVec<RArc<RRwLock<Constraint>>>> {
+                    let mut downstream: AVec<RArc<RRwLock<Constraint>>> = AVec::new();
                     $(
                         for arc in &self.[<$required:snake:lower>] {
                             downstream.push(arc.clone());
@@ -663,7 +663,7 @@ macro_rules! define_constraint {
                 fn get_root_type_name() -> Result<AString> {
                     Ok(stringify!($root).into())
                 }
-                fn get_required_constraint_names() -> Vec<AString> {
+                fn get_required_constraint_names() -> AVec<AString> {
                     vec![$(
                         stringify!($required).into()
                     ),*]
@@ -676,11 +676,11 @@ macro_rules! define_constraint {
                     }
                 }
                 fn new(root_uuid: Uuid,
-                       potential_child_constraints: Vec<RArc<RRwLock<Constraint>>>) -> Result<Self> {
+                       potential_child_constraints: AVec<RArc<RRwLock<Constraint>>>) -> Result<Self> {
                     // TODO: we should dedupe potential child constraints
                     $(
-                        let mut [<$required:snake:lower>]: Vec<RArc<RRwLock<Constraint>>> =
-                        Vec::new();
+                        let mut [<$required:snake:lower>]: AVec<RArc<RRwLock<Constraint>>> =
+                        AVec::new();
                     )*
                     let mut by_uuid: HashMap<Uuid, RArc<RRwLock<Constraint>>> = HashMap::new();
                     for constraint in &potential_child_constraints {
@@ -1013,13 +1013,13 @@ macro_rules! register_concept {
         )+
 
         pub trait [<$name Descendants>] {
-            fn get_descendants(&self) -> Vec<AoristRef<$name>>;
+            fn get_descendants(&self) -> AVec<AoristRef<$name>>;
         }
 
         $(
             impl [<$name Descendants>] for AoristRef<$element> {
-                fn get_descendants(&self) -> Vec<AoristRef<$name>> {
-                    let mut concepts = Vec::new();
+                fn get_descendants(&self) -> AVec<AoristRef<$name>> {
+                    let mut concepts = AVec::new();
                     for tpl in self.get_children() {
                         let wrapped_concept = WrappedConcept::from(tpl);
                         concepts.push(wrapped_concept.inner);
@@ -1159,7 +1159,7 @@ macro_rules! register_concept {
                     )*
                 }
             }
-            fn get_child_concepts(&self) -> Vec<Self> {
+            fn get_child_concepts(&self) -> AVec<Self> {
                 let read = self.0.read();
                 match *read {
                     $(
@@ -1197,7 +1197,7 @@ macro_rules! register_concept {
 macro_rules! register_constraint {
     ( $name:ident, $lt: lifetime, $($element: ident),+ ) => { aorist_paste::item! {
         #[sabi_extern_fn]
-        pub fn builders() -> RResult<RVec<RString>, AoristError> {
+        pub fn builders() -> RResult<RAVec<RString>, AoristError> {
             ROk(vec![$(stringify!($element).into()),+].into())
         }
     }}
@@ -1240,14 +1240,14 @@ macro_rules! register_constraint_new {
             ) -> (AString, AString, ParameterTuple, Dialect) {
                 let gil = Python::acquire_gil();
                 let py = gil.python();
-                //let mut args = Vec::new();
+                //let mut args = AVec::new();
                 let dill: &PyModule = PyModule::import(py, "dill").unwrap();
-                let mut args: Vec<AST> = Vec::new();
+                let mut args: AVec<AST> = AVec::new();
                 let mut kwargs: LinkedHashMap<AString, AST> = LinkedHashMap::new();
                 for (input_types, serialized) in &self.inner.get_arg_functions() {
                     let py_arg = PyString::new(py, serialized.as_str());
                     let deserialized = dill.getattr("loads").unwrap().call1((py_arg,)).unwrap();
-                    let mut objects = Vec::new();
+                    let mut objects = AVec::new();
                     let mut context_pos = None;
                     for (i, x) in input_types.iter().enumerate() {
                         if x.as_str() == "context" {
@@ -1354,7 +1354,7 @@ macro_rules! register_constraint_new {
         }
         impl [<$name ProgramEnum>] {
             #[cfg(feature = "python")]
-            pub fn get_arg_functions(&self) -> Vec<(Vec<AString>, AString)> {
+            pub fn get_arg_functions(&self) -> AVec<(AVec<AString>, AString)> {
                 match self {
                     $(
                         [<$name ProgramEnum>]::$element(x) => x.get_arg_functions(),
@@ -1382,7 +1382,7 @@ macro_rules! register_constraint_new {
                     )+
                 }
             }
-            pub fn get_kwarg_functions(&self) -> LinkedHashMap<AString, (Vec<AString>, AString)> {
+            pub fn get_kwarg_functions(&self) -> LinkedHashMap<AString, (AVec<AString>, AString)> {
                 match self {
                     $(
                         [<$name ProgramEnum>]::$element(x) => x.get_kwarg_functions(),
@@ -1409,7 +1409,7 @@ macro_rules! register_constraint_new {
             type OuterType = Constraint;
             type TEnum = AoristRef<Concept>;
             type TAncestry = ConceptAncestry;
-            fn builders() -> Vec<[<$name Builder>]<$lt>> where Self : Sized {
+            fn builders() -> AVec<[<$name Builder>]<$lt>> where Self : Sized {
                 vec![
                     $(
                         [<$name Builder>]::$element(
@@ -1428,7 +1428,7 @@ macro_rules! register_constraint_new {
                     )+
                 }
             }
-            fn get_required_constraint_names(&self) -> Vec<AString> {
+            fn get_required_constraint_names(&self) -> AVec<AString> {
                 match &self {
                     $(
                         [<$name Builder>]::$element(_) => $element::get_required_constraint_names(),
@@ -1438,7 +1438,7 @@ macro_rules! register_constraint_new {
             fn build_constraint(
                 &self,
                 root_uuid: Uuid,
-                potential_child_constraints: Vec<RArc<RRwLock<Self::OuterType>>>,
+                potential_child_constraints: AVec<RArc<RRwLock<Self::OuterType>>>,
             ) -> Result<Self::OuterType> {
                 match &self {
                     $(
@@ -1463,7 +1463,7 @@ macro_rules! register_constraint_new {
                     )+
                 }
             }
-            fn get_required(&self, root: AoristRef<Concept>, ancestry:&ConceptAncestry) -> Vec<Uuid> {
+            fn get_required(&self, root: AoristRef<Concept>, ancestry:&ConceptAncestry) -> AVec<Uuid> {
                 match &self {
                     $(
                         [<$name Builder>]::$element(_) =>
@@ -1481,7 +1481,7 @@ macro_rules! register_constraint_new {
             }
         }
         impl <$lt> TConstraintEnum<$lt> for $name {
-            fn get_required_constraint_names() -> HashMap<AString, Vec<AString>> {
+            fn get_required_constraint_names() -> HashMap<AString, AVec<AString>> {
                 vec! [
                     $(
                         (stringify!($element).into(), $element::get_required_constraint_names()),
@@ -1521,7 +1521,7 @@ macro_rules! register_constraint_new {
                     )+
                 }
             }
-            pub fn get_downstream_constraints(&self) -> Result<Vec<RArc<RRwLock<Constraint>>>> {
+            pub fn get_downstream_constraints(&self) -> Result<AVec<RArc<RRwLock<Constraint>>>> {
                 match self {
                     $(
                         Self::$element(x) => x.get_downstream_constraints(),
@@ -1605,10 +1605,10 @@ macro_rules! define_dag_function {
         ]")]
         pub fn $name<'a>(
             universe: PyUniverse,
-            constraints: Vec<String>,
+            constraints: AVec<String>,
             mode: &str,
-            programs: BTreeMap<String, Vec<AoristConstraintProgram>>,
-            dialect_preferences: Vec<Dialect>,
+            programs: BTreeMap<String, AVec<AoristConstraintProgram>>,
+            dialect_preferences: AVec<Dialect>,
             dag_name: Option<String>,
         ) -> PyResult<String> {
             universe.compute_uuids();
@@ -1707,7 +1707,7 @@ macro_rules! export_aorist_python_module {
 
         define_dag_function!($dag_function);
         #[pyfunction]
-        pub fn test() -> PyResult<Vec<String>> {
+        pub fn test() -> PyResult<AVec<String>> {
             let base_name = "constraint_module";
             let debug_dir = "../target/debug/".as_ref_::<Path>().into_::<PathBuf>();
             let debug_path =
@@ -1822,7 +1822,7 @@ macro_rules! derived_schema {
         pub struct $name {
             pub datum_template: AoristRef<DatumTemplate>,
             $(pub source: AoristRef<$source>,)?
-            $(pub sources: Vec<AoristRef<$sources>>,)?
+            $(pub sources: AVec<AoristRef<$sources>>,)?
             $(pub sources_map: std::collections::BTreeMap<String, AoristRef<$sources_map>>,)?
             $($(pub $source_name: AoristRef<$source_type>,)+)?
             $($(
@@ -1850,7 +1850,7 @@ macro_rules! derived_schema {
                 type SourceAssetType = $sources;
             }
             impl MultipleSourceDerivedAssetSchema<'_> for $name {
-                fn get_sources(&self) -> Vec<Asset> {
+                fn get_sources(&self) -> AVec<Asset> {
                     self.sources.clone().into_iter().map(|x| Asset::$sources(x)).collect()
                 }
             }
@@ -1858,7 +1858,7 @@ macro_rules! derived_schema {
             #[pymethods]
             impl [<Py $name>] {
                 #[getter]
-                pub fn sources(&self) -> Vec<PyAsset> {
+                pub fn sources(&self) -> AVec<PyAsset> {
                     self.inner.0.read().get_sources().into_iter().map(|x|
                         PyAsset{
                             inner: AoristRef(abi_stable::std_types::RArc::new(abi_stable::external_types::parking_lot::rw_lock::RRwLock::new(x)))
@@ -1872,7 +1872,7 @@ macro_rules! derived_schema {
                 type SourceAssetType = $sources_map;
             }
             impl MultipleSourceDerivedAssetSchema<'_> for $name {
-                fn get_sources(&self) -> Vec<Asset> {
+                fn get_sources(&self) -> AVec<Asset> {
                     self.sources_map.values().map(|x| Asset::$sources_map(x.clone())).collect()
                 }
             }
@@ -1880,7 +1880,7 @@ macro_rules! derived_schema {
             #[pymethods]
             impl [<Py $name>] {
                 #[getter]
-                pub fn sources(&self) -> Vec<PyAsset> {
+                pub fn sources(&self) -> AVec<PyAsset> {
                     self.inner.0.read().get_sources().into_iter().map(|x|
                         PyAsset{
                             inner: AoristRef(abi_stable::std_types::RArc::new(abi_stable::external_types::parking_lot::rw_lock::RRwLock::new(x)))
@@ -1935,7 +1935,7 @@ macro_rules! schema {
     } => { aorist_paste::paste! {
 
         impl $name {
-            pub fn get_attributes(&self) -> Vec<AoristRef<Attribute>> {
+            pub fn get_attributes(&self) -> AVec<AoristRef<Attribute>> {
                 vec![$($(
                     attribute! { $attribute(
                         stringify!($attr_name).into(),
@@ -1944,7 +1944,7 @@ macro_rules! schema {
                     )},
                 )+)?]
             }
-            pub fn get_key(&self) -> Vec<AoristRef<Attribute>> {
+            pub fn get_key(&self) -> AVec<AoristRef<Attribute>> {
                 self.get_attributes().into_iter()
                     .filter(|x| x.0.read().is_key_type()).collect()
             }
@@ -1956,11 +1956,11 @@ macro_rules! schema {
         #[pymethods]
         impl [<Py $name>] {
             #[getter]
-            pub fn get_attributes(&self) -> Vec<PyAttribute> {
+            pub fn get_attributes(&self) -> AVec<PyAttribute> {
                 self.inner.0.read().get_attributes().iter().map(|x| PyAttribute{ inner: x.clone() }).collect()
             }
             #[getter]
-            pub fn get_key(&self) -> Vec<PyAttribute> {
+            pub fn get_key(&self) -> AVec<PyAttribute> {
                 self.inner.0.read().get_key().iter().map(|x| PyAttribute{ inner: x.clone() }).collect()
             }
             #[getter]
@@ -2110,7 +2110,7 @@ macro_rules! schema_enum {
             )+)?
         }
         impl $name {
-            pub fn get_attributes(&self) -> Vec<AoristRef<Attribute>> {
+            pub fn get_attributes(&self) -> AVec<AoristRef<Attribute>> {
                 match self {
                     $($(
                         Self::$variant(x) => x.0.read().get_attributes(),

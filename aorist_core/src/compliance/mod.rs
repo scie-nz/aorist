@@ -1,3 +1,4 @@
+use aorist_primitives::AVec;
 /* Following prescribed Record of Processing Activity by cnil.fr.
 See: https://www.cnil.fr/en/record-processing-activities */
 use crate::concept::{AoristRef, WrappedConcept};
@@ -26,7 +27,7 @@ pub struct GDPRStakeholder {
 #[derive(PartialEq, Debug, Eq, Clone, Hash, Serialize, Deserialize)]
 pub struct GDPRDataProcessingPurpose {
     main_purpose: AString,
-    sub_purposes: Option<Vec<AString>>,
+    sub_purposes: Option<AVec<AString>>,
 }
 
 #[macro_export]
@@ -123,23 +124,23 @@ pub struct GDPRProcessorRecord {
     controller: GDPRStakeholder,
     data_protection_officer: GDPRStakeholder,
     representative: Option<GDPRStakeholder>,
-    joint_controllers: Option<Vec<GDPRStakeholder>>,
-    data_processing_purposes: Vec<GDPRDataProcessingPurpose>,
-    personal_data_categories_used: Vec<GDPRPersonalDataCategory>,
-    data_subject_categories: Vec<GDPRDataSubjectCategory>,
-    data_processing_recipients: Vec<GDPRDataProcessingRecipient>,
+    joint_controllers: Option<AVec<GDPRStakeholder>>,
+    data_processing_purposes: AVec<GDPRDataProcessingPurpose>,
+    personal_data_categories_used: AVec<GDPRPersonalDataCategory>,
+    data_subject_categories: AVec<GDPRDataSubjectCategory>,
+    data_processing_recipients: AVec<GDPRDataProcessingRecipient>,
 }
 
 #[cfg_attr(feature = "python", pyo3::prelude::pyclass)]
 #[derive(PartialEq, Debug, Eq, Clone, Hash, Serialize, Deserialize)]
 pub struct GDPRSecurityMeasuresStatement {
-    traceability: Vec<AString>,
-    software_protection: Vec<AString>,
-    data_backup: Vec<AString>,
-    data_encryption: Vec<AString>,
-    user_access_control: Vec<AString>,
-    control_of_processors: Vec<AString>,
-    other: Vec<AString>,
+    traceability: AVec<AString>,
+    software_protection: AVec<AString>,
+    data_backup: AVec<AString>,
+    data_encryption: AVec<AString>,
+    user_access_control: AVec<AString>,
+    control_of_processors: AVec<AString>,
+    other: AVec<AString>,
 }
 
 #[derive(PartialEq, Debug, Eq, Clone, Hash, Serialize, Deserialize)]
@@ -158,8 +159,8 @@ pub enum GDPRDataTransferGuarantee {
 pub struct GDPRThirdPartyCountryOrInternationalOrganizationTransferRecord {
     recipient_organization_name: AString,
     iso_3166_2c_country_code: AString,
-    data_transfer_guarantees: Vec<GDPRDataTransferGuarantee>,
-    links_to_relevant_documents: Option<Vec<AString>>,
+    data_transfer_guarantees: AVec<GDPRDataTransferGuarantee>,
+    links_to_relevant_documents: Option<AVec<AString>>,
 }
 
 #[aorist]

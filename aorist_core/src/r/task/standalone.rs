@@ -1,3 +1,4 @@
+use aorist_primitives::AVec;
 use crate::dialect::Dialect;
 use crate::endpoints::EndpointConfig;
 use crate::flow::{
@@ -29,7 +30,7 @@ where
     /// Dialect (e.g. Bash, R, R, Presto, etc.), to be interpreted
     /// by render.
     dialect: Option<Dialect>,
-    dependencies: Vec<AST>,
+    dependencies: AVec<AST>,
     singleton_type: PhantomData<T>,
 }
 impl<T> StandaloneRBasedTask<T>
@@ -57,14 +58,14 @@ where
     pub fn get_statements(
         &self,
         endpoints: &EndpointConfig,
-    ) -> (Vec<AST>, Vec<RPreamble>, Vec<RImport>) {
+    ) -> (AVec<AST>, AVec<RPreamble>, AVec<RImport>) {
         let args;
         let kwargs;
         if let Some(ref p) = self.params {
             args = p.get_args();
             kwargs = p.get_kwargs();
         } else {
-            args = Vec::new();
+            args = AVec::new();
             kwargs = LinkedHashMap::new();
         }
         let singleton = T::new(
@@ -100,7 +101,7 @@ where
         task_val: AST,
         call: Option<AString>,
         params: Option<ParameterTuple>,
-        dependencies: Vec<AST>,
+        dependencies: AVec<AST>,
         preamble: Option<AString>,
         dialect: Option<Dialect>,
     ) -> Self {

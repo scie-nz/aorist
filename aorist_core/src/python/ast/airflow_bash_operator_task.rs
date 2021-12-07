@@ -1,3 +1,4 @@
+use aorist_primitives::AVec;
 use crate::python::ast::AirflowTaskBase;
 use crate::python::ast::PythonTaskBase;
 use crate::python::PythonImport;
@@ -10,7 +11,7 @@ pub trait AirflowBashOperatorTask: PythonTaskBase + AirflowTaskBase {
         AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("BashOperator".into()))
     }
     fn get_call_param_value(&self) -> AST;
-    fn get_python_bash_operator_imports(&self) -> Vec<PythonImport> {
+    fn get_python_bash_operator_imports(&self) -> AVec<PythonImport> {
         vec![PythonImport::PythonFromImport(
             "airflow.operators.bash_operator".into(),
             "BashOperator".into(),
@@ -23,7 +24,7 @@ pub trait AirflowBashOperatorTask: PythonTaskBase + AirflowTaskBase {
         kwargs.insert("bash_command".into(), call_param_value);
         kwargs
     }
-    fn get_operator_statements(&self) -> Vec<AST> {
+    fn get_operator_statements(&self) -> AVec<AST> {
         let creation_expr = AST::Call(Call::new_wrapped(
             self.compute_task_call(),
             vec![],

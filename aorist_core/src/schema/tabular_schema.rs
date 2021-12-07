@@ -1,3 +1,4 @@
+use aorist_primitives::AVec;
 #![allow(non_snake_case)]
 use crate::concept::{AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
 use crate::template::*;
@@ -12,7 +13,7 @@ use uuid::Uuid;
 #[aorist]
 pub struct TabularSchema {
     pub datum_template: AoristRef<DatumTemplate>,
-    pub attributes: Vec<AString>,
+    pub attributes: AVec<AString>,
 }
 impl TabularSchema {
     pub fn get_datum_template(&self) -> AoristRef<DatumTemplate> {

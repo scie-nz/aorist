@@ -1,3 +1,4 @@
+use aorist_primitives::AVec;
 use crate::code::{CodeBlock, CodeBlockWithForLoopCompression};
 use crate::constraint::OuterConstraint;
 use crate::flow::{CompressibleTask, ETLFlow, ETLTask, ForLoopCompressedTask};
@@ -24,7 +25,7 @@ where
 {
     tasks_dict: Option<AST>,
     task_identifiers: HashMap<Uuid, AST>,
-    python_based_tasks: Vec<PythonBasedTask<T, U>>,
+    python_based_tasks: AVec<PythonBasedTask<T, U>>,
     params: HashMap<AString, Option<ParameterTuple>>,
     _lt: PhantomData<&'a ()>,
     _constraint: PhantomData<C>,
@@ -42,7 +43,7 @@ where
 
     fn construct(
         tasks_dict: Option<AST>,
-        tasks: Vec<Self::E>,
+        tasks: AVec<Self::E>,
         task_identifiers: HashMap<Uuid, AST>,
         params: HashMap<AString, Option<ParameterTuple>>,
     ) -> Self {
@@ -61,7 +62,7 @@ where
         &self,
         endpoints: U::TEndpoints,
     ) -> (
-        Vec<AST>,
+        AVec<AST>,
         LinkedHashSet<PythonPreamble>,
         BTreeSet<PythonImport>,
     ) {
@@ -69,7 +70,7 @@ where
             .python_based_tasks
             .iter()
             .map(|x| x.get_statements(endpoints.clone()))
-            .collect::<Vec<_>>();
+            .collect::<AVec<_>>();
         let preambles = preambles_and_statements
             .iter()
             .map(|x| x.1.clone().into_iter())
@@ -84,7 +85,7 @@ where
             .iter()
             .map(|x| x.0.clone())
             .flatten()
-            .collect::<Vec<_>>();
+            .collect::<AVec<_>>();
         (statements, preambles, imports)
     }
     fn get_tasks_dict(&self) -> Option<AST> {
@@ -110,9 +111,9 @@ where
     fn run_task_compressions(
         compressible: LinkedHashMap<
             <<Self::E as ETLTask<T, U>>::S as CompressibleTask>::KeyType,
-            Vec<<Self::E as ETLTask<T, U>>::S>,
+            AVec<<Self::E as ETLTask<T, U>>::S>,
         >,
-        python_based_tasks: &mut Vec<Self::E>,
+        python_based_tasks: &mut AVec<Self::E>,
         constraint_name: AString,
         render_dependencies: bool,
     ) {
@@ -131,7 +132,7 @@ where
                 let mut maybe_uncompressible = tasks
                     .into_iter()
                     .map(|x| x.get_uncompressible_part().unwrap())
-                    .collect::<Vec<_>>();
+                    .collect::<AVec<_>>();
                 trace!(
                     "There are {} maybe_uncompressible tasks",
                     maybe_uncompressible.len()
@@ -265,7 +266,7 @@ where
                 }
 
                 for t in maybe_uncompressible.iter_mut() {
-                    let mut new_deps = Vec::new();
+                    let mut new_deps = AVec::new();
                     for dep in t.deps.iter() {
                         if !compressible_deps.contains(dep) {
                             new_deps.push(dep.clone());

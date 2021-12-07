@@ -43,7 +43,7 @@ pub fn aorist(args: TokenStream, input: TokenStream) -> TokenStream {
     let builder = RawConceptBuilder::new(vec![
         "Constrainable",
         "aorist_concept::ConstrainableWithChildren",
-    ]);
+    ].into_iter().collect());
     builder.gen_new(args, input)
 }
 

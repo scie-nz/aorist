@@ -1,3 +1,4 @@
+use aorist_primitives::AVec;
 use crate::{
     Attribute, BigIntLiteral, BooleanLiteral, Call, Dict, FloatLiteral, List, None,
     SimpleIdentifier, StringLiteral, Tuple, AST,
@@ -28,7 +29,7 @@ pub fn extract_arg(arg: &PyAny) -> PyResult<AST> {
         let v = extracted_list
             .iter()
             .map(|x| extract_arg(x))
-            .collect::<PyResult<Vec<AST>>>()?;
+            .collect::<PyResult<AVec<AST>>>()?;
         Ok(AST::List(List::new_wrapped(v, false)))
     } else if let Ok(extracted_val) = arg.downcast::<pyo3::types::PyFloat>() {
         Ok(AST::FloatLiteral(FloatLiteral::new_wrapped(
@@ -38,7 +39,7 @@ pub fn extract_arg(arg: &PyAny) -> PyResult<AST> {
         let v = extracted_tuple
             .iter()
             .map(|x| extract_arg(x))
-            .collect::<PyResult<Vec<AST>>>()?;
+            .collect::<PyResult<AVec<AST>>>()?;
         Ok(AST::Tuple(Tuple::new_wrapped(v, false)))
     } else if let Ok(extracted_dict) = arg.downcast::<PyDict>() {
         let m = extracted_dict
@@ -78,7 +79,7 @@ pub fn extract_arg(arg: &PyAny) -> PyResult<AST> {
                     let func = extract_arg(arg.getattr("func")?)?;
                     let args = match extract_arg(arg.getattr("args")?)? {
                         AST::List(x) => x.read().elems().clone(),
-                        AST::None(_) => Vec::new(),
+                        AST::None(_) => AVec::new(),
                         _ => panic!("args field of call should be list or none"),
                     };
                     let keywords = arg.getattr("keywords")?.downcast::<PyList>()?;

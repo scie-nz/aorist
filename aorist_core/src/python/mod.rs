@@ -1,3 +1,4 @@
+use aorist_primitives::AVec;
 mod ast;
 mod code_block;
 mod constraint_block;
@@ -32,7 +33,7 @@ pub use task::{ForLoopPythonBasedTask, PythonBasedTask, StandalonePythonBasedTas
 /// - A set of imports corresponding to the dialect used.
 /// - A comment string
 pub struct PythonFlowBuilderInput {
-    statements: Vec<AST>,
+    statements: AVec<AST>,
     preambles: LinkedHashSet<PythonPreamble>,
     imports: BTreeSet<PythonImport>,
     constraint_name: AString,
@@ -44,7 +45,7 @@ impl PythonFlowBuilderInput {
         self.statements.len() > 0
     }
     pub fn statements_only(
-        statements: Vec<AST>,
+        statements: AVec<AST>,
         constraint_name: AString,
         constraint_title: Option<AString>,
         constraint_body: Option<AString>,
@@ -63,8 +64,8 @@ impl PythonFlowBuilderInput {
         py: Python,
         ast_module: &'a PyModule,
         depth: usize,
-    ) -> PyResult<Vec<&'a PyAny>> {
-        let mut v = Vec::new();
+    ) -> PyResult<AVec<&'a PyAny>> {
+        let mut v = AVec::new();
         for statement in self.get_statements() {
             v.push(statement.to_python_ast_node(py, ast_module, depth)?);
         }
@@ -76,7 +77,7 @@ impl FlowBuilderInput for PythonFlowBuilderInput {
     type PreambleType = PythonPreamble;
 
     fn new(
-        statements: Vec<AST>,
+        statements: AVec<AST>,
         preambles: LinkedHashSet<PythonPreamble>,
         imports: BTreeSet<PythonImport>,
         constraint_name: AString,
@@ -92,7 +93,7 @@ impl FlowBuilderInput for PythonFlowBuilderInput {
             constraint_body,
         }
     }
-    fn get_statements(&self) -> Vec<AST> {
+    fn get_statements(&self) -> AVec<AST> {
         self.statements.clone()
     }
     fn get_preambles(&self) -> LinkedHashSet<PythonPreamble> {

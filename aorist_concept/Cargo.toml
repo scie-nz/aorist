@@ -13,10 +13,13 @@ repository = "https://github.com/scie-nz/aorist"
 proc-macro = true
 
 [dependencies]
+abi_stable = "0.10.3"
+aorist_primitives = {version = "0.0.14", path="../aorist_primitives", features=["python"]}
 aorist_util = "0.0.1"
 linked_hash_set = "0.1.4"
 proc-macro2 = "1.0.25"
 quote = "1"
+pyo3 = "0.14.3"
 serde = { version = "1.0", features = ["derive"] }
 serde_yaml = "0.8"
 syn = {version = "1.0.52", features = ["full", "extra-traits", "printing"]}

@@ -1,3 +1,4 @@
+use aorist_primitives::AVec;
 use crate::concept::{AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
 use crate::error::AoristError;
 use crate::role::*;
@@ -18,7 +19,7 @@ pub struct User {
     phone: AString,
     pub unixname: AString,
     #[constrainable]
-    roles: Option<Vec<AoristRef<Role>>>,
+    roles: Option<AVec<AoristRef<Role>>>,
 }
 
 impl TAoristObject for User {
@@ -30,8 +31,8 @@ impl TAoristObject for User {
 pub trait TUser {
     fn to_yaml(&self) -> AString;
     fn get_unixname(&self) -> AString;
-    fn set_roles(&mut self, roles: Vec<AoristRef<Role>>) -> Result<(), AoristError>;
-    fn get_roles(&self) -> Result<Vec<AoristRef<Role>>, AoristError>;
+    fn set_roles(&mut self, roles: AVec<AoristRef<Role>>) -> Result<(), AoristError>;
+    fn get_roles(&self) -> Result<AVec<AoristRef<Role>>, AoristError>;
     fn get_permissions(&self) -> Result<HashSet<AString>, AoristError>;
 }
 impl TUser for User {
@@ -41,7 +42,7 @@ impl TUser for User {
     fn get_unixname(&self) -> AString {
         self.unixname.as_str().into()
     }
-    fn set_roles(&mut self, roles: Vec<AoristRef<Role>>) -> Result<(), AoristError> {
+    fn set_roles(&mut self, roles: AVec<AoristRef<Role>>) -> Result<(), AoristError> {
         if let Some(_) = self.roles {
             return Err(AoristError::OtherError(AString::from(
                 "Tried to set roles more than once.",
@@ -50,7 +51,7 @@ impl TUser for User {
         self.roles = Some(roles);
         Ok(())
     }
-    fn get_roles(&self) -> Result<Vec<AoristRef<Role>>, AoristError> {
+    fn get_roles(&self) -> Result<AVec<AoristRef<Role>>, AoristError> {
         match &self.roles {
             Some(x) => Ok(x.clone()),
             None => Err(AoristError::OtherError(AString::from(

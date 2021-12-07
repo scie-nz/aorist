@@ -1,3 +1,4 @@
+use aorist_primitives::AVec;
 use crate::flow::flow_builder::FlowBuilderBase;
 use crate::flow::native_python_based_flow::NativePythonBasedFlow;
 use crate::flow::python_based_flow_builder::PythonBasedFlowBuilder;
@@ -28,12 +29,12 @@ impl<U: AoristUniverse> PythonBasedFlowBuilder<U> for JupyterFlowBuilder<U>
 where
     U::TEndpoints: TPrestoEndpoints,
 {
-    fn get_flow_imports(&self) -> Vec<PythonImport> {
-        Vec::new()
+    fn get_flow_imports(&self) -> AVec<PythonImport> {
+        AVec::new()
     }
     fn build_file(
         &self,
-        sources: Vec<(Option<AString>, AString)>,
+        sources: AVec<(Option<AString>, AString)>,
         _flow_name: Option<AString>,
     ) -> PyResult<AString> {
         let cells = json!(sources
@@ -66,7 +67,7 @@ where
             })
             .into_iter()
             .flatten()
-            .collect::<Vec<_>>());
+            .collect::<AVec<_>>());
         let notebook = json!({
             "nbformat": 4,
             "nbformat_minor": 5,

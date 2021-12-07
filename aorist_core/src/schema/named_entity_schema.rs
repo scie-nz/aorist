@@ -1,3 +1,4 @@
+use aorist_primitives::AVec;
 #![allow(non_snake_case)]
 use crate::attributes::*;
 use crate::concept::{AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
@@ -22,7 +23,7 @@ impl NamedEntitySchema {
             NamedEntitySchema::SpaCyNamedEntitySchema(x) => x.0.read().get_source_schema(),
         }
     }
-    pub fn get_attributes(&self) -> Vec<AoristRef<Attribute>> {
+    pub fn get_attributes(&self) -> AVec<AoristRef<Attribute>> {
         match self {
             Self::SpaCyNamedEntitySchema(x) => x.0.read().get_attributes(),
         }

@@ -1,3 +1,4 @@
+use aorist_primitives::AVec;
 use abi_stable::{std_types::*, StableAbi};
 use aorist_primitives::AString;
 #[cfg(feature = "python")]
@@ -8,13 +9,13 @@ use std::collections::BTreeSet;
 #[cfg_attr(feature = "python", pyclass)]
 #[derive(Debug, Clone, PartialEq, Eq, Hash, StableAbi)]
 pub struct Python {
-    pip_requirements: RVec<AString>,
+    pip_requirements: RAVec<AString>,
 }
 #[cfg(feature = "python")]
 #[pymethods]
 impl Python {
     #[new]
-    pub fn new(pip_requirements: Vec<&str>) -> Self {
+    pub fn new(pip_requirements: AVec<&str>) -> Self {
         Self {
             pip_requirements: pip_requirements.into_iter().map(|x| x.into()).collect(),
         }

@@ -10,6 +10,9 @@ readme = false
 repository = "https://github.com/scie-nz/aorist"
 
 [dependencies]
+# TODO: unbreak compilation w/o features=python
+aorist_primitives = { version = "0.0.14", path="../aorist_primitives", features=["python"] }
+abi_stable = "0.10.3"
 proc-macro-error = "1.0"
 proc-macro2 = { version = "1", default-features = false }
 quote = "1"

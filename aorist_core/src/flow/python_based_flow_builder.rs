@@ -1,3 +1,4 @@
+use aorist_primitives::AVec;
 use crate::flow::etl_flow::ETLFlow;
 use crate::flow::flow_builder::{FlowBuilderBase, FlowBuilderMaterialize};
 use crate::flow::flow_builder_input::FlowBuilderInput;
@@ -23,7 +24,7 @@ where
 
     fn materialize(
         &self,
-        statements_and_preambles: Vec<PythonFlowBuilderInput>,
+        statements_and_preambles: AVec<PythonFlowBuilderInput>,
         flow_name: Option<AString>,
     ) -> Result<AString, Self::ErrorType> {
         let gil = Python::acquire_gil();
@@ -50,18 +51,18 @@ where
             .chain(preamble_imports)
             .collect::<BTreeSet<_>>();
 
-        let imports_ast: Vec<_> = imports
+        let imports_ast: AVec<_> = imports
             .into_iter()
             .map(|x| x.to_python_ast_node(py, ast, 0).unwrap())
             .collect();
 
-        let mut statements_with_ast: Vec<_> = statements_and_preambles
+        let mut statements_with_ast: AVec<_> = statements_and_preambles
             .into_iter()
             .filter(|x| x.has_statements())
-            .collect::<Vec<_>>();
+            .collect::<AVec<_>>();
 
         // ast_value without ancestry => short_name => keys
-        let mut literals: LinkedHashMap<AST, LinkedHashMap<AString, Vec<_>>> = LinkedHashMap::new();
+        let mut literals: LinkedHashMap<AST, LinkedHashMap<AString, AVec<_>>> = LinkedHashMap::new();
 
         for pfbi in statements_with_ast.iter() {
             pfbi.extract_literals(&mut literals);
@@ -83,7 +84,7 @@ where
         }
 
         let augmented_statements = self.augment_statements(statements_with_ast, flow_name.clone());
-        let content: Vec<(Option<AString>, Vec<&PyAny>)> = vec![(None, imports_ast)]
+        let content: AVec<(Option<AString>, AVec<&PyAny>)> = vec![(None, imports_ast)]
             .into_iter()
             .chain(
                 preambles
@@ -98,11 +99,11 @@ where
             }))
             .collect();
 
-        let mut sources: Vec<(Option<AString>, AString)> = Vec::new();
+        let mut sources: AVec<(Option<AString>, AString)> = AVec::new();
 
         // This is needed since astor will occasionally forget to add a newline
         for (comment, block) in content {
-            let mut lines: Vec<AString> = Vec::new();
+            let mut lines: AVec<AString> = AVec::new();
             for item in block {
                 let module = ast.getattr("Expression")?.call1((item,))?;
                 let source: PyResult<_> = astor.getattr("to_source")?.call1((module,));
@@ -125,7 +126,7 @@ where
                     lines
                         .iter()
                         .map(|x| x.as_str().to_string())
-                        .collect::<Vec<String>>()
+                        .collect::<AVec<String>>()
                         .join("")
                         .as_str()
                         .into(),
@@ -146,16 +147,16 @@ where
     /// Takes a set of statements and mutates them so as make a valid ETL flow
     fn augment_statements(
         &self,
-        statements: Vec<PythonFlowBuilderInput>,
+        statements: AVec<PythonFlowBuilderInput>,
         _flow_name: Option<AString>,
-    ) -> Vec<PythonFlowBuilderInput> {
+    ) -> AVec<PythonFlowBuilderInput> {
         statements
     }
-    fn get_flow_imports(&self) -> Vec<PythonImport>;
+    fn get_flow_imports(&self) -> AVec<PythonImport>;
 
     fn build_file(
         &self,
-        sources: Vec<(Option<AString>, AString)>,
+        sources: AVec<(Option<AString>, AString)>,
         _flow_name: Option<AString>,
     ) -> PyResult<AString> {
         format_code(
@@ -165,7 +166,7 @@ where
                     Some(comment) => format!("# {}\n{}\n", comment, block).to_string(),
                     None => block.as_str().into(),
                 })
-                .collect::<Vec<String>>()
+                .collect::<AVec<String>>()
                 .join("")
                 .as_str()
                 .into(),

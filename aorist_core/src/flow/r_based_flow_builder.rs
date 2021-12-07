@@ -1,3 +1,4 @@
+use aorist_primitives::AVec;
 use crate::flow::flow_builder::{FlowBuilderBase, FlowBuilderMaterialize};
 use crate::flow::flow_builder_input::FlowBuilderInput;
 use crate::flow::native_r_based_flow::NativeRBasedFlow;
@@ -19,8 +20,8 @@ pub struct RBasedFlowBuilder {}
 impl RBasedFlowBuilder {
     fn build_flow(
         &self,
-        statements: Vec<(AString, Option<AString>, Option<AString>, Vec<AString>)>,
-    ) -> Vec<(AString, Vec<AString>)> {
+        statements: AVec<(AString, Option<AString>, Option<AString>, AVec<AString>)>,
+    ) -> AVec<(AString, AVec<AString>)> {
         statements
             .into_iter()
             .map(|(name, title, body, code)| {
@@ -32,7 +33,7 @@ impl RBasedFlowBuilder {
                                 t,
                                 b.split("\n")
                                     .map(|x| format!("# {}", x).to_string())
-                                    .collect::<Vec<AString>>()
+                                    .collect::<AVec<AString>>()
                                     .join("\n")
                             )
                             .to_string(),
@@ -46,14 +47,14 @@ impl RBasedFlowBuilder {
             .collect()
     }
 
-    fn build_file(&self, sources: Vec<(Option<AString>, AString)>) -> String {
+    fn build_file(&self, sources: AVec<(Option<AString>, AString)>) -> String {
         sources
             .into_iter()
             .map(|(maybe_comment, block)| match maybe_comment {
                 Some(comment) => format!("# {}\n{}\n", comment, block).to_string(),
                 None => block,
             })
-            .collect::<Vec<AString>>()
+            .collect::<AVec<AString>>()
             .join("\n")
     }
 }
@@ -71,7 +72,7 @@ impl FlowBuilderMaterialize for RBasedFlowBuilder {
 
     fn materialize(
         &self,
-        statements_and_preambles: Vec<RFlowBuilderInput>,
+        statements_and_preambles: AVec<RFlowBuilderInput>,
     ) -> std::result::Result<AString, RFlowBuilderError> {
         let preambles: LinkedHashSet<RPreamble> = statements_and_preambles
             .iter()
@@ -88,7 +89,7 @@ impl FlowBuilderMaterialize for RBasedFlowBuilder {
             .chain(preamble_imports)
             .collect::<BTreeSet<_>>();
 
-        let imports_ast: Vec<_> = imports
+        let imports_ast: AVec<_> = imports
             .into_iter()
             .map(|x| {
                 let call = x.to_r_ast_node(0);
@@ -97,7 +98,7 @@ impl FlowBuilderMaterialize for RBasedFlowBuilder {
             })
             .collect();
 
-        let statements: Vec<(AString, Option<AString>, Option<AString>, Vec<AST>)> =
+        let statements: AVec<(AString, Option<AString>, Option<AString>, AVec<AST>)> =
             statements_and_preambles
                 .into_iter()
                 .map(|x| {
@@ -109,13 +110,13 @@ impl FlowBuilderMaterialize for RBasedFlowBuilder {
                     )
                 })
                 .collect();
-        let mut statements_with_ast: Vec<_> = statements
+        let mut statements_with_ast: AVec<_> = statements
             .into_iter()
             .filter(|x| x.3.len() > 0)
-            .collect::<Vec<_>>();
+            .collect::<AVec<_>>();
 
         // ast_value without ancestry => short_name => keys
-        let mut literals: LinkedHashMap<AST, LinkedHashMap<AString, Vec<_>>> = LinkedHashMap::new();
+        let mut literals: LinkedHashMap<AST, LinkedHashMap<AString, AVec<_>>> = LinkedHashMap::new();
 
         for (short_name, _, _, asts) in statements_with_ast.iter() {
             for ast in asts {
@@ -154,18 +155,18 @@ impl FlowBuilderMaterialize for RBasedFlowBuilder {
 
         let flow = self.build_flow(statements_ast);
 
-        let content: Vec<(Option<AString>, Vec<_>)> =
+        let content: AVec<(Option<AString>, AVec<_>)> =
             vec![(Some("RImports".into()), imports_ast)]
                 .into_iter()
                 .chain(preambles.into_iter().map(|x| (None, vec![x.get_body()])))
                 .chain(flow.into_iter().map(|(x, y)| (Some(x), y)))
                 .collect();
 
-        let mut sources: Vec<(Option<AString>, AString)> = Vec::new();
+        let mut sources: AVec<(Option<AString>, AString)> = AVec::new();
 
         // This is needed since astor will occasionally forget to add a newline
         for (comment, block) in content {
-            let mut lines: Vec<AString> = Vec::new();
+            let mut lines: AVec<AString> = AVec::new();
             for item in block {
                 lines.push(item);
             }

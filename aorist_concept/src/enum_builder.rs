@@ -1,3 +1,4 @@
+use aorist_primitives::AVec;
 extern crate proc_macro;
 use self::proc_macro::TokenStream;
 use crate::builder::Builder;
@@ -13,7 +14,7 @@ mod keyword {
 }
 
 pub struct EnumBuilder {
-    pub variant_idents: Vec<Ident>,
+    pub variant_idents: AVec<Ident>,
 }
 impl Builder for EnumBuilder {
     type TInput = syn::punctuated::Punctuated<Variant, Comma>;
@@ -21,7 +22,7 @@ impl Builder for EnumBuilder {
         let variant_idents = variants
             .iter()
             .map(|x| (x.ident.clone()))
-            .collect::<Vec<Ident>>();
+            .collect::<AVec<Ident>>();
         Self { variant_idents }
     }
     fn to_file(&self, enum_name: &Ident, file_name: &str) {
@@ -37,7 +38,7 @@ impl Builder for EnumBuilder {
         )
         .unwrap();
 
-        for v in &self.variant_idents {
+        for v in self.variant_idents.iter() {
             writeln!(file, "'{}'->'{}';", enum_name, v).unwrap();
         }
     }
@@ -163,7 +164,7 @@ impl Builder for EnumBuilder {
                   Self { inner: self.inner.deep_clone() }
               }
               #[staticmethod]
-              pub fn child_concept_types() -> Vec<pyo3::prelude::PyObject> {
+              pub fn child_concept_types() -> AVec<pyo3::prelude::PyObject> {
                   let gil_guard = pyo3::prelude::Python::acquire_gil();
                   let py = gil_guard.python();
                   vec![#(
@@ -179,7 +180,7 @@ impl Builder for EnumBuilder {
                   true
               }
               #[staticmethod]
-              pub fn concrete_type_names() -> Vec<String> {
+              pub fn concrete_type_names() -> AVec<String> {
                   vec![#(
                       stringify!(#variant).into(),
                   )*]
@@ -241,7 +242,7 @@ impl Builder for EnumBuilder {
                       )*
                   }
               }
-              fn get_children_uuid(&self) -> Vec<Uuid> {
+              fn get_children_uuid(&self) -> AVec<Uuid> {
                   match self {
                       #(
                           #enum_name::#variant(x) => {
@@ -259,7 +260,7 @@ impl Builder for EnumBuilder {
           }
           impl AoristConcept for AoristRef<#enum_name> {
               type TChildrenEnum = AoristRef<#enum_name>;
-              fn get_children(&self) -> Vec<(
+              fn get_children(&self) -> AVec<(
                   // enum name
                   &str,
                   // field name
@@ -285,7 +286,7 @@ impl Builder for EnumBuilder {
               fn get_tag(&self) -> Option<AString> {
                   self.0.read().get_tag()
               }
-              fn get_children_uuid(&self) -> Vec<Uuid> {
+              fn get_children_uuid(&self) -> AVec<Uuid> {
                   self.0.read().get_children_uuid()
               }
               fn compute_uuids(&self) {

@@ -1,3 +1,4 @@
+use aorist_primitives::AVec;
 use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 use abi_stable::std_types::RArc;
 use anyhow::{Context, Result};
@@ -32,7 +33,7 @@ pub struct Constraint {
     pub inner: Option<AoristConstraint>,
     pub name: AString,
     pub root: AString,
-    pub requires: Option<Vec<AString>>,
+    pub requires: Option<AVec<AString>>,
 }
 impl<'a> OuterConstraint<'a> for Constraint {
     type TEnum = AoristConstraint;
@@ -47,7 +48,7 @@ impl<'a> OuterConstraint<'a> for Constraint {
     fn get_root_uuid(&self) -> Result<Uuid> {
         self.inner("get_root_uuid()")?.get_root_uuid()
     }
-    fn get_downstream_constraints(&self) -> Result<Vec<RArc<RRwLock<Self>>>> {
+    fn get_downstream_constraints(&self) -> Result<AVec<RArc<RRwLock<Self>>>> {
         self.inner("get_downstream_constraints()")?
             .get_downstream_constraints()
     }

@@ -1,3 +1,4 @@
+use aorist_primitives::AVec;
 use crate::asset::*;
 use crate::concept::{AoristRef, WrappedConcept};
 use crate::encoding::Encoding;
@@ -23,7 +24,7 @@ asset_enum! {
     - NamedEntities
 }
 impl LanguageAsset {
-    pub fn get_source_assets(&self) -> Vec<Asset> {
+    pub fn get_source_assets(&self) -> AVec<Asset> {
         let source_schema = match &*self.get_schema().0.read() {
             DataSchema::LanguageAssetSchema(x) => x.0.read().get_source_schema(),
             _ => panic!("schema must be LanguageAssetSchema"),

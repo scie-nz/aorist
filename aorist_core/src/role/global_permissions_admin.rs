@@ -1,3 +1,4 @@
+use aorist_primitives::AVec;
 use crate::concept::{AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
 use crate::role::role::TRole;
 use aorist_concept::{aorist, Constrainable};
@@ -11,7 +12,7 @@ use uuid::Uuid;
 #[aorist]
 pub struct GlobalPermissionsAdmin {}
 impl TRole for AoristRef<GlobalPermissionsAdmin> {
-    fn get_permissions(&self) -> Vec<AString> {
+    fn get_permissions(&self) -> AVec<AString> {
         vec!["gitea/admin".into(), "ranger/admin".into()]
     }
 }
