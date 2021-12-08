@@ -1,5 +1,6 @@
 use aorist_primitives::AVec;
 extern crate proc_macro;
+use aorist_util::AoristError;
 use self::proc_macro::TokenStream;
 use crate::builder::Builder;
 use aorist_util::{
@@ -17,46 +18,46 @@ mod keyword {
 use linked_hash_set::LinkedHashSet;
 
 fn extract_names_and_types(
-    fields: &AVec<Field>,
-) -> (
-    AVec<Ident>,
-    AVec<Type>,
-    AVec<Ident>,
-    AVec<Type>,
-    AVec<Ident>,
-    AVec<Type>,
-) {
-    let mut names: AVec<Ident> = AVec::new();
-    let mut types: AVec<Type> = AVec::new();
-    let mut names_ref: AVec<Ident> = AVec::new();
-    let mut types_ref: AVec<Type> = AVec::new();
-    let mut names_vec_ref: AVec<Ident> = AVec::new();
-    let mut types_vec_ref: AVec<Type> = AVec::new();
-    for field in fields.iter() {
+    fields: &Vec<Field>,
+) -> Result<(
+    Vec<Ident>,
+    Vec<Type>,
+    Vec<Ident>,
+    Vec<Type>,
+    Vec<Ident>,
+    Vec<Type>,
+), AoristError> {
+    let mut names: Vec<Ident> = Vec::new();
+    let mut types: Vec<Type> = Vec::new();
+    let mut names_ref: Vec<Ident> = Vec::new();
+    let mut types_ref: Vec<Type> = Vec::new();
+    let mut names_vec_ref: Vec<Ident> = Vec::new();
+    let mut types_vec_ref: Vec<Type> = Vec::new();
+    for field in fields {
         if let Some(t) = extract_type_from_aorist_ref(&field.ty) {
-            names_ref.push(field.ident.as_ref().unwrap().clone());
+            names_ref.push(field.ident.as_ref().ok_or_else(|| AoristError::OtherError("ident is none".into()))?.clone());
             types_ref.push(t.clone());
         } else if let Some(ref vt) = extract_type_from_vector(&field.ty) {
             if let Some(t) = extract_type_from_aorist_ref(vt) {
-                names_vec_ref.push(field.ident.as_ref().unwrap().clone());
+                names_vec_ref.push(field.ident.as_ref().ok_or_else(|| AoristError::OtherError("ident is none".into()))?.clone());
                 types_vec_ref.push(t.clone());
             } else {
-                names.push(field.ident.as_ref().unwrap().clone());
+                names.push(field.ident.as_ref().ok_or_else(|| AoristError::OtherError("ident is none".into()))?.clone());
                 types.push(field.ty.clone());
             }
         } else {
-            names.push(field.ident.as_ref().unwrap().clone());
+            names.push(field.ident.as_ref().ok_or_else(|| AoristError::OtherError("ident is none".into()))?.clone());
             types.push(field.ty.clone());
         }
     }
-    (
+    Ok((
         names,
         types,
         names_ref,
         types_ref,
         names_vec_ref,
         types_vec_ref,
-    )
+    ))
 }
 
 fn field_is_constrainable(field: &Field) -> bool {
@@ -99,22 +100,25 @@ pub struct StructBuilder {
     pub unconstrainable: AVec<Field>,
 }
 impl StructBuilder {
-    pub fn get_all_types(&self) -> AVec<&Type> {
-        self.bare_types
+    pub fn get_all_types(&self) -> Result<Vec<&Type>, AoristError> {
+        let all_types = self.bare_types
             .iter()
             .chain(self.vec_types.iter())
             .chain(self.option_types.iter())
             .chain(self.option_vec_types.iter())
-            .chain(self.map_value_types.iter())
-            .map(|x| extract_type_from_aorist_ref(x).unwrap())
-            .collect::<LinkedHashSet<_>>()
-            .into_iter()
-            .collect()
+            .chain(self.map_value_types.iter());
+        let mapped: Vec<_> = all_types.map(
+            |x| extract_type_from_aorist_ref(x).ok_or_else(
+                || AoristError::OtherError("Type could not be extracted".into()) 
+            )
+        ).collect::<Result<Vec<_>, AoristError>>()?;
+        let sorted: LinkedHashSet<_> = mapped.into_iter().collect();
+        Ok(sorted.into_iter().collect())
     }
 }
 impl Builder for StructBuilder {
     type TInput = FieldsNamed;
-    fn new(fields: &FieldsNamed) -> StructBuilder {
+    fn new(fields: &FieldsNamed) -> Result<StructBuilder, AoristError> {
         let fields_filtered = fields
             .named
             .clone()
@@ -200,7 +204,7 @@ impl Builder for StructBuilder {
                 bare_idents.push(ident.clone());
             }
         }
-        Self {
+        Ok(Self {
             bare_types,
             vec_types,
             option_types,
@@ -214,9 +218,9 @@ impl Builder for StructBuilder {
             map_idents,
             fields_with_default,
             unconstrainable,
-        }
+        })
     }
-    fn to_file(&self, struct_name: &Ident, file_name: &str) {
+    fn to_file(&self, struct_name: &Ident, file_name: &str) -> Result<(), AoristError> {
         let types = self
             .bare_idents
             .iter()
@@ -233,14 +237,12 @@ impl Builder for StructBuilder {
         let mut file = OpenOptions::new()
             .write(true)
             .append(true)
-            .open(file_name)
-            .unwrap();
+            .open(file_name)?;
         writeln!(
             file,
             "node [shape = oval, fillcolor=white, style=filled, fontname = Helvetica] '{}';",
             struct_name
-        )
-        .unwrap();
+        )?;
         for (ident, t) in types {
             let tp = match t {
                 Type::Path(x) => &x.path,
@@ -256,14 +258,14 @@ impl Builder for StructBuilder {
                 file,
                 "'{}'->'{}' [label='{}'];",
                 struct_name, type_val, ident,
-            )
-            .unwrap();
+            )?;
         }
+        Ok(())
     }
-    fn to_concept_children_token_stream(&self, struct_name: &Ident) -> TokenStream {
-        let types = self.get_all_types();
+    fn to_concept_children_token_stream(&self, struct_name: &Ident) -> Result<TokenStream, AoristError> {
+        let types = self.get_all_types()?;
 
-        TokenStream::from(quote! { paste! {
+        Ok(TokenStream::from(quote! { paste! {
 
             impl <T> std::convert::From<(
                 // struct name
@@ -302,9 +304,9 @@ impl Builder for StructBuilder {
                     }
                 }
             }
-        }})
+        }}))
     }
-    fn to_concept_token_stream(&self, struct_name: &Ident) -> TokenStream {
+    fn to_concept_token_stream(&self, struct_name: &Ident) -> Result<TokenStream, AoristError> {
         let (
             bare_ident,
             vec_ident,
@@ -335,7 +337,7 @@ impl Builder for StructBuilder {
             unconstrainable_type_ref,
             unconstrainable_name_vec_ref,
             unconstrainable_type_vec_ref,
-        ) = extract_names_and_types(&self.unconstrainable);
+        ) = extract_names_and_types(&self.unconstrainable)?;
         let bare_type_deref = bare_type
             .iter()
             .map(|x| extract_type_from_aorist_ref(x))
@@ -357,8 +359,8 @@ impl Builder for StructBuilder {
             .map(|x| extract_type_from_aorist_ref(x))
             .collect::<AVec<_>>();
         let py_class_name = format!("{}", struct_name);
-        let types = self.get_all_types();
-        TokenStream::from(quote! { paste! {
+        let types = self.get_all_types()?;
+        Ok(TokenStream::from(quote! { paste! {
             pub enum [<#struct_name Children>] {
                 #(
                     #types(AoristRef<#types>),
@@ -966,6 +968,6 @@ impl Builder for StructBuilder {
                     children
                 }
             }
-        }})
+        }}))
     }
 }
