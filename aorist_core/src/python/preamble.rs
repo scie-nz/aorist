@@ -1,8 +1,8 @@
-use aorist_primitives::AVec;
+
 use crate::code::Preamble;
 use crate::python::PythonImport;
 use aorist_ast::FunctionDef;
-use aorist_primitives::AString;
+use aorist_primitives::{AString, AVec};
 use pyo3::prelude::*;
 use pyo3::types::{PyList, PyModule, PyString, PyTuple};
 use std::hash::Hash;

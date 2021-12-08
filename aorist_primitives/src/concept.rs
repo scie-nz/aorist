@@ -60,6 +60,16 @@ impl AString {
 #[derive(Clone, PartialEq, Serialize, Debug, Hash, Eq, PartialOrd, Ord)]
 pub struct AVec<T>(abi_stable::std_types::RVec<T>);
 
+impl<'de, T> Deserialize<'de> for AVec<T> where T: Deserialize<'de> {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let d = abi_stable::std_types::RVec::<T>::deserialize(deserializer)?;
+        Ok(Self(d))
+    }
+}
+
 impl <T> std::iter::IntoIterator for AVec<T> {
     type Item = T;
     type IntoIter = <abi_stable::std_types::RVec<T> as std::iter::IntoIterator>::IntoIter;

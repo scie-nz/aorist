@@ -1,4 +1,4 @@
-use aorist_primitives::AVec;
+
 use crate::compliance::*;
 use crate::concept::{AoristRef, WrappedConcept};
 use crate::dataset::*;
@@ -9,7 +9,7 @@ use crate::user::*;
 use crate::user_group::*;
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
-use aorist_primitives::{AString, AoristConcept, ConceptEnum};
+use aorist_primitives::{AString, AVec, AoristConcept, ConceptEnum};
 use derivative::Derivative;
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
@@ -53,7 +53,7 @@ impl TUniverse for Universe {
     fn get_user_permissions(&self) -> Result<HashMap<AString, HashSet<AString>>, AString> {
         let umap = self.get_user_unixname_map();
         let mut map: HashMap<_, HashSet<AString>> = HashMap::new();
-        for binding in self.role_bindings.as_ref().unwrap() {
+        for binding in self.role_bindings.as_ref().unwrap().iter() {
             let name: AString = binding.0.read().get_user_name().clone();
             if !umap.contains_key(&name) {
                 return Err(format!("Cannot find user with name {}.", name.as_str())

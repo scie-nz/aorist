@@ -1,4 +1,4 @@
-use aorist_primitives::AVec;
+
 #![allow(dead_code)]
 use crate::attributes::*;
 use crate::concept::{AoristRef, WrappedConcept};
@@ -9,7 +9,7 @@ use abi_stable::std_types::RArc;
 use aorist_attributes::{Count, FloatPrediction, Regressor};
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
-use aorist_primitives::{AString, AoristConcept, ConceptEnum};
+use aorist_primitives::{AString, AVec, AoristConcept, ConceptEnum};
 use derivative::Derivative;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;

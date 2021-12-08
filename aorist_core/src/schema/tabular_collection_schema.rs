@@ -1,4 +1,4 @@
-use aorist_primitives::AVec;
+
 #![allow(non_snake_case)]
 use crate::asset::*;
 use crate::attributes::*;
@@ -8,7 +8,7 @@ use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 use abi_stable::std_types::RArc;
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
-use aorist_primitives::AString;
+use aorist_primitives::{AString, AVec};
 use derivative::Derivative;
 use linked_hash_map::LinkedHashMap;
 #[cfg(feature = "python")]
@@ -31,7 +31,7 @@ impl TabularCollectionSchema {
     }
     pub fn get_attributes(&self) -> AVec<AoristRef<Attribute>> {
         let mut attributes_map = LinkedHashMap::new();
-        for asset in &self.source_assets {
+        for asset in self.source_assets.iter() {
             let mut asset_attr: HashMap<AString, Attribute> = asset
                 .0
                 .read()

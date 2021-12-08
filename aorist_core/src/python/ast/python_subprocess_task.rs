@@ -1,8 +1,8 @@
-use aorist_primitives::AVec;
+
 use crate::python::ast::PythonTaskBase;
 use crate::python::PythonImport;
 use aorist_ast::{Assignment, Attribute, BooleanLiteral, Call, SimpleIdentifier, Tuple, AST};
-use aorist_primitives::AString;
+use aorist_primitives::{AString, AVec};
 use linked_hash_map::LinkedHashMap;
 
 pub trait PythonSubprocessTask: PythonTaskBase {

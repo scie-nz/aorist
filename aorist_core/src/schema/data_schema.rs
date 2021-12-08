@@ -1,4 +1,4 @@
-use aorist_primitives::AVec;
+
 #![allow(non_snake_case)]
 use crate::attributes::*;
 use crate::concept::{AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
@@ -15,7 +15,7 @@ use crate::schema::vision_asset_schema::*;
 use crate::template::*;
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
-use aorist_primitives::AString;
+use aorist_primitives::{AString, AVec};
 #[cfg(feature = "python")]
 use pyo3::exceptions::PyValueError;
 #[cfg(feature = "python")]
@@ -125,7 +125,7 @@ impl DataSchema {
                     .collect()
             }
             DataSchema::TimeOrderedTabularSchema(x) => x.0.read().attributes.clone(),
-            DataSchema::UndefinedTabularSchema(_) => vec![],
+            DataSchema::UndefinedTabularSchema(_) => vec![].into_iter().collect(),
         }
     }
     pub fn get_attributes(&self) -> AVec<AoristRef<Attribute>> {

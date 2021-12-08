@@ -7,7 +7,7 @@ use aorist_attributes::{
 };
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
-use aorist_primitives::{AString, AoristConcept, ConceptEnum};
+use aorist_primitives::{AString, AVec, AoristConcept, ConceptEnum};
 use derivative::Derivative;
 #[cfg(feature = "sql")]
 use linked_hash_map::LinkedHashMap;

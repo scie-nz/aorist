@@ -1,4 +1,4 @@
-use aorist_primitives::AVec;
+
 use crate::concept::{AoristRef, WrappedConcept};
 use crate::encoding::*;
 use crate::storage::*;
@@ -11,7 +11,7 @@ use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 use abi_stable::std_types::RArc;
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
-use aorist_primitives::{AString, AoristConcept, ConceptEnum};
+use aorist_primitives::{AString, AVec, AoristConcept, ConceptEnum};
 #[cfg(feature = "python")]
 use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
@@ -35,12 +35,12 @@ pub enum StorageSetup {
 impl StorageSetup {
     pub fn get_local_storage(&self) -> AVec<AoristRef<Storage>> {
         match self {
-            Self::RemoteStorageSetup(_) => vec![],
+            Self::RemoteStorageSetup(_) => vec![].into_iter().collect(),
             Self::ReplicationStorageSetup(x) => x.0.read().targets.clone(),
-            Self::ComputedFromLocalData(x) => vec![x.0.read().target.clone()],
-            Self::LocalStorageSetup(x) => vec![x.0.read().local.clone()],
+            Self::ComputedFromLocalData(x) => vec![x.0.read().target.clone()].into_iter().collect(),
+            Self::LocalStorageSetup(x) => vec![x.0.read().local.clone()].into_iter().collect(),
             Self::TwoTierStorageSetup(x) => {
-                vec![x.0.read().scratch.clone(), x.0.read().persistent.clone()]
+                vec![x.0.read().scratch.clone(), x.0.read().persistent.clone()].into_iter().collect()
             }
         }
     }

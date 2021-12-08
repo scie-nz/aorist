@@ -1,4 +1,4 @@
-use aorist_primitives::AVec;
+
 #![allow(dead_code)]
 use crate::code::CodeBlock;
 use crate::code::CodeBlockWithDefaultConstructor;
@@ -15,7 +15,7 @@ use abi_stable::external_types::parking_lot::rw_lock::{RReadGuard, RRwLock};
 use abi_stable::std_types::RArc;
 use anyhow::Result;
 use aorist_ast::{AncestorRecord, SimpleIdentifier, AST};
-use aorist_primitives::{AString, TAoristObject};
+use aorist_primitives::{AString, AVec, TAoristObject};
 use aorist_primitives::{Ancestry, AoristConcept, AoristUniverse, TConceptEnum};
 use inflector::cases::snakecase::to_snake_case;
 use linked_hash_map::LinkedHashMap;
@@ -342,13 +342,13 @@ where
                             .map(|(c, _id)| {
                                 (
                                     c.read().get_constraint_uuid().unwrap(),
-                                    vec![c.read().get_constraint_uuid().unwrap()],
+                                    vec![c.read().get_constraint_uuid().unwrap()].into_iter().collect(),
                                 )
                             })
                             .collect(),
                     ),
                 );
-                for elem in &satisfied {
+                for elem in satisfied.iter() {
                     reduced_block.insert(elem.1.clone(), elem.0.clone());
                 }
             }
@@ -377,7 +377,7 @@ where
                 self.get_render_dependencies(),
             )?;
             for (key, val) in block.get_identifiers() {
-                for mapped_key in uuid_mappings.get(&key).unwrap() {
+                for mapped_key in uuid_mappings.get(&key).unwrap().iter() {
                     identifiers.insert(mapped_key.clone(), val.clone());
                 }
                 identifiers.insert(key, val);
@@ -654,7 +654,7 @@ where
                 assert!(raw_unsatisfied_constraints.remove(&k).is_some());
                 trace!("Dangling: {:?}", k);
                 if let Some(v) = reverse_dependencies.get(&k) {
-                    for rev in v {
+                    for rev in v.iter() {
                         assert!(raw_unsatisfied_constraints
                             .get(rev)
                             .unwrap()
@@ -727,7 +727,7 @@ where
         concept_map: &HashMap<(Uuid, AString), C>,
     ) -> HashMap<(Uuid, AString), AVec<AncestorRecord>> {
         let mut ancestors: HashMap<(Uuid, AString), AVec<AncestorRecord>> = HashMap::new();
-        let mut frontier: AVec<AncestorRecord> = AVec::new();
+        let mut frontier: Vec<AncestorRecord> = Vec::new();
         frontier.push(AncestorRecord::new(
             universe.get_uuid(),
             universe.get_type(),
@@ -741,10 +741,10 @@ where
                 universe.get_type(),
                 None,
                 0,
-            )],
+            )].into_iter().collect(),
         );
         while frontier.len() > 0 {
-            let mut new_frontier: AVec<AncestorRecord> = AVec::new();
+            let mut new_frontier: Vec<AncestorRecord> = Vec::new();
             for child in frontier.drain(0..) {
                 let key = child.get_key();
                 trace!("Ancestors for key: {:?}", key);
@@ -800,7 +800,7 @@ where
         let ancestry: A = A::new(concepts.clone());
         let family_trees = Self::generate_family_trees(&ancestors);
 
-        for builder in &sorted_builders {
+        for builder in sorted_builders.iter() {
             Self::attach_constraints(
                 builder,
                 &by_object_type,
@@ -836,7 +836,7 @@ where
         let mut family_trees: HashMap<(Uuid, AString), HashMap<AString, HashSet<Uuid>>> =
             HashMap::new();
         for (key, ancestor_v) in ancestors.iter() {
-            for record in ancestor_v {
+            for record in ancestor_v.iter() {
                 family_trees
                     .entry(key.clone())
                     .or_insert(HashMap::new())
@@ -844,7 +844,7 @@ where
                     .or_insert(HashSet::new())
                     .insert(record.uuid);
             }
-            for record in ancestor_v {
+            for record in ancestor_v.iter() {
                 let (uuid, object_type) = key;
                 let ancestor_key = record.get_key();
                 family_trees
@@ -886,7 +886,7 @@ where
                 root_object_type
             );
 
-            for root in root_concepts {
+            for root in root_concepts.iter() {
                 let root_key = (root.get_uuid(), root.get_type());
                 let family_tree = family_trees.get(&root_key).unwrap();
                 if builder.should_add(root.clone(), &ancestry) {

@@ -1,4 +1,4 @@
-use aorist_primitives::AVec;
+
 use crate::dialect::Dialect;
 use crate::flow::etl_flow::ETLFlow;
 use crate::flow::flow_builder::FlowBuilderBase;
@@ -10,7 +10,7 @@ use crate::python::{
 };
 use aorist_ast::{Call, SimpleIdentifier, StringLiteral, AST};
 use aorist_primitives::TPrestoEndpoints;
-use aorist_primitives::{AString, AoristUniverse};
+use aorist_primitives::{AString, AVec, AoristUniverse};
 use linked_hash_map::LinkedHashMap;
 use std::hash::Hash;
 use std::marker::PhantomData;

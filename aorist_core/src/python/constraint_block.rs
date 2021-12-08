@@ -1,4 +1,4 @@
-use aorist_primitives::AVec;
+
 use crate::code::CodeBlock;
 use crate::constraint::OuterConstraint;
 use crate::constraint_block::ConstraintBlock;
@@ -7,7 +7,7 @@ use crate::parameter_tuple::ParameterTuple;
 use crate::program::TOuterProgram;
 use crate::python::PythonBasedCodeBlock;
 use crate::python::{Assignment, Dict, PythonFlowBuilderInput, PythonImport, PythonPreamble, AST};
-use aorist_primitives::{AString, AoristUniverse};
+use aorist_primitives::{AString, AVec, AoristUniverse};
 use linked_hash_map::LinkedHashMap;
 use std::collections::HashMap;
 use std::marker::PhantomData;

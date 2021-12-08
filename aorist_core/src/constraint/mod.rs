@@ -1,11 +1,11 @@
-use aorist_primitives::AVec;
+
 use crate::dialect::Dialect;
 use crate::error::AoristError;
 use crate::parameter_tuple::ParameterTuple;
 use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 use abi_stable::std_types::RArc;
 use anyhow::Result;
-use aorist_primitives::{AString, Ancestry, AoristConcept, TAoristObject, TConceptEnum};
+use aorist_primitives::{AString, AVec, Ancestry, AoristConcept, TAoristObject, TConceptEnum};
 use std::collections::HashMap;
 use std::marker::PhantomData;
 use tracing::info;
@@ -16,7 +16,7 @@ use abi_stable::{
     library::RootModule,
     package_version_strings,
     sabi_types::VersionStrings,
-    std_types::{RResult, RString, AVec},
+    std_types::{RResult, RString, RVec},
     StableAbi,
 };
 
@@ -44,7 +44,7 @@ pub trait SatisfiableConstraint<'a>: TConstraint<'a> {
 pub struct ConstraintMod {
     #[sabi(last_prefix_field)]
     pub new: extern "C" fn() -> RResult<RString, AoristError>,
-    pub builders: extern "C" fn() -> RResult<RAVec<RString>, AoristError>,
+    pub builders: extern "C" fn() -> RResult<RVec<RString>, AoristError>,
 }
 
 impl RootModule for ConstraintMod_Ref {

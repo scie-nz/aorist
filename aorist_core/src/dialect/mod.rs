@@ -1,6 +1,6 @@
-use aorist_primitives::AVec;
+
 use abi_stable::{std_types::*, StableAbi};
-use aorist_primitives::AString;
+use aorist_primitives::{AString, AVec};
 #[cfg(feature = "python")]
 use pyo3::prelude::*;
 use std::collections::BTreeSet;
@@ -9,7 +9,7 @@ use std::collections::BTreeSet;
 #[cfg_attr(feature = "python", pyclass)]
 #[derive(Debug, Clone, PartialEq, Eq, Hash, StableAbi)]
 pub struct Python {
-    pip_requirements: RAVec<AString>,
+    pip_requirements: RVec<AString>,
 }
 #[cfg(feature = "python")]
 #[pymethods]

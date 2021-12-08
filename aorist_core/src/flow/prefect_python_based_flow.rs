@@ -1,4 +1,4 @@
-use aorist_primitives::AVec;
+
 use crate::dialect::Dialect;
 use crate::error::AoristError;
 use crate::flow::etl_flow::ETLFlow;
@@ -16,7 +16,7 @@ use aorist_ast::{
 };
 use aorist_primitives::register_task_nodes;
 use aorist_primitives::TPrestoEndpoints;
-use aorist_primitives::{AString, AoristUniverse};
+use aorist_primitives::{AString, AVec, AoristUniverse};
 use linked_hash_map::LinkedHashMap;
 use pyo3::PyResult;
 use std::hash::{Hash, Hasher};

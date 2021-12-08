@@ -182,10 +182,11 @@ pub fn extract_type_from_vector(ty: &syn::Type) -> Option<&syn::Type> {
     extract_inner_from_bracketed_type(
         ty,
         vec![
-            "Vector|".to_string(),
             "AVec|".to_string(),
-            "abi_stable|std_types|vec|AVec|".to_string(),
-        ].into_iter().collect(),
+            "aorist_primitives|AVec|".to_string(),
+        ]
+        .into_iter()
+        .collect(),
     )
 }
 

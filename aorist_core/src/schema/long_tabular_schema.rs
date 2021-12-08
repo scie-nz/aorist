@@ -1,9 +1,9 @@
-use aorist_primitives::AVec;
+
 use crate::concept::{AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
 use crate::template::*;
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
-use aorist_primitives::AString;
+use aorist_primitives::{AString, AVec};
 use derivative::Derivative;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
@@ -30,7 +30,7 @@ impl LongTabularSchema {
             .collect()
     }
     pub fn should_dedup_text_attribute(&self, attr: &AString) -> bool {
-        for attribute in &self.key_attributes {
+        for attribute in self.key_attributes.iter() {
             if attr == attribute {
                 return true;
             }

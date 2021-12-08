@@ -1,4 +1,4 @@
-use aorist_primitives::AVec;
+
 #![allow(dead_code)]
 use crate::constraint::TConstraintEnum;
 use crate::constraint::{OuterConstraint, TBuilder};
@@ -12,7 +12,7 @@ use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 use abi_stable::std_types::RArc;
 use anyhow::Result;
 use aorist_ast::AncestorRecord;
-use aorist_primitives::{AString, Ancestry, AoristConcept, AoristUniverse, TConceptEnum};
+use aorist_primitives::{AString, AVec, Ancestry, AoristConcept, AoristUniverse, TConceptEnum};
 use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
 use std::collections::{BTreeSet, HashMap};

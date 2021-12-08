@@ -467,7 +467,7 @@ macro_rules! define_constraint {
                     stringify!($element).to_string()
                 }
                 #[classattr]
-                pub fn required() -> AVec<String> {
+                pub fn required() -> Vec<String> {
                     vec![
                         $(
                             stringify!($required).into(),
@@ -666,7 +666,7 @@ macro_rules! define_constraint {
                 fn get_required_constraint_names() -> AVec<AString> {
                     vec![$(
                         stringify!($required).into()
-                    ),*]
+                    ),*].into_iter().collect()
                 }
                 fn should_add(root: AoristRef<Concept>, ancestry: &ConceptAncestry) -> bool {
                     let read = root.0.read();
@@ -1197,8 +1197,8 @@ macro_rules! register_concept {
 macro_rules! register_constraint {
     ( $name:ident, $lt: lifetime, $($element: ident),+ ) => { aorist_paste::item! {
         #[sabi_extern_fn]
-        pub fn builders() -> RResult<RAVec<RString>, AoristError> {
-            ROk(vec![$(stringify!($element).into()),+].into())
+        pub fn builders() -> RResult<AVec<RString>, AoristError> {
+            ROk(vec![$(stringify!($element).into()),+].into_iter().collect().into())
         }
     }}
 }
@@ -1419,7 +1419,7 @@ macro_rules! register_constraint_new {
                             }
                         ),
                     )+
-                ]
+                ].into_iter().collect()
             }
             fn get_constraint_name(&self) -> AString {
                 match &self {
@@ -1942,7 +1942,7 @@ macro_rules! schema {
                         Some($comment.into()),
                         $nullable
                     )},
-                )+)?]
+                )+)?].into_iter().collect()
             }
             pub fn get_key(&self) -> AVec<AoristRef<Attribute>> {
                 self.get_attributes().into_iter()

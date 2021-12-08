@@ -1,10 +1,10 @@
-use aorist_primitives::AVec;
+
 use crate::concept::{AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
 use crate::error::AoristError;
 use crate::role::*;
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
-use aorist_primitives::{AString, TAoristObject};
+use aorist_primitives::{AString, AVec, TAoristObject};
 use derivative::Derivative;
 use serde::{Deserialize, Serialize};
 use std::collections::HashSet;

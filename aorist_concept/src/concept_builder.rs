@@ -6,8 +6,7 @@ use quote::quote;
 use syn::parse::Parser;
 use syn::punctuated::Punctuated;
 use syn::{
-    parse_quote, Data, DataEnum, DeriveInput, Field, Fields,
-    LitStr, Meta, NestedMeta, Path, Token,
+    parse_quote, Data, DataEnum, DeriveInput, Field, Fields, LitStr, Meta, NestedMeta, Path, Token,
 };
 mod keyword {
     syn::custom_keyword!(path);
@@ -43,21 +42,34 @@ pub trait TConceptBuilder {
                 Ok(Meta::List(meta_list)) => Some((attr, meta_list)),
                 _ => None, // kcov-ignore
             })
-            .next().ok_or_else(|| AoristError::OtherError("Cannot extend metas".into()))?;
+            .next()
+            .ok_or_else(|| AoristError::OtherError("Cannot extend metas".into()))?;
         metas
             .nested
             .extend::<Punctuated<NestedMeta, Token![,]>>(extra_metas.into_iter().collect());
         *attr = parse_quote!(#[#metas]);
         Ok(())
     }
-    fn extend_derivatives(&self, ast: &mut DeriveInput, extra_derivatives: AVec<NestedMeta>) -> Result<(), AoristError> {
+    fn extend_derivatives(
+        &self,
+        ast: &mut DeriveInput,
+        extra_derivatives: AVec<NestedMeta>,
+    ) -> Result<(), AoristError> {
         self.extend_metas(ast, extra_derivatives, "derivative")
     }
-    fn extend_derives(&self, ast: &mut DeriveInput, extra_derives: AVec<NestedMeta>) -> Result<(), AoristError> {
+    fn extend_derives(
+        &self,
+        ast: &mut DeriveInput,
+        extra_derives: AVec<NestedMeta>,
+    ) -> Result<(), AoristError> {
         self.extend_metas(ast, extra_derives, "derive")
     }
     fn get_extra_derives(&self) -> AVec<NestedMeta>;
-    fn gen(&self, input_attrs: AVec<NestedMeta>, mut ast: DeriveInput) -> Result<TokenStream, AoristError> {
+    fn gen(
+        &self,
+        input_attrs: AVec<NestedMeta>,
+        mut ast: DeriveInput,
+    ) -> Result<TokenStream, AoristError> {
         let (mut extra_derives, extra_derivatives) = self.get_derives(input_attrs);
         for derive in self.get_extra_derives() {
             extra_derives.push(derive);
@@ -120,8 +132,7 @@ pub trait TConceptBuilder {
     fn parse_extra_derives(extra_derives_v: AVec<&str>) -> Result<AVec<NestedMeta>, AoristError> {
         let mut extra_derives = AVec::new();
         for t in extra_derives_v {
-            let path = LitStr::new(t, Span::call_site())
-                .parse_with(Path::parse_mod_style)?;
+            let path = LitStr::new(t, Span::call_site()).parse_with(Path::parse_mod_style)?;
             let derive = NestedMeta::Meta(Meta::Path(path));
             extra_derives.push(derive);
         }
@@ -143,18 +154,12 @@ impl TConceptBuilder for RawConceptBuilder {
     fn add_aorist_fields(&self, struct_data: &mut syn::DataStruct) -> Result<(), AoristError> {
         match &mut struct_data.fields {
             Fields::Named(fields) => {
-                fields.named.push(
-                    Field::parse_named
-                        .parse2(quote! {
-                            pub uuid: Option<Uuid>
-                        })?,
-                );
-                fields.named.push(
-                    Field::parse_named
-                        .parse2(quote! {
-                            pub tag: Option<AString>
-                        })?,
-                );
+                fields.named.push(Field::parse_named.parse2(quote! {
+                    pub uuid: Option<Uuid>
+                })?);
+                fields.named.push(Field::parse_named.parse2(quote! {
+                    pub tag: Option<AString>
+                })?);
             }
             _ => (),
         }

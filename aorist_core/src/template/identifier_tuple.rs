@@ -1,6 +1,6 @@
-use aorist_primitives::AVec;
+
 use crate::attributes::*;
-use aorist_primitives::{AString, AoristConcept, ConceptEnum};
+use aorist_primitives::{AString, AVec, AoristConcept, ConceptEnum};
 
 use crate::concept::{AoristRef, WrappedConcept};
 use crate::template::datum_template::TDatumTemplate;

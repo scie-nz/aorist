@@ -4,7 +4,9 @@ use crate::asset::language_asset::*;
 use crate::asset::static_data_table::*;
 use crate::asset::vision_asset::*;
 use crate::concept::{AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
-use crate::encoding::{Encoding, PyEncoding};
+use crate::encoding::Encoding;
+#[cfg(feature = "python")]
+use crate::encoding::PyEncoding;
 use crate::schema::*;
 use crate::storage::*;
 use crate::storage_setup::*;
@@ -12,7 +14,7 @@ use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 use abi_stable::std_types::RArc;
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
-use aorist_primitives::{asset_enum, AString};
+use aorist_primitives::{asset_enum, AString, AVec};
 #[cfg(feature = "python")]
 use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};

@@ -1,4 +1,4 @@
-use aorist_primitives::AVec;
+
 use crate::concept::Ancestry;
 use crate::constraint::OuterConstraint;
 use crate::dialect::Dialect;
@@ -8,7 +8,7 @@ use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 use abi_stable::std_types::RArc;
 use anyhow::{bail, Result};
 use aorist_ast::{AncestorRecord, Formatted, SimpleIdentifier, StringLiteral, AST};
-use aorist_primitives::{AString, Context, TConceptEnum};
+use aorist_primitives::{AString, AVec, Context, TConceptEnum};
 use inflector::cases::snakecase::to_snake_case;
 use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
@@ -55,7 +55,7 @@ impl<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry = T::TAncestry>>
     }
     pub fn get_dependencies(&self) -> Result<AVec<Uuid>> {
         let mut dependencies = AVec::new();
-        for dep in &self.satisfied_dependencies {
+        for dep in self.satisfied_dependencies.iter() {
             dependencies.push(dep.read().get_constraint_uuid()?);
         }
         Ok(dependencies)
@@ -83,7 +83,7 @@ impl<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry = T::TAncestry>>
             (_, None) => Ok(vec![AST::StringLiteral(StringLiteral::new_wrapped(
                 self.constraint.read().get_name().clone(),
                 false,
-            ))]),
+            ))].into_iter().collect()),
             _ => bail!("Dialect not supported for args vec: {:?}", self.dialect),
         }
     }
@@ -175,8 +175,8 @@ impl<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry = T::TAncestry>>
         preferences: &AVec<Dialect>,
         programs: &'b AVec<P>,
     ) -> Option<&'b P> {
-        for dialect in preferences {
-            for program in programs {
+        for dialect in preferences.iter() {
+            for program in programs.iter() {
                 if program.get_dialect() == dialect.clone() {
                     return Some(&program);
                 }

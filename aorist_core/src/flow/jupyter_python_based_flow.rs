@@ -1,9 +1,9 @@
-use aorist_primitives::AVec;
+
 use crate::flow::flow_builder::FlowBuilderBase;
 use crate::flow::native_python_based_flow::NativePythonBasedFlow;
 use crate::flow::python_based_flow_builder::PythonBasedFlowBuilder;
 use crate::python::{format_code, PythonImport};
-use aorist_primitives::{AString, AoristUniverse, TPrestoEndpoints};
+use aorist_primitives::{AString, AVec, AoristUniverse, TPrestoEndpoints};
 use pyo3::PyResult;
 use serde_json::json;
 use std::marker::PhantomData;

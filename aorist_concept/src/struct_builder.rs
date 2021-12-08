@@ -1,8 +1,8 @@
 use aorist_primitives::AVec;
 extern crate proc_macro;
-use aorist_util::AoristError;
 use self::proc_macro::TokenStream;
 use crate::builder::Builder;
+use aorist_util::AoristError;
 use aorist_util::{
     extract_type_from_aorist_ref, extract_type_from_map, extract_type_from_option,
     extract_type_from_vector,
@@ -19,14 +19,17 @@ use linked_hash_set::LinkedHashSet;
 
 fn extract_names_and_types(
     fields: &Vec<Field>,
-) -> Result<(
-    Vec<Ident>,
-    Vec<Type>,
-    Vec<Ident>,
-    Vec<Type>,
-    Vec<Ident>,
-    Vec<Type>,
-), AoristError> {
+) -> Result<
+    (
+        Vec<Ident>,
+        Vec<Type>,
+        Vec<Ident>,
+        Vec<Type>,
+        Vec<Ident>,
+        Vec<Type>,
+    ),
+    AoristError,
+> {
     let mut names: Vec<Ident> = Vec::new();
     let mut types: Vec<Type> = Vec::new();
     let mut names_ref: Vec<Ident> = Vec::new();
@@ -35,18 +38,42 @@ fn extract_names_and_types(
     let mut types_vec_ref: Vec<Type> = Vec::new();
     for field in fields {
         if let Some(t) = extract_type_from_aorist_ref(&field.ty) {
-            names_ref.push(field.ident.as_ref().ok_or_else(|| AoristError::OtherError("ident is none".into()))?.clone());
+            names_ref.push(
+                field
+                    .ident
+                    .as_ref()
+                    .ok_or_else(|| AoristError::OtherError("ident is none".into()))?
+                    .clone(),
+            );
             types_ref.push(t.clone());
         } else if let Some(ref vt) = extract_type_from_vector(&field.ty) {
             if let Some(t) = extract_type_from_aorist_ref(vt) {
-                names_vec_ref.push(field.ident.as_ref().ok_or_else(|| AoristError::OtherError("ident is none".into()))?.clone());
+                names_vec_ref.push(
+                    field
+                        .ident
+                        .as_ref()
+                        .ok_or_else(|| AoristError::OtherError("ident is none".into()))?
+                        .clone(),
+                );
                 types_vec_ref.push(t.clone());
             } else {
-                names.push(field.ident.as_ref().ok_or_else(|| AoristError::OtherError("ident is none".into()))?.clone());
+                names.push(
+                    field
+                        .ident
+                        .as_ref()
+                        .ok_or_else(|| AoristError::OtherError("ident is none".into()))?
+                        .clone(),
+                );
                 types.push(field.ty.clone());
             }
         } else {
-            names.push(field.ident.as_ref().ok_or_else(|| AoristError::OtherError("ident is none".into()))?.clone());
+            names.push(
+                field
+                    .ident
+                    .as_ref()
+                    .ok_or_else(|| AoristError::OtherError("ident is none".into()))?
+                    .clone(),
+            );
             types.push(field.ty.clone());
         }
     }
@@ -101,17 +128,19 @@ pub struct StructBuilder {
 }
 impl StructBuilder {
     pub fn get_all_types(&self) -> Result<Vec<&Type>, AoristError> {
-        let all_types = self.bare_types
+        let all_types = self
+            .bare_types
             .iter()
             .chain(self.vec_types.iter())
             .chain(self.option_types.iter())
             .chain(self.option_vec_types.iter())
             .chain(self.map_value_types.iter());
-        let mapped: Vec<_> = all_types.map(
-            |x| extract_type_from_aorist_ref(x).ok_or_else(
-                || AoristError::OtherError("Type could not be extracted".into()) 
-            )
-        ).collect::<Result<Vec<_>, AoristError>>()?;
+        let mapped: Vec<_> = all_types
+            .map(|x| {
+                extract_type_from_aorist_ref(x)
+                    .ok_or_else(|| AoristError::OtherError("Type could not be extracted".into()))
+            })
+            .collect::<Result<Vec<_>, AoristError>>()?;
         let sorted: LinkedHashSet<_> = mapped.into_iter().collect();
         Ok(sorted.into_iter().collect())
     }
@@ -262,7 +291,10 @@ impl Builder for StructBuilder {
         }
         Ok(())
     }
-    fn to_concept_children_token_stream(&self, struct_name: &Ident) -> Result<TokenStream, AoristError> {
+    fn to_concept_children_token_stream(
+        &self,
+        struct_name: &Ident,
+    ) -> Result<TokenStream, AoristError> {
         let types = self.get_all_types()?;
 
         Ok(TokenStream::from(quote! { paste! {
@@ -337,7 +369,7 @@ impl Builder for StructBuilder {
             unconstrainable_type_ref,
             unconstrainable_name_vec_ref,
             unconstrainable_type_vec_ref,
-        ) = extract_names_and_types(&self.unconstrainable)?;
+        ) = extract_names_and_types(&self.unconstrainable.clone().into_iter().collect())?;
         let bare_type_deref = bare_type
             .iter()
             .map(|x| extract_type_from_aorist_ref(x))
@@ -377,7 +409,7 @@ impl Builder for StructBuilder {
             #[pyo3::prelude::pymethods]
             impl [<Py #struct_name>] {
                 #[staticmethod]
-                pub fn child_concept_types() -> AVec<pyo3::prelude::PyObject> {
+                pub fn child_concept_types() -> Vec<pyo3::prelude::PyObject> {
                     let gil_guard = pyo3::prelude::Python::acquire_gil();
                     let py = gil_guard.python();
                     vec![
@@ -490,31 +522,31 @@ impl Builder for StructBuilder {
                     false
                 }
                 #[staticmethod]
-                pub fn required_unique_children_type_names() -> AVec<String> {
+                pub fn required_unique_children_type_names() -> Vec<String> {
                     vec![#(
                         stringify!(#bare_type_deref).into(),
                     )*]
                 }
                 #[staticmethod]
-                pub fn optional_unique_children_type_names() -> AVec<String> {
+                pub fn optional_unique_children_type_names() -> Vec<String> {
                     vec![#(
                         stringify!(#option_type_deref).into(),
                     )*]
                 }
                 #[staticmethod]
-                pub fn required_list_children_type_names() -> AVec<String> {
+                pub fn required_list_children_type_names() -> Vec<String> {
                     vec![#(
                         stringify!(#vec_type_deref).into(),
                     )*]
                 }
                 #[staticmethod]
-                pub fn optional_list_children_type_names() -> AVec<String> {
+                pub fn optional_list_children_type_names() -> Vec<String> {
                     vec![#(
                         stringify!(#option_vec_type_deref).into(),
                     )*]
                 }
                 #[staticmethod]
-                pub fn children_dict_type_names() -> AVec<String> {
+                pub fn children_dict_type_names() -> Vec<String> {
                     vec![#(
                         stringify!(#map_value_type_deref).into(),
                     )*]

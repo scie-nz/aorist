@@ -1,9 +1,9 @@
-use aorist_primitives::AVec;
+
 use crate::code::{Import, Preamble};
 use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 use abi_stable::std_types::RArc;
 use aorist_ast::{Dict, AST};
-use aorist_primitives::AString;
+use aorist_primitives::{AString, AVec};
 use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
 use std::collections::BTreeSet;
@@ -60,7 +60,7 @@ where
         >,
     ) {
         let short_name = &self.get_constraint_name();
-        for ast in &self.get_statements() {
+        for ast in self.get_statements().iter() {
             if let AST::Assignment(rw) = ast {
                 let assign = rw.read();
                 if let AST::Dict(dict_rw) = assign.call() {

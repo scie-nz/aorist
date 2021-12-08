@@ -1,8 +1,8 @@
 use aorist_primitives::AVec;
 extern crate proc_macro;
-use aorist_util::AoristError;
 use self::proc_macro::TokenStream;
 use crate::builder::Builder;
+use aorist_util::AoristError;
 use proc_macro2::Ident;
 use quote::quote;
 use std::fs::OpenOptions;
@@ -37,12 +37,15 @@ impl Builder for EnumBuilder {
             enum_name
         )?;
 
-        for v in &self.variant_idents {
+        for v in self.variant_idents.iter() {
             writeln!(file, "'{}'->'{}';", enum_name, v)?;
         }
         Ok(())
     }
-    fn to_concept_children_token_stream(&self, enum_name: &Ident) -> Result<TokenStream, AoristError> {
+    fn to_concept_children_token_stream(
+        &self,
+        enum_name: &Ident,
+    ) -> Result<TokenStream, AoristError> {
         let variant = &self.variant_idents;
         Ok(TokenStream::from(quote! { paste! {
           impl <T> std::convert::From<(
@@ -164,7 +167,7 @@ impl Builder for EnumBuilder {
                   Self { inner: self.inner.deep_clone() }
               }
               #[staticmethod]
-              pub fn child_concept_types() -> AVec<pyo3::prelude::PyObject> {
+              pub fn child_concept_types() -> Vec<pyo3::prelude::PyObject> {
                   let gil_guard = pyo3::prelude::Python::acquire_gil();
                   let py = gil_guard.python();
                   vec![#(
@@ -180,7 +183,7 @@ impl Builder for EnumBuilder {
                   true
               }
               #[staticmethod]
-              pub fn concrete_type_names() -> AVec<String> {
+              pub fn concrete_type_names() -> Vec<String> {
                   vec![#(
                       stringify!(#variant).into(),
                   )*]
@@ -278,7 +281,7 @@ impl Builder for EnumBuilder {
                       self.get_uuid(),
                       // clone of RArc<RRwLock
                       Self(self.0.clone()),
-                  )]
+                  )].into_iter().collect()
               }
               fn get_uuid(&self) -> Option<Uuid> {
                   self.0.read().get_uuid()

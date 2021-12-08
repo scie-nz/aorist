@@ -1,7 +1,7 @@
-use aorist_primitives::AVec;
+
 use crate::r::r_import::RImport;
 use aorist_ast::{Assignment, StringLiteral, AST};
-use aorist_primitives::{AString, define_task_node};
+use aorist_primitives::{AString, AVec, define_task_node};
 use std::hash::Hash;
 use abi_stable::std_types::RArc;
 use abi_stable::external_types::parking_lot::rw_lock::RRwLock;

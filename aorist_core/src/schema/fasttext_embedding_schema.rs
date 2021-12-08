@@ -9,7 +9,7 @@ use crate::template::*;
 use aorist_attributes::*;
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
-use aorist_primitives::{attribute, derived_schema, AString};
+use aorist_primitives::{attribute, derived_schema, AString, AVec};
 use derivative::Derivative;
 #[cfg(feature = "python")]
 use pyo3::prelude::*;

@@ -1,4 +1,4 @@
-use aorist_primitives::AVec;
+
 use crate::code::Preamble;
 use crate::constraint::OuterConstraint;
 use crate::constraint_state::ConstraintState;
@@ -9,7 +9,7 @@ use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 use abi_stable::std_types::RArc;
 use anyhow::Result;
 use aorist_ast::{SimpleIdentifier, StringLiteral, Subscript, AST};
-use aorist_primitives::{AString, AoristUniverse};
+use aorist_primitives::{AString, AVec, AoristUniverse};
 use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
 use std::collections::{BTreeSet, HashMap, HashSet};
@@ -97,7 +97,7 @@ where
 
             let dep_uuids = x.get_dependencies()?;
             let mut dependencies = AVec::new();
-            for dep in &dep_uuids {
+            for dep in dep_uuids.iter() {
                 if let Some(ident) = identifiers.get(dep) {
                     dependencies.push(ident.clone());
                 } else {

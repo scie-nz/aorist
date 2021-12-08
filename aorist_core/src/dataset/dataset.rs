@@ -1,4 +1,4 @@
-use aorist_primitives::AVec;
+
 #![allow(dead_code)]
 use crate::access_policy::*;
 use crate::asset::*;
@@ -14,7 +14,7 @@ use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 use abi_stable::std_types::RArc;
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
-use aorist_primitives::{AString, TAoristObject};
+use aorist_primitives::{AString, AVec, TAoristObject};
 use derivative::Derivative;
 use linked_hash_map::LinkedHashMap;
 #[cfg(feature = "python")]

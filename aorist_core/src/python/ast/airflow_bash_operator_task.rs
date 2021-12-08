@@ -1,9 +1,9 @@
-use aorist_primitives::AVec;
+
 use crate::python::ast::AirflowTaskBase;
 use crate::python::ast::PythonTaskBase;
 use crate::python::PythonImport;
 use aorist_ast::{Assignment, Attribute, Call, Expression, SimpleIdentifier, AST};
-use aorist_primitives::AString;
+use aorist_primitives::{AString, AVec};
 use linked_hash_map::LinkedHashMap;
 
 pub trait AirflowBashOperatorTask: PythonTaskBase + AirflowTaskBase {
