@@ -1,4 +1,5 @@
 extern crate proc_macro;
+use aorist_util::AoristError;
 use self::proc_macro::TokenStream;
 use crate::builder::Builder;
 use proc_macro2::Ident;
@@ -17,33 +18,32 @@ pub struct EnumBuilder {
 }
 impl Builder for EnumBuilder {
     type TInput = syn::punctuated::Punctuated<Variant, Comma>;
-    fn new(variants: &Punctuated<Variant, Comma>) -> Self {
+    fn new(variants: &Punctuated<Variant, Comma>) -> Result<Self, AoristError> {
         let variant_idents = variants
             .iter()
             .map(|x| (x.ident.clone()))
             .collect::<Vec<Ident>>();
-        Self { variant_idents }
+        Ok(Self { variant_idents })
     }
-    fn to_file(&self, enum_name: &Ident, file_name: &str) {
+    fn to_file(&self, enum_name: &Ident, file_name: &str) -> Result<(), AoristError> {
         let mut file = OpenOptions::new()
             .write(true)
             .append(true)
-            .open(file_name)
-            .unwrap();
+            .open(file_name)?;
         writeln!(
             file,
             "node [shape = box, fillcolor=gray, style=filled, fontname = Helvetica] '{}';",
             enum_name
-        )
-        .unwrap();
+        )?;
 
         for v in &self.variant_idents {
-            writeln!(file, "'{}'->'{}';", enum_name, v).unwrap();
+            writeln!(file, "'{}'->'{}';", enum_name, v)?;
         }
+        Ok(())
     }
-    fn to_concept_children_token_stream(&self, enum_name: &Ident) -> TokenStream {
+    fn to_concept_children_token_stream(&self, enum_name: &Ident) -> Result<TokenStream, AoristError> {
         let variant = &self.variant_idents;
-        TokenStream::from(quote! { paste! {
+        Ok(TokenStream::from(quote! { paste! {
           impl <T> std::convert::From<(
               // enum name
               &str,
@@ -121,12 +121,12 @@ impl Builder for EnumBuilder {
                   }
               }
           }
-        }})
+        }}))
     }
-    fn to_concept_token_stream(&self, enum_name: &Ident) -> TokenStream {
+    fn to_concept_token_stream(&self, enum_name: &Ident) -> Result<TokenStream, AoristError> {
         let variant = &self.variant_idents;
         let py_class_name = format!("{}", enum_name);
-        proc_macro::TokenStream::from(quote! { paste! {
+        Ok(proc_macro::TokenStream::from(quote! { paste! {
           impl ConceptEnum for AoristRef<#enum_name> {}
           pub trait [<CanBe #enum_name>]: Debug + Clone + Serialize + PartialEq {
               fn [<construct_ #enum_name:snake:lower>] (
@@ -292,6 +292,6 @@ impl Builder for EnumBuilder {
                   self.0.read().compute_uuids()
               }
           }
-        }})
+        }}))
     }
 }

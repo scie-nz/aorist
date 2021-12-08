@@ -13,8 +13,7 @@ repository = "https://github.com/scie-nz/aorist"
 proc-macro = true
 
 [dependencies]
-aorist_primitives = {path = "../aorist_primitives", features = ["python"], version = "0.0.14"}
-aorist_util = "0.0.1"
+aorist_util = {path = "../aorist_util", version = "0.0.1"}
 linked_hash_set = "0.1.4"
 proc-macro2 = "1.0.25"
 quote = "1"

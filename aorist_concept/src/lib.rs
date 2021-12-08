@@ -1,71 +1,52 @@
 // Following: https://github.com/dtolnay/syn/issues/516
 extern crate proc_macro;
 mod builder;
+mod builder_enum;
 mod concept_builder;
 mod enum_builder;
 mod struct_builder;
 
 use self::proc_macro::TokenStream;
-use crate::builder::Builder;
+use crate::builder_enum::BuilderEnum;
 use crate::concept_builder::{RawConceptBuilder, TConceptBuilder};
-use crate::enum_builder::EnumBuilder;
-use crate::struct_builder::StructBuilder;
-use syn::{parse_macro_input, Data, DataEnum, DataStruct, DeriveInput, Fields};
+use syn::{parse_macro_input, DeriveInput, AttributeArgs};
 mod keyword {
     syn::custom_keyword!(path);
 }
 
-#[proc_macro_derive(ConstrainableWithChildren)]
-pub fn constrainable_with_children(input: TokenStream) -> TokenStream {
-    let input = parse_macro_input!(input as DeriveInput);
-    match &input.data {
-        Data::Struct(DataStruct {
-            fields: Fields::Named(ref fields),
-            ..
-        }) => {
-            let struct_name = &input.ident;
-            let builder = StructBuilder::new(fields);
-            //builder.to_file(struct_name, "constrainables.txt");
-            builder.to_concept_children_token_stream(struct_name)
-        }
-        Data::Enum(DataEnum { variants, .. }) => {
-            let enum_name = &input.ident;
-            let builder = EnumBuilder::new(variants);
-            //builder.to_file(enum_name, "constraints.txt");
-            builder.to_concept_children_token_stream(enum_name)
-        }
-        _ => panic!("expected a struct with named fields or an enum"),
-    }
-}
-
 #[proc_macro_attribute]
 pub fn aorist(args: TokenStream, input: TokenStream) -> TokenStream {
-    let builder = RawConceptBuilder::new(vec![
+    let builder = match RawConceptBuilder::new(vec![
         "Constrainable",
         "aorist_concept::ConstrainableWithChildren",
-    ]);
-    builder.gen_new(args, input)
+    ]) {
+        Ok(x) => x,
+        Err(err) => panic!("Cannot create RawConceptBuilder: {:?}", err),
+    };
+    let input_attrs = parse_macro_input!(args as AttributeArgs);
+    let ast = parse_macro_input!(input as DeriveInput);
+    match builder.gen(input_attrs, ast) {
+        Ok(x) => x,
+        Err(err) => panic!("Cannot apply #[aorist] macro: {:?}", err),
+    }
 }
-
 #[proc_macro_derive(Constrainable, attributes(constrainable))]
 pub fn constrainable(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
-    match &input.data {
-        Data::Struct(DataStruct {
-            fields: Fields::Named(ref fields),
-            ..
-        }) => {
-            let struct_name = &input.ident;
-            let builder = StructBuilder::new(fields);
-            //builder.to_file(struct_name, "constrainables.txt");
-            builder.to_concept_token_stream(struct_name)
-        }
-        Data::Enum(DataEnum { variants, .. }) => {
-            let enum_name = &input.ident;
-            let builder = EnumBuilder::new(variants);
-            //builder.to_file(enum_name, "constraints.txt");
-            builder.to_concept_token_stream(enum_name)
-        }
-        _ => panic!("expected a struct with named fields or an enum"),
+    let builder = BuilderEnum::new(input);
+    //builder.to_file(name, "constraints.txt");
+    match builder.to_concept_token_stream() {
+        Ok(x) => x,
+        Err(err) => panic!("Cannot render Constrainable for {}: {:?}", builder.get_name(), err),
     }
 }
+#[proc_macro_derive(ConstrainableWithChildren)]
+pub fn constrainable_with_children(input: TokenStream) -> TokenStream {
+    let input = parse_macro_input!(input as DeriveInput);
+    let builder = BuilderEnum::new(input);
+    match builder.to_concept_children_token_stream() {
+        Ok(x) => x,
+        Err(err) => panic!("Cannot render ConstrainableWithChildren for {}: {:?}", builder.get_name(), err),
+    }
+}
+
