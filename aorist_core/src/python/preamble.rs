@@ -175,13 +175,13 @@ def build_preamble(body):
             .downcast()
             .unwrap();
 
-        let imports_list: &PyList = tpl.get_item(0).extract()?;
+        let imports_list: &PyList = tpl.get_item(0)?.extract()?;
         let imports: Vec<PythonImport> = imports_list
             .iter()
             .map(|x| {
                 let tpl: &PyTuple = x.extract().unwrap();
-                let name: AString = tpl.get_item(0).extract::<&PyString>()?.to_str()?.into();
-                let alias = tpl.get_item(1);
+                let name: AString = tpl.get_item(0)?.extract::<&PyString>()?.to_str()?.into();
+                let alias = tpl.get_item(1)?;
                 let asname: Option<AString> = match alias.is_none() {
                     true => None,
                     false => Some(alias.extract::<&PyString>()?.to_str()?.into()),
@@ -190,14 +190,14 @@ def build_preamble(body):
             })
             .collect::<PyResult<_>>()?;
 
-        let from_imports_list: &PyList = tpl.get_item(1).extract()?;
+        let from_imports_list: &PyList = tpl.get_item(1)?.extract()?;
         let from_imports: Vec<PythonImport> = from_imports_list
             .iter()
             .map(|x| {
                 let tpl: &PyTuple = x.extract()?;
-                let module: AString = tpl.get_item(0).extract::<&PyString>()?.to_str()?.into();
-                let name: AString = tpl.get_item(1).extract::<&PyString>()?.to_str()?.into();
-                let alias = tpl.get_item(2);
+                let module: AString = tpl.get_item(0)?.extract::<&PyString>()?.to_str()?.into();
+                let name: AString = tpl.get_item(1)?.extract::<&PyString>()?.to_str()?.into();
+                let alias = tpl.get_item(2)?;
                 let asname: Option<AString> = match alias.is_none() {
                     true => None,
                     false => Some(alias.extract::<&PyString>()?.to_str()?.into()),
@@ -206,7 +206,7 @@ def build_preamble(body):
             })
             .collect::<PyResult<_>>()?;
 
-        let body_no_imports: &PyList = tpl.get_item(2).extract()?;
+        let body_no_imports: &PyList = tpl.get_item(2)?.extract()?;
         Ok(Self {
             imports,
             from_imports,

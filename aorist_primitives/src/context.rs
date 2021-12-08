@@ -1,3 +1,4 @@
+#[cfg(feature = "python")]
 use pyo3::exceptions::PyValueError;
 #[cfg(feature = "python")]
 use pyo3::prelude::*;
@@ -102,6 +103,7 @@ impl Context {
         debug!("Captured ({}, {})", &key, &value);
         value
     }
+    #[cfg(feature = "python")]
     fn missing_key_error(&self, key: String) -> PyErr {
         PyValueError::new_err(format!(
             "Could not find key {} in context.\nContext contents: {:?}",
@@ -109,36 +111,42 @@ impl Context {
         ))
     }
 
+    #[cfg(feature = "python")]
     pub fn get(&self, key: String) -> PyResult<String> {
         match self.inner.get(&key) {
             Some(x) => x.string(),
             None => Err(self.missing_key_error(key)),
         }
     }
+    #[cfg(feature = "python")]
     pub fn get_optional(&self, key: String) -> PyResult<Option<String>> {
         match self.inner.get(&key) {
             Some(x) => Ok(Some(x.string()?)),
             None => Ok(None),
         }
     }
+    #[cfg(feature = "python")]
     pub fn get_int(&self, key: String) -> PyResult<i64> {
         match self.inner.get(&key) {
             Some(x) => x.integer(),
             None => Err(self.missing_key_error(key)),
         }
     }
+    #[cfg(feature = "python")]
     pub fn get_optional_int(&self, key: String) -> PyResult<Option<i64>> {
         match self.inner.get(&key) {
             Some(x) => Ok(Some(x.integer()?)),
             None => Ok(None),
         }
     }
+    #[cfg(feature = "python")]
     pub fn get_bool(&self, key: String) -> PyResult<bool> {
         match self.inner.get(&key) {
             Some(x) => x.boolean(),
             None => Err(self.missing_key_error(key)),
         }
     }
+    #[cfg(feature = "python")]
     pub fn get_optional_bool(&self, key: String) -> PyResult<Option<bool>> {
         match self.inner.get(&key) {
             Some(x) => Ok(Some(x.boolean()?)),

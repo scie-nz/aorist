@@ -30,7 +30,7 @@ aorist_util = {path = "../aorist_util"}
 aorist_paste = {version = "0.0.1"}
 uuid = {version = "0.8.1", features = ["v4", "serde"]}
 anyhow = "1.0"
-pyo3 = {version = "0.14.4", features=["auto-initialize", "multiple-pymethods"], optional = true}
+pyo3 = {version = "0.15.1", features=["auto-initialize", "multiple-pymethods"], optional = true}
 
 [build-dependencies]
-pyo3-build-config = "0.14.4"
+pyo3-build-config = "0.15.1"

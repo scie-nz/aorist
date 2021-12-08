@@ -1,4 +1,5 @@
 extern crate proc_macro;
+use aorist_util::AoristError;
 use self::proc_macro::TokenStream;
 use proc_macro2::Ident;
 mod keyword {
@@ -6,8 +7,8 @@ mod keyword {
 }
 pub trait Builder {
     type TInput;
-    fn new(fields: &Self::TInput) -> Self;
-    fn to_file(&self, struct_name: &Ident, file_name: &str);
-    fn to_concept_token_stream(&self, struct_name: &Ident) -> TokenStream;
-    fn to_concept_children_token_stream(&self, struct_name: &Ident) -> TokenStream;
+    fn new(fields: &Self::TInput) -> Result<Self, AoristError> where Self: Sized;
+    fn to_file(&self, struct_name: &Ident, file_name: &str) -> Result<(), AoristError>;
+    fn to_concept_token_stream(&self, struct_name: &Ident) -> Result<TokenStream, AoristError>;
+    fn to_concept_children_token_stream(&self, struct_name: &Ident) -> Result<TokenStream, AoristError>;
 }

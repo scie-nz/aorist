@@ -10,6 +10,8 @@ use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::{fmt, EnvFilter};
 mod constraint;
 pub use constraint::*;
+mod error;
+pub use error::*;
 
 pub fn read_file(filename: &str) -> Vec<HashMap<String, Value>> {
     let file = match File::open(filename) {

@@ -11,8 +11,7 @@ use std::hash::Hasher;
 use uuid::Uuid;
 
 #[repr(C)]
-#[cfg(feature = "python")]
-#[pyclass]
+#[cfg_attr(feature = "python", pyclass)]
 #[derive(StableAbi, Clone, PartialEq, Serialize, Debug, Hash, Eq, PartialOrd, Ord)]
 pub struct AString(abi_stable::std_types::RString);
 impl<'de> Deserialize<'de> for AString {
