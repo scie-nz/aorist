@@ -2,6 +2,8 @@ use abi_stable::library::LibraryError;
 use crate::concept::AString;
 use thiserror::Error;
 
+pub type AResult<T> = Result<T, AoristError>;
+
 #[repr(u8)]
 #[derive(Error, Debug)]
 pub enum AoristError {
@@ -11,6 +13,8 @@ pub enum AoristError {
     LibraryLoadError(#[from] LibraryError),
     #[error("syn::Error")]
     SynError(#[from] syn::Error),
+    #[error("std::io::Error")]
+    IOError(#[from] std::io::Error),
 }
 impl AoristError {
     pub fn as_str(&self) -> String {
@@ -18,6 +22,7 @@ impl AoristError {
             Self::OtherError(e) => e.as_str().to_string(),
             Self::LibraryLoadError(e) => format!("{:?}", e),
             Self::SynError(e) => format!("{:?}", e),
+            Self::IOError(e) => format!("{:?}", e),
         };
         res
     }
