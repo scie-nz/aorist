@@ -6,8 +6,6 @@ mod endpoints;
 pub use endpoints::*;
 mod context;
 pub use context::*;
-mod error;
-pub use error::*;
 
 #[macro_export]
 macro_rules! register_ast_nodes {

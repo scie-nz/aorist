@@ -1,5 +1,4 @@
 use abi_stable::library::LibraryError;
-use crate::concept::AString;
 use thiserror::Error;
 
 pub type AResult<T> = Result<T, AoristError>;
@@ -8,7 +7,7 @@ pub type AResult<T> = Result<T, AoristError>;
 #[derive(Error, Debug)]
 pub enum AoristError {
     #[error("{0}")]
-    OtherError(AString),
+    OtherError(String),
     #[error("LibraryError")]
     LibraryLoadError(#[from] LibraryError),
     #[error("syn::Error")]
@@ -19,7 +18,7 @@ pub enum AoristError {
 impl AoristError {
     pub fn as_str(&self) -> String {
         let res = match self {
-            Self::OtherError(e) => e.as_str().to_string(),
+            Self::OtherError(e) => e.clone(),
             Self::LibraryLoadError(e) => format!("{:?}", e),
             Self::SynError(e) => format!("{:?}", e),
             Self::IOError(e) => format!("{:?}", e),
