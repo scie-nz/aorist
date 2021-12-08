@@ -13,6 +13,6 @@ pub trait PythonFunctionCallTask: PythonTaskBase {
         vec![AST::Assignment(Assignment::new_wrapped(
             self.get_task_val(),
             self.get_call(),
-        ))]
+        ))].into_iter().collect()
     }
 }

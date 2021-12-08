@@ -6,7 +6,7 @@ use crate::python::{
     Add, Assignment, Attribute, BigIntLiteral, BinOp, Call, Dict, ForLoop, List, PythonImport,
     PythonPreamble, SimpleIdentifier, StringLiteral, Subscript, Tuple, AST,
 };
-use aorist_primitives::AoristUniverse;
+use aorist_primitives::{AoristUniverse, AVec};
 use linked_hash_map::LinkedHashMap;
 use std::hash::Hash;
 use std::marker::PhantomData;
@@ -44,7 +44,7 @@ where
     ) -> Self {
         trace!("New compressed task with key: {:?}", key);
         trace!("uncompressible:");
-        for v in &values {
+        for v in values.iter() {
             trace!("-- {:?} : {:?}", v.dict, v.params);
         }
         let distinct_keys = values
@@ -135,7 +135,7 @@ where
     }
     fn get_for_loop_tuple(&self, ident: &AST, params: &AST) -> AST {
         AST::Tuple(Tuple::new_wrapped(
-            vec![ident.clone(), params.clone()],
+            vec![ident.clone(), params.clone()].into_iter().collect(),
             false,
         ))
     }
@@ -254,7 +254,7 @@ where
             statements.clone(),
         ));
         (
-            vec![dict_assign, for_loop],
+            vec![dict_assign, for_loop].into_iter().collect(),
             // TODO: propagate erorr type here
             singleton.get_preamble().unwrap(),
             singleton.get_imports(),

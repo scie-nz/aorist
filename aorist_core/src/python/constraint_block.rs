@@ -81,8 +81,8 @@ where
             Some(ref val) => vec![AST::Assignment(Assignment::new_wrapped(
                 val.clone(),
                 AST::Dict(Dict::new_wrapped(LinkedHashMap::new())),
-            ))],
-            None => vec![],
+            ))].into_iter().collect(),
+            None => vec![].into_iter().collect(),
         }
     }
 }

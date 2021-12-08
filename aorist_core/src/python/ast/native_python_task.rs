@@ -9,7 +9,7 @@ use std::hash::Hash;
 
 define_task_node!(
     NativePythonTask,
-    |task: &NativePythonTask| vec![task.call.clone()],
+    |task: &NativePythonTask| vec![task.call.clone()].into_iter().collect(),
     |task: &NativePythonTask| { task.get_native_python_statements() },
     |task: &NativePythonTask| task.imports.clone(),
     PythonImport,

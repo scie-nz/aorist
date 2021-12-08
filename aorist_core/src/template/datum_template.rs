@@ -103,7 +103,7 @@ impl TDatumTemplate for DatumTemplate {
 #[cfg(feature = "python")]
 #[pymethods]
 impl PyDatumTemplate {
-    pub fn attributes(&self) -> PyResult<AVec<PyAttribute>> {
+    pub fn attributes(&self) -> PyResult<Vec<PyAttribute>> {
         Ok(self
             .inner
             .0

@@ -27,11 +27,15 @@ fn extract_names_and_types(
         Vec<Type>,
         Vec<Ident>,
         Vec<Type>,
+        Vec<Ident>,
+        Vec<Type>,
     ),
     AoristError,
 > {
     let mut names: Vec<Ident> = Vec::new();
     let mut types: Vec<Type> = Vec::new();
+    let mut names_vec: Vec<Ident> = Vec::new();
+    let mut types_vec: Vec<Type> = Vec::new();
     let mut names_ref: Vec<Ident> = Vec::new();
     let mut types_ref: Vec<Type> = Vec::new();
     let mut names_vec_ref: Vec<Ident> = Vec::new();
@@ -57,14 +61,14 @@ fn extract_names_and_types(
                 );
                 types_vec_ref.push(t.clone());
             } else {
-                names.push(
+                names_vec.push(
                     field
                         .ident
                         .as_ref()
                         .ok_or_else(|| AoristError::OtherError("ident is none".into()))?
                         .clone(),
                 );
-                types.push(field.ty.clone());
+                types_vec.push((*vt).clone());
             }
         } else {
             names.push(
@@ -80,6 +84,8 @@ fn extract_names_and_types(
     Ok((
         names,
         types,
+        names_vec,
+        types_vec,
         names_ref,
         types_ref,
         names_vec_ref,
@@ -365,6 +371,8 @@ impl Builder for StructBuilder {
         let (
             unconstrainable_name,
             unconstrainable_type,
+            unconstrainable_name_vec,
+            unconstrainable_type_vec,
             unconstrainable_name_ref,
             unconstrainable_type_ref,
             unconstrainable_name_vec_ref,
@@ -405,6 +413,7 @@ impl Builder for StructBuilder {
             pub struct [<Py #struct_name>] {
                 pub inner: AoristRef<#struct_name>,
             }
+
             #[cfg(feature = "python")]
             #[pyo3::prelude::pymethods]
             impl [<Py #struct_name>] {
@@ -556,19 +565,22 @@ impl Builder for StructBuilder {
                     #(
                         #bare_ident: [<Py #bare_type_deref>],
                     )*
-                    #(#vec_ident: AVec<[<Py #vec_type_deref>]> ,)*
+                    #(#vec_ident: Vec<[<Py #vec_type_deref>]> ,)*
                     #(#option_ident: Option<[<Py #option_type_deref>]> ,)*
-                    #(#option_vec_ident: Option<AVec<[<Py #option_vec_type_deref>]>> ,)*
+                    #(#option_vec_ident: Option<Vec<[<Py #option_vec_type_deref>]>> ,)*
                     #(
                       #map_ident: std::collections::BTreeMap<
                         String, [<Py #map_value_type_deref>]
                       >,
                     )*
                     #(
+                        #unconstrainable_name_vec: Vec<#unconstrainable_type_vec>,
+                    )*
+                    #(
                         #unconstrainable_name_ref: [<Py #unconstrainable_type_ref>],
                     )*
                     #(
-                        #unconstrainable_name_vec_ref: AVec<[<Py #unconstrainable_type_vec_ref>]>,
+                        #unconstrainable_name_vec_ref: Vec<[<Py #unconstrainable_type_vec_ref>]>,
                     )*
                     #(
                         #unconstrainable_name: #unconstrainable_type,
@@ -603,6 +615,9 @@ impl Builder for StructBuilder {
                         )*
                         #(
                             #unconstrainable_name,
+                        )*
+                        #(
+                            #unconstrainable_name_vec: #unconstrainable_name_vec.into_iter().collect(),
                         )*
                         #(
                             #unconstrainable_name_ref: #unconstrainable_name_ref.inner.clone(),
@@ -660,17 +675,17 @@ impl Builder for StructBuilder {
                 )*
                 #(
                     #[getter]
-                    pub fn #vec_ident(&self) -> pyo3::prelude::PyResult<AVec<[<Py #vec_type_deref>]>> {
+                    pub fn #vec_ident(&self) -> pyo3::prelude::PyResult<Vec<[<Py #vec_type_deref>]>> {
                         Ok(
                             self.inner.0.read().#vec_ident.iter().map(|x| {
                                 [<Py #vec_type_deref>] {
                                     inner: x.clone(),
                                 }
-                            }).collect::<AVec<_>>()
+                            }).collect::<Vec<_>>()
                         )
                     }
                     #[setter]
-                    pub fn [<set_#vec_ident>](&self, val: AVec<[<Py #vec_type_deref>]>) -> pyo3::prelude::PyResult<()> {
+                    pub fn [<set_#vec_ident>](&self, val: Vec<[<Py #vec_type_deref>]>) -> pyo3::prelude::PyResult<()> {
                         Ok(
                             (*self.inner.0.write()).#vec_ident = val.iter().map(|x| x.inner.clone()).collect()
                         )
@@ -679,7 +694,7 @@ impl Builder for StructBuilder {
                 #(
                     #[getter]
                     pub fn #option_vec_ident(&self) -> pyo3::prelude::PyResult<Option<
-                        AVec<[<Py #option_vec_type_deref>]>
+                        Vec<[<Py #option_vec_type_deref>]>
                     >> {
                         Ok(
                             self.inner.0.read().#option_vec_ident.as_ref().and_then(|x|
@@ -696,7 +711,7 @@ impl Builder for StructBuilder {
                     #[setter]
                     pub fn [<set_#option_vec_ident>](
                         &self,
-                        val: Option<AVec<[<Py #option_vec_type_deref>]>>
+                        val: Option<Vec<[<Py #option_vec_type_deref>]>>
                     ) -> pyo3::prelude::PyResult<()> {
                         Ok(
                             (*self.inner.0.write()).#option_vec_ident = val.and_then(
@@ -752,6 +767,16 @@ impl Builder for StructBuilder {
                         Ok([<Py #unconstrainable_type_ref>]{
                             inner: self.inner.0.read().#unconstrainable_name_ref.clone()
                         })
+                    }
+                )*
+                #(
+                    #[getter]
+                    pub fn #unconstrainable_name_vec(&self)
+                        -> pyo3::prelude::PyResult<Vec<#unconstrainable_type_vec>> {
+                        Ok(
+                            self.inner.0.read()
+                                .#unconstrainable_name_vec.clone().into_iter().collect()
+                        )
                     }
                 )*
             }
@@ -822,6 +847,9 @@ impl Builder for StructBuilder {
                         )*
                         #(
                             #unconstrainable_name: self.#unconstrainable_name.clone(),
+                        )*
+                        #(
+                            #unconstrainable_name_vec: self.#unconstrainable_name_vec.clone(),
                         )*
                         #(
                             #unconstrainable_name_ref: self.#unconstrainable_name_ref.clone(),

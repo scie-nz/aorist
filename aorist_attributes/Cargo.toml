@@ -47,4 +47,3 @@ serde = { version = "1.0", features = ["derive"] }
 serde_yaml = "0.8"
 cfg-if = "1.0.0"
 aorist_primitives = {path = "../aorist_primitives", version = "0.0.14", features=["python"]}
-pyo3 = {version = "0.15.1", features=["auto-initialize", "multiple-pymethods"], optional = true}

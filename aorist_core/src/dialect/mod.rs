@@ -15,7 +15,7 @@ pub struct Python {
 #[pymethods]
 impl Python {
     #[new]
-    pub fn new(pip_requirements: AVec<&str>) -> Self {
+    pub fn new(pip_requirements: Vec<&str>) -> Self {
         Self {
             pip_requirements: pip_requirements.into_iter().map(|x| x.into()).collect(),
         }

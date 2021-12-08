@@ -3,15 +3,15 @@ use crate::python::PythonImport;
 use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 use abi_stable::std_types::RArc;
 use aorist_ast::{Call, SimpleIdentifier, AST};
-use aorist_primitives::define_task_node;
+use aorist_primitives::{define_task_node, AVec};
 use linked_hash_map::LinkedHashMap;
 use std::hash::Hash;
 
 define_task_node!(
     ConstantPythonTask,
-    |task: &ConstantPythonTask| vec![task.name.clone()],
+    |task: &ConstantPythonTask| vec![task.name.clone()].into_iter().collect(),
     |task: &ConstantPythonTask| { task.get_native_python_statements() },
-    |_task: &ConstantPythonTask| { vec![] },
+    |_task: &ConstantPythonTask| { vec![].into_iter().collect() },
     PythonImport,
     name: AST,
     task_val: AST,
@@ -31,7 +31,7 @@ impl PythonFunctionCallTask for ConstantPythonTask {
     fn get_call(&self) -> AST {
         AST::Call(Call::new_wrapped(
             AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("print".into())),
-            vec![self.name.clone()],
+            vec![self.name.clone()].into_iter().collect(),
             LinkedHashMap::new(),
         ))
     }

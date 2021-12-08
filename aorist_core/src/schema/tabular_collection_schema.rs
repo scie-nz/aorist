@@ -70,7 +70,7 @@ impl TabularCollectionSchema {
 #[pymethods]
 impl PyTabularCollectionSchema {
     #[getter]
-    pub fn get_source_assets(&self) -> AVec<PyAsset> {
+    pub fn get_source_assets(&self) -> Vec<PyAsset> {
         self.inner
             .0
             .read()

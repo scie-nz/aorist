@@ -1707,7 +1707,7 @@ macro_rules! export_aorist_python_module {
 
         define_dag_function!($dag_function);
         #[pyfunction]
-        pub fn test() -> PyResult<AVec<String>> {
+        pub fn test() -> PyResult<Vec<String>> {
             let base_name = "constraint_module";
             let debug_dir = "../target/debug/".as_ref_::<Path>().into_::<PathBuf>();
             let debug_path =
@@ -1824,10 +1824,10 @@ macro_rules! derived_schema {
             $(pub source: AoristRef<$source>,)?
             $(pub sources: AVec<AoristRef<$sources>>,)?
             $(pub sources_map: std::collections::BTreeMap<String, AoristRef<$sources_map>>,)?
-            $($(pub $source_name: AoristRef<$source_type>,)+)?
             $($(
-                pub $field_name: $field_type
-            ),+)?
+                pub $field_name: $field_type,
+            )+)?
+            $($(pub $source_name: AoristRef<$source_type>,)+)?
         }
         aorist_primitives::schema! {
             name: $name,
@@ -1858,7 +1858,7 @@ macro_rules! derived_schema {
             #[pymethods]
             impl [<Py $name>] {
                 #[getter]
-                pub fn sources(&self) -> AVec<PyAsset> {
+                pub fn sources(&self) -> Vec<PyAsset> {
                     self.inner.0.read().get_sources().into_iter().map(|x|
                         PyAsset{
                             inner: AoristRef(abi_stable::std_types::RArc::new(abi_stable::external_types::parking_lot::rw_lock::RRwLock::new(x)))
@@ -1880,7 +1880,7 @@ macro_rules! derived_schema {
             #[pymethods]
             impl [<Py $name>] {
                 #[getter]
-                pub fn sources(&self) -> AVec<PyAsset> {
+                pub fn sources(&self) -> Vec<PyAsset> {
                     self.inner.0.read().get_sources().into_iter().map(|x|
                         PyAsset{
                             inner: AoristRef(abi_stable::std_types::RArc::new(abi_stable::external_types::parking_lot::rw_lock::RRwLock::new(x)))
@@ -1956,11 +1956,11 @@ macro_rules! schema {
         #[pymethods]
         impl [<Py $name>] {
             #[getter]
-            pub fn get_attributes(&self) -> AVec<PyAttribute> {
+            pub fn get_attributes(&self) -> Vec<PyAttribute> {
                 self.inner.0.read().get_attributes().iter().map(|x| PyAttribute{ inner: x.clone() }).collect()
             }
             #[getter]
-            pub fn get_key(&self) -> AVec<PyAttribute> {
+            pub fn get_key(&self) -> Vec<PyAttribute> {
                 self.inner.0.read().get_key().iter().map(|x| PyAttribute{ inner: x.clone() }).collect()
             }
             #[getter]

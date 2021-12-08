@@ -13,7 +13,7 @@ use uuid::Uuid;
 
 #[aorist]
 pub struct ApproveAccessSelector {
-    matchLabels: AVec<(AString, AVec<AString>)>,
+    matchLabels: AVec<(AString, Vec<AString>)>,
 }
 pub trait TApproveAccessSelector {
     fn checkGroupIsAllowed(&self, group: &UserGroup) -> bool;

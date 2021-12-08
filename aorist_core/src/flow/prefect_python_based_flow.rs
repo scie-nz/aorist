@@ -58,17 +58,17 @@ impl<U: AoristUniverse> ETLFlow<U> for PrefectPythonBasedFlow<U> {
     type PreambleType = PythonPreamble;
     type ErrorType = pyo3::PyErr;
 
-    fn get_preamble(&self) -> PyResult<AVec<PythonPreamble>> {
+    fn get_preamble(&self) -> Result<AVec<PythonPreamble>, pyo3::PyErr> {
         let preambles = match self.dialect {
             Some(Dialect::Python(_)) => match self.preamble {
                 Some(ref p) => vec![PythonPreamble::NativePythonPreamble(
                     NativePythonPreamble::new(p.clone())?,
-                )],
+                )].into_iter().collect(),
                 None => AVec::new(),
             },
             _ => AVec::new(),
         };
-        Ok(preambles)
+        Ok(preambles.into_iter().collect())
     }
     fn get_dialect(&self) -> Option<Dialect> {
         self.dialect.clone()
@@ -89,7 +89,7 @@ impl<U: AoristUniverse> ETLFlow<U> for PrefectPythonBasedFlow<U> {
         for stmt in self.get_edge_addition_statements() {
             stmts.push(stmt);
         }
-        stmts
+        stmts.into_iter().collect()
     }
     fn new(
         task_id: AST,
@@ -138,7 +138,7 @@ impl<U: AoristUniverse> ETLFlow<U> for PrefectPythonBasedFlow<U> {
                 "Constant".into(),
                 None,
             )],
-        }
+        }.into_iter().collect()
     }
 }
 impl<U: AoristUniverse> PrefectPythonBasedFlow<U> {
@@ -210,7 +210,7 @@ impl<U: AoristUniverse> PrefectPythonBasedFlow<U> {
         ));
         let add_expr = AST::Call(Call::new_wrapped(
             function,
-            vec![self.get_task_val(), dep],
+            vec![self.get_task_val(), dep].into_iter().collect(),
             LinkedHashMap::new(),
         ));
         AST::Expression(Expression::new_wrapped(add_expr))
@@ -223,14 +223,14 @@ impl<U: AoristUniverse> PrefectPythonBasedFlow<U> {
                 let for_stmt = AST::ForLoop(ForLoop::new_wrapped(
                     target.clone(),
                     self.dep_list.as_ref().unwrap().clone(),
-                    vec![self.get_flow_add_edge_statement(target.clone())],
+                    vec![self.get_flow_add_edge_statement(target.clone())].into_iter().collect(),
                 ));
-                vec![for_stmt]
+                vec![for_stmt].into_iter().collect()
             }
             _ => {
                 let dep = self.dep_list.clone();
                 let add_stmt = self.get_flow_add_edge_statement(dep.unwrap());
-                vec![add_stmt]
+                vec![add_stmt].into_iter().collect()
             }
         }
     }
@@ -242,7 +242,7 @@ impl<U: AoristUniverse> PrefectPythonBasedFlow<U> {
         ));
         let add_expr = AST::Call(Call::new_wrapped(
             function,
-            vec![self.get_task_val()],
+            vec![self.get_task_val()].into_iter().collect(),
             LinkedHashMap::new(),
         ));
         AST::Expression(Expression::new_wrapped(add_expr))
@@ -286,7 +286,7 @@ impl<U: AoristUniverse> PythonBasedFlowBuilder<U> for PrefectFlowBuilder<U> {
                             AVec::new(),
                             LinkedHashMap::new(),
                         ),
-                    )))],
+                    )))].into_iter().collect(),
                     "Run Prefect flow".into(),
                     None,
                     None,

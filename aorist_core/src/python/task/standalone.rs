@@ -7,7 +7,7 @@ use crate::parameter_tuple::ParameterTuple;
 use crate::python::task::key::PythonBasedTaskCompressionKey;
 use crate::python::task::uncompressible::PythonBasedTaskUncompressiblePart;
 use crate::python::{List, PythonImport, PythonPreamble, StringLiteral, AST};
-use aorist_primitives::{AString, AoristUniverse};
+use aorist_primitives::{AString, AoristUniverse, AVec};
 use linked_hash_map::LinkedHashMap;
 use std::hash::Hash;
 use std::marker::PhantomData;

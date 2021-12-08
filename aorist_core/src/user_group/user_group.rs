@@ -17,7 +17,7 @@ pub struct UserGroup {
     members: AVec<AString>,
     labels: BTreeMap<AString, AString>,
     description: Option<AString>,
-    users: AVec<User>,
+    users: AVec<AoristRef<User>>,
 }
 pub trait TUserGroup {
     fn get_labels(&self) -> &BTreeMap<AString, AString>;

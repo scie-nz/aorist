@@ -83,7 +83,7 @@ impl PyStorageSetup {
         self.inner.0.read().get_tmp_dir().as_str().into()
     }
     #[getter]
-    pub fn local(&self) -> AVec<PyStorage> {
+    pub fn local(&self) -> Vec<PyStorage> {
         self.inner
             .0
             .read()

@@ -79,7 +79,6 @@ pub trait TConceptBuilder {
                 self.add_aorist_fields(struct_data)?;
                 let quoted = quote! {
                     #[repr(C)]
-                    #[cfg_attr(feature = "python", pyo3::prelude::pyclass)]
                     #[derive(
                         Derivative, Serialize, Deserialize, Clone, Hash,
                     )]
@@ -99,7 +98,6 @@ pub trait TConceptBuilder {
                 let variant_type = variants.iter().map(|x| (&x.fields)).collect::<AVec<_>>();
                 let quoted = quote! {
                     #[repr(C)]
-                    #[cfg_attr(feature = "python", derive(pyo3::prelude::FromPyObject))]
                     #[derive(Debug, PartialEq, Serialize, Deserialize, Clone, Hash, Eq)]
                     #[serde(tag = "type")]
                     pub enum #enum_name {

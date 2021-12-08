@@ -49,13 +49,13 @@ where
     type PreambleType = PythonPreamble;
     type ErrorType = pyo3::PyErr;
 
-    fn get_preamble(&self) -> pyo3::PyResult<AVec<PythonPreamble>> {
+    fn get_preamble(&self) -> Result<AVec<PythonPreamble>, pyo3::PyErr> {
         // TODO: this should be deprecated
         let mut preambles = self.get_python_preamble()?;
         if let Some(p) = self.node.get_preamble() {
             preambles.push(p)
         }
-        Ok(preambles)
+        Ok(preambles.into_iter().collect())
     }
     fn get_imports(&self) -> AVec<PythonImport> {
         self.node.get_imports()

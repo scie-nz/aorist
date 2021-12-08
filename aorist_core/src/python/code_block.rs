@@ -137,7 +137,7 @@ where
                     "There are {} maybe_uncompressible tasks",
                     maybe_uncompressible.len()
                 );
-                for v in &maybe_uncompressible {
+                for v in maybe_uncompressible.iter() {
                     trace!("-- {:?} : {:?}", v.dict, v.params);
                 }
                 let distinct_keys = maybe_uncompressible
@@ -155,8 +155,8 @@ where
                     LinkedHashMap::new();
                 let mut full_task_ids: LinkedHashMap<AST, HashSet<AString>> = LinkedHashMap::new();
 
-                for t in &maybe_uncompressible {
-                    for dep in &t.deps {
+                for t in maybe_uncompressible.iter() {
+                    for dep in t.deps.iter() {
                         deps.entry(dep.clone())
                             .or_insert(HashSet::new())
                             .insert(t.task_id.clone());

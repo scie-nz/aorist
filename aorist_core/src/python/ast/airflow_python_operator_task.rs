@@ -16,7 +16,7 @@ pub trait AirflowPythonOperatorTask: PythonTaskBase + AirflowTaskBase {
             "airflow.operators.python_operator".into(),
             "PythonOperator".into(),
             None,
-        )]
+        )].into_iter().collect()
     }
     fn get_callable_kwargs(&self) -> LinkedHashMap<AString, AST>;
     fn compute_task_kwargs(&self) -> LinkedHashMap<AString, AST> {
@@ -35,7 +35,7 @@ pub trait AirflowPythonOperatorTask: PythonTaskBase + AirflowTaskBase {
     fn get_operator_statements(&self) -> AVec<AST> {
         let creation_expr = AST::Call(Call::new_wrapped(
             self.compute_task_call(),
-            vec![],
+            vec![].into_iter().collect(),
             self.compute_task_kwargs(),
         ));
         let mut statements = vec![AST::Assignment(Assignment::new_wrapped(
@@ -50,11 +50,11 @@ pub trait AirflowPythonOperatorTask: PythonTaskBase + AirflowTaskBase {
                         "set_upstream".into(),
                         false,
                     )),
-                    vec![dependencies],
+                    vec![dependencies].into_iter().collect(),
                     LinkedHashMap::new(),
                 ),
             ))));
         }
-        statements
+        statements.into_iter().collect()
     }
 }

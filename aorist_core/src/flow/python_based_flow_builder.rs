@@ -83,20 +83,22 @@ where
             );
         }
 
-        let augmented_statements = self.augment_statements(statements_with_ast, flow_name.clone());
-        let content: AVec<(Option<AString>, AVec<&PyAny>)> = vec![(None, imports_ast)]
+        let augmented_statements: Vec<_> = self.augment_statements(
+            statements_with_ast, flow_name.clone()).into_iter().collect();
+        let content: Vec<(Option<AString>, Vec<&PyAny>)> = vec![(None, imports_ast.into_iter().collect::<Vec<_>>())]
             .into_iter()
             .chain(
                 preambles
                     .into_iter()
-                    .map(|x| (None, x.to_python_ast_nodes(py, ast, 0))),
+                    .map(|x| (None, x.to_python_ast_nodes(py, ast, 0).into_iter().collect::<Vec<_>>()))
+                    .collect::<Vec<_>>().into_iter(),
             )
             .chain(augmented_statements.into_iter().map(|x| {
                 (
                     Some(x.get_block_comment()),
-                    x.to_python_ast_nodes(py, ast, 0).unwrap(),
+                    x.to_python_ast_nodes(py, ast, 0).unwrap().into_iter().collect::<Vec<_>>(),
                 )
-            }))
+            }).collect::<Vec<_>>().into_iter())
             .collect();
 
         let mut sources: AVec<(Option<AString>, AString)> = AVec::new();

@@ -154,23 +154,23 @@ where
                 "DummyOperator".into(),
                 None,
             )],
-        }
+        }.into_iter().collect()
     }
-    fn get_preamble(&self) -> pyo3::PyResult<AVec<PythonPreamble>> {
+    fn get_preamble(&self) -> Result<AVec<PythonPreamble>, pyo3::PyErr> {
         // TODO: this should be deprecated
         let mut preambles = match self.dialect {
             Some(Dialect::Python(_)) => match self.preamble {
                 Some(ref p) => vec![PythonPreamble::NativePythonPreamble(
                     NativePythonPreamble::new(p.clone())?,
                 )],
-                None => AVec::new(),
+                None => Vec::new(),
             },
-            _ => AVec::new(),
+            _ => Vec::new(),
         };
         if let Some(p) = self.node.get_preamble() {
             preambles.push(p)
         }
-        Ok(preambles)
+        Ok(preambles.into_iter().collect())
     }
     fn get_dialect(&self) -> Option<Dialect> {
         self.dialect.clone()
@@ -196,12 +196,12 @@ where
                         "set_upstream".into(),
                         false,
                     )),
-                    vec![dependencies.clone()],
+                    vec![dependencies.clone()].into_iter().collect(),
                     LinkedHashMap::new(),
                 ),
             ))));
         }
-        statements
+        statements.into_iter().collect()
     }
     fn new(
         task_id: AST,
@@ -347,7 +347,7 @@ where
                 vec![AST::StringLiteral(StringLiteral::new_wrapped(
                     "airflow@example.com".into(),
                     false,
-                ))],
+                ))].into_iter().collect(),
                 false,
             )),
         );
@@ -394,7 +394,7 @@ where
                     AST::BigIntLiteral(BigIntLiteral::new_wrapped(2021)),
                     AST::BigIntLiteral(BigIntLiteral::new_wrapped(1)),
                     AST::BigIntLiteral(BigIntLiteral::new_wrapped(1)),
-                ],
+                ].into_iter().collect(),
                 LinkedHashMap::new(),
             )),
         );
@@ -404,7 +404,7 @@ where
                 vec![AST::StringLiteral(StringLiteral::new_wrapped(
                     "aorist".into(),
                     false,
-                ))],
+                ))].into_iter().collect(),
                 false,
             )),
         );
@@ -416,14 +416,14 @@ where
                     None => "flow".into(),
                 },
                 false,
-            ))],
+            ))].into_iter().collect(),
             kwargs,
         ));
         let dag_call_assign = AST::Assignment(Assignment::new_wrapped(dag, dag_call));
         statements.insert(
             0,
             PythonFlowBuilderInput::statements_only(
-                vec![default_args_assign, dag_call_assign],
+                vec![default_args_assign, dag_call_assign].into_iter().collect(),
                 "Setting up Airflow FlowBuilder".into(),
                 None,
                 None,
@@ -435,6 +435,6 @@ where
         vec![
             PythonImport::PythonFromImport("airflow".into(), "DAG".into(), None),
             PythonImport::PythonFromImport("datetime".into(), "datetime".into(), None),
-        ]
+        ].into_iter().collect()
     }
 }

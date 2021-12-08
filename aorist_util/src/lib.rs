@@ -89,6 +89,7 @@ pub fn init_logging() {
 
 pub fn extract_type_path(ty: &syn::Type) -> Option<&Path> {
     match *ty {
+        syn::Type::Group(ref typegroup) => extract_type_path(&typegroup.elem),
         syn::Type::Path(ref typepath) if typepath.qself.is_none() => Some(&typepath.path),
         _ => None,
     }
@@ -182,6 +183,7 @@ pub fn extract_type_from_vector(ty: &syn::Type) -> Option<&syn::Type> {
     extract_inner_from_bracketed_type(
         ty,
         vec![
+            "aorist_primitives|AVec".to_string(),
             "AVec|".to_string(),
             "aorist_primitives|AVec|".to_string(),
         ]

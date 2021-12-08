@@ -76,7 +76,7 @@ impl Preamble for RPythonPreamble {
         vec![PythonImport::PythonModuleImport(
             "rpy2.robjects".into(),
             Some("robjects".into()),
-        )]
+        )].into_iter().collect()
     }
 }
 impl Preamble for NativePythonPreamble {
@@ -127,7 +127,7 @@ impl PythonPreamble {
             PythonPreamble::PythonStatementsPreamble(x) => vec![x
                 .function
                 .to_python_ast_node(py, ast_module, depth)
-                .unwrap()],
+                .unwrap()].into_iter().collect(),
         }
     }
 }
@@ -209,8 +209,8 @@ def build_preamble(body):
 
         let body_no_imports: &PyList = tpl.get_item(2)?.extract()?;
         Ok(Self {
-            imports,
-            from_imports,
+            imports: imports.into_iter().collect(),
+            from_imports: from_imports.into_iter().collect(),
             body: body_no_imports
                 .iter()
                 .map(|x| x.extract::<&PyString>().unwrap().to_str().unwrap().into())

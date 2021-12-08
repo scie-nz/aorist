@@ -98,11 +98,17 @@ impl <T> AVec<T> {
     pub fn iter<'a>(&'a self) -> std::slice::Iter<'a, T> {
         self.0.iter()
     }
+    pub fn iter_mut<'a>(&'a mut self) -> std::slice::IterMut<'a, T> {
+        self.0.iter_mut()
+    }
     pub fn new() -> AVec<T> {
         Self(RVec::<T>::new())
     }
     pub fn push(&mut self, elem: T) {
         self.0.push(elem)
+    }
+    pub fn insert(&mut self, index: usize, value: T) {
+        self.0.insert(index, value)
     }
 }
 impl AVec<String> {

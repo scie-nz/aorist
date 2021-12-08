@@ -77,8 +77,8 @@ pub enum AttributeOrValue {
 #[cfg(feature = "python")]
 impl<'a> FromPyObject<'a> for AttributeOrValue {
     fn extract(obj: &'a PyAny) -> PyResult<Self> {
-        if let Ok(x) = Attribute::extract(obj) {
-            return Ok(Self::Attribute(x));
+        if let Ok(x) = PyAttribute::extract(obj) {
+            return Ok(Self::Attribute(x.inner.0.read().clone()));
         } else if let Ok(x) = AttributeValue::extract(obj) {
             return Ok(Self::Value(x));
         }

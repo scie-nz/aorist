@@ -154,7 +154,7 @@ impl PyDataSchema {
         }
     }
     #[getter]
-    pub fn get_attributes(&self) -> AVec<PyAttribute> {
+    pub fn get_attributes(&self) -> Vec<PyAttribute> {
         self.inner
             .0
             .read()

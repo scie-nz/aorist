@@ -64,8 +64,8 @@ impl PythonFlowBuilderInput {
         py: Python,
         ast_module: &'a PyModule,
         depth: usize,
-    ) -> PyResult<AVec<&'a PyAny>> {
-        let mut v = AVec::new();
+    ) -> PyResult<Vec<&'a PyAny>> {
+        let mut v = Vec::new();
         for statement in self.get_statements() {
             v.push(statement.to_python_ast_node(py, ast_module, depth)?);
         }
