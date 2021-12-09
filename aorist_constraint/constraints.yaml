@@ -199,7 +199,7 @@ spec:
               let storage_setup = aorist_core::TAsset::get_storage_setup(&asset);
               let local_storages = storage_setup.0.read().get_local_storage();
               let mut hive_storage = false;
-              for storage in &local_storages {
+              for storage in local_storages.iter() {
                   if let aorist_core::Storage::HiveTableStorage(_) = *storage.0.read() {
                       hive_storage = true;
                   }
@@ -228,7 +228,7 @@ spec:
               let storage_setup = aorist_core::TAsset::get_storage_setup(&asset);
               let local_storages = storage_setup.0.read().get_local_storage();
               let mut sqlite_storage = false;
-              for storage in &local_storages {
+              for storage in local_storages.iter() {
                   if let aorist_core::Storage::SQLiteStorage(_) = *storage.0.read() {
                       sqlite_storage = true;
                   }

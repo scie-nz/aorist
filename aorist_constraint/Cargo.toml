@@ -13,7 +13,7 @@ build = "build.rs"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [features]
-python = ["pyo3", "pyo3/extension-module", "aorist_core/python"]
+python = ["pyo3", "aorist_core/python"]
 r = ["aorist_extendr-api", "aorist_extendr-engine"]
 sql = ["sqlformat", "sqlparser"]
 

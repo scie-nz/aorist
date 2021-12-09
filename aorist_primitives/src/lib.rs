@@ -630,7 +630,7 @@ macro_rules! define_constraint {
                     $should_add(root, ancestry)
                 }
                 fn get_required(root: AoristRef<Concept>, ancestry: &ConceptAncestry) -> AVec<Uuid> {
-                    $get_required(root, ancestry)
+                    $get_required(root, ancestry).into_iter().collect()
                 }
                 fn get_root_uuid(&self) -> Result<Uuid> {
                     Ok(self.root_uuid.clone())
@@ -642,7 +642,7 @@ macro_rules! define_constraint {
                 fn get_downstream_constraints(&self) -> Result<AVec<RArc<RRwLock<Constraint>>>> {
                     let mut downstream: AVec<RArc<RRwLock<Constraint>>> = AVec::new();
                     $(
-                        for arc in &self.[<$required:snake:lower>] {
+                        for arc in self.[<$required:snake:lower>].iter() {
                             downstream.push(arc.clone());
                         }
                     )*
@@ -683,7 +683,7 @@ macro_rules! define_constraint {
                         AVec::new();
                     )*
                     let mut by_uuid: HashMap<Uuid, RArc<RRwLock<Constraint>>> = HashMap::new();
-                    for constraint in &potential_child_constraints {
+                    for constraint in potential_child_constraints.iter() {
                         $(
                             if let Some(AoristConstraint::$required{..}) =
                             &constraint.read().inner
