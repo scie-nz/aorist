@@ -1616,14 +1616,14 @@ macro_rules! define_dag_function {
         ]")]
         pub fn $name<'a>(
             universe: PyUniverse,
-            constraints: AVec<String>,
+            constraints: Vec<String>,
             mode: &str,
-            programs: BTreeMap<String, AVec<AoristConstraintProgram>>,
-            dialect_preferences: AVec<Dialect>,
+            programs: BTreeMap<String, Vec<AoristConstraintProgram>>,
+            dialect_preferences: Vec<Dialect>,
             dag_name: Option<String>,
         ) -> PyResult<String> {
             universe.compute_uuids();
-            let programs_map = programs.into_iter().map(|(k, v)| (k.as_str().into(), v)).collect();
+            let programs_map = programs.into_iter().map(|(k, v)| (k.as_str().into(), v.into_iter().collect())).collect();
             let (output, _requirements) = match mode {
                 "airflow" => PythonBasedDriver::<
                     AoristConstraintBuilder<'a>,
@@ -1636,7 +1636,7 @@ macro_rules! define_dag_function {
                     universe.inner.clone(),
                     constraints.into_iter().map(|x| x.as_str().into()).collect(),
                     programs_map,
-                    dialect_preferences,
+                    dialect_preferences.into_iter().collect(),
                     true,
                 )
                 .map_err(|e| pyo3::exceptions::PyException::new_err(e.to_string()))?
@@ -1652,7 +1652,7 @@ macro_rules! define_dag_function {
                     universe.inner.clone(),
                     constraints.into_iter().map(|x| x.as_str().into()).collect(),
                     programs_map,
-                    dialect_preferences,
+                    dialect_preferences.into_iter().collect(),
                     true,
                 )
                 .map_err(|e| pyo3::exceptions::PyException::new_err(e.to_string()))?
@@ -1668,7 +1668,7 @@ macro_rules! define_dag_function {
                     universe.inner.clone(),
                     constraints.into_iter().map(|x| x.as_str().into()).collect(),
                     programs_map,
-                    dialect_preferences,
+                    dialect_preferences.into_iter().collect(),
                     false,
                 )
                 .map_err(|e| pyo3::exceptions::PyException::new_err(e.to_string()))?
@@ -1684,7 +1684,7 @@ macro_rules! define_dag_function {
                     universe.inner.clone(),
                     constraints.into_iter().map(|x| x.as_str().into()).collect(),
                     programs_map,
-                    dialect_preferences,
+                    dialect_preferences.into_iter().collect(),
                     false,
                 )
                 .map_err(|e| pyo3::exceptions::PyException::new_err(e.to_string()))?
