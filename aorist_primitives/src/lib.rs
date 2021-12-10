@@ -457,7 +457,7 @@ macro_rules! define_constraint {
             pub struct $element {
                 id: Uuid,
                 root_uuid: Uuid,
-                $([<$required:snake:lower>] : AVec<RArc<RRwLock<$outer>>>,)*
+                $([<$required:snake:lower>] : Vec<RArc<RRwLock<$outer>>>,)*
             }
             #[cfg(feature = "python")]
             #[pymethods]
@@ -505,8 +505,8 @@ macro_rules! define_constraint {
                 pub dialect: Dialect,
                 pub code: AString,
                 pub entrypoint: AString,
-                pub arg_functions: AVec<(AVec<AString>, AString)>,
-                pub kwarg_functions: LinkedHashMap<AString, (AVec<AString>, AString)>,
+                pub arg_functions: Vec<(Vec<AString>, AString)>,
+                pub kwarg_functions: LinkedHashMap<AString, (Vec<AString>, AString)>,
             }
 
             #[cfg(feature = "python")]
@@ -516,12 +516,12 @@ macro_rules! define_constraint {
                 pub fn register_python_program(
                     code: &str,
                     entrypoint: &str,
-                    arg_functions: AVec<(AVec<&str>, &str)>,
-                    kwarg_functions: HashMap<&str, (AVec<&str>, &str)>,
-                    pip_requirements: AVec<&str>,
+                    arg_functions: Vec<(Vec<&str>, &str)>,
+                    kwarg_functions: HashMap<&str, (Vec<&str>, &str)>,
+                    pip_requirements: Vec<&str>,
                 ) -> PyResult<[<$element Program>]> {
 
-                    let mut funs: LinkedHashMap<AString, (AVec<AString>, AString)> = LinkedHashMap::new();
+                    let mut funs: LinkedHashMap<AString, (Vec<AString>, AString)> = LinkedHashMap::new();
                     for (k, (v1, v2)) in kwarg_functions.into_iter() {
                         funs.insert(k.into(), (v1.into_iter().map(|x| x.into()).collect(), v2.into()));
                     }
@@ -537,11 +537,11 @@ macro_rules! define_constraint {
                 pub fn register_r_program(
                     code: &str,
                     entrypoint: &str,
-                    arg_functions: AVec<(AVec<&str>, &str)>,
-                    kwarg_functions: HashMap<&str, (AVec<&str>, &str)>,
+                    arg_functions: Vec<(Vec<&str>, &str)>,
+                    kwarg_functions: HashMap<&str, (Vec<&str>, &str)>,
                 ) -> PyResult<[<$element Program>]> {
 
-                    let mut funs: LinkedHashMap<AString, (AVec<AString>, AString)> = LinkedHashMap::new();
+                    let mut funs: LinkedHashMap<AString, (Vec<AString>, AString)> = LinkedHashMap::new();
                     for (k, (v1, v2)) in kwarg_functions.into_iter() {
                         funs.insert(k.into(), (v1.into_iter().map(|x| x.into()).collect(), v2.into()));
                     }
@@ -557,11 +557,11 @@ macro_rules! define_constraint {
                 pub fn register_presto_program(
                     code: &str,
                     entrypoint: &str,
-                    arg_functions: AVec<(AVec<&str>, &str)>,
-                    kwarg_functions: HashMap<&str, (AVec<&str>, &str)>,
+                    arg_functions: Vec<(Vec<&str>, &str)>,
+                    kwarg_functions: HashMap<&str, (Vec<&str>, &str)>,
                 ) -> PyResult<[<$element Program>]> {
 
-                    let mut funs: LinkedHashMap<AString, (AVec<AString>, AString)> = LinkedHashMap::new();
+                    let mut funs: LinkedHashMap<AString, (Vec<AString>, AString)> = LinkedHashMap::new();
                     for (k, (v1, v2)) in kwarg_functions.into_iter() {
                         funs.insert(k.into(), (v1.into_iter().map(|x| x.into()).collect(), v2.into()));
                     }
@@ -577,11 +577,11 @@ macro_rules! define_constraint {
                 pub fn register_bash_program(
                     code: &str,
                     entrypoint: &str,
-                    arg_functions: AVec<(AVec<&str>, &str)>,
-                    kwarg_functions: HashMap<&str, (AVec<&str>, &str)>,
+                    arg_functions: Vec<(Vec<&str>, &str)>,
+                    kwarg_functions: HashMap<&str, (Vec<&str>, &str)>,
                 ) -> PyResult<[<$element Program>]> {
 
-                    let mut funs: LinkedHashMap<AString, (AVec<AString>, AString)> = LinkedHashMap::new();
+                    let mut funs: LinkedHashMap<AString, (Vec<AString>, AString)> = LinkedHashMap::new();
                     for (k, (v1, v2)) in kwarg_functions.into_iter() {
                         funs.insert(k.into(), (v1.into_iter().map(|x| x.into()).collect(), v2.into()));
                     }
@@ -602,10 +602,19 @@ macro_rules! define_constraint {
                     kwarg_functions: LinkedHashMap<AString, (AVec<AString>, AString)>,
                     dialect: Dialect,
                 ) -> Self {
-                    Self { code, entrypoint, arg_functions, kwarg_functions, dialect }
+                    Self { 
+                        code, 
+                        entrypoint, 
+                        arg_functions: arg_functions.clone().into_iter()
+                            .map(|(x, y)| (x.into_iter().collect(), y)).collect(),
+                        kwarg_functions: kwarg_functions.clone().into_iter().map(
+                            |(k, (v, x))| (k, (v.into_iter().collect(), x))
+                        ).collect(), 
+                        dialect 
+                    }
                 }
                 fn get_arg_functions(&self) -> AVec<(AVec<AString>, AString)> {
-                    self.arg_functions.clone()
+                    self.arg_functions.clone().into_iter().map(|(x, y)| (x.into_iter().collect(), y)).collect()
                 }
                 fn get_code(&self) -> AString {
                     self.code.clone()
@@ -617,7 +626,9 @@ macro_rules! define_constraint {
                     self.entrypoint.clone()
                 }
                 fn get_kwarg_functions(&self) -> LinkedHashMap<AString, (AVec<AString>, AString)> {
-                    self.kwarg_functions.clone()
+                    self.kwarg_functions.clone().into_iter().map(
+                        |(k, (v, x))| (k, (v.into_iter().collect(), x))
+                    ).collect()
                 }
             }
             impl $element {
@@ -706,7 +717,7 @@ macro_rules! define_constraint {
                     Ok(Self{
                         id: Uuid::new_v4(),
                         root_uuid,
-                        $([<$required:snake:lower>],)*
+                        $([<$required:snake:lower>]: [<$required:snake:lower>].into_iter().collect(),)*
                     })
                 }
             }
@@ -1244,10 +1255,10 @@ macro_rules! register_constraint_new {
                 let dill: &PyModule = PyModule::import(py, "dill").unwrap();
                 let mut args: AVec<AST> = AVec::new();
                 let mut kwargs: LinkedHashMap<AString, AST> = LinkedHashMap::new();
-                for (input_types, serialized) in &self.inner.get_arg_functions() {
+                for (input_types, serialized) in self.inner.get_arg_functions().iter() {
                     let py_arg = PyString::new(py, serialized.as_str());
                     let deserialized = dill.getattr("loads").unwrap().call1((py_arg,)).unwrap();
-                    let mut objects = AVec::new();
+                    let mut objects = Vec::new();
                     let mut context_pos = None;
                     for (i, x) in input_types.iter().enumerate() {
                         if x.as_str() == "context" {
