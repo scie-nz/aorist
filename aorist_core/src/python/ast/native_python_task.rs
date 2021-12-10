@@ -1,3 +1,4 @@
+use aorist_primitives::AVec;
 use crate::python::ast::{AirflowTaskBase, PythonFunctionCallTask, PythonTaskBase};
 use crate::python::PythonImport;
 use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
@@ -8,12 +9,12 @@ use std::hash::Hash;
 
 define_task_node!(
     NativePythonTask,
-    |task: &NativePythonTask| vec![task.call.clone()],
+    |task: &NativePythonTask| vec![task.call.clone()].into_iter().collect(),
     |task: &NativePythonTask| { task.get_native_python_statements() },
     |task: &NativePythonTask| task.imports.clone(),
     PythonImport,
     call: AST,
-    imports: Vec<PythonImport>,
+    imports: AVec<PythonImport>,
     task_val: AST,
     dep_list: Option<AST>,
 );

@@ -13,6 +13,7 @@ repository = "https://github.com/scie-nz/aorist"
 proc-macro = true
 
 [dependencies]
+abi_stable = "0.10.3"
 aorist_util = {path = "../aorist_util", version = "0.0.1"}
 linked_hash_set = "0.1.4"
 proc-macro2 = "1.0.25"

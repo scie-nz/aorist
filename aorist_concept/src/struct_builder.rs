@@ -1,7 +1,7 @@
 extern crate proc_macro;
-use aorist_util::AoristError;
 use self::proc_macro::TokenStream;
 use crate::builder::Builder;
+use aorist_util::AoristError;
 use aorist_util::{
     extract_type_from_aorist_ref, extract_type_from_map, extract_type_from_option,
     extract_type_from_vector,
@@ -18,40 +18,73 @@ use linked_hash_set::LinkedHashSet;
 
 fn extract_names_and_types(
     fields: &Vec<Field>,
-) -> Result<(
-    Vec<Ident>,
-    Vec<Type>,
-    Vec<Ident>,
-    Vec<Type>,
-    Vec<Ident>,
-    Vec<Type>,
-), AoristError> {
+) -> Result<
+    (
+        Vec<Ident>,
+        Vec<Type>,
+        Vec<Ident>,
+        Vec<Type>,
+        Vec<Ident>,
+        Vec<Type>,
+        Vec<Ident>,
+        Vec<Type>,
+    ),
+    AoristError,
+> {
     let mut names: Vec<Ident> = Vec::new();
     let mut types: Vec<Type> = Vec::new();
+    let mut names_vec: Vec<Ident> = Vec::new();
+    let mut types_vec: Vec<Type> = Vec::new();
     let mut names_ref: Vec<Ident> = Vec::new();
     let mut types_ref: Vec<Type> = Vec::new();
     let mut names_vec_ref: Vec<Ident> = Vec::new();
     let mut types_vec_ref: Vec<Type> = Vec::new();
     for field in fields {
         if let Some(t) = extract_type_from_aorist_ref(&field.ty) {
-            names_ref.push(field.ident.as_ref().ok_or_else(|| AoristError::OtherError("ident is none".into()))?.clone());
+            names_ref.push(
+                field
+                    .ident
+                    .as_ref()
+                    .ok_or_else(|| AoristError::OtherError("ident is none".into()))?
+                    .clone(),
+            );
             types_ref.push(t.clone());
         } else if let Some(ref vt) = extract_type_from_vector(&field.ty) {
             if let Some(t) = extract_type_from_aorist_ref(vt) {
-                names_vec_ref.push(field.ident.as_ref().ok_or_else(|| AoristError::OtherError("ident is none".into()))?.clone());
+                names_vec_ref.push(
+                    field
+                        .ident
+                        .as_ref()
+                        .ok_or_else(|| AoristError::OtherError("ident is none".into()))?
+                        .clone(),
+                );
                 types_vec_ref.push(t.clone());
             } else {
-                names.push(field.ident.as_ref().ok_or_else(|| AoristError::OtherError("ident is none".into()))?.clone());
-                types.push(field.ty.clone());
+                names_vec.push(
+                    field
+                        .ident
+                        .as_ref()
+                        .ok_or_else(|| AoristError::OtherError("ident is none".into()))?
+                        .clone(),
+                );
+                types_vec.push((*vt).clone());
             }
         } else {
-            names.push(field.ident.as_ref().ok_or_else(|| AoristError::OtherError("ident is none".into()))?.clone());
+            names.push(
+                field
+                    .ident
+                    .as_ref()
+                    .ok_or_else(|| AoristError::OtherError("ident is none".into()))?
+                    .clone(),
+            );
             types.push(field.ty.clone());
         }
     }
     Ok((
         names,
         types,
+        names_vec,
+        types_vec,
         names_ref,
         types_ref,
         names_vec_ref,
@@ -100,17 +133,19 @@ pub struct StructBuilder {
 }
 impl StructBuilder {
     pub fn get_all_types(&self) -> Result<Vec<&Type>, AoristError> {
-        let all_types = self.bare_types
+        let all_types = self
+            .bare_types
             .iter()
             .chain(self.vec_types.iter())
             .chain(self.option_types.iter())
             .chain(self.option_vec_types.iter())
             .chain(self.map_value_types.iter());
-        let mapped: Vec<_> = all_types.map(
-            |x| extract_type_from_aorist_ref(x).ok_or_else(
-                || AoristError::OtherError("Type could not be extracted".into()) 
-            )
-        ).collect::<Result<Vec<_>, AoristError>>()?;
+        let mapped: Vec<_> = all_types
+            .map(|x| {
+                extract_type_from_aorist_ref(x)
+                    .ok_or_else(|| AoristError::OtherError("Type could not be extracted".into()))
+            })
+            .collect::<Result<Vec<_>, AoristError>>()?;
         let sorted: LinkedHashSet<_> = mapped.into_iter().collect();
         Ok(sorted.into_iter().collect())
     }
@@ -261,7 +296,10 @@ impl Builder for StructBuilder {
         }
         Ok(())
     }
-    fn to_concept_children_token_stream(&self, struct_name: &Ident) -> Result<TokenStream, AoristError> {
+    fn to_concept_children_token_stream(
+        &self,
+        struct_name: &Ident,
+    ) -> Result<TokenStream, AoristError> {
         let types = self.get_all_types()?;
 
         Ok(TokenStream::from(quote! { paste! {
@@ -332,11 +370,13 @@ impl Builder for StructBuilder {
         let (
             unconstrainable_name,
             unconstrainable_type,
+            unconstrainable_name_vec,
+            unconstrainable_type_vec,
             unconstrainable_name_ref,
             unconstrainable_type_ref,
             unconstrainable_name_vec_ref,
             unconstrainable_type_vec_ref,
-        ) = extract_names_and_types(&self.unconstrainable)?;
+        ) = extract_names_and_types(&self.unconstrainable.clone().into_iter().collect())?;
         let bare_type_deref = bare_type
             .iter()
             .map(|x| extract_type_from_aorist_ref(x))
@@ -372,6 +412,7 @@ impl Builder for StructBuilder {
             pub struct [<Py #struct_name>] {
                 pub inner: AoristRef<#struct_name>,
             }
+
             #[cfg(feature = "python")]
             #[pyo3::prelude::pymethods]
             impl [<Py #struct_name>] {
@@ -532,6 +573,9 @@ impl Builder for StructBuilder {
                       >,
                     )*
                     #(
+                        #unconstrainable_name_vec: Vec<#unconstrainable_type_vec>,
+                    )*
+                    #(
                         #unconstrainable_name_ref: [<Py #unconstrainable_type_ref>],
                     )*
                     #(
@@ -570,6 +614,9 @@ impl Builder for StructBuilder {
                         )*
                         #(
                             #unconstrainable_name,
+                        )*
+                        #(
+                            #unconstrainable_name_vec: #unconstrainable_name_vec.into_iter().collect(),
                         )*
                         #(
                             #unconstrainable_name_ref: #unconstrainable_name_ref.inner.clone(),
@@ -721,6 +768,16 @@ impl Builder for StructBuilder {
                         })
                     }
                 )*
+                #(
+                    #[getter]
+                    pub fn #unconstrainable_name_vec(&self)
+                        -> pyo3::prelude::PyResult<Vec<#unconstrainable_type_vec>> {
+                        Ok(
+                            self.inner.0.read()
+                                .#unconstrainable_name_vec.clone().into_iter().collect()
+                        )
+                    }
+                )*
             }
             #[cfg(feature = "python")]
             #[pyo3::prelude::pyproto]
@@ -791,6 +848,9 @@ impl Builder for StructBuilder {
                             #unconstrainable_name: self.#unconstrainable_name.clone(),
                         )*
                         #(
+                            #unconstrainable_name_vec: self.#unconstrainable_name_vec.clone(),
+                        )*
+                        #(
                             #unconstrainable_name_ref: self.#unconstrainable_name_ref.clone(),
                         )*
                         #(
@@ -844,12 +904,12 @@ impl Builder for StructBuilder {
                     }
                 )*
                 #(
-                    pub fn #vec_ident(&self) -> Vec<#vec_type> {
+                    pub fn #vec_ident(&self) -> AVec<#vec_type> {
                         self.#vec_ident.clone()
                     }
                 )*
                 #(
-                    pub fn #option_vec_ident(&self) -> Option<Vec<#option_vec_type>> {
+                    pub fn #option_vec_ident(&self) -> Option<AVec<#option_vec_type>> {
                         self.#option_vec_ident.clone()
                     }
                 )*
@@ -889,13 +949,13 @@ impl Builder for StructBuilder {
                     uuid = self.get_uuid_from_children_uuid();
                     self.0.write().set_uuid(uuid);
                 }
-                fn get_children_uuid(&self) -> Vec<Uuid> {
+                fn get_children_uuid(&self) -> AVec<Uuid> {
                     self.get_children().iter().map(|x| x.4.get_uuid().unwrap()).collect()
                 }
                 fn get_tag(&self) -> Option<AString> {
                     self.0.read().get_tag()
                 }
-                fn get_children(&self) -> Vec<(
+                fn get_children(&self) -> AVec<(
                     // struct name
                     &str,
                     // field name
@@ -907,7 +967,7 @@ impl Builder for StructBuilder {
                     // wrapped reference
                     [<#struct_name Children>],
                 )> {
-                    let mut children: Vec<_> = Vec::new();
+                    let mut children: AVec<_> = AVec::new();
                     let read = self.0.read();
                     #(
                         children.push((

@@ -1,9 +1,10 @@
+
 use crate::attributes::*;
 use crate::concept::{AoristRef, WrappedConcept};
 use crate::template::datum_template::TDatumTemplate;
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
-use aorist_primitives::{AString, AoristConcept, ConceptEnum};
+use aorist_primitives::{AString, AVec, AoristConcept, ConceptEnum};
 use derivative::Derivative;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
@@ -16,9 +17,9 @@ pub struct PointCloudInfo {
     pub boundaries: bool,
 }
 impl TDatumTemplate for PointCloudInfo {
-    fn get_attributes(&self) -> Vec<AoristRef<Attribute>> {
+    fn get_attributes(&self) -> AVec<AoristRef<Attribute>> {
         // TODO: fill this in
-        Vec::new()
+        AVec::new()
     }
     fn get_name(&self) -> AString {
         self.name.clone()

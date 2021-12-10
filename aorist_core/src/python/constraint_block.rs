@@ -1,3 +1,4 @@
+
 use crate::code::CodeBlock;
 use crate::constraint::OuterConstraint;
 use crate::constraint_block::ConstraintBlock;
@@ -6,7 +7,7 @@ use crate::parameter_tuple::ParameterTuple;
 use crate::program::TOuterProgram;
 use crate::python::PythonBasedCodeBlock;
 use crate::python::{Assignment, Dict, PythonFlowBuilderInput, PythonImport, PythonPreamble, AST};
-use aorist_primitives::{AString, AoristUniverse};
+use aorist_primitives::{AString, AVec, AoristUniverse};
 use linked_hash_map::LinkedHashMap;
 use std::collections::HashMap;
 use std::marker::PhantomData;
@@ -22,7 +23,7 @@ where
     constraint_name: AString,
     title: Option<AString>,
     body: Option<AString>,
-    members: Vec<PythonBasedCodeBlock<'a, T, C, U, P>>,
+    members: AVec<PythonBasedCodeBlock<'a, T, C, U, P>>,
     tasks_dict: Option<AST>,
     _lt: PhantomData<&'a ()>,
     _constraint: PhantomData<C>,
@@ -46,7 +47,7 @@ where
     fn get_constraint_body(&self) -> Option<AString> {
         self.body.clone()
     }
-    fn get_code_blocks(&self) -> &Vec<Self::C> {
+    fn get_code_blocks(&self) -> &AVec<Self::C> {
         &self.members
     }
 
@@ -54,7 +55,7 @@ where
         constraint_name: AString,
         title: Option<AString>,
         body: Option<AString>,
-        members: Vec<PythonBasedCodeBlock<'a, T, C, U, P>>,
+        members: AVec<PythonBasedCodeBlock<'a, T, C, U, P>>,
         tasks_dict: Option<AST>,
     ) -> Self {
         Self {
@@ -75,13 +76,13 @@ where
             .collect()
     }
 
-    fn get_task_val_assignments(&self) -> Vec<AST> {
+    fn get_task_val_assignments(&self) -> AVec<AST> {
         match &self.tasks_dict {
             Some(ref val) => vec![AST::Assignment(Assignment::new_wrapped(
                 val.clone(),
                 AST::Dict(Dict::new_wrapped(LinkedHashMap::new())),
-            ))],
-            None => vec![],
+            ))].into_iter().collect(),
+            None => vec![].into_iter().collect(),
         }
     }
 }

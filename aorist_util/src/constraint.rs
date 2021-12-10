@@ -32,7 +32,7 @@ pub fn get_constraint_dependencies(
     constraints: &Vec<HashMap<String, Value>>,
 ) -> HashMap<ConstraintTuple, Vec<String>> {
     let mut dependencies: HashMap<ConstraintTuple, Vec<String>> = HashMap::new();
-    for constraint in constraints {
+    for constraint in constraints.iter() {
         let name = constraint
             .get("name")
             .unwrap()
@@ -67,7 +67,7 @@ pub fn get_constraint_dependencies(
     }
     let constraint_names: HashSet<String> = dependencies.keys().map(|x| x.0.clone()).collect();
     for dep in dependencies.values() {
-        for elem in dep {
+        for elem in dep.iter() {
             if !constraint_names.contains(elem) {
                 panic!("Cannot find definition for required constraint {}", elem);
             }
@@ -127,7 +127,7 @@ pub fn process_constraints(raw_objects: &Vec<HashMap<String, Value>>) {
     let constraints = get_raw_objects_of_type(raw_objects, "Constraint".into());
     let mut scope = Scope::new();
     scope.import("uuid", "Uuid");
-    for constraint in &constraints {
+    for constraint in constraints.iter() {
         scope.import(
             "aorist_core",
             constraint.get("root").unwrap().as_str().unwrap(),
@@ -177,7 +177,7 @@ pub fn process_constraints(raw_objects: &Vec<HashMap<String, Value>>) {
         })
         .collect::<HashMap<String, Option<String>>>();
     let mut satisfiable = Vec::new();
-    for (name, root, title, body) in &order {
+    for (name, root, title, body) in order.iter() {
         let required = dependencies
             .get(&(name.clone(), root.clone(), title.clone(), body.clone()))
             .unwrap();
@@ -294,7 +294,7 @@ pub fn process_constraints_new(raw_objects: &Vec<HashMap<String, Value>>) {
         })
         .collect::<HashMap<String, Option<String>>>();
     let mut satisfiable = Vec::new();
-    for (name, root, title, body) in &order {
+    for (name, root, title, body) in order.iter() {
         let required = dependencies
             .get(&(name.clone(), root.clone(), title.clone(), body.clone()))
             .unwrap();

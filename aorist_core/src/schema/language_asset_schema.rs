@@ -1,3 +1,4 @@
+
 use crate::attributes::*;
 use crate::concept::{AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
 use crate::schema::fasttext_embedding_schema::*;
@@ -6,7 +7,7 @@ use crate::schema::text_corpus_schema::*;
 use crate::template::*;
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
-use aorist_primitives::AString;
+use aorist_primitives::{AString, AVec};
 #[cfg(feature = "python")]
 use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
@@ -24,7 +25,7 @@ pub enum LanguageAssetSchema {
 }
 
 impl LanguageAssetSchema {
-    pub fn get_attributes(&self) -> Vec<AoristRef<Attribute>> {
+    pub fn get_attributes(&self) -> AVec<AoristRef<Attribute>> {
         match self {
             Self::FasttextEmbeddingSchema(x) => x.0.read().get_attributes(),
             Self::NamedEntitySchema(x) => x.0.read().get_attributes(),

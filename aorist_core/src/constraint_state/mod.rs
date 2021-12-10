@@ -1,3 +1,4 @@
+
 use crate::concept::Ancestry;
 use crate::constraint::OuterConstraint;
 use crate::dialect::Dialect;
@@ -7,7 +8,7 @@ use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 use abi_stable::std_types::RArc;
 use anyhow::{bail, Result};
 use aorist_ast::{AncestorRecord, Formatted, SimpleIdentifier, StringLiteral, AST};
-use aorist_primitives::{AString, Context, TConceptEnum};
+use aorist_primitives::{AString, AVec, Context, TConceptEnum};
 use inflector::cases::snakecase::to_snake_case;
 use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
@@ -20,13 +21,13 @@ pub struct ConstraintState<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestr
     pub key: Option<AString>,
     name: AString,
     pub satisfied: bool,
-    pub satisfied_dependencies: Vec<RArc<RRwLock<ConstraintState<'a, T, P>>>>,
+    pub satisfied_dependencies: AVec<RArc<RRwLock<ConstraintState<'a, T, P>>>>,
     pub unsatisfied_dependencies: LinkedHashSet<(Uuid, AString)>,
     constraint: RArc<RRwLock<T>>,
     root: <<T as OuterConstraint<'a>>::TAncestry as Ancestry>::TConcept,
     // these are concept ancestors
-    // TODO: change this to Vec<Concept<'a>>
-    ancestors: Vec<AncestorRecord>,
+    // TODO: change this to AVec<Concept<'a>>
+    ancestors: AVec<AncestorRecord>,
     preamble: Option<AString>,
     call: Option<AString>,
     params: Option<ParameterTuple>,
@@ -52,9 +53,9 @@ impl<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry = T::TAncestry>>
     pub fn requires_program(&self) -> Result<bool> {
         self.constraint.read().requires_program()
     }
-    pub fn get_dependencies(&self) -> Result<Vec<Uuid>> {
-        let mut dependencies = Vec::new();
-        for dep in &self.satisfied_dependencies {
+    pub fn get_dependencies(&self) -> Result<AVec<Uuid>> {
+        let mut dependencies = AVec::new();
+        for dep in self.satisfied_dependencies.iter() {
             dependencies.push(dep.read().get_constraint_uuid()?);
         }
         Ok(dependencies)
@@ -73,16 +74,16 @@ impl<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry = T::TAncestry>>
             _ => bail!("Dialect not supported for task call: {:?}", self.dialect),
         }
     }
-    pub fn get_args_vec(&self) -> Result<Vec<AST>> {
+    pub fn get_args_vec(&self) -> Result<AVec<AST>> {
         match (&self.params, &self.dialect) {
             (Some(ref p), Some(Dialect::Python(_))) => Ok(p.get_args()),
-            (None, Some(Dialect::Python(_))) => Ok(Vec::new()),
-            (_, Some(Dialect::Presto(_))) => Ok(Vec::new()),
-            (_, Some(Dialect::Bash(_))) => Ok(Vec::new()),
+            (None, Some(Dialect::Python(_))) => Ok(AVec::new()),
+            (_, Some(Dialect::Presto(_))) => Ok(AVec::new()),
+            (_, Some(Dialect::Bash(_))) => Ok(AVec::new()),
             (_, None) => Ok(vec![AST::StringLiteral(StringLiteral::new_wrapped(
                 self.constraint.read().get_name().clone(),
                 false,
-            ))]),
+            ))].into_iter().collect()),
             _ => bail!("Dialect not supported for args vec: {:?}", self.dialect),
         }
     }
@@ -129,7 +130,7 @@ impl<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry = T::TAncestry>>
     pub fn get_task_name(&self) -> AString {
         self.task_name.as_ref().unwrap().clone()
     }
-    pub fn get_satisfied_dependency_keys(&self) -> Vec<AString> {
+    pub fn get_satisfied_dependency_keys(&self) -> AVec<AString> {
         self.satisfied_dependencies
             .iter()
             .map(|x| x.read().get_task_name())
@@ -152,7 +153,7 @@ impl<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry = T::TAncestry>>
     pub fn get_root_type(&self) -> AString {
         self.root.get_type()
     }
-    pub fn get_ancestors(&self) -> Vec<AncestorRecord> {
+    pub fn get_ancestors(&self) -> AVec<AncestorRecord> {
         self.ancestors.clone()
     }
     pub fn get_preamble(&self) -> Option<AString> {
@@ -171,11 +172,11 @@ impl<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry = T::TAncestry>>
         self.key.clone()
     }
     pub fn find_best_program<'b>(
-        preferences: &Vec<Dialect>,
-        programs: &'b Vec<P>,
+        preferences: &AVec<Dialect>,
+        programs: &'b AVec<P>,
     ) -> Option<&'b P> {
-        for dialect in preferences {
-            for program in programs {
+        for dialect in preferences.iter() {
+            for program in programs.iter() {
                 if program.get_dialect() == dialect.clone() {
                     return Some(&program);
                 }
@@ -185,9 +186,9 @@ impl<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry = T::TAncestry>>
     }
     pub fn satisfy(
         &mut self,
-        preferences: &Vec<Dialect>,
+        preferences: &AVec<Dialect>,
         ancestry: &<T as OuterConstraint<'a>>::TAncestry,
-        programs: &Vec<P>,
+        programs: &AVec<P>,
     ) {
         let best_program = Self::find_best_program(preferences, programs);
         if let Some(program) = best_program {
@@ -226,7 +227,7 @@ impl<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry = T::TAncestry>>
                 >,
             >,
         >,
-        concept_ancestors: &HashMap<(Uuid, AString), Vec<AncestorRecord>>,
+        concept_ancestors: &HashMap<(Uuid, AString), AVec<AncestorRecord>>,
     ) -> Result<Self> {
         let arc = constraint.clone();
         let x = arc.read();
@@ -263,7 +264,7 @@ impl<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry = T::TAncestry>>
             name: x.get_name().clone(),
             satisfied: false,
             unsatisfied_dependencies: dependencies,
-            satisfied_dependencies: Vec::new(),
+            satisfied_dependencies: AVec::new(),
             constraint,
             root,
             ancestors: ancestors.clone(),
@@ -312,7 +313,7 @@ impl<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry = T::TAncestry>>
         constraints: &LinkedHashMap<(Uuid, AString), RArc<RRwLock<ConstraintState<'a, T, P>>>>,
         _existing_names: &mut HashSet<AString>,
     ) {
-        let mut task_names: Vec<(AString, RArc<RRwLock<ConstraintState<'a, T, P>>>)> = Vec::new();
+        let mut task_names: AVec<(AString, RArc<RRwLock<ConstraintState<'a, T, P>>>)> = AVec::new();
         for constraint in constraints.values() {
             let mut write = constraint.write();
             write.compute_task_key();

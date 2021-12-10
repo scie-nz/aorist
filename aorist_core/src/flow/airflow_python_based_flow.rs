@@ -1,3 +1,4 @@
+
 use crate::dialect::Dialect;
 use crate::flow::etl_flow::ETLFlow;
 use crate::flow::flow_builder::FlowBuilderBase;
@@ -12,7 +13,7 @@ use aorist_ast::{
     None, SimpleIdentifier, StringLiteral, AST,
 };
 use aorist_primitives::TPrestoEndpoints;
-use aorist_primitives::{AString, AoristUniverse};
+use aorist_primitives::{AString, AVec, AoristUniverse};
 use linked_hash_map::LinkedHashMap;
 use std::marker::PhantomData;
 
@@ -24,7 +25,7 @@ where
     task_id: AST,
     task_val: AST,
     command: Option<AString>,
-    args: Vec<AST>,
+    args: AVec<AST>,
     kwargs: LinkedHashMap<AString, AST>,
     dep_list: Option<AST>,
     preamble: Option<AString>,
@@ -45,8 +46,8 @@ impl<U: AoristUniverse> AirflowPythonBasedFlow<U>
 where
     U::TEndpoints: TPrestoEndpoints,
 {
-    fn compute_task_args(&self) -> Vec<AST> {
-        Vec::new()
+    fn compute_task_args(&self) -> AVec<AST> {
+        AVec::new()
     }
     fn compute_task_kwargs(&self) -> LinkedHashMap<AString, AST> {
         let mut kwargs;
@@ -134,7 +135,7 @@ where
     type ImportType = PythonImport;
     type PreambleType = PythonPreamble;
     type ErrorType = pyo3::PyErr;
-    fn get_imports(&self) -> Vec<PythonImport> {
+    fn get_imports(&self) -> AVec<PythonImport> {
         match self.dialect {
             Some(Dialect::Python(_)) | Some(Dialect::R(_)) => vec![PythonImport::PythonFromImport(
                 "airflow.operators.python_operator".into(),
@@ -153,9 +154,9 @@ where
                 "DummyOperator".into(),
                 None,
             )],
-        }
+        }.into_iter().collect()
     }
-    fn get_preamble(&self) -> pyo3::PyResult<Vec<PythonPreamble>> {
+    fn get_preamble(&self) -> Result<AVec<PythonPreamble>, pyo3::PyErr> {
         // TODO: this should be deprecated
         let mut preambles = match self.dialect {
             Some(Dialect::Python(_)) => match self.preamble {
@@ -169,7 +170,7 @@ where
         if let Some(p) = self.node.get_preamble() {
             preambles.push(p)
         }
-        Ok(preambles)
+        Ok(preambles.into_iter().collect())
     }
     fn get_dialect(&self) -> Option<Dialect> {
         self.dialect.clone()
@@ -177,7 +178,7 @@ where
     fn get_task_val(&self) -> AST {
         self.task_val.clone()
     }
-    fn get_statements(&self) -> Vec<AST> {
+    fn get_statements(&self) -> AVec<AST> {
         let creation_expr = AST::Call(Call::new_wrapped(
             self.compute_task_call(),
             self.compute_task_args(),
@@ -195,18 +196,18 @@ where
                         "set_upstream".into(),
                         false,
                     )),
-                    vec![dependencies.clone()],
+                    vec![dependencies.clone()].into_iter().collect(),
                     LinkedHashMap::new(),
                 ),
             ))));
         }
-        statements
+        statements.into_iter().collect()
     }
     fn new(
         task_id: AST,
         task_val: AST,
         call: Option<AString>,
-        args: Vec<AST>,
+        args: AVec<AST>,
         kwargs: LinkedHashMap<AString, AST>,
         dep_list: Option<AST>,
         preamble: Option<AString>,
@@ -275,7 +276,7 @@ where
                         kwargs.clone(),
                     )),
                     // TODO: add imports from preamble
-                    Vec::new(),
+                    AVec::new(),
                     task_val.clone(),
                     dep_list.clone(),
                 ))
@@ -326,9 +327,9 @@ where
     /// Takes a set of statements and mutates them so as make a valid ETL flow
     fn augment_statements(
         &self,
-        mut statements: Vec<PythonFlowBuilderInput>,
+        mut statements: AVec<PythonFlowBuilderInput>,
         flow_name: Option<AString>,
-    ) -> Vec<PythonFlowBuilderInput> {
+    ) -> AVec<PythonFlowBuilderInput> {
         let default_args =
             AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("default_args".into()));
         let mut default_args_map: LinkedHashMap<AString, AST> = LinkedHashMap::new();
@@ -346,7 +347,7 @@ where
                 vec![AST::StringLiteral(StringLiteral::new_wrapped(
                     "airflow@example.com".into(),
                     false,
-                ))],
+                ))].into_iter().collect(),
                 false,
             )),
         );
@@ -393,7 +394,7 @@ where
                     AST::BigIntLiteral(BigIntLiteral::new_wrapped(2021)),
                     AST::BigIntLiteral(BigIntLiteral::new_wrapped(1)),
                     AST::BigIntLiteral(BigIntLiteral::new_wrapped(1)),
-                ],
+                ].into_iter().collect(),
                 LinkedHashMap::new(),
             )),
         );
@@ -403,7 +404,7 @@ where
                 vec![AST::StringLiteral(StringLiteral::new_wrapped(
                     "aorist".into(),
                     false,
-                ))],
+                ))].into_iter().collect(),
                 false,
             )),
         );
@@ -415,14 +416,14 @@ where
                     None => "flow".into(),
                 },
                 false,
-            ))],
+            ))].into_iter().collect(),
             kwargs,
         ));
         let dag_call_assign = AST::Assignment(Assignment::new_wrapped(dag, dag_call));
         statements.insert(
             0,
             PythonFlowBuilderInput::statements_only(
-                vec![default_args_assign, dag_call_assign],
+                vec![default_args_assign, dag_call_assign].into_iter().collect(),
                 "Setting up Airflow FlowBuilder".into(),
                 None,
                 None,
@@ -430,10 +431,10 @@ where
         );
         statements
     }
-    fn get_flow_imports(&self) -> Vec<PythonImport> {
+    fn get_flow_imports(&self) -> AVec<PythonImport> {
         vec![
             PythonImport::PythonFromImport("airflow".into(), "DAG".into(), None),
             PythonImport::PythonFromImport("datetime".into(), "datetime".into(), None),
-        ]
+        ].into_iter().collect()
     }
 }

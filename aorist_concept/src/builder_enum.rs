@@ -1,9 +1,9 @@
 extern crate proc_macro;
-use aorist_util::AoristError;
 use self::proc_macro::TokenStream;
 use crate::builder::Builder;
-use crate::struct_builder::StructBuilder;
 use crate::enum_builder::EnumBuilder;
+use crate::struct_builder::StructBuilder;
+use aorist_util::AoristError;
 use proc_macro2::Ident;
 mod keyword {
     syn::custom_keyword!(path);
@@ -40,7 +40,7 @@ impl BuilderEnum {
             Self::EnumBuilder(ref b, ref name) => b.to_concept_children_token_stream(name),
         }
     }
-    
+
     pub fn new(input: DeriveInput) -> Self {
         let (_name, builder_res) = match &input.data {
             Data::Struct(DataStruct {
@@ -49,18 +49,24 @@ impl BuilderEnum {
             }) => {
                 let struct_name = &input.ident;
                 let builder = StructBuilder::new(fields);
-                (struct_name, match builder {
-                    Ok(b) => Ok(BuilderEnum::StructBuilder(b, struct_name.clone())),
-                    Err(err) => Err(err),
-                })
+                (
+                    struct_name,
+                    match builder {
+                        Ok(b) => Ok(BuilderEnum::StructBuilder(b, struct_name.clone())),
+                        Err(err) => Err(err),
+                    },
+                )
             }
             Data::Enum(DataEnum { variants, .. }) => {
                 let enum_name = &input.ident;
                 let builder = EnumBuilder::new(variants);
-                (enum_name, match builder {
-                    Ok(b) => Ok(BuilderEnum::EnumBuilder(b, enum_name.clone())),
-                    Err(err) => Err(err),
-                })
+                (
+                    enum_name,
+                    match builder {
+                        Ok(b) => Ok(BuilderEnum::EnumBuilder(b, enum_name.clone())),
+                        Err(err) => Err(err),
+                    },
+                )
             }
             _ => panic!("expected a struct with named fields or an enum"),
         };

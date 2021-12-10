@@ -1,3 +1,4 @@
+
 #![allow(dead_code)]
 use crate::constraint::TConstraintEnum;
 use crate::constraint::{OuterConstraint, TBuilder};
@@ -11,7 +12,7 @@ use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 use abi_stable::std_types::RArc;
 use anyhow::Result;
 use aorist_ast::AncestorRecord;
-use aorist_primitives::{AString, Ancestry, AoristConcept, AoristUniverse, TConceptEnum};
+use aorist_primitives::{AString, AVec, Ancestry, AoristConcept, AoristUniverse, TConceptEnum};
 use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
 use std::collections::{BTreeSet, HashMap};
@@ -38,15 +39,15 @@ where
     constraints: LinkedHashMap<(Uuid, AString), RArc<RRwLock<B::OuterType>>>,
     satisfied_constraints:
         HashMap<(Uuid, AString), RArc<RRwLock<ConstraintState<'a, B::OuterType, P>>>>,
-    blocks: Vec<PythonBasedConstraintBlock<'a, D::T, B::OuterType, U, P>>,
+    blocks: AVec<PythonBasedConstraintBlock<'a, D::T, B::OuterType, U, P>>,
     ancestry: A,
     dag_type: PhantomData<D>,
     endpoints: <U as AoristUniverse>::TEndpoints,
     constraint_explanations: HashMap<AString, (Option<AString>, Option<AString>)>,
-    ancestors: HashMap<(Uuid, AString), Vec<AncestorRecord>>,
+    ancestors: HashMap<(Uuid, AString), AVec<AncestorRecord>>,
     topline_constraint_names: LinkedHashSet<AString>,
-    programs: LinkedHashMap<AString, Vec<P>>,
-    preferences: Vec<Dialect>,
+    programs: LinkedHashMap<AString, AVec<P>>,
+    preferences: AVec<Dialect>,
     render_dependencies: bool,
 }
 impl<'a, B, D, U, C, A, P> Driver<'a, B, D, U, C, A, P> for PythonBasedDriver<'a, B, D, U, C, A, P>
@@ -67,13 +68,13 @@ where
 {
     type CB = PythonBasedConstraintBlock<'a, <D as FlowBuilderBase<U>>::T, B::OuterType, U, P>;
 
-    fn get_programs_for(&self, constraint_name: &AString) -> Vec<P> {
+    fn get_programs_for(&self, constraint_name: &AString) -> AVec<P> {
         match self.programs.get(constraint_name) {
             Some(ref programs) => programs.iter().map(|x| (*x).clone()).collect(),
-            None => Vec::new(), //panic!("Cannot find program for {}", constraint_name),
+            None => AVec::new(), //panic!("Cannot find program for {}", constraint_name),
         }
     }
-    fn get_preferences(&self) -> Vec<Dialect> {
+    fn get_preferences(&self) -> AVec<Dialect> {
         self.preferences.clone()
     }
     fn get_constraint_rwlock(&self, uuid: &(Uuid, AString)) -> RArc<RRwLock<B::OuterType>> {
@@ -123,10 +124,10 @@ where
             .unwrap()
             .clone()
     }
-    fn get_blocks(&self) -> &Vec<Self::CB> {
+    fn get_blocks(&self) -> &AVec<Self::CB> {
         &self.blocks
     }
-    fn get_dependencies(&self) -> Vec<AString> {
+    fn get_dependencies(&self) -> AVec<AString> {
         self.satisfied_constraints
             .values()
             .map(|x| match x.read().get_dialect() {
@@ -145,17 +146,17 @@ where
         constraints: LinkedHashMap<(Uuid, AString), RArc<RRwLock<B::OuterType>>>,
         ancestry: A,
         endpoints: U::TEndpoints,
-        ancestors: HashMap<(Uuid, AString), Vec<AncestorRecord>>,
+        ancestors: HashMap<(Uuid, AString), AVec<AncestorRecord>>,
         topline_constraint_names: LinkedHashSet<AString>,
-        programs: LinkedHashMap<AString, Vec<P>>,
-        preferences: Vec<Dialect>,
+        programs: LinkedHashMap<AString, AVec<P>>,
+        preferences: AVec<Dialect>,
         render_dependencies: bool,
     ) -> Self {
         Self {
             concepts,
             constraints,
             satisfied_constraints: HashMap::new(),
-            blocks: Vec::new(),
+            blocks: AVec::new(),
             ancestry,
             dag_type: PhantomData,
             endpoints,

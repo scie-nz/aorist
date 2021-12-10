@@ -1,3 +1,4 @@
+
 #![allow(dead_code)]
 use crate::access_policy::*;
 use crate::asset::*;
@@ -13,7 +14,7 @@ use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 use abi_stable::std_types::RArc;
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
-use aorist_primitives::{AString, TAoristObject};
+use aorist_primitives::{AString, AVec, TAoristObject};
 use derivative::Derivative;
 use linked_hash_map::LinkedHashMap;
 #[cfg(feature = "python")]
@@ -31,9 +32,9 @@ pub struct DataSet {
     pub description: AString,
     pub source_path: AString,
     #[constrainable]
-    pub access_policies: Vec<AoristRef<AccessPolicy>>,
+    pub access_policies: AVec<AoristRef<AccessPolicy>>,
     #[constrainable]
-    pub datum_templates: Vec<AoristRef<DatumTemplate>>,
+    pub datum_templates: AVec<AoristRef<DatumTemplate>>,
     #[constrainable]
     pub assets: BTreeMap<AString, AoristRef<Asset>>,
 }
@@ -45,16 +46,16 @@ impl DataSet {
     pub fn add_template(&mut self, template: AoristRef<DatumTemplate>) {
         self.datum_templates.push(template);
     }
-    pub fn get_assets(&self) -> Vec<AoristRef<Asset>> {
+    pub fn get_assets(&self) -> AVec<AoristRef<Asset>> {
         self.assets
             .values()
-            .collect::<Vec<_>>()
+            .collect::<AVec<_>>()
             .iter()
             .map(|x| (*x).clone())
             .collect()
     }
 
-    pub fn get_templates(&self) -> Vec<AoristRef<DatumTemplate>> {
+    pub fn get_templates(&self) -> AVec<AoristRef<DatumTemplate>> {
         self.datum_templates.clone()
     }
 
@@ -217,7 +218,7 @@ impl PyDataSet {
                 mapped_templates
                     .keys()
                     .map(|x| x.as_str().to_string())
-                    .collect::<Vec<String>>()
+                    .collect::<AVec<String>>()
                     .join(", "),
             ))),
         }

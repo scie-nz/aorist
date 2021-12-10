@@ -1,3 +1,4 @@
+use aorist_primitives::AVec;
 use crate::asset::*;
 use crate::concept::AoristRef;
 use serde::{Deserialize, Serialize};
@@ -10,5 +11,5 @@ pub trait SingleSourceDerivedAssetSchema<'a>: DerivedAssetSchema<'a> {
     fn get_source(&self) -> AoristRef<<Self as DerivedAssetSchema<'a>>::SourceAssetType>;
 }
 pub trait MultipleSourceDerivedAssetSchema<'a>: DerivedAssetSchema<'a> {
-    fn get_sources(&self) -> Vec<Asset>;
+    fn get_sources(&self) -> AVec<Asset>;
 }

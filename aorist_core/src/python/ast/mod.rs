@@ -2,7 +2,7 @@ use crate::python::PythonImport;
 use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 use abi_stable::std_types::RArc;
 use aorist_ast::AST;
-use aorist_primitives::register_task_nodes;
+use aorist_primitives::{register_task_nodes, AVec};
 use std::hash::{Hash, Hasher};
 
 mod airflow_bash_operator_task;

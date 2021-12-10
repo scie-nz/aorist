@@ -1,3 +1,4 @@
+
 #![allow(dead_code)]
 use crate::concept::{Concept, ConceptAncestry};
 use crate::constraint::SatisfiableOuterConstraint;
@@ -31,12 +32,12 @@ where
     pub concepts: RArc<RRwLock<HashMap<(Uuid, AString), Concept<'a>>>>,
     constraints: LinkedHashMap<(Uuid, AString), RArc<RRwLock<C>>>,
     satisfied_constraints: HashMap<(Uuid, AString), RArc<RRwLock<ConstraintState<'a, 'b, C>>>>,
-    blocks: Vec<RBasedConstraintBlock<'a, 'b, D::T, C>>,
+    blocks: AVec<RBasedConstraintBlock<'a, 'b, D::T, C>>,
     ancestry: RArc<ConceptAncestry<'a>>,
     dag_type: PhantomData<D>,
     endpoints: EndpointConfig,
     constraint_explanations: HashMap<AString, (Option<AString>, Option<AString>)>,
-    ancestors: HashMap<(Uuid, AString), Vec<AncestorRecord>>,
+    ancestors: HashMap<(Uuid, AString), AVec<AncestorRecord>>,
     topline_constraint_names: LinkedHashSet<AString>,
     _lt_phantom: PhantomData<&'b ()>,
 }
@@ -55,7 +56,7 @@ where
     fn get_constraint_rwlock(&self, uuid: &(Uuid, AString)) -> RArc<RRwLock<C>> {
         self.constraints.get(uuid).unwrap().clone()
     }
-    fn get_preferences(&self) -> Vec<Dialect> {
+    fn get_preferences(&self) -> AVec<Dialect> {
         vec![
             Dialect::R(R {}),
             Dialect::Python(Python::new(vec![])),
@@ -100,10 +101,10 @@ where
             .unwrap()
             .clone()
     }
-    fn get_blocks(&'b self) -> &'b Vec<Self::CB> {
+    fn get_blocks(&'b self) -> &'b AVec<Self::CB> {
         &self.blocks
     }
-    fn get_dependencies(&self) -> Vec<AString> {
+    fn get_dependencies(&self) -> AVec<AString> {
         // TODO: add libraries
         vec![]
     }
@@ -112,14 +113,14 @@ where
         constraints: LinkedHashMap<(Uuid, AString), RArc<RRwLock<C>>>,
         ancestry: RArc<ConceptAncestry<'a>>,
         endpoints: EndpointConfig,
-        ancestors: HashMap<(Uuid, AString), Vec<AncestorRecord>>,
+        ancestors: HashMap<(Uuid, AString), AVec<AncestorRecord>>,
         topline_constraint_names: LinkedHashSet<AString>,
     ) -> Self {
         Self {
             concepts,
             constraints,
             satisfied_constraints: HashMap::new(),
-            blocks: Vec::new(),
+            blocks: AVec::new(),
             ancestry,
             dag_type: PhantomData,
             endpoints,

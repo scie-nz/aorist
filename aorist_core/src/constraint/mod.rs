@@ -1,10 +1,11 @@
+
 use crate::dialect::Dialect;
 use crate::error::AoristError;
 use crate::parameter_tuple::ParameterTuple;
 use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 use abi_stable::std_types::RArc;
 use anyhow::Result;
-use aorist_primitives::{AString, Ancestry, AoristConcept, TAoristObject, TConceptEnum};
+use aorist_primitives::{AString, AVec, Ancestry, AoristConcept, TAoristObject, TConceptEnum};
 use std::collections::HashMap;
 use std::marker::PhantomData;
 use tracing::info;
@@ -31,7 +32,7 @@ pub trait SatisfiableConstraint<'a>: TConstraint<'a> {
     fn satisfy_given_preference_ordering(
         &mut self,
         r: <Self::TAncestry as Ancestry>::TConcept,
-        preferences: &Vec<Dialect>,
+        preferences: &AVec<Dialect>,
         ancestry: RArc<Self::TAncestry>,
     ) -> Result<(AString, AString, ParameterTuple, Dialect)>;
 }
@@ -58,7 +59,7 @@ pub trait SatisfiableOuterConstraint<'a>: OuterConstraint<'a> {
     fn satisfy_given_preference_ordering(
         &mut self,
         c: <<Self as OuterConstraint<'a>>::TAncestry as Ancestry>::TConcept,
-        preferences: &Vec<Dialect>,
+        preferences: &AVec<Dialect>,
         ancestry: RArc<<Self as OuterConstraint<'a>>::TAncestry>,
     ) -> Result<(AString, AString, ParameterTuple, Dialect)>;
 }
@@ -67,23 +68,23 @@ pub trait TBuilder<'a> {
     type TAncestry: Ancestry;
     type OuterType: OuterConstraint<'a>; //, TEnum=Self::EnumType>;
                                          //type EnumType: TConstraintEnum<'a, BuilderT=Self>;
-    fn builders() -> Vec<Self>
+    fn builders() -> AVec<Self>
     where
         Self: Sized;
     fn get_constraint_name(&self) -> AString;
-    fn get_required_constraint_names(&self) -> Vec<AString>;
+    fn get_required_constraint_names(&self) -> AVec<AString>;
     fn build_constraint(
         &self,
         root_uuid: Uuid,
-        potential_child_constraints: Vec<RArc<RRwLock<Self::OuterType>>>,
+        potential_child_constraints: AVec<RArc<RRwLock<Self::OuterType>>>,
     ) -> Result<Self::OuterType>;
     fn get_root_type_name(&self) -> Result<AString>;
-    fn get_required(&self, root: Self::TEnum, ancestry: &Self::TAncestry) -> Vec<Uuid>;
+    fn get_required(&self, root: Self::TEnum, ancestry: &Self::TAncestry) -> AVec<Uuid>;
     fn should_add(&self, root: Self::TEnum, ancestry: &Self::TAncestry) -> bool;
 }
 
 pub trait TConstraintEnum<'a>: Sized + Clone {
-    fn get_required_constraint_names() -> HashMap<AString, Vec<AString>>;
+    fn get_required_constraint_names() -> HashMap<AString, AVec<AString>>;
     fn get_explanations() -> HashMap<AString, (Option<AString>, Option<AString>)>;
     #[cfg(feature = "python")]
     fn get_py_obj<'b>(&self, py: pyo3::Python<'b>) -> pyo3::prelude::PyObject;
@@ -97,7 +98,7 @@ pub trait OuterConstraint<'a>: TAoristObject + std::fmt::Display + Clone {
     fn get_uuid(&self) -> Result<Uuid>;
     fn get_root(&self) -> AString;
     fn get_root_uuid(&self) -> Result<Uuid>;
-    fn get_downstream_constraints(&self) -> Result<Vec<RArc<RRwLock<Self>>>>;
+    fn get_downstream_constraints(&self) -> Result<AVec<RArc<RRwLock<Self>>>>;
     fn requires_program(&self) -> Result<bool>;
     fn get_root_type_name(&self) -> Result<AString>;
     fn print_dag(&self) -> Result<()> {
@@ -134,10 +135,10 @@ where
     type Ancestry;
 
     fn get_root_type_name() -> Result<AString>;
-    fn get_required_constraint_names() -> Vec<AString>;
+    fn get_required_constraint_names() -> AVec<AString>;
     fn new(
         root_uuid: Uuid,
-        potential_child_constraints: Vec<RArc<RRwLock<Self::Outer>>>,
+        potential_child_constraints: AVec<RArc<RRwLock<Self::Outer>>>,
     ) -> Result<Self>
     where
         Self: Sized;
@@ -164,7 +165,7 @@ impl<'a, T: TConstraint<'a>> ConstraintBuilder<'a, T> {
     pub fn build_constraint(
         &self,
         root_uuid: Uuid,
-        potential_child_constraints: Vec<RArc<RRwLock<T::Outer>>>,
+        potential_child_constraints: AVec<RArc<RRwLock<T::Outer>>>,
     ) -> Result<T> {
         <T as crate::constraint::TConstraint<'a>>::new(root_uuid, potential_child_constraints)
     }

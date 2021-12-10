@@ -1,3 +1,4 @@
+
 use crate::dialect::Dialect;
 use crate::flow::etl_flow::ETLFlow;
 use crate::flow::flow_builder::FlowBuilderBase;
@@ -9,7 +10,7 @@ use crate::python::{
 };
 use aorist_ast::{Call, SimpleIdentifier, StringLiteral, AST};
 use aorist_primitives::TPrestoEndpoints;
-use aorist_primitives::{AString, AoristUniverse};
+use aorist_primitives::{AString, AVec, AoristUniverse};
 use linked_hash_map::LinkedHashMap;
 use std::hash::Hash;
 use std::marker::PhantomData;
@@ -22,7 +23,7 @@ where
     task_id: AST,
     task_val: AST,
     command: Option<AString>,
-    args: Vec<AST>,
+    args: AVec<AST>,
     kwargs: LinkedHashMap<AString, AST>,
     dep_list: Option<AST>,
     preamble: Option<AString>,
@@ -48,15 +49,15 @@ where
     type PreambleType = PythonPreamble;
     type ErrorType = pyo3::PyErr;
 
-    fn get_preamble(&self) -> pyo3::PyResult<Vec<PythonPreamble>> {
+    fn get_preamble(&self) -> Result<AVec<PythonPreamble>, pyo3::PyErr> {
         // TODO: this should be deprecated
         let mut preambles = self.get_python_preamble()?;
         if let Some(p) = self.node.get_preamble() {
             preambles.push(p)
         }
-        Ok(preambles)
+        Ok(preambles.into_iter().collect())
     }
-    fn get_imports(&self) -> Vec<PythonImport> {
+    fn get_imports(&self) -> AVec<PythonImport> {
         self.node.get_imports()
     }
     fn get_dialect(&self) -> Option<Dialect> {
@@ -65,14 +66,14 @@ where
     fn get_task_val(&self) -> AST {
         self.task_val.clone()
     }
-    fn get_statements(&self) -> Vec<AST> {
+    fn get_statements(&self) -> AVec<AST> {
         self.node.get_statements()
     }
     fn new(
         task_id: AST,
         task_val: AST,
         call: Option<AString>,
-        args: Vec<AST>,
+        args: AVec<AST>,
         kwargs: LinkedHashMap<AString, AST>,
         dep_list: Option<AST>,
         preamble: Option<AString>,
@@ -144,7 +145,7 @@ where
                         kwargs.clone(),
                     )),
                     // TODO: add imports from preamble
-                    Vec::new(),
+                    AVec::new(),
                     task_val.clone(),
                     dep_list.clone(),
                 ))
@@ -195,7 +196,7 @@ impl<U: AoristUniverse> PythonBasedFlowBuilder<U> for PythonFlowBuilder<U>
 where
     U::TEndpoints: TPrestoEndpoints,
 {
-    fn get_flow_imports(&self) -> Vec<PythonImport> {
-        Vec::new()
+    fn get_flow_imports(&self) -> AVec<PythonImport> {
+        AVec::new()
     }
 }

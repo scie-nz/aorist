@@ -58,7 +58,7 @@ pub fn get_raw_objects_of_type(
     object_type: String,
 ) -> Vec<HashMap<String, Value>> {
     raw_objects
-        .into_iter()
+        .iter()
         .filter(|x| x.get("type").unwrap().as_str().unwrap() == object_type)
         .map(|x| {
             x.get("spec")
@@ -88,6 +88,7 @@ pub fn init_logging() {
 
 pub fn extract_type_path(ty: &syn::Type) -> Option<&Path> {
     match *ty {
+        syn::Type::Group(ref typegroup) => extract_type_path(&typegroup.elem),
         syn::Type::Path(ref typepath) if typepath.qself.is_none() => Some(&typepath.path),
         _ => None,
     }
@@ -173,7 +174,7 @@ pub fn extract_type_from_option(ty: &syn::Type) -> Option<&syn::Type> {
             "Option|".to_string(),
             "std|option|Option|".into(),
             "core|option|Option|".into(),
-        ],
+        ].into_iter().collect(),
     )
 }
 
@@ -181,17 +182,19 @@ pub fn extract_type_from_vector(ty: &syn::Type) -> Option<&syn::Type> {
     extract_inner_from_bracketed_type(
         ty,
         vec![
-            "Vector|".to_string(),
-            "std|vec|Vec|".into(),
-            "Vec|".to_string(),
-        ],
+            "aorist_primitives|AVec".to_string(),
+            "AVec|".to_string(),
+            "aorist_primitives|AVec|".to_string(),
+        ]
+        .into_iter()
+        .collect(),
     )
 }
 
 pub fn extract_type_from_map(ty: &syn::Type) -> Option<(&syn::Type, &syn::Type)> {
     extract_inner_from_double_bracketed_type(
         ty,
-        vec!["BTreeMap|".to_string(), "std|collections|BTreeMap|".into()],
+        vec!["BTreeMap|".to_string(), "std|collections|BTreeMap|".into()].into_iter().collect(),
     )
 }
 
@@ -201,9 +204,9 @@ pub fn extract_type_from_linked_hash_map(ty: &syn::Type) -> Option<(&syn::Type, 
         vec![
             "LinkedHashMap|".to_string(),
             "linked_hash_map|LinkedHashMap|".into(),
-        ],
+        ].into_iter().collect(),
     )
 }
 pub fn extract_type_from_aorist_ref(ty: &syn::Type) -> Option<&syn::Type> {
-    extract_inner_from_bracketed_type(ty, vec!["RArc|".to_string(), "AoristRef|".to_string()])
+    extract_inner_from_bracketed_type(ty, vec!["RArc|".to_string(), "AoristRef|".to_string()].into_iter().collect())
 }

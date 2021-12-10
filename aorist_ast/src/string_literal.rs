@@ -1,3 +1,4 @@
+use aorist_primitives::AVec;
 use crate::{AncestorRecord, AST};
 use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 use abi_stable::std_types::RArc;
@@ -11,7 +12,7 @@ use std::hash::Hash;
 pub struct StringLiteral {
     value: AString,
     is_sql: bool,
-    ancestors: Option<Vec<AncestorRecord>>,
+    ancestors: Option<AVec<AncestorRecord>>,
 }
 
 impl StringLiteral {
@@ -23,11 +24,11 @@ impl StringLiteral {
             ancestors: None,
         }
     }
-    pub fn set_ancestors(&mut self, ancestors: Vec<AncestorRecord>) {
+    pub fn set_ancestors(&mut self, ancestors: AVec<AncestorRecord>) {
         assert!(self.ancestors.is_none());
         self.ancestors = Some(ancestors);
     }
-    pub fn get_ancestors(&self) -> Option<Vec<AncestorRecord>> {
+    pub fn get_ancestors(&self) -> Option<AVec<AncestorRecord>> {
         self.ancestors.clone()
     }
     pub fn clone_without_ancestors(&self) -> Self {
@@ -46,7 +47,7 @@ impl StringLiteral {
     }
     pub fn pretty_sql_value(&self, depth: usize) -> AString {
         assert!(self.is_sql);
-        let splits: Vec<String> = self
+        let splits: AVec<String> = self
             .value
             .as_str()
             .to_string()
@@ -79,7 +80,7 @@ impl StringLiteral {
                 let without_leading_spaces = x.split_off(min_num_leading_spaces);
                 format!("{}{}", &offset, without_leading_spaces).to_string()
             })
-            .collect::<Vec<String>>();
+            .collect::<AVec<String>>();
         let out = format!("\n{}\n{}", pretty_splits.join("\n"), offset,);
         AString::new(&out)
     }
@@ -117,8 +118,8 @@ impl StringLiteral {
     pub fn is_multiline(&self) -> bool {
         self.value.contains('\n')
     }
-    pub fn get_direct_descendants(&self) -> Vec<AST> {
-        Vec::new()
+    pub fn get_direct_descendants(&self) -> AVec<AST> {
+        AVec::new()
     }
     pub fn optimize_fields(&self) {}
 }

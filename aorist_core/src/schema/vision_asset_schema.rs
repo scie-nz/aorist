@@ -1,3 +1,4 @@
+
 use crate::attributes::*;
 use crate::concept::{AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
 use crate::schema::flann_knn_match_schema::*;
@@ -10,7 +11,7 @@ use crate::schema::transform_image_corpus_through_mlp_schema::*;
 use crate::template::*;
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
-use aorist_primitives::AString;
+use aorist_primitives::{AString, AVec};
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
 use uuid::Uuid;
@@ -34,7 +35,7 @@ pub enum VisionAssetSchema {
 }
 
 impl VisionAssetSchema {
-    pub fn get_attributes(&self) -> Vec<AoristRef<Attribute>> {
+    pub fn get_attributes(&self) -> AVec<AoristRef<Attribute>> {
         match self {
             Self::ImageFromRasterSchema(x) => x.0.read().get_attributes(),
             Self::PyTorchImageCollectionMLPSchema(x) => x.0.read().get_attributes(),

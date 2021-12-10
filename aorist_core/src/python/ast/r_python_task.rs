@@ -4,24 +4,24 @@ use crate::python::PythonImport;
 use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 use abi_stable::std_types::RArc;
 use aorist_ast::{Call, SimpleIdentifier, StringLiteral, AST};
-use aorist_primitives::{define_task_node, AString};
+use aorist_primitives::{define_task_node, AString, AVec};
 use linked_hash_map::LinkedHashMap;
 use std::hash::Hash;
 
 define_task_node!(
     RPythonTask,
-    |task: &RPythonTask| vec![task.call.clone()],
+    |task: &RPythonTask| vec![task.call.clone()].into_iter().collect(),
     |task: &RPythonTask| { task.get_native_python_statements() },
     |_task: &RPythonTask| {
         vec![
             PythonImport::PythonModuleImport("rpy2".into(), None),
             PythonImport::PythonModuleImport("rpy2.robjects".into(), Some("robjects".into())),
-        ]
+        ].into_iter().collect()
     },
     PythonImport,
     task_val: AST,
     call: AST,
-    args: Vec<AST>,
+    args: AVec<AST>,
     kwargs: LinkedHashMap<AString, AST>,
     dep_list: Option<AST>,
     preamble: Option<AString>,
@@ -66,8 +66,8 @@ def execute_r(call, preamble=None, **kwargs):
 
 ";
         Some(NativePythonPreamble {
-            imports: vec![rpy2],
-            from_imports: vec![rpy2o],
+            imports: vec![rpy2].into_iter().collect(),
+            from_imports: vec![rpy2o].into_iter().collect(),
             body: body.into(),
         })
     }
@@ -88,7 +88,7 @@ def execute_r(call, preamble=None, **kwargs):
         }
         AST::Call(Call::new_wrapped(
             AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("execute_r".into())),
-            vec![],
+            vec![].into_iter().collect(),
             inner_kwargs,
         ))
     }

@@ -1,9 +1,10 @@
+
 use crate::constraint::{OuterConstraint, TConstraint};
 use crate::dialect::Dialect;
 use crate::parameter_tuple::ParameterTuple;
 use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 use abi_stable::std_types::RArc;
-use aorist_primitives::{AString, Ancestry, Context};
+use aorist_primitives::{AString, AVec, Ancestry, Context};
 use linked_hash_map::LinkedHashMap;
 use std::marker::PhantomData;
 
@@ -11,15 +12,15 @@ pub trait TProgram<'a, T: TConstraint<'a>> {
     fn new(
         code: AString,
         entrypoint: AString,
-        arg_functions: Vec<(Vec<AString>, AString)>,
-        kwarg_functions: LinkedHashMap<AString, (Vec<AString>, AString)>,
+        arg_functions: AVec<(AVec<AString>, AString)>,
+        kwarg_functions: LinkedHashMap<AString, (AVec<AString>, AString)>,
         dialect: Dialect,
     ) -> Self;
-    fn get_arg_functions(&self) -> Vec<(Vec<AString>, AString)>;
+    fn get_arg_functions(&self) -> AVec<(AVec<AString>, AString)>;
     fn get_code(&self) -> AString;
     fn get_dialect(&self) -> Dialect;
     fn get_entrypoint(&self) -> AString;
-    fn get_kwarg_functions(&self) -> LinkedHashMap<AString, (Vec<AString>, AString)>;
+    fn get_kwarg_functions(&self) -> LinkedHashMap<AString, (AVec<AString>, AString)>;
 }
 pub trait TOuterProgram: Clone {
     type TAncestry: Ancestry;
@@ -37,7 +38,7 @@ pub struct Program<'a, C: OuterConstraint<'a>> {
     _lta: PhantomData<&'a ()>,
     _ltc: PhantomData<C>,
     code: AString,
-    arg_functions: Vec<AString>,
+    arg_functions: AVec<AString>,
     kwarg_functions: LinkedHashMap<AString, AString>,
 }
 impl<'a, C> Program<'a, C>
@@ -46,7 +47,7 @@ where
 {
     pub fn new(
         code: AString,
-        arg_functions: Vec<AString>,
+        arg_functions: AVec<AString>,
         kwarg_functions: LinkedHashMap<AString, AString>,
     ) -> Self {
         Self {

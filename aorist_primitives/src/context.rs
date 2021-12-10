@@ -1,3 +1,4 @@
+use crate::AVec;
 #[cfg(feature = "python")]
 use pyo3::exceptions::PyValueError;
 #[cfg(feature = "python")]
@@ -10,7 +11,7 @@ pub enum ContextStoredValue {
     String(String),
     Integer(i64),
     Boolean(bool),
-    List(Vec<Box<ContextStoredValue>>),
+    List(AVec<Box<ContextStoredValue>>),
 }
 
 impl std::fmt::Display for ContextStoredValue {

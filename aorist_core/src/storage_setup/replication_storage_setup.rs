@@ -1,9 +1,10 @@
+
 use crate::concept::{AoristRef, WrappedConcept};
 use crate::encoding::*;
 use crate::storage::*;
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
-use aorist_primitives::{AString, AoristConcept, ConceptEnum};
+use aorist_primitives::{AString, AVec, AoristConcept, ConceptEnum};
 use derivative::Derivative;
 #[cfg(feature = "python")]
 use pyo3::prelude::*;
@@ -16,7 +17,7 @@ pub struct ReplicationStorageSetup {
     #[constrainable]
     pub source: AoristRef<Storage>,
     #[constrainable]
-    pub targets: Vec<AoristRef<Storage>>,
+    pub targets: AVec<AoristRef<Storage>>,
     pub tmp_dir: AString,
     #[constrainable]
     pub tmp_encoding: AoristRef<Encoding>,

@@ -7,7 +7,7 @@ use aorist_attributes::{
 };
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
-use aorist_primitives::{AString, AoristConcept, ConceptEnum};
+use aorist_primitives::{AString, AVec, AoristConcept, ConceptEnum};
 use derivative::Derivative;
 #[cfg(feature = "sql")]
 use linked_hash_map::LinkedHashMap;
@@ -77,8 +77,8 @@ pub enum AttributeOrValue {
 #[cfg(feature = "python")]
 impl<'a> FromPyObject<'a> for AttributeOrValue {
     fn extract(obj: &'a PyAny) -> PyResult<Self> {
-        if let Ok(x) = Attribute::extract(obj) {
-            return Ok(Self::Attribute(x));
+        if let Ok(x) = PyAttribute::extract(obj) {
+            return Ok(Self::Attribute(x.inner.0.read().clone()));
         } else if let Ok(x) = AttributeValue::extract(obj) {
             return Ok(Self::Value(x));
         }

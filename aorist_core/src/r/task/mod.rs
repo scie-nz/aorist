@@ -1,3 +1,4 @@
+
 use crate::endpoints::EndpointConfig;
 use crate::flow::{CompressibleETLTask, ETLFlow, ETLTask, TaskBase};
 use crate::r::preamble::RPreamble;
@@ -41,7 +42,7 @@ where
     pub fn get_statements(
         &self,
         endpoints: &EndpointConfig,
-    ) -> (Vec<AST>, Vec<RPreamble>, Vec<RImport>) {
+    ) -> (AVec<AST>, AVec<RPreamble>, AVec<RImport>) {
         match &self {
             RBasedTask::StandaloneRBasedTask(x) => x.get_statements(endpoints),
             RBasedTask::ForLoopRBasedTask(x) => x.get_statements(endpoints),

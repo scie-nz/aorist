@@ -1,3 +1,4 @@
+use aorist_primitives::AVec;
 use crate::code::Import;
 use std::hash::Hash;
 
@@ -6,5 +7,5 @@ where
     Self::ImportType: Import,
 {
     type ImportType;
-    fn get_imports(&self) -> Vec<Self::ImportType>;
+    fn get_imports(&self) -> AVec<Self::ImportType>;
 }

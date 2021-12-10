@@ -1,3 +1,4 @@
+use aorist_primitives::AVec;
 use crate::endpoints::EndpointConfig;
 use crate::flow::etl_flow::ETLFlow;
 use crate::r::{ConstantRTask, NativeRTask, RImport, RPreamble};
@@ -21,10 +22,10 @@ pub struct NativeRBasedFlow {
     task_id: AST,
     task_val: AST,
     command: Option<AString>,
-    args: Vec<AST>,
+    args: AVec<AST>,
     kwargs: LinkedHashMap<AString, AST>,
     dep_list: Option<AST>,
-    preamble: Vec<RPreamble>,
+    preamble: AVec<RPreamble>,
     dialect: Option<Dialect>,
 
     endpoints: EndpointConfig,
@@ -35,11 +36,11 @@ impl ETLFlow for NativeRBasedFlow {
     type ImportType = RImport;
     type PreambleType = RPreamble;
 
-    fn get_preamble(&self) -> Vec<RPreamble> {
+    fn get_preamble(&self) -> AVec<RPreamble> {
         self.preamble.clone()
     }
 
-    fn get_imports(&self) -> Vec<RImport> {
+    fn get_imports(&self) -> AVec<RImport> {
         self.node.get_imports()
     }
     fn get_dialect(&self) -> Option<Dialect> {
@@ -48,14 +49,14 @@ impl ETLFlow for NativeRBasedFlow {
     fn get_task_val(&self) -> AST {
         self.task_val.clone()
     }
-    fn get_statements(&self) -> Vec<AST> {
+    fn get_statements(&self) -> AVec<AST> {
         self.node.get_statements()
     }
     fn new(
         task_id: AST,
         task_val: AST,
         call: Option<AString>,
-        args: Vec<AST>,
+        args: AVec<AST>,
         kwargs: LinkedHashMap<AString, AST>,
         dep_list: Option<AST>,
         preamble: Option<AString>,
@@ -65,16 +66,16 @@ impl ETLFlow for NativeRBasedFlow {
         let preambles = match dialect {
             Some(Dialect::R(_)) => match preamble {
                 Some(ref p) => vec![RPreamble::new(p.clone())],
-                None => Vec::new(),
+                None => AVec::new(),
             },
             Some(Dialect::Python(_)) => match preamble {
                 Some(ref p) => vec![RPreamble::from_python(
                     call.as_ref().unwrap().clone(),
                     p.clone(),
                 )],
-                None => Vec::new(),
+                None => AVec::new(),
             },
-            _ => Vec::new(),
+            _ => AVec::new(),
         };
         let command = match &dialect {
             Some(Dialect::R(_)) => AST::Call(Call::new_wrapped(
@@ -135,7 +136,7 @@ impl ETLFlow for NativeRBasedFlow {
                 RTask::NativeRTask(NativeRTask::new_wrapped(
                     vec![AST::Expression(Expression::new_wrapped(command))],
                     // TODO: add imports from preamble
-                    Vec::new(),
+                    AVec::new(),
                     task_val.clone(),
                 ))
             }

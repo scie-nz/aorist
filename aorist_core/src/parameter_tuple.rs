@@ -1,17 +1,18 @@
+
 use aorist_ast::{AncestorRecord, List, StringLiteral, AST};
-use aorist_primitives::AString;
+use aorist_primitives::{AString, AVec};
 use linked_hash_map::LinkedHashMap;
 use std::hash::Hash;
 use uuid::Uuid;
 
 #[derive(Clone, PartialEq, Eq, Hash, Debug)]
 pub struct ParameterTuple {
-    pub args: Vec<AST>,
+    pub args: AVec<AST>,
     pub kwargs: LinkedHashMap<AString, AST>,
 }
-pub type ParameterTupleDedupKey = (usize, Vec<AString>);
+pub type ParameterTupleDedupKey = (usize, AVec<AString>);
 impl ParameterTuple {
-    pub fn set_ancestors(&self, ancestors: Vec<AncestorRecord>) {
+    pub fn set_ancestors(&self, ancestors: AVec<AncestorRecord>) {
         for arg in self.args.iter() {
             arg.set_ancestors(ancestors.clone());
         }
@@ -35,21 +36,21 @@ impl ParameterTuple {
     }
     pub fn new(
         _object_uuid: Uuid,
-        args_v: Vec<AString>,
+        args_v: AVec<AString>,
         kwargs_v: LinkedHashMap<AString, AString>,
         is_sql: bool,
     ) -> Self {
         let args = args_v
             .into_iter()
             .map(|x| AST::StringLiteral(StringLiteral::new_wrapped(x, is_sql)))
-            .collect::<Vec<_>>();
+            .collect::<AVec<_>>();
         let kwargs = kwargs_v
             .into_iter()
             .map(|(k, v)| (k, AST::StringLiteral(StringLiteral::new_wrapped(v, is_sql))))
             .collect::<LinkedHashMap<_, _>>();
         Self { args, kwargs }
     }
-    pub fn get_args(&self) -> Vec<AST> {
+    pub fn get_args(&self) -> AVec<AST> {
         self.args.clone()
     }
     pub fn get_kwargs(&self) -> LinkedHashMap<AString, AST> {
@@ -59,7 +60,7 @@ impl ParameterTuple {
         self.args
             .iter()
             .map(|_| "%s".into())
-            .collect::<Vec<String>>()
+            .collect::<AVec<String>>()
             .join(" ")
             .as_str()
             .into()

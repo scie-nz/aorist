@@ -1,3 +1,4 @@
+
 #![allow(non_snake_case)]
 use crate::attributes::*;
 use crate::concept::{AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
@@ -14,7 +15,7 @@ use crate::schema::vision_asset_schema::*;
 use crate::template::*;
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
-use aorist_primitives::AString;
+use aorist_primitives::{AString, AVec};
 #[cfg(feature = "python")]
 use pyo3::exceptions::PyValueError;
 #[cfg(feature = "python")]
@@ -90,7 +91,7 @@ impl DataSchema {
             ))),
         }
     }
-    pub fn get_attribute_names(&self) -> Vec<AString> {
+    pub fn get_attribute_names(&self) -> AVec<AString> {
         match self {
             DataSchema::TabularSchema(x) => x.0.read().attributes.clone(),
             DataSchema::TabularCollectionSchema(x) => x.0.read().attributes.clone(),
@@ -124,10 +125,10 @@ impl DataSchema {
                     .collect()
             }
             DataSchema::TimeOrderedTabularSchema(x) => x.0.read().attributes.clone(),
-            DataSchema::UndefinedTabularSchema(_) => vec![],
+            DataSchema::UndefinedTabularSchema(_) => vec![].into_iter().collect(),
         }
     }
-    pub fn get_attributes(&self) -> Vec<AoristRef<Attribute>> {
+    pub fn get_attributes(&self) -> AVec<AoristRef<Attribute>> {
         match self {
             DataSchema::GeospatialAssetSchema(x) => x.0.read().get_attributes(),
             DataSchema::GraphAssetSchema(x) => x.0.read().get_attributes(),

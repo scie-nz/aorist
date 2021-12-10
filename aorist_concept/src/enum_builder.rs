@@ -1,7 +1,7 @@
 extern crate proc_macro;
-use aorist_util::AoristError;
 use self::proc_macro::TokenStream;
 use crate::builder::Builder;
+use aorist_util::AoristError;
 use proc_macro2::Ident;
 use quote::quote;
 use std::fs::OpenOptions;
@@ -36,12 +36,15 @@ impl Builder for EnumBuilder {
             enum_name
         )?;
 
-        for v in &self.variant_idents {
+        for v in self.variant_idents.iter() {
             writeln!(file, "'{}'->'{}';", enum_name, v)?;
         }
         Ok(())
     }
-    fn to_concept_children_token_stream(&self, enum_name: &Ident) -> Result<TokenStream, AoristError> {
+    fn to_concept_children_token_stream(
+        &self,
+        enum_name: &Ident,
+    ) -> Result<TokenStream, AoristError> {
         let variant = &self.variant_idents;
         Ok(TokenStream::from(quote! { paste! {
           impl <T> std::convert::From<(
@@ -241,7 +244,7 @@ impl Builder for EnumBuilder {
                       )*
                   }
               }
-              fn get_children_uuid(&self) -> Vec<Uuid> {
+              fn get_children_uuid(&self) -> AVec<Uuid> {
                   match self {
                       #(
                           #enum_name::#variant(x) => {
@@ -259,7 +262,7 @@ impl Builder for EnumBuilder {
           }
           impl AoristConcept for AoristRef<#enum_name> {
               type TChildrenEnum = AoristRef<#enum_name>;
-              fn get_children(&self) -> Vec<(
+              fn get_children(&self) -> AVec<(
                   // enum name
                   &str,
                   // field name
@@ -277,7 +280,7 @@ impl Builder for EnumBuilder {
                       self.get_uuid(),
                       // clone of RArc<RRwLock
                       Self(self.0.clone()),
-                  )]
+                  )].into_iter().collect()
               }
               fn get_uuid(&self) -> Option<Uuid> {
                   self.0.read().get_uuid()
@@ -285,7 +288,7 @@ impl Builder for EnumBuilder {
               fn get_tag(&self) -> Option<AString> {
                   self.0.read().get_tag()
               }
-              fn get_children_uuid(&self) -> Vec<Uuid> {
+              fn get_children_uuid(&self) -> AVec<Uuid> {
                   self.0.read().get_children_uuid()
               }
               fn compute_uuids(&self) {

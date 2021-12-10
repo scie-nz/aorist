@@ -1,7 +1,8 @@
+
 use crate::code::Preamble;
 use crate::python::PythonImport;
 use aorist_ast::FunctionDef;
-use aorist_primitives::AString;
+use aorist_primitives::{AString, AVec};
 use pyo3::prelude::*;
 use pyo3::types::{PyList, PyModule, PyString, PyTuple};
 use std::hash::Hash;
@@ -13,7 +14,7 @@ pub trait TPythonPreamble {
         py: Python<'b>,
         _ast_module: &'b PyModule,
         _depth: usize,
-    ) -> Vec<&'b PyAny> {
+    ) -> AVec<&'b PyAny> {
         let helpers = PyModule::from_code(
             py,
             r#"
@@ -50,8 +51,8 @@ pub enum PythonPreamble {
 
 #[derive(Clone, PartialEq, Hash, Eq)]
 pub struct NativePythonPreamble {
-    pub imports: Vec<PythonImport>,
-    pub from_imports: Vec<PythonImport>,
+    pub imports: AVec<PythonImport>,
+    pub from_imports: AVec<PythonImport>,
     pub body: AString,
 }
 #[derive(Clone, PartialEq, Hash, Eq)]
@@ -61,26 +62,26 @@ pub struct RPythonPreamble {
 #[derive(Clone, PartialEq, Hash, Eq)]
 pub struct PythonStatementsPreamble {
     pub function: FunctionDef,
-    pub imports: Vec<PythonImport>,
+    pub imports: AVec<PythonImport>,
 }
 impl Preamble for PythonStatementsPreamble {
     type ImportType = PythonImport;
-    fn get_imports(&self) -> Vec<Self::ImportType> {
+    fn get_imports(&self) -> AVec<Self::ImportType> {
         self.imports.clone()
     }
 }
 impl Preamble for RPythonPreamble {
     type ImportType = PythonImport;
-    fn get_imports(&self) -> Vec<Self::ImportType> {
+    fn get_imports(&self) -> AVec<Self::ImportType> {
         vec![PythonImport::PythonModuleImport(
             "rpy2.robjects".into(),
             Some("robjects".into()),
-        )]
+        )].into_iter().collect()
     }
 }
 impl Preamble for NativePythonPreamble {
     type ImportType = PythonImport;
-    fn get_imports(&self) -> Vec<Self::ImportType> {
+    fn get_imports(&self) -> AVec<Self::ImportType> {
         self.imports
             .clone()
             .into_iter()
@@ -105,7 +106,7 @@ impl TPythonPreamble for NativePythonPreamble {
 }
 impl Preamble for PythonPreamble {
     type ImportType = PythonImport;
-    fn get_imports(&self) -> Vec<PythonImport> {
+    fn get_imports(&self) -> AVec<PythonImport> {
         match &self {
             PythonPreamble::NativePythonPreamble(x) => x.get_imports(),
             PythonPreamble::RPythonPreamble(x) => x.get_imports(),
@@ -119,14 +120,14 @@ impl PythonPreamble {
         py: Python<'b>,
         ast_module: &'b PyModule,
         depth: usize,
-    ) -> Vec<&'b PyAny> {
+    ) -> AVec<&'b PyAny> {
         match &self {
             PythonPreamble::NativePythonPreamble(x) => x.to_python_ast_nodes(py, ast_module, depth),
             PythonPreamble::RPythonPreamble(x) => x.to_python_ast_nodes(py, ast_module, depth),
             PythonPreamble::PythonStatementsPreamble(x) => vec![x
                 .function
                 .to_python_ast_node(py, ast_module, depth)
-                .unwrap()],
+                .unwrap()].into_iter().collect(),
         }
     }
 }
@@ -208,12 +209,12 @@ def build_preamble(body):
 
         let body_no_imports: &PyList = tpl.get_item(2)?.extract()?;
         Ok(Self {
-            imports,
-            from_imports,
+            imports: imports.into_iter().collect(),
+            from_imports: from_imports.into_iter().collect(),
             body: body_no_imports
                 .iter()
                 .map(|x| x.extract::<&PyString>().unwrap().to_str().unwrap().into())
-                .collect::<Vec<String>>()
+                .collect::<AVec<String>>()
                 .join("\n")
                 .as_str()
                 .into(),
@@ -230,7 +231,7 @@ def build_preamble(body):
                     .into_iter()
                     .map(|x| x.as_str().to_string()),
             )
-            .collect::<Vec<String>>()
+            .collect::<AVec<String>>()
             .join("\n")
     }
 }

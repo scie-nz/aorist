@@ -1,10 +1,11 @@
+
 use crate::code::Preamble;
 use crate::flow::etl_flow::ETLFlow;
 use crate::flow::flow_builder_input::FlowBuilderInput;
 use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 use abi_stable::std_types::RArc;
 use aorist_ast::{Assignment, Dict, SimpleIdentifier, AST};
-use aorist_primitives::{AString, AoristUniverse};
+use aorist_primitives::{AString, AVec, AoristUniverse};
 use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
 use std::collections::BTreeMap;
@@ -29,21 +30,21 @@ where
 
     fn materialize(
         &self,
-        statements_and_preambles: Vec<Self::BuilderInputType>,
+        statements_and_preambles: AVec<Self::BuilderInputType>,
         flow_name: Option<AString>,
     ) -> Result<AString, Self::ErrorType>;
 
     fn literals_to_assignments(
-        literals: LinkedHashMap<AST, LinkedHashMap<AString, Vec<(AString, RArc<RRwLock<Dict>>)>>>,
-    ) -> Vec<AST> {
+        literals: LinkedHashMap<AST, LinkedHashMap<AString, AVec<(AString, RArc<RRwLock<Dict>>)>>>,
+    ) -> AVec<AST> {
         let mut assignments: LinkedHashMap<
             AString,
-            Vec<(AST, Vec<(RArc<RRwLock<Dict>>, AString)>)>,
+            AVec<(AST, AVec<(RArc<RRwLock<Dict>>, AString)>)>,
         > = LinkedHashMap::new();
         for (literal, val) in literals.into_iter() {
             for (short_name, keys) in val.into_iter() {
                 let mut keys_hist: BTreeMap<AString, usize> = BTreeMap::new();
-                let mut rws = Vec::new();
+                let mut rws = AVec::new();
                 for (key, rw) in keys {
                     *keys_hist.entry(key.clone()).or_insert(1) += 1;
                     rws.push((rw, key));
@@ -61,12 +62,12 @@ where
                             .as_str()
                             .into(),
                         )
-                        .or_insert(Vec::new())
+                        .or_insert(AVec::new())
                         .push((literal.clone(), rws));
                 }
             }
         }
-        let mut assignments_ast = Vec::new();
+        let mut assignments_ast = AVec::new();
         for (var, vals) in assignments {
             if vals.len() == 1 {
                 let lval = AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(var));
@@ -82,7 +83,7 @@ where
     }
     fn get_preamble_imports(
         preambles: &LinkedHashSet<<<Self as FlowBuilderBase<U>>::T as ETLFlow<U>>::PreambleType>,
-    ) -> Vec<<<Self as FlowBuilderBase<U>>::T as ETLFlow<U>>::ImportType> {
+    ) -> AVec<<<Self as FlowBuilderBase<U>>::T as ETLFlow<U>>::ImportType> {
         preambles
             .iter()
             .map(|x| x.get_imports().into_iter())

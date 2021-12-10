@@ -7,20 +7,20 @@ use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 use abi_stable::std_types::RArc;
 use aorist_ast::{Call, Formatted, SimpleIdentifier, AST};
 use aorist_primitives::PrestoConfig;
-use aorist_primitives::{define_task_node, AString};
+use aorist_primitives::{define_task_node, AString, AVec};
 use linked_hash_map::LinkedHashMap;
 use std::hash::Hash;
 
 define_task_node!(
     PrestoPythonTask,
-    |task: &PrestoPythonTask| vec![task.sql.clone()],
+    |task: &PrestoPythonTask| vec![task.sql.clone()].into_iter().collect(),
     |task: &PrestoPythonTask| { task.get_native_python_statements() },
     |_task: &PrestoPythonTask| {
         vec![
             PythonImport::PythonModuleImport("subprocess".into(), None),
             PythonImport::PythonModuleImport("trino".into(), None),
             PythonImport::PythonModuleImport("re".into(), None),
-        ]
+        ].into_iter().collect()
     },
     PythonImport,
     sql: AST,
@@ -68,8 +68,8 @@ def execute_trino_sql(query):
             port = self.endpoint.http_port
         );
         Some(NativePythonPreamble {
-            imports: vec![re, trino],
-            from_imports: Vec::new(),
+            imports: vec![re, trino].into_iter().collect(),
+            from_imports: AVec::new(),
             body: body.as_str().into(),
         })
     }
@@ -89,7 +89,7 @@ def execute_trino_sql(query):
         }
         AST::Call(Call::new_wrapped(
             AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("execute_trino_sql".into())),
-            vec![],
+            vec![].into_iter().collect(),
             vec![("query".into(), query)].into_iter().collect(),
         ))
     }

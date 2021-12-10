@@ -1,6 +1,6 @@
 use crate::code::Import;
 use aorist_ast::{SimpleIdentifier, AST};
-use aorist_primitives::AString;
+use aorist_primitives::{AString, AVec};
 use pyo3::prelude::*;
 use pyo3::types::{PyList, PyModule};
 use std::hash::Hash;

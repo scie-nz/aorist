@@ -4,7 +4,7 @@ use crate::storage::*;
 use crate::storage_setup::replication_storage_setup::*;
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
-use aorist_primitives::{AString, AoristConcept, ConceptEnum};
+use aorist_primitives::{AString, AVec, AoristConcept, ConceptEnum};
 use derivative::Derivative;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
@@ -25,7 +25,7 @@ impl RemoteStorageSetup {
     ) -> ReplicationStorageSetup {
         ReplicationStorageSetup {
             source: self.remote.clone(),
-            targets: vec![t],
+            targets: vec![t].into_iter().collect(),
             tag: self.tag.clone(),
             tmp_dir,
             tmp_encoding,

@@ -142,7 +142,7 @@ fn process_attributes(raw_objects: &Vec<HashMap<String, Value>>) {
 
 fn main() {
     println!("cargo:rustc-cfg=feature=\"build-time\"");
-    let raw_objects = read_file("attributes.yaml");
+    let raw_objects = read_file("attributes.yaml").into_iter().collect();
     process_attributes(&raw_objects);
     #[cfg(feature = "python")]
     process_attributes_py(&raw_objects);

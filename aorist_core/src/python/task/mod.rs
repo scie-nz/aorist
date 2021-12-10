@@ -1,3 +1,4 @@
+
 mod compressed;
 mod key;
 mod standalone;
@@ -8,7 +9,7 @@ pub use standalone::*;
 
 use crate::flow::{CompressibleETLTask, ETLFlow, ETLTask, TaskBase};
 use crate::python::{PythonImport, PythonPreamble, AST};
-use aorist_primitives::AoristUniverse;
+use aorist_primitives::{AoristUniverse, AVec};
 
 pub enum PythonBasedTask<T, U>
 where
@@ -43,7 +44,7 @@ where
     pub fn get_statements(
         &self,
         endpoints: U::TEndpoints,
-    ) -> (Vec<AST>, Vec<PythonPreamble>, Vec<PythonImport>) {
+    ) -> (AVec<AST>, AVec<PythonPreamble>, AVec<PythonImport>) {
         match &self {
             PythonBasedTask::StandalonePythonBasedTask(x) => x.get_statements(endpoints),
             PythonBasedTask::ForLoopPythonBasedTask(x) => x.get_statements(endpoints),

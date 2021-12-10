@@ -1,3 +1,4 @@
+
 use crate::attributes::*;
 use crate::concept::{AoristRef, WrappedConcept};
 use crate::template::filter::*;
@@ -13,7 +14,7 @@ use crate::template::tensor::*;
 use crate::template::text::*;
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
-use aorist_primitives::{AString, AoristConcept, ConceptEnum};
+use aorist_primitives::{AString, AVec, AoristConcept, ConceptEnum};
 #[cfg(feature = "python")]
 use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
@@ -21,7 +22,7 @@ use std::fmt::Debug;
 use uuid::Uuid;
 
 pub trait TDatumTemplate {
-    fn get_attributes(&self) -> Vec<AoristRef<Attribute>>;
+    fn get_attributes(&self) -> AVec<AoristRef<Attribute>>;
     fn get_name(&self) -> AString;
 }
 
@@ -81,7 +82,7 @@ impl TDatumTemplate for DatumTemplate {
             DatumTemplate::Raster(x) => x.0.read().get_name(),
         }
     }
-    fn get_attributes(&self) -> Vec<AoristRef<Attribute>> {
+    fn get_attributes(&self) -> AVec<AoristRef<Attribute>> {
         match self {
             DatumTemplate::RowStruct(x) => x.0.read().get_attributes(),
             DatumTemplate::IdentifierTuple(x) => x.0.read().get_attributes(),

@@ -968,7 +968,7 @@ fn optimize_struct_fields(fields: &Punctuated<Field, Comma>, input: &DeriveInput
                 self.#bare_field_name.optimize_fields();
             )*
             #(
-                let mut new_elems = Vec::new();
+                let mut new_elems = AVec::new();
                 for elem in self.#vec_field_name {
                     let new_elem = match elem.optimize() {
                         Some(opt) => opt,

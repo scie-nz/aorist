@@ -1,3 +1,4 @@
+use aorist_primitives::AVec;
 use crate::dialect::Dialect;
 use crate::flow::CompressionKey;
 use crate::parameter_tuple::ParameterTupleDedupKey;
@@ -26,7 +27,7 @@ pub struct RBasedTaskCompressionKey {
     // dialect
     dialect: Option<Dialect>,
     // optional: dependencies
-    pub deps: Vec<AST>,
+    pub deps: AVec<AST>,
     // optional: kwargs
     pub kwargs: LinkedHashMap<AString, AST>,
 }
@@ -44,7 +45,7 @@ impl CompressionKey for RBasedTaskCompressionKey {
             dedup_key,
             preamble,
             dialect,
-            deps: Vec::new(),
+            deps: AVec::new(),
             kwargs: LinkedHashMap::new(),
         }
     }

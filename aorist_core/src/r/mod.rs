@@ -1,3 +1,4 @@
+use aorist_primitives::AVec;
 mod code_block;
 mod constant_r_task;
 mod constraint_block;
@@ -25,7 +26,7 @@ use std::collections::BTreeSet;
 /// - A set of imports corresponding to the dialect used.
 /// - A comment string
 pub struct RFlowBuilderInput {
-    statements: Vec<AST>,
+    statements: AVec<AST>,
     preambles: LinkedHashSet<RPreamble>,
     imports: BTreeSet<RImport>,
     constraint_name: AString,
@@ -37,7 +38,7 @@ impl FlowBuilderInput for RFlowBuilderInput {
     type PreambleType = RPreamble;
 
     fn new(
-        statements: Vec<AST>,
+        statements: AVec<AST>,
         preambles: LinkedHashSet<RPreamble>,
         imports: BTreeSet<RImport>,
         constraint_name: AString,
@@ -53,7 +54,7 @@ impl FlowBuilderInput for RFlowBuilderInput {
             constraint_body,
         }
     }
-    fn get_statements(&self) -> Vec<AST> {
+    fn get_statements(&self) -> AVec<AST> {
         self.statements.clone()
     }
     fn get_preambles(&self) -> LinkedHashSet<RPreamble> {

@@ -1,3 +1,4 @@
+use aorist_primitives::AVec;
 use crate::code::{CodeBlock, CodeBlockWithForLoopCompression};
 use crate::constraint::SatisfiableOuterConstraint;
 use crate::endpoints::EndpointConfig;
@@ -23,7 +24,7 @@ where
 {
     tasks_dict: Option<AST>,
     task_identifiers: HashMap<Uuid, AST>,
-    tasks: Vec<RBasedTask<T>>,
+    tasks: AVec<RBasedTask<T>>,
     params: HashMap<AString, Option<ParameterTuple>>,
     _lt: PhantomData<&'a ()>,
     _lt2: PhantomData<&'b ()>,
@@ -40,7 +41,7 @@ where
 
     fn construct(
         tasks_dict: Option<AST>,
-        tasks: Vec<Self::E>,
+        tasks: AVec<Self::E>,
         task_identifiers: HashMap<Uuid, AST>,
         params: HashMap<AString, Option<ParameterTuple>>,
     ) -> Self {
@@ -58,12 +59,12 @@ where
     fn get_statements(
         &self,
         endpoints: &EndpointConfig,
-    ) -> (Vec<AST>, LinkedHashSet<RPreamble>, BTreeSet<RImport>) {
+    ) -> (AVec<AST>, LinkedHashSet<RPreamble>, BTreeSet<RImport>) {
         let preambles_and_statements = self
             .tasks
             .iter()
             .map(|x| x.get_statements(endpoints))
-            .collect::<Vec<_>>();
+            .collect::<AVec<_>>();
         // TODO: get_statements should run for members of self.tasks
         let preambles = preambles_and_statements
             .iter()
@@ -79,7 +80,7 @@ where
             .iter()
             .map(|x| x.0.clone())
             .flatten()
-            .collect::<Vec<_>>();
+            .collect::<AVec<_>>();
         (statements, preambles, imports)
     }
     fn get_tasks_dict(&self) -> Option<AST> {
@@ -104,9 +105,9 @@ where
     fn run_task_compressions(
         compressible: LinkedHashMap<
             <<Self::E as ETLTask<T>>::S as CompressibleTask>::KeyType,
-            Vec<<Self::E as ETLTask<T>>::S>,
+            AVec<<Self::E as ETLTask<T>>::S>,
         >,
-        python_based_tasks: &mut Vec<Self::E>,
+        python_based_tasks: &mut AVec<Self::E>,
         constraint_name: AString,
     ) {
         for (mut compression_key, tasks) in compressible.into_iter() {
@@ -119,7 +120,7 @@ where
                 let mut maybe_uncompressible = tasks
                     .into_iter()
                     .map(|x| x.get_uncompressible_part().unwrap())
-                    .collect::<Vec<_>>();
+                    .collect::<AVec<_>>();
 
                 let mut deps: HashMap<AST, HashSet<AString>> = HashMap::new();
                 let mut kwargs: LinkedHashMap<AString, HashMap<AST, HashSet<AString>>> =
@@ -224,7 +225,7 @@ where
                 }
 
                 for t in maybe_uncompressible.iter_mut() {
-                    let mut new_deps = Vec::new();
+                    let mut new_deps = AVec::new();
                     for dep in t.deps.iter() {
                         if !compressible_deps.contains(dep) {
                             new_deps.push(dep.clone());

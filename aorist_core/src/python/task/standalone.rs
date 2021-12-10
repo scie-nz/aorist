@@ -1,3 +1,4 @@
+
 use crate::dialect::Dialect;
 use crate::flow::{
     CompressibleTask, CompressionKey, ETLFlow, StandaloneTask, TaskBase, UncompressiblePart,
@@ -6,7 +7,7 @@ use crate::parameter_tuple::ParameterTuple;
 use crate::python::task::key::PythonBasedTaskCompressionKey;
 use crate::python::task::uncompressible::PythonBasedTaskUncompressiblePart;
 use crate::python::{List, PythonImport, PythonPreamble, StringLiteral, AST};
-use aorist_primitives::{AString, AoristUniverse};
+use aorist_primitives::{AString, AoristUniverse, AVec};
 use linked_hash_map::LinkedHashMap;
 use std::hash::Hash;
 use std::marker::PhantomData;
@@ -28,7 +29,7 @@ where
     params: Option<ParameterTuple>,
     /// task_vals (or references to them) of other tasks this one
     /// depends on.
-    dependencies: Vec<AST>,
+    dependencies: AVec<AST>,
     /// Python preamble used by this task call
     preamble: Option<AString>,
     /// Dialect (e.g. Bash, Python, R, Presto, etc.), to be interpreted
@@ -54,7 +55,7 @@ where
         task_val: AST,
         call: Option<AString>,
         params: Option<ParameterTuple>,
-        dependencies: Vec<AST>,
+        dependencies: AVec<AST>,
         preamble: Option<AString>,
         dialect: Option<Dialect>,
     ) -> Self {
@@ -147,14 +148,14 @@ where
     pub fn get_statements(
         &self,
         endpoints: U::TEndpoints,
-    ) -> (Vec<AST>, Vec<PythonPreamble>, Vec<PythonImport>) {
+    ) -> (AVec<AST>, AVec<PythonPreamble>, AVec<PythonImport>) {
         let args;
         let kwargs;
         if let Some(ref p) = self.params {
             args = p.get_args();
             kwargs = p.get_kwargs();
         } else {
-            args = Vec::new();
+            args = AVec::new();
             kwargs = LinkedHashMap::new();
         }
         let singleton = T::new(
