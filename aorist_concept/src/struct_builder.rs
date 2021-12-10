@@ -1,4 +1,3 @@
-use aorist_primitives::AVec;
 extern crate proc_macro;
 use self::proc_macro::TokenStream;
 use crate::builder::Builder;
@@ -104,9 +103,9 @@ fn field_is_constrainable(field: &Field) -> bool {
     return false;
 }
 
-pub fn get_constrainable_fields(fields: AVec<Field>) -> (AVec<Field>, AVec<Field>) {
-    let mut constrainable_fields: AVec<Field> = AVec::new();
-    let mut unconstrainable_fields: AVec<Field> = AVec::new();
+pub fn get_constrainable_fields(fields: Vec<Field>) -> (Vec<Field>, Vec<Field>) {
+    let mut constrainable_fields: Vec<Field> = Vec::new();
+    let mut unconstrainable_fields: Vec<Field> = Vec::new();
     for field in fields {
         if field_is_constrainable(&field) {
             constrainable_fields.push(field);
@@ -118,19 +117,19 @@ pub fn get_constrainable_fields(fields: AVec<Field>) -> (AVec<Field>, AVec<Field
 }
 
 pub struct StructBuilder {
-    pub bare_types: AVec<Type>,
-    pub vec_types: AVec<Type>,
-    pub option_vec_types: AVec<Type>,
-    pub option_types: AVec<Type>,
-    pub map_key_types: AVec<Type>,
-    pub map_value_types: AVec<Type>,
-    pub bare_idents: AVec<Ident>,
-    pub vec_idents: AVec<Ident>,
-    pub option_vec_idents: AVec<Ident>,
-    pub option_idents: AVec<Ident>,
-    pub map_idents: AVec<Ident>,
+    pub bare_types: Vec<Type>,
+    pub vec_types: Vec<Type>,
+    pub option_vec_types: Vec<Type>,
+    pub option_types: Vec<Type>,
+    pub map_key_types: Vec<Type>,
+    pub map_value_types: Vec<Type>,
+    pub bare_idents: Vec<Ident>,
+    pub vec_idents: Vec<Ident>,
+    pub option_vec_idents: Vec<Ident>,
+    pub option_idents: Vec<Ident>,
+    pub map_idents: Vec<Ident>,
     pub fields_with_default: syn::punctuated::Punctuated<syn::NestedMeta, syn::token::Comma>,
-    pub unconstrainable: AVec<Field>,
+    pub unconstrainable: Vec<Field>,
 }
 impl StructBuilder {
     pub fn get_all_types(&self) -> Result<Vec<&Type>, AoristError> {
@@ -162,7 +161,7 @@ impl Builder for StructBuilder {
                 let ident = x.ident.as_ref().unwrap().to_string();
                 !(ident == "tag" || ident == "uuid" || ident == "constraints")
             })
-            .collect::<AVec<_>>();
+            .collect::<Vec<_>>();
         let fields_with_default = fields_filtered
             .clone()
             .into_iter()
@@ -202,18 +201,18 @@ impl Builder for StructBuilder {
 
         let (constrainable, unconstrainable) = get_constrainable_fields(fields_filtered.clone());
 
-        let mut bare_types: AVec<Type> = AVec::new();
-        let mut vec_types: AVec<Type> = AVec::new();
-        let mut option_vec_types: AVec<Type> = AVec::new();
-        let mut option_types: AVec<Type> = AVec::new();
-        let mut map_key_types: AVec<Type> = AVec::new();
-        let mut map_value_types: AVec<Type> = AVec::new();
+        let mut bare_types: Vec<Type> = Vec::new();
+        let mut vec_types: Vec<Type> = Vec::new();
+        let mut option_vec_types: Vec<Type> = Vec::new();
+        let mut option_types: Vec<Type> = Vec::new();
+        let mut map_key_types: Vec<Type> = Vec::new();
+        let mut map_value_types: Vec<Type> = Vec::new();
 
-        let mut bare_idents: AVec<Ident> = AVec::new();
-        let mut vec_idents: AVec<Ident> = AVec::new();
-        let mut option_vec_idents: AVec<Ident> = AVec::new();
-        let mut option_idents: AVec<Ident> = AVec::new();
-        let mut map_idents: AVec<Ident> = AVec::new();
+        let mut bare_idents: Vec<Ident> = Vec::new();
+        let mut vec_idents: Vec<Ident> = Vec::new();
+        let mut option_vec_idents: Vec<Ident> = Vec::new();
+        let mut option_idents: Vec<Ident> = Vec::new();
+        let mut map_idents: Vec<Ident> = Vec::new();
 
         for field in constrainable {
             let tt = &field.ty;
@@ -287,7 +286,7 @@ impl Builder for StructBuilder {
                 .segments
                 .iter()
                 .map(|x| x.ident.to_string())
-                .collect::<AVec<_>>()
+                .collect::<Vec<_>>()
                 .join("|");
             writeln!(
                 file,
@@ -381,23 +380,23 @@ impl Builder for StructBuilder {
         let bare_type_deref = bare_type
             .iter()
             .map(|x| extract_type_from_aorist_ref(x))
-            .collect::<AVec<_>>();
+            .collect::<Vec<_>>();
         let vec_type_deref = vec_type
             .iter()
             .map(|x| extract_type_from_aorist_ref(x))
-            .collect::<AVec<_>>();
+            .collect::<Vec<_>>();
         let option_vec_type_deref = option_vec_type
             .iter()
             .map(|x| extract_type_from_aorist_ref(x))
-            .collect::<AVec<_>>();
+            .collect::<Vec<_>>();
         let option_type_deref = option_type
             .iter()
             .map(|x| extract_type_from_aorist_ref(x))
-            .collect::<AVec<_>>();
+            .collect::<Vec<_>>();
         let map_value_type_deref = map_value_type
             .iter()
             .map(|x| extract_type_from_aorist_ref(x))
-            .collect::<AVec<_>>();
+            .collect::<Vec<_>>();
         let py_class_name = format!("{}", struct_name);
         let types = self.get_all_types()?;
         Ok(TokenStream::from(quote! { paste! {

@@ -1,4 +1,3 @@
-use aorist_primitives::AVec;
 extern crate proc_macro;
 use self::proc_macro::TokenStream;
 use crate::builder::Builder;
@@ -15,7 +14,7 @@ mod keyword {
 }
 
 pub struct EnumBuilder {
-    pub variant_idents: AVec<Ident>,
+    pub variant_idents: Vec<Ident>,
 }
 impl Builder for EnumBuilder {
     type TInput = syn::punctuated::Punctuated<Variant, Comma>;
@@ -23,7 +22,7 @@ impl Builder for EnumBuilder {
         let variant_idents = variants
             .iter()
             .map(|x| (x.ident.clone()))
-            .collect::<AVec<Ident>>();
+            .collect::<Vec<Ident>>();
         Ok(Self { variant_idents })
     }
     fn to_file(&self, enum_name: &Ident, file_name: &str) -> Result<(), AoristError> {

@@ -1,4 +1,3 @@
-use aorist_primitives::AVec;
 use serde_yaml::{from_str, Value};
 use std::collections::HashMap;
 use std::fs::File;
@@ -14,14 +13,14 @@ pub use constraint::*;
 mod error;
 pub use error::*;
 
-pub fn read_file(filename: &str) -> AVec<HashMap<String, Value>> {
+pub fn read_file(filename: &str) -> Vec<HashMap<String, Value>> {
     let file = match File::open(filename) {
         Ok(x) => x,
         Err(_err) => panic!("Cannot find file {}.", filename),
     };
     let reader = BufReader::new(file);
     let mut buf: String = "".into();
-    let mut result = AVec::new();
+    let mut result = Vec::new();
     for line in reader.lines() {
         let line_str = line.unwrap();
         if line_str == "---" {
@@ -55,9 +54,9 @@ pub fn read_file(filename: &str) -> AVec<HashMap<String, Value>> {
 }
 
 pub fn get_raw_objects_of_type(
-    raw_objects: &AVec<HashMap<String, Value>>,
+    raw_objects: &Vec<HashMap<String, Value>>,
     object_type: String,
-) -> AVec<HashMap<String, Value>> {
+) -> Vec<HashMap<String, Value>> {
     raw_objects
         .iter()
         .filter(|x| x.get("type").unwrap().as_str().unwrap() == object_type)
@@ -70,7 +69,7 @@ pub fn get_raw_objects_of_type(
                 .map(|(k, v)| (k.as_str().unwrap().into(), v.clone()))
                 .collect()
         })
-        .collect::<AVec<HashMap<String, Value>>>()
+        .collect::<Vec<HashMap<String, Value>>>()
 }
 /// Configures logging for Aorist based on a LOG_LEVEL envvar.
 /// Valid values are: error/warn/info/debug/trace/off (default: info)
@@ -97,7 +96,7 @@ pub fn extract_type_path(ty: &syn::Type) -> Option<&Path> {
 
 fn get_inner_type<'a>(
     ty: &'a syn::Type,
-    idents: AVec<String>,
+    idents: Vec<String>,
 ) -> Option<Pair<&'a PathSegment, &'a Colon2>> {
     // TODO store (with lazy static) the vec of string
     // TODO maybe optimization, reverse the order of segments
@@ -126,7 +125,7 @@ fn get_inner_type<'a>(
 // https://rust-syndication.github.io/rss/src/derive_builder_core/setter.rs.html#198
 fn extract_inner_from_bracketed_type<'a>(
     ty: &'a syn::Type,
-    idents: AVec<String>,
+    idents: Vec<String>,
 ) -> Option<&'a syn::Type> {
     let tp2 = get_inner_type(ty, idents);
     let tp3 = tp2.and_then(|pair_path_segment| {
@@ -145,7 +144,7 @@ fn extract_inner_from_bracketed_type<'a>(
 
 fn extract_inner_from_double_bracketed_type<'a>(
     ty: &'a syn::Type,
-    idents: AVec<String>,
+    idents: Vec<String>,
 ) -> Option<(&'a syn::Type, &'a syn::Type)> {
     let tp2 = get_inner_type(ty, idents);
     let tp3 = tp2.and_then(|pair_path_segment| {

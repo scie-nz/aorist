@@ -1,4 +1,3 @@
-use aorist_primitives::AVec;
 use crate::get_raw_objects_of_type;
 use codegen::Scope;
 use serde_yaml::Value;
@@ -9,7 +8,7 @@ use std::path::Path;
 
 pub type ConstraintTuple = (String, String, Option<String>, Option<String>);
 
-pub fn process_constraints_py(raw_objects: &AVec<HashMap<String, Value>>) {
+pub fn process_constraints_py(raw_objects: &Vec<HashMap<String, Value>>) {
     let constraints = get_raw_objects_of_type(raw_objects, "Constraint".into());
     let mut scope_py = Scope::new();
     let fun = scope_py
@@ -30,9 +29,9 @@ pub fn process_constraints_py(raw_objects: &AVec<HashMap<String, Value>>) {
     fs::write(&dest_path_py, scope_py.to_string()).unwrap();
 }
 pub fn get_constraint_dependencies(
-    constraints: &AVec<HashMap<String, Value>>,
-) -> HashMap<ConstraintTuple, AVec<String>> {
-    let mut dependencies: HashMap<ConstraintTuple, AVec<String>> = HashMap::new();
+    constraints: &Vec<HashMap<String, Value>>,
+) -> HashMap<ConstraintTuple, Vec<String>> {
+    let mut dependencies: HashMap<ConstraintTuple, Vec<String>> = HashMap::new();
     for constraint in constraints.iter() {
         let name = constraint
             .get("name")
@@ -55,14 +54,14 @@ pub fn get_constraint_dependencies(
             None => None,
         };
         let required = match constraint.get("requires") {
-            None => AVec::new(),
+            None => Vec::new(),
             Some(required) => required
                 .clone()
                 .as_sequence()
                 .unwrap()
                 .iter()
                 .map(|x| x.as_str().unwrap().to_string())
-                .collect::<AVec<String>>(),
+                .collect::<Vec<String>>(),
         };
         dependencies.insert((name, root, title, body), required);
     }
@@ -78,8 +77,8 @@ pub fn get_constraint_dependencies(
 }
 
 pub fn compute_topological_sort(
-    dependencies: &HashMap<ConstraintTuple, AVec<String>>,
-) -> AVec<ConstraintTuple> {
+    dependencies: &HashMap<ConstraintTuple, Vec<String>>,
+) -> Vec<ConstraintTuple> {
     let mut g: HashMap<ConstraintTuple, HashSet<String>> = dependencies
         .iter()
         .map(|(k, v)| {
@@ -95,7 +94,7 @@ pub fn compute_topological_sort(
         .filter(|(_, v)| v.len() == 0)
         .map(|(k, _)| k)
         .next();
-    let mut order: AVec<_> = AVec::new();
+    let mut order: Vec<_> = Vec::new();
     while let Some(val) = leaf_name {
         let key = val.clone();
         println!("key: {}, {}", key.0, key.1);
@@ -104,7 +103,7 @@ pub fn compute_topological_sort(
             println!(
                 "node: {}, dependencies: {}",
                 k.0,
-                x.clone().into_iter().collect::<AVec<String>>().join(", ")
+                x.clone().into_iter().collect::<Vec<String>>().join(", ")
             );
             x.remove(&key.0);
         }
@@ -124,7 +123,7 @@ pub fn compute_topological_sort(
     order
 }
 
-pub fn process_constraints(raw_objects: &AVec<HashMap<String, Value>>) {
+pub fn process_constraints(raw_objects: &Vec<HashMap<String, Value>>) {
     let constraints = get_raw_objects_of_type(raw_objects, "Constraint".into());
     let mut scope = Scope::new();
     scope.import("uuid", "Uuid");
@@ -177,7 +176,7 @@ pub fn process_constraints(raw_objects: &AVec<HashMap<String, Value>>) {
             )
         })
         .collect::<HashMap<String, Option<String>>>();
-    let mut satisfiable = AVec::new();
+    let mut satisfiable = Vec::new();
     for (name, root, title, body) in order.iter() {
         let required = dependencies
             .get(&(name.clone(), root.clone(), title.clone(), body.clone()))
@@ -201,7 +200,7 @@ pub fn process_constraints(raw_objects: &AVec<HashMap<String, Value>>) {
             Some(x) => x.to_string(),
         };
         let get_required = match get_required {
-            None => "|_, _| AVec::new()".to_string(),
+            None => "|_, _| Vec::new()".to_string(),
             Some(x) => x.to_string(),
         };
 
@@ -239,12 +238,12 @@ pub fn process_constraints(raw_objects: &AVec<HashMap<String, Value>>) {
         order
             .iter()
             .map(|x| x.0.clone())
-            .collect::<AVec<_>>()
+            .collect::<Vec<_>>()
             .join("\n,    ")
     ));
     fs::write(&dest_path, scope.to_string()).unwrap();
 }
-pub fn process_constraints_new(raw_objects: &AVec<HashMap<String, Value>>) {
+pub fn process_constraints_new(raw_objects: &Vec<HashMap<String, Value>>) {
     let constraints = get_raw_objects_of_type(raw_objects, "Constraint".into());
     let mut scope = Scope::new();
     scope.import("aorist_primitives", "register_constraint");
@@ -294,7 +293,7 @@ pub fn process_constraints_new(raw_objects: &AVec<HashMap<String, Value>>) {
             )
         })
         .collect::<HashMap<String, Option<String>>>();
-    let mut satisfiable = AVec::new();
+    let mut satisfiable = Vec::new();
     for (name, root, title, body) in order.iter() {
         let required = dependencies
             .get(&(name.clone(), root.clone(), title.clone(), body.clone()))
@@ -318,7 +317,7 @@ pub fn process_constraints_new(raw_objects: &AVec<HashMap<String, Value>>) {
             Some(x) => x.to_string(),
         };
         let _get_required = match get_required {
-            None => "|_, _| AVec::new()".to_string(),
+            None => "|_, _| Vec::new()".to_string(),
             Some(x) => x.to_string(),
         };
 
@@ -333,7 +332,7 @@ pub fn process_constraints_new(raw_objects: &AVec<HashMap<String, Value>>) {
         order
             .iter()
             .map(|x| x.0.clone())
-            .collect::<AVec<_>>()
+            .collect::<Vec<_>>()
             .join("\n,    ")
     ));
     fs::write(&dest_path, scope.to_string()).unwrap();

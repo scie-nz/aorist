@@ -1,4 +1,3 @@
-use aorist_primitives::AVec;
 use aorist_util::AoristError;
 use proc_macro::TokenStream;
 use proc_macro2::Span;
@@ -13,10 +12,10 @@ mod keyword {
 }
 
 pub trait TConceptBuilder {
-    fn new(extra_derives: AVec<&str>) -> Result<Self, AoristError> where Self: Sized;
-    fn get_derives(&self, attrs: AVec<NestedMeta>) -> (AVec<NestedMeta>, AVec<NestedMeta>) {
-        let mut derivatives: AVec<NestedMeta> = AVec::new();
-        let mut derives: AVec<NestedMeta> = AVec::new();
+    fn new(extra_derives: Vec<&str>) -> Result<Self, AoristError> where Self: Sized;
+    fn get_derives(&self, attrs: Vec<NestedMeta>) -> (Vec<NestedMeta>, Vec<NestedMeta>) {
+        let mut derivatives: Vec<NestedMeta> = Vec::new();
+        let mut derives: Vec<NestedMeta> = Vec::new();
         for attr in attrs {
             if let NestedMeta::Meta(Meta::List(x)) = attr {
                 if x.path.is_ident("derivative") {
@@ -33,7 +32,7 @@ pub trait TConceptBuilder {
         (derives, derivatives)
     }
 
-    fn extend_metas(&self, ast: &mut DeriveInput, extra_metas: AVec<NestedMeta>, ident: &str) -> Result<(), AoristError> {
+    fn extend_metas(&self, ast: &mut DeriveInput, extra_metas: Vec<NestedMeta>, ident: &str) -> Result<(), AoristError> {
         let (attr, mut metas) = ast
             .attrs
             .iter_mut()
@@ -53,21 +52,21 @@ pub trait TConceptBuilder {
     fn extend_derivatives(
         &self,
         ast: &mut DeriveInput,
-        extra_derivatives: AVec<NestedMeta>,
+        extra_derivatives: Vec<NestedMeta>,
     ) -> Result<(), AoristError> {
         self.extend_metas(ast, extra_derivatives, "derivative")
     }
     fn extend_derives(
         &self,
         ast: &mut DeriveInput,
-        extra_derives: AVec<NestedMeta>,
+        extra_derives: Vec<NestedMeta>,
     ) -> Result<(), AoristError> {
         self.extend_metas(ast, extra_derives, "derive")
     }
-    fn get_extra_derives(&self) -> AVec<NestedMeta>;
+    fn get_extra_derives(&self) -> Vec<NestedMeta>;
     fn gen(
         &self,
-        input_attrs: AVec<NestedMeta>,
+        input_attrs: Vec<NestedMeta>,
         mut ast: DeriveInput,
     ) -> Result<TokenStream, AoristError> {
         let (mut extra_derives, extra_derivatives) = self.get_derives(input_attrs);
@@ -94,8 +93,8 @@ pub trait TConceptBuilder {
             }
             Data::Enum(DataEnum { variants, .. }) => {
                 let enum_name = &ast.ident;
-                let variant = variants.iter().map(|x| (&x.ident)).collect::<AVec<_>>();
-                let variant_type = variants.iter().map(|x| (&x.fields)).collect::<AVec<_>>();
+                let variant = variants.iter().map(|x| (&x.ident)).collect::<Vec<_>>();
+                let variant_type = variants.iter().map(|x| (&x.fields)).collect::<Vec<_>>();
                 let quoted = quote! {
                     #[repr(C)]
                     #[derive(Debug, PartialEq, Serialize, Deserialize, Clone, Hash, Eq)]
@@ -127,8 +126,8 @@ pub trait TConceptBuilder {
         Ok(proc_macro::TokenStream::from(quoted2))
     }
     fn add_aorist_fields(&self, struct_data: &mut syn::DataStruct) -> Result<(), AoristError>;
-    fn parse_extra_derives(extra_derives_v: AVec<&str>) -> Result<AVec<NestedMeta>, AoristError> {
-        let mut extra_derives = AVec::new();
+    fn parse_extra_derives(extra_derives_v: Vec<&str>) -> Result<Vec<NestedMeta>, AoristError> {
+        let mut extra_derives = Vec::new();
         for t in extra_derives_v {
             let path = LitStr::new(t, Span::call_site()).parse_with(Path::parse_mod_style)?;
             let derive = NestedMeta::Meta(Meta::Path(path));
@@ -138,15 +137,15 @@ pub trait TConceptBuilder {
     }
 }
 pub struct RawConceptBuilder {
-    extra_derives: AVec<NestedMeta>,
+    extra_derives: Vec<NestedMeta>,
 }
 impl TConceptBuilder for RawConceptBuilder {
-    fn new(extra_derives_v: AVec<&str>) -> Result<Self, AoristError> {
+    fn new(extra_derives_v: Vec<&str>) -> Result<Self, AoristError> {
         Ok(Self {
             extra_derives: Self::parse_extra_derives(extra_derives_v)?,
         })
     }
-    fn get_extra_derives(&self) -> AVec<NestedMeta> {
+    fn get_extra_derives(&self) -> Vec<NestedMeta> {
         self.extra_derives.clone()
     }
     fn add_aorist_fields(&self, struct_data: &mut syn::DataStruct) -> Result<(), AoristError> {
