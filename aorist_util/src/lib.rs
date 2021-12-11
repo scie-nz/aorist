@@ -1,4 +1,4 @@
-use serde_yaml::{from_str, Value, Mapping};
+use serde_yaml::{from_str, Mapping, Value};
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::{prelude::*, BufReader};
@@ -75,9 +75,11 @@ pub fn get_raw_objects_of_type(
                 .ok_or_else(|| {
                     AoristError::UnexpectedNoneError("no 'spec' field found on object".into())
                 })?
-                .as_mapping().ok_or_else(|| {
+                .as_mapping()
+                .ok_or_else(|| {
                     AoristError::CannotConvertJSONError("Could not convert JSON to mapping".into())
-                })?.clone();
+                })?
+                .clone();
             let mut map: HashMap<String, Value> = HashMap::new();
             for (k, v) in spec.into_iter() {
                 let key = k.as_str().ok_or_else(|| {
@@ -178,13 +180,23 @@ fn extract_inner_from_double_bracketed_type<'a>(
                         if let GenericArgument::Type(ref ty2) = second {
                             return Ok(Some((ty1, ty2)));
                         }
-                        return Err(AoristError::OtherError(format!("2nd argument ({:?}) should be a Type.", second))); 
+                        return Err(AoristError::OtherError(format!(
+                            "2nd argument ({:?}) should be a Type.",
+                            second
+                        )));
                     }
-                    return Err(AoristError::OtherError("Could not parse 2nd argument.".into())); 
+                    return Err(AoristError::OtherError(
+                        "Could not parse 2nd argument.".into(),
+                    ));
                 }
-                return Err(AoristError::OtherError(format!("1st argument ({:?}) should be a Type.", first))); 
+                return Err(AoristError::OtherError(format!(
+                    "1st argument ({:?}) should be a Type.",
+                    first
+                )));
             };
-            return Err(AoristError::OtherError("Could not parse 1st argument.".into())); 
+            return Err(AoristError::OtherError(
+                "Could not parse 1st argument.".into(),
+            ));
         }
     }
     Ok(None)
@@ -225,7 +237,9 @@ pub fn extract_type_from_map(ty: &syn::Type) -> AResult<Option<(&syn::Type, &syn
     )
 }
 
-pub fn extract_type_from_linked_hash_map(ty: &syn::Type) -> AResult<Option<(&syn::Type, &syn::Type)>> {
+pub fn extract_type_from_linked_hash_map(
+    ty: &syn::Type,
+) -> AResult<Option<(&syn::Type, &syn::Type)>> {
     extract_inner_from_double_bracketed_type(
         ty,
         vec![

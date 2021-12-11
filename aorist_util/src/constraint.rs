@@ -1,4 +1,4 @@
-use crate::error::AResult;
+use crate::error::{AResult, AoristError};
 use crate::get_raw_objects_of_type;
 use codegen::Scope;
 use serde_yaml::Value;
@@ -7,6 +7,24 @@ use std::env;
 use std::fs;
 use std::path::Path;
 pub type ConstraintTuple = (String, String, Option<String>, Option<String>);
+
+fn get_constraint_field(constraint: &HashMap<String, Value>, field: &str) -> AResult<String> {
+    Ok(constraint
+        .get(field)
+        .ok_or_else(|| {
+            AoristError::UnexpectedNoneError(format!(
+                "Could not find '{}' field in constraint definition.",
+                field
+            ))
+        })?
+        .as_str()
+        .ok_or_else(|| {
+            AoristError::CannotConvertJSONError(
+                "Cannot convert constraint name field to string.".into(),
+            )
+        })?
+        .to_string())
+}
 
 pub fn process_constraints_py(raw_objects: &Vec<HashMap<String, Value>>) -> AResult<()> {
     let constraints = get_raw_objects_of_type(raw_objects, "Constraint".into())?;
@@ -17,51 +35,58 @@ pub fn process_constraints_py(raw_objects: &Vec<HashMap<String, Value>>) -> ARes
         .ret("PyResult<()>")
         .arg("_py", "Python")
         .arg("m", "&PyModule");
-    for attribute in constraints {
-        let name = attribute.get("name").unwrap().as_str().unwrap().to_string();
+    for constraint in constraints {
+        let name = get_constraint_field(&constraint, "name")?;
         let export = format!("m.add_class::<{}>()?;", name,);
         fun.line(&export);
     }
     fun.line("m.add_class::<crate::constraint::AoristConstraintProgram>()?;");
-    let out_dir = env::var_os("OUT_DIR").unwrap();
+    let out_dir = env::var_os("OUT_DIR").ok_or_else(|| {
+        AoristError::UnexpectedNoneError("Could not find envrionment variable OUT_DIR".into())
+    })?;
     let dest_path_py = Path::new(&out_dir).join("python.rs");
     fun.line("Ok(())");
-    fs::write(&dest_path_py, scope_py.to_string()).unwrap();
+    fs::write(&dest_path_py, scope_py.to_string())?;
     Ok(())
 }
 pub fn get_constraint_dependencies(
     constraints: &Vec<HashMap<String, Value>>,
-) -> HashMap<ConstraintTuple, Vec<String>> {
+) -> AResult<HashMap<ConstraintTuple, Vec<String>>> {
     let mut dependencies: HashMap<ConstraintTuple, Vec<String>> = HashMap::new();
     for constraint in constraints.iter() {
-        let name = constraint
-            .get("name")
-            .unwrap()
-            .as_str()
-            .unwrap()
-            .to_string();
-        let root = constraint
-            .get("root")
-            .unwrap()
-            .as_str()
-            .unwrap()
-            .to_string();
-        let title = match constraint.get("title") {
-            Some(x) => Some(x.as_str().unwrap().to_string()),
-            None => None,
+        let name = get_constraint_field(constraint, "name")?;
+        let root = get_constraint_field(constraint, "root")?;
+        let title = match get_constraint_field(constraint, "title") {
+            Ok(x) => Some(x),
+            Err(_) => None,
         };
-        let body = match constraint.get("body") {
-            Some(x) => Some(x.as_str().unwrap().to_string()),
-            None => None,
+        let body = match get_constraint_field(constraint, "body") {
+            Ok(x) => Some(x),
+            Err(_) => None,
         };
         let required = match constraint.get("requires") {
             None => Vec::new(),
             Some(required) => required
                 .clone()
                 .as_sequence()
-                .unwrap()
+                .ok_or_else(|| {
+                    AoristError::CannotConvertJSONError(format!(
+                        "Cannot convert requires vector in constraint {}",
+                        name
+                    ))
+                })?
                 .iter()
-                .map(|x| x.as_str().unwrap().to_string())
+                .map(|x| {
+                    x.as_str().ok_or_else(|| {
+                        AoristError::CannotConvertJSONError(format!(
+                            "Cannot convert field {:?} to string.",
+                            x
+                        ))
+                    })
+                })
+                .collect::<AResult<Vec<&str>>>()?
+                .into_iter()
+                .map(|x| x.to_string())
                 .collect::<Vec<String>>(),
         };
         dependencies.insert((name, root, title, body), required);
@@ -74,7 +99,7 @@ pub fn get_constraint_dependencies(
             }
         }
     }
-    dependencies
+    Ok(dependencies)
 }
 
 pub fn compute_topological_sort(
@@ -124,17 +149,19 @@ pub fn compute_topological_sort(
     order
 }
 
+
 pub fn process_constraints(raw_objects: &Vec<HashMap<String, Value>>) -> AResult<()> {
     let constraints = get_raw_objects_of_type(raw_objects, "Constraint".into())?;
     let mut scope = Scope::new();
     scope.import("uuid", "Uuid");
     for constraint in constraints.iter() {
+        let root = get_constraint_field(constraint, "root")?;
         scope.import(
             "aorist_core",
-            constraint.get("root").unwrap().as_str().unwrap(),
+            &root,
         );
     }
-    let dependencies = get_constraint_dependencies(&constraints);
+    let dependencies = get_constraint_dependencies(&constraints)?;
     let order = compute_topological_sort(&dependencies);
     let program_required = constraints
         .iter()
@@ -250,7 +277,7 @@ pub fn process_constraints_new(raw_objects: &Vec<HashMap<String, Value>>) -> ARe
     let mut scope = Scope::new();
     scope.import("aorist_primitives", "register_constraint");
     scope.import("aorist_primitives", "define_constraint_abi");
-    let dependencies = get_constraint_dependencies(&constraints);
+    let dependencies = get_constraint_dependencies(&constraints)?;
     let order = compute_topological_sort(&dependencies);
     let out_dir = env::var_os("OUT_DIR").unwrap();
     let dest_path = Path::new(&out_dir).join("constraints.rs");
