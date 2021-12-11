@@ -1,4 +1,3 @@
-
 use crate::code::Preamble;
 use crate::constraint::OuterConstraint;
 use crate::constraint_state::ConstraintState;

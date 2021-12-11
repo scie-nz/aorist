@@ -16,10 +16,11 @@ mod keyword {
 
 #[proc_macro_attribute]
 pub fn aorist(args: TokenStream, input: TokenStream) -> TokenStream {
-    let builder = match RawConceptBuilder::new(vec![
-        "Constrainable",
-        "aorist_concept::ConstrainableWithChildren",
-    ].into_iter().collect()) {
+    let builder = match RawConceptBuilder::new(
+        vec!["Constrainable", "aorist_concept::ConstrainableWithChildren"]
+            .into_iter()
+            .collect(),
+    ) {
         Ok(x) => x,
         Err(err) => panic!("Cannot create RawConceptBuilder: {:?}", err),
     };

@@ -12,7 +12,9 @@ mod keyword {
 }
 
 pub trait TConceptBuilder {
-    fn new(extra_derives: Vec<&str>) -> Result<Self, AoristError> where Self: Sized;
+    fn new(extra_derives: Vec<&str>) -> Result<Self, AoristError>
+    where
+        Self: Sized;
     fn get_derives(&self, attrs: Vec<NestedMeta>) -> (Vec<NestedMeta>, Vec<NestedMeta>) {
         let mut derivatives: Vec<NestedMeta> = Vec::new();
         let mut derives: Vec<NestedMeta> = Vec::new();
@@ -32,7 +34,12 @@ pub trait TConceptBuilder {
         (derives, derivatives)
     }
 
-    fn extend_metas(&self, ast: &mut DeriveInput, extra_metas: Vec<NestedMeta>, ident: &str) -> Result<(), AoristError> {
+    fn extend_metas(
+        &self,
+        ast: &mut DeriveInput,
+        extra_metas: Vec<NestedMeta>,
+        ident: &str,
+    ) -> Result<(), AoristError> {
         let (attr, mut metas) = ast
             .attrs
             .iter_mut()

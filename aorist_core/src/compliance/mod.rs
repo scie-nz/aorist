@@ -1,4 +1,3 @@
-
 /* Following prescribed Record of Processing Activity by cnil.fr.
 See: https://www.cnil.fr/en/record-processing-activities */
 use crate::concept::{AoristRef, WrappedConcept};

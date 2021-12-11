@@ -1,4 +1,3 @@
-
 #![allow(non_snake_case)]
 use crate::attributes::*;
 use crate::concept::{AoristConcept, AoristRef, ConceptEnum, WrappedConcept};

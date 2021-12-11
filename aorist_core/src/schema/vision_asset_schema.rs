@@ -1,4 +1,3 @@
-
 use crate::attributes::*;
 use crate::concept::{AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
 use crate::schema::flann_knn_match_schema::*;

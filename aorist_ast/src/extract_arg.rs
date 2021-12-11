@@ -1,8 +1,8 @@
-use aorist_primitives::AVec;
 use crate::{
     Attribute, BigIntLiteral, BooleanLiteral, Call, Dict, FloatLiteral, List, None,
     SimpleIdentifier, StringLiteral, Tuple, AST,
 };
+use aorist_primitives::AVec;
 use aorist_primitives::{AString, Context};
 use linked_hash_map::LinkedHashMap;
 use pyo3::exceptions::PyValueError;

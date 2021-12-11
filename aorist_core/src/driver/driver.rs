@@ -1,4 +1,3 @@
-
 #![allow(dead_code)]
 use crate::code::CodeBlock;
 use crate::code::CodeBlockWithDefaultConstructor;
@@ -260,7 +259,9 @@ where
         programs: &AVec<P>,
         existing_names: &mut HashSet<AString>,
     ) -> Result<(
-        AVec<<Self::CB as ConstraintBlock<'a, <D as FlowBuilderBase<U>>::T, B::OuterType, U, P>>::C>,
+        AVec<
+            <Self::CB as ConstraintBlock<'a, <D as FlowBuilderBase<U>>::T, B::OuterType, U, P>>::C,
+        >,
         Option<AST>,
     )> {
         debug!("Processing constraint block: {}", constraint_name);
@@ -342,7 +343,9 @@ where
                             .map(|(c, _id)| {
                                 (
                                     c.read().get_constraint_uuid().unwrap(),
-                                    vec![c.read().get_constraint_uuid().unwrap()].into_iter().collect(),
+                                    vec![c.read().get_constraint_uuid().unwrap()]
+                                        .into_iter()
+                                        .collect(),
                                 )
                             })
                             .collect(),
@@ -590,8 +593,10 @@ where
                 }
             }
             if let Some(elem) = superfluous.into_iter().next() {
-                let mut reverse_dependencies: LinkedHashMap<(Uuid, AString), AVec<(Uuid, AString)>> =
-                    LinkedHashMap::new();
+                let mut reverse_dependencies: LinkedHashMap<
+                    (Uuid, AString),
+                    AVec<(Uuid, AString)>,
+                > = LinkedHashMap::new();
                 for (k, v) in raw_unsatisfied_constraints.iter() {
                     for dep in v.read().unsatisfied_dependencies.iter() {
                         reverse_dependencies
@@ -741,7 +746,9 @@ where
                 universe.get_type(),
                 None,
                 0,
-            )].into_iter().collect(),
+            )]
+            .into_iter()
+            .collect(),
         );
         while frontier.len() > 0 {
             let mut new_frontier: Vec<AncestorRecord> = Vec::new();

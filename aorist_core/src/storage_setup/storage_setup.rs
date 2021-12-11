@@ -1,4 +1,3 @@
-
 use crate::concept::{AoristRef, WrappedConcept};
 use crate::encoding::*;
 use crate::storage::*;
@@ -40,7 +39,9 @@ impl StorageSetup {
             Self::ComputedFromLocalData(x) => vec![x.0.read().target.clone()].into_iter().collect(),
             Self::LocalStorageSetup(x) => vec![x.0.read().local.clone()].into_iter().collect(),
             Self::TwoTierStorageSetup(x) => {
-                vec![x.0.read().scratch.clone(), x.0.read().persistent.clone()].into_iter().collect()
+                vec![x.0.read().scratch.clone(), x.0.read().persistent.clone()]
+                    .into_iter()
+                    .collect()
             }
         }
     }

@@ -602,15 +602,15 @@ macro_rules! define_constraint {
                     kwarg_functions: LinkedHashMap<AString, (AVec<AString>, AString)>,
                     dialect: Dialect,
                 ) -> Self {
-                    Self { 
-                        code, 
-                        entrypoint, 
+                    Self {
+                        code,
+                        entrypoint,
                         arg_functions: arg_functions.clone().into_iter()
                             .map(|(x, y)| (x.into_iter().collect(), y)).collect(),
                         kwarg_functions: kwarg_functions.clone().into_iter().map(
                             |(k, (v, x))| (k, (v.into_iter().collect(), x))
-                        ).collect(), 
-                        dialect 
+                        ).collect(),
+                        dialect
                     }
                 }
                 fn get_arg_functions(&self) -> AVec<(AVec<AString>, AString)> {

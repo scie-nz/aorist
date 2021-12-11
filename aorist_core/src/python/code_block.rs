@@ -1,4 +1,3 @@
-
 use crate::code::{CodeBlock, CodeBlockWithForLoopCompression};
 use crate::constraint::OuterConstraint;
 use crate::flow::{CompressibleTask, ETLFlow, ETLTask, ForLoopCompressedTask};

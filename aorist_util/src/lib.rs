@@ -174,7 +174,9 @@ pub fn extract_type_from_option(ty: &syn::Type) -> Option<&syn::Type> {
             "Option|".to_string(),
             "std|option|Option|".into(),
             "core|option|Option|".into(),
-        ].into_iter().collect(),
+        ]
+        .into_iter()
+        .collect(),
     )
 }
 
@@ -194,7 +196,9 @@ pub fn extract_type_from_vector(ty: &syn::Type) -> Option<&syn::Type> {
 pub fn extract_type_from_map(ty: &syn::Type) -> Option<(&syn::Type, &syn::Type)> {
     extract_inner_from_double_bracketed_type(
         ty,
-        vec!["BTreeMap|".to_string(), "std|collections|BTreeMap|".into()].into_iter().collect(),
+        vec!["BTreeMap|".to_string(), "std|collections|BTreeMap|".into()]
+            .into_iter()
+            .collect(),
     )
 }
 
@@ -204,9 +208,16 @@ pub fn extract_type_from_linked_hash_map(ty: &syn::Type) -> Option<(&syn::Type, 
         vec![
             "LinkedHashMap|".to_string(),
             "linked_hash_map|LinkedHashMap|".into(),
-        ].into_iter().collect(),
+        ]
+        .into_iter()
+        .collect(),
     )
 }
 pub fn extract_type_from_aorist_ref(ty: &syn::Type) -> Option<&syn::Type> {
-    extract_inner_from_bracketed_type(ty, vec!["RArc|".to_string(), "AoristRef|".to_string()].into_iter().collect())
+    extract_inner_from_bracketed_type(
+        ty,
+        vec!["RArc|".to_string(), "AoristRef|".to_string()]
+            .into_iter()
+            .collect(),
+    )
 }

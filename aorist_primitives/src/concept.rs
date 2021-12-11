@@ -60,7 +60,10 @@ impl AString {
 #[derive(Clone, PartialEq, Serialize, Debug, Hash, Eq, PartialOrd, Ord)]
 pub struct AVec<T>(abi_stable::std_types::RVec<T>);
 
-impl<'de, T> Deserialize<'de> for AVec<T> where T: Deserialize<'de> {
+impl<'de, T> Deserialize<'de> for AVec<T>
+where
+    T: Deserialize<'de>,
+{
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: Deserializer<'de>,
@@ -70,28 +73,29 @@ impl<'de, T> Deserialize<'de> for AVec<T> where T: Deserialize<'de> {
     }
 }
 
-impl <T> std::iter::IntoIterator for AVec<T> {
+impl<T> std::iter::IntoIterator for AVec<T> {
     type Item = T;
     type IntoIter = <abi_stable::std_types::RVec<T> as std::iter::IntoIterator>::IntoIter;
     fn into_iter(self) -> Self::IntoIter {
         self.0.into_iter()
     }
 }
-impl <T> std::iter::FromIterator<T> for AVec<T> {
+impl<T> std::iter::FromIterator<T> for AVec<T> {
     fn from_iter<I>(iter: I) -> Self
     where
-        I: IntoIterator<Item = T> {
+        I: IntoIterator<Item = T>,
+    {
         Self(abi_stable::std_types::RVec::<T>::from_iter(iter))
-    } 
+    }
 }
-impl <T> std::ops::Deref for AVec<T> {
+impl<T> std::ops::Deref for AVec<T> {
     type Target = [T];
     fn deref(&self) -> &Self::Target {
         &self.0.deref()
     }
 }
 
-impl <T> AVec<T> {
+impl<T> AVec<T> {
     pub fn len(&self) -> usize {
         self.0.len()
     }
@@ -116,7 +120,6 @@ impl AVec<String> {
         self.0.join(separator)
     }
 }
-
 
 pub trait ConceptEnum {}
 pub trait AoristConcept {

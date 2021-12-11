@@ -20,7 +20,9 @@ define_task_node!(
             PythonImport::PythonModuleImport("subprocess".into(), None),
             PythonImport::PythonModuleImport("trino".into(), None),
             PythonImport::PythonModuleImport("re".into(), None),
-        ].into_iter().collect()
+        ]
+        .into_iter()
+        .collect()
     },
     PythonImport,
     sql: AST,

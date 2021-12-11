@@ -1,4 +1,3 @@
-
 #![allow(dead_code)]
 use crate::attributes::*;
 use crate::concept::{AoristRef, WrappedConcept};

@@ -1,4 +1,3 @@
-
 use crate::concept::{AoristRef, WrappedConcept};
 use crate::encoding::*;
 use aorist_concept::{aorist, Constrainable};

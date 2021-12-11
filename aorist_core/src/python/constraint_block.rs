@@ -1,4 +1,3 @@
-
 use crate::code::CodeBlock;
 use crate::constraint::OuterConstraint;
 use crate::constraint_block::ConstraintBlock;
@@ -81,7 +80,9 @@ where
             Some(ref val) => vec![AST::Assignment(Assignment::new_wrapped(
                 val.clone(),
                 AST::Dict(Dict::new_wrapped(LinkedHashMap::new())),
-            ))].into_iter().collect(),
+            ))]
+            .into_iter()
+            .collect(),
             None => vec![].into_iter().collect(),
         }
     }

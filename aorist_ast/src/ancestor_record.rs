@@ -1,5 +1,5 @@
-use aorist_primitives::AVec;
 use aorist_primitives::AString;
+use aorist_primitives::AVec;
 use inflector::cases::snakecase::to_snake_case;
 use uuid::Uuid;
 

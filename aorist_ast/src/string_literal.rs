@@ -1,9 +1,9 @@
-use aorist_primitives::AVec;
 use crate::{AncestorRecord, AST};
 use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 use abi_stable::std_types::RArc;
 use aorist_extendr_api::prelude::*;
 use aorist_primitives::AString;
+use aorist_primitives::AVec;
 use pyo3::prelude::*;
 use pyo3::types::PyModule;
 use std::hash::Hash;

@@ -1,4 +1,3 @@
-
 use crate::attributes::*;
 use crate::concept::{AoristRef, WrappedConcept};
 use crate::template::datum_template::TDatumTemplate;

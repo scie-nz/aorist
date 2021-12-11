@@ -1,4 +1,3 @@
-
 use crate::attributes::*;
 use aorist_primitives::{AString, AVec, AoristConcept, ConceptEnum};
 

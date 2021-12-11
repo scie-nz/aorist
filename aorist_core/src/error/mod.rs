@@ -1,5 +1,5 @@
 use abi_stable::{library::LibraryError, StableAbi};
-use aorist_primitives::{AString, AVec};
+use aorist_primitives::AString;
 use thiserror::Error;
 #[repr(u8)]
 #[derive(Error, Debug, StableAbi)]

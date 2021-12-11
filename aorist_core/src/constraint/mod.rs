@@ -1,4 +1,3 @@
-
 use crate::dialect::Dialect;
 use crate::error::AoristError;
 use crate::parameter_tuple::ParameterTuple;

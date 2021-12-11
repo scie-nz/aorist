@@ -90,7 +90,9 @@ define_ast_node!(
 );
 define_ast_node!(
     Assignment,
-    |assign: &Assignment| vec![assign.target.clone(), assign.call.clone()].into_iter().collect(),
+    |assign: &Assignment| vec![assign.target.clone(), assign.call.clone()]
+        .into_iter()
+        .collect(),
     |assign: &Assignment, py: Python, ast_module: &'a PyModule, depth: usize| {
         let assign_target = match assign.target {
             AST::Subscript(ref x) => AST::Subscript(x.read().as_wrapped_assignment_target()),
@@ -102,7 +104,7 @@ define_ast_node!(
         };
         let targets = PyList::new(
             py,
-            vec![assign_target.to_python_ast_node(py, ast_module, depth)?]
+            vec![assign_target.to_python_ast_node(py, ast_module, depth)?],
         );
         ast_module.getattr("Assign")?.call1((
             targets,
@@ -144,7 +146,9 @@ define_ast_node!(
 );
 define_ast_node!(
     BinOp,
-    |node: &BinOp| vec![node.left.clone(), node.right.clone()].into_iter().collect(),
+    |node: &BinOp| vec![node.left.clone(), node.right.clone()]
+        .into_iter()
+        .collect(),
     |node: &BinOp, py: Python, ast_module: &'a PyModule, depth: usize| {
         ast_module.getattr("BinOp")?.call1((
             node.left.to_python_ast_node(py, ast_module, depth)?,
@@ -432,7 +436,9 @@ define_ast_node!(
 );
 define_ast_node!(
     Subscript,
-    |subscript: &Subscript| vec![subscript.a().clone(), subscript.b().clone()].into_iter().collect(),
+    |subscript: &Subscript| vec![subscript.a().clone(), subscript.b().clone()]
+        .into_iter()
+        .collect(),
     |subscript: &Subscript, py: Python, ast_module: &'a PyModule, depth: usize| {
         let mode = ast_module
             .getattr(match subscript.store {

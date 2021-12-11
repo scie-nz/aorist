@@ -1,4 +1,3 @@
-
 use crate::python::ast::PythonTaskBase;
 use crate::python::PythonImport;
 use aorist_ast::{Assignment, Attribute, BooleanLiteral, Call, SimpleIdentifier, Tuple, AST};
@@ -14,7 +13,9 @@ pub trait PythonSubprocessTask: PythonTaskBase {
         ))
     }
     fn get_python_subprocess_imports(&self) -> AVec<PythonImport> {
-        vec![PythonImport::PythonModuleImport("subprocess".into(), None)].into_iter().collect()
+        vec![PythonImport::PythonModuleImport("subprocess".into(), None)]
+            .into_iter()
+            .collect()
     }
     fn compute_task_kwargs(&self) -> LinkedHashMap<AString, AST> {
         let mut kwargs = LinkedHashMap::new();
@@ -47,7 +48,9 @@ pub trait PythonSubprocessTask: PythonTaskBase {
                 vec![
                     self.get_task_val().as_wrapped_assignment_target(),
                     AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("error".into())),
-                ].into_iter().collect(),
+                ]
+                .into_iter()
+                .collect(),
                 true,
             )),
             AST::Call(Call::new_wrapped(

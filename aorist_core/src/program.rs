@@ -1,4 +1,3 @@
-
 use crate::constraint::{OuterConstraint, TConstraint};
 use crate::dialect::Dialect;
 use crate::parameter_tuple::ParameterTuple;
@@ -6,7 +5,6 @@ use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 use abi_stable::std_types::RArc;
 use aorist_primitives::{AString, AVec, Ancestry, Context};
 use linked_hash_map::LinkedHashMap;
-use std::marker::PhantomData;
 
 pub trait TProgram<'a, T: TConstraint<'a>> {
     fn new(
@@ -32,30 +30,4 @@ pub trait TOuterProgram: Clone {
         context: &mut Context,
         constraint: RArc<RRwLock<T>>,
     ) -> (AString, AString, ParameterTuple, Dialect);
-}
-#[derive(Clone)]
-pub struct Program<'a, C: OuterConstraint<'a>> {
-    _lta: PhantomData<&'a ()>,
-    _ltc: PhantomData<C>,
-    code: AString,
-    arg_functions: AVec<AString>,
-    kwarg_functions: LinkedHashMap<AString, AString>,
-}
-impl<'a, C> Program<'a, C>
-where
-    C: OuterConstraint<'a>,
-{
-    pub fn new(
-        code: AString,
-        arg_functions: AVec<AString>,
-        kwarg_functions: LinkedHashMap<AString, AString>,
-    ) -> Self {
-        Self {
-            _lta: PhantomData,
-            _ltc: PhantomData,
-            code,
-            arg_functions,
-            kwarg_functions,
-        }
-    }
 }

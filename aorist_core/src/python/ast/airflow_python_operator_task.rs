@@ -1,4 +1,3 @@
-
 use crate::python::ast::AirflowTaskBase;
 use crate::python::ast::PythonTaskBase;
 use crate::python::PythonImport;
@@ -16,7 +15,9 @@ pub trait AirflowPythonOperatorTask: PythonTaskBase + AirflowTaskBase {
             "airflow.operators.python_operator".into(),
             "PythonOperator".into(),
             None,
-        )].into_iter().collect()
+        )]
+        .into_iter()
+        .collect()
     }
     fn get_callable_kwargs(&self) -> LinkedHashMap<AString, AST>;
     fn compute_task_kwargs(&self) -> LinkedHashMap<AString, AST> {

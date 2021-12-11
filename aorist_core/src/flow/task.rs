@@ -1,4 +1,3 @@
-
 use crate::dialect::Dialect;
 use crate::flow::etl_flow::ETLFlow;
 use crate::parameter_tuple::{ParameterTuple, ParameterTupleDedupKey};
@@ -77,8 +76,12 @@ pub trait UncompressiblePart<T, U: AoristUniverse>
 where
     T: ETLFlow<U>,
 {
-    fn new(task_id: AString, dict: AString, params: Option<ParameterTuple>, deps: AVec<AST>)
-        -> Self;
+    fn new(
+        task_id: AString,
+        dict: AString,
+        params: Option<ParameterTuple>,
+        deps: AVec<AST>,
+    ) -> Self;
     fn as_dict(&self, insert_deps: bool, dependencies_as_list: bool, insert_task_name: bool)
         -> AST;
 }

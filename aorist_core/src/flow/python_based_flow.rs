@@ -1,4 +1,3 @@
-
 use crate::dialect::Dialect;
 use crate::flow::etl_flow::ETLFlow;
 use crate::python::{NativePythonPreamble, PythonPreamble, RPythonPreamble};
@@ -17,13 +16,17 @@ where
             Some(Dialect::Python(_)) => match self.get_preamble_string() {
                 Some(p) => Ok(vec![PythonPreamble::NativePythonPreamble(
                     NativePythonPreamble::new(p)?,
-                )].into_iter().collect()),
+                )]
+                .into_iter()
+                .collect()),
                 None => Ok(AVec::new()),
             },
             Some(Dialect::R(_)) => match self.get_preamble_string() {
-                Some(p) => Ok(vec![PythonPreamble::RPythonPreamble(RPythonPreamble::new(
-                    p,
-                )?)].into_iter().collect()),
+                Some(p) => Ok(
+                    vec![PythonPreamble::RPythonPreamble(RPythonPreamble::new(p)?)]
+                        .into_iter()
+                        .collect(),
+                ),
                 None => Ok(AVec::new()),
             },
             _ => Ok(AVec::new()),

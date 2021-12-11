@@ -1,4 +1,3 @@
-
 use crate::concept::Ancestry;
 use crate::constraint::OuterConstraint;
 use crate::dialect::Dialect;
@@ -83,7 +82,9 @@ impl<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry = T::TAncestry>>
             (_, None) => Ok(vec![AST::StringLiteral(StringLiteral::new_wrapped(
                 self.constraint.read().get_name().clone(),
                 false,
-            ))].into_iter().collect()),
+            ))]
+            .into_iter()
+            .collect()),
             _ => bail!("Dialect not supported for args vec: {:?}", self.dialect),
         }
     }

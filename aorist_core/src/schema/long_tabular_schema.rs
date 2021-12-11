@@ -1,4 +1,3 @@
-
 use crate::concept::{AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
 use crate::template::*;
 use aorist_concept::{aorist, Constrainable};

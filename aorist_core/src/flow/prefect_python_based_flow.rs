@@ -1,4 +1,3 @@
-
 use crate::dialect::Dialect;
 use crate::error::AoristError;
 use crate::flow::etl_flow::ETLFlow;
@@ -18,7 +17,6 @@ use aorist_primitives::register_task_nodes;
 use aorist_primitives::TPrestoEndpoints;
 use aorist_primitives::{AString, AVec, AoristUniverse};
 use linked_hash_map::LinkedHashMap;
-use pyo3::PyResult;
 use std::hash::{Hash, Hasher};
 use std::marker::PhantomData;
 
@@ -63,7 +61,9 @@ impl<U: AoristUniverse> ETLFlow<U> for PrefectPythonBasedFlow<U> {
             Some(Dialect::Python(_)) => match self.preamble {
                 Some(ref p) => vec![PythonPreamble::NativePythonPreamble(
                     NativePythonPreamble::new(p.clone())?,
-                )].into_iter().collect(),
+                )]
+                .into_iter()
+                .collect(),
                 None => AVec::new(),
             },
             _ => AVec::new(),
@@ -138,7 +138,9 @@ impl<U: AoristUniverse> ETLFlow<U> for PrefectPythonBasedFlow<U> {
                 "Constant".into(),
                 None,
             )],
-        }.into_iter().collect()
+        }
+        .into_iter()
+        .collect()
     }
 }
 impl<U: AoristUniverse> PrefectPythonBasedFlow<U> {
@@ -223,7 +225,9 @@ impl<U: AoristUniverse> PrefectPythonBasedFlow<U> {
                 let for_stmt = AST::ForLoop(ForLoop::new_wrapped(
                     target.clone(),
                     self.dep_list.as_ref().unwrap().clone(),
-                    vec![self.get_flow_add_edge_statement(target.clone())].into_iter().collect(),
+                    vec![self.get_flow_add_edge_statement(target.clone())]
+                        .into_iter()
+                        .collect(),
                 ));
                 vec![for_stmt].into_iter().collect()
             }
@@ -286,7 +290,9 @@ impl<U: AoristUniverse> PythonBasedFlowBuilder<U> for PrefectFlowBuilder<U> {
                             AVec::new(),
                             LinkedHashMap::new(),
                         ),
-                    )))].into_iter().collect(),
+                    )))]
+                    .into_iter()
+                    .collect(),
                     "Run Prefect flow".into(),
                     None,
                     None,

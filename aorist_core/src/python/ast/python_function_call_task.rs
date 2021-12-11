@@ -1,7 +1,7 @@
-use aorist_primitives::AVec;
 use crate::python::ast::PythonTaskBase;
 use crate::python::NativePythonPreamble;
 use aorist_ast::{Assignment, AST};
+use aorist_primitives::AVec;
 
 pub trait PythonFunctionCallTask: PythonTaskBase {
     fn get_call(&self) -> AST;
@@ -13,6 +13,8 @@ pub trait PythonFunctionCallTask: PythonTaskBase {
         vec![AST::Assignment(Assignment::new_wrapped(
             self.get_task_val(),
             self.get_call(),
-        ))].into_iter().collect()
+        ))]
+        .into_iter()
+        .collect()
     }
 }

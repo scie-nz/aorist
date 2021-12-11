@@ -1,4 +1,3 @@
-
 use crate::dialect::Dialect;
 use crate::flow::etl_flow::ETLFlow;
 use crate::flow::flow_builder::FlowBuilderBase;
@@ -154,7 +153,9 @@ where
                 "DummyOperator".into(),
                 None,
             )],
-        }.into_iter().collect()
+        }
+        .into_iter()
+        .collect()
     }
     fn get_preamble(&self) -> Result<AVec<PythonPreamble>, pyo3::PyErr> {
         // TODO: this should be deprecated
@@ -347,7 +348,9 @@ where
                 vec![AST::StringLiteral(StringLiteral::new_wrapped(
                     "airflow@example.com".into(),
                     false,
-                ))].into_iter().collect(),
+                ))]
+                .into_iter()
+                .collect(),
                 false,
             )),
         );
@@ -394,7 +397,9 @@ where
                     AST::BigIntLiteral(BigIntLiteral::new_wrapped(2021)),
                     AST::BigIntLiteral(BigIntLiteral::new_wrapped(1)),
                     AST::BigIntLiteral(BigIntLiteral::new_wrapped(1)),
-                ].into_iter().collect(),
+                ]
+                .into_iter()
+                .collect(),
                 LinkedHashMap::new(),
             )),
         );
@@ -404,7 +409,9 @@ where
                 vec![AST::StringLiteral(StringLiteral::new_wrapped(
                     "aorist".into(),
                     false,
-                ))].into_iter().collect(),
+                ))]
+                .into_iter()
+                .collect(),
                 false,
             )),
         );
@@ -416,14 +423,18 @@ where
                     None => "flow".into(),
                 },
                 false,
-            ))].into_iter().collect(),
+            ))]
+            .into_iter()
+            .collect(),
             kwargs,
         ));
         let dag_call_assign = AST::Assignment(Assignment::new_wrapped(dag, dag_call));
         statements.insert(
             0,
             PythonFlowBuilderInput::statements_only(
-                vec![default_args_assign, dag_call_assign].into_iter().collect(),
+                vec![default_args_assign, dag_call_assign]
+                    .into_iter()
+                    .collect(),
                 "Setting up Airflow FlowBuilder".into(),
                 None,
                 None,
@@ -435,6 +446,8 @@ where
         vec![
             PythonImport::PythonFromImport("airflow".into(), "DAG".into(), None),
             PythonImport::PythonFromImport("datetime".into(), "datetime".into(), None),
-        ].into_iter().collect()
+        ]
+        .into_iter()
+        .collect()
     }
 }

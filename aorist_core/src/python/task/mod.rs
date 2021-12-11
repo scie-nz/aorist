@@ -1,4 +1,3 @@
-
 mod compressed;
 mod key;
 mod standalone;
@@ -9,7 +8,7 @@ pub use standalone::*;
 
 use crate::flow::{CompressibleETLTask, ETLFlow, ETLTask, TaskBase};
 use crate::python::{PythonImport, PythonPreamble, AST};
-use aorist_primitives::{AoristUniverse, AVec};
+use aorist_primitives::{AVec, AoristUniverse};
 
 pub enum PythonBasedTask<T, U>
 where

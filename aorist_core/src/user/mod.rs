@@ -1,4 +1,3 @@
-
 use crate::concept::{AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
 use crate::error::AoristError;
 use crate::role::*;

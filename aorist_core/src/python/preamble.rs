@@ -1,4 +1,3 @@
-
 use crate::code::Preamble;
 use crate::python::PythonImport;
 use aorist_ast::FunctionDef;
@@ -76,7 +75,9 @@ impl Preamble for RPythonPreamble {
         vec![PythonImport::PythonModuleImport(
             "rpy2.robjects".into(),
             Some("robjects".into()),
-        )].into_iter().collect()
+        )]
+        .into_iter()
+        .collect()
     }
 }
 impl Preamble for NativePythonPreamble {
@@ -127,7 +128,9 @@ impl PythonPreamble {
             PythonPreamble::PythonStatementsPreamble(x) => vec![x
                 .function
                 .to_python_ast_node(py, ast_module, depth)
-                .unwrap()].into_iter().collect(),
+                .unwrap()]
+            .into_iter()
+            .collect(),
         }
     }
 }

@@ -1,4 +1,3 @@
-
 #![allow(non_snake_case)]
 use crate::concept::{AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
 use crate::user_group::{TUserGroup, UserGroup};

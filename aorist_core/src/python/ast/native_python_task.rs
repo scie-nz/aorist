@@ -1,10 +1,10 @@
-use aorist_primitives::AVec;
 use crate::python::ast::{AirflowTaskBase, PythonFunctionCallTask, PythonTaskBase};
 use crate::python::PythonImport;
 use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 use abi_stable::std_types::RArc;
 use aorist_ast::AST;
 use aorist_primitives::define_task_node;
+use aorist_primitives::AVec;
 use std::hash::Hash;
 
 define_task_node!(

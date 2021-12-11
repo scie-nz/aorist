@@ -16,7 +16,9 @@ define_task_node!(
         vec![
             PythonImport::PythonModuleImport("rpy2".into(), None),
             PythonImport::PythonModuleImport("rpy2.robjects".into(), Some("robjects".into())),
-        ].into_iter().collect()
+        ]
+        .into_iter()
+        .collect()
     },
     PythonImport,
     task_val: AST,

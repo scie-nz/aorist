@@ -1,4 +1,3 @@
-
 #![allow(dead_code)]
 use crate::access_policy::*;
 use crate::asset::*;

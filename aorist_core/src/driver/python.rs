@@ -1,4 +1,3 @@
-
 #![allow(dead_code)]
 use crate::constraint::TConstraintEnum;
 use crate::constraint::{OuterConstraint, TBuilder};
