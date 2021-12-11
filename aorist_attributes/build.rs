@@ -1,4 +1,4 @@
-use aorist_util::{get_raw_objects_of_type, read_file};
+use aorist_util::{get_raw_objects_of_type, read_file, AResult};
 use codegen::Scope;
 use serde_yaml::Value;
 use std::collections::{HashMap, HashSet};
@@ -6,8 +6,8 @@ use std::env;
 use std::fs;
 use std::path::Path;
 
-fn process_attributes_py(raw_objects: &Vec<HashMap<String, Value>>) {
-    let attributes = get_raw_objects_of_type(raw_objects, "Attribute".into());
+fn process_attributes_py(raw_objects: &Vec<HashMap<String, Value>>) -> AResult<()> {
+    let attributes = get_raw_objects_of_type(raw_objects, "Attribute".into())?;
     let mut scope_py = Scope::new();
     let fun = scope_py
         .new_fn("attributes_module")
@@ -24,9 +24,10 @@ fn process_attributes_py(raw_objects: &Vec<HashMap<String, Value>>) {
     let dest_path_py = Path::new(&out_dir).join("python.rs");
     fun.line("Ok(())");
     fs::write(&dest_path_py, scope_py.to_string()).unwrap();
+    Ok(())
 }
-fn process_attributes(raw_objects: &Vec<HashMap<String, Value>>) {
-    let attributes = get_raw_objects_of_type(raw_objects, "Attribute".into());
+fn process_attributes(raw_objects: &Vec<HashMap<String, Value>>) -> AResult<()> {
+    let attributes = get_raw_objects_of_type(raw_objects, "Attribute".into())?;
     let mut scope = Scope::new();
     #[cfg(feature = "python")]
     scope.import("aorist_primitives", "define_attribute");
@@ -138,12 +139,14 @@ fn process_attributes(raw_objects: &Vec<HashMap<String, Value>>) {
     let out_dir = env::var_os("OUT_DIR").unwrap();
     let dest_path = Path::new(&out_dir).join("attributes.rs");
     fs::write(&dest_path, scope.to_string()).unwrap();
+    Ok(())
 }
 
-fn main() {
+fn main() -> AResult<()> {
     println!("cargo:rustc-cfg=feature=\"build-time\"");
-    let raw_objects = read_file("attributes.yaml").into_iter().collect();
-    process_attributes(&raw_objects);
+    let raw_objects = read_file("attributes.yaml")?.into_iter().collect();
+    process_attributes(&raw_objects)?;
     #[cfg(feature = "python")]
-    process_attributes_py(&raw_objects);
+    process_attributes_py(&raw_objects)?;
+    Ok(())
 }

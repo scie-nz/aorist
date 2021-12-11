@@ -14,6 +14,10 @@ pub enum AoristError {
     SynError(#[from] syn::Error),
     #[error("std::io::Error")]
     IOError(#[from] std::io::Error),
+    #[error("{0}")]
+    UnexpectedNoneError(String),
+    #[error("{0}")]
+    CannotConvertJSONError(String),
 }
 impl AoristError {
     pub fn as_str(&self) -> String {
@@ -22,6 +26,8 @@ impl AoristError {
             Self::LibraryLoadError(e) => format!("{:?}", e),
             Self::SynError(e) => format!("{:?}", e),
             Self::IOError(e) => format!("{:?}", e),
+            Self::UnexpectedNoneError(e) => format!("{:?}", e),
+            Self::CannotConvertJSONError(e) => format!("{:?}", e),
         };
         res
     }

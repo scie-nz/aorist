@@ -1,3 +1,4 @@
+use crate::error::AResult;
 use crate::get_raw_objects_of_type;
 use codegen::Scope;
 use serde_yaml::Value;
@@ -5,11 +6,10 @@ use std::collections::{HashMap, HashSet};
 use std::env;
 use std::fs;
 use std::path::Path;
-
 pub type ConstraintTuple = (String, String, Option<String>, Option<String>);
 
-pub fn process_constraints_py(raw_objects: &Vec<HashMap<String, Value>>) {
-    let constraints = get_raw_objects_of_type(raw_objects, "Constraint".into());
+pub fn process_constraints_py(raw_objects: &Vec<HashMap<String, Value>>) -> AResult<()> {
+    let constraints = get_raw_objects_of_type(raw_objects, "Constraint".into())?;
     let mut scope_py = Scope::new();
     let fun = scope_py
         .new_fn("constraints_module")
@@ -27,6 +27,7 @@ pub fn process_constraints_py(raw_objects: &Vec<HashMap<String, Value>>) {
     let dest_path_py = Path::new(&out_dir).join("python.rs");
     fun.line("Ok(())");
     fs::write(&dest_path_py, scope_py.to_string()).unwrap();
+    Ok(())
 }
 pub fn get_constraint_dependencies(
     constraints: &Vec<HashMap<String, Value>>,
@@ -123,8 +124,8 @@ pub fn compute_topological_sort(
     order
 }
 
-pub fn process_constraints(raw_objects: &Vec<HashMap<String, Value>>) {
-    let constraints = get_raw_objects_of_type(raw_objects, "Constraint".into());
+pub fn process_constraints(raw_objects: &Vec<HashMap<String, Value>>) -> AResult<()> {
+    let constraints = get_raw_objects_of_type(raw_objects, "Constraint".into())?;
     let mut scope = Scope::new();
     scope.import("uuid", "Uuid");
     for constraint in constraints.iter() {
@@ -242,9 +243,10 @@ pub fn process_constraints(raw_objects: &Vec<HashMap<String, Value>>) {
             .join("\n,    ")
     ));
     fs::write(&dest_path, scope.to_string()).unwrap();
+    Ok(())
 }
-pub fn process_constraints_new(raw_objects: &Vec<HashMap<String, Value>>) {
-    let constraints = get_raw_objects_of_type(raw_objects, "Constraint".into());
+pub fn process_constraints_new(raw_objects: &Vec<HashMap<String, Value>>) -> AResult<()> {
+    let constraints = get_raw_objects_of_type(raw_objects, "Constraint".into())?;
     let mut scope = Scope::new();
     scope.import("aorist_primitives", "register_constraint");
     scope.import("aorist_primitives", "define_constraint_abi");
@@ -336,4 +338,5 @@ pub fn process_constraints_new(raw_objects: &Vec<HashMap<String, Value>>) {
             .join("\n,    ")
     ));
     fs::write(&dest_path, scope.to_string()).unwrap();
+    Ok(())
 }
