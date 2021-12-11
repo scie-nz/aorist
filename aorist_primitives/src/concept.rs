@@ -121,6 +121,14 @@ impl AVec<String> {
     }
 }
 
+#[repr(C)]
+#[derive(Clone, PartialEq, Serialize, Debug, Hash, Eq, PartialOrd, Ord)]
+pub struct AOption<T>(pub abi_stable::std_types::ROption<T>);
+impl <T> AOption<T> {
+    pub fn is_none(&self) -> bool {
+        self.0.is_none()
+    }
+}
 pub trait ConceptEnum {}
 pub trait AoristConcept {
     type TChildrenEnum: ConceptEnum;

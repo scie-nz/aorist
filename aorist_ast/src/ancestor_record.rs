@@ -1,5 +1,7 @@
+use aorist_primitives::AOption;
 use aorist_primitives::AString;
 use aorist_primitives::AVec;
+use abi_stable::std_types::ROption;
 use inflector::cases::snakecase::to_snake_case;
 use uuid::Uuid;
 
@@ -7,11 +9,11 @@ use uuid::Uuid;
 pub struct AncestorRecord {
     pub uuid: Uuid,
     pub object_type: AString,
-    pub tag: Option<AString>,
+    pub tag: AOption<AString>,
     pub ix: usize,
 }
 impl AncestorRecord {
-    pub fn new(uuid: Uuid, object_type: AString, tag: Option<AString>, ix: usize) -> Self {
+    pub fn new(uuid: Uuid, object_type: AString, tag: AOption<AString>, ix: usize) -> Self {
         Self {
             uuid,
             object_type,
@@ -25,7 +27,7 @@ impl AncestorRecord {
     pub fn compute_relative_path(ancestors: &AVec<AncestorRecord>) -> AString {
         let mut relative_path: String = "".into();
         for record in ancestors.iter().rev() {
-            if let Some(ref t) = record.tag {
+            if let AOption(ROption::RSome(ref t)) = record.tag {
                 relative_path = format!("{}__{}", relative_path, t);
                 break;
             }

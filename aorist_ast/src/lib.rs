@@ -1,3 +1,4 @@
+use aorist_primitives::AOption;
 use aorist_primitives::AVec;
 mod ancestor_record;
 mod assignment_target;
@@ -10,7 +11,7 @@ pub use extract_arg::*;
 pub use string_literal::*;
 
 use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
-use abi_stable::std_types::RArc;
+use abi_stable::std_types::{RArc, ROption};
 use aorist_derive::Optimizable;
 use aorist_extendr_api::prelude::*;
 use aorist_primitives::AString;
@@ -507,9 +508,9 @@ define_ast_node!(
     |if_else: &If| vec![if_else.test.clone()]
         .into_iter()
         .chain(if_else.body.clone().into_iter())
-        .chain(match &if_else.orelse {
-            Some(x) => x.clone().into_iter(),
-            None => AVec::new().into_iter(),
+        .chain(match *&if_else.orelse {
+            AOption(ROption::RSome(ref x)) => x.clone().into_iter(),
+            AOption(ROption::RNone) => AVec::new().into_iter(),
         })
         .collect(),
     |if_else: &If, py: Python, ast_module: &'a PyModule, depth: usize| {
@@ -523,7 +524,7 @@ define_ast_node!(
             .map(|x| x.to_python_ast_node(py, ast_module, depth + 1))
             .collect::<PyResult<Vec<_>>>()?;
         let orelse_ast = match &if_else.orelse {
-            Some(x) => x
+            AOption(ROption::RSome(x)) => x
                 .iter()
                 .map(|x| match &x {
                     AST::Assignment(_) | AST::Expression(_) => x,
@@ -531,7 +532,7 @@ define_ast_node!(
                 })
                 .map(|x| x.to_python_ast_node(py, ast_module, depth + 1))
                 .collect::<PyResult<Vec<_>>>()?,
-            None => Vec::new(),
+            AOption(ROption::RNone) => Vec::new(),
         };
 
         let body_list = PyList::new(py, body_ast);
@@ -548,7 +549,7 @@ define_ast_node!(
     },
     test: AST,
     body: AVec<AST>,
-    orelse: Option<AVec<AST>>,
+    orelse: AOption<AVec<AST>>,
 );
 define_ast_node!(
     BigIntLiteral,
@@ -652,17 +653,17 @@ register_ast_nodes!(
 );
 
 impl Formatted {
-    pub fn optimize(&self) -> Option<AST> {
+    pub fn optimize(&self) -> AOption<AST> {
         if self.keywords.len() == 1 {
             if let AST::StringLiteral(rw) = &self.fmt {
                 let (unique_key, unique_value) = self.keywords.iter().next().unwrap().clone();
                 let read = rw.read();
                 if read.value() == format!("{{{}}}", unique_key).as_str().into() {
-                    return Some(unique_value.clone());
+                    return AOption(ROption::RSome(unique_value.clone()));
                 }
             }
         }
-        None
+        AOption(ROption::RNone)
     }
 }
 
@@ -688,13 +689,13 @@ impl AST {
         let source = astor.getattr("to_source")?.call1((module,));
         source.and_then(|x| Ok(x.to_string()))
     }
-    pub fn optimize(&self) -> Option<AST> {
+    pub fn optimize(&self) -> AOption<AST> {
         match self {
             AST::Formatted(ref rw) => {
                 let read = rw.read();
                 read.optimize()
             }
-            _ => None,
+            _ => AOption(ROption::RNone),
         }
     }
 }

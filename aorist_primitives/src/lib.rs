@@ -54,7 +54,7 @@ macro_rules! register_ast_nodes {
                     )+
                 }
             }
-            pub fn get_ancestors(&self) -> Option<AVec<AncestorRecord>> {
+            pub fn get_ancestors(&self) -> AOption<AVec<AncestorRecord>> {
                 match &self {
                     $(
                         Self::$variant(x) => x.read().get_ancestors(),
@@ -249,7 +249,7 @@ macro_rules! define_ast_node {
             $(
                 $field: $field_type,
             )*
-            ancestors: Option<AVec<AncestorRecord>>,
+            ancestors: AOption<AVec<AncestorRecord>>,
         }
         impl $name {
             pub fn new_wrapped($(
@@ -273,20 +273,20 @@ macro_rules! define_ast_node {
             )*) -> Self {
                 Self {
                     $($field,)*
-                    ancestors: None,
+                    ancestors: AOption(ROption::RNone),
                 }
             }
             pub fn clone_without_ancestors(&self) -> Self {
                 Self {
                     $($field: self.$field.clone(),)*
-                    ancestors: None,
+                    ancestors: AOption(ROption::RNone),
                 }
             }
             pub fn set_ancestors(&mut self, ancestors: AVec<AncestorRecord>) {
                 assert!(self.ancestors.is_none());
-                self.ancestors = Some(ancestors);
+                self.ancestors = AOption(ROption::RSome(ancestors));
             }
-            pub fn get_ancestors(&self) -> Option<AVec<AncestorRecord>> {
+            pub fn get_ancestors(&self) -> AOption<AVec<AncestorRecord>> {
                 self.ancestors.clone()
             }
             $(
