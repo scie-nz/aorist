@@ -4,7 +4,7 @@ use crate::builder::Builder;
 use aorist_util::AoristError;
 use aorist_util::{
     extract_type_from_aorist_ref, extract_type_from_map, extract_type_from_option,
-    extract_type_from_vector,
+    extract_type_from_vector, AResult,
 };
 use proc_macro2::Ident;
 use quote::quote;
@@ -40,7 +40,7 @@ fn extract_names_and_types(
     let mut names_vec_ref: Vec<Ident> = Vec::new();
     let mut types_vec_ref: Vec<Type> = Vec::new();
     for field in fields {
-        if let Some(t) = extract_type_from_aorist_ref(&field.ty) {
+        if let Some(t) = extract_type_from_aorist_ref(&field.ty)? {
             names_ref.push(
                 field
                     .ident
@@ -49,8 +49,8 @@ fn extract_names_and_types(
                     .clone(),
             );
             types_ref.push(t.clone());
-        } else if let Some(ref vt) = extract_type_from_vector(&field.ty) {
-            if let Some(t) = extract_type_from_aorist_ref(vt) {
+        } else if let Some(ref vt) = extract_type_from_vector(&field.ty)? {
+            if let Some(t) = extract_type_from_aorist_ref(vt)? {
                 names_vec_ref.push(
                     field
                         .ident
@@ -142,7 +142,7 @@ impl StructBuilder {
             .chain(self.map_value_types.iter());
         let mapped: Vec<_> = all_types
             .map(|x| {
-                extract_type_from_aorist_ref(x)
+                extract_type_from_aorist_ref(x)?
                     .ok_or_else(|| AoristError::OtherError("Type could not be extracted".into()))
             })
             .collect::<Result<Vec<_>, AoristError>>()?;
@@ -218,18 +218,18 @@ impl Builder for StructBuilder {
             let tt = &field.ty;
             let ident = field.ident.as_ref().unwrap().clone();
 
-            if let Some(vec_type) = extract_type_from_vector(tt) {
+            if let Some(vec_type) = extract_type_from_vector(tt)? {
                 vec_types.push(vec_type.clone());
                 vec_idents.push(ident.clone());
-            } else if let Some(option_type) = extract_type_from_option(tt) {
-                if let Some(option_vec_type) = extract_type_from_vector(option_type) {
+            } else if let Some(option_type) = extract_type_from_option(tt)? {
+                if let Some(option_vec_type) = extract_type_from_vector(option_type)? {
                     option_vec_types.push(option_vec_type.clone());
                     option_vec_idents.push(ident.clone());
                 } else {
                     option_types.push(option_type.clone());
                     option_idents.push(ident.clone());
                 }
-            } else if let Some((map_key_type, map_value_type)) = extract_type_from_map(tt) {
+            } else if let Some((map_key_type, map_value_type)) = extract_type_from_map(tt)? {
                 map_key_types.push(map_key_type.clone());
                 map_value_types.push(map_value_type.clone());
                 map_idents.push(ident.clone());
@@ -380,23 +380,23 @@ impl Builder for StructBuilder {
         let bare_type_deref = bare_type
             .iter()
             .map(|x| extract_type_from_aorist_ref(x))
-            .collect::<Vec<_>>();
+            .collect::<AResult<Vec<_>>>()?;
         let vec_type_deref = vec_type
             .iter()
             .map(|x| extract_type_from_aorist_ref(x))
-            .collect::<Vec<_>>();
+            .collect::<AResult<Vec<_>>>()?;
         let option_vec_type_deref = option_vec_type
             .iter()
             .map(|x| extract_type_from_aorist_ref(x))
-            .collect::<Vec<_>>();
+            .collect::<AResult<Vec<_>>>()?;
         let option_type_deref = option_type
             .iter()
             .map(|x| extract_type_from_aorist_ref(x))
-            .collect::<Vec<_>>();
+            .collect::<AResult<Vec<_>>>()?;
         let map_value_type_deref = map_value_type
             .iter()
             .map(|x| extract_type_from_aorist_ref(x))
-            .collect::<Vec<_>>();
+            .collect::<AResult<Vec<_>>>()?;
         let py_class_name = format!("{}", struct_name);
         let types = self.get_all_types()?;
         Ok(TokenStream::from(quote! { paste! {

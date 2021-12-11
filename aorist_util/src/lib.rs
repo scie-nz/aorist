@@ -145,7 +145,7 @@ fn get_inner_type<'a>(
 fn extract_inner_from_bracketed_type<'a>(
     ty: &'a syn::Type,
     idents: Vec<String>,
-) -> Option<&'a syn::Type> {
+) -> AResult<Option<&'a syn::Type>> {
     let tp2 = get_inner_type(ty, idents);
     let tp3 = tp2.and_then(|pair_path_segment| {
         let type_params = &pair_path_segment.into_value().arguments;
@@ -155,38 +155,42 @@ fn extract_inner_from_bracketed_type<'a>(
             _ => None,
         }
     });
-    tp3.and_then(|generic_arg| match *generic_arg {
+    Ok(tp3.and_then(|generic_arg| match *generic_arg {
         GenericArgument::Type(ref ty) => Some(ty),
         _ => None,
-    })
+    }))
 }
 
 fn extract_inner_from_double_bracketed_type<'a>(
     ty: &'a syn::Type,
     idents: Vec<String>,
-) -> Option<(&'a syn::Type, &'a syn::Type)> {
+) -> AResult<Option<(&'a syn::Type, &'a syn::Type)>> {
     let tp2 = get_inner_type(ty, idents);
-    let tp3 = tp2.and_then(|pair_path_segment| {
+    if let Some(pair_path_segment) = tp2 {
         let type_params = &pair_path_segment.into_value().arguments;
         // It should have only on angle-bracketed param ("<String>"):
-        match *type_params {
-            PathArguments::AngleBracketed(ref params) => {
-                assert_eq!(params.args.len(), 2);
-                let mut it = params.args.iter();
-                let first = it.next().unwrap();
-                let second = it.next().unwrap();
-                Some((first, second))
-            }
-            _ => None,
+        if let PathArguments::AngleBracketed(ref params) = type_params {
+            assert_eq!(params.args.len(), 2);
+            let mut it = params.args.iter();
+            if let Some(ref first) = it.next() {
+                if let GenericArgument::Type(ref ty1) = first {
+                    if let Some(second) = it.next() {
+                        if let GenericArgument::Type(ref ty2) = second {
+                            return Ok(Some((ty1, ty2)));
+                        }
+                        return Err(AoristError::OtherError(format!("2nd argument ({:?}) should be a Type.", second))); 
+                    }
+                    return Err(AoristError::OtherError("Could not parse 2nd argument.".into())); 
+                }
+                return Err(AoristError::OtherError(format!("1st argument ({:?}) should be a Type.", first))); 
+            };
+            return Err(AoristError::OtherError("Could not parse 1st argument.".into())); 
         }
-    });
-    tp3.and_then(|generic_arg| match generic_arg {
-        (&GenericArgument::Type(ref ty1), &GenericArgument::Type(ref ty2)) => Some((ty1, ty2)),
-        _ => None,
-    })
+    }
+    Ok(None)
 }
 
-pub fn extract_type_from_option(ty: &syn::Type) -> Option<&syn::Type> {
+pub fn extract_type_from_option(ty: &syn::Type) -> AResult<Option<&syn::Type>> {
     extract_inner_from_bracketed_type(
         ty,
         vec![
@@ -199,7 +203,7 @@ pub fn extract_type_from_option(ty: &syn::Type) -> Option<&syn::Type> {
     )
 }
 
-pub fn extract_type_from_vector(ty: &syn::Type) -> Option<&syn::Type> {
+pub fn extract_type_from_vector(ty: &syn::Type) -> AResult<Option<&syn::Type>> {
     extract_inner_from_bracketed_type(
         ty,
         vec![
@@ -212,7 +216,7 @@ pub fn extract_type_from_vector(ty: &syn::Type) -> Option<&syn::Type> {
     )
 }
 
-pub fn extract_type_from_map(ty: &syn::Type) -> Option<(&syn::Type, &syn::Type)> {
+pub fn extract_type_from_map(ty: &syn::Type) -> AResult<Option<(&syn::Type, &syn::Type)>> {
     extract_inner_from_double_bracketed_type(
         ty,
         vec!["BTreeMap|".to_string(), "std|collections|BTreeMap|".into()]
@@ -221,7 +225,7 @@ pub fn extract_type_from_map(ty: &syn::Type) -> Option<(&syn::Type, &syn::Type)>
     )
 }
 
-pub fn extract_type_from_linked_hash_map(ty: &syn::Type) -> Option<(&syn::Type, &syn::Type)> {
+pub fn extract_type_from_linked_hash_map(ty: &syn::Type) -> AResult<Option<(&syn::Type, &syn::Type)>> {
     extract_inner_from_double_bracketed_type(
         ty,
         vec![
@@ -232,7 +236,7 @@ pub fn extract_type_from_linked_hash_map(ty: &syn::Type) -> Option<(&syn::Type, 
         .collect(),
     )
 }
-pub fn extract_type_from_aorist_ref(ty: &syn::Type) -> Option<&syn::Type> {
+pub fn extract_type_from_aorist_ref(ty: &syn::Type) -> AResult<Option<&syn::Type>> {
     extract_inner_from_bracketed_type(
         ty,
         vec!["RArc|".to_string(), "AoristRef|".to_string()]
