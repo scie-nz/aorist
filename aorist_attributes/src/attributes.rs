@@ -1,4 +1,6 @@
 #![allow(dead_code)]
+use abi_stable::std_types::ROption;
+use aorist_primitives::AOption;
 use indoc::formatdoc;
 use num::Float;
 #[cfg(feature = "python")]
@@ -173,7 +175,7 @@ where
 {
     type Value;
     fn get_name(&self) -> AString;
-    fn get_comment(&self) -> Option<AString>;
+    fn get_comment(&self) -> AOption<AString>;
     fn is_nullable(&self) -> bool;
     fn is_key_type() -> bool;
 }
@@ -184,7 +186,7 @@ pub trait TPrestoAttribute: TAttribute {
         let num_middle_spaces = (max_attribute_length - name.len()) + 1;
         let spaces = (0..num_middle_spaces).map(|_| " ").collect::<String>();
         let first_line = format!("{}{}{}", self.get_name(), spaces, self.get_presto_type(),);
-        if let Some(comment) = self.get_comment() {
+        if let AOption(ROption::RSome(comment)) = self.get_comment() {
             let formatted_with_comment = formatdoc!(
                 "
                 {first_line}

@@ -1,6 +1,6 @@
 use crate::endpoints::*;
 use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
-use abi_stable::std_types::{RArc, RVec};
+use abi_stable::std_types::{RArc, RVec, ROption};
 use abi_stable::StableAbi;
 #[cfg(feature = "python")]
 use pyo3::prelude::*;
@@ -127,6 +127,20 @@ pub struct AOption<T>(pub abi_stable::std_types::ROption<T>);
 impl <T> AOption<T> {
     pub fn is_none(&self) -> bool {
         self.0.is_none()
+    }
+    pub fn and_then<F, U>(self, f: F) -> AOption<U> 
+        where F: FnOnce(T) -> ROption<U> {
+            let out: ROption<U> = self.0.and_then(f);
+            AOption(out)
+        }
+}
+impl<'de, T: Deserialize<'de>> Deserialize<'de> for AOption<T> {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let option = ROption::deserialize(deserializer)?;
+        Ok(Self(option))
     }
 }
 pub trait ConceptEnum {}

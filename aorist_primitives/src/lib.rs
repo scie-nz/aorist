@@ -374,7 +374,7 @@ macro_rules! define_attribute {
             #[cfg_attr(feature = "sql", derive($sql_type))]
             pub struct $element {
                 pub name: AString,
-                pub comment: Option<AString>,
+                pub comment: AOption<AString>,
                 pub nullable: bool,
             }
             impl TAttribute for $element {
@@ -383,7 +383,7 @@ macro_rules! define_attribute {
                 fn get_name(&self) -> AString {
                     self.name.clone()
                 }
-                fn get_comment(&self) -> Option<AString> {
+                fn get_comment(&self) -> AOption<AString> {
                     self.comment.clone()
                 }
                 fn is_nullable(&self) -> bool {
@@ -412,7 +412,11 @@ macro_rules! define_attribute {
                     comment: Option<&str>,
                     nullable: bool
                 ) -> Self {
-                    Self { name: name.into(), comment: comment.clone().and_then(|x| Some(x.into())), nullable }
+                    let comment_str: ROption<AString> = match comment {
+                        Some(x) => ROption::RSome(x.into()),
+                        None => ROption::RNone,
+                    };
+                    Self { name: name.into(), comment: AOption(comment_str), nullable }
                 }
                 #[getter]
                 pub fn name(&self) -> PyResult<&str> {
