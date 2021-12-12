@@ -1,5 +1,3 @@
-use aorist_primitives::AOption;
-use abi_stable::std_types::ROption;
 use crate::concept::Ancestry;
 use crate::constraint::OuterConstraint;
 use crate::dialect::Dialect;
@@ -7,8 +5,10 @@ use crate::parameter_tuple::ParameterTuple;
 use crate::program::TOuterProgram;
 use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 use abi_stable::std_types::RArc;
+use abi_stable::std_types::ROption;
 use anyhow::{bail, Result};
 use aorist_ast::{AncestorRecord, Formatted, SimpleIdentifier, StringLiteral, AST};
+use aorist_primitives::AOption;
 use aorist_primitives::{AString, AVec, Context, TConceptEnum};
 use inflector::cases::snakecase::to_snake_case;
 use linked_hash_map::LinkedHashMap;
@@ -63,10 +63,11 @@ impl<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry = T::TAncestry>>
     }
     pub fn get_task_call(&self) -> Result<AST> {
         match self.dialect {
-            AOption(ROption::RSome(Dialect::Python(_))) => Ok(AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
-                self.get_call().unwrap(),
-            ))),
-            AOption(ROption::RSome(Dialect::Bash(_))) | AOption(ROption::RSome(Dialect::Presto(_))) => Ok(AST::SimpleIdentifier(
+            AOption(ROption::RSome(Dialect::Python(_))) => Ok(AST::SimpleIdentifier(
+                SimpleIdentifier::new_wrapped(self.get_call().unwrap()),
+            )),
+            AOption(ROption::RSome(Dialect::Bash(_)))
+            | AOption(ROption::RSome(Dialect::Presto(_))) => Ok(AST::SimpleIdentifier(
                 SimpleIdentifier::new_wrapped("ShellTask".into()),
             )),
             AOption(ROption::RNone) => Ok(AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
@@ -77,14 +78,17 @@ impl<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry = T::TAncestry>>
     }
     pub fn get_args_vec(&self) -> Result<AVec<AST>> {
         match (&self.params, &self.dialect) {
-            (AOption(ROption::RSome(ref p)), AOption(ROption::RSome(Dialect::Python(_)))) => Ok(p.get_args()),
-            (AOption(ROption::RNone), AOption(ROption::RSome(Dialect::Python(_)))) => Ok(AVec::new()),
+            (AOption(ROption::RSome(ref p)), AOption(ROption::RSome(Dialect::Python(_)))) => {
+                Ok(p.get_args())
+            }
+            (AOption(ROption::RNone), AOption(ROption::RSome(Dialect::Python(_)))) => {
+                Ok(AVec::new())
+            }
             (_, AOption(ROption::RSome(Dialect::Presto(_)))) => Ok(AVec::new()),
             (_, AOption(ROption::RSome(Dialect::Bash(_)))) => Ok(AVec::new()),
-            (_, AOption(ROption::RNone)) => Ok(vec![AST::StringLiteral(StringLiteral::new_wrapped(
-                self.constraint.read().get_name().clone(),
-                false,
-            ))]
+            (_, AOption(ROption::RNone)) => Ok(vec![AST::StringLiteral(
+                StringLiteral::new_wrapped(self.constraint.read().get_name().clone(), false),
+            )]
             .into_iter()
             .collect()),
             _ => bail!("Dialect not supported for args vec: {:?}", self.dialect),

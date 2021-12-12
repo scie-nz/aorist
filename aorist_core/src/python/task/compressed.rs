@@ -1,5 +1,3 @@
-use aorist_primitives::AOption;
-use abi_stable::std_types::ROption;
 use crate::flow::{CompressionKey, ETLFlow, ForLoopCompressedTask, TaskBase, UncompressiblePart};
 use crate::python::task::key::PythonBasedTaskCompressionKey;
 use crate::python::task::uncompressible::PythonBasedTaskUncompressiblePart;
@@ -7,6 +5,8 @@ use crate::python::{
     Add, Assignment, Attribute, BigIntLiteral, BinOp, Call, Dict, ForLoop, List, PythonImport,
     PythonPreamble, SimpleIdentifier, StringLiteral, Subscript, Tuple, AST,
 };
+use abi_stable::std_types::ROption;
+use aorist_primitives::AOption;
 use aorist_primitives::{AVec, AoristUniverse};
 use linked_hash_map::LinkedHashMap;
 use std::hash::Hash;
@@ -219,7 +219,11 @@ where
             let left = AST::List(List::new_wrapped(compressed_dependencies, false));
             if let AOption(ROption::RSome(ref right)) = dependencies {
                 let op = AST::Add(Add::new_wrapped());
-                dependencies = AOption(ROption::RSome(AST::BinOp(BinOp::new_wrapped(left, op, right.clone()))));
+                dependencies = AOption(ROption::RSome(AST::BinOp(BinOp::new_wrapped(
+                    left,
+                    op,
+                    right.clone(),
+                ))));
             } else {
                 dependencies = AOption(ROption::RSome(left));
             }

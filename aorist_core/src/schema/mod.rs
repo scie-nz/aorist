@@ -1,5 +1,3 @@
-use aorist_primitives::AOption;
-use abi_stable::std_types::ROption;
 mod adjacent_polygons_schema;
 mod data_schema;
 mod derived_asset_schema;

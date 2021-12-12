@@ -3,8 +3,8 @@ use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 use abi_stable::std_types::{RArc, ROption};
 use abi_stable::StableAbi;
 pub use aorist_primitives::{
-    register_concept, AString, AVec, Ancestry, AoristConcept, AoristUniverse, ConceptEnum,
-    TConceptEnum, AOption,
+    register_concept, AOption, AString, AVec, Ancestry, AoristConcept, AoristUniverse, ConceptEnum,
+    TConceptEnum,
 };
 #[cfg(feature = "python")]
 use pyo3::prelude::*;

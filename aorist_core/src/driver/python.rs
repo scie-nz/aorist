@@ -1,5 +1,5 @@
-use aorist_primitives::AOption;
 use abi_stable::std_types::ROption;
+use aorist_primitives::AOption;
 
 use crate::constraint::TConstraintEnum;
 use crate::constraint::{OuterConstraint, TBuilder};
@@ -132,7 +132,9 @@ where
         self.satisfied_constraints
             .values()
             .map(|x| match x.read().get_dialect() {
-                AOption(ROption::RSome(Dialect::Python(x))) => AOption(ROption::RSome(x.get_pip_requirements())),
+                AOption(ROption::RSome(Dialect::Python(x))) => {
+                    AOption(ROption::RSome(x.get_pip_requirements()))
+                }
                 _ => AOption(ROption::RNone),
             })
             .filter(|x| x.is_some())

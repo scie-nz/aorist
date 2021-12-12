@@ -1,5 +1,3 @@
-use aorist_primitives::AOption;
-use abi_stable::std_types::ROption;
 use crate::code::CodeBlock;
 use crate::constraint::OuterConstraint;
 use crate::constraint_block::ConstraintBlock;
@@ -8,6 +6,8 @@ use crate::parameter_tuple::ParameterTuple;
 use crate::program::TOuterProgram;
 use crate::python::PythonBasedCodeBlock;
 use crate::python::{Assignment, Dict, PythonFlowBuilderInput, PythonImport, PythonPreamble, AST};
+use abi_stable::std_types::ROption;
+use aorist_primitives::AOption;
 use aorist_primitives::{AString, AVec, AoristUniverse};
 use linked_hash_map::LinkedHashMap;
 use std::collections::HashMap;

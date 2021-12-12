@@ -1,5 +1,5 @@
-use aorist_primitives::AOption;
 use abi_stable::std_types::ROption;
+use aorist_primitives::AOption;
 
 use crate::code::CodeBlock;
 use crate::code::CodeBlockWithDefaultConstructor;
@@ -162,9 +162,9 @@ where
     ) -> AOption<AST> {
         match block.len() == 1 {
             true => AOption(ROption::RNone),
-            false => AOption(ROption::RSome(AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
-                format!("tasks_{}", constraint_name).as_str().into(),
-            )))),
+            false => AOption(ROption::RSome(AST::SimpleIdentifier(
+                SimpleIdentifier::new_wrapped(format!("tasks_{}", constraint_name).as_str().into()),
+            ))),
         }
     }
     fn get_constraint_rwlock(&self, uuid: &(Uuid, AString)) -> RArc<RRwLock<B::OuterType>>;
@@ -361,9 +361,9 @@ where
         ConstraintState::shorten_task_names(&reduced_block, existing_names);
         let tasks_dict = match processed.values().map(|x| x.0.len()).sum::<usize>() == 1 {
             true => AOption(ROption::RNone),
-            false => AOption(ROption::RSome(AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
-                format!("tasks_{}", constraint_name).as_str().into(),
-            )))),
+            false => AOption(ROption::RSome(AST::SimpleIdentifier(
+                SimpleIdentifier::new_wrapped(format!("tasks_{}", constraint_name).as_str().into()),
+            ))),
         };
         for (_dialect, (unique_constraints, uuid_mappings)) in processed.into_iter() {
             let block = <Self::CB as ConstraintBlock<

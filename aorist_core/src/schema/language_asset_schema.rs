@@ -1,13 +1,13 @@
-use aorist_primitives::AOption;
-use abi_stable::std_types::ROption;
 use crate::attributes::*;
 use crate::concept::{AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
 use crate::schema::fasttext_embedding_schema::*;
 use crate::schema::named_entity_schema::*;
 use crate::schema::text_corpus_schema::*;
 use crate::template::*;
+use abi_stable::std_types::ROption;
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
+use aorist_primitives::AOption;
 use aorist_primitives::{AString, AVec};
 #[cfg(feature = "python")]
 use pyo3::prelude::*;

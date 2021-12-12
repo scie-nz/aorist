@@ -1,5 +1,3 @@
-use aorist_primitives::AOption;
-use abi_stable::std_types::ROption;
 use crate::attributes::*;
 use crate::concept::{AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
 use crate::schema::flann_knn_match_schema::*;
@@ -10,8 +8,10 @@ use crate::schema::pytorch_image_collection_mlp_schema::*;
 use crate::schema::sift_affine_image_key_point_schema::*;
 use crate::schema::transform_image_corpus_through_mlp_schema::*;
 use crate::template::*;
+use abi_stable::std_types::ROption;
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
+use aorist_primitives::AOption;
 use aorist_primitives::{AString, AVec};
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;

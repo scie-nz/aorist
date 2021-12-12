@@ -1,19 +1,19 @@
-use aorist_primitives::AOption;
-use abi_stable::std_types::ROption;
-use crate::concept::{AoristRef};
+use crate::concept::AoristRef;
 use crate::error::AoristError;
 use crate::role::*;
+use crate::WrappedConcept;
+use abi_stable::std_types::ROption;
 use aorist_concept::{aorist, Constrainable};
+use aorist_paste::paste;
+use aorist_primitives::AOption;
+use aorist_primitives::AoristConcept;
+use aorist_primitives::ConceptEnum;
 use aorist_primitives::{AString, AVec, TAoristObject};
 use derivative::Derivative;
 use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
-use uuid::Uuid;
-use aorist_paste::paste;
-use crate::WrappedConcept;
 use std::fmt::Debug;
-use aorist_primitives::AoristConcept;
-use aorist_primitives::ConceptEnum;
+use uuid::Uuid;
 
 #[aorist]
 pub struct User {

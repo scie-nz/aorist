@@ -1,5 +1,3 @@
-use aorist_primitives::AOption;
-use abi_stable::std_types::ROption;
 use crate::concept::{AoristRef, WrappedConcept};
 use crate::encoding::*;
 use crate::storage::*;
@@ -10,8 +8,10 @@ use crate::storage_setup::replication_storage_setup::*;
 use crate::storage_setup::two_tier_storage_setup::*;
 use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 use abi_stable::std_types::RArc;
+use abi_stable::std_types::ROption;
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
+use aorist_primitives::AOption;
 use aorist_primitives::{AString, AVec, AoristConcept, ConceptEnum};
 #[cfg(feature = "python")]
 use pyo3::prelude::*;

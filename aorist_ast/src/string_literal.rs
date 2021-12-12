@@ -1,8 +1,8 @@
-use aorist_primitives::AOption;
 use crate::{AncestorRecord, AST};
 use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 use abi_stable::std_types::{RArc, ROption};
 use aorist_extendr_api::prelude::*;
+use aorist_primitives::AOption;
 use aorist_primitives::AString;
 use aorist_primitives::AVec;
 use pyo3::prelude::*;

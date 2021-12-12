@@ -1,5 +1,5 @@
-use aorist_primitives::AOption;
 use abi_stable::std_types::ROption;
+use aorist_primitives::AOption;
 
 use crate::concept::{Concept, ConceptAncestry};
 use crate::constraint::SatisfiableOuterConstraint;

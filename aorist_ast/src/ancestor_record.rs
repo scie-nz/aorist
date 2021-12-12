@@ -1,7 +1,7 @@
+use abi_stable::std_types::ROption;
 use aorist_primitives::AOption;
 use aorist_primitives::AString;
 use aorist_primitives::AVec;
-use abi_stable::std_types::ROption;
 use inflector::cases::snakecase::to_snake_case;
 use uuid::Uuid;
 

@@ -1,5 +1,3 @@
-use aorist_primitives::AOption;
-use abi_stable::std_types::ROption;
 use crate::compliance::*;
 use crate::concept::{AoristRef, WrappedConcept};
 use crate::dataset::*;
@@ -8,16 +6,18 @@ use crate::role::*;
 use crate::role_binding::*;
 use crate::user::*;
 use crate::user_group::*;
+use abi_stable::std_types::ROption;
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
+use aorist_primitives::AOption;
+use aorist_primitives::AoristConcept;
+use aorist_primitives::ConceptEnum;
 use aorist_primitives::{AString, AVec};
 use derivative::Derivative;
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
-use uuid::Uuid;
-use aorist_primitives::ConceptEnum;
 use std::fmt::Debug;
-use aorist_primitives::AoristConcept;
+use uuid::Uuid;
 
 #[cfg(all(feature = "sql", feature = "python"))]
 use pyo3::create_exception;

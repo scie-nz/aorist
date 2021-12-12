@@ -1,8 +1,8 @@
-use aorist_primitives::AOption;
-use abi_stable::std_types::ROption;
 use crate::flow::{ETLFlow, UncompressiblePart};
 use crate::parameter_tuple::ParameterTuple;
+use abi_stable::std_types::ROption;
 use aorist_ast::{Dict, List, StringLiteral, AST};
+use aorist_primitives::AOption;
 use aorist_primitives::{AString, AVec, AoristUniverse};
 use linked_hash_map::LinkedHashMap;
 use std::hash::Hash;

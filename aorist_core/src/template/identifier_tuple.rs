@@ -1,6 +1,6 @@
-use aorist_primitives::AOption;
-use abi_stable::std_types::ROption;
 use crate::attributes::*;
+use abi_stable::std_types::ROption;
+use aorist_primitives::AOption;
 use aorist_primitives::{AString, AVec, AoristConcept, ConceptEnum};
 
 use crate::concept::{AoristRef, WrappedConcept};

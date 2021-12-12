@@ -1,5 +1,5 @@
-use aorist_primitives::AOption;
 use abi_stable::std_types::ROption;
+use aorist_primitives::AOption;
 /* Following prescribed Record of Processing Activity by cnil.fr.
 See: https://www.cnil.fr/en/record-processing-activities */
 use crate::concept::{AoristRef, WrappedConcept};

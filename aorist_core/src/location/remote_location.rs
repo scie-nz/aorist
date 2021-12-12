@@ -1,5 +1,3 @@
-use aorist_primitives::AOption;
-use abi_stable::std_types::ROption;
 use crate::concept::{AoristRef, WrappedConcept};
 use crate::location::bigquery_location::*;
 use crate::location::gcs_location::*;
@@ -7,8 +5,10 @@ use crate::location::github_location::*;
 use crate::location::pushshift_api_location::*;
 use crate::location::s3_location::*;
 use crate::location::web_location::*;
+use abi_stable::std_types::ROption;
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
+use aorist_primitives::AOption;
 use aorist_primitives::{AString, AVec, AoristConcept, ConceptEnum};
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;

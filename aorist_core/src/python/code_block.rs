@@ -1,5 +1,3 @@
-use aorist_primitives::AOption;
-use abi_stable::std_types::ROption;
 use crate::code::{CodeBlock, CodeBlockWithForLoopCompression};
 use crate::constraint::OuterConstraint;
 use crate::flow::{CompressibleTask, ETLFlow, ETLTask, ForLoopCompressedTask};
@@ -9,6 +7,8 @@ use crate::python::{
     ForLoopPythonBasedTask, Formatted, PythonBasedTask, PythonImport, PythonPreamble,
     SimpleIdentifier, StringLiteral, Subscript, AST,
 };
+use abi_stable::std_types::ROption;
+use aorist_primitives::AOption;
 use aorist_primitives::{AString, AVec, AoristUniverse};
 use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;

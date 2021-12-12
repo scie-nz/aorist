@@ -1,5 +1,3 @@
-use aorist_primitives::AOption;
-use abi_stable::std_types::ROption;
 use crate::dialect::Dialect;
 use crate::error::AoristError;
 use crate::flow::etl_flow::ETLFlow;
@@ -11,11 +9,13 @@ use crate::python::{
 };
 use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 use abi_stable::std_types::RArc;
+use abi_stable::std_types::ROption;
 use aorist_ast::{
     Assignment, Attribute, Call, Expression, ForLoop, Formatted, SimpleIdentifier, StringLiteral,
     AST,
 };
 use aorist_primitives::register_task_nodes;
+use aorist_primitives::AOption;
 use aorist_primitives::TPrestoEndpoints;
 use aorist_primitives::{AString, AVec, AoristUniverse};
 use linked_hash_map::LinkedHashMap;
@@ -128,7 +128,9 @@ impl<U: AoristUniverse> ETLFlow<U> for PrefectPythonBasedFlow<U> {
                 "task".into(),
                 AOption(ROption::RNone),
             )],
-            AOption(ROption::RSome(Dialect::Bash(_))) | AOption(ROption::RSome(Dialect::Presto(_))) | AOption(ROption::RSome(Dialect::R(_))) => {
+            AOption(ROption::RSome(Dialect::Bash(_)))
+            | AOption(ROption::RSome(Dialect::Presto(_)))
+            | AOption(ROption::RSome(Dialect::R(_))) => {
                 vec![PythonImport::PythonFromImport(
                     "prefect.tasks.shell".into(),
                     "ShellTask".into(),
@@ -161,7 +163,8 @@ impl<U: AoristUniverse> PrefectPythonBasedFlow<U> {
         }
         let mut kwargs = LinkedHashMap::new();
         let call_param_name = match self.dialect {
-            AOption(ROption::RSome(Dialect::Bash(_))) | AOption(ROption::RSome(Dialect::Presto(_))) => "command".into(),
+            AOption(ROption::RSome(Dialect::Bash(_)))
+            | AOption(ROption::RSome(Dialect::Presto(_))) => "command".into(),
             _ => panic!("Dialect not supported"),
         };
         let call_param_value = match self.dialect {
@@ -188,10 +191,11 @@ impl<U: AoristUniverse> PrefectPythonBasedFlow<U> {
     }
     fn compute_task_call(&self) -> AST {
         match self.dialect {
-            AOption(ROption::RSome(Dialect::Python(_))) => Ok(AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
-                self.command.as_ref().unwrap().clone(),
-            ))),
-            AOption(ROption::RSome(Dialect::Bash(_))) | AOption(ROption::RSome(Dialect::Presto(_))) => Ok(AST::SimpleIdentifier(
+            AOption(ROption::RSome(Dialect::Python(_))) => Ok(AST::SimpleIdentifier(
+                SimpleIdentifier::new_wrapped(self.command.as_ref().unwrap().clone()),
+            )),
+            AOption(ROption::RSome(Dialect::Bash(_)))
+            | AOption(ROption::RSome(Dialect::Presto(_))) => Ok(AST::SimpleIdentifier(
                 SimpleIdentifier::new_wrapped("ShellTask".into()),
             )),
             AOption(ROption::RNone) => Ok(AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(

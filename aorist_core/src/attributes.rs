@@ -1,6 +1,5 @@
-use aorist_primitives::AOption;
-use abi_stable::std_types::ROption;
 use crate::concept::{AoristRef, WrappedConcept};
+use abi_stable::std_types::ROption;
 #[cfg(feature = "sql")]
 use aorist_attributes::TSQLAttribute;
 use aorist_attributes::{
@@ -9,6 +8,7 @@ use aorist_attributes::{
 };
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
+use aorist_primitives::AOption;
 use aorist_primitives::{AString, AVec, AoristConcept, ConceptEnum};
 use derivative::Derivative;
 #[cfg(feature = "sql")]

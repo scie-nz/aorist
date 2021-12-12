@@ -1,9 +1,8 @@
-use aorist_primitives::AOption;
-use abi_stable::std_types::ROption;
 use crate::dialect::Dialect;
 use crate::flow::CompressionKey;
 use crate::parameter_tuple::ParameterTupleDedupKey;
 use crate::python::AST;
+use aorist_primitives::AOption;
 use aorist_primitives::{AString, AVec};
 use linked_hash_map::LinkedHashMap;
 use std::hash::Hash;

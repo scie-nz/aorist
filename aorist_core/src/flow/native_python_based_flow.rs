@@ -1,5 +1,3 @@
-use aorist_primitives::AOption;
-use abi_stable::std_types::ROption;
 use crate::dialect::Dialect;
 use crate::flow::etl_flow::ETLFlow;
 use crate::flow::flow_builder::FlowBuilderBase;
@@ -9,7 +7,9 @@ use crate::python::{
     BashPythonTask, ConstantPythonTask, NativePythonTask, PrestoPythonTask, PythonImport,
     PythonPreamble, PythonTask, RPythonTask,
 };
+use abi_stable::std_types::ROption;
 use aorist_ast::{Call, SimpleIdentifier, StringLiteral, AST};
+use aorist_primitives::AOption;
 use aorist_primitives::TPrestoEndpoints;
 use aorist_primitives::{AString, AVec, AoristUniverse};
 use linked_hash_map::LinkedHashMap;
@@ -82,15 +82,16 @@ where
         endpoints: U::TEndpoints,
     ) -> Self {
         let command = match &dialect {
-            AOption(ROption::RSome(Dialect::Presto(_))) => AST::StringLiteral(StringLiteral::new_wrapped(
-                call.as_ref().unwrap().clone(),
-                true,
-            )),
+            AOption(ROption::RSome(Dialect::Presto(_))) => AST::StringLiteral(
+                StringLiteral::new_wrapped(call.as_ref().unwrap().clone(), true),
+            ),
             AOption(ROption::RSome(_)) => AST::StringLiteral(StringLiteral::new_wrapped(
                 call.as_ref().unwrap().clone(),
                 false,
             )),
-            AOption(ROption::RNone) => AST::StringLiteral(StringLiteral::new_wrapped("Done".into(), false)),
+            AOption(ROption::RNone) => {
+                AST::StringLiteral(StringLiteral::new_wrapped("Done".into(), false))
+            }
         };
         let node = match &dialect {
             AOption(ROption::RSome(Dialect::Presto(_))) => {
@@ -122,20 +123,24 @@ where
                     dep_list.clone(),
                 ))
             }
-            AOption(ROption::RSome(Dialect::Bash(_))) => PythonTask::BashPythonTask(BashPythonTask::new_wrapped(
-                command,
-                kwargs.clone(),
-                task_val.clone(),
-                dep_list.clone(),
-            )),
-            AOption(ROption::RSome(Dialect::R(_))) => PythonTask::RPythonTask(RPythonTask::new_wrapped(
-                task_val.clone(),
-                command,
-                args.clone(),
-                kwargs.clone(),
-                dep_list.clone(),
-                preamble.clone(),
-            )),
+            AOption(ROption::RSome(Dialect::Bash(_))) => {
+                PythonTask::BashPythonTask(BashPythonTask::new_wrapped(
+                    command,
+                    kwargs.clone(),
+                    task_val.clone(),
+                    dep_list.clone(),
+                ))
+            }
+            AOption(ROption::RSome(Dialect::R(_))) => {
+                PythonTask::RPythonTask(RPythonTask::new_wrapped(
+                    task_val.clone(),
+                    command,
+                    args.clone(),
+                    kwargs.clone(),
+                    dep_list.clone(),
+                    preamble.clone(),
+                ))
+            }
             AOption(ROption::RSome(Dialect::Python(_))) => {
                 PythonTask::NativePythonTask(NativePythonTask::new_wrapped(
                     AST::Call(Call::new_wrapped(
@@ -151,11 +156,9 @@ where
                     dep_list.clone(),
                 ))
             }
-            AOption(ROption::RNone) => PythonTask::ConstantPythonTask(ConstantPythonTask::new_wrapped(
-                command,
-                task_val.clone(),
-                dep_list.clone(),
-            )),
+            AOption(ROption::RNone) => PythonTask::ConstantPythonTask(
+                ConstantPythonTask::new_wrapped(command, task_val.clone(), dep_list.clone()),
+            ),
         };
 
         Self {

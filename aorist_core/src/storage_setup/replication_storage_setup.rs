@@ -1,10 +1,10 @@
-use aorist_primitives::AOption;
-use abi_stable::std_types::ROption;
 use crate::concept::{AoristRef, WrappedConcept};
 use crate::encoding::*;
 use crate::storage::*;
+use abi_stable::std_types::ROption;
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
+use aorist_primitives::AOption;
 use aorist_primitives::{AString, AVec, AoristConcept, ConceptEnum};
 use derivative::Derivative;
 #[cfg(feature = "python")]
@@ -47,7 +47,9 @@ impl ReplicationStorageSetup {
                     return "downloaded".into();
                 }*/
             }
-            AOption(ROption::RNone) => panic!("get_download_extension called against source storage without encoding"),
+            AOption(ROption::RNone) => {
+                panic!("get_download_extension called against source storage without encoding")
+            }
         }
     }
 }

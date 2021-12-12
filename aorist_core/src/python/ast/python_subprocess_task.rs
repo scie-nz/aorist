@@ -1,8 +1,8 @@
-use aorist_primitives::AOption;
-use abi_stable::std_types::ROption;
 use crate::python::ast::PythonTaskBase;
 use crate::python::PythonImport;
+use abi_stable::std_types::ROption;
 use aorist_ast::{Assignment, Attribute, BooleanLiteral, Call, SimpleIdentifier, Tuple, AST};
+use aorist_primitives::AOption;
 use aorist_primitives::{AString, AVec};
 use linked_hash_map::LinkedHashMap;
 
@@ -15,9 +15,12 @@ pub trait PythonSubprocessTask: PythonTaskBase {
         ))
     }
     fn get_python_subprocess_imports(&self) -> AVec<PythonImport> {
-        vec![PythonImport::PythonModuleImport("subprocess".into(), AOption(ROption::RNone))]
-            .into_iter()
-            .collect()
+        vec![PythonImport::PythonModuleImport(
+            "subprocess".into(),
+            AOption(ROption::RNone),
+        )]
+        .into_iter()
+        .collect()
     }
     fn compute_task_kwargs(&self) -> LinkedHashMap<AString, AST> {
         let mut kwargs = LinkedHashMap::new();

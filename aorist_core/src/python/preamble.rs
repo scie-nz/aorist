@@ -1,8 +1,8 @@
-use aorist_primitives::AOption;
-use abi_stable::std_types::ROption;
 use crate::code::Preamble;
 use crate::python::PythonImport;
+use abi_stable::std_types::ROption;
 use aorist_ast::FunctionDef;
+use aorist_primitives::AOption;
 use aorist_primitives::{AString, AVec};
 use pyo3::prelude::*;
 use pyo3::types::{PyList, PyModule, PyString, PyTuple};
@@ -190,7 +190,9 @@ def build_preamble(body):
                 let alias = tpl.get_item(1)?;
                 let asname: AOption<AString> = match alias.is_none() {
                     true => AOption(ROption::RNone),
-                    false => AOption(ROption::RSome(alias.extract::<&PyString>()?.to_str()?.into())),
+                    false => AOption(ROption::RSome(
+                        alias.extract::<&PyString>()?.to_str()?.into(),
+                    )),
                 };
                 Ok(PythonImport::PythonModuleImport(name, asname))
             })
@@ -206,7 +208,9 @@ def build_preamble(body):
                 let alias = tpl.get_item(2)?;
                 let asname: AOption<AString> = match alias.is_none() {
                     true => AOption(ROption::RNone),
-                    false => AOption(ROption::RSome(alias.extract::<&PyString>()?.to_str()?.into())),
+                    false => AOption(ROption::RSome(
+                        alias.extract::<&PyString>()?.to_str()?.into(),
+                    )),
                 };
                 Ok(PythonImport::PythonFromImport(module, name, asname))
             })

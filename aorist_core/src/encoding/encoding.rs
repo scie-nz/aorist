@@ -1,6 +1,4 @@
 #![allow(unused_parens)]
-use aorist_primitives::AOption;
-use abi_stable::std_types::ROption;
 use crate::compression::*;
 use crate::concept::{AoristRef, WrappedConcept};
 use crate::encoding::csv_encoding::*;
@@ -21,8 +19,10 @@ use crate::encoding::xml_encoding::*;
 #[cfg(feature = "python")]
 use crate::header::FileHeader;
 use crate::header::*;
+use abi_stable::std_types::ROption;
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
+use aorist_primitives::AOption;
 use aorist_primitives::{AString, AVec, AoristConcept, ConceptEnum};
 #[cfg(feature = "python")]
 use pyo3::prelude::*;
@@ -171,12 +171,9 @@ impl PyEncoding {
     }
     #[getter]
     pub fn header(&self) -> Option<PyFileHeader> {
-        match self.inner
-            .0
-            .read()
-            .get_header() {
-                AOption(ROption::RSome(x)) => Some(PyFileHeader { inner: x.clone() }),
-                AOption(ROption::RNone) => None,
-            }
+        match self.inner.0.read().get_header() {
+            AOption(ROption::RSome(x)) => Some(PyFileHeader { inner: x.clone() }),
+            AOption(ROption::RNone) => None,
+        }
     }
 }

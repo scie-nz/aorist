@@ -1,5 +1,3 @@
-use aorist_primitives::AOption;
-use abi_stable::std_types::ROption;
 use crate::concept::{AoristRef, WrappedConcept};
 use crate::encoding::*;
 use crate::storage::bigquery_storage::*;
@@ -11,8 +9,10 @@ use crate::storage::postgres_storage::*;
 use crate::storage::remote_storage::*;
 use crate::storage::s3_storage::*;
 use crate::storage::sqlite_storage::*;
+use abi_stable::std_types::ROption;
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
+use aorist_primitives::AOption;
 use aorist_primitives::{AString, AVec, AoristConcept, ConceptEnum};
 #[cfg(feature = "python")]
 use pyo3::prelude::*;
@@ -63,12 +63,9 @@ impl Storage {
 impl PyStorage {
     #[getter]
     pub fn encoding(&self) -> Option<PyEncoding> {
-        match self.inner
-            .0
-            .read()
-            .get_encoding() {
-                AOption(ROption::RSome(x)) => Some(PyEncoding { inner: x }),
-                AOption(ROption::RNone) => None,
-            }
+        match self.inner.0.read().get_encoding() {
+            AOption(ROption::RSome(x)) => Some(PyEncoding { inner: x }),
+            AOption(ROption::RNone) => None,
+        }
     }
 }

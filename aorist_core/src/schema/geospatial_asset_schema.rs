@@ -1,5 +1,3 @@
-use aorist_primitives::AOption;
-use abi_stable::std_types::ROption;
 use crate::attributes::*;
 use crate::concept::{AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
 use crate::schema::adjacent_polygons_schema::*;
@@ -41,8 +39,10 @@ use crate::schema::tao_to_eco_object_schema::*;
 use crate::schema::tao_watershed_segmentation_schema::*;
 use crate::schema::tree_detection_schema::*;
 use crate::template::*;
+use abi_stable::std_types::ROption;
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
+use aorist_primitives::AOption;
 use aorist_primitives::{schema_enum, AString, AVec};
 #[cfg(feature = "python")]
 use pyo3::prelude::*;

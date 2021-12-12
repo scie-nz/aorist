@@ -1,5 +1,4 @@
 use aorist_primitives::AOption;
-use abi_stable::std_types::ROption;
 
 use super::airflow_bash_operator_task::AirflowBashOperatorTask;
 use super::python_subprocess_task::PythonSubprocessTask;

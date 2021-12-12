@@ -1,13 +1,13 @@
-use aorist_primitives::AOption;
-use abi_stable::std_types::ROption;
 use crate::asset::*;
 use crate::attributes::*;
 use crate::concept::{AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
 use crate::template::*;
+use abi_stable::std_types::ROption;
 use aorist_attributes::FloatValue;
 use aorist_attributes::*;
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
+use aorist_primitives::AOption;
 use aorist_primitives::{attribute, derived_schema, AString, AVec};
 use derivative::Derivative;
 #[cfg(feature = "python")]
@@ -25,8 +25,8 @@ derived_schema! {
     fields:
       dt1: FloatValue,
       dt2: FloatValue,
-      R: FloatValue,
-      Zu: FloatValue,
+      r: FloatValue,
+      z_u: FloatValue,
       hmin: FloatValue,
       speed_up: FloatValue
 }

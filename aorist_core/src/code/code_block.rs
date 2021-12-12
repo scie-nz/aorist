@@ -1,5 +1,3 @@
-use aorist_primitives::AOption;
-use abi_stable::std_types::ROption;
 use crate::code::Preamble;
 use crate::constraint::OuterConstraint;
 use crate::constraint_state::ConstraintState;
@@ -8,8 +6,10 @@ use crate::parameter_tuple::ParameterTuple;
 use crate::program::TOuterProgram;
 use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 use abi_stable::std_types::RArc;
+use abi_stable::std_types::ROption;
 use anyhow::Result;
 use aorist_ast::{SimpleIdentifier, StringLiteral, Subscript, AST};
+use aorist_primitives::AOption;
 use aorist_primitives::{AString, AVec, AoristUniverse};
 use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
@@ -49,7 +49,9 @@ where
             drop(read);
             // TODO: magic number
             let task_val = match tasks_dict {
-                AOption(ROption::RNone) => AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(name)),
+                AOption(ROption::RNone) => {
+                    AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(name))
+                }
                 AOption(ROption::RSome(ref dict)) => {
                     /*let shorter_name =
                     name.replace(&format!("{}__", constraint_name).to_string(), "");*/

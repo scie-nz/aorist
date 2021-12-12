@@ -1,6 +1,4 @@
 #![allow(dead_code)]
-use aorist_primitives::AOption;
-use abi_stable::std_types::ROption;
 use crate::access_policy::*;
 use crate::asset::*;
 use crate::concept::{AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
@@ -14,8 +12,10 @@ use crate::template::*;
 use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 #[cfg(feature = "python")]
 use abi_stable::std_types::RArc;
+use abi_stable::std_types::ROption;
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
+use aorist_primitives::AOption;
 use aorist_primitives::{AString, AVec, TAoristObject};
 use derivative::Derivative;
 use linked_hash_map::LinkedHashMap;

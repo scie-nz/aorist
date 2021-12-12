@@ -1,7 +1,7 @@
-use aorist_primitives::AOption;
-use abi_stable::std_types::ROption;
 use crate::code::Import;
+use abi_stable::std_types::ROption;
 use aorist_ast::{SimpleIdentifier, AST};
+use aorist_primitives::AOption;
 use aorist_primitives::AString;
 use pyo3::prelude::*;
 use pyo3::types::{PyList, PyModule};
@@ -20,7 +20,9 @@ impl PythonImport {
             Self::PythonModuleImport(ref module, AOption(ROption::RSome(ref alias))) => {
                 format!("import {} as {}", module, alias).to_string()
             }
-            Self::PythonModuleImport(ref module, AOption(ROption::RNone)) => format!("import {}", module).to_string(),
+            Self::PythonModuleImport(ref module, AOption(ROption::RNone)) => {
+                format!("import {}", module).to_string()
+            }
             Self::PythonFromImport(ref module, ref name, AOption(ROption::RSome(ref alias))) => {
                 format!("from {} import {} as {}", module, name, alias).to_string()
             }
@@ -64,8 +66,10 @@ impl PythonImport {
                             (AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(x.clone())))
                                 .to_python_ast_node(py, ast_module, depth)?,
                         ))?,
-                        AOption(ROption::RNone) => AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(name.clone()))
-                            .to_python_ast_node(py, ast_module, depth)?,
+                        AOption(ROption::RNone) => {
+                            AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(name.clone()))
+                                .to_python_ast_node(py, ast_module, depth)?
+                        }
                     }],
                 );
                 ast_module

@@ -1,5 +1,3 @@
-use aorist_primitives::AOption;
-use abi_stable::std_types::ROption;
 use crate::asset::*;
 use crate::attributes::*;
 use crate::concept::{AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
@@ -8,9 +6,11 @@ use crate::schema::derived_asset_schema::*;
 use crate::schema::language_asset_schema::LanguageAssetSchema;
 use crate::schema::text_corpus_schema::TextCorpusSchema;
 use crate::template::*;
+use abi_stable::std_types::ROption;
 use aorist_attributes::*;
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
+use aorist_primitives::AOption;
 use aorist_primitives::{attribute, derived_schema, AString, AVec};
 use derivative::Derivative;
 #[cfg(feature = "python")]

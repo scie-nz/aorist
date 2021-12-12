@@ -1,9 +1,9 @@
-use aorist_primitives::AOption;
-use abi_stable::std_types::ROption;
 use crate::python::ast::AirflowTaskBase;
 use crate::python::ast::PythonTaskBase;
 use crate::python::PythonImport;
+use abi_stable::std_types::ROption;
 use aorist_ast::{Assignment, Attribute, Call, Expression, SimpleIdentifier, AST};
+use aorist_primitives::AOption;
 use aorist_primitives::{AString, AVec};
 use linked_hash_map::LinkedHashMap;
 

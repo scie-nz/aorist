@@ -1,6 +1,6 @@
 use crate::endpoints::*;
 use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
-use abi_stable::std_types::{RArc, RVec, ROption};
+use abi_stable::std_types::{RArc, ROption, RVec};
 use abi_stable::StableAbi;
 #[cfg(feature = "python")]
 use pyo3::prelude::*;
@@ -124,18 +124,20 @@ impl AVec<String> {
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Debug, Hash, Eq, PartialOrd, Ord)]
 pub struct AOption<T>(pub abi_stable::std_types::ROption<T>);
-impl <T> AOption<T> {
+impl<T> AOption<T> {
     pub fn is_none(&self) -> bool {
         self.0.is_none()
     }
     pub fn is_some(&self) -> bool {
         self.0.is_some()
     }
-    pub fn and_then<F, U>(self, f: F) -> AOption<U> 
-        where F: FnOnce(T) -> ROption<U> {
-            let out: ROption<U> = self.0.and_then(f);
-            AOption(out)
-        }
+    pub fn and_then<F, U>(self, f: F) -> AOption<U>
+    where
+        F: FnOnce(T) -> ROption<U>,
+    {
+        let out: ROption<U> = self.0.and_then(f);
+        AOption(out)
+    }
     pub fn as_ref(&self) -> AOption<&T> {
         AOption(self.0.as_ref())
     }
