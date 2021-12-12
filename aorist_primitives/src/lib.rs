@@ -663,10 +663,10 @@ macro_rules! define_constraint {
                     )*
                     Ok(downstream)
                 }
-                fn get_title() -> Option<AString> {
+                fn get_title() -> AOption<AString> {
                     $title
                 }
-                fn get_body() -> Option<AString> {
+                fn get_body() -> AOption<AString> {
                     $body
                 }
             }
@@ -1522,7 +1522,7 @@ macro_rules! register_constraint_new {
                     )+
                 }
             }
-            fn get_explanations() -> HashMap<AString, (Option<AString>, Option<AString>)> {
+            fn get_explanations() -> HashMap<AString, (AOption<AString>, AOption<AString>)> {
                 vec! [
                     $(
                         (stringify!($element).into(), (
@@ -1562,14 +1562,14 @@ macro_rules! register_constraint_new {
                     )+
                 }
             }
-            pub fn get_title(&self) -> Option<AString> {
+            pub fn get_title(&self) -> AOption<AString> {
                 match self {
                     $(
                         Self::$element(_) => $element::get_title(),
                     )+
                 }
             }
-            pub fn get_body(&self) -> Option<AString> {
+            pub fn get_body(&self) -> AOption<AString> {
                 match self {
                     $(
                         Self::$element(_) => $element::get_body(),
@@ -1649,7 +1649,10 @@ macro_rules! define_dag_function {
                     true,
                 )
                 .map_err(|e| pyo3::exceptions::PyException::new_err(e.to_string()))?
-                .run(dag_name.and_then(|x| Some(x.as_str().into()))),
+                .run(match dag_name {
+                    Some(x) => AOption(ROption::RSome(x.as_str().into())),
+                    None => AOption(ROption::RNone),
+                }),
                 "prefect" => PythonBasedDriver::<
                     AoristConstraintBuilder<'a>,
                     PrefectFlowBuilder<AoristRef<Universe>>,
@@ -1665,7 +1668,10 @@ macro_rules! define_dag_function {
                     true,
                 )
                 .map_err(|e| pyo3::exceptions::PyException::new_err(e.to_string()))?
-                .run(dag_name.and_then(|x| Some(x.as_str().into()))),
+                .run(match dag_name {
+                    Some(x) => AOption(ROption::RSome(x.as_str().into())),
+                    None => AOption(ROption::RNone),
+                }),
                 "python" => PythonBasedDriver::<
                     AoristConstraintBuilder<'a>,
                     PythonFlowBuilder<AoristRef<Universe>>,
@@ -1681,7 +1687,10 @@ macro_rules! define_dag_function {
                     false,
                 )
                 .map_err(|e| pyo3::exceptions::PyException::new_err(e.to_string()))?
-                .run(dag_name.and_then(|x| Some(x.as_str().into()))),
+                .run(match dag_name {
+                    Some(x) => AOption(ROption::RSome(x.as_str().into())),
+                    None => AOption(ROption::RNone),
+                }),
                 "jupyter" => PythonBasedDriver::<
                     AoristConstraintBuilder<'a>,
                     JupyterFlowBuilder<AoristRef<Universe>>,
@@ -1697,7 +1706,10 @@ macro_rules! define_dag_function {
                     false,
                 )
                 .map_err(|e| pyo3::exceptions::PyException::new_err(e.to_string()))?
-                .run(dag_name.and_then(|x| Some(x.as_str().into()))),
+                .run(match dag_name {
+                    Some(x) => AOption(ROption::RSome(x.as_str().into())),
+                    None => AOption(ROption::RNone),
+                }),
                 /*"r" => RBasedDriver::<ConstraintBuilder, RBasedFlowBuilder>::new(&universe, constraints.into_iter().collect())
                 .map_err(|e| pyo3::exceptions::PyException::new_err(e.to_string()))?
                 .run(dag_name),*/
@@ -1722,6 +1734,7 @@ macro_rules! export_aorist_python_module {
 
         use abi_stable::library::{lib_header_from_path, LibrarySuffix, RawLibrary};
         use abi_stable::reexports::SelfOps;
+        use abi_stable::std_types::ROption;
         use aorist_core::{AoristApplicationError, ConstraintMod_Ref};
         use std::path::{Path, PathBuf};
 
