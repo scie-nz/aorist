@@ -62,11 +62,13 @@ impl Storage {
 #[pymethods]
 impl PyStorage {
     #[getter]
-    pub fn encoding(&self) -> AOption<PyEncoding> {
-        self.inner
+    pub fn encoding(&self) -> Option<PyEncoding> {
+        match self.inner
             .0
             .read()
-            .get_encoding()
-            .and_then(|x| Some(PyEncoding { inner: x }))
+            .get_encoding() {
+                AOption(ROption::RSome(x)) => Some(PyEncoding { inner: x }),
+                AOption(ROption::RNone) => None,
+            }
     }
 }

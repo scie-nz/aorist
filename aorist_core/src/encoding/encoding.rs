@@ -122,44 +122,44 @@ impl PyEncoding {
     pub fn get_compression(&self) -> PyResult<Option<PyDataCompression>> {
         Ok(match &*self.inner.0.read() {
             Encoding::CSVEncoding(x) => match &x.0.read().compression {
-                Some(y) => Some(PyDataCompression { inner: y.clone() }),
-                None => None,
+                AOption(ROption::RSome(y)) => Some(PyDataCompression { inner: y.clone() }),
+                AOption(ROption::RNone) => None,
             },
             Encoding::GDBEncoding(x) => match &x.0.read().compression {
-                Some(y) => Some(PyDataCompression { inner: y.clone() }),
-                None => None,
+                AOption(ROption::RSome(y)) => Some(PyDataCompression { inner: y.clone() }),
+                AOption(ROption::RNone) => None,
             },
             Encoding::LASEncoding(x) => match &x.0.read().compression {
-                Some(y) => Some(PyDataCompression { inner: y.clone() }),
-                None => None,
+                AOption(ROption::RSome(y)) => Some(PyDataCompression { inner: y.clone() }),
+                AOption(ROption::RNone) => None,
             },
             Encoding::GeoTiffEncoding(x) => match &x.0.read().compression {
-                Some(y) => Some(PyDataCompression { inner: y.clone() }),
-                None => None,
+                AOption(ROption::RSome(y)) => Some(PyDataCompression { inner: y.clone() }),
+                AOption(ROption::RNone) => None,
             },
             Encoding::TiffEncoding(x) => match &x.0.read().compression {
-                Some(y) => Some(PyDataCompression { inner: y.clone() }),
-                None => None,
+                AOption(ROption::RSome(y)) => Some(PyDataCompression { inner: y.clone() }),
+                AOption(ROption::RNone) => None,
             },
             Encoding::WKTEncoding(x) => match &x.0.read().compression {
-                Some(y) => Some(PyDataCompression { inner: y.clone() }),
-                None => None,
+                AOption(ROption::RSome(y)) => Some(PyDataCompression { inner: y.clone() }),
+                AOption(ROption::RNone) => None,
             },
             Encoding::XMLEncoding(x) => match &x.0.read().compression {
-                Some(y) => Some(PyDataCompression { inner: y.clone() }),
-                None => None,
+                AOption(ROption::RSome(y)) => Some(PyDataCompression { inner: y.clone() }),
+                AOption(ROption::RNone) => None,
             },
             Encoding::KMLEncoding(x) => match &x.0.read().compression {
-                Some(y) => Some(PyDataCompression { inner: y.clone() }),
-                None => None,
+                AOption(ROption::RSome(y)) => Some(PyDataCompression { inner: y.clone() }),
+                AOption(ROption::RNone) => None,
             },
             Encoding::GPKGEncoding(x) => match &x.0.read().compression {
-                Some(y) => Some(PyDataCompression { inner: y.clone() }),
-                None => None,
+                AOption(ROption::RSome(y)) => Some(PyDataCompression { inner: y.clone() }),
+                AOption(ROption::RNone) => None,
             },
             Encoding::TSVEncoding(x) => match &x.0.read().compression {
-                Some(y) => Some(PyDataCompression { inner: y.clone() }),
-                None => None,
+                AOption(ROption::RSome(y)) => Some(PyDataCompression { inner: y.clone() }),
+                AOption(ROption::RNone) => None,
             },
             Encoding::JSONEncoding(_) => None,
             Encoding::ORCEncoding(_) => None,
@@ -170,11 +170,13 @@ impl PyEncoding {
         })
     }
     #[getter]
-    pub fn header(&self) -> AOption<PyFileHeader> {
-        self.inner
+    pub fn header(&self) -> Option<PyFileHeader> {
+        match self.inner
             .0
             .read()
-            .get_header()
-            .and_then(|x| Some(PyFileHeader { inner: x.clone() }))
+            .get_header() {
+                AOption(ROption::RSome(x)) => Some(PyFileHeader { inner: x.clone() }),
+                AOption(ROption::RNone) => None,
+            }
     }
 }

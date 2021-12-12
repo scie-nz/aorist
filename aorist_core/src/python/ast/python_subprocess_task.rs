@@ -1,3 +1,5 @@
+use aorist_primitives::AOption;
+use abi_stable::std_types::ROption;
 use crate::python::ast::PythonTaskBase;
 use crate::python::PythonImport;
 use aorist_ast::{Assignment, Attribute, BooleanLiteral, Call, SimpleIdentifier, Tuple, AST};
@@ -13,7 +15,7 @@ pub trait PythonSubprocessTask: PythonTaskBase {
         ))
     }
     fn get_python_subprocess_imports(&self) -> AVec<PythonImport> {
-        vec![PythonImport::PythonModuleImport("subprocess".into(), None)]
+        vec![PythonImport::PythonModuleImport("subprocess".into(), AOption(ROption::RNone))]
             .into_iter()
             .collect()
     }

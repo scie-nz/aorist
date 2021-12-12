@@ -44,24 +44,24 @@ register_task_nodes! {
 impl PythonTask {
     pub fn get_preamble(&self) -> AOption<PythonPreamble> {
         let inner = match &self {
-            PythonTask::BashPythonTask(_) => None,
+            PythonTask::BashPythonTask(_) => AOption(ROption::RNone),
             PythonTask::RPythonTask(x) => x.read().get_preamble(),
             PythonTask::NativePythonTask(x) => x.read().get_preamble(),
             PythonTask::ConstantPythonTask(x) => x.read().get_preamble(),
             PythonTask::PrestoPythonTask(x) => x.read().get_preamble(),
         };
-        if let Some(p) = inner {
-            return Some(PythonPreamble::NativePythonPreamble(p));
+        if let AOption(ROption::RSome(p)) = inner {
+            return AOption(ROption::RSome(PythonPreamble::NativePythonPreamble(p)));
         }
-        return None;
+        return AOption(ROption::RNone);
     }
     pub fn get_call(&self) -> AOption<AST> {
         match &self {
-            PythonTask::BashPythonTask(_) => None,
-            PythonTask::RPythonTask(x) => Some(x.read().get_call()),
-            PythonTask::NativePythonTask(x) => Some(x.read().get_call()),
-            PythonTask::ConstantPythonTask(x) => Some(x.read().get_call()),
-            PythonTask::PrestoPythonTask(x) => Some(x.read().get_call()),
+            PythonTask::BashPythonTask(_) => AOption(ROption::RNone),
+            PythonTask::RPythonTask(x) => AOption(ROption::RSome(x.read().get_call())),
+            PythonTask::NativePythonTask(x) => AOption(ROption::RSome(x.read().get_call())),
+            PythonTask::ConstantPythonTask(x) => AOption(ROption::RSome(x.read().get_call())),
+            PythonTask::PrestoPythonTask(x) => AOption(ROption::RSome(x.read().get_call())),
         }
     }
 }

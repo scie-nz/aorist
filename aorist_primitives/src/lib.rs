@@ -942,7 +942,12 @@ macro_rules! register_attribute_new {
             }
             #[getter]
             pub fn comment(&self) -> pyo3::prelude::PyResult<Option<String>> {
-                Ok(self.inner.0.read().get_comment().clone().and_then(|x| Some(x.as_str().into())))
+                Ok(
+                    match self.inner.0.read().get_comment().clone() {
+                        AOption(ROption::RSome(x)) => Some(x.as_str().into()),
+                        AOption(ROption::RNone) => None,
+                    }
+                )
             }
             #[getter]
             pub fn orc_type(&self) -> pyo3::prelude::PyResult<String> {

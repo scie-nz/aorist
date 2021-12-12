@@ -79,8 +79,8 @@ where
                     LinkedHashSet::new(),
                     BTreeSet::new(),
                     "assignments".into(),
-                    Some("Common string literals".into()),
-                    None,
+                    AOption(ROption::RSome("Common string literals".into())),
+                    AOption(ROption::RNone),
                 ),
             );
         }
@@ -90,14 +90,14 @@ where
             .into_iter()
             .collect();
         let content: Vec<(AOption<AString>, Vec<&PyAny>)> =
-            vec![(None, imports_ast.into_iter().collect::<Vec<_>>())]
+            vec![(AOption(ROption::RNone), imports_ast.into_iter().collect::<Vec<_>>())]
                 .into_iter()
                 .chain(
                     preambles
                         .into_iter()
                         .map(|x| {
                             (
-                                None,
+                                AOption(ROption::RNone),
                                 x.to_python_ast_nodes(py, ast, 0)
                                     .into_iter()
                                     .collect::<Vec<_>>(),
@@ -111,7 +111,7 @@ where
                         .into_iter()
                         .map(|x| {
                             (
-                                Some(x.get_block_comment()),
+                                AOption(ROption::RSome(x.get_block_comment())),
                                 x.to_python_ast_nodes(py, ast, 0)
                                     .unwrap()
                                     .into_iter()
@@ -187,8 +187,8 @@ where
             sources
                 .into_iter()
                 .map(|(maybe_comment, block)| match maybe_comment {
-                    Some(comment) => format!("# {}\n{}\n", comment, block).to_string(),
-                    None => block.as_str().into(),
+                    AOption(ROption::RSome(comment)) => format!("# {}\n{}\n", comment, block).to_string(),
+                    AOption(ROption::RNone) => block.as_str().into(),
                 })
                 .collect::<AVec<String>>()
                 .join("")

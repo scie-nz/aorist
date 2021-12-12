@@ -92,8 +92,8 @@ where
             self.get_left_of_task_val()?,
             self.call.clone(),
             match &self.params {
-                Some(p) => Some(p.get_dedup_key()),
-                None => None,
+                AOption(ROption::RSome(p)) => AOption(ROption::RSome(p.get_dedup_key())),
+                AOption(ROption::RNone) => AOption(ROption::RNone),
             },
             self.preamble.clone(),
             self.dialect.clone(),
@@ -152,7 +152,7 @@ where
     ) -> (AVec<AST>, AVec<PythonPreamble>, AVec<PythonImport>) {
         let args;
         let kwargs;
-        if let Some(ref p) = self.params {
+        if let AOption(ROption::RSome(ref p)) = self.params {
             args = p.get_args();
             kwargs = p.get_kwargs();
         } else {
@@ -166,11 +166,11 @@ where
             args,
             kwargs,
             match self.dependencies.len() {
-                0 => None,
-                _ => Some(AST::List(List::new_wrapped(
+                0 => AOption(ROption::RNone),
+                _ => AOption(ROption::RSome(AST::List(List::new_wrapped(
                     self.dependencies.clone(),
                     false,
-                ))),
+                )))),
             },
             self.get_preamble(),
             self.get_dialect(),

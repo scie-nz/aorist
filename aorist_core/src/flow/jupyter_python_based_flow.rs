@@ -43,7 +43,7 @@ where
             .map(|(maybe_comment, block)| {
                 let format_block = format_code(block).unwrap().as_str().to_string().replace("\\n", "\n");
                 match maybe_comment {
-                    Some(comment) => vec![
+                    AOption(ROption::RSome(comment)) => vec![
                         json!({
                             "cell_type": "markdown",
                             "metadata": json!({}),
@@ -51,15 +51,15 @@ where
                         }),
                         json!({
                             "cell_type": "code",
-                            "execution_count": None as AOption<usize>,
+                            "execution_count": None as Option<usize>,
                             "metadata": json!({}),
                             "source": format_block,
                             "outputs": Vec::<String>::new(),
                         })
                     ],
-                    None => vec![json!({
+                    AOption(ROption::RNone) => vec![json!({
                         "cell_type": "code",
-                        "execution_count": None as AOption<usize>,
+                        "execution_count": None as Option<usize>,
                         "metadata": json!({}),
                         "source": format_block,
                         "outputs": Vec::<String>::new(),

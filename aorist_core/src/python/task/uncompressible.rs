@@ -69,7 +69,7 @@ where
                 AST::StringLiteral(StringLiteral::new_wrapped(self.task_id.clone(), false)),
             );
         }
-        if let Some(ref p) = self.params {
+        if let AOption(ROption::RSome(ref p)) = self.params {
             p.populate_python_dict(&mut local_params_map);
         }
         AST::Dict(Dict::new_wrapped(local_params_map))

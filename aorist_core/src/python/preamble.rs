@@ -76,7 +76,7 @@ impl Preamble for RPythonPreamble {
     fn get_imports(&self) -> AVec<Self::ImportType> {
         vec![PythonImport::PythonModuleImport(
             "rpy2.robjects".into(),
-            Some("robjects".into()),
+            AOption(ROption::RSome("robjects".into())),
         )]
         .into_iter()
         .collect()
@@ -189,8 +189,8 @@ def build_preamble(body):
                 let name: AString = tpl.get_item(0)?.extract::<&PyString>()?.to_str()?.into();
                 let alias = tpl.get_item(1)?;
                 let asname: AOption<AString> = match alias.is_none() {
-                    true => None,
-                    false => Some(alias.extract::<&PyString>()?.to_str()?.into()),
+                    true => AOption(ROption::RNone),
+                    false => AOption(ROption::RSome(alias.extract::<&PyString>()?.to_str()?.into())),
                 };
                 Ok(PythonImport::PythonModuleImport(name, asname))
             })
@@ -205,8 +205,8 @@ def build_preamble(body):
                 let name: AString = tpl.get_item(1)?.extract::<&PyString>()?.to_str()?.into();
                 let alias = tpl.get_item(2)?;
                 let asname: AOption<AString> = match alias.is_none() {
-                    true => None,
-                    false => Some(alias.extract::<&PyString>()?.to_str()?.into()),
+                    true => AOption(ROption::RNone),
+                    false => AOption(ROption::RSome(alias.extract::<&PyString>()?.to_str()?.into())),
                 };
                 Ok(PythonImport::PythonFromImport(module, name, asname))
             })

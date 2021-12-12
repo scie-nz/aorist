@@ -16,8 +16,8 @@ define_task_node!(
     |task: &RPythonTask| { task.get_native_python_statements() },
     |_task: &RPythonTask| {
         vec![
-            PythonImport::PythonModuleImport("rpy2".into(), None),
-            PythonImport::PythonModuleImport("rpy2.robjects".into(), Some("robjects".into())),
+            PythonImport::PythonModuleImport("rpy2".into(), AOption(ROption::RNone)),
+            PythonImport::PythonModuleImport("rpy2.robjects".into(), AOption(ROption::RSome("robjects".into()))),
         ]
         .into_iter()
         .collect()
@@ -32,9 +32,9 @@ define_task_node!(
 );
 impl PythonFunctionCallTask for RPythonTask {
     fn get_preamble(&self) -> AOption<NativePythonPreamble> {
-        let rpy2 = PythonImport::PythonModuleImport("rpy2".into(), None);
+        let rpy2 = PythonImport::PythonModuleImport("rpy2".into(), AOption(ROption::RNone));
         let rpy2o =
-            PythonImport::PythonModuleImport("rpy2.robjects".into(), Some("robjects".into()));
+            PythonImport::PythonModuleImport("rpy2.robjects".into(), AOption(ROption::RSome("robjects".into())));
         let body = "
 def execute_r(call, preamble=None, **kwargs):
     airflow_args = {
@@ -69,16 +69,16 @@ def execute_r(call, preamble=None, **kwargs):
     ))
 
 ";
-        Some(NativePythonPreamble {
+        AOption(ROption::RSome(NativePythonPreamble {
             imports: vec![rpy2].into_iter().collect(),
             from_imports: vec![rpy2o].into_iter().collect(),
             body: body.into(),
-        })
+        }))
     }
     fn get_call(&self) -> AST {
         let mut inner_kwargs = LinkedHashMap::new();
         inner_kwargs.insert("call".into(), self.call.clone());
-        if let Some(ref p) = self.preamble {
+        if let AOption(ROption::RSome(ref p)) = self.preamble {
             inner_kwargs.insert(
                 "preamble".into(),
                 AST::StringLiteral(StringLiteral::new_wrapped(

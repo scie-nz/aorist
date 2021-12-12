@@ -132,8 +132,8 @@ where
         self.satisfied_constraints
             .values()
             .map(|x| match x.read().get_dialect() {
-                Some(Dialect::Python(x)) => Some(x.get_pip_requirements()),
-                _ => None,
+                AOption(ROption::RSome(Dialect::Python(x))) => AOption(ROption::RSome(x.get_pip_requirements())),
+                _ => AOption(ROption::RNone),
             })
             .filter(|x| x.is_some())
             .map(|x| x.unwrap().into_iter())

@@ -19,9 +19,9 @@ define_task_node!(
     |task: &PrestoPythonTask| { task.get_native_python_statements() },
     |_task: &PrestoPythonTask| {
         vec![
-            PythonImport::PythonModuleImport("subprocess".into(), None),
-            PythonImport::PythonModuleImport("trino".into(), None),
-            PythonImport::PythonModuleImport("re".into(), None),
+            PythonImport::PythonModuleImport("subprocess".into(), AOption(ROption::RNone)),
+            PythonImport::PythonModuleImport("trino".into(), AOption(ROption::RNone)),
+            PythonImport::PythonModuleImport("re".into(), AOption(ROption::RNone)),
         ]
         .into_iter()
         .collect()
@@ -41,8 +41,8 @@ impl PythonTaskBase for PrestoPythonTask {
 }
 impl PythonFunctionCallTask for PrestoPythonTask {
     fn get_preamble(&self) -> AOption<NativePythonPreamble> {
-        let re = PythonImport::PythonModuleImport("re".into(), None);
-        let trino = PythonImport::PythonModuleImport("trino".into(), None);
+        let re = PythonImport::PythonModuleImport("re".into(), AOption(ROption::RNone));
+        let trino = PythonImport::PythonModuleImport("trino".into(), AOption(ROption::RNone));
         let body = format!(
             "
 def execute_trino_sql(query):
@@ -71,11 +71,11 @@ def execute_trino_sql(query):
             user = self.endpoint.user,
             port = self.endpoint.http_port
         );
-        Some(NativePythonPreamble {
+        AOption(ROption::RSome(NativePythonPreamble {
             imports: vec![re, trino].into_iter().collect(),
             from_imports: AVec::new(),
             body: body.as_str().into(),
-        })
+        }))
     }
     fn get_call(&self) -> AST {
         let query;

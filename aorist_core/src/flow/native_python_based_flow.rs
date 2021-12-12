@@ -53,7 +53,7 @@ where
     fn get_preamble(&self) -> Result<AVec<PythonPreamble>, pyo3::PyErr> {
         // TODO: this should be deprecated
         let mut preambles = self.get_python_preamble()?;
-        if let Some(p) = self.node.get_preamble() {
+        if let AOption(ROption::RSome(p)) = self.node.get_preamble() {
             preambles.push(p)
         }
         Ok(preambles.into_iter().collect())
@@ -82,18 +82,18 @@ where
         endpoints: U::TEndpoints,
     ) -> Self {
         let command = match &dialect {
-            Some(Dialect::Presto(_)) => AST::StringLiteral(StringLiteral::new_wrapped(
+            AOption(ROption::RSome(Dialect::Presto(_))) => AST::StringLiteral(StringLiteral::new_wrapped(
                 call.as_ref().unwrap().clone(),
                 true,
             )),
-            Some(_) => AST::StringLiteral(StringLiteral::new_wrapped(
+            AOption(ROption::RSome(_)) => AST::StringLiteral(StringLiteral::new_wrapped(
                 call.as_ref().unwrap().clone(),
                 false,
             )),
-            None => AST::StringLiteral(StringLiteral::new_wrapped("Done".into(), false)),
+            AOption(ROption::RNone) => AST::StringLiteral(StringLiteral::new_wrapped("Done".into(), false)),
         };
         let node = match &dialect {
-            Some(Dialect::Presto(_)) => {
+            AOption(ROption::RSome(Dialect::Presto(_))) => {
                 let presto_endpoints = endpoints.presto_config();
                 PythonTask::PrestoPythonTask(PrestoPythonTask::new_wrapped(
                     command,
@@ -122,13 +122,13 @@ where
                     dep_list.clone(),
                 ))
             }
-            Some(Dialect::Bash(_)) => PythonTask::BashPythonTask(BashPythonTask::new_wrapped(
+            AOption(ROption::RSome(Dialect::Bash(_))) => PythonTask::BashPythonTask(BashPythonTask::new_wrapped(
                 command,
                 kwargs.clone(),
                 task_val.clone(),
                 dep_list.clone(),
             )),
-            Some(Dialect::R(_)) => PythonTask::RPythonTask(RPythonTask::new_wrapped(
+            AOption(ROption::RSome(Dialect::R(_))) => PythonTask::RPythonTask(RPythonTask::new_wrapped(
                 task_val.clone(),
                 command,
                 args.clone(),
@@ -136,7 +136,7 @@ where
                 dep_list.clone(),
                 preamble.clone(),
             )),
-            Some(Dialect::Python(_)) => {
+            AOption(ROption::RSome(Dialect::Python(_))) => {
                 PythonTask::NativePythonTask(NativePythonTask::new_wrapped(
                     AST::Call(Call::new_wrapped(
                         AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
@@ -151,7 +151,7 @@ where
                     dep_list.clone(),
                 ))
             }
-            None => PythonTask::ConstantPythonTask(ConstantPythonTask::new_wrapped(
+            AOption(ROption::RNone) => PythonTask::ConstantPythonTask(ConstantPythonTask::new_wrapped(
                 command,
                 task_val.clone(),
                 dep_list.clone(),

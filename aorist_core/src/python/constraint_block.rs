@@ -79,13 +79,13 @@ where
 
     fn get_task_val_assignments(&self) -> AVec<AST> {
         match &self.tasks_dict {
-            Some(ref val) => vec![AST::Assignment(Assignment::new_wrapped(
+            AOption(ROption::RSome(ref val)) => vec![AST::Assignment(Assignment::new_wrapped(
                 val.clone(),
                 AST::Dict(Dict::new_wrapped(LinkedHashMap::new())),
             ))]
             .into_iter()
             .collect(),
-            None => vec![].into_iter().collect(),
+            AOption(ROption::RNone) => vec![].into_iter().collect(),
         }
     }
 }

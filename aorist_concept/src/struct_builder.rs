@@ -28,11 +28,15 @@ fn extract_names_and_types(
         Vec<Type>,
         Vec<Ident>,
         Vec<Type>,
+        Vec<Ident>,
+        Vec<Type>,
     ),
     AoristError,
 > {
     let mut names: Vec<Ident> = Vec::new();
     let mut types: Vec<Type> = Vec::new();
+    let mut names_option: Vec<Ident> = Vec::new();
+    let mut types_option: Vec<Type> = Vec::new();
     let mut names_vec: Vec<Ident> = Vec::new();
     let mut types_vec: Vec<Type> = Vec::new();
     let mut names_ref: Vec<Ident> = Vec::new();
@@ -69,6 +73,15 @@ fn extract_names_and_types(
                 );
                 types_vec.push((*vt).clone());
             }
+        } else if let Some(ref vt) = extract_type_from_option(&field.ty)? {
+            names_option.push(
+                field
+                    .ident
+                    .as_ref()
+                    .ok_or_else(|| AoristError::OtherError("ident is none".into()))?
+                    .clone(),
+            );
+            types_option.push((*vt).clone());
         } else {
             names.push(
                 field
@@ -83,6 +96,8 @@ fn extract_names_and_types(
     Ok((
         names,
         types,
+        names_option,
+        types_option,
         names_vec,
         types_vec,
         names_ref,
@@ -370,6 +385,8 @@ impl Builder for StructBuilder {
         let (
             unconstrainable_name,
             unconstrainable_type,
+            unconstrainable_name_option,
+            unconstrainable_type_option,
             unconstrainable_name_vec,
             unconstrainable_type_vec,
             unconstrainable_name_ref,
@@ -573,6 +590,9 @@ impl Builder for StructBuilder {
                       >,
                     )*
                     #(
+                        #unconstrainable_name_option: Option<#unconstrainable_type_option>,
+                    )*
+                    #(
                         #unconstrainable_name_vec: Vec<#unconstrainable_type_vec>,
                     )*
                     #(
@@ -596,16 +616,16 @@ impl Builder for StructBuilder {
                             ).collect(),
                         )*
                         #(
-                            #option_ident: #option_ident.and_then(
-                                |x| Some(x.inner.clone())
-                            ),
+                            #option_ident: match #option_ident {
+                                Some(ref x) => AOption(ROption::RSome(x.inner.clone())),
+                                None => AOption(ROption::RNone),
+                            },
                         )*
                         #(
-                            #option_vec_ident: #option_vec_ident.and_then(
-                                |x| Some(x.iter().map(
-                                    |y| y.inner.clone()
-                                ).collect())
-                            ),
+                            #option_vec_ident: match #option_vec_ident {
+                                Some(ref x) => AOption(ROption::RSome(x.iter().map(|y| y.inner.clone()).collect())),
+                                None => AOption(ROption::RNone),
+                            },
                         )*
                         #(
                             #map_ident: #map_ident.iter().map(
@@ -614,6 +634,12 @@ impl Builder for StructBuilder {
                         )*
                         #(
                             #unconstrainable_name,
+                        )*
+                        #(
+                            #unconstrainable_name_option: match #unconstrainable_name_option {
+                                Some(x) => AOption(ROption::RSome(x)),
+                                None => AOption(ROption::RNone),
+                            },
                         )*
                         #(
                             #unconstrainable_name_vec: #unconstrainable_name_vec.into_iter().collect(),
@@ -626,7 +652,10 @@ impl Builder for StructBuilder {
                                 |x| x.inner.clone()
                             ).collect(),
                         )*
-                        tag: tag.as_ref().and_then(|x| AOption(ROption::RSome(x.as_str().into()))),
+                        tag: match tag.as_ref() {
+                            Some(x) => AOption(ROption::RSome(x.as_str().into())),
+                            None => AOption(ROption::RNone),
+                        },
                         uuid: AOption(ROption::RNone),
                     };
                     let inner = AoristRef(abi_stable::std_types::RArc::new(abi_stable::external_types::parking_lot::rw_lock::RRwLock::new(
@@ -636,7 +665,12 @@ impl Builder for StructBuilder {
                 }
                 #[getter]
                 pub fn tag(&self) -> pyo3::prelude::PyResult<Option<String>> {
-                    Ok(self.inner.0.read().tag.as_ref().and_then(|x| Some(x.as_str().into())))
+                    Ok(
+                        match self.inner.0.read().tag.as_ref() {
+                            AOption(ROption::RSome(x)) => Some(x.as_str().into()),
+                            AOption(ROption::RNone) => None,
+                        }
+                    )
                 }
                 #(
                     #[getter]
@@ -658,17 +692,21 @@ impl Builder for StructBuilder {
                     #[getter]
                     pub fn #option_ident(&self) -> pyo3::prelude::PyResult<Option<[<Py #option_type_deref>]>> {
                         Ok(
-                            self.inner.0.read().#option_ident.as_ref().and_then(|x|
-                                Some([<Py #option_type_deref>] {
+                            match self.inner.0.read().#option_ident.as_ref() {
+                                AOption(ROption::RSome(x)) => Some([<Py #option_type_deref>] {
                                     inner: x.clone()
-                                })
-                            )
+                                }),
+                                AOption(ROption::RNone) => None,
+                            }
                         )
                     }
                     #[setter]
                     pub fn [<set_#option_ident>](&self, val: Option<[<Py #option_type_deref>]>) -> pyo3::prelude::PyResult<()> {
                         Ok(
-                            (*self.inner.0.write()).#option_ident = val.and_then(|x| Some(x.inner.clone()))
+                            (*self.inner.0.write()).#option_ident = match val {
+                                Some(x) => AOption(ROption::RSome(x.inner.clone())),
+                                None => AOption(ROption::RNone),
+                            }
                         )
                     }
                 )*
@@ -696,15 +734,14 @@ impl Builder for StructBuilder {
                         Vec<[<Py #option_vec_type_deref>]>
                     >> {
                         Ok(
-                            self.inner.0.read().#option_vec_ident.as_ref().and_then(|x|
-                                Some(
-                                    x.iter().map(|y| {
-                                        [<Py #option_vec_type_deref>] {
-                                            inner: y.clone()
-                                        }
-                                    }).collect()
-                                )
-                            )
+                            match self.inner.0.read().#option_vec_ident.as_ref() {
+                                AOption(ROption::RSome(x)) => Some(x.iter().map(|y| {
+                                    [<Py #option_vec_type_deref>] {
+                                        inner: y.clone()
+                                    }
+                                }).collect()),
+                                AOption(ROption::RNone) => None,
+                           }
                         )
                     }
                     #[setter]
@@ -713,11 +750,12 @@ impl Builder for StructBuilder {
                         val: Option<Vec<[<Py #option_vec_type_deref>]>>
                     ) -> pyo3::prelude::PyResult<()> {
                         Ok(
-                            (*self.inner.0.write()).#option_vec_ident = val.and_then(
-                                |x| Some(
+                            (*self.inner.0.write()).#option_vec_ident = match val {
+                                Some(x) => AOption(ROption::RSome(
                                     x.iter().map(|y| y.inner.clone()).collect()
-                                )
-                            )
+                                )),
+                                None => AOption(ROption::RNone),
+                            }
                         )
                     }
                 )*
@@ -766,6 +804,18 @@ impl Builder for StructBuilder {
                         Ok([<Py #unconstrainable_type_ref>]{
                             inner: self.inner.0.read().#unconstrainable_name_ref.clone()
                         })
+                    }
+                )*
+                #(
+                    #[getter]
+                    pub fn #unconstrainable_name_option(&self)
+                        -> pyo3::prelude::PyResult<Option<#unconstrainable_type_option>> {
+                        Ok(
+                           match self.inner.0.read().#unconstrainable_name_option.clone() {
+                              AOption(ROption::RSome(x)) => Some(x),
+                              AOption(ROption::RNone) => None,
+                           }
+                        )
                     }
                 )*
                 #(
@@ -849,6 +899,9 @@ impl Builder for StructBuilder {
                         )*
                         #(
                             #unconstrainable_name_vec: self.#unconstrainable_name_vec.clone(),
+                        )*
+                        #(
+                            #unconstrainable_name_option: self.#unconstrainable_name_option.clone(),
                         )*
                         #(
                             #unconstrainable_name_ref: self.#unconstrainable_name_ref.clone(),

@@ -8,7 +8,7 @@ use aorist_primitives::AVec;
 pub trait PythonFunctionCallTask: PythonTaskBase {
     fn get_call(&self) -> AST;
     fn get_preamble(&self) -> AOption<NativePythonPreamble> {
-        None
+        AOption(ROption::RNone)
     }
 
     fn get_native_python_statements(&self) -> AVec<AST> {

@@ -190,7 +190,7 @@ where
                         .or_insert(HashSet::new())
                         .insert(t.task_id.clone());
 
-                    if let Some(ref p) = t.params {
+                    if let AOption(ROption::RSome(ref p)) = t.params {
                         for (key, val) in p.kwargs.iter() {
                             let val_no_ancestors = val.clone_without_ancestors();
                             if let AST::StringLiteral(rw) = val {
@@ -273,7 +273,7 @@ where
                             new_deps.push(dep.clone());
                         }
                     }
-                    if let Some(ref mut p) = t.params {
+                    if let AOption(ROption::RSome(ref mut p)) = t.params {
                         for key in compressible_kwargs.keys() {
                             trace!("Compressible kwarg: {}", key);
                             p.kwargs.remove(key);
