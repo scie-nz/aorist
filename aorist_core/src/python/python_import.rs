@@ -1,3 +1,5 @@
+use aorist_primitives::AOption;
+use abi_stable::std_types::ROption;
 use crate::code::Import;
 use aorist_ast::{SimpleIdentifier, AST};
 use aorist_primitives::AString;
@@ -7,8 +9,8 @@ use std::hash::Hash;
 
 #[derive(Clone, Hash, PartialEq, Eq, PartialOrd, Ord)]
 pub enum PythonImport {
-    PythonModuleImport(AString, Option<AString>),
-    PythonFromImport(AString, AString, Option<AString>),
+    PythonModuleImport(AString, AOption<AString>),
+    PythonFromImport(AString, AString, AOption<AString>),
 }
 impl Import for PythonImport {}
 

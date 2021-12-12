@@ -1,3 +1,5 @@
+use aorist_primitives::AOption;
+use abi_stable::std_types::ROption;
 use crate::compliance::*;
 use crate::concept::{AoristRef, WrappedConcept};
 use crate::dataset::*;
@@ -8,12 +10,14 @@ use crate::user::*;
 use crate::user_group::*;
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
-use aorist_primitives::{AString, AVec, AoristConcept, ConceptEnum};
+use aorist_primitives::{AString, AVec};
 use derivative::Derivative;
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
-use std::fmt::Debug;
 use uuid::Uuid;
+use aorist_primitives::ConceptEnum;
+use std::fmt::Debug;
+use aorist_primitives::AoristConcept;
 
 #[cfg(all(feature = "sql", feature = "python"))]
 use pyo3::create_exception;
@@ -24,17 +28,17 @@ create_exception!(aorist, SQLParseError, pyo3::exceptions::PyException);
 pub struct Universe {
     pub name: AString,
     #[constrainable]
-    pub users: Option<AVec<AoristRef<User>>>,
+    pub users: AOption<AVec<AoristRef<User>>>,
     #[constrainable]
-    pub groups: Option<AVec<AoristRef<UserGroup>>>,
+    pub groups: AOption<AVec<AoristRef<UserGroup>>>,
     #[constrainable]
-    pub datasets: Option<AVec<AoristRef<DataSet>>>,
+    pub datasets: AOption<AVec<AoristRef<DataSet>>>,
     #[constrainable]
-    pub role_bindings: Option<AVec<AoristRef<RoleBinding>>>,
+    pub role_bindings: AOption<AVec<AoristRef<RoleBinding>>>,
     #[constrainable]
     pub endpoints: AoristRef<EndpointConfig>,
     #[constrainable]
-    pub compliance: Option<AoristRef<ComplianceConfig>>,
+    pub compliance: AOption<AoristRef<ComplianceConfig>>,
 }
 pub trait TUniverse {
     fn get_user_unixname_map(&self) -> HashMap<AString, AoristRef<User>>;

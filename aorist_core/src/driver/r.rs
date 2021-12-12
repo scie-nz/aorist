@@ -1,4 +1,6 @@
-#![allow(dead_code)]
+use aorist_primitives::AOption;
+use abi_stable::std_types::ROption;
+
 use crate::concept::{Concept, ConceptAncestry};
 use crate::constraint::SatisfiableOuterConstraint;
 use crate::constraint_state::ConstraintState;
@@ -35,7 +37,7 @@ where
     ancestry: RArc<ConceptAncestry<'a>>,
     dag_type: PhantomData<D>,
     endpoints: EndpointConfig,
-    constraint_explanations: HashMap<AString, (Option<AString>, Option<AString>)>,
+    constraint_explanations: HashMap<AString, (AOption<AString>, AOption<AString>)>,
     ancestors: HashMap<(Uuid, AString), AVec<AncestorRecord>>,
     topline_constraint_names: LinkedHashSet<AString>,
     _lt_phantom: PhantomData<&'b ()>,
@@ -94,7 +96,7 @@ where
     fn get_constraint_explanation(
         &self,
         constraint_name: &String,
-    ) -> (Option<AString>, Option<AString>) {
+    ) -> (AOption<AString>, AOption<AString>) {
         self.constraint_explanations
             .get(constraint_name)
             .unwrap()

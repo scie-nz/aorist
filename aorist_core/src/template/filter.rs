@@ -1,3 +1,5 @@
+use aorist_primitives::AOption;
+use abi_stable::std_types::ROption;
 use crate::attributes::*;
 use crate::concept::{AoristRef, WrappedConcept};
 use crate::predicate::*;
@@ -16,7 +18,7 @@ pub struct Filter {
     #[constrainable]
     pub attributes: AVec<AoristRef<Attribute>>,
     #[constrainable]
-    pub predicate: Option<AoristRef<Predicate>>,
+    pub predicate: AOption<AoristRef<Predicate>>,
     pub source_asset_name: AString,
 }
 impl TDatumTemplate for Filter {

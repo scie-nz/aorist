@@ -1,3 +1,5 @@
+use aorist_primitives::AOption;
+use abi_stable::std_types::ROption;
 use crate::asset::*;
 use crate::attributes::*;
 use crate::concept::{AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
@@ -26,5 +28,5 @@ derived_schema! {
       hull_type: AString,
       concavity: FloatValue,
       length_threshold: FloatValue,
-      func: Option<AString>
+      func: AOption<AString>
 }

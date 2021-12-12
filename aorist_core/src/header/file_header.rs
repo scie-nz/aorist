@@ -1,4 +1,5 @@
-#![allow(unused_parens)]
+use aorist_primitives::AOption;
+use abi_stable::std_types::ROption;
 use crate::concept::{AoristRef, WrappedConcept};
 use crate::header::*;
 use aorist_concept::{aorist, Constrainable};
@@ -20,8 +21,8 @@ impl FileHeader {
         let FileHeader::CSVHeader(x) = self;
         let read = x.0.read();
         match read.num_lines {
-            None => 1,
-            Some(n) => n,
+            AOption(ROption::RNone) => 1,
+            AOption(ROption::RSome(n)) => n,
         }
     }
 }

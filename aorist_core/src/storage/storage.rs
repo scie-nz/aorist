@@ -1,3 +1,5 @@
+use aorist_primitives::AOption;
+use abi_stable::std_types::ROption;
 use crate::concept::{AoristRef, WrappedConcept};
 use crate::encoding::*;
 use crate::storage::bigquery_storage::*;
@@ -41,17 +43,17 @@ pub enum Storage {
 }
 
 impl Storage {
-    pub fn get_encoding(&self) -> Option<AoristRef<Encoding>> {
+    pub fn get_encoding(&self) -> AOption<AoristRef<Encoding>> {
         match &self {
-            Self::RemoteStorage(x) => Some(x.0.read().encoding.clone()),
-            Self::HiveTableStorage(x) => Some(x.0.read().encoding.clone()),
-            Self::LocalFileStorage(x) => Some(x.0.read().encoding.clone()),
-            Self::GitStorage(x) => Some(x.0.read().encoding.clone()),
-            Self::InlineBlobStorage(x) => Some(x.0.read().encoding.clone()),
-            Self::S3Storage(x) => Some(x.0.read().encoding.clone()),
-            Self::SQLiteStorage(_) => None,
-            Self::PostgresStorage(_) => None,
-            Self::BigQueryStorage(_) => None,
+            Self::RemoteStorage(x) => AOption(ROption::RSome(x.0.read().encoding.clone())),
+            Self::HiveTableStorage(x) => AOption(ROption::RSome(x.0.read().encoding.clone())),
+            Self::LocalFileStorage(x) => AOption(ROption::RSome(x.0.read().encoding.clone())),
+            Self::GitStorage(x) => AOption(ROption::RSome(x.0.read().encoding.clone())),
+            Self::InlineBlobStorage(x) => AOption(ROption::RSome(x.0.read().encoding.clone())),
+            Self::S3Storage(x) => AOption(ROption::RSome(x.0.read().encoding.clone())),
+            Self::SQLiteStorage(_) => AOption(ROption::RNone),
+            Self::PostgresStorage(_) => AOption(ROption::RNone),
+            Self::BigQueryStorage(_) => AOption(ROption::RNone),
         }
     }
 }
@@ -60,7 +62,7 @@ impl Storage {
 #[pymethods]
 impl PyStorage {
     #[getter]
-    pub fn encoding(&self) -> Option<PyEncoding> {
+    pub fn encoding(&self) -> AOption<PyEncoding> {
         self.inner
             .0
             .read()

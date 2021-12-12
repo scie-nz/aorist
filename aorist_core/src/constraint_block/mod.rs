@@ -1,3 +1,5 @@
+use aorist_primitives::AOption;
+use abi_stable::std_types::ROption;
 use crate::code::{CodeBlock, CodeBlockWithDefaultConstructor};
 use crate::constraint::OuterConstraint;
 use crate::flow::{ETLFlow, FlowBuilderInput};
@@ -24,8 +26,8 @@ where
     type BuilderInputType;
 
     fn get_constraint_name(&self) -> AString;
-    fn get_constraint_title(&self) -> Option<AString>;
-    fn get_constraint_body(&self) -> Option<AString>;
+    fn get_constraint_title(&self) -> AOption<AString>;
+    fn get_constraint_body(&self) -> AOption<AString>;
     fn get_code_blocks(&self) -> &AVec<Self::C>;
     fn get_task_val_assignments(&self) -> AVec<AST>;
 
@@ -61,9 +63,9 @@ where
     fn get_identifiers(&self) -> HashMap<Uuid, AST>;
     fn new(
         constraint_name: AString,
-        title: Option<AString>,
-        body: Option<AString>,
+        title: AOption<AString>,
+        body: AOption<AString>,
         members: AVec<Self::C>,
-        tasks_dict: Option<AST>,
+        tasks_dict: AOption<AST>,
     ) -> Self;
 }

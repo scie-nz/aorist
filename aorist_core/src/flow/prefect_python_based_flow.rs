@@ -1,3 +1,5 @@
+use aorist_primitives::AOption;
+use abi_stable::std_types::ROption;
 use crate::dialect::Dialect;
 use crate::error::AoristError;
 use crate::flow::etl_flow::ETLFlow;
@@ -31,12 +33,12 @@ register_task_nodes! {
 pub struct PrefectPythonBasedFlow<U: AoristUniverse> {
     task_id: AST,
     task_val: AST,
-    command: Option<AString>,
+    command: AOption<AString>,
     args: AVec<AST>,
     kwargs: LinkedHashMap<AString, AST>,
-    dep_list: Option<AST>,
-    preamble: Option<AString>,
-    dialect: Option<Dialect>,
+    dep_list: AOption<AST>,
+    preamble: AOption<AString>,
+    dialect: AOption<Dialect>,
     flow_identifier: AST,
     endpoints: U::TEndpoints,
     _universe: PhantomData<U>,
@@ -46,7 +48,7 @@ impl<U: AoristUniverse> PythonBasedFlow<U> for PrefectPythonBasedFlow<U>
 where
     U::TEndpoints: TPrestoEndpoints,
 {
-    fn get_preamble_string(&self) -> Option<AString> {
+    fn get_preamble_string(&self) -> AOption<AString> {
         self.preamble.clone()
     }
 }
@@ -70,7 +72,7 @@ impl<U: AoristUniverse> ETLFlow<U> for PrefectPythonBasedFlow<U> {
         };
         Ok(preambles.into_iter().collect())
     }
-    fn get_dialect(&self) -> Option<Dialect> {
+    fn get_dialect(&self) -> AOption<Dialect> {
         self.dialect.clone()
     }
     fn get_task_val(&self) -> AST {
@@ -94,12 +96,12 @@ impl<U: AoristUniverse> ETLFlow<U> for PrefectPythonBasedFlow<U> {
     fn new(
         task_id: AST,
         task_val: AST,
-        call: Option<AString>,
+        call: AOption<AString>,
         args: AVec<AST>,
         kwargs: LinkedHashMap<AString, AST>,
-        dep_list: Option<AST>,
-        preamble: Option<AString>,
-        dialect: Option<Dialect>,
+        dep_list: AOption<AST>,
+        preamble: AOption<AString>,
+        dialect: AOption<Dialect>,
         endpoints: U::TEndpoints,
     ) -> Self {
         Self {
@@ -273,7 +275,7 @@ impl<U: AoristUniverse> PythonBasedFlowBuilder<U> for PrefectFlowBuilder<U> {
     fn augment_statements(
         &self,
         statements: AVec<PythonFlowBuilderInput>,
-        _flow_name: Option<AString>,
+        _flow_name: AOption<AString>,
     ) -> AVec<PythonFlowBuilderInput> {
         // TODO: add flow definition
         statements

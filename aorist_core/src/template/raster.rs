@@ -1,4 +1,6 @@
-#![allow(non_snake_case)]
+use aorist_primitives::AOption;
+use abi_stable::std_types::ROption;
+
 use crate::attributes::*;
 use crate::concept::{AoristRef, WrappedConcept};
 use crate::template::datum_template::TDatumTemplate;
@@ -14,8 +16,8 @@ use uuid::Uuid;
 pub struct Raster {
     pub name: AString,
     pub dimensions: usize,
-    pub epsg: Option<usize>,
-    pub channels: Option<usize>,
+    pub epsg: AOption<usize>,
+    pub channels: AOption<usize>,
 }
 impl TDatumTemplate for Raster {
     fn get_attributes(&self) -> AVec<AoristRef<Attribute>> {

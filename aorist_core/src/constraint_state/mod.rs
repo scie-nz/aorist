@@ -1,3 +1,5 @@
+use aorist_primitives::AOption;
+use abi_stable::std_types::ROption;
 use crate::concept::Ancestry;
 use crate::constraint::OuterConstraint;
 use crate::dialect::Dialect;
@@ -16,8 +18,8 @@ use tracing::{debug, level_enabled, trace, Level};
 use uuid::Uuid;
 
 pub struct ConstraintState<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry = T::TAncestry>> {
-    dialect: Option<Dialect>,
-    pub key: Option<AString>,
+    dialect: AOption<Dialect>,
+    pub key: AOption<AString>,
     name: AString,
     pub satisfied: bool,
     pub satisfied_dependencies: AVec<RArc<RRwLock<ConstraintState<'a, T, P>>>>,
@@ -27,10 +29,10 @@ pub struct ConstraintState<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestr
     // these are concept ancestors
     // TODO: change this to AVec<Concept<'a>>
     ancestors: AVec<AncestorRecord>,
-    preamble: Option<AString>,
-    call: Option<AString>,
-    params: Option<ParameterTuple>,
-    task_name: Option<AString>,
+    preamble: AOption<AString>,
+    call: AOption<AString>,
+    params: AOption<ParameterTuple>,
+    task_name: AOption<AString>,
     context: Context,
 }
 impl<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry = T::TAncestry>>
@@ -61,13 +63,13 @@ impl<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry = T::TAncestry>>
     }
     pub fn get_task_call(&self) -> Result<AST> {
         match self.dialect {
-            Some(Dialect::Python(_)) => Ok(AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
+            AOption(ROption::RSome(Dialect::Python(_))) => Ok(AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
                 self.get_call().unwrap(),
             ))),
-            Some(Dialect::Bash(_)) | Some(Dialect::Presto(_)) => Ok(AST::SimpleIdentifier(
+            AOption(ROption::RSome(Dialect::Bash(_))) | AOption(ROption::RSome(Dialect::Presto(_))) => Ok(AST::SimpleIdentifier(
                 SimpleIdentifier::new_wrapped("ShellTask".into()),
             )),
-            None => Ok(AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
+            AOption(ROption::RNone) => Ok(AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
                 "ConstantTask".into(),
             ))),
             _ => bail!("Dialect not supported for task call: {:?}", self.dialect),
@@ -75,11 +77,11 @@ impl<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry = T::TAncestry>>
     }
     pub fn get_args_vec(&self) -> Result<AVec<AST>> {
         match (&self.params, &self.dialect) {
-            (Some(ref p), Some(Dialect::Python(_))) => Ok(p.get_args()),
-            (None, Some(Dialect::Python(_))) => Ok(AVec::new()),
-            (_, Some(Dialect::Presto(_))) => Ok(AVec::new()),
-            (_, Some(Dialect::Bash(_))) => Ok(AVec::new()),
-            (_, None) => Ok(vec![AST::StringLiteral(StringLiteral::new_wrapped(
+            (AOption(ROption::RSome(ref p)), AOption(ROption::RSome(Dialect::Python(_)))) => Ok(p.get_args()),
+            (AOption(ROption::RNone), AOption(ROption::RSome(Dialect::Python(_)))) => Ok(AVec::new()),
+            (_, AOption(ROption::RSome(Dialect::Presto(_)))) => Ok(AVec::new()),
+            (_, AOption(ROption::RSome(Dialect::Bash(_)))) => Ok(AVec::new()),
+            (_, AOption(ROption::RNone)) => Ok(vec![AST::StringLiteral(StringLiteral::new_wrapped(
                 self.constraint.read().get_name().clone(),
                 false,
             ))]
@@ -90,43 +92,43 @@ impl<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry = T::TAncestry>>
     }
     pub fn get_kwargs_map(&self) -> Result<LinkedHashMap<AString, AST>> {
         match &self.dialect {
-            Some(Dialect::Python(_)) => match self.params {
-                Some(ref p) => Ok(p.get_kwargs()),
-                None => Ok(LinkedHashMap::new()),
+            AOption(ROption::RSome(Dialect::Python(_))) => match self.params {
+                AOption(ROption::RSome(ref p)) => Ok(p.get_kwargs()),
+                AOption(ROption::RNone) => Ok(LinkedHashMap::new()),
             },
-            Some(Dialect::Presto(_)) => {
+            AOption(ROption::RSome(Dialect::Presto(_))) => {
                 let raw_command = format!("presto -e '{}'", self.get_call().unwrap().clone());
                 let format_string = StringLiteral::new_wrapped(raw_command.as_str().into(), true);
                 let command = match self.params {
-                    Some(ref p) => AST::Formatted(Formatted::new_wrapped(
+                    AOption(ROption::RSome(ref p)) => AST::Formatted(Formatted::new_wrapped(
                         AST::StringLiteral(format_string),
                         p.get_kwargs(),
                     )),
-                    None => AST::StringLiteral(format_string),
+                    AOption(ROption::RNone) => AST::StringLiteral(format_string),
                 };
                 let mut keywords: LinkedHashMap<AString, AST> = LinkedHashMap::new();
                 keywords.insert("command".into(), command);
                 Ok(keywords)
             }
-            Some(Dialect::Bash(_)) => {
+            AOption(ROption::RSome(Dialect::Bash(_))) => {
                 let format_string =
                     AST::StringLiteral(StringLiteral::new_wrapped(self.get_call().unwrap(), false));
                 let command = match self.params {
-                    Some(ref p) => {
+                    AOption(ROption::RSome(ref p)) => {
                         AST::Formatted(Formatted::new_wrapped(format_string, p.get_kwargs()))
                     }
-                    None => format_string,
+                    AOption(ROption::RNone) => format_string,
                 };
                 let mut keywords: LinkedHashMap<AString, AST> = LinkedHashMap::new();
                 keywords.insert("command".into(), command);
                 Ok(keywords)
             }
-            None => Ok(LinkedHashMap::new()),
+            AOption(ROption::RNone) => Ok(LinkedHashMap::new()),
             _ => bail!("Dialect not supported for kwargs map: {:?}", self.dialect),
         }
     }
     pub fn set_task_name(&mut self, name: AString) {
-        self.task_name = Some(name)
+        self.task_name = AOption(ROption::RSome(name))
     }
     pub fn get_task_name(&self) -> AString {
         self.task_name.as_ref().unwrap().clone()
@@ -157,19 +159,19 @@ impl<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry = T::TAncestry>>
     pub fn get_ancestors(&self) -> AVec<AncestorRecord> {
         self.ancestors.clone()
     }
-    pub fn get_preamble(&self) -> Option<AString> {
+    pub fn get_preamble(&self) -> AOption<AString> {
         self.preamble.clone()
     }
-    pub fn get_dialect(&self) -> Option<Dialect> {
+    pub fn get_dialect(&self) -> AOption<Dialect> {
         self.dialect.clone()
     }
-    pub fn get_params(&self) -> Option<ParameterTuple> {
+    pub fn get_params(&self) -> AOption<ParameterTuple> {
         self.params.clone()
     }
-    pub fn get_call(&self) -> Option<AString> {
+    pub fn get_call(&self) -> AOption<AString> {
         self.call.clone()
     }
-    pub fn get_key(&self) -> Option<AString> {
+    pub fn get_key(&self) -> AOption<AString> {
         self.key.clone()
     }
     pub fn find_best_program<'b>(
@@ -199,10 +201,10 @@ impl<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry = T::TAncestry>>
                 &mut self.context,
                 self.constraint.clone(),
             );
-            self.preamble = Some(preamble);
-            self.call = Some(call);
-            self.params = Some(params);
-            self.dialect = Some(dialect);
+            self.preamble = AOption(ROption::RSome(preamble));
+            self.call = AOption(ROption::RSome(call));
+            self.params = AOption(ROption::RSome(params));
+            self.dialect = AOption(ROption::RSome(dialect));
         } else {
             panic!(
                 "Could not find any program for constraint {}.",
@@ -210,7 +212,7 @@ impl<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry = T::TAncestry>>
             );
         }
     }
-    pub fn get_dedup_key(&self) -> (AString, AString, ParameterTuple, Option<Dialect>) {
+    pub fn get_dedup_key(&self) -> (AString, AString, ParameterTuple, AOption<Dialect>) {
         (
             self.preamble.as_ref().unwrap().clone(),
             self.call.as_ref().unwrap().clone(),
@@ -260,8 +262,8 @@ impl<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry = T::TAncestry>>
             .unwrap()
             .clone();
         Ok(Self {
-            dialect: None,
-            key: None,
+            dialect: AOption(ROption::RNone),
+            key: AOption(ROption::RNone),
             name: x.get_name().clone(),
             satisfied: false,
             unsatisfied_dependencies: dependencies,
@@ -269,19 +271,19 @@ impl<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry = T::TAncestry>>
             constraint,
             root,
             ancestors: ancestors.clone(),
-            preamble: None,
-            call: None,
-            params: None,
-            task_name: None,
+            preamble: AOption(ROption::RNone),
+            call: AOption(ROption::RNone),
+            params: AOption(ROption::RNone),
+            task_name: AOption(ROption::RNone),
             // will accumulate dependencies' contexts as they are satisfied
             context: Context::new(),
         })
     }
     pub fn compute_task_key(&mut self) -> AString {
-        self.key = Some(match self.root.get_tag() {
-            None => AncestorRecord::compute_relative_path(&self.ancestors),
-            Some(t) => t,
-        });
+        self.key = AOption(ROption::RSome(match self.root.get_tag() {
+            AOption(ROption::RNone) => AncestorRecord::compute_relative_path(&self.ancestors),
+            AOption(ROption::RSome(t)) => t,
+        }));
         self.key.as_ref().unwrap().clone()
     }
     pub fn get_fully_qualified_task_name(&self) -> AString {

@@ -1,3 +1,5 @@
+use aorist_primitives::AOption;
+use abi_stable::std_types::ROption;
 
 use crate::flow::flow_builder::{FlowBuilderBase, FlowBuilderMaterialize};
 use crate::flow::flow_builder_input::FlowBuilderInput;
@@ -20,7 +22,7 @@ pub struct RBasedFlowBuilder {}
 impl RBasedFlowBuilder {
     fn build_flow(
         &self,
-        statements: AVec<(AString, Option<AString>, Option<AString>, AVec<AString>)>,
+        statements: AVec<(AString, AOption<AString>, AOption<AString>, AVec<AString>)>,
     ) -> AVec<(AString, AVec<AString>)> {
         statements
             .into_iter()
@@ -47,7 +49,7 @@ impl RBasedFlowBuilder {
             .collect()
     }
 
-    fn build_file(&self, sources: AVec<(Option<AString>, AString)>) -> String {
+    fn build_file(&self, sources: AVec<(AOption<AString>, AString)>) -> String {
         sources
             .into_iter()
             .map(|(maybe_comment, block)| match maybe_comment {
@@ -98,7 +100,7 @@ impl FlowBuilderMaterialize for RBasedFlowBuilder {
             })
             .collect();
 
-        let statements: AVec<(AString, Option<AString>, Option<AString>, AVec<AST>)> =
+        let statements: AVec<(AString, AOption<AString>, AOption<AString>, AVec<AST>)> =
             statements_and_preambles
                 .into_iter()
                 .map(|x| {
@@ -155,14 +157,14 @@ impl FlowBuilderMaterialize for RBasedFlowBuilder {
 
         let flow = self.build_flow(statements_ast);
 
-        let content: AVec<(Option<AString>, AVec<_>)> =
+        let content: AVec<(AOption<AString>, AVec<_>)> =
             vec![(Some("RImports".into()), imports_ast)]
                 .into_iter()
                 .chain(preambles.into_iter().map(|x| (None, vec![x.get_body()])))
                 .chain(flow.into_iter().map(|(x, y)| (Some(x), y)))
                 .collect();
 
-        let mut sources: AVec<(Option<AString>, AString)> = AVec::new();
+        let mut sources: AVec<(AOption<AString>, AString)> = AVec::new();
 
         // This is needed since astor will occasionally forget to add a newline
         for (comment, block) in content {

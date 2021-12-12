@@ -1,3 +1,5 @@
+use aorist_primitives::AOption;
+use abi_stable::std_types::ROption;
 use crate::code::Preamble;
 use crate::constraint::OuterConstraint;
 use crate::constraint_state::ConstraintState;
@@ -28,17 +30,17 @@ where
     type E;
 
     fn construct(
-        tasks_dict: Option<AST>,
+        tasks_dict: AOption<AST>,
         tasks: AVec<Self::E>,
         task_identifiers: HashMap<Uuid, AST>,
-        params: HashMap<AString, Option<ParameterTuple>>,
+        params: HashMap<AString, AOption<ParameterTuple>>,
     ) -> Self;
 
     /// assigns task values (Python variables in which they will be stored)
     /// to each member of the code block.
     fn compute_task_vals(
         constraints: AVec<RArc<RRwLock<ConstraintState<'a, C, P>>>>,
-        tasks_dict: &Option<AST>,
+        tasks_dict: &AOption<AST>,
     ) -> AVec<(AST, RArc<RRwLock<ConstraintState<'a, C, P>>>)> {
         let mut out = AVec::new();
         for rw in constraints.into_iter() {
@@ -47,8 +49,8 @@ where
             drop(read);
             // TODO: magic number
             let task_val = match tasks_dict {
-                None => AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(name)),
-                Some(ref dict) => {
+                AOption(ROption::RNone) => AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(name)),
+                AOption(ROption::RSome(ref dict)) => {
                     /*let shorter_name =
                     name.replace(&format!("{}__", constraint_name).to_string(), "");*/
 
@@ -68,21 +70,21 @@ where
         endpoints: U::TEndpoints,
     ) -> (AVec<AST>, LinkedHashSet<Self::P>, BTreeSet<T::ImportType>);
 
-    fn get_tasks_dict(&self) -> Option<AST>;
+    fn get_tasks_dict(&self) -> AOption<AST>;
     fn get_identifiers(&self) -> HashMap<Uuid, AST>;
-    fn get_params(&self) -> HashMap<AString, Option<ParameterTuple>>;
+    fn get_params(&self) -> HashMap<AString, AOption<ParameterTuple>>;
 
     fn create_standalone_tasks(
         members: AVec<RArc<RRwLock<ConstraintState<'a, C, P>>>>,
-        tasks_dict: Option<AST>,
+        tasks_dict: AOption<AST>,
         identifiers: &HashMap<Uuid, AST>,
     ) -> Result<(
         AVec<<Self::E as ETLTask<T, U>>::S>,
         HashMap<Uuid, AST>,
-        HashMap<AString, Option<ParameterTuple>>,
+        HashMap<AString, AOption<ParameterTuple>>,
     )> {
         let mut task_identifiers: HashMap<Uuid, AST> = HashMap::new();
-        let mut params: HashMap<AString, Option<ParameterTuple>> = HashMap::new();
+        let mut params: HashMap<AString, AOption<ParameterTuple>> = HashMap::new();
         let mut tasks = AVec::new();
         let mut asts: HashSet<AST> = HashSet::new();
         for (ast, state) in Self::compute_task_vals(members, &tasks_dict) {
@@ -130,7 +132,7 @@ pub trait CodeBlockWithDefaultConstructor<
     fn new(
         members: AVec<RArc<RRwLock<ConstraintState<'a, C, P>>>>,
         constraint_name: AString,
-        tasks_dict: Option<AST>,
+        tasks_dict: AOption<AST>,
         identifiers: &HashMap<Uuid, AST>,
         render_dependencies: bool,
     ) -> Result<Self>;
@@ -196,7 +198,7 @@ where
     fn new(
         members: AVec<RArc<RRwLock<ConstraintState<'a, CType, P>>>>,
         constraint_name: AString,
-        tasks_dict: Option<AST>,
+        tasks_dict: AOption<AST>,
         identifiers: &HashMap<Uuid, AST>,
         render_dependencies: bool,
     ) -> Result<Self> {

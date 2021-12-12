@@ -1,3 +1,5 @@
+use aorist_primitives::AOption;
+use abi_stable::std_types::ROption;
 use crate::flow::{ETLFlow, UncompressiblePart};
 use crate::parameter_tuple::ParameterTuple;
 use aorist_ast::{Dict, List, StringLiteral, AST};
@@ -17,7 +19,7 @@ where
     // dict value
     pub dict: AString,
     // params
-    pub params: Option<ParameterTuple>,
+    pub params: AOption<ParameterTuple>,
     // dep list
     pub deps: AVec<AST>,
     singleton_type: PhantomData<T>,
@@ -31,7 +33,7 @@ where
     fn new(
         task_id: AString,
         dict: AString,
-        params: Option<ParameterTuple>,
+        params: AOption<ParameterTuple>,
         deps: AVec<AST>,
     ) -> Self {
         Self {

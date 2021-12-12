@@ -1,3 +1,5 @@
+use aorist_primitives::AOption;
+use abi_stable::std_types::ROption;
 use crate::concept::{AoristRef, WrappedConcept};
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
@@ -11,5 +13,5 @@ use uuid::Uuid;
 pub struct S3Location {
     pub bucket: AString,
     pub key: AString,
-    pub requester_pays: Option<bool>,
+    pub requester_pays: AOption<bool>,
 }

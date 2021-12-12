@@ -1,3 +1,5 @@
+use aorist_primitives::AOption;
+use abi_stable::std_types::ROption;
 use crate::dialect::Dialect;
 use crate::flow::etl_flow::ETLFlow;
 use crate::flow::flow_builder::FlowBuilderBase;
@@ -21,12 +23,12 @@ where
 {
     task_id: AST,
     task_val: AST,
-    command: Option<AString>,
+    command: AOption<AString>,
     args: AVec<AST>,
     kwargs: LinkedHashMap<AString, AST>,
-    dep_list: Option<AST>,
-    preamble: Option<AString>,
-    dialect: Option<Dialect>,
+    dep_list: AOption<AST>,
+    preamble: AOption<AString>,
+    dialect: AOption<Dialect>,
     endpoints: U::TEndpoints,
     node: PythonTask,
     _universe: PhantomData<U>,
@@ -35,7 +37,7 @@ impl<U: AoristUniverse> PythonBasedFlow<U> for NativePythonBasedFlow<U>
 where
     U::TEndpoints: TPrestoEndpoints,
 {
-    fn get_preamble_string(&self) -> Option<AString> {
+    fn get_preamble_string(&self) -> AOption<AString> {
         self.preamble.clone()
     }
 }
@@ -59,7 +61,7 @@ where
     fn get_imports(&self) -> AVec<PythonImport> {
         self.node.get_imports()
     }
-    fn get_dialect(&self) -> Option<Dialect> {
+    fn get_dialect(&self) -> AOption<Dialect> {
         self.dialect.clone()
     }
     fn get_task_val(&self) -> AST {
@@ -71,12 +73,12 @@ where
     fn new(
         task_id: AST,
         task_val: AST,
-        call: Option<AString>,
+        call: AOption<AString>,
         args: AVec<AST>,
         kwargs: LinkedHashMap<AString, AST>,
-        dep_list: Option<AST>,
-        preamble: Option<AString>,
-        dialect: Option<Dialect>,
+        dep_list: AOption<AST>,
+        preamble: AOption<AString>,
+        dialect: AOption<Dialect>,
         endpoints: U::TEndpoints,
     ) -> Self {
         let command = match &dialect {

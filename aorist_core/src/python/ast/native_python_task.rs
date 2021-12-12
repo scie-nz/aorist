@@ -1,3 +1,5 @@
+use aorist_primitives::AOption;
+use abi_stable::std_types::ROption;
 use crate::python::ast::{AirflowTaskBase, PythonFunctionCallTask, PythonTaskBase};
 use crate::python::PythonImport;
 use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
@@ -16,7 +18,7 @@ define_task_node!(
     call: AST,
     imports: AVec<PythonImport>,
     task_val: AST,
-    dep_list: Option<AST>,
+    dep_list: AOption<AST>,
 );
 impl PythonTaskBase for NativePythonTask {
     fn get_task_val(&self) -> AST {
@@ -29,7 +31,7 @@ impl PythonFunctionCallTask for NativePythonTask {
     }
 }
 impl AirflowTaskBase for NativePythonTask {
-    fn get_dependencies(&self) -> Option<AST> {
+    fn get_dependencies(&self) -> AOption<AST> {
         self.dep_list.clone()
     }
 }

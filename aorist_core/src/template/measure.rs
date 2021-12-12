@@ -1,4 +1,6 @@
-#![allow(dead_code)]
+use aorist_primitives::AOption;
+use abi_stable::std_types::ROption;
+
 use crate::attributes::*;
 use crate::concept::{AoristRef, WrappedConcept};
 use crate::schema::TabularSchema;
@@ -21,7 +23,7 @@ use uuid::Uuid;
 #[aorist]
 pub struct IntegerMeasure {
     pub name: AString,
-    pub comment: Option<AString>,
+    pub comment: AOption<AString>,
     #[constrainable]
     pub attributes: AVec<AoristRef<Attribute>>,
     pub source_asset_name: AString,
@@ -46,15 +48,15 @@ impl IntegerMeasure {
                 comment: self.comment.clone(),
                 nullable: false,
             })),
-            tag: None,
-            uuid: None,
+            tag: AOption(ROption::RNone),
+            uuid: AOption(ROption::RNone),
         })))
     }
 }
 #[aorist]
 pub struct TrainedFloatMeasure {
     pub name: AString,
-    pub comment: Option<AString>,
+    pub comment: AOption<AString>,
     #[constrainable]
     pub features: AVec<AoristRef<Attribute>>,
     #[constrainable]
@@ -71,8 +73,8 @@ impl TDatumTemplate for AoristRef<TrainedFloatMeasure> {
             inner: AttributeOrTransform::Attribute(AttributeEnum::Regressor(
                 self.get_regressor_as_attribute().clone(),
             )),
-            tag: None,
-            uuid: None,
+            tag: AOption(ROption::RNone),
+            uuid: AOption(ROption::RNone),
         }))));
 
         attr
@@ -91,8 +93,8 @@ impl AoristRef<TrainedFloatMeasure> {
                     nullable: false,
                 },
             )),
-            tag: None,
-            uuid: None,
+            tag: AOption(ROption::RNone),
+            uuid: AOption(ROption::RNone),
         })))
     }
     pub fn get_training_objective(&self) -> AoristRef<Attribute> {
@@ -101,7 +103,7 @@ impl AoristRef<TrainedFloatMeasure> {
     pub fn get_regressor_as_attribute(&self) -> Regressor {
         Regressor {
             name: "model".into(),
-            comment: Some("A serialized version of the model".into()),
+            comment: AOption(ROption::RSome("A serialized version of the model".into())),
             nullable: false,
         }
     }
@@ -117,8 +119,8 @@ impl AoristRef<TrainedFloatMeasure> {
                 .iter()
                 .map(|x| x.0.read().inner.get_name().clone())
                 .collect(),
-            tag: None,
-            uuid: None,
+            tag: AOption(ROption::RNone),
+            uuid: AOption(ROption::RNone),
         }
     }
 }
@@ -126,7 +128,7 @@ impl AoristRef<TrainedFloatMeasure> {
 #[aorist]
 pub struct PredictionsFromTrainedFloatMeasure {
     pub name: AString,
-    pub comment: Option<AString>,
+    pub comment: AOption<AString>,
     #[constrainable]
     pub features: AVec<AoristRef<Attribute>>,
     #[constrainable]

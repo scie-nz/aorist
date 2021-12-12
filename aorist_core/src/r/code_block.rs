@@ -1,3 +1,5 @@
+use aorist_primitives::AOption;
+use abi_stable::std_types::ROption;
 use aorist_primitives::AVec;
 use crate::code::{CodeBlock, CodeBlockWithForLoopCompression};
 use crate::constraint::SatisfiableOuterConstraint;
@@ -22,10 +24,10 @@ where
     C: OuterConstraint<'a, 'b> + SatisfiableOuterConstraint<'a, 'b>,
     'a: 'b,
 {
-    tasks_dict: Option<AST>,
+    tasks_dict: AOption<AST>,
     task_identifiers: HashMap<Uuid, AST>,
     tasks: AVec<RBasedTask<T>>,
-    params: HashMap<AString, Option<ParameterTuple>>,
+    params: HashMap<AString, AOption<ParameterTuple>>,
     _lt: PhantomData<&'a ()>,
     _lt2: PhantomData<&'b ()>,
     _constraint: PhantomData<C>,
@@ -40,10 +42,10 @@ where
     type E = RBasedTask<T>;
 
     fn construct(
-        tasks_dict: Option<AST>,
+        tasks_dict: AOption<AST>,
         tasks: AVec<Self::E>,
         task_identifiers: HashMap<Uuid, AST>,
-        params: HashMap<AString, Option<ParameterTuple>>,
+        params: HashMap<AString, AOption<ParameterTuple>>,
     ) -> Self {
         Self {
             tasks_dict,
@@ -83,7 +85,7 @@ where
             .collect::<AVec<_>>();
         (statements, preambles, imports)
     }
-    fn get_tasks_dict(&self) -> Option<AST> {
+    fn get_tasks_dict(&self) -> AOption<AST> {
         self.tasks_dict.clone()
     }
 
@@ -91,7 +93,7 @@ where
         self.task_identifiers.clone()
     }
 
-    fn get_params(&self) -> HashMap<AString, Option<ParameterTuple>> {
+    fn get_params(&self) -> HashMap<AString, AOption<ParameterTuple>> {
         self.params.clone()
     }
 }

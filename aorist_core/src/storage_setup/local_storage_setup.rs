@@ -1,3 +1,5 @@
+use aorist_primitives::AOption;
+use abi_stable::std_types::ROption;
 use crate::concept::{AoristRef, WrappedConcept};
 use crate::storage::*;
 use crate::storage_setup::two_tier_storage_setup::*;
@@ -22,7 +24,7 @@ impl LocalStorageSetup {
             persistent,
             tmp_dir: self.tmp_dir.clone(),
             tag: self.tag.clone(),
-            uuid: None,
+            uuid: AOption(ROption::RNone),
         }
     }
 }

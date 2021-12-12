@@ -1,3 +1,5 @@
+use aorist_primitives::AOption;
+use abi_stable::std_types::ROption;
 use crate::python::PythonImport;
 use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 use abi_stable::std_types::RArc;
@@ -40,7 +42,7 @@ register_task_nodes! {
 }
 
 impl PythonTask {
-    pub fn get_preamble(&self) -> Option<PythonPreamble> {
+    pub fn get_preamble(&self) -> AOption<PythonPreamble> {
         let inner = match &self {
             PythonTask::BashPythonTask(_) => None,
             PythonTask::RPythonTask(x) => x.read().get_preamble(),
@@ -53,7 +55,7 @@ impl PythonTask {
         }
         return None;
     }
-    pub fn get_call(&self) -> Option<AST> {
+    pub fn get_call(&self) -> AOption<AST> {
         match &self {
             PythonTask::BashPythonTask(_) => None,
             PythonTask::RPythonTask(x) => Some(x.read().get_call()),

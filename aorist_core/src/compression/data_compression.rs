@@ -1,3 +1,5 @@
+use aorist_primitives::AOption;
+use abi_stable::std_types::ROption;
 use crate::compression::bzip2_compression::*;
 use crate::compression::gzip_compression::*;
 use crate::compression::laz_compression::*;

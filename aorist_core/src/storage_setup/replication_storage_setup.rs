@@ -1,3 +1,5 @@
+use aorist_primitives::AOption;
+use abi_stable::std_types::ROption;
 use crate::concept::{AoristRef, WrappedConcept};
 use crate::encoding::*;
 use crate::storage::*;
@@ -35,7 +37,7 @@ impl PyReplicationStorageSetup {
 impl ReplicationStorageSetup {
     pub fn get_download_extension(&self) -> AString {
         match self.source.0.read().get_encoding() {
-            Some(source_encoding_read) => {
+            AOption(ROption::RSome(source_encoding_read)) => {
                 let source_encoding = source_encoding_read.0.read();
                 return source_encoding.get_default_file_extension();
                 /*if source_encoding.is_same_variant_in_enum_as(&*self.tmp_encoding.0.read())
@@ -45,7 +47,7 @@ impl ReplicationStorageSetup {
                     return "downloaded".into();
                 }*/
             }
-            None => panic!("get_download_extension called against source storage without encoding"),
+            AOption(ROption::RNone) => panic!("get_download_extension called against source storage without encoding"),
         }
     }
 }

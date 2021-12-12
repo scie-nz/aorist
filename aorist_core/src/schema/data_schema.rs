@@ -1,4 +1,6 @@
-#![allow(non_snake_case)]
+use aorist_primitives::AOption;
+use abi_stable::std_types::ROption;
+
 use crate::attributes::*;
 use crate::concept::{AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
 use crate::error::AoristError;

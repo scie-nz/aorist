@@ -1,4 +1,6 @@
 #![allow(dead_code)]
+use aorist_primitives::AOption;
+use abi_stable::std_types::ROption;
 use crate::access_policy::*;
 use crate::asset::*;
 use crate::concept::{AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
@@ -8,6 +10,7 @@ use crate::encoding::*;
 use crate::storage::*;
 use crate::storage_setup::*;
 use crate::template::*;
+#[cfg(feature = "python")]
 use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 #[cfg(feature = "python")]
 use abi_stable::std_types::RArc;

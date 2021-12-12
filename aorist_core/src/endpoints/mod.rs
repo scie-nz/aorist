@@ -1,3 +1,5 @@
+use aorist_primitives::AOption;
+use abi_stable::std_types::ROption;
 use crate::concept::{AoristRef, WrappedConcept};
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
@@ -13,18 +15,18 @@ use uuid::Uuid;
 
 #[aorist]
 pub struct EndpointConfig {
-    pub presto: Option<PrestoConfig>,
-    pub alluxio: Option<AlluxioConfig>,
-    pub ranger: Option<RangerConfig>,
-    pub gitea: Option<GiteaConfig>,
-    pub minio: Option<MinioConfig>,
-    pub postgres: Option<PostgresConfig>,
-    pub gcp: Option<GCPConfig>,
-    pub aws: Option<AWSConfig>,
-    pub pdal: Option<PDALConfig>,
-    pub linz: Option<LINZAPIConfig>,
-    pub dask: Option<DaskConfig>,
-    pub gdal: Option<GDALConfig>,
+    pub presto: AOption<PrestoConfig>,
+    pub alluxio: AOption<AlluxioConfig>,
+    pub ranger: AOption<RangerConfig>,
+    pub gitea: AOption<GiteaConfig>,
+    pub minio: AOption<MinioConfig>,
+    pub postgres: AOption<PostgresConfig>,
+    pub gcp: AOption<GCPConfig>,
+    pub aws: AOption<AWSConfig>,
+    pub pdal: AOption<PDALConfig>,
+    pub linz: AOption<LINZAPIConfig>,
+    pub dask: AOption<DaskConfig>,
+    pub gdal: AOption<GDALConfig>,
 }
 
 impl TPrestoEndpoints for EndpointConfig {

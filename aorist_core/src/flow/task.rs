@@ -1,3 +1,5 @@
+use aorist_primitives::AOption;
+use abi_stable::std_types::ROption;
 use crate::dialect::Dialect;
 use crate::flow::etl_flow::ETLFlow;
 use crate::parameter_tuple::{ParameterTuple, ParameterTupleDedupKey};
@@ -19,26 +21,26 @@ where
     fn new(
         task_id: AString,
         task_val: AST,
-        call: Option<AString>,
-        params: Option<ParameterTuple>,
+        call: AOption<AString>,
+        params: AOption<ParameterTuple>,
         dependencies: AVec<AST>,
-        preamble: Option<AString>,
-        dialect: Option<Dialect>,
+        preamble: AOption<AString>,
+        dialect: AOption<Dialect>,
     ) -> Self;
 }
 pub trait CompressionKey: Clone + Hash + PartialEq + Eq {
     fn new(
         dict_name: AST,
-        function_call: Option<AString>,
-        dedup_key: Option<ParameterTupleDedupKey>,
-        preamble: Option<AString>,
-        dialect: Option<Dialect>,
+        function_call: AOption<AString>,
+        dedup_key: AOption<ParameterTupleDedupKey>,
+        preamble: AOption<AString>,
+        dialect: AOption<Dialect>,
     ) -> Self;
     fn get_dict_name(&self) -> AST;
-    fn get_dedup_key(&self) -> Option<ParameterTupleDedupKey>;
-    fn get_call(&self) -> Option<AString>;
-    fn get_preamble(&self) -> Option<AString>;
-    fn get_dialect(&self) -> Option<Dialect>;
+    fn get_dedup_key(&self) -> AOption<ParameterTupleDedupKey>;
+    fn get_call(&self) -> AOption<AString>;
+    fn get_preamble(&self) -> AOption<AString>;
+    fn get_dialect(&self) -> AOption<Dialect>;
 }
 
 pub trait CompressibleTask
@@ -50,8 +52,8 @@ where
     fn get_compression_key(&self) -> Result<Self::KeyType, AString>;
     fn get_left_of_task_val(&self) -> Result<AST, AString>;
     fn get_right_of_task_val(&self) -> Result<AString, AString>;
-    fn get_preamble(&self) -> Option<AString>;
-    fn get_dialect(&self) -> Option<Dialect>;
+    fn get_preamble(&self) -> AOption<AString>;
+    fn get_dialect(&self) -> AOption<Dialect>;
     fn get_task_val(&self) -> AST;
 }
 pub trait ETLTask<T, U: AoristUniverse>: TaskBase<T, U>
@@ -79,7 +81,7 @@ where
     fn new(
         task_id: AString,
         dict: AString,
-        params: Option<ParameterTuple>,
+        params: AOption<ParameterTuple>,
         deps: AVec<AST>,
     ) -> Self;
     fn as_dict(&self, insert_deps: bool, dependencies_as_list: bool, insert_task_name: bool)

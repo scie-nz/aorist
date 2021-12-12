@@ -1,3 +1,5 @@
+use aorist_primitives::AOption;
+use abi_stable::std_types::ROption;
 use crate::concept::{AoristRef, WrappedConcept};
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
@@ -15,7 +17,7 @@ pub struct CompressedFileCollectionLayout {}
 
 #[aorist]
 pub struct DirectoryLayout {
-    max_num_files: Option<usize>,
+    max_num_files: AOption<usize>,
 }
 
 #[aorist]

@@ -1,10 +1,10 @@
 pub use crate::universe::*;
 use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
-use abi_stable::std_types::RArc;
+use abi_stable::std_types::{RArc, ROption};
 use abi_stable::StableAbi;
 pub use aorist_primitives::{
     register_concept, AString, AVec, Ancestry, AoristConcept, AoristUniverse, ConceptEnum,
-    TConceptEnum,
+    TConceptEnum, AOption,
 };
 #[cfg(feature = "python")]
 use pyo3::prelude::*;

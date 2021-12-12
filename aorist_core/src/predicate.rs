@@ -1,3 +1,5 @@
+use aorist_primitives::AOption;
+use abi_stable::std_types::ROption;
 #[cfg(feature = "sql")]
 use crate::attributes::AttrMap;
 use crate::attributes::AttributeOrValue;

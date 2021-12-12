@@ -1,3 +1,5 @@
+use aorist_primitives::AOption;
+use abi_stable::std_types::ROption;
 use crate::dialect::Dialect;
 use crate::flow::{
     CompressibleTask, CompressionKey, ETLFlow, StandaloneTask, TaskBase, UncompressiblePart,
@@ -23,17 +25,17 @@ where
     task_id: AString,
     /// function called to create task (has different meaning depending on
     /// the render we use.
-    call: Option<AString>,
+    call: AOption<AString>,
     /// arguments passed to function call
-    params: Option<ParameterTuple>,
+    params: AOption<ParameterTuple>,
     /// task_vals (or references to them) of other tasks this one
     /// depends on.
     dependencies: AVec<AST>,
     /// Python preamble used by this task call
-    preamble: Option<AString>,
+    preamble: AOption<AString>,
     /// Dialect (e.g. Bash, Python, R, Presto, etc.), to be interpreted
     /// by render.
-    dialect: Option<Dialect>,
+    dialect: AOption<Dialect>,
     singleton_type: PhantomData<T>,
     _universe: PhantomData<U>,
 }
@@ -52,11 +54,11 @@ where
     fn new(
         task_id: AString,
         task_val: AST,
-        call: Option<AString>,
-        params: Option<ParameterTuple>,
+        call: AOption<AString>,
+        params: AOption<ParameterTuple>,
         dependencies: AVec<AST>,
-        preamble: Option<AString>,
-        dialect: Option<Dialect>,
+        preamble: AOption<AString>,
+        dialect: AOption<Dialect>,
     ) -> Self {
         Self {
             task_id,
@@ -118,10 +120,10 @@ where
             _ => Err("Task val must be a subscript".into()),
         }
     }
-    fn get_preamble(&self) -> Option<AString> {
+    fn get_preamble(&self) -> AOption<AString> {
         self.preamble.clone()
     }
-    fn get_dialect(&self) -> Option<Dialect> {
+    fn get_dialect(&self) -> AOption<Dialect> {
         self.dialect.clone()
     }
     fn get_task_val(&self) -> AST {

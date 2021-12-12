@@ -800,7 +800,7 @@ macro_rules! register_attribute_new {
                     )+
                 }
             }
-            pub fn get_comment(&self) -> Option<AString> {
+            pub fn get_comment(&self) -> AOption<AString> {
                 match self {
                     $(
                         [<$name Enum>]::$element(x) => x.get_comment(),
@@ -893,7 +893,7 @@ macro_rules! register_attribute_new {
             pub fn is_key_type(&self) -> bool {
                 self.inner.is_key_type()
             }
-            pub fn get_comment(&self) -> Option<AString> {
+            pub fn get_comment(&self) -> AOption<AString> {
                 self.inner.get_comment()
             }
             #[cfg(feature = "sql")]
@@ -990,7 +990,7 @@ macro_rules! register_concept {
         #[derive(Clone, Debug, Serialize, PartialEq)]
         pub enum $name {
             $(
-                $element((AoristRef<$element>, usize, Option<(Uuid, AString)>)),
+                $element((AoristRef<$element>, usize, AOption<(Uuid, AString)>)),
             )+
         }
         #[cfg(feature = "python")]
@@ -1012,14 +1012,14 @@ macro_rules! register_concept {
             impl [<CanBe $element>] for $name {
                 fn [<construct_ $element:snake:lower>](
                     obj_ref: AoristRef<$element>,
-                    ix: Option<usize>,
-                    id: Option<(Uuid, AString)>
+                    ix: AOption<usize>,
+                    id: AOption<(Uuid, AString)>
                 ) -> AoristRef<Self> {
                     AoristRef(RArc::new(RRwLock::new($name::$element((
                         obj_ref.clone(),
                         match ix {
-                            Some(i) => i,
-                            None => 0,
+                            AOption(ROption::RSome(i)) => i,
+                            AOption(ROption::RNone) => 0,
                         },
                         id,
                     )))))
@@ -1086,14 +1086,14 @@ macro_rules! register_concept {
                     }
                     let parent_id = root.get_parent_id();
                     match parent_id {
-                        None => Err(
+                        AOption(ROption::RNone) => Err(
                             format!(
                                 "Cannot find ancestor of type {} for root {}.",
                                 stringify!($element),
                                 root.get_type(),
                             )
                         ),
-                        Some(id) => {
+                        AOption(ROption::RSome(id)) => {
                             let guard = self.parents.read();
                             let parent = guard.get(&id).unwrap().clone();
                             self.[<$element:snake:lower>](parent)
@@ -1131,7 +1131,7 @@ macro_rules! register_concept {
         }
         impl TConceptEnum for AoristRef<$name> {
             type TUniverse = AoristRef<Universe>;
-            fn get_parent_id(&self) -> Option<(Uuid, AString)> {
+            fn get_parent_id(&self) -> AOption<(Uuid, AString)> {
                 let read = self.0.read();
                 match *read {
                     $(
@@ -1140,7 +1140,7 @@ macro_rules! register_concept {
                 }
             }
             fn from_universe(universe: AoristRef<Universe>) -> Self {
-                AoristRef(RArc::new(RRwLock::new($name::Universe((universe, 0, None)))))
+                AoristRef(RArc::new(RRwLock::new($name::Universe((universe, 0, AOption(ROption::RNone))))))
             }
             fn get_type(&self) -> AString {
                 let read = self.0.read();
@@ -1158,7 +1158,7 @@ macro_rules! register_concept {
                     )*
                 }
             }
-            fn get_tag(&self) -> Option<AString> {
+            fn get_tag(&self) -> AOption<AString> {
                 let read = self.0.read();
                 match *read {
                     $(
@@ -1760,8 +1760,8 @@ macro_rules! attribute {
                 comment: $comment,
                 nullable: $nullable,
             })),
-            tag: None,
-            uuid: None,
+            tag: AOption(ROption::RNone),
+            uuid: AOption(ROption::RNone),
         })))
     }
 }
@@ -1771,7 +1771,7 @@ macro_rules! asset {
         #[aorist]
         pub struct $name {
             pub name: AString,
-            pub comment: Option<AString>,
+            pub comment: AOption<AString>,
             #[constrainable]
             pub schema: AoristRef<DataSchema>,
             #[constrainable]
@@ -1811,7 +1811,7 @@ macro_rules! asset {
                         ))),
                         schema: self.schema.clone(),
                         tag: self.tag.clone(),
-                        uuid: None,
+                        uuid: AOption(ROption::RNone),
                     });
                 }
                 None
@@ -1954,7 +1954,7 @@ macro_rules! schema {
                 vec![$($(
                     attribute! { $attribute(
                         stringify!($attr_name).into(),
-                        Some($comment.into()),
+                        AOption(ROption::RSome($comment.into())),
                         $nullable
                     )},
                 )+)?].into_iter().collect()

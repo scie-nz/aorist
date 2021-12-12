@@ -1,4 +1,5 @@
-#![allow(non_snake_case)]
+use aorist_primitives::AOption;
+use abi_stable::std_types::ROption;
 use crate::attributes::*;
 use crate::concept::{AoristRef, WrappedConcept};
 use crate::template::datum_template::TDatumTemplate;

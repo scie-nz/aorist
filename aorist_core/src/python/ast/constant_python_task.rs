@@ -1,3 +1,5 @@
+use aorist_primitives::AOption;
+use abi_stable::std_types::ROption;
 use crate::python::ast::{AirflowTaskBase, PythonFunctionCallTask, PythonTaskBase};
 use crate::python::PythonImport;
 use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
@@ -15,10 +17,10 @@ define_task_node!(
     PythonImport,
     name: AST,
     task_val: AST,
-    dep_list: Option<AST>,
+    dep_list: AOption<AST>,
 );
 impl AirflowTaskBase for ConstantPythonTask {
-    fn get_dependencies(&self) -> Option<AST> {
+    fn get_dependencies(&self) -> AOption<AST> {
         self.dep_list.clone()
     }
 }

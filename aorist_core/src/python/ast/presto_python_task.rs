@@ -1,4 +1,6 @@
-#![allow(dead_code)]
+use aorist_primitives::AOption;
+use abi_stable::std_types::ROption;
+
 use crate::python::ast::AirflowTaskBase;
 use crate::python::ast::{PythonFunctionCallTask, PythonTaskBase};
 use crate::python::NativePythonPreamble;
@@ -29,7 +31,7 @@ define_task_node!(
     kwargs: LinkedHashMap<AString, AST>,
     task_val: AST,
     endpoint: PrestoConfig,
-    dependencies: Option<AST>,
+    dependencies: AOption<AST>,
 );
 
 impl PythonTaskBase for PrestoPythonTask {
@@ -38,7 +40,7 @@ impl PythonTaskBase for PrestoPythonTask {
     }
 }
 impl PythonFunctionCallTask for PrestoPythonTask {
-    fn get_preamble(&self) -> Option<NativePythonPreamble> {
+    fn get_preamble(&self) -> AOption<NativePythonPreamble> {
         let re = PythonImport::PythonModuleImport("re".into(), None);
         let trino = PythonImport::PythonModuleImport("trino".into(), None);
         let body = format!(
@@ -97,7 +99,7 @@ def execute_trino_sql(query):
     }
 }
 impl AirflowTaskBase for PrestoPythonTask {
-    fn get_dependencies(&self) -> Option<AST> {
+    fn get_dependencies(&self) -> AOption<AST> {
         self.dependencies.clone()
     }
 }

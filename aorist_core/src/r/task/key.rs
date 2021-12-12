@@ -1,3 +1,5 @@
+use aorist_primitives::AOption;
+use abi_stable::std_types::ROption;
 use aorist_primitives::AVec;
 use crate::dialect::Dialect;
 use crate::flow::CompressionKey;
@@ -19,13 +21,13 @@ pub struct RBasedTaskCompressionKey {
     // dict name
     dict_name: AST,
     // function call
-    function_call: Option<AString>,
+    function_call: AOption<AString>,
     // dedup key from parameters
-    dedup_key: Option<ParameterTupleDedupKey>,
+    dedup_key: AOption<ParameterTupleDedupKey>,
     // preamble
-    preamble: Option<AString>,
+    preamble: AOption<AString>,
     // dialect
-    dialect: Option<Dialect>,
+    dialect: AOption<Dialect>,
     // optional: dependencies
     pub deps: AVec<AST>,
     // optional: kwargs
@@ -34,10 +36,10 @@ pub struct RBasedTaskCompressionKey {
 impl CompressionKey for RBasedTaskCompressionKey {
     fn new(
         dict_name: AST,
-        function_call: Option<AString>,
-        dedup_key: Option<ParameterTupleDedupKey>,
-        preamble: Option<AString>,
-        dialect: Option<Dialect>,
+        function_call: AOption<AString>,
+        dedup_key: AOption<ParameterTupleDedupKey>,
+        preamble: AOption<AString>,
+        dialect: AOption<Dialect>,
     ) -> Self {
         Self {
             dict_name,
@@ -52,16 +54,16 @@ impl CompressionKey for RBasedTaskCompressionKey {
     fn get_dict_name(&self) -> AST {
         self.dict_name.clone()
     }
-    fn get_dedup_key(&self) -> Option<ParameterTupleDedupKey> {
+    fn get_dedup_key(&self) -> AOption<ParameterTupleDedupKey> {
         self.dedup_key.clone()
     }
-    fn get_call(&self) -> Option<AString> {
+    fn get_call(&self) -> AOption<AString> {
         self.function_call.clone()
     }
-    fn get_preamble(&self) -> Option<AString> {
+    fn get_preamble(&self) -> AOption<AString> {
         self.preamble.clone()
     }
-    fn get_dialect(&self) -> Option<Dialect> {
+    fn get_dialect(&self) -> AOption<Dialect> {
         self.dialect.clone()
     }
 }

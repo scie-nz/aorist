@@ -1,4 +1,6 @@
-#![allow(dead_code)]
+use aorist_primitives::AOption;
+use abi_stable::std_types::ROption;
+
 use super::airflow_bash_operator_task::AirflowBashOperatorTask;
 use super::python_subprocess_task::PythonSubprocessTask;
 use crate::python::ast::AirflowTaskBase;
@@ -20,7 +22,7 @@ define_task_node!(
     call: AST,
     kwargs: LinkedHashMap<AString, AST>,
     task_val: AST,
-    dependencies: Option<AST>,
+    dependencies: AOption<AST>,
 );
 impl PythonTaskBase for BashPythonTask {
     fn get_task_val(&self) -> AST {
@@ -28,7 +30,7 @@ impl PythonTaskBase for BashPythonTask {
     }
 }
 impl AirflowTaskBase for BashPythonTask {
-    fn get_dependencies(&self) -> Option<AST> {
+    fn get_dependencies(&self) -> AOption<AST> {
         self.dependencies.clone()
     }
 }

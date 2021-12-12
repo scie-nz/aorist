@@ -1,14 +1,19 @@
-use crate::concept::{AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
+use aorist_primitives::AOption;
+use abi_stable::std_types::ROption;
+use crate::concept::{AoristRef};
 use crate::error::AoristError;
 use crate::role::*;
 use aorist_concept::{aorist, Constrainable};
-use aorist_paste::paste;
 use aorist_primitives::{AString, AVec, TAoristObject};
 use derivative::Derivative;
 use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
-use std::fmt::Debug;
 use uuid::Uuid;
+use aorist_paste::paste;
+use crate::WrappedConcept;
+use std::fmt::Debug;
+use aorist_primitives::AoristConcept;
+use aorist_primitives::ConceptEnum;
 
 #[aorist]
 pub struct User {
@@ -18,7 +23,7 @@ pub struct User {
     phone: AString,
     pub unixname: AString,
     #[constrainable]
-    roles: Option<AVec<AoristRef<Role>>>,
+    roles: AOption<AVec<AoristRef<Role>>>,
 }
 
 impl TAoristObject for User {
@@ -42,18 +47,18 @@ impl TUser for User {
         self.unixname.as_str().into()
     }
     fn set_roles(&mut self, roles: AVec<AoristRef<Role>>) -> Result<(), AoristError> {
-        if let Some(_) = self.roles {
+        if let AOption(ROption::RSome(_)) = self.roles {
             return Err(AoristError::OtherError(AString::from(
                 "Tried to set roles more than once.",
             )));
         }
-        self.roles = Some(roles);
+        self.roles = AOption(ROption::RSome(roles));
         Ok(())
     }
     fn get_roles(&self) -> Result<AVec<AoristRef<Role>>, AoristError> {
         match &self.roles {
-            Some(x) => Ok(x.clone()),
-            None => Err(AoristError::OtherError(AString::from(
+            AOption(ROption::RSome(x)) => Ok(x.clone()),
+            AOption(ROption::RNone) => Err(AoristError::OtherError(AString::from(
                 "Tried to get roles for user but set_roles was never called",
             ))),
         }

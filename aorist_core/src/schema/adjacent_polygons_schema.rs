@@ -1,3 +1,5 @@
+use aorist_primitives::AOption;
+use abi_stable::std_types::ROption;
 use crate::asset::*;
 use crate::attributes::*;
 use crate::concept::{AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
@@ -21,5 +23,5 @@ derived_schema! {
       id1: KeyInt64Identifier("Polygon 1 Identifier", false),
       id2: KeyInt64Identifier("Polygon 2 Identifier", false)
     fields:
-      buffer: Option<FloatValue>
+      buffer: AOption<FloatValue>
 }

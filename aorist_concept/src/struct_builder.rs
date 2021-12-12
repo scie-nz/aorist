@@ -308,11 +308,11 @@ impl Builder for StructBuilder {
                 // struct name
                 &str,
                 // field name
-                Option<&str>,
+                AOption<&str>,
                 // ix
-                Option<usize>,
+                AOption<usize>,
                 // uuid
-                Option<Uuid>,
+                AOption<Uuid>,
                 // wrapped reference
                 [<#struct_name Children>]
             )> for WrappedConcept<T> where
@@ -324,9 +324,9 @@ impl Builder for StructBuilder {
                 fn from(
                     tpl: (
                         &str,
-                        Option<&str>,
-                        Option<usize>,
-                        Option<Uuid>,
+                        AOption<&str>,
+                        AOption<usize>,
+                        AOption<Uuid>,
                         [<#struct_name Children>]
                     )
                 ) -> Self {
@@ -334,7 +334,7 @@ impl Builder for StructBuilder {
                     match children_enum {
                         #(
                             [<#struct_name Children>]::#types(x) => WrappedConcept{
-                                inner: T::[<construct_ #types:snake:lower>](x, ix, Some((uuid.unwrap(), name.into()))),
+                                inner: T::[<construct_ #types:snake:lower>](x, ix, AOption(ROption::RSome((uuid.unwrap(), name.into())))),
                             },
                         )*
                         _ => panic!("_phantom arm should not be activated"),
@@ -626,8 +626,8 @@ impl Builder for StructBuilder {
                                 |x| x.inner.clone()
                             ).collect(),
                         )*
-                        tag: tag.as_ref().and_then(|x| Some(x.as_str().into())),
-                        uuid: None,
+                        tag: tag.as_ref().and_then(|x| AOption(ROption::RSome(x.as_str().into()))),
+                        uuid: AOption(ROption::RNone),
                     };
                     let inner = AoristRef(abi_stable::std_types::RArc::new(abi_stable::external_types::parking_lot::rw_lock::RRwLock::new(
                         obj
@@ -821,7 +821,7 @@ impl Builder for StructBuilder {
                 }
             }
             impl #struct_name {
-                pub fn get_uuid(&self) -> Option<Uuid> {
+                pub fn get_uuid(&self) -> AOption<Uuid> {
                     self.uuid.clone()
                 }
                 fn deep_clone(&self) -> Self {
@@ -831,13 +831,13 @@ impl Builder for StructBuilder {
                             #bare_ident: self.#bare_ident.deep_clone(),
                         )*
                         #(
-                            #option_ident: self.#option_ident.as_ref().and_then(|x| Some(x.deep_clone())),
+                            #option_ident: self.#option_ident.as_ref().and_then(|x| ROption::RSome(x.deep_clone())),
                         )*
                         #(
                             #vec_ident: self.#vec_ident.iter().map(|x| x.deep_clone()).collect(),
                         )*
                         #(
-                            #option_vec_ident: self.#option_vec_ident.as_ref().and_then(|x| Some(
+                            #option_vec_ident: self.#option_vec_ident.as_ref().and_then(|x| ROption::RSome(
                                 x.iter().map(|x| x.deep_clone()).collect()
                             )),
                         )*
@@ -857,7 +857,7 @@ impl Builder for StructBuilder {
                             #unconstrainable_name_vec_ref: self.#unconstrainable_name_vec_ref.clone(),
                         )*
                         tag: self.tag.clone(),
-                        uuid: None,
+                        uuid: AOption(ROption::RNone),
                     }
                 }
                 fn compute_uuids(&mut self) {
@@ -865,7 +865,7 @@ impl Builder for StructBuilder {
                         self.#bare_ident.compute_uuids();
                     )*
                     #(
-                        if let Some(ref c) = self.#option_ident {
+                        if let AOption(ROption::RSome(ref c)) = self.#option_ident {
                             c.compute_uuids();
                         }
                     )*
@@ -875,7 +875,7 @@ impl Builder for StructBuilder {
                         }
                     )*
                     #(
-                        if let Some(ref mut v) = self.#option_vec_ident {
+                        if let AOption(ROption::RSome(ref mut v)) = self.#option_vec_ident {
                             for elem in v.iter() {
                                 elem.compute_uuids();
                             }
@@ -888,9 +888,9 @@ impl Builder for StructBuilder {
                     )*
                 }
                 fn set_uuid(&mut self, uuid: Uuid) {
-                    self.uuid = Some(uuid);
+                    self.uuid = AOption(ROption::RSome(uuid));
                 }
-                fn get_tag(&self) -> Option<AString> {
+                fn get_tag(&self) -> AOption<AString> {
                     self.tag.clone()
                 }
                 #(
@@ -899,7 +899,7 @@ impl Builder for StructBuilder {
                     }
                 )*
                 #(
-                    pub fn #option_ident(&self) -> Option<#option_type> {
+                    pub fn #option_ident(&self) -> AOption<#option_type> {
                         self.#option_ident.clone()
                     }
                 )*
@@ -909,7 +909,7 @@ impl Builder for StructBuilder {
                     }
                 )*
                 #(
-                    pub fn #option_vec_ident(&self) -> Option<AVec<#option_vec_type>> {
+                    pub fn #option_vec_ident(&self) -> AOption<AVec<#option_vec_type>> {
                         self.#option_vec_ident.clone()
                     }
                 )*
@@ -920,7 +920,7 @@ impl Builder for StructBuilder {
                 )*
             }
             impl [<#struct_name Children>] {
-                pub fn get_uuid(&self) -> Option<Uuid> {
+                pub fn get_uuid(&self) -> AOption<Uuid> {
                     match &self {
                         #(
                             Self::#types(x) => x.get_uuid(),
@@ -933,14 +933,14 @@ impl Builder for StructBuilder {
             pub trait [<CanBe #struct_name>]: Debug + Clone + Serialize + PartialEq {
                 fn [<construct_ #struct_name:snake:lower>](
                     obj_ref: AoristRef<#struct_name>,
-                    ix: Option<usize>,
-                    id: Option<(Uuid, AString)>
+                    ix: AOption<usize>,
+                    id: AOption<(Uuid, AString)>
                 ) -> AoristRef<Self>;
             }
 
             impl AoristConcept for AoristRef<#struct_name> {
                 type TChildrenEnum = [<#struct_name Children>];
-                fn get_uuid(&self) -> Option<Uuid> {
+                fn get_uuid(&self) -> AOption<Uuid> {
                     self.0.read().get_uuid()
                 }
                 fn compute_uuids(&self) {
@@ -952,18 +952,18 @@ impl Builder for StructBuilder {
                 fn get_children_uuid(&self) -> AVec<Uuid> {
                     self.get_children().iter().map(|x| x.4.get_uuid().unwrap()).collect()
                 }
-                fn get_tag(&self) -> Option<AString> {
+                fn get_tag(&self) -> AOption<AString> {
                     self.0.read().get_tag()
                 }
                 fn get_children(&self) -> AVec<(
                     // struct name
                     &str,
                     // field name
-                    Option<&str>,
+                    AOption<&str>,
                     // ix
-                    Option<usize>,
+                    AOption<usize>,
                     // uuid
-                    Option<Uuid>,
+                    AOption<Uuid>,
                     // wrapped reference
                     [<#struct_name Children>],
                 )> {
@@ -972,18 +972,18 @@ impl Builder for StructBuilder {
                     #(
                         children.push((
                             stringify!(#struct_name),
-                            Some(stringify!(#bare_ident)),
-                            None,
+                            AOption(ROption::RSome(stringify!(#bare_ident))),
+                            AOption(ROption::RNone),
                             self.get_uuid(),
                             [<#struct_name Children>]::#bare_type_deref(read.#bare_ident())
                         ));
                     )*
                     #(
-                        if let Some(c) = read.#option_ident() {
+                        if let AOption(ROption::RSome(c)) = read.#option_ident() {
                             children.push((
                                 stringify!(#struct_name),
-                                Some(stringify!(#option_ident)),
-                                None,
+                                AOption(ROption::RSome(stringify!(#option_ident))),
+                                AOption(ROption::RNone),
                                 self.get_uuid(),
                                 [<#struct_name Children>]::#option_type_deref(c)
                             ));
@@ -993,20 +993,20 @@ impl Builder for StructBuilder {
                         for (ix, elem) in read.#vec_ident().into_iter().enumerate() {
                             children.push((
                                 stringify!(#struct_name),
-                                Some(stringify!(#vec_ident)),
-                                Some(ix),
+                                AOption(ROption::RSome(stringify!(#vec_ident))),
+                                AOption(ROption::RSome(ix)),
                                 self.get_uuid(),
                                 [<#struct_name Children>]::#vec_type_deref(elem)
                             ));
                         }
                     )*
                     #(
-                        if let Some(v) = read.#option_vec_ident() {
+                        if let AOption(ROption::RSome(v)) = read.#option_vec_ident() {
                             for (ix, elem) in v.into_iter().enumerate() {
                                 children.push((
                                     stringify!(#struct_name),
-                                    Some(stringify!(#option_vec_ident)),
-                                    Some(ix),
+                                    AOption(ROption::RSome(stringify!(#option_vec_ident))),
+                                    AOption(ROption::RSome(ix)),
                                     read.get_uuid(),
                                     [<#struct_name Children>]::#option_vec_type_deref(elem)
                                 ));
@@ -1017,8 +1017,8 @@ impl Builder for StructBuilder {
                         for elem in read.#map_ident().values() {
                             children.push((
                                 stringify!(#struct_name),
-                                Some(stringify!(#map_ident)),
-                                None,
+                                AOption(ROption::RSome(stringify!(#map_ident))),
+                                AOption(ROption::RNone),
                                 read.get_uuid(),
                                 [<#struct_name Children>]::#map_value_type_deref(elem.clone())
                             ));

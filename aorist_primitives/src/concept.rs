@@ -128,11 +128,20 @@ impl <T> AOption<T> {
     pub fn is_none(&self) -> bool {
         self.0.is_none()
     }
+    pub fn is_some(&self) -> bool {
+        self.0.is_some()
+    }
     pub fn and_then<F, U>(self, f: F) -> AOption<U> 
         where F: FnOnce(T) -> ROption<U> {
             let out: ROption<U> = self.0.and_then(f);
             AOption(out)
         }
+    pub fn as_ref(&self) -> AOption<&T> {
+        AOption(self.0.as_ref())
+    }
+    pub fn unwrap(self) -> T {
+        self.0.unwrap()
+    }
 }
 impl<'de, T: Deserialize<'de>> Deserialize<'de> for AOption<T> {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
@@ -146,8 +155,8 @@ impl<'de, T: Deserialize<'de>> Deserialize<'de> for AOption<T> {
 pub trait ConceptEnum {}
 pub trait AoristConcept {
     type TChildrenEnum: ConceptEnum;
-    fn get_uuid(&self) -> Option<Uuid>;
-    fn get_tag(&self) -> Option<AString>;
+    fn get_uuid(&self) -> AOption<Uuid>;
+    fn get_tag(&self) -> AOption<AString>;
     fn compute_uuids(&self);
     fn get_children_uuid(&self) -> AVec<Uuid>;
     fn get_uuid_from_children_uuid(&self) -> Uuid {
@@ -171,11 +180,11 @@ pub trait AoristConcept {
         // struct name
         &str,
         // field name
-        Option<&str>,
+        AOption<&str>,
         // ix
-        Option<usize>,
+        AOption<usize>,
         // uuid
-        Option<Uuid>,
+        AOption<Uuid>,
         // wrapped reference
         Self::TChildrenEnum,
     )>;
@@ -183,10 +192,10 @@ pub trait AoristConcept {
 
 pub trait TConceptEnum: Sized + Clone {
     type TUniverse: AoristConcept + AoristUniverse;
-    fn get_parent_id(&self) -> Option<(Uuid, AString)>;
+    fn get_parent_id(&self) -> AOption<(Uuid, AString)>;
     fn get_type(&self) -> AString;
     fn get_uuid(&self) -> Uuid;
-    fn get_tag(&self) -> Option<AString>;
+    fn get_tag(&self) -> AOption<AString>;
     fn get_index_as_child(&self) -> usize;
     fn get_child_concepts(&self) -> AVec<Self>;
     fn populate_child_concept_map(&self, concept_map: &mut HashMap<(Uuid, AString), Self>);

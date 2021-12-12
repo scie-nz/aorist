@@ -1,3 +1,5 @@
+use aorist_primitives::AOption;
+use abi_stable::std_types::ROption;
 use crate::flow::etl_flow::ETLFlow;
 use crate::flow::flow_builder::{FlowBuilderBase, FlowBuilderMaterialize};
 use crate::flow::flow_builder_input::FlowBuilderInput;
@@ -24,7 +26,7 @@ where
     fn materialize(
         &self,
         statements_and_preambles: AVec<PythonFlowBuilderInput>,
-        flow_name: Option<AString>,
+        flow_name: AOption<AString>,
     ) -> Result<AString, Self::ErrorType> {
         let gil = Python::acquire_gil();
         let py = gil.python();
@@ -87,7 +89,7 @@ where
             .augment_statements(statements_with_ast, flow_name.clone())
             .into_iter()
             .collect();
-        let content: Vec<(Option<AString>, Vec<&PyAny>)> =
+        let content: Vec<(AOption<AString>, Vec<&PyAny>)> =
             vec![(None, imports_ast.into_iter().collect::<Vec<_>>())]
                 .into_iter()
                 .chain(
@@ -121,7 +123,7 @@ where
                 )
                 .collect();
 
-        let mut sources: AVec<(Option<AString>, AString)> = AVec::new();
+        let mut sources: AVec<(AOption<AString>, AString)> = AVec::new();
 
         // This is needed since astor will occasionally forget to add a newline
         for (comment, block) in content {
@@ -170,7 +172,7 @@ where
     fn augment_statements(
         &self,
         statements: AVec<PythonFlowBuilderInput>,
-        _flow_name: Option<AString>,
+        _flow_name: AOption<AString>,
     ) -> AVec<PythonFlowBuilderInput> {
         statements
     }
@@ -178,8 +180,8 @@ where
 
     fn build_file(
         &self,
-        sources: AVec<(Option<AString>, AString)>,
-        _flow_name: Option<AString>,
+        sources: AVec<(AOption<AString>, AString)>,
+        _flow_name: AOption<AString>,
     ) -> PyResult<AString> {
         format_code(
             sources

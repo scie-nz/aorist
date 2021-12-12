@@ -1,3 +1,5 @@
+use aorist_primitives::AOption;
+use abi_stable::std_types::ROption;
 use crate::python::ast::{PythonFunctionCallTask, PythonTaskBase};
 use crate::python::NativePythonPreamble;
 use crate::python::PythonImport;
@@ -25,11 +27,11 @@ define_task_node!(
     call: AST,
     args: AVec<AST>,
     kwargs: LinkedHashMap<AString, AST>,
-    dep_list: Option<AST>,
-    preamble: Option<AString>,
+    dep_list: AOption<AST>,
+    preamble: AOption<AString>,
 );
 impl PythonFunctionCallTask for RPythonTask {
-    fn get_preamble(&self) -> Option<NativePythonPreamble> {
+    fn get_preamble(&self) -> AOption<NativePythonPreamble> {
         let rpy2 = PythonImport::PythonModuleImport("rpy2".into(), None);
         let rpy2o =
             PythonImport::PythonModuleImport("rpy2.robjects".into(), Some("robjects".into()));

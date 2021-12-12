@@ -1,3 +1,5 @@
+use aorist_primitives::AOption;
+use abi_stable::std_types::ROption;
 use crate::compression::*;
 use crate::concept::{AoristRef, WrappedConcept};
 use aorist_concept::{aorist, Constrainable};
@@ -11,5 +13,5 @@ use uuid::Uuid;
 #[aorist]
 pub struct GPKGEncoding {
     #[constrainable]
-    pub compression: Option<AoristRef<DataCompression>>,
+    pub compression: AOption<AoristRef<DataCompression>>,
 }

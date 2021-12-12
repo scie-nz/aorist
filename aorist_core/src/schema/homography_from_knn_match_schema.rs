@@ -1,3 +1,5 @@
+use aorist_primitives::AOption;
+use abi_stable::std_types::ROption;
 use crate::asset::*;
 use crate::attributes::*;
 use crate::concept::{AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
@@ -25,7 +27,7 @@ derived_schema! {
     fields:
       knn_filter_threshold: FloatValue,
       method: AString,
-      ransac_reproj_threshold: Option<FloatValue>,
+      ransac_reproj_threshold: AOption<FloatValue>,
       max_iters: usize,
       confidence: FloatValue
 }

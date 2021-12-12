@@ -1,3 +1,5 @@
+use aorist_primitives::AOption;
+use abi_stable::std_types::ROption;
 use crate::concept::{AoristRef, WrappedConcept};
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
@@ -9,5 +11,5 @@ use uuid::Uuid;
 
 #[aorist]
 pub struct CSVHeader {
-    pub num_lines: Option<usize>,
+    pub num_lines: AOption<usize>,
 }

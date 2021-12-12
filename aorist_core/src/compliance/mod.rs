@@ -1,3 +1,5 @@
+use aorist_primitives::AOption;
+use abi_stable::std_types::ROption;
 /* Following prescribed Record of Processing Activity by cnil.fr.
 See: https://www.cnil.fr/en/record-processing-activities */
 use crate::concept::{AoristRef, WrappedConcept};
@@ -19,14 +21,14 @@ pub struct GDPRStakeholder {
     country: AString,
     phone_number: AString,
     email: AString,
-    external_organization_name: Option<AString>,
+    external_organization_name: AOption<AString>,
 }
 
 #[cfg_attr(feature = "python", pyo3::prelude::pyclass)]
 #[derive(PartialEq, Debug, Eq, Clone, Hash, Serialize, Deserialize)]
 pub struct GDPRDataProcessingPurpose {
     main_purpose: AString,
-    sub_purposes: Option<AVec<AString>>,
+    sub_purposes: AOption<AVec<AString>>,
 }
 
 #[macro_export]
@@ -122,8 +124,8 @@ pub struct GDPRProcessorRecord {
     processing_start_date: AString,
     controller: GDPRStakeholder,
     data_protection_officer: GDPRStakeholder,
-    representative: Option<GDPRStakeholder>,
-    joint_controllers: Option<AVec<GDPRStakeholder>>,
+    representative: AOption<GDPRStakeholder>,
+    joint_controllers: AOption<AVec<GDPRStakeholder>>,
     data_processing_purposes: AVec<GDPRDataProcessingPurpose>,
     personal_data_categories_used: AVec<GDPRPersonalDataCategory>,
     data_subject_categories: AVec<GDPRDataSubjectCategory>,
@@ -159,7 +161,7 @@ pub struct GDPRThirdPartyCountryOrInternationalOrganizationTransferRecord {
     recipient_organization_name: AString,
     iso_3166_2c_country_code: AString,
     data_transfer_guarantees: AVec<GDPRDataTransferGuarantee>,
-    links_to_relevant_documents: Option<AVec<AString>>,
+    links_to_relevant_documents: AOption<AVec<AString>>,
 }
 
 #[aorist]
@@ -167,5 +169,5 @@ pub struct ComplianceConfig {
     description: AString,
     data_about_human_subjects: bool,
     contains_personally_identifiable_information: bool,
-    gdpr_processor_record: Option<GDPRProcessorRecord>,
+    gdpr_processor_record: AOption<GDPRProcessorRecord>,
 }

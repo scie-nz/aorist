@@ -1,3 +1,5 @@
+use aorist_primitives::AOption;
+use abi_stable::std_types::ROption;
 use crate::compression::*;
 use crate::concept::{AoristRef, WrappedConcept};
 use crate::header::*;
@@ -12,7 +14,7 @@ use uuid::Uuid;
 #[aorist]
 pub struct CSVEncoding {
     #[constrainable]
-    pub compression: Option<AoristRef<DataCompression>>,
+    pub compression: AOption<AoristRef<DataCompression>>,
     #[constrainable]
-    pub header: Option<AoristRef<FileHeader>>,
+    pub header: AOption<AoristRef<FileHeader>>,
 }

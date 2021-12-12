@@ -1,3 +1,5 @@
+use aorist_primitives::AOption;
+use abi_stable::std_types::ROption;
 use crate::code::Preamble;
 use crate::python::PythonImport;
 use aorist_ast::FunctionDef;
@@ -186,7 +188,7 @@ def build_preamble(body):
                 let tpl: &PyTuple = x.extract().unwrap();
                 let name: AString = tpl.get_item(0)?.extract::<&PyString>()?.to_str()?.into();
                 let alias = tpl.get_item(1)?;
-                let asname: Option<AString> = match alias.is_none() {
+                let asname: AOption<AString> = match alias.is_none() {
                     true => None,
                     false => Some(alias.extract::<&PyString>()?.to_str()?.into()),
                 };
@@ -202,7 +204,7 @@ def build_preamble(body):
                 let module: AString = tpl.get_item(0)?.extract::<&PyString>()?.to_str()?.into();
                 let name: AString = tpl.get_item(1)?.extract::<&PyString>()?.to_str()?.into();
                 let alias = tpl.get_item(2)?;
-                let asname: Option<AString> = match alias.is_none() {
+                let asname: AOption<AString> = match alias.is_none() {
                     true => None,
                     false => Some(alias.extract::<&PyString>()?.to_str()?.into()),
                 };
