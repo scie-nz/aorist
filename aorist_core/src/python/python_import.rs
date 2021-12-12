@@ -1,5 +1,7 @@
 use crate::code::Import;
+use abi_stable::std_types::ROption;
 use aorist_ast::{SimpleIdentifier, AST};
+use aorist_primitives::AOption;
 use aorist_primitives::AString;
 use pyo3::prelude::*;
 use pyo3::types::{PyList, PyModule};
@@ -7,22 +9,24 @@ use std::hash::Hash;
 
 #[derive(Clone, Hash, PartialEq, Eq, PartialOrd, Ord)]
 pub enum PythonImport {
-    PythonModuleImport(AString, Option<AString>),
-    PythonFromImport(AString, AString, Option<AString>),
+    PythonModuleImport(AString, AOption<AString>),
+    PythonFromImport(AString, AString, AOption<AString>),
 }
 impl Import for PythonImport {}
 
 impl PythonImport {
     pub fn to_string(&self) -> String {
         match &self {
-            Self::PythonModuleImport(ref module, Some(ref alias)) => {
+            Self::PythonModuleImport(ref module, AOption(ROption::RSome(ref alias))) => {
                 format!("import {} as {}", module, alias).to_string()
             }
-            Self::PythonModuleImport(ref module, None) => format!("import {}", module).to_string(),
-            Self::PythonFromImport(ref module, ref name, Some(ref alias)) => {
+            Self::PythonModuleImport(ref module, AOption(ROption::RNone)) => {
+                format!("import {}", module).to_string()
+            }
+            Self::PythonFromImport(ref module, ref name, AOption(ROption::RSome(ref alias))) => {
                 format!("from {} import {} as {}", module, name, alias).to_string()
             }
-            Self::PythonFromImport(ref module, ref name, None) => {
+            Self::PythonFromImport(ref module, ref name, AOption(ROption::RNone)) => {
                 format!("from {} import {}", module, name).to_string()
             }
         }
@@ -38,13 +42,13 @@ impl PythonImport {
                 let alias_list = PyList::new(
                     py,
                     vec![match alias {
-                        Some(ref x) => ast_module.getattr("alias")?.call1((
+                        AOption(ROption::RSome(ref x)) => ast_module.getattr("alias")?.call1((
                             AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(module.clone()))
                                 .to_python_ast_node(py, ast_module, depth)?,
                             (AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(x.clone())))
                                 .to_python_ast_node(py, ast_module, depth)?,
                         ))?,
-                        None => {
+                        AOption(ROption::RNone) => {
                             AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(module.clone()))
                                 .to_python_ast_node(py, ast_module, depth)?
                         }
@@ -56,14 +60,16 @@ impl PythonImport {
                 let alias = PyList::new(
                     py,
                     vec![match alias {
-                        Some(ref x) => ast_module.getattr("alias")?.call1((
+                        AOption(ROption::RSome(ref x)) => ast_module.getattr("alias")?.call1((
                             AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(name.clone()))
                                 .to_python_ast_node(py, ast_module, depth)?,
                             (AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(x.clone())))
                                 .to_python_ast_node(py, ast_module, depth)?,
                         ))?,
-                        None => AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(name.clone()))
-                            .to_python_ast_node(py, ast_module, depth)?,
+                        AOption(ROption::RNone) => {
+                            AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(name.clone()))
+                                .to_python_ast_node(py, ast_module, depth)?
+                        }
                     }],
                 );
                 ast_module

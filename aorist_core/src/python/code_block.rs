@@ -7,6 +7,8 @@ use crate::python::{
     ForLoopPythonBasedTask, Formatted, PythonBasedTask, PythonImport, PythonPreamble,
     SimpleIdentifier, StringLiteral, Subscript, AST,
 };
+use abi_stable::std_types::ROption;
+use aorist_primitives::AOption;
 use aorist_primitives::{AString, AVec, AoristUniverse};
 use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
@@ -22,10 +24,10 @@ where
     U: AoristUniverse,
     P: TOuterProgram<TAncestry = C::TAncestry>,
 {
-    tasks_dict: Option<AST>,
+    tasks_dict: AOption<AST>,
     task_identifiers: HashMap<Uuid, AST>,
     python_based_tasks: AVec<PythonBasedTask<T, U>>,
-    params: HashMap<AString, Option<ParameterTuple>>,
+    params: HashMap<AString, AOption<ParameterTuple>>,
     _lt: PhantomData<&'a ()>,
     _constraint: PhantomData<C>,
     _program: PhantomData<P>,
@@ -41,10 +43,10 @@ where
     type E = PythonBasedTask<T, U>;
 
     fn construct(
-        tasks_dict: Option<AST>,
+        tasks_dict: AOption<AST>,
         tasks: AVec<Self::E>,
         task_identifiers: HashMap<Uuid, AST>,
-        params: HashMap<AString, Option<ParameterTuple>>,
+        params: HashMap<AString, AOption<ParameterTuple>>,
     ) -> Self {
         Self {
             tasks_dict,
@@ -87,7 +89,7 @@ where
             .collect::<AVec<_>>();
         (statements, preambles, imports)
     }
-    fn get_tasks_dict(&self) -> Option<AST> {
+    fn get_tasks_dict(&self) -> AOption<AST> {
         self.tasks_dict.clone()
     }
 
@@ -95,7 +97,7 @@ where
         self.task_identifiers.clone()
     }
 
-    fn get_params(&self) -> HashMap<AString, Option<ParameterTuple>> {
+    fn get_params(&self) -> HashMap<AString, AOption<ParameterTuple>> {
         self.params.clone()
     }
 }
@@ -188,7 +190,7 @@ where
                         .or_insert(HashSet::new())
                         .insert(t.task_id.clone());
 
-                    if let Some(ref p) = t.params {
+                    if let AOption(ROption::RSome(ref p)) = t.params {
                         for (key, val) in p.kwargs.iter() {
                             let val_no_ancestors = val.clone_without_ancestors();
                             if let AST::StringLiteral(rw) = val {
@@ -271,7 +273,7 @@ where
                             new_deps.push(dep.clone());
                         }
                     }
-                    if let Some(ref mut p) = t.params {
+                    if let AOption(ROption::RSome(ref mut p)) = t.params {
                         for key in compressible_kwargs.keys() {
                             trace!("Compressible kwarg: {}", key);
                             p.kwargs.remove(key);

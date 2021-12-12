@@ -1,5 +1,5 @@
 use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
-use abi_stable::std_types::RArc;
+use abi_stable::std_types::{RArc, ROption};
 use anyhow::{Context, Result};
 #[cfg(feature = "python")]
 use aorist_ast::{StringLiteral, AST};
@@ -10,8 +10,8 @@ use aorist_core::{
     ConstraintBuilder, ConstraintEnum, ConstraintSatisfactionBase, OuterConstraint, TBuilder,
     TConstraint, TConstraintEnum, TProgram,
 };
-use aorist_primitives::AVec;
 use aorist_primitives::{define_constraint, register_constraint_new, AString, TAoristObject};
+use aorist_primitives::{AOption, AVec};
 #[cfg(feature = "python")]
 use aorist_util::init_logging;
 use linked_hash_map::LinkedHashMap;

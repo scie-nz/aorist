@@ -1,3 +1,5 @@
+use aorist_primitives::AOption;
+use abi_stable::std_types::ROption;
 use aorist_primitives::AVec;
 use crate::flow::{ETLFlow, UncompressiblePart};
 use crate::parameter_tuple::ParameterTuple;
@@ -16,7 +18,7 @@ where
     // dict value
     pub dict: AString,
     // params
-    pub params: Option<ParameterTuple>,
+    pub params: AOption<ParameterTuple>,
     // dep list
     pub deps: AVec<AST>,
     singleton_type: PhantomData<T>,
@@ -25,7 +27,7 @@ impl<T> UncompressiblePart<T> for RBasedTaskUncompressiblePart<T>
 where
     T: ETLFlow,
 {
-    fn new(task_id: AString, dict: AString, params: Option<ParameterTuple>, deps: AVec<AST>) -> Self {
+    fn new(task_id: AString, dict: AString, params: AOption<ParameterTuple>, deps: AVec<AST>) -> Self {
         Self {
             task_id,
             dict,

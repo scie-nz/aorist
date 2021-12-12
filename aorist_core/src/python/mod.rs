@@ -1,3 +1,4 @@
+use aorist_primitives::AOption;
 mod ast;
 mod code_block;
 mod constraint_block;
@@ -36,8 +37,8 @@ pub struct PythonFlowBuilderInput {
     preambles: LinkedHashSet<PythonPreamble>,
     imports: BTreeSet<PythonImport>,
     constraint_name: AString,
-    constraint_title: Option<AString>,
-    constraint_body: Option<AString>,
+    constraint_title: AOption<AString>,
+    constraint_body: AOption<AString>,
 }
 impl PythonFlowBuilderInput {
     pub fn has_statements(&self) -> bool {
@@ -46,8 +47,8 @@ impl PythonFlowBuilderInput {
     pub fn statements_only(
         statements: AVec<AST>,
         constraint_name: AString,
-        constraint_title: Option<AString>,
-        constraint_body: Option<AString>,
+        constraint_title: AOption<AString>,
+        constraint_body: AOption<AString>,
     ) -> Self {
         Self::new(
             statements,
@@ -80,8 +81,8 @@ impl FlowBuilderInput for PythonFlowBuilderInput {
         preambles: LinkedHashSet<PythonPreamble>,
         imports: BTreeSet<PythonImport>,
         constraint_name: AString,
-        constraint_title: Option<AString>,
-        constraint_body: Option<AString>,
+        constraint_title: AOption<AString>,
+        constraint_body: AOption<AString>,
     ) -> Self {
         Self {
             statements,
@@ -104,10 +105,10 @@ impl FlowBuilderInput for PythonFlowBuilderInput {
     fn get_constraint_name(&self) -> AString {
         self.constraint_name.clone()
     }
-    fn get_constraint_title(&self) -> Option<AString> {
+    fn get_constraint_title(&self) -> AOption<AString> {
         self.constraint_title.clone()
     }
-    fn get_constraint_body(&self) -> Option<AString> {
+    fn get_constraint_body(&self) -> AOption<AString> {
         self.constraint_body.clone()
     }
 }

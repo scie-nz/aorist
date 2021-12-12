@@ -51,11 +51,11 @@ impl Builder for EnumBuilder {
               // enum name
               &str,
               // field name
-              Option<&str>,
+              AOption<&str>,
               // ix
-              Option<usize>,
+              AOption<usize>,
               // uuid
-              Option<Uuid>,
+              AOption<Uuid>,
               // wrapped reference
               #enum_name,
           )> for WrappedConcept<T> where
@@ -67,9 +67,9 @@ impl Builder for EnumBuilder {
               fn from(
                   tpl: (
                       &str,
-                      Option<&str>,
-                      Option<usize>,
-                      Option<Uuid>,
+                      AOption<&str>,
+                      AOption<usize>,
+                      AOption<Uuid>,
                       #enum_name,
                   )
               ) -> Self {
@@ -77,7 +77,7 @@ impl Builder for EnumBuilder {
                   match children_enum {
                       #(
                           #enum_name::#variant(ref x) => WrappedConcept{
-                              inner: T::[<construct_ #variant:snake:lower>](x.clone(), ix, Some((uuid.unwrap(), name.into()))),
+                              inner: T::[<construct_ #variant:snake:lower>](x.clone(), ix, AOption(ROption::RSome((uuid.unwrap(), name.into())))),
                           },
                       )*
                       _ => panic!("_phantom arm should not be activated"),
@@ -88,11 +88,11 @@ impl Builder for EnumBuilder {
               // enum name
               &str,
               // field name
-              Option<&str>,
+              AOption<&str>,
               // ix
-              Option<usize>,
+              AOption<usize>,
               // uuid
-              Option<Uuid>,
+              AOption<Uuid>,
               // wrapped reference
               AoristRef<#enum_name>,
           )> for WrappedConcept<T> where
@@ -104,9 +104,9 @@ impl Builder for EnumBuilder {
               fn from(
                   tpl: (
                       &str,
-                      Option<&str>,
-                      Option<usize>,
-                      Option<Uuid>,
+                      AOption<&str>,
+                      AOption<usize>,
+                      AOption<Uuid>,
                       AoristRef<#enum_name>,
                   )
               ) -> Self {
@@ -116,7 +116,7 @@ impl Builder for EnumBuilder {
                       #(
                           #enum_name::#variant(ref x) => WrappedConcept{
                               inner: T::[<construct_ #variant:snake:lower>](
-                                  x.clone(), ix, Some((uuid.unwrap(), name.into()))
+                                  x.clone(), ix, AOption(ROption::RSome((uuid.unwrap(), name.into())))
                               ),
                           },
                       )*
@@ -134,8 +134,8 @@ impl Builder for EnumBuilder {
           pub trait [<CanBe #enum_name>]: Debug + Clone + Serialize + PartialEq {
               fn [<construct_ #enum_name:snake:lower>] (
                   obj_ref: AoristRef<#enum_name>,
-                  ix: Option<usize>,
-                  id: Option<(Uuid, AString)>
+                  ix: AOption<usize>,
+                  id: AOption<(Uuid, AString)>
               ) -> AoristRef<Self>;
           }
           #[cfg(feature = "python")]
@@ -216,7 +216,7 @@ impl Builder for EnumBuilder {
           }
           impl #enum_name {
 
-              pub fn get_uuid(&self) -> Option<Uuid> {
+              pub fn get_uuid(&self) -> AOption<Uuid> {
                   match &self {
                       #(
                         #enum_name::#variant(x) => x.get_uuid(),
@@ -230,7 +230,7 @@ impl Builder for EnumBuilder {
                       )*
                   }
               }
-              fn get_tag(&self) -> Option<AString> {
+              fn get_tag(&self) -> AOption<AString> {
                   match self {
                       #(
                         #enum_name::#variant(x) => x.get_tag(),
@@ -266,26 +266,26 @@ impl Builder for EnumBuilder {
                   // enum name
                   &str,
                   // field name
-                  Option<&str>,
+                  AOption<&str>,
                   // ix
-                  Option<usize>,
+                  AOption<usize>,
                   // uuid
-                  Option<Uuid>,
+                  AOption<Uuid>,
                   AoristRef<#enum_name>,
               )> {
                   vec![(
                       stringify!(#enum_name),
-                      None,
-                      None,
+                      AOption(ROption::RNone),
+                      AOption(ROption::RNone),
                       self.get_uuid(),
                       // clone of RArc<RRwLock
                       Self(self.0.clone()),
                   )].into_iter().collect()
               }
-              fn get_uuid(&self) -> Option<Uuid> {
+              fn get_uuid(&self) -> AOption<Uuid> {
                   self.0.read().get_uuid()
               }
-              fn get_tag(&self) -> Option<AString> {
+              fn get_tag(&self) -> AOption<AString> {
                   self.0.read().get_tag()
               }
               fn get_children_uuid(&self) -> AVec<Uuid> {

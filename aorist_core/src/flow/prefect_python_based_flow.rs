@@ -9,11 +9,13 @@ use crate::python::{
 };
 use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 use abi_stable::std_types::RArc;
+use abi_stable::std_types::ROption;
 use aorist_ast::{
     Assignment, Attribute, Call, Expression, ForLoop, Formatted, SimpleIdentifier, StringLiteral,
     AST,
 };
 use aorist_primitives::register_task_nodes;
+use aorist_primitives::AOption;
 use aorist_primitives::TPrestoEndpoints;
 use aorist_primitives::{AString, AVec, AoristUniverse};
 use linked_hash_map::LinkedHashMap;
@@ -31,12 +33,12 @@ register_task_nodes! {
 pub struct PrefectPythonBasedFlow<U: AoristUniverse> {
     task_id: AST,
     task_val: AST,
-    command: Option<AString>,
+    command: AOption<AString>,
     args: AVec<AST>,
     kwargs: LinkedHashMap<AString, AST>,
-    dep_list: Option<AST>,
-    preamble: Option<AString>,
-    dialect: Option<Dialect>,
+    dep_list: AOption<AST>,
+    preamble: AOption<AString>,
+    dialect: AOption<Dialect>,
     flow_identifier: AST,
     endpoints: U::TEndpoints,
     _universe: PhantomData<U>,
@@ -46,7 +48,7 @@ impl<U: AoristUniverse> PythonBasedFlow<U> for PrefectPythonBasedFlow<U>
 where
     U::TEndpoints: TPrestoEndpoints,
 {
-    fn get_preamble_string(&self) -> Option<AString> {
+    fn get_preamble_string(&self) -> AOption<AString> {
         self.preamble.clone()
     }
 }
@@ -58,19 +60,19 @@ impl<U: AoristUniverse> ETLFlow<U> for PrefectPythonBasedFlow<U> {
 
     fn get_preamble(&self) -> Result<AVec<PythonPreamble>, pyo3::PyErr> {
         let preambles = match self.dialect {
-            Some(Dialect::Python(_)) => match self.preamble {
-                Some(ref p) => vec![PythonPreamble::NativePythonPreamble(
+            AOption(ROption::RSome(Dialect::Python(_))) => match self.preamble {
+                AOption(ROption::RSome(ref p)) => vec![PythonPreamble::NativePythonPreamble(
                     NativePythonPreamble::new(p.clone())?,
                 )]
                 .into_iter()
                 .collect(),
-                None => AVec::new(),
+                AOption(ROption::RNone) => AVec::new(),
             },
             _ => AVec::new(),
         };
         Ok(preambles.into_iter().collect())
     }
-    fn get_dialect(&self) -> Option<Dialect> {
+    fn get_dialect(&self) -> AOption<Dialect> {
         self.dialect.clone()
     }
     fn get_task_val(&self) -> AST {
@@ -94,12 +96,12 @@ impl<U: AoristUniverse> ETLFlow<U> for PrefectPythonBasedFlow<U> {
     fn new(
         task_id: AST,
         task_val: AST,
-        call: Option<AString>,
+        call: AOption<AString>,
         args: AVec<AST>,
         kwargs: LinkedHashMap<AString, AST>,
-        dep_list: Option<AST>,
-        preamble: Option<AString>,
-        dialect: Option<Dialect>,
+        dep_list: AOption<AST>,
+        preamble: AOption<AString>,
+        dialect: AOption<Dialect>,
         endpoints: U::TEndpoints,
     ) -> Self {
         Self {
@@ -121,22 +123,24 @@ impl<U: AoristUniverse> ETLFlow<U> for PrefectPythonBasedFlow<U> {
     }
     fn get_imports(&self) -> AVec<PythonImport> {
         match self.dialect {
-            Some(Dialect::Python(_)) => vec![PythonImport::PythonFromImport(
+            AOption(ROption::RSome(Dialect::Python(_))) => vec![PythonImport::PythonFromImport(
                 "prefect".into(),
                 "task".into(),
-                None,
+                AOption(ROption::RNone),
             )],
-            Some(Dialect::Bash(_)) | Some(Dialect::Presto(_)) | Some(Dialect::R(_)) => {
+            AOption(ROption::RSome(Dialect::Bash(_)))
+            | AOption(ROption::RSome(Dialect::Presto(_)))
+            | AOption(ROption::RSome(Dialect::R(_))) => {
                 vec![PythonImport::PythonFromImport(
                     "prefect.tasks.shell".into(),
                     "ShellTask".into(),
-                    None,
+                    AOption(ROption::RNone),
                 )]
             }
-            None => vec![PythonImport::PythonFromImport(
+            AOption(ROption::RNone) => vec![PythonImport::PythonFromImport(
                 "prefect.tasks.core".into(),
                 "Constant".into(),
-                None,
+                AOption(ROption::RNone),
             )],
         }
         .into_iter()
@@ -145,7 +149,7 @@ impl<U: AoristUniverse> ETLFlow<U> for PrefectPythonBasedFlow<U> {
 }
 impl<U: AoristUniverse> PrefectPythonBasedFlow<U> {
     fn compute_task_args(&self) -> AVec<AST> {
-        if let Some(Dialect::Python(_)) = self.dialect {
+        if let AOption(ROption::RSome(Dialect::Python(_))) = self.dialect {
             return self.args.clone();
         }
         AVec::new()
@@ -154,23 +158,24 @@ impl<U: AoristUniverse> PrefectPythonBasedFlow<U> {
         if self.dialect.is_none() {
             return self.kwargs.clone();
         }
-        if let Some(Dialect::Python(_)) = self.dialect {
+        if let AOption(ROption::RSome(Dialect::Python(_))) = self.dialect {
             return self.kwargs.clone();
         }
         let mut kwargs = LinkedHashMap::new();
         let call_param_name = match self.dialect {
-            Some(Dialect::Bash(_)) | Some(Dialect::Presto(_)) => "command".into(),
+            AOption(ROption::RSome(Dialect::Bash(_)))
+            | AOption(ROption::RSome(Dialect::Presto(_))) => "command".into(),
             _ => panic!("Dialect not supported"),
         };
         let call_param_value = match self.dialect {
-            Some(Dialect::Bash(_)) => AST::Formatted(Formatted::new_wrapped(
+            AOption(ROption::RSome(Dialect::Bash(_))) => AST::Formatted(Formatted::new_wrapped(
                 AST::StringLiteral(StringLiteral::new_wrapped(
                     self.command.as_ref().unwrap().clone(),
                     false,
                 )),
                 self.kwargs.clone(),
             )),
-            Some(Dialect::Presto(_)) => AST::Formatted(Formatted::new_wrapped(
+            AOption(ROption::RSome(Dialect::Presto(_))) => AST::Formatted(Formatted::new_wrapped(
                 AST::StringLiteral(StringLiteral::new_wrapped(
                     format!("presto -e '{}'", self.command.as_ref().unwrap())
                         .as_str()
@@ -186,13 +191,14 @@ impl<U: AoristUniverse> PrefectPythonBasedFlow<U> {
     }
     fn compute_task_call(&self) -> AST {
         match self.dialect {
-            Some(Dialect::Python(_)) => Ok(AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
-                self.command.as_ref().unwrap().clone(),
-            ))),
-            Some(Dialect::Bash(_)) | Some(Dialect::Presto(_)) => Ok(AST::SimpleIdentifier(
+            AOption(ROption::RSome(Dialect::Python(_))) => Ok(AST::SimpleIdentifier(
+                SimpleIdentifier::new_wrapped(self.command.as_ref().unwrap().clone()),
+            )),
+            AOption(ROption::RSome(Dialect::Bash(_)))
+            | AOption(ROption::RSome(Dialect::Presto(_))) => Ok(AST::SimpleIdentifier(
                 SimpleIdentifier::new_wrapped("ShellTask".into()),
             )),
-            None => Ok(AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
+            AOption(ROption::RNone) => Ok(AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
                 "Constant".into(),
             ))),
             _ => Err(AoristError::OtherError(AString::from(
@@ -219,8 +225,8 @@ impl<U: AoristUniverse> PrefectPythonBasedFlow<U> {
     }
     pub fn get_edge_addition_statements(&self) -> AVec<AST> {
         match self.dep_list {
-            None => AVec::new(),
-            Some(AST::List(_)) => {
+            AOption(ROption::RNone) => AVec::new(),
+            AOption(ROption::RSome(AST::List(_))) => {
                 let target = AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("dep".into()));
                 let for_stmt = AST::ForLoop(ForLoop::new_wrapped(
                     target.clone(),
@@ -273,7 +279,7 @@ impl<U: AoristUniverse> PythonBasedFlowBuilder<U> for PrefectFlowBuilder<U> {
     fn augment_statements(
         &self,
         statements: AVec<PythonFlowBuilderInput>,
-        _flow_name: Option<AString>,
+        _flow_name: AOption<AString>,
     ) -> AVec<PythonFlowBuilderInput> {
         // TODO: add flow definition
         statements
@@ -294,8 +300,8 @@ impl<U: AoristUniverse> PythonBasedFlowBuilder<U> for PrefectFlowBuilder<U> {
                     .into_iter()
                     .collect(),
                     "Run Prefect flow".into(),
-                    None,
-                    None,
+                    AOption(ROption::RNone),
+                    AOption(ROption::RNone),
                 )]
                 .into_iter(),
             )

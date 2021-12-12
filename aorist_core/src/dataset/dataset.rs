@@ -8,11 +8,14 @@ use crate::encoding::*;
 use crate::storage::*;
 use crate::storage_setup::*;
 use crate::template::*;
+#[cfg(feature = "python")]
 use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 #[cfg(feature = "python")]
 use abi_stable::std_types::RArc;
+use abi_stable::std_types::ROption;
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
+use aorist_primitives::AOption;
 use aorist_primitives::{AString, AVec, TAoristObject};
 use derivative::Derivative;
 use linked_hash_map::LinkedHashMap;

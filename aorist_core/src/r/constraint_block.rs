@@ -1,3 +1,5 @@
+use aorist_primitives::AOption;
+use abi_stable::std_types::ROption;
 use aorist_primitives::AVec;
 use crate::code::CodeBlock;
 use crate::constraint::SatisfiableOuterConstraint;
@@ -22,10 +24,10 @@ where
     'a: 'b,
 {
     constraint_name: AString,
-    title: Option<AString>,
-    body: Option<AString>,
+    title: AOption<AString>,
+    body: AOption<AString>,
     members: AVec<RBasedCodeBlock<'a, 'b, T, C>>,
-    tasks_dict: Option<AST>,
+    tasks_dict: AOption<AST>,
     _lt: PhantomData<&'a ()>,
     _constraint: PhantomData<C>,
 }
@@ -41,10 +43,10 @@ where
     fn get_constraint_name(&self) -> String {
         self.constraint_name.clone()
     }
-    fn get_constraint_title(&self) -> Option<AString> {
+    fn get_constraint_title(&self) -> AOption<AString> {
         self.title.clone()
     }
-    fn get_constraint_body(&self) -> Option<AString> {
+    fn get_constraint_body(&self) -> AOption<AString> {
         self.body.clone()
     }
     fn get_code_blocks(&self) -> &AVec<Self::C> {
@@ -53,10 +55,10 @@ where
 
     fn new(
         constraint_name: AString,
-        title: Option<AString>,
-        body: Option<AString>,
+        title: AOption<AString>,
+        body: AOption<AString>,
         members: AVec<RBasedCodeBlock<'a, 'b, T, C>>,
-        tasks_dict: Option<AST>,
+        tasks_dict: AOption<AST>,
     ) -> Self {
         Self {
             constraint_name,
@@ -93,7 +95,7 @@ where
     C: OuterConstraint<'a, 'b> + SatisfiableOuterConstraint<'a, 'b>,
     'a: 'b,
 {
-    pub fn get_params(&self) -> HashMap<AString, Option<ParameterTuple>> {
+    pub fn get_params(&self) -> HashMap<AString, AOption<ParameterTuple>> {
         self.members
             .iter()
             .map(|x| x.get_params().into_iter())

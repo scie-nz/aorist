@@ -6,6 +6,8 @@ use crate::parameter_tuple::ParameterTuple;
 use crate::python::task::key::PythonBasedTaskCompressionKey;
 use crate::python::task::uncompressible::PythonBasedTaskUncompressiblePart;
 use crate::python::{List, PythonImport, PythonPreamble, StringLiteral, AST};
+use abi_stable::std_types::ROption;
+use aorist_primitives::AOption;
 use aorist_primitives::{AString, AVec, AoristUniverse};
 use linked_hash_map::LinkedHashMap;
 use std::hash::Hash;
@@ -23,17 +25,17 @@ where
     task_id: AString,
     /// function called to create task (has different meaning depending on
     /// the render we use.
-    call: Option<AString>,
+    call: AOption<AString>,
     /// arguments passed to function call
-    params: Option<ParameterTuple>,
+    params: AOption<ParameterTuple>,
     /// task_vals (or references to them) of other tasks this one
     /// depends on.
     dependencies: AVec<AST>,
     /// Python preamble used by this task call
-    preamble: Option<AString>,
+    preamble: AOption<AString>,
     /// Dialect (e.g. Bash, Python, R, Presto, etc.), to be interpreted
     /// by render.
-    dialect: Option<Dialect>,
+    dialect: AOption<Dialect>,
     singleton_type: PhantomData<T>,
     _universe: PhantomData<U>,
 }
@@ -52,11 +54,11 @@ where
     fn new(
         task_id: AString,
         task_val: AST,
-        call: Option<AString>,
-        params: Option<ParameterTuple>,
+        call: AOption<AString>,
+        params: AOption<ParameterTuple>,
         dependencies: AVec<AST>,
-        preamble: Option<AString>,
-        dialect: Option<Dialect>,
+        preamble: AOption<AString>,
+        dialect: AOption<Dialect>,
     ) -> Self {
         Self {
             task_id,
@@ -90,8 +92,8 @@ where
             self.get_left_of_task_val()?,
             self.call.clone(),
             match &self.params {
-                Some(p) => Some(p.get_dedup_key()),
-                None => None,
+                AOption(ROption::RSome(p)) => AOption(ROption::RSome(p.get_dedup_key())),
+                AOption(ROption::RNone) => AOption(ROption::RNone),
             },
             self.preamble.clone(),
             self.dialect.clone(),
@@ -118,10 +120,10 @@ where
             _ => Err("Task val must be a subscript".into()),
         }
     }
-    fn get_preamble(&self) -> Option<AString> {
+    fn get_preamble(&self) -> AOption<AString> {
         self.preamble.clone()
     }
-    fn get_dialect(&self) -> Option<Dialect> {
+    fn get_dialect(&self) -> AOption<Dialect> {
         self.dialect.clone()
     }
     fn get_task_val(&self) -> AST {
@@ -150,7 +152,7 @@ where
     ) -> (AVec<AST>, AVec<PythonPreamble>, AVec<PythonImport>) {
         let args;
         let kwargs;
-        if let Some(ref p) = self.params {
+        if let AOption(ROption::RSome(ref p)) = self.params {
             args = p.get_args();
             kwargs = p.get_kwargs();
         } else {
@@ -164,11 +166,11 @@ where
             args,
             kwargs,
             match self.dependencies.len() {
-                0 => None,
-                _ => Some(AST::List(List::new_wrapped(
+                0 => AOption(ROption::RNone),
+                _ => AOption(ROption::RSome(AST::List(List::new_wrapped(
                     self.dependencies.clone(),
                     false,
-                ))),
+                )))),
             },
             self.get_preamble(),
             self.get_dialect(),

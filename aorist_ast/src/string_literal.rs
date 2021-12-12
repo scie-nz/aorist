@@ -1,7 +1,8 @@
 use crate::{AncestorRecord, AST};
 use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
-use abi_stable::std_types::RArc;
+use abi_stable::std_types::{RArc, ROption};
 use aorist_extendr_api::prelude::*;
+use aorist_primitives::AOption;
 use aorist_primitives::AString;
 use aorist_primitives::AVec;
 use pyo3::prelude::*;
@@ -12,7 +13,7 @@ use std::hash::Hash;
 pub struct StringLiteral {
     value: AString,
     is_sql: bool,
-    ancestors: Option<AVec<AncestorRecord>>,
+    ancestors: AOption<AVec<AncestorRecord>>,
 }
 
 impl StringLiteral {
@@ -21,21 +22,21 @@ impl StringLiteral {
         Self {
             value,
             is_sql,
-            ancestors: None,
+            ancestors: AOption(ROption::RNone),
         }
     }
     pub fn set_ancestors(&mut self, ancestors: AVec<AncestorRecord>) {
         assert!(self.ancestors.is_none());
-        self.ancestors = Some(ancestors);
+        self.ancestors = AOption(ROption::RSome(ancestors));
     }
-    pub fn get_ancestors(&self) -> Option<AVec<AncestorRecord>> {
+    pub fn get_ancestors(&self) -> AOption<AVec<AncestorRecord>> {
         self.ancestors.clone()
     }
     pub fn clone_without_ancestors(&self) -> Self {
         Self {
             value: self.value.clone(),
             is_sql: self.is_sql,
-            ancestors: None,
+            ancestors: AOption(ROption::RNone),
         }
     }
     pub fn as_sql_string(&self) -> Self {

@@ -1,4 +1,6 @@
-#![allow(dead_code)]
+use abi_stable::std_types::ROption;
+use aorist_primitives::AOption;
+
 use crate::code::CodeBlock;
 use crate::code::CodeBlockWithDefaultConstructor;
 use crate::constraint::TConstraintEnum;
@@ -157,11 +159,11 @@ where
     fn init_tasks_dict(
         block: &LinkedHashMap<(Uuid, AString), RArc<RRwLock<ConstraintState<'a, B::OuterType, P>>>>,
         constraint_name: AString,
-    ) -> Option<AST> {
+    ) -> AOption<AST> {
         match block.len() == 1 {
-            true => None,
-            false => Some(AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
-                format!("tasks_{}", constraint_name).as_str().into(),
+            true => AOption(ROption::RNone),
+            false => AOption(ROption::RSome(AST::SimpleIdentifier(
+                SimpleIdentifier::new_wrapped(format!("tasks_{}", constraint_name).as_str().into()),
             ))),
         }
     }
@@ -186,7 +188,7 @@ where
         drop(write);
 
         // TODO: preambles and calls are superflous
-        if let Some(key) = state.read().key.as_ref() {
+        if let AOption(ROption::RSome(key)) = state.read().key.as_ref() {
             calls
                 .entry((state.read().get_call().unwrap(), name, uuid.1.clone()))
                 .or_insert(AVec::new())
@@ -262,7 +264,7 @@ where
         AVec<
             <Self::CB as ConstraintBlock<'a, <D as FlowBuilderBase<U>>::T, B::OuterType, U, P>>::C,
         >,
-        Option<AST>,
+        AOption<AST>,
     )> {
         debug!("Processing constraint block: {}", constraint_name);
 
@@ -286,7 +288,7 @@ where
         let mut calls: HashMap<(AString, AString, AString), AVec<(AString, ParameterTuple)>> =
             HashMap::new();
         let mut blocks = AVec::new();
-        let mut by_dialect: HashMap<Option<Dialect>, AVec<_>> = HashMap::new();
+        let mut by_dialect: HashMap<AOption<Dialect>, AVec<_>> = HashMap::new();
         for (id, state) in block.clone() {
             let mut write = state.write();
 
@@ -358,9 +360,9 @@ where
         }
         ConstraintState::shorten_task_names(&reduced_block, existing_names);
         let tasks_dict = match processed.values().map(|x| x.0.len()).sum::<usize>() == 1 {
-            true => None,
-            false => Some(AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
-                format!("tasks_{}", constraint_name).as_str().into(),
+            true => AOption(ROption::RNone),
+            false => AOption(ROption::RSome(AST::SimpleIdentifier(
+                SimpleIdentifier::new_wrapped(format!("tasks_{}", constraint_name).as_str().into()),
             ))),
         };
         for (_dialect, (unique_constraints, uuid_mappings)) in processed.into_iter() {
@@ -394,7 +396,7 @@ where
     fn get_constraint_explanation(
         &self,
         constraint_name: &AString,
-    ) -> (Option<AString>, Option<AString>);
+    ) -> (AOption<AString>, AOption<AString>);
     fn add_block(&mut self, constraint_block: Self::CB);
     fn satisfy_constraints(&mut self) -> Result<()> {
         let mut unsatisfied_constraints = self.init_unsatisfied_constraints()?;
@@ -441,8 +443,8 @@ where
                     let (title, body) = self.get_constraint_explanation(constraint_name);
                     let constraint_block = Self::CB::new(
                         snake_case_name.as_str().into(),
-                        title.and_then(|x| Some(x.as_str().into())),
-                        body.and_then(|x| Some(x.as_str().into())),
+                        title.and_then(|x| ROption::RSome(x.as_str().into())),
+                        body.and_then(|x| ROption::RSome(x.as_str().into())),
                         members,
                         tasks_dict,
                     );
@@ -460,7 +462,7 @@ where
     fn get_programs_for(&self, constraint_name: &AString) -> AVec<P>;
     fn get_endpoints(&self) -> U::TEndpoints;
     fn get_dependencies(&self) -> AVec<AString>;
-    fn run(&mut self, flow_name: Option<AString>) -> Result<(AString, AVec<AString>)> {
+    fn run(&mut self, flow_name: AOption<AString>) -> Result<(AString, AVec<AString>)> {
         self.satisfy_constraints()?;
         let etl = D::new();
         let endpoints = self.get_endpoints().clone();
@@ -744,7 +746,7 @@ where
             vec![AncestorRecord::new(
                 universe.get_uuid(),
                 universe.get_type(),
-                None,
+                AOption(ROption::RNone),
                 0,
             )]
             .into_iter()

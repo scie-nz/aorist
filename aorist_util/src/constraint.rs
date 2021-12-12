@@ -135,14 +135,14 @@ pub struct ParsedConstraintDef {
 impl ParsedConstraintDef {
     pub fn get_formatted_body(&self) -> String {
         match &self.body {
-            Some(x) => format!("Some(\"{}\".into())", x),
-            None => "None".to_string(),
+            Some(x) => format!("AOption(ROption::RSome(\"{}\".into()))", x),
+            None => "AOption(ROption::RNone)".to_string(),
         }
     }
     pub fn get_formatted_title(&self) -> String {
         match &self.title {
-            Some(x) => format!("Some(\"{}\".into())", x),
-            None => "None".to_string(),
+            Some(x) => format!("AOption(ROption::RSome(\"{}\".into()))", x),
+            None => "AOption(ROption::RNone)".to_string(),
         }
     }
     pub fn get_formatted_attach_if(&self) -> String {

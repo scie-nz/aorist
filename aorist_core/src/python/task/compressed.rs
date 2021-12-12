@@ -5,6 +5,8 @@ use crate::python::{
     Add, Assignment, Attribute, BigIntLiteral, BinOp, Call, Dict, ForLoop, List, PythonImport,
     PythonPreamble, SimpleIdentifier, StringLiteral, Subscript, Tuple, AST,
 };
+use abi_stable::std_types::ROption;
+use aorist_primitives::AOption;
 use aorist_primitives::{AVec, AoristUniverse};
 use linked_hash_map::LinkedHashMap;
 use std::hash::Hash;
@@ -169,7 +171,7 @@ where
 
         let mut kwargs;
         let args;
-        if let Some((num_args, kwarg_keys)) = self.key.get_dedup_key() {
+        if let AOption(ROption::RSome((num_args, kwarg_keys))) = self.key.get_dedup_key() {
             kwargs = kwarg_keys
                 .iter()
                 .map(|x| {
@@ -205,21 +207,25 @@ where
             kwargs.insert(k.clone(), v.clone());
         }
         let mut dependencies = match self.render_dependencies && any_dependencies {
-            true => Some(AST::Subscript(Subscript::new_wrapped(
+            true => AOption(ROption::RSome(AST::Subscript(Subscript::new_wrapped(
                 params.clone(),
                 AST::StringLiteral(StringLiteral::new_wrapped("dependencies".into(), false)),
                 false,
-            ))),
-            false => None,
+            )))),
+            false => AOption(ROption::RNone),
         };
         let compressed_dependencies = self.key.deps.clone();
         if compressed_dependencies.len() > 0 {
             let left = AST::List(List::new_wrapped(compressed_dependencies, false));
-            if let Some(ref right) = dependencies {
+            if let AOption(ROption::RSome(ref right)) = dependencies {
                 let op = AST::Add(Add::new_wrapped());
-                dependencies = Some(AST::BinOp(BinOp::new_wrapped(left, op, right.clone())));
+                dependencies = AOption(ROption::RSome(AST::BinOp(BinOp::new_wrapped(
+                    left,
+                    op,
+                    right.clone(),
+                ))));
             } else {
-                dependencies = Some(left);
+                dependencies = AOption(ROption::RSome(left));
             }
         }
 

@@ -1,8 +1,9 @@
-#![allow(non_snake_case)]
 use crate::concept::{AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
 use crate::user_group::{TUserGroup, UserGroup};
+use abi_stable::std_types::ROption;
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
+use aorist_primitives::AOption;
 use aorist_primitives::{AString, AVec};
 use derivative::Derivative;
 use serde::{Deserialize, Serialize};
@@ -12,15 +13,15 @@ use uuid::Uuid;
 
 #[aorist]
 pub struct ApproveAccessSelector {
-    matchLabels: AVec<(AString, Vec<AString>)>,
+    match_labels: AVec<(AString, Vec<AString>)>,
 }
 pub trait TApproveAccessSelector {
-    fn checkGroupIsAllowed(&self, group: &UserGroup) -> bool;
+    fn check_group_is_allowed(&self, group: &UserGroup) -> bool;
 }
 impl TApproveAccessSelector for ApproveAccessSelector {
-    fn checkGroupIsAllowed(&self, group: &UserGroup) -> bool {
+    fn check_group_is_allowed(&self, group: &UserGroup) -> bool {
         let my_labels: HashMap<AString, HashSet<AString>> = self
-            .matchLabels
+            .match_labels
             .clone()
             .into_iter()
             .map(|(k, v)| {

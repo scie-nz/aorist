@@ -54,7 +54,7 @@ macro_rules! register_ast_nodes {
                     )+
                 }
             }
-            pub fn get_ancestors(&self) -> Option<AVec<AncestorRecord>> {
+            pub fn get_ancestors(&self) -> AOption<AVec<AncestorRecord>> {
                 match &self {
                     $(
                         Self::$variant(x) => x.read().get_ancestors(),
@@ -249,7 +249,7 @@ macro_rules! define_ast_node {
             $(
                 $field: $field_type,
             )*
-            ancestors: Option<AVec<AncestorRecord>>,
+            ancestors: AOption<AVec<AncestorRecord>>,
         }
         impl $name {
             pub fn new_wrapped($(
@@ -273,20 +273,20 @@ macro_rules! define_ast_node {
             )*) -> Self {
                 Self {
                     $($field,)*
-                    ancestors: None,
+                    ancestors: AOption(ROption::RNone),
                 }
             }
             pub fn clone_without_ancestors(&self) -> Self {
                 Self {
                     $($field: self.$field.clone(),)*
-                    ancestors: None,
+                    ancestors: AOption(ROption::RNone),
                 }
             }
             pub fn set_ancestors(&mut self, ancestors: AVec<AncestorRecord>) {
                 assert!(self.ancestors.is_none());
-                self.ancestors = Some(ancestors);
+                self.ancestors = AOption(ROption::RSome(ancestors));
             }
-            pub fn get_ancestors(&self) -> Option<AVec<AncestorRecord>> {
+            pub fn get_ancestors(&self) -> AOption<AVec<AncestorRecord>> {
                 self.ancestors.clone()
             }
             $(
@@ -374,7 +374,7 @@ macro_rules! define_attribute {
             #[cfg_attr(feature = "sql", derive($sql_type))]
             pub struct $element {
                 pub name: AString,
-                pub comment: Option<AString>,
+                pub comment: AOption<AString>,
                 pub nullable: bool,
             }
             impl TAttribute for $element {
@@ -383,7 +383,7 @@ macro_rules! define_attribute {
                 fn get_name(&self) -> AString {
                     self.name.clone()
                 }
-                fn get_comment(&self) -> Option<AString> {
+                fn get_comment(&self) -> AOption<AString> {
                     self.comment.clone()
                 }
                 fn is_nullable(&self) -> bool {
@@ -412,7 +412,11 @@ macro_rules! define_attribute {
                     comment: Option<&str>,
                     nullable: bool
                 ) -> Self {
-                    Self { name: name.into(), comment: comment.clone().and_then(|x| Some(x.into())), nullable }
+                    let comment_str: ROption<AString> = match comment {
+                        Some(x) => ROption::RSome(x.into()),
+                        None => ROption::RNone,
+                    };
+                    Self { name: name.into(), comment: AOption(comment_str), nullable }
                 }
                 #[getter]
                 pub fn name(&self) -> PyResult<&str> {
@@ -659,10 +663,10 @@ macro_rules! define_constraint {
                     )*
                     Ok(downstream)
                 }
-                fn get_title() -> Option<AString> {
+                fn get_title() -> AOption<AString> {
                     $title
                 }
-                fn get_body() -> Option<AString> {
+                fn get_body() -> AOption<AString> {
                     $body
                 }
             }
@@ -796,7 +800,7 @@ macro_rules! register_attribute_new {
                     )+
                 }
             }
-            pub fn get_comment(&self) -> Option<AString> {
+            pub fn get_comment(&self) -> AOption<AString> {
                 match self {
                     $(
                         [<$name Enum>]::$element(x) => x.get_comment(),
@@ -889,7 +893,7 @@ macro_rules! register_attribute_new {
             pub fn is_key_type(&self) -> bool {
                 self.inner.is_key_type()
             }
-            pub fn get_comment(&self) -> Option<AString> {
+            pub fn get_comment(&self) -> AOption<AString> {
                 self.inner.get_comment()
             }
             #[cfg(feature = "sql")]
@@ -938,7 +942,12 @@ macro_rules! register_attribute_new {
             }
             #[getter]
             pub fn comment(&self) -> pyo3::prelude::PyResult<Option<String>> {
-                Ok(self.inner.0.read().get_comment().clone().and_then(|x| Some(x.as_str().into())))
+                Ok(
+                    match self.inner.0.read().get_comment().clone() {
+                        AOption(ROption::RSome(x)) => Some(x.as_str().into()),
+                        AOption(ROption::RNone) => None,
+                    }
+                )
             }
             #[getter]
             pub fn orc_type(&self) -> pyo3::prelude::PyResult<String> {
@@ -986,7 +995,7 @@ macro_rules! register_concept {
         #[derive(Clone, Debug, Serialize, PartialEq)]
         pub enum $name {
             $(
-                $element((AoristRef<$element>, usize, Option<(Uuid, AString)>)),
+                $element((AoristRef<$element>, usize, AOption<(Uuid, AString)>)),
             )+
         }
         #[cfg(feature = "python")]
@@ -1008,14 +1017,14 @@ macro_rules! register_concept {
             impl [<CanBe $element>] for $name {
                 fn [<construct_ $element:snake:lower>](
                     obj_ref: AoristRef<$element>,
-                    ix: Option<usize>,
-                    id: Option<(Uuid, AString)>
+                    ix: AOption<usize>,
+                    id: AOption<(Uuid, AString)>
                 ) -> AoristRef<Self> {
                     AoristRef(RArc::new(RRwLock::new($name::$element((
                         obj_ref.clone(),
                         match ix {
-                            Some(i) => i,
-                            None => 0,
+                            AOption(ROption::RSome(i)) => i,
+                            AOption(ROption::RNone) => 0,
                         },
                         id,
                     )))))
@@ -1082,14 +1091,14 @@ macro_rules! register_concept {
                     }
                     let parent_id = root.get_parent_id();
                     match parent_id {
-                        None => Err(
+                        AOption(ROption::RNone) => Err(
                             format!(
                                 "Cannot find ancestor of type {} for root {}.",
                                 stringify!($element),
                                 root.get_type(),
                             )
                         ),
-                        Some(id) => {
+                        AOption(ROption::RSome(id)) => {
                             let guard = self.parents.read();
                             let parent = guard.get(&id).unwrap().clone();
                             self.[<$element:snake:lower>](parent)
@@ -1127,7 +1136,7 @@ macro_rules! register_concept {
         }
         impl TConceptEnum for AoristRef<$name> {
             type TUniverse = AoristRef<Universe>;
-            fn get_parent_id(&self) -> Option<(Uuid, AString)> {
+            fn get_parent_id(&self) -> AOption<(Uuid, AString)> {
                 let read = self.0.read();
                 match *read {
                     $(
@@ -1136,7 +1145,7 @@ macro_rules! register_concept {
                 }
             }
             fn from_universe(universe: AoristRef<Universe>) -> Self {
-                AoristRef(RArc::new(RRwLock::new($name::Universe((universe, 0, None)))))
+                AoristRef(RArc::new(RRwLock::new($name::Universe((universe, 0, AOption(ROption::RNone))))))
             }
             fn get_type(&self) -> AString {
                 let read = self.0.read();
@@ -1154,7 +1163,7 @@ macro_rules! register_concept {
                     )*
                 }
             }
-            fn get_tag(&self) -> Option<AString> {
+            fn get_tag(&self) -> AOption<AString> {
                 let read = self.0.read();
                 match *read {
                     $(
@@ -1513,7 +1522,7 @@ macro_rules! register_constraint_new {
                     )+
                 }
             }
-            fn get_explanations() -> HashMap<AString, (Option<AString>, Option<AString>)> {
+            fn get_explanations() -> HashMap<AString, (AOption<AString>, AOption<AString>)> {
                 vec! [
                     $(
                         (stringify!($element).into(), (
@@ -1553,14 +1562,14 @@ macro_rules! register_constraint_new {
                     )+
                 }
             }
-            pub fn get_title(&self) -> Option<AString> {
+            pub fn get_title(&self) -> AOption<AString> {
                 match self {
                     $(
                         Self::$element(_) => $element::get_title(),
                     )+
                 }
             }
-            pub fn get_body(&self) -> Option<AString> {
+            pub fn get_body(&self) -> AOption<AString> {
                 match self {
                     $(
                         Self::$element(_) => $element::get_body(),
@@ -1640,7 +1649,10 @@ macro_rules! define_dag_function {
                     true,
                 )
                 .map_err(|e| pyo3::exceptions::PyException::new_err(e.to_string()))?
-                .run(dag_name.and_then(|x| Some(x.as_str().into()))),
+                .run(match dag_name {
+                    Some(x) => AOption(ROption::RSome(x.as_str().into())),
+                    None => AOption(ROption::RNone),
+                }),
                 "prefect" => PythonBasedDriver::<
                     AoristConstraintBuilder<'a>,
                     PrefectFlowBuilder<AoristRef<Universe>>,
@@ -1656,7 +1668,10 @@ macro_rules! define_dag_function {
                     true,
                 )
                 .map_err(|e| pyo3::exceptions::PyException::new_err(e.to_string()))?
-                .run(dag_name.and_then(|x| Some(x.as_str().into()))),
+                .run(match dag_name {
+                    Some(x) => AOption(ROption::RSome(x.as_str().into())),
+                    None => AOption(ROption::RNone),
+                }),
                 "python" => PythonBasedDriver::<
                     AoristConstraintBuilder<'a>,
                     PythonFlowBuilder<AoristRef<Universe>>,
@@ -1672,7 +1687,10 @@ macro_rules! define_dag_function {
                     false,
                 )
                 .map_err(|e| pyo3::exceptions::PyException::new_err(e.to_string()))?
-                .run(dag_name.and_then(|x| Some(x.as_str().into()))),
+                .run(match dag_name {
+                    Some(x) => AOption(ROption::RSome(x.as_str().into())),
+                    None => AOption(ROption::RNone),
+                }),
                 "jupyter" => PythonBasedDriver::<
                     AoristConstraintBuilder<'a>,
                     JupyterFlowBuilder<AoristRef<Universe>>,
@@ -1688,7 +1706,10 @@ macro_rules! define_dag_function {
                     false,
                 )
                 .map_err(|e| pyo3::exceptions::PyException::new_err(e.to_string()))?
-                .run(dag_name.and_then(|x| Some(x.as_str().into()))),
+                .run(match dag_name {
+                    Some(x) => AOption(ROption::RSome(x.as_str().into())),
+                    None => AOption(ROption::RNone),
+                }),
                 /*"r" => RBasedDriver::<ConstraintBuilder, RBasedFlowBuilder>::new(&universe, constraints.into_iter().collect())
                 .map_err(|e| pyo3::exceptions::PyException::new_err(e.to_string()))?
                 .run(dag_name),*/
@@ -1713,6 +1734,7 @@ macro_rules! export_aorist_python_module {
 
         use abi_stable::library::{lib_header_from_path, LibrarySuffix, RawLibrary};
         use abi_stable::reexports::SelfOps;
+        use abi_stable::std_types::ROption;
         use aorist_core::{AoristApplicationError, ConstraintMod_Ref};
         use std::path::{Path, PathBuf};
 
@@ -1756,8 +1778,8 @@ macro_rules! attribute {
                 comment: $comment,
                 nullable: $nullable,
             })),
-            tag: None,
-            uuid: None,
+            tag: AOption(ROption::RNone),
+            uuid: AOption(ROption::RNone),
         })))
     }
 }
@@ -1767,7 +1789,7 @@ macro_rules! asset {
         #[aorist]
         pub struct $name {
             pub name: AString,
-            pub comment: Option<AString>,
+            pub comment: AOption<AString>,
             #[constrainable]
             pub schema: AoristRef<DataSchema>,
             #[constrainable]
@@ -1807,7 +1829,7 @@ macro_rules! asset {
                         ))),
                         schema: self.schema.clone(),
                         tag: self.tag.clone(),
-                        uuid: None,
+                        uuid: AOption(ROption::RNone),
                     });
                 }
                 None
@@ -1950,7 +1972,7 @@ macro_rules! schema {
                 vec![$($(
                     attribute! { $attribute(
                         stringify!($attr_name).into(),
-                        Some($comment.into()),
+                        AOption(ROption::RSome($comment.into())),
                         $nullable
                     )},
                 )+)?].into_iter().collect()

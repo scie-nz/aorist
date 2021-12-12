@@ -1,7 +1,9 @@
 use crate::python::ast::AirflowTaskBase;
 use crate::python::ast::PythonTaskBase;
 use crate::python::PythonImport;
+use abi_stable::std_types::ROption;
 use aorist_ast::{Assignment, Attribute, Call, Expression, SimpleIdentifier, AST};
+use aorist_primitives::AOption;
 use aorist_primitives::{AString, AVec};
 use linked_hash_map::LinkedHashMap;
 
@@ -14,7 +16,7 @@ pub trait AirflowBashOperatorTask: PythonTaskBase + AirflowTaskBase {
         vec![PythonImport::PythonFromImport(
             "airflow.operators.bash_operator".into(),
             "BashOperator".into(),
-            None,
+            AOption(ROption::RNone),
         )]
         .into_iter()
         .collect()
@@ -35,7 +37,7 @@ pub trait AirflowBashOperatorTask: PythonTaskBase + AirflowTaskBase {
             self.get_task_val(),
             creation_expr,
         ))];
-        if let Some(dependencies) = self.get_dependencies() {
+        if let AOption(ROption::RSome(dependencies)) = self.get_dependencies() {
             statements.push(AST::Expression(Expression::new_wrapped(AST::Call(
                 Call::new_wrapped(
                     AST::Attribute(Attribute::new_wrapped(

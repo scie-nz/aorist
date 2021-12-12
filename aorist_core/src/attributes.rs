@@ -1,4 +1,5 @@
 use crate::concept::{AoristRef, WrappedConcept};
+use abi_stable::std_types::ROption;
 #[cfg(feature = "sql")]
 use aorist_attributes::TSQLAttribute;
 use aorist_attributes::{
@@ -7,6 +8,7 @@ use aorist_attributes::{
 };
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
+use aorist_primitives::AOption;
 use aorist_primitives::{AString, AVec, AoristConcept, ConceptEnum};
 use derivative::Derivative;
 #[cfg(feature = "sql")]
@@ -117,7 +119,7 @@ impl IdentityTransform {
     pub fn is_nullable(&self) -> bool {
         self.attribute.is_nullable()
     }
-    pub fn get_comment(&self) -> Option<AString> {
+    pub fn get_comment(&self) -> AOption<AString> {
         self.attribute.get_comment()
     }
     #[cfg(feature = "sql")]
@@ -179,7 +181,7 @@ impl Transform {
             Transform::IdentityTransform(x) => x.is_nullable(),
         }
     }
-    pub fn get_comment(&self) -> Option<AString> {
+    pub fn get_comment(&self) -> AOption<AString> {
         match &self {
             Transform::IdentityTransform(x) => x.get_comment(),
         }
@@ -294,7 +296,7 @@ impl AttributeOrTransform {
             }
         }
     }
-    pub fn get_comment(&self) -> Option<AString> {
+    pub fn get_comment(&self) -> AOption<AString> {
         match &self {
             AttributeOrTransform::Attribute(x) => x.get_comment(),
             AttributeOrTransform::Transform(x) => x.get_comment(),

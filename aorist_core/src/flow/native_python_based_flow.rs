@@ -7,7 +7,9 @@ use crate::python::{
     BashPythonTask, ConstantPythonTask, NativePythonTask, PrestoPythonTask, PythonImport,
     PythonPreamble, PythonTask, RPythonTask,
 };
+use abi_stable::std_types::ROption;
 use aorist_ast::{Call, SimpleIdentifier, StringLiteral, AST};
+use aorist_primitives::AOption;
 use aorist_primitives::TPrestoEndpoints;
 use aorist_primitives::{AString, AVec, AoristUniverse};
 use linked_hash_map::LinkedHashMap;
@@ -21,12 +23,12 @@ where
 {
     task_id: AST,
     task_val: AST,
-    command: Option<AString>,
+    command: AOption<AString>,
     args: AVec<AST>,
     kwargs: LinkedHashMap<AString, AST>,
-    dep_list: Option<AST>,
-    preamble: Option<AString>,
-    dialect: Option<Dialect>,
+    dep_list: AOption<AST>,
+    preamble: AOption<AString>,
+    dialect: AOption<Dialect>,
     endpoints: U::TEndpoints,
     node: PythonTask,
     _universe: PhantomData<U>,
@@ -35,7 +37,7 @@ impl<U: AoristUniverse> PythonBasedFlow<U> for NativePythonBasedFlow<U>
 where
     U::TEndpoints: TPrestoEndpoints,
 {
-    fn get_preamble_string(&self) -> Option<AString> {
+    fn get_preamble_string(&self) -> AOption<AString> {
         self.preamble.clone()
     }
 }
@@ -51,7 +53,7 @@ where
     fn get_preamble(&self) -> Result<AVec<PythonPreamble>, pyo3::PyErr> {
         // TODO: this should be deprecated
         let mut preambles = self.get_python_preamble()?;
-        if let Some(p) = self.node.get_preamble() {
+        if let AOption(ROption::RSome(p)) = self.node.get_preamble() {
             preambles.push(p)
         }
         Ok(preambles.into_iter().collect())
@@ -59,7 +61,7 @@ where
     fn get_imports(&self) -> AVec<PythonImport> {
         self.node.get_imports()
     }
-    fn get_dialect(&self) -> Option<Dialect> {
+    fn get_dialect(&self) -> AOption<Dialect> {
         self.dialect.clone()
     }
     fn get_task_val(&self) -> AST {
@@ -71,27 +73,28 @@ where
     fn new(
         task_id: AST,
         task_val: AST,
-        call: Option<AString>,
+        call: AOption<AString>,
         args: AVec<AST>,
         kwargs: LinkedHashMap<AString, AST>,
-        dep_list: Option<AST>,
-        preamble: Option<AString>,
-        dialect: Option<Dialect>,
+        dep_list: AOption<AST>,
+        preamble: AOption<AString>,
+        dialect: AOption<Dialect>,
         endpoints: U::TEndpoints,
     ) -> Self {
         let command = match &dialect {
-            Some(Dialect::Presto(_)) => AST::StringLiteral(StringLiteral::new_wrapped(
-                call.as_ref().unwrap().clone(),
-                true,
-            )),
-            Some(_) => AST::StringLiteral(StringLiteral::new_wrapped(
+            AOption(ROption::RSome(Dialect::Presto(_))) => AST::StringLiteral(
+                StringLiteral::new_wrapped(call.as_ref().unwrap().clone(), true),
+            ),
+            AOption(ROption::RSome(_)) => AST::StringLiteral(StringLiteral::new_wrapped(
                 call.as_ref().unwrap().clone(),
                 false,
             )),
-            None => AST::StringLiteral(StringLiteral::new_wrapped("Done".into(), false)),
+            AOption(ROption::RNone) => {
+                AST::StringLiteral(StringLiteral::new_wrapped("Done".into(), false))
+            }
         };
         let node = match &dialect {
-            Some(Dialect::Presto(_)) => {
+            AOption(ROption::RSome(Dialect::Presto(_))) => {
                 let presto_endpoints = endpoints.presto_config();
                 PythonTask::PrestoPythonTask(PrestoPythonTask::new_wrapped(
                     command,
@@ -120,21 +123,25 @@ where
                     dep_list.clone(),
                 ))
             }
-            Some(Dialect::Bash(_)) => PythonTask::BashPythonTask(BashPythonTask::new_wrapped(
-                command,
-                kwargs.clone(),
-                task_val.clone(),
-                dep_list.clone(),
-            )),
-            Some(Dialect::R(_)) => PythonTask::RPythonTask(RPythonTask::new_wrapped(
-                task_val.clone(),
-                command,
-                args.clone(),
-                kwargs.clone(),
-                dep_list.clone(),
-                preamble.clone(),
-            )),
-            Some(Dialect::Python(_)) => {
+            AOption(ROption::RSome(Dialect::Bash(_))) => {
+                PythonTask::BashPythonTask(BashPythonTask::new_wrapped(
+                    command,
+                    kwargs.clone(),
+                    task_val.clone(),
+                    dep_list.clone(),
+                ))
+            }
+            AOption(ROption::RSome(Dialect::R(_))) => {
+                PythonTask::RPythonTask(RPythonTask::new_wrapped(
+                    task_val.clone(),
+                    command,
+                    args.clone(),
+                    kwargs.clone(),
+                    dep_list.clone(),
+                    preamble.clone(),
+                ))
+            }
+            AOption(ROption::RSome(Dialect::Python(_))) => {
                 PythonTask::NativePythonTask(NativePythonTask::new_wrapped(
                     AST::Call(Call::new_wrapped(
                         AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
@@ -149,11 +156,9 @@ where
                     dep_list.clone(),
                 ))
             }
-            None => PythonTask::ConstantPythonTask(ConstantPythonTask::new_wrapped(
-                command,
-                task_val.clone(),
-                dep_list.clone(),
-            )),
+            AOption(ROption::RNone) => PythonTask::ConstantPythonTask(
+                ConstantPythonTask::new_wrapped(command, task_val.clone(), dep_list.clone()),
+            ),
         };
 
         Self {

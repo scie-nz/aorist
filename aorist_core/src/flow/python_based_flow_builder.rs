@@ -2,7 +2,9 @@ use crate::flow::etl_flow::ETLFlow;
 use crate::flow::flow_builder::{FlowBuilderBase, FlowBuilderMaterialize};
 use crate::flow::flow_builder_input::FlowBuilderInput;
 use crate::python::{format_code, PythonFlowBuilderInput, PythonImport, PythonPreamble};
+use abi_stable::std_types::ROption;
 use aorist_ast::AST;
+use aorist_primitives::AOption;
 use aorist_primitives::{AString, AVec, AoristUniverse};
 use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
@@ -24,7 +26,7 @@ where
     fn materialize(
         &self,
         statements_and_preambles: AVec<PythonFlowBuilderInput>,
-        flow_name: Option<AString>,
+        flow_name: AOption<AString>,
     ) -> Result<AString, Self::ErrorType> {
         let gil = Python::acquire_gil();
         let py = gil.python();
@@ -77,8 +79,8 @@ where
                     LinkedHashSet::new(),
                     BTreeSet::new(),
                     "assignments".into(),
-                    Some("Common string literals".into()),
-                    None,
+                    AOption(ROption::RSome("Common string literals".into())),
+                    AOption(ROption::RNone),
                 ),
             );
         }
@@ -87,41 +89,43 @@ where
             .augment_statements(statements_with_ast, flow_name.clone())
             .into_iter()
             .collect();
-        let content: Vec<(Option<AString>, Vec<&PyAny>)> =
-            vec![(None, imports_ast.into_iter().collect::<Vec<_>>())]
+        let content: Vec<(AOption<AString>, Vec<&PyAny>)> = vec![(
+            AOption(ROption::RNone),
+            imports_ast.into_iter().collect::<Vec<_>>(),
+        )]
+        .into_iter()
+        .chain(
+            preambles
                 .into_iter()
-                .chain(
-                    preambles
-                        .into_iter()
-                        .map(|x| {
-                            (
-                                None,
-                                x.to_python_ast_nodes(py, ast, 0)
-                                    .into_iter()
-                                    .collect::<Vec<_>>(),
-                            )
-                        })
-                        .collect::<Vec<_>>()
-                        .into_iter(),
-                )
-                .chain(
-                    augmented_statements
-                        .into_iter()
-                        .map(|x| {
-                            (
-                                Some(x.get_block_comment()),
-                                x.to_python_ast_nodes(py, ast, 0)
-                                    .unwrap()
-                                    .into_iter()
-                                    .collect::<Vec<_>>(),
-                            )
-                        })
-                        .collect::<Vec<_>>()
-                        .into_iter(),
-                )
-                .collect();
+                .map(|x| {
+                    (
+                        AOption(ROption::RNone),
+                        x.to_python_ast_nodes(py, ast, 0)
+                            .into_iter()
+                            .collect::<Vec<_>>(),
+                    )
+                })
+                .collect::<Vec<_>>()
+                .into_iter(),
+        )
+        .chain(
+            augmented_statements
+                .into_iter()
+                .map(|x| {
+                    (
+                        AOption(ROption::RSome(x.get_block_comment())),
+                        x.to_python_ast_nodes(py, ast, 0)
+                            .unwrap()
+                            .into_iter()
+                            .collect::<Vec<_>>(),
+                    )
+                })
+                .collect::<Vec<_>>()
+                .into_iter(),
+        )
+        .collect();
 
-        let mut sources: AVec<(Option<AString>, AString)> = AVec::new();
+        let mut sources: AVec<(AOption<AString>, AString)> = AVec::new();
 
         // This is needed since astor will occasionally forget to add a newline
         for (comment, block) in content {
@@ -170,7 +174,7 @@ where
     fn augment_statements(
         &self,
         statements: AVec<PythonFlowBuilderInput>,
-        _flow_name: Option<AString>,
+        _flow_name: AOption<AString>,
     ) -> AVec<PythonFlowBuilderInput> {
         statements
     }
@@ -178,15 +182,17 @@ where
 
     fn build_file(
         &self,
-        sources: AVec<(Option<AString>, AString)>,
-        _flow_name: Option<AString>,
+        sources: AVec<(AOption<AString>, AString)>,
+        _flow_name: AOption<AString>,
     ) -> PyResult<AString> {
         format_code(
             sources
                 .into_iter()
                 .map(|(maybe_comment, block)| match maybe_comment {
-                    Some(comment) => format!("# {}\n{}\n", comment, block).to_string(),
-                    None => block.as_str().into(),
+                    AOption(ROption::RSome(comment)) => {
+                        format!("# {}\n{}\n", comment, block).to_string()
+                    }
+                    AOption(ROption::RNone) => block.as_str().into(),
                 })
                 .collect::<AVec<String>>()
                 .join("")

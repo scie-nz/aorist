@@ -1,4 +1,6 @@
-#![allow(non_snake_case)]
+use abi_stable::std_types::ROption;
+use aorist_primitives::AOption;
+
 use crate::attributes::*;
 use crate::concept::{AoristRef, WrappedConcept};
 use crate::template::datum_template::TDatumTemplate;
@@ -14,8 +16,8 @@ use uuid::Uuid;
 pub struct PointCloud {
     pub name: AString,
     pub dimensions: usize,
-    pub horiz_crs: Option<usize>,
-    pub vert_crs: Option<usize>,
+    pub horiz_crs: AOption<usize>,
+    pub vert_crs: AOption<usize>,
 }
 impl TDatumTemplate for PointCloud {
     fn get_attributes(&self) -> AVec<AoristRef<Attribute>> {

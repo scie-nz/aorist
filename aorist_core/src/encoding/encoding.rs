@@ -16,10 +16,13 @@ use crate::encoding::tiff_encoding::*;
 use crate::encoding::tsv_encoding::*;
 use crate::encoding::wkt_encoding::*;
 use crate::encoding::xml_encoding::*;
+#[cfg(feature = "python")]
 use crate::header::FileHeader;
 use crate::header::*;
+use abi_stable::std_types::ROption;
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
+use aorist_primitives::AOption;
 use aorist_primitives::{AString, AVec, AoristConcept, ConceptEnum};
 #[cfg(feature = "python")]
 use pyo3::prelude::*;
@@ -48,28 +51,28 @@ pub enum Encoding {
 }
 
 impl Encoding {
-    pub fn get_header(&self) -> Option<AoristRef<FileHeader>> {
+    pub fn get_header(&self) -> AOption<AoristRef<FileHeader>> {
         match &self {
             Self::CSVEncoding(x) => x.0.read().header.clone(),
             // TODO: need to change this to also be optional
             Self::TSVEncoding(x) => x.0.read().header.clone(),
-            Self::JSONEncoding(_) => None,
-            Self::ORCEncoding(_) => None,
-            Self::ONNXEncoding(_) => None,
-            Self::GDBEncoding(_) => None,
-            Self::LASEncoding(_) => None,
-            Self::SQLiteEncoding(_) => None,
-            Self::NewlineDelimitedJSONEncoding(_) => None,
-            Self::GeoTiffEncoding(_) => None,
-            Self::TiffEncoding(_) => None,
-            Self::WKTEncoding(_) => None,
-            Self::ShapefileEncoding(_) => None,
-            Self::XMLEncoding(_) => None,
-            Self::KMLEncoding(_) => None,
-            Self::GPKGEncoding(_) => None,
+            Self::JSONEncoding(_) => AOption(ROption::RNone),
+            Self::ORCEncoding(_) => AOption(ROption::RNone),
+            Self::ONNXEncoding(_) => AOption(ROption::RNone),
+            Self::GDBEncoding(_) => AOption(ROption::RNone),
+            Self::LASEncoding(_) => AOption(ROption::RNone),
+            Self::SQLiteEncoding(_) => AOption(ROption::RNone),
+            Self::NewlineDelimitedJSONEncoding(_) => AOption(ROption::RNone),
+            Self::GeoTiffEncoding(_) => AOption(ROption::RNone),
+            Self::TiffEncoding(_) => AOption(ROption::RNone),
+            Self::WKTEncoding(_) => AOption(ROption::RNone),
+            Self::ShapefileEncoding(_) => AOption(ROption::RNone),
+            Self::XMLEncoding(_) => AOption(ROption::RNone),
+            Self::KMLEncoding(_) => AOption(ROption::RNone),
+            Self::GPKGEncoding(_) => AOption(ROption::RNone),
         }
     }
-    pub fn get_compression(&self) -> Option<AoristRef<DataCompression>> {
+    pub fn get_compression(&self) -> AOption<AoristRef<DataCompression>> {
         match &self {
             Self::CSVEncoding(x) => x.0.read().compression.clone(),
             // TODO: need to change this to also be optional
@@ -82,12 +85,12 @@ impl Encoding {
             Self::XMLEncoding(x) => x.0.read().compression.clone(),
             Self::KMLEncoding(x) => x.0.read().compression.clone(),
             Self::GPKGEncoding(x) => x.0.read().compression.clone(),
-            Self::JSONEncoding(_) => None,
-            Self::ORCEncoding(_) => None,
-            Self::ONNXEncoding(_) => None,
-            Self::SQLiteEncoding(_) => None,
-            Self::NewlineDelimitedJSONEncoding(_) => None,
-            Self::ShapefileEncoding(_) => None,
+            Self::JSONEncoding(_) => AOption(ROption::RNone),
+            Self::ORCEncoding(_) => AOption(ROption::RNone),
+            Self::ONNXEncoding(_) => AOption(ROption::RNone),
+            Self::SQLiteEncoding(_) => AOption(ROption::RNone),
+            Self::NewlineDelimitedJSONEncoding(_) => AOption(ROption::RNone),
+            Self::ShapefileEncoding(_) => AOption(ROption::RNone),
         }
     }
     pub fn get_default_file_extension(&self) -> AString {
@@ -119,44 +122,44 @@ impl PyEncoding {
     pub fn get_compression(&self) -> PyResult<Option<PyDataCompression>> {
         Ok(match &*self.inner.0.read() {
             Encoding::CSVEncoding(x) => match &x.0.read().compression {
-                Some(y) => Some(PyDataCompression { inner: y.clone() }),
-                None => None,
+                AOption(ROption::RSome(y)) => Some(PyDataCompression { inner: y.clone() }),
+                AOption(ROption::RNone) => None,
             },
             Encoding::GDBEncoding(x) => match &x.0.read().compression {
-                Some(y) => Some(PyDataCompression { inner: y.clone() }),
-                None => None,
+                AOption(ROption::RSome(y)) => Some(PyDataCompression { inner: y.clone() }),
+                AOption(ROption::RNone) => None,
             },
             Encoding::LASEncoding(x) => match &x.0.read().compression {
-                Some(y) => Some(PyDataCompression { inner: y.clone() }),
-                None => None,
+                AOption(ROption::RSome(y)) => Some(PyDataCompression { inner: y.clone() }),
+                AOption(ROption::RNone) => None,
             },
             Encoding::GeoTiffEncoding(x) => match &x.0.read().compression {
-                Some(y) => Some(PyDataCompression { inner: y.clone() }),
-                None => None,
+                AOption(ROption::RSome(y)) => Some(PyDataCompression { inner: y.clone() }),
+                AOption(ROption::RNone) => None,
             },
             Encoding::TiffEncoding(x) => match &x.0.read().compression {
-                Some(y) => Some(PyDataCompression { inner: y.clone() }),
-                None => None,
+                AOption(ROption::RSome(y)) => Some(PyDataCompression { inner: y.clone() }),
+                AOption(ROption::RNone) => None,
             },
             Encoding::WKTEncoding(x) => match &x.0.read().compression {
-                Some(y) => Some(PyDataCompression { inner: y.clone() }),
-                None => None,
+                AOption(ROption::RSome(y)) => Some(PyDataCompression { inner: y.clone() }),
+                AOption(ROption::RNone) => None,
             },
             Encoding::XMLEncoding(x) => match &x.0.read().compression {
-                Some(y) => Some(PyDataCompression { inner: y.clone() }),
-                None => None,
+                AOption(ROption::RSome(y)) => Some(PyDataCompression { inner: y.clone() }),
+                AOption(ROption::RNone) => None,
             },
             Encoding::KMLEncoding(x) => match &x.0.read().compression {
-                Some(y) => Some(PyDataCompression { inner: y.clone() }),
-                None => None,
+                AOption(ROption::RSome(y)) => Some(PyDataCompression { inner: y.clone() }),
+                AOption(ROption::RNone) => None,
             },
             Encoding::GPKGEncoding(x) => match &x.0.read().compression {
-                Some(y) => Some(PyDataCompression { inner: y.clone() }),
-                None => None,
+                AOption(ROption::RSome(y)) => Some(PyDataCompression { inner: y.clone() }),
+                AOption(ROption::RNone) => None,
             },
             Encoding::TSVEncoding(x) => match &x.0.read().compression {
-                Some(y) => Some(PyDataCompression { inner: y.clone() }),
-                None => None,
+                AOption(ROption::RSome(y)) => Some(PyDataCompression { inner: y.clone() }),
+                AOption(ROption::RNone) => None,
             },
             Encoding::JSONEncoding(_) => None,
             Encoding::ORCEncoding(_) => None,
@@ -168,10 +171,9 @@ impl PyEncoding {
     }
     #[getter]
     pub fn header(&self) -> Option<PyFileHeader> {
-        self.inner
-            .0
-            .read()
-            .get_header()
-            .and_then(|x| Some(PyFileHeader { inner: x.clone() }))
+        match self.inner.0.read().get_header() {
+            AOption(ROption::RSome(x)) => Some(PyFileHeader { inner: x.clone() }),
+            AOption(ROption::RNone) => None,
+        }
     }
 }

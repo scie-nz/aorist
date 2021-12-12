@@ -11,8 +11,10 @@ use crate::template::raster::*;
 use crate::template::row_struct::*;
 use crate::template::tensor::*;
 use crate::template::text::*;
+use abi_stable::std_types::ROption;
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
+use aorist_primitives::AOption;
 use aorist_primitives::{AString, AVec, AoristConcept, ConceptEnum};
 #[cfg(feature = "python")]
 use pyo3::prelude::*;

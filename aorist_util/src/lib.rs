@@ -206,9 +206,9 @@ pub fn extract_type_from_option(ty: &syn::Type) -> AResult<Option<&syn::Type>> {
     extract_inner_from_bracketed_type(
         ty,
         vec![
-            "Option|".to_string(),
-            "std|option|Option|".into(),
-            "core|option|Option|".into(),
+            "AOption|".to_string(),
+            "aorist_primitives|AOption|".to_string(),
+            "aorist_primitives|AOption".to_string(),
         ]
         .into_iter()
         .collect(),

@@ -3,7 +3,9 @@ use crate::python::NativePythonPreamble;
 use crate::python::PythonImport;
 use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 use abi_stable::std_types::RArc;
+use abi_stable::std_types::ROption;
 use aorist_ast::{Call, SimpleIdentifier, StringLiteral, AST};
+use aorist_primitives::AOption;
 use aorist_primitives::{define_task_node, AString, AVec};
 use linked_hash_map::LinkedHashMap;
 use std::hash::Hash;
@@ -14,8 +16,11 @@ define_task_node!(
     |task: &RPythonTask| { task.get_native_python_statements() },
     |_task: &RPythonTask| {
         vec![
-            PythonImport::PythonModuleImport("rpy2".into(), None),
-            PythonImport::PythonModuleImport("rpy2.robjects".into(), Some("robjects".into())),
+            PythonImport::PythonModuleImport("rpy2".into(), AOption(ROption::RNone)),
+            PythonImport::PythonModuleImport(
+                "rpy2.robjects".into(),
+                AOption(ROption::RSome("robjects".into())),
+            ),
         ]
         .into_iter()
         .collect()
@@ -25,14 +30,16 @@ define_task_node!(
     call: AST,
     args: AVec<AST>,
     kwargs: LinkedHashMap<AString, AST>,
-    dep_list: Option<AST>,
-    preamble: Option<AString>,
+    dep_list: AOption<AST>,
+    preamble: AOption<AString>,
 );
 impl PythonFunctionCallTask for RPythonTask {
-    fn get_preamble(&self) -> Option<NativePythonPreamble> {
-        let rpy2 = PythonImport::PythonModuleImport("rpy2".into(), None);
-        let rpy2o =
-            PythonImport::PythonModuleImport("rpy2.robjects".into(), Some("robjects".into()));
+    fn get_preamble(&self) -> AOption<NativePythonPreamble> {
+        let rpy2 = PythonImport::PythonModuleImport("rpy2".into(), AOption(ROption::RNone));
+        let rpy2o = PythonImport::PythonModuleImport(
+            "rpy2.robjects".into(),
+            AOption(ROption::RSome("robjects".into())),
+        );
         let body = "
 def execute_r(call, preamble=None, **kwargs):
     airflow_args = {
@@ -67,16 +74,16 @@ def execute_r(call, preamble=None, **kwargs):
     ))
 
 ";
-        Some(NativePythonPreamble {
+        AOption(ROption::RSome(NativePythonPreamble {
             imports: vec![rpy2].into_iter().collect(),
             from_imports: vec![rpy2o].into_iter().collect(),
             body: body.into(),
-        })
+        }))
     }
     fn get_call(&self) -> AST {
         let mut inner_kwargs = LinkedHashMap::new();
         inner_kwargs.insert("call".into(), self.call.clone());
-        if let Some(ref p) = self.preamble {
+        if let AOption(ROption::RSome(ref p)) = self.preamble {
             inner_kwargs.insert(
                 "preamble".into(),
                 AST::StringLiteral(StringLiteral::new_wrapped(

@@ -1,3 +1,5 @@
+use aorist_primitives::AOption;
+use abi_stable::std_types::ROption;
 use aorist_primitives::AVec;
 use crate::endpoints::EndpointConfig;
 use crate::flow::etl_flow::ETLFlow;
@@ -21,12 +23,12 @@ register_task_nodes! {
 pub struct NativeRBasedFlow {
     task_id: AST,
     task_val: AST,
-    command: Option<AString>,
+    command: AOption<AString>,
     args: AVec<AST>,
     kwargs: LinkedHashMap<AString, AST>,
-    dep_list: Option<AST>,
+    dep_list: AOption<AST>,
     preamble: AVec<RPreamble>,
-    dialect: Option<Dialect>,
+    dialect: AOption<Dialect>,
 
     endpoints: EndpointConfig,
     node: RTask,
@@ -43,7 +45,7 @@ impl ETLFlow for NativeRBasedFlow {
     fn get_imports(&self) -> AVec<RImport> {
         self.node.get_imports()
     }
-    fn get_dialect(&self) -> Option<Dialect> {
+    fn get_dialect(&self) -> AOption<Dialect> {
         self.dialect.clone()
     }
     fn get_task_val(&self) -> AST {
@@ -55,12 +57,12 @@ impl ETLFlow for NativeRBasedFlow {
     fn new(
         task_id: AST,
         task_val: AST,
-        call: Option<AString>,
+        call: AOption<AString>,
         args: AVec<AST>,
         kwargs: LinkedHashMap<AString, AST>,
-        dep_list: Option<AST>,
-        preamble: Option<AString>,
-        dialect: Option<Dialect>,
+        dep_list: AOption<AST>,
+        preamble: AOption<AString>,
+        dialect: AOption<Dialect>,
         endpoints: EndpointConfig,
     ) -> Self {
         let preambles = match dialect {

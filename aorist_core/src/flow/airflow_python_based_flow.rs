@@ -7,10 +7,12 @@ use crate::python::{
     BashPythonTask, ConstantPythonTask, NativePythonPreamble, NativePythonTask, PrestoPythonTask,
     PythonFlowBuilderInput, PythonImport, PythonPreamble, PythonTask, RPythonTask,
 };
+use abi_stable::std_types::ROption;
 use aorist_ast::{
     Assignment, Attribute, BigIntLiteral, BooleanLiteral, Call, Dict, Expression, Formatted, List,
     None, SimpleIdentifier, StringLiteral, AST,
 };
+use aorist_primitives::AOption;
 use aorist_primitives::TPrestoEndpoints;
 use aorist_primitives::{AString, AVec, AoristUniverse};
 use linked_hash_map::LinkedHashMap;
@@ -23,12 +25,12 @@ where
 {
     task_id: AST,
     task_val: AST,
-    command: Option<AString>,
+    command: AOption<AString>,
     args: AVec<AST>,
     kwargs: LinkedHashMap<AString, AST>,
-    dep_list: Option<AST>,
-    preamble: Option<AString>,
-    dialect: Option<Dialect>,
+    dep_list: AOption<AST>,
+    preamble: AOption<AString>,
+    dialect: AOption<Dialect>,
     endpoints: U::TEndpoints,
     node: PythonTask,
     _universe: PhantomData<U>,
@@ -37,7 +39,7 @@ impl<U: AoristUniverse> PythonBasedFlow<U> for AirflowPythonBasedFlow<U>
 where
     U::TEndpoints: TPrestoEndpoints,
 {
-    fn get_preamble_string(&self) -> Option<AString> {
+    fn get_preamble_string(&self) -> AOption<AString> {
         self.preamble.clone()
     }
 }
@@ -55,21 +57,23 @@ where
         } else {
             kwargs = LinkedHashMap::new();
             let call_param_name = match self.dialect {
-                Some(Dialect::Python(_))
-                | Some(Dialect::R(_))
-                | Some(Dialect::Presto(_))
-                | None => "python_callable".into(),
-                Some(Dialect::Bash(_)) => "bash_command".into(),
+                AOption(ROption::RSome(Dialect::Python(_)))
+                | AOption(ROption::RSome(Dialect::R(_)))
+                | AOption(ROption::RSome(Dialect::Presto(_)))
+                | AOption(ROption::RNone) => "python_callable".into(),
+                AOption(ROption::RSome(Dialect::Bash(_))) => "bash_command".into(),
             };
             // TODO: deprecate this once Bash tasks also migrate
             let call_param_value = match self.dialect {
-                Some(Dialect::Bash(_)) => AST::Formatted(Formatted::new_wrapped(
-                    AST::StringLiteral(StringLiteral::new_wrapped(
-                        self.command.as_ref().unwrap().clone(),
-                        false,
-                    )),
-                    self.kwargs.clone(),
-                )),
+                AOption(ROption::RSome(Dialect::Bash(_))) => {
+                    AST::Formatted(Formatted::new_wrapped(
+                        AST::StringLiteral(StringLiteral::new_wrapped(
+                            self.command.as_ref().unwrap().clone(),
+                            false,
+                        )),
+                        self.kwargs.clone(),
+                    ))
+                }
                 _ => {
                     let call = self.node.get_call().unwrap();
                     match call {
@@ -79,10 +83,10 @@ where
                 }
             };
             kwargs.insert(call_param_name, call_param_value);
-            if let Some(Dialect::Python(_))
-            | Some(Dialect::R(_))
-            | Some(Dialect::Presto(_))
-            | None = self.dialect
+            if let AOption(ROption::RSome(Dialect::Python(_)))
+            | AOption(ROption::RSome(Dialect::R(_)))
+            | AOption(ROption::RSome(Dialect::Presto(_)))
+            | AOption(ROption::RNone) = self.dialect
             {
                 let call = self.node.get_call().unwrap();
                 if let AST::Call(call_rw) = call {
@@ -111,19 +115,21 @@ where
     }
     fn compute_task_call(&self) -> AST {
         match self.dialect {
-            Some(Dialect::Python(_)) => {
+            AOption(ROption::RSome(Dialect::Python(_))) => {
                 AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("PythonOperator".into()))
             }
-            Some(Dialect::Bash(_)) => {
+            AOption(ROption::RSome(Dialect::Bash(_))) => {
                 AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("BashOperator".into()))
             }
-            Some(Dialect::Presto(_)) => {
+            AOption(ROption::RSome(Dialect::Presto(_))) => {
                 AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("PythonOperator".into()))
             }
-            Some(Dialect::R(_)) => {
+            AOption(ROption::RSome(Dialect::R(_))) => {
                 AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("PythonOperator".into()))
             }
-            None => AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("DummyOperator".into())),
+            AOption(ROption::RNone) => {
+                AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("DummyOperator".into()))
+            }
         }
     }
 }
@@ -136,22 +142,24 @@ where
     type ErrorType = pyo3::PyErr;
     fn get_imports(&self) -> AVec<PythonImport> {
         match self.dialect {
-            Some(Dialect::Python(_)) | Some(Dialect::R(_)) => vec![PythonImport::PythonFromImport(
+            AOption(ROption::RSome(Dialect::Python(_)))
+            | AOption(ROption::RSome(Dialect::R(_))) => vec![PythonImport::PythonFromImport(
                 "airflow.operators.python_operator".into(),
                 "PythonOperator".into(),
-                None,
+                AOption(ROption::RNone),
             )],
-            Some(Dialect::Bash(_)) | Some(Dialect::Presto(_)) => {
+            AOption(ROption::RSome(Dialect::Bash(_)))
+            | AOption(ROption::RSome(Dialect::Presto(_))) => {
                 vec![PythonImport::PythonFromImport(
                     "airflow.operators.bash_operator".into(),
                     "BashOperator".into(),
-                    None,
+                    AOption(ROption::RNone),
                 )]
             }
-            None => vec![PythonImport::PythonFromImport(
+            AOption(ROption::RNone) => vec![PythonImport::PythonFromImport(
                 "airflow.operators.dummy_operator".into(),
                 "DummyOperator".into(),
-                None,
+                AOption(ROption::RNone),
             )],
         }
         .into_iter()
@@ -160,20 +168,20 @@ where
     fn get_preamble(&self) -> Result<AVec<PythonPreamble>, pyo3::PyErr> {
         // TODO: this should be deprecated
         let mut preambles = match self.dialect {
-            Some(Dialect::Python(_)) => match self.preamble {
-                Some(ref p) => vec![PythonPreamble::NativePythonPreamble(
+            AOption(ROption::RSome(Dialect::Python(_))) => match self.preamble {
+                AOption(ROption::RSome(ref p)) => vec![PythonPreamble::NativePythonPreamble(
                     NativePythonPreamble::new(p.clone())?,
                 )],
-                None => Vec::new(),
+                AOption(ROption::RNone) => Vec::new(),
             },
             _ => Vec::new(),
         };
-        if let Some(p) = self.node.get_preamble() {
+        if let AOption(ROption::RSome(p)) = self.node.get_preamble() {
             preambles.push(p)
         }
         Ok(preambles.into_iter().collect())
     }
-    fn get_dialect(&self) -> Option<Dialect> {
+    fn get_dialect(&self) -> AOption<Dialect> {
         self.dialect.clone()
     }
     fn get_task_val(&self) -> AST {
@@ -189,7 +197,7 @@ where
             self.task_val.clone(),
             creation_expr,
         ))];
-        if let Some(ref dependencies) = self.dep_list {
+        if let AOption(ROption::RSome(ref dependencies)) = self.dep_list {
             statements.push(AST::Expression(Expression::new_wrapped(AST::Call(
                 Call::new_wrapped(
                     AST::Attribute(Attribute::new_wrapped(
@@ -207,27 +215,28 @@ where
     fn new(
         task_id: AST,
         task_val: AST,
-        call: Option<AString>,
+        call: AOption<AString>,
         args: AVec<AST>,
         kwargs: LinkedHashMap<AString, AST>,
-        dep_list: Option<AST>,
-        preamble: Option<AString>,
-        dialect: Option<Dialect>,
+        dep_list: AOption<AST>,
+        preamble: AOption<AString>,
+        dialect: AOption<Dialect>,
         endpoints: U::TEndpoints,
     ) -> Self {
         let command = match &dialect {
-            Some(Dialect::Presto(_)) => AST::StringLiteral(StringLiteral::new_wrapped(
-                call.as_ref().unwrap().clone(),
-                true,
-            )),
-            Some(_) => AST::StringLiteral(StringLiteral::new_wrapped(
+            AOption(ROption::RSome(Dialect::Presto(_))) => AST::StringLiteral(
+                StringLiteral::new_wrapped(call.as_ref().unwrap().clone(), true),
+            ),
+            AOption(ROption::RSome(_)) => AST::StringLiteral(StringLiteral::new_wrapped(
                 call.as_ref().unwrap().clone(),
                 false,
             )),
-            None => AST::StringLiteral(StringLiteral::new_wrapped("Done".into(), false)),
+            AOption(ROption::RNone) => {
+                AST::StringLiteral(StringLiteral::new_wrapped("Done".into(), false))
+            }
         };
         let node = match &dialect {
-            Some(Dialect::Presto(_)) => {
+            AOption(ROption::RSome(Dialect::Presto(_))) => {
                 let presto_endpoints = endpoints.presto_config();
                 PythonTask::PrestoPythonTask(PrestoPythonTask::new_wrapped(
                     command,
@@ -250,24 +259,28 @@ where
                     dep_list.clone(),
                 ))
             }
-            Some(Dialect::Bash(_)) => PythonTask::BashPythonTask(BashPythonTask::new_wrapped(
-                command,
-                kwargs.clone(),
-                task_val.clone(),
-                dep_list.clone(),
-            )),
-            Some(Dialect::R(_)) => PythonTask::RPythonTask(RPythonTask::new_wrapped(
-                task_val.clone(),
-                command,
-                args.clone(),
-                kwargs.clone(),
-                dep_list.clone(),
-                match preamble {
-                    Some(ref p) => Some(p.clone()),
-                    None => None,
-                },
-            )),
-            Some(Dialect::Python(_)) => {
+            AOption(ROption::RSome(Dialect::Bash(_))) => {
+                PythonTask::BashPythonTask(BashPythonTask::new_wrapped(
+                    command,
+                    kwargs.clone(),
+                    task_val.clone(),
+                    dep_list.clone(),
+                ))
+            }
+            AOption(ROption::RSome(Dialect::R(_))) => {
+                PythonTask::RPythonTask(RPythonTask::new_wrapped(
+                    task_val.clone(),
+                    command,
+                    args.clone(),
+                    kwargs.clone(),
+                    dep_list.clone(),
+                    match preamble {
+                        AOption(ROption::RSome(ref p)) => AOption(ROption::RSome(p.clone())),
+                        AOption(ROption::RNone) => AOption(ROption::RNone),
+                    },
+                ))
+            }
+            AOption(ROption::RSome(Dialect::Python(_))) => {
                 PythonTask::NativePythonTask(NativePythonTask::new_wrapped(
                     AST::Call(Call::new_wrapped(
                         AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
@@ -282,11 +295,9 @@ where
                     dep_list.clone(),
                 ))
             }
-            None => PythonTask::ConstantPythonTask(ConstantPythonTask::new_wrapped(
-                command,
-                task_val.clone(),
-                dep_list.clone(),
-            )),
+            AOption(ROption::RNone) => PythonTask::ConstantPythonTask(
+                ConstantPythonTask::new_wrapped(command, task_val.clone(), dep_list.clone()),
+            ),
         };
         Self {
             task_id,
@@ -329,7 +340,7 @@ where
     fn augment_statements(
         &self,
         mut statements: AVec<PythonFlowBuilderInput>,
-        flow_name: Option<AString>,
+        flow_name: AOption<AString>,
     ) -> AVec<PythonFlowBuilderInput> {
         let default_args =
             AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("default_args".into()));
@@ -419,8 +430,8 @@ where
             AST::SimpleIdentifier(SimpleIdentifier::new_wrapped("DAG".into())),
             vec![AST::StringLiteral(StringLiteral::new_wrapped(
                 match flow_name {
-                    Some(x) => x,
-                    None => "flow".into(),
+                    AOption(ROption::RSome(x)) => x,
+                    AOption(ROption::RNone) => "flow".into(),
                 },
                 false,
             ))]
@@ -436,16 +447,20 @@ where
                     .into_iter()
                     .collect(),
                 "Setting up Airflow FlowBuilder".into(),
-                None,
-                None,
+                AOption(ROption::RNone),
+                AOption(ROption::RNone),
             ),
         );
         statements
     }
     fn get_flow_imports(&self) -> AVec<PythonImport> {
         vec![
-            PythonImport::PythonFromImport("airflow".into(), "DAG".into(), None),
-            PythonImport::PythonFromImport("datetime".into(), "datetime".into(), None),
+            PythonImport::PythonFromImport("airflow".into(), "DAG".into(), AOption(ROption::RNone)),
+            PythonImport::PythonFromImport(
+                "datetime".into(),
+                "datetime".into(),
+                AOption(ROption::RNone),
+            ),
         ]
         .into_iter()
         .collect()

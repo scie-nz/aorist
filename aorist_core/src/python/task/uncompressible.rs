@@ -1,6 +1,8 @@
 use crate::flow::{ETLFlow, UncompressiblePart};
 use crate::parameter_tuple::ParameterTuple;
+use abi_stable::std_types::ROption;
 use aorist_ast::{Dict, List, StringLiteral, AST};
+use aorist_primitives::AOption;
 use aorist_primitives::{AString, AVec, AoristUniverse};
 use linked_hash_map::LinkedHashMap;
 use std::hash::Hash;
@@ -17,7 +19,7 @@ where
     // dict value
     pub dict: AString,
     // params
-    pub params: Option<ParameterTuple>,
+    pub params: AOption<ParameterTuple>,
     // dep list
     pub deps: AVec<AST>,
     singleton_type: PhantomData<T>,
@@ -31,7 +33,7 @@ where
     fn new(
         task_id: AString,
         dict: AString,
-        params: Option<ParameterTuple>,
+        params: AOption<ParameterTuple>,
         deps: AVec<AST>,
     ) -> Self {
         Self {
@@ -67,7 +69,7 @@ where
                 AST::StringLiteral(StringLiteral::new_wrapped(self.task_id.clone(), false)),
             );
         }
-        if let Some(ref p) = self.params {
+        if let AOption(ROption::RSome(ref p)) = self.params {
             p.populate_python_dict(&mut local_params_map);
         }
         AST::Dict(Dict::new_wrapped(local_params_map))

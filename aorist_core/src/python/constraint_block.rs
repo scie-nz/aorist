@@ -6,6 +6,8 @@ use crate::parameter_tuple::ParameterTuple;
 use crate::program::TOuterProgram;
 use crate::python::PythonBasedCodeBlock;
 use crate::python::{Assignment, Dict, PythonFlowBuilderInput, PythonImport, PythonPreamble, AST};
+use abi_stable::std_types::ROption;
+use aorist_primitives::AOption;
 use aorist_primitives::{AString, AVec, AoristUniverse};
 use linked_hash_map::LinkedHashMap;
 use std::collections::HashMap;
@@ -20,10 +22,10 @@ where
     P: TOuterProgram<TAncestry = C::TAncestry>,
 {
     constraint_name: AString,
-    title: Option<AString>,
-    body: Option<AString>,
+    title: AOption<AString>,
+    body: AOption<AString>,
     members: AVec<PythonBasedCodeBlock<'a, T, C, U, P>>,
-    tasks_dict: Option<AST>,
+    tasks_dict: AOption<AST>,
     _lt: PhantomData<&'a ()>,
     _constraint: PhantomData<C>,
 }
@@ -40,10 +42,10 @@ where
     fn get_constraint_name(&self) -> AString {
         self.constraint_name.clone()
     }
-    fn get_constraint_title(&self) -> Option<AString> {
+    fn get_constraint_title(&self) -> AOption<AString> {
         self.title.clone()
     }
-    fn get_constraint_body(&self) -> Option<AString> {
+    fn get_constraint_body(&self) -> AOption<AString> {
         self.body.clone()
     }
     fn get_code_blocks(&self) -> &AVec<Self::C> {
@@ -52,10 +54,10 @@ where
 
     fn new(
         constraint_name: AString,
-        title: Option<AString>,
-        body: Option<AString>,
+        title: AOption<AString>,
+        body: AOption<AString>,
         members: AVec<PythonBasedCodeBlock<'a, T, C, U, P>>,
-        tasks_dict: Option<AST>,
+        tasks_dict: AOption<AST>,
     ) -> Self {
         Self {
             constraint_name,
@@ -77,13 +79,13 @@ where
 
     fn get_task_val_assignments(&self) -> AVec<AST> {
         match &self.tasks_dict {
-            Some(ref val) => vec![AST::Assignment(Assignment::new_wrapped(
+            AOption(ROption::RSome(ref val)) => vec![AST::Assignment(Assignment::new_wrapped(
                 val.clone(),
                 AST::Dict(Dict::new_wrapped(LinkedHashMap::new())),
             ))]
             .into_iter()
             .collect(),
-            None => vec![].into_iter().collect(),
+            AOption(ROption::RNone) => vec![].into_iter().collect(),
         }
     }
 }
@@ -95,7 +97,7 @@ where
     U: AoristUniverse,
     P: TOuterProgram<TAncestry = C::TAncestry>,
 {
-    pub fn get_params(&self) -> HashMap<AString, Option<ParameterTuple>> {
+    pub fn get_params(&self) -> HashMap<AString, AOption<ParameterTuple>> {
         self.members
             .iter()
             .map(|x| x.get_params().into_iter())

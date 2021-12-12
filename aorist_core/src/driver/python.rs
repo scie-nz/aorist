@@ -1,4 +1,6 @@
-#![allow(dead_code)]
+use abi_stable::std_types::ROption;
+use aorist_primitives::AOption;
+
 use crate::constraint::TConstraintEnum;
 use crate::constraint::{OuterConstraint, TBuilder};
 use crate::constraint_state::ConstraintState;
@@ -42,7 +44,7 @@ where
     ancestry: A,
     dag_type: PhantomData<D>,
     endpoints: <U as AoristUniverse>::TEndpoints,
-    constraint_explanations: HashMap<AString, (Option<AString>, Option<AString>)>,
+    constraint_explanations: HashMap<AString, (AOption<AString>, AOption<AString>)>,
     ancestors: HashMap<(Uuid, AString), AVec<AncestorRecord>>,
     topline_constraint_names: LinkedHashSet<AString>,
     programs: LinkedHashMap<AString, AVec<P>>,
@@ -117,7 +119,7 @@ where
     fn get_constraint_explanation(
         &self,
         constraint_name: &AString,
-    ) -> (Option<AString>, Option<AString>) {
+    ) -> (AOption<AString>, AOption<AString>) {
         self.constraint_explanations
             .get(constraint_name)
             .unwrap()
@@ -130,8 +132,10 @@ where
         self.satisfied_constraints
             .values()
             .map(|x| match x.read().get_dialect() {
-                Some(Dialect::Python(x)) => Some(x.get_pip_requirements()),
-                _ => None,
+                AOption(ROption::RSome(Dialect::Python(x))) => {
+                    AOption(ROption::RSome(x.get_pip_requirements()))
+                }
+                _ => AOption(ROption::RNone),
             })
             .filter(|x| x.is_some())
             .map(|x| x.unwrap().into_iter())

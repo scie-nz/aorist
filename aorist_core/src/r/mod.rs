@@ -1,3 +1,5 @@
+use aorist_primitives::AOption;
+use abi_stable::std_types::ROption;
 use aorist_primitives::AVec;
 mod code_block;
 mod constant_r_task;
@@ -30,8 +32,8 @@ pub struct RFlowBuilderInput {
     preambles: LinkedHashSet<RPreamble>,
     imports: BTreeSet<RImport>,
     constraint_name: AString,
-    constraint_title: Option<AString>,
-    constraint_body: Option<AString>,
+    constraint_title: AOption<AString>,
+    constraint_body: AOption<AString>,
 }
 impl FlowBuilderInput for RFlowBuilderInput {
     type ImportType = RImport;
@@ -42,8 +44,8 @@ impl FlowBuilderInput for RFlowBuilderInput {
         preambles: LinkedHashSet<RPreamble>,
         imports: BTreeSet<RImport>,
         constraint_name: AString,
-        constraint_title: Option<AString>,
-        constraint_body: Option<AString>,
+        constraint_title: AOption<AString>,
+        constraint_body: AOption<AString>,
     ) -> Self {
         Self {
             statements,
@@ -66,10 +68,10 @@ impl FlowBuilderInput for RFlowBuilderInput {
     fn get_constraint_name(&self) -> String {
         self.constraint_name.clone()
     }
-    fn get_constraint_title(&self) -> Option<AString> {
+    fn get_constraint_title(&self) -> AOption<AString> {
         self.constraint_title.clone()
     }
-    fn get_constraint_body(&self) -> Option<AString> {
+    fn get_constraint_body(&self) -> AOption<AString> {
         self.constraint_body.clone()
     }
 }

@@ -4,6 +4,7 @@ use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 use abi_stable::std_types::RArc;
 use aorist_ast::AST;
 use aorist_primitives::define_task_node;
+use aorist_primitives::AOption;
 use aorist_primitives::AVec;
 use std::hash::Hash;
 
@@ -16,7 +17,7 @@ define_task_node!(
     call: AST,
     imports: AVec<PythonImport>,
     task_val: AST,
-    dep_list: Option<AST>,
+    dep_list: AOption<AST>,
 );
 impl PythonTaskBase for NativePythonTask {
     fn get_task_val(&self) -> AST {
@@ -29,7 +30,7 @@ impl PythonFunctionCallTask for NativePythonTask {
     }
 }
 impl AirflowTaskBase for NativePythonTask {
-    fn get_dependencies(&self) -> Option<AST> {
+    fn get_dependencies(&self) -> AOption<AST> {
         self.dep_list.clone()
     }
 }

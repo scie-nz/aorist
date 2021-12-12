@@ -4,6 +4,7 @@ use crate::flow::flow_builder_input::FlowBuilderInput;
 use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 use abi_stable::std_types::RArc;
 use aorist_ast::{Assignment, Dict, SimpleIdentifier, AST};
+use aorist_primitives::AOption;
 use aorist_primitives::{AString, AVec, AoristUniverse};
 use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
@@ -30,7 +31,7 @@ where
     fn materialize(
         &self,
         statements_and_preambles: AVec<Self::BuilderInputType>,
-        flow_name: Option<AString>,
+        flow_name: AOption<AString>,
     ) -> Result<AString, Self::ErrorType>;
 
     fn literals_to_assignments(

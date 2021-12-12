@@ -1,4 +1,6 @@
-#![allow(non_snake_case)]
+use abi_stable::std_types::ROption;
+use aorist_primitives::AOption;
+
 use crate::concept::{AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
 use crate::user::*;
 use aorist_concept::{aorist, Constrainable};
@@ -15,7 +17,7 @@ pub struct UserGroup {
     name: AString,
     members: AVec<AString>,
     labels: BTreeMap<AString, AString>,
-    description: Option<AString>,
+    description: AOption<AString>,
     users: AVec<AoristRef<User>>,
 }
 pub trait TUserGroup {

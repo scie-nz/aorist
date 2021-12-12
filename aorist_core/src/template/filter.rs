@@ -2,8 +2,10 @@ use crate::attributes::*;
 use crate::concept::{AoristRef, WrappedConcept};
 use crate::predicate::*;
 use crate::template::datum_template::TDatumTemplate;
+use abi_stable::std_types::ROption;
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
+use aorist_primitives::AOption;
 use aorist_primitives::{AString, AVec, AoristConcept, ConceptEnum};
 use derivative::Derivative;
 use serde::{Deserialize, Serialize};
@@ -16,7 +18,7 @@ pub struct Filter {
     #[constrainable]
     pub attributes: AVec<AoristRef<Attribute>>,
     #[constrainable]
-    pub predicate: Option<AoristRef<Predicate>>,
+    pub predicate: AOption<AoristRef<Predicate>>,
     pub source_asset_name: AString,
 }
 impl TDatumTemplate for Filter {

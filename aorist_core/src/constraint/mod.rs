@@ -4,6 +4,7 @@ use crate::parameter_tuple::ParameterTuple;
 use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 use abi_stable::std_types::RArc;
 use anyhow::Result;
+use aorist_primitives::AOption;
 use aorist_primitives::{AString, AVec, Ancestry, AoristConcept, TAoristObject, TConceptEnum};
 use std::collections::HashMap;
 use std::marker::PhantomData;
@@ -26,7 +27,7 @@ pub trait SatisfiableConstraint<'a>: TConstraint<'a> {
         c: <Self::TAncestry as Ancestry>::TConcept,
         d: &Dialect,
         ancestry: RArc<Self::TAncestry>,
-    ) -> Result<Option<(AString, AString, ParameterTuple, Dialect)>>;
+    ) -> Result<AOption<(AString, AString, ParameterTuple, Dialect)>>;
 
     fn satisfy_given_preference_ordering(
         &mut self,
@@ -84,7 +85,7 @@ pub trait TBuilder<'a> {
 
 pub trait TConstraintEnum<'a>: Sized + Clone {
     fn get_required_constraint_names() -> HashMap<AString, AVec<AString>>;
-    fn get_explanations() -> HashMap<AString, (Option<AString>, Option<AString>)>;
+    fn get_explanations() -> HashMap<AString, (AOption<AString>, AOption<AString>)>;
     #[cfg(feature = "python")]
     fn get_py_obj<'b>(&self, py: pyo3::Python<'b>) -> pyo3::prelude::PyObject;
 }

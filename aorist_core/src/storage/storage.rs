@@ -9,8 +9,10 @@ use crate::storage::postgres_storage::*;
 use crate::storage::remote_storage::*;
 use crate::storage::s3_storage::*;
 use crate::storage::sqlite_storage::*;
+use abi_stable::std_types::ROption;
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
+use aorist_primitives::AOption;
 use aorist_primitives::{AString, AVec, AoristConcept, ConceptEnum};
 #[cfg(feature = "python")]
 use pyo3::prelude::*;
@@ -41,17 +43,17 @@ pub enum Storage {
 }
 
 impl Storage {
-    pub fn get_encoding(&self) -> Option<AoristRef<Encoding>> {
+    pub fn get_encoding(&self) -> AOption<AoristRef<Encoding>> {
         match &self {
-            Self::RemoteStorage(x) => Some(x.0.read().encoding.clone()),
-            Self::HiveTableStorage(x) => Some(x.0.read().encoding.clone()),
-            Self::LocalFileStorage(x) => Some(x.0.read().encoding.clone()),
-            Self::GitStorage(x) => Some(x.0.read().encoding.clone()),
-            Self::InlineBlobStorage(x) => Some(x.0.read().encoding.clone()),
-            Self::S3Storage(x) => Some(x.0.read().encoding.clone()),
-            Self::SQLiteStorage(_) => None,
-            Self::PostgresStorage(_) => None,
-            Self::BigQueryStorage(_) => None,
+            Self::RemoteStorage(x) => AOption(ROption::RSome(x.0.read().encoding.clone())),
+            Self::HiveTableStorage(x) => AOption(ROption::RSome(x.0.read().encoding.clone())),
+            Self::LocalFileStorage(x) => AOption(ROption::RSome(x.0.read().encoding.clone())),
+            Self::GitStorage(x) => AOption(ROption::RSome(x.0.read().encoding.clone())),
+            Self::InlineBlobStorage(x) => AOption(ROption::RSome(x.0.read().encoding.clone())),
+            Self::S3Storage(x) => AOption(ROption::RSome(x.0.read().encoding.clone())),
+            Self::SQLiteStorage(_) => AOption(ROption::RNone),
+            Self::PostgresStorage(_) => AOption(ROption::RNone),
+            Self::BigQueryStorage(_) => AOption(ROption::RNone),
         }
     }
 }
@@ -61,10 +63,9 @@ impl Storage {
 impl PyStorage {
     #[getter]
     pub fn encoding(&self) -> Option<PyEncoding> {
-        self.inner
-            .0
-            .read()
-            .get_encoding()
-            .and_then(|x| Some(PyEncoding { inner: x }))
+        match self.inner.0.read().get_encoding() {
+            AOption(ROption::RSome(x)) => Some(PyEncoding { inner: x }),
+            AOption(ROption::RNone) => None,
+        }
     }
 }

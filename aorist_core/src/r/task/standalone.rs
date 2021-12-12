@@ -1,3 +1,5 @@
+use aorist_primitives::AOption;
+use abi_stable::std_types::ROption;
 
 use crate::dialect::Dialect;
 use crate::endpoints::EndpointConfig;
@@ -22,14 +24,14 @@ where
     task_val: AST,
     /// function called to create task (has different meaning depending on
     /// the render we use.
-    call: Option<AString>,
+    call: AOption<AString>,
     /// arguments passed to function call
-    params: Option<ParameterTuple>,
+    params: AOption<ParameterTuple>,
     /// R preamble used by this task call
-    preamble: Option<AString>,
+    preamble: AOption<AString>,
     /// Dialect (e.g. Bash, R, R, Presto, etc.), to be interpreted
     /// by render.
-    dialect: Option<Dialect>,
+    dialect: AOption<Dialect>,
     dependencies: AVec<AST>,
     singleton_type: PhantomData<T>,
 }
@@ -46,10 +48,10 @@ where
             self.dependencies.clone(),
         ))
     }
-    pub fn get_preamble(&self) -> Option<AString> {
+    pub fn get_preamble(&self) -> AOption<AString> {
         self.preamble.clone()
     }
-    pub fn get_dialect(&self) -> Option<Dialect> {
+    pub fn get_dialect(&self) -> AOption<Dialect> {
         self.dialect.clone()
     }
     pub fn get_task_val(&self) -> AST {
@@ -99,11 +101,11 @@ where
     fn new(
         task_id: AString,
         task_val: AST,
-        call: Option<AString>,
-        params: Option<ParameterTuple>,
+        call: AOption<AString>,
+        params: AOption<ParameterTuple>,
         dependencies: AVec<AST>,
-        preamble: Option<AString>,
-        dialect: Option<Dialect>,
+        preamble: AOption<AString>,
+        dialect: AOption<Dialect>,
     ) -> Self {
         Self {
             task_id,
@@ -166,10 +168,10 @@ where
             _ => Err("Task val must be a subscript".into()),
         }
     }
-    fn get_preamble(&self) -> Option<AString> {
+    fn get_preamble(&self) -> AOption<AString> {
         self.preamble.clone()
     }
-    fn get_dialect(&self) -> Option<Dialect> {
+    fn get_dialect(&self) -> AOption<Dialect> {
         self.dialect.clone()
     }
     fn get_task_val(&self) -> AST {

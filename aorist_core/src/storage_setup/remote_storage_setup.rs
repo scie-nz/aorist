@@ -2,8 +2,10 @@ use crate::concept::{AoristRef, WrappedConcept};
 use crate::encoding::Encoding;
 use crate::storage::*;
 use crate::storage_setup::replication_storage_setup::*;
+use abi_stable::std_types::ROption;
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
+use aorist_primitives::AOption;
 use aorist_primitives::{AString, AVec, AoristConcept, ConceptEnum};
 use derivative::Derivative;
 use serde::{Deserialize, Serialize};
@@ -14,7 +16,7 @@ use uuid::Uuid;
 pub struct RemoteStorageSetup {
     #[constrainable]
     pub remote: AoristRef<Storage>,
-    pub tmp_dir: Option<AString>,
+    pub tmp_dir: AOption<AString>,
 }
 impl RemoteStorageSetup {
     pub fn replicate_to_local(
@@ -29,7 +31,7 @@ impl RemoteStorageSetup {
             tag: self.tag.clone(),
             tmp_dir,
             tmp_encoding,
-            uuid: None,
+            uuid: AOption(ROption::RNone),
         }
     }
 }

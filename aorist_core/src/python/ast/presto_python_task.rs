@@ -1,4 +1,6 @@
-#![allow(dead_code)]
+use abi_stable::std_types::ROption;
+use aorist_primitives::AOption;
+
 use crate::python::ast::AirflowTaskBase;
 use crate::python::ast::{PythonFunctionCallTask, PythonTaskBase};
 use crate::python::NativePythonPreamble;
@@ -17,9 +19,9 @@ define_task_node!(
     |task: &PrestoPythonTask| { task.get_native_python_statements() },
     |_task: &PrestoPythonTask| {
         vec![
-            PythonImport::PythonModuleImport("subprocess".into(), None),
-            PythonImport::PythonModuleImport("trino".into(), None),
-            PythonImport::PythonModuleImport("re".into(), None),
+            PythonImport::PythonModuleImport("subprocess".into(), AOption(ROption::RNone)),
+            PythonImport::PythonModuleImport("trino".into(), AOption(ROption::RNone)),
+            PythonImport::PythonModuleImport("re".into(), AOption(ROption::RNone)),
         ]
         .into_iter()
         .collect()
@@ -29,7 +31,7 @@ define_task_node!(
     kwargs: LinkedHashMap<AString, AST>,
     task_val: AST,
     endpoint: PrestoConfig,
-    dependencies: Option<AST>,
+    dependencies: AOption<AST>,
 );
 
 impl PythonTaskBase for PrestoPythonTask {
@@ -38,9 +40,9 @@ impl PythonTaskBase for PrestoPythonTask {
     }
 }
 impl PythonFunctionCallTask for PrestoPythonTask {
-    fn get_preamble(&self) -> Option<NativePythonPreamble> {
-        let re = PythonImport::PythonModuleImport("re".into(), None);
-        let trino = PythonImport::PythonModuleImport("trino".into(), None);
+    fn get_preamble(&self) -> AOption<NativePythonPreamble> {
+        let re = PythonImport::PythonModuleImport("re".into(), AOption(ROption::RNone));
+        let trino = PythonImport::PythonModuleImport("trino".into(), AOption(ROption::RNone));
         let body = format!(
             "
 def execute_trino_sql(query):
@@ -69,11 +71,11 @@ def execute_trino_sql(query):
             user = self.endpoint.user,
             port = self.endpoint.http_port
         );
-        Some(NativePythonPreamble {
+        AOption(ROption::RSome(NativePythonPreamble {
             imports: vec![re, trino].into_iter().collect(),
             from_imports: AVec::new(),
             body: body.as_str().into(),
-        })
+        }))
     }
     fn get_call(&self) -> AST {
         let query;
@@ -97,7 +99,7 @@ def execute_trino_sql(query):
     }
 }
 impl AirflowTaskBase for PrestoPythonTask {
-    fn get_dependencies(&self) -> Option<AST> {
+    fn get_dependencies(&self) -> AOption<AST> {
         self.dependencies.clone()
     }
 }
