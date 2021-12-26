@@ -215,6 +215,7 @@ impl Builder for EnumBuilder {
                 )*
           }
           impl AoristConceptBase for #enum_name {
+              type TChildrenEnum = #enum_name;
               fn get_uuid(&self) -> AOption<Uuid> {
                   match &self {
                       #(
@@ -243,6 +244,25 @@ impl Builder for EnumBuilder {
                       )*
                   }
               }
+              fn get_children(&self) -> AVec<(
+                  // enum name
+                  &str,
+                  // field name
+                  AOption<&str>,
+                  // ix
+                  AOption<usize>,
+                  // uuid
+                  AOption<Uuid>,
+                  Self,
+              )> {
+                  vec![(
+                      stringify!(#enum_name),
+                      AOption(ROption::RNone),
+                      AOption(ROption::RNone),
+                      self.get_uuid(),
+                      self.clone(),
+                  )].into_iter().collect()
+              }
           }
           impl #enum_name {
               fn get_children_uuid(&self) -> AVec<Uuid> {
@@ -256,6 +276,7 @@ impl Builder for EnumBuilder {
                   }
               }
           }
+          impl ConceptEnum for [<#enum_name>] {}
           impl AoristRef<#enum_name> {
               pub fn deep_clone(&self) -> Self {
                   AoristRef(abi_stable::std_types::RArc::new(abi_stable::external_types::parking_lot::rw_lock::RRwLock::new(self.0.read().deep_clone())))

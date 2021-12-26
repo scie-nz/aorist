@@ -871,6 +871,7 @@ impl Builder for StructBuilder {
                 }
             }
             impl AoristConceptBase for #struct_name {
+                type TChildrenEnum = [<#struct_name Children>];
                 fn get_uuid(&self) -> AOption<Uuid> {
                     self.uuid.clone()
                 }
@@ -942,6 +943,76 @@ impl Builder for StructBuilder {
                 }
                 fn get_tag(&self) -> AOption<AString> {
                     self.tag.clone()
+                }
+                fn get_children(&self) -> AVec<(
+                    // struct name
+                    &str,
+                    // field name
+                    AOption<&str>,
+                    // ix
+                    AOption<usize>,
+                    // uuid
+                    AOption<Uuid>,
+                    // wrapped reference
+                    [<#struct_name Children>],
+                )> {
+                    let mut children: AVec<_> = AVec::new();
+                    #(
+                        children.push((
+                            stringify!(#struct_name),
+                            AOption(ROption::RSome(stringify!(#bare_ident))),
+                            AOption(ROption::RNone),
+                            self.get_uuid(),
+                            [<#struct_name Children>]::#bare_type_deref(self.#bare_ident())
+                        ));
+                    )*
+                    #(
+                        if let AOption(ROption::RSome(c)) = self.#option_ident() {
+                            children.push((
+                                stringify!(#struct_name),
+                                AOption(ROption::RSome(stringify!(#option_ident))),
+                                AOption(ROption::RNone),
+                                self.get_uuid(),
+                                [<#struct_name Children>]::#option_type_deref(c)
+                            ));
+                        }
+                    )*
+                    #(
+                        for (ix, elem) in self.#vec_ident().into_iter().enumerate() {
+                            children.push((
+                                stringify!(#struct_name),
+                                AOption(ROption::RSome(stringify!(#vec_ident))),
+                                AOption(ROption::RSome(ix)),
+                                self.get_uuid(),
+                                [<#struct_name Children>]::#vec_type_deref(elem)
+                            ));
+                        }
+                    )*
+                    #(
+                        if let AOption(ROption::RSome(v)) = self.#option_vec_ident() {
+                            for (ix, elem) in v.into_iter().enumerate() {
+                                children.push((
+                                    stringify!(#struct_name),
+                                    AOption(ROption::RSome(stringify!(#option_vec_ident))),
+                                    AOption(ROption::RSome(ix)),
+                                    self.get_uuid(),
+                                    [<#struct_name Children>]::#option_vec_type_deref(elem)
+                                ));
+                            }
+                        }
+                    )*
+                    #(
+                        for elem in self.#map_ident().values() {
+                            children.push((
+                                stringify!(#struct_name),
+                                AOption(ROption::RSome(stringify!(#map_ident))),
+                                AOption(ROption::RNone),
+                                self.get_uuid(),
+                                [<#struct_name Children>]::#map_value_type_deref(elem.clone())
+                            ));
+                        }
+                    )*
+                    children
                 }
             }
             impl #struct_name {
@@ -1019,7 +1090,6 @@ impl Builder for StructBuilder {
                     AOption<usize>,
                     // uuid
                     AOption<Uuid>,
-                    // wrapped reference
                     [<#struct_name Children>],
                 )> {
                     let mut children: AVec<_> = AVec::new();
