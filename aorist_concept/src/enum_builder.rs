@@ -283,7 +283,7 @@ impl Builder for EnumBuilder {
               }
           }
           impl AoristConcept for AoristRef<#enum_name> {
-              type TChildrenEnum = AoristRef<#enum_name>;
+              type TChildrenEnum = #enum_name;
               fn get_children(&self) -> AVec<(
                   // enum name
                   &str,
@@ -293,15 +293,14 @@ impl Builder for EnumBuilder {
                   AOption<usize>,
                   // uuid
                   AOption<Uuid>,
-                  AoristRef<#enum_name>,
+                  #enum_name,
               )> {
                   vec![(
                       stringify!(#enum_name),
                       AOption(ROption::RNone),
                       AOption(ROption::RNone),
                       self.get_uuid(),
-                      // clone of RArc<RRwLock
-                      Self(self.0.clone()),
+                      self.0.read().clone(),
                   )].into_iter().collect()
               }
               fn get_uuid(&self) -> AOption<Uuid> {
