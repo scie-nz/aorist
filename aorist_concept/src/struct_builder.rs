@@ -946,9 +946,9 @@ impl Builder for StructBuilder {
                 }
                 fn get_children(&self) -> AVec<(
                     // struct name
-                    &str,
+                    String,
                     // field name
-                    AOption<&str>,
+                    AOption<String>,
                     // ix
                     AOption<usize>,
                     // uuid
@@ -959,8 +959,8 @@ impl Builder for StructBuilder {
                     let mut children: AVec<_> = AVec::new();
                     #(
                         children.push((
-                            stringify!(#struct_name),
-                            AOption(ROption::RSome(stringify!(#bare_ident))),
+                            stringify!(#struct_name).into(),
+                            AOption(ROption::RSome(stringify!(#bare_ident).into())),
                             AOption(ROption::RNone),
                             self.get_uuid(),
                             [<#struct_name Children>]::#bare_type_deref(self.#bare_ident())
@@ -969,8 +969,8 @@ impl Builder for StructBuilder {
                     #(
                         if let AOption(ROption::RSome(c)) = self.#option_ident() {
                             children.push((
-                                stringify!(#struct_name),
-                                AOption(ROption::RSome(stringify!(#option_ident))),
+                                stringify!(#struct_name).into(),
+                                AOption(ROption::RSome(stringify!(#option_ident).into())),
                                 AOption(ROption::RNone),
                                 self.get_uuid(),
                                 [<#struct_name Children>]::#option_type_deref(c)
@@ -980,8 +980,8 @@ impl Builder for StructBuilder {
                     #(
                         for (ix, elem) in self.#vec_ident().into_iter().enumerate() {
                             children.push((
-                                stringify!(#struct_name),
-                                AOption(ROption::RSome(stringify!(#vec_ident))),
+                                stringify!(#struct_name).into(),
+                                AOption(ROption::RSome(stringify!(#vec_ident).into())),
                                 AOption(ROption::RSome(ix)),
                                 self.get_uuid(),
                                 [<#struct_name Children>]::#vec_type_deref(elem)
@@ -992,8 +992,8 @@ impl Builder for StructBuilder {
                         if let AOption(ROption::RSome(v)) = self.#option_vec_ident() {
                             for (ix, elem) in v.into_iter().enumerate() {
                                 children.push((
-                                    stringify!(#struct_name),
-                                    AOption(ROption::RSome(stringify!(#option_vec_ident))),
+                                    stringify!(#struct_name).into(),
+                                    AOption(ROption::RSome(stringify!(#option_vec_ident).into())),
                                     AOption(ROption::RSome(ix)),
                                     self.get_uuid(),
                                     [<#struct_name Children>]::#option_vec_type_deref(elem)
@@ -1004,8 +1004,8 @@ impl Builder for StructBuilder {
                     #(
                         for elem in self.#map_ident().values() {
                             children.push((
-                                stringify!(#struct_name),
-                                AOption(ROption::RSome(stringify!(#map_ident))),
+                                stringify!(#struct_name).into(),
+                                AOption(ROption::RSome(stringify!(#map_ident).into())),
                                 AOption(ROption::RNone),
                                 self.get_uuid(),
                                 [<#struct_name Children>]::#map_value_type_deref(elem.clone())

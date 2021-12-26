@@ -246,9 +246,9 @@ impl Builder for EnumBuilder {
               }
               fn get_children(&self) -> AVec<(
                   // enum name
-                  &str,
+                  String,
                   // field name
-                  AOption<&str>,
+                  AOption<String>,
                   // ix
                   AOption<usize>,
                   // uuid
@@ -256,7 +256,7 @@ impl Builder for EnumBuilder {
                   Self,
               )> {
                   vec![(
-                      stringify!(#enum_name),
+                      stringify!(#enum_name).into(),
                       AOption(ROption::RNone),
                       AOption(ROption::RNone),
                       self.get_uuid(),
