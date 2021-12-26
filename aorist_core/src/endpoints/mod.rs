@@ -4,7 +4,7 @@ use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
 use aorist_primitives::AOption;
 use aorist_primitives::{
-    AString, AVec, AWSConfig, AlluxioConfig, AoristConcept, ConceptEnum, DaskConfig, GCPConfig,
+    AString, AVec, AWSConfig, AlluxioConfig, AoristConceptBase, AoristConcept, ConceptEnum, DaskConfig, GCPConfig,
     GDALConfig, GiteaConfig, LINZAPIConfig, MinioConfig, PDALConfig, PostgresConfig, PrestoConfig,
     RangerConfig, TPrestoEndpoints,
 };

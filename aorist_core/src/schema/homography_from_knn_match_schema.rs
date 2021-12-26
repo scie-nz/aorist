@@ -1,6 +1,6 @@
 use crate::asset::*;
 use crate::attributes::*;
-use crate::concept::{AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
+use crate::concept::{AoristConceptBase, AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
 use crate::schema::derived_asset_schema::*;
 use crate::template::*;
 use abi_stable::std_types::ROption;

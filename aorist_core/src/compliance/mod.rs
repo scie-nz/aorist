@@ -5,7 +5,7 @@ See: https://www.cnil.fr/en/record-processing-activities */
 use crate::concept::{AoristRef, WrappedConcept};
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
-use aorist_primitives::{AString, AVec, AoristConcept, ConceptEnum};
+use aorist_primitives::{AString, AVec, AoristConceptBase, AoristConcept, ConceptEnum};
 use derivative::Derivative;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;

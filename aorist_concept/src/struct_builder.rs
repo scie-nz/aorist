@@ -539,7 +539,7 @@ impl Builder for StructBuilder {
                 pub fn deep_clone(&self) -> Self {
                     Self { inner: self.inner.deep_clone() }
                 }
-                pub fn compute_uuids(&self) {
+                pub fn compute_uuids(&mut self) {
                     self.inner.compute_uuids()
                 }
                 #[staticmethod]
@@ -870,8 +870,8 @@ impl Builder for StructBuilder {
                     AoristRef(abi_stable::std_types::RArc::new(abi_stable::external_types::parking_lot::rw_lock::RRwLock::new(self.0.read().deep_clone())))
                 }
             }
-            impl #struct_name {
-                pub fn get_uuid(&self) -> AOption<Uuid> {
+            impl AoristConceptBase for #struct_name {
+                fn get_uuid(&self) -> AOption<Uuid> {
                     self.uuid.clone()
                 }
                 fn deep_clone(&self) -> Self {
@@ -918,33 +918,35 @@ impl Builder for StructBuilder {
                         self.#bare_ident.compute_uuids();
                     )*
                     #(
-                        if let AOption(ROption::RSome(ref c)) = self.#option_ident {
+                        if let AOption(ROption::RSome(ref mut c)) = self.#option_ident {
                             c.compute_uuids();
                         }
                     )*
                     #(
-                        for elem in self.#vec_ident.iter() {
+                        for elem in self.#vec_ident.iter_mut() {
                             elem.compute_uuids();
                         }
                     )*
                     #(
                         if let AOption(ROption::RSome(ref mut v)) = self.#option_vec_ident {
-                            for elem in v.iter() {
+                            for elem in v.iter_mut() {
                                 elem.compute_uuids();
                             }
                         }
                     )*
                     #(
-                        for elem in self.#map_ident.values() {
+                        for elem in self.#map_ident.values_mut() {
                             elem.compute_uuids();
                         }
                     )*
                 }
-                fn set_uuid(&mut self, uuid: Uuid) {
-                    self.uuid = AOption(ROption::RSome(uuid));
-                }
                 fn get_tag(&self) -> AOption<AString> {
                     self.tag.clone()
+                }
+            }
+            impl #struct_name {
+                fn set_uuid(&mut self, uuid: Uuid) {
+                    self.uuid = AOption(ROption::RSome(uuid));
                 }
                 #(
                     pub fn #bare_ident(&self) -> #bare_type {
@@ -996,7 +998,7 @@ impl Builder for StructBuilder {
                 fn get_uuid(&self) -> AOption<Uuid> {
                     self.0.read().get_uuid()
                 }
-                fn compute_uuids(&self) {
+                fn compute_uuids(&mut self) {
                     self.0.write().compute_uuids();
                     let uuid;
                     uuid = self.get_uuid_from_children_uuid();

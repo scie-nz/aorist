@@ -1,4 +1,4 @@
-use crate::concept::{AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
+use crate::concept::{AoristConceptBase, AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
 use crate::role::global_permissions_admin::*;
 use abi_stable::std_types::ROption;
 use aorist_concept::{aorist, Constrainable};

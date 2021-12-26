@@ -2,7 +2,7 @@ use abi_stable::std_types::ROption;
 use aorist_primitives::AOption;
 
 use crate::attributes::*;
-use crate::concept::{AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
+use crate::concept::{AoristConceptBase, AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
 use crate::schema::spacy_named_entity_schema::*;
 use crate::schema::text_corpus_schema::*;
 use crate::template::*;

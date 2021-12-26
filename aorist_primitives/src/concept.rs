@@ -177,14 +177,13 @@ pub trait AoristConceptBase {
     fn get_tag(&self) -> AOption<AString>;
     fn compute_uuids(&mut self);
     fn deep_clone(&self) -> Self;
-    fn set_uuid(&mut self, uuid: Uuid);
 }
 
 pub trait AoristConcept {
     type TChildrenEnum: ConceptEnum;
     fn get_uuid(&self) -> AOption<Uuid>;
     fn get_tag(&self) -> AOption<AString>;
-    fn compute_uuids(&self);
+    fn compute_uuids(&mut self);
     fn get_children_uuid(&self) -> AVec<Uuid>;
     fn get_uuid_from_children_uuid(&self) -> Uuid {
         let child_uuids = self.get_children_uuid();

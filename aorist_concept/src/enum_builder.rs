@@ -214,16 +214,15 @@ impl Builder for EnumBuilder {
                     }
                 )*
           }
-          impl #enum_name {
-
-              pub fn get_uuid(&self) -> AOption<Uuid> {
+          impl AoristConceptBase for #enum_name {
+              fn get_uuid(&self) -> AOption<Uuid> {
                   match &self {
                       #(
                         #enum_name::#variant(x) => x.get_uuid(),
                       )*
                   }
               }
-              pub fn deep_clone(&self) -> Self {
+              fn deep_clone(&self) -> Self {
                   match &self {
                       #(
                         #enum_name::#variant(x) => #enum_name::#variant(x.deep_clone()),
@@ -237,13 +236,15 @@ impl Builder for EnumBuilder {
                       )*
                   }
               }
-              fn compute_uuids(&self) {
+              fn compute_uuids(&mut self) {
                   match self {
                       #(
                         #enum_name::#variant(x) => x.compute_uuids(),
                       )*
                   }
               }
+          }
+          impl #enum_name {
               fn get_children_uuid(&self) -> AVec<Uuid> {
                   match self {
                       #(
@@ -291,8 +292,8 @@ impl Builder for EnumBuilder {
               fn get_children_uuid(&self) -> AVec<Uuid> {
                   self.0.read().get_children_uuid()
               }
-              fn compute_uuids(&self) {
-                  self.0.read().compute_uuids()
+              fn compute_uuids(&mut self) {
+                  self.0.write().compute_uuids()
               }
           }
         }}))

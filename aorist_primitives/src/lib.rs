@@ -1624,7 +1624,7 @@ macro_rules! define_dag_function {
             Dialect::Presto(Presto::new())
         ]")]
         pub fn $name<'a>(
-            universe: PyUniverse,
+            mut universe: PyUniverse,
             constraints: Vec<String>,
             mode: &str,
             programs: BTreeMap<String, Vec<AoristConstraintProgram>>,
