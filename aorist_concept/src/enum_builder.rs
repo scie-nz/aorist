@@ -49,9 +49,9 @@ impl Builder for EnumBuilder {
         Ok(TokenStream::from(quote! { paste! {
           impl <T> std::convert::From<(
               // enum name
-              &str,
+              AString,
               // field name
-              AOption<&str>,
+              AOption<AString>,
               // ix
               AOption<usize>,
               // uuid
@@ -66,8 +66,8 @@ impl Builder for EnumBuilder {
           {
               fn from(
                   tpl: (
-                      &str,
-                      AOption<&str>,
+                      AString,
+                      AOption<AString>,
                       AOption<usize>,
                       AOption<Uuid>,
                       #enum_name,
@@ -77,7 +77,7 @@ impl Builder for EnumBuilder {
                   match children_enum {
                       #(
                           #enum_name::#variant(ref x) => WrappedConcept{
-                              inner: T::[<construct_ #variant:snake:lower>](x.clone(), ix, AOption(ROption::RSome((uuid.unwrap(), name.into())))),
+                              inner: T::[<construct_ #variant:snake:lower>](x.clone(), ix, AOption(ROption::RSome((uuid.unwrap(), name)))),
                           },
                       )*
                       _ => panic!("_phantom arm should not be activated"),
@@ -86,9 +86,9 @@ impl Builder for EnumBuilder {
           }
           impl <T> std::convert::From<(
               // enum name
-              &str,
+              AString,
               // field name
-              AOption<&str>,
+              AOption<AString>,
               // ix
               AOption<usize>,
               // uuid
@@ -103,8 +103,8 @@ impl Builder for EnumBuilder {
           {
               fn from(
                   tpl: (
-                      &str,
-                      AOption<&str>,
+                      AString,
+                      AOption<AString>,
                       AOption<usize>,
                       AOption<Uuid>,
                       AoristRef<#enum_name>,
@@ -116,7 +116,7 @@ impl Builder for EnumBuilder {
                       #(
                           #enum_name::#variant(ref x) => WrappedConcept{
                               inner: T::[<construct_ #variant:snake:lower>](
-                                  x.clone(), ix, AOption(ROption::RSome((uuid.unwrap(), name.into())))
+                                  x.clone(), ix, AOption(ROption::RSome((uuid.unwrap(), name)))
                               ),
                           },
                       )*
@@ -246,9 +246,9 @@ impl Builder for EnumBuilder {
               }
               fn get_children(&self) -> AVec<(
                   // enum name
-                  String,
+                  AString,
                   // field name
-                  AOption<String>,
+                  AOption<AString>,
                   // ix
                   AOption<usize>,
                   // uuid
@@ -286,22 +286,16 @@ impl Builder for EnumBuilder {
               type TChildrenEnum = #enum_name;
               fn get_children(&self) -> AVec<(
                   // enum name
-                  &str,
+                  AString,
                   // field name
-                  AOption<&str>,
+                  AOption<AString>,
                   // ix
                   AOption<usize>,
                   // uuid
                   AOption<Uuid>,
                   #enum_name,
               )> {
-                  vec![(
-                      stringify!(#enum_name),
-                      AOption(ROption::RNone),
-                      AOption(ROption::RNone),
-                      self.get_uuid(),
-                      self.0.read().clone(),
-                  )].into_iter().collect()
+                  self.0.read().get_children()
               }
               fn get_uuid(&self) -> AOption<Uuid> {
                   self.0.read().get_uuid()

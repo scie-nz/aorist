@@ -321,9 +321,9 @@ impl Builder for StructBuilder {
 
             impl <T> std::convert::From<(
                 // struct name
-                &str,
+                AString,
                 // field name
-                AOption<&str>,
+                AOption<AString>,
                 // ix
                 AOption<usize>,
                 // uuid
@@ -338,8 +338,8 @@ impl Builder for StructBuilder {
             {
                 fn from(
                     tpl: (
-                        &str,
-                        AOption<&str>,
+                        AString,
+                        AOption<AString>,
                         AOption<usize>,
                         AOption<Uuid>,
                         [<#struct_name Children>]
@@ -349,7 +349,7 @@ impl Builder for StructBuilder {
                     match children_enum {
                         #(
                             [<#struct_name Children>]::#types(x) => WrappedConcept{
-                                inner: T::[<construct_ #types:snake:lower>](x, ix, AOption(ROption::RSome((uuid.unwrap(), name.into())))),
+                                inner: T::[<construct_ #types:snake:lower>](x, ix, AOption(ROption::RSome((uuid.unwrap(), name)))),
                             },
                         )*
                         _ => panic!("_phantom arm should not be activated"),
@@ -946,9 +946,9 @@ impl Builder for StructBuilder {
                 }
                 fn get_children(&self) -> AVec<(
                     // struct name
-                    String,
+                    AString,
                     // field name
-                    AOption<String>,
+                    AOption<AString>,
                     // ix
                     AOption<usize>,
                     // uuid
@@ -1083,73 +1083,16 @@ impl Builder for StructBuilder {
                 }
                 fn get_children(&self) -> AVec<(
                     // struct name
-                    &str,
+                    AString,
                     // field name
-                    AOption<&str>,
+                    AOption<AString>,
                     // ix
                     AOption<usize>,
                     // uuid
                     AOption<Uuid>,
                     [<#struct_name Children>],
                 )> {
-                    let mut children: AVec<_> = AVec::new();
-                    let read = self.0.read();
-                    #(
-                        children.push((
-                            stringify!(#struct_name),
-                            AOption(ROption::RSome(stringify!(#bare_ident))),
-                            AOption(ROption::RNone),
-                            self.get_uuid(),
-                            [<#struct_name Children>]::#bare_type_deref(read.#bare_ident())
-                        ));
-                    )*
-                    #(
-                        if let AOption(ROption::RSome(c)) = read.#option_ident() {
-                            children.push((
-                                stringify!(#struct_name),
-                                AOption(ROption::RSome(stringify!(#option_ident))),
-                                AOption(ROption::RNone),
-                                self.get_uuid(),
-                                [<#struct_name Children>]::#option_type_deref(c)
-                            ));
-                        }
-                    )*
-                    #(
-                        for (ix, elem) in read.#vec_ident().into_iter().enumerate() {
-                            children.push((
-                                stringify!(#struct_name),
-                                AOption(ROption::RSome(stringify!(#vec_ident))),
-                                AOption(ROption::RSome(ix)),
-                                self.get_uuid(),
-                                [<#struct_name Children>]::#vec_type_deref(elem)
-                            ));
-                        }
-                    )*
-                    #(
-                        if let AOption(ROption::RSome(v)) = read.#option_vec_ident() {
-                            for (ix, elem) in v.into_iter().enumerate() {
-                                children.push((
-                                    stringify!(#struct_name),
-                                    AOption(ROption::RSome(stringify!(#option_vec_ident))),
-                                    AOption(ROption::RSome(ix)),
-                                    read.get_uuid(),
-                                    [<#struct_name Children>]::#option_vec_type_deref(elem)
-                                ));
-                            }
-                        }
-                    )*
-                    #(
-                        for elem in read.#map_ident().values() {
-                            children.push((
-                                stringify!(#struct_name),
-                                AOption(ROption::RSome(stringify!(#map_ident))),
-                                AOption(ROption::RNone),
-                                read.get_uuid(),
-                                [<#struct_name Children>]::#map_value_type_deref(elem.clone())
-                            ));
-                        }
-                    )*
-                    children
+                    self.0.read().get_children()
                 }
             }
         }}))

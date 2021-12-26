@@ -182,9 +182,9 @@ pub trait AoristConceptBase {
         &self,
     ) -> AVec<(
         // struct name
-        String,
+        AString,
         // field name
-        AOption<String>,
+        AOption<AString>,
         // ix
         AOption<usize>,
         // uuid
@@ -219,9 +219,9 @@ pub trait AoristConcept {
         &self,
     ) -> AVec<(
         // struct name
-        &str,
+        AString,
         // field name
-        AOption<&str>,
+        AOption<AString>,
         // ix
         AOption<usize>,
         // uuid
