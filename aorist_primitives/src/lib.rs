@@ -1050,8 +1050,16 @@ macro_rules! register_concept {
         )+
 
 
-        impl ConceptEnum for $name {}
-        impl ConceptEnum for AoristRef<$name> {}
+        impl ConceptEnum for AoristRef<$name> {
+              fn uuid(&self) -> AOption<Uuid> {
+                  match &*self.0.read() {
+                      $(
+                          $name::$element(x) => x.0.get_uuid(),
+                      )+
+                  }
+              }
+        
+        }
 
         $(
             impl TryFrom<AoristRef<$name>> for AoristRef<$element> {

@@ -875,6 +875,10 @@ impl Builder for StructBuilder {
                 fn get_uuid(&self) -> AOption<Uuid> {
                     self.uuid.clone()
                 }
+                fn set_uuid(&mut self, uuid: Uuid) {
+                    assert!(self.uuid.is_none());
+                    self.uuid = AOption(ROption::RSome(uuid));
+                }
                 fn deep_clone(&self) -> Self {
                     assert!(self.uuid.is_none());
                     Self {
@@ -1045,8 +1049,8 @@ impl Builder for StructBuilder {
                     }
                 )*
             }
-            impl [<#struct_name Children>] {
-                pub fn get_uuid(&self) -> AOption<Uuid> {
+            impl ConceptEnum for [<#struct_name Children>] {
+                fn uuid(&self) -> AOption<Uuid> {
                     match &self {
                         #(
                             Self::#types(x) => x.get_uuid(),
@@ -1055,45 +1059,12 @@ impl Builder for StructBuilder {
                     }
                 }
             }
-            impl ConceptEnum for [<#struct_name Children>] {}
             pub trait [<CanBe #struct_name>]: Debug + Clone + Serialize + PartialEq {
                 fn [<construct_ #struct_name:snake:lower>](
                     obj_ref: AoristRef<#struct_name>,
                     ix: AOption<usize>,
                     id: AOption<(Uuid, AString)>
                 ) -> AoristRef<Self>;
-            }
-
-            impl AoristConcept for AoristRef<#struct_name> {
-                type TChildrenEnum = [<#struct_name Children>];
-                fn get_uuid(&self) -> AOption<Uuid> {
-                    self.0.read().get_uuid()
-                }
-                fn compute_uuids(&mut self) {
-                    self.0.write().compute_uuids();
-                    let uuid;
-                    uuid = self.get_uuid_from_children_uuid();
-                    self.0.write().set_uuid(uuid);
-                }
-                fn get_children_uuid(&self) -> AVec<Uuid> {
-                    self.get_children().iter().map(|x| x.4.get_uuid().unwrap()).collect()
-                }
-                fn get_tag(&self) -> AOption<AString> {
-                    self.0.read().get_tag()
-                }
-                fn get_children(&self) -> AVec<(
-                    // struct name
-                    AString,
-                    // field name
-                    AOption<AString>,
-                    // ix
-                    AOption<usize>,
-                    // uuid
-                    AOption<Uuid>,
-                    [<#struct_name Children>],
-                )> {
-                    self.0.read().get_children()
-                }
             }
         }}))
     }

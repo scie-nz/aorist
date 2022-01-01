@@ -170,11 +170,14 @@ pub struct AMap<T: Clone + PartialEq + Eq + PartialOrd + Ord, S = std::collectio
     free: *mut AMapNode<T>,
 }
 
-pub trait ConceptEnum {}
+pub trait ConceptEnum {
+    fn uuid(&self) -> AOption<Uuid>;
+}
 
 pub trait AoristConceptBase {
     type TChildrenEnum: ConceptEnum;
     fn get_uuid(&self) -> AOption<Uuid>;
+    fn set_uuid(&mut self, uuid: Uuid);
     fn get_tag(&self) -> AOption<AString>;
     fn compute_uuids(&mut self);
     fn deep_clone(&self) -> Self;
@@ -197,6 +200,7 @@ pub trait AoristConceptBase {
 pub trait AoristConcept {
     type TChildrenEnum: ConceptEnum;
     fn get_uuid(&self) -> AOption<Uuid>;
+    fn set_uuid(&mut self, uuid: Uuid);
     fn get_tag(&self) -> AOption<AString>;
     fn compute_uuids(&mut self);
     fn get_children_uuid(&self) -> AVec<Uuid>;

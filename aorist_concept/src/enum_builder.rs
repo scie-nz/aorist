@@ -130,7 +130,6 @@ impl Builder for EnumBuilder {
         let variant = &self.variant_idents;
         let py_class_name = format!("{}", enum_name);
         Ok(proc_macro::TokenStream::from(quote! { paste! {
-          impl ConceptEnum for AoristRef<#enum_name> {}
           pub trait [<CanBe #enum_name>]: Debug + Clone + Serialize + PartialEq {
               fn [<construct_ #enum_name:snake:lower>] (
                   obj_ref: AoristRef<#enum_name>,
@@ -223,6 +222,13 @@ impl Builder for EnumBuilder {
                       )*
                   }
               }
+              fn set_uuid(&mut self, uuid: Uuid) {
+                  match &self {
+                      #(
+                        #enum_name::#variant(x) => x.0.write().set_uuid(uuid),
+                      )*
+                  }
+              }
               fn deep_clone(&self) -> Self {
                   match &self {
                       #(
@@ -276,38 +282,18 @@ impl Builder for EnumBuilder {
                   }
               }
           }
-          impl ConceptEnum for [<#enum_name>] {}
+          impl ConceptEnum for [<#enum_name>] {
+              fn uuid(&self) -> AOption<Uuid> {
+                  match self {
+                      #(
+                          #enum_name::#variant(x) => x.get_uuid(),
+                      )*
+                  }
+              }
+          }
           impl AoristRef<#enum_name> {
               pub fn deep_clone(&self) -> Self {
                   AoristRef(abi_stable::std_types::RArc::new(abi_stable::external_types::parking_lot::rw_lock::RRwLock::new(self.0.read().deep_clone())))
-              }
-          }
-          impl AoristConcept for AoristRef<#enum_name> {
-              type TChildrenEnum = #enum_name;
-              fn get_children(&self) -> AVec<(
-                  // enum name
-                  AString,
-                  // field name
-                  AOption<AString>,
-                  // ix
-                  AOption<usize>,
-                  // uuid
-                  AOption<Uuid>,
-                  #enum_name,
-              )> {
-                  self.0.read().get_children()
-              }
-              fn get_uuid(&self) -> AOption<Uuid> {
-                  self.0.read().get_uuid()
-              }
-              fn get_tag(&self) -> AOption<AString> {
-                  self.0.read().get_tag()
-              }
-              fn get_children_uuid(&self) -> AVec<Uuid> {
-                  self.0.read().get_children_uuid()
-              }
-              fn compute_uuids(&mut self) {
-                  self.0.write().compute_uuids()
               }
           }
         }}))
