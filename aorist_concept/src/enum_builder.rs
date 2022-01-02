@@ -47,6 +47,7 @@ impl Builder for EnumBuilder {
     ) -> Result<TokenStream, AoristError> {
         let variant = &self.variant_idents;
         Ok(TokenStream::from(quote! { paste! {
+          
           impl <T> std::convert::From<(
               // enum name
               AString,
@@ -84,46 +85,7 @@ impl Builder for EnumBuilder {
                   }
               }
           }
-          impl <T> std::convert::From<(
-              // enum name
-              AString,
-              // field name
-              AOption<AString>,
-              // ix
-              AOption<usize>,
-              // uuid
-              AOption<Uuid>,
-              // wrapped reference
-              AoristRef<#enum_name>,
-          )> for WrappedConcept<T> where
-          #(
-              T: [<CanBe #variant>],
-          )*
-              T: Debug + Clone + Serialize + PartialEq,
-          {
-              fn from(
-                  tpl: (
-                      AString,
-                      AOption<AString>,
-                      AOption<usize>,
-                      AOption<Uuid>,
-                      AoristRef<#enum_name>,
-                  )
-              ) -> Self {
-                  let (name, field, ix, uuid, children_enum) = tpl;
-                  let read = children_enum.0.read();
-                  match &*read {
-                      #(
-                          #enum_name::#variant(ref x) => WrappedConcept{
-                              inner: T::[<construct_ #variant:snake:lower>](
-                                  x.clone(), ix, AOption(ROption::RSome((uuid.unwrap(), name)))
-                              ),
-                          },
-                      )*
-                      _ => panic!("_phantom arm should not be activated"),
-                  }
-              }
-          }
+
         }}))
     }
     fn to_concept_token_stream(&self, enum_name: &Ident) -> Result<TokenStream, AoristError> {
