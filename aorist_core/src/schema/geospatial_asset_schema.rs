@@ -1,5 +1,5 @@
 use crate::attributes::*;
-use crate::concept::{AoristConceptBase, AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
+use crate::concept::{AoristConcept, AoristConceptBase, AoristRef, ConceptEnum, WrappedConcept};
 use crate::schema::adjacent_polygons_schema::*;
 use crate::schema::gdal_fillnodata_schema::*;
 use crate::schema::labeled_point_cloud_schema::*;

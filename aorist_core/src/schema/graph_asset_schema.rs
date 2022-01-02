@@ -1,5 +1,5 @@
 use crate::attributes::*;
-use crate::concept::{AoristConceptBase, AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
+use crate::concept::{AoristConcept, AoristConceptBase, AoristRef, ConceptEnum, WrappedConcept};
 use crate::schema::edgelist_filter_schema::*;
 use crate::template::*;
 use abi_stable::std_types::ROption;

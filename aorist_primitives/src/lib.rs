@@ -1000,7 +1000,7 @@ macro_rules! register_concept {
         }
         impl ConceptEnum for $name {
             fn uuid(&self) -> AOption<Uuid> {
-                self.get_uuid()    
+                self.get_uuid()
             }
         }
         impl AoristConceptBase for $name {

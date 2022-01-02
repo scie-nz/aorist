@@ -3,7 +3,7 @@ use aorist_primitives::AOption;
 
 use crate::asset::*;
 use crate::attributes::*;
-use crate::concept::{AoristConceptBase, AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
+use crate::concept::{AoristConcept, AoristConceptBase, AoristRef, ConceptEnum, WrappedConcept};
 use crate::template::*;
 use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 use abi_stable::std_types::RArc;

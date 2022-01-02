@@ -1,4 +1,3 @@
-use aorist_primitives::AoristRef;
 use crate::concept::WrappedConcept;
 use crate::location::alluxio_location::*;
 use crate::location::local_file_system_location::*;
@@ -9,7 +8,8 @@ use abi_stable::std_types::ROption;
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
 use aorist_primitives::AOption;
-use aorist_primitives::{AString, AVec, AoristConceptBase, AoristConcept, ConceptEnum};
+use aorist_primitives::AoristRef;
+use aorist_primitives::{AString, AVec, AoristConcept, AoristConceptBase, ConceptEnum};
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
 use uuid::Uuid;

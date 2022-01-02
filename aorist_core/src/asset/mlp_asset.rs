@@ -2,7 +2,6 @@ use abi_stable::std_types::ROption;
 use aorist_primitives::AOption;
 
 use crate::asset::*;
-use aorist_primitives::AoristRef;
 use crate::concept::WrappedConcept;
 use crate::encoding::*;
 use crate::schema::*;
@@ -12,7 +11,8 @@ use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 use abi_stable::std_types::RArc;
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
-use aorist_primitives::{asset, AString, AVec, AoristConceptBase, AoristConcept, ConceptEnum};
+use aorist_primitives::AoristRef;
+use aorist_primitives::{asset, AString, AVec, AoristConcept, AoristConceptBase, ConceptEnum};
 use derivative::Derivative;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;

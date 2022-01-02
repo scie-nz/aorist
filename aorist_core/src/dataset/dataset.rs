@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 use crate::access_policy::*;
 use crate::asset::*;
-use crate::concept::{AoristConceptBase, AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
+use crate::concept::{AoristConcept, AoristConceptBase, AoristRef, ConceptEnum, WrappedConcept};
 #[cfg(feature = "python")]
 use crate::encoding::*;
 #[cfg(feature = "python")]

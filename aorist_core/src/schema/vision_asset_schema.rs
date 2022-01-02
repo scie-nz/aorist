@@ -1,5 +1,5 @@
 use crate::attributes::*;
-use crate::concept::{AoristConceptBase, AoristConcept, AoristRef, ConceptEnum, WrappedConcept};
+use crate::concept::{AoristConcept, AoristConceptBase, AoristRef, ConceptEnum, WrappedConcept};
 use crate::schema::flann_knn_match_schema::*;
 use crate::schema::homography_from_knn_match_schema::*;
 use crate::schema::image_from_raster_schema::*;

@@ -4,12 +4,12 @@ use abi_stable::std_types::{RArc, ROption, RVec};
 use abi_stable::StableAbi;
 #[cfg(feature = "python")]
 use pyo3::prelude::*;
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use siphasher::sip128::{Hasher128, SipHasher};
 use std::collections::{BTreeSet, HashMap};
-use uuid::Uuid;
-use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::fmt::{Debug, Formatter};
 use std::hash::{Hash, Hasher};
+use uuid::Uuid;
 
 #[repr(C)]
 #[cfg_attr(feature = "python", pyclass)]
@@ -165,7 +165,10 @@ pub struct AMapNode<T: Clone + PartialEq + Eq + PartialOrd + Ord> {
 }
 
 #[repr(C)]
-pub struct AMap<T: Clone + PartialEq + Eq + PartialOrd + Ord, S = std::collections::hash_map::RandomState>{
+pub struct AMap<
+    T: Clone + PartialEq + Eq + PartialOrd + Ord,
+    S = std::collections::hash_map::RandomState,
+> {
     map: abi_stable::std_types::RHashMap<AString, T, S>,
     head: *mut AMapNode<T>,
     free: *mut AMapNode<T>,
@@ -258,7 +261,10 @@ pub trait ToplineConceptBase: Sized + Clone + Debug + Serialize + PartialEq {
     fn get_type(&self) -> AString;
     fn get_index_as_child(&self) -> usize;
     fn get_child_concepts(&self) -> AVec<AoristRef<Self>>;
-    fn populate_child_concept_map(&self, concept_map: &mut HashMap<(Uuid, AString), AoristRef<Self>>);
+    fn populate_child_concept_map(
+        &self,
+        concept_map: &mut HashMap<(Uuid, AString), AoristRef<Self>>,
+    );
     fn build_universe(universe: Self::TUniverse) -> Self;
 }
 
@@ -282,7 +288,7 @@ pub trait TAoristObject {
 #[derive(StableAbi)]
 pub struct AoristRef<T: PartialEq + Serialize + Debug + Clone>(pub RArc<RRwLock<T>>);
 
-impl <T: PartialEq + Serialize + Debug + Clone + AoristConceptBase> AoristConcept for AoristRef<T> {
+impl<T: PartialEq + Serialize + Debug + Clone + AoristConceptBase> AoristConcept for AoristRef<T> {
     type TChildrenEnum = <T as AoristConceptBase>::TChildrenEnum;
     fn get_uuid(&self) -> AOption<Uuid> {
         self.0.read().get_uuid()
@@ -300,12 +306,17 @@ impl <T: PartialEq + Serialize + Debug + Clone + AoristConceptBase> AoristConcep
         self.0.write().set_uuid(uuid);
     }
     fn get_children_uuid(&self) -> AVec<Uuid> {
-        self.get_children().iter().map(|x| x.4.uuid().unwrap()).collect()
+        self.get_children()
+            .iter()
+            .map(|x| x.4.uuid().unwrap())
+            .collect()
     }
     fn get_tag(&self) -> AOption<AString> {
         self.0.read().get_tag()
     }
-    fn get_children(&self) -> AVec<(
+    fn get_children(
+        &self,
+    ) -> AVec<(
         // struct name
         AString,
         // field name
@@ -368,7 +379,7 @@ impl<T: Debug + Clone + Serialize + PartialEq> Debug for AoristRef<T> {
         self.0.read().fmt(f)
     }
 }
-impl <T: Clone + Debug + Serialize + PartialEq + AoristConceptBase> ConceptEnum for AoristRef<T> {
+impl<T: Clone + Debug + Serialize + PartialEq + AoristConceptBase> ConceptEnum for AoristRef<T> {
     fn uuid(&self) -> AOption<Uuid> {
         self.0.read().get_uuid()
     }
@@ -382,7 +393,9 @@ where
         self.0.read().hash(state);
     }
 }
-impl <T: Debug + Clone + Serialize + PartialEq + ToplineConceptBase + AoristConceptBase> ToplineConcept for AoristRef<T> {
+impl<T: Debug + Clone + Serialize + PartialEq + ToplineConceptBase + AoristConceptBase>
+    ToplineConcept for AoristRef<T>
+{
     type TUniverse = <T as ToplineConceptBase>::TUniverse;
     fn get_parent_id(&self) -> AOption<(Uuid, AString)> {
         self.0.read().get_parent_id()
@@ -410,7 +423,9 @@ impl <T: Debug + Clone + Serialize + PartialEq + ToplineConceptBase + AoristConc
     }
 }
 // note: both Universe and EndpointConfig must exist
-impl <T: Debug + Clone + Serialize + PartialEq + AoristUniverseBase> AoristUniverse for AoristRef<T> {
+impl<T: Debug + Clone + Serialize + PartialEq + AoristUniverseBase> AoristUniverse
+    for AoristRef<T>
+{
     type TEndpoints = <T as AoristUniverseBase>::TEndpoints;
     fn get_endpoints(&self) -> Self::TEndpoints {
         (*self.0.read()).get_endpoints()

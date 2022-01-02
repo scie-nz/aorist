@@ -1,6 +1,5 @@
 #![allow(unused_parens)]
 use crate::compression::*;
-use aorist_primitives::AoristRef;
 use crate::concept::WrappedConcept;
 use crate::encoding::csv_encoding::*;
 use crate::encoding::gdb_encoding::*;
@@ -24,7 +23,8 @@ use abi_stable::std_types::ROption;
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
 use aorist_primitives::AOption;
-use aorist_primitives::{AString, AVec, AoristConceptBase, AoristConcept, ConceptEnum};
+use aorist_primitives::AoristRef;
+use aorist_primitives::{AString, AVec, AoristConcept, AoristConceptBase, ConceptEnum};
 #[cfg(feature = "python")]
 use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
