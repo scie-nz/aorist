@@ -998,6 +998,68 @@ macro_rules! register_concept {
                 $element((AoristRef<$element>, usize, AOption<(Uuid, AString)>)),
             )+
         }
+        impl ConceptEnum for $name {
+            fn uuid(&self) -> AOption<Uuid> {
+                self.get_uuid()    
+            }
+        }
+        impl AoristConceptBase for $name {
+              type TChildrenEnum = $name;
+              fn get_uuid(&self) -> AOption<Uuid> {
+                  match &self {
+                      $(
+                        $name::$element(x) => x.0.get_uuid(),
+                      )*
+                  }
+              }
+              fn set_uuid(&mut self, uuid: Uuid) {
+                  match self {
+                      $(
+                        $name::$element(ref mut x) => x.0.set_uuid(uuid),
+                      )*
+                  }
+              }
+              fn deep_clone(&self) -> Self {
+                  match &self {
+                      $(
+                        $name::$element(x) => $name::$element((x.0.deep_clone(), x.1.clone(), x.2.clone())),
+                      )*
+                  }
+              }
+              fn get_tag(&self) -> AOption<AString> {
+                  match self {
+                      $(
+                        $name::$element(x) => x.0.get_tag(),
+                      )*
+                  }
+              }
+              fn compute_uuids(&mut self) {
+                  match self {
+                      $(
+                        $name::$element(x) => x.0.compute_uuids(),
+                      )*
+                  }
+              }
+              fn get_children(&self) -> AVec<(
+                  // enum name
+                  AString,
+                  // field name
+                  AOption<AString>,
+                  // ix
+                  AOption<usize>,
+                  // uuid
+                  AOption<Uuid>,
+                  Self,
+              )> {
+                  vec![(
+                      stringify!($name).into(),
+                      AOption(ROption::RNone),
+                      AOption(ROption::RNone),
+                      self.get_uuid(),
+                      self.clone(),
+                  )].into_iter().collect()
+              }
+        }
         #[cfg(feature = "python")]
         pub fn concept_module(py: pyo3::prelude::Python, m: &pyo3::prelude::PyModule) -> pyo3::prelude::PyResult<()> {
             $(
@@ -1049,17 +1111,6 @@ macro_rules! register_concept {
             }
         )+
 
-
-        impl ConceptEnum for AoristRef<$name> {
-              fn uuid(&self) -> AOption<Uuid> {
-                  match &*self.0.read() {
-                      $(
-                          $name::$element(x) => x.0.get_uuid(),
-                      )+
-                  }
-              }
-        
-        }
 
         $(
             impl TryFrom<AoristRef<$name>> for AoristRef<$element> {

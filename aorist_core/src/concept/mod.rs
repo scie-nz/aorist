@@ -105,6 +105,12 @@ impl<T: Debug + Clone + Serialize + PartialEq> Debug for AoristRef<T> {
         self.0.read().fmt(f)
     }
 }
+impl <T: Clone + Debug + Serialize + PartialEq + AoristConceptBase> ConceptEnum for AoristRef<T> {
+    fn uuid(&self) -> AOption<Uuid> {
+        self.0.read().get_uuid()
+    }
+}
+
 pub struct WrappedConcept<T>
 where
     T: Debug + Clone + Serialize + PartialEq,
