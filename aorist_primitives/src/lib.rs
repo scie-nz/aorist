@@ -1112,19 +1112,6 @@ macro_rules! register_concept {
         )+
 
 
-        $(
-            impl TryFrom<AoristRef<$name>> for AoristRef<$element> {
-                type Error = String;
-                fn try_from(x: AoristRef<$name>) -> Result<Self, String> {
-                    let read = x.0.read();
-                    match *read {
-                        $name::$element((ref y, _, _)) => Ok(y.clone()),
-                        _ => Err("Cannot convert.".into()),
-                    }
-                }
-            }
-        )+
-
         #[cfg_attr(feature = "python", pyclass(module = "aorist"))]
         pub struct $ancestry {
             pub parents: RArc<RRwLock<HashMap<(Uuid, AString), AoristRef<$name>>>>,
@@ -1146,7 +1133,11 @@ macro_rules! register_concept {
                     root: AoristRef<$name>,
                 ) -> Result<AoristRef<$element>, String> {
                     if root.get_type().as_str() == stringify!($element) {
-                        return(Ok(AoristRef::<$element>::try_from(root.clone()).unwrap()));
+                        let read = root.0.read();
+                        return match *read {
+                            $name::$element((ref y, _, _)) => Ok(y.clone()),
+                            _ => Err("Cannot convert.".into()),
+                        };
                     }
                     let parent_id = root.get_parent_id();
                     match parent_id {
