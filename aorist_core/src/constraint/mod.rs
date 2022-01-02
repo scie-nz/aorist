@@ -5,7 +5,7 @@ use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 use abi_stable::std_types::RArc;
 use anyhow::Result;
 use aorist_primitives::AOption;
-use aorist_primitives::{AString, AVec, Ancestry, AoristConcept, TAoristObject, TConceptEnum};
+use aorist_primitives::{AString, AVec, Ancestry, AoristConcept, TAoristObject, ToplineConcept};
 use std::collections::HashMap;
 use std::marker::PhantomData;
 use tracing::info;
@@ -64,7 +64,7 @@ pub trait SatisfiableOuterConstraint<'a>: OuterConstraint<'a> {
     ) -> Result<(AString, AString, ParameterTuple, Dialect)>;
 }
 pub trait TBuilder<'a> {
-    type TEnum: TConceptEnum;
+    type TEnum: ToplineConcept;
     type TAncestry: Ancestry;
     type OuterType: OuterConstraint<'a>; //, TEnum=Self::EnumType>;
                                          //type EnumType: TConstraintEnum<'a, BuilderT=Self>;

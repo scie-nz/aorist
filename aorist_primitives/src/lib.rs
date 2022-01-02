@@ -1245,7 +1245,7 @@ macro_rules! register_concept {
                 }
             }
         }
-        impl TConceptEnum for AoristRef<$name> {
+        impl ToplineConcept for AoristRef<$name> {
             type TUniverse = AoristRef<Universe>;
             fn get_parent_id(&self) -> AOption<(Uuid, AString)> {
                 self.0.read().get_parent_id()
@@ -1410,7 +1410,7 @@ macro_rules! register_constraint_new {
                         Err(err) => {
                             err.print(py);
                             panic!("Problem when extracting object (tag: {:?}). See traceback above",
-                                   aorist_primitives::TConceptEnum::get_tag(&root));
+                                   aorist_primitives::ToplineConcept::get_tag(&root));
                         }
                     };
 

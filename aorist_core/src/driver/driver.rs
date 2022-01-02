@@ -17,7 +17,7 @@ use abi_stable::std_types::RArc;
 use anyhow::Result;
 use aorist_ast::{AncestorRecord, SimpleIdentifier, AST};
 use aorist_primitives::{AString, AVec, TAoristObject};
-use aorist_primitives::{Ancestry, AoristConcept, AoristUniverse, TConceptEnum};
+use aorist_primitives::{Ancestry, AoristConcept, AoristUniverse, ToplineConcept};
 use inflector::cases::snakecase::to_snake_case;
 use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
@@ -50,11 +50,11 @@ where
     >,
     <D as FlowBuilderBase<U>>::T: 'a,
     A: Ancestry,
-    C: TConceptEnum<TUniverse = U>,
+    C: ToplineConcept<TUniverse = U>,
     <B as TBuilder<'a>>::OuterType: OuterConstraint<'a, TAncestry = A>,
     <<B as TBuilder<'a>>::OuterType as OuterConstraint<'a>>::TAncestry: Ancestry<TConcept = C>,
     <<<B as TBuilder<'a>>::OuterType as OuterConstraint<'a>>::TAncestry as Ancestry>::TConcept:
-        TConceptEnum<TUniverse = U>,
+        ToplineConcept<TUniverse = U>,
     P: TOuterProgram<TAncestry = A>,
 {
     type CB: ConstraintBlock<'a, <D as FlowBuilderBase<U>>::T, B::OuterType, U, P>;

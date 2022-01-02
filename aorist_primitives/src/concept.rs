@@ -235,7 +235,7 @@ pub trait AoristConcept {
     )>;
 }
 
-pub trait TConceptEnum: Sized + Clone {
+pub trait ToplineConcept: Sized + Clone {
     type TUniverse: AoristConcept + AoristUniverse;
     fn get_parent_id(&self) -> AOption<(Uuid, AString)>;
     fn get_type(&self) -> AString;
@@ -255,7 +255,7 @@ pub trait TPrestoEndpoints {
     fn presto_config(&self) -> PrestoConfig;
 }
 pub trait Ancestry {
-    type TConcept: ConceptEnum + Clone + TConceptEnum;
+    type TConcept: ConceptEnum + Clone + ToplineConcept;
     fn new(parents: RArc<RRwLock<HashMap<(Uuid, AString), Self::TConcept>>>) -> Self;
     fn get_parents(&self) -> RArc<RRwLock<HashMap<(Uuid, AString), Self::TConcept>>>;
 }

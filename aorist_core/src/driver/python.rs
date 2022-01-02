@@ -13,7 +13,7 @@ use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 use abi_stable::std_types::RArc;
 use anyhow::Result;
 use aorist_ast::AncestorRecord;
-use aorist_primitives::{AString, AVec, Ancestry, AoristConcept, AoristUniverse, TConceptEnum};
+use aorist_primitives::{AString, AVec, Ancestry, AoristConcept, AoristUniverse, ToplineConcept};
 use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
 use std::collections::{BTreeSet, HashMap};
@@ -29,11 +29,11 @@ where
     <D as FlowBuilderBase<U>>::T:
         ETLFlow<U, ImportType = PythonImport, PreambleType = PythonPreamble> + 'a,
     A: Ancestry,
-    C: TConceptEnum<TUniverse = U>,
+    C: ToplineConcept<TUniverse = U>,
     <B as TBuilder<'a>>::OuterType: OuterConstraint<'a, TAncestry = A>,
     <<B as TBuilder<'a>>::OuterType as OuterConstraint<'a>>::TAncestry: Ancestry<TConcept = C>,
     <<<B as TBuilder<'a>>::OuterType as OuterConstraint<'a>>::TAncestry as Ancestry>::TConcept:
-        TConceptEnum<TUniverse = U>,
+        ToplineConcept<TUniverse = U>,
     P: TOuterProgram<TAncestry = A>,
 {
     pub concepts: RArc<RRwLock<HashMap<(Uuid, AString), C>>>,
@@ -60,11 +60,11 @@ where
     <D as FlowBuilderBase<U>>::T:
         ETLFlow<U, ImportType = PythonImport, PreambleType = PythonPreamble> + 'a,
     A: Ancestry,
-    C: TConceptEnum<TUniverse = U>,
+    C: ToplineConcept<TUniverse = U>,
     <B as TBuilder<'a>>::OuterType: OuterConstraint<'a, TAncestry = A>,
     <<B as TBuilder<'a>>::OuterType as OuterConstraint<'a>>::TAncestry: Ancestry<TConcept = C>,
     <<<B as TBuilder<'a>>::OuterType as OuterConstraint<'a>>::TAncestry as Ancestry>::TConcept:
-        TConceptEnum<TUniverse = U>,
+        ToplineConcept<TUniverse = U>,
     P: TOuterProgram<TAncestry = A>,
 {
     type CB = PythonBasedConstraintBlock<'a, <D as FlowBuilderBase<U>>::T, B::OuterType, U, P>;

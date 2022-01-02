@@ -4,7 +4,7 @@ use abi_stable::std_types::{RArc, ROption};
 use abi_stable::StableAbi;
 pub use aorist_primitives::{
     register_concept, AOption, AString, AVec, Ancestry, AoristConceptBase, AoristConcept, AoristUniverse, ConceptEnum,
-    TConceptEnum,
+    ToplineConcept,
 };
 #[cfg(feature = "python")]
 use pyo3::prelude::*;
