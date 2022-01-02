@@ -1184,62 +1184,47 @@ macro_rules! register_concept {
                 object
             }
         }
-        impl TConceptEnum for AoristRef<$name> {
-            type TUniverse = AoristRef<Universe>;
-            fn get_parent_id(&self) -> AOption<(Uuid, AString)> {
-                let read = self.0.read();
-                match *read {
+        impl $name {
+            pub fn build_universe(universe: AoristRef<Universe>) -> Self {
+                $name::Universe((universe, 0, AOption(ROption::RNone)))
+            }
+            pub fn get_parent_id(&self) -> AOption<(Uuid, AString)> {
+                match self {
                     $(
                         $name::$element((_, _, ref id)) => id.clone(),
                     )+
                 }
             }
-            fn from_universe(universe: AoristRef<Universe>) -> Self {
-                AoristRef(RArc::new(RRwLock::new($name::Universe((universe, 0, AOption(ROption::RNone))))))
-            }
-            fn get_type(&self) -> AString {
-                let read = self.0.read();
-                match *read {
+            pub fn get_type(&self) -> AString {
+                match self {
                     $(
                         $name::$element((ref x, _, _)) => stringify!($element).into(),
                     )*
                 }
             }
-            fn get_uuid(&self) -> Uuid {
-                let read = self.0.read();
-                match *read {
-                    $(
-                        $name::$element((ref x, _, _)) => x.get_uuid().unwrap(),
-                    )*
-                }
-            }
-            fn get_tag(&self) -> AOption<AString> {
-                let read = self.0.read();
-                match *read {
+            pub fn get_tag(&self) -> AOption<AString> {
+                match self {
                     $(
                         $name::$element((ref x, _, _)) => x.get_tag(),
                     )*
                 }
             }
-            fn get_index_as_child(&self) -> usize {
-                let read = self.0.read();
-                match *read {
+            pub fn get_index_as_child(&self) -> usize {
+                match self {
                     $(
-                        $name::$element((_, idx, _)) => idx,
+                        $name::$element((_, idx, _)) => idx.clone(),
                     )*
                 }
             }
-            fn get_child_concepts(&self) -> AVec<Self> {
-                let read = self.0.read();
-                match *read {
+            pub fn get_child_concepts(&self) -> AVec<AoristRef<Self>> {
+                match self {
                     $(
                         $name::$element((ref x, _, _)) => x.get_descendants(),
                     )*
                 }
             }
-            fn populate_child_concept_map(&self, concept_map: &mut HashMap<(Uuid, AString), Self>) {
-                let read = self.0.read();
-                match *read {
+            pub fn populate_child_concept_map(&self, concept_map: &mut HashMap<(Uuid, AString), AoristRef<Self>>) {
+                match self {
                     $(
                         $name::$element((ref x, idx, ref parent)) => {
                             debug!("Visiting concept {}: {}", stringify!($element), x.get_uuid().unwrap());
@@ -1252,12 +1237,39 @@ macro_rules! register_concept {
                                     stringify!($element).into()
                                  ),
                                  AoristRef(RArc::new(RRwLock::new(
-                                    $name::$element((x.clone(), idx, parent.clone()))
+                                    $name::$element((x.clone(), *idx, parent.clone()))
                                  ))),
                             );
                         }
                     )*
                 }
+            }
+        }
+        impl TConceptEnum for AoristRef<$name> {
+            type TUniverse = AoristRef<Universe>;
+            fn get_parent_id(&self) -> AOption<(Uuid, AString)> {
+                self.0.read().get_parent_id()
+            }
+            fn from_universe(universe: AoristRef<Universe>) -> Self {
+                AoristRef(RArc::new(RRwLock::new($name::build_universe(universe))))
+            }
+            fn get_type(&self) -> AString {
+                self.0.read().get_type()
+            }
+            fn get_uuid(&self) -> Uuid {
+                self.0.read().get_uuid().unwrap()
+            }
+            fn get_tag(&self) -> AOption<AString> {
+                self.0.read().get_tag()
+            }
+            fn get_index_as_child(&self) -> usize {
+                self.0.read().get_index_as_child()
+            }
+            fn get_child_concepts(&self) -> AVec<Self> {
+                self.0.read().get_child_concepts()
+            }
+            fn populate_child_concept_map(&self, concept_map: &mut HashMap<(Uuid, AString), Self>) {
+                self.0.read().populate_child_concept_map(concept_map)
             }
         }
     }
