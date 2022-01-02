@@ -3,7 +3,7 @@ use crate::asset::graph_asset::*;
 use crate::asset::language_asset::*;
 use crate::asset::static_data_table::*;
 use crate::asset::vision_asset::*;
-use crate::concept::{AoristConcept, AoristConceptBase, AoristRef, ConceptEnum, WrappedConcept};
+use crate::concept::{AoristConcept, AoristConceptBase, AoristRef, ConceptEnum};
 use crate::encoding::Encoding;
 #[cfg(feature = "python")]
 use crate::encoding::PyEncoding;

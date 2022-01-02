@@ -1,4 +1,3 @@
-use crate::concept::WrappedConcept;
 use crate::layout::*;
 use crate::location::*;
 use abi_stable::std_types::ROption;

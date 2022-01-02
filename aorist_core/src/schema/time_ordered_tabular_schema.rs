@@ -1,4 +1,4 @@
-use crate::concept::{AoristConcept, AoristConceptBase, AoristRef, ConceptEnum, WrappedConcept};
+use crate::concept::{AoristConcept, AoristConceptBase, AoristRef, ConceptEnum};
 use crate::template::*;
 use abi_stable::std_types::ROption;
 use aorist_concept::{aorist, Constrainable};

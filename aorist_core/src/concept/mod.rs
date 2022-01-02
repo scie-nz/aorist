@@ -1,30 +1,3 @@
-pub use crate::universe::*;
-use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
-use abi_stable::std_types::{RArc, ROption};
-pub use aorist_primitives::{
-    register_concept, AOption, AString, AVec, Ancestry, AoristConcept, AoristConceptBase,
-    AoristRef, AoristUniverse, AoristUniverseBase, ConceptEnum, ToplineConcept, ToplineConceptBase,
-};
-#[cfg(feature = "python")]
-use pyo3::prelude::*;
-use serde::Serialize;
-use std::collections::HashMap;
-use std::fmt::Debug;
-use tracing::debug;
-use uuid::Uuid;
-
-#[derive(Clone)]
-pub struct RefABI<T: PartialEq + Serialize + Debug + Clone>(
-    pub abi_stable::std_types::RArc<abi_stable::external_types::parking_lot::rw_lock::RRwLock<T>>,
-);
-
-pub struct WrappedConcept<T>
-where
-    T: Debug + Clone + Serialize + PartialEq,
-{
-    pub inner: AoristRef<T>,
-}
-
 use crate::access_policy::*;
 use crate::algorithms::*;
 use crate::asset::*;
@@ -45,8 +18,22 @@ use crate::schema::*;
 use crate::storage::*;
 use crate::storage_setup::*;
 use crate::template::*;
+pub use crate::universe::*;
 use crate::user::*;
 use crate::user_group::*;
+use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
+use abi_stable::std_types::{RArc, ROption};
+pub use aorist_primitives::{
+    register_concept, AOption, AString, AVec, Ancestry, AoristConcept, AoristConceptBase,
+    AoristRef, AoristUniverse, AoristUniverseBase, ConceptEnum, ToplineConcept, ToplineConceptBase,
+};
+#[cfg(feature = "python")]
+use pyo3::prelude::*;
+use serde::Serialize;
+use std::collections::HashMap;
+use std::fmt::Debug;
+use tracing::debug;
+use uuid::Uuid;
 register_concept!(
     Concept,
     ConceptAncestry,

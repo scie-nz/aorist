@@ -2,7 +2,7 @@ use abi_stable::std_types::ROption;
 use aorist_primitives::AOption;
 
 use crate::attributes::*;
-use crate::concept::WrappedConcept;
+
 use crate::schema::TabularSchema;
 use crate::template::*;
 use abi_stable::external_types::parking_lot::rw_lock::RRwLock;

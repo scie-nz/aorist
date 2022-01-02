@@ -3,7 +3,6 @@ use abi_stable::std_types::ROption;
 use aorist_primitives::AOption;
 use aorist_primitives::{AString, AVec, AoristConcept, AoristConceptBase, ConceptEnum};
 
-use crate::concept::WrappedConcept;
 use crate::template::datum_template::TDatumTemplate;
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;

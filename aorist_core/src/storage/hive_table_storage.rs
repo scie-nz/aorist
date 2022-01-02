@@ -1,4 +1,3 @@
-use crate::concept::WrappedConcept;
 use crate::encoding::*;
 use crate::layout::*;
 use crate::location::*;

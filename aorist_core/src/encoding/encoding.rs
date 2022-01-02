@@ -1,6 +1,6 @@
 #![allow(unused_parens)]
 use crate::compression::*;
-use crate::concept::WrappedConcept;
+
 use crate::encoding::csv_encoding::*;
 use crate::encoding::gdb_encoding::*;
 use crate::encoding::geotiff_encoding::*;

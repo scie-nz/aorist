@@ -1,4 +1,3 @@
-use crate::concept::WrappedConcept;
 use crate::encoding::Encoding;
 use crate::storage::*;
 use crate::storage_setup::replication_storage_setup::*;

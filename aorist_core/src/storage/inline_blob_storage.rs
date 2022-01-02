@@ -1,4 +1,3 @@
-use crate::concept::WrappedConcept;
 use crate::encoding::*;
 use abi_stable::std_types::ROption;
 use aorist_concept::{aorist, Constrainable};

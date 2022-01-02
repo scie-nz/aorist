@@ -319,8 +319,8 @@ impl Builder for StructBuilder {
 
         Ok(TokenStream::from(quote! { paste! {
             impl [<#struct_name Children>] {
-              pub fn convert<T>(&self, name: AString, field: AOption<AString>, ix: AOption<usize>, uuid: AOption<Uuid>) -> AoristRef<T> 
-              where 
+              pub fn convert<T>(&self, name: AString, field: AOption<AString>, ix: AOption<usize>, uuid: AOption<Uuid>) -> AoristRef<T>
+              where
                   #(
                       T: [<CanBe #types>],
                   )*
@@ -336,43 +336,6 @@ impl Builder for StructBuilder {
                 }
             }
 
-            impl <T> std::convert::From<(
-                // struct name
-                AString,
-                // field name
-                AOption<AString>,
-                // ix
-                AOption<usize>,
-                // uuid
-                AOption<Uuid>,
-                // wrapped reference
-                [<#struct_name Children>]
-            )> for WrappedConcept<T> where
-            #(
-                T: [<CanBe #types>],
-            )*
-                T: Debug + Clone + Serialize + PartialEq,
-            {
-                fn from(
-                    tpl: (
-                        AString,
-                        AOption<AString>,
-                        AOption<usize>,
-                        AOption<Uuid>,
-                        [<#struct_name Children>]
-                    )
-                ) -> Self {
-                    let (name, field, ix, uuid, children_enum) = tpl;
-                    match children_enum {
-                        #(
-                            [<#struct_name Children>]::#types(x) => WrappedConcept{
-                                inner: T::[<construct_ #types:snake:lower>](x, ix, AOption(ROption::RSome((uuid.unwrap(), name)))),
-                            },
-                        )*
-                        _ => panic!("_phantom arm should not be activated"),
-                    }
-                }
-            }
         }}))
     }
     fn to_concept_token_stream(&self, struct_name: &Ident) -> Result<TokenStream, AoristError> {

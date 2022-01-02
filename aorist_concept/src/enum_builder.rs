@@ -48,8 +48,8 @@ impl Builder for EnumBuilder {
         let variant = &self.variant_idents;
         Ok(TokenStream::from(quote! { paste! {
           impl #enum_name {
-              pub fn convert<T>(&self, name: AString, field: AOption<AString>, ix: AOption<usize>, uuid: AOption<Uuid>) -> AoristRef<T> 
-              where 
+              pub fn convert<T>(&self, name: AString, field: AOption<AString>, ix: AOption<usize>, uuid: AOption<Uuid>) -> AoristRef<T>
+              where
                   #(
                       T: [<CanBe #variant>],
                   )*
@@ -62,43 +62,6 @@ impl Builder for EnumBuilder {
                         )*
                     }
                 }
-          }
-          impl <T> std::convert::From<(
-              // enum name
-              AString,
-              // field name
-              AOption<AString>,
-              // ix
-              AOption<usize>,
-              // uuid
-              AOption<Uuid>,
-              // wrapped reference
-              #enum_name,
-          )> for WrappedConcept<T> where
-          #(
-              T: [<CanBe #variant>],
-          )*
-              T: Debug + Clone + Serialize + PartialEq,
-          {
-              fn from(
-                  tpl: (
-                      AString,
-                      AOption<AString>,
-                      AOption<usize>,
-                      AOption<Uuid>,
-                      #enum_name,
-                  )
-              ) -> Self {
-                  let (name, field, ix, uuid, children_enum) = tpl;
-                  match children_enum {
-                      #(
-                          #enum_name::#variant(ref x) => WrappedConcept{
-                              inner: T::[<construct_ #variant:snake:lower>](x.clone(), ix, AOption(ROption::RSome((uuid.unwrap(), name)))),
-                          },
-                      )*
-                      _ => panic!("_phantom arm should not be activated"),
-                  }
-              }
           }
 
         }}))

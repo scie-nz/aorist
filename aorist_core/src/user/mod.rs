@@ -1,7 +1,6 @@
 use crate::concept::AoristRef;
 use crate::error::AoristError;
 use crate::role::*;
-use crate::WrappedConcept;
 use abi_stable::std_types::ROption;
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;

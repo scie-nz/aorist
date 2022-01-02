@@ -2,7 +2,7 @@ use abi_stable::std_types::ROption;
 use aorist_primitives::AOption;
 
 use crate::attributes::*;
-use crate::concept::{AoristConcept, AoristConceptBase, AoristRef, ConceptEnum, WrappedConcept};
+use crate::concept::{AoristConcept, AoristConceptBase, AoristRef, ConceptEnum};
 use crate::error::AoristError;
 use crate::schema::geospatial_asset_schema::*;
 use crate::schema::graph_asset_schema::*;

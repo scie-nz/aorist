@@ -1,4 +1,3 @@
-use crate::concept::WrappedConcept;
 use abi_stable::std_types::ROption;
 #[cfg(feature = "sql")]
 use aorist_attributes::TSQLAttribute;

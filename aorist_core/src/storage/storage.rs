@@ -1,4 +1,3 @@
-use crate::concept::WrappedConcept;
 use crate::encoding::*;
 use crate::storage::bigquery_storage::*;
 use crate::storage::git_storage::*;
