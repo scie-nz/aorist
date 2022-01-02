@@ -47,7 +47,22 @@ impl Builder for EnumBuilder {
     ) -> Result<TokenStream, AoristError> {
         let variant = &self.variant_idents;
         Ok(TokenStream::from(quote! { paste! {
-          
+          impl #enum_name {
+              pub fn convert<T>(&self, name: AString, field: AOption<AString>, ix: AOption<usize>, uuid: AOption<Uuid>) -> AoristRef<T> 
+              where 
+                  #(
+                      T: [<CanBe #variant>],
+                  )*
+              T: Debug + Clone + Serialize + PartialEq,
+                {
+                    match &self {
+                        #(
+                            #enum_name::#variant(ref x) =>
+                                T::[<construct_ #variant:snake:lower>](x.clone(), ix, AOption(ROption::RSome((uuid.unwrap(), name)))),
+                        )*
+                    }
+                }
+          }
           impl <T> std::convert::From<(
               // enum name
               AString,

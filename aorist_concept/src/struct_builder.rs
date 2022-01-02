@@ -318,6 +318,23 @@ impl Builder for StructBuilder {
         let types = self.get_all_types()?;
 
         Ok(TokenStream::from(quote! { paste! {
+            impl [<#struct_name Children>] {
+              pub fn convert<T>(&self, name: AString, field: AOption<AString>, ix: AOption<usize>, uuid: AOption<Uuid>) -> AoristRef<T> 
+              where 
+                  #(
+                      T: [<CanBe #types>],
+                  )*
+              T: Debug + Clone + Serialize + PartialEq,
+                {
+                    match self {
+                        #(
+                            Self::#types(ref x) =>
+                                T::[<construct_ #types:snake:lower>](x.clone(), ix, AOption(ROption::RSome((uuid.unwrap(), name)))),
+                        )*
+                        _ => panic!("_phantom arm should not be activated"),
+                    }
+                }
+            }
 
             impl <T> std::convert::From<(
                 // struct name

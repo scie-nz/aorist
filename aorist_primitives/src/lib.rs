@@ -1113,8 +1113,9 @@ macro_rules! register_concept {
                 fn get_descendants(&self) -> AVec<AoristRef<$name>> {
                     let mut concepts = AVec::new();
                     for tpl in self.get_children() {
-                        let wrapped_concept = WrappedConcept::from(tpl);
-                        concepts.push(wrapped_concept.inner);
+                        let (name, field, ix, uuid, children_enum) = tpl;
+                        let converted = children_enum.convert(name, field, ix, uuid);
+                        concepts.push(converted);
                     }
                     concepts
                 }
