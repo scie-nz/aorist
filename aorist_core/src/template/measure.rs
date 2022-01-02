@@ -2,7 +2,8 @@ use abi_stable::std_types::ROption;
 use aorist_primitives::AOption;
 
 use crate::attributes::*;
-use crate::concept::{AoristRef, WrappedConcept};
+use aorist_primitives::AoristRef;
+use crate::concept::WrappedConcept;
 use crate::schema::TabularSchema;
 use crate::template::*;
 use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
@@ -63,10 +64,9 @@ pub struct TrainedFloatMeasure {
     pub objective: AoristRef<Attribute>,
     pub source_asset_name: AString,
 }
-
-impl TDatumTemplate for AoristRef<TrainedFloatMeasure> {
+impl TDatumTemplate for TrainedFloatMeasure {
     fn get_attributes(&self) -> AVec<AoristRef<Attribute>> {
-        let mut attr = self.0.read().features.clone();
+        let mut attr = self.features.clone();
         let prediction_attribute = self.get_prediction_attribute();
         attr.push(prediction_attribute);
         attr.push(AoristRef(RArc::new(RRwLock::new(Attribute {
@@ -80,16 +80,17 @@ impl TDatumTemplate for AoristRef<TrainedFloatMeasure> {
         attr
     }
     fn get_name(&self) -> AString {
-        self.0.read().name.clone()
+        self.name.clone()
     }
 }
-impl AoristRef<TrainedFloatMeasure> {
+
+impl TrainedFloatMeasure {
     pub fn get_prediction_attribute(&self) -> AoristRef<Attribute> {
         AoristRef(RArc::new(RRwLock::new(Attribute {
             inner: AttributeOrTransform::Attribute(AttributeEnum::FloatPrediction(
                 FloatPrediction {
-                    name: self.0.read().name.clone(),
-                    comment: self.0.read().comment.clone(),
+                    name: self.name.clone(),
+                    comment: self.comment.clone(),
                     nullable: false,
                 },
             )),
@@ -98,7 +99,7 @@ impl AoristRef<TrainedFloatMeasure> {
         })))
     }
     pub fn get_training_objective(&self) -> AoristRef<Attribute> {
-        self.0.read().objective.clone()
+        self.objective.clone()
     }
     pub fn get_regressor_as_attribute(&self) -> Regressor {
         Regressor {
@@ -110,11 +111,9 @@ impl AoristRef<TrainedFloatMeasure> {
     pub fn get_model_storage_tabular_schema(&self) -> TabularSchema {
         TabularSchema {
             datum_template: AoristRef(RArc::new(RRwLock::new(DatumTemplate::TrainedFloatMeasure(
-                self.clone(),
+                AoristRef(RArc::new(RRwLock::new(self.clone()))),
             )))),
             attributes: self
-                .0
-                .read()
                 .features
                 .iter()
                 .map(|x| x.0.read().inner.get_name().clone())

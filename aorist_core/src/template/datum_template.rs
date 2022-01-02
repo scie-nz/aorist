@@ -1,5 +1,6 @@
 use crate::attributes::*;
-use crate::concept::{AoristRef, WrappedConcept};
+use aorist_primitives::AoristRef;
+use crate::concept::WrappedConcept;
 use crate::template::filter::*;
 use crate::template::identifier_tuple::*;
 use crate::template::measure::*;
@@ -71,7 +72,7 @@ impl TDatumTemplate for DatumTemplate {
             DatumTemplate::RowStruct(x) => x.0.read().get_name(),
             DatumTemplate::IdentifierTuple(x) => x.0.read().get_name(),
             DatumTemplate::IntegerMeasure(x) => x.0.read().get_name(),
-            DatumTemplate::TrainedFloatMeasure(x) => x.get_name(),
+            DatumTemplate::TrainedFloatMeasure(x) => x.0.read().get_name(),
             DatumTemplate::PredictionsFromTrainedFloatMeasure(x) => x.0.read().get_name(),
             DatumTemplate::Filter(x) => x.0.read().get_name(),
             DatumTemplate::Tensor(x) => x.0.read().get_name(),
@@ -88,7 +89,7 @@ impl TDatumTemplate for DatumTemplate {
             DatumTemplate::RowStruct(x) => x.0.read().get_attributes(),
             DatumTemplate::IdentifierTuple(x) => x.0.read().get_attributes(),
             DatumTemplate::IntegerMeasure(x) => x.0.read().get_attributes(),
-            DatumTemplate::TrainedFloatMeasure(x) => x.get_attributes(),
+            DatumTemplate::TrainedFloatMeasure(x) => x.0.read().get_attributes(),
             DatumTemplate::PredictionsFromTrainedFloatMeasure(x) => x.0.read().get_attributes(),
             DatumTemplate::Filter(x) => x.0.read().get_attributes(),
             DatumTemplate::Tensor(x) => x.0.read().get_attributes(),

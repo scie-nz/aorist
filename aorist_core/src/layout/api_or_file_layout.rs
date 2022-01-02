@@ -1,4 +1,5 @@
-use crate::concept::{AoristRef, WrappedConcept};
+use aorist_primitives::AoristRef;
+use crate::concept::WrappedConcept;
 use crate::layout::api_layout::*;
 use crate::layout::file_based_storage_layout::*;
 use abi_stable::std_types::ROption;

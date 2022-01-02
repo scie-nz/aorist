@@ -1,4 +1,5 @@
-use crate::concept::{AoristRef, WrappedConcept};
+use aorist_primitives::AoristRef;
+use crate::concept::WrappedConcept;
 use abi_stable::std_types::ROption;
 #[cfg(feature = "sql")]
 use aorist_attributes::TSQLAttribute;
@@ -29,13 +30,6 @@ include!(concat!(env!("OUT_DIR"), "/attributes.rs"));
 struct WrappedAttribute(Attribute);
 #[cfg(feature = "sql")]
 pub type AttrMap = HashMap<AString, HashMap<AString, LinkedHashMap<AString, Attribute>>>;
-
-impl AoristRef<Attribute> {
-    pub fn get_name(&self) -> AString {
-        self.0.read().get_name().clone()
-    }
-}
-
 #[cfg(feature = "sql")]
 impl WrappedAttribute {
     pub fn try_from(x: Expr, attr: &AttrMap) -> Result<Self, AString> {

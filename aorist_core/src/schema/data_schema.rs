@@ -101,28 +101,28 @@ impl DataSchema {
                 x.0.read()
                     .get_attributes()
                     .iter()
-                    .map(|x| x.get_name())
+                    .map(|x| x.0.read().get_name())
                     .collect()
             }
             DataSchema::LanguageAssetSchema(x) => {
                 x.0.read()
                     .get_attributes()
                     .iter()
-                    .map(|x| x.get_name())
+                    .map(|x| x.0.read().get_name())
                     .collect()
             }
             DataSchema::GeospatialAssetSchema(x) => {
                 x.0.read()
                     .get_attributes()
                     .iter()
-                    .map(|x| x.get_name())
+                    .map(|x| x.0.read().get_name())
                     .collect()
             }
             DataSchema::GraphAssetSchema(x) => {
                 x.0.read()
                     .get_attributes()
                     .iter()
-                    .map(|x| x.get_name())
+                    .map(|x| x.0.read().get_name())
                     .collect()
             }
             DataSchema::TimeOrderedTabularSchema(x) => x.0.read().attributes.clone(),

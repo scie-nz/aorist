@@ -1,4 +1,5 @@
-use crate::concept::{AoristRef, WrappedConcept};
+use aorist_primitives::AoristRef;
+use crate::concept::WrappedConcept;
 use crate::encoding::*;
 use crate::layout::*;
 use crate::location::*;

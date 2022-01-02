@@ -143,14 +143,14 @@ impl Builder for EnumBuilder {
           pub struct [<Py #enum_name>] {
               pub inner: AoristRef<#enum_name>,
           }
-          #[cfg(feature = "python")]
+          /*#[cfg(feature = "python")]
           impl AoristRef<#enum_name> {
               pub fn py_object(&self, py: pyo3::Python) -> pyo3::PyResult<pyo3::PyObject> {
                   Ok(pyo3::PyObject::from(pyo3::PyCell::new(py, [<Py #enum_name>]{
                       inner: self.clone(),
                   })?))
               }
-          }
+          }*/
           #[cfg(feature = "python")]
           #[derive(Clone, PartialEq, pyo3::prelude::FromPyObject)]
           pub enum [<Py #enum_name Input>] {
@@ -215,6 +215,12 @@ impl Builder for EnumBuilder {
           }
           impl AoristConceptBase for #enum_name {
               type TChildrenEnum = #enum_name;
+              #[cfg(feature = "python")]
+              fn py_object(inner: AoristRef<Self>, py: pyo3::Python) -> pyo3::PyResult<pyo3::PyObject> {
+                    Ok(pyo3::PyObject::from(pyo3::PyCell::new(py, [<Py #enum_name>]{
+                        inner
+                    })?))
+              }
               fn get_uuid(&self) -> AOption<Uuid> {
                   match &self {
                       #(
@@ -291,11 +297,11 @@ impl Builder for EnumBuilder {
                   }
               }
           }
-          impl AoristRef<#enum_name> {
+          /*impl AoristRef<#enum_name> {
               pub fn deep_clone(&self) -> Self {
                   AoristRef(abi_stable::std_types::RArc::new(abi_stable::external_types::parking_lot::rw_lock::RRwLock::new(self.0.read().deep_clone())))
               }
-          }
+          }*/
         }}))
     }
 }

@@ -1,4 +1,5 @@
-use crate::concept::{AoristRef, WrappedConcept};
+use aorist_primitives::AoristRef;
+use crate::concept::WrappedConcept;
 use crate::location::alluxio_location::*;
 use crate::location::local_file_system_location::*;
 use crate::location::minio_location::*;

@@ -1,5 +1,6 @@
 use crate::attributes::*;
-use crate::concept::{AoristRef, WrappedConcept};
+use aorist_primitives::AoristRef;
+use crate::concept::WrappedConcept;
 use crate::template::datum_template::TDatumTemplate;
 use abi_stable::std_types::ROption;
 use aorist_concept::{aorist, Constrainable};

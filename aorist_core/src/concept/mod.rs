@@ -1,17 +1,15 @@
 pub use crate::universe::*;
 use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 use abi_stable::std_types::{RArc, ROption};
-use abi_stable::StableAbi;
 pub use aorist_primitives::{
     register_concept, AOption, AString, AVec, Ancestry, AoristConceptBase, AoristConcept, AoristUniverse, ConceptEnum,
-    ToplineConcept,
+    ToplineConcept, AoristRef, ToplineConceptBase, AoristUniverseBase
 };
 #[cfg(feature = "python")]
 use pyo3::prelude::*;
-use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use serde::Serialize;
 use std::collections::HashMap;
-use std::fmt::{Debug, Formatter};
-use std::hash::{Hash, Hasher};
+use std::fmt::{Debug};
 use tracing::debug;
 use uuid::Uuid;
 
@@ -21,108 +19,11 @@ pub struct RefABI<T: PartialEq + Serialize + Debug + Clone>(
     pub abi_stable::std_types::RArc<abi_stable::external_types::parking_lot::rw_lock::RRwLock<T>>,
 );
 
-#[repr(C)]
-#[derive(StableAbi)]
-pub struct AoristRef<T: PartialEq + Serialize + Debug + Clone>(pub RArc<RRwLock<T>>);
-
-impl <T: PartialEq + Serialize + Debug + Clone + AoristConceptBase> AoristConcept for AoristRef<T> {
-    type TChildrenEnum = <T as AoristConceptBase>::TChildrenEnum;
-    fn get_uuid(&self) -> AOption<Uuid> {
-        self.0.read().get_uuid()
-    }
-    fn set_uuid(&mut self, uuid: Uuid) {
-        self.0.write().set_uuid(uuid);
-    }
-    fn compute_uuids(&mut self) {
-        self.0.write().compute_uuids();
-        let uuid;
-        uuid = self.get_uuid_from_children_uuid();
-        self.0.write().set_uuid(uuid);
-    }
-    fn get_children_uuid(&self) -> AVec<Uuid> {
-        self.get_children().iter().map(|x| x.4.uuid().unwrap()).collect()
-    }
-    fn get_tag(&self) -> AOption<AString> {
-        self.0.read().get_tag()
-    }
-    fn get_children(&self) -> AVec<(
-        // struct name
-        AString,
-        // field name
-        AOption<AString>,
-        // ix
-        AOption<usize>,
-        // uuid
-        AOption<Uuid>,
-        Self::TChildrenEnum,
-    )> {
-        self.0.read().get_children()
-    }
-}
-
-#[cfg(feature = "python")]
-impl<'a, T: PartialEq + Serialize + Debug + Clone + FromPyObject<'a>> FromPyObject<'a>
-    for AoristRef<T>
-{
-    fn extract(ob: &'a PyAny) -> PyResult<Self> {
-        Ok(AoristRef(RArc::new(RRwLock::new(T::extract(ob)?))))
-    }
-}
-
-impl<T: PartialEq + Eq + Serialize + Debug + Clone> PartialEq for AoristRef<T> {
-    fn eq(&self, other: &Self) -> bool {
-        self.0.read().eq(&other.0.read())
-    }
-}
-impl<T: PartialEq + Eq + Serialize + Debug + Clone> Eq for AoristRef<T> {}
-impl<T: PartialEq + Serialize + Debug + Clone> Serialize for AoristRef<T> {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        self.0.read().serialize(serializer)
-    }
-}
-impl<'de, T: Deserialize<'de> + PartialEq + Serialize + Debug + Clone> Deserialize<'de>
-    for AoristRef<T>
-{
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        let d = T::deserialize(deserializer)?;
-        Ok(Self(RArc::new(RRwLock::new(d))))
-    }
-}
-impl<T: Clone + Debug + Serialize + PartialEq> Clone for AoristRef<T> {
-    fn clone(&self) -> Self {
-        Self(self.0.clone())
-    }
-}
-impl<T: Debug + Clone + Serialize + PartialEq> Debug for AoristRef<T> {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), std::fmt::Error> {
-        self.0.read().fmt(f)
-    }
-}
-impl <T: Clone + Debug + Serialize + PartialEq + AoristConceptBase> ConceptEnum for AoristRef<T> {
-    fn uuid(&self) -> AOption<Uuid> {
-        self.0.read().get_uuid()
-    }
-}
-
 pub struct WrappedConcept<T>
 where
     T: Debug + Clone + Serialize + PartialEq,
 {
     pub inner: AoristRef<T>,
-}
-impl<T: Debug + Clone + Serialize + PartialEq> Hash for AoristRef<T>
-where
-    T: Hash,
-{
-    fn hash<H: Hasher>(&self, state: &mut H) {
-        self.0.read().hash(state);
-    }
 }
 
 use crate::access_policy::*;

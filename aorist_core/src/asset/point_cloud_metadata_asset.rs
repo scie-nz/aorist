@@ -1,5 +1,6 @@
 use crate::asset::*;
-use crate::concept::{AoristRef, WrappedConcept};
+use aorist_primitives::AoristRef;
+use crate::concept::WrappedConcept;
 use crate::encoding::*;
 use crate::schema::*;
 use crate::storage::*;

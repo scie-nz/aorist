@@ -857,21 +857,20 @@ impl Builder for StructBuilder {
                     ))
                 }
             }
-            #[cfg(feature = "python")]
-            impl AoristRef<#struct_name> {
-                pub fn py_object(&self, py: pyo3::Python) -> pyo3::PyResult<pyo3::PyObject> {
-                    Ok(pyo3::PyObject::from(pyo3::PyCell::new(py, [<Py #struct_name>]{
-                        inner: self.clone(),
-                    })?))
-                }
-            }
+            /*
             impl AoristRef<#struct_name> {
                 pub fn deep_clone(&self) -> Self {
                     AoristRef(abi_stable::std_types::RArc::new(abi_stable::external_types::parking_lot::rw_lock::RRwLock::new(self.0.read().deep_clone())))
                 }
-            }
+            }*/
             impl AoristConceptBase for #struct_name {
                 type TChildrenEnum = [<#struct_name Children>];
+                #[cfg(feature = "python")]
+                fn py_object(inner: AoristRef<Self>, py: pyo3::Python) -> pyo3::PyResult<pyo3::PyObject> {
+                    Ok(pyo3::PyObject::from(pyo3::PyCell::new(py, [<Py #struct_name>]{
+                        inner
+                    })?))
+                }
                 fn get_uuid(&self) -> AOption<Uuid> {
                     self.uuid.clone()
                 }

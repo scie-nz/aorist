@@ -1,5 +1,6 @@
 use crate::compliance::*;
-use crate::concept::{AoristRef, WrappedConcept};
+use aorist_primitives::AoristRef;
+use crate::concept::WrappedConcept;
 use crate::dataset::*;
 use crate::endpoints::*;
 use crate::role::*;

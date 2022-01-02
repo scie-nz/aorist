@@ -1005,6 +1005,17 @@ macro_rules! register_concept {
         }
         impl AoristConceptBase for $name {
               type TChildrenEnum = $name;
+              #[cfg(feature = "python")]
+              fn py_object(inner: AoristRef<$name>, py: Python) -> Result<Py<pyo3::PyAny>, pyo3::PyErr> {
+                  let object = match &*inner.0.read() {
+                      $(
+                          $name::$element((x, _, _)) => PyObject::from(PyCell::new(py, [<Py $element>] {
+                              inner: x.clone(),
+                          }).unwrap()),
+                      )+
+                  };
+                  Ok(object)
+              }
               fn get_uuid(&self) -> AOption<Uuid> {
                   match &self {
                       $(
@@ -1068,11 +1079,10 @@ macro_rules! register_concept {
             m.add_class::<$ancestry>()?;
             Ok(())
         }
-        // note: both Universe and EndpointConfig must exist
-        impl AoristUniverse for AoristRef<Universe> {
+        impl AoristUniverseBase for Universe {
             type TEndpoints = EndpointConfig;
             fn get_endpoints(&self) -> Self::TEndpoints {
-                (*self.0.read()).endpoints.0.read().clone()
+                self.endpoints.0.read().clone()
             }
         }
         $(
@@ -1171,59 +1181,41 @@ macro_rules! register_concept {
                 }
             }
         }
-        #[cfg(feature = "python")]
-        impl $name {
-            pub fn py_object(&self, py: Python) -> PyObject {
-                let object = match self {
-                    $(
-                        $name::$element((x, _, _)) => PyObject::from(PyCell::new(py, [<Py $element>] {
-                            inner: x.clone(),
-                        }).unwrap()),
-                    )+
-                };
-                object
-            }
-        }
-        impl $name {
-            pub fn build_universe(universe: AoristRef<Universe>) -> Self {
+
+        impl ToplineConceptBase for $name {
+            type TUniverse = AoristRef<Universe>;
+            fn build_universe(universe: AoristRef<Universe>) -> Self {
                 $name::Universe((universe, 0, AOption(ROption::RNone)))
             }
-            pub fn get_parent_id(&self) -> AOption<(Uuid, AString)> {
+            fn get_parent_id(&self) -> AOption<(Uuid, AString)> {
                 match self {
                     $(
                         $name::$element((_, _, ref id)) => id.clone(),
                     )+
                 }
             }
-            pub fn get_type(&self) -> AString {
+            fn get_type(&self) -> AString {
                 match self {
                     $(
                         $name::$element((ref x, _, _)) => stringify!($element).into(),
                     )*
                 }
             }
-            pub fn get_tag(&self) -> AOption<AString> {
-                match self {
-                    $(
-                        $name::$element((ref x, _, _)) => x.get_tag(),
-                    )*
-                }
-            }
-            pub fn get_index_as_child(&self) -> usize {
+            fn get_index_as_child(&self) -> usize {
                 match self {
                     $(
                         $name::$element((_, idx, _)) => idx.clone(),
                     )*
                 }
             }
-            pub fn get_child_concepts(&self) -> AVec<AoristRef<Self>> {
+            fn get_child_concepts(&self) -> AVec<AoristRef<Self>> {
                 match self {
                     $(
                         $name::$element((ref x, _, _)) => x.get_descendants(),
                     )*
                 }
             }
-            pub fn populate_child_concept_map(&self, concept_map: &mut HashMap<(Uuid, AString), AoristRef<Self>>) {
+            fn populate_child_concept_map(&self, concept_map: &mut HashMap<(Uuid, AString), AoristRef<Self>>) {
                 match self {
                     $(
                         $name::$element((ref x, idx, ref parent)) => {
@@ -1243,33 +1235,6 @@ macro_rules! register_concept {
                         }
                     )*
                 }
-            }
-        }
-        impl ToplineConcept for AoristRef<$name> {
-            type TUniverse = AoristRef<Universe>;
-            fn get_parent_id(&self) -> AOption<(Uuid, AString)> {
-                self.0.read().get_parent_id()
-            }
-            fn from_universe(universe: AoristRef<Universe>) -> Self {
-                AoristRef(RArc::new(RRwLock::new($name::build_universe(universe))))
-            }
-            fn get_type(&self) -> AString {
-                self.0.read().get_type()
-            }
-            fn get_uuid(&self) -> Uuid {
-                self.0.read().get_uuid().unwrap()
-            }
-            fn get_tag(&self) -> AOption<AString> {
-                self.0.read().get_tag()
-            }
-            fn get_index_as_child(&self) -> usize {
-                self.0.read().get_index_as_child()
-            }
-            fn get_child_concepts(&self) -> AVec<Self> {
-                self.0.read().get_child_concepts()
-            }
-            fn populate_child_concept_map(&self, concept_map: &mut HashMap<(Uuid, AString), Self>) {
-                self.0.read().populate_child_concept_map(concept_map)
             }
         }
     }
