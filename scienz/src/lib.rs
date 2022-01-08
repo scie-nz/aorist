@@ -5,6 +5,7 @@ mod asset;
 mod compression;
 mod dataset;
 mod encoding;
+mod endpoints;
 mod error;
 mod header;
 mod layout;
