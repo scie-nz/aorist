@@ -1,15 +1,17 @@
 #[cfg(feature = "python")]
 use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
+use crate::concept::AString;
 
+#[repr(C)]
 #[cfg_attr(feature = "python", pyclass)]
-#[derive(PartialEq, Deserialize, Serialize, Debug, Clone, Hash)]
+#[derive(PartialEq, Deserialize, Serialize, Debug, Clone, Hash, abi_stable::StableAbi)]
 pub struct AlluxioConfig {
-    pub server: String,
-    pub server_cli: String,
+    pub server: AString,
+    pub server_cli: AString,
     pub rpc_port: usize,
     pub api_port: usize,
-    pub directory: String,
+    pub directory: AString,
 }
 
 #[cfg(feature = "python")]
@@ -17,11 +19,11 @@ pub struct AlluxioConfig {
 impl AlluxioConfig {
     #[new]
     fn new(
-        server: String,
-        server_cli: String,
+        server: AString,
+        server_cli: AString,
         rpc_port: usize,
         api_port: usize,
-        directory: String,
+        directory: AString,
     ) -> Self {
         AlluxioConfig {
             server: server,

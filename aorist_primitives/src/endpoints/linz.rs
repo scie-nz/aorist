@@ -1,10 +1,12 @@
 #[cfg(feature = "python")]
 use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
+use crate::concept::{AString};
+#[repr(C)]
 #[cfg_attr(feature = "python", pyclass)]
-#[derive(PartialEq, Deserialize, Serialize, Debug, Clone, Hash)]
+#[derive(PartialEq, Deserialize, Serialize, Debug, Clone, Hash, abi_stable::StableAbi)]
 pub struct LINZAPIConfig {
-    pub koordinates_token: String,
+    pub koordinates_token: AString,
     pub pii_allowed: bool,
 }
 
@@ -14,13 +16,13 @@ impl LINZAPIConfig {
     #[new]
     fn new(koordinates_token: String, pii_allowed: bool) -> Self {
         LINZAPIConfig {
-            koordinates_token,
+            koordinates_token: koordinates_token.as_str().into(),
             pii_allowed,
         }
     }
     #[getter]
     pub fn koordinates_token(&self) -> String {
-        self.koordinates_token.clone()
+        self.koordinates_token.to_string()
     }
     #[getter]
     pub fn pii_allowed(&self) -> bool {

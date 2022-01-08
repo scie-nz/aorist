@@ -1,14 +1,16 @@
 #[cfg(feature = "python")]
 use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
+use crate::concept::{AString};
+#[repr(C)]
 #[cfg_attr(feature = "python", pyclass)]
-#[derive(PartialEq, Deserialize, Serialize, Debug, Clone, Hash)]
+#[derive(PartialEq, Deserialize, Serialize, Debug, Clone, Hash, abi_stable::StableAbi)]
 pub struct MinioConfig {
-    pub server: String,
+    pub server: AString,
     pub port: usize,
-    pub bucket: String,
-    pub access_key: String,
-    pub secret_key: String,
+    pub bucket: AString,
+    pub access_key: AString,
+    pub secret_key: AString,
 }
 #[cfg(feature = "python")]
 #[pymethods]
@@ -22,16 +24,16 @@ impl MinioConfig {
         secret_key: String,
     ) -> Self {
         MinioConfig {
-            server,
+            server: server.as_str().into(),
             port,
-            bucket,
-            access_key,
-            secret_key,
+            bucket: bucket.as_str().into(),
+            access_key: access_key.as_str().into(),
+            secret_key: secret_key.as_str().into(),
         }
     }
     #[getter]
     fn server(&self) -> String {
-        self.server.clone()
+        self.server.to_string()
     }
     #[getter]
     fn port(&self) -> usize {
@@ -39,14 +41,14 @@ impl MinioConfig {
     }
     #[getter]
     fn bucket(&self) -> String {
-        self.bucket.clone()
+        self.bucket.to_string()
     }
     #[getter]
     fn access_key(&self) -> String {
-        self.access_key.clone()
+        self.access_key.to_string()
     }
     #[getter]
     fn secret_key(&self) -> String {
-        self.secret_key.clone()
+        self.secret_key.to_string()
     }
 }
