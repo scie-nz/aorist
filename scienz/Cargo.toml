@@ -1,5 +1,5 @@
 [package]
-name = "aorist_semantics"
+name = "scienz"
 description = "Core abstractions the aorist project"
 license = "MIT"
 version = "0.0.14"

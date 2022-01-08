@@ -7,7 +7,7 @@ members = [
     "aorist_concept",
     "aorist_ast",
     "aorist_attributes",
-    "aorist_semantics",
+    "scienz",
     "aorist_core",
     "aorist",
     "constraint_module",
