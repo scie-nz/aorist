@@ -5,6 +5,7 @@ mod encoding;
 mod header;
 mod layout;
 mod location;
+mod predicate;
 mod storage;
 mod storage_setup;
 
