@@ -9,7 +9,7 @@ use aorist_primitives::{AString, AVec, Ancestry, AoristConcept, TAoristObject, T
 use std::collections::HashMap;
 use std::marker::PhantomData;
 use tracing::info;
-use uuid::Uuid;
+use aorist_primitives::AUuid;
 
 use abi_stable::{
     declare_root_module_statics,
@@ -75,11 +75,11 @@ pub trait TBuilder<'a> {
     fn get_required_constraint_names(&self) -> AVec<AString>;
     fn build_constraint(
         &self,
-        root_uuid: Uuid,
+        root_uuid: AUuid,
         potential_child_constraints: AVec<RArc<RRwLock<Self::OuterType>>>,
     ) -> Result<Self::OuterType>;
     fn get_root_type_name(&self) -> Result<AString>;
-    fn get_required(&self, root: Self::TEnum, ancestry: &Self::TAncestry) -> AVec<Uuid>;
+    fn get_required(&self, root: Self::TEnum, ancestry: &Self::TAncestry) -> AVec<AUuid>;
     fn should_add(&self, root: Self::TEnum, ancestry: &Self::TAncestry) -> bool;
 }
 
@@ -95,9 +95,9 @@ pub trait OuterConstraint<'a>: TAoristObject + std::fmt::Display + Clone {
     type TEnum: Sized + ConstraintEnum<'a> + TConstraintEnum<'a>;
     type TAncestry: Ancestry;
 
-    fn get_uuid(&self) -> Result<Uuid>;
+    fn get_uuid(&self) -> Result<AUuid>;
     fn get_root(&self) -> AString;
-    fn get_root_uuid(&self) -> Result<Uuid>;
+    fn get_root_uuid(&self) -> Result<AUuid>;
     fn get_downstream_constraints(&self) -> Result<AVec<RArc<RRwLock<Self>>>>;
     fn requires_program(&self) -> Result<bool>;
     fn get_root_type_name(&self) -> Result<AString>;
@@ -137,7 +137,7 @@ where
     fn get_root_type_name() -> Result<AString>;
     fn get_required_constraint_names() -> AVec<AString>;
     fn new(
-        root_uuid: Uuid,
+        root_uuid: AUuid,
         potential_child_constraints: AVec<RArc<RRwLock<Self::Outer>>>,
     ) -> Result<Self>
     where
@@ -164,7 +164,7 @@ pub struct ConstraintBuilder<'a, T: TConstraint<'a>> {
 impl<'a, T: TConstraint<'a>> ConstraintBuilder<'a, T> {
     pub fn build_constraint(
         &self,
-        root_uuid: Uuid,
+        root_uuid: AUuid,
         potential_child_constraints: AVec<RArc<RRwLock<T::Outer>>>,
     ) -> Result<T> {
         <T as crate::constraint::TConstraint<'a>>::new(root_uuid, potential_child_constraints)

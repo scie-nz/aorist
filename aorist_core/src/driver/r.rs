@@ -19,7 +19,7 @@ use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
 use std::collections::HashMap;
 use std::marker::PhantomData;
-use uuid::Uuid;
+use aorist_primitives::AUuid;
 
 pub struct RBasedDriver<'a, 'b, D, C>
 where
@@ -30,15 +30,15 @@ where
         + 'b,
     'a: 'b,
 {
-    pub concepts: RArc<RRwLock<HashMap<(Uuid, AString), Concept<'a>>>>,
-    constraints: LinkedHashMap<(Uuid, AString), RArc<RRwLock<C>>>,
-    satisfied_constraints: HashMap<(Uuid, AString), RArc<RRwLock<ConstraintState<'a, 'b, C>>>>,
+    pub concepts: RArc<RRwLock<HashMap<(AUuid, AString), Concept<'a>>>>,
+    constraints: LinkedHashMap<(AUuid, AString), RArc<RRwLock<C>>>,
+    satisfied_constraints: HashMap<(AUuid, AString), RArc<RRwLock<ConstraintState<'a, 'b, C>>>>,
     blocks: AVec<RBasedConstraintBlock<'a, 'b, D::T, C>>,
     ancestry: RArc<ConceptAncestry<'a>>,
     dag_type: PhantomData<D>,
     endpoints: EndpointConfig,
     constraint_explanations: HashMap<AString, (AOption<AString>, AOption<AString>)>,
-    ancestors: HashMap<(Uuid, AString), AVec<AncestorRecord>>,
+    ancestors: HashMap<(AUuid, AString), AVec<AncestorRecord>>,
     topline_constraint_names: LinkedHashSet<AString>,
     _lt_phantom: PhantomData<&'b ()>,
 }
@@ -54,7 +54,7 @@ where
 {
     type CB = RBasedConstraintBlock<'a, 'b, <D as FlowBuilderBase>::T, C>;
 
-    fn get_constraint_rwlock(&self, uuid: &(Uuid, AString)) -> RArc<RRwLock<C>> {
+    fn get_constraint_rwlock(&self, uuid: &(AUuid, AString)) -> RArc<RRwLock<C>> {
         self.constraints.get(uuid).unwrap().clone()
     }
     fn get_preferences(&self) -> AVec<Dialect> {
@@ -74,7 +74,7 @@ where
     }
     fn mark_constraint_state_as_satisfied(
         &mut self,
-        id: (Uuid, AString),
+        id: (AUuid, AString),
         state: RArc<RRwLock<ConstraintState<'a, 'b, C>>>,
     ) {
         self.satisfied_constraints.insert(id, state.clone());
@@ -110,11 +110,11 @@ where
         vec![]
     }
     fn _new(
-        concepts: RArc<RRwLock<HashMap<(Uuid, AString), Concept<'a>>>>,
-        constraints: LinkedHashMap<(Uuid, AString), RArc<RRwLock<C>>>,
+        concepts: RArc<RRwLock<HashMap<(AUuid, AString), Concept<'a>>>>,
+        constraints: LinkedHashMap<(AUuid, AString), RArc<RRwLock<C>>>,
         ancestry: RArc<ConceptAncestry<'a>>,
         endpoints: EndpointConfig,
-        ancestors: HashMap<(Uuid, AString), AVec<AncestorRecord>>,
+        ancestors: HashMap<(AUuid, AString), AVec<AncestorRecord>>,
         topline_constraint_names: LinkedHashSet<AString>,
     ) -> Self {
         Self {

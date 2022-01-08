@@ -7,7 +7,7 @@ use aorist_primitives::AOption;
 use aorist_primitives::{AString, AVec, AoristUniverse};
 use linked_hash_set::LinkedHashSet;
 use std::collections::{BTreeSet, HashMap};
-use uuid::Uuid;
+use aorist_primitives::AUuid;
 
 pub trait ConstraintBlock<'a, T, C, U, P>
 where
@@ -59,7 +59,7 @@ where
         )
     }
 
-    fn get_identifiers(&self) -> HashMap<Uuid, AST>;
+    fn get_identifiers(&self) -> HashMap<AUuid, AST>;
     fn new(
         constraint_name: AString,
         title: AOption<AString>,

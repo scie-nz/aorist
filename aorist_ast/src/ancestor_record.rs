@@ -3,17 +3,17 @@ use aorist_primitives::AOption;
 use aorist_primitives::AString;
 use aorist_primitives::AVec;
 use inflector::cases::snakecase::to_snake_case;
-use uuid::Uuid;
+use aorist_primitives::AUuid;
 
 #[derive(Clone, PartialEq, Eq, Hash, Debug)]
 pub struct AncestorRecord {
-    pub uuid: Uuid,
+    pub uuid: AUuid,
     pub object_type: AString,
     pub tag: AOption<AString>,
     pub ix: usize,
 }
 impl AncestorRecord {
-    pub fn new(uuid: Uuid, object_type: AString, tag: AOption<AString>, ix: usize) -> Self {
+    pub fn new(uuid: AUuid, object_type: AString, tag: AOption<AString>, ix: usize) -> Self {
         Self {
             uuid,
             object_type,
@@ -21,7 +21,7 @@ impl AncestorRecord {
             ix,
         }
     }
-    pub fn get_key(&self) -> (Uuid, AString) {
+    pub fn get_key(&self) -> (AUuid, AString) {
         (self.uuid.clone(), self.object_type.clone())
     }
     pub fn compute_relative_path(ancestors: &AVec<AncestorRecord>) -> AString {

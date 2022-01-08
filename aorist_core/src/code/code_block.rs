@@ -14,7 +14,7 @@ use aorist_primitives::{AString, AVec, AoristUniverse};
 use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
 use std::collections::{BTreeSet, HashMap, HashSet};
-use uuid::Uuid;
+use aorist_primitives::AUuid;
 
 pub trait CodeBlock<'a, T, C, U, P>
 where
@@ -32,7 +32,7 @@ where
     fn construct(
         tasks_dict: AOption<AST>,
         tasks: AVec<Self::E>,
-        task_identifiers: HashMap<Uuid, AST>,
+        task_identifiers: HashMap<AUuid, AST>,
         params: HashMap<AString, AOption<ParameterTuple>>,
     ) -> Self;
 
@@ -73,19 +73,19 @@ where
     ) -> (AVec<AST>, LinkedHashSet<Self::P>, BTreeSet<T::ImportType>);
 
     fn get_tasks_dict(&self) -> AOption<AST>;
-    fn get_identifiers(&self) -> HashMap<Uuid, AST>;
+    fn get_identifiers(&self) -> HashMap<AUuid, AST>;
     fn get_params(&self) -> HashMap<AString, AOption<ParameterTuple>>;
 
     fn create_standalone_tasks(
         members: AVec<RArc<RRwLock<ConstraintState<'a, C, P>>>>,
         tasks_dict: AOption<AST>,
-        identifiers: &HashMap<Uuid, AST>,
+        identifiers: &HashMap<AUuid, AST>,
     ) -> Result<(
         AVec<<Self::E as ETLTask<T, U>>::S>,
-        HashMap<Uuid, AST>,
+        HashMap<AUuid, AST>,
         HashMap<AString, AOption<ParameterTuple>>,
     )> {
-        let mut task_identifiers: HashMap<Uuid, AST> = HashMap::new();
+        let mut task_identifiers: HashMap<AUuid, AST> = HashMap::new();
         let mut params: HashMap<AString, AOption<ParameterTuple>> = HashMap::new();
         let mut tasks = AVec::new();
         let mut asts: HashSet<AST> = HashSet::new();
@@ -104,7 +104,7 @@ where
                 if let Some(ident) = identifiers.get(dep) {
                     dependencies.push(ident.clone());
                 } else {
-                    panic!("Could not find identifier for Uuid: {}", dep);
+                    panic!("Could not find identifier for AUuid: {}", dep);
                 }
             }
             tasks.push(<Self::E as ETLTask<T, U>>::S::new(
@@ -135,7 +135,7 @@ pub trait CodeBlockWithDefaultConstructor<
         members: AVec<RArc<RRwLock<ConstraintState<'a, C, P>>>>,
         constraint_name: AString,
         tasks_dict: AOption<AST>,
-        identifiers: &HashMap<Uuid, AST>,
+        identifiers: &HashMap<AUuid, AST>,
         render_dependencies: bool,
     ) -> Result<Self>;
 }
@@ -201,7 +201,7 @@ where
         members: AVec<RArc<RRwLock<ConstraintState<'a, CType, P>>>>,
         constraint_name: AString,
         tasks_dict: AOption<AST>,
-        identifiers: &HashMap<Uuid, AST>,
+        identifiers: &HashMap<AUuid, AST>,
         render_dependencies: bool,
     ) -> Result<Self> {
         let (standalone_tasks, task_identifiers, params) =

@@ -15,7 +15,7 @@ use linked_hash_set::LinkedHashSet;
 use std::collections::{BTreeSet, HashMap, HashSet};
 use std::marker::PhantomData;
 use tracing::trace;
-use uuid::Uuid;
+use aorist_primitives::AUuid;
 
 pub struct PythonBasedCodeBlock<'a, T, C, U, P>
 where
@@ -25,7 +25,7 @@ where
     P: TOuterProgram<TAncestry = C::TAncestry>,
 {
     tasks_dict: AOption<AST>,
-    task_identifiers: HashMap<Uuid, AST>,
+    task_identifiers: HashMap<AUuid, AST>,
     python_based_tasks: AVec<PythonBasedTask<T, U>>,
     params: HashMap<AString, AOption<ParameterTuple>>,
     _lt: PhantomData<&'a ()>,
@@ -45,7 +45,7 @@ where
     fn construct(
         tasks_dict: AOption<AST>,
         tasks: AVec<Self::E>,
-        task_identifiers: HashMap<Uuid, AST>,
+        task_identifiers: HashMap<AUuid, AST>,
         params: HashMap<AString, AOption<ParameterTuple>>,
     ) -> Self {
         Self {
@@ -93,7 +93,7 @@ where
         self.tasks_dict.clone()
     }
 
-    fn get_identifiers(&self) -> HashMap<Uuid, AST> {
+    fn get_identifiers(&self) -> HashMap<AUuid, AST> {
         self.task_identifiers.clone()
     }
 

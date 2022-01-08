@@ -2,7 +2,7 @@ use aorist_ast::{AncestorRecord, List, StringLiteral, AST};
 use aorist_primitives::{AString, AVec};
 use linked_hash_map::LinkedHashMap;
 use std::hash::Hash;
-use uuid::Uuid;
+use aorist_primitives::AUuid;
 
 #[derive(Clone, PartialEq, Eq, Hash, Debug)]
 pub struct ParameterTuple {
@@ -34,7 +34,7 @@ impl ParameterTuple {
         (self.args.len(), self.kwargs.keys().cloned().collect())
     }
     pub fn new(
-        _object_uuid: Uuid,
+        _object_uuid: AUuid,
         args_v: AVec<AString>,
         kwargs_v: LinkedHashMap<AString, AString>,
         is_sql: bool,

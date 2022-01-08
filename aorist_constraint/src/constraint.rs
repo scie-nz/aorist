@@ -41,13 +41,13 @@ impl<'a> OuterConstraint<'a> for Constraint {
     type TEnum = AoristConstraint;
     type TAncestry = ConceptAncestry;
 
-    fn get_uuid(&self) -> Result<Uuid> {
+    fn get_uuid(&self) -> Result<AUuid> {
         self.inner("get_uuid()")?.get_uuid()
     }
     fn get_root(&self) -> AString {
         self.root.clone()
     }
-    fn get_root_uuid(&self) -> Result<Uuid> {
+    fn get_root_uuid(&self) -> Result<AUuid> {
         self.inner("get_root_uuid()")?.get_root_uuid()
     }
     fn get_downstream_constraints(&self) -> Result<AVec<RArc<RRwLock<Self>>>> {

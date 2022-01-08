@@ -306,7 +306,7 @@ pub fn parse_and_sort_constraints(
 
 pub fn process_constraints(raw_objects: &Vec<HashMap<String, Value>>) -> AResult<()> {
     let mut scope = Scope::new();
-    scope.import("uuid", "Uuid");
+    scope.import("aorist_primitives", "AUuid");
     let parsed = parse_and_sort_constraints(raw_objects)?;
 
     for constraint in parsed.iter() {

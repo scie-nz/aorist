@@ -18,7 +18,7 @@ use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
 use std::collections::{BTreeSet, HashMap};
 use std::marker::PhantomData;
-use uuid::Uuid;
+use aorist_primitives::AUuid;
 
 pub struct PythonBasedDriver<'a, B, D, U, C, A, P>
 where
@@ -36,16 +36,16 @@ where
         ToplineConcept<TUniverse = U>,
     P: TOuterProgram<TAncestry = A>,
 {
-    pub concepts: RArc<RRwLock<HashMap<(Uuid, AString), C>>>,
-    constraints: LinkedHashMap<(Uuid, AString), RArc<RRwLock<B::OuterType>>>,
+    pub concepts: RArc<RRwLock<HashMap<(AUuid, AString), C>>>,
+    constraints: LinkedHashMap<(AUuid, AString), RArc<RRwLock<B::OuterType>>>,
     satisfied_constraints:
-        HashMap<(Uuid, AString), RArc<RRwLock<ConstraintState<'a, B::OuterType, P>>>>,
+        HashMap<(AUuid, AString), RArc<RRwLock<ConstraintState<'a, B::OuterType, P>>>>,
     blocks: AVec<PythonBasedConstraintBlock<'a, D::T, B::OuterType, U, P>>,
     ancestry: A,
     dag_type: PhantomData<D>,
     endpoints: <U as AoristUniverse>::TEndpoints,
     constraint_explanations: HashMap<AString, (AOption<AString>, AOption<AString>)>,
-    ancestors: HashMap<(Uuid, AString), AVec<AncestorRecord>>,
+    ancestors: HashMap<(AUuid, AString), AVec<AncestorRecord>>,
     topline_constraint_names: LinkedHashSet<AString>,
     programs: LinkedHashMap<AString, AVec<P>>,
     preferences: AVec<Dialect>,
@@ -78,7 +78,7 @@ where
     fn get_preferences(&self) -> AVec<Dialect> {
         self.preferences.clone()
     }
-    fn get_constraint_rwlock(&self, uuid: &(Uuid, AString)) -> RArc<RRwLock<B::OuterType>> {
+    fn get_constraint_rwlock(&self, uuid: &(AUuid, AString)) -> RArc<RRwLock<B::OuterType>> {
         self.constraints.get(uuid).unwrap().clone()
     }
 
@@ -91,7 +91,7 @@ where
     }
     fn mark_constraint_state_as_satisfied(
         &mut self,
-        id: (Uuid, AString),
+        id: (AUuid, AString),
         state: RArc<RRwLock<ConstraintState<'a, B::OuterType, P>>>,
     ) {
         self.satisfied_constraints.insert(id, state.clone());
@@ -145,11 +145,11 @@ where
             .collect()
     }
     fn _new(
-        concepts: RArc<RRwLock<HashMap<(Uuid, AString), C>>>,
-        constraints: LinkedHashMap<(Uuid, AString), RArc<RRwLock<B::OuterType>>>,
+        concepts: RArc<RRwLock<HashMap<(AUuid, AString), C>>>,
+        constraints: LinkedHashMap<(AUuid, AString), RArc<RRwLock<B::OuterType>>>,
         ancestry: A,
         endpoints: U::TEndpoints,
-        ancestors: HashMap<(Uuid, AString), AVec<AncestorRecord>>,
+        ancestors: HashMap<(AUuid, AString), AVec<AncestorRecord>>,
         topline_constraint_names: LinkedHashSet<AString>,
         programs: LinkedHashMap<AString, AVec<P>>,
         preferences: AVec<Dialect>,

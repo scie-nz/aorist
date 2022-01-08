@@ -11,7 +11,7 @@ use serde::Serialize;
 use std::collections::HashMap;
 use std::fmt::Debug;
 use tracing::debug;
-use uuid::Uuid;
+use aorist_primitives::AUuid;
 register_concept!(
     Concept,
     ConceptAncestry,

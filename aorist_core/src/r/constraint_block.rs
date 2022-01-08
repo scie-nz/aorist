@@ -15,7 +15,7 @@ use aorist_primitives::OuterConstraint;
 use linked_hash_map::LinkedHashMap;
 use std::collections::HashMap;
 use std::marker::PhantomData;
-use uuid::Uuid;
+use aorist_primitives::AUuid;
 
 pub struct RBasedConstraintBlock<'a, 'b, T, C>
 where
@@ -70,7 +70,7 @@ where
             _constraint: PhantomData,
         }
     }
-    fn get_identifiers(&self) -> HashMap<Uuid, AST> {
+    fn get_identifiers(&self) -> HashMap<AUuid, AST> {
         self.members
             .iter()
             .map(|x| x.get_identifiers().into_iter())
