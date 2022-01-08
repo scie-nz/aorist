@@ -1,5 +1,5 @@
 #![allow(unused_parens)]
-use scienz::*;
+use crate::compression::*;
 use crate::encoding::csv_encoding::*;
 use crate::encoding::gdb_encoding::*;
 use crate::encoding::geotiff_encoding::*;
