@@ -8,6 +8,7 @@ edition = "2018"
 homepage = "https://aorist.io"
 readme = false
 repository = "https://github.com/scie-nz/aorist"
+build = "build.rs"
 
 [lib]
 name = "scienz"
