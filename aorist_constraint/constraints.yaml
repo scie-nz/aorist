@@ -16,8 +16,8 @@ spec:
           Ok(x) => {
             debug!("Root has ReplicationStorageSetup.");
             match *x.0.read().tmp_encoding.0.read() {
-                aorist_core::Encoding::NewlineDelimitedJSONEncoding(_) => true,
-                aorist_core::Encoding::CSVEncoding(_) => true,
+                scienz::Encoding::NewlineDelimitedJSONEncoding(_) => true,
+                scienz::Encoding::CSVEncoding(_) => true,
                 _ => false,
             }
           }
@@ -51,7 +51,7 @@ spec:
   attachIf: |
       |root: AoristRef<Concept>, ancestry: &ConceptAncestry| {
           match *ancestry.remote_storage(root.clone()).unwrap().0.read().encoding.0.read() {
-              aorist_core::Encoding::NewlineDelimitedJSONEncoding(_) => {
+              scienz::Encoding::NewlineDelimitedJSONEncoding(_) => {
                   ancestry.replication_storage_setup(root.clone()).is_ok()
               },
               _ => false,
@@ -112,7 +112,7 @@ spec:
   attachIf: |
       |root: AoristRef<Concept>, ancestry: &ConceptAncestry| {
          match &*ancestry.hive_table_storage(root.clone()).unwrap().0.read().encoding.0.read() {
-            aorist_core::Encoding::NewlineDelimitedJSONEncoding(_) => true,
+            scienz::Encoding::NewlineDelimitedJSONEncoding(_) => true,
             _ => false,
          }
       }
@@ -145,7 +145,7 @@ spec:
       |root: AoristRef<Concept>, ancestry: &ConceptAncestry|
       match ancestry.static_data_table(root.clone()) {
           Ok(sdt) => match &*sdt.0.read().setup.0.read() {
-              aorist_core::StorageSetup::ReplicationStorageSetup(_) => true,
+              scienz::StorageSetup::ReplicationStorageSetup(_) => true,
               _ => false,
           },
           _ => false,
@@ -196,11 +196,11 @@ spec:
       |root: AoristRef<Concept>, ancestry: &ConceptAncestry| {
           let language_asset = ancestry.language_asset(root.clone()).unwrap();
           for asset in language_asset.0.read().get_source_assets() {
-              let storage_setup = aorist_core::TAsset::get_storage_setup(&asset);
+              let storage_setup = scienz::TAsset::get_storage_setup(&asset);
               let local_storages = storage_setup.0.read().get_local_storage();
               let mut hive_storage = false;
               for storage in local_storages.iter() {
-                  if let aorist_core::Storage::HiveTableStorage(_) = *storage.0.read() {
+                  if let scienz::Storage::HiveTableStorage(_) = *storage.0.read() {
                       hive_storage = true;
                   }
               }
@@ -225,11 +225,11 @@ spec:
       |root: AoristRef<Concept>, ancestry: &ConceptAncestry| {
           let language_asset = ancestry.language_asset(root.clone()).unwrap();
           for asset in language_asset.0.read().get_source_assets() {
-              let storage_setup = aorist_core::TAsset::get_storage_setup(&asset);
+              let storage_setup = scienz::TAsset::get_storage_setup(&asset);
               let local_storages = storage_setup.0.read().get_local_storage();
               let mut sqlite_storage = false;
               for storage in local_storages.iter() {
-                  if let aorist_core::Storage::SQLiteStorage(_) = *storage.0.read() {
+                  if let scienz::Storage::SQLiteStorage(_) = *storage.0.read() {
                       sqlite_storage = true;
                   }
               }
@@ -281,9 +281,9 @@ spec:
       |root: AoristRef<Concept>, ancestry: &ConceptAncestry| {
           match ancestry.fasttext_embedding(root.clone()) {
               Ok(x) => match *x.0.read().setup.0.read() {
-                  aorist_core::StorageSetup::LocalStorageSetup(ref s) => match *s.0.read().local.0.read() {
-                      aorist_core::Storage::HiveTableStorage(ref h) => match *h.0.read().location.0.read() {
-                          aorist_core::HiveLocation::MinioLocation(_) => true,
+                  scienz::StorageSetup::LocalStorageSetup(ref s) => match *s.0.read().local.0.read() {
+                      scienz::Storage::HiveTableStorage(ref h) => match *h.0.read().location.0.read() {
+                          scienz::HiveLocation::MinioLocation(_) => true,
                           _ => false,
                       },
                       _ => false,
@@ -306,8 +306,8 @@ spec:
       |root: AoristRef<Concept>, ancestry: &ConceptAncestry| {
           match ancestry.fasttext_embedding(root.clone()) {
               Ok(x) => match *x.0.read().setup.0.read() {
-                  aorist_core::StorageSetup::LocalStorageSetup(ref s) => match *s.0.read().local.0.read() {
-                      aorist_core::Storage::SQLiteStorage(_) => true,
+                  scienz::StorageSetup::LocalStorageSetup(ref s) => match *s.0.read().local.0.read() {
+                      scienz::Storage::SQLiteStorage(_) => true,
                       _ => false,
                   },
                   _ => false,
@@ -333,8 +333,8 @@ spec:
           /*{
             debug!("Root has ReplicationStorageSetup.");
             match *x.0.read().tmp_encoding.0.read() {
-                aorist_core::Encoding::NewlineDelimitedJSONEncoding(_) => true,
-                aorist_core::Encoding::CSVEncoding(_) => true,
+                scienz::Encoding::NewlineDelimitedJSONEncoding(_) => true,
+                scienz::Encoding::CSVEncoding(_) => true,
                 _ => false,
             }
           }*/
@@ -354,8 +354,8 @@ spec:
           Ok(x) => {
             debug!("Root has ReplicationStorageSetup.");
             match *x.0.read().tmp_encoding.0.read() {
-                aorist_core::Encoding::NewlineDelimitedJSONEncoding(_) => true,
-                aorist_core::Encoding::CSVEncoding(_) => true,
+                scienz::Encoding::NewlineDelimitedJSONEncoding(_) => true,
+                scienz::Encoding::CSVEncoding(_) => true,
                 _ => false,
             }
           }
@@ -397,8 +397,8 @@ spec:
       |root: AoristRef<Concept>, ancestry: &ConceptAncestry| {
           match ancestry.named_entities(root.clone()) {
               Ok(x) => match *x.0.read().setup.0.read() {
-                  aorist_core::StorageSetup::LocalStorageSetup(ref s) => match *s.0.read().local.0.read() {
-                      aorist_core::Storage::SQLiteStorage(_) => true,
+                  scienz::StorageSetup::LocalStorageSetup(ref s) => match *s.0.read().local.0.read() {
+                      scienz::Storage::SQLiteStorage(_) => true,
                       _ => false,
                   },
                   _ => false,

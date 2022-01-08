@@ -1746,6 +1746,7 @@ macro_rules! define_dag_function {
 macro_rules! export_aorist_python_module {
     ($module_name: ident, $dag_function: ident, $constraints_crate: ident, $attributes_crate: ident) => {
         use aorist_core::*;
+        use scienz::*;
         use aorist_primitives::*;
         use aorist_util::init_logging;
         use pyo3::prelude::*;
@@ -1757,7 +1758,7 @@ macro_rules! export_aorist_python_module {
         use abi_stable::library::{lib_header_from_path, LibrarySuffix, RawLibrary};
         use abi_stable::reexports::SelfOps;
         use abi_stable::std_types::ROption;
-        use aorist_core::{AoristApplicationError, ConstraintMod_Ref};
+        use aorist_core::{ConstraintMod_Ref};
         use std::path::{Path, PathBuf};
 
         define_dag_function!($dag_function);

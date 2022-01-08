@@ -310,7 +310,7 @@ pub fn process_constraints(raw_objects: &Vec<HashMap<String, Value>>) -> AResult
     let parsed = parse_and_sort_constraints(raw_objects)?;
 
     for constraint in parsed.iter() {
-        scope.import("aorist_core", &constraint.root);
+        scope.import("scienz", &constraint.root);
     }
     for constraint in parsed.iter() {
         let define = constraint.get_define_constraint();
@@ -336,7 +336,7 @@ pub fn process_constraints_new(raw_objects: &Vec<HashMap<String, Value>>) -> ARe
     scope.import("aorist_primitives", "define_constraint_abi");
     let parsed = parse_and_sort_constraints(raw_objects)?;
     for constraint in parsed.iter() {
-        scope.import("aorist_core", &constraint.root);
+        scope.import("scienz", &constraint.root);
     }
     for constraint in parsed.iter() {
         let define = constraint.get_define_constraint_abi();

@@ -29,6 +29,7 @@ aorist_ast = {path = "../aorist_ast", features=[], version = "0.0.14"}
 aorist_core = {path = "../aorist_core", features=[], version = "0.0.14"}
 aorist_util = {path = "../aorist_util", version = "0.0.1"}
 aorist_paste = "0.0.1"
+scienz = {path = "../scienz", version = "0.0.14", features=["python"]}
 uuid = {version = "0.8.1", features = ["v4", "serde"]}
 anyhow = "1.0"
 pyo3 = {version = "0.15.1", features=["auto-initialize", "multiple-pymethods"], optional = true}
