@@ -58,7 +58,7 @@ impl AString {
 }
 
 #[repr(C)]
-#[derive(Clone, PartialEq, Serialize, Debug, Hash, Eq, PartialOrd, Ord)]
+#[derive(Clone, PartialEq, Serialize, Debug, Hash, Eq, PartialOrd, Ord, StableAbi)]
 pub struct AVec<T>(abi_stable::std_types::RVec<T>);
 
 impl<'de, T> Deserialize<'de> for AVec<T>
@@ -123,7 +123,7 @@ impl AVec<String> {
 }
 
 #[repr(C)]
-#[derive(Clone, PartialEq, Serialize, Debug, Hash, Eq, PartialOrd, Ord)]
+#[derive(Clone, PartialEq, Serialize, Debug, Hash, Eq, PartialOrd, Ord, StableAbi)]
 pub struct AOption<T>(pub abi_stable::std_types::ROption<T>);
 impl<T> AOption<T> {
     pub fn is_none(&self) -> bool {

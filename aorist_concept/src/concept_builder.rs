@@ -86,7 +86,7 @@ pub trait TConceptBuilder {
                 let quoted = quote! {
                     #[repr(C)]
                     #[derive(
-                        Derivative, Serialize, Deserialize, Clone, Hash,
+                        Derivative, Serialize, Deserialize, Clone, Hash 
                     )]
                     #[derivative(PartialEq, Debug, Eq)]
                     #ast
