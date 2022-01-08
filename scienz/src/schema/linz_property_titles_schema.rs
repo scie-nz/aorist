@@ -12,7 +12,7 @@ use derivative::Derivative;
 use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
-use uuid::Uuid;
+use aorist_primitives::AUuid;
 
 // Datasets 50804 (non-PII) and 50805 (PII)
 primary_schema! {

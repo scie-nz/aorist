@@ -15,7 +15,7 @@ use aorist_primitives::AOption;
 use aorist_primitives::{AString, AVec};
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
-use uuid::Uuid;
+use aorist_primitives::AUuid;
 
 #[aorist]
 pub enum VisionAssetSchema {

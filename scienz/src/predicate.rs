@@ -15,7 +15,7 @@ use serde::{Deserialize, Serialize};
 #[cfg(feature = "sql")]
 use sqlparser::ast::{BinaryOperator, Expr};
 use std::fmt::Debug;
-use uuid::Uuid;
+use aorist_primitives::AUuid;
 
 #[derive(Hash, PartialEq, Eq, Debug, Serialize, Deserialize, Clone)]
 #[cfg_attr(feature = "python", derive(FromPyObject))]

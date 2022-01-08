@@ -10,7 +10,7 @@ use aorist_primitives::{AString, AVec, AoristConcept, AoristConceptBase, Concept
 use derivative::Derivative;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
-use uuid::Uuid;
+use aorist_primitives::AUuid;
 
 #[cfg_attr(feature = "python", pyo3::prelude::pyclass)]
 #[derive(PartialEq, Debug, Eq, Clone, Hash, Serialize, Deserialize)]

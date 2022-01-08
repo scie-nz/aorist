@@ -18,7 +18,7 @@ use derivative::Derivative;
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
 use std::fmt::Debug;
-use uuid::Uuid;
+use aorist_primitives::AUuid;
 
 #[cfg(all(feature = "sql", feature = "python"))]
 use pyo3::create_exception;

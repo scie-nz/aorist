@@ -322,7 +322,7 @@ macro_rules! define_program {
         {
             type Dialect = $dialect;
             fn compute_parameter_tuple(
-                uuid: Uuid,
+                uuid: AUuid,
                 c: Concept<'a>,
                 ancestry: RArc<ConceptAncestry<'a>>,
             ) -> ParameterTuple {
@@ -459,8 +459,8 @@ macro_rules! define_constraint {
             #[cfg_attr(feature = "python", pyclass(module = "aorist"))]
             #[derive(Clone)]
             pub struct $element {
-                id: Uuid,
-                root_uuid: Uuid,
+                id: AUuid,
+                root_uuid: AUuid,
                 $([<$required:snake:lower>] : Vec<RArc<RRwLock<$outer>>>,)*
             }
             #[cfg(feature = "python")]
@@ -493,7 +493,7 @@ macro_rules! define_constraint {
                 // computes a parameter tuple as a string, e.g. to be called from
                 // Python
                 fn compute_parameter_tuple(
-                    uuid: Uuid,
+                    uuid: AUuid,
                     root: Concept,
                     ancestry: RArc<ConceptAncestry>,
                 ) -> ParameterTuple;
@@ -638,16 +638,16 @@ macro_rules! define_constraint {
             impl $element {
                 // TODO: move any of these functions that should have public visibility
                 // into TConstraint
-                fn get_uuid(&self) -> Result<Uuid> {
+                fn get_uuid(&self) -> Result<AUuid> {
                     Ok(self.id.clone())
                 }
                 fn _should_add(root: AoristRef<Concept>, ancestry: &ConceptAncestry) -> bool {
                     $should_add(root, ancestry)
                 }
-                fn get_required(root: AoristRef<Concept>, ancestry: &ConceptAncestry) -> AVec<Uuid> {
+                fn get_required(root: AoristRef<Concept>, ancestry: &ConceptAncestry) -> AVec<AUuid> {
                     $get_required(root, ancestry).into_iter().collect()
                 }
-                fn get_root_uuid(&self) -> Result<Uuid> {
+                fn get_root_uuid(&self) -> Result<AUuid> {
                     Ok(self.root_uuid.clone())
                 }
                 fn requires_program(&self) -> Result<bool> {
@@ -690,14 +690,14 @@ macro_rules! define_constraint {
                         _ => panic!("should_add called with unexpected concept."),
                     }
                 }
-                fn new(root_uuid: Uuid,
+                fn new(root_uuid: AUuid,
                        potential_child_constraints: AVec<RArc<RRwLock<Constraint>>>) -> Result<Self> {
                     // TODO: we should dedupe potential child constraints
                     $(
                         let mut [<$required:snake:lower>]: AVec<RArc<RRwLock<Constraint>>> =
                         AVec::new();
                     )*
-                    let mut by_uuid: HashMap<Uuid, RArc<RRwLock<Constraint>>> = HashMap::new();
+                    let mut by_uuid: HashMap<AUuid, RArc<RRwLock<Constraint>>> = HashMap::new();
                     for constraint in potential_child_constraints.iter() {
                         $(
                             if let Some(AoristConstraint::$required{..}) =
@@ -719,7 +719,7 @@ macro_rules! define_constraint {
                         )*
                     }
                     Ok(Self{
-                        id: Uuid::new_v4(),
+                        id: AUuid::new_v4(),
                         root_uuid,
                         $([<$required:snake:lower>]: [<$required:snake:lower>].into_iter().collect(),)*
                     })
@@ -995,11 +995,11 @@ macro_rules! register_concept {
         #[derive(Clone, Debug, Serialize, PartialEq)]
         pub enum $name {
             $(
-                $element((AoristRef<$element>, usize, AOption<(Uuid, AString)>)),
+                $element((AoristRef<$element>, usize, AOption<(AUuid, AString)>)),
             )+
         }
         impl ConceptEnum for $name {
-            fn uuid(&self) -> AOption<Uuid> {
+            fn uuid(&self) -> AOption<AUuid> {
                 self.get_uuid()
             }
         }
@@ -1016,14 +1016,14 @@ macro_rules! register_concept {
                   };
                   Ok(object)
               }
-              fn get_uuid(&self) -> AOption<Uuid> {
+              fn get_uuid(&self) -> AOption<AUuid> {
                   match &self {
                       $(
                         $name::$element(x) => x.0.get_uuid(),
                       )*
                   }
               }
-              fn set_uuid(&mut self, uuid: Uuid) {
+              fn set_uuid(&mut self, uuid: AUuid) {
                   match self {
                       $(
                         $name::$element(ref mut x) => x.0.set_uuid(uuid),
@@ -1059,7 +1059,7 @@ macro_rules! register_concept {
                   // ix
                   AOption<usize>,
                   // uuid
-                  AOption<Uuid>,
+                  AOption<AUuid>,
                   Self,
               )> {
                   vec![(
@@ -1084,7 +1084,7 @@ macro_rules! register_concept {
                 fn [<construct_ $element:snake:lower>](
                     obj_ref: AoristRef<$element>,
                     ix: AOption<usize>,
-                    id: AOption<(Uuid, AString)>
+                    id: AOption<(AUuid, AString)>
                 ) -> AoristRef<Self> {
                     AoristRef(RArc::new(RRwLock::new($name::$element((
                         obj_ref.clone(),
@@ -1119,14 +1119,14 @@ macro_rules! register_concept {
 
         #[cfg_attr(feature = "python", pyclass(module = "aorist"))]
         pub struct $ancestry {
-            pub parents: RArc<RRwLock<HashMap<(Uuid, AString), AoristRef<$name>>>>,
+            pub parents: RArc<RRwLock<HashMap<(AUuid, AString), AoristRef<$name>>>>,
         }
         impl Ancestry for $ancestry {
             type TConcept = AoristRef<$name>;
-            fn new(parents: RArc<RRwLock<HashMap<(Uuid, AString), AoristRef<$name>>>>) -> Self {
+            fn new(parents: RArc<RRwLock<HashMap<(AUuid, AString), AoristRef<$name>>>>) -> Self {
                  Self { parents }
             }
-            fn get_parents(&self) -> RArc<RRwLock<HashMap<(Uuid, AString), AoristRef<$name>>>> {
+            fn get_parents(&self) -> RArc<RRwLock<HashMap<(AUuid, AString), AoristRef<$name>>>> {
                 self.parents.clone()
             }
 
@@ -1182,7 +1182,7 @@ macro_rules! register_concept {
             fn build_universe(universe: AoristRef<Universe>) -> Self {
                 $name::Universe((universe, 0, AOption(ROption::RNone)))
             }
-            fn get_parent_id(&self) -> AOption<(Uuid, AString)> {
+            fn get_parent_id(&self) -> AOption<(AUuid, AString)> {
                 match self {
                     $(
                         $name::$element((_, _, ref id)) => id.clone(),
@@ -1210,7 +1210,7 @@ macro_rules! register_concept {
                     )*
                 }
             }
-            fn populate_child_concept_map(&self, concept_map: &mut HashMap<(Uuid, AString), AoristRef<Self>>) {
+            fn populate_child_concept_map(&self, concept_map: &mut HashMap<(AUuid, AString), AoristRef<Self>>) {
                 match self {
                     $(
                         $name::$element((ref x, idx, ref parent)) => {
@@ -1479,7 +1479,7 @@ macro_rules! register_constraint_new {
             }
             fn build_constraint(
                 &self,
-                root_uuid: Uuid,
+                root_uuid: AUuid,
                 potential_child_constraints: AVec<RArc<RRwLock<Self::OuterType>>>,
             ) -> Result<Self::OuterType> {
                 match &self {
@@ -1505,7 +1505,7 @@ macro_rules! register_constraint_new {
                     )+
                 }
             }
-            fn get_required(&self, root: AoristRef<Concept>, ancestry:&ConceptAncestry) -> AVec<Uuid> {
+            fn get_required(&self, root: AoristRef<Concept>, ancestry:&ConceptAncestry) -> AVec<AUuid> {
                 match &self {
                     $(
                         [<$name Builder>]::$element(_) =>
@@ -1577,7 +1577,7 @@ macro_rules! register_constraint_new {
                     )+
                 }
             }
-            pub fn get_uuid(&self) -> Result<Uuid> {
+            pub fn get_uuid(&self) -> Result<AUuid> {
                 match self {
                     $(
                         Self::$element(x) => x.get_uuid(),
@@ -1598,7 +1598,7 @@ macro_rules! register_constraint_new {
                     )+
                 }
             }
-            pub fn get_root_uuid(&self) -> Result<Uuid> {
+            pub fn get_root_uuid(&self) -> Result<AUuid> {
                 match self {
                     $(
                         Self::$element(x) => x.get_root_uuid(),

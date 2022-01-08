@@ -159,7 +159,7 @@ impl TConceptBuilder for RawConceptBuilder {
         match &mut struct_data.fields {
             Fields::Named(fields) => {
                 fields.named.push(Field::parse_named.parse2(quote! {
-                    pub uuid: AOption<Uuid>
+                    pub uuid: AOption<AUuid>
                 })?);
                 fields.named.push(Field::parse_named.parse2(quote! {
                     pub tag: AOption<AString>

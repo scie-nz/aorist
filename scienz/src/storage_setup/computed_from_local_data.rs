@@ -9,7 +9,7 @@ use derivative::Derivative;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use std::fmt::Debug;
-use uuid::Uuid;
+use aorist_primitives::AUuid;
 
 #[aorist]
 pub struct ComputedFromLocalData {

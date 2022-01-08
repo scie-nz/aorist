@@ -48,7 +48,7 @@ impl Builder for EnumBuilder {
         let variant = &self.variant_idents;
         Ok(TokenStream::from(quote! { paste! {
           impl #enum_name {
-              pub fn convert<T>(&self, name: AString, field: AOption<AString>, ix: AOption<usize>, uuid: AOption<Uuid>) -> AoristRef<T>
+              pub fn convert<T>(&self, name: AString, field: AOption<AString>, ix: AOption<usize>, uuid: AOption<AUuid>) -> AoristRef<T>
               where
                   #(
                       T: [<CanBe #variant>],
@@ -74,7 +74,7 @@ impl Builder for EnumBuilder {
               fn [<construct_ #enum_name:snake:lower>] (
                   obj_ref: AoristRef<#enum_name>,
                   ix: AOption<usize>,
-                  id: AOption<(Uuid, AString)>
+                  id: AOption<(AUuid, AString)>
               ) -> AoristRef<Self>;
           }
           #[cfg(feature = "python")]
@@ -161,14 +161,14 @@ impl Builder for EnumBuilder {
                         inner
                     })?))
               }
-              fn get_uuid(&self) -> AOption<Uuid> {
+              fn get_uuid(&self) -> AOption<AUuid> {
                   match &self {
                       #(
                         #enum_name::#variant(x) => x.get_uuid(),
                       )*
                   }
               }
-              fn set_uuid(&mut self, uuid: Uuid) {
+              fn set_uuid(&mut self, uuid: AUuid) {
                   match &self {
                       #(
                         #enum_name::#variant(x) => x.0.write().set_uuid(uuid),
@@ -204,7 +204,7 @@ impl Builder for EnumBuilder {
                   // ix
                   AOption<usize>,
                   // uuid
-                  AOption<Uuid>,
+                  AOption<AUuid>,
                   Self,
               )> {
                   vec![(
@@ -217,7 +217,7 @@ impl Builder for EnumBuilder {
               }
           }
           impl #enum_name {
-              fn get_children_uuid(&self) -> AVec<Uuid> {
+              fn get_children_uuid(&self) -> AVec<AUuid> {
                   match self {
                       #(
                           #enum_name::#variant(x) => {
@@ -229,7 +229,7 @@ impl Builder for EnumBuilder {
               }
           }
           impl ConceptEnum for [<#enum_name>] {
-              fn uuid(&self) -> AOption<Uuid> {
+              fn uuid(&self) -> AOption<AUuid> {
                   match self {
                       #(
                           #enum_name::#variant(x) => x.get_uuid(),

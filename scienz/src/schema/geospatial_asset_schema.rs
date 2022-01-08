@@ -48,7 +48,7 @@ use aorist_primitives::{schema_enum, AString, AVec};
 use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
-use uuid::Uuid;
+use aorist_primitives::AUuid;
 
 schema_enum! {
     name: GeospatialAssetSchema

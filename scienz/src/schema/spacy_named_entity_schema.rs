@@ -17,7 +17,7 @@ use derivative::Derivative;
 use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
-use uuid::Uuid;
+use aorist_primitives::AUuid;
 
 derived_schema! {
     name: SpaCyNamedEntitySchema,

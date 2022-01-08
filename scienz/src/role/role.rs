@@ -8,7 +8,7 @@ use aorist_primitives::{AString, AVec};
 use enum_dispatch::enum_dispatch;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
-use uuid::Uuid;
+use aorist_primitives::AUuid;
 
 #[enum_dispatch(Role)]
 pub trait TRole {

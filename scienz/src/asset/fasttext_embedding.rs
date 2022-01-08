@@ -15,6 +15,6 @@ use aorist_primitives::{asset, AString, AVec, AoristConcept, AoristConceptBase, 
 use derivative::Derivative;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
-use uuid::Uuid;
+use aorist_primitives::AUuid;
 
 asset! { FasttextEmbedding }

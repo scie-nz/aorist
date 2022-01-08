@@ -22,7 +22,7 @@ use sqlparser::ast::{DataType, Expr};
 #[cfg(feature = "sql")]
 use std::collections::HashMap;
 use std::fmt::Debug;
-use uuid::Uuid;
+use aorist_primitives::AUuid;
 include!(concat!(env!("OUT_DIR"), "/attributes.rs"));
 
 #[cfg(feature = "sql")]

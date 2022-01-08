@@ -16,7 +16,7 @@ use aorist_primitives::{asset_enum, AString, AVec, AoristConcept, AoristConceptB
 use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
-use uuid::Uuid;
+use aorist_primitives::AUuid;
 
 asset_enum! {
     name: GraphAsset

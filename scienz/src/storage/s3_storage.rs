@@ -10,7 +10,7 @@ use aorist_primitives::{AString, AVec, AoristConcept, AoristConceptBase, Concept
 use derivative::Derivative;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
-use uuid::Uuid;
+use aorist_primitives::AUuid;
 
 #[aorist]
 pub struct S3Storage {

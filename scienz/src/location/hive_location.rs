@@ -9,7 +9,7 @@ use aorist_primitives::AoristRef;
 use aorist_primitives::{AString, AVec, AoristConcept, AoristConceptBase, ConceptEnum};
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
-use uuid::Uuid;
+use aorist_primitives::AUuid;
 
 #[aorist]
 pub enum HiveLocation {

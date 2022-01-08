@@ -11,7 +11,7 @@ use aorist_paste::paste;
 use aorist_primitives::{AString, AVec};
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
-use uuid::Uuid;
+use aorist_primitives::AUuid;
 #[aorist]
 pub enum NamedEntitySchema {
     #[constrainable]

@@ -15,7 +15,7 @@ use aorist_primitives::{AString, AVec, AoristConcept, AoristConceptBase, Concept
 use derivative::Derivative;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
-use uuid::Uuid;
+use aorist_primitives::AUuid;
 
 /// An integer-valued measure for the density of attribute
 /// combinations. For example, a count in a histogram.

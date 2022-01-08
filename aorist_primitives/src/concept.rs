@@ -9,7 +9,7 @@ use siphasher::sip128::{Hasher128, SipHasher};
 use std::collections::{BTreeSet, HashMap};
 use std::fmt::{Debug, Formatter};
 use std::hash::{Hash, Hasher};
-use uuid::Uuid;
+use std::convert::TryInto;
 
 #[repr(C)]
 #[cfg_attr(feature = "python", pyclass)]
@@ -43,6 +43,9 @@ impl std::convert::AsRef<str> for AString {
 }
 
 impl AString {
+    pub fn into_bytes(self) -> RVec<u8> {
+        self.0.into_bytes()
+    }
     pub fn len(&self) -> usize {
         self.0.len()
     }
@@ -175,13 +178,13 @@ pub struct AMap<
 }
 
 pub trait ConceptEnum {
-    fn uuid(&self) -> AOption<Uuid>;
+    fn uuid(&self) -> AOption<AUuid>;
 }
 
 pub trait AoristConceptBase: Clone + Debug + Serialize + PartialEq {
     type TChildrenEnum: ConceptEnum;
-    fn get_uuid(&self) -> AOption<Uuid>;
-    fn set_uuid(&mut self, uuid: Uuid);
+    fn get_uuid(&self) -> AOption<AUuid>;
+    fn set_uuid(&mut self, uuid: AUuid);
     fn get_tag(&self) -> AOption<AString>;
     fn compute_uuids(&mut self);
     fn deep_clone(&self) -> Self;
@@ -195,7 +198,7 @@ pub trait AoristConceptBase: Clone + Debug + Serialize + PartialEq {
         // ix
         AOption<usize>,
         // uuid
-        AOption<Uuid>,
+        AOption<AUuid>,
         // wrapped reference
         Self::TChildrenEnum,
     )>;
@@ -205,24 +208,24 @@ pub trait AoristConceptBase: Clone + Debug + Serialize + PartialEq {
 
 pub trait AoristConcept {
     type TChildrenEnum: ConceptEnum;
-    fn get_uuid(&self) -> AOption<Uuid>;
-    fn set_uuid(&mut self, uuid: Uuid);
+    fn get_uuid(&self) -> AOption<AUuid>;
+    fn set_uuid(&mut self, uuid: AUuid);
     fn get_tag(&self) -> AOption<AString>;
     fn compute_uuids(&mut self);
-    fn get_children_uuid(&self) -> AVec<Uuid>;
-    fn get_uuid_from_children_uuid(&self) -> Uuid {
+    fn get_children_uuid(&self) -> AVec<AUuid>;
+    fn get_uuid_from_children_uuid(&self) -> AUuid {
         let child_uuids = self.get_children_uuid();
         if child_uuids.len() > 0 {
-            let uuids = child_uuids.into_iter().collect::<BTreeSet<Uuid>>();
+            let uuids = child_uuids.into_iter().collect::<BTreeSet<AUuid>>();
             let mut hasher = SipHasher::new();
             for uuid in uuids {
-                hasher.write(uuid.as_bytes());
+                hasher.write(&uuid.as_bytes());
             }
             let bytes: [u8; 16] = hasher.finish128().as_bytes();
-            Uuid::from_bytes(bytes)
+            AUuid::from_bytes(bytes)
         } else {
             // TODO: this should just be created from the hash
-            Uuid::new_v4()
+            AUuid::new_v4()
         }
     }
     fn get_children(
@@ -235,7 +238,7 @@ pub trait AoristConcept {
         // ix
         AOption<usize>,
         // uuid
-        AOption<Uuid>,
+        AOption<AUuid>,
         // wrapped reference
         Self::TChildrenEnum,
     )>;
@@ -246,24 +249,24 @@ pub trait AoristConcept {
 
 pub trait ToplineConcept: Sized + Clone {
     type TUniverse: AoristConcept + AoristUniverse;
-    fn get_parent_id(&self) -> AOption<(Uuid, AString)>;
+    fn get_parent_id(&self) -> AOption<(AUuid, AString)>;
     fn get_type(&self) -> AString;
-    fn get_uuid(&self) -> Uuid;
+    fn get_uuid(&self) -> AUuid;
     fn get_tag(&self) -> AOption<AString>;
     fn get_index_as_child(&self) -> usize;
     fn get_child_concepts(&self) -> AVec<Self>;
-    fn populate_child_concept_map(&self, concept_map: &mut HashMap<(Uuid, AString), Self>);
+    fn populate_child_concept_map(&self, concept_map: &mut HashMap<(AUuid, AString), Self>);
     fn from_universe(universe: Self::TUniverse) -> Self;
 }
 pub trait ToplineConceptBase: Sized + Clone + Debug + Serialize + PartialEq {
     type TUniverse: AoristConcept + AoristUniverse;
-    fn get_parent_id(&self) -> AOption<(Uuid, AString)>;
+    fn get_parent_id(&self) -> AOption<(AUuid, AString)>;
     fn get_type(&self) -> AString;
     fn get_index_as_child(&self) -> usize;
     fn get_child_concepts(&self) -> AVec<AoristRef<Self>>;
     fn populate_child_concept_map(
         &self,
-        concept_map: &mut HashMap<(Uuid, AString), AoristRef<Self>>,
+        concept_map: &mut HashMap<(AUuid, AString), AoristRef<Self>>,
     );
     fn build_universe(universe: Self::TUniverse) -> Self;
 }
@@ -277,8 +280,8 @@ pub trait TPrestoEndpoints {
 }
 pub trait Ancestry {
     type TConcept: ConceptEnum + Clone + ToplineConcept;
-    fn new(parents: RArc<RRwLock<HashMap<(Uuid, AString), Self::TConcept>>>) -> Self;
-    fn get_parents(&self) -> RArc<RRwLock<HashMap<(Uuid, AString), Self::TConcept>>>;
+    fn new(parents: RArc<RRwLock<HashMap<(AUuid, AString), Self::TConcept>>>) -> Self;
+    fn get_parents(&self) -> RArc<RRwLock<HashMap<(AUuid, AString), Self::TConcept>>>;
 }
 pub trait TAoristObject {
     fn get_name(&self) -> &AString;
@@ -288,15 +291,51 @@ pub trait TAoristObject {
 #[derive(StableAbi)]
 pub struct AoristRef<T: PartialEq + Serialize + Debug + Clone>(pub RArc<RRwLock<T>>);
 
+#[repr(C)]
+#[derive(StableAbi, PartialEq, Ord, Eq, PartialOrd, Hash, Debug, Clone, Serialize)]
+pub struct AUuid(AString);
+impl AUuid {
+    pub fn new_v4() -> Self {
+        let uuid = uuid::Uuid::new_v4();
+        Self(AString::new(&uuid.to_string()))
+    }
+    pub fn from_bytes(bytes: uuid::Bytes) -> AUuid {
+        let uuid = uuid::Uuid::from_bytes(bytes);
+        Self(AString::new(&uuid.to_string()))
+    }
+    pub fn as_bytes(&self) -> uuid::Bytes {
+        self.0.clone().into_bytes()
+			.into_vec()
+            .try_into()
+        	.unwrap_or_else(|v: Vec<u8>| panic!("Expected a Vec of length 16 but it was {}", v.len()))
+    }
+
+}
+impl<'de> Deserialize<'de> for AUuid {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let d = AString::deserialize(deserializer)?;
+        Ok(Self(d))
+    }
+}
+
+impl std::fmt::Display for AUuid {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(&self.0, f)
+    }
+}
+
 impl<T: PartialEq + Serialize + Debug + Clone + AoristConceptBase> AoristConcept for AoristRef<T> {
     type TChildrenEnum = <T as AoristConceptBase>::TChildrenEnum;
-    fn get_uuid(&self) -> AOption<Uuid> {
+    fn get_uuid(&self) -> AOption<AUuid> {
         self.0.read().get_uuid()
     }
     fn deep_clone(&self) -> Self {
         AoristRef(RArc::new(RRwLock::new(self.0.read().deep_clone())))
     }
-    fn set_uuid(&mut self, uuid: Uuid) {
+    fn set_uuid(&mut self, uuid: AUuid) {
         self.0.write().set_uuid(uuid);
     }
     fn compute_uuids(&mut self) {
@@ -305,7 +344,7 @@ impl<T: PartialEq + Serialize + Debug + Clone + AoristConceptBase> AoristConcept
         uuid = self.get_uuid_from_children_uuid();
         self.0.write().set_uuid(uuid);
     }
-    fn get_children_uuid(&self) -> AVec<Uuid> {
+    fn get_children_uuid(&self) -> AVec<AUuid> {
         self.get_children()
             .iter()
             .map(|x| x.4.uuid().unwrap())
@@ -324,7 +363,7 @@ impl<T: PartialEq + Serialize + Debug + Clone + AoristConceptBase> AoristConcept
         // ix
         AOption<usize>,
         // uuid
-        AOption<Uuid>,
+        AOption<AUuid>,
         Self::TChildrenEnum,
     )> {
         self.0.read().get_children()
@@ -380,7 +419,7 @@ impl<T: Debug + Clone + Serialize + PartialEq> Debug for AoristRef<T> {
     }
 }
 impl<T: Clone + Debug + Serialize + PartialEq + AoristConceptBase> ConceptEnum for AoristRef<T> {
-    fn uuid(&self) -> AOption<Uuid> {
+    fn uuid(&self) -> AOption<AUuid> {
         self.0.read().get_uuid()
     }
 }
@@ -397,7 +436,7 @@ impl<T: Debug + Clone + Serialize + PartialEq + ToplineConceptBase + AoristConce
     ToplineConcept for AoristRef<T>
 {
     type TUniverse = <T as ToplineConceptBase>::TUniverse;
-    fn get_parent_id(&self) -> AOption<(Uuid, AString)> {
+    fn get_parent_id(&self) -> AOption<(AUuid, AString)> {
         self.0.read().get_parent_id()
     }
     fn from_universe(universe: Self::TUniverse) -> Self {
@@ -406,7 +445,7 @@ impl<T: Debug + Clone + Serialize + PartialEq + ToplineConceptBase + AoristConce
     fn get_type(&self) -> AString {
         self.0.read().get_type()
     }
-    fn get_uuid(&self) -> Uuid {
+    fn get_uuid(&self) -> AUuid {
         self.0.read().get_uuid().unwrap()
     }
     fn get_tag(&self) -> AOption<AString> {
@@ -418,7 +457,7 @@ impl<T: Debug + Clone + Serialize + PartialEq + ToplineConceptBase + AoristConce
     fn get_child_concepts(&self) -> AVec<Self> {
         self.0.read().get_child_concepts()
     }
-    fn populate_child_concept_map(&self, concept_map: &mut HashMap<(Uuid, AString), Self>) {
+    fn populate_child_concept_map(&self, concept_map: &mut HashMap<(AUuid, AString), Self>) {
         self.0.read().populate_child_concept_map(concept_map)
     }
 }

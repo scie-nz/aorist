@@ -11,7 +11,7 @@ use aorist_primitives::{
 use derivative::Derivative;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
-use uuid::Uuid;
+use aorist_primitives::AUuid;
 
 #[aorist]
 pub struct EndpointConfig {

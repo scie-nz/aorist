@@ -319,7 +319,7 @@ impl Builder for StructBuilder {
 
         Ok(TokenStream::from(quote! { paste! {
             impl [<#struct_name Children>] {
-              pub fn convert<T>(&self, name: AString, field: AOption<AString>, ix: AOption<usize>, uuid: AOption<Uuid>) -> AoristRef<T>
+              pub fn convert<T>(&self, name: AString, field: AOption<AString>, ix: AOption<usize>, uuid: AOption<AUuid>) -> AoristRef<T>
               where
                   #(
                       T: [<CanBe #types>],
@@ -851,10 +851,10 @@ impl Builder for StructBuilder {
                         inner
                     })?))
                 }
-                fn get_uuid(&self) -> AOption<Uuid> {
+                fn get_uuid(&self) -> AOption<AUuid> {
                     self.uuid.clone()
                 }
-                fn set_uuid(&mut self, uuid: Uuid) {
+                fn set_uuid(&mut self, uuid: AUuid) {
                     assert!(self.uuid.is_none());
                     self.uuid = AOption(ROption::RSome(uuid));
                 }
@@ -935,7 +935,7 @@ impl Builder for StructBuilder {
                     // ix
                     AOption<usize>,
                     // uuid
-                    AOption<Uuid>,
+                    AOption<AUuid>,
                     // wrapped reference
                     [<#struct_name Children>],
                 )> {
@@ -999,7 +999,7 @@ impl Builder for StructBuilder {
                 }
             }
             impl #struct_name {
-                fn set_uuid(&mut self, uuid: Uuid) {
+                fn set_uuid(&mut self, uuid: AUuid) {
                     self.uuid = AOption(ROption::RSome(uuid));
                 }
                 #(
@@ -1029,7 +1029,7 @@ impl Builder for StructBuilder {
                 )*
             }
             impl ConceptEnum for [<#struct_name Children>] {
-                fn uuid(&self) -> AOption<Uuid> {
+                fn uuid(&self) -> AOption<AUuid> {
                     match &self {
                         #(
                             Self::#types(x) => x.get_uuid(),
@@ -1042,7 +1042,7 @@ impl Builder for StructBuilder {
                 fn [<construct_ #struct_name:snake:lower>](
                     obj_ref: AoristRef<#struct_name>,
                     ix: AOption<usize>,
-                    id: AOption<(Uuid, AString)>
+                    id: AOption<(AUuid, AString)>
                 ) -> AoristRef<Self>;
             }
         }}))

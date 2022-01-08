@@ -21,7 +21,7 @@ use aorist_primitives::{asset_enum, AString, AVec};
 use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
-use uuid::Uuid;
+use aorist_primitives::AUuid;
 
 pub trait TAsset {
     fn get_name(&self) -> AString;
