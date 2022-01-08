@@ -1,4 +1,4 @@
-use crate::concept::AoristRef;
+use aorist_primitives::AoristRef;
 use crate::error::AoristError;
 use crate::role::*;
 use abi_stable::std_types::ROption;
