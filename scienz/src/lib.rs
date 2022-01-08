@@ -2,6 +2,7 @@
 mod attributes;
 mod access_policy;
 mod asset;
+mod compliance;
 mod compression;
 mod dataset;
 mod encoding;
@@ -17,6 +18,7 @@ mod schema;
 mod storage;
 mod storage_setup;
 mod template;
+mod universe;
 mod user;
 mod user_group;
 
