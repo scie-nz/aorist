@@ -1,5 +1,5 @@
 use crate::dialect::Dialect;
-use crate::error::AoristError;
+use scienz::AoristError;
 use crate::parameter_tuple::ParameterTuple;
 use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 use abi_stable::std_types::RArc;

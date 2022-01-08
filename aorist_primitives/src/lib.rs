@@ -1079,12 +1079,6 @@ macro_rules! register_concept {
             m.add_class::<$ancestry>()?;
             Ok(())
         }
-        impl AoristUniverseBase for Universe {
-            type TEndpoints = EndpointConfig;
-            fn get_endpoints(&self) -> Self::TEndpoints {
-                self.endpoints.0.read().clone()
-            }
-        }
         $(
             impl [<CanBe $element>] for $name {
                 fn [<construct_ $element:snake:lower>](

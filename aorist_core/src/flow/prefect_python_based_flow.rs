@@ -1,5 +1,5 @@
 use crate::dialect::Dialect;
-use crate::error::AoristError;
+use scienz::AoristError;
 use crate::flow::etl_flow::ETLFlow;
 use crate::flow::flow_builder::FlowBuilderBase;
 use crate::flow::python_based_flow::PythonBasedFlow;

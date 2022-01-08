@@ -1,25 +1,3 @@
-use crate::access_policy::*;
-use crate::algorithms::*;
-use crate::asset::*;
-use crate::attributes::*;
-use crate::compliance::*;
-use crate::dataset::*;
-use crate::encoding::*;
-use crate::endpoints::*;
-use crate::header::*;
-use crate::layout::*;
-use crate::location::*;
-use crate::models::*;
-use crate::predicate::*;
-use crate::role::*;
-use crate::role_binding::*;
-use crate::schema::*;
-use crate::storage::*;
-use crate::storage_setup::*;
-use crate::template::*;
-pub use crate::universe::*;
-use crate::user::*;
-use crate::user_group::*;
 use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 use abi_stable::std_types::{RArc, ROption};
 use scienz::*;
@@ -39,9 +17,6 @@ register_concept!(
     ConceptAncestry,
     AccessPolicy,
     ApproveAccessSelector,
-    RegressionAlgorithm,
-    RandomForestRegressionAlgorithm,
-    SVMRegressionAlgorithm,
     Asset,
     StaticDataTable,
     Attribute,
@@ -79,8 +54,6 @@ register_concept!(
     RemoteLocation,
     SQLiteLocation,
     WebLocation,
-    Model,
-    SingleObjectiveRegressor,
     GDBEncoding,
     CSVEncoding,
     TSVEncoding,

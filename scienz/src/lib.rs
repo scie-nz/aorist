@@ -22,11 +22,25 @@ mod universe;
 mod user;
 mod user_group;
 
-
+pub use attributes::*;
+pub use access_policy::*;
+pub use asset::*;
+pub use compliance::*;
 pub use compression::*;
+pub use dataset::*;
 pub use encoding::*;
+pub use endpoints::*;
+pub use error::*;
 pub use header::*;
 pub use layout::*;
 pub use location::*;
+pub use predicate::*;
+pub use role::*;
+pub use role_binding::*;
+pub use schema::*;
 pub use storage::*;
 pub use storage_setup::*;
+pub use template::*;
+pub use universe::*;
+pub use user::*;
+pub use user_group::*;

@@ -13,7 +13,7 @@ use aorist_primitives::AOption;
 use aorist_primitives::AoristRef;
 use aorist_primitives::ConceptEnum;
 use aorist_primitives::{AString, AVec};
-use aorist_primitives::{AoristConcept, AoristConceptBase};
+use aorist_primitives::{AoristConcept, AoristConceptBase, AoristUniverseBase};
 use derivative::Derivative;
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
@@ -72,5 +72,11 @@ impl TUniverse for Universe {
             }
         }
         Ok(map)
+    }
+}
+impl AoristUniverseBase for Universe {
+    type TEndpoints = EndpointConfig;
+    fn get_endpoints(&self) -> Self::TEndpoints {
+        self.endpoints.0.read().clone()
     }
 }
