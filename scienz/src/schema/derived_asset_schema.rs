@@ -1,5 +1,5 @@
 use crate::asset::*;
-use crate::concept::AoristRef;
+use aorist_primitives::AoristRef;
 use aorist_primitives::AVec;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
