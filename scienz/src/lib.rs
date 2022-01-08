@@ -1,4 +1,5 @@
 #![allow(unused_parens)]
+mod attributes;
 mod compression;
 mod encoding;
 mod header;

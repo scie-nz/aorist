@@ -23,6 +23,7 @@ sql = ["sqlformat", "sqlparser"]
 Inflector = "0.11.4"
 abi_stable = "0.10.3"
 anyhow = "1.0"
+aorist_attributes = {path = "../aorist_attributes", features = ["python"], version = "0.0.14"}
 aorist_concept = {path = "../aorist_concept", version = "0.0.1"}
 aorist_derive = {path = "../aorist_derive", version = "0.0.1"}
 aorist_primitives = {path = "../aorist_primitives", version = "0.0.14", features=["python"]}
