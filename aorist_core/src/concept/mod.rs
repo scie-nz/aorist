@@ -3,7 +3,6 @@ use crate::algorithms::*;
 use crate::asset::*;
 use crate::attributes::*;
 use crate::compliance::*;
-use crate::compression::*;
 use crate::dataset::*;
 use crate::encoding::*;
 use crate::endpoints::*;
@@ -23,6 +22,7 @@ use crate::user::*;
 use crate::user_group::*;
 use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 use abi_stable::std_types::{RArc, ROption};
+use scienz::*;
 pub use aorist_primitives::{
     register_concept, AOption, AString, AVec, Ancestry, AoristConcept, AoristConceptBase,
     AoristRef, AoristUniverse, AoristUniverseBase, ConceptEnum, ToplineConcept, ToplineConceptBase,

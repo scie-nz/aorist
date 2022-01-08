@@ -10,7 +10,7 @@ readme = false
 repository = "https://github.com/scie-nz/aorist"
 
 [lib]
-name = "aorist_semantics"
+name = "scienz"
 path = "src/lib.rs"
 
 [features]
