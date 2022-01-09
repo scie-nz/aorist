@@ -474,3 +474,11 @@ pub trait AoristUniverseBase {
     type TEndpoints: Clone;
     fn get_endpoints(&self) -> Self::TEndpoints;
 }
+#[repr(C)]
+#[derive(Clone, Serialize, Debug, StableAbi)]
+pub struct AConcept<T: Debug + Clone + Serialize + PartialEq + AoristUniverseBase + StableAbi>{
+    obj_ref: AoristRef<T>,
+    ix: AOption<usize>,
+    uuid: AUuid,
+    id: AString,
+}
