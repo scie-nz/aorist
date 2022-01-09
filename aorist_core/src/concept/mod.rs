@@ -70,7 +70,6 @@ register_concept!(
     LocalStorageSetup,
     RemoteStorageSetup,
     ReplicationStorageSetup,
-    ComputedFromLocalData,
     StorageSetup,
     Storage,
     BigQueryStorage,
