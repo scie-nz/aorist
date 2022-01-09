@@ -11,9 +11,11 @@ use derivative::Derivative;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
 use aorist_primitives::AUuid;
+use abi_stable::StableAbi;
 
+#[repr(C)]
 #[cfg_attr(feature = "python", pyo3::prelude::pyclass)]
-#[derive(PartialEq, Debug, Eq, Clone, Hash, Serialize, Deserialize)]
+#[derive(PartialEq, Debug, Eq, Clone, Hash, Serialize, Deserialize, StableAbi)]
 pub struct GDPRStakeholder {
     name: AString,
     street_address: AString,
@@ -25,8 +27,9 @@ pub struct GDPRStakeholder {
     external_organization_name: AOption<AString>,
 }
 
+#[repr(C)]
 #[cfg_attr(feature = "python", pyo3::prelude::pyclass)]
-#[derive(PartialEq, Debug, Eq, Clone, Hash, Serialize, Deserialize)]
+#[derive(PartialEq, Debug, Eq, Clone, Hash, Serialize, Deserialize, StableAbi)]
 pub struct GDPRDataProcessingPurpose {
     main_purpose: AString,
     sub_purposes: AOption<AVec<AString>>,
@@ -36,8 +39,9 @@ pub struct GDPRDataProcessingPurpose {
 macro_rules! gdpr_data_type {
     ($name:ident
      $(, $field: ident : $field_type: ty)*) => {
+        #[repr(C)]
         #[cfg_attr(feature = "python", pyo3::prelude::pyclass)]
-        #[derive(Hash, PartialEq, Eq, Clone, Debug, Serialize, Deserialize)]
+        #[derive(Hash, PartialEq, Eq, Clone, Debug, Serialize, Deserialize, StableAbi)]
         pub struct $name {
             description: AString,
             $(
@@ -77,7 +81,8 @@ gdpr_data_type! {SexLifeAndOrientationData}
 
 gdpr_data_type! {CriminalConvictionAndOffenceData}
 
-#[derive(PartialEq, Debug, Eq, Clone, Hash, Serialize, Deserialize)]
+#[repr(C)]
+#[derive(PartialEq, Debug, Eq, Clone, Hash, Serialize, Deserialize, StableAbi)]
 pub enum GDPRPersonalDataCategory {
     PersonalIdentificationData(PersonalIdentificationData),
     PersonalLifeData(PersonalLifeData),
@@ -96,7 +101,8 @@ pub enum GDPRPersonalDataCategory {
     CriminalConvictionAndOffenceData(CriminalConvictionAndOffenceData),
 }
 
-#[derive(PartialEq, Debug, Eq, Clone, Hash, Serialize, Deserialize)]
+#[repr(C)]
+#[derive(PartialEq, Debug, Eq, Clone, Hash, Serialize, Deserialize, StableAbi)]
 pub enum GDPRDataSubjectCategory {
     Employees(AString),
     InternalServices(AString),
@@ -108,7 +114,8 @@ pub enum GDPRDataSubjectCategory {
     Other(AString),
 }
 
-#[derive(PartialEq, Debug, Eq, Clone, Hash, Serialize, Deserialize)]
+#[repr(C)]
+#[derive(PartialEq, Debug, Eq, Clone, Hash, Serialize, Deserialize, StableAbi)]
 pub enum GDPRDataProcessingRecipient {
     InternalDepartment(AString),
     Processor(AString),
@@ -117,8 +124,9 @@ pub enum GDPRDataProcessingRecipient {
     Other(AString),
 }
 
+#[repr(C)]
 #[cfg_attr(feature = "python", pyo3::prelude::pyclass)]
-#[derive(PartialEq, Debug, Eq, Clone, Hash, Serialize, Deserialize)]
+#[derive(PartialEq, Debug, Eq, Clone, Hash, Serialize, Deserialize, StableAbi)]
 pub struct GDPRProcessorRecord {
     unique_short_name: AString,
     name_of_processing_operation: AString,
@@ -133,8 +141,9 @@ pub struct GDPRProcessorRecord {
     data_processing_recipients: AVec<GDPRDataProcessingRecipient>,
 }
 
+#[repr(C)]
 #[cfg_attr(feature = "python", pyo3::prelude::pyclass)]
-#[derive(PartialEq, Debug, Eq, Clone, Hash, Serialize, Deserialize)]
+#[derive(PartialEq, Debug, Eq, Clone, Hash, Serialize, Deserialize, StableAbi)]
 pub struct GDPRSecurityMeasuresStatement {
     traceability: AVec<AString>,
     software_protection: AVec<AString>,
@@ -145,7 +154,8 @@ pub struct GDPRSecurityMeasuresStatement {
     other: AVec<AString>,
 }
 
-#[derive(PartialEq, Debug, Eq, Clone, Hash, Serialize, Deserialize)]
+#[repr(C)]
+#[derive(PartialEq, Debug, Eq, Clone, Hash, Serialize, Deserialize, StableAbi)]
 pub enum GDPRDataTransferGuarantee {
     StandardContractualClauses(AString),
     BindingCorporateRules(AString),
@@ -156,8 +166,9 @@ pub enum GDPRDataTransferGuarantee {
     DerogationsPerArticle49GDPR(AString),
 }
 
+#[repr(C)]
 #[cfg_attr(feature = "python", pyo3::prelude::pyclass)]
-#[derive(PartialEq, Debug, Eq, Clone, Hash, Serialize, Deserialize)]
+#[derive(PartialEq, Debug, Eq, Clone, Hash, Serialize, Deserialize, StableAbi)]
 pub struct GDPRThirdPartyCountryOrInternationalOrganizationTransferRecord {
     recipient_organization_name: AString,
     iso_3166_2c_country_code: AString,

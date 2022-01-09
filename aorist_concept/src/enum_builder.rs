@@ -53,7 +53,7 @@ impl Builder for EnumBuilder {
                   #(
                       T: [<CanBe #variant>],
                   )*
-              T: Debug + Clone + Serialize + PartialEq,
+              T: Debug + Clone + Serialize + PartialEq + abi_stable::StableAbi,
                 {
                     match &self {
                         #(
@@ -70,7 +70,7 @@ impl Builder for EnumBuilder {
         let variant = &self.variant_idents;
         let py_class_name = format!("{}", enum_name);
         Ok(proc_macro::TokenStream::from(quote! { paste! {
-          pub trait [<CanBe #enum_name>]: Debug + Clone + Serialize + PartialEq {
+          pub trait [<CanBe #enum_name>]: Debug + Clone + Serialize + PartialEq + abi_stable::StableAbi {
               fn [<construct_ #enum_name:snake:lower>] (
                   obj_ref: AoristRef<#enum_name>,
                   ix: AOption<usize>,

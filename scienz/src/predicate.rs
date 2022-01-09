@@ -1,8 +1,8 @@
 #[cfg(feature = "sql")]
 use crate::attributes::AttrMap;
 use crate::attributes::AttributeOrValue;
-
-use abi_stable::std_types::ROption;
+use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
+use abi_stable::std_types::{ROption};
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
 use aorist_primitives::AOption;
@@ -16,8 +16,10 @@ use serde::{Deserialize, Serialize};
 use sqlparser::ast::{BinaryOperator, Expr};
 use std::fmt::Debug;
 use aorist_primitives::AUuid;
+use abi_stable::StableAbi;
 
-#[derive(Hash, PartialEq, Eq, Debug, Serialize, Deserialize, Clone)]
+#[repr(C)]
+#[derive(Hash, PartialEq, Eq, Debug, Serialize, Deserialize, Clone, StableAbi)]
 #[cfg_attr(feature = "python", derive(FromPyObject))]
 pub enum Operator {
     GtEq(AString),
@@ -39,48 +41,62 @@ impl Operator {
         }
     }
 }
-#[derive(Hash, PartialEq, Eq, Debug, Serialize, Deserialize, Clone)]
+#[repr(C)]
+#[derive(Hash, PartialEq, Eq, Debug, Serialize, Deserialize, Clone, StableAbi)]
 #[cfg_attr(feature = "python", derive(FromPyObject))]
 pub enum PredicateInnerOrTerminal {
-    PredicateTerminal(AttributeOrValue),
-    PredicateInner(Box<PredicateInner>),
+    PredicateTerminal(AoristRef<AttributeOrValue>),
+    PredicateInner(AoristRef<PredicateInner>),
 }
 impl PredicateInnerOrTerminal {
     #[cfg(feature = "sql")]
     pub fn try_from(x: Expr, attr: &AttrMap) -> Result<Self, AString> {
         match x {
-            Expr::BinaryOp { .. } => Ok(Self::PredicateInner(Box::new(PredicateInner::try_from(
-                x, attr,
-            )?))),
+            Expr::BinaryOp { .. } => Ok(
+                Self::PredicateInner(
+                    AoristRef(RArc::new(RRwLock::new(
+                        PredicateInner::try_from(
+                            x, attr,
+                        )?
+                    )))
+                 )
+            ),
             Expr::Identifier { .. } | Expr::CompoundIdentifier { .. } | Expr::Value { .. } => Ok(
-                Self::PredicateTerminal(AttributeOrValue::try_from(x, attr)?),
+                Self::PredicateInner(
+                    AoristRef(RArc::new(RRwLock::new(
+                        AttributeOrValue::try_from(
+                            x, attr,
+                        )?
+                    )))
+                 )
             ),
             _ => Err("Only Binary operators, identifiers or values supported as nodes".into()),
         }
     }
     pub fn as_sql(&self) -> AString {
         match &self {
-            PredicateInnerOrTerminal::PredicateTerminal(x) => x.as_sql(),
+            PredicateInnerOrTerminal::PredicateTerminal(x) => x.0.read().as_sql(),
             PredicateInnerOrTerminal::PredicateInner(x) => {
-                format!("({})", x.as_sql()).as_str().into()
+                format!("({})", x.0.read().as_sql()).as_str().into()
             }
         }
     }
 }
+#[repr(C)]
 #[cfg_attr(feature = "python", pyclass)]
-#[derive(Hash, PartialEq, Eq, Debug, Serialize, Deserialize, Clone)]
+#[derive(Hash, PartialEq, Eq, Debug, Serialize, Deserialize, Clone, StableAbi)]
 pub struct PredicateInner {
     operator: Operator,
     left: PredicateInnerOrTerminal,
     right: PredicateInnerOrTerminal,
 }
-#[cfg(feature = "python")]
-impl<'a> FromPyObject<'a> for Box<PredicateInner> {
+/*#[cfg(feature = "python")]
+impl<'a> FromPyObject<'a> for AoristRef<PredicateInner> {
     fn extract(ob: &'a PyAny) -> PyResult<Self> {
         let inner = PredicateInner::extract(ob)?;
-        Ok(Box::new(inner))
+        Ok(AoristRef(RArc::new(RRwLock::new(inner))))
     }
-}
+}*/
 impl PredicateInner {
     #[cfg(feature = "sql")]
     fn try_from(x: Expr, attr: &AttrMap) -> Result<Self, AString> {

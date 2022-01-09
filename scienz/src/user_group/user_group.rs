@@ -16,17 +16,9 @@ use aorist_primitives::AUuid;
 pub struct UserGroup {
     name: AString,
     members: AVec<AString>,
-    labels: BTreeMap<AString, AString>,
+    labels: AVec<AString>,
     description: AOption<AString>,
     users: AVec<AoristRef<User>>,
-}
-pub trait TUserGroup {
-    fn get_labels(&self) -> &BTreeMap<AString, AString>;
-}
-impl TUserGroup for UserGroup {
-    fn get_labels(&self) -> &BTreeMap<AString, AString> {
-        &self.labels
-    }
 }
 impl TAoristObject for UserGroup {
     fn get_name(&self) -> &AString {

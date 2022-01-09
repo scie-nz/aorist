@@ -324,7 +324,7 @@ impl Builder for StructBuilder {
                   #(
                       T: [<CanBe #types>],
                   )*
-              T: Debug + Clone + Serialize + PartialEq,
+              T: Debug + Clone + Serialize + PartialEq + abi_stable::StableAbi,
                 {
                     match self {
                         #(
@@ -1038,7 +1038,7 @@ impl Builder for StructBuilder {
                     }
                 }
             }
-            pub trait [<CanBe #struct_name>]: Debug + Clone + Serialize + PartialEq {
+            pub trait [<CanBe #struct_name>]: Debug + Clone + Serialize + PartialEq + abi_stable::StableAbi {
                 fn [<construct_ #struct_name:snake:lower>](
                     obj_ref: AoristRef<#struct_name>,
                     ix: AOption<usize>,

@@ -1,5 +1,6 @@
 #![allow(dead_code)]
 use abi_stable::std_types::ROption;
+use abi_stable::StableAbi;
 use aorist_primitives::AOption;
 use indoc::formatdoc;
 use num::Float;
@@ -10,7 +11,8 @@ use sqlparser::ast::{ColumnDef, DataType, Expr, Ident, Value};
 pub trait TValue {}
 use aorist_primitives::AString;
 
-#[derive(Hash, PartialEq, Eq, Debug, Serialize, Deserialize, Clone)]
+#[repr(C)]
+#[derive(Hash, PartialEq, Eq, Debug, Serialize, Deserialize, Clone, StableAbi)]
 #[cfg_attr(feature = "python", derive(FromPyObject))]
 pub struct IntegerValue {
     inner: i64,
@@ -26,42 +28,27 @@ impl IntegerValue {
         format!("{}", self.inner).as_str().into()
     }
 }
-#[derive(Hash, PartialEq, Eq, Debug, Serialize, Deserialize, Clone)]
+#[repr(C)]
+#[derive(Hash, PartialEq, Eq, Debug, Serialize, Deserialize, Clone, StableAbi)]
 #[cfg_attr(feature = "python", derive(FromPyObject))]
 pub struct StringValue {
-    inner: String,
+    inner: AString,
 }
 impl StringValue {
     pub fn from(inner: String) -> Self {
-        Self { inner }
+        Self { inner: inner.as_str().into() }
     }
     pub fn as_sql(&self) -> AString {
         format!("\"{}\"", self.inner).as_str().into()
     }
 }
-#[derive(Hash, PartialEq, Eq, Debug, Serialize, Deserialize, Clone, Copy)]
+#[repr(C)]
+#[derive(Hash, PartialEq, Eq, Debug, Serialize, Deserialize, Clone, Copy, StableAbi)]
 pub struct FloatValue {
     sign: i8,
     mantissa: u64,
     exponent: i16,
 }
-/*#[cfg(feature = "python")]
-impl pyo3::callback::IntoPyCallbackOutput<FloatValue> for Result<FloatValue, pyo3::PyErr> {
-    #[inline]
-    fn convert(self, _: Python) -> PyResult<FloatValue> {
-        Ok(self.unwrap())
-    }
-}
-#[cfg(feature = "python")]
-impl pyo3::callback::IntoPyCallbackOutput<FloatValue> for FloatValue {
-    #[inline]
-    fn convert(self, _: Python) -> PyResult<FloatValue> {
-        Ok(self)
-    }
-}
-impl pyo3::callback::PyCallbackOutput for FloatValue {
-    const ERR_VALUE: Self = Self { sign: -2, mantissa: 0, exponent: 0 };
-}*/
 #[cfg(feature = "python")]
 impl std::convert::From<&pyo3::types::PyFloat> for FloatValue {
     fn from(x: &pyo3::types::PyFloat) -> Self {
@@ -138,7 +125,8 @@ impl TValue for IntegerValue {}
 impl TValue for StringValue {}
 impl TValue for FloatValue {}
 
-#[derive(Hash, PartialEq, Eq, Debug, Serialize, Deserialize, Clone)]
+#[repr(C)]
+#[derive(Hash, PartialEq, Eq, Debug, Serialize, Deserialize, Clone, StableAbi)]
 #[cfg_attr(feature = "python", derive(FromPyObject))]
 pub enum AttributeValue {
     IntegerValue(IntegerValue),
@@ -171,7 +159,7 @@ impl AttributeValue {
 
 pub trait TAttribute
 where
-    Self::Value: TValue,
+    Self::Value: TValue + StableAbi,
 {
     type Value;
     fn get_name(&self) -> AString;

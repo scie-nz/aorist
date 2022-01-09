@@ -5,6 +5,9 @@ use aorist_attributes::{
     AttributeValue, TAttribute, TBigQueryAttribute, TOrcAttribute, TPostgresAttribute,
     TPrestoAttribute, TSQLiteAttribute,
 };
+use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
+use abi_stable::std_types::{RArc};
+use abi_stable::StableAbi;
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
 use aorist_primitives::AOption;
@@ -64,7 +67,8 @@ impl WrappedAttribute {
         }
     }
 }
-#[derive(Hash, PartialEq, Eq, Debug, Serialize, Deserialize, Clone)]
+#[repr(C)]
+#[derive(Hash, PartialEq, Eq, Debug, Serialize, Deserialize, Clone, StableAbi)]
 pub enum AttributeOrValue {
     Attribute(Attribute),
     Value(AttributeValue),
@@ -99,8 +103,9 @@ impl AttributeOrValue {
     }
 }
 
+#[repr(C)]
 #[cfg_attr(feature = "python", pyclass)]
-#[derive(Hash, PartialEq, Eq, Debug, Serialize, Deserialize, Clone)]
+#[derive(Hash, PartialEq, Eq, Debug, Serialize, Deserialize, Clone, StableAbi)]
 pub struct IdentityTransform {
     attribute: AttributeOrTransform,
     name: AString,
@@ -136,7 +141,8 @@ impl IdentityTransform {
     }
 }
 
-#[derive(Hash, PartialEq, Eq, Debug, Serialize, Deserialize, Clone)]
+#[repr(C)]
+#[derive(Hash, PartialEq, Eq, Debug, Serialize, Deserialize, Clone, StableAbi)]
 pub enum Transform {
     IdentityTransform(IdentityTransform),
 }
@@ -212,19 +218,20 @@ impl Transform {
     }
 }
 
-#[derive(Hash, PartialEq, Eq, Debug, Serialize, Deserialize, Clone)]
+#[repr(C)]
+#[derive(Hash, PartialEq, Eq, Debug, Serialize, Deserialize, Clone, StableAbi)]
 pub enum AttributeOrTransform {
-    Attribute(AttributeEnum),
-    Transform(Box<Transform>),
+    Attribute(AoristRef<AttributeEnum>),
+    Transform(AoristRef<Transform>),
 }
 
 #[cfg(feature = "python")]
 impl<'a> FromPyObject<'a> for AttributeOrTransform {
     fn extract(obj: &'a PyAny) -> PyResult<Self> {
         if let Ok(x) = AttributeEnum::extract(obj) {
-            return Ok(Self::Attribute(x));
-        } else if let Ok(x) = Box::<Transform>::extract(obj) {
-            return Ok(Self::Transform(x));
+            return Ok(Self::Attribute(AoristRef(RArc::new(RRwLock::new(x)))));
+        } else if let Ok(x) = Transform::extract(obj) {
+            return Ok(Self::Transform(AoristRef(RArc::new(RRwLock::new(x)))));
         }
         Err(PyValueError::new_err("could not convert enum arm."))
     }
@@ -233,8 +240,8 @@ impl<'a> FromPyObject<'a> for AttributeOrTransform {
 impl IntoPy<PyObject> for AttributeOrTransform {
     fn into_py(self, py: Python) -> PyObject {
         match self {
-            Self::Attribute(x) => x.into_py(py),
-            Self::Transform(x) => x.into_py(py),
+            Self::Attribute(x) => x.0.read().clone().into_py(py),
+            Self::Transform(x) => x.0.read().clone().into_py(py),
         }
     }
 }
@@ -249,7 +256,7 @@ impl AttributeOrTransform {
     #[cfg(feature = "python")]
     pub fn get_py_type(&self) -> PyResult<pyo3::prelude::PyObject> {
         match &self {
-            AttributeOrTransform::Attribute(x) => x.get_py_type(),
+            AttributeOrTransform::Attribute(x) => x.0.read().get_py_type(),
             AttributeOrTransform::Transform(_) => {
                 Err(PyValueError::new_err("called py_type on a transform"))
             }
@@ -257,32 +264,36 @@ impl AttributeOrTransform {
     }
     pub fn get_name(&self) -> AString {
         match &self {
-            AttributeOrTransform::Attribute(x) => x.get_name(),
-            AttributeOrTransform::Transform(x) => x.get_name(),
+            AttributeOrTransform::Attribute(x) => x.0.read().get_name(),
+            AttributeOrTransform::Transform(x) => x.0.read().get_name(),
         }
     }
     pub fn get_type(&self) -> AString {
         match &self {
-            AttributeOrTransform::Attribute(x) => x.get_type(),
-            AttributeOrTransform::Transform(x) => x.get_type(),
+            AttributeOrTransform::Attribute(x) => x.0.read().get_type(),
+            AttributeOrTransform::Transform(x) => x.0.read().get_type(),
         }
     }
     pub fn is_nullable(&self) -> bool {
         match &self {
-            AttributeOrTransform::Attribute(x) => x.is_nullable(),
-            AttributeOrTransform::Transform(x) => x.is_nullable(),
+            AttributeOrTransform::Attribute(x) => x.0.read().is_nullable(),
+            AttributeOrTransform::Transform(x) => x.0.read().is_nullable(),
         }
     }
     pub fn is_key_type(&self) -> bool {
         match &self {
-            AttributeOrTransform::Attribute(x) => x.is_key_type(),
+            AttributeOrTransform::Attribute(x) => x.0.read().is_key_type(),
             AttributeOrTransform::Transform(_) => false,
         }
     }
     pub fn as_predicted_objective(&self) -> Result<Self, AString> {
         match &self {
             AttributeOrTransform::Attribute(x) => {
-                Ok(AttributeOrTransform::Attribute(x.as_predicted_objective()))
+                Ok(AttributeOrTransform::Attribute(AoristRef(
+                    RArc::new(RRwLock::new(
+                        x.0.read().as_predicted_objective()
+                    ))
+                 )))
             }
             AttributeOrTransform::Transform(_) => {
                 Err("Transforms cannot be predicted objectives".into())
@@ -291,58 +302,59 @@ impl AttributeOrTransform {
     }
     pub fn get_comment(&self) -> AOption<AString> {
         match &self {
-            AttributeOrTransform::Attribute(x) => x.get_comment(),
-            AttributeOrTransform::Transform(x) => x.get_comment(),
+            AttributeOrTransform::Attribute(x) => x.0.read().get_comment(),
+            AttributeOrTransform::Transform(x) => x.0.read().get_comment(),
         }
     }
     #[cfg(feature = "sql")]
     pub fn get_sql_type(&self) -> DataType {
         match &self {
-            AttributeOrTransform::Attribute(x) => x.get_sql_type(),
-            AttributeOrTransform::Transform(x) => x.get_sql_type(),
+            AttributeOrTransform::Attribute(x) => x.0.read().get_sql_type(),
+            AttributeOrTransform::Transform(x) => x.0.read().get_sql_type(),
         }
     }
     pub fn get_presto_type(&self) -> AString {
         match &self {
-            AttributeOrTransform::Attribute(x) => x.get_presto_type(),
-            AttributeOrTransform::Transform(x) => x.get_presto_type(),
+            AttributeOrTransform::Attribute(x) => x.0.read().get_presto_type(),
+            AttributeOrTransform::Transform(x) => x.0.read().get_presto_type(),
         }
     }
     pub fn get_orc_type(&self) -> AString {
         match &self {
-            AttributeOrTransform::Attribute(x) => x.get_orc_type(),
-            AttributeOrTransform::Transform(x) => (*x).get_orc_type(),
+            AttributeOrTransform::Attribute(x) => x.0.read().get_orc_type(),
+            AttributeOrTransform::Transform(x) => x.0.read().get_orc_type(),
         }
     }
     pub fn get_sqlite_type(&self) -> AString {
         match &self {
-            AttributeOrTransform::Attribute(x) => x.get_sqlite_type(),
-            AttributeOrTransform::Transform(x) => (*x).get_sqlite_type(),
+            AttributeOrTransform::Attribute(x) => x.0.read().get_sqlite_type(),
+            AttributeOrTransform::Transform(x) => x.0.read().get_sqlite_type(),
         }
     }
     pub fn get_postgres_type(&self) -> AString {
         match &self {
-            AttributeOrTransform::Attribute(x) => x.get_postgres_type(),
-            AttributeOrTransform::Transform(x) => (*x).get_postgres_type(),
+            AttributeOrTransform::Attribute(x) => x.0.read().get_postgres_type(),
+            AttributeOrTransform::Transform(x) => x.0.read().get_postgres_type(),
         }
     }
     pub fn psycopg2_value_json_serializable(&self) -> bool {
         match &self {
-            AttributeOrTransform::Attribute(x) => x.psycopg2_value_json_serializable(),
+            AttributeOrTransform::Attribute(x) => x.0.read().psycopg2_value_json_serializable(),
             _ => panic!("Should only be called for Attributes"),
         }
     }
     pub fn get_bigquery_type(&self) -> AString {
         match &self {
-            AttributeOrTransform::Attribute(x) => x.get_bigquery_type(),
-            AttributeOrTransform::Transform(x) => (*x).get_bigquery_type(),
+            AttributeOrTransform::Attribute(x) => x.0.read().get_bigquery_type(),
+            AttributeOrTransform::Transform(x) => x.0.read().get_bigquery_type(),
         }
     }
     pub fn is_temporal_dimension(&self) -> bool {
         match self {
-            AttributeOrTransform::Attribute(AttributeEnum::FromPostgresTimestampWithTimeZone(
-                _,
-            )) => true,
+            AttributeOrTransform::Attribute(x) => match *x.0.read() {
+                AttributeEnum::FromPostgresTimestampWithTimeZone(_) => true,
+                _ => false,
+            },
             _ => false,
         }
     }

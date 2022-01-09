@@ -25,102 +25,27 @@ use aorist_primitives::AUuid;
 pub struct IntegerMeasure {
     pub name: AString,
     pub comment: AOption<AString>,
-    #[constrainable]
-    pub attributes: AVec<AoristRef<Attribute>>,
-    pub source_asset_name: AString,
 }
 
 impl TDatumTemplate for IntegerMeasure {
     fn get_attributes(&self) -> AVec<AoristRef<Attribute>> {
-        let mut attr = self.attributes.clone();
-        let frequency_attribute = self.get_frequency_attribute();
-        attr.push(frequency_attribute);
-        attr
+        AVec::new()
     }
     fn get_name(&self) -> AString {
         self.name.clone()
-    }
-}
-impl IntegerMeasure {
-    pub fn get_frequency_attribute(&self) -> AoristRef<Attribute> {
-        AoristRef(RArc::new(RRwLock::new(Attribute {
-            inner: AttributeOrTransform::Attribute(AttributeEnum::Count(Count {
-                name: self.name.clone(),
-                comment: self.comment.clone(),
-                nullable: false,
-            })),
-            tag: AOption(ROption::RNone),
-            uuid: AOption(ROption::RNone),
-        })))
     }
 }
 #[aorist]
 pub struct TrainedFloatMeasure {
     pub name: AString,
     pub comment: AOption<AString>,
-    #[constrainable]
-    pub features: AVec<AoristRef<Attribute>>,
-    #[constrainable]
-    pub objective: AoristRef<Attribute>,
-    pub source_asset_name: AString,
 }
 impl TDatumTemplate for TrainedFloatMeasure {
     fn get_attributes(&self) -> AVec<AoristRef<Attribute>> {
-        let mut attr = self.features.clone();
-        let prediction_attribute = self.get_prediction_attribute();
-        attr.push(prediction_attribute);
-        attr.push(AoristRef(RArc::new(RRwLock::new(Attribute {
-            inner: AttributeOrTransform::Attribute(AttributeEnum::Regressor(
-                self.get_regressor_as_attribute().clone(),
-            )),
-            tag: AOption(ROption::RNone),
-            uuid: AOption(ROption::RNone),
-        }))));
-
-        attr
+        AVec::new()
     }
     fn get_name(&self) -> AString {
         self.name.clone()
-    }
-}
-
-impl TrainedFloatMeasure {
-    pub fn get_prediction_attribute(&self) -> AoristRef<Attribute> {
-        AoristRef(RArc::new(RRwLock::new(Attribute {
-            inner: AttributeOrTransform::Attribute(AttributeEnum::FloatPrediction(
-                FloatPrediction {
-                    name: self.name.clone(),
-                    comment: self.comment.clone(),
-                    nullable: false,
-                },
-            )),
-            tag: AOption(ROption::RNone),
-            uuid: AOption(ROption::RNone),
-        })))
-    }
-    pub fn get_training_objective(&self) -> AoristRef<Attribute> {
-        self.objective.clone()
-    }
-    pub fn get_regressor_as_attribute(&self) -> Regressor {
-        Regressor {
-            name: "model".into(),
-            comment: AOption(ROption::RSome("A serialized version of the model".into())),
-            nullable: false,
-        }
-    }
-    pub fn get_model_storage_tabular_schema(&self) -> TabularSchema {
-        TabularSchema {
-            datum_template: AoristRef(RArc::new(RRwLock::new(DatumTemplate::TrainedFloatMeasure(
-                AoristRef(RArc::new(RRwLock::new(self.clone()))),
-            )))),
-            attributes: self
-                .features
-                .iter()
-                .map(|x| x.0.read().inner.get_name().clone())
-                .collect(),
-            tag: AOption(ROption::RNone),
-            uuid: AOption(ROption::RNone),
-        }
     }
 }
 
@@ -128,25 +53,18 @@ impl TrainedFloatMeasure {
 pub struct PredictionsFromTrainedFloatMeasure {
     pub name: AString,
     pub comment: AOption<AString>,
-    #[constrainable]
-    pub features: AVec<AoristRef<Attribute>>,
-    #[constrainable]
-    pub objective: AoristRef<Attribute>,
 }
 impl PredictionsFromTrainedFloatMeasure {
     pub fn get_name(&self) -> AString {
         self.name.clone()
-    }
-    pub fn get_attributes(&self) -> AVec<AoristRef<Attribute>> {
-        let mut attr = self.features.clone();
-        let prediction_attribute = self.objective.clone();
-        attr.push(prediction_attribute);
-        attr
     }
     pub fn get_model_asset_role(&self) -> String {
         "model".into()
     }
     pub fn get_source_asset_role(&self) -> String {
         "source".into()
+    }
+    pub fn get_attributes(&self) -> AVec<AoristRef<Attribute>> {
+        AVec::new()
     }
 }

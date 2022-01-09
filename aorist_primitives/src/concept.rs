@@ -181,7 +181,7 @@ pub trait ConceptEnum {
     fn uuid(&self) -> AOption<AUuid>;
 }
 
-pub trait AoristConceptBase: Clone + Debug + Serialize + PartialEq {
+pub trait AoristConceptBase: Clone + Debug + Serialize + PartialEq + StableAbi {
     type TChildrenEnum: ConceptEnum;
     fn get_uuid(&self) -> AOption<AUuid>;
     fn set_uuid(&mut self, uuid: AUuid);
@@ -247,7 +247,7 @@ pub trait AoristConcept {
     fn py_object(&self, py: pyo3::Python) -> pyo3::PyResult<pyo3::PyObject>;
 }
 
-pub trait ToplineConcept: Sized + Clone {
+pub trait ToplineConcept: Sized + Clone + StableAbi {
     type TUniverse: AoristConcept + AoristUniverse;
     fn get_parent_id(&self) -> AOption<(AUuid, AString)>;
     fn get_type(&self) -> AString;
@@ -258,7 +258,7 @@ pub trait ToplineConcept: Sized + Clone {
     fn populate_child_concept_map(&self, concept_map: &mut HashMap<(AUuid, AString), Self>);
     fn from_universe(universe: Self::TUniverse) -> Self;
 }
-pub trait ToplineConceptBase: Sized + Clone + Debug + Serialize + PartialEq {
+pub trait ToplineConceptBase: Sized + Clone + Debug + Serialize + PartialEq + StableAbi {
     type TUniverse: AoristConcept + AoristUniverse;
     fn get_parent_id(&self) -> AOption<(AUuid, AString)>;
     fn get_type(&self) -> AString;
@@ -289,7 +289,7 @@ pub trait TAoristObject {
 
 #[repr(C)]
 #[derive(StableAbi)]
-pub struct AoristRef<T: PartialEq + Serialize + Debug + Clone>(pub RArc<RRwLock<T>>);
+pub struct AoristRef<T: PartialEq + Serialize + Debug + Clone + StableAbi>(pub RArc<RRwLock<T>>);
 
 #[repr(C)]
 #[derive(StableAbi, PartialEq, Ord, Eq, PartialOrd, Hash, Debug, Clone, Serialize)]
@@ -327,7 +327,7 @@ impl std::fmt::Display for AUuid {
     }
 }
 
-impl<T: PartialEq + Serialize + Debug + Clone + AoristConceptBase> AoristConcept for AoristRef<T> {
+impl<T: PartialEq + Serialize + Debug + Clone + AoristConceptBase + StableAbi> AoristConcept for AoristRef<T> {
     type TChildrenEnum = <T as AoristConceptBase>::TChildrenEnum;
     fn get_uuid(&self) -> AOption<AUuid> {
         self.0.read().get_uuid()
@@ -375,7 +375,7 @@ impl<T: PartialEq + Serialize + Debug + Clone + AoristConceptBase> AoristConcept
 }
 
 #[cfg(feature = "python")]
-impl<'a, T: PartialEq + Serialize + Debug + Clone + FromPyObject<'a>> FromPyObject<'a>
+impl<'a, T: PartialEq + Serialize + Debug + Clone + FromPyObject<'a> + StableAbi> FromPyObject<'a>
     for AoristRef<T>
 {
     fn extract(ob: &'a PyAny) -> PyResult<Self> {
@@ -383,13 +383,13 @@ impl<'a, T: PartialEq + Serialize + Debug + Clone + FromPyObject<'a>> FromPyObje
     }
 }
 
-impl<T: PartialEq + Eq + Serialize + Debug + Clone> PartialEq for AoristRef<T> {
+impl<T: PartialEq + Eq + Serialize + Debug + Clone + StableAbi> PartialEq for AoristRef<T> {
     fn eq(&self, other: &Self) -> bool {
         self.0.read().eq(&other.0.read())
     }
 }
-impl<T: PartialEq + Eq + Serialize + Debug + Clone> Eq for AoristRef<T> {}
-impl<T: PartialEq + Serialize + Debug + Clone> Serialize for AoristRef<T> {
+impl<T: PartialEq + Eq + Serialize + Debug + Clone + StableAbi> Eq for AoristRef<T> {}
+impl<T: PartialEq + Serialize + Debug + Clone + StableAbi> Serialize for AoristRef<T> {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
@@ -397,7 +397,7 @@ impl<T: PartialEq + Serialize + Debug + Clone> Serialize for AoristRef<T> {
         self.0.read().serialize(serializer)
     }
 }
-impl<'de, T: Deserialize<'de> + PartialEq + Serialize + Debug + Clone> Deserialize<'de>
+impl<'de, T: Deserialize<'de> + PartialEq + Serialize + Debug + Clone + StableAbi> Deserialize<'de>
     for AoristRef<T>
 {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
@@ -408,23 +408,23 @@ impl<'de, T: Deserialize<'de> + PartialEq + Serialize + Debug + Clone> Deseriali
         Ok(Self(RArc::new(RRwLock::new(d))))
     }
 }
-impl<T: Clone + Debug + Serialize + PartialEq> Clone for AoristRef<T> {
+impl<T: Clone + Debug + Serialize + PartialEq + StableAbi> Clone for AoristRef<T> {
     fn clone(&self) -> Self {
         Self(self.0.clone())
     }
 }
-impl<T: Debug + Clone + Serialize + PartialEq> Debug for AoristRef<T> {
+impl<T: Debug + Clone + Serialize + PartialEq + StableAbi> Debug for AoristRef<T> {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), std::fmt::Error> {
         self.0.read().fmt(f)
     }
 }
-impl<T: Clone + Debug + Serialize + PartialEq + AoristConceptBase> ConceptEnum for AoristRef<T> {
+impl<T: Clone + Debug + Serialize + PartialEq + AoristConceptBase + StableAbi> ConceptEnum for AoristRef<T> {
     fn uuid(&self) -> AOption<AUuid> {
         self.0.read().get_uuid()
     }
 }
 
-impl<T: Debug + Clone + Serialize + PartialEq> Hash for AoristRef<T>
+impl<T: Debug + Clone + Serialize + PartialEq + StableAbi> Hash for AoristRef<T>
 where
     T: Hash,
 {
@@ -432,7 +432,7 @@ where
         self.0.read().hash(state);
     }
 }
-impl<T: Debug + Clone + Serialize + PartialEq + ToplineConceptBase + AoristConceptBase>
+impl<T: Debug + Clone + Serialize + PartialEq + ToplineConceptBase + AoristConceptBase + StableAbi>
     ToplineConcept for AoristRef<T>
 {
     type TUniverse = <T as ToplineConceptBase>::TUniverse;
@@ -462,7 +462,7 @@ impl<T: Debug + Clone + Serialize + PartialEq + ToplineConceptBase + AoristConce
     }
 }
 // note: both Universe and EndpointConfig must exist
-impl<T: Debug + Clone + Serialize + PartialEq + AoristUniverseBase> AoristUniverse
+impl<T: Debug + Clone + Serialize + PartialEq + AoristUniverseBase + StableAbi> AoristUniverse
     for AoristRef<T>
 {
     type TEndpoints = <T as AoristUniverseBase>::TEndpoints;

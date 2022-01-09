@@ -86,7 +86,7 @@ pub trait TConceptBuilder {
                 let quoted = quote! {
                     #[repr(C)]
                     #[derive(
-                        Derivative, Serialize, Deserialize, Clone, Hash,
+                        Derivative, Serialize, Deserialize, Clone, Hash, abi_stable::StableAbi
                     )]
                     #[derivative(PartialEq, Debug, Eq)]
                     #ast
@@ -104,7 +104,7 @@ pub trait TConceptBuilder {
                 let variant_type = variants.iter().map(|x| (&x.fields)).collect::<Vec<_>>();
                 let quoted = quote! {
                     #[repr(C)]
-                    #[derive(Debug, PartialEq, Serialize, Deserialize, Clone, Hash, Eq)]
+                    #[derive(Debug, PartialEq, Serialize, Deserialize, Clone, Hash, Eq, abi_stable::StableAbi)]
                     #[serde(tag = "type")]
                     pub enum #enum_name {
                         #(#variant(#variant_type)),*

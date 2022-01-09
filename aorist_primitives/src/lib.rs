@@ -356,6 +356,7 @@ macro_rules! define_attribute {
       $pyo3_type: ty
     ) => {
         aorist_paste::item! {
+            #[repr(C)]
             #[cfg_attr(feature = "python", pyclass(module = "aorist"))]
             #[derive(
                 Hash,
@@ -370,6 +371,7 @@ macro_rules! define_attribute {
                 $sqlite_type,
                 $postgres_type,
                 $bigquery_type,
+                abi_stable::StableAbi
             )]
             #[cfg_attr(feature = "sql", derive($sql_type))]
             pub struct $element {
@@ -732,7 +734,8 @@ macro_rules! define_constraint {
 #[macro_export]
 macro_rules! register_attribute_new {
     ( $name:ident, $($element: ident),+ ) => { paste! {
-        #[derive(Hash, PartialEq, Eq, Debug, Serialize, Deserialize, Clone)]
+        #[repr(C)]
+        #[derive(Hash, PartialEq, Eq, Debug, Serialize, Deserialize, Clone, abi_stable::StableAbi)]
         pub enum [<$name Enum>] {
             $(
                 $element($element),
@@ -1795,15 +1798,24 @@ macro_rules! export_aorist_python_module {
 #[macro_export]
 macro_rules! attribute {
     {$attribute: ident ( $name: expr, $comment: expr, $nullable: expr ) } => {
-        AoristRef(abi_stable::std_types::RArc::new(abi_stable::external_types::parking_lot::rw_lock::RRwLock::new(Attribute {
-            inner: AttributeOrTransform::Attribute(AttributeEnum::$attribute($attribute {
-                name: $name,
-                comment: $comment,
-                nullable: $nullable,
-            })),
+        Attribute {
+            inner: AttributeOrTransform::Attribute(
+                AoristRef(
+                    abi_stable::std_types::RArc::new(
+                        abi_stable::external_types::parking_lot::rw_lock::RRwLock::new(
+                            AttributeEnum::$attribute($attribute {
+                                name: $name,
+                                comment: $comment,
+                                nullable: $nullable,
+                            })
+                        )
+                    )
+                )
+            ),
             tag: AOption(ROption::RNone),
             uuid: AOption(ROption::RNone),
-        })))
+        }
+        //)))
     }
 }
 #[macro_export]
@@ -1993,11 +2005,17 @@ macro_rules! schema {
         impl $name {
             pub fn get_attributes(&self) -> AVec<AoristRef<Attribute>> {
                 vec![$($(
-                    attribute! { $attribute(
-                        stringify!($attr_name).into(),
-                        AOption(ROption::RSome($comment.into())),
-                        $nullable
-                    )},
+                    AoristRef(
+                        abi_stable::std_types::RArc::new(
+                            abi_stable::external_types::parking_lot::rw_lock::RRwLock::new(
+                                attribute! { $attribute(
+                                    stringify!($attr_name).into(),
+                                    AOption(ROption::RSome($comment.into())),
+                                    $nullable
+                                )}
+                            )
+                        )
+                    ),
                 )+)?].into_iter().collect()
             }
             pub fn get_key(&self) -> AVec<AoristRef<Attribute>> {
