@@ -1,6 +1,5 @@
 use crate::encoding::*;
 use crate::storage::*;
-use crate::storage_setup::computed_from_local_data::*;
 use crate::storage_setup::local_storage_setup::*;
 use crate::storage_setup::remote_storage_setup::*;
 use crate::storage_setup::replication_storage_setup::*;
@@ -24,8 +23,6 @@ pub enum StorageSetup {
     #[constrainable]
     ReplicationStorageSetup(AoristRef<ReplicationStorageSetup>),
     #[constrainable]
-    ComputedFromLocalData(AoristRef<ComputedFromLocalData>),
-    #[constrainable]
     RemoteStorageSetup(AoristRef<RemoteStorageSetup>),
     #[constrainable]
     LocalStorageSetup(AoristRef<LocalStorageSetup>),
@@ -38,7 +35,6 @@ impl StorageSetup {
         match self {
             Self::RemoteStorageSetup(_) => vec![].into_iter().collect(),
             Self::ReplicationStorageSetup(x) => x.0.read().targets.clone(),
-            Self::ComputedFromLocalData(x) => vec![x.0.read().target.clone()].into_iter().collect(),
             Self::LocalStorageSetup(x) => vec![x.0.read().local.clone()].into_iter().collect(),
             Self::TwoTierStorageSetup(x) => {
                 vec![x.0.read().scratch.clone(), x.0.read().persistent.clone()]
@@ -51,7 +47,6 @@ impl StorageSetup {
         match self {
             Self::ReplicationStorageSetup(x) => x.0.read().tmp_dir.clone(),
             Self::RemoteStorageSetup(x) => x.0.read().tmp_dir.as_ref().unwrap().clone(),
-            Self::ComputedFromLocalData(x) => x.0.read().tmp_dir.clone(),
             Self::LocalStorageSetup(x) => x.0.read().tmp_dir.clone(),
             Self::TwoTierStorageSetup(x) => x.0.read().tmp_dir.clone(),
         }

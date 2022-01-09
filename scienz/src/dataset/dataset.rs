@@ -6,7 +6,6 @@ use aorist_primitives::{AoristConcept, AoristConceptBase, AoristRef, ConceptEnum
 use crate::encoding::*;
 #[cfg(feature = "python")]
 use crate::storage::*;
-use crate::storage_setup::*;
 use crate::template::*;
 #[cfg(feature = "python")]
 use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
@@ -24,7 +23,6 @@ use pyo3::exceptions::PyValueError;
 #[cfg(feature = "python")]
 use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
-use std::collections::BTreeMap;
 use std::fmt::Debug;
 use aorist_primitives::AUuid;
 
@@ -38,23 +36,18 @@ pub struct DataSet {
     #[constrainable]
     pub datum_templates: AVec<AoristRef<DatumTemplate>>,
     #[constrainable]
-    pub assets: BTreeMap<AString, AoristRef<Asset>>,
+    pub assets: AVec<AoristRef<Asset>>,
 }
 
 impl DataSet {
     pub fn add_asset(&mut self, asset: AoristRef<Asset>) {
-        self.assets.insert(asset.0.read().get_name(), asset.clone());
+        self.assets.push(asset);
     }
     pub fn add_template(&mut self, template: AoristRef<DatumTemplate>) {
         self.datum_templates.push(template);
     }
     pub fn get_assets(&self) -> AVec<AoristRef<Asset>> {
-        self.assets
-            .values()
-            .collect::<AVec<_>>()
-            .iter()
-            .map(|x| (*x).clone())
-            .collect()
+        self.assets.clone()
     }
 
     pub fn get_templates(&self) -> AVec<AoristRef<DatumTemplate>> {
@@ -81,9 +74,12 @@ impl DataSet {
         }
     }
 
+    /// Note: this lookup is O(N)
     pub fn get_asset(&self, name: AString) -> Result<AoristRef<Asset>, AString> {
-        if let Some(asset) = self.assets.get(&name) {
-            return Ok(asset.clone());
+        for asset in self.assets.iter() {
+            if asset.0.read().get_name() == name {
+                return Ok(asset.clone())
+            }
         }
         Err(
             format!("Could not find asset {} in dataset {}.", name, self.name)
@@ -92,17 +88,6 @@ impl DataSet {
         )
     }
 
-    // TODO: should reference identifier tuple
-    pub fn get_source_assets(
-        &self,
-        setup: AoristRef<ComputedFromLocalData>,
-    ) -> Result<BTreeMap<AString, AoristRef<Asset>>, AString> {
-        let mut assets = BTreeMap::new();
-        for name in setup.0.read().source_asset_names.values() {
-            assets.insert(name.clone(), self.get_asset(name.clone())?);
-        }
-        Ok(assets)
-    }
 }
 
 impl TAoristObject for DataSet {
@@ -151,11 +136,10 @@ impl PyDataSet {
     }
     pub fn persist_local(&self, storage: PyStorage) -> PyResult<Self> {
         let dt = &*self.inner.0.read();
-        let mut persisted_assets = BTreeMap::new();
-        for (key, asset_rw) in dt.assets.iter() {
+        let mut persisted_assets = AVec::new();
+        for asset_rw in dt.assets.iter() {
             let asset = &*asset_rw.0.read();
-            persisted_assets.insert(
-                key.clone(),
+            persisted_assets.push(
                 AoristRef(RArc::new(RRwLock::new(
                     asset.persist_local(storage.inner.deep_clone()),
                 ))),
@@ -180,8 +164,8 @@ impl PyDataSet {
         tmp_encoding: PyEncoding,
     ) -> PyResult<Self> {
         let dt = &*self.inner.0.read();
-        let mut replicated_assets = BTreeMap::new();
-        for (key, asset_rw) in dt.assets.iter() {
+        let mut replicated_assets = AVec::new();
+        for asset_rw in dt.assets.iter() {
             let asset = &*asset_rw.0.read();
             let replicated_asset = match asset.replicate_to_local(
                 storage.inner.deep_clone(),
@@ -191,7 +175,7 @@ impl PyDataSet {
                 Some(x) => AoristRef(RArc::new(RRwLock::new(x))),
                 None => asset_rw.clone(),
             };
-            replicated_assets.insert(key.clone(), replicated_asset);
+            replicated_assets.push(replicated_asset);
         }
         let inner = AoristRef(RArc::new(RRwLock::new(DataSet {
             name: dt.name.clone(),
