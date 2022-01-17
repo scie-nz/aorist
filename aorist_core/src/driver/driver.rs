@@ -16,6 +16,7 @@ use abi_stable::external_types::parking_lot::rw_lock::{RReadGuard, RRwLock};
 use abi_stable::std_types::RArc;
 use anyhow::Result;
 use aorist_ast::{AncestorRecord, SimpleIdentifier, AST};
+use aorist_primitives::AUuid;
 use aorist_primitives::{AString, AVec, TAoristObject};
 use aorist_primitives::{Ancestry, AoristConcept, AoristUniverse, ToplineConcept};
 use inflector::cases::snakecase::to_snake_case;
@@ -23,7 +24,6 @@ use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
 use std::collections::{HashMap, HashSet, VecDeque};
 use tracing::{debug, level_enabled, trace, Level};
-use aorist_primitives::AUuid;
 
 pub type ConstraintsBlockMap<'a, C, P> = LinkedHashMap<
     AString,
@@ -157,7 +157,10 @@ where
         }
     }
     fn init_tasks_dict(
-        block: &LinkedHashMap<(AUuid, AString), RArc<RRwLock<ConstraintState<'a, B::OuterType, P>>>>,
+        block: &LinkedHashMap<
+            (AUuid, AString),
+            RArc<RRwLock<ConstraintState<'a, B::OuterType, P>>>,
+        >,
         constraint_name: AString,
     ) -> AOption<AST> {
         match block.len() == 1 {
@@ -400,8 +403,10 @@ where
     fn add_block(&mut self, constraint_block: Self::CB);
     fn satisfy_constraints(&mut self) -> Result<()> {
         let mut unsatisfied_constraints = self.init_unsatisfied_constraints()?;
-        let mut reverse_dependencies: HashMap<(AUuid, AString), HashSet<(AString, AUuid, AString)>> =
-            HashMap::new();
+        let mut reverse_dependencies: HashMap<
+            (AUuid, AString),
+            HashSet<(AString, AUuid, AString)>,
+        > = HashMap::new();
         for (name, (_, constraints)) in &unsatisfied_constraints {
             for ((uuid, root_type), state) in constraints {
                 for (dependency_uuid, dependency_root_type) in

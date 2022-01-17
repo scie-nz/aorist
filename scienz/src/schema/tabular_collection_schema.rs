@@ -3,13 +3,14 @@ use aorist_primitives::AOption;
 
 use crate::asset::*;
 use crate::attributes::*;
-use aorist_primitives::{AoristConcept, AoristConceptBase, AoristRef, ConceptEnum};
 use crate::template::*;
 use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 use abi_stable::std_types::RArc;
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
+use aorist_primitives::AUuid;
 use aorist_primitives::{AString, AVec};
+use aorist_primitives::{AoristConcept, AoristConceptBase, AoristRef, ConceptEnum};
 use derivative::Derivative;
 use linked_hash_map::LinkedHashMap;
 #[cfg(feature = "python")]
@@ -17,7 +18,6 @@ use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fmt::Debug;
-use aorist_primitives::AUuid;
 
 #[aorist]
 pub struct TabularCollectionSchema {

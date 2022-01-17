@@ -2,10 +2,12 @@
 use crate::attributes::AttrMap;
 use crate::attributes::AttributeOrValue;
 use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
-use abi_stable::std_types::{ROption};
+use abi_stable::std_types::ROption;
+use abi_stable::StableAbi;
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
 use aorist_primitives::AOption;
+use aorist_primitives::AUuid;
 use aorist_primitives::AoristRef;
 use aorist_primitives::{AString, AVec, AoristConcept, AoristConceptBase, ConceptEnum};
 use derivative::Derivative;
@@ -15,8 +17,6 @@ use serde::{Deserialize, Serialize};
 #[cfg(feature = "sql")]
 use sqlparser::ast::{BinaryOperator, Expr};
 use std::fmt::Debug;
-use aorist_primitives::AUuid;
-use abi_stable::StableAbi;
 
 #[repr(C)]
 #[derive(Hash, PartialEq, Eq, Debug, Serialize, Deserialize, Clone, StableAbi)]
@@ -52,24 +52,14 @@ impl PredicateInnerOrTerminal {
     #[cfg(feature = "sql")]
     pub fn try_from(x: Expr, attr: &AttrMap) -> Result<Self, AString> {
         match x {
-            Expr::BinaryOp { .. } => Ok(
-                Self::PredicateInner(
-                    AoristRef(RArc::new(RRwLock::new(
-                        PredicateInner::try_from(
-                            x, attr,
-                        )?
-                    )))
-                 )
-            ),
-            Expr::Identifier { .. } | Expr::CompoundIdentifier { .. } | Expr::Value { .. } => Ok(
-                Self::PredicateInner(
-                    AoristRef(RArc::new(RRwLock::new(
-                        AttributeOrValue::try_from(
-                            x, attr,
-                        )?
-                    )))
-                 )
-            ),
+            Expr::BinaryOp { .. } => Ok(Self::PredicateInner(AoristRef(RArc::new(RRwLock::new(
+                PredicateInner::try_from(x, attr)?,
+            ))))),
+            Expr::Identifier { .. } | Expr::CompoundIdentifier { .. } | Expr::Value { .. } => {
+                Ok(Self::PredicateInner(AoristRef(RArc::new(RRwLock::new(
+                    AttributeOrValue::try_from(x, attr)?,
+                )))))
+            }
             _ => Err("Only Binary operators, identifiers or values supported as nodes".into()),
         }
     }

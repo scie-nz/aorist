@@ -36,7 +36,9 @@ pub struct StringValue {
 }
 impl StringValue {
     pub fn from(inner: String) -> Self {
-        Self { inner: inner.as_str().into() }
+        Self {
+            inner: inner.as_str().into(),
+        }
     }
     pub fn as_sql(&self) -> AString {
         format!("\"{}\"", self.inner).as_str().into()

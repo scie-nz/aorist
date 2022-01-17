@@ -10,12 +10,12 @@ use abi_stable::std_types::RArc;
 use aorist_attributes::{Count, FloatPrediction, Regressor};
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
+use aorist_primitives::AUuid;
 use aorist_primitives::AoristRef;
 use aorist_primitives::{AString, AVec, AoristConcept, AoristConceptBase, ConceptEnum};
 use derivative::Derivative;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
-use aorist_primitives::AUuid;
 
 /// An integer-valued measure for the density of attribute
 /// combinations. For example, a count in a histogram.

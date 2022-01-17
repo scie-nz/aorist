@@ -1,18 +1,17 @@
 use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 use abi_stable::std_types::{RArc, ROption};
-use scienz::*;
+use aorist_primitives::AUuid;
 pub use aorist_primitives::{
-    register_concept, AOption, AString, AVec, Ancestry, AoristConcept, AoristConceptBase,
+    register_concept, AConcept, AOption, AString, AVec, Ancestry, AoristConcept, AoristConceptBase,
     AoristRef, AoristUniverse, AoristUniverseBase, ConceptEnum, ToplineConcept, ToplineConceptBase,
-    AConcept,
 };
 #[cfg(feature = "python")]
 use pyo3::prelude::*;
+use scienz::*;
 use serde::Serialize;
 use std::collections::HashMap;
 use std::fmt::Debug;
 use tracing::debug;
-use aorist_primitives::AUuid;
 register_concept!(
     Concept,
     ConceptAncestry,

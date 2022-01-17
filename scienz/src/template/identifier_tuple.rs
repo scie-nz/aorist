@@ -6,11 +6,11 @@ use aorist_primitives::{AString, AVec, AoristConcept, AoristConceptBase, Concept
 use crate::template::datum_template::TDatumTemplate;
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
+use aorist_primitives::AUuid;
 use aorist_primitives::AoristRef;
 use derivative::Derivative;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
-use aorist_primitives::AUuid;
 
 #[aorist]
 pub struct IdentifierTuple {

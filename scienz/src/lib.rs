@@ -1,7 +1,7 @@
 #![allow(unused_parens)]
-mod attributes;
 mod access_policy;
 mod asset;
+mod attributes;
 mod compliance;
 mod compression;
 mod dataset;
@@ -22,9 +22,9 @@ mod universe;
 mod user;
 mod user_group;
 
-pub use attributes::*;
 pub use access_policy::*;
 pub use asset::*;
+pub use attributes::*;
 pub use compliance::*;
 pub use compression::*;
 pub use dataset::*;

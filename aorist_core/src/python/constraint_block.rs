@@ -8,11 +8,11 @@ use crate::python::PythonBasedCodeBlock;
 use crate::python::{Assignment, Dict, PythonFlowBuilderInput, PythonImport, PythonPreamble, AST};
 use abi_stable::std_types::ROption;
 use aorist_primitives::AOption;
+use aorist_primitives::AUuid;
 use aorist_primitives::{AString, AVec, AoristUniverse};
 use linked_hash_map::LinkedHashMap;
 use std::collections::HashMap;
 use std::marker::PhantomData;
-use aorist_primitives::AUuid;
 
 pub struct PythonBasedConstraintBlock<'a, T, C, U, P>
 where

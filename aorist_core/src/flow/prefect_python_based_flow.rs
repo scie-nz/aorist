@@ -1,5 +1,4 @@
 use crate::dialect::Dialect;
-use scienz::AoristError;
 use crate::flow::etl_flow::ETLFlow;
 use crate::flow::flow_builder::FlowBuilderBase;
 use crate::flow::python_based_flow::PythonBasedFlow;
@@ -19,6 +18,7 @@ use aorist_primitives::AOption;
 use aorist_primitives::TPrestoEndpoints;
 use aorist_primitives::{AString, AVec, AoristUniverse};
 use linked_hash_map::LinkedHashMap;
+use scienz::AoristError;
 use std::hash::{Hash, Hasher};
 use std::marker::PhantomData;
 

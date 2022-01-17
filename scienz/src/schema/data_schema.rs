@@ -2,7 +2,6 @@ use abi_stable::std_types::ROption;
 use aorist_primitives::AOption;
 
 use crate::attributes::*;
-use aorist_primitives::{AoristConcept, AoristConceptBase, AoristRef, ConceptEnum};
 use crate::error::AoristError;
 use crate::schema::geospatial_asset_schema::*;
 use crate::schema::graph_asset_schema::*;
@@ -16,14 +15,15 @@ use crate::schema::vision_asset_schema::*;
 use crate::template::*;
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
+use aorist_primitives::AUuid;
 use aorist_primitives::{AString, AVec};
+use aorist_primitives::{AoristConcept, AoristConceptBase, AoristRef, ConceptEnum};
 #[cfg(feature = "python")]
 use pyo3::exceptions::PyValueError;
 #[cfg(feature = "python")]
 use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
-use aorist_primitives::AUuid;
 
 #[aorist]
 pub enum DataSchema {

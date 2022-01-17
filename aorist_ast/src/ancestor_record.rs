@@ -1,9 +1,9 @@
 use abi_stable::std_types::ROption;
 use aorist_primitives::AOption;
 use aorist_primitives::AString;
+use aorist_primitives::AUuid;
 use aorist_primitives::AVec;
 use inflector::cases::snakecase::to_snake_case;
-use aorist_primitives::AUuid;
 
 #[derive(Clone, PartialEq, Eq, Hash, Debug)]
 pub struct AncestorRecord {

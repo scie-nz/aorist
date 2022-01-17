@@ -13,13 +13,13 @@ use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 use abi_stable::std_types::RArc;
 use anyhow::Result;
 use aorist_ast::AncestorRecord;
+use aorist_primitives::AUuid;
 use aorist_primitives::OuterConstraint;
 use aorist_primitives::TConstraintEnum;
 use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
 use std::collections::HashMap;
 use std::marker::PhantomData;
-use aorist_primitives::AUuid;
 
 pub struct RBasedDriver<'a, 'b, D, C>
 where

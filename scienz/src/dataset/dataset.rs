@@ -1,7 +1,6 @@
 #![allow(dead_code)]
 use crate::access_policy::*;
 use crate::asset::*;
-use aorist_primitives::{AoristConcept, AoristConceptBase, AoristRef, ConceptEnum};
 #[cfg(feature = "python")]
 use crate::encoding::*;
 #[cfg(feature = "python")]
@@ -15,7 +14,9 @@ use abi_stable::std_types::ROption;
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
 use aorist_primitives::AOption;
+use aorist_primitives::AUuid;
 use aorist_primitives::{AString, AVec, TAoristObject};
+use aorist_primitives::{AoristConcept, AoristConceptBase, AoristRef, ConceptEnum};
 use derivative::Derivative;
 use linked_hash_map::LinkedHashMap;
 #[cfg(feature = "python")]
@@ -24,7 +25,6 @@ use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
-use aorist_primitives::AUuid;
 
 #[aorist]
 pub struct DataSet {
@@ -78,7 +78,7 @@ impl DataSet {
     pub fn get_asset(&self, name: AString) -> Result<AoristRef<Asset>, AString> {
         for asset in self.assets.iter() {
             if asset.0.read().get_name() == name {
-                return Ok(asset.clone())
+                return Ok(asset.clone());
             }
         }
         Err(
@@ -87,7 +87,6 @@ impl DataSet {
                 .into(),
         )
     }
-
 }
 
 impl TAoristObject for DataSet {
@@ -139,11 +138,9 @@ impl PyDataSet {
         let mut persisted_assets = AVec::new();
         for asset_rw in dt.assets.iter() {
             let asset = &*asset_rw.0.read();
-            persisted_assets.push(
-                AoristRef(RArc::new(RRwLock::new(
-                    asset.persist_local(storage.inner.deep_clone()),
-                ))),
-            );
+            persisted_assets.push(AoristRef(RArc::new(RRwLock::new(
+                asset.persist_local(storage.inner.deep_clone()),
+            ))));
         }
         let inner = AoristRef(RArc::new(RRwLock::new(DataSet {
             name: dt.name.clone(),

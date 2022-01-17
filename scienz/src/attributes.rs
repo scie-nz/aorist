@@ -1,16 +1,17 @@
+use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
+use abi_stable::std_types::RArc;
 use abi_stable::std_types::ROption;
+use abi_stable::StableAbi;
 #[cfg(feature = "sql")]
 use aorist_attributes::TSQLAttribute;
 use aorist_attributes::{
     AttributeValue, TAttribute, TBigQueryAttribute, TOrcAttribute, TPostgresAttribute,
     TPrestoAttribute, TSQLiteAttribute,
 };
-use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
-use abi_stable::std_types::{RArc};
-use abi_stable::StableAbi;
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
 use aorist_primitives::AOption;
+use aorist_primitives::AUuid;
 use aorist_primitives::AoristRef;
 use aorist_primitives::{AString, AVec, AoristConcept, AoristConceptBase, ConceptEnum};
 use derivative::Derivative;
@@ -25,7 +26,6 @@ use sqlparser::ast::{DataType, Expr};
 #[cfg(feature = "sql")]
 use std::collections::HashMap;
 use std::fmt::Debug;
-use aorist_primitives::AUuid;
 include!(concat!(env!("OUT_DIR"), "/attributes.rs"));
 
 #[cfg(feature = "sql")]
@@ -288,13 +288,9 @@ impl AttributeOrTransform {
     }
     pub fn as_predicted_objective(&self) -> Result<Self, AString> {
         match &self {
-            AttributeOrTransform::Attribute(x) => {
-                Ok(AttributeOrTransform::Attribute(AoristRef(
-                    RArc::new(RRwLock::new(
-                        x.0.read().as_predicted_objective()
-                    ))
-                 )))
-            }
+            AttributeOrTransform::Attribute(x) => Ok(AttributeOrTransform::Attribute(AoristRef(
+                RArc::new(RRwLock::new(x.0.read().as_predicted_objective())),
+            ))),
             AttributeOrTransform::Transform(_) => {
                 Err("Transforms cannot be predicted objectives".into())
             }

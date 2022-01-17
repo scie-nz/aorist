@@ -1,5 +1,4 @@
 use crate::attributes::*;
-use aorist_primitives::{AoristConcept, AoristConceptBase, AoristRef, ConceptEnum};
 use crate::schema::adjacent_polygons_schema::*;
 use crate::schema::gdal_fillnodata_schema::*;
 use crate::schema::labeled_point_cloud_schema::*;
@@ -43,12 +42,13 @@ use abi_stable::std_types::ROption;
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
 use aorist_primitives::AOption;
+use aorist_primitives::AUuid;
 use aorist_primitives::{schema_enum, AString, AVec};
+use aorist_primitives::{AoristConcept, AoristConceptBase, AoristRef, ConceptEnum};
 #[cfg(feature = "python")]
 use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
-use aorist_primitives::AUuid;
 
 schema_enum! {
     name: GeospatialAssetSchema

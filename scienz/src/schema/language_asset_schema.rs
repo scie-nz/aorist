@@ -1,5 +1,4 @@
 use crate::attributes::*;
-use aorist_primitives::{AoristConcept, AoristConceptBase, AoristRef, ConceptEnum};
 use crate::schema::fasttext_embedding_schema::*;
 use crate::schema::named_entity_schema::*;
 use crate::schema::text_corpus_schema::*;
@@ -8,12 +7,13 @@ use abi_stable::std_types::ROption;
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
 use aorist_primitives::AOption;
+use aorist_primitives::AUuid;
 use aorist_primitives::{AString, AVec};
+use aorist_primitives::{AoristConcept, AoristConceptBase, AoristRef, ConceptEnum};
 #[cfg(feature = "python")]
 use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
-use aorist_primitives::AUuid;
 
 #[aorist]
 pub enum LanguageAssetSchema {

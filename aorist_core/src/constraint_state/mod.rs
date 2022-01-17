@@ -9,13 +9,13 @@ use abi_stable::std_types::ROption;
 use anyhow::{bail, Result};
 use aorist_ast::{AncestorRecord, Formatted, SimpleIdentifier, StringLiteral, AST};
 use aorist_primitives::AOption;
+use aorist_primitives::AUuid;
 use aorist_primitives::{AString, AVec, Context, ToplineConcept};
 use inflector::cases::snakecase::to_snake_case;
 use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
 use std::collections::{HashMap, HashSet};
 use tracing::{debug, level_enabled, trace, Level};
-use aorist_primitives::AUuid;
 
 pub struct ConstraintState<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry = T::TAncestry>> {
     dialect: AOption<Dialect>,

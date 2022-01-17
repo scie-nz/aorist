@@ -3,15 +3,15 @@ use aorist_primitives::AOption;
 /* Following prescribed Record of Processing Activity by cnil.fr.
 See: https://www.cnil.fr/en/record-processing-activities */
 
+use abi_stable::StableAbi;
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
+use aorist_primitives::AUuid;
 use aorist_primitives::AoristRef;
 use aorist_primitives::{AString, AVec, AoristConcept, AoristConceptBase, ConceptEnum};
 use derivative::Derivative;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
-use aorist_primitives::AUuid;
-use abi_stable::StableAbi;
 
 #[repr(C)]
 #[cfg_attr(feature = "python", pyo3::prelude::pyclass)]

@@ -3,7 +3,6 @@ use crate::asset::graph_asset::*;
 use crate::asset::language_asset::*;
 use crate::asset::static_data_table::*;
 use crate::asset::vision_asset::*;
-use aorist_primitives::{AoristConcept, AoristConceptBase, AoristRef, ConceptEnum};
 use crate::encoding::Encoding;
 #[cfg(feature = "python")]
 use crate::encoding::PyEncoding;
@@ -16,12 +15,13 @@ use abi_stable::std_types::ROption;
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
 use aorist_primitives::AOption;
+use aorist_primitives::AUuid;
 use aorist_primitives::{asset_enum, AString, AVec};
+use aorist_primitives::{AoristConcept, AoristConceptBase, AoristRef, ConceptEnum};
 #[cfg(feature = "python")]
 use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
-use aorist_primitives::AUuid;
 
 pub trait TAsset {
     fn get_name(&self) -> AString;

@@ -10,11 +10,11 @@ use abi_stable::std_types::ROption;
 use anyhow::Result;
 use aorist_ast::{SimpleIdentifier, StringLiteral, Subscript, AST};
 use aorist_primitives::AOption;
+use aorist_primitives::AUuid;
 use aorist_primitives::{AString, AVec, AoristUniverse};
 use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
 use std::collections::{BTreeSet, HashMap, HashSet};
-use aorist_primitives::AUuid;
 
 pub trait CodeBlock<'a, T, C, U, P>
 where

@@ -1,8 +1,8 @@
+use crate::concept::{AOption, AString};
+use abi_stable::std_types::ROption;
 #[cfg(feature = "python")]
 use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
-use crate::concept::{AString, AOption};
-use abi_stable::std_types::ROption;
 
 #[repr(C)]
 #[cfg_attr(feature = "python", pyclass)]

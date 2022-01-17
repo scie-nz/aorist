@@ -7,9 +7,9 @@ use pyo3::prelude::*;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use siphasher::sip128::{Hasher128, SipHasher};
 use std::collections::{BTreeSet, HashMap};
+use std::convert::TryInto;
 use std::fmt::{Debug, Formatter};
 use std::hash::{Hash, Hasher};
-use std::convert::TryInto;
 
 #[repr(C)]
 #[cfg_attr(feature = "python", pyclass)]
@@ -304,12 +304,15 @@ impl AUuid {
         Self(AString::new(&uuid.to_string()))
     }
     pub fn as_bytes(&self) -> uuid::Bytes {
-        self.0.clone().into_bytes()
-			.into_vec()
+        self.0
+            .clone()
+            .into_bytes()
+            .into_vec()
             .try_into()
-        	.unwrap_or_else(|v: Vec<u8>| panic!("Expected a Vec of length 16 but it was {}", v.len()))
+            .unwrap_or_else(|v: Vec<u8>| {
+                panic!("Expected a Vec of length 16 but it was {}", v.len())
+            })
     }
-
 }
 impl<'de> Deserialize<'de> for AUuid {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
@@ -327,7 +330,9 @@ impl std::fmt::Display for AUuid {
     }
 }
 
-impl<T: PartialEq + Serialize + Debug + Clone + AoristConceptBase + StableAbi> AoristConcept for AoristRef<T> {
+impl<T: PartialEq + Serialize + Debug + Clone + AoristConceptBase + StableAbi> AoristConcept
+    for AoristRef<T>
+{
     type TChildrenEnum = <T as AoristConceptBase>::TChildrenEnum;
     fn get_uuid(&self) -> AOption<AUuid> {
         self.0.read().get_uuid()
@@ -418,7 +423,9 @@ impl<T: Debug + Clone + Serialize + PartialEq + StableAbi> Debug for AoristRef<T
         self.0.read().fmt(f)
     }
 }
-impl<T: Clone + Debug + Serialize + PartialEq + AoristConceptBase + StableAbi> ConceptEnum for AoristRef<T> {
+impl<T: Clone + Debug + Serialize + PartialEq + AoristConceptBase + StableAbi> ConceptEnum
+    for AoristRef<T>
+{
     fn uuid(&self) -> AOption<AUuid> {
         self.0.read().get_uuid()
     }
@@ -432,8 +439,9 @@ where
         self.0.read().hash(state);
     }
 }
-impl<T: Debug + Clone + Serialize + PartialEq + ToplineConceptBase + AoristConceptBase + StableAbi>
-    ToplineConcept for AoristRef<T>
+impl<
+        T: Debug + Clone + Serialize + PartialEq + ToplineConceptBase + AoristConceptBase + StableAbi,
+    > ToplineConcept for AoristRef<T>
 {
     type TUniverse = <T as ToplineConceptBase>::TUniverse;
     fn get_parent_id(&self) -> AOption<(AUuid, AString)> {
@@ -476,23 +484,15 @@ pub trait AoristUniverseBase {
 }
 #[repr(C)]
 #[derive(Clone, Serialize, Debug, StableAbi, PartialEq, Eq)]
-pub struct AConcept<
-    T: Debug + Clone + Serialize + PartialEq + StableAbi + AoristConceptBase + Eq
->{
+pub struct AConcept<T: Debug + Clone + Serialize + PartialEq + StableAbi + AoristConceptBase + Eq> {
     obj_ref: AoristRef<T>,
     index_as_child: usize,
     parent_uuid: AOption<AUuid>,
     parent_id: AOption<AString>,
 }
-impl <
-    T: Debug + Clone + Serialize + PartialEq + StableAbi + AoristConceptBase + Eq
-> AConcept<T> {
-    pub fn new(
-        obj_ref: AoristRef<T>,
-        ix: usize,
-        id: AOption<(AUuid, AString)>
-    ) -> Self {
-        Self { 
+impl<T: Debug + Clone + Serialize + PartialEq + StableAbi + AoristConceptBase + Eq> AConcept<T> {
+    pub fn new(obj_ref: AoristRef<T>, ix: usize, id: AOption<(AUuid, AString)>) -> Self {
+        Self {
             obj_ref,
             index_as_child: ix,
             parent_uuid: id.clone().and_then(|x| ROption::RSome(x.0)),
@@ -505,7 +505,7 @@ impl <
     pub fn get_parent_id(&self) -> AOption<(AUuid, AString)> {
         if let ROption::RSome(ref uuid) = self.parent_uuid.0 {
             if let ROption::RSome(ref id) = self.parent_id.0 {
-                return AOption(ROption::RSome((uuid.clone(), id.clone())))
+                return AOption(ROption::RSome((uuid.clone(), id.clone())));
             } else {
                 panic!("Id was None when uuid was Some(_)");
             }
@@ -526,12 +526,10 @@ impl <
     }
     pub fn deep_clone(&self) -> Self {
         Self {
-            obj_ref: AoristRef(RArc::new(RRwLock::new(
-                self.obj_ref.0.read().deep_clone()
-            ))),
+            obj_ref: AoristRef(RArc::new(RRwLock::new(self.obj_ref.0.read().deep_clone()))),
             index_as_child: self.index_as_child.clone(),
             parent_uuid: self.parent_uuid.clone(),
-            parent_id: self.parent_id.clone()
+            parent_id: self.parent_id.clone(),
         }
     }
     pub fn get_tag(&self) -> AOption<AString> {
