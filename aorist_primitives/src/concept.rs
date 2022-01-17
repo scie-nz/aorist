@@ -475,10 +475,69 @@ pub trait AoristUniverseBase {
     fn get_endpoints(&self) -> Self::TEndpoints;
 }
 #[repr(C)]
-#[derive(Clone, Serialize, Debug, StableAbi)]
-pub struct AConcept<T: Debug + Clone + Serialize + PartialEq + AoristUniverseBase + StableAbi>{
+#[derive(Clone, Serialize, Debug, StableAbi, PartialEq, Eq)]
+pub struct AConcept<
+    T: Debug + Clone + Serialize + PartialEq + StableAbi + AoristConceptBase + Eq
+>{
     obj_ref: AoristRef<T>,
-    ix: AOption<usize>,
-    uuid: AUuid,
-    id: AString,
+    index_as_child: usize,
+    parent_uuid: AOption<AUuid>,
+    parent_id: AOption<AString>,
+}
+impl <
+    T: Debug + Clone + Serialize + PartialEq + StableAbi + AoristConceptBase + Eq
+> AConcept<T> {
+    pub fn new(
+        obj_ref: AoristRef<T>,
+        ix: usize,
+        id: AOption<(AUuid, AString)>
+    ) -> Self {
+        Self { 
+            obj_ref,
+            index_as_child: ix,
+            parent_uuid: id.clone().and_then(|x| ROption::RSome(x.0)),
+            parent_id: id.and_then(|x| ROption::RSome(x.1)),
+        }
+    }
+    pub fn get_index_as_child(&self) -> usize {
+        self.index_as_child
+    }
+    pub fn get_parent_id(&self) -> AOption<(AUuid, AString)> {
+        if let ROption::RSome(ref uuid) = self.parent_uuid.0 {
+            if let ROption::RSome(ref id) = self.parent_id.0 {
+                return AOption(ROption::RSome((uuid.clone(), id.clone())))
+            } else {
+                panic!("Id was None when uuid was Some(_)");
+            }
+        }
+        AOption(ROption::RNone)
+    }
+    pub fn get_reference(&self) -> AoristRef<T> {
+        self.obj_ref.clone()
+    }
+    pub fn get_own_uuid(&self) -> AOption<AUuid> {
+        self.obj_ref.0.read().get_uuid()
+    }
+    pub fn set_uuid(&mut self, uuid: AUuid) {
+        self.obj_ref.0.write().set_uuid(uuid);
+    }
+    pub fn get_uuid(&self) -> AOption<AUuid> {
+        self.obj_ref.0.read().get_uuid()
+    }
+    pub fn deep_clone(&self) -> Self {
+        Self {
+            obj_ref: AoristRef(RArc::new(RRwLock::new(
+                self.obj_ref.0.read().deep_clone()
+            ))),
+            index_as_child: self.index_as_child.clone(),
+            parent_uuid: self.parent_uuid.clone(),
+            parent_id: self.parent_id.clone()
+        }
+    }
+    pub fn get_tag(&self) -> AOption<AString> {
+        self.obj_ref.0.read().get_tag()
+    }
+    pub fn compute_uuids(&mut self) {
+        self.obj_ref.0.write().compute_uuids()
+    }
 }

@@ -688,7 +688,7 @@ macro_rules! define_constraint {
                 fn should_add(root: AoristRef<Concept>, ancestry: &ConceptAncestry) -> bool {
                     let read = root.0.read();
                     match &*read {
-                        Concept::$root((_, _, _)) => Self::_should_add(root.clone(), ancestry),
+                        Concept::$root(_) => Self::_should_add(root.clone(), ancestry),
                         _ => panic!("should_add called with unexpected concept."),
                     }
                 }
@@ -995,10 +995,11 @@ macro_rules! register_attribute_new {
 #[macro_export]
 macro_rules! register_concept {
     ( $name:ident, $ancestry:ident, $($element: ident ),* ) => { aorist_paste::item! {
-        #[derive(Clone, Debug, Serialize, PartialEq)]
+        #[repr(C)]
+        #[derive(Clone, Debug, Serialize, PartialEq, abi_stable::StableAbi)]
         pub enum $name {
             $(
-                $element((AoristRef<$element>, usize, AOption<(AUuid, AString)>)),
+                $element(AConcept<$element>),
             )+
         }
         impl ConceptEnum for $name {
@@ -1012,8 +1013,8 @@ macro_rules! register_concept {
               fn py_object(inner: AoristRef<$name>, py: Python) -> Result<Py<pyo3::PyAny>, pyo3::PyErr> {
                   let object = match &*inner.0.read() {
                       $(
-                          $name::$element((x, _, _)) => PyObject::from(PyCell::new(py, [<Py $element>] {
-                              inner: x.clone(),
+                          $name::$element(x) => PyObject::from(PyCell::new(py, [<Py $element>] {
+                              inner: x.get_reference(),
                           }).unwrap()),
                       )+
                   };
@@ -1022,35 +1023,35 @@ macro_rules! register_concept {
               fn get_uuid(&self) -> AOption<AUuid> {
                   match &self {
                       $(
-                        $name::$element(x) => x.0.get_uuid(),
+                        $name::$element(x) => x.get_own_uuid(),
                       )*
                   }
               }
               fn set_uuid(&mut self, uuid: AUuid) {
                   match self {
                       $(
-                        $name::$element(ref mut x) => x.0.set_uuid(uuid),
+                        $name::$element(ref mut x) => x.set_uuid(uuid),
                       )*
                   }
               }
               fn deep_clone(&self) -> Self {
                   match &self {
                       $(
-                        $name::$element(x) => $name::$element((x.0.deep_clone(), x.1.clone(), x.2.clone())),
+                        $name::$element(x) => $name::$element(x.deep_clone()),
                       )*
                   }
               }
               fn get_tag(&self) -> AOption<AString> {
                   match self {
                       $(
-                        $name::$element(x) => x.0.get_tag(),
+                        $name::$element(x) => x.get_tag(),
                       )*
                   }
               }
               fn compute_uuids(&mut self) {
                   match self {
                       $(
-                        $name::$element(x) => x.0.compute_uuids(),
+                        $name::$element(x) => x.compute_uuids(),
                       )*
                   }
               }
@@ -1089,7 +1090,7 @@ macro_rules! register_concept {
                     ix: AOption<usize>,
                     id: AOption<(AUuid, AString)>
                 ) -> AoristRef<Self> {
-                    AoristRef(RArc::new(RRwLock::new($name::$element((
+                    AoristRef(RArc::new(RRwLock::new($name::$element(AConcept::<$element>::new(
                         obj_ref.clone(),
                         match ix {
                             AOption(ROption::RSome(i)) => i,
@@ -1115,6 +1116,11 @@ macro_rules! register_concept {
                         concepts.push(converted);
                     }
                     concepts
+                }
+            }
+            impl [<$name Descendants>] for AConcept<$element> {
+                fn get_descendants(&self) -> AVec<AoristRef<$name>> {
+                    self.get_reference().get_descendants()
                 }
             }
         )+
@@ -1143,7 +1149,7 @@ macro_rules! register_concept {
                     if root.get_type().as_str() == stringify!($element) {
                         let read = root.0.read();
                         return match *read {
-                            $name::$element((ref y, _, _)) => Ok(y.clone()),
+                            $name::$element(ref x) => Ok(x.get_reference()),
                             _ => Err("Cannot convert.".into()),
                         };
                     }
@@ -1183,51 +1189,53 @@ macro_rules! register_concept {
         impl ToplineConceptBase for $name {
             type TUniverse = AoristRef<Universe>;
             fn build_universe(universe: AoristRef<Universe>) -> Self {
-                $name::Universe((universe, 0, AOption(ROption::RNone)))
+                $name::Universe(AConcept::new(universe, 0, AOption(ROption::RNone)))
             }
             fn get_parent_id(&self) -> AOption<(AUuid, AString)> {
                 match self {
                     $(
-                        $name::$element((_, _, ref id)) => id.clone(),
+                        $name::$element(ref x) => x.get_parent_id(),
                     )+
                 }
             }
             fn get_type(&self) -> AString {
                 match self {
                     $(
-                        $name::$element((ref x, _, _)) => stringify!($element).into(),
+                        $name::$element(x) => stringify!($element).into(),
                     )*
                 }
             }
             fn get_index_as_child(&self) -> usize {
                 match self {
                     $(
-                        $name::$element((_, idx, _)) => idx.clone(),
+                        $name::$element(x) => x.get_index_as_child(),
                     )*
                 }
             }
             fn get_child_concepts(&self) -> AVec<AoristRef<Self>> {
                 match self {
                     $(
-                        $name::$element((ref x, _, _)) => x.get_descendants(),
+                        $name::$element(ref x) => x.get_descendants(),
                     )*
                 }
             }
             fn populate_child_concept_map(&self, concept_map: &mut HashMap<(AUuid, AString), AoristRef<Self>>) {
                 match self {
                     $(
-                        $name::$element((ref x, idx, ref parent)) => {
+                        $name::$element(x) => {
+                            let parent = x.get_parent_id();
+                            let idx = x.get_index_as_child();
                             debug!("Visiting concept {}: {}", stringify!($element), x.get_uuid().unwrap());
                             for child in x.get_descendants() {
                                 child.populate_child_concept_map(concept_map);
                             }
                             concept_map.insert(
                                 (
-                                    x.get_uuid().unwrap(),
+                                    x.get_own_uuid().unwrap(),
                                     stringify!($element).into()
                                  ),
                                  AoristRef(RArc::new(RRwLock::new(
-                                    $name::$element((x.clone(), *idx, parent.clone()))
+                                    $name::$element(x.clone())
                                  ))),
                             );
                         }

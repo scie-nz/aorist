@@ -4,6 +4,7 @@ use scienz::*;
 pub use aorist_primitives::{
     register_concept, AOption, AString, AVec, Ancestry, AoristConcept, AoristConceptBase,
     AoristRef, AoristUniverse, AoristUniverseBase, ConceptEnum, ToplineConcept, ToplineConceptBase,
+    AConcept,
 };
 #[cfg(feature = "python")]
 use pyo3::prelude::*;
