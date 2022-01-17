@@ -4,10 +4,11 @@ use crate::concept::AString;
 use pyo3::prelude::*;
 #[cfg(feature = "python")]
 use std::collections::BTreeSet;
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 #[repr(C)]
 #[cfg_attr(feature = "python", pyclass)]
-#[derive(Debug, Clone, PartialEq, Eq, Hash, StableAbi)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, Hash, StableAbi)]
 pub struct Python {
     pip_requirements: RVec<AString>,
 }
@@ -27,7 +28,7 @@ impl Python {
 
 #[repr(C)]
 #[cfg_attr(feature = "python", pyclass)]
-#[derive(Debug, Clone, PartialEq, Eq, Hash, StableAbi)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, Hash, StableAbi)]
 pub struct R {}
 
 #[cfg(feature = "python")]
@@ -41,7 +42,7 @@ impl R {
 
 #[repr(C)]
 #[cfg_attr(feature = "python", pyclass)]
-#[derive(Debug, Clone, PartialEq, Eq, Hash, StableAbi)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, Hash, StableAbi)]
 pub struct Bash {}
 #[cfg(feature = "python")]
 #[pymethods]
@@ -54,7 +55,7 @@ impl Bash {
 
 #[repr(C)]
 #[cfg_attr(feature = "python", pyclass)]
-#[derive(Debug, Clone, PartialEq, Eq, Hash, StableAbi)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, Hash, StableAbi)]
 pub struct Presto {}
 #[cfg(feature = "python")]
 #[pymethods]
@@ -67,7 +68,7 @@ impl Presto {
 
 #[repr(C)]
 #[cfg_attr(feature = "python", derive(FromPyObject))]
-#[derive(Debug, Clone, PartialEq, Eq, Hash, StableAbi)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, Hash, StableAbi)]
 pub enum Dialect {
     Python(Python),
     R(R),

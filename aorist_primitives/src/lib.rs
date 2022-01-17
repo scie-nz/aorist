@@ -10,6 +10,8 @@ mod dialect;
 pub use dialect::{Dialect, Bash, R, Presto, Python};
 #[cfg(feature = "python")]
 pub use dialect::dialects_module;
+mod program;
+pub use program::*;
 
 #[macro_export]
 macro_rules! register_ast_nodes {
