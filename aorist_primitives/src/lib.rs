@@ -6,6 +6,10 @@ mod endpoints;
 pub use endpoints::*;
 mod context;
 pub use context::*;
+mod dialect;
+pub use dialect::{Dialect, Bash, R, Presto, Python};
+#[cfg(feature = "python")]
+pub use dialect::dialects_module;
 
 #[macro_export]
 macro_rules! register_ast_nodes {

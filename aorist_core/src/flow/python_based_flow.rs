@@ -1,4 +1,4 @@
-use crate::dialect::Dialect;
+use aorist_primitives::Dialect;
 use crate::flow::etl_flow::ETLFlow;
 use crate::python::{NativePythonPreamble, PythonPreamble, RPythonPreamble};
 use abi_stable::std_types::ROption;

@@ -1,4 +1,4 @@
-use crate::dialect::Dialect;
+use aorist_primitives::Dialect;
 use crate::flow::{
     CompressibleTask, CompressionKey, ETLFlow, StandaloneTask, TaskBase, UncompressiblePart,
 };

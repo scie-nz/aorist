@@ -1,4 +1,4 @@
-use crate::dialect::Dialect;
+use aorist_primitives::Dialect;
 use crate::parameter_tuple::ParameterTuple;
 use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 use abi_stable::std_types::RArc;

@@ -1,5 +1,5 @@
 use abi_stable::{std_types::*, StableAbi};
-use aorist_primitives::AString;
+use crate::concept::AString;
 #[cfg(feature = "python")]
 use pyo3::prelude::*;
 #[cfg(feature = "python")]

@@ -1,4 +1,4 @@
-use crate::dialect::Dialect;
+use aorist_primitives::Dialect;
 use crate::flow::etl_flow::ETLFlow;
 use crate::parameter_tuple::{ParameterTuple, ParameterTupleDedupKey};
 use aorist_ast::AST;

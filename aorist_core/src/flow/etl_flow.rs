@@ -1,5 +1,5 @@
 use crate::code::{Import, Preamble};
-use crate::dialect::Dialect;
+use aorist_primitives::Dialect;
 use aorist_ast::AST;
 use aorist_primitives::AOption;
 use aorist_primitives::{AString, AVec, AoristUniverse};

@@ -4,7 +4,7 @@ use aorist_primitives::AOption;
 use crate::constraint::TConstraintEnum;
 use crate::constraint::{OuterConstraint, TBuilder};
 use crate::constraint_state::ConstraintState;
-use crate::dialect::Dialect;
+use aorist_primitives::Dialect;
 use crate::driver::{ConstraintsBlockMap, Driver};
 use crate::flow::{ETLFlow, FlowBuilderBase, PythonBasedFlowBuilder};
 use crate::program::TOuterProgram;

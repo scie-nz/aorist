@@ -1,5 +1,4 @@
 #![allow(unused_parens)]
-pub mod dialect;
 
 mod code;
 mod concept;
@@ -16,8 +15,8 @@ pub use constraint::*;
 pub use constraint_block::*;
 pub use constraint_state::*;
 #[cfg(feature = "python")]
-pub use dialect::dialects_module;
-pub use dialect::{Bash, Dialect, Presto, Python, R};
+pub use aorist_primitives::dialects_module;
+pub use aorist_primitives::{Bash, Dialect, Presto, Python, R};
 pub use driver::*;
 pub use flow::*;
 pub use parameter_tuple::*;

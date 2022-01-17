@@ -1,4 +1,4 @@
-use crate::dialect::Dialect;
+use aorist_primitives::Dialect;
 use crate::flow::CompressionKey;
 use crate::parameter_tuple::ParameterTupleDedupKey;
 use crate::python::AST;

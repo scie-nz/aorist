@@ -7,7 +7,7 @@ use crate::constraint::TConstraintEnum;
 use crate::constraint::{OuterConstraint, TBuilder};
 use crate::constraint_block::ConstraintBlock;
 use crate::constraint_state::ConstraintState;
-use crate::dialect::Dialect;
+use aorist_primitives::Dialect;
 use crate::flow::{FlowBuilderBase, FlowBuilderMaterialize};
 use crate::parameter_tuple::ParameterTuple;
 use crate::program::TOuterProgram;

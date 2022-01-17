@@ -1,7 +1,7 @@
 use aorist_primitives::AOption;
 use abi_stable::std_types::ROption;
 
-use crate::dialect::Dialect;
+use aorist_primitives::Dialect;
 use crate::endpoints::EndpointConfig;
 use crate::flow::{
     CompressibleTask, CompressionKey, ETLFlow, StandaloneTask, TaskBase, UncompressiblePart,

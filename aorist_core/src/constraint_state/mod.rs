@@ -1,6 +1,6 @@
 use crate::concept::Ancestry;
 use crate::constraint::OuterConstraint;
-use crate::dialect::Dialect;
+use aorist_primitives::Dialect;
 use crate::parameter_tuple::ParameterTuple;
 use crate::program::TOuterProgram;
 use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
