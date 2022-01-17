@@ -4,7 +4,7 @@ use crate::concept::AString;
 use pyo3::prelude::*;
 #[cfg(feature = "python")]
 use std::collections::BTreeSet;
-use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use serde::{Deserialize, Serialize};
 
 #[repr(C)]
 #[cfg_attr(feature = "python", pyclass)]

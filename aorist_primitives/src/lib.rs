@@ -514,11 +514,32 @@ macro_rules! define_constraint {
             #[cfg_attr(feature = "python", pyclass(module = "aorist"))]
             #[derive(Clone)]
             pub struct [<$element Program>] {
-                pub dialect: Dialect,
-                pub code: AString,
-                pub entrypoint: AString,
-                pub arg_functions: Vec<(Vec<AString>, AString)>,
-                pub kwarg_functions: LinkedHashMap<AString, (Vec<AString>, AString)>,
+                dialect: Dialect,
+                code: AString,
+                entrypoint: AString,
+                arg_functions: Vec<(Vec<AString>, AString)>,
+                kwarg_functions: LinkedHashMap<AString, (Vec<AString>, AString)>,
+            }
+            impl [<$element Program>] {
+                pub fn new(
+                    code: &str,
+                    entrypoint: &str,
+                    arg_functions: Vec<(Vec<&str>, &str)>,
+                    kwarg_functions: HashMap<&str, (Vec<&str>, &str)>,
+                    dialect: Dialect,
+                ) -> Self {
+                    let mut funs: LinkedHashMap<AString, (Vec<AString>, AString)> = LinkedHashMap::new();
+                    for (k, (v1, v2)) in kwarg_functions.into_iter() {
+                        funs.insert(k.into(), (v1.into_iter().map(|x| x.into()).collect(), v2.into()));
+                    }
+                    Self {
+                        code: code.into(),
+                        entrypoint: entrypoint.into(),
+                        arg_functions: arg_functions.into_iter().map(|(x, y)| (x.into_iter().map(|x| x.into()).collect(), y.into())).collect(),
+                        kwarg_functions: funs,
+                        dialect: dialect,
+                    }
+                }
             }
 
             #[cfg(feature = "python")]
@@ -533,17 +554,13 @@ macro_rules! define_constraint {
                     pip_requirements: Vec<&str>,
                 ) -> PyResult<[<$element Program>]> {
 
-                    let mut funs: LinkedHashMap<AString, (Vec<AString>, AString)> = LinkedHashMap::new();
-                    for (k, (v1, v2)) in kwarg_functions.into_iter() {
-                        funs.insert(k.into(), (v1.into_iter().map(|x| x.into()).collect(), v2.into()));
-                    }
-                    Ok([<$element Program>]{
-                        code: code.into(),
-                        entrypoint: entrypoint.into(),
-                        arg_functions: arg_functions.into_iter().map(|(x, y)| (x.into_iter().map(|x| x.into()).collect(), y.into())).collect(),
-                        kwarg_functions: funs,
-                        dialect: Dialect::Python(aorist_core::Python::new(pip_requirements))
-                    })
+                    Ok([<$element Program>]::new(
+                        code, 
+                        entrypoint, 
+                        arg_functions, 
+                        kwarg_functions, 
+                        Dialect::Python(aorist_core::Python::new(pip_requirements))
+                    ))
                 }
                 #[staticmethod]
                 pub fn register_r_program(
@@ -552,18 +569,13 @@ macro_rules! define_constraint {
                     arg_functions: Vec<(Vec<&str>, &str)>,
                     kwarg_functions: HashMap<&str, (Vec<&str>, &str)>,
                 ) -> PyResult<[<$element Program>]> {
-
-                    let mut funs: LinkedHashMap<AString, (Vec<AString>, AString)> = LinkedHashMap::new();
-                    for (k, (v1, v2)) in kwarg_functions.into_iter() {
-                        funs.insert(k.into(), (v1.into_iter().map(|x| x.into()).collect(), v2.into()));
-                    }
-                    Ok([<$element Program>]{
-                        code: code.into(),
-                        entrypoint: entrypoint.into(),
-                        arg_functions: arg_functions.into_iter().map(|(x, y)| (x.into_iter().map(|x| x.into()).collect(), y.into())).collect(),
-                        kwarg_functions: funs,
-                        dialect: Dialect::R(aorist_core::R::new())
-                    })
+                    Ok([<$element Program>]::new(
+                        code, 
+                        entrypoint, 
+                        arg_functions, 
+                        kwarg_functions, 
+                        Dialect::R(aorist_core::R::new()),
+                    ))
                 }
                 #[staticmethod]
                 pub fn register_presto_program(
@@ -572,18 +584,13 @@ macro_rules! define_constraint {
                     arg_functions: Vec<(Vec<&str>, &str)>,
                     kwarg_functions: HashMap<&str, (Vec<&str>, &str)>,
                 ) -> PyResult<[<$element Program>]> {
-
-                    let mut funs: LinkedHashMap<AString, (Vec<AString>, AString)> = LinkedHashMap::new();
-                    for (k, (v1, v2)) in kwarg_functions.into_iter() {
-                        funs.insert(k.into(), (v1.into_iter().map(|x| x.into()).collect(), v2.into()));
-                    }
-                    Ok([<$element Program>]{
-                        code: code.into(),
-                        entrypoint: entrypoint.into(),
-                        arg_functions: arg_functions.into_iter().map(|(x, y)| (x.into_iter().map(|x| x.into()).collect(), y.into())).collect(),
-                        kwarg_functions: funs,
-                        dialect: Dialect::Presto(aorist_core::Presto::new())
-                    })
+                    Ok([<$element Program>]::new(
+                        code, 
+                        entrypoint, 
+                        arg_functions, 
+                        kwarg_functions, 
+                        Dialect::Presto(aorist_core::Presto::new()),
+                    ))
                 }
                 #[staticmethod]
                 pub fn register_bash_program(
@@ -592,18 +599,13 @@ macro_rules! define_constraint {
                     arg_functions: Vec<(Vec<&str>, &str)>,
                     kwarg_functions: HashMap<&str, (Vec<&str>, &str)>,
                 ) -> PyResult<[<$element Program>]> {
-
-                    let mut funs: LinkedHashMap<AString, (Vec<AString>, AString)> = LinkedHashMap::new();
-                    for (k, (v1, v2)) in kwarg_functions.into_iter() {
-                        funs.insert(k.into(), (v1.into_iter().map(|x| x.into()).collect(), v2.into()));
-                    }
-                    Ok([<$element Program>]{
-                        code: code.into(),
-                        entrypoint: entrypoint.into(),
-                        arg_functions: arg_functions.into_iter().map(|(x, y)| (x.into_iter().map(|x| x.into()).collect(), y.into())).collect(),
-                        kwarg_functions: funs,
-                        dialect: Dialect::Bash(aorist_core::Bash::new())
-                    })
+                    Ok([<$element Program>]::new(
+                        code, 
+                        entrypoint, 
+                        arg_functions, 
+                        kwarg_functions, 
+                        Dialect::Bash(aorist_core::Bash::new()),
+                    ))
                 }
             }
             impl <'a> TProgram<'a, $element> for [<$element Program>] {
