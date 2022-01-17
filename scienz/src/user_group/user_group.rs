@@ -9,7 +9,6 @@ use aorist_primitives::{AString, AVec, TAoristObject};
 use aorist_primitives::{AoristConcept, AoristConceptBase, AoristRef, ConceptEnum};
 use derivative::Derivative;
 use serde::{Deserialize, Serialize};
-use std::collections::BTreeMap;
 use std::fmt::Debug;
 
 #[aorist]

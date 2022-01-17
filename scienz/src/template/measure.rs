@@ -3,11 +3,7 @@ use aorist_primitives::AOption;
 
 use crate::attributes::*;
 
-use crate::schema::TabularSchema;
 use crate::template::*;
-use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
-use abi_stable::std_types::RArc;
-use aorist_attributes::{Count, FloatPrediction, Regressor};
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
 use aorist_primitives::AUuid;

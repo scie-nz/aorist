@@ -1,7 +1,6 @@
 #[cfg(feature = "sql")]
 use crate::attributes::AttrMap;
 use crate::attributes::AttributeOrValue;
-use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 use abi_stable::std_types::ROption;
 use abi_stable::StableAbi;
 use aorist_concept::{aorist, Constrainable};
