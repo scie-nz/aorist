@@ -1,7 +1,6 @@
 #![allow(unused_parens)]
 
 mod code;
-mod concept;
 mod constraint;
 mod constraint_block;
 mod constraint_state;
@@ -13,7 +12,6 @@ mod parameter_tuple;
 pub use aorist_primitives::dialects_module;
 pub use aorist_primitives::{Bash, Dialect, Presto, Python, R};
 pub use code::*;
-pub use concept::*;
 pub use constraint::*;
 pub use constraint_block::*;
 pub use constraint_state::*;

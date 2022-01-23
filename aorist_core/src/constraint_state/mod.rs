@@ -1,4 +1,3 @@
-use crate::concept::Ancestry;
 use crate::constraint::OuterConstraint;
 use crate::parameter_tuple::ParameterTuple;
 use crate::program::TOuterProgram;
@@ -8,7 +7,7 @@ use abi_stable::std_types::ROption;
 use anyhow::{bail, Result};
 use aorist_ast::{AncestorRecord, Formatted, SimpleIdentifier, StringLiteral, AST};
 use aorist_primitives::Dialect;
-use aorist_primitives::{Context, ToplineConcept};
+use aorist_primitives::{Context, ToplineConcept, Ancestry};
 use aorist_util::AOption;
 use aorist_util::AUuid;
 use aorist_util::{AString, AVec};

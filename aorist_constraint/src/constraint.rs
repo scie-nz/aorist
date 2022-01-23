@@ -4,8 +4,9 @@ use anyhow::{Context, Result};
 #[cfg(feature = "python")]
 use aorist_ast::{StringLiteral, AST};
 #[cfg(feature = "python")]
-use aorist_core::{Ancestry, TOuterProgram};
-use aorist_core::{Concept, ConceptAncestry, Dialect, ParameterTuple};
+use aorist_primitives::{Ancestry};
+use aorist_core::{TOuterProgram, Dialect, ParameterTuple}; 
+use scienz::{Concept, ConceptAncestry};
 use aorist_core::{
     ConstraintBuilder, ConstraintEnum, ConstraintSatisfactionBase, OuterConstraint, TBuilder,
     TConstraint, TConstraintEnum, TProgram,

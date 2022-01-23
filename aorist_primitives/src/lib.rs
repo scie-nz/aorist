@@ -1777,11 +1777,10 @@ macro_rules! export_aorist_python_module {
         use abi_stable::library::{lib_header_from_path, LibrarySuffix, RawLibrary};
         use abi_stable::reexports::SelfOps;
         use abi_stable::std_types::ROption;
-        use aorist_core::ConstraintMod_Ref;
         use std::path::{Path, PathBuf};
 
         define_dag_function!($dag_function);
-        #[pyfunction]
+        /*#[pyfunction]
         pub fn test() -> PyResult<Vec<String>> {
             let base_name = "constraint_module";
             let debug_dir = "../target/debug/".as_ref_::<Path>().into_::<PathBuf>();
@@ -1795,7 +1794,7 @@ macro_rules! export_aorist_python_module {
                 .into_iter()
                 .map(|x| x.into())
                 .collect())
-        }
+        }*/
 
         #[pymodule]
         fn $module_name(py: pyo3::prelude::Python, m: &PyModule) -> PyResult<()> {
@@ -1806,7 +1805,7 @@ macro_rules! export_aorist_python_module {
             endpoints_module(py, m)?;
             dialects_module(py, m)?;
             m.add_wrapped(wrap_pyfunction!($dag_function))?;
-            m.add_wrapped(wrap_pyfunction!(test))?;
+            //m.add_wrapped(wrap_pyfunction!(test))?;
             Ok(())
         }
     };

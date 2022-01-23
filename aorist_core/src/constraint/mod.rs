@@ -7,11 +7,10 @@ use aorist_primitives::{Ancestry, AoristConcept, TAoristObject, ToplineConcept};
 use aorist_util::AOption;
 use aorist_util::AUuid;
 use aorist_util::{AString, AVec};
-use scienz::AoristError;
 use std::collections::HashMap;
 use std::marker::PhantomData;
 use tracing::info;
-
+/*
 use abi_stable::{
     declare_root_module_statics,
     library::RootModule,
@@ -19,7 +18,7 @@ use abi_stable::{
     sabi_types::VersionStrings,
     std_types::{RResult, RString, RVec},
     StableAbi,
-};
+};*/
 
 pub trait SatisfiableConstraint<'a>: TConstraint<'a> {
     type TAncestry: Ancestry;
@@ -38,22 +37,6 @@ pub trait SatisfiableConstraint<'a>: TConstraint<'a> {
     ) -> Result<(AString, AString, ParameterTuple, Dialect)>;
 }
 
-#[repr(C)]
-#[derive(StableAbi)]
-#[sabi(kind(Prefix(prefix_ref = "ConstraintMod_Ref")))]
-#[sabi(missing_field(panic))]
-pub struct ConstraintMod {
-    #[sabi(last_prefix_field)]
-    pub new: extern "C" fn() -> RResult<RString, AoristError>,
-    pub builders: extern "C" fn() -> RResult<RVec<RString>, AoristError>,
-}
-
-impl RootModule for ConstraintMod_Ref {
-    declare_root_module_statics! {ConstraintMod_Ref}
-    const BASE_NAME: &'static str = "constraint";
-    const NAME: &'static str = "constraint";
-    const VERSION_STRINGS: VersionStrings = package_version_strings!();
-}
 
 // TODO: duplicate function, should be unified in trait
 pub trait SatisfiableOuterConstraint<'a>: OuterConstraint<'a> {

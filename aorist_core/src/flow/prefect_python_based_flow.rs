@@ -19,7 +19,6 @@ use aorist_primitives::TPrestoEndpoints;
 use aorist_util::AOption;
 use aorist_util::{AString, AVec};
 use linked_hash_map::LinkedHashMap;
-use scienz::AoristError;
 use std::hash::{Hash, Hasher};
 use std::marker::PhantomData;
 
@@ -192,21 +191,20 @@ impl<U: AoristUniverse> PrefectPythonBasedFlow<U> {
     }
     fn compute_task_call(&self) -> AST {
         match self.dialect {
-            AOption(ROption::RSome(Dialect::Python(_))) => Ok(AST::SimpleIdentifier(
+            AOption(ROption::RSome(Dialect::Python(_))) => AST::SimpleIdentifier(
                 SimpleIdentifier::new_wrapped(self.command.as_ref().unwrap().clone()),
-            )),
+            ),
             AOption(ROption::RSome(Dialect::Bash(_)))
-            | AOption(ROption::RSome(Dialect::Presto(_))) => Ok(AST::SimpleIdentifier(
+            | AOption(ROption::RSome(Dialect::Presto(_))) => AST::SimpleIdentifier(
                 SimpleIdentifier::new_wrapped("ShellTask".into()),
-            )),
-            AOption(ROption::RNone) => Ok(AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
+            ),
+            AOption(ROption::RNone) => AST::SimpleIdentifier(SimpleIdentifier::new_wrapped(
                 "Constant".into(),
-            ))),
-            _ => Err(AoristError::OtherError(AString::from(
+            )),
+            _ => panic!(
                 "Dialect not supported",
-            ))),
+            ),
         }
-        .unwrap()
     }
     fn get_flow_identifier(&self) -> AST {
         self.flow_identifier.clone()
