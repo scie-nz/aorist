@@ -5,6 +5,7 @@ mod builder_enum;
 mod concept_builder;
 mod enum_builder;
 mod struct_builder;
+mod util;
 
 use self::proc_macro::TokenStream;
 use crate::builder_enum::BuilderEnum;

@@ -1,7 +1,7 @@
 extern crate proc_macro;
 use self::proc_macro::TokenStream;
 use crate::builder::Builder;
-use aorist_util::AoristError;
+use aorist_error::AoristError;
 use proc_macro2::Ident;
 use quote::quote;
 use std::fs::OpenOptions;

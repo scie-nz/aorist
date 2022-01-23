@@ -1,4 +1,4 @@
-use crate::error::{AResult, AoristError};
+use aorist_error::{AResult, AoristError};
 use crate::get_raw_objects_of_type;
 use codegen::Scope;
 use serde_yaml::Value;
@@ -306,7 +306,7 @@ pub fn parse_and_sort_constraints(
 
 pub fn process_constraints(raw_objects: &Vec<HashMap<String, Value>>) -> AResult<()> {
     let mut scope = Scope::new();
-    scope.import("aorist_primitives", "AUuid");
+    scope.import("aorist_util", "AUuid");
     let parsed = parse_and_sort_constraints(raw_objects)?;
 
     for constraint in parsed.iter() {

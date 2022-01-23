@@ -11,6 +11,7 @@ members = [
     "aorist_core",
     "aorist",
     "constraint_module",
+    "aorist_error"
 ]
 default-members = ["aorist"]
 

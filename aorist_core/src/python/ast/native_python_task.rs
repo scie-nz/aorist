@@ -5,7 +5,7 @@ use abi_stable::std_types::RArc;
 use aorist_ast::AST;
 use aorist_primitives::define_task_node;
 use aorist_util::AOption;
-use aorist_primitives::AVec;
+use aorist_util::AVec;
 use std::hash::Hash;
 
 define_task_node!(

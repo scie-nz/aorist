@@ -6,8 +6,8 @@ use crate::python::{
     PythonPreamble, SimpleIdentifier, StringLiteral, Subscript, Tuple, AST,
 };
 use abi_stable::std_types::ROption;
-use aorist_util::AOption;
-use aorist_primitives::{AVec, AoristUniverse};
+use aorist_util::{AOption, AVec};
+use aorist_primitives::{AoristUniverse};
 use linked_hash_map::LinkedHashMap;
 use std::hash::Hash;
 use std::marker::PhantomData;

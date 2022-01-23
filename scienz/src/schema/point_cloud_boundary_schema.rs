@@ -6,7 +6,7 @@ use abi_stable::std_types::ROption;
 use aorist_attributes::*;
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
-use aorist_util::AOption;
+use aorist_util::{AOption, AVec, AString};
 use aorist_util::AUuid;
 use aorist_primitives::*;
 use aorist_primitives::{AoristConcept, AoristConceptBase, ConceptEnum};

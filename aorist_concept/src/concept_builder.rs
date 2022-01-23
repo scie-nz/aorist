@@ -1,4 +1,4 @@
-use aorist_util::AoristError;
+use aorist_error::AoristError;
 use proc_macro::TokenStream;
 use proc_macro2::Span;
 use quote::quote;

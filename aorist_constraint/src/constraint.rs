@@ -5,15 +5,15 @@ use anyhow::{Context, Result};
 use aorist_ast::{StringLiteral, AST};
 #[cfg(feature = "python")]
 use aorist_core::{Ancestry, TOuterProgram};
-use aorist_core::{AoristRef, Concept, ConceptAncestry, Dialect, ParameterTuple};
+use aorist_core::{Concept, ConceptAncestry, Dialect, ParameterTuple};
 use aorist_core::{
     ConstraintBuilder, ConstraintEnum, ConstraintSatisfactionBase, OuterConstraint, TBuilder,
     TConstraint, TConstraintEnum, TProgram,
 };
+use aorist_util::{AString, AOption, AVec, AoristRef};
 use aorist_primitives::{
-    define_constraint, register_constraint_new, AString, AoristConceptBase, TAoristObject,
+    define_constraint, register_constraint_new, AoristConceptBase, TAoristObject,
 };
-use aorist_primitives::{AOption, AVec};
 #[cfg(feature = "python")]
 use aorist_util::init_logging;
 use linked_hash_map::LinkedHashMap;

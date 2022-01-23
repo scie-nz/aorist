@@ -14,14 +14,13 @@ proc-macro = true
 
 [dependencies]
 abi_stable = "0.10.3"
-aorist_util = {path = "../aorist_util", version = "0.0.1", features=["python"]}
-pyo3 = {version = "0.15.1", features=["auto-initialize", "multiple-pymethods"]}
 linked_hash_set = "0.1.4"
 proc-macro2 = "1.0.25"
 quote = "1"
 serde = { version = "1.0", features = ["derive"] }
 serde_yaml = "0.8"
 syn = {version = "1", features = ["full"]}
+aorist_error = {path = "../aorist_error"}
 
 [features]
 log_syntax = []

@@ -3,7 +3,7 @@ use crate::python::NativePythonPreamble;
 use abi_stable::std_types::ROption;
 use aorist_ast::{Assignment, AST};
 use aorist_util::AOption;
-use aorist_primitives::AVec;
+use aorist_util::AVec;
 
 pub trait PythonFunctionCallTask: PythonTaskBase {
     fn get_call(&self) -> AST;

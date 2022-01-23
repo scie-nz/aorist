@@ -1,10 +1,10 @@
 extern crate proc_macro;
 use self::proc_macro::TokenStream;
 use crate::builder::Builder;
-use aorist_util::AoristError;
-use aorist_util::{
+use aorist_error::{AoristError, AResult};
+use crate::util::{
     extract_type_from_aorist_ref, extract_type_from_map, extract_type_from_option,
-    extract_type_from_vector, AResult,
+    extract_type_from_vector,
 };
 use proc_macro2::Ident;
 use quote::quote;

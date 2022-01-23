@@ -13,7 +13,7 @@ build = "build.rs"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [features]
-python = ["pyo3", "aorist_primitives/python"]
+python = ["pyo3", "aorist_util/python", "aorist_primitives/python"]
 r = ["aorist_extendr-api", "aorist_extendr-engine"]
 sql = ["sqlformat", "sqlparser"]
 default = ["python", "r", "sql"]
@@ -46,4 +46,4 @@ codegen = "0.1.3"
 serde = { version = "1.0", features = ["derive"] }
 serde_yaml = "0.8"
 cfg-if = "1.0.0"
-aorist_primitives = {path = "../aorist_primitives", version = "0.0.14", features=["python"]}
+aorist_primitives = {path = "../aorist_primitives", version = "0.0.14"}

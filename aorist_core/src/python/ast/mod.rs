@@ -3,8 +3,8 @@ use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 use abi_stable::std_types::RArc;
 use abi_stable::std_types::ROption;
 use aorist_ast::AST;
-use aorist_util::AOption;
-use aorist_primitives::{register_task_nodes, AVec};
+use aorist_util::{AOption, AVec};
+use aorist_primitives::{register_task_nodes};
 use std::hash::{Hash, Hasher};
 
 mod airflow_bash_operator_task;

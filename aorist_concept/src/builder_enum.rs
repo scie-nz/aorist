@@ -3,7 +3,7 @@ use self::proc_macro::TokenStream;
 use crate::builder::Builder;
 use crate::enum_builder::EnumBuilder;
 use crate::struct_builder::StructBuilder;
-use aorist_util::AoristError;
+use aorist_error::AoristError;
 use proc_macro2::Ident;
 mod keyword {
     syn::custom_keyword!(path);

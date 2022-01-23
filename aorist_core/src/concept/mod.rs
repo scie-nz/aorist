@@ -2,9 +2,10 @@ use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 use abi_stable::std_types::{RArc, ROption};
 use aorist_util::AUuid;
 pub use aorist_primitives::{
-    register_concept, AConcept, AOption, AString, AVec, Ancestry, AoristConcept, AoristConceptBase,
-    AoristRef, AoristUniverse, AoristUniverseBase, ConceptEnum, ToplineConcept, ToplineConceptBase,
+    register_concept, AConcept, Ancestry, AoristConcept, AoristConceptBase,
+    AoristUniverse, AoristUniverseBase, ConceptEnum, ToplineConcept, ToplineConceptBase,
 };
+use aorist_util::{AOption, AString, AVec, AoristRef};
 #[cfg(feature = "python")]
 use pyo3::prelude::*;
 use scienz::*;

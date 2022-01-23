@@ -28,5 +28,5 @@ derived_schema! {
       wkt: WKTString("WKT string", false),
       stats: JSON("JSON string of stats", false)
     fields:
-      stats: aorist_primitives::AVec<AString>
+      stats: AVec<AString>
 }

@@ -6,7 +6,8 @@ use abi_stable::std_types::RArc;
 use abi_stable::std_types::ROption;
 use aorist_ast::{Call, SimpleIdentifier, StringLiteral, AST};
 use aorist_util::AOption;
-use aorist_primitives::{define_task_node, AString, AVec};
+use aorist_primitives::{define_task_node};
+use aorist_util::{AString, AVec};
 use linked_hash_map::LinkedHashMap;
 use std::hash::Hash;
 

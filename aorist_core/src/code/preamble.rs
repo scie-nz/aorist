@@ -1,5 +1,5 @@
 use crate::code::Import;
-use aorist_primitives::AVec;
+use aorist_util::AVec;
 use std::hash::Hash;
 
 pub trait Preamble: Eq + Hash + Clone

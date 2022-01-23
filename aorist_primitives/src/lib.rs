@@ -1633,7 +1633,7 @@ macro_rules! register_constraint_new {
                     )+
                 ].into_iter().collect())
             }
-            pub fn get_name(&self) -> aorist_primitives::AString {
+            pub fn get_name(&self) -> AString {
                 match self {
                     $(
                         Self::$element(x) => stringify!($element).into(),
