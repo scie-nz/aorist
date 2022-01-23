@@ -24,7 +24,7 @@ use inflector::cases::snakecase::to_snake_case;
 use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
 use std::collections::{HashMap, HashSet, VecDeque};
-use tracing::{debug, level_enabled, trace, Level};
+use tracing::{debug, trace};
 
 pub type ConstraintsBlockMap<'a, C, P> = LinkedHashMap<
     AString,
@@ -59,7 +59,6 @@ where
     P: TOuterProgram<TAncestry = A>,
 {
     type CB: ConstraintBlock<'a, <D as FlowBuilderBase<U>>::T, B::OuterType, U, P>;
-
     fn get_relevant_builders(topline_constraint_names: &LinkedHashSet<AString>) -> AVec<B> {
         let mut visited = HashSet::new();
         let mut relevant_builders = LinkedHashMap::new();
@@ -122,6 +121,7 @@ where
 
         sorted_builders
     }
+
     fn init_unsatisfied_constraints(&self) -> Result<ConstraintsBlockMap<'a, B::OuterType, P>>;
 
     fn find_satisfiable_constraint_block(
@@ -816,8 +816,7 @@ where
         let family_trees = Self::generate_family_trees(&ancestors);
 
         for builder in sorted_builders.iter() {
-            Self::attach_constraints(
-                builder,
+            builder.attach_constraints(
                 &by_object_type,
                 &family_trees,
                 &ancestry,
@@ -878,127 +877,5 @@ where
                 .insert(uuid.clone());
         }
         family_trees
-    }
-    fn attach_constraints(
-        builder: &B,
-        by_object_type: &HashMap<AString, AVec<C>>,
-        family_trees: &HashMap<(AUuid, AString), HashMap<AString, HashSet<AUuid>>>,
-        ancestry: &A,
-        generated_constraints: &mut LinkedHashMap<
-            AString,
-            LinkedHashMap<(AUuid, AString), RArc<RRwLock<B::OuterType>>>,
-        >,
-        visited_constraint_names: &mut LinkedHashSet<AString>,
-    ) -> Result<()> {
-        let root_object_type = builder.get_root_type_name()?;
-        let constraint_name = builder.get_constraint_name();
-
-        if let Some(root_concepts) = by_object_type.get(&root_object_type) {
-            debug!(
-                "Attaching constraint {} to {} objects of type {}.",
-                constraint_name,
-                root_concepts.len(),
-                root_object_type
-            );
-
-            for root in root_concepts.iter() {
-                let root_key = (root.get_uuid(), root.get_type());
-                let family_tree = family_trees.get(&root_key).unwrap();
-                if builder.should_add(root.clone(), &ancestry) {
-                    let raw_potential_child_constraints = builder
-                        .get_required_constraint_names()
-                        .into_iter()
-                        .map(|req| (req.clone(), generated_constraints.get(&req)))
-                        .filter(|(_req, x)| x.is_some())
-                        .map(|(req, x)| (req, x.unwrap()))
-                        .collect::<AVec<_>>();
-                    if level_enabled!(Level::DEBUG) {
-                        debug!(
-                        "Creating constraint {:?} on root {:?} with potential child constraints:",
-                        builder.get_constraint_name(),
-                        &root_key
-                    );
-                        for (required_constraint_name, map) in
-                            raw_potential_child_constraints.iter()
-                        {
-                            debug!(" - for {}:", required_constraint_name);
-                            for (key, v) in map.iter() {
-                                let downstream = v.read();
-                                debug!(
-                                    " -- {:?}: {:?}",
-                                    key,
-                                    (downstream.get_uuid()?, downstream.get_name())
-                                );
-                            }
-                        }
-                    }
-                    let other_required_concept_uuids = builder
-                        .get_required(root.clone(), &ancestry)
-                        .into_iter()
-                        .collect::<HashSet<_>>();
-                    if other_required_concept_uuids.len() > 0 {
-                        trace!(
-                            "Found {} other required concept uuids for root {:?}",
-                            other_required_concept_uuids.len(),
-                            root.get_uuid()
-                        );
-                    }
-                    let potential_child_constraints = raw_potential_child_constraints
-                        .into_iter()
-                        .map(|(_req, x)| {
-                            x.iter()
-                                .filter(
-                                    |((potential_root_id, potential_root_type), _constraint)| {
-                                        (match family_tree.get(potential_root_type) {
-                                            None => false,
-                                            Some(set) => set.contains(potential_root_id),
-                                        } || other_required_concept_uuids
-                                            .contains(potential_root_id))
-                                    },
-                                )
-                                .map(|(_, constraint)| constraint.clone())
-                        })
-                        .flatten()
-                        .collect::<AVec<RArc<RRwLock<B::OuterType>>>>();
-                    if level_enabled!(Level::DEBUG) {
-                        debug!("After filtering:",);
-                        for downstream_rw in potential_child_constraints.iter() {
-                            let downstream = downstream_rw.read();
-                            debug!(" --  {:?}", (downstream.get_uuid()?, downstream.get_name()));
-                        }
-                    }
-                    let constraint =
-                        builder.build_constraint(root.get_uuid(), potential_child_constraints)?;
-                    let gen_for_constraint = generated_constraints
-                        .entry(constraint_name.clone())
-                        .or_insert(LinkedHashMap::new());
-                    assert!(!gen_for_constraint.contains_key(&root_key));
-                    if level_enabled!(Level::DEBUG) {
-                        debug!(
-                            "Added constraint {:?} on root {:?} with the following dependencies:",
-                            (constraint.get_uuid()?, constraint.get_name()),
-                            &root_key
-                        );
-                        for downstream_rw in constraint.get_downstream_constraints()? {
-                            let downstream = downstream_rw.read();
-                            debug!(" --  {:?}", (downstream.get_uuid()?, downstream.get_name()));
-                        }
-                    }
-                    gen_for_constraint.insert(root_key, RArc::new(RRwLock::new(constraint)));
-                } else {
-                    debug!("Constraint was filtered out.");
-                }
-            }
-        } else {
-            debug!(
-                "Found no concepts of type {} for {}",
-                root_object_type, constraint_name,
-            );
-        }
-        for req in builder.get_required_constraint_names() {
-            assert!(visited_constraint_names.contains(&req));
-        }
-        visited_constraint_names.insert(constraint_name.clone());
-        Ok(())
     }
 }
