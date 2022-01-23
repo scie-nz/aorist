@@ -1,5 +1,5 @@
 use abi_stable::std_types::ROption;
-use aorist_primitives::AOption;
+use aorist_util::AOption;
 
 use crate::code::CodeBlock;
 use crate::code::CodeBlockWithDefaultConstructor;
@@ -16,8 +16,9 @@ use abi_stable::external_types::parking_lot::rw_lock::{RReadGuard, RRwLock};
 use abi_stable::std_types::RArc;
 use anyhow::Result;
 use aorist_ast::{AncestorRecord, SimpleIdentifier, AST};
-use aorist_primitives::AUuid;
-use aorist_primitives::{AString, AVec, TAoristObject};
+use aorist_util::AUuid;
+use aorist_util::{AString, AVec};
+use aorist_primitives::{TAoristObject};
 use aorist_primitives::{Ancestry, AoristConcept, AoristUniverse, ToplineConcept};
 use inflector::cases::snakecase::to_snake_case;
 use linked_hash_map::LinkedHashMap;

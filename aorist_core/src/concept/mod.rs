@@ -1,6 +1,6 @@
 use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 use abi_stable::std_types::{RArc, ROption};
-use aorist_primitives::AUuid;
+use aorist_util::AUuid;
 pub use aorist_primitives::{
     register_concept, AConcept, AOption, AString, AVec, Ancestry, AoristConcept, AoristConceptBase,
     AoristRef, AoristUniverse, AoristUniverseBase, ConceptEnum, ToplineConcept, ToplineConceptBase,

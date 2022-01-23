@@ -14,9 +14,10 @@ use aorist_ast::{
     AST,
 };
 use aorist_primitives::register_task_nodes;
-use aorist_primitives::AOption;
+use aorist_util::AOption;
 use aorist_primitives::TPrestoEndpoints;
-use aorist_primitives::{AString, AVec, AoristUniverse};
+use aorist_util::{AString, AVec};
+use aorist_primitives::{AoristUniverse};
 use linked_hash_map::LinkedHashMap;
 use scienz::AoristError;
 use std::hash::{Hash, Hasher};

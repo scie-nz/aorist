@@ -4,10 +4,11 @@ use abi_stable::std_types::ROption;
 use aorist_attributes::*;
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
-use aorist_primitives::AOption;
-use aorist_primitives::AUuid;
-use aorist_primitives::{attribute, primary_schema, AString, AVec};
-use aorist_primitives::{AoristConcept, AoristConceptBase, AoristRef, ConceptEnum};
+use aorist_util::AOption;
+use aorist_util::{AUuid, AString, AVec};
+use aorist_primitives::{attribute, primary_schema};
+use aorist_primitives::{AoristConcept, AoristConceptBase, ConceptEnum};
+use aorist_util::AoristRef;
 use derivative::Derivative;
 #[cfg(feature = "python")]
 use pyo3::prelude::*;

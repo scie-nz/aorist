@@ -3,7 +3,8 @@ use aorist_primitives::Dialect;
 use crate::parameter_tuple::ParameterTuple;
 use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 use abi_stable::std_types::RArc;
-use aorist_primitives::{AString, AVec, Ancestry, Context};
+use aorist_util::{AString, AVec};
+use aorist_primitives::{Ancestry, Context};
 use linked_hash_map::LinkedHashMap;
 
 pub trait TProgram<'a, T: TConstraint<'a>> {

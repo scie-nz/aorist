@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 use abi_stable::std_types::ROption;
 use abi_stable::StableAbi;
-use aorist_primitives::AOption;
+use aorist_util::{AOption, AString};
 use indoc::formatdoc;
 use num::Float;
 #[cfg(feature = "python")]
@@ -9,7 +9,6 @@ use pyo3::prelude::*;
 #[cfg(feature = "sql")]
 use sqlparser::ast::{ColumnDef, DataType, Expr, Ident, Value};
 pub trait TValue {}
-use aorist_primitives::AString;
 
 #[repr(C)]
 #[derive(Hash, PartialEq, Eq, Debug, Serialize, Deserialize, Clone, StableAbi)]

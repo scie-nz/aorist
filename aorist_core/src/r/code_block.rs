@@ -1,4 +1,4 @@
-use aorist_primitives::AOption;
+use aorist_util::AOption;
 use abi_stable::std_types::ROption;
 use aorist_primitives::AVec;
 use crate::code::{CodeBlock, CodeBlockWithForLoopCompression};
@@ -16,7 +16,7 @@ use linked_hash_set::LinkedHashSet;
 use std::collections::{BTreeSet, HashMap, HashSet};
 use std::marker::PhantomData;
 use tracing::trace;
-use aorist_primitives::AUuid;
+use aorist_util::AUuid;
 
 pub struct RBasedCodeBlock<'a, 'b, T, C>
 where

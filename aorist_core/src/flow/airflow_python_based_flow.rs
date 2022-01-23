@@ -12,9 +12,10 @@ use aorist_ast::{
     Assignment, Attribute, BigIntLiteral, BooleanLiteral, Call, Dict, Expression, Formatted, List,
     None, SimpleIdentifier, StringLiteral, AST,
 };
-use aorist_primitives::AOption;
+use aorist_util::AOption;
 use aorist_primitives::TPrestoEndpoints;
-use aorist_primitives::{AString, AVec, AoristUniverse};
+use aorist_util::{AString, AVec};
+use aorist_primitives::{AoristUniverse};
 use linked_hash_map::LinkedHashMap;
 use std::marker::PhantomData;
 

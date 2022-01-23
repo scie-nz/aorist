@@ -1,5 +1,5 @@
 use abi_stable::std_types::ROption;
-use aorist_primitives::AOption;
+use aorist_util::AOption;
 
 use crate::python::ast::AirflowTaskBase;
 use crate::python::ast::{PythonFunctionCallTask, PythonTaskBase};

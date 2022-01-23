@@ -1,7 +1,7 @@
 use crate::asset::*;
 use abi_stable::StableAbi;
-use aorist_primitives::AVec;
-use aorist_primitives::AoristRef;
+use aorist_util::AVec;
+use aorist_util::AoristRef;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
 

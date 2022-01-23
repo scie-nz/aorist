@@ -1,4 +1,4 @@
-use aorist_primitives::AOption;
+use aorist_util::AOption;
 
 use super::airflow_bash_operator_task::AirflowBashOperatorTask;
 use super::python_subprocess_task::PythonSubprocessTask;

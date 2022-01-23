@@ -1,6 +1,7 @@
 use crate::r::r_import::RImport;
 use aorist_ast::{Assignment, Call, Expression, SimpleIdentifier, AST};
-use aorist_primitives::{AString, AVec, define_task_node};
+use aorist_util::{AString, AVec};
+use aorist_primitives::{define_task_node};
 use linked_hash_map::LinkedHashMap;
 use std::hash::Hash;
 use abi_stable::std_types::RArc;

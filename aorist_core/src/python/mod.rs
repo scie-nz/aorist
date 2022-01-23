@@ -1,4 +1,4 @@
-use aorist_primitives::AOption;
+use aorist_util::AOption;
 mod ast;
 mod code_block;
 mod constraint_block;
@@ -7,7 +7,7 @@ mod python_import;
 mod task;
 
 use crate::flow::FlowBuilderInput;
-use aorist_primitives::{AString, AVec};
+use aorist_util::{AString, AVec};
 use linked_hash_set::LinkedHashSet;
 use pyo3::prelude::*;
 use pyo3::types::{IntoPyDict, PyString, PyTuple};

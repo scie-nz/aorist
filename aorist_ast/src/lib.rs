@@ -1,5 +1,4 @@
-use aorist_primitives::AOption;
-use aorist_primitives::AVec;
+use aorist_util::{AOption, AVec, AString};
 mod ancestor_record;
 mod assignment_target;
 mod extract_arg;
@@ -14,7 +13,6 @@ use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 use abi_stable::std_types::{RArc, ROption};
 use aorist_derive::Optimizable;
 use aorist_extendr_api::prelude::*;
-use aorist_primitives::AString;
 use aorist_primitives::{define_ast_node, register_ast_nodes};
 use linked_hash_map::LinkedHashMap;
 use pyo3::prelude::*;

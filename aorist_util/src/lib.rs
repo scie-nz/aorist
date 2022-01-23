@@ -12,6 +12,8 @@ mod constraint;
 pub use constraint::*;
 mod error;
 pub use error::*;
+mod core_structures;
+pub use core_structures::*;
 
 pub fn read_file(filename: &str) -> AResult<Vec<HashMap<String, Value>>> {
     let file = match File::open(filename) {

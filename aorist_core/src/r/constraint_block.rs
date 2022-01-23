@@ -1,4 +1,4 @@
-use aorist_primitives::AOption;
+use aorist_util::AOption;
 use abi_stable::std_types::ROption;
 use aorist_primitives::AVec;
 use crate::code::CodeBlock;
@@ -15,7 +15,7 @@ use aorist_primitives::OuterConstraint;
 use linked_hash_map::LinkedHashMap;
 use std::collections::HashMap;
 use std::marker::PhantomData;
-use aorist_primitives::AUuid;
+use aorist_util::AUuid;
 
 pub struct RBasedConstraintBlock<'a, 'b, T, C>
 where

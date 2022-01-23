@@ -1,7 +1,7 @@
 use abi_stable::StableAbi;
 use serde::{Deserialize, Serialize};
 use std::fmt::{Debug};
-use crate::concept::{AString, AVec};
+use aorist_util::{AString, AVec};
 use crate::dialect::Dialect;
 
 #[repr(C)]

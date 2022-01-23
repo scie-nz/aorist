@@ -9,9 +9,10 @@ use crate::python::{
 };
 use abi_stable::std_types::ROption;
 use aorist_ast::{Call, SimpleIdentifier, StringLiteral, AST};
-use aorist_primitives::AOption;
+use aorist_util::AOption;
 use aorist_primitives::TPrestoEndpoints;
-use aorist_primitives::{AString, AVec, AoristUniverse};
+use aorist_util::{AString, AVec};
+use aorist_primitives::{AoristUniverse};
 use linked_hash_map::LinkedHashMap;
 use std::hash::Hash;
 use std::marker::PhantomData;

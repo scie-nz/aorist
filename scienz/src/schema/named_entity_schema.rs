@@ -1,5 +1,5 @@
 use abi_stable::std_types::ROption;
-use aorist_primitives::AOption;
+use aorist_util::AOption;
 
 use crate::attributes::*;
 use crate::schema::spacy_named_entity_schema::*;
@@ -7,9 +7,10 @@ use crate::schema::text_corpus_schema::*;
 use crate::template::*;
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
-use aorist_primitives::AUuid;
-use aorist_primitives::{AString, AVec};
-use aorist_primitives::{AoristConcept, AoristConceptBase, AoristRef, ConceptEnum};
+use aorist_util::AUuid;
+use aorist_util::{AString, AVec};
+use aorist_primitives::{AoristConcept, AoristConceptBase, ConceptEnum};
+use aorist_util::AoristRef;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
 #[aorist]

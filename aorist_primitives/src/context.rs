@@ -1,4 +1,4 @@
-use crate::AVec;
+use aorist_util::AVec;
 #[cfg(feature = "python")]
 use pyo3::exceptions::PyValueError;
 #[cfg(feature = "python")]

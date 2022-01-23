@@ -1,7 +1,7 @@
 use crate::code::Import;
 use abi_stable::std_types::ROption;
 use aorist_ast::{SimpleIdentifier, AST};
-use aorist_primitives::AOption;
+use aorist_util::AOption;
 use aorist_primitives::AString;
 use pyo3::prelude::*;
 use pyo3::types::{PyList, PyModule};

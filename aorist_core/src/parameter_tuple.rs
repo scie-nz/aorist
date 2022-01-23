@@ -1,6 +1,6 @@
 use aorist_ast::{AncestorRecord, List, StringLiteral, AST};
-use aorist_primitives::AUuid;
-use aorist_primitives::{AString, AVec};
+use aorist_util::AUuid;
+use aorist_util::{AString, AVec};
 use linked_hash_map::LinkedHashMap;
 use std::hash::Hash;
 

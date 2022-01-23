@@ -25,3 +25,4 @@ linked-hash-map = "0.5.3"
 pyo3 = {version = "0.15.1", features=["auto-initialize", "multiple-pymethods"]}
 uuid = {version = "0.8.1", features = ["v4", "serde"]}
 tracing = "0.1"
+aorist_util = {path = "../aorist_util", version = "0.0.1", features = ["python"]}

@@ -1,4 +1,4 @@
-use aorist_primitives::AOption;
+use aorist_util::AOption;
 use abi_stable::std_types::ROption;
 
 use crate::flow::flow_builder::{FlowBuilderBase, FlowBuilderMaterialize};

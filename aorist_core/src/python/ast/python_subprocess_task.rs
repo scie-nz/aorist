@@ -2,8 +2,8 @@ use crate::python::ast::PythonTaskBase;
 use crate::python::PythonImport;
 use abi_stable::std_types::ROption;
 use aorist_ast::{Assignment, Attribute, BooleanLiteral, Call, SimpleIdentifier, Tuple, AST};
-use aorist_primitives::AOption;
-use aorist_primitives::{AString, AVec};
+use aorist_util::AOption;
+use aorist_util::{AString, AVec};
 use linked_hash_map::LinkedHashMap;
 
 pub trait PythonSubprocessTask: PythonTaskBase {
