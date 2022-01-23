@@ -7,7 +7,7 @@ use aorist_primitives::{Ancestry, AoristConcept, TAoristObject, ToplineConcept};
 use aorist_util::AOption;
 use aorist_util::AUuid;
 use aorist_util::{AString, AVec};
-use std::collections::{HashMap, HashSet};
+use std::collections::{HashMap, HashSet, VecDeque};
 use std::marker::PhantomData;
 use tracing::info;
 use tracing::{debug, level_enabled, trace, Level};
@@ -190,6 +190,69 @@ pub trait TBuilder<'a> {
         }
         visited_constraint_names.insert(constraint_name.clone());
         Ok(())
+    }
+    fn get_relevant_builders(topline_constraint_names: &LinkedHashSet<AString>) -> AVec<Self> 
+    where Self: Sized {
+        let mut visited = HashSet::new();
+        let mut relevant_builders = LinkedHashMap::new();
+        let mut g: LinkedHashMap<AString, LinkedHashSet<AString>> = LinkedHashMap::new();
+        let mut rev: HashMap<AString, AVec<AString>> = HashMap::new();
+
+        for start in topline_constraint_names {
+            let mut builders = Self::builders()
+                .into_iter()
+                .map(|x| (x.get_constraint_name(), x))
+                .collect::<LinkedHashMap<AString, _>>();
+
+            let constraint = builders
+                .remove(start)
+                .expect(format!("Missing constraint named {}", start).as_str());
+            let mut builder_q = vec![(start.clone(), constraint)]
+                .into_iter()
+                .collect::<VecDeque<_>>();
+
+            while builder_q.len() > 0 {
+                let (key, builder) = builder_q.pop_front().unwrap();
+                let edges = g.entry(key.clone()).or_insert(LinkedHashSet::new());
+                debug!("Constraint {} requires:", key);
+                for req in builder.get_required_constraint_names() {
+                    debug!("  - {}", req);
+                    if !visited.contains(&req) {
+                        let another = match builders.remove(&req) {
+                            Some(x) => x,
+                            None => panic!("Cannot find {} in builders.", req),
+                        };
+                        builder_q.push_back((req.clone(), another));
+                        visited.insert(req.clone());
+                    }
+                    edges.insert(req.clone());
+                    let rev_edges = rev.entry(req.clone()).or_insert(AVec::new());
+                    rev_edges.push(key.clone());
+                }
+                relevant_builders.insert(key.clone(), builder);
+            }
+        }
+        let mut sorted_builders = AVec::new();
+        while g.len() > 0 {
+            let leaf = g
+                .iter()
+                .filter(|(_, v)| v.len() == 0)
+                .map(|(k, _)| k)
+                .next()
+                .unwrap()
+                .clone();
+
+            let builder = relevant_builders.remove(&leaf).unwrap();
+            if let Some(parents) = rev.remove(&leaf) {
+                for parent in parents {
+                    g.get_mut(&parent).unwrap().remove(&leaf);
+                }
+            }
+            sorted_builders.push(builder);
+            g.remove(&leaf);
+        }
+
+        sorted_builders
     }
 }
 
