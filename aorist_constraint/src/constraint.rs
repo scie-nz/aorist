@@ -55,6 +55,10 @@ impl<'a> OuterConstraint<'a> for Constraint {
         self.inner("get_downstream_constraints()")?
             .get_downstream_constraints()
     }
+    fn get_dependencies(&self) -> linked_hash_set::LinkedHashSet<(AUuid, AString)> {
+        self.inner("get_dependencies()").unwrap()
+            .get_dependencies()
+    }
     fn requires_program(&self) -> Result<bool> {
         self.inner("requires_program()")?.requires_program()
     }

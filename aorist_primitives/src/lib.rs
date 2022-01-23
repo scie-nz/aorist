@@ -673,6 +673,16 @@ macro_rules! define_constraint {
                     )*
                     Ok(downstream)
                 }
+                fn get_dependencies(&self) -> linked_hash_set::LinkedHashSet<(AUuid, AString)> {
+                    let mut dependencies = linked_hash_set::LinkedHashSet::new();
+                    $(
+                        for constraint in self.[<$required:snake:lower>].iter() {
+                            let entry = constraint.read();
+                            dependencies.insert((entry.get_uuid().unwrap(), entry.get_root()));
+                        }
+                    )*
+                    dependencies
+                }
                 fn get_title() -> AOption<AString> {
                     $title
                 }
@@ -1586,6 +1596,13 @@ macro_rules! register_constraint_new {
                 match self {
                     $(
                         Self::$element(x) => x.get_downstream_constraints(),
+                    )+
+                }
+            }
+            pub fn get_dependencies(&self) -> linked_hash_set::LinkedHashSet<(AUuid, AString)> {
+                match self {
+                    $(
+                        Self::$element(x) => x.get_dependencies(),
                     )+
                 }
             }

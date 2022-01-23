@@ -273,6 +273,7 @@ pub trait OuterConstraint<'a>: std::fmt::Display + Clone {
     fn get_root(&self) -> AString;
     fn get_root_uuid(&self) -> Result<AUuid>;
     fn get_downstream_constraints(&self) -> Result<AVec<RArc<RRwLock<Self>>>>;
+    fn get_dependencies(&self) -> LinkedHashSet<(AUuid, AString)>;
     fn requires_program(&self) -> Result<bool>;
     fn get_root_type_name(&self) -> Result<AString>;
     fn print_dag(&self) -> Result<()> {

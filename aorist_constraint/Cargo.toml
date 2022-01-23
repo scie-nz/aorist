@@ -38,6 +38,7 @@ aorist_extendr-engine = {version = "0.0.1", optional = true}
 sqlformat = {version = "0.1.5", optional = true}
 sqlparser = {version = "0.9.0", optional = true}
 linked-hash-map = "0.5.3"
+linked_hash_set = "0.1.4"
 tracing = "0.1"
 tracing-attributes = "0.1"
 tracing-futures = "0.2"
