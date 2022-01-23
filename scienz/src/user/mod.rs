@@ -4,7 +4,6 @@ use abi_stable::std_types::ROption;
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
 use aorist_primitives::ConceptEnum;
-use aorist_primitives::TAoristObject;
 use aorist_primitives::{AoristConcept, AoristConceptBase};
 use aorist_util::AOption;
 use aorist_util::AUuid;
@@ -24,12 +23,6 @@ pub struct User {
     pub unixname: AString,
     #[constrainable]
     roles: AOption<AVec<AoristRef<Role>>>,
-}
-
-impl TAoristObject for User {
-    fn get_name(&self) -> &AString {
-        &self.unixname
-    }
 }
 
 pub trait TUser {

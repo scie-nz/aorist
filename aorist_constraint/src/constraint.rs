@@ -12,7 +12,7 @@ use aorist_core::{
     TConstraint, TConstraintEnum, TProgram,
 };
 use aorist_primitives::{
-    define_constraint, register_constraint_new, AoristConceptBase, TAoristObject,
+    define_constraint, register_constraint_new, AoristConceptBase, 
 };
 #[cfg(feature = "python")]
 use aorist_util::init_logging;
@@ -69,8 +69,6 @@ impl<'a> OuterConstraint<'a> for Constraint {
             )
         })
     }
-}
-impl TAoristObject for Constraint {
     fn get_name(&self) -> &AString {
         &self.name
     }

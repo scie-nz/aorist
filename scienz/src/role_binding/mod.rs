@@ -2,7 +2,7 @@ use crate::role::*;
 use abi_stable::std_types::ROption;
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
-use aorist_primitives::{AoristConcept, AoristConceptBase, ConceptEnum, TAoristObject};
+use aorist_primitives::{AoristConcept, AoristConceptBase, ConceptEnum};
 use aorist_util::AOption;
 use aorist_util::AUuid;
 use aorist_util::{AString, AVec, AoristRef};
@@ -16,11 +16,6 @@ pub struct RoleBinding {
     #[constrainable]
     role: AoristRef<Role>,
     name: AString,
-}
-impl TAoristObject for RoleBinding {
-    fn get_name(&self) -> &AString {
-        &self.name
-    }
 }
 pub trait TRoleBinding {
     fn get_user_name(&self) -> AString;

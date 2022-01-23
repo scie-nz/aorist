@@ -16,7 +16,6 @@ use abi_stable::external_types::parking_lot::rw_lock::{RReadGuard, RRwLock};
 use abi_stable::std_types::RArc;
 use anyhow::Result;
 use aorist_ast::{AncestorRecord, SimpleIdentifier, AST};
-use aorist_primitives::TAoristObject;
 use aorist_primitives::{Ancestry, AoristConcept, AoristUniverse, ToplineConcept};
 use aorist_util::AUuid;
 use aorist_util::{AString, AVec};

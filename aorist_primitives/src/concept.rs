@@ -115,9 +115,6 @@ pub trait Ancestry {
     fn new(parents: RArc<RRwLock<HashMap<(AUuid, AString), Self::TConcept>>>) -> Self;
     fn get_parents(&self) -> RArc<RRwLock<HashMap<(AUuid, AString), Self::TConcept>>>;
 }
-pub trait TAoristObject {
-    fn get_name(&self) -> &AString;
-}
 impl<T: PartialEq + Serialize + Debug + Clone + AoristConceptBase + StableAbi> AoristConcept
     for AoristRef<T>
 {

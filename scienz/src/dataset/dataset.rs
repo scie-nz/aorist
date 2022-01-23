@@ -13,7 +13,6 @@ use abi_stable::std_types::RArc;
 use abi_stable::std_types::ROption;
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
-use aorist_primitives::TAoristObject;
 use aorist_primitives::{AoristConcept, AoristConceptBase, ConceptEnum};
 use aorist_util::AOption;
 use aorist_util::AUuid;
@@ -88,12 +87,6 @@ impl DataSet {
                 .as_str()
                 .into(),
         )
-    }
-}
-
-impl TAoristObject for DataSet {
-    fn get_name(&self) -> &AString {
-        &self.name
     }
 }
 

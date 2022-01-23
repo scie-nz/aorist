@@ -3,7 +3,7 @@ use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 use abi_stable::std_types::RArc;
 use anyhow::Result;
 use aorist_primitives::Dialect;
-use aorist_primitives::{Ancestry, AoristConcept, TAoristObject, ToplineConcept};
+use aorist_primitives::{Ancestry, AoristConcept, ToplineConcept};
 use aorist_util::AOption;
 use aorist_util::AUuid;
 use aorist_util::{AString, AVec};
@@ -264,10 +264,11 @@ pub trait TConstraintEnum<'a>: Sized + Clone {
 }
 pub trait ConstraintEnum<'a> {}
 
-pub trait OuterConstraint<'a>: TAoristObject + std::fmt::Display + Clone {
+pub trait OuterConstraint<'a>: std::fmt::Display + Clone {
     type TEnum: Sized + ConstraintEnum<'a> + TConstraintEnum<'a>;
     type TAncestry: Ancestry;
 
+    fn get_name(&self) -> &AString;
     fn get_uuid(&self) -> Result<AUuid>;
     fn get_root(&self) -> AString;
     fn get_root_uuid(&self) -> Result<AUuid>;
