@@ -8,8 +8,8 @@ use tracing_subscriber::{fmt, EnvFilter};
 mod constraint;
 pub use constraint::*;
 mod core_structures;
-pub use core_structures::*;
 pub use aorist_error::{AResult, AoristError};
+pub use core_structures::*;
 
 pub fn read_file(filename: &str) -> AResult<Vec<HashMap<String, Value>>> {
     let file = match File::open(filename) {
@@ -104,4 +104,3 @@ pub fn init_logging() {
     )
     .expect("Failed to set default subscriber");
 }
-

@@ -2,9 +2,9 @@ use abi_stable::{std_types::*, StableAbi};
 use aorist_util::AString;
 #[cfg(feature = "python")]
 use pyo3::prelude::*;
+use serde::{Deserialize, Serialize};
 #[cfg(feature = "python")]
 use std::collections::BTreeSet;
-use serde::{Deserialize, Serialize};
 
 #[repr(C)]
 #[cfg_attr(feature = "python", pyclass)]

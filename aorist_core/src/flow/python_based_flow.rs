@@ -1,11 +1,11 @@
-use aorist_primitives::Dialect;
 use crate::flow::etl_flow::ETLFlow;
 use crate::python::{NativePythonPreamble, PythonPreamble, RPythonPreamble};
 use abi_stable::std_types::ROption;
-use aorist_util::AOption;
+use aorist_primitives::AoristUniverse;
+use aorist_primitives::Dialect;
 use aorist_primitives::TPrestoEndpoints;
+use aorist_util::AOption;
 use aorist_util::{AString, AVec};
-use aorist_primitives::{AoristUniverse};
 use pyo3::prelude::*;
 
 pub trait PythonBasedFlow<U>: ETLFlow<U>

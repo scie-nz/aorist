@@ -9,10 +9,10 @@ use abi_stable::std_types::RArc;
 use abi_stable::std_types::ROption;
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
+use aorist_primitives::{asset_enum, AoristConcept, AoristConceptBase, ConceptEnum};
 use aorist_util::AOption;
 use aorist_util::AUuid;
-use aorist_util::{AoristRef, AString, AVec};
-use aorist_primitives::{asset_enum, AoristConcept, AoristConceptBase, ConceptEnum};
+use aorist_util::{AString, AVec, AoristRef};
 #[cfg(feature = "python")]
 use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};

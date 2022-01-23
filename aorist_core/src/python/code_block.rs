@@ -8,10 +8,10 @@ use crate::python::{
     SimpleIdentifier, StringLiteral, Subscript, AST,
 };
 use abi_stable::std_types::ROption;
+use aorist_primitives::AoristUniverse;
 use aorist_util::AOption;
 use aorist_util::AUuid;
 use aorist_util::{AString, AVec};
-use aorist_primitives::{AoristUniverse};
 use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
 use std::collections::{BTreeSet, HashMap, HashSet};

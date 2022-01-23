@@ -2,13 +2,12 @@ use crate::endpoints::*;
 use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 use abi_stable::std_types::{RArc, ROption};
 use abi_stable::StableAbi;
-use serde::{Serialize};
+use aorist_util::{AOption, AString, AUuid, AVec, AoristRef};
+use serde::Serialize;
 use siphasher::sip128::{Hasher128, SipHasher};
 use std::collections::{BTreeSet, HashMap};
-use std::fmt::{Debug};
-use std::hash::{Hasher};
-use aorist_util::{AString, AVec, AOption, AoristRef, AUuid};
-
+use std::fmt::Debug;
+use std::hash::Hasher;
 
 pub trait ConceptEnum {
     fn uuid(&self) -> AOption<AUuid>;
@@ -167,7 +166,6 @@ impl<T: PartialEq + Serialize + Debug + Clone + AoristConceptBase + StableAbi> A
         T::py_object(self.clone(), py)
     }
 }
-
 
 impl<T: Clone + Debug + Serialize + PartialEq + AoristConceptBase + StableAbi> ConceptEnum
     for AoristRef<T>

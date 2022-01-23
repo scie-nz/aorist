@@ -10,12 +10,12 @@ use aorist_core::{
     ConstraintBuilder, ConstraintEnum, ConstraintSatisfactionBase, OuterConstraint, TBuilder,
     TConstraint, TConstraintEnum, TProgram,
 };
-use aorist_util::{AString, AOption, AVec, AoristRef};
 use aorist_primitives::{
     define_constraint, register_constraint_new, AoristConceptBase, TAoristObject,
 };
 #[cfg(feature = "python")]
 use aorist_util::init_logging;
+use aorist_util::{AOption, AString, AVec, AoristRef};
 use linked_hash_map::LinkedHashMap;
 #[cfg(feature = "python")]
 use pyo3::prelude::*;

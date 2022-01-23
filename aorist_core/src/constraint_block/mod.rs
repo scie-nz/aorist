@@ -3,10 +3,10 @@ use crate::constraint::OuterConstraint;
 use crate::flow::{ETLFlow, FlowBuilderInput};
 use crate::program::TOuterProgram;
 use aorist_ast::AST;
+use aorist_primitives::AoristUniverse;
 use aorist_util::AOption;
 use aorist_util::AUuid;
 use aorist_util::{AString, AVec};
-use aorist_primitives::{AoristUniverse};
 use linked_hash_set::LinkedHashSet;
 use std::collections::{BTreeSet, HashMap};
 

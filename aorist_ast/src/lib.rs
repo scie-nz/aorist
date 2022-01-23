@@ -1,4 +1,4 @@
-use aorist_util::{AOption, AVec, AString};
+use aorist_util::{AOption, AString, AVec};
 mod ancestor_record;
 mod assignment_target;
 mod extract_arg;

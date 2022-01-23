@@ -1,9 +1,9 @@
 use crate::code::{Import, Preamble};
-use aorist_primitives::Dialect;
 use aorist_ast::AST;
+use aorist_primitives::AoristUniverse;
+use aorist_primitives::Dialect;
 use aorist_util::AOption;
 use aorist_util::{AString, AVec};
-use aorist_primitives::{AoristUniverse};
 use linked_hash_map::LinkedHashMap;
 use std::error::Error;
 

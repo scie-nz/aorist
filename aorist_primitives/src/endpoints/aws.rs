@@ -1,6 +1,6 @@
-use aorist_util::{AOption, AString};
 #[cfg(feature = "python")]
 use abi_stable::std_types::ROption;
+use aorist_util::{AOption, AString};
 #[cfg(feature = "python")]
 use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};

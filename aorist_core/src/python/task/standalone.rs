@@ -1,4 +1,3 @@
-use aorist_primitives::Dialect;
 use crate::flow::{
     CompressibleTask, CompressionKey, ETLFlow, StandaloneTask, TaskBase, UncompressiblePart,
 };
@@ -7,9 +6,10 @@ use crate::python::task::key::PythonBasedTaskCompressionKey;
 use crate::python::task::uncompressible::PythonBasedTaskUncompressiblePart;
 use crate::python::{List, PythonImport, PythonPreamble, StringLiteral, AST};
 use abi_stable::std_types::ROption;
+use aorist_primitives::AoristUniverse;
+use aorist_primitives::Dialect;
 use aorist_util::AOption;
 use aorist_util::{AString, AVec};
-use aorist_primitives::{AoristUniverse};
 use linked_hash_map::LinkedHashMap;
 use std::hash::Hash;
 use std::marker::PhantomData;

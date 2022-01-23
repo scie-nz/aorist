@@ -1,10 +1,10 @@
-use aorist_primitives::Dialect;
 use crate::flow::etl_flow::ETLFlow;
 use crate::parameter_tuple::{ParameterTuple, ParameterTupleDedupKey};
 use aorist_ast::AST;
+use aorist_primitives::AoristUniverse;
+use aorist_primitives::Dialect;
 use aorist_util::AOption;
 use aorist_util::{AString, AVec};
-use aorist_primitives::{AoristUniverse};
 use std::hash::Hash;
 
 pub trait TaskBase<T, U: AoristUniverse>

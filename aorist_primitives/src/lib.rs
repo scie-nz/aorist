@@ -7,9 +7,9 @@ pub use endpoints::*;
 mod context;
 pub use context::*;
 mod dialect;
-pub use dialect::{Dialect, Bash, R, Presto, Python};
 #[cfg(feature = "python")]
 pub use dialect::dialects_module;
+pub use dialect::{Bash, Dialect, Presto, Python, R};
 mod program;
 pub use program::*;
 
@@ -555,10 +555,10 @@ macro_rules! define_constraint {
                 ) -> PyResult<[<$element Program>]> {
 
                     Ok([<$element Program>]::new(
-                        code, 
-                        entrypoint, 
-                        arg_functions, 
-                        kwarg_functions, 
+                        code,
+                        entrypoint,
+                        arg_functions,
+                        kwarg_functions,
                         Dialect::Python(aorist_core::Python::new(pip_requirements))
                     ))
                 }
@@ -570,10 +570,10 @@ macro_rules! define_constraint {
                     kwarg_functions: HashMap<&str, (Vec<&str>, &str)>,
                 ) -> PyResult<[<$element Program>]> {
                     Ok([<$element Program>]::new(
-                        code, 
-                        entrypoint, 
-                        arg_functions, 
-                        kwarg_functions, 
+                        code,
+                        entrypoint,
+                        arg_functions,
+                        kwarg_functions,
                         Dialect::R(aorist_core::R::new()),
                     ))
                 }
@@ -585,10 +585,10 @@ macro_rules! define_constraint {
                     kwarg_functions: HashMap<&str, (Vec<&str>, &str)>,
                 ) -> PyResult<[<$element Program>]> {
                     Ok([<$element Program>]::new(
-                        code, 
-                        entrypoint, 
-                        arg_functions, 
-                        kwarg_functions, 
+                        code,
+                        entrypoint,
+                        arg_functions,
+                        kwarg_functions,
                         Dialect::Presto(aorist_core::Presto::new()),
                     ))
                 }
@@ -600,10 +600,10 @@ macro_rules! define_constraint {
                     kwarg_functions: HashMap<&str, (Vec<&str>, &str)>,
                 ) -> PyResult<[<$element Program>]> {
                     Ok([<$element Program>]::new(
-                        code, 
-                        entrypoint, 
-                        arg_functions, 
-                        kwarg_functions, 
+                        code,
+                        entrypoint,
+                        arg_functions,
+                        kwarg_functions,
                         Dialect::Bash(aorist_core::Bash::new()),
                     ))
                 }

@@ -1,7 +1,7 @@
-use aorist_primitives::Dialect;
 use crate::flow::CompressionKey;
 use crate::parameter_tuple::ParameterTupleDedupKey;
 use crate::python::AST;
+use aorist_primitives::Dialect;
 use aorist_util::AOption;
 use aorist_util::{AString, AVec};
 use linked_hash_map::LinkedHashMap;

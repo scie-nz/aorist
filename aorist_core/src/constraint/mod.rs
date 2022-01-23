@@ -1,12 +1,12 @@
-use aorist_primitives::Dialect;
 use crate::parameter_tuple::ParameterTuple;
 use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 use abi_stable::std_types::RArc;
 use anyhow::Result;
+use aorist_primitives::Dialect;
+use aorist_primitives::{Ancestry, AoristConcept, TAoristObject, ToplineConcept};
 use aorist_util::AOption;
 use aorist_util::AUuid;
 use aorist_util::{AString, AVec};
-use aorist_primitives::{Ancestry, AoristConcept, TAoristObject, ToplineConcept};
 use scienz::AoristError;
 use std::collections::HashMap;
 use std::marker::PhantomData;

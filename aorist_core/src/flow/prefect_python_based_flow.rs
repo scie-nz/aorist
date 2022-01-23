@@ -1,4 +1,3 @@
-use aorist_primitives::Dialect;
 use crate::flow::etl_flow::ETLFlow;
 use crate::flow::flow_builder::FlowBuilderBase;
 use crate::flow::python_based_flow::PythonBasedFlow;
@@ -14,10 +13,11 @@ use aorist_ast::{
     AST,
 };
 use aorist_primitives::register_task_nodes;
-use aorist_util::AOption;
+use aorist_primitives::AoristUniverse;
+use aorist_primitives::Dialect;
 use aorist_primitives::TPrestoEndpoints;
+use aorist_util::AOption;
 use aorist_util::{AString, AVec};
-use aorist_primitives::{AoristUniverse};
 use linked_hash_map::LinkedHashMap;
 use scienz::AoristError;
 use std::hash::{Hash, Hasher};

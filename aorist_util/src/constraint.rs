@@ -1,5 +1,5 @@
-use aorist_error::{AResult, AoristError};
 use crate::get_raw_objects_of_type;
+use aorist_error::{AResult, AoristError};
 use codegen::Scope;
 use serde_yaml::Value;
 use std::collections::{HashMap, HashSet};

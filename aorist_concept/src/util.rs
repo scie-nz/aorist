@@ -1,7 +1,7 @@
+use aorist_error::{AResult, AoristError};
 use syn::punctuated::Pair;
 use syn::token::Colon2;
 use syn::{GenericArgument, Path, PathArguments, PathSegment};
-use aorist_error::{AResult, AoristError};
 
 pub fn extract_type_path(ty: &syn::Type) -> Option<&Path> {
     match *ty {
