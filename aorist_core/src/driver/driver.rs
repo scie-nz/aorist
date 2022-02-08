@@ -1,6 +1,4 @@
 use abi_stable::std_types::ROption;
-use aorist_util::AOption;
-
 use crate::code::CodeBlock;
 use crate::code::CodeBlockWithDefaultConstructor;
 use crate::constraint::TConstraintEnum;
@@ -17,8 +15,7 @@ use abi_stable::std_types::RArc;
 use anyhow::Result;
 use aorist_ast::{AncestorRecord, SimpleIdentifier, AST};
 use aorist_primitives::{Ancestry, AoristConcept, AoristUniverse, ToplineConcept};
-use aorist_util::AUuid;
-use aorist_util::{AString, AVec};
+use aorist_util::{AString, AVec, AUuid, AOption, ATaskId};
 use inflector::cases::snakecase::to_snake_case;
 use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
@@ -29,7 +26,7 @@ pub type ConstraintsBlockMap<'a, C, P> = LinkedHashMap<
     AString,
     (
         LinkedHashSet<AString>,
-        LinkedHashMap<(AUuid, AString), RArc<RRwLock<ConstraintState<'a, C, P>>>>,
+        LinkedHashMap<ATaskId, RArc<RRwLock<ConstraintState<'a, C, P>>>>,
     ),
 >;
 
@@ -65,7 +62,7 @@ where
         &self,
         unsatisfied_constraints: &mut ConstraintsBlockMap<'a, B::OuterType, P>,
     ) -> Option<(
-        LinkedHashMap<(AUuid, AString), RArc<RRwLock<ConstraintState<'a, B::OuterType, P>>>>,
+        LinkedHashMap<ATaskId, RArc<RRwLock<ConstraintState<'a, B::OuterType, P>>>>,
         AString,
     )> {
         debug!(
@@ -96,7 +93,7 @@ where
     }
     fn init_tasks_dict(
         block: &LinkedHashMap<
-            (AUuid, AString),
+            ATaskId,
             RArc<RRwLock<ConstraintState<'a, B::OuterType, P>>>,
         >,
         constraint_name: AString,
@@ -108,13 +105,13 @@ where
             ))),
         }
     }
-    fn get_constraint_rwlock(&self, uuid: &(AUuid, AString)) -> RArc<RRwLock<B::OuterType>>;
+    fn get_constraint_rwlock(&self, uuid: &ATaskId) -> RArc<RRwLock<B::OuterType>>;
     fn get_preferences(&self) -> AVec<Dialect>;
     fn get_ancestry(&self) -> &A;
     fn process_constraint_with_program(
         &mut self,
         constraint: RReadGuard<'_, B::OuterType>,
-        uuid: (AUuid, AString),
+        uuid: ATaskId,
         calls: &mut HashMap<(AString, AString, AString), AVec<(AString, ParameterTuple)>>,
         state: RArc<RRwLock<ConstraintState<'a, B::OuterType, P>>>,
         programs: &AVec<P>,
@@ -131,7 +128,7 @@ where
         // TODO: preambles and calls are superflous
         if let AOption(ROption::RSome(key)) = state.read().key.as_ref() {
             calls
-                .entry((state.read().get_call().unwrap(), name, uuid.1.clone()))
+                .entry((state.read().get_call().unwrap(), name, uuid.get_root_type()))
                 .or_insert(AVec::new())
                 .push((key.clone(), state.read().get_params().unwrap()))
         } else {
@@ -140,10 +137,10 @@ where
     }
     fn process_constraint_state(
         &mut self,
-        uuid: (AUuid, AString),
+        uuid: ATaskId,
         state: RArc<RRwLock<ConstraintState<'a, B::OuterType, P>>>,
         calls: &mut HashMap<(AString, AString, AString), AVec<(AString, ParameterTuple)>>,
-        reverse_dependencies: &HashMap<(AUuid, AString), HashSet<(AString, AUuid, AString)>>,
+        reverse_dependencies: &HashMap<ATaskId, HashSet<(AString, AUuid, AString)>>,
         unsatisfied_constraints: &ConstraintsBlockMap<'a, B::OuterType, P>,
         programs: &AVec<P>,
     ) -> Result<()> {
@@ -167,11 +164,12 @@ where
 
         if let Some(v) = reverse_dependencies.get(&uuid) {
             for (dependency_name, dependency_uuid, dependency_root_type) in v {
+                let task_id = ATaskId::new(dependency_uuid.clone(), dependency_root_type.clone());
                 let rw = unsatisfied_constraints
                     .get(dependency_name)
                     .unwrap()
                     .1
-                    .get(&(dependency_uuid.clone(), dependency_root_type.clone()))
+                    .get(&task_id)
                     .unwrap();
                 let mut write = rw.write();
                 write.mark_dependency_as_satisfied(&state, &uuid);
@@ -186,16 +184,16 @@ where
     }
     fn mark_constraint_state_as_satisfied(
         &mut self,
-        id: (AUuid, AString),
+        id: ATaskId,
         state: RArc<RRwLock<ConstraintState<'a, B::OuterType, P>>>,
     );
     fn process_constraint_block(
         &mut self,
         block: &mut LinkedHashMap<
-            (AUuid, AString),
+            ATaskId,
             RArc<RRwLock<ConstraintState<'a, B::OuterType, P>>>,
         >,
-        reverse_dependencies: &HashMap<(AUuid, AString), HashSet<(AString, AUuid, AString)>>,
+        reverse_dependencies: &HashMap<ATaskId, HashSet<(AString, AUuid, AString)>>,
         constraint_name: AString,
         unsatisfied_constraints: &ConstraintsBlockMap<'a, B::OuterType, P>,
         identifiers: &mut HashMap<AUuid, AST>,
@@ -342,18 +340,18 @@ where
     fn satisfy_constraints(&mut self) -> Result<()> {
         let mut unsatisfied_constraints = self.init_unsatisfied_constraints()?;
         let mut reverse_dependencies: HashMap<
-            (AUuid, AString),
+            ATaskId,
             HashSet<(AString, AUuid, AString)>,
         > = HashMap::new();
         for (name, (_, constraints)) in &unsatisfied_constraints {
-            for ((uuid, root_type), state) in constraints {
-                for (dependency_uuid, dependency_root_type) in
+            for (task_id, state) in constraints {
+                for dependency_task_id in
                     &state.read().unsatisfied_dependencies
                 {
                     reverse_dependencies
-                        .entry((dependency_uuid.clone(), dependency_root_type.clone()))
+                        .entry(dependency_task_id.clone())
                         .or_insert(HashSet::new())
-                        .insert((name.clone(), uuid.clone(), root_type.clone()));
+                        .insert((name.clone(), task_id.get_constraint_id(), task_id.get_root_type()));
                 }
             }
         }
@@ -422,11 +420,11 @@ where
     }
     fn get_blocks(&self) -> &AVec<Self::CB>;
     fn _new(
-        concepts: RArc<RRwLock<HashMap<(AUuid, AString), C>>>,
-        constraints: LinkedHashMap<(AUuid, AString), RArc<RRwLock<B::OuterType>>>,
+        concepts: RArc<RRwLock<HashMap<ATaskId, C>>>,
+        constraints: LinkedHashMap<ATaskId, RArc<RRwLock<B::OuterType>>>,
         ancestry: A,
         endpoints: <U as AoristUniverse>::TEndpoints,
-        ancestors: HashMap<(AUuid, AString), AVec<AncestorRecord>>,
+        ancestors: HashMap<ATaskId, AVec<AncestorRecord>>,
         topline_constraint_names: LinkedHashSet<AString>,
         programs: LinkedHashMap<AString, AVec<P>>,
         preferences: AVec<Dialect>,
@@ -434,17 +432,17 @@ where
     ) -> Self;
 
     fn generate_constraint_states_map(
-        constraints: &LinkedHashMap<(AUuid, AString), RArc<RRwLock<B::OuterType>>>,
+        constraints: &LinkedHashMap<ATaskId, RArc<RRwLock<B::OuterType>>>,
         concepts: RArc<
             RRwLock<
                 HashMap<
-                    (AUuid, AString),
+                    ATaskId,
                     <<B::OuterType as OuterConstraint<'a>>::TAncestry as Ancestry>::TConcept,
                 >,
             >,
         >,
-        ancestors: &HashMap<(AUuid, AString), AVec<AncestorRecord>>,
-    ) -> Result<LinkedHashMap<(AUuid, AString), RArc<RRwLock<ConstraintState<'a, B::OuterType, P>>>>>
+        ancestors: &HashMap<ATaskId, AVec<AncestorRecord>>,
+    ) -> Result<LinkedHashMap<ATaskId, RArc<RRwLock<ConstraintState<'a, B::OuterType, P>>>>>
     {
         let mut states_map = LinkedHashMap::new();
         debug!(
@@ -469,7 +467,7 @@ where
     }
     fn remove_redundant_dependencies(
         raw_unsatisfied_constraints: &mut LinkedHashMap<
-            (AUuid, AString),
+            ATaskId,
             RArc<RRwLock<ConstraintState<'a, B::OuterType, P>>>,
         >,
     ) {
@@ -478,7 +476,7 @@ where
         let mut changes_made = true;
         while changes_made {
             changes_made = false;
-            let mut reverse_dependencies: LinkedHashMap<(AUuid, AString), AVec<(AUuid, AString)>> =
+            let mut reverse_dependencies: LinkedHashMap<ATaskId, AVec<ATaskId>> =
                 LinkedHashMap::new();
             for (k, v) in raw_unsatisfied_constraints.iter() {
                 for dep in v.read().unsatisfied_dependencies.iter() {
@@ -493,8 +491,8 @@ where
                 .iter()
                 .filter(|(k, _v)| !reverse_dependencies.contains_key(k));
             for tip in tips {
-                let mut visits: HashMap<(AUuid, AString), (AUuid, AString)> = HashMap::new();
-                let mut queue: VecDeque<((AUuid, AString), RArc<RRwLock<_>>)> = VecDeque::new();
+                let mut visits: HashMap<ATaskId, ATaskId> = HashMap::new();
+                let mut queue: VecDeque<(ATaskId, RArc<RRwLock<_>>)> = VecDeque::new();
                 queue.push_back((tip.0.clone(), tip.1.clone()));
                 while queue.len() > 0 {
                     let (key, elem) = queue.pop_front().unwrap();
@@ -524,7 +522,7 @@ where
     }
     fn remove_superfluous_dummy_tasks(
         raw_unsatisfied_constraints: &mut LinkedHashMap<
-            (AUuid, AString),
+            ATaskId,
             RArc<RRwLock<ConstraintState<'a, B::OuterType, P>>>,
         >,
     ) -> Result<()> {
@@ -539,8 +537,8 @@ where
             }
             if let Some(elem) = superfluous.into_iter().next() {
                 let mut reverse_dependencies: LinkedHashMap<
-                    (AUuid, AString),
-                    AVec<(AUuid, AString)>,
+                    ATaskId,
+                    AVec<ATaskId>,
                 > = LinkedHashMap::new();
                 for (k, v) in raw_unsatisfied_constraints.iter() {
                     for dep in v.read().unsatisfied_dependencies.iter() {
@@ -574,7 +572,7 @@ where
     }
     fn remove_dangling_dummy_tasks(
         raw_unsatisfied_constraints: &mut LinkedHashMap<
-            (AUuid, AString),
+            ATaskId,
             RArc<RRwLock<ConstraintState<'a, B::OuterType, P>>>,
         >,
     ) -> Result<()> {
@@ -583,7 +581,7 @@ where
         while changes_made {
             changes_made = false;
             let mut dangling = AVec::new();
-            let mut reverse_dependencies: LinkedHashMap<(AUuid, AString), AVec<(AUuid, AString)>> =
+            let mut reverse_dependencies: LinkedHashMap<ATaskId, AVec<ATaskId>> =
                 LinkedHashMap::new();
             for (k, v) in raw_unsatisfied_constraints.iter() {
                 let x = v.read();
@@ -619,20 +617,20 @@ where
         Ok(())
     }
     fn get_unsatisfied_constraints(
-        constraints: &LinkedHashMap<(AUuid, AString), RArc<RRwLock<B::OuterType>>>,
+        constraints: &LinkedHashMap<ATaskId, RArc<RRwLock<B::OuterType>>>,
         concepts: RArc<
             RRwLock<
                 HashMap<
-                    (AUuid, AString),
+                    ATaskId,
                     <<B::OuterType as OuterConstraint<'a>>::TAncestry as Ancestry>::TConcept,
                 >,
             >,
         >,
-        ancestors: &HashMap<(AUuid, AString), AVec<AncestorRecord>>,
+        ancestors: &HashMap<ATaskId, AVec<AncestorRecord>>,
         _topline_constraint_names: LinkedHashSet<AString>,
     ) -> Result<ConstraintsBlockMap<'a, B::OuterType, P>> {
         let mut raw_unsatisfied_constraints: LinkedHashMap<
-            (AUuid, AString),
+            ATaskId,
             RArc<RRwLock<ConstraintState<'a, B::OuterType, P>>>,
         > = Self::generate_constraint_states_map(constraints, concepts, ancestors)?;
         //Self::remove_redundant_dependencies(&mut raw_unsatisfied_constraints);
@@ -647,26 +645,26 @@ where
         .map(|(k, v)| (k, (v.into_iter().collect(), LinkedHashMap::new())))
         .collect();
 
-        for ((uuid, root_type), rw) in raw_unsatisfied_constraints.into_iter() {
+        for (task_id, rw) in raw_unsatisfied_constraints.into_iter() {
             let constraint_name = rw.read().get_name();
             unsatisfied_constraints
                 .get_mut(&constraint_name)
                 .unwrap()
                 .1
-                .insert((uuid, root_type), rw);
+                .insert(task_id, rw);
         }
 
         Ok(unsatisfied_constraints)
     }
     fn get_concept_map_by_object_type(
-        concept_map: HashMap<(AUuid, AString), C>,
+        concept_map: HashMap<ATaskId, C>,
     ) -> HashMap<AString, AVec<C>> {
         let mut by_object_type: HashMap<AString, AVec<C>> = HashMap::new();
         debug!("Found the following concepts:");
-        for ((uuid, object_type), concept) in concept_map {
-            debug!("- {}: {}", &object_type, &uuid);
+        for (task_id, concept) in concept_map {
+            debug!("- {:?}", task_id);
             by_object_type
-                .entry(object_type)
+                .entry(task_id.get_root_type())
                 .or_insert(AVec::new())
                 .push(concept.clone());
         }
@@ -674,9 +672,9 @@ where
     }
     fn compute_all_ancestors(
         universe: C,
-        concept_map: &HashMap<(AUuid, AString), C>,
-    ) -> HashMap<(AUuid, AString), AVec<AncestorRecord>> {
-        let mut ancestors: HashMap<(AUuid, AString), AVec<AncestorRecord>> = HashMap::new();
+        concept_map: &HashMap<ATaskId, C>,
+    ) -> HashMap<ATaskId, AVec<AncestorRecord>> {
+        let mut ancestors: HashMap<ATaskId, AVec<AncestorRecord>> = HashMap::new();
         let mut frontier: Vec<AncestorRecord> = Vec::new();
         frontier.push(AncestorRecord::new(
             universe.get_uuid(),
@@ -685,7 +683,7 @@ where
             universe.get_index_as_child(),
         ));
         ancestors.insert(
-            (universe.get_uuid(), universe.get_type()),
+            ATaskId::new(universe.get_uuid(), universe.get_type()),
             vec![AncestorRecord::new(
                 universe.get_uuid(),
                 universe.get_type(),
@@ -712,9 +710,10 @@ where
                     trace!("- {:?}", t);
                     new_frontier.push(t.clone());
                     let mut grandchild_ancestors = child_ancestors.clone();
+                    let k = t.get_key();
                     grandchild_ancestors.push(t);
                     ancestors.insert(
-                        (grandchild.get_uuid(), grandchild.get_type()),
+                        k,
                         grandchild_ancestors,
                     );
                 }
@@ -735,7 +734,7 @@ where
     {
         let endpoints = universe.get_endpoints();
         let sorted_builders = B::get_relevant_builders(&topline_constraint_names);
-        let mut concept_map: HashMap<(AUuid, AString), C> = HashMap::new();
+        let mut concept_map: HashMap<ATaskId, C> = HashMap::new();
         let concept = C::from_universe(universe);
         concept.populate_child_concept_map(&mut concept_map);
         let by_object_type = Self::get_concept_map_by_object_type(concept_map.clone());
@@ -745,7 +744,7 @@ where
         // constraint_name => root_id => constraint_object
         let mut generated_constraints: LinkedHashMap<
             AString,
-            LinkedHashMap<(AUuid, AString), RArc<RRwLock<B::OuterType>>>,
+            LinkedHashMap<ATaskId, RArc<RRwLock<B::OuterType>>>,
         > = LinkedHashMap::new();
 
         let concepts = RArc::new(RRwLock::new(concept_map));
@@ -764,8 +763,8 @@ where
 
         let mut constraints = LinkedHashMap::new();
         for (_k, v) in generated_constraints {
-            for ((_root_id, root_type), rw) in v.into_iter() {
-                constraints.insert((rw.read().get_uuid()?.clone(), root_type), rw.clone());
+            for (task_id, rw) in v.into_iter() {
+                constraints.insert(ATaskId::new(rw.read().get_uuid()?.clone(), task_id.get_root_type()), rw.clone());
             }
         }
         debug!("There are {} generated_constraints.", constraints.len());
@@ -782,9 +781,9 @@ where
         ))
     }
     fn generate_family_trees(
-        ancestors: &HashMap<(AUuid, AString), AVec<AncestorRecord>>,
-    ) -> HashMap<(AUuid, AString), HashMap<AString, HashSet<AUuid>>> {
-        let mut family_trees: HashMap<(AUuid, AString), HashMap<AString, HashSet<AUuid>>> =
+        ancestors: &HashMap<ATaskId, AVec<AncestorRecord>>,
+    ) -> HashMap<ATaskId, HashMap<AString, HashSet<AUuid>>> {
+        let mut family_trees: HashMap<ATaskId, HashMap<AString, HashSet<AUuid>>> =
             HashMap::new();
         for (key, ancestor_v) in ancestors.iter() {
             for record in ancestor_v.iter() {
@@ -796,22 +795,22 @@ where
                     .insert(record.uuid.clone());
             }
             for record in ancestor_v.iter() {
-                let (uuid, object_type) = key;
                 let ancestor_key = record.get_key();
                 family_trees
                     .entry(ancestor_key)
                     .or_insert(HashMap::new())
-                    .entry(object_type.clone())
+                    .entry(key.get_root_type())
                     .or_insert(HashSet::new())
-                    .insert(uuid.clone());
+                    .insert(key.get_constraint_id());
             }
-            let (uuid, object_type) = key;
+            let uuid = key.get_constraint_id();
+            let object_type = key.get_root_type();
             family_trees
                 .entry(key.clone())
                 .or_insert(HashMap::new())
-                .entry(object_type.clone())
+                .entry(object_type)
                 .or_insert(HashSet::new())
-                .insert(uuid.clone());
+                .insert(uuid);
         }
         family_trees
     }

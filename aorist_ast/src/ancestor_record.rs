@@ -1,5 +1,5 @@
 use abi_stable::std_types::ROption;
-use aorist_util::{AOption, AString, AUuid, AVec};
+use aorist_util::{AOption, AString, AUuid, AVec, ATaskId};
 use inflector::cases::snakecase::to_snake_case;
 
 #[derive(Clone, PartialEq, Eq, Hash, Debug)]
@@ -18,8 +18,8 @@ impl AncestorRecord {
             ix,
         }
     }
-    pub fn get_key(&self) -> (AUuid, AString) {
-        (self.uuid.clone(), self.object_type.clone())
+    pub fn get_key(&self) -> ATaskId {
+        ATaskId::new(self.uuid.clone(), self.object_type.clone())
     }
     pub fn compute_relative_path(ancestors: &AVec<AncestorRecord>) -> AString {
         let mut relative_path: String = "".into();

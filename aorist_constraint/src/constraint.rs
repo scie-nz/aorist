@@ -16,7 +16,7 @@ use aorist_primitives::{
 };
 #[cfg(feature = "python")]
 use aorist_util::init_logging;
-use aorist_util::{AOption, AString, AVec, AoristRef};
+use aorist_util::{AOption, AString, AVec, AoristRef, ATaskId};
 use linked_hash_map::LinkedHashMap;
 #[cfg(feature = "python")]
 use pyo3::prelude::*;
@@ -55,7 +55,7 @@ impl<'a> OuterConstraint<'a> for Constraint {
         self.inner("get_downstream_constraints()")?
             .get_downstream_constraints()
     }
-    fn get_dependencies(&self) -> linked_hash_set::LinkedHashSet<(AUuid, AString)> {
+    fn get_dependencies(&self) -> linked_hash_set::LinkedHashSet<ATaskId> {
         self.inner("get_dependencies()").unwrap()
             .get_dependencies()
     }

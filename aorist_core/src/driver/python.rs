@@ -1,6 +1,4 @@
 use abi_stable::std_types::ROption;
-use aorist_util::AOption;
-
 use crate::constraint::TConstraintEnum;
 use crate::constraint::{OuterConstraint, TBuilder};
 use crate::constraint_state::ConstraintState;
@@ -14,8 +12,7 @@ use anyhow::Result;
 use aorist_ast::AncestorRecord;
 use aorist_primitives::Dialect;
 use aorist_primitives::{Ancestry, AoristConcept, AoristUniverse, ToplineConcept};
-use aorist_util::AUuid;
-use aorist_util::{AString, AVec};
+use aorist_util::{AString, AVec, AOption, AUuid, ATaskId};
 use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
 use std::collections::{BTreeSet, HashMap};
@@ -37,16 +34,16 @@ where
         ToplineConcept<TUniverse = U>,
     P: TOuterProgram<TAncestry = A>,
 {
-    pub concepts: RArc<RRwLock<HashMap<(AUuid, AString), C>>>,
-    constraints: LinkedHashMap<(AUuid, AString), RArc<RRwLock<B::OuterType>>>,
+    pub concepts: RArc<RRwLock<HashMap<ATaskId, C>>>,
+    constraints: LinkedHashMap<ATaskId, RArc<RRwLock<B::OuterType>>>,
     satisfied_constraints:
-        HashMap<(AUuid, AString), RArc<RRwLock<ConstraintState<'a, B::OuterType, P>>>>,
+        HashMap<ATaskId, RArc<RRwLock<ConstraintState<'a, B::OuterType, P>>>>,
     blocks: AVec<PythonBasedConstraintBlock<'a, D::T, B::OuterType, U, P>>,
     ancestry: A,
     dag_type: PhantomData<D>,
     endpoints: <U as AoristUniverse>::TEndpoints,
     constraint_explanations: HashMap<AString, (AOption<AString>, AOption<AString>)>,
-    ancestors: HashMap<(AUuid, AString), AVec<AncestorRecord>>,
+    ancestors: HashMap<ATaskId, AVec<AncestorRecord>>,
     topline_constraint_names: LinkedHashSet<AString>,
     programs: LinkedHashMap<AString, AVec<P>>,
     preferences: AVec<Dialect>,
@@ -79,7 +76,7 @@ where
     fn get_preferences(&self) -> AVec<Dialect> {
         self.preferences.clone()
     }
-    fn get_constraint_rwlock(&self, uuid: &(AUuid, AString)) -> RArc<RRwLock<B::OuterType>> {
+    fn get_constraint_rwlock(&self, uuid: &ATaskId) -> RArc<RRwLock<B::OuterType>> {
         self.constraints.get(uuid).unwrap().clone()
     }
 
@@ -92,7 +89,7 @@ where
     }
     fn mark_constraint_state_as_satisfied(
         &mut self,
-        id: (AUuid, AString),
+        id: ATaskId,
         state: RArc<RRwLock<ConstraintState<'a, B::OuterType, P>>>,
     ) {
         self.satisfied_constraints.insert(id, state.clone());
@@ -146,11 +143,11 @@ where
             .collect()
     }
     fn _new(
-        concepts: RArc<RRwLock<HashMap<(AUuid, AString), C>>>,
-        constraints: LinkedHashMap<(AUuid, AString), RArc<RRwLock<B::OuterType>>>,
+        concepts: RArc<RRwLock<HashMap<ATaskId, C>>>,
+        constraints: LinkedHashMap<ATaskId, RArc<RRwLock<B::OuterType>>>,
         ancestry: A,
         endpoints: U::TEndpoints,
-        ancestors: HashMap<(AUuid, AString), AVec<AncestorRecord>>,
+        ancestors: HashMap<ATaskId, AVec<AncestorRecord>>,
         topline_constraint_names: LinkedHashSet<AString>,
         programs: LinkedHashMap<AString, AVec<P>>,
         preferences: AVec<Dialect>,

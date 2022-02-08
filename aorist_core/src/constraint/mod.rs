@@ -4,9 +4,7 @@ use abi_stable::std_types::RArc;
 use anyhow::Result;
 use aorist_primitives::Dialect;
 use aorist_primitives::{Ancestry, AoristConcept, ToplineConcept};
-use aorist_util::AOption;
-use aorist_util::AUuid;
-use aorist_util::{AString, AVec};
+use aorist_util::{AString, AVec, ATaskId, AOption, AUuid};
 use std::collections::{HashMap, HashSet, VecDeque};
 use std::marker::PhantomData;
 use tracing::info;
@@ -72,11 +70,11 @@ pub trait TBuilder<'a> {
     fn attach_constraints(
         &self,
         by_object_type: &HashMap<AString, AVec<Self::TEnum>>,
-        family_trees: &HashMap<(AUuid, AString), HashMap<AString, HashSet<AUuid>>>,
+        family_trees: &HashMap<ATaskId, HashMap<AString, HashSet<AUuid>>>,
         ancestry: &Self::TAncestry,
         generated_constraints: &mut LinkedHashMap<
             AString,
-            LinkedHashMap<(AUuid, AString), RArc<RRwLock<Self::OuterType>>>,
+            LinkedHashMap<ATaskId, RArc<RRwLock<Self::OuterType>>>,
         >,
         visited_constraint_names: &mut LinkedHashSet<AString>,
     ) -> Result<()> {
@@ -92,7 +90,7 @@ pub trait TBuilder<'a> {
             );
 
             for root in root_concepts.iter() {
-                let root_key = (root.get_uuid(), root.get_type());
+                let root_key = ATaskId::new(root.get_uuid(), root.get_type());
                 let family_tree = family_trees.get(&root_key).unwrap();
                 if self.should_add(root.clone(), &ancestry) {
                     let raw_potential_child_constraints = self
@@ -138,12 +136,14 @@ pub trait TBuilder<'a> {
                         .map(|(_req, x)| {
                             x.iter()
                                 .filter(
-                                    |((potential_root_id, potential_root_type), _constraint)| {
-                                        (match family_tree.get(potential_root_type) {
+                                    |(potential_root, _constraint)| {
+                                        let potential_root_id = (*potential_root).get_constraint_id();
+                                        let potential_root_type = (*potential_root).get_root_type();
+                                        (match family_tree.get(&potential_root_type) {
                                             None => false,
-                                            Some(set) => set.contains(potential_root_id),
+                                            Some(set) => set.contains(&potential_root_id),
                                         } || other_required_concept_uuids
-                                            .contains(potential_root_id))
+                                            .contains(&potential_root_id))
                                     },
                                 )
                                 .map(|(_, constraint)| constraint.clone())
@@ -267,13 +267,16 @@ pub trait ConstraintEnum<'a> {}
 pub trait OuterConstraint<'a>: std::fmt::Display + Clone {
     type TEnum: Sized + ConstraintEnum<'a> + TConstraintEnum<'a>;
     type TAncestry: Ancestry;
+    fn get_task_id(&self) -> ATaskId {
+       ATaskId::new(self.get_uuid().unwrap(), self.get_root_type_name().unwrap())
+    }
 
     fn get_name(&self) -> &AString;
     fn get_uuid(&self) -> Result<AUuid>;
     fn get_root(&self) -> AString;
     fn get_root_uuid(&self) -> Result<AUuid>;
     fn get_downstream_constraints(&self) -> Result<AVec<RArc<RRwLock<Self>>>>;
-    fn get_dependencies(&self) -> LinkedHashSet<(AUuid, AString)>;
+    fn get_dependencies(&self) -> LinkedHashSet<ATaskId>;
     fn requires_program(&self) -> Result<bool>;
     fn get_root_type_name(&self) -> Result<AString>;
     fn print_dag(&self) -> Result<()> {

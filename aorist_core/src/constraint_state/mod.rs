@@ -10,7 +10,7 @@ use aorist_primitives::Dialect;
 use aorist_primitives::{Context, ToplineConcept, Ancestry};
 use aorist_util::AOption;
 use aorist_util::AUuid;
-use aorist_util::{AString, AVec};
+use aorist_util::{AString, AVec, ATaskId};
 use inflector::cases::snakecase::to_snake_case;
 use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
@@ -23,7 +23,7 @@ pub struct ConstraintState<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestr
     name: AString,
     pub satisfied: bool,
     pub satisfied_dependencies: AVec<RArc<RRwLock<ConstraintState<'a, T, P>>>>,
-    pub unsatisfied_dependencies: LinkedHashSet<(AUuid, AString)>,
+    pub unsatisfied_dependencies: LinkedHashSet<ATaskId>,
     constraint: RArc<RRwLock<T>>,
     root: <<T as OuterConstraint<'a>>::TAncestry as Ancestry>::TConcept,
     // these are concept ancestors
@@ -41,7 +41,7 @@ impl<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry = T::TAncestry>>
     pub fn mark_dependency_as_satisfied(
         &mut self,
         dependency: &RArc<RRwLock<ConstraintState<'a, T, P>>>,
-        uuid: &(AUuid, AString),
+        uuid: &ATaskId,
     ) {
         let dependency_name = dependency.read().get_name();
         let dependency_context = &(*dependency.read()).context;
@@ -229,25 +229,27 @@ impl<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry = T::TAncestry>>
         concepts: RArc<
             RRwLock<
                 HashMap<
-                    (AUuid, AString),
+                    ATaskId,
                     <<T as OuterConstraint<'a>>::TAncestry as Ancestry>::TConcept,
                 >,
             >,
         >,
-        concept_ancestors: &HashMap<(AUuid, AString), AVec<AncestorRecord>>,
+        concept_ancestors: &HashMap<ATaskId, AVec<AncestorRecord>>,
     ) -> Result<Self> {
         let arc = constraint.clone();
         let x = arc.read();
         let root_uuid = x.get_root_uuid()?;
         let guard = concepts.read();
+        let task_id = ATaskId::new(root_uuid.clone(), x.get_root());
         let root = guard
-            .get(&(root_uuid.clone(), x.get_root()))
+            .get(&task_id)
             .unwrap()
             .clone();
-        let mut dependencies: LinkedHashSet<(AUuid, AString)> = LinkedHashSet::new();
+        let mut dependencies = LinkedHashSet::new();
         for constraint in x.get_downstream_constraints()? {
             let entry = constraint.read();
-            dependencies.insert((entry.get_uuid()?, entry.get_root()));
+            let task_id = ATaskId::new(entry.get_uuid()?, entry.get_root());
+            dependencies.insert(task_id);
         }
 
         if level_enabled!(Level::TRACE) {
@@ -262,7 +264,7 @@ impl<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry = T::TAncestry>>
             }
         }
         let ancestors = concept_ancestors
-            .get(&(root_uuid, x.get_root()))
+            .get(&task_id)
             .unwrap()
             .clone();
         Ok(Self {
@@ -317,7 +319,7 @@ impl<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry = T::TAncestry>>
         .into()
     }
     pub fn shorten_task_names(
-        constraints: &LinkedHashMap<(AUuid, AString), RArc<RRwLock<ConstraintState<'a, T, P>>>>,
+        constraints: &LinkedHashMap<ATaskId, RArc<RRwLock<ConstraintState<'a, T, P>>>>,
         _existing_names: &mut HashSet<AString>,
     ) {
         let mut task_names: AVec<(AString, RArc<RRwLock<ConstraintState<'a, T, P>>>)> = AVec::new();

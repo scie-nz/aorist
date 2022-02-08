@@ -59,6 +59,25 @@ impl AString {
 
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Debug, Hash, Eq, PartialOrd, Ord, StableAbi)]
+pub struct ATaskId {
+    constraint_id: AUuid,
+    root_type: AString,
+}
+
+impl ATaskId {
+    pub fn new(constraint_id: AUuid, root_type: AString) -> Self {
+        Self{ constraint_id, root_type }
+    }
+    pub fn get_constraint_id(&self) -> AUuid {
+        self.constraint_id.clone()
+    }
+    pub fn get_root_type(&self) -> AString {
+        self.root_type.clone()
+    }
+}
+
+#[repr(C)]
+#[derive(Clone, PartialEq, Serialize, Debug, Hash, Eq, PartialOrd, Ord, StableAbi)]
 pub struct AVec<T>(abi_stable::std_types::RVec<T>);
 
 impl<'de, T> Deserialize<'de> for AVec<T>

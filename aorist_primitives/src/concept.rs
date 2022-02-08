@@ -2,7 +2,7 @@ use crate::endpoints::*;
 use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 use abi_stable::std_types::{RArc, ROption};
 use abi_stable::StableAbi;
-use aorist_util::{AOption, AString, AUuid, AVec, AoristRef};
+use aorist_util::{AOption, AString, AUuid, AVec, AoristRef, ATaskId};
 use serde::Serialize;
 use siphasher::sip128::{Hasher128, SipHasher};
 use std::collections::{BTreeSet, HashMap};
@@ -81,24 +81,24 @@ pub trait AoristConcept {
 
 pub trait ToplineConcept: Sized + Clone + StableAbi {
     type TUniverse: AoristConcept + AoristUniverse;
-    fn get_parent_id(&self) -> AOption<(AUuid, AString)>;
+    fn get_parent_id(&self) -> AOption<ATaskId>;
     fn get_type(&self) -> AString;
     fn get_uuid(&self) -> AUuid;
     fn get_tag(&self) -> AOption<AString>;
     fn get_index_as_child(&self) -> usize;
     fn get_child_concepts(&self) -> AVec<Self>;
-    fn populate_child_concept_map(&self, concept_map: &mut HashMap<(AUuid, AString), Self>);
+    fn populate_child_concept_map(&self, concept_map: &mut HashMap<ATaskId, Self>);
     fn from_universe(universe: Self::TUniverse) -> Self;
 }
 pub trait ToplineConceptBase: Sized + Clone + Debug + Serialize + PartialEq + StableAbi {
     type TUniverse: AoristConcept + AoristUniverse;
-    fn get_parent_id(&self) -> AOption<(AUuid, AString)>;
+    fn get_parent_id(&self) -> AOption<ATaskId>;
     fn get_type(&self) -> AString;
     fn get_index_as_child(&self) -> usize;
     fn get_child_concepts(&self) -> AVec<AoristRef<Self>>;
     fn populate_child_concept_map(
         &self,
-        concept_map: &mut HashMap<(AUuid, AString), AoristRef<Self>>,
+        concept_map: &mut HashMap<ATaskId, AoristRef<Self>>,
     );
     fn build_universe(universe: Self::TUniverse) -> Self;
 }
@@ -112,8 +112,8 @@ pub trait TPrestoEndpoints {
 }
 pub trait Ancestry {
     type TConcept: ConceptEnum + Clone + ToplineConcept;
-    fn new(parents: RArc<RRwLock<HashMap<(AUuid, AString), Self::TConcept>>>) -> Self;
-    fn get_parents(&self) -> RArc<RRwLock<HashMap<(AUuid, AString), Self::TConcept>>>;
+    fn new(parents: RArc<RRwLock<HashMap<ATaskId, Self::TConcept>>>) -> Self;
+    fn get_parents(&self) -> RArc<RRwLock<HashMap<ATaskId, Self::TConcept>>>;
 }
 impl<T: PartialEq + Serialize + Debug + Clone + AoristConceptBase + StableAbi> AoristConcept
     for AoristRef<T>
@@ -177,7 +177,7 @@ impl<
     > ToplineConcept for AoristRef<T>
 {
     type TUniverse = <T as ToplineConceptBase>::TUniverse;
-    fn get_parent_id(&self) -> AOption<(AUuid, AString)> {
+    fn get_parent_id(&self) -> AOption<ATaskId> {
         self.0.read().get_parent_id()
     }
     fn from_universe(universe: Self::TUniverse) -> Self {
@@ -198,7 +198,7 @@ impl<
     fn get_child_concepts(&self) -> AVec<Self> {
         self.0.read().get_child_concepts()
     }
-    fn populate_child_concept_map(&self, concept_map: &mut HashMap<(AUuid, AString), Self>) {
+    fn populate_child_concept_map(&self, concept_map: &mut HashMap<ATaskId, Self>) {
         self.0.read().populate_child_concept_map(concept_map)
     }
 }
@@ -235,10 +235,10 @@ impl<T: Debug + Clone + Serialize + PartialEq + StableAbi + AoristConceptBase + 
     pub fn get_index_as_child(&self) -> usize {
         self.index_as_child
     }
-    pub fn get_parent_id(&self) -> AOption<(AUuid, AString)> {
+    pub fn get_parent_id(&self) -> AOption<ATaskId> {
         if let ROption::RSome(ref uuid) = self.parent_uuid.0 {
             if let ROption::RSome(ref id) = self.parent_id.0 {
-                return AOption(ROption::RSome((uuid.clone(), id.clone())));
+                return AOption(ROption::RSome(ATaskId::new(uuid.clone(), id.clone())));
             } else {
                 panic!("Id was None when uuid was Some(_)");
             }

@@ -673,12 +673,13 @@ macro_rules! define_constraint {
                     )*
                     Ok(downstream)
                 }
-                fn get_dependencies(&self) -> linked_hash_set::LinkedHashSet<(AUuid, AString)> {
+                fn get_dependencies(&self) -> linked_hash_set::LinkedHashSet<aorist_util::ATaskId> {
                     let mut dependencies = linked_hash_set::LinkedHashSet::new();
                     $(
                         for constraint in self.[<$required:snake:lower>].iter() {
                             let entry = constraint.read();
-                            dependencies.insert((entry.get_uuid().unwrap(), entry.get_root()));
+                            let task_id = entry.get_task_id();
+                            dependencies.insert(task_id);
                         }
                     )*
                     dependencies
@@ -1146,14 +1147,14 @@ macro_rules! register_concept {
 
         #[cfg_attr(feature = "python", pyclass(module = "aorist"))]
         pub struct $ancestry {
-            pub parents: RArc<RRwLock<HashMap<(AUuid, AString), AoristRef<$name>>>>,
+            pub parents: RArc<RRwLock<HashMap<aorist_util::ATaskId, AoristRef<$name>>>>,
         }
         impl Ancestry for $ancestry {
             type TConcept = AoristRef<$name>;
-            fn new(parents: RArc<RRwLock<HashMap<(AUuid, AString), AoristRef<$name>>>>) -> Self {
+            fn new(parents: RArc<RRwLock<HashMap<aorist_util::ATaskId, AoristRef<$name>>>>) -> Self {
                  Self { parents }
             }
-            fn get_parents(&self) -> RArc<RRwLock<HashMap<(AUuid, AString), AoristRef<$name>>>> {
+            fn get_parents(&self) -> RArc<RRwLock<HashMap<aorist_util::ATaskId, AoristRef<$name>>>> {
                 self.parents.clone()
             }
 
@@ -1209,7 +1210,7 @@ macro_rules! register_concept {
             fn build_universe(universe: AoristRef<Universe>) -> Self {
                 $name::Universe(AConcept::new(universe, 0, AOption(ROption::RNone)))
             }
-            fn get_parent_id(&self) -> AOption<(AUuid, AString)> {
+            fn get_parent_id(&self) -> AOption<aorist_util::ATaskId> {
                 match self {
                     $(
                         $name::$element(ref x) => x.get_parent_id(),
@@ -1237,7 +1238,7 @@ macro_rules! register_concept {
                     )*
                 }
             }
-            fn populate_child_concept_map(&self, concept_map: &mut HashMap<(AUuid, AString), AoristRef<Self>>) {
+            fn populate_child_concept_map(&self, concept_map: &mut HashMap<aorist_util::ATaskId, AoristRef<Self>>) {
                 match self {
                     $(
                         $name::$element(x) => {
@@ -1248,7 +1249,7 @@ macro_rules! register_concept {
                                 child.populate_child_concept_map(concept_map);
                             }
                             concept_map.insert(
-                                (
+                                 aorist_util::ATaskId::new(
                                     x.get_own_uuid().unwrap(),
                                     stringify!($element).into()
                                  ),
@@ -1599,7 +1600,7 @@ macro_rules! register_constraint_new {
                     )+
                 }
             }
-            pub fn get_dependencies(&self) -> linked_hash_set::LinkedHashSet<(AUuid, AString)> {
+            pub fn get_dependencies(&self) -> linked_hash_set::LinkedHashSet<aorist_util::ATaskId> {
                 match self {
                     $(
                         Self::$element(x) => x.get_dependencies(),
