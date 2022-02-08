@@ -157,24 +157,6 @@ impl<'de, T: Deserialize<'de>> Deserialize<'de> for AOption<T> {
 }
 
 #[repr(C)]
-pub struct AMapNode<T: Clone + PartialEq + Eq + PartialOrd + Ord> {
-    next: *mut AMapNode<T>,
-    prev: *mut AMapNode<T>,
-    key: AString,
-    value: T,
-}
-
-#[repr(C)]
-pub struct AMap<
-    T: Clone + PartialEq + Eq + PartialOrd + Ord,
-    S = std::collections::hash_map::RandomState,
-> {
-    map: abi_stable::std_types::RHashMap<AString, T, S>,
-    head: *mut AMapNode<T>,
-    free: *mut AMapNode<T>,
-}
-
-#[repr(C)]
 #[derive(StableAbi)]
 pub struct AoristRef<T: PartialEq + Serialize + Debug + Clone + StableAbi>(pub RArc<RRwLock<T>>);
 
