@@ -52,7 +52,7 @@ impl<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry = T::TAncestry>>
         debug!("Marked dependency {} as satisfied.", dependency_name);
     }
     pub fn requires_program(&self) -> Result<bool> {
-        self.constraint.read().requires_program()
+        Ok(self.constraint.read().requires_program())
     }
     pub fn get_dependencies(&self) -> Result<AVec<AUuid>> {
         let mut dependencies = AVec::new();
@@ -151,7 +151,7 @@ impl<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry = T::TAncestry>>
         self.root.clone()
     }
     pub fn get_constraint_uuid(&self) -> Result<AUuid> {
-        Ok(self.constraint.read().get_uuid()?.clone())
+        Ok(self.constraint.read().get_uuid().clone())
     }
     #[allow(dead_code)]
     pub fn get_root_uuid(&self) -> AUuid {
@@ -238,19 +238,14 @@ impl<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry = T::TAncestry>>
     ) -> Result<Self> {
         let arc = constraint.clone();
         let x = arc.read();
-        let root_uuid = x.get_root_uuid()?;
+        let root_uuid = x.get_root_uuid();
         let guard = concepts.read();
         let task_id = ATaskId::new(root_uuid.clone(), x.get_root());
         let root = guard
             .get(&task_id)
             .unwrap()
             .clone();
-        let mut dependencies = LinkedHashSet::new();
-        for constraint in x.get_downstream_constraints()? {
-            let entry = constraint.read();
-            let task_id = ATaskId::new(entry.get_uuid()?, entry.get_root());
-            dependencies.insert(task_id);
-        }
+        let dependencies = constraint.read().get_dependencies();
 
         if level_enabled!(Level::TRACE) {
             trace!(
@@ -272,7 +267,7 @@ impl<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry = T::TAncestry>>
             key: AOption(ROption::RNone),
             name: x.get_name().clone(),
             satisfied: false,
-            unsatisfied_dependencies: dependencies,
+            unsatisfied_dependencies: dependencies.into_iter().collect(),
             satisfied_dependencies: AVec::new(),
             constraint,
             root,
@@ -308,7 +303,6 @@ impl<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry = T::TAncestry>>
             self.constraint
                 .read()
                 .get_uuid()
-                .unwrap()
                 .to_string()
                 .split("-")
                 .take(1)

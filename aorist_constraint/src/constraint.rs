@@ -42,39 +42,35 @@ impl<'a> OuterConstraint<'a> for Constraint {
     type TEnum = AoristConstraint;
     type TAncestry = ConceptAncestry;
 
-    fn get_uuid(&self) -> Result<AUuid> {
-        self.inner("get_uuid()")?.get_uuid()
+    fn get_uuid(&self) -> AUuid {
+        self.inner("get_uuid()".into()).get_uuid().unwrap()
     }
     fn get_root(&self) -> AString {
         self.root.clone()
     }
-    fn get_root_uuid(&self) -> Result<AUuid> {
-        self.inner("get_root_uuid()")?.get_root_uuid()
+    fn get_root_uuid(&self) -> AUuid {
+        self.inner("get_root_uuid()".into()).get_root_uuid().unwrap()
     }
-    fn get_downstream_constraints(&self) -> Result<AVec<RArc<RRwLock<Self>>>> {
-        self.inner("get_downstream_constraints()")?
-            .get_downstream_constraints()
+    fn get_dependencies(&self) -> AVec<ATaskId> {
+        self.inner("get_dependencies()".into())
+            .get_dependencies().into_iter().collect()
     }
-    fn get_dependencies(&self) -> linked_hash_set::LinkedHashSet<ATaskId> {
-        self.inner("get_dependencies()").unwrap()
-            .get_dependencies()
+    fn requires_program(&self) -> bool {
+        self.inner("requires_program()".into()).requires_program().unwrap()
     }
-    fn requires_program(&self) -> Result<bool> {
-        self.inner("requires_program()")?.requires_program()
+    fn get_root_type_name(&self) -> AString {
+        self.inner("get_root_type_name()".into()).get_root_type_name().unwrap()
     }
-    fn get_root_type_name(&self) -> Result<AString> {
-        self.inner("get_root_type_name()")?.get_root_type_name()
-    }
-    fn inner(&self, caller: &str) -> Result<&Self::TEnum> {
+    fn inner(&self, caller: AString) -> &Self::TEnum {
         self.inner.as_ref().with_context(|| {
             format!(
                 "Called {} on Constraint struct with no inner: name={}, root={}",
                 caller, self.name, self.root
             )
-        })
+        }).unwrap()
     }
-    fn get_name(&self) -> &AString {
-        &self.name
+    fn get_name(&self) -> AString {
+        self.name.clone()
     }
 }
 impl fmt::Display for Constraint {

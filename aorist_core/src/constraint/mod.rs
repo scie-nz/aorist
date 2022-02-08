@@ -11,7 +11,7 @@ use tracing::info;
 use tracing::{debug, level_enabled, trace, Level};
 use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
-
+use abi_stable::sabi_trait;
 /*
 use abi_stable::{
     declare_root_module_statics,
@@ -115,7 +115,7 @@ pub trait TBuilder<'a> {
                                 debug!(
                                     " -- {:?}: {:?}",
                                     key,
-                                    (downstream.get_uuid()?, downstream.get_name())
+                                    (downstream.get_uuid(), downstream.get_name())
                                 );
                             }
                         }
@@ -154,7 +154,7 @@ pub trait TBuilder<'a> {
                         debug!("After filtering:",);
                         for downstream_rw in potential_child_constraints.iter() {
                             let downstream = downstream_rw.read();
-                            debug!(" --  {:?}", (downstream.get_uuid()?, downstream.get_name()));
+                            debug!(" --  {:?}", (downstream.get_uuid(), downstream.get_name()));
                         }
                     }
                     let constraint =
@@ -166,13 +166,13 @@ pub trait TBuilder<'a> {
                     if level_enabled!(Level::DEBUG) {
                         debug!(
                             "Added constraint {:?} on root {:?} with the following dependencies:",
-                            (constraint.get_uuid()?, constraint.get_name()),
+                            (constraint.get_uuid(), constraint.get_name()),
                             &root_key
                         );
-                        for downstream_rw in constraint.get_downstream_constraints()? {
-                            let downstream = downstream_rw.read();
-                            debug!(" --  {:?}", (downstream.get_uuid()?, downstream.get_name()));
-                        }
+                        //for downstream_rw in constraint.get_downstream_constraints()? {
+                        //    let downstream = downstream_rw.read();
+                        //    debug!(" --  {:?}", (downstream.get_uuid()?, downstream.get_name()));
+                        //}
                     }
                     gen_for_constraint.insert(root_key, RArc::new(RRwLock::new(constraint)));
                 } else {
@@ -264,22 +264,23 @@ pub trait TConstraintEnum<'a>: Sized + Clone {
 }
 pub trait ConstraintEnum<'a> {}
 
+#[sabi_trait]
 pub trait OuterConstraint<'a>: std::fmt::Display + Clone {
     type TEnum: Sized + ConstraintEnum<'a> + TConstraintEnum<'a>;
     type TAncestry: Ancestry;
     fn get_task_id(&self) -> ATaskId {
-       ATaskId::new(self.get_uuid().unwrap(), self.get_root_type_name().unwrap())
+       ATaskId::new(self.get_uuid(), self.get_root_type_name())
     }
 
-    fn get_name(&self) -> &AString;
-    fn get_uuid(&self) -> Result<AUuid>;
+    fn get_name(&self) -> AString;
+    fn get_uuid(&self) -> AUuid;
     fn get_root(&self) -> AString;
-    fn get_root_uuid(&self) -> Result<AUuid>;
-    fn get_downstream_constraints(&self) -> Result<AVec<RArc<RRwLock<Self>>>>;
-    fn get_dependencies(&self) -> LinkedHashSet<ATaskId>;
-    fn requires_program(&self) -> Result<bool>;
-    fn get_root_type_name(&self) -> Result<AString>;
-    fn print_dag(&self) -> Result<()> {
+    fn get_root_uuid(&self) -> AUuid;
+    //fn get_downstream_constraints(&self) -> Result<AVec<RArc<RRwLock<Self>>>>;
+    fn get_dependencies(&self) -> AVec<ATaskId>;
+    fn requires_program(&self) -> bool;
+    fn get_root_type_name(&self) -> AString;
+    /*fn print_dag(&self) -> Result<()> {
         for downstream_rw in self.get_downstream_constraints()? {
             let downstream = downstream_rw.read();
             info!(
@@ -299,8 +300,8 @@ pub trait OuterConstraint<'a>: std::fmt::Display + Clone {
             downstream.print_dag()?;
         }
         Ok(())
-    }
-    fn inner(&self, caller: &str) -> Result<&Self::TEnum>;
+    }*/
+    fn inner(&self, caller: AString) -> &Self::TEnum;
 }
 pub trait TConstraint<'a>
 where

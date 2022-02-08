@@ -725,7 +725,7 @@ macro_rules! define_constraint {
                             &constraint.read().inner
                             {
                                 by_uuid.insert(
-                                    constraint.read().get_uuid()?,
+                                    constraint.read().get_uuid(),
                                     constraint.clone()
                                 );
                             }
@@ -1364,7 +1364,7 @@ macro_rules! register_constraint_new {
                                 assert!(constraint_pos.is_none());
                                 constraint_pos = Some(i);
                                 let constraint_rw = constraint.read();
-                                let inner = constraint_rw.inner(stringify!($name)).unwrap();
+                                let inner = constraint_rw.inner(stringify!($name).into());
                                 let obj = inner.get_py_obj(py);
                                 objects.push(obj);
                             },

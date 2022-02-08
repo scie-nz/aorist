@@ -152,7 +152,7 @@ where
         let rw = self.get_constraint_rwlock(&uuid);
         let constraint = rw.read();
 
-        if constraint.requires_program()? {
+        if constraint.requires_program() {
             self.process_constraint_with_program(
                 constraint,
                 uuid.clone(),
@@ -764,7 +764,7 @@ where
         let mut constraints = LinkedHashMap::new();
         for (_k, v) in generated_constraints {
             for (task_id, rw) in v.into_iter() {
-                constraints.insert(ATaskId::new(rw.read().get_uuid()?.clone(), task_id.get_root_type()), rw.clone());
+                constraints.insert(ATaskId::new(rw.read().get_uuid().clone(), task_id.get_root_type()), rw.clone());
             }
         }
         debug!("There are {} generated_constraints.", constraints.len());
