@@ -48,7 +48,7 @@ pub use user_group::*;
 use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 use abi_stable::std_types::{RArc, ROption};
 pub use aorist_primitives::{
-    register_concept, AConcept, Ancestry, AoristConcept, AoristConceptBase, AoristUniverse,
+    register_concept, AConcept, Ancestry, AoristConceptBase, AoristUniverse,
     AoristUniverseBase, ConceptEnum, ToplineConcept, ToplineConceptBase,
 };
 use aorist_util::AUuid;

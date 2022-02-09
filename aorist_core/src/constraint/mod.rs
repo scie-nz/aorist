@@ -3,7 +3,7 @@ use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 use abi_stable::std_types::RArc;
 use anyhow::Result;
 use aorist_primitives::Dialect;
-use aorist_primitives::{Ancestry, AoristConcept, ToplineConcept};
+use aorist_primitives::{Ancestry, AoristConceptBase, ToplineConcept};
 use aorist_util::{AString, AVec, ATaskId, AOption, AUuid};
 use std::collections::{HashMap, HashSet, VecDeque};
 use std::marker::PhantomData;
@@ -305,7 +305,7 @@ pub trait OuterConstraint<'a>: std::fmt::Display + Clone {
 }
 pub trait TConstraint<'a>
 where
-    Self::Root: AoristConcept,
+    Self::Root: AoristConceptBase,
     Self::Outer: OuterConstraint<'a, TAncestry = Self::Ancestry>,
     Self::Ancestry: Ancestry,
 {
@@ -328,7 +328,7 @@ where
 }
 pub trait ConstraintSatisfactionBase<'a>
 where
-    Self::RootType: AoristConcept,
+    Self::RootType: AoristConceptBase,
     Self::Outer: OuterConstraint<'a>,
     Self::ConstraintType: TConstraint<'a, Root = Self::RootType, Outer = Self::Outer>,
 {

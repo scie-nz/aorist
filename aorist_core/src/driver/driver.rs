@@ -14,7 +14,7 @@ use abi_stable::external_types::parking_lot::rw_lock::{RReadGuard, RRwLock};
 use abi_stable::std_types::RArc;
 use anyhow::Result;
 use aorist_ast::{AncestorRecord, SimpleIdentifier, AST};
-use aorist_primitives::{Ancestry, AoristConcept, AoristUniverse, ToplineConcept};
+use aorist_primitives::{Ancestry, AoristConceptBase, AoristUniverse, ToplineConcept};
 use aorist_util::{AString, AVec, AUuid, AOption, ATaskId};
 use inflector::cases::snakecase::to_snake_case;
 use linked_hash_map::LinkedHashMap;
@@ -32,7 +32,7 @@ pub type ConstraintsBlockMap<'a, C, P> = LinkedHashMap<
 
 pub trait Driver<'a, B, D, U, C, A, P>
 where
-    U: AoristConcept + AoristUniverse,
+    U: AoristConceptBase + AoristUniverse,
     B: TBuilder<'a, TEnum = C, TAncestry = A>,
     D: FlowBuilderBase<U>,
     D: FlowBuilderMaterialize<

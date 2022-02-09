@@ -34,15 +34,12 @@ pub trait AoristConceptBase: Clone + Debug + Serialize + PartialEq + StableAbi {
         // wrapped reference
         Self::TChildrenEnum,
     )>;
-}
-
-pub trait AoristConcept {
-    type TChildrenEnum: ConceptEnum;
-    fn get_uuid(&self) -> AOption<AUuid>;
-    fn set_uuid(&mut self, uuid: AUuid);
-    fn get_tag(&self) -> AOption<AString>;
-    fn compute_uuids(&mut self);
-    fn get_children_uuid(&self) -> AVec<AUuid>;
+    fn get_children_uuid(&self) -> AVec<AUuid> {
+        self.get_children()
+            .iter()
+            .map(|x| x.4.uuid().unwrap())
+            .collect()
+    }
     fn get_uuid_from_children_uuid(&self) -> AUuid {
         let child_uuids = self.get_children_uuid();
         if child_uuids.len() > 0 {
@@ -58,25 +55,10 @@ pub trait AoristConcept {
             AUuid::new_v4()
         }
     }
-    fn get_children(
-        &self,
-    ) -> AVec<(
-        // struct name
-        AString,
-        // field name
-        AOption<AString>,
-        // ix
-        AOption<usize>,
-        // uuid
-        AOption<AUuid>,
-        // wrapped reference
-        Self::TChildrenEnum,
-    )>;
-    fn deep_clone(&self) -> Self;
 }
 
 pub trait ToplineConcept: Sized + Clone + StableAbi {
-    type TUniverse: AoristConcept + AoristUniverse;
+    type TUniverse: AoristConceptBase + AoristUniverse;
     fn get_parent_id(&self) -> AOption<ATaskId>;
     fn get_type(&self) -> AString;
     fn get_uuid(&self) -> AUuid;
@@ -87,7 +69,7 @@ pub trait ToplineConcept: Sized + Clone + StableAbi {
     fn from_universe(universe: Self::TUniverse) -> Self;
 }
 pub trait ToplineConceptBase: Sized + Clone + Debug + Serialize + PartialEq + StableAbi {
-    type TUniverse: AoristConcept + AoristUniverse;
+    type TUniverse: AoristConceptBase + AoristUniverse;
     fn get_parent_id(&self) -> AOption<ATaskId>;
     fn get_type(&self) -> AString;
     fn get_index_as_child(&self) -> usize;
@@ -111,7 +93,7 @@ pub trait Ancestry {
     fn new(parents: RArc<RRwLock<HashMap<ATaskId, Self::TConcept>>>) -> Self;
     fn get_parents(&self) -> RArc<RRwLock<HashMap<ATaskId, Self::TConcept>>>;
 }
-impl<T: PartialEq + Serialize + Debug + Clone + AoristConceptBase + StableAbi> AoristConcept
+impl<T: PartialEq + Serialize + Debug + Clone + AoristConceptBase + StableAbi + Eq> AoristConceptBase
     for AoristRef<T>
 {
     type TChildrenEnum = <T as AoristConceptBase>::TChildrenEnum;
@@ -127,7 +109,7 @@ impl<T: PartialEq + Serialize + Debug + Clone + AoristConceptBase + StableAbi> A
     fn compute_uuids(&mut self) {
         self.0.write().compute_uuids();
         let uuid;
-        uuid = self.get_uuid_from_children_uuid();
+        uuid = self.0.write().get_uuid_from_children_uuid();
         self.0.write().set_uuid(uuid);
     }
     fn get_children_uuid(&self) -> AVec<AUuid> {

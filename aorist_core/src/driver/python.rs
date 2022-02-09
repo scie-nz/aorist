@@ -11,7 +11,7 @@ use abi_stable::std_types::RArc;
 use anyhow::Result;
 use aorist_ast::AncestorRecord;
 use aorist_primitives::Dialect;
-use aorist_primitives::{Ancestry, AoristConcept, AoristUniverse, ToplineConcept};
+use aorist_primitives::{Ancestry, AoristConceptBase, AoristUniverse, ToplineConcept};
 use aorist_util::{AString, AVec, AOption, AUuid, ATaskId};
 use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
@@ -20,7 +20,7 @@ use std::marker::PhantomData;
 
 pub struct PythonBasedDriver<'a, B, D, U, C, A, P>
 where
-    U: AoristConcept + AoristUniverse,
+    U: AoristConceptBase + AoristUniverse,
     B: TBuilder<'a, TEnum = C, TAncestry = A>,
     D: FlowBuilderBase<U> + PythonBasedFlowBuilder<U>,
     <D as FlowBuilderBase<U>>::T: 'a,
@@ -51,7 +51,7 @@ where
 }
 impl<'a, B, D, U, C, A, P> Driver<'a, B, D, U, C, A, P> for PythonBasedDriver<'a, B, D, U, C, A, P>
 where
-    U: AoristConcept + AoristUniverse,
+    U: AoristConceptBase + AoristUniverse,
     B: TBuilder<'a, TEnum = C, TAncestry = A>,
     D: FlowBuilderBase<U> + PythonBasedFlowBuilder<U>,
     <D as FlowBuilderBase<U>>::T: 'a,

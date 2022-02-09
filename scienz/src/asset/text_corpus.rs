@@ -11,7 +11,7 @@ use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 use abi_stable::std_types::RArc;
 use aorist_concept::{aorist, Constrainable};
 use aorist_paste::paste;
-use aorist_primitives::{asset, AoristConcept, AoristConceptBase, ConceptEnum};
+use aorist_primitives::{asset, AoristConceptBase, ConceptEnum};
 use aorist_util::AUuid;
 use aorist_util::{AString, AVec, AoristRef};
 use derivative::Derivative;
