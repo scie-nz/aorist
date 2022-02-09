@@ -13,6 +13,42 @@ pub trait ConceptEnum {
     fn uuid(&self) -> AOption<AUuid>;
 }
 
+#[repr(C)]
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, StableAbi)]
+pub struct ChildRecord<T: ConceptEnum + StableAbi> {
+    concept_name: AString,
+    field_name: AOption<AString>,
+    ix: AOption<usize>,
+    uuid: AOption<AUuid>,
+    child_ref: T,
+}
+impl <T: ConceptEnum + StableAbi + Clone> ChildRecord<T> {
+    pub fn new(
+        concept_name: AString,
+        field_name: AOption<AString>,
+        ix: AOption<usize>,
+        uuid: AOption<AUuid>,
+        child_ref: T,
+    ) -> Self {
+        Self { concept_name, field_name, ix, uuid, child_ref, }
+    }
+    pub fn get_concept_name(&self) -> AString {
+        self.concept_name.clone()
+    }
+    pub fn get_field_name(&self) -> AOption<AString> {
+        self.field_name.clone()
+    }
+    pub fn get_ix(&self) -> AOption<usize> {
+        self.ix.clone()
+    }
+    pub fn get_uuid(&self) -> AOption<AUuid> {
+        self.uuid.clone()
+    }
+    pub fn get_child_ref(&self) -> T {
+        self.child_ref.clone()
+    }
+}
+
 pub trait AoristConceptBase: Clone + Debug + Serialize + PartialEq + StableAbi {
     type TChildrenEnum: ConceptEnum;
     fn get_uuid(&self) -> AOption<AUuid>;
