@@ -153,13 +153,22 @@ impl Builder for EnumBuilder {
                     }
                 )*
           }
+          #[cfg(feature = "python")]
+          impl aorist_util::PyWrapper for [<Py #enum_name>] {
+              type WrappedType = #enum_name;
+              fn new(inner: AoristRef<#enum_name>) -> Self {
+                  Self { inner }
+              }
+          }
+          #[cfg(feature = "python")]
+          impl aorist_util::PyWrapped for #enum_name {
+              type WrapperType = [<Py #enum_name>];
+          }
           impl AoristConceptBase for #enum_name {
               type TChildrenEnum = #enum_name;
               #[cfg(feature = "python")]
               fn py_object(inner: AoristRef<Self>, py: pyo3::Python) -> pyo3::PyResult<pyo3::PyObject> {
-                    Ok(pyo3::PyObject::from(pyo3::PyCell::new(py, [<Py #enum_name>]{
-                        inner
-                    })?))
+                    Ok(pyo3::ToPyObject::to_object(&inner, py))
               }
               fn get_uuid(&self) -> AOption<AUuid> {
                   match &self {

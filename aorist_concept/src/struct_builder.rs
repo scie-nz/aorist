@@ -409,6 +409,17 @@ impl Builder for StructBuilder {
             pub struct [<Py #struct_name>] {
                 pub inner: AoristRef<#struct_name>,
             }
+            #[cfg(feature = "python")]
+            impl aorist_util::PyWrapper for [<Py #struct_name>] {
+                type WrappedType = #struct_name;
+                fn new(inner: AoristRef<#struct_name>) -> Self {
+                    Self { inner }
+                }
+            }
+            #[cfg(feature = "python")]
+            impl aorist_util::PyWrapped for #struct_name {
+                type WrapperType = [<Py #struct_name>];
+            }
 
             #[cfg(feature = "python")]
             #[pyo3::prelude::pymethods]
@@ -837,19 +848,10 @@ impl Builder for StructBuilder {
                     ))
                 }
             }
-            /*
-            impl AoristRef<#struct_name> {
-                pub fn deep_clone(&self) -> Self {
-                    AoristRef(abi_stable::std_types::RArc::new(abi_stable::external_types::parking_lot::rw_lock::RRwLock::new(self.0.read().deep_clone())))
-                }
-            }*/
             impl AoristConceptBase for #struct_name {
                 type TChildrenEnum = [<#struct_name Children>];
-                #[cfg(feature = "python")]
                 fn py_object(inner: AoristRef<Self>, py: pyo3::Python) -> pyo3::PyResult<pyo3::PyObject> {
-                    Ok(pyo3::PyObject::from(pyo3::PyCell::new(py, [<Py #struct_name>]{
-                        inner
-                    })?))
+                      Ok(pyo3::ToPyObject::to_object(&inner, py))
                 }
                 fn get_uuid(&self) -> AOption<AUuid> {
                     self.uuid.clone()
