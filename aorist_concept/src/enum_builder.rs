@@ -159,10 +159,20 @@ impl Builder for EnumBuilder {
               fn new(inner: AoristRef<#enum_name>) -> Self {
                   Self { inner }
               }
+              fn get_inner(&self) -> AoristRef<Self::WrappedType> {
+                  self.inner.clone()
+              }
           }
           #[cfg(feature = "python")]
           impl aorist_util::PyWrapped for #enum_name {
               type WrapperType = [<Py #enum_name>];
+              fn deep_clone(&self) -> Self {
+                  match &self {
+                      #(
+                        #enum_name::#variant(x) => #enum_name::#variant(x.deep_clone()),
+                      )*
+                  }
+              }
           }
           impl AoristConceptBase for #enum_name {
               type TChildrenEnum = #enum_name;
