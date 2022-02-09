@@ -422,45 +422,6 @@ impl Builder for StructBuilder {
             #[cfg(feature = "python")]
             impl aorist_util::PyWrapped for #struct_name {
                 type WrapperType = [<Py #struct_name>];
-                fn deep_clone(&self) -> Self {
-                    assert!(self.uuid.is_none());
-                    Self {
-                        #(
-                            #bare_ident: self.#bare_ident.deep_clone(),
-                        )*
-                        #(
-                            #option_ident: self.#option_ident.as_ref().and_then(|x| ROption::RSome(x.deep_clone())),
-                        )*
-                        #(
-                            #vec_ident: self.#vec_ident.iter().map(|x| x.deep_clone()).collect(),
-                        )*
-                        #(
-                            #option_vec_ident: self.#option_vec_ident.as_ref().and_then(|x| ROption::RSome(
-                                x.iter().map(|x| x.deep_clone()).collect()
-                            )),
-                        )*
-                        #(
-                            #map_ident: self.#map_ident.iter().map(|(k, v)| (k.clone(), v.deep_clone())).collect(),
-                        )*
-                        #(
-                            #unconstrainable_name: self.#unconstrainable_name.clone(),
-                        )*
-                        #(
-                            #unconstrainable_name_vec: self.#unconstrainable_name_vec.clone(),
-                        )*
-                        #(
-                            #unconstrainable_name_option: self.#unconstrainable_name_option.clone(),
-                        )*
-                        #(
-                            #unconstrainable_name_ref: self.#unconstrainable_name_ref.clone(),
-                        )*
-                        #(
-                            #unconstrainable_name_vec_ref: self.#unconstrainable_name_vec_ref.clone(),
-                        )*
-                        tag: self.tag.clone(),
-                        uuid: AOption(ROption::RNone),
-                    }
-                }
             }
 
             #[cfg(feature = "python")]
@@ -568,9 +529,6 @@ impl Builder for StructBuilder {
                         )*
                     ]
 
-                }
-                pub fn deep_clone(&self) -> Self {
-                    Self { inner: self.inner.deep_clone() }
                 }
                 pub fn compute_uuids(&mut self) {
                     self.inner.compute_uuids()
@@ -898,45 +856,6 @@ impl Builder for StructBuilder {
                 fn set_uuid(&mut self, uuid: AUuid) {
                     assert!(self.uuid.is_none());
                     self.uuid = AOption(ROption::RSome(uuid));
-                }
-                fn deep_clone(&self) -> Self {
-                    assert!(self.uuid.is_none());
-                    Self {
-                        #(
-                            #bare_ident: self.#bare_ident.deep_clone(),
-                        )*
-                        #(
-                            #option_ident: self.#option_ident.as_ref().and_then(|x| ROption::RSome(x.deep_clone())),
-                        )*
-                        #(
-                            #vec_ident: self.#vec_ident.iter().map(|x| x.deep_clone()).collect(),
-                        )*
-                        #(
-                            #option_vec_ident: self.#option_vec_ident.as_ref().and_then(|x| ROption::RSome(
-                                x.iter().map(|x| x.deep_clone()).collect()
-                            )),
-                        )*
-                        #(
-                            #map_ident: self.#map_ident.iter().map(|(k, v)| (k.clone(), v.deep_clone())).collect(),
-                        )*
-                        #(
-                            #unconstrainable_name: self.#unconstrainable_name.clone(),
-                        )*
-                        #(
-                            #unconstrainable_name_vec: self.#unconstrainable_name_vec.clone(),
-                        )*
-                        #(
-                            #unconstrainable_name_option: self.#unconstrainable_name_option.clone(),
-                        )*
-                        #(
-                            #unconstrainable_name_ref: self.#unconstrainable_name_ref.clone(),
-                        )*
-                        #(
-                            #unconstrainable_name_vec_ref: self.#unconstrainable_name_vec_ref.clone(),
-                        )*
-                        tag: self.tag.clone(),
-                        uuid: AOption(ROption::RNone),
-                    }
                 }
                 fn compute_uuids(&mut self) {
                     #(

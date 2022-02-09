@@ -76,7 +76,7 @@ impl PyAsset {
                 self.inner
                     .0
                     .read()
-                    .persist_local(storage.inner.deep_clone()),
+                    .persist_local(storage.inner.clone()),
             ))),
         })
     }
@@ -92,9 +92,9 @@ impl PyAsset {
                     .0
                     .read()
                     .replicate_to_local(
-                        storage.inner.deep_clone(),
+                        storage.inner.clone(),
                         tmp_dir.clone(),
-                        tmp_encoding.inner.deep_clone(),
+                        tmp_encoding.inner.clone(),
                     )
                     .unwrap(),
             ))),

@@ -101,9 +101,6 @@ impl Builder for EnumBuilder {
           #[cfg(feature = "python")]
           #[pyo3::prelude::pymethods]
           impl [<Py #enum_name>] {
-              pub fn deep_clone(&self) -> Self {
-                  Self { inner: self.inner.deep_clone() }
-              }
               #[staticmethod]
               pub fn child_concept_types() -> Vec<pyo3::prelude::PyObject> {
                   let gil_guard = pyo3::prelude::Python::acquire_gil();
@@ -166,13 +163,6 @@ impl Builder for EnumBuilder {
           #[cfg(feature = "python")]
           impl aorist_util::PyWrapped for #enum_name {
               type WrapperType = [<Py #enum_name>];
-              fn deep_clone(&self) -> Self {
-                  match &self {
-                      #(
-                        #enum_name::#variant(x) => #enum_name::#variant(x.deep_clone()),
-                      )*
-                  }
-              }
           }
           impl AoristConceptBase for #enum_name {
               type TChildrenEnum = #enum_name;
@@ -187,13 +177,6 @@ impl Builder for EnumBuilder {
                   match &self {
                       #(
                         #enum_name::#variant(x) => x.0.write().set_uuid(uuid),
-                      )*
-                  }
-              }
-              fn deep_clone(&self) -> Self {
-                  match &self {
-                      #(
-                        #enum_name::#variant(x) => #enum_name::#variant(x.deep_clone()),
                       )*
                   }
               }
@@ -252,11 +235,6 @@ impl Builder for EnumBuilder {
                   }
               }
           }
-          /*impl AoristRef<#enum_name> {
-              pub fn deep_clone(&self) -> Self {
-                  AoristRef(abi_stable::std_types::RArc::new(abi_stable::external_types::parking_lot::rw_lock::RRwLock::new(self.0.read().deep_clone())))
-              }
-          }*/
         }}))
     }
 }

@@ -19,7 +19,6 @@ pub trait AoristConceptBase: Clone + Debug + Serialize + PartialEq + StableAbi {
     fn set_uuid(&mut self, uuid: AUuid);
     fn get_tag(&self) -> AOption<AString>;
     fn compute_uuids(&mut self);
-    fn deep_clone(&self) -> Self;
     fn get_children(
         &self,
     ) -> AVec<(
@@ -99,9 +98,6 @@ impl<T: PartialEq + Serialize + Debug + Clone + AoristConceptBase + StableAbi + 
     type TChildrenEnum = <T as AoristConceptBase>::TChildrenEnum;
     fn get_uuid(&self) -> AOption<AUuid> {
         self.0.read().get_uuid()
-    }
-    fn deep_clone(&self) -> Self {
-        AoristRef(RArc::new(RRwLock::new(self.0.read().deep_clone())))
     }
     fn set_uuid(&mut self, uuid: AUuid) {
         self.0.write().set_uuid(uuid);
@@ -230,14 +226,6 @@ impl<T: Debug + Clone + Serialize + PartialEq + StableAbi + AoristConceptBase + 
     }
     pub fn get_uuid(&self) -> AOption<AUuid> {
         self.obj_ref.0.read().get_uuid()
-    }
-    pub fn deep_clone(&self) -> Self {
-        Self {
-            obj_ref: AoristRef(RArc::new(RRwLock::new(self.obj_ref.0.read().deep_clone()))),
-            index_as_child: self.index_as_child.clone(),
-            parent_uuid: self.parent_uuid.clone(),
-            parent_id: self.parent_id.clone(),
-        }
     }
     pub fn get_tag(&self) -> AOption<AString> {
         self.obj_ref.0.read().get_tag()

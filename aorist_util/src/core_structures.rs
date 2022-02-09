@@ -231,19 +231,11 @@ pub trait PyWrapper: Sized {
     type WrappedType: PartialEq + Serialize + Debug + Clone + StableAbi + PyWrapped<WrapperType=Self>;
     fn new(inner: AoristRef<Self::WrappedType>) -> Self;
     fn get_inner(&self) -> AoristRef<Self::WrappedType>;
-    fn deep_clone(&self) -> Self {
-        Self::new(
-            AoristRef(RArc::new(RRwLock::new(
-                self.get_inner().0.read().deep_clone()
-            )))
-        )
-    }
 }
 
 #[cfg(feature = "python")]
 pub trait PyWrapped: PartialEq + Serialize + Debug + Clone + StableAbi + Sized {
 		type WrapperType: PyWrapper<WrappedType=Self>;
-    fn deep_clone(&self) -> Self;
 }
 
 #[cfg(feature = "python")]

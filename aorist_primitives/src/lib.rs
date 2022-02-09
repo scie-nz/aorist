@@ -1042,13 +1042,6 @@ macro_rules! register_concept {
                       )*
                   }
               }
-              fn deep_clone(&self) -> Self {
-                  match &self {
-                      $(
-                        $name::$element(x) => $name::$element(x.deep_clone()),
-                      )*
-                  }
-              }
               fn get_tag(&self) -> AOption<AString> {
                   match self {
                       $(

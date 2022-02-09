@@ -134,7 +134,7 @@ impl PyDataSet {
         for asset_rw in dt.assets.iter() {
             let asset = &*asset_rw.0.read();
             persisted_assets.push(AoristRef(RArc::new(RRwLock::new(
-                asset.persist_local(storage.inner.deep_clone()),
+                asset.persist_local(storage.inner.clone()),
             ))));
         }
         let inner = AoristRef(RArc::new(RRwLock::new(DataSet {
@@ -160,9 +160,9 @@ impl PyDataSet {
         for asset_rw in dt.assets.iter() {
             let asset = &*asset_rw.0.read();
             let replicated_asset = match asset.replicate_to_local(
-                storage.inner.deep_clone(),
+                storage.inner.clone(),
                 tmp_dir.clone(),
-                tmp_encoding.inner.deep_clone(),
+                tmp_encoding.inner.clone(),
             ) {
                 Some(x) => AoristRef(RArc::new(RRwLock::new(x))),
                 None => asset_rw.clone(),
