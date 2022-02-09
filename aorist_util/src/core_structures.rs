@@ -226,26 +226,32 @@ impl<'a, T: PartialEq + Serialize + Debug + Clone + FromPyObject<'a> + StableAbi
     }
 }
 
-pub trait PyWrappable {
-		type WrapperType: PartialEq + Serialize + Debug + Clone + StableAbi;
-    fn new(inner: AoristRef<Self::WrapperType>) -> Self;
+#[cfg(feature = "python")]
+pub trait PyWrapper {
+    type WrappedType: PartialEq + Serialize + Debug + Clone + StableAbi;
+    fn new(inner: AoristRef<Self::WrappedType>) -> Self;
 }
 
+#[cfg(feature = "python")]
+pub trait PyWrapped: PartialEq + Serialize + Debug + Clone + StableAbi {
+		type WrapperType: PyWrapper<WrappedType=Self>;
+}
+
+#[cfg(feature = "python")]
 impl<
     T: PartialEq + 
     Serialize + 
     Debug + 
     Clone + 
     StableAbi + 
-    pyo3::PyClass +
-    Into<PyClassInitializer<T>> + 
-    PyWrappable<WrapperType=T>
+    PyWrapped
 > ToPyObject 
 for AoristRef<T> 
+where <T as PyWrapped>::WrapperType: pyo3::PyClass + Into<PyClassInitializer<<T as PyWrapped>::WrapperType>>
 {
     fn to_object(&self, py: pyo3::Python) -> pyo3::PyObject {
         pyo3::PyObject::from(
-            pyo3::PyCell::new(py, <T as PyWrappable>::new(self.clone())).unwrap()
+            pyo3::PyCell::new(py, <T as PyWrapped>::WrapperType::new(self.clone())).unwrap()
         )
 		}
 }
