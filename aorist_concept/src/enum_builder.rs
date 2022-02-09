@@ -48,17 +48,21 @@ impl Builder for EnumBuilder {
         let variant = &self.variant_idents;
         Ok(TokenStream::from(quote! { paste! {
           impl #enum_name {
-              pub fn convert<T>(&self, name: AString, field: AOption<AString>, ix: AOption<usize>, uuid: AOption<AUuid>) -> AoristRef<T>
+              pub fn convert<T>(&self, record: aorist_primitives::ChildRecord<Self>) -> AoristRef<T>
               where
                   #(
                       T: [<CanBe #variant>],
                   )*
-              T: Debug + Clone + Serialize + PartialEq + abi_stable::StableAbi,
+              T: Debug + Clone + Serialize + PartialEq + abi_stable::StableAbi + Clone + aorist_primitives::ConceptEnum,
                 {
                     match &self {
                         #(
                             #enum_name::#variant(ref x) =>
-                                T::[<construct_ #variant:snake:lower>](x.clone(), ix, AOption(ROption::RSome((uuid.unwrap(), name)))),
+                                T::[<construct_ #variant:snake:lower>](
+                                    x.clone(), 
+                                    record.get_ix(), 
+                                    AOption(ROption::RSome((record.get_uuid().unwrap(), record.get_concept_name())))
+                                ),
                         )*
                     }
                 }
@@ -194,18 +198,8 @@ impl Builder for EnumBuilder {
                       )*
                   }
               }
-              fn get_children(&self) -> AVec<(
-                  // enum name
-                  AString,
-                  // field name
-                  AOption<AString>,
-                  // ix
-                  AOption<usize>,
-                  // uuid
-                  AOption<AUuid>,
-                  Self,
-              )> {
-                  vec![(
+              fn get_children(&self) -> AVec<aorist_primitives::ChildRecord<Self::TChildrenEnum>> {
+                  vec![aorist_primitives::ChildRecord::new(
                       stringify!(#enum_name).into(),
                       AOption(ROption::RNone),
                       AOption(ROption::RNone),

@@ -319,17 +319,21 @@ impl Builder for StructBuilder {
 
         Ok(TokenStream::from(quote! { paste! {
             impl [<#struct_name Children>] {
-              pub fn convert<T>(&self, name: AString, field: AOption<AString>, ix: AOption<usize>, uuid: AOption<AUuid>) -> AoristRef<T>
+              pub fn convert<T>(&self, record: aorist_primitives::ChildRecord<Self>) -> AoristRef<T>
               where
                   #(
                       T: [<CanBe #types>],
                   )*
-              T: Debug + Clone + Serialize + PartialEq + abi_stable::StableAbi,
+              T: Debug + Clone + Serialize + PartialEq + abi_stable::StableAbi + aorist_primitives::ConceptEnum,
                 {
                     match self {
                         #(
                             Self::#types(ref x) =>
-                                T::[<construct_ #types:snake:lower>](x.clone(), ix, AOption(ROption::RSome((uuid.unwrap(), name)))),
+                                T::[<construct_ #types:snake:lower>](
+                                    x.clone(), 
+                                    record.get_ix(), 
+                                    AOption(ROption::RSome((record.get_uuid().unwrap(), record.get_concept_name())))
+                                ),
                         )*
                         _ => panic!("_phantom arm should not be activated"),
                     }
@@ -890,21 +894,10 @@ impl Builder for StructBuilder {
                 fn get_tag(&self) -> AOption<AString> {
                     self.tag.clone()
                 }
-                fn get_children(&self) -> AVec<(
-                    // struct name
-                    AString,
-                    // field name
-                    AOption<AString>,
-                    // ix
-                    AOption<usize>,
-                    // uuid
-                    AOption<AUuid>,
-                    // wrapped reference
-                    [<#struct_name Children>],
-                )> {
+                fn get_children(&self) -> AVec<aorist_primitives::ChildRecord<Self::TChildrenEnum>> {
                     let mut children: AVec<_> = AVec::new();
                     #(
-                        children.push((
+                        children.push(aorist_primitives::ChildRecord::new(
                             stringify!(#struct_name).into(),
                             AOption(ROption::RSome(stringify!(#bare_ident).into())),
                             AOption(ROption::RNone),
@@ -914,7 +907,7 @@ impl Builder for StructBuilder {
                     )*
                     #(
                         if let AOption(ROption::RSome(c)) = self.#option_ident() {
-                            children.push((
+                            children.push(aorist_primitives::ChildRecord::new(
                                 stringify!(#struct_name).into(),
                                 AOption(ROption::RSome(stringify!(#option_ident).into())),
                                 AOption(ROption::RNone),
@@ -925,7 +918,7 @@ impl Builder for StructBuilder {
                     )*
                     #(
                         for (ix, elem) in self.#vec_ident().into_iter().enumerate() {
-                            children.push((
+                            children.push(aorist_primitives::ChildRecord::new(
                                 stringify!(#struct_name).into(),
                                 AOption(ROption::RSome(stringify!(#vec_ident).into())),
                                 AOption(ROption::RSome(ix)),
@@ -937,7 +930,7 @@ impl Builder for StructBuilder {
                     #(
                         if let AOption(ROption::RSome(v)) = self.#option_vec_ident() {
                             for (ix, elem) in v.into_iter().enumerate() {
-                                children.push((
+                                children.push(aorist_primitives::ChildRecord::new(
                                     stringify!(#struct_name).into(),
                                     AOption(ROption::RSome(stringify!(#option_vec_ident).into())),
                                     AOption(ROption::RSome(ix)),
@@ -949,7 +942,7 @@ impl Builder for StructBuilder {
                     )*
                     #(
                         for elem in self.#map_ident().values() {
-                            children.push((
+                            children.push(aorist_primitives::ChildRecord::new(
                                 stringify!(#struct_name).into(),
                                 AOption(ROption::RSome(stringify!(#map_ident).into())),
                                 AOption(ROption::RNone),

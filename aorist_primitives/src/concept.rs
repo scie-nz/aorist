@@ -9,7 +9,7 @@ use std::collections::{BTreeSet, HashMap};
 use std::fmt::Debug;
 use std::hash::Hasher;
 
-pub trait ConceptEnum {
+pub trait ConceptEnum: Clone {
     fn uuid(&self) -> AOption<AUuid>;
 }
 
@@ -50,29 +50,16 @@ impl <T: ConceptEnum + StableAbi + Clone> ChildRecord<T> {
 }
 
 pub trait AoristConceptBase: Clone + Debug + Serialize + PartialEq + StableAbi {
-    type TChildrenEnum: ConceptEnum;
+    type TChildrenEnum: ConceptEnum + StableAbi;
     fn get_uuid(&self) -> AOption<AUuid>;
     fn set_uuid(&mut self, uuid: AUuid);
     fn get_tag(&self) -> AOption<AString>;
     fn compute_uuids(&mut self);
-    fn get_children(
-        &self,
-    ) -> AVec<(
-        // struct name
-        AString,
-        // field name
-        AOption<AString>,
-        // ix
-        AOption<usize>,
-        // uuid
-        AOption<AUuid>,
-        // wrapped reference
-        Self::TChildrenEnum,
-    )>;
+    fn get_children(&self) -> AVec<ChildRecord<Self::TChildrenEnum>>;
     fn get_children_uuid(&self) -> AVec<AUuid> {
         self.get_children()
             .iter()
-            .map(|x| x.4.uuid().unwrap())
+            .map(|x| x.get_uuid().unwrap())
             .collect()
     }
     fn get_uuid_from_children_uuid(&self) -> AUuid {
@@ -144,28 +131,16 @@ impl<T: PartialEq + Serialize + Debug + Clone + AoristConceptBase + StableAbi + 
         uuid = self.0.write().get_uuid_from_children_uuid();
         self.0.write().set_uuid(uuid);
     }
-    fn get_children_uuid(&self) -> AVec<AUuid> {
-        self.get_children()
-            .iter()
-            .map(|x| x.4.uuid().unwrap())
-            .collect()
-    }
     fn get_tag(&self) -> AOption<AString> {
         self.0.read().get_tag()
     }
     fn get_children(
         &self,
-    ) -> AVec<(
-        // struct name
-        AString,
-        // field name
-        AOption<AString>,
-        // ix
-        AOption<usize>,
-        // uuid
-        AOption<AUuid>,
-        Self::TChildrenEnum,
-    )> {
+    ) -> AVec<
+        ChildRecord<
+            <T as AoristConceptBase>::TChildrenEnum
+        >
+    > {
         self.0.read().get_children()
     }
 }

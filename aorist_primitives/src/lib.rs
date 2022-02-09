@@ -1056,18 +1056,8 @@ macro_rules! register_concept {
                       )*
                   }
               }
-              fn get_children(&self) -> AVec<(
-                  // enum name
-                  AString,
-                  // field name
-                  AOption<AString>,
-                  // ix
-                  AOption<usize>,
-                  // uuid
-                  AOption<AUuid>,
-                  Self,
-              )> {
-                  vec![(
+              fn get_children(&self) -> AVec<aorist_primitives::ChildRecord<Self::TChildrenEnum>> {
+                  vec![aorist_primitives::ChildRecord::new(
                       stringify!($name).into(),
                       AOption(ROption::RNone),
                       AOption(ROption::RNone),
@@ -1112,8 +1102,8 @@ macro_rules! register_concept {
                 fn get_descendants(&self) -> AVec<AoristRef<$name>> {
                     let mut concepts = AVec::new();
                     for tpl in self.get_children() {
-                        let (name, field, ix, uuid, children_enum) = tpl;
-                        let converted = children_enum.convert(name, field, ix, uuid);
+                        //let (name, field, ix, uuid, children_enum) = tpl;
+                        let converted = tpl.get_child_ref().convert(tpl);
                         concepts.push(converted);
                     }
                     concepts
