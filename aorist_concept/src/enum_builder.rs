@@ -166,10 +166,6 @@ impl Builder for EnumBuilder {
           }
           impl AoristConceptBase for #enum_name {
               type TChildrenEnum = #enum_name;
-              #[cfg(feature = "python")]
-              fn py_object(inner: AoristRef<Self>, py: pyo3::Python) -> pyo3::PyResult<pyo3::PyObject> {
-                    Ok(pyo3::ToPyObject::to_object(&inner, py))
-              }
               fn get_uuid(&self) -> AOption<AUuid> {
                   match &self {
                       #(

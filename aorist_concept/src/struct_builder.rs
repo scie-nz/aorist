@@ -850,9 +850,6 @@ impl Builder for StructBuilder {
             }
             impl AoristConceptBase for #struct_name {
                 type TChildrenEnum = [<#struct_name Children>];
-                fn py_object(inner: AoristRef<Self>, py: pyo3::Python) -> pyo3::PyResult<pyo3::PyObject> {
-                      Ok(pyo3::ToPyObject::to_object(&inner, py))
-                }
                 fn get_uuid(&self) -> AOption<AUuid> {
                     self.uuid.clone()
                 }

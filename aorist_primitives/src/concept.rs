@@ -34,8 +34,6 @@ pub trait AoristConceptBase: Clone + Debug + Serialize + PartialEq + StableAbi {
         // wrapped reference
         Self::TChildrenEnum,
     )>;
-    #[cfg(feature = "python")]
-    fn py_object(inner: AoristRef<Self>, py: pyo3::Python) -> pyo3::PyResult<pyo3::PyObject>;
 }
 
 pub trait AoristConcept {
@@ -75,8 +73,6 @@ pub trait AoristConcept {
         Self::TChildrenEnum,
     )>;
     fn deep_clone(&self) -> Self;
-    #[cfg(feature = "python")]
-    fn py_object(&self, py: pyo3::Python) -> pyo3::PyResult<pyo3::PyObject>;
 }
 
 pub trait ToplineConcept: Sized + Clone + StableAbi {
@@ -157,10 +153,6 @@ impl<T: PartialEq + Serialize + Debug + Clone + AoristConceptBase + StableAbi> A
         Self::TChildrenEnum,
     )> {
         self.0.read().get_children()
-    }
-    #[cfg(feature = "python")]
-    fn py_object(&self, py: pyo3::Python) -> pyo3::PyResult<pyo3::PyObject> {
-        T::py_object(self.clone(), py)
     }
 }
 

@@ -1028,17 +1028,6 @@ macro_rules! register_concept {
         }
         impl AoristConceptBase for $name {
               type TChildrenEnum = $name;
-              #[cfg(feature = "python")]
-              fn py_object(inner: AoristRef<$name>, py: Python) -> Result<Py<pyo3::PyAny>, pyo3::PyErr> {
-                  let object = match &*inner.0.read() {
-                      $(
-                          $name::$element(x) => PyObject::from(PyCell::new(py, [<Py $element>] {
-                              inner: x.get_reference(),
-                          }).unwrap()),
-                      )+
-                  };
-                  Ok(object)
-              }
               fn get_uuid(&self) -> AOption<AUuid> {
                   match &self {
                       $(
@@ -1196,7 +1185,7 @@ macro_rules! register_concept {
                 match ancestor {
                     $(
                         stringify!([<$element:snake:lower>]) => match self.[<$element:snake:lower>](root) {
-                            Ok(x) => x.py_object(py),
+                            Ok(ref x) => Ok(pyo3::ToPyObject::to_object(x, py)),
                             Err(err) => Err(pyo3::exceptions::PyTypeError::new_err(err.clone())),
                         }
                     )+
