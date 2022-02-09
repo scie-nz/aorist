@@ -397,10 +397,13 @@ impl Builder for StructBuilder {
         let py_class_name = format!("{}", struct_name);
         let types = self.get_all_types()?;
         Ok(TokenStream::from(quote! { paste! {
+            #[repr(C)]
+            #[derive(Clone, abi_stable::StableAbi)]
             pub enum [<#struct_name Children>] {
                 #(
                     #types(AoristRef<#types>),
                 )*
+                PhantomArm(std::marker::PhantomData<()>),
             }
 
             #[cfg(feature = "python")]
