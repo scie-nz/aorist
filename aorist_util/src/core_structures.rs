@@ -226,6 +226,30 @@ impl<'a, T: PartialEq + Serialize + Debug + Clone + FromPyObject<'a> + StableAbi
     }
 }
 
+pub trait PyWrappable {
+		type WrapperType: PartialEq + Serialize + Debug + Clone + StableAbi;
+    fn new(inner: AoristRef<Self::WrapperType>) -> Self;
+}
+
+impl<
+    T: PartialEq + 
+    Serialize + 
+    Debug + 
+    Clone + 
+    StableAbi + 
+    pyo3::PyClass +
+    Into<PyClassInitializer<T>> + 
+    PyWrappable<WrapperType=T>
+> ToPyObject 
+for AoristRef<T> 
+{
+    fn to_object(&self, py: pyo3::Python) -> pyo3::PyObject {
+        pyo3::PyObject::from(
+            pyo3::PyCell::new(py, <T as PyWrappable>::new(self.clone())).unwrap()
+        )
+		}
+}
+
 impl<T: PartialEq + Eq + Serialize + Debug + Clone + StableAbi> PartialEq for AoristRef<T> {
     fn eq(&self, other: &Self) -> bool {
         self.0.read().eq(&other.0.read())
