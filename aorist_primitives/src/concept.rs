@@ -1,7 +1,7 @@
 use crate::endpoints::*;
 use abi_stable::external_types::parking_lot::rw_lock::RRwLock;
 use abi_stable::std_types::{RArc, ROption};
-use abi_stable::StableAbi;
+use abi_stable::{StableAbi, sabi_trait};
 use aorist_util::{AOption, AString, AUuid, AVec, AoristRef, ATaskId};
 use serde::Serialize;
 use siphasher::sip128::{Hasher128, SipHasher};
@@ -9,6 +9,7 @@ use std::collections::{BTreeSet, HashMap};
 use std::fmt::Debug;
 use std::hash::Hasher;
 
+#[sabi_trait]
 pub trait ConceptEnum: Clone {
     fn uuid(&self) -> AOption<AUuid>;
 }
@@ -49,7 +50,8 @@ impl <T: ConceptEnum + StableAbi + Clone> ChildRecord<T> {
     }
 }
 
-pub trait AoristConceptBase: Clone + Debug + Serialize + PartialEq + StableAbi {
+#[sabi_trait]
+pub trait AoristConceptBase: Clone + Debug {
     type TChildrenEnum: ConceptEnum + StableAbi;
     fn get_uuid(&self) -> AOption<AUuid>;
     fn set_uuid(&mut self, uuid: AUuid);
