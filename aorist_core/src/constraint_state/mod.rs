@@ -17,7 +17,7 @@ use linked_hash_set::LinkedHashSet;
 use std::collections::{HashMap, HashSet};
 use tracing::{debug, level_enabled, trace, Level};
 
-pub struct ConstraintState<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry = T::TAncestry>> {
+pub struct ConstraintState<'a, T: OuterConstraint, P: TOuterProgram<TAncestry = T::TAncestry>> {
     dialect: AOption<Dialect>,
     pub key: AOption<AString>,
     name: AString,
@@ -25,7 +25,7 @@ pub struct ConstraintState<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestr
     pub satisfied_dependencies: AVec<RArc<RRwLock<ConstraintState<'a, T, P>>>>,
     pub unsatisfied_dependencies: LinkedHashSet<ATaskId>,
     constraint: RArc<RRwLock<T>>,
-    root: <<T as OuterConstraint<'a>>::TAncestry as Ancestry>::TConcept,
+    root: <<T as OuterConstraint>::TAncestry as Ancestry>::TConcept,
     // these are concept ancestors
     // TODO: change this to AVec<Concept<'a>>
     ancestors: AVec<AncestorRecord>,
@@ -35,7 +35,7 @@ pub struct ConstraintState<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestr
     task_name: AOption<AString>,
     context: Context,
 }
-impl<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry = T::TAncestry>>
+impl<'a, T: OuterConstraint, P: TOuterProgram<TAncestry = T::TAncestry>>
     ConstraintState<'a, T, P>
 {
     pub fn mark_dependency_as_satisfied(
@@ -147,7 +147,7 @@ impl<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry = T::TAncestry>>
         self.name.clone()
     }
     #[allow(dead_code)]
-    pub fn get_root(&self) -> <<T as OuterConstraint<'a>>::TAncestry as Ancestry>::TConcept {
+    pub fn get_root(&self) -> <<T as OuterConstraint>::TAncestry as Ancestry>::TConcept {
         self.root.clone()
     }
     pub fn get_constraint_uuid(&self) -> Result<AUuid> {
@@ -194,7 +194,7 @@ impl<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry = T::TAncestry>>
     pub fn satisfy(
         &mut self,
         preferences: &AVec<Dialect>,
-        ancestry: &<T as OuterConstraint<'a>>::TAncestry,
+        ancestry: &<T as OuterConstraint>::TAncestry,
         programs: &AVec<P>,
     ) {
         let best_program = Self::find_best_program(preferences, programs);
@@ -230,7 +230,7 @@ impl<'a, T: OuterConstraint<'a>, P: TOuterProgram<TAncestry = T::TAncestry>>
             RRwLock<
                 HashMap<
                     ATaskId,
-                    <<T as OuterConstraint<'a>>::TAncestry as Ancestry>::TConcept,
+                    <<T as OuterConstraint>::TAncestry as Ancestry>::TConcept,
                 >,
             >,
         >,

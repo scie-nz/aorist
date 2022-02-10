@@ -28,9 +28,9 @@ where
         ETLFlow<U, ImportType = PythonImport, PreambleType = PythonPreamble> + 'a,
     A: Ancestry,
     C: ToplineConcept<TUniverse = U>,
-    <B as TBuilder<'a>>::OuterType: OuterConstraint<'a, TAncestry = A>,
-    <<B as TBuilder<'a>>::OuterType as OuterConstraint<'a>>::TAncestry: Ancestry<TConcept = C>,
-    <<<B as TBuilder<'a>>::OuterType as OuterConstraint<'a>>::TAncestry as Ancestry>::TConcept:
+    <B as TBuilder<'a>>::OuterType: OuterConstraint<TAncestry = A>,
+    <<B as TBuilder<'a>>::OuterType as OuterConstraint>::TAncestry: Ancestry<TConcept = C>,
+    <<<B as TBuilder<'a>>::OuterType as OuterConstraint>::TAncestry as Ancestry>::TConcept:
         ToplineConcept<TUniverse = U>,
     P: TOuterProgram<TAncestry = A>,
 {
@@ -59,9 +59,9 @@ where
         ETLFlow<U, ImportType = PythonImport, PreambleType = PythonPreamble> + 'a,
     A: Ancestry,
     C: ToplineConcept<TUniverse = U>,
-    <B as TBuilder<'a>>::OuterType: OuterConstraint<'a, TAncestry = A>,
-    <<B as TBuilder<'a>>::OuterType as OuterConstraint<'a>>::TAncestry: Ancestry<TConcept = C>,
-    <<<B as TBuilder<'a>>::OuterType as OuterConstraint<'a>>::TAncestry as Ancestry>::TConcept:
+    <B as TBuilder<'a>>::OuterType: OuterConstraint<TAncestry = A>,
+    <<B as TBuilder<'a>>::OuterType as OuterConstraint>::TAncestry: Ancestry<TConcept = C>,
+    <<<B as TBuilder<'a>>::OuterType as OuterConstraint>::TAncestry as Ancestry>::TConcept:
         ToplineConcept<TUniverse = U>,
     P: TOuterProgram<TAncestry = A>,
 {
@@ -161,9 +161,10 @@ where
             ancestry,
             dag_type: PhantomData,
             endpoints,
-            constraint_explanations: <<B::OuterType as OuterConstraint<'a>>::TEnum as TConstraintEnum<
-                'a,
-            >>::get_explanations(),
+            constraint_explanations: <
+                <B::OuterType as OuterConstraint>::TEnum 
+                as TConstraintEnum
+            >::get_explanations(),
             ancestors,
             topline_constraint_names,
             programs,

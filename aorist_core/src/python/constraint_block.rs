@@ -18,7 +18,7 @@ use std::marker::PhantomData;
 pub struct PythonBasedConstraintBlock<'a, T, C, U, P>
 where
     T: ETLFlow<U, ImportType = PythonImport, PreambleType = PythonPreamble>,
-    C: OuterConstraint<'a>,
+    C: OuterConstraint,
     U: AoristUniverse,
     P: TOuterProgram<TAncestry = C::TAncestry>,
 {
@@ -33,7 +33,7 @@ where
 impl<'a, T, C, U, P> ConstraintBlock<'a, T, C, U, P> for PythonBasedConstraintBlock<'a, T, C, U, P>
 where
     T: ETLFlow<U, ImportType = PythonImport, PreambleType = PythonPreamble>,
-    C: OuterConstraint<'a>,
+    C: OuterConstraint,
     U: AoristUniverse,
     P: TOuterProgram<TAncestry = C::TAncestry>,
 {
@@ -94,7 +94,7 @@ where
 impl<'a, T, C, U, P> PythonBasedConstraintBlock<'a, T, C, U, P>
 where
     T: ETLFlow<U, ImportType = PythonImport, PreambleType = PythonPreamble>,
-    C: OuterConstraint<'a>,
+    C: OuterConstraint,
     U: AoristUniverse,
     P: TOuterProgram<TAncestry = C::TAncestry>,
 {

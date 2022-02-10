@@ -21,7 +21,7 @@ use tracing::trace;
 pub struct PythonBasedCodeBlock<'a, T, C, U, P>
 where
     T: ETLFlow<U, ImportType = PythonImport, PreambleType = PythonPreamble>,
-    C: OuterConstraint<'a>,
+    C: OuterConstraint,
     U: AoristUniverse,
     P: TOuterProgram<TAncestry = C::TAncestry>,
 {
@@ -36,7 +36,7 @@ where
 impl<'a, T, C, U, P> CodeBlock<'a, T, C, U, P> for PythonBasedCodeBlock<'a, T, C, U, P>
 where
     T: ETLFlow<U, ImportType = PythonImport, PreambleType = PythonPreamble>,
-    C: OuterConstraint<'a>,
+    C: OuterConstraint,
     U: AoristUniverse,
     P: TOuterProgram<TAncestry = C::TAncestry>,
 {
@@ -106,7 +106,7 @@ impl<'a, T, C, U, P> CodeBlockWithForLoopCompression<'a, T, C, U, P>
     for PythonBasedCodeBlock<'a, T, C, U, P>
 where
     T: ETLFlow<U, ImportType = PythonImport, PreambleType = PythonPreamble>,
-    C: OuterConstraint<'a>,
+    C: OuterConstraint,
     U: AoristUniverse,
     P: TOuterProgram<TAncestry = C::TAncestry>,
 {

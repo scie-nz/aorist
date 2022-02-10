@@ -19,7 +19,7 @@ use std::collections::{BTreeSet, HashMap, HashSet};
 
 pub trait CodeBlock<'a, T, C, U, P>
 where
-    C: OuterConstraint<'a>,
+    C: OuterConstraint,
     Self::P: Preamble,
     T: ETLFlow<U>,
     Self: Sized,
@@ -125,7 +125,7 @@ where
 pub trait CodeBlockWithDefaultConstructor<
     'a,
     T,
-    C: OuterConstraint<'a>,
+    C: OuterConstraint,
     U: AoristUniverse,
     P: TOuterProgram<TAncestry = C::TAncestry>,
 > where
@@ -143,7 +143,7 @@ pub trait CodeBlockWithDefaultConstructor<
 pub trait CodeBlockWithForLoopCompression<
     'a,
     T,
-    C: OuterConstraint<'a>,
+    C: OuterConstraint,
     U: AoristUniverse,
     P: TOuterProgram<TAncestry = C::TAncestry>,
 > where
@@ -189,7 +189,7 @@ impl<
         'a,
         C,
         T: ETLFlow<U>,
-        CType: OuterConstraint<'a>,
+        CType: OuterConstraint,
         U: AoristUniverse,
         P: TOuterProgram<TAncestry = CType::TAncestry>,
     > CodeBlockWithDefaultConstructor<'a, T, CType, U, P> for C

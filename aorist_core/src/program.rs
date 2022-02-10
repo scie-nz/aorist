@@ -24,7 +24,7 @@ pub trait TProgram<'a, T: TConstraint<'a>> {
 pub trait TOuterProgram: Clone {
     type TAncestry: Ancestry;
     fn get_dialect(&self) -> Dialect;
-    fn compute_args<'a, T: OuterConstraint<'a>>(
+    fn compute_args<'a, T: OuterConstraint>(
         &self,
         root: <Self::TAncestry as Ancestry>::TConcept,
         ancestry: &Self::TAncestry,

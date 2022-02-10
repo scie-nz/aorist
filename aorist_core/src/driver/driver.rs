@@ -48,9 +48,9 @@ where
     <D as FlowBuilderBase<U>>::T: 'a,
     A: Ancestry,
     C: ToplineConcept<TUniverse = U>,
-    <B as TBuilder<'a>>::OuterType: OuterConstraint<'a, TAncestry = A>,
-    <<B as TBuilder<'a>>::OuterType as OuterConstraint<'a>>::TAncestry: Ancestry<TConcept = C>,
-    <<<B as TBuilder<'a>>::OuterType as OuterConstraint<'a>>::TAncestry as Ancestry>::TConcept:
+    <B as TBuilder<'a>>::OuterType: OuterConstraint<TAncestry = A>,
+    <<B as TBuilder<'a>>::OuterType as OuterConstraint>::TAncestry: Ancestry<TConcept = C>,
+    <<<B as TBuilder<'a>>::OuterType as OuterConstraint>::TAncestry as Ancestry>::TConcept:
         ToplineConcept<TUniverse = U>,
     P: TOuterProgram<TAncestry = A>,
 {
@@ -437,7 +437,7 @@ where
             RRwLock<
                 HashMap<
                     ATaskId,
-                    <<B::OuterType as OuterConstraint<'a>>::TAncestry as Ancestry>::TConcept,
+                    <<B::OuterType as OuterConstraint>::TAncestry as Ancestry>::TConcept,
                 >,
             >,
         >,
@@ -622,7 +622,7 @@ where
             RRwLock<
                 HashMap<
                     ATaskId,
-                    <<B::OuterType as OuterConstraint<'a>>::TAncestry as Ancestry>::TConcept,
+                    <<B::OuterType as OuterConstraint>::TAncestry as Ancestry>::TConcept,
                 >,
             >,
         >,
@@ -637,10 +637,10 @@ where
         Self::remove_superfluous_dummy_tasks(&mut raw_unsatisfied_constraints)?;
         Self::remove_dangling_dummy_tasks(&mut raw_unsatisfied_constraints)?;
 
-        let mut unsatisfied_constraints: LinkedHashMap<_, _> = <<B::OuterType as OuterConstraint<
-            'a,
-        >>::TEnum as TConstraintEnum<'a>>::get_required_constraint_names(
-        )
+        let mut unsatisfied_constraints: LinkedHashMap<_, _> = <
+            <B::OuterType as OuterConstraint>::TEnum 
+            as TConstraintEnum
+        >::get_required_constraint_names()
         .into_iter()
         .map(|(k, v)| (k, (v.into_iter().collect(), LinkedHashMap::new())))
         .collect();

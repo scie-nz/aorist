@@ -41,18 +41,18 @@ pub trait SatisfiableConstraint<'a>: TConstraint<'a> {
 
 
 // TODO: duplicate function, should be unified in trait
-pub trait SatisfiableOuterConstraint<'a>: OuterConstraint<'a> {
+pub trait SatisfiableOuterConstraint<'a>: OuterConstraint {
     fn satisfy_given_preference_ordering(
         &mut self,
-        c: <<Self as OuterConstraint<'a>>::TAncestry as Ancestry>::TConcept,
+        c: <<Self as OuterConstraint>::TAncestry as Ancestry>::TConcept,
         preferences: &AVec<Dialect>,
-        ancestry: RArc<<Self as OuterConstraint<'a>>::TAncestry>,
+        ancestry: RArc<<Self as OuterConstraint>::TAncestry>,
     ) -> Result<(AString, AString, ParameterTuple, Dialect)>;
 }
 pub trait TBuilder<'a> {
     type TEnum: ToplineConcept;
     type TAncestry: Ancestry;
-    type OuterType: OuterConstraint<'a>; //, TEnum=Self::EnumType>;
+    type OuterType: OuterConstraint; //, TEnum=Self::EnumType>;
                                          //type EnumType: TConstraintEnum<'a, BuilderT=Self>;
     fn builders() -> AVec<Self>
     where
@@ -256,7 +256,7 @@ pub trait TBuilder<'a> {
     }
 }
 
-pub trait TConstraintEnum<'a>: Sized + Clone {
+pub trait TConstraintEnum: Sized + Clone {
     fn get_required_constraint_names() -> HashMap<AString, AVec<AString>>;
     fn get_explanations() -> HashMap<AString, (AOption<AString>, AOption<AString>)>;
     #[cfg(feature = "python")]
@@ -264,8 +264,8 @@ pub trait TConstraintEnum<'a>: Sized + Clone {
 }
 
 #[sabi_trait]
-pub trait OuterConstraint<'a>: std::fmt::Display + Clone {
-    type TEnum: Sized + TConstraintEnum<'a>;
+pub trait OuterConstraint: std::fmt::Display + Clone {
+    type TEnum: Sized + TConstraintEnum;
     type TAncestry: Ancestry;
     fn get_task_id(&self) -> ATaskId {
        ATaskId::new(self.get_uuid(), self.get_root_type_name())
@@ -284,7 +284,7 @@ pub trait OuterConstraint<'a>: std::fmt::Display + Clone {
 pub trait TConstraint<'a>
 where
     Self::Root: AoristConceptBase,
-    Self::Outer: OuterConstraint<'a, TAncestry = Self::Ancestry>,
+    Self::Outer: OuterConstraint<TAncestry = Self::Ancestry>,
     Self::Ancestry: Ancestry,
 {
     type Root;
@@ -307,7 +307,7 @@ where
 pub trait ConstraintSatisfactionBase<'a>
 where
     Self::RootType: AoristConceptBase,
-    Self::Outer: OuterConstraint<'a>,
+    Self::Outer: OuterConstraint,
     Self::ConstraintType: TConstraint<'a, Root = Self::RootType, Outer = Self::Outer>,
 {
     type ConstraintType;

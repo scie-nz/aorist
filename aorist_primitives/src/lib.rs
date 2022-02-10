@@ -1292,7 +1292,7 @@ macro_rules! register_constraint_new {
             fn get_dialect(&self) -> Dialect {
                 self.inner.get_dialect()
             }
-            fn compute_args<'a, T: aorist_core::OuterConstraint<'a>>(
+            fn compute_args<'a, T: aorist_core::OuterConstraint>(
                 &self,
                 root: <Self::TAncestry as Ancestry>::TConcept,
                 ancestry: &Self::TAncestry,
@@ -1541,7 +1541,7 @@ macro_rules! register_constraint_new {
                 }
             }
         }
-        impl <$lt> TConstraintEnum<$lt> for $name {
+        impl TConstraintEnum for $name {
             fn get_required_constraint_names() -> HashMap<AString, AVec<AString>> {
                 vec! [
                     $(

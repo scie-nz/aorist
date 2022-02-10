@@ -37,7 +37,7 @@ pub struct Constraint {
     pub root: AString,
     pub requires: Option<AVec<AString>>,
 }
-impl<'a> OuterConstraint<'a> for Constraint {
+impl OuterConstraint for Constraint {
     type TEnum = AoristConstraint;
     type TAncestry = ConceptAncestry;
 

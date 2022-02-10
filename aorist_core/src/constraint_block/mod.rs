@@ -14,7 +14,7 @@ pub trait ConstraintBlock<'a, T, C, U, P>
 where
     T: ETLFlow<U>,
     U: AoristUniverse,
-    C: OuterConstraint<'a>,
+    C: OuterConstraint,
     P: TOuterProgram<TAncestry = C::TAncestry>,
     Self::C: CodeBlockWithDefaultConstructor<'a, T, C, U, P>,
     Self::BuilderInputType: FlowBuilderInput<
