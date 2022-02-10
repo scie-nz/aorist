@@ -40,9 +40,9 @@ where
     /// assigns task values (Python variables in which they will be stored)
     /// to each member of the code block.
     fn compute_task_vals(
-        constraints: AVec<RArc<RRwLock<ConstraintState<'a, C, P>>>>,
+        constraints: AVec<RArc<RRwLock<ConstraintState<C, P>>>>,
         tasks_dict: &AOption<AST>,
-    ) -> AVec<(AST, RArc<RRwLock<ConstraintState<'a, C, P>>>)> {
+    ) -> AVec<(AST, RArc<RRwLock<ConstraintState<C, P>>>)> {
         let mut out = AVec::new();
         for rw in constraints.into_iter() {
             let read = rw.read();
@@ -78,7 +78,7 @@ where
     fn get_params(&self) -> HashMap<AString, AOption<ParameterTuple>>;
 
     fn create_standalone_tasks(
-        members: AVec<RArc<RRwLock<ConstraintState<'a, C, P>>>>,
+        members: AVec<RArc<RRwLock<ConstraintState<C, P>>>>,
         tasks_dict: AOption<AST>,
         identifiers: &HashMap<AUuid, AST>,
     ) -> Result<(
@@ -133,7 +133,7 @@ pub trait CodeBlockWithDefaultConstructor<
     Self: CodeBlock<'a, T, C, U, P>,
 {
     fn new(
-        members: AVec<RArc<RRwLock<ConstraintState<'a, C, P>>>>,
+        members: AVec<RArc<RRwLock<ConstraintState<C, P>>>>,
         constraint_name: AString,
         tasks_dict: AOption<AST>,
         identifiers: &HashMap<AUuid, AST>,
@@ -199,7 +199,7 @@ where
     <<Self as CodeBlock<'a, T, CType, U, P>>::E as ETLTask<T, U>>::S: CompressibleTask,
 {
     fn new(
-        members: AVec<RArc<RRwLock<ConstraintState<'a, CType, P>>>>,
+        members: AVec<RArc<RRwLock<ConstraintState<CType, P>>>>,
         constraint_name: AString,
         tasks_dict: AOption<AST>,
         identifiers: &HashMap<AUuid, AST>,

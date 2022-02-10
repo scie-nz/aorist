@@ -22,11 +22,11 @@ use linked_hash_set::LinkedHashSet;
 use std::collections::{HashMap, HashSet, VecDeque};
 use tracing::{debug, trace};
 
-pub type ConstraintsBlockMap<'a, C, P> = LinkedHashMap<
+pub type ConstraintsBlockMap<C, P> = LinkedHashMap<
     AString,
     (
         LinkedHashSet<AString>,
-        LinkedHashMap<ATaskId, RArc<RRwLock<ConstraintState<'a, C, P>>>>,
+        LinkedHashMap<ATaskId, RArc<RRwLock<ConstraintState<C, P>>>>,
     ),
 >;
 
@@ -56,13 +56,13 @@ where
 {
     type CB: ConstraintBlock<'a, <D as FlowBuilderBase<U>>::T, B::OuterType, U, P>;
 
-    fn init_unsatisfied_constraints(&self) -> Result<ConstraintsBlockMap<'a, B::OuterType, P>>;
+    fn init_unsatisfied_constraints(&self) -> Result<ConstraintsBlockMap<B::OuterType, P>>;
 
     fn find_satisfiable_constraint_block(
         &self,
-        unsatisfied_constraints: &mut ConstraintsBlockMap<'a, B::OuterType, P>,
+        unsatisfied_constraints: &mut ConstraintsBlockMap<B::OuterType, P>,
     ) -> Option<(
-        LinkedHashMap<ATaskId, RArc<RRwLock<ConstraintState<'a, B::OuterType, P>>>>,
+        LinkedHashMap<ATaskId, RArc<RRwLock<ConstraintState<B::OuterType, P>>>>,
         AString,
     )> {
         debug!(
@@ -94,7 +94,7 @@ where
     fn init_tasks_dict(
         block: &LinkedHashMap<
             ATaskId,
-            RArc<RRwLock<ConstraintState<'a, B::OuterType, P>>>,
+            RArc<RRwLock<ConstraintState<B::OuterType, P>>>,
         >,
         constraint_name: AString,
     ) -> AOption<AST> {
@@ -113,7 +113,7 @@ where
         constraint: RReadGuard<'_, B::OuterType>,
         uuid: ATaskId,
         calls: &mut HashMap<(AString, AString, AString), AVec<(AString, ParameterTuple)>>,
-        state: RArc<RRwLock<ConstraintState<'a, B::OuterType, P>>>,
+        state: RArc<RRwLock<ConstraintState<B::OuterType, P>>>,
         programs: &AVec<P>,
     ) {
         let name = constraint.get_name().clone();
@@ -138,10 +138,10 @@ where
     fn process_constraint_state(
         &mut self,
         uuid: ATaskId,
-        state: RArc<RRwLock<ConstraintState<'a, B::OuterType, P>>>,
+        state: RArc<RRwLock<ConstraintState<B::OuterType, P>>>,
         calls: &mut HashMap<(AString, AString, AString), AVec<(AString, ParameterTuple)>>,
         reverse_dependencies: &HashMap<ATaskId, HashSet<(AString, AUuid, AString)>>,
-        unsatisfied_constraints: &ConstraintsBlockMap<'a, B::OuterType, P>,
+        unsatisfied_constraints: &ConstraintsBlockMap<B::OuterType, P>,
         programs: &AVec<P>,
     ) -> Result<()> {
         let read = state.read();
@@ -185,17 +185,17 @@ where
     fn mark_constraint_state_as_satisfied(
         &mut self,
         id: ATaskId,
-        state: RArc<RRwLock<ConstraintState<'a, B::OuterType, P>>>,
+        state: RArc<RRwLock<ConstraintState<B::OuterType, P>>>,
     );
     fn process_constraint_block(
         &mut self,
         block: &mut LinkedHashMap<
             ATaskId,
-            RArc<RRwLock<ConstraintState<'a, B::OuterType, P>>>,
+            RArc<RRwLock<ConstraintState<B::OuterType, P>>>,
         >,
         reverse_dependencies: &HashMap<ATaskId, HashSet<(AString, AUuid, AString)>>,
         constraint_name: AString,
-        unsatisfied_constraints: &ConstraintsBlockMap<'a, B::OuterType, P>,
+        unsatisfied_constraints: &ConstraintsBlockMap<B::OuterType, P>,
         identifiers: &mut HashMap<AUuid, AST>,
         programs: &AVec<P>,
         existing_names: &mut HashSet<AString>,
@@ -442,7 +442,7 @@ where
             >,
         >,
         ancestors: &HashMap<ATaskId, AVec<AncestorRecord>>,
-    ) -> Result<LinkedHashMap<ATaskId, RArc<RRwLock<ConstraintState<'a, B::OuterType, P>>>>>
+    ) -> Result<LinkedHashMap<ATaskId, RArc<RRwLock<ConstraintState<B::OuterType, P>>>>>
     {
         let mut states_map = LinkedHashMap::new();
         debug!(
@@ -468,7 +468,7 @@ where
     fn remove_redundant_dependencies(
         raw_unsatisfied_constraints: &mut LinkedHashMap<
             ATaskId,
-            RArc<RRwLock<ConstraintState<'a, B::OuterType, P>>>,
+            RArc<RRwLock<ConstraintState<B::OuterType, P>>>,
         >,
     ) {
         /* Remove redundant dependencies */
@@ -523,7 +523,7 @@ where
     fn remove_superfluous_dummy_tasks(
         raw_unsatisfied_constraints: &mut LinkedHashMap<
             ATaskId,
-            RArc<RRwLock<ConstraintState<'a, B::OuterType, P>>>,
+            RArc<RRwLock<ConstraintState<B::OuterType, P>>>,
         >,
     ) -> Result<()> {
         /* Remove superfluous dummy tasks */
@@ -573,7 +573,7 @@ where
     fn remove_dangling_dummy_tasks(
         raw_unsatisfied_constraints: &mut LinkedHashMap<
             ATaskId,
-            RArc<RRwLock<ConstraintState<'a, B::OuterType, P>>>,
+            RArc<RRwLock<ConstraintState<B::OuterType, P>>>,
         >,
     ) -> Result<()> {
         /* Remove dangling dummy tasks */
@@ -628,10 +628,10 @@ where
         >,
         ancestors: &HashMap<ATaskId, AVec<AncestorRecord>>,
         _topline_constraint_names: LinkedHashSet<AString>,
-    ) -> Result<ConstraintsBlockMap<'a, B::OuterType, P>> {
+    ) -> Result<ConstraintsBlockMap<B::OuterType, P>> {
         let mut raw_unsatisfied_constraints: LinkedHashMap<
             ATaskId,
-            RArc<RRwLock<ConstraintState<'a, B::OuterType, P>>>,
+            RArc<RRwLock<ConstraintState<B::OuterType, P>>>,
         > = Self::generate_constraint_states_map(constraints, concepts, ancestors)?;
         //Self::remove_redundant_dependencies(&mut raw_unsatisfied_constraints);
         Self::remove_superfluous_dummy_tasks(&mut raw_unsatisfied_constraints)?;

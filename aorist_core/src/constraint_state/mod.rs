@@ -17,12 +17,12 @@ use linked_hash_set::LinkedHashSet;
 use std::collections::{HashMap, HashSet};
 use tracing::{debug, level_enabled, trace, Level};
 
-pub struct ConstraintState<'a, T: OuterConstraint, P: TOuterProgram<TAncestry = T::TAncestry>> {
+pub struct ConstraintState<T: OuterConstraint, P: TOuterProgram<TAncestry = T::TAncestry>> {
     dialect: AOption<Dialect>,
     pub key: AOption<AString>,
     name: AString,
     pub satisfied: bool,
-    pub satisfied_dependencies: AVec<RArc<RRwLock<ConstraintState<'a, T, P>>>>,
+    pub satisfied_dependencies: AVec<RArc<RRwLock<ConstraintState<T, P>>>>,
     pub unsatisfied_dependencies: LinkedHashSet<ATaskId>,
     constraint: RArc<RRwLock<T>>,
     root: <<T as OuterConstraint>::TAncestry as Ancestry>::TConcept,
@@ -35,12 +35,12 @@ pub struct ConstraintState<'a, T: OuterConstraint, P: TOuterProgram<TAncestry = 
     task_name: AOption<AString>,
     context: Context,
 }
-impl<'a, T: OuterConstraint, P: TOuterProgram<TAncestry = T::TAncestry>>
-    ConstraintState<'a, T, P>
+impl<T: OuterConstraint, P: TOuterProgram<TAncestry = T::TAncestry>>
+    ConstraintState<T, P>
 {
     pub fn mark_dependency_as_satisfied(
         &mut self,
-        dependency: &RArc<RRwLock<ConstraintState<'a, T, P>>>,
+        dependency: &RArc<RRwLock<ConstraintState<T, P>>>,
         uuid: &ATaskId,
     ) {
         let dependency_name = dependency.read().get_name();
@@ -313,10 +313,10 @@ impl<'a, T: OuterConstraint, P: TOuterProgram<TAncestry = T::TAncestry>>
         .into()
     }
     pub fn shorten_task_names(
-        constraints: &LinkedHashMap<ATaskId, RArc<RRwLock<ConstraintState<'a, T, P>>>>,
+        constraints: &LinkedHashMap<ATaskId, RArc<RRwLock<ConstraintState<T, P>>>>,
         _existing_names: &mut HashSet<AString>,
     ) {
-        let mut task_names: AVec<(AString, RArc<RRwLock<ConstraintState<'a, T, P>>>)> = AVec::new();
+        let mut task_names: AVec<(AString, RArc<RRwLock<ConstraintState<T, P>>>)> = AVec::new();
         for constraint in constraints.values() {
             let mut write = constraint.write();
             write.compute_task_key();

@@ -37,7 +37,7 @@ where
     pub concepts: RArc<RRwLock<HashMap<ATaskId, C>>>,
     constraints: LinkedHashMap<ATaskId, RArc<RRwLock<B::OuterType>>>,
     satisfied_constraints:
-        HashMap<ATaskId, RArc<RRwLock<ConstraintState<'a, B::OuterType, P>>>>,
+        HashMap<ATaskId, RArc<RRwLock<ConstraintState<B::OuterType, P>>>>,
     blocks: AVec<PythonBasedConstraintBlock<'a, D::T, B::OuterType, U, P>>,
     ancestry: A,
     dag_type: PhantomData<D>,
@@ -90,11 +90,11 @@ where
     fn mark_constraint_state_as_satisfied(
         &mut self,
         id: ATaskId,
-        state: RArc<RRwLock<ConstraintState<'a, B::OuterType, P>>>,
+        state: RArc<RRwLock<ConstraintState<B::OuterType, P>>>,
     ) {
         self.satisfied_constraints.insert(id, state.clone());
     }
-    fn init_unsatisfied_constraints(&self) -> Result<ConstraintsBlockMap<'a, B::OuterType, P>> {
+    fn init_unsatisfied_constraints(&self) -> Result<ConstraintsBlockMap<B::OuterType, P>> {
         Self::get_unsatisfied_constraints(
             &self.constraints,
             self.concepts.clone(),
