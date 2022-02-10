@@ -23,16 +23,6 @@ use abi_stable::{
 };*/
 
 
-
-// TODO: duplicate function, should be unified in trait
-pub trait SatisfiableOuterConstraint<'a>: OuterConstraint {
-    fn satisfy_given_preference_ordering(
-        &mut self,
-        c: <<Self as OuterConstraint>::TAncestry as Ancestry>::TConcept,
-        preferences: &AVec<Dialect>,
-        ancestry: RArc<<Self as OuterConstraint>::TAncestry>,
-    ) -> Result<(AString, AString, ParameterTuple, Dialect)>;
-}
 pub trait TBuilder<'a> {
     type TEnum: ToplineConcept;
     type TAncestry: Ancestry;
