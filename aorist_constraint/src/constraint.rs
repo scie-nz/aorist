@@ -8,7 +8,7 @@ use aorist_primitives::{Ancestry};
 use aorist_core::{TOuterProgram, Dialect, ParameterTuple}; 
 use scienz::{Concept, ConceptAncestry};
 use aorist_core::{
-    ConstraintBuilder, ConstraintEnum, ConstraintSatisfactionBase, OuterConstraint, TBuilder,
+    ConstraintBuilder, ConstraintSatisfactionBase, OuterConstraint, TBuilder,
     TConstraint, TConstraintEnum, TProgram,
 };
 use aorist_primitives::{
@@ -28,7 +28,6 @@ use std::fmt;
 use tracing::debug;
 
 include!(concat!(env!("OUT_DIR"), "/constraints.rs"));
-impl<'a> ConstraintEnum<'a> for AoristConstraint {}
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Constraint {

@@ -262,11 +262,10 @@ pub trait TConstraintEnum<'a>: Sized + Clone {
     #[cfg(feature = "python")]
     fn get_py_obj<'b>(&self, py: pyo3::Python<'b>) -> pyo3::prelude::PyObject;
 }
-pub trait ConstraintEnum<'a> {}
 
 #[sabi_trait]
 pub trait OuterConstraint<'a>: std::fmt::Display + Clone {
-    type TEnum: Sized + ConstraintEnum<'a> + TConstraintEnum<'a>;
+    type TEnum: Sized + TConstraintEnum<'a>;
     type TAncestry: Ancestry;
     fn get_task_id(&self) -> ATaskId {
        ATaskId::new(self.get_uuid(), self.get_root_type_name())
