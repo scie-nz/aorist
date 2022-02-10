@@ -1176,6 +1176,23 @@ macro_rules! register_concept {
                 }
             }
         }
+        #[repr(C)]
+        #[cfg_attr(feature = "python", pyclass(module = "aorist"))]
+        #[derive(Clone)]
+        pub struct [<Py $name>] {
+            inner: AoristRef<$name>,
+        }
+        #[pymethods]
+        impl [<Py $name>] {
+            #[staticmethod]
+            pub fn from_universe(universe: PyUniverse) -> Self {
+                Self {
+                    inner: AoristRef(RArc::new(RRwLock::new(
+                        $name::Universe(AConcept::new(universe.inner.clone(), 0, AOption(ROption::RNone)))
+                    )))
+                }
+            }
+        }
 
         impl ToplineConceptBase for $name {
             type TUniverse = AoristRef<Universe>;
