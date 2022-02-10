@@ -17,7 +17,7 @@ use linked_hash_map::LinkedHashMap;
 use linked_hash_set::LinkedHashSet;
 use std::collections::{BTreeSet, HashMap, HashSet};
 
-pub trait CodeBlock<'a, T, C, U, P>
+pub trait CodeBlock<T, C, U, P>
 where
     C: OuterConstraint,
     Self::P: Preamble,
@@ -123,14 +123,13 @@ where
 }
 
 pub trait CodeBlockWithDefaultConstructor<
-    'a,
     T,
     C: OuterConstraint,
     U: AoristUniverse,
     P: TOuterProgram<TAncestry = C::TAncestry>,
 > where
     T: ETLFlow<U>,
-    Self: CodeBlock<'a, T, C, U, P>,
+    Self: CodeBlock<T, C, U, P>,
 {
     fn new(
         members: AVec<RArc<RRwLock<ConstraintState<C, P>>>>,
@@ -141,17 +140,16 @@ pub trait CodeBlockWithDefaultConstructor<
     ) -> Result<Self>;
 }
 pub trait CodeBlockWithForLoopCompression<
-    'a,
     T,
     C: OuterConstraint,
     U: AoristUniverse,
     P: TOuterProgram<TAncestry = C::TAncestry>,
 > where
-    Self: CodeBlock<'a, T, C, U, P>,
+    Self: CodeBlock<T, C, U, P>,
     T: ETLFlow<U>,
     Self: Sized,
-    <Self as CodeBlock<'a, T, C, U, P>>::E: CompressibleETLTask<T, U>,
-    <<Self as CodeBlock<'a, T, C, U, P>>::E as ETLTask<T, U>>::S: CompressibleTask,
+    <Self as CodeBlock<T, C, U, P>>::E: CompressibleETLTask<T, U>,
+    <<Self as CodeBlock<T, C, U, P>>::E as ETLTask<T, U>>::S: CompressibleTask,
 {
     fn run_task_compressions(
         compressible: LinkedHashMap<
@@ -186,17 +184,16 @@ pub trait CodeBlockWithForLoopCompression<
     }
 }
 impl<
-        'a,
         C,
         T: ETLFlow<U>,
         CType: OuterConstraint,
         U: AoristUniverse,
         P: TOuterProgram<TAncestry = CType::TAncestry>,
-    > CodeBlockWithDefaultConstructor<'a, T, CType, U, P> for C
+    > CodeBlockWithDefaultConstructor<T, CType, U, P> for C
 where
-    Self: CodeBlockWithForLoopCompression<'a, T, CType, U, P>,
-    <Self as CodeBlock<'a, T, CType, U, P>>::E: CompressibleETLTask<T, U>,
-    <<Self as CodeBlock<'a, T, CType, U, P>>::E as ETLTask<T, U>>::S: CompressibleTask,
+    Self: CodeBlockWithForLoopCompression<T, CType, U, P>,
+    <Self as CodeBlock<T, CType, U, P>>::E: CompressibleETLTask<T, U>,
+    <<Self as CodeBlock<T, CType, U, P>>::E as ETLTask<T, U>>::S: CompressibleTask,
 {
     fn new(
         members: AVec<RArc<RRwLock<ConstraintState<CType, P>>>>,

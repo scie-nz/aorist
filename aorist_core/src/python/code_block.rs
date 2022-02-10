@@ -18,7 +18,7 @@ use std::collections::{BTreeSet, HashMap, HashSet};
 use std::marker::PhantomData;
 use tracing::trace;
 
-pub struct PythonBasedCodeBlock<'a, T, C, U, P>
+pub struct PythonBasedCodeBlock<T, C, U, P>
 where
     T: ETLFlow<U, ImportType = PythonImport, PreambleType = PythonPreamble>,
     C: OuterConstraint,
@@ -29,11 +29,10 @@ where
     task_identifiers: HashMap<AUuid, AST>,
     python_based_tasks: AVec<PythonBasedTask<T, U>>,
     params: HashMap<AString, AOption<ParameterTuple>>,
-    _lt: PhantomData<&'a ()>,
     _constraint: PhantomData<C>,
     _program: PhantomData<P>,
 }
-impl<'a, T, C, U, P> CodeBlock<'a, T, C, U, P> for PythonBasedCodeBlock<'a, T, C, U, P>
+impl<T, C, U, P> CodeBlock<T, C, U, P> for PythonBasedCodeBlock<T, C, U, P>
 where
     T: ETLFlow<U, ImportType = PythonImport, PreambleType = PythonPreamble>,
     C: OuterConstraint,
@@ -54,7 +53,6 @@ where
             python_based_tasks: tasks,
             task_identifiers,
             params,
-            _lt: PhantomData,
             _constraint: PhantomData,
             _program: PhantomData,
         }
@@ -102,8 +100,8 @@ where
         self.params.clone()
     }
 }
-impl<'a, T, C, U, P> CodeBlockWithForLoopCompression<'a, T, C, U, P>
-    for PythonBasedCodeBlock<'a, T, C, U, P>
+impl<T, C, U, P> CodeBlockWithForLoopCompression<T, C, U, P>
+    for PythonBasedCodeBlock<T, C, U, P>
 where
     T: ETLFlow<U, ImportType = PythonImport, PreambleType = PythonPreamble>,
     C: OuterConstraint,

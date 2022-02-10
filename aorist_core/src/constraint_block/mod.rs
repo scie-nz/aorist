@@ -16,13 +16,13 @@ where
     U: AoristUniverse,
     C: OuterConstraint,
     P: TOuterProgram<TAncestry = C::TAncestry>,
-    Self::C: CodeBlockWithDefaultConstructor<'a, T, C, U, P>,
+    Self::C: CodeBlockWithDefaultConstructor<T, C, U, P>,
     Self::BuilderInputType: FlowBuilderInput<
-        PreambleType = <Self::C as CodeBlock<'a, T, C, U, P>>::P,
+        PreambleType = <Self::C as CodeBlock<T, C, U, P>>::P,
         ImportType = T::ImportType,
     >,
 {
-    type C: CodeBlock<'a, T, C, U, P>;
+    type C: CodeBlock<T, C, U, P>;
     type BuilderInputType;
 
     fn get_constraint_name(&self) -> AString;

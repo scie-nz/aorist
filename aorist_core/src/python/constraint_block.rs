@@ -25,7 +25,7 @@ where
     constraint_name: AString,
     title: AOption<AString>,
     body: AOption<AString>,
-    members: AVec<PythonBasedCodeBlock<'a, T, C, U, P>>,
+    members: AVec<PythonBasedCodeBlock<T, C, U, P>>,
     tasks_dict: AOption<AST>,
     _lt: PhantomData<&'a ()>,
     _constraint: PhantomData<C>,
@@ -37,7 +37,7 @@ where
     U: AoristUniverse,
     P: TOuterProgram<TAncestry = C::TAncestry>,
 {
-    type C = PythonBasedCodeBlock<'a, T, C, U, P>;
+    type C = PythonBasedCodeBlock<T, C, U, P>;
     type BuilderInputType = PythonFlowBuilderInput;
 
     fn get_constraint_name(&self) -> AString {
@@ -57,7 +57,7 @@ where
         constraint_name: AString,
         title: AOption<AString>,
         body: AOption<AString>,
-        members: AVec<PythonBasedCodeBlock<'a, T, C, U, P>>,
+        members: AVec<PythonBasedCodeBlock<T, C, U, P>>,
         tasks_dict: AOption<AST>,
     ) -> Self {
         Self {
