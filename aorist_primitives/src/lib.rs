@@ -691,7 +691,7 @@ macro_rules! define_constraint {
                     $body
                 }
             }
-            impl <'a> TConstraint<'a> for $element {
+            impl TConstraint for $element {
                 type Root = AoristRef<$root>;
                 type Outer = $outer;
                 type Ancestry = ConceptAncestry;

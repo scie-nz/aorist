@@ -22,7 +22,7 @@ use abi_stable::{
     StableAbi,
 };*/
 
-pub trait SatisfiableConstraint<'a>: TConstraint<'a> {
+pub trait SatisfiableConstraint<'a>: TConstraint {
     type TAncestry: Ancestry;
     fn satisfy(
         &mut self,
@@ -281,7 +281,7 @@ pub trait OuterConstraint: std::fmt::Display + Clone {
     fn get_root_type_name(&self) -> AString;
     fn inner(&self, caller: AString) -> &Self::TEnum;
 }
-pub trait TConstraint<'a>
+pub trait TConstraint
 where
     Self::Root: AoristConceptBase,
     Self::Outer: OuterConstraint<TAncestry = Self::Ancestry>,
@@ -300,33 +300,33 @@ where
     where
         Self: Sized;
     fn should_add(
-        root: <<Self as TConstraint<'a>>::Ancestry as Ancestry>::TConcept,
-        ancestry: &<Self as TConstraint<'a>>::Ancestry,
+        root: <<Self as TConstraint>::Ancestry as Ancestry>::TConcept,
+        ancestry: &<Self as TConstraint>::Ancestry,
     ) -> bool;
 }
 pub trait ConstraintSatisfactionBase<'a>
 where
     Self::RootType: AoristConceptBase,
     Self::Outer: OuterConstraint,
-    Self::ConstraintType: TConstraint<'a, Root = Self::RootType, Outer = Self::Outer>,
+    Self::ConstraintType: TConstraint<Root = Self::RootType, Outer = Self::Outer>,
 {
     type ConstraintType;
     type RootType;
     type Outer;
 }
-pub struct ConstraintBuilder<'a, T: TConstraint<'a>> {
+pub struct ConstraintBuilder<'a, T: TConstraint> {
     pub _phantom: PhantomData<T>,
     pub _phantom_lt: PhantomData<&'a ()>,
 }
-impl<'a, T: TConstraint<'a>> ConstraintBuilder<'a, T> {
+impl<'a, T: TConstraint> ConstraintBuilder<'a, T> {
     pub fn build_constraint(
         &self,
         root_uuid: AUuid,
         potential_child_constraints: AVec<RArc<RRwLock<T::Outer>>>,
     ) -> Result<T> {
-        <T as crate::constraint::TConstraint<'a>>::new(root_uuid, potential_child_constraints)
+        <T as crate::constraint::TConstraint>::new(root_uuid, potential_child_constraints)
     }
     pub fn get_root_type_name(&self) -> Result<AString> {
-        <T as crate::constraint::TConstraint<'a>>::get_root_type_name()
+        <T as crate::constraint::TConstraint>::get_root_type_name()
     }
 }

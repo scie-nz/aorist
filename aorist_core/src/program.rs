@@ -7,7 +7,7 @@ use aorist_primitives::{Ancestry, Context};
 use aorist_util::{AString, AVec};
 use linked_hash_map::LinkedHashMap;
 
-pub trait TProgram<'a, T: TConstraint<'a>> {
+pub trait TProgram<'a, T: TConstraint> {
     fn new(
         code: AString,
         entrypoint: AString,
