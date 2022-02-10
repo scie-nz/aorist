@@ -1451,9 +1451,9 @@ macro_rules! register_constraint_new {
                 }
             }
         }
-        pub enum [<$name Builder>]<$lt> {
+        pub enum [<$name Builder>] {
             $(
-                $element(ConstraintBuilder<$lt, $element>),
+                $element(ConstraintBuilder<$element>),
             )+
         }
         #[cfg(feature = "python")]
@@ -1466,17 +1466,16 @@ macro_rules! register_constraint_new {
             )+
             Ok(())
         }
-        impl <$lt> TBuilder<$lt> for [<$name Builder>]<$lt> {
+        impl TBuilder for [<$name Builder>] {
             type OuterType = Constraint;
             type TEnum = AoristRef<Concept>;
             type TAncestry = ConceptAncestry;
-            fn builders() -> AVec<[<$name Builder>]<$lt>> where Self : Sized {
+            fn builders() -> AVec<[<$name Builder>]> where Self : Sized {
                 vec![
                     $(
                         [<$name Builder>]::$element(
-                            ConstraintBuilder::<$lt, $element>{
+                            ConstraintBuilder::<$element>{
                                 _phantom: std::marker::PhantomData,
-                                _phantom_lt: std::marker::PhantomData,
                             }
                         ),
                     )+
@@ -1686,7 +1685,7 @@ macro_rules! define_dag_function {
             let programs_map = programs.into_iter().map(|(k, v)| (k.as_str().into(), v.into_iter().collect())).collect();
             let (output, _requirements) = match mode {
                 "airflow" => PythonBasedDriver::<
-                    AoristConstraintBuilder<'a>,
+                    AoristConstraintBuilder,
                     AirflowFlowBuilder<AoristRef<Universe>>,
                     AoristRef<Universe>,
                     AoristRef<Concept>,
@@ -1706,7 +1705,7 @@ macro_rules! define_dag_function {
                     None => AOption(ROption::RNone),
                 }),
                 "prefect" => PythonBasedDriver::<
-                    AoristConstraintBuilder<'a>,
+                    AoristConstraintBuilder,
                     PrefectFlowBuilder<AoristRef<Universe>>,
                     AoristRef<Universe>,
                     AoristRef<Concept>,
@@ -1726,7 +1725,7 @@ macro_rules! define_dag_function {
                     None => AOption(ROption::RNone),
                 }),
                 "python" => PythonBasedDriver::<
-                    AoristConstraintBuilder<'a>,
+                    AoristConstraintBuilder,
                     PythonFlowBuilder<AoristRef<Universe>>,
                     AoristRef<Universe>,
                     AoristRef<Concept>,
@@ -1746,7 +1745,7 @@ macro_rules! define_dag_function {
                     None => AOption(ROption::RNone),
                 }),
                 "jupyter" => PythonBasedDriver::<
-                    AoristConstraintBuilder<'a>,
+                    AoristConstraintBuilder,
                     JupyterFlowBuilder<AoristRef<Universe>>,
                     AoristRef<Universe>,
                     AoristRef<Concept>,

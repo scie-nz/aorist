@@ -21,16 +21,16 @@ use std::marker::PhantomData;
 pub struct PythonBasedDriver<'a, B, D, U, C, A, P>
 where
     U: AoristConceptBase + AoristUniverse,
-    B: TBuilder<'a, TEnum = C, TAncestry = A>,
+    B: TBuilder<TEnum = C, TAncestry = A>,
     D: FlowBuilderBase<U> + PythonBasedFlowBuilder<U>,
     <D as FlowBuilderBase<U>>::T: 'a,
     <D as FlowBuilderBase<U>>::T:
         ETLFlow<U, ImportType = PythonImport, PreambleType = PythonPreamble> + 'a,
     A: Ancestry,
     C: ToplineConcept<TUniverse = U>,
-    <B as TBuilder<'a>>::OuterType: OuterConstraint<TAncestry = A>,
-    <<B as TBuilder<'a>>::OuterType as OuterConstraint>::TAncestry: Ancestry<TConcept = C>,
-    <<<B as TBuilder<'a>>::OuterType as OuterConstraint>::TAncestry as Ancestry>::TConcept:
+    <B as TBuilder>::OuterType: OuterConstraint<TAncestry = A>,
+    <<B as TBuilder>::OuterType as OuterConstraint>::TAncestry: Ancestry<TConcept = C>,
+    <<<B as TBuilder>::OuterType as OuterConstraint>::TAncestry as Ancestry>::TConcept:
         ToplineConcept<TUniverse = U>,
     P: TOuterProgram<TAncestry = A>,
 {
@@ -52,16 +52,16 @@ where
 impl<'a, B, D, U, C, A, P> Driver<'a, B, D, U, C, A, P> for PythonBasedDriver<'a, B, D, U, C, A, P>
 where
     U: AoristConceptBase + AoristUniverse,
-    B: TBuilder<'a, TEnum = C, TAncestry = A>,
+    B: TBuilder<TEnum = C, TAncestry = A>,
     D: FlowBuilderBase<U> + PythonBasedFlowBuilder<U>,
     <D as FlowBuilderBase<U>>::T: 'a,
     <D as FlowBuilderBase<U>>::T:
         ETLFlow<U, ImportType = PythonImport, PreambleType = PythonPreamble> + 'a,
     A: Ancestry,
     C: ToplineConcept<TUniverse = U>,
-    <B as TBuilder<'a>>::OuterType: OuterConstraint<TAncestry = A>,
-    <<B as TBuilder<'a>>::OuterType as OuterConstraint>::TAncestry: Ancestry<TConcept = C>,
-    <<<B as TBuilder<'a>>::OuterType as OuterConstraint>::TAncestry as Ancestry>::TConcept:
+    <B as TBuilder>::OuterType: OuterConstraint<TAncestry = A>,
+    <<B as TBuilder>::OuterType as OuterConstraint>::TAncestry: Ancestry<TConcept = C>,
+    <<<B as TBuilder>::OuterType as OuterConstraint>::TAncestry as Ancestry>::TConcept:
         ToplineConcept<TUniverse = U>,
     P: TOuterProgram<TAncestry = A>,
 {

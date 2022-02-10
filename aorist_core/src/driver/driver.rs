@@ -33,7 +33,7 @@ pub type ConstraintsBlockMap<'a, C, P> = LinkedHashMap<
 pub trait Driver<'a, B, D, U, C, A, P>
 where
     U: AoristConceptBase + AoristUniverse,
-    B: TBuilder<'a, TEnum = C, TAncestry = A>,
+    B: TBuilder<TEnum = C, TAncestry = A>,
     D: FlowBuilderBase<U>,
     D: FlowBuilderMaterialize<
         U,
@@ -48,9 +48,9 @@ where
     <D as FlowBuilderBase<U>>::T: 'a,
     A: Ancestry,
     C: ToplineConcept<TUniverse = U>,
-    <B as TBuilder<'a>>::OuterType: OuterConstraint<TAncestry = A>,
-    <<B as TBuilder<'a>>::OuterType as OuterConstraint>::TAncestry: Ancestry<TConcept = C>,
-    <<<B as TBuilder<'a>>::OuterType as OuterConstraint>::TAncestry as Ancestry>::TConcept:
+    <B as TBuilder>::OuterType: OuterConstraint<TAncestry = A>,
+    <<B as TBuilder>::OuterType as OuterConstraint>::TAncestry: Ancestry<TConcept = C>,
+    <<<B as TBuilder>::OuterType as OuterConstraint>::TAncestry as Ancestry>::TConcept:
         ToplineConcept<TUniverse = U>,
     P: TOuterProgram<TAncestry = A>,
 {

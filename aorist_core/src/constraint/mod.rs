@@ -23,7 +23,7 @@ use abi_stable::{
 };*/
 
 
-pub trait TBuilder<'a> {
+pub trait TBuilder {
     type TEnum: ToplineConcept;
     type TAncestry: Ancestry;
     type OuterType: OuterConstraint; //, TEnum=Self::EnumType>;
@@ -288,11 +288,10 @@ where
     type RootType;
     type Outer;
 }
-pub struct ConstraintBuilder<'a, T: TConstraint> {
+pub struct ConstraintBuilder<T: TConstraint> {
     pub _phantom: PhantomData<T>,
-    pub _phantom_lt: PhantomData<&'a ()>,
 }
-impl<'a, T: TConstraint> ConstraintBuilder<'a, T> {
+impl<T: TConstraint> ConstraintBuilder<T> {
     pub fn build_constraint(
         &self,
         root_uuid: AUuid,
