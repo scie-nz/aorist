@@ -14,7 +14,7 @@ name = "aorist_core"
 path = "src/lib.rs"
 
 [features]
-python = ["pyo3", "aorist_attributes/python", "aorist_primitives/python", "aorist_util/python"]
+python = ["pyo3", "aorist_primitives/python", "aorist_util/python"]
 r = ["aorist_extendr-api", "aorist_extendr-engine"]
 sql = ["sqlformat", "sqlparser"]
 
@@ -23,7 +23,6 @@ Inflector = "0.11.4"
 abi_stable = "0.10.3"
 anyhow = "1.0"
 aorist_ast = {path = "../aorist_ast", version = "0.0.14"}
-aorist_attributes = {path = "../aorist_attributes", features = ["python"], version = "0.0.14"}
 aorist_concept = {path = "../aorist_concept", version = "0.0.1"}
 aorist_derive = {path = "../aorist_derive", version = "0.0.1"}
 aorist_primitives = {path = "../aorist_primitives", version = "0.0.14"}
