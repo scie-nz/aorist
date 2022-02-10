@@ -1180,7 +1180,7 @@ macro_rules! register_concept {
         #[cfg_attr(feature = "python", pyclass(module = "aorist"))]
         #[derive(Clone)]
         pub struct [<Py $name>] {
-            inner: AoristRef<$name>,
+            pub inner: AoristRef<$name>,
         }
         #[pymethods]
         impl [<Py $name>] {
@@ -1672,14 +1672,17 @@ macro_rules! define_dag_function {
             Dialect::Presto(Presto::new())
         ]")]
         pub fn $name<'a>(
-            mut universe: PyUniverse,
+            mut universe: PyConcept,
+            endpoints_py: PyEndpointConfig,
             constraints: Vec<String>,
             mode: &str,
             programs: BTreeMap<String, Vec<AoristConstraintProgram>>,
             dialect_preferences: Vec<Dialect>,
             dag_name: Option<String>,
         ) -> PyResult<String> {
-            universe.compute_uuids();
+            // TODO: must call compute_uuids before 
+            //universe.compute_uuids();
+            let endpoints = endpoints_py.inner.0.read().clone();
             let programs_map = programs.into_iter().map(|(k, v)| (k.as_str().into(), v.into_iter().collect())).collect();
             let (output, _requirements) = match mode {
                 "airflow" => PythonBasedDriver::<
@@ -1691,6 +1694,7 @@ macro_rules! define_dag_function {
                     AoristConstraintProgram,
                 >::new(
                     universe.inner.clone(),
+                    endpoints,
                     constraints.into_iter().map(|x| x.as_str().into()).collect(),
                     programs_map,
                     dialect_preferences.into_iter().collect(),
@@ -1710,6 +1714,7 @@ macro_rules! define_dag_function {
                     AoristConstraintProgram,
                 >::new(
                     universe.inner.clone(),
+                    endpoints,
                     constraints.into_iter().map(|x| x.as_str().into()).collect(),
                     programs_map,
                     dialect_preferences.into_iter().collect(),
@@ -1729,6 +1734,7 @@ macro_rules! define_dag_function {
                     AoristConstraintProgram,
                 >::new(
                     universe.inner.clone(),
+                    endpoints,
                     constraints.into_iter().map(|x| x.as_str().into()).collect(),
                     programs_map,
                     dialect_preferences.into_iter().collect(),
@@ -1748,6 +1754,7 @@ macro_rules! define_dag_function {
                     AoristConstraintProgram,
                 >::new(
                     universe.inner.clone(),
+                    endpoints,
                     constraints.into_iter().map(|x| x.as_str().into()).collect(),
                     programs_map,
                     dialect_preferences.into_iter().collect(),

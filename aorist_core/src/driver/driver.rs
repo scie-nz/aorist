@@ -723,7 +723,9 @@ where
         ancestors
     }
     fn new(
-        universe: U,
+        concept: C,
+        endpoints: <U as AoristUniverse>::TEndpoints,
+        //universe: U,
         topline_constraint_names: LinkedHashSet<AString>,
         programs: LinkedHashMap<AString, AVec<P>>,
         preferences: AVec<Dialect>,
@@ -732,10 +734,10 @@ where
     where
         Self: Sized,
     {
-        let endpoints = universe.get_endpoints();
+        //let endpoints = universe.get_endpoints();
         let sorted_builders = B::get_relevant_builders(&topline_constraint_names);
         let mut concept_map: HashMap<ATaskId, C> = HashMap::new();
-        let concept = C::from_universe(universe);
+        //let concept = C::from_universe(universe);
         concept.populate_child_concept_map(&mut concept_map);
         let by_object_type = Self::get_concept_map_by_object_type(concept_map.clone());
 
