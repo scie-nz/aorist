@@ -22,22 +22,6 @@ use abi_stable::{
     StableAbi,
 };*/
 
-pub trait SatisfiableConstraint<'a>: TConstraint {
-    type TAncestry: Ancestry;
-    fn satisfy(
-        &mut self,
-        c: <Self::TAncestry as Ancestry>::TConcept,
-        d: &Dialect,
-        ancestry: RArc<Self::TAncestry>,
-    ) -> Result<AOption<(AString, AString, ParameterTuple, Dialect)>>;
-
-    fn satisfy_given_preference_ordering(
-        &mut self,
-        r: <Self::TAncestry as Ancestry>::TConcept,
-        preferences: &AVec<Dialect>,
-        ancestry: RArc<Self::TAncestry>,
-    ) -> Result<(AString, AString, ParameterTuple, Dialect)>;
-}
 
 
 // TODO: duplicate function, should be unified in trait
