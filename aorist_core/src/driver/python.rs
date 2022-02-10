@@ -18,14 +18,13 @@ use linked_hash_set::LinkedHashSet;
 use std::collections::{BTreeSet, HashMap};
 use std::marker::PhantomData;
 
-pub struct PythonBasedDriver<'a, B, D, U, C, A, P>
+pub struct PythonBasedDriver<B, D, U, C, A, P>
 where
     U: AoristConceptBase + AoristUniverse,
     B: TBuilder<TEnum = C, TAncestry = A>,
     D: FlowBuilderBase<U> + PythonBasedFlowBuilder<U>,
-    <D as FlowBuilderBase<U>>::T: 'a,
     <D as FlowBuilderBase<U>>::T:
-        ETLFlow<U, ImportType = PythonImport, PreambleType = PythonPreamble> + 'a,
+        ETLFlow<U, ImportType = PythonImport, PreambleType = PythonPreamble>,
     A: Ancestry,
     C: ToplineConcept<TUniverse = U>,
     <B as TBuilder>::OuterType: OuterConstraint<TAncestry = A>,
@@ -38,7 +37,7 @@ where
     constraints: LinkedHashMap<ATaskId, RArc<RRwLock<B::OuterType>>>,
     satisfied_constraints:
         HashMap<ATaskId, RArc<RRwLock<ConstraintState<B::OuterType, P>>>>,
-    blocks: AVec<PythonBasedConstraintBlock<'a, D::T, B::OuterType, U, P>>,
+    blocks: AVec<PythonBasedConstraintBlock<D::T, B::OuterType, U, P>>,
     ancestry: A,
     dag_type: PhantomData<D>,
     endpoints: <U as AoristUniverse>::TEndpoints,
@@ -49,14 +48,13 @@ where
     preferences: AVec<Dialect>,
     render_dependencies: bool,
 }
-impl<'a, B, D, U, C, A, P> Driver<'a, B, D, U, C, A, P> for PythonBasedDriver<'a, B, D, U, C, A, P>
+impl<B, D, U, C, A, P> Driver<B, D, U, C, A, P> for PythonBasedDriver<B, D, U, C, A, P>
 where
     U: AoristConceptBase + AoristUniverse,
     B: TBuilder<TEnum = C, TAncestry = A>,
     D: FlowBuilderBase<U> + PythonBasedFlowBuilder<U>,
-    <D as FlowBuilderBase<U>>::T: 'a,
     <D as FlowBuilderBase<U>>::T:
-        ETLFlow<U, ImportType = PythonImport, PreambleType = PythonPreamble> + 'a,
+        ETLFlow<U, ImportType = PythonImport, PreambleType = PythonPreamble>,
     A: Ancestry,
     C: ToplineConcept<TUniverse = U>,
     <B as TBuilder>::OuterType: OuterConstraint<TAncestry = A>,
@@ -65,7 +63,7 @@ where
         ToplineConcept<TUniverse = U>,
     P: TOuterProgram<TAncestry = A>,
 {
-    type CB = PythonBasedConstraintBlock<'a, <D as FlowBuilderBase<U>>::T, B::OuterType, U, P>;
+    type CB = PythonBasedConstraintBlock<<D as FlowBuilderBase<U>>::T, B::OuterType, U, P>;
 
     fn get_programs_for(&self, constraint_name: &AString) -> AVec<P> {
         match self.programs.get(constraint_name) {
@@ -105,7 +103,6 @@ where
     fn add_block(
         &mut self,
         constraint_block: PythonBasedConstraintBlock<
-            'a,
             <D as FlowBuilderBase<U>>::T,
             B::OuterType,
             U,

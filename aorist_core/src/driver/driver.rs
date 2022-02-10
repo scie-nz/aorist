@@ -30,7 +30,7 @@ pub type ConstraintsBlockMap<C, P> = LinkedHashMap<
     ),
 >;
 
-pub trait Driver<'a, B, D, U, C, A, P>
+pub trait Driver<B, D, U, C, A, P>
 where
     U: AoristConceptBase + AoristUniverse,
     B: TBuilder<TEnum = C, TAncestry = A>,
@@ -38,14 +38,12 @@ where
     D: FlowBuilderMaterialize<
         U,
         BuilderInputType = <Self::CB as ConstraintBlock<
-            'a,
             <D as FlowBuilderBase<U>>::T,
             B::OuterType,
             U,
             P,
         >>::BuilderInputType,
     >,
-    <D as FlowBuilderBase<U>>::T: 'a,
     A: Ancestry,
     C: ToplineConcept<TUniverse = U>,
     <B as TBuilder>::OuterType: OuterConstraint<TAncestry = A>,
@@ -54,7 +52,7 @@ where
         ToplineConcept<TUniverse = U>,
     P: TOuterProgram<TAncestry = A>,
 {
-    type CB: ConstraintBlock<'a, <D as FlowBuilderBase<U>>::T, B::OuterType, U, P>;
+    type CB: ConstraintBlock<<D as FlowBuilderBase<U>>::T, B::OuterType, U, P>;
 
     fn init_unsatisfied_constraints(&self) -> Result<ConstraintsBlockMap<B::OuterType, P>>;
 
@@ -201,7 +199,7 @@ where
         existing_names: &mut HashSet<AString>,
     ) -> Result<(
         AVec<
-            <Self::CB as ConstraintBlock<'a, <D as FlowBuilderBase<U>>::T, B::OuterType, U, P>>::C,
+            <Self::CB as ConstraintBlock<<D as FlowBuilderBase<U>>::T, B::OuterType, U, P>>::C,
         >,
         AOption<AST>,
     )> {
@@ -306,7 +304,6 @@ where
         };
         for (_dialect, (unique_constraints, uuid_mappings)) in processed.into_iter() {
             let block = <Self::CB as ConstraintBlock<
-                'a,
                 <D as FlowBuilderBase<U>>::T,
                 B::OuterType,
                 U,

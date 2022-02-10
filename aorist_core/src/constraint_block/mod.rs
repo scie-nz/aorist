@@ -10,7 +10,7 @@ use aorist_util::{AString, AVec};
 use linked_hash_set::LinkedHashSet;
 use std::collections::{BTreeSet, HashMap};
 
-pub trait ConstraintBlock<'a, T, C, U, P>
+pub trait ConstraintBlock<T, C, U, P>
 where
     T: ETLFlow<U>,
     U: AoristUniverse,

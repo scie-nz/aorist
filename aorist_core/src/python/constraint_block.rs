@@ -15,7 +15,7 @@ use linked_hash_map::LinkedHashMap;
 use std::collections::HashMap;
 use std::marker::PhantomData;
 
-pub struct PythonBasedConstraintBlock<'a, T, C, U, P>
+pub struct PythonBasedConstraintBlock<T, C, U, P>
 where
     T: ETLFlow<U, ImportType = PythonImport, PreambleType = PythonPreamble>,
     C: OuterConstraint,
@@ -27,10 +27,9 @@ where
     body: AOption<AString>,
     members: AVec<PythonBasedCodeBlock<T, C, U, P>>,
     tasks_dict: AOption<AST>,
-    _lt: PhantomData<&'a ()>,
     _constraint: PhantomData<C>,
 }
-impl<'a, T, C, U, P> ConstraintBlock<'a, T, C, U, P> for PythonBasedConstraintBlock<'a, T, C, U, P>
+impl<T, C, U, P> ConstraintBlock<T, C, U, P> for PythonBasedConstraintBlock<T, C, U, P>
 where
     T: ETLFlow<U, ImportType = PythonImport, PreambleType = PythonPreamble>,
     C: OuterConstraint,
@@ -66,7 +65,6 @@ where
             body,
             members,
             tasks_dict,
-            _lt: PhantomData,
             _constraint: PhantomData,
         }
     }
@@ -91,7 +89,7 @@ where
     }
 }
 
-impl<'a, T, C, U, P> PythonBasedConstraintBlock<'a, T, C, U, P>
+impl<T, C, U, P> PythonBasedConstraintBlock<T, C, U, P>
 where
     T: ETLFlow<U, ImportType = PythonImport, PreambleType = PythonPreamble>,
     C: OuterConstraint,
