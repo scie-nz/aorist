@@ -1,4 +1,4 @@
-<a href="https://aorist.io/" target="_blank">
+<a href="https://aorist.scie.nz/" target="_blank">
     <img src="https://user-images.githubusercontent.com/31727438/136563601-6cfa52c4-0307-45e1-9e77-68f26cc97976.png" alt="Aorist logo" title="Aiorist" align="right" height="60" />
 </a>
 
@@ -23,7 +23,7 @@ common transformations, as well as machine learning operations.
 
 ## Installation instructions
 
-Go to <a href="https://aorist.io/" target="_blank">aorist.io </a>for installation instructions and a tutorial.
+Go to <a href="https://aorist.scie.nz/" target="_blank">aorist.io </a>for installation instructions and a tutorial.
 You can find the developer guide below.
 
 # Developer Guide
