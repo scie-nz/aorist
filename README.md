@@ -23,7 +23,7 @@ common transformations, as well as machine learning operations.
 
 ## Installation instructions
 
-Go to <a href="https://aorist.scie.nz/" target="_blank">aorist.io </a>for installation instructions and a tutorial.
+Go to <a href="https://aorist.scie.nz/" target="_blank">aorist.scie.nz</a> for installation instructions and a tutorial.
 You can find the developer guide below.
 
 # Developer Guide
