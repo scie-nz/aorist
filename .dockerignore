@@ -1,0 +1,8 @@
+.git/
+.dockerignore
+target/
+# Meaningful changes to Dockerfile are already going to invalidate cache
+Dockerfile
+*.md
+docs/
+tests/

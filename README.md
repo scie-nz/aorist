@@ -4,9 +4,7 @@
 
 # Aorist
 
-Aorist is a code-generation tool for MLOps. Its aim is to generate legible
-code for common repetitive tasks in data science, such as data replication,
-common transformations, as well as machine learning operations.
+Aorist is a code-generation tool for MLOps. Its aim is to generate legible code for common repetitive tasks in data science, such as data replication, common transformations, as well as machine learning operations.
 
 ## Table of contents
 
@@ -40,7 +38,7 @@ Aorist has a Rust core and a Python interface. The project relies on the followi
 - `aorist_core` -- This is the core Rust crate for the Aorist project. The main object taxonomy is defined here. New structs and enums can be added here.
 - `aorist_constraint` -- This Rust crate lists constraints that can be applied to Aorist universes made up of concepts as listed in `aorist_core`. Multiple `aorist_constraint` crates can be compiled against the `aorist_core` crate.
 - `aorist` -- This Rust crate exports a Python library via a PyO3 binding. This directory also contains the conda recipe used for creating the `aorist` conda package (which includes the compiled Rust library, as well as a number of Python helpers).
-- `aorist_recipes` -- This Python package contains recipes (using Python, TrinoSQL, R, or Bash) that can be used to satisfy constraints as defined in `aorist_constraint`. Multiple `aorist_recipes` packages can be provided at runtime. 
+- `aorist_recipes` -- This Python package contains recipes (using Python, TrinoSQL, R, or Bash) that can be used to satisfy constraints as defined in `aorist_constraint`. Multiple `aorist_recipes` packages can be provided at runtime.
 - `scienz` -- This Python package contains a set of pre-defined datasets which can be used out-of-the box with the `aorist` package.
 
 ## How to build
@@ -86,7 +84,7 @@ mamba install "conda-build>=3.20" colorama \
 cd ~ && git clone git@github.com:mamba-org/boa.git
 cd boa ~ && pip install -e .
 ```
- 
+
 
 #### Building
 
@@ -94,26 +92,26 @@ Build the packages by running:
 
 ```
 cd ~/aorist
-cd aorist && conda mambabuild . && cd .. 
+cd aorist && conda mambabuild . && cd ..
 anaconda upload [ARTIFACT] --label dev
 conda search --override -c scienz/label/dev aorist
 
 mamba install aorist dill astor -c conda-forge -c scienz/label/dev
 
-cd aorist_recipes && conda mambabuild . && cd .. 
+cd aorist_recipes && conda mambabuild . && cd ..
 
 cd scienz && conda mambabuild . && cd ..
-``` 
+```
 
 ### Adding new datasets
 
-You can add new canonical datasets to the `scienz` package. Once accepted for publication metadata associated with these datasets can be distributed painlessly. To do so, please follow the steps described below: 
+You can add new canonical datasets to the `scienz` package. Once accepted for publication metadata associated with these datasets can be distributed painlessly. To do so, please follow the steps described below:
 
 1. specify your datasets in a new Python file in the `scienz/scienz` directory. (You can look at other files in that directory for examples)
 2. make sure to import the datasets in `scienz/__init__.py`.
 3. Run `conda build .` from within the `scienz` subdirectory. The build step will also trigger a test, which ensures that your dataset is correctly specified.
 4. If `conda build .` succeeds, submit a Pull Request against scienz/aorist.
-5. Once the PR is accepted, the `scienz` package will be rebuilt and your dataset will be accessible via Anaconda. 
+5. Once the PR is accepted, the `scienz` package will be rebuilt and your dataset will be accessible via Anaconda.
 
 ### How to test
 
@@ -129,7 +127,7 @@ python build_for_testing.py
 Inside aorist/scienz:
 ```
 PYTHONPATH=$PYTHONPATH:../aorist_recipes:../scienz:../aorist python run_test.py
-``` 
+```
 If no error messages appear, your new dataset has been successfully added.
 
 ## Overview of an Aorist universe
